@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.function.Function;
 
-class BatchPathWaiter extends BaseTask implements PathWaiter {
+class BatchPathWaiter extends BaseTask {
   private static final Logger LOG = LoggerFactory.getLogger(BatchPathWaiter.class);
   private static final AlluxioURI EMPTY = new AlluxioURI("");
 

@@ -26,7 +26,6 @@ import java.util.function.Function;
 public class MdSync {
 
   TaskTracker mTaskTracker;
-  Function<AlluxioURI, UfsClient> mGetClient;
 
   /**
    * Creates a metadata sync kernel.

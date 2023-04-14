@@ -30,7 +30,6 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.file.DefaultFileSystemMaster;
-import alluxio.master.file.RpcContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
@@ -59,6 +58,7 @@ import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.Fingerprint;
 import alluxio.underfs.UfsClient;
+import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsStatus;
@@ -218,10 +218,10 @@ public class MetadataSyncer implements SyncProcess {
   @Override
   public SyncProcessResult performSync(
       LoadResult loadResult, UfsSyncPathCache syncPathCache) throws Throwable {
-    try (RpcContext rpcContext =
-             mFsMaster.createNonMergingJournalRpcContext(new InternalOperationContext())) {
-      MetadataSyncContext context =
-          MetadataSyncContext.Builder.builder(rpcContext, loadResult).build();
+    try (MetadataSyncContext context =
+          MetadataSyncContext.Builder.builder(
+              mFsMaster.createNonMergingJournalRpcContext(
+                  new InternalOperationContext()), loadResult).build()) {
 
       MountTable.ReverseResolution reverseResolution
           = reverseResolve(loadResult.getBaseLoadPath());
@@ -317,7 +317,8 @@ public class MetadataSyncer implements SyncProcess {
         LockingScheme lockingScheme = new LockingScheme(alluxioSyncPath,
             InodeTree.LockPattern.WRITE_EDGE, false);
         try (LockedInodePath lockedInodePath =
-                 mInodeTree.lockInodePath(lockingScheme, rpcContext.getJournalContext())) {
+                 mInodeTree.lockInodePath(
+                     lockingScheme, context.getRpcContext().getJournalContext())) {
           // after taking the lock on the root path,
           // we must verify the mount is still valid
           String ufsMountUriString = PathUtils.normalizePath(ufsMountPath, "/");
@@ -337,9 +338,13 @@ public class MetadataSyncer implements SyncProcess {
               lockedInodePath)) {
             SyncProcessState syncState = new SyncProcessState(alluxioMountPath,
                 alluxioSyncPath, lockedInodePath,
-                readFrom, skipInitialReadFrom, ufsMountPath, readUntil,
+                readFrom, skipInitialReadFrom, readUntil,
                 context, inodeIterator, ufsIterator, mountInfo, ufs);
             lastUfsStatus = updateMetadataSync(syncState);
+          }
+          if (lockedInodePath.fullPathExists() && lockedInodePath.getInode().isDirectory()
+              && !lockedInodePath.getInode().asDirectory().isDirectChildrenLoaded()) {
+            context.addDirectoriesToUpdateIsChildrenLoaded(lockedInodePath.getUri());
           }
         }
         context.updateDirectChildrenLoaded(mInodeTree);
@@ -465,10 +470,10 @@ public class MetadataSyncer implements SyncProcess {
         List<Inode> createdInodes;
         if (currentUfsStatus.mUfsItem.isDirectory()) {
           createdInodes = createInodeDirectoryMetadata(syncState.mContext, lockedInodePath,
-              currentUfsStatus.mUfsItem);
+              currentUfsStatus.mUfsItem, syncState);
         } else {
           createdInodes = createInodeFileMetadata(syncState.mContext, lockedInodePath,
-              currentUfsStatus.mUfsItem, syncState.mMountInfo);
+              currentUfsStatus.mUfsItem, syncState);
         }
         if (syncState.mContext.getDescendantType() != DescendantType.NONE) {
           // Mark directories as having their children loaded based on the sync descendent type
@@ -547,7 +552,10 @@ public class MetadataSyncer implements SyncProcess {
             syncState.mContext.reportSyncOperationSuccess(SyncOperation.UPDATE);
           }
         } else if (syncPlan.toDelete() && syncPlan.toLoadMetadata()) {
-          lockedInodePath.getInode().isDirectory();
+          if (lockedInodePath.getInode().isDirectory()) {
+            LOG.warn("Deleting directory {} in metadata sync due to metadata change",
+                lockedInodePath.getUri());
+          }
           deletePath(syncState.mContext, lockedInodePath);
           lockedInodePath.removeLastInode();
           try (LockedInodePath newLockedInodePath = mInodeTree.lockInodePath(
@@ -555,10 +563,10 @@ public class MetadataSyncer implements SyncProcess {
               syncState.mContext.getMetadataSyncJournalContext())) {
             if (currentUfsStatus.mUfsItem.isDirectory()) {
               createInodeDirectoryMetadata(syncState.mContext, newLockedInodePath,
-                  currentUfsStatus.mUfsItem);
+                  currentUfsStatus.mUfsItem, syncState);
             } else {
               createInodeFileMetadata(syncState.mContext, newLockedInodePath,
-                  currentUfsStatus.mUfsItem, syncState.mMountInfo);
+                  currentUfsStatus.mUfsItem, syncState);
             }
           }
           syncState.mContext.reportSyncOperationSuccess(SyncOperation.RECREATE);
@@ -634,7 +642,7 @@ public class MetadataSyncer implements SyncProcess {
 
   private List<Inode> createInodeFileMetadata(
       MetadataSyncContext context, LockedInodePath lockedInodePath,
-      UfsStatus ufsStatus, MountInfo mountInfo
+      UfsStatus ufsStatus, SyncProcessState syncState
   ) throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistsException,
       BlockInfoException, IOException {
     long blockSize = ((UfsFileStatus) ufsStatus).getBlockSize();
@@ -653,6 +661,14 @@ public class MetadataSyncer implements SyncProcess {
         .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
             .setTtl(commonPOptions.getTtl())
             .setTtlAction(commonPOptions.getTtlAction()));
+    Fingerprint fingerprint = Fingerprint.create(syncState.mUfs.getUnderFSType(), ufsStatus);
+    createFileContext.setMissingDirFingerprint(() ->
+        Fingerprint.create(syncState.mUfs.getUnderFSType(),
+            new UfsDirectoryStatus(
+                ufsStatus.getName(), ufsStatus.getOwner(),
+                ufsStatus.getGroup(), ufsStatus.getMode())).serialize());
+    createFileContext.setFingerprint(fingerprint.serialize());
+
     createFileContext.setWriteType(WriteType.THROUGH); // set as through since already in UFS
     createFileContext.setMetadataLoad(true, false);
     createFileContext.setOwner(ufsStatus.getOwner());
@@ -661,7 +677,7 @@ public class MetadataSyncer implements SyncProcess {
     short ufsMode = ufsStatus.getMode();
     Mode mode = new Mode(ufsMode);
     Long ufsLastModified = ufsStatus.getLastModifiedTime();
-    if (mountInfo.getOptions().getShared()) {
+    if (syncState.mMountInfo.getOptions().getShared()) {
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
     }
     createFileContext.getOptions().setMode(mode.toProto());
@@ -675,7 +691,7 @@ public class MetadataSyncer implements SyncProcess {
 
   private List<Inode> createInodeDirectoryMetadata(
       MetadataSyncContext context, LockedInodePath lockedInodePath,
-      UfsStatus ufsStatus
+      UfsStatus ufsStatus, SyncProcessState syncState
   ) throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistsException,
       IOException {
     MountTable.Resolution resolution = mMountTable.resolve(lockedInodePath.getUri());
@@ -691,6 +707,10 @@ public class MetadataSyncer implements SyncProcess {
     createDirectoryContext.setMountPoint(isMountPoint);
     createDirectoryContext.setMetadataLoad(true, false);
     createDirectoryContext.setWriteType(WriteType.THROUGH);
+    String dirFingerprint = Fingerprint.create(
+        syncState.mUfs.getUnderFSType(), ufsStatus).serialize();
+    createDirectoryContext.setMissingDirFingerprint(() -> dirFingerprint);
+    createDirectoryContext.setFingerprint(dirFingerprint);
 
     String ufsOwner = ufsStatus.getOwner();
     String ufsGroup = ufsStatus.getGroup();
@@ -745,7 +765,6 @@ public class MetadataSyncer implements SyncProcess {
     final LockedInodePath mAlluxioSyncPathLocked;
     final AlluxioURI mReadFrom;
     final boolean mSkipInitialReadFrom;
-    final String mUfsMountPath;
     final AlluxioURI mReadUntil;
     final MetadataSyncContext mContext;
     final SkippableInodeIterator mInodeIterator;
@@ -760,7 +779,6 @@ public class MetadataSyncer implements SyncProcess {
         AlluxioURI alluxioSyncPath,
         LockedInodePath alluxioSyncPathLocked,
         AlluxioURI readFrom, boolean skipInitialReadFrom,
-        String ufsMountPath,
         @Nullable AlluxioURI readUntil,
         MetadataSyncContext context,
         SkippableInodeIterator inodeIterator,
@@ -770,7 +788,6 @@ public class MetadataSyncer implements SyncProcess {
       mAlluxioSyncPath = alluxioSyncPath;
       mAlluxioSyncPathLocked = alluxioSyncPathLocked;
       mReadFrom = readFrom;
-      mUfsMountPath = ufsMountPath;
       mSkipInitialReadFrom = skipInitialReadFrom;
       mReadUntil = readUntil;
       mContext = context;

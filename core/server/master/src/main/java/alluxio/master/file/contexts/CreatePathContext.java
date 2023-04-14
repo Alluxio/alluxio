@@ -11,6 +11,7 @@
 
 package alluxio.master.file.contexts;
 
+import alluxio.Constants;
 import alluxio.client.WriteType;
 import alluxio.conf.Configuration;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -31,6 +32,7 @@ import com.google.protobuf.GeneratedMessageV3;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
 /**
@@ -53,6 +55,7 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
   private WriteType mWriteType;
   protected Map<String, byte[]> mXAttr;
   protected XAttrPropagationStrategy mXAttrPropStrat;
+  @Nullable protected Supplier<String> mMissingDirFingerprint = null;
 
   //
   // Values for the below fields will be extracted from given proto options
@@ -319,6 +322,23 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
    */
   public K setFingerprint(String fingerprint) {
     mFingerprint = fingerprint;
+    return getThis();
+  }
+
+  /**
+   * @return the fingerprint for missing directories
+   */
+  public String getMissingDirFingerprint() {
+    return mMissingDirFingerprint == null
+        ? Constants.INVALID_UFS_FINGERPRINT : mMissingDirFingerprint.get();
+  }
+
+  /**
+   * @param fingerprint the fingerprint to be used when creating missing nested directories
+   * @return the updated context
+   */
+  public K setMissingDirFingerprint(Supplier<String> fingerprint) {
+    mMissingDirFingerprint = fingerprint;
     return getThis();
   }
 

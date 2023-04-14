@@ -220,7 +220,7 @@ public interface ReadOnlyInodeStore extends Closeable {
 
         @Override
         public InodeIterationResult next() {
-          return null;
+          throw new NoSuchElementException();
         }
       };
     }
@@ -245,6 +245,9 @@ public interface ReadOnlyInodeStore extends Closeable {
 
         @Override
         public InodeIterationResult next() {
+          if (mFirst == null) {
+            throw new NoSuchElementException();
+          }
           InodeIterationResult ret = mFirst;
           mFirst = null;
           return ret;

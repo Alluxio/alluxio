@@ -83,13 +83,13 @@ class LoadRequestExecutor implements Closeable {
     mPathLoaderTasks.put(id, task);
     mPathLoaderTaskQueue.add(id);
     mPathLoaderTasksWithPendingLoads.add(id);
-    notify();
+    notifyAll();
   }
 
   synchronized void hasNewLoadTask(long taskId) {
     if (!mPathLoaderTasksWithPendingLoads.contains(taskId)) {
       mPathLoaderTaskQueue.add(taskId);
-      notify();
+      notifyAll();
     }
   }
 
@@ -143,7 +143,7 @@ class LoadRequestExecutor implements Closeable {
               break;
             }
           }
-          // wait until a rate limited task is ready, or this.notify() is called
+          // wait until a rate limited task is ready, or this.notifyAll() is called
           if (waitNanos == 0) {
             wait();
           } else {
@@ -181,7 +181,7 @@ class LoadRequestExecutor implements Closeable {
 
   private synchronized void releaseRunning() {
     mRunning.incrementAndGet();
-    notify();
+    notifyAll();
   }
 
   private void runTask(PathLoaderTask task, LoadRequest loadRequest) {

@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.function.Function;
 
-class DirectoryPathWaiter extends BaseTask implements PathWaiter {
+class DirectoryPathWaiter extends BaseTask {
   private static final Logger LOG = LoggerFactory.getLogger(DirectoryPathWaiter.class);
 
   private final TrieNode<AlluxioURI> mCompletedDirs = new TrieNode<>();
@@ -61,6 +61,7 @@ class DirectoryPathWaiter extends BaseTask implements PathWaiter {
   @Override
   public synchronized void nextCompleted(SyncProcessResult completed) {
     if (!completed.isTruncated()) {
+      LOG.debug("Completed load of path {}", completed.getBaseLoadPath());
       mCompletedDirs.insert(completed.getBaseLoadPath().getPath())
           .setValue(completed.getBaseLoadPath());
       notifyAll();

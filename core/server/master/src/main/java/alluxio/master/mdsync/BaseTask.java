@@ -154,7 +154,7 @@ public abstract class BaseTask implements PathWaiter {
   /**
    * @return the sync task time in ms
    */
-  public long getStartTime() {
+  public synchronized long getStartTime() {
     Preconditions.checkState(mIsCompleted != null,
         "Task must be completed before accessing the start time");
     return mStartTime;

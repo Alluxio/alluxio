@@ -111,8 +111,6 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
-    System.out.println(result.getTaskInfo().getStats().toReportString());
-    System.out.println(result.getTaskInfo());
 
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET,
         "", mFileSystemMaster, mClient);
@@ -121,8 +119,6 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
-    System.out.println(result.getTaskInfo().getStats().toReportString());
-    System.out.println(result.getTaskInfo());
 
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET,
         "", mFileSystemMaster, mClient);
@@ -140,12 +136,8 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
 //        MOUNT_POINT, DescendantType.NONE, mDirectoryLoadType, 0);
 //    result.waitComplete(TIMEOUT_MS);
 //    assertTrue(result.succeeded());
-//    System.out.println(result.getTaskInfo().toString());
-//    System.out.println(result.getTaskInfo().getStats().toString());
-//    System.out.println(result.getTaskInfo());
 //    items = mFileSystemMaster.listStatus(MOUNT_POINT, ListStatusContext.create(
 //        ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)));
-//    System.out.println(Arrays.toString(items.toArray()));
 //  }
 
   @Test
@@ -157,9 +149,6 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
-    System.out.println(result.getTaskInfo().toString());
-    System.out.println(result.getTaskInfo().getStats().toString());
-    System.out.println(result.getTaskInfo());
 
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET,
         "", mFileSystemMaster, mClient);
@@ -168,9 +157,6 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
-    System.out.println(result.getTaskInfo().toString());
-    System.out.println(result.getTaskInfo().getStats().toString());
-    System.out.println(result.getTaskInfo());
 
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET,
         "", mFileSystemMaster, mClient);
@@ -187,9 +173,6 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
-    System.out.println(result.getTaskInfo());
-    System.out.println(result.getTaskInfo().getStats());
-    System.out.println(result.getTaskInfo());
 
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, TEST_DIRECTORY, mFileSystemMaster, mClient);
 
@@ -197,9 +180,6 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
-    System.out.println(result.getTaskInfo());
-    System.out.println(result.getTaskInfo().getStats());
-    System.out.println(result.getTaskInfo());
 
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, TEST_DIRECTORY, mFileSystemMaster, mClient);
   }
@@ -223,9 +203,6 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
-    System.out.println(result.getTaskInfo());
-    System.out.println(result.getTaskInfo().getStats());
-    System.out.println(result.getTaskInfo());
 
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, TEST_DIRECTORY, mFileSystemMaster, mClient);
 
@@ -233,9 +210,6 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
-    System.out.println(result.getTaskInfo());
-    System.out.println(result.getTaskInfo().getStats());
-    System.out.println(result.getTaskInfo());
 
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, TEST_DIRECTORY, mFileSystemMaster, mClient);
   }
@@ -260,9 +234,6 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
-    System.out.println(result.getTaskInfo());
-    System.out.println(result.getTaskInfo().getStats());
-    System.out.println(result.getTaskInfo());
 
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
 
@@ -270,9 +241,6 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
-    System.out.println(result.getTaskInfo());
-    System.out.println(result.getTaskInfo().getStats());
-    System.out.println(result.getTaskInfo());
 
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
   }
@@ -288,18 +256,12 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
-    System.out.println(result.getTaskInfo());
-    System.out.println(result.getTaskInfo().getStats());
-    System.out.println(result.getTaskInfo());
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
 
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
-    System.out.println(result.getTaskInfo());
-    System.out.println(result.getTaskInfo().getStats());
-    System.out.println(result.getTaskInfo());
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
   }
 
@@ -462,7 +424,6 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
       result.waitComplete(TIMEOUT_MS);
     });
     assertSyncFailureReason(result.getTaskInfo(), SyncFailReason.PROCESSING_UNKNOWN);
-    System.out.println(result.getTaskInfo().getStats().toReportString());
 
     syncer.beforePerformSyncOne((context) -> {
       Exception e = new Exception("fail");

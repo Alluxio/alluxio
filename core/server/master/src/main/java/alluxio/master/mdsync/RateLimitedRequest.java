@@ -11,6 +11,9 @@
 
 package alluxio.master.mdsync;
 
+import java.util.Objects;
+import com.google.common.base.Preconditions;
+
 class RateLimitedRequest implements Comparable<RateLimitedRequest> {
 
   PathLoaderTask mTask;
@@ -18,8 +21,8 @@ class RateLimitedRequest implements Comparable<RateLimitedRequest> {
   long mPermit;
 
   RateLimitedRequest(PathLoaderTask task, LoadRequest loadRequest, long permit) {
-    mTask = task;
-    mLoadRequest = loadRequest;
+    mTask = Preconditions.checkNotNull(task);
+    mLoadRequest = Preconditions.checkNotNull(loadRequest);
     mPermit = permit;
   }
 
@@ -29,6 +32,24 @@ class RateLimitedRequest implements Comparable<RateLimitedRequest> {
 
   public long getWaitTime() {
     return mTask.getRateLimiter().getWaitTimeNanos(mPermit);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    RateLimitedRequest that = (RateLimitedRequest) o;
+    return mPermit == that.mPermit && mTask.equals(that.mTask)
+        && mLoadRequest.equals(that.mLoadRequest);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(mTask, mLoadRequest, mPermit);
   }
 
   @Override

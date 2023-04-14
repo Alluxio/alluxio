@@ -53,6 +53,7 @@ import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.security.authorization.Mode;
+import alluxio.underfs.Fingerprint;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
@@ -926,6 +927,13 @@ public class InodeTree implements DelegatingJournaled {
       missingDirContext.setMountPoint(false);
       missingDirContext.setOwner(context.getOwner());
       missingDirContext.setGroup(context.getGroup());
+      if (context.isMetadataLoad() && !context.isPersistNonExistingParentDirectories()) {
+        // If this is a metadata load, and we are not going to persist internal
+        // directories (i.e. adding object markers), then we mark the internal
+        // directories as persisted
+        missingDirContext.setWriteType(WriteType.THROUGH);
+        missingDirContext.setMissingDirFingerprint(context::getMissingDirFingerprint);
+      }
       if (context.getXAttr() != null
           && context.getXAttrPropStrat() != null
           && context.getXAttrPropStrat() == XAttrPropagationStrategy.NEW_PATHS) {
@@ -955,6 +963,10 @@ public class InodeTree implements DelegatingJournaled {
             dAcl.generateChildDirACL(mode);
         newDir.setInternalAcl(pair.getFirst());
         newDir.setDefaultACL(pair.getSecond());
+      }
+      if (context.isPersisted() && !context.isPersistNonExistingParentDirectories()) {
+        newDir.setPersistenceState(PersistenceState.PERSISTED);
+        newDir.setUfsFingerprint(context.getMissingDirFingerprint());
       }
       String newDirPath = k == 0 ? ROOT_PATH
           : pathBuilder.append(AlluxioURI.SEPARATOR).append(pathComponents[k]).toString();

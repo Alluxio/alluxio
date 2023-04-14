@@ -31,15 +31,18 @@ import alluxio.master.mdsync.TaskInfo;
 
 import com.google.common.base.Preconditions;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.Set;
 import javax.annotation.Nullable;
 
 /**
  * The context for the metadata sync.
  */
-public class MetadataSyncContext {
+public class MetadataSyncContext implements Closeable {
   private final DescendantType mDescendantType;
   private final MetadataSyncRpcContext mRpcContext;
+  private final RpcContext mBaseRpcContext;
   private final boolean mAllowConcurrentModification;
   private final FileSystemMasterCommonPOptions mCommonOptions;
   private final Set<AlluxioURI> mDirectoriesToUpdateIsLoaded = new ConcurrentHashSet<>();
@@ -52,18 +55,20 @@ public class MetadataSyncContext {
    * Creates a metadata sync context.
    *
    * @param loadResult    the load UFS result
-   * @param rpcContext    the rpc context
+   * @param baseRpcContext the base rpc context
+   * @param rpcContext    the metadata sync rpc context
    * @param commonOptions the common options for TTL configurations
    * @param startAfter    indicates where the sync starts (exclusive), used on retries
    */
   private MetadataSyncContext(
-      LoadResult loadResult, MetadataSyncRpcContext rpcContext,
+      LoadResult loadResult, RpcContext baseRpcContext, MetadataSyncRpcContext rpcContext,
       FileSystemMasterCommonPOptions commonOptions,
       @Nullable String startAfter,
       boolean allowConcurrentModification
   ) {
     mDescendantType = loadResult.getTaskInfo().getDescendantType();
     mRpcContext = rpcContext;
+    mBaseRpcContext = baseRpcContext;
     mCommonOptions = commonOptions;
     mAllowConcurrentModification = allowConcurrentModification;
     mStartAfter = startAfter;
@@ -174,10 +179,11 @@ public class MetadataSyncContext {
       try (LockedInodePath lockedInodePath =
                inodeTree.lockInodePath(
                    uri, InodeTree.LockPattern.WRITE_INODE, getRpcContext().getJournalContext())) {
-        inodeTree.setDirectChildrenLoaded(
-            () -> getRpcContext().getJournalContext(),
-            lockedInodePath.getInode().asDirectory())
-        ;
+        if (lockedInodePath.fullPathExists()) {
+          inodeTree.setDirectChildrenLoaded(
+              () -> getRpcContext().getJournalContext(),
+              lockedInodePath.getInode().asDirectory());
+        }
       } catch (FileDoesNotExistException e) {
         throw new RuntimeException(e);
       }
@@ -213,6 +219,12 @@ public class MetadataSyncContext {
     mTaskInfo.getStats().reportSyncFailReason(mLoadResult.getLoadRequest(), mLoadResult, reason, t);
   }
 
+  @Override
+  public void close() throws IOException {
+    mRpcContext.close();
+    mBaseRpcContext.close();
+  }
+
   static class MetadataSyncRpcContext extends RpcContext {
     public MetadataSyncRpcContext(
         BlockDeletionContext blockDeleter, MetadataSyncMergeJournalContext journalContext,
@@ -232,6 +244,7 @@ public class MetadataSyncContext {
   public static class Builder {
     private LoadResult mLoadResult;
     private MetadataSyncRpcContext mRpcContext;
+    private RpcContext mBaseRpcContext;
     private FileSystemMasterCommonPOptions mCommonOptions = MetadataSyncer.NO_TTL_OPTION;
     private String mStartAfter = null;
     private boolean mAllowConcurrentModification = true;
@@ -257,6 +270,7 @@ public class MetadataSyncContext {
        *  During the metadata sync process, we are creating/updating many files, but we don't want
        *  to hard flush journals on every inode updates.
        */
+      builder.mBaseRpcContext = rpcContext;
       builder.mRpcContext = new MetadataSyncRpcContext(rpcContext.getBlockDeletionContext(),
           new MetadataSyncMergeJournalContext(rpcContext.getJournalContext(),
               new FileSystemJournalEntryMerger()), rpcContext.getOperationContext());
@@ -304,7 +318,7 @@ public class MetadataSyncContext {
      */
     public MetadataSyncContext build() {
       return new MetadataSyncContext(
-          mLoadResult, mRpcContext, mCommonOptions,
+          mLoadResult, mBaseRpcContext, mRpcContext, mCommonOptions,
           mStartAfter, mAllowConcurrentModification);
     }
   }

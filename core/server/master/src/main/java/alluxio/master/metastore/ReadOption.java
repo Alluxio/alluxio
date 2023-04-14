@@ -68,7 +68,6 @@ public class ReadOption {
     private boolean mSkipCache = false;
     private String mReadFrom = null;
     private String mPrefix = null;
-    private String mStopAt = null;
 
     /**
      * Sets whether to skip caching.

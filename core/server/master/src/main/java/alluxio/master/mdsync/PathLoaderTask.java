@@ -12,7 +12,6 @@
 package alluxio.master.mdsync;
 
 import alluxio.AlluxioURI;
-import alluxio.collections.ConcurrentHashSet;
 import alluxio.file.options.DescendantType;
 import alluxio.file.options.DirectoryLoadType;
 import alluxio.resource.CloseableResource;
@@ -24,8 +23,9 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Function;
 import javax.annotation.Nullable;
@@ -37,23 +37,29 @@ import javax.annotation.Nullable;
 public class PathLoaderTask {
   private static final Logger LOG = LoggerFactory.getLogger(PathLoaderTask.class);
 
-  private final TaskInfo mTaskInfo;
   /**
    * All load requests that are ready, but have not yet started executing.
+   * This must be concurrent safe as other threads will poll it to get the
+   * next load request.
    */
   private final ConcurrentLinkedDeque<LoadRequest> mNextLoad;
   /**
+   * True when the task is completed, must be volatile, as other threads
+   * will access it to check if they should stop polling {@link PathLoaderTask#mNextLoad}.
+   */
+  private volatile boolean mCompleted = false;
+  /**
    * These are all running (or ready to be run) load requests.
    */
-  private final ConcurrentHashMap<Long, LoadRequest> mRunningLoads = new ConcurrentHashMap<>();
+  private final HashMap<Long, LoadRequest> mRunningLoads = new HashMap<>();
   /**
    * The load id that starts each load (where a load is a set of multiple load batches until
    * a batch is not truncated) is stored here until the request that truncates this load
    * is completed.
    */
-  private final ConcurrentHashSet<Long> mTruncatedLoads = new ConcurrentHashSet<>();
+  private final HashSet<Long> mTruncatedLoads = new HashSet<>();
+  private final TaskInfo mTaskInfo;
   private long mNxtLoadId = 0;
-  private boolean mCompleted = false;
   private Runnable mRunOnPendingLoad;
   private final RateLimiter mRateLimiter;
 
