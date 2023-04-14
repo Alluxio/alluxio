@@ -22,7 +22,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.meta.MutableInode;
 import alluxio.master.file.meta.MutableInodeDirectory;
-import alluxio.master.journal.JournalUtils;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.metastore.InodeStore.WriteBatch;
 
@@ -45,14 +44,11 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadLocalRandom;
 
 public class RocksInodeStoreTest {
   @Rule
@@ -109,7 +105,7 @@ public class RocksInodeStoreTest {
         System.out.println("RocksStore has refCount=" + mStore.mRocksStore.mRefCount.sum());
 
         if (i == 10) {
-          mStore.mRocksStore.mStopServing.set(true);
+          mStore.mRocksStore.mState.set(true);
           System.out.println("Marked RocksDB for closing");
         }
 

@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicStampedReference;
 import java.util.concurrent.atomic.LongAdder;
 
@@ -20,19 +21,18 @@ public class RocksExclusiveLockHandle implements AutoCloseable {
   private static final boolean TEST_MODE = Configuration.getBoolean(PropertyKey.TEST_MODE);
 
   final UnlockAction mUnlockAction;
-  final AtomicStampedReference<Boolean> mStopServingFlag;
+  final AtomicReference<VersionedRocksStoreStatus> mStatus;
   final LongAdder mRefCount;
 
   /**
    * The constructor.
    *
-   * @param stopServingFlag the flag on RocksStore
    * @param refCount the ref count on RocksStore
    */
   public RocksExclusiveLockHandle(UnlockAction unlockAction,
-      AtomicStampedReference<Boolean> stopServingFlag, LongAdder refCount) {
+      AtomicReference<VersionedRocksStoreStatus> status, LongAdder refCount) {
     mUnlockAction = unlockAction;
-    mStopServingFlag = stopServingFlag;
+    mStatus = status;
     mRefCount = refCount;
   }
 
@@ -54,10 +54,10 @@ public class RocksExclusiveLockHandle implements AutoCloseable {
     }
     switch (mUnlockAction) {
       case RESET_NEW_VERSION:
-        mStopServingFlag.set(false, mStopServingFlag.getStamp() + 1);
+        mStatus.set(new VersionedRocksStoreStatus(false, mStatus.get().mVersion + 1));
         break;
       case RESET_SAME_VERSION:
-        mStopServingFlag.set(false, mStopServingFlag.getStamp());
+        mStatus.set(new VersionedRocksStoreStatus(false, mStatus.get().mVersion));
         break;
       case NO_OP:
         break;

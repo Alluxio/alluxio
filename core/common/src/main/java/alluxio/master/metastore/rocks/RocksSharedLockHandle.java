@@ -1,5 +1,6 @@
 package alluxio.master.metastore.rocks;
 
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicStampedReference;
 import java.util.concurrent.atomic.LongAdder;
 
@@ -10,27 +11,28 @@ import java.util.concurrent.atomic.LongAdder;
  */
 public class RocksSharedLockHandle implements AutoCloseable {
   final LongAdder mRefCount;
-  final AtomicStampedReference<Boolean> mStopServing;
-  final int mLockedVersion;
+  final AtomicReference<VersionedRocksStoreStatus> mStatus;
+  final VersionedRocksStoreStatus mLockedVersion;
 
   /**
    * The constructor.
    *
    * @param refCount the ref count to decrement on close
    */
-  public RocksSharedLockHandle(AtomicStampedReference<Boolean> stopServingFlag, LongAdder refCount) {
-    mStopServing = stopServingFlag;
+  public RocksSharedLockHandle(AtomicReference<VersionedRocksStoreStatus> status, LongAdder refCount) {
+    mStatus = status;
     mRefCount = refCount;
-    mLockedVersion = mStopServing.getStamp();
+    mLockedVersion = mStatus.get();
   }
 
   @Override
   public void close() {
-    if (mStopServing.getStamp() == mLockedVersion) {
+    // TODO(jiacheng): so where is the version number used?
+    if (mStatus.get() == mLockedVersion) {
       mRefCount.decrement();
     }
     /*
-     * If the version has changed, that means the exclusive lock has been forced by the closer
+     * If the version(ref) has changed, that means the exclusive lock has been forced by the closer
      * and the ref count has been reset to zero. In that case, the lock should not decrement
      * the ref count because the count has been reset.
      */

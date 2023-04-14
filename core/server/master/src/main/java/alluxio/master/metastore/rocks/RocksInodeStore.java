@@ -324,7 +324,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
   @Override
   public void clear() {
     LOG.info("Waiting to clear RocksInodeStore..");
-    try (RocksExclusiveLockHandle lock = mRocksStore.lockForRestart()) {
+    try (RocksExclusiveLockHandle lock = mRocksStore.lockForRewrite()) {
       LOG.info("Clearing RocksDB");
       mRocksStore.clear();
     }
@@ -575,14 +575,14 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
   @Override
   public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
-    try (RocksExclusiveLockHandle lock = mRocksStore.lockForRestart()) {
+    try (RocksExclusiveLockHandle lock = mRocksStore.lockForCheckpoint()) {
       mRocksStore.writeToCheckpoint(output);
     }
   }
 
   @Override
   public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
-    try (RocksExclusiveLockHandle lock = mRocksStore.lockForRestart()) {
+    try (RocksExclusiveLockHandle lock = mRocksStore.lockForRewrite()) {
       mRocksStore.restoreFromCheckpoint(input);
     }
   }

@@ -73,7 +73,7 @@ public class RocksStoreTest {
                 "b".getBytes());
       }
     }
-    try (RocksExclusiveLockHandle lock = store.lockForRestart()) {
+    try (RocksExclusiveLockHandle lock = store.lockForCheckpoint()) {
       store.writeToCheckpoint(baos);
     }
     try (RocksExclusiveLockHandle lock = store.lockForClosing()) {
@@ -88,7 +88,7 @@ public class RocksStoreTest {
     store =
         new RocksStore("test-new", newBbDir, backupsDir, dbOpts, columnDescriptors,
             Arrays.asList(testColumn));
-    try (RocksExclusiveLockHandle lock = store.lockForRestart()) {
+    try (RocksExclusiveLockHandle lock = store.lockForRewrite()) {
       store.restoreFromCheckpoint(
           new CheckpointInputStream(new ByteArrayInputStream(baos.toByteArray())));
     }
