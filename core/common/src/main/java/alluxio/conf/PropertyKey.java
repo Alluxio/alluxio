@@ -5442,7 +5442,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Expire bucket path statistics in cache for this time period. "
               + "Set 0min to disable the cache. If enabling the cache, "
               + "be careful that Alluxio S3 API will behave differently from AWS S3 API"
-              + " when coming an illegal request.")
+              + " if bucket path cache entries become stale.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.NONE)
           .build();
