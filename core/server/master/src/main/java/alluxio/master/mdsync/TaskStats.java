@@ -14,17 +14,18 @@ package alluxio.master.mdsync;
 import alluxio.collections.Pair;
 import alluxio.master.file.metasync.SyncFailReason;
 import alluxio.master.file.metasync.SyncOperation;
-import alluxio.util.CommonUtils;
 
 import com.google.common.base.MoreObjects;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.Nullable;
 
+/**
+ * The metadata sync task stats.
+ */
 public class TaskStats {
   final AtomicInteger mBatches = new AtomicInteger();
   final AtomicInteger mStatuses = new AtomicInteger();
@@ -32,65 +33,22 @@ public class TaskStats {
   final AtomicInteger mLoadRequests = new AtomicInteger();
   final AtomicInteger mProcessStarted = new AtomicInteger();
   final AtomicInteger mProcessCompleted = new AtomicInteger();
+  final AtomicLong[] mSuccessOperationCount;
+  final Map<Long, SyncFailure> mSyncFailReasons =
+      new ConcurrentHashMap<>();
   volatile boolean mLoadFailed;
   volatile boolean mProcessFailed;
   volatile boolean mFirstLoadFile;
   volatile boolean mFirstLoadHadResult;
-  volatile AtomicLong mSyncStartTime = new AtomicLong(Long.MAX_VALUE);
-  volatile AtomicLong mSyncFinishTime = new AtomicLong(Long.MIN_VALUE);
   volatile boolean mSyncFailed = false;
 
-  final AtomicLong[] mSuccessOperationCount;
-  final Map<Long, SyncFailure> mSyncFailReasons =
-      new ConcurrentHashMap<>();
-
+  /**
+   * Creates a new task stats.
+   */
   public TaskStats() {
     mSuccessOperationCount = new AtomicLong[SyncOperation.values().length];
     for (int i = 0; i < mSuccessOperationCount.length; ++i) {
       mSuccessOperationCount[i] = new AtomicLong();
-    }
-  }
-
-  public static class SyncFailure {
-    private final LoadRequest mLoadRequest;
-    @Nullable
-    private final LoadResult mLoadResult;
-    private final Throwable mThrowable;
-    private final SyncFailReason mFailReason;
-
-    public SyncFailure(
-        LoadRequest loadRequest, @Nullable LoadResult loadResult,
-        SyncFailReason failReason, Throwable throwable) {
-      mLoadRequest = loadRequest;
-      mLoadResult = loadResult;
-      mThrowable = throwable;
-      mFailReason = failReason;
-    }
-
-    public SyncFailReason getSyncFailReason() {
-      return mFailReason;
-    }
-
-    @Override
-    public String toString() {
-      String loadFrom = "{beginning}";
-      if (mLoadRequest.getPreviousLoadLast().isPresent()) {
-        loadFrom = mLoadRequest.getPreviousLoadLast().get().toString();
-      }
-      String loadUntil = "{N/A}";
-      if (mLoadResult != null && mLoadResult.getUfsLoadResult().getLastItem().isPresent()) {
-        loadUntil = mLoadResult.getUfsLoadResult().getLastItem().get().toString();
-      }
-
-      MoreObjects.ToStringHelper helper = MoreObjects.toStringHelper(this)
-          .add("LoadRequestId", mLoadRequest.getLoadRequestId())
-          .add("FailReason", mFailReason)
-          .add("DescendantType", mLoadRequest.getDescendantType())
-          .add("LoadPath", mLoadRequest.getLoadRequestId())
-          .add("LoadFrom", loadFrom)
-          .add("LoadUntil", loadUntil)
-          .add("Exception", mThrowable);
-      return helper.toString();
     }
   }
 
@@ -110,6 +68,9 @@ public class TaskStats {
     return helper.toString();
   }
 
+  /**
+   * @return a formatted string that is used to display as the cli command output
+   */
   public Pair<Long, String> toReportString() {
     Pair<Long, String> successOps = getSuccessOperationCountString();
     MoreObjects.ToStringHelper helper = MoreObjects.toStringHelper(this);
@@ -124,18 +85,30 @@ public class TaskStats {
     return new Pair<>(successOps.getFirst(), helper.toString());
   }
 
+  /**
+   * @return if the first load was file
+   */
   public boolean firstLoadWasFile() {
     return mFirstLoadFile;
   }
 
+  /**
+   * @return if the first load had results
+   */
   public boolean firstLoadHadResult() {
     return mFirstLoadHadResult;
   }
 
+  /**
+   * @return if the load is failed
+   */
   public boolean isLoadFailed() {
     return mLoadFailed;
   }
 
+  /**
+   * @return if the processing is failed
+   */
   public boolean isProcessFailed() {
     return mProcessFailed;
   }
@@ -216,8 +189,9 @@ public class TaskStats {
 
   /**
    * reports the completion of a successful sync operation.
+   *
    * @param operation the operation
-   * @param count the number of successes
+   * @param count     the number of successes
    */
   public void reportSyncOperationSuccess(SyncOperation operation, long count) {
     mSuccessOperationCount[operation.getValue()].addAndGet(count);
@@ -238,30 +212,80 @@ public class TaskStats {
   }
 
   /**
-   * @param timestamp the timestamp
+   * Reports a sync fail reason.
+   * @param request the load request
+   * @param loadResult the load result
+   * @param reason the sync fail reason
+   * @param t the exception
    */
-  public void updateSyncStartTime(long timestamp) {
-    mSyncStartTime.updateAndGet(
-        (ts) -> Math.min(ts, timestamp)
-    );
-  }
-
-  /**
-   * @param timestamp the timestamp
-   */
-  public void updateSyncFinishTime(long timestamp) {
-    mSyncFinishTime.updateAndGet(
-        (ts) -> Math.max(ts, timestamp)
-    );
-  }
-
-  public void reportSyncFailReason(LoadRequest request, @Nullable LoadResult loadResult, SyncFailReason reason, Throwable t) {
+  public void reportSyncFailReason(
+      LoadRequest request, @Nullable LoadResult loadResult,
+      SyncFailReason reason, Throwable t) {
     mSyncFailReasons.putIfAbsent(
         request.getLoadRequestId(), new SyncFailure(request, loadResult, reason, t)
     );
   }
 
+  /**
+   * @return the sync fail reason
+   */
   public Map<Long, SyncFailure> getSyncFailReasons() {
     return mSyncFailReasons;
+  }
+
+  /**
+   * The sync failure.
+   */
+  public static class SyncFailure {
+    private final LoadRequest mLoadRequest;
+    @Nullable
+    private final LoadResult mLoadResult;
+    private final Throwable mThrowable;
+    private final SyncFailReason mFailReason;
+
+    /**
+     * Constructs an object.
+     * @param loadRequest the load request
+     * @param loadResult the load result
+     * @param failReason the fail reason
+     * @param throwable the exception
+     */
+    public SyncFailure(
+        LoadRequest loadRequest, @Nullable LoadResult loadResult,
+        SyncFailReason failReason, Throwable throwable) {
+      mLoadRequest = loadRequest;
+      mLoadResult = loadResult;
+      mThrowable = throwable;
+      mFailReason = failReason;
+    }
+
+    /**
+     * @return the sync fail reason
+     */
+    public SyncFailReason getSyncFailReason() {
+      return mFailReason;
+    }
+
+    @Override
+    public String toString() {
+      String loadFrom = "{beginning}";
+      if (mLoadRequest.getPreviousLoadLast().isPresent()) {
+        loadFrom = mLoadRequest.getPreviousLoadLast().get().toString();
+      }
+      String loadUntil = "{N/A}";
+      if (mLoadResult != null && mLoadResult.getUfsLoadResult().getLastItem().isPresent()) {
+        loadUntil = mLoadResult.getUfsLoadResult().getLastItem().get().toString();
+      }
+
+      MoreObjects.ToStringHelper helper = MoreObjects.toStringHelper(this)
+          .add("LoadRequestId", mLoadRequest.getLoadRequestId())
+          .add("FailReason", mFailReason)
+          .add("DescendantType", mLoadRequest.getDescendantType())
+          .add("LoadPath", mLoadRequest.getLoadRequestId())
+          .add("LoadFrom", loadFrom)
+          .add("LoadUntil", loadUntil)
+          .add("Exception", mThrowable);
+      return helper.toString();
+    }
   }
 }

@@ -28,7 +28,6 @@ import org.mockito.Mockito;
 
 import java.time.Clock;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class BaseTaskTest {
 

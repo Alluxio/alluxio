@@ -194,8 +194,9 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem, UfsClient 
   @Override
   public Iterator<UfsStatus> listStatusIterable(
       String path, ListOptions options, String startAfter, int batchSize) throws IOException {
-  // TODO just calling listStatus might result in OOM
-  // implements a better iterator that fetches objects on demand
+    // Calling this method on non s3 UFS might result in OOM because batch based fetching
+    // is not supported and this method essentially fetches all ufs status and converts it to
+    // an iterator.
     UfsStatus[] result = listStatus(path, options);
     if (result == null) {
       return null;

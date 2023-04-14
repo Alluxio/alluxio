@@ -15,10 +15,18 @@ import alluxio.AlluxioURI;
 
 import java.util.Objects;
 
+/**
+ * A path sequence.
+ */
 public class PathSequence {
   private final AlluxioURI mStart;
   private final AlluxioURI mEnd;
 
+  /**
+   * Creates a path sequence.
+   * @param start the start path
+   * @param end the end path
+   */
   public PathSequence(AlluxioURI start, AlluxioURI end) {
     mStart = start;
     mEnd = end;

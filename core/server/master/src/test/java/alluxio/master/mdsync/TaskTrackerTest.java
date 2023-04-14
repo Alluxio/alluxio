@@ -52,8 +52,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicLongArray;
-import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.stream.Stream;
 
 public class TaskTrackerTest {
@@ -190,7 +188,8 @@ public class TaskTrackerTest {
         int finalJ = j;
         CommonUtils.waitForResult("Rate limited listStatus", remainingLoadCount::get,
             v -> v == totalBatches - finalJ,
-            WaitForOptions.defaults().setTimeoutMs(100000));        // wait for the next listStatus call to get its rate limiter permit
+            // wait for the next listStatus call to get its rate limiter permit
+            WaitForOptions.defaults().setTimeoutMs(100000));
         rateLimiterBlocker.acquire();
         // allow the rate limited operation to succeed by moving the time forward
         time.addAndGet(timePerPermit);
@@ -200,7 +199,8 @@ public class TaskTrackerTest {
       result.getSecond().waitComplete(WAIT_TIMEOUT);
       assertEquals(remainingLoadCount.get(), 0);
       TaskStats stats = result.getSecond().getTaskInfo().getStats();
-      checkStats(stats, totalBatches, totalBatches, 0, totalBatches, false, false, false, false);
+      checkStats(stats, totalBatches, totalBatches, 0, totalBatches,
+          false, false, false, false);
     }
   }
 

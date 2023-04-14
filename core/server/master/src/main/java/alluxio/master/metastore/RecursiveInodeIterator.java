@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.master.metastore;
 
 import alluxio.AlluxioURI;
@@ -19,7 +30,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
-import java.util.StringJoiner;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 
@@ -170,7 +180,10 @@ public class RecursiveInodeIterator implements SkippableInodeIterator {
     return new InodeIterationResult(current, lockedPath);
   }
 
-  // TODO add comments
+  /**
+   * @param currentInodeName the current inode name
+   * @return the startAfter string that are used when getChildren is called
+   */
   private @Nullable String populateStartAfter(String currentInodeName) {
     if (mNameComponents.size() + 1 >= mStartAfterPathComponents.size()) {
       return null;

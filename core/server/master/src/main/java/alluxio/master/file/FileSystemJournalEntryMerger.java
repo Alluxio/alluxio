@@ -15,7 +15,6 @@ import alluxio.master.file.meta.MutableInodeDirectory;
 import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.master.journal.JournalEntryMerger;
 import alluxio.proto.journal.Journal;
-import alluxio.underfs.Fingerprint;
 
 import java.util.ArrayList;
 import java.util.Collections;

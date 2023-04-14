@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.master.file.metasync;
 
 import alluxio.AlluxioURI;
@@ -17,12 +28,9 @@ import alluxio.master.journal.FileSystemMergeJournalContext;
 import alluxio.master.journal.MetadataSyncMergeJournalContext;
 import alluxio.master.mdsync.LoadResult;
 import alluxio.master.mdsync.TaskInfo;
-import alluxio.util.CommonUtils;
 
 import com.google.common.base.Preconditions;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
 
@@ -30,43 +38,23 @@ import javax.annotation.Nullable;
  * The context for the metadata sync.
  */
 public class MetadataSyncContext {
-  static class MetadataSyncRpcContext extends RpcContext {
-    public MetadataSyncRpcContext(
-        BlockDeletionContext blockDeleter, MetadataSyncMergeJournalContext journalContext,
-        OperationContext operationContext) {
-      super(blockDeleter, journalContext, operationContext);
-    }
-
-    @Override
-    public MetadataSyncMergeJournalContext getJournalContext() {
-      return (MetadataSyncMergeJournalContext) super.getJournalContext();
-    }
-  }
-
   private final DescendantType mDescendantType;
   private final MetadataSyncRpcContext mRpcContext;
   private final boolean mAllowConcurrentModification;
   private final FileSystemMasterCommonPOptions mCommonOptions;
-  @Nullable
-  private String mStartAfter;
-  private final Map<SyncOperation, Long> mFailedMap = new HashMap<>();
-  private final Map<SyncOperation, Long> mSuccessMap = new HashMap<>();
-  private long mNumUfsFilesScanned = 0;
-  /** temporary one. */
   private final Set<AlluxioURI> mDirectoriesToUpdateIsLoaded = new ConcurrentHashSet<>();
-  private Long mSyncStartTime = null;
-  private Long mSyncFinishTime = null;
-  @Nullable
-  private SyncFailReason mFailReason = null;
   private final TaskInfo mTaskInfo;
   private final LoadResult mLoadResult;
+  @Nullable
+  private String mStartAfter;
 
   /**
    * Creates a metadata sync context.
-   * @param loadResult the load UFS result
-   * @param rpcContext the rpc context
+   *
+   * @param loadResult    the load UFS result
+   * @param rpcContext    the rpc context
    * @param commonOptions the common options for TTL configurations
-   * @param startAfter indicates where the sync starts (exclusive), used on retries
+   * @param startAfter    indicates where the sync starts (exclusive), used on retries
    */
   private MetadataSyncContext(
       LoadResult loadResult, MetadataSyncRpcContext rpcContext,
@@ -83,6 +71,11 @@ public class MetadataSyncContext {
     mLoadResult = loadResult;
   }
 
+  /**
+   * Validates the start after string.
+   *
+   * @param syncRoot the sync root
+   */
   public void validateStartAfter(AlluxioURI syncRoot) throws InvalidPathException {
     if (mStartAfter == null || !mStartAfter.startsWith(AlluxioURI.SEPARATOR)) {
       return;
@@ -119,6 +112,7 @@ public class MetadataSyncContext {
    * During the sync, the inodes might be updated by other requests concurrently, that makes
    * the sync operation stale. If the concurrent modification is allowed, these inodes will be
    * skipped, otherwise the sync will fail.
+   *
    * @return true, if the concurrent modification is allowed. Otherwise, false
    */
   public boolean isConcurrentModificationAllowed() {
@@ -163,6 +157,7 @@ public class MetadataSyncContext {
 
   /**
    * adds directories which are supposed to update is children loaded flag when the sync is done.
+   *
    * @param path the path
    */
   public void addDirectoriesToUpdateIsChildrenLoaded(AlluxioURI path) {
@@ -171,6 +166,7 @@ public class MetadataSyncContext {
 
   /**
    * updates the direct children loaded flag for directories in a recursive sync.
+   *
    * @param inodeTree the inode tree
    */
   public void updateDirectChildrenLoaded(InodeTree inodeTree) throws InvalidPathException {
@@ -190,6 +186,7 @@ public class MetadataSyncContext {
 
   /**
    * reports the completion of a successful sync operation.
+   *
    * @param operation the operation
    */
   public void reportSyncOperationSuccess(SyncOperation operation) {
@@ -198,41 +195,35 @@ public class MetadataSyncContext {
 
   /**
    * reports the completion of a successful sync operation.
+   *
    * @param operation the operation
-   * @param count the number of successes
+   * @param count     the number of successes
    */
   public void reportSyncOperationSuccess(SyncOperation operation, long count) {
-    mSuccessMap.put(operation, mSuccessMap.getOrDefault(operation, 0L) + count);
     mTaskInfo.getStats().reportSyncOperationSuccess(operation, count);
   }
 
   /**
-   * reports a file from ufs has been scanned.
+   * Reports a fail reason leading to the sync failure.
+   *
+   * @param reason the reason
+   * @param t the throwable
    */
-  public void ufsFileScanned() {
-    mNumUfsFilesScanned++;
-    if (mNumUfsFilesScanned % 10000 == 0) {
-      System.out.println(mNumUfsFilesScanned + " files scanned");
-    }
-  }
-
-  /**
-   * @param failReason the fail reason
-   */
-  public void setFailReason(SyncFailReason failReason) {
-    mFailReason = failReason;
-  }
-
-  /**
-   * Starts the metadata sync.
-   */
-  public void startSync() {
-    mSyncStartTime = CommonUtils.getCurrentMs();
-  }
-
-
   public void reportSyncFailReason(SyncFailReason reason, Throwable t) {
     mTaskInfo.getStats().reportSyncFailReason(mLoadResult.getLoadRequest(), mLoadResult, reason, t);
+  }
+
+  static class MetadataSyncRpcContext extends RpcContext {
+    public MetadataSyncRpcContext(
+        BlockDeletionContext blockDeleter, MetadataSyncMergeJournalContext journalContext,
+        OperationContext operationContext) {
+      super(blockDeleter, journalContext, operationContext);
+    }
+
+    @Override
+    public MetadataSyncMergeJournalContext getJournalContext() {
+      return (MetadataSyncMergeJournalContext) super.getJournalContext();
+    }
   }
 
   /**
@@ -247,6 +238,7 @@ public class MetadataSyncContext {
 
     /**
      * Creates a builder.
+     *
      * @param rpcContext the rpc context
      * @param loadResult the load UFS result
      * @return a new builder

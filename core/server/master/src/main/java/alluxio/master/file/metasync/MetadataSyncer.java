@@ -127,10 +127,33 @@ public class MetadataSyncer implements SyncProcess {
     mMdSync = new MdSync(mTaskTracker);
   }
 
+  private static String ufsPathToAlluxioPath(String ufsPath, String ufsMount, String alluxioMount) {
+    // first check if the ufsPath is the ufsMount path
+    if (ufsPath.length() < ufsMount.length()
+        && !ufsPath.endsWith(AlluxioURI.SEPARATOR)) {
+      Preconditions.checkState(ufsMount.equals(ufsPath + AlluxioURI.SEPARATOR));
+      ufsPath = ufsMount;
+    }
+    // ufs path will be the full path (but will not include the bucket)
+    // e.g. nested/file or /nested/file
+    // ufsMount will include the ufs mount path without the bucket, eg /nested/
+    // First remove the ufsMount from ufsPath, including the first / so that
+    // ufsPath does not start with /
+    if (ufsPath.startsWith(AlluxioURI.SEPARATOR)) {
+      ufsPath = ufsPath.substring(ufsMount.length());
+    } else {
+      ufsPath = ufsPath.substring(ufsMount.length() - 1);
+    }
+    // now append the alluxio mount path to the ufs path
+    // the alluxio mount path will be something like /a/b/c
+    return alluxioMount + ufsPath;
+  }
+
   /**
    * Perform a metadata sync on the given path. Launches the task asynchronously.
+   *
    * @param alluxioPath the path to sync
-   * @param descendantType the depth of descendents to load
+   * @param descendantType the depth of descendant to load
    * @param directoryLoadType the type of listing to do on directories in the UFS
    * @param syncInterval the sync interval to check if a sync is needed
    * @param isAsyncMetadataLoading if the sync is initiated by an async load metadata cli command
@@ -147,6 +170,7 @@ public class MetadataSyncer implements SyncProcess {
 
   /**
    * Perform a metadata sync on the given path. Launches the task asynchronously.
+   *
    * @param alluxioPath the path to sync
    * @param descendantType the depth of descendents to load
    * @param directoryLoadType the type of listing to do on directories in the UFS
@@ -171,7 +195,7 @@ public class MetadataSyncer implements SyncProcess {
   }
 
   private UfsManager.UfsClient getClient(MountTable.ReverseResolution reverseResolution) {
-    UfsManager.UfsClient ufsClient =  mMountTable.getUfsClient(
+    UfsManager.UfsClient ufsClient = mMountTable.getUfsClient(
         reverseResolution.getMountInfo().getMountId());
     if (ufsClient == null) {
       throw new NotFoundRuntimeException(String.format("Mount not found for UFS path %s",
@@ -191,110 +215,6 @@ public class MetadataSyncer implements SyncProcess {
     return reverseResolution;
   }
 
-  private static String ufsPathToAlluxioPath(String ufsPath, String ufsMount, String alluxioMount) {
-    // first check if the ufsPath is the ufsMount path
-    if (ufsPath.length() < ufsMount.length()
-        && !ufsPath.endsWith(AlluxioURI.SEPARATOR)) {
-      Preconditions.checkState(ufsMount.equals(ufsPath + AlluxioURI.SEPARATOR));
-      ufsPath = ufsMount;
-    }
-    // ufs path will be the full path (but will not include the bucket)
-    // e.g. nested/file or /nested/file
-    // ufsMount will include the ufs mount path without the bucket, eg /nested/
-    // First remove the ufsMount from ufsPath, including the first / so that
-    // ufsPath does not start with /
-    if (ufsPath.startsWith(AlluxioURI.SEPARATOR)) {
-      ufsPath = ufsPath.substring(ufsMount.length());
-    } else {
-      ufsPath = ufsPath.substring(ufsMount.length() - 1);
-    }
-    // now append the alluxio mount path to the ufs path
-    // the alluxio mount path will be something like /a/b/c
-    return alluxioMount + ufsPath;
-  }
-
-  static final class UfsItem {
-    final UfsStatus mUfsItem;
-    final String mAlluxioPath;
-    final AlluxioURI mAlluxioUri;
-
-    UfsItem(UfsStatus ufsStatus, String ufsMount, String alluxioMount) {
-      mAlluxioPath = ufsPathToAlluxioPath(ufsStatus.getName(), ufsMount, alluxioMount);
-      mAlluxioUri = new AlluxioURI(mAlluxioPath);
-      mUfsItem = ufsStatus;
-    }
-  }
-
-  @VisibleForTesting
-  static final class SyncProcessState {
-    final String mAlluxioMountPath;
-    final AlluxioURI mAlluxioSyncPath;
-    final LockedInodePath mAlluxioSyncPathLocked;
-    final AlluxioURI mReadFrom;
-    final boolean mSkipInitialReadFrom;
-    final String mUfsMountPath;
-    final AlluxioURI mReadUntil;
-    final MetadataSyncContext mContext;
-    final SkippableInodeIterator mInodeIterator;
-    final Iterator<UfsItem> mUfsStatusIterator;
-    final MountInfo mMountInfo;
-    final UnderFileSystem mUfs;
-    boolean mTraversedRootPath = false;
-    boolean mDowngradedRootPath = false;
-
-    SyncProcessState(
-        String alluxioMountPath,
-        AlluxioURI alluxioSyncPath,
-        LockedInodePath alluxioSyncPathLocked,
-        AlluxioURI readFrom, boolean skipInitialReadFrom,
-        String ufsMountPath,
-        @Nullable AlluxioURI readUntil,
-        MetadataSyncContext context,
-        SkippableInodeIterator inodeIterator,
-        Iterator<UfsItem> ufsStatusIterator,
-        MountInfo mountInfo, UnderFileSystem underFileSystem) {
-      mAlluxioMountPath = alluxioMountPath;
-      mAlluxioSyncPath = alluxioSyncPath;
-      mAlluxioSyncPathLocked = alluxioSyncPathLocked;
-      mReadFrom = readFrom;
-      mUfsMountPath = ufsMountPath;
-      mSkipInitialReadFrom = skipInitialReadFrom;
-      mReadUntil = readUntil;
-      mContext = context;
-      mInodeIterator = inodeIterator;
-      mUfsStatusIterator = ufsStatusIterator;
-      mMountInfo = mountInfo;
-      mUfs = underFileSystem;
-    }
-
-    private void downgradeRootPath() {
-      // once we have traversed the root sync path we downgrade it to a read lock
-      mAlluxioSyncPathLocked.downgradeToRead();
-      mDowngradedRootPath = true;
-    }
-
-    @Nullable InodeIterationResult getNextInode() throws InvalidPathException {
-      if (mTraversedRootPath && !mDowngradedRootPath) {
-        downgradeRootPath();
-      }
-      mTraversedRootPath = true;
-      InodeIterationResult next = IteratorUtils.nextOrNull(mInodeIterator);
-      if (next != null) {
-        if (!mAlluxioSyncPath.isAncestorOf(next.getLockedPath().getUri())) {
-          downgradeRootPath();
-          return null;
-        }
-        if (mReadUntil != null) {
-          if (next.getLockedPath().getUri().compareTo(mReadUntil) > 0) {
-            downgradeRootPath();
-            return null;
-          }
-        }
-      }
-      return next;
-    }
-  }
-
   @Override
   public SyncProcessResult performSync(
       LoadResult loadResult, UfsSyncPathCache syncPathCache) throws Throwable {
@@ -302,7 +222,6 @@ public class MetadataSyncer implements SyncProcess {
              mFsMaster.createNonMergingJournalRpcContext(new InternalOperationContext())) {
       MetadataSyncContext context =
           MetadataSyncContext.Builder.builder(rpcContext, loadResult).build();
-      context.startSync();
 
       MountTable.ReverseResolution reverseResolution
           = reverseResolve(loadResult.getBaseLoadPath());
@@ -459,12 +378,12 @@ public class MetadataSyncer implements SyncProcess {
         && syncState.mReadFrom.compareTo(currentInode.getLockedPath().getUri()) > 0))) {
       currentInode = syncState.getNextInode();
     }
-    UfsItem currentUfsStatus = IteratorUtils.nextOrNullUnwrapIOException(
+    UfsItem currentUfsStatus = IteratorUtils.nextOrNull(
         syncState.mUfsStatusIterator);
     if (currentUfsStatus != null
         && currentUfsStatus.mAlluxioPath.equals(syncState.mAlluxioMountPath)) {
       // skip the initial mount path
-      currentUfsStatus = IteratorUtils.nextOrNullUnwrapIOException(
+      currentUfsStatus = IteratorUtils.nextOrNull(
           syncState.mUfsStatusIterator);
     }
     UfsItem lastUfsStatus = currentUfsStatus;
@@ -494,7 +413,7 @@ public class MetadataSyncer implements SyncProcess {
         currentInode = syncState.getNextInode();
       }
       if (result.mMoveUfs) {
-        currentUfsStatus = IteratorUtils.nextOrNullUnwrapIOException(syncState.mUfsStatusIterator);
+        currentUfsStatus = IteratorUtils.nextOrNull(syncState.mUfsStatusIterator);
         lastUfsStatus = currentUfsStatus == null ? lastUfsStatus : currentUfsStatus;
         if (syncState.mContext.isRecursive() && currentUfsStatus != null
             && currentUfsStatus.mUfsItem.isDirectory()) {
@@ -535,7 +454,7 @@ public class MetadataSyncer implements SyncProcess {
 
     Optional<Integer> comparisonResult = currentInode != null && currentUfsStatus != null
         ? Optional.of(
-            currentInode.getLockedPath().getUri().compareTo(currentUfsStatus.mAlluxioUri)) :
+        currentInode.getLockedPath().getUri().compareTo(currentUfsStatus.mAlluxioUri)) :
         Optional.empty();
     if (currentInode == null || (comparisonResult.isPresent() && comparisonResult.get() > 0)) {
       // (Case 1) - in this case the UFS item is missing in the inode tree, so we create it
@@ -657,9 +576,6 @@ public class MetadataSyncer implements SyncProcess {
     return new SingleInodeSyncResult(true, true, false);
   }
 
-  // TODO list:
-  // metrics -> WIP
-  // continuation sync
   private void handleConcurrentModification(
       MetadataSyncContext context, String path, boolean isRoot, Exception e)
       throws FileAlreadyExistsException, FileDoesNotExistException {
@@ -721,11 +637,8 @@ public class MetadataSyncer implements SyncProcess {
       UfsStatus ufsStatus, MountInfo mountInfo
   ) throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistsException,
       BlockInfoException, IOException {
-    // TODO add metrics
     long blockSize = ((UfsFileStatus) ufsStatus).getBlockSize();
     if (blockSize == UfsFileStatus.UNKNOWN_BLOCK_SIZE) {
-      // TODO if UFS never returns the block size, this might fail
-      // then we should consider falling back to ufs.getBlockSizeByte()
       throw new RuntimeException("Unknown block size");
     }
 
@@ -811,6 +724,89 @@ public class MetadataSyncer implements SyncProcess {
    */
   public TaskTracker getTaskTracker() {
     return mTaskTracker;
+  }
+
+  static final class UfsItem {
+    final UfsStatus mUfsItem;
+    final String mAlluxioPath;
+    final AlluxioURI mAlluxioUri;
+
+    UfsItem(UfsStatus ufsStatus, String ufsMount, String alluxioMount) {
+      mAlluxioPath = ufsPathToAlluxioPath(ufsStatus.getName(), ufsMount, alluxioMount);
+      mAlluxioUri = new AlluxioURI(mAlluxioPath);
+      mUfsItem = ufsStatus;
+    }
+  }
+
+  @VisibleForTesting
+  static final class SyncProcessState {
+    final String mAlluxioMountPath;
+    final AlluxioURI mAlluxioSyncPath;
+    final LockedInodePath mAlluxioSyncPathLocked;
+    final AlluxioURI mReadFrom;
+    final boolean mSkipInitialReadFrom;
+    final String mUfsMountPath;
+    final AlluxioURI mReadUntil;
+    final MetadataSyncContext mContext;
+    final SkippableInodeIterator mInodeIterator;
+    final Iterator<UfsItem> mUfsStatusIterator;
+    final MountInfo mMountInfo;
+    final UnderFileSystem mUfs;
+    boolean mTraversedRootPath = false;
+    boolean mDowngradedRootPath = false;
+
+    SyncProcessState(
+        String alluxioMountPath,
+        AlluxioURI alluxioSyncPath,
+        LockedInodePath alluxioSyncPathLocked,
+        AlluxioURI readFrom, boolean skipInitialReadFrom,
+        String ufsMountPath,
+        @Nullable AlluxioURI readUntil,
+        MetadataSyncContext context,
+        SkippableInodeIterator inodeIterator,
+        Iterator<UfsItem> ufsStatusIterator,
+        MountInfo mountInfo, UnderFileSystem underFileSystem) {
+      mAlluxioMountPath = alluxioMountPath;
+      mAlluxioSyncPath = alluxioSyncPath;
+      mAlluxioSyncPathLocked = alluxioSyncPathLocked;
+      mReadFrom = readFrom;
+      mUfsMountPath = ufsMountPath;
+      mSkipInitialReadFrom = skipInitialReadFrom;
+      mReadUntil = readUntil;
+      mContext = context;
+      mInodeIterator = inodeIterator;
+      mUfsStatusIterator = ufsStatusIterator;
+      mMountInfo = mountInfo;
+      mUfs = underFileSystem;
+    }
+
+    private void downgradeRootPath() {
+      // once we have traversed the root sync path we downgrade it to a read lock
+      mAlluxioSyncPathLocked.downgradeToRead();
+      mDowngradedRootPath = true;
+    }
+
+    @Nullable
+    InodeIterationResult getNextInode() throws InvalidPathException {
+      if (mTraversedRootPath && !mDowngradedRootPath) {
+        downgradeRootPath();
+      }
+      mTraversedRootPath = true;
+      InodeIterationResult next = IteratorUtils.nextOrNull(mInodeIterator);
+      if (next != null) {
+        if (!mAlluxioSyncPath.isAncestorOf(next.getLockedPath().getUri())) {
+          downgradeRootPath();
+          return null;
+        }
+        if (mReadUntil != null) {
+          if (next.getLockedPath().getUri().compareTo(mReadUntil) > 0) {
+            downgradeRootPath();
+            return null;
+          }
+        }
+      }
+      return next;
+    }
   }
 
   protected static class SingleInodeSyncResult {

@@ -16,7 +16,6 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.file.options.DescendantType;
 import alluxio.file.options.DirectoryLoadType;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
@@ -24,7 +23,6 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
-import alluxio.master.file.metasync.MetadataSyncContext;
 import alluxio.master.mdsync.BaseTask;
 import alluxio.util.CommonUtils;
 
@@ -42,10 +40,12 @@ import java.io.IOException;
  * Unit tests for {@link FileSystemMaster}.
  */
 public final class FileSystemMetadataSyncV2BenchmarkTest extends FileSystemMasterTestBase {
-  private static final Logger LOG = LoggerFactory.getLogger(FileSystemMetadataSyncV2BenchmarkTest.class);
+  private static final Logger LOG =
+      LoggerFactory.getLogger(FileSystemMetadataSyncV2BenchmarkTest.class);
   private static final String LOCAL_FS_ABSOLUTE_PATH = "/tmp/s3-test-files/bucket";
   private static final String SUB_DIR = "/0/0/0/0";
-  private static final AlluxioURI UFS_ROOT = new AlluxioURI("file://" + LOCAL_FS_ABSOLUTE_PATH + SUB_DIR);
+  private static final AlluxioURI UFS_ROOT = new AlluxioURI(
+      "file://" + LOCAL_FS_ABSOLUTE_PATH + SUB_DIR);
   private static final AlluxioURI MOUNT_POINT = new AlluxioURI("/local_mount");
 
   @Override
@@ -80,7 +80,6 @@ public final class FileSystemMetadataSyncV2BenchmarkTest extends FileSystemMaste
       IOException, InvalidPathException {
     mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
 
-
     // Sync one file from UFS
     long start = CommonUtils.getCurrentMs();
     mFileSystemMaster.listStatus(MOUNT_POINT, listSync(true));
@@ -104,7 +103,8 @@ public final class FileSystemMetadataSyncV2BenchmarkTest extends FileSystemMaste
                 String fileData = "f";
                 FileOutputStream fos =
                     FileUtils.openOutputStream(new File(
-                        String.format("%s/%d/%d/%d/%d/%d/f%d", LOCAL_FS_ABSOLUTE_PATH, i, j, k, l, n, m)));
+                        String.format(
+                            "%s/%d/%d/%d/%d/%d/f%d", LOCAL_FS_ABSOLUTE_PATH, i, j, k, l, n, m)));
                 fos.write(fileData.getBytes());
                 fos.flush();
                 fos.close();

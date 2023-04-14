@@ -606,9 +606,10 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Nullable
   @Override
-  public Iterator<UfsStatus> listStatusIterable(String path, ListOptions options, String startAfter, int batchSize)
-      throws IOException {
-    final ObjectListingChunk chunk = getObjectListingChunkForPath(path, options.isRecursive(), startAfter, batchSize);
+  public Iterator<UfsStatus> listStatusIterable(
+      String path, ListOptions options, String startAfter, int batchSize) throws IOException {
+    final ObjectListingChunk chunk =
+        getObjectListingChunkForPath(path, options.isRecursive(), startAfter, batchSize);
     if (chunk == null) {
       String keyAsFolder = convertToFolderName(stripPrefixIfPresent(path));
       if (getObjectStatus(keyAsFolder) != null) {
@@ -973,8 +974,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @return chunked object listing, or null if key is not found
    */
   @Nullable
-  protected ObjectListingChunk getObjectListingChunk(String key, boolean recursive, String startAfter, int batchSize)
-      throws IOException {
+  protected ObjectListingChunk getObjectListingChunk(
+      String key, boolean recursive, String startAfter, int batchSize) throws IOException {
     throw new UnsupportedOperationException("Operation not supported");
   }
 
@@ -991,8 +992,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      * @return chunked object listing, or null if the path does not exist as a pseudo-directory
      */
   @Nullable
-  protected ObjectListingChunk getObjectListingChunkForPath(String path, boolean recursive, String startAfter, int batchSize)
-      throws IOException {
+  protected ObjectListingChunk getObjectListingChunkForPath(
+      String path, boolean recursive, String startAfter, int batchSize) throws IOException {
     // Check if anything begins with <folder_path>/
     String dir = stripPrefixIfPresent(path);
     ObjectListingChunk objs = getObjectListingChunk(dir, recursive, startAfter, batchSize);
@@ -1013,7 +1014,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   private void populateUfsStatus(
-      String keyPrefix, ObjectListingChunk chunk, boolean isRecursive, Map<String, UfsStatus> ufsStatusMap) throws IOException {
+      String keyPrefix, ObjectListingChunk chunk,
+      boolean isRecursive, Map<String, UfsStatus> ufsStatusMap) throws IOException {
     // Directories in UFS can be possibly encoded in two different ways:
     // (1) as file objects with FOLDER_SUFFIX for directories created through Alluxio or
     // (2) as "common prefixes" of other files objects for directories not created through

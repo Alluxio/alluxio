@@ -11,8 +11,6 @@
 
 package alluxio.master.file.meta;
 
-import javax.annotation.Nullable;
-
 /**
  * The inode, its full path, and the locked path.
  */

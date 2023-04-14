@@ -286,7 +286,8 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "loadMetadata [-R] [-F] [-v2] [-a/--async] [-o/--operation <operation>] [-d <type>] <path>";
+    return
+        "loadMetadata [-R] [-F] [-v2] [-a/--async] [-o/--operation <operation>] [-d <type>] <path>";
   }
 
   @Override

@@ -54,28 +54,27 @@ public final class FileSystemMasterS3UfsTest extends FileSystemMasterTestBase {
   private static final AlluxioURI MOUNT_POINT = new AlluxioURI("/s3_mount");
   private AmazonS3 mS3Client;
   @Rule
-  public S3ProxyRule s3Proxy = S3ProxyRule.builder()
+  public S3ProxyRule mS3Proxy = S3ProxyRule.builder()
       .withPort(8001)
       .withCredentials("_", "_")
       .build();
-
 
   @Override
   public void before() throws Exception {
     Configuration.set(PropertyKey.UNDERFS_S3_ENDPOINT, "localhost:8001");
     Configuration.set(PropertyKey.UNDERFS_S3_ENDPOINT_REGION, "us-west-2");
     Configuration.set(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS, true);
-    Configuration.set(PropertyKey.S3A_ACCESS_KEY, s3Proxy.getAccessKey());
-    Configuration.set(PropertyKey.S3A_SECRET_KEY, s3Proxy.getSecretKey());
+    Configuration.set(PropertyKey.S3A_ACCESS_KEY, mS3Proxy.getAccessKey());
+    Configuration.set(PropertyKey.S3A_SECRET_KEY, mS3Proxy.getSecretKey());
 
     mS3Client = AmazonS3ClientBuilder
         .standard()
         .withPathStyleAccessEnabled(true)
         .withCredentials(
             new AWSStaticCredentialsProvider(
-                new BasicAWSCredentials(s3Proxy.getAccessKey(), s3Proxy.getSecretKey())))
+                new BasicAWSCredentials(mS3Proxy.getAccessKey(), mS3Proxy.getSecretKey())))
         .withEndpointConfiguration(
-            new AwsClientBuilder.EndpointConfiguration(s3Proxy.getUri().toString(),
+            new AwsClientBuilder.EndpointConfiguration(mS3Proxy.getUri().toString(),
                 Regions.US_WEST_2.getName()))
         .build();
     mS3Client.createBucket(TEST_BUCKET);

@@ -115,7 +115,8 @@ public class S3Test {
         path = PathUtils.normalizePath(path, AlluxioURI.SEPARATOR);
         path = path.equals(AlluxioURI.SEPARATOR) ? "" : path;
         System.out.printf("Request path %s, token %s%n", path, continuationToken);
-        mS3Client.listObjectsV2(ListObjectsV2Request.builder().prefix(path).startAfter(startAfter) // .prefix("aaa1/folder1/").delimiter("/")
+        // .prefix("aaa1/folder1/").delimiter("/")
+        mS3Client.listObjectsV2(ListObjectsV2Request.builder().prefix(path).startAfter(startAfter)
                 .continuationToken(continuationToken).bucket(mBucket).build())
             .whenCompleteAsync((result, err) -> {
               if (err != null) {

@@ -18,7 +18,6 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.DefaultFileSystemMaster;
-import alluxio.master.file.contexts.SyncMetadataContext;
 import alluxio.master.file.meta.InodeIterationResult;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.MountTable;
@@ -32,7 +31,6 @@ import javax.annotation.Nullable;
 /**
  * The metadata syncer.
  */
-// TODO move this to the test package
 public class TestMetadataSyncer extends MetadataSyncer {
   @FunctionalInterface
   public interface Callback {
@@ -43,7 +41,6 @@ public class TestMetadataSyncer extends MetadataSyncer {
   public interface SyncOneCallback {
     void apply(MetadataSyncContext context) throws Exception;
   }
-
 
   public TestMetadataSyncer(DefaultFileSystemMaster fsMaster, ReadOnlyInodeStore inodeStore,
                             MountTable mountTable, InodeTree inodeTree,

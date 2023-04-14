@@ -28,6 +28,10 @@ public class MdSync {
   TaskTracker mTaskTracker;
   Function<AlluxioURI, UfsClient> mGetClient;
 
+  /**
+   * Creates a metadata sync kernel.
+   * @param taskTracker the task tracker
+   */
   public MdSync(TaskTracker taskTracker) {
     mTaskTracker = taskTracker;
   }
@@ -62,6 +66,11 @@ public class MdSync {
     mTaskTracker.getActiveTask(taskId).ifPresent(task -> task.onComplete(isFile));
   }
 
+  /**
+   * Loads a nested directory.
+   * @param taskId the task id
+   * @param path the load path
+   */
   public void loadNestedDirectory(long taskId, AlluxioURI path) {
     mTaskTracker.getActiveTask(taskId).ifPresent(
         task -> task.getPathLoadTask().loadNestedDirectory(path));

@@ -103,7 +103,7 @@
     <dependency>
       <groupId>com.google.inject</groupId>
       <artifactId>guice</artifactId>
-      <version>5.0.1</version>
+      <version>5.0.1</version> <!-- S3 proxy invokes a guice method by reflection that is only available since 5.0 -->
       <scope>test</scope>
     </dependency>
 

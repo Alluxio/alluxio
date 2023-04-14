@@ -131,7 +131,8 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
 //  @Test
 //  public void dirTest() throws Throwable {
 //    mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
-//    List<FileInfo> items = mFileSystemMaster.listStatus(MOUNT_POINT, ListStatusContext.defaults());
+//    List<FileInfo> items = mFileSystemMaster.listStatus(
+//    MOUNT_POINT, ListStatusContext.defaults());
 //    mS3Client.putObject(TEST_BUCKET, TEST_DIRECTORY + "/" + TEST_FILE, TEST_CONTENT);
 //
 //    // load the dir with depth 1
@@ -792,7 +793,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
 //    assertEquals(SyncFailReason.FILE_DOES_NOT_EXIST, result.getFailReason());
 //  }
 //
-//  // TODO yimin -> this is not correct
+//  // TODO(elega) -> this is not correct
 //  // Two options to deal with unmount-during-sync
 //  // Option 1: add read lock on the sync path
 //  // Option 2: cancel the ongoing metadata sync job
@@ -990,7 +991,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
 //    assertTrue(result.getSuccess());
 //    assertEquals(3, mFileSystemMaster.listStatus(MOUNT_POINT.join("root"),
 //        listNoSync(false)).size());
-//    // TODO look into WARNING: xattr not supported on root/
+//    // TODO(elega) look into WARNING: xattr not supported on root/
 //  }
 //
 //  @Test

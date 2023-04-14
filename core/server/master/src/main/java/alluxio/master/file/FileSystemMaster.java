@@ -26,14 +26,10 @@ import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.CancelSyncMetadataPRequest;
 import alluxio.grpc.CancelSyncMetadataPResponse;
-import alluxio.grpc.GetSyncPathListPResponse;
-import alluxio.grpc.GetSyncProgressPRequest;
 import alluxio.grpc.GetSyncProgressPResponse;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SyncMetadataAsyncPResponse;
-import alluxio.grpc.SyncMetadataPRequest;
 import alluxio.grpc.SyncMetadataPResponse;
 import alluxio.master.Master;
 import alluxio.master.file.contexts.CheckAccessContext;
@@ -649,7 +645,7 @@ public interface FileSystemMaster extends Master {
   /**
    * Syncs the metadata of a given path.
    *
-   * @param path    the path to sync
+   * @param path the path to sync
    * @param context the method context
    * @return the sync metadata response
    */
@@ -657,27 +653,25 @@ public interface FileSystemMaster extends Master {
       throws InvalidPathException, IOException;
 
   /**
-   * *
-   * @param path
-   * @param context
-   * @return
-   * @throws InvalidPathException
-   * @throws IOException
+   * Submits a metadata sync task and runs it async.
+   * @param path the path to sync
+   * @param context the method context
+   * @return the sync metadata async response
    */
   SyncMetadataAsyncPResponse syncMetadataAsync(AlluxioURI path, SyncMetadataContext context)
       throws InvalidPathException, IOException;
 
   /**
-   * *
-   * @param taskId
-   * @return
+   * Gets a metadata sync task progress.
+   * @param taskId the task id
+   * @return the sync progress
    */
   GetSyncProgressPResponse getSyncProgress(long taskId);
 
   /**
-   * *
-   * @param taskId
-   * @return
+   * Cancels an ongoing metadata sync.
+   * @param taskId the task id
+   * @return the cancel sync metadata response
    */
   CancelSyncMetadataPResponse cancelSyncMetadata(long taskId) throws NotFoundException;
 }

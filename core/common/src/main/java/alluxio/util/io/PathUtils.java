@@ -443,6 +443,13 @@ public final class PathUtils {
     return path.endsWith(separator) ? path : path + separator;
   }
 
+  /**
+   * Adds a starting separator if it does not exist in path.
+   *
+   * @param path the file name
+   * @param separator trailing separator to add
+   * @return updated path with trailing separator
+   */
   public static String normalizePathStart(
       String path, String separator) {
     return path.startsWith(separator) ? path : separator + path;

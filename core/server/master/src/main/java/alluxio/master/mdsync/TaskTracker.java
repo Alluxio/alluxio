@@ -163,6 +163,10 @@ public class TaskTracker implements Closeable {
         mActiveTaskMap.remove(nxt.getValue().cancel()));
   }
 
+  /**
+   * Cancels an ongoing sync task.
+   * @param taskId the task id
+   */
   public synchronized void cancelTaskById(long taskId) throws NotFoundException {
     BaseTask baseTask = mActiveTaskMap.get(taskId);
     if (baseTask == null) {

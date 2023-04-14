@@ -13,8 +13,16 @@ package alluxio.master.mdsync;
 
 import alluxio.master.file.meta.UfsSyncPathCache;
 
+/**
+ * The sync process interfaces.
+ */
 public interface SyncProcess {
-
+  /**
+   * Performs a sync.
+   * @param loadResult the UFS load result
+   * @param syncPathCache the sync path cache for updating the last sync time
+   * @return the sync process result
+   */
   SyncProcessResult performSync(
       LoadResult loadResult, UfsSyncPathCache syncPathCache) throws Throwable;
 }

@@ -354,8 +354,6 @@ public final class AsyncJournalWriter {
     }
   }
 
-  AtomicLong a = new AtomicLong(0);
-
   /**
    * Submits a ticket to flush thread and waits until ticket is served.
    *

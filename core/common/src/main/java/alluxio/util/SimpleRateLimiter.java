@@ -36,6 +36,11 @@ public class SimpleRateLimiter implements RateLimiter {
     });
   }
 
+  /**
+   * Creates a simple rate limiter for testing purpose.
+   * @param permitsPerSecond permits per second
+   * @param ticker the ticker
+   */
   @VisibleForTesting
   public SimpleRateLimiter(long permitsPerSecond, Ticker ticker) {
     mTicker = ticker;

@@ -28,6 +28,15 @@ public class LoadResult {
   private final AlluxioURI mPreviousLast;
   private final boolean mIsFirstLoad;
 
+  /**
+   * Creates a load result.
+   * @param loadRequest the load request
+   * @param baseLoadPath the base load path
+   * @param taskInfo the task info
+   * @param previousLast the previous last load item
+   * @param ufsLoadResult the ufs load result
+   * @param isFirstLoad if the load is the first load
+   */
   public LoadResult(
       LoadRequest loadRequest, AlluxioURI baseLoadPath, TaskInfo taskInfo,
       @Nullable AlluxioURI previousLast, UfsLoadResult ufsLoadResult,
@@ -40,28 +49,44 @@ public class LoadResult {
     mIsFirstLoad = isFirstLoad;
   }
 
+  /**
+   * @return true if this is the first load
+   */
   public boolean isFirstLoad() {
     return mIsFirstLoad;
   }
 
+  /**
+   * @return the last item in the previous load
+   */
   public Optional<AlluxioURI> getPreviousLast() {
     return Optional.ofNullable(mPreviousLast);
   }
 
+  /**
+   * @return the load path
+   */
   public AlluxioURI getBaseLoadPath() {
     return mBaseLoadPath;
   }
 
+  /**
+   * @return the ufs load result
+   */
   public UfsLoadResult getUfsLoadResult() {
     return mUfsLoadResult;
   }
 
+  /**
+   * @return the task info
+   */
   public TaskInfo getTaskInfo() {
     return mTaskInfo;
   }
 
   void onProcessComplete(SyncProcessResult result) {
-    mTaskInfo.getMdSync().onProcessComplete(mTaskInfo.getId(), mLoadRequest.getLoadRequestId(), result);
+    mTaskInfo.getMdSync().onProcessComplete(
+        mTaskInfo.getId(), mLoadRequest.getLoadRequestId(), result);
   }
 
   void onProcessError(Throwable t) {

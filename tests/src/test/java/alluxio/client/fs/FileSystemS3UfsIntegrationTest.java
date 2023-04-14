@@ -49,7 +49,7 @@ public class FileSystemS3UfsIntegrationTest extends BaseIntegrationTest {
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
 
   @Rule
-  public S3ProxyRule s3Proxy = S3ProxyRule.builder()
+  public S3ProxyRule mS3Proxy = S3ProxyRule.builder()
       .withPort(8001)
       .withCredentials("_", "_")
       .build();
@@ -61,8 +61,8 @@ public class FileSystemS3UfsIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.UNDERFS_S3_ENDPOINT_REGION, "us-west-2")
           .setProperty(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS, true)
           .setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, "s3://" + TEST_BUCKET)
-          .setProperty(PropertyKey.S3A_ACCESS_KEY, s3Proxy.getAccessKey())
-          .setProperty(PropertyKey.S3A_SECRET_KEY, s3Proxy.getSecretKey())
+          .setProperty(PropertyKey.S3A_ACCESS_KEY, mS3Proxy.getAccessKey())
+          .setProperty(PropertyKey.S3A_SECRET_KEY, mS3Proxy.getSecretKey())
           .setStartCluster(false)
           .build();
   private FileSystem mFileSystem = null;
@@ -79,9 +79,9 @@ public class FileSystemS3UfsIntegrationTest extends BaseIntegrationTest {
         .withPathStyleAccessEnabled(true)
         .withCredentials(
             new AWSStaticCredentialsProvider(
-                new BasicAWSCredentials(s3Proxy.getAccessKey(), s3Proxy.getSecretKey())))
+                new BasicAWSCredentials(mS3Proxy.getAccessKey(), mS3Proxy.getSecretKey())))
         .withEndpointConfiguration(
-            new AwsClientBuilder.EndpointConfiguration(s3Proxy.getUri().toString(),
+            new AwsClientBuilder.EndpointConfiguration(mS3Proxy.getUri().toString(),
                 Regions.US_WEST_2.getName()))
         .build();
     mS3Client.createBucket(TEST_BUCKET);

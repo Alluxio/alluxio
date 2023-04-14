@@ -52,6 +52,7 @@ public final class Fingerprint {
 
   private final String[] mSearchList = new String[] {"|", " "};
   private final String[] mReplaceList = new String[] {"_", "_"};
+
   /**
    * The possible types of the fingerprint.
    */

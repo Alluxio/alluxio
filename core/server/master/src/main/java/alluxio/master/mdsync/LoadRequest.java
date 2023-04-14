@@ -16,8 +16,8 @@ import alluxio.file.options.DescendantType;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
+import javax.annotation.Nullable;
 
 /**
  * This is a request for a single batch load sent to the UFS.

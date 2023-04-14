@@ -28,11 +28,20 @@ public class SyncProcessResult {
   private final boolean mRootPathIsFile;
   private final boolean mIsFirstLoad;
 
+  /**
+   * Constructs an instance of {@link SyncProcessResult}.
+   *
+   * @param taskInfo the task info
+   * @param baseLoadPath the base load path
+   * @param loaded the path sequence
+   * @param isTruncated whether the result is truncated or not
+   * @param rootPathIsFile whether the root path is a file or not
+   * @param isFirstLoad whether this is the first time loading the data
+   */
   public SyncProcessResult(
       TaskInfo taskInfo, AlluxioURI baseLoadPath,
       @Nullable PathSequence loaded, boolean isTruncated,
-      boolean rootPathIsFile,
-      boolean isFirstLoad) {
+      boolean rootPathIsFile, boolean isFirstLoad) {
     mRootPathIsFile = rootPathIsFile;
     mBaseLoadPath = baseLoadPath;
     mTaskInfo = taskInfo;
@@ -41,26 +50,44 @@ public class SyncProcessResult {
     mIsFirstLoad = isFirstLoad;
   }
 
+  /**
+   * @return true if this is the first time loading the data, false otherwise
+   */
   public boolean isFirstLoad() {
     return mIsFirstLoad;
   }
 
+  /**
+   * @return true if the root path is a file, false otherwise
+   */
   public boolean rootPathIsFile() {
     return mRootPathIsFile;
   }
 
+  /**
+   * @return the base load path
+   */
   public AlluxioURI getBaseLoadPath() {
     return mBaseLoadPath;
   }
 
+  /**
+   * @return true if the result is truncated, false otherwise
+   */
   public boolean isTruncated() {
     return mIsTruncated;
   }
 
+  /**
+   * @return Optional containing the loaded path sequence
+   */
   public Optional<PathSequence> getLoaded() {
     return Optional.ofNullable(mLoaded);
   }
 
+  /**
+   * @return the task info
+   */
   public TaskInfo getTaskInfo() {
     return mTaskInfo;
   }

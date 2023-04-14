@@ -18,7 +18,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.CancelSyncMetadataPRequest;
 import alluxio.grpc.CancelSyncMetadataPResponse;
 import alluxio.grpc.CheckAccessPRequest;

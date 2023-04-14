@@ -72,6 +72,9 @@ public abstract class BaseTask implements PathWaiter {
 
   private final boolean mRemoveOnComplete;
 
+  /**
+   * @return the task state
+   */
   public synchronized State getState() {
     if (!isCompleted().isPresent()) {
       return State.RUNNING;
@@ -86,10 +89,16 @@ public abstract class BaseTask implements PathWaiter {
     }
   }
 
+  /**
+   * @return true if the task is completed
+   */
   public synchronized Optional<BaseTaskResult> isCompleted() {
     return Optional.ofNullable(mIsCompleted);
   }
 
+  /**
+   * @return if the task is succeeded
+   */
   public synchronized boolean succeeded() {
     return mIsCompleted != null && mIsCompleted.succeeded();
   }
@@ -127,14 +136,24 @@ public abstract class BaseTask implements PathWaiter {
     mRemoveOnComplete = removeOnComplete;
   }
 
+  /**
+   * @return the task info
+   */
   public TaskInfo getTaskInfo() {
     return mTaskInfo;
   }
 
+  /**
+   * @return true, if the task should be removed on completion, otherwise it will be
+   * moved to a completed task cache.
+   */
   boolean removeOnComplete() {
     return mRemoveOnComplete;
   }
 
+  /**
+   * @return the sync task time in ms
+   */
   public long getStartTime() {
     Preconditions.checkState(mIsCompleted != null,
         "Task must be completed before accessing the start time");
@@ -155,6 +174,10 @@ public abstract class BaseTask implements PathWaiter {
     notifyAll();
   }
 
+  /**
+   * Blocking waits until the task completes.
+   * @param timeoutMs the timeout in ms, 0 for an endless wait
+   */
   public synchronized void waitComplete(long timeoutMs) throws Throwable {
     Stopwatch sw = Stopwatch.createStarted();
     long waitTime = timeoutMs;
@@ -169,7 +192,6 @@ public abstract class BaseTask implements PathWaiter {
       throw new DeadlineExceededRuntimeException("Task still running.");
     }
     if (mIsCompleted.getThrowable().isPresent()) {
-      // TODO(yimin) should we wrap the exception here so that we know the exception is thrown from here?
       throw mIsCompleted.getThrowable().get();
     }
   }
@@ -215,7 +237,7 @@ public abstract class BaseTask implements PathWaiter {
   }
 
   /**
-   * @return
+   * @return the sync duration in ms
    */
   public long getSyncDuration() {
     final Long finishTime = mFinishTime;
@@ -225,6 +247,9 @@ public abstract class BaseTask implements PathWaiter {
     return mFinishTime - mStartTime;
   }
 
+  /**
+   * @return the sync metadata task in proto
+   */
   public synchronized SyncMetadataTask toProtoTask() {
     SyncMetadataTask.Builder builder = SyncMetadataTask.newBuilder();
     builder.setId(getTaskInfo().getId());

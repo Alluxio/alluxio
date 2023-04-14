@@ -1,7 +1,19 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.master.mdsync;
 
 import static org.junit.Assert.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
+
 import alluxio.AlluxioURI;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.resource.CloseableResource;
@@ -9,17 +21,18 @@ import alluxio.underfs.UfsClient;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-public class UfsLoadsTest {
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+public class UfsLoadsTest {
   ExecutorService mThreadPool;
   TaskTracker mTaskTracker;
   MdSync mMdSync;
@@ -69,9 +82,5 @@ public class UfsLoadsTest {
   @Test
   public void singleFileSync() {
     mUfsClient.setGetStatusItem(mFileStatus);
-
-
   }
-
-
 }

@@ -50,18 +50,30 @@ public class TaskInfo {
     mStats = new TaskStats();
   }
 
+  /**
+   * @return the task stats
+   */
   public TaskStats getStats() {
     return mStats;
   }
 
+  /**
+   * @return the alluxio path
+   */
   public AlluxioURI getAlluxioPath() {
     return mAlluxioPath;
   }
 
+  /**
+   * @return the sync interval
+   */
   public long getSyncInterval() {
     return mSyncInterval;
   }
 
+  /**
+   * @return true, if the task contains dir load tasks
+   */
   public boolean hasDirLoadTasks() {
     return mDescendantType == DescendantType.ALL
         && mLoadByDirectory != DirectoryLoadType.SINGLE_LISTING;
@@ -71,26 +83,44 @@ public class TaskInfo {
     return mStartAfter;
   }
 
+  /**
+   * @return the metadata sync kernel
+   */
   public MdSync getMdSync() {
     return mMdSync;
   }
 
+  /**
+   * @return the base path
+   */
   public AlluxioURI getBasePath() {
     return mBasePath;
   }
 
+  /**
+   * @return the id
+   */
   public long getId() {
     return mId;
   }
 
+  /**
+   * @return the load by directory type
+   */
   public DirectoryLoadType getLoadByDirectory() {
     return mLoadByDirectory;
   }
 
+  /**
+   * @return the descendant type
+   */
   public DescendantType getDescendantType() {
     return mDescendantType;
   }
 
+  /**
+   * @return the inode iterator descendant type
+   */
   public DescendantType getInodeIteratorDescendantType() {
     if (mLoadByDirectory != DirectoryLoadType.SINGLE_LISTING
         && mDescendantType == DescendantType.ALL) {

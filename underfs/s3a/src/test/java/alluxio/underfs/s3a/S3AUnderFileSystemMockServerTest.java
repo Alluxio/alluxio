@@ -31,7 +31,6 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.google.common.collect.Iterators;
 import org.apache.commons.io.IOUtils;
@@ -44,7 +43,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 
 import java.io.IOException;
@@ -53,12 +51,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 /**
  * Unit tests for the {@link S3AUnderFileSystem} using a s3 mock server.
@@ -66,17 +61,16 @@ import java.util.stream.Collectors;
 public class S3AUnderFileSystemMockServerTest {
   private static final InstancedConfiguration CONF = Configuration.copyGlobal();
 
-  private static String TEST_BUCKET = "test-bucket";
+  private static final String TEST_BUCKET = "test-bucket";
   private static final String TEST_FILE = "test_file";
   private static final AlluxioURI TEST_FILE_URI = new AlluxioURI("s3://test-bucket/test_file");
   private static final String TEST_CONTENT = "test_content";
 
   private S3AUnderFileSystem mS3UnderFileSystem;
   private AmazonS3 mClient;
-  private S3AsyncClient mAsyncClient;
 
   @Rule
-  public S3ProxyRule s3Proxy = S3ProxyRule.builder()
+  public S3ProxyRule mS3Proxy = S3ProxyRule.builder()
       // This is a must to close the behavior gap between native s3 and s3 proxy
       .withBlobStoreProvider("transient")
       .withPort(8001)
@@ -96,28 +90,20 @@ public class S3AUnderFileSystemMockServerTest {
         .withPathStyleAccessEnabled(true)
         .withCredentials(
             new AWSStaticCredentialsProvider(
-                new BasicAWSCredentials(s3Proxy.getAccessKey(), s3Proxy.getSecretKey())))
+                new BasicAWSCredentials(mS3Proxy.getAccessKey(), mS3Proxy.getSecretKey())))
         .withEndpointConfiguration(
-            new AwsClientBuilder.EndpointConfiguration(s3Proxy.getUri().toString(),
+            new AwsClientBuilder.EndpointConfiguration(mS3Proxy.getUri().toString(),
                 Regions.US_WEST_2.getName()))
         .build();
-    mAsyncClient = S3AsyncClient.builder().credentialsProvider(StaticCredentialsProvider.create(
-        AwsBasicCredentials.create(s3Proxy.getAccessKey(), s3Proxy.getSecretKey())))
-        .endpointOverride(s3Proxy.getUri()).build();
+    S3AsyncClient asyncClient =
+        S3AsyncClient.builder().credentialsProvider(StaticCredentialsProvider.create(
+                AwsBasicCredentials.create(mS3Proxy.getAccessKey(), mS3Proxy.getSecretKey())))
+            .endpointOverride(mS3Proxy.getUri()).build();
     mClient.createBucket(TEST_BUCKET);
-
-    // Uncomment the followings to test on the s3 bucket
-    /*
-    mClient = AmazonS3ClientBuilder
-        .standard()
-        .withRegion(Region.US_WEST_1.toString()).build();
-    mAsyncClient = S3AsyncClient.builder().region(Region.US_WEST_1).build();
-    TEST_BUCKET = "tyler-alluxio-test-bucket";
-     */
 
     mS3UnderFileSystem =
         new S3AUnderFileSystem(new AlluxioURI("s3://" + TEST_BUCKET), mClient,
-            mAsyncClient, TEST_BUCKET,
+            asyncClient, TEST_BUCKET,
             Executors.newSingleThreadExecutor(), new TransferManager(),
             UnderFileSystemConfiguration.defaults(CONF), false);
   }
@@ -171,34 +157,34 @@ public class S3AUnderFileSystemMockServerTest {
     assertNotNull(ufsStatuses);
     assertEquals(14, ufsStatuses.length);
 
-    UfsLoadResult result =  performListingAsyncAndGetResult("/", DescendantType.ALL);
+    UfsLoadResult result = performListingAsyncAndGetResult("/", DescendantType.ALL);
     Assert.assertEquals(9, result.getItemsCount());
 
-    result =  performListingAsyncAndGetResult("/", DescendantType.ONE);
+    result = performListingAsyncAndGetResult("/", DescendantType.ONE);
     Assert.assertEquals(6, result.getItemsCount());
 
-    result =  performGetStatusAsyncAndGetResult("d1");
+    result = performGetStatusAsyncAndGetResult("d1");
     assertEquals(0, result.getItemsCount());
 
-    result =  performGetStatusAsyncAndGetResult("d1/");
+    result = performGetStatusAsyncAndGetResult("d1/");
     assertEquals(0, result.getItemsCount());
 
-    result =  performGetStatusAsyncAndGetResult("d3");
+    result = performGetStatusAsyncAndGetResult("d3");
     assertEquals(0, result.getItemsCount());
 
-    result =  performGetStatusAsyncAndGetResult("d3/");
+    result = performGetStatusAsyncAndGetResult("d3/");
     assertEquals(1, result.getItemsCount());
 
-    result =  performGetStatusAsyncAndGetResult("d4");
+    result = performGetStatusAsyncAndGetResult("d4");
     assertEquals(0, result.getItemsCount());
 
-    result =  performGetStatusAsyncAndGetResult("d4/");
+    result = performGetStatusAsyncAndGetResult("d4/");
     assertEquals(1, result.getItemsCount());
 
-    result =  performGetStatusAsyncAndGetResult("f1");
+    result = performGetStatusAsyncAndGetResult("f1");
     assertEquals(1, result.getItemsCount());
 
-    result =  performGetStatusAsyncAndGetResult("f1/");
+    result = performGetStatusAsyncAndGetResult("f1/");
     assertEquals(0, result.getItemsCount());
   }
 
@@ -224,17 +210,16 @@ public class S3AUnderFileSystemMockServerTest {
     assertArrayEquals(statusesFromIterator, statusesFromListing);
   }
 
-
   public UfsLoadResult performListingAsyncAndGetResult(String path, DescendantType descendantType)
       throws Throwable {
     CountDownLatch latch = new CountDownLatch(1);
     AtomicReference<Throwable> throwable = new AtomicReference<>();
     AtomicReference<UfsLoadResult> result = new AtomicReference<>();
     mS3UnderFileSystem.performListingAsync(path, null, null, descendantType,
-        (r)->{
+        (r) -> {
           result.set(r);
           latch.countDown();
-        }, (t)->{
+        }, (t) -> {
           throwable.set(t);
           latch.countDown();
         });
@@ -251,10 +236,10 @@ public class S3AUnderFileSystemMockServerTest {
     AtomicReference<Throwable> throwable = new AtomicReference<>();
     AtomicReference<UfsLoadResult> result = new AtomicReference<>();
     mS3UnderFileSystem.performGetStatusAsync(path,
-        (r)->{
+        (r) -> {
           result.set(r);
           latch.countDown();
-        }, (t)->{
+        }, (t) -> {
           throwable.set(t);
           latch.countDown();
         });
@@ -264,5 +249,4 @@ public class S3AUnderFileSystemMockServerTest {
     }
     return result.get();
   }
-
 }

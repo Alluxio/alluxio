@@ -827,10 +827,8 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<Iterator<UfsStatus>>() {
       @Override
       public Iterator<UfsStatus> call() throws IOException {
-        Iterator<UfsStatus> result =
-            mUnderFileSystem.listStatusIterable(path, options, startAfter, batchSize);
-        // TODO filter invalid path
-        return result;
+        // TODO(elega) filter invalid path
+        return mUnderFileSystem.listStatusIterable(path, options, startAfter, batchSize);
       }
 
       @Override

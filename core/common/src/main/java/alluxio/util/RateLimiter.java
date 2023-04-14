@@ -37,6 +37,10 @@ public interface RateLimiter {
    */
   long getWaitTimeNanos(long permit);
 
+  /**
+   * @param permitsPerSecond permits per second
+   * @return a rate limiter
+   */
   static RateLimiter createRateLimiter(long permitsPerSecond) {
     if (permitsPerSecond <= 0) {
       return new RateLimiter() {
