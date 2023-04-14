@@ -344,9 +344,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    *         the end of the stream has been reached
    */
   public int read(ByteBuffer byteBuffer) throws IOException {
-    int len = byteBuffer.remaining();
     checkIfClosed();
-    if (len == 0) {
+    if (byteBuffer.remaining() == 0) {
       return 0;
     }
     if (mPos == mLength) {
@@ -367,8 +366,11 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       }
       return -1;
     }
-    int toRead = Math.min(len, mCurrentChunk.readableBytes());
-    mCurrentChunk.readBytes(byteBuffer);
+    int toRead = Math.min(byteBuffer.remaining(), mCurrentChunk.readableBytes());
+    ByteBuffer slice = byteBuffer.slice();
+    slice.limit(toRead);
+    mCurrentChunk.readBytes(slice);
+    byteBuffer.position(byteBuffer.position() + toRead);
     mPos += toRead;
     if (mPos == mLength) {
       // a performance improvement introduced by https://github.com/Alluxio/alluxio/issues/14020
