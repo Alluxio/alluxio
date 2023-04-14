@@ -39,6 +39,7 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
+import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockInfo;
@@ -412,7 +413,7 @@ public class AbstractFileSystemTest {
     alluxioHadoopFs.initialize(uri, getConf());
     ListStatusPOptions listStatusPOptions = ListStatusPOptions.getDefaultInstance().toBuilder()
         .setExcludeMountInfo(alluxioHadoopFs.mAlluxioConf.getBoolean(
-            PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS)).build();
+            PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO)).build();
     when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path)),
         listStatusPOptions))
         .thenReturn(Lists.newArrayList(new URIStatus(fileInfo1), new URIStatus(fileInfo2)));
@@ -451,7 +452,7 @@ public class AbstractFileSystemTest {
     URI uri = URI.create(Constants.HEADER + "host:1");
     Configuration configuration = getConf();
     configuration.setBoolean(
-        PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS.getName(),
+        PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO.getName(),
         true);
     alluxioHadoopFs.initialize(uri, configuration);
     ListStatusPOptions listStatusPOptions = ListStatusPOptions.getDefaultInstance().toBuilder()
@@ -481,7 +482,7 @@ public class AbstractFileSystemTest {
       alluxioHadoopFs.initialize(uri, getConf());
       ListStatusPOptions listStatusPOptions = ListStatusPOptions.getDefaultInstance().toBuilder()
           .setExcludeMountInfo(alluxioHadoopFs.mAlluxioConf.getBoolean(
-              PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS)).build();
+              PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO)).build();
       when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path)),
           listStatusPOptions))
           .thenThrow(new FileNotFoundException("ALLUXIO-2036 not Found"));
@@ -514,9 +515,46 @@ public class AbstractFileSystemTest {
     Path path = new Path("/dir");
     alluxio.client.file.FileSystem alluxioFs =
         mock(alluxio.client.file.FileSystem.class);
-    when(alluxioFs.getStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
-        .thenReturn(new URIStatus(fileInfo));
     FileSystem alluxioHadoopFs = new FileSystem(alluxioFs);
+    URI uri = URI.create(Constants.HEADER + "host:1");
+    Configuration configuration = getConf();
+    alluxioHadoopFs.initialize(uri, configuration);
+    GetStatusPOptions getStatusPOptions = GetStatusPOptions.getDefaultInstance().toBuilder()
+        .setExcludeMountInfo(alluxioHadoopFs.mAlluxioConf.getBoolean(
+            PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO)).build();
+    when(alluxioFs.getStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path)),
+        getStatusPOptions))
+        .thenReturn(new URIStatus(fileInfo));
+
+    FileStatus fileStatus = alluxioHadoopFs.getFileStatus(path);
+    assertFileInfoEqualsFileStatus(fileInfo, fileStatus);
+  }
+
+  @Test
+  public void getStatusWithoutMountInfo() throws Exception {
+    FileInfo fileInfo = new FileInfo()
+        .setLastModificationTimeMs(111L)
+        .setLastAccessTimeMs(123L)
+        .setFolder(false)
+        .setOwner("user1")
+        .setGroup("group1")
+        .setMode(00755);
+
+    Path path = new Path("/dir");
+    alluxio.client.file.FileSystem alluxioFs =
+        mock(alluxio.client.file.FileSystem.class);
+    FileSystem alluxioHadoopFs = new FileSystem(alluxioFs);
+    URI uri = URI.create(Constants.HEADER + "host:1");
+    Configuration configuration = getConf();
+    configuration.setBoolean(
+        PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO.getName(),
+        true);
+    alluxioHadoopFs.initialize(uri, configuration);
+    GetStatusPOptions getStatusPOptions = GetStatusPOptions.getDefaultInstance().toBuilder()
+        .setExcludeMountInfo(true).build();
+    when(alluxioFs.getStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path)),
+        getStatusPOptions))
+        .thenReturn(new URIStatus(fileInfo));
 
     FileStatus fileStatus = alluxioHadoopFs.getFileStatus(path);
     assertFileInfoEqualsFileStatus(fileInfo, fileStatus);

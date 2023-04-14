@@ -20,6 +20,7 @@ import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.grpc.GetStatusPOptions;
 import alluxio.resource.CloseableResource;
 
 import org.apache.commons.cli.CommandLine;
@@ -43,6 +44,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 @PublicApi
 public final class StatCommand extends AbstractFileSystemCommand {
+
   public static final Option FORMAT_OPTION =
       Option.builder("f")
           .required(false)
@@ -54,6 +56,14 @@ public final class StatCommand extends AbstractFileSystemCommand {
           .longOpt("file-id")
           .required(false)
           .desc("specify a file by file-id")
+          .build();
+  private static final Option OMIT_MOUNT_INFO =
+      Option.builder("m")
+          .required(false)
+          .longOpt("omit-mount-info")
+          .hasArg(false)
+          .desc("if specified, the status will not include mount point related information, "
+              + "like the UFS path")
           .build();
 
   /**
@@ -72,13 +82,21 @@ public final class StatCommand extends AbstractFileSystemCommand {
   public Options getOptions() {
     return new Options()
         .addOption(FORMAT_OPTION)
-        .addOption(FILE_ID_OPTION);
+        .addOption(FILE_ID_OPTION)
+        .addOption(OMIT_MOUNT_INFO);
   }
 
   @Override
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
-    URIStatus status = mFileSystem.getStatus(path);
+    URIStatus status = null;
+    if (cl.hasOption("m") || cl.hasOption("omit-mount-info")) {
+      status = mFileSystem.getStatus(path,
+          GetStatusPOptions.newBuilder().setExcludeMountInfo(true).build());
+    } else {
+      status = mFileSystem.getStatus(path);
+    }
+
     if (cl.hasOption(FORMAT_OPTION.getOpt())) {
       System.out.println(formatOutput(cl, status));
     } else {
