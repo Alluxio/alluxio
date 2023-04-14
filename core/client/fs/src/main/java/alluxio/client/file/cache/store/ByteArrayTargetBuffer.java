@@ -33,7 +33,8 @@ public class ByteArrayTargetBuffer implements PageReadTargetBuffer {
 
   /**
    * Constructor.
-   * This sets the offset to 0 and the length to the length of the byte array.
+   * This is the same as calling {@link #ByteArrayTargetBuffer(byte[], int, int)} with {@code 0}
+   * as offset and {@code target.length} as length.
    *
    * @param target
    */
