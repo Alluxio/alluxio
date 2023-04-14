@@ -434,7 +434,7 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
         (iter) -> new Block(Longs.fromByteArray(iter.key()), BlockMeta.parseFrom(iter.value())),
         // TODO(jiacheng): UT that aborting gives correct ref count
         () -> {
-          mRocksStore.abortIfClosing();
+          mRocksStore.shouldAbort(lock.mLockedVersion.mVersion);
           return null;
         }, lock);
   }

@@ -400,7 +400,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
        */
       RocksSharedLockHandle readLock = mRocksStore.checkAndAcquireSharedLock();
       RocksIter rocksIter = new RocksIter(iter, prefix, () -> {
-        mRocksStore.abortIfClosing();
+        mRocksStore.shouldAbort(readLock.mLockedVersion.mVersion);
         return null;
       });
       Stream<Long> idStream = StreamSupport.stream(Spliterators
@@ -507,7 +507,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
         mIteratorOption)) {
       iter.seekToFirst();
       while (iter.isValid()) {
-        mRocksStore.abortIfClosing();
+        mRocksStore.shouldAbort(lock.mLockedVersion.mVersion);
         long parentId = RocksUtils.readLong(iter.key(), 0);
         String childName = new String(iter.key(), Longs.BYTES, iter.key().length - Longs.BYTES);
         long childId = Longs.fromByteArray(iter.value());
@@ -526,7 +526,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
         mIteratorOption)) {
       iter.seekToFirst();
       while (iter.isValid()) {
-        mRocksStore.abortIfClosing();
+        mRocksStore.shouldAbort(lock.mLockedVersion.mVersion);
         inodes.add(getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get());
         iter.next();
       }
@@ -553,7 +553,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
         (iter) -> getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get(),
         // TODO(jiacheng): validate an ex is thrown in UT
         () -> {
-          mRocksStore.abortIfClosing();
+          mRocksStore.shouldAbort(lock.mLockedVersion.mVersion);
           return null;
         }, lock);
   }
@@ -669,7 +669,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
          RocksIterator inodeIter = db().newIterator(mInodesColumn.get(), readOptions)) {
       inodeIter.seekToFirst();
       while (inodeIter.isValid()) {
-        mRocksStore.abortIfClosing();
+        mRocksStore.shouldAbort(lock.mLockedVersion.mVersion);
         MutableInode<?> inode;
         try {
           inode = MutableInode.fromProto(InodeMeta.Inode.parseFrom(inodeIter.value()));
@@ -685,7 +685,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
          RocksIterator edgeIter = db().newIterator(mEdgesColumn.get())) {
       edgeIter.seekToFirst();
       while (edgeIter.isValid()) {
-        mRocksStore.abortIfClosing();
+        mRocksStore.shouldAbort(lock.mLockedVersion.mVersion);
         byte[] key = edgeIter.key();
         byte[] id = new byte[Longs.BYTES];
         byte[] name = new byte[key.length - Longs.BYTES];

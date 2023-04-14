@@ -27,7 +27,6 @@ public class RocksSharedLockHandle implements AutoCloseable {
 
   @Override
   public void close() {
-    // TODO(jiacheng): so where is the version number used?
     if (mStatus.get() == mLockedVersion) {
       mRefCount.decrement();
     }

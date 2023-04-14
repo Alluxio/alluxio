@@ -591,9 +591,11 @@ public final class RocksStore implements Closeable {
    * Used by ongoing r/w operations to check if the operation needs to abort and yield
    * to the RocksDB shutdown.
    */
-  public void abortIfClosing() {
+  public void shouldAbort(int lockedVersion) {
     if (mState.get().mStopServing) {
       throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
+    } else if (lockedVersion < mState.get().mVersion) {
+      throw new UnavailableRuntimeException("RocksDB contents have changed!");
     }
   }
 
