@@ -27,6 +27,11 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -39,6 +44,8 @@ public final class CommandManager {
 
   // TODO(yupeng) add retry support
   private final Map<Long, List<JobCommand>> mWorkerIdToPendingCommands = Maps.newHashMap();
+  // TODO(vimalKeshu) replace lock per worker with guava striped lock once it is unstable
+  private final Map<Long, ReadWriteLock> mWorkerLocks = new ConcurrentHashMap<>();
 
   /**
    * Constructs a new {@link CommandManager}.
@@ -54,8 +61,8 @@ public final class CommandManager {
    * @param taskArgs the arguments passed to the executor on the worker
    * @param workerId the id of the worker
    */
-  public synchronized void submitRunTaskCommand(long jobId, long taskId, JobConfig jobConfig,
-      Object taskArgs, long workerId) {
+  public void submitRunTaskCommand(long jobId, long taskId, JobConfig jobConfig,
+                                   Object taskArgs, long workerId) {
     RunTaskCommand.Builder runTaskCommand = RunTaskCommand.newBuilder();
     runTaskCommand.setJobId(jobId);
     runTaskCommand.setTaskId(taskId);
@@ -81,7 +88,7 @@ public final class CommandManager {
    * @param taskId the task id
    * @param workerId the worker id
    */
-  public synchronized void submitCancelTaskCommand(long jobId, long taskId, long workerId) {
+  public void submitCancelTaskCommand(long jobId, long taskId, long workerId) {
     CancelTaskCommand.Builder cancelTaskCommand = CancelTaskCommand.newBuilder();
     cancelTaskCommand.setJobId(jobId);
     cancelTaskCommand.setTaskId(taskId);
@@ -96,7 +103,7 @@ public final class CommandManager {
    * @param workerId the worker id
    * @param taskPoolSize the task pool size
    */
-  public synchronized void submitSetTaskPoolSizeCommand(long workerId, int taskPoolSize) {
+  public void submitSetTaskPoolSizeCommand(long workerId, int taskPoolSize) {
     SetTaskPoolSizeCommand.Builder setTaskPoolSizeCommand = SetTaskPoolSizeCommand.newBuilder();
     setTaskPoolSizeCommand.setTaskPoolSize(taskPoolSize);
 
@@ -105,11 +112,20 @@ public final class CommandManager {
     submit(workerId, command);
   }
 
-  private synchronized void submit(long workerId, JobCommand.Builder command) {
-    if (!mWorkerIdToPendingCommands.containsKey(workerId)) {
-      mWorkerIdToPendingCommands.put(workerId, Lists.newArrayList());
+  private void submit(long workerId, JobCommand.Builder command) {
+    Objects.requireNonNull(mWorkerLocks.get(workerId),
+            String.format("Worker,%d,not holding the lock.", workerId));
+
+    Lock writeLock = mWorkerLocks.get(workerId).writeLock();
+    writeLock.lock();
+    try {
+      if (!mWorkerIdToPendingCommands.containsKey(workerId)) {
+        mWorkerIdToPendingCommands.put(workerId, Lists.newArrayList());
+      }
+      mWorkerIdToPendingCommands.get(workerId).add(command.build());
+    } finally {
+      writeLock.unlock();
     }
-    mWorkerIdToPendingCommands.get(workerId).add(command.build());
   }
 
   /**
@@ -118,13 +134,49 @@ public final class CommandManager {
    * @param workerId id of the worker to send the commands to
    * @return the list of the commends polled
    */
-  public synchronized List<alluxio.grpc.JobCommand> pollAllPendingCommands(long workerId) {
-    if (!mWorkerIdToPendingCommands.containsKey(workerId)) {
-      return Lists.newArrayList();
+  public List<alluxio.grpc.JobCommand> pollAllPendingCommands(long workerId) {
+    Objects.requireNonNull(mWorkerLocks.get(workerId),
+            String.format("Worker,%d,not holding the lock.", workerId));
+
+    List<JobCommand> commands = null;
+    Lock writeLock = mWorkerLocks.get(workerId).writeLock();
+    writeLock.lock();
+    try {
+      List<JobCommand> workerIdToPendingCommandList =
+              mWorkerIdToPendingCommands.getOrDefault(workerId, Lists.newArrayList());
+      commands = Lists.newArrayList(workerIdToPendingCommandList);
+      workerIdToPendingCommandList.clear();
+    } finally {
+      writeLock.unlock();
     }
-    List<JobCommand> commands =
-        Lists.newArrayList(mWorkerIdToPendingCommands.get(workerId));
-    mWorkerIdToPendingCommands.get(workerId).clear();
     return commands;
+  }
+
+  /**
+   * Register the lock for worker.
+   *
+   * @param workerId id of the worker
+   */
+  public void createWorkerLock(long workerId) {
+    if (!mWorkerLocks.containsKey(workerId)) {
+      mWorkerLocks.put(workerId, new ReentrantReadWriteLock(true));
+    }
+  }
+
+  /**
+   * Remove the lock of the worker.
+   *
+   * @param workerId id of the worker
+   */
+  public void removeWorkerLock(long workerId) {
+    if (!mWorkerLocks.containsKey(workerId)) {
+      Lock writeLock = mWorkerLocks.get(workerId).writeLock();
+      writeLock.lock();
+      try {
+        mWorkerLocks.remove(workerId);
+      } finally {
+        writeLock.unlock();
+      }
+    }
   }
 }
