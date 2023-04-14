@@ -69,7 +69,11 @@ public class UfsFileInStream extends FileInStream {
   public int read(ByteBuffer byteBuffer) throws IOException {
     int len = byteBuffer.remaining();
     if (byteBuffer.hasArray()) {
-      return read(byteBuffer.array(), byteBuffer.arrayOffset(), byteBuffer.remaining());
+      int bytesRead = read(byteBuffer.array(), byteBuffer.arrayOffset(), len);
+      if (bytesRead > 0) {
+        byteBuffer.position(byteBuffer.position() + bytesRead);
+      }
+      return bytesRead;
     }
     byte[] byteArray = new byte[len];
     int totalBytesRead = read(byteArray, 0, len);
