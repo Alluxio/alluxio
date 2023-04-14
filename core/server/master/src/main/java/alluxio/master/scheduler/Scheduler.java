@@ -15,6 +15,7 @@ import static java.lang.String.format;
 
 import alluxio.Constants;
 import alluxio.client.block.stream.BlockWorkerClient;
+import alluxio.client.file.FileSystemContext;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
@@ -46,10 +47,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -76,9 +74,94 @@ public final class Scheduler {
   private final JobMetaStore mJobMetaStore;
   // initial thread in start method since we would stop and start thread when gainPrimacy
   private ScheduledExecutorService mSchedulerExecutor;
+  private ThreadPoolExecutor mWorkingExecutor;
   private volatile boolean mRunning = false;
-  private Map<WorkerInfo, CloseableResource<BlockWorkerClient>> mActiveWorkers = ImmutableMap.of();
-  private final WorkerProvider mWorkerProvider;
+
+  private final WorkerInfoHub mWorkerInfoHub;
+  public static class WorkerInfoHub {
+    private Scheduler mScheduler;
+    public Map<WorkerInfo, CloseableResource<BlockWorkerClient>> mActiveWorkers = ImmutableMap.of();
+    private final WorkerProvider mWorkerProvider;
+    public WorkerInfoHub(Scheduler scheduler, WorkerProvider workerProvider) {
+      mScheduler = scheduler;
+      mWorkerProvider = workerProvider;
+    }
+    public final Map<WorkerInfo, PriorityBlockingQueue<Task>>  mWorkerToTaskQ = new ConcurrentHashMap<>();
+    public void enqueueTaskForWorker(WorkerInfo workerInfo, Task task, boolean kickStartTask) {
+      PriorityBlockingQueue workerTaskQ = mWorkerToTaskQ
+          .computeIfAbsent(workerInfo, k -> new PriorityBlockingQueue<>());
+      workerTaskQ.offer(task);
+      mScheduler.getWorkingExecutor().submit(() -> task.execute(mActiveWorkers.get(workerInfo).get(), workerInfo));
+    }
+
+    public boolean removeTaskFromWorkerQ(Task task) {
+      WorkerInfo workerInfo = task.getMyRunningWorker();
+      if (mWorkerToTaskQ.containsKey(workerInfo))
+        return false;
+      PriorityBlockingQueue<Task> pq = mWorkerToTaskQ.get(workerInfo);
+      return pq.remove(task);
+    }
+
+    /**
+     * Refresh active workers.
+     */
+    @VisibleForTesting
+    public void updateWorkers() {
+
+      if (Thread.currentThread().isInterrupted()) {
+        return;
+      }
+      Set<WorkerInfo> workerInfos;
+      try {
+        try {
+          workerInfos = ImmutableSet.copyOf(mWorkerProvider.getWorkerInfos());
+        } catch (AlluxioRuntimeException e) {
+          LOG.warn("Failed to get worker info, using existing worker infos of {} workers",
+              mActiveWorkers.size());
+          return;
+        }
+        if (workerInfos.size() == mActiveWorkers.size()
+            && workerInfos.containsAll(mActiveWorkers.keySet())) {
+          return;
+        }
+
+        ImmutableMap.Builder<WorkerInfo, CloseableResource<BlockWorkerClient>> updatedWorkers =
+            ImmutableMap.builder();
+        for (WorkerInfo workerInfo : workerInfos) {
+          if (mActiveWorkers.containsKey(workerInfo)) {
+            updatedWorkers.put(workerInfo, mActiveWorkers.get(workerInfo));
+          }
+          else {
+            try {
+              updatedWorkers.put(workerInfo,
+                  mWorkerProvider.getWorkerClient(workerInfo.getAddress()));
+            } catch (AlluxioRuntimeException e) {
+              // skip the worker if we cannot obtain a client
+            }
+          }
+        }
+        // Close clients connecting to lost workers
+        for (Map.Entry<WorkerInfo, CloseableResource<BlockWorkerClient>> entry :
+            mActiveWorkers.entrySet()) {
+          WorkerInfo workerInfo = entry.getKey();
+          if (!workerInfos.contains(workerInfo)) {
+            CloseableResource<BlockWorkerClient> resource = entry.getValue();
+            resource.close();
+            LOG.debug("Closed BlockWorkerClient to lost worker {}", workerInfo);
+          }
+        }
+        // Build the clients to the current active worker list
+        mActiveWorkers = updatedWorkers.build();
+      } catch (Exception e) {
+        // Unknown exception. This should not happen, but if it happens we don't want to lose the
+        // scheduler thread, thus catching it here. Any exception surfaced here should be properly
+        // handled.
+        LOG.error("Unexpected exception thrown in updateWorkers.", e);
+      }
+    }
+
+  }
+  private final FileSystemContext mFileSystemContext;
 
   /**
    * Constructor.
@@ -86,11 +169,12 @@ public final class Scheduler {
    * @param workerProvider   workerProvider
    * @param jobMetaStore     jobMetaStore
    */
-  public Scheduler(WorkerProvider workerProvider, JobMetaStore jobMetaStore) {
-    mWorkerProvider = workerProvider;
+  public Scheduler(FileSystemContext fsCtx, WorkerProvider workerProvider, JobMetaStore jobMetaStore) {
+    mFileSystemContext = fsCtx;
     mJobMetaStore = jobMetaStore;
     MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_JOB_SCHEDULER_RUNNING_COUNT.getName(), mRunningTasks::size);
+    mWorkerInfoHub = new WorkerInfoHub(this, workerProvider);
   }
 
   /**
@@ -99,14 +183,20 @@ public final class Scheduler {
   public void start() {
     if (!mRunning) {
       retrieveJobs();
+      mWorkingExecutor = new ThreadPoolExecutor(4, 4, -1, TimeUnit.SECONDS,
+        new ArrayBlockingQueue<>(16 * 1024));
       mSchedulerExecutor = Executors.newSingleThreadScheduledExecutor(
           ThreadFactoryUtils.build("scheduler", false));
-      mSchedulerExecutor.scheduleAtFixedRate(this::updateWorkers, 0, WORKER_UPDATE_INTERVAL,
+      mSchedulerExecutor.scheduleAtFixedRate(mWorkerInfoHub::updateWorkers, 0, WORKER_UPDATE_INTERVAL,
           TimeUnit.MILLISECONDS);
       mSchedulerExecutor.scheduleWithFixedDelay(this::processJobs, 0, 100, TimeUnit.MILLISECONDS);
       mSchedulerExecutor.scheduleWithFixedDelay(this::cleanupStaleJob, 1, 1, TimeUnit.HOURS);
       mRunning = true;
     }
+  }
+
+  public ExecutorService getWorkingExecutor() {
+    return mWorkingExecutor;
   }
 
   private void retrieveJobs() {
@@ -126,9 +216,10 @@ public final class Scheduler {
    */
   public void stop() {
     if (mRunning) {
-      mActiveWorkers.values().forEach(CloseableResource::close);
-      mActiveWorkers = ImmutableMap.of();
+      mWorkerInfoHub.mActiveWorkers.values().forEach(CloseableResource::close);
+      mWorkerInfoHub.mActiveWorkers = ImmutableMap.of();
       ThreadUtils.shutdownAndAwaitTermination(mSchedulerExecutor, EXECUTOR_SHUTDOWN_MS);
+      ThreadUtils.shutdownAndAwaitTermination(mWorkingExecutor, EXECUTOR_SHUTDOWN_MS);
       mRunning = false;
     }
   }
@@ -207,13 +298,17 @@ public final class Scheduler {
     return job.getProgress(format, verbose);
   }
 
+  public FileSystemContext getFileSystemContext() {
+    return mFileSystemContext;
+  }
+
   /**
    * Get active workers.
    * @return active workers
    */
   @VisibleForTesting
   public Map<WorkerInfo, CloseableResource<BlockWorkerClient>> getActiveWorkers() {
-    return mActiveWorkers;
+    return mWorkerInfoHub.mActiveWorkers;
   }
 
   /**
@@ -230,63 +325,6 @@ public final class Scheduler {
   }
 
   /**
-   * Refresh active workers.
-   */
-  @VisibleForTesting
-  public void updateWorkers() {
-    if (Thread.currentThread().isInterrupted()) {
-      return;
-    }
-    Set<WorkerInfo> workerInfos;
-    try {
-      try {
-        workerInfos = ImmutableSet.copyOf(mWorkerProvider.getWorkerInfos());
-      } catch (AlluxioRuntimeException e) {
-        LOG.warn("Failed to get worker info, using existing worker infos of {} workers",
-            mActiveWorkers.size());
-        return;
-      }
-      if (workerInfos.size() == mActiveWorkers.size()
-          && workerInfos.containsAll(mActiveWorkers.keySet())) {
-        return;
-      }
-
-      ImmutableMap.Builder<WorkerInfo, CloseableResource<BlockWorkerClient>> updatedWorkers =
-          ImmutableMap.builder();
-      for (WorkerInfo workerInfo : workerInfos) {
-        if (mActiveWorkers.containsKey(workerInfo)) {
-          updatedWorkers.put(workerInfo, mActiveWorkers.get(workerInfo));
-        }
-        else {
-          try {
-            updatedWorkers.put(workerInfo,
-                mWorkerProvider.getWorkerClient(workerInfo.getAddress()));
-          } catch (AlluxioRuntimeException e) {
-            // skip the worker if we cannot obtain a client
-          }
-        }
-      }
-      // Close clients connecting to lost workers
-      for (Map.Entry<WorkerInfo, CloseableResource<BlockWorkerClient>> entry :
-          mActiveWorkers.entrySet()) {
-        WorkerInfo workerInfo = entry.getKey();
-        if (!workerInfos.contains(workerInfo)) {
-          CloseableResource<BlockWorkerClient> resource = entry.getValue();
-          resource.close();
-          LOG.debug("Closed BlockWorkerClient to lost worker {}", workerInfo);
-        }
-      }
-      // Build the clients to the current active worker list
-      mActiveWorkers = updatedWorkers.build();
-    } catch (Exception e) {
-      // Unknown exception. This should not happen, but if it happens we don't want to lose the
-      // scheduler thread, thus catching it here. Any exception surfaced here should be properly
-      // handled.
-      LOG.error("Unexpected exception thrown in updateWorkers.", e);
-    }
-  }
-
-  /**
    * Get jobs.
    *
    * @return jobs
@@ -300,7 +338,8 @@ public final class Scheduler {
     if (Thread.currentThread().isInterrupted()) {
       return;
     }
-    mRunningTasks.forEach(this::processJob);
+//    mRunningTasks.forEach(this::processJob);
+    mExistingJobs.forEach((jobDescription, job) -> job.continueJob());
   }
 
   private void processJob(Job<?> job, Set<WorkerInfo> runningWorkers) {
@@ -325,7 +364,7 @@ public final class Scheduler {
       }
 
       // If there are new workers, schedule job onto new workers
-      mActiveWorkers.forEach((workerInfo, workerClient) -> {
+      mWorkerInfoHub.mActiveWorkers.forEach((workerInfo, workerClient) -> {
         if (!runningWorkers.contains(workerInfo) && scheduleTask(job, workerInfo, runningWorkers,
             workerClient)) {
           runningWorkers.add(workerInfo);
@@ -376,7 +415,7 @@ public final class Scheduler {
       return false;
     }
     Task<?> currentTask = task.get();
-    currentTask.execute(workerClient.get());
+    currentTask.execute(workerClient.get(), workerInfo);
     currentTask.getResponseFuture().addListener(() -> {
       try {
         if (!job.processResponse(currentTask)) {
@@ -384,8 +423,8 @@ public final class Scheduler {
         }
         // Schedule next batch for healthy job
         if (job.isHealthy()) {
-          if (mActiveWorkers.containsKey(workerInfo)) {
-            if (!scheduleTask(job, workerInfo, livingWorkers, mActiveWorkers.get(workerInfo))) {
+          if (mWorkerInfoHub.mActiveWorkers.containsKey(workerInfo)) {
+            if (!scheduleTask(job, workerInfo, livingWorkers, mWorkerInfoHub.mActiveWorkers.get(workerInfo))) {
               livingWorkers.remove(workerInfo);
             }
           }
@@ -402,5 +441,9 @@ public final class Scheduler {
       }
     }, mSchedulerExecutor);
     return true;
+  }
+
+  public WorkerInfoHub getWorkerInfoHub() {
+    return mWorkerInfoHub;
   }
 }

@@ -396,7 +396,7 @@ public final class SchedulerTest {
             LoadJob.QUALIFIED_FILE_FILTER);
     DefaultWorkerProvider workerProvider =
         new DefaultWorkerProvider(fsMaster, fileSystemContext);
-    Scheduler scheduler = new Scheduler(workerProvider, new JournaledJobMetaStore(fsMaster,
+    Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider, new JournaledJobMetaStore(fsMaster,
         mock(UfsManager.class)));
     for (int i = 0; i < 100; i++) {
       LoadJob loadJob = new LoadJob("test" + i, "user", OptionalLong.of(1000), files);

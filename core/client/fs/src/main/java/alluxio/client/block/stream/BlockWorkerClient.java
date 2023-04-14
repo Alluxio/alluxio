@@ -98,6 +98,8 @@ public interface BlockWorkerClient extends Closeable {
    */
   StreamObserver<ReadRequest> readBlock(StreamObserver<ReadResponse> responseObserver);
 
+  ListenableFuture<Object> readBlockNoDataBack(ReadRequest request);
+
   /**
    * Creates a local block on the worker. This is a two stage operations:
    * 1. Client sends a create request through the request stream. Server will respond with the name

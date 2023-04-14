@@ -13,6 +13,7 @@ package alluxio.master.job;
 
 import static java.util.Objects.requireNonNull;
 
+import alluxio.master.scheduler.Scheduler;
 import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobState;
 import alluxio.scheduler.job.Task;
@@ -38,8 +39,9 @@ public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
   protected OptionalLong mEndTime = OptionalLong.empty();
   protected final long mStartTime;
   protected final Optional<String> mUser;
-  private final List<Task<T>> mTaskList = new BlockingArrayQueue<>();
-
+  protected final BlockingArrayQueue<Task<T>> mTaskList = new BlockingArrayQueue<>();
+  protected Scheduler mMyScheduler;
+  protected WorkerAssignPolicy mWorkerAssignPolicy;
 
   /**
    * Creates a new instance of {@link AbstractJob}.
@@ -52,6 +54,14 @@ public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
     mJobId = requireNonNull(jobId, "jobId is null");
     mState = JobState.RUNNING;
     mStartTime = System.currentTimeMillis();
+  }
+
+  public void setMyScheduler(Scheduler scheduler) {
+    mMyScheduler = scheduler;
+  }
+
+  public void setWorkerAssignPolicy(WorkerAssignPolicy assignPolicy) {
+    mWorkerAssignPolicy = assignPolicy;
   }
 
   @Override
