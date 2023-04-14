@@ -17,12 +17,14 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.Counter;
+import com.google.common.base.Stopwatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * A wrapper class of CacheManager without throwing unchecked exceptions.
@@ -106,6 +108,21 @@ public class NoExceptionCacheManager implements CacheManager {
           .get(pageId, pageOffset, bytesToRead, buffer, cacheContext);
     } catch (Exception e) {
       LOG.error("Failed to get page {}, offset {} cacheContext {}", pageId, pageOffset,
+          cacheContext, e);
+      Metrics.GET_ERRORS.inc();
+      return -1;
+    }
+  }
+
+  @Override
+  public int getAndLoad(PageId pageId, int pageOffset, int bytesToRead,
+      ReadTargetBuffer buffer, CacheContext cacheContext,
+      Stopwatch stopwatch, Supplier<byte[]> externalDataSupplier) {
+    try {
+      return mCacheManager.getAndLoad(pageId, pageOffset, bytesToRead,
+          buffer, cacheContext, stopwatch, externalDataSupplier);
+    } catch (Exception e) {
+      LOG.error("Failed to get and load page {}, offset {} cacheContext {}", pageId, pageOffset,
           cacheContext, e);
       Metrics.GET_ERRORS.inc();
       return -1;
