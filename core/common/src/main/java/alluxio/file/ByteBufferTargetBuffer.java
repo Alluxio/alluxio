@@ -75,7 +75,14 @@ public class ByteBufferTargetBuffer implements ReadTargetBuffer {
 
   @Override
   public void writeBytes(ByteBuf buf) {
+    if (mTarget.remaining() <= buf.readableBytes()) {
+      buf.readBytes(mTarget);
+      return;
+    }
+    int oldLimit = mTarget.limit();
+    mTarget.limit(mTarget.position() + buf.readableBytes());
     buf.readBytes(mTarget);
+    mTarget.limit(oldLimit);
   }
 
   @Override
