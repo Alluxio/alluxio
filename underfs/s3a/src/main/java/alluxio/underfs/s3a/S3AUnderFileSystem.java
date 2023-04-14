@@ -17,7 +17,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.file.options.DescendantType;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
-import alluxio.underfs.UfsClient;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsLoadResult;
@@ -116,7 +115,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * S3 {@link UnderFileSystem} implementation based on the aws-java-sdk-s3 library.
  */
 @ThreadSafe
-public class S3AUnderFileSystem extends ObjectUnderFileSystem implements UfsClient {
+public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(S3AUnderFileSystem.class);
 
   /** Static hash for a directory's empty contents. */

@@ -730,6 +730,12 @@
         <artifactId>s3proxy</artifactId>
         <version>${s3proxy.version}</version>
         <scope>test</scope>
+        <exclusions>
+          <exclusion>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>io.grpc</groupId>
@@ -758,12 +764,6 @@
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-test</artifactId>
         <version>${hadoop.version}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.gaul</groupId>
-        <artifactId>s3proxy</artifactId>
-        <version>2.0.0</version>
         <scope>test</scope>
       </dependency>
       <dependency>

@@ -996,7 +996,14 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       String path, boolean recursive, String startAfter, int batchSize) throws IOException {
     // Check if anything begins with <folder_path>/
     String dir = stripPrefixIfPresent(path);
-    ObjectListingChunk objs = getObjectListingChunk(dir, recursive, startAfter, batchSize);
+    final ObjectListingChunk objs;
+    if (startAfter == null && batchSize == 0) {
+      // Some UFS haven't implemented getObjectListingChunk(dir, recursive, startAfter, batchSize)
+      // so falling back to the one with less param if startAfter and batchSize is unset.
+      objs = getObjectListingChunk(dir, recursive);
+    } else {
+      objs = getObjectListingChunk(dir, recursive, startAfter, batchSize);
+    }
     // If there are, this is a folder and we can create the necessary metadata
     if (objs != null
         && ((objs.getObjectStatuses() != null && objs.getObjectStatuses().length > 0)
