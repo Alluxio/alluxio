@@ -328,6 +328,8 @@ public final class MountTable implements DelegatingJournaled {
       Map<String, MountInfo> mountTable = mState.getMountTable();
       for (String mount: possibleMounts) {
         if (mountTable.containsKey(mount)) {
+          // results in `possibleMounts` are from shortest to longest, so it will get the
+          // longest matching below
           lastMount = mount;
         }
       }
