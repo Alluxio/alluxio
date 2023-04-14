@@ -104,17 +104,7 @@ function formatWorkerIfSpecified {
 }
 
 function mountAlluxioFSWithFuseOption {
-  if [[ -n ${FUSE_ALLUXIO_PATH} || -n ${MOUNT_POINT} ]]; then
-    echo "Use of environment variables FUSE_ALLUXIO_PATH and MOUNT_POINT for Alluxio Fuse are deprecated."
-    printUsage
-    exit 1
-  fi
-  local mountOptions="$1"
-  if [[ "${mountOptions}" =~ ${FUSE_OPTS}=* ]]; then
-    exec integration/fuse/bin/alluxio-fuse mount -n -o "${mountOptions#*=}" "${@:2}"
-  else
-    exec integration/fuse/bin/alluxio-fuse mount -n "${@:1}"
-  fi
+  exec integration/fuse/bin/alluxio-fuse mount "${@}" -f
 }
 
 function mountFuseWithUFS {

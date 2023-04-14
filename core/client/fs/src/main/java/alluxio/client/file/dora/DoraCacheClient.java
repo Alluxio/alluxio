@@ -15,11 +15,10 @@ import static com.google.common.base.Preconditions.checkState;
 
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
-import alluxio.client.block.stream.DataReader;
 import alluxio.client.block.stream.GrpcDataReader;
-import alluxio.client.block.stream.NettyDataReader;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.dora.netty.NettyDataReader;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.FileInfo;
 import alluxio.grpc.GetStatusPOptions;
@@ -75,13 +74,13 @@ public class DoraCacheClient {
                                            Protocol.OpenUfsBlockOptions ufsOptions) {
     WorkerNetAddress workerNetAddress = getWorkerNetAddress(status.getPath());
     // Construct the partial read request
-    DataReader.Factory readerFactory;
+    DoraDataReader reader;
     if (mNettyTransEnabled) {
-      readerFactory = createNettyDataReader(workerNetAddress, ufsOptions);
+      reader = createNettyDataReader(workerNetAddress, ufsOptions);
     } else {
-      readerFactory = createGrpcDataReader(workerNetAddress, ufsOptions);
+      throw new UnsupportedOperationException("Grpc dora reader not implemented");
     }
-    return new DoraCacheFileInStream(readerFactory, status.getLength());
+    return new DoraCacheFileInStream(reader, status.getLength());
   }
 
   private GrpcDataReader.Factory createGrpcDataReader(
@@ -94,14 +93,14 @@ public class DoraCacheClient {
     return new GrpcDataReader.Factory(mContext, workerNetAddress, builder);
   }
 
-  private NettyDataReader.Factory createNettyDataReader(
+  private NettyDataReader createNettyDataReader(
       WorkerNetAddress workerNetAddress,
       Protocol.OpenUfsBlockOptions ufsOptions) {
     Protocol.ReadRequest.Builder builder = Protocol.ReadRequest.newBuilder()
         .setBlockId(DUMMY_BLOCK_ID)
         .setOpenUfsBlockOptions(ufsOptions)
         .setChunkSize(mChunkSize);
-    return new NettyDataReader.Factory(mContext, workerNetAddress, builder);
+    return new NettyDataReader(mContext, workerNetAddress, builder);
   }
 
   /**

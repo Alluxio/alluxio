@@ -84,6 +84,9 @@ public class UfsFileInStream extends FileInStream {
   public int read(byte[] b, int off, int len) throws IOException {
     Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
         PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
+    if (len == 0) {
+      return 0;
+    }
     if (mPosition == mLength) { // at end of file
       return -1;
     }

@@ -142,10 +142,7 @@ public class TieredBlockStore implements LocalBlockStore {
     mBlockReaderFactory = blockReaderFactory;
     mBlockWriterFactory = blockWriterFactory;
     mTempBlockMetaFactory = tempBlockMetaFactory;
-  }
 
-  @Override
-  public void initialize() {
     BlockIterator blockIterator = mMetaManager.getBlockIterator();
     // Register listeners required by the block iterator.
     for (BlockStoreEventListener listener : blockIterator.getListeners()) {
@@ -163,6 +160,10 @@ public class TieredBlockStore implements LocalBlockStore {
     mTaskCoordinator = new ManagementTaskCoordinator(this, mMetaManager,
         new DefaultStoreLoadTracker(), this::getUpdatedView);
     mTaskCoordinator.start();
+  }
+
+  @Override
+  public void initialize() {
   }
 
   @Override
