@@ -19,6 +19,7 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.OpenFilePOptions;
@@ -91,6 +92,6 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
     }
     return LocalCachePositionReader.create(mConf, mCacheManager,
         new CloseableSupplier<>(() -> mDelegatedFileSystem.openPositionRead(status, options)),
-        status);
+        status, mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE));
   }
 }

@@ -16,6 +16,7 @@ import alluxio.PositionReader;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCachePositionReader;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.file.FileId;
 import alluxio.file.NettyBufTargetBuffer;
 import alluxio.file.ReadTargetBuffer;
@@ -57,7 +58,7 @@ public class PagedFileReader extends BlockReader implements PositionReader {
     mFileSize = fileSize;
     mPos = startPosition;
     mPositionReader = LocalCachePositionReader.create(conf, cacheManager,
-        fallbackReader, fileId, mFileSize);
+        fallbackReader, fileId, mFileSize, conf.getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE));
   }
 
   // contract:
