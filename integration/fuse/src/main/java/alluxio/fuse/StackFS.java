@@ -163,9 +163,10 @@ public class StackFS extends AbstractFuseFileSystem {
   }
 
   @Override
-  public int read(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
-    return AlluxioFuseUtils.call(LOG, () -> readInternal(path, buf, size, offset, fi),
-        "Stackfs.Read", "path=%s,buf=%s,size=%d,offset=%d", path, buf, size, offset);
+  public int read(String path, long position, ByteBuffer buf, FuseFileInfo fi) {
+    final int size = buf.remaining();
+    return AlluxioFuseUtils.call(LOG, () -> readInternal(path, buf, size, position, fi),
+        "Stackfs.Read", "path=%s,buf=%s,size=%d,position=%d", path, buf, size, position);
   }
 
   private int readInternal(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
@@ -217,14 +218,15 @@ public class StackFS extends AbstractFuseFileSystem {
   }
 
   @Override
-  public int write(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
-    return AlluxioFuseUtils.call(LOG, () -> writeInternal(path, buf, size, offset, fi),
-        "Stackfs.Write", "path=%s,buf=%s,size=%d,offset=%d", path, buf, size, offset);
+  public int write(String path, long position, ByteBuffer buf, FuseFileInfo fi) {
+    final int size = buf.remaining();
+    return AlluxioFuseUtils.call(LOG, () -> writeInternal(path, position, buf, fi),
+        "Stackfs.Write", "path=%s,buf=%s,size=%d,position=%d", path, buf, size, position);
   }
 
-  private int writeInternal(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
+  private int writeInternal(String path, long position, ByteBuffer buf, FuseFileInfo fi) {
     path = transformPath(path);
-    final int sz = (int) size;
+    final int sz = buf.remaining();
     // TODO(lu) is it needed to check if offset < bytesWritten
     // is the write guarantee to be sequential?
     try (FileOutputStream outputStream = new FileOutputStream(path)) {

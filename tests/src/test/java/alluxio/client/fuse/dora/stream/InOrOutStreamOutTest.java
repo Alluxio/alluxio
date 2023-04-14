@@ -45,8 +45,9 @@ public class InOrOutStreamOutTest extends OutStreamTest {
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
     try (FuseFileStream outStream = createStream(alluxioURI, false)) {
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
-      outStream.write(buffer, DEFAULT_FILE_LEN, 0);
-      outStream.read(buffer, DEFAULT_FILE_LEN, 0);
+      outStream.write(0, buffer);
+      buffer.clear().limit(DEFAULT_FILE_LEN);
+      outStream.read(0, buffer);
     }
   }
 

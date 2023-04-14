@@ -107,7 +107,7 @@ public class FuseFileSystemDataTest extends AbstractFuseFileSystemTest {
       }
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
       Assert.assertEquals(DEFAULT_FILE_LEN,
-          mFuseFs.write(FILE, buffer, DEFAULT_FILE_LEN, 0, mFileInfo.get()));
+          mFuseFs.write(FILE, 0, buffer, mFileInfo.get()));
       Assert.assertEquals(0, mFuseFs.release(FILE, mFileInfo.get()));
       Assert.assertEquals(0, mFuseFs.getattr(FILE, mFileStat));
       Assert.assertEquals(DEFAULT_FILE_LEN, mFileStat.st_size.intValue());
@@ -127,7 +127,7 @@ public class FuseFileSystemDataTest extends AbstractFuseFileSystemTest {
       }
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
       Assert.assertEquals(-ErrorCodes.EEXIST(),
-          mFuseFs.write(FILE, buffer, DEFAULT_FILE_LEN, 0, mFileInfo.get()));
+          mFuseFs.write(FILE, 0, buffer, mFileInfo.get()));
       Assert.assertEquals(0, mFuseFs.release(FILE, mFileInfo.get()));
       Assert.assertEquals(0, mFuseFs.unlink(FILE));
     }, true);
@@ -144,7 +144,7 @@ public class FuseFileSystemDataTest extends AbstractFuseFileSystemTest {
       }
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
       Assert.assertEquals(DEFAULT_FILE_LEN,
-          mFuseFs.write(FILE, buffer, DEFAULT_FILE_LEN, 0, mFileInfo.get()));
+          mFuseFs.write(FILE, 0, buffer, mFileInfo.get()));
       Assert.assertEquals(0, mFuseFs.release(FILE, mFileInfo.get()));
       Assert.assertEquals(0, mFuseFs.unlink(FILE));
     }, true);
@@ -162,7 +162,7 @@ public class FuseFileSystemDataTest extends AbstractFuseFileSystemTest {
       Assert.assertEquals(0, mFuseFs.truncate(FILE, 0));
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN * 2);
       Assert.assertEquals(DEFAULT_FILE_LEN * 2,
-          mFuseFs.write(FILE, buffer, DEFAULT_FILE_LEN * 2, 0, mFileInfo.get()));
+          mFuseFs.write(FILE, 0, buffer, mFileInfo.get()));
       Assert.assertEquals(0, mFuseFs.release(FILE, mFileInfo.get()));
       Assert.assertEquals(0,
           mFuseFs.getattr(FILE, mFileStat));
@@ -229,7 +229,7 @@ public class FuseFileSystemDataTest extends AbstractFuseFileSystemTest {
         Assert.assertEquals(0, (int) createOrOpenOperation.apply(0));
         ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
         Assert.assertEquals(DEFAULT_FILE_LEN,
-            mFuseFs.write(FILE, buffer, DEFAULT_FILE_LEN, 0, mFileInfo.get()));
+            mFuseFs.write(FILE, 0, buffer, mFileInfo.get()));
         Assert.assertEquals(0,
             mFuseFs.getattr(FILE, mFileStat));
         Assert.assertEquals(DEFAULT_FILE_LEN, mFileStat.st_size.intValue());
@@ -239,7 +239,7 @@ public class FuseFileSystemDataTest extends AbstractFuseFileSystemTest {
         Assert.assertEquals(DEFAULT_FILE_LEN * 2, mFileStat.st_size.intValue());
         buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN, DEFAULT_FILE_LEN * 2);
         Assert.assertEquals(DEFAULT_FILE_LEN * 2,
-            mFuseFs.write(FILE, buffer, DEFAULT_FILE_LEN * 2, DEFAULT_FILE_LEN, mFileInfo.get()));
+            mFuseFs.write(FILE, DEFAULT_FILE_LEN, buffer, mFileInfo.get()));
         Assert.assertEquals(0,
             mFuseFs.getattr(FILE, mFileStat));
         Assert.assertEquals(DEFAULT_FILE_LEN * 3, mFileStat.st_size.intValue());
@@ -259,13 +259,13 @@ public class FuseFileSystemDataTest extends AbstractFuseFileSystemTest {
         Assert.assertEquals(0, (int) createOrOpenOperation.apply(0));
         ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
         Assert.assertEquals(DEFAULT_FILE_LEN,
-            mFuseFs.write(FILE, buffer, DEFAULT_FILE_LEN, 0, mFileInfo.get()));
+            mFuseFs.write(FILE, 0, buffer, mFileInfo.get()));
         Assert.assertEquals(0,
             mFuseFs.getattr(FILE, mFileStat));
         Assert.assertEquals(DEFAULT_FILE_LEN, mFileStat.st_size.intValue());
         buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN, DEFAULT_FILE_LEN);
         Assert.assertEquals(DEFAULT_FILE_LEN,
-            mFuseFs.write(FILE, buffer, DEFAULT_FILE_LEN, DEFAULT_FILE_LEN, mFileInfo.get()));
+            mFuseFs.write(FILE, DEFAULT_FILE_LEN, buffer, mFileInfo.get()));
         Assert.assertEquals(0,
             mFuseFs.getattr(FILE, mFileStat));
         Assert.assertEquals(DEFAULT_FILE_LEN * 2, mFileStat.st_size.intValue());
@@ -285,7 +285,7 @@ public class FuseFileSystemDataTest extends AbstractFuseFileSystemTest {
         Assert.assertEquals(0, (int) createOrOpenOperation.apply(0));
         ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
         Assert.assertEquals(-ErrorCodes.EOPNOTSUPP(),
-            mFuseFs.write(FILE, buffer, DEFAULT_FILE_LEN, 15, mFileInfo.get()));
+            mFuseFs.write(FILE, 15, buffer, mFileInfo.get()));
       } catch (Exception e) {
         throw new RuntimeException(e);
       } finally {
@@ -323,7 +323,7 @@ public class FuseFileSystemDataTest extends AbstractFuseFileSystemTest {
         Assert.assertEquals(0, (int) createOrOpenOperation.apply(0));
         ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
         Assert.assertEquals(DEFAULT_FILE_LEN,
-            mFuseFs.write(FILE, buffer, DEFAULT_FILE_LEN, 0, mFileInfo.get()));
+            mFuseFs.write(FILE, 0, buffer, mFileInfo.get()));
         mFileInfo.get().flags.set(O_RDONLY.intValue());
         Assert.assertEquals(-ErrorCodes.ETIME(), mFuseFs.open(FILE, mFileInfo.get()));
       } catch (Exception e) {
@@ -342,14 +342,14 @@ public class FuseFileSystemDataTest extends AbstractFuseFileSystemTest {
         DEFAULT_MODE.toShort(), mFileInfo.get()));
     ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
     Assert.assertEquals(DEFAULT_FILE_LEN,
-        mFuseFs.write(FILE, buffer, DEFAULT_FILE_LEN, 0, mFileInfo.get()));
+        mFuseFs.write(FILE, 0, buffer, mFileInfo.get()));
     Assert.assertEquals(0, mFuseFs.release(FILE, mFileInfo.get()));
     // read from file
     mFileInfo.get().flags.set(O_RDONLY.intValue());
     Assert.assertEquals(0, mFuseFs.open(FILE, mFileInfo.get()));
-    buffer.flip();
+    buffer.clear().limit(DEFAULT_FILE_LEN);
     Assert.assertEquals(DEFAULT_FILE_LEN,
-        mFuseFs.read(FILE, buffer, DEFAULT_FILE_LEN, 0, mFileInfo.get()));
+        mFuseFs.read(FILE, 0, buffer, mFileInfo.get()));
     BufferUtils.equalIncreasingByteBuffer(0, DEFAULT_FILE_LEN, buffer);
     Assert.assertEquals(0, mFuseFs.release(FILE, mFileInfo.get()));
   }
@@ -362,7 +362,7 @@ public class FuseFileSystemDataTest extends AbstractFuseFileSystemTest {
     try {
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
       Assert.assertEquals(DEFAULT_FILE_LEN,
-          mFuseFs.write(FILE, buffer, DEFAULT_FILE_LEN, 0, mFileInfo.get()));
+          mFuseFs.write(FILE, 0, buffer, mFileInfo.get()));
 
       mFileInfo.get().flags.set(O_RDONLY.intValue());
       Assert.assertEquals(-ErrorCodes.ETIME(), mFuseFs.open(FILE, mFileInfo.get()));
@@ -378,7 +378,7 @@ public class FuseFileSystemDataTest extends AbstractFuseFileSystemTest {
         DEFAULT_MODE.toShort(), mFileInfo.get()));
     ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
     Assert.assertEquals(DEFAULT_FILE_LEN,
-        mFuseFs.write(FILE, buffer, DEFAULT_FILE_LEN, 0, mFileInfo.get()));
+        mFuseFs.write(FILE, 0, buffer, mFileInfo.get()));
     Assert.assertEquals(0,
         mFuseFs.getattr(FILE, mFileStat));
     Assert.assertEquals(DEFAULT_FILE_LEN, mFileStat.st_size.intValue());
@@ -386,9 +386,9 @@ public class FuseFileSystemDataTest extends AbstractFuseFileSystemTest {
     Assert.assertEquals(AlluxioFuseUtils.getSystemGid(), mFileStat.st_gid.get());
     Assert.assertEquals(AlluxioFuseUtils.getSystemGid(), mFileStat.st_gid.get());
     Assert.assertTrue((mFileStat.st_mode.intValue() & FileStat.S_IFREG) != 0);
-    buffer.flip();
+    buffer.rewind();
     Assert.assertEquals(DEFAULT_FILE_LEN,
-        mFuseFs.write(FILE, buffer, DEFAULT_FILE_LEN, 0, mFileInfo.get()));
+        mFuseFs.write(FILE, 0, buffer, mFileInfo.get()));
     Assert.assertEquals(0,
         mFuseFs.getattr(FILE, mFileStat));
     Assert.assertEquals(DEFAULT_FILE_LEN * 2, mFileStat.st_size.intValue());

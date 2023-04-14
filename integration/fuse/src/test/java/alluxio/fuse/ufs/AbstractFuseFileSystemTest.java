@@ -69,7 +69,7 @@ public abstract class AbstractFuseFileSystemTest extends AbstractTest {
     Assert.assertEquals(0, mFuseFs.create(path, DEFAULT_MODE.toShort(), mFileInfo.get()));
     ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(size);
     Assert.assertEquals(size,
-        mFuseFs.write(FILE, buffer, size, 0, mFileInfo.get()));
+        mFuseFs.write(FILE, 0, buffer, mFileInfo.get()));
     Assert.assertEquals(0, mFuseFs.release(path, mFileInfo.get()));
   }
 }

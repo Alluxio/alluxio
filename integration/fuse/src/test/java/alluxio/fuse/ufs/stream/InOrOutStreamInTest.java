@@ -48,7 +48,8 @@ public class InOrOutStreamInTest extends InStreamTest {
     try (FuseFileStream inStream = createStream(alluxioURI)) {
       ByteBuffer buffer = ByteBuffer.allocate(1);
       buffer.put((byte) 'a');
-      inStream.write(buffer, 1, 0);
+      buffer.flip();
+      inStream.write(0, buffer);
     }
   }
 }

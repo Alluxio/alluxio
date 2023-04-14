@@ -33,8 +33,8 @@ public class TestBlockInStream extends BlockInStream {
   }
 
   @Override
-  public int read(ByteBuffer byteBuffer, int off, int len) throws IOException {
-    int bytesRead = super.read(byteBuffer, off, len);
+  public int read(ByteBuffer byteBuffer) throws IOException {
+    int bytesRead = super.read(byteBuffer);
     if (bytesRead <= 0) {
       return bytesRead;
     }

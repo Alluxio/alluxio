@@ -51,7 +51,8 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
         .create(alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE)) {
       ByteBuffer buffer = ByteBuffer.allocate(1);
       buffer.put((byte) 'a');
-      outStream.write(buffer, 1, 0);
+      buffer.flip();
+      outStream.write(0, buffer);
     }
   }
 
@@ -64,7 +65,7 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
     try (FuseFileStream outStream = mStreamFactory.create(alluxioURI,
         OpenFlags.O_WRONLY.intValue() | OpenFlags.O_TRUNC.intValue(), MODE)) {
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(newStartValue, newLen);
-      outStream.write(buffer, newLen, 0);
+      outStream.write(0, buffer);
     }
     checkFileInAlluxio(alluxioURI, newLen, newStartValue);
   }
@@ -79,7 +80,7 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
         .create(alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE)) {
       outStream.truncate(0);
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(newStartValue, newLen);
-      outStream.write(buffer, newLen, 0);
+      outStream.write(0, buffer);
     }
     checkFileInAlluxio(alluxioURI, newLen, newStartValue);
   }
@@ -91,7 +92,7 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
     try (FuseFileStream outStream = mStreamFactory
         .create(alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE)) {
       ByteBuffer buffer = ByteBuffer.allocate(DEFAULT_FILE_LEN);
-      outStream.read(buffer, DEFAULT_FILE_LEN, 0);
+      outStream.read(0, buffer);
     }
   }
 
@@ -103,7 +104,7 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
     try (FuseFileStream outStream = mStreamFactory
         .create(alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE)) {
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
-      outStream.write(buffer, DEFAULT_FILE_LEN, 15);
+      outStream.write(15, buffer);
     }
   }
 
@@ -115,10 +116,10 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
     try (FuseFileStream outStream = mStreamFactory
         .create(alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE)) {
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
-      outStream.write(buffer, DEFAULT_FILE_LEN, 0);
+      outStream.write(0, buffer);
       Assert.assertEquals(DEFAULT_FILE_LEN, outStream.getFileStatus().getFileLength());
       buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN, DEFAULT_FILE_LEN);
-      outStream.write(buffer, DEFAULT_FILE_LEN, DEFAULT_FILE_LEN);
+      outStream.write(DEFAULT_FILE_LEN, buffer);
       Assert.assertEquals(DEFAULT_FILE_LEN * 2, outStream.getFileStatus().getFileLength());
     }
     checkFileInAlluxio(alluxioURI, DEFAULT_FILE_LEN * 2, 0);
@@ -132,12 +133,12 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
     try (FuseFileStream outStream = mStreamFactory
         .create(alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE)) {
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
-      outStream.write(buffer, DEFAULT_FILE_LEN, 0);
+      outStream.write(0, buffer);
       Assert.assertEquals(DEFAULT_FILE_LEN, outStream.getFileStatus().getFileLength());
       outStream.truncate(0);
       Assert.assertEquals(0, outStream.getFileStatus().getFileLength());
       buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN * 2);
-      outStream.write(buffer, DEFAULT_FILE_LEN * 2,  0);
+      outStream.write(0, buffer);
       Assert.assertEquals(DEFAULT_FILE_LEN * 2, outStream.getFileStatus().getFileLength());
       outStream.truncate(DEFAULT_FILE_LEN * 2);
       Assert.assertEquals(DEFAULT_FILE_LEN * 2, outStream.getFileStatus().getFileLength());
@@ -153,7 +154,7 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
     try (FuseFileStream outStream = mStreamFactory
         .create(alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE)) {
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
-      outStream.write(buffer, DEFAULT_FILE_LEN, 0);
+      outStream.write(0, buffer);
       Assert.assertEquals(DEFAULT_FILE_LEN, outStream.getFileStatus().getFileLength());
       outStream.truncate(DEFAULT_FILE_LEN / 2);
     }
@@ -179,12 +180,12 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
         .create(alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE)) {
       Assert.assertEquals(0, outStream.getFileStatus().getFileLength());
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
-      outStream.write(buffer, DEFAULT_FILE_LEN, 0);
+      outStream.write(0, buffer);
       Assert.assertEquals(DEFAULT_FILE_LEN, outStream.getFileStatus().getFileLength());
       outStream.truncate(DEFAULT_FILE_LEN * 2);
       Assert.assertEquals(DEFAULT_FILE_LEN * 2, outStream.getFileStatus().getFileLength());
       buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN, DEFAULT_FILE_LEN * 2);
-      outStream.write(buffer, DEFAULT_FILE_LEN * 2, DEFAULT_FILE_LEN);
+      outStream.write(DEFAULT_FILE_LEN, buffer);
       Assert.assertEquals(DEFAULT_FILE_LEN * 3, outStream.getFileStatus().getFileLength());
     }
     checkFileInAlluxio(alluxioURI, DEFAULT_FILE_LEN * 3, 0);
@@ -201,7 +202,7 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
       outStream.truncate(DEFAULT_FILE_LEN);
       Assert.assertEquals(DEFAULT_FILE_LEN, outStream.getFileStatus().getFileLength());
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
-      outStream.write(buffer, DEFAULT_FILE_LEN, 0);
+      outStream.write(0, buffer);
       Assert.assertEquals(DEFAULT_FILE_LEN, outStream.getFileStatus().getFileLength());
     }
     Assert.assertEquals(DEFAULT_FILE_LEN, mFileSystem.getStatus(alluxioURI).getLength());
@@ -218,7 +219,7 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
       outStream.truncate(DEFAULT_FILE_LEN * 2);
       Assert.assertEquals(DEFAULT_FILE_LEN * 2, outStream.getFileStatus().getFileLength());
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
-      outStream.write(buffer, DEFAULT_FILE_LEN, 0);
+      outStream.write(0, buffer);
       Assert.assertEquals(DEFAULT_FILE_LEN * 2, outStream.getFileStatus().getFileLength());
     }
     Assert.assertEquals(DEFAULT_FILE_LEN * 2, mFileSystem.getStatus(alluxioURI).getLength());
@@ -233,7 +234,7 @@ public class FuseFileOutStreamIntegrationTest extends AbstractFuseFileStreamInte
         .create(alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE)) {
       Assert.assertEquals(0, outStream.getFileStatus().getFileLength());
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
-      outStream.write(buffer, DEFAULT_FILE_LEN, 0);
+      outStream.write(0, buffer);
       Assert.assertEquals(DEFAULT_FILE_LEN, outStream.getFileStatus().getFileLength());
       outStream.truncate(DEFAULT_FILE_LEN * 3);
       Assert.assertEquals(DEFAULT_FILE_LEN * 3, outStream.getFileStatus().getFileLength());

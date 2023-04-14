@@ -102,7 +102,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
       Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(FILE_LEN);
       try {
-        Assert.assertEquals(FILE_LEN, mFuseFileSystem.write(testFile, buffer, FILE_LEN, 0, info));
+        Assert.assertEquals(FILE_LEN, mFuseFileSystem.write(testFile, 0, buffer, info));
       } finally {
         Assert.assertEquals(0, mFuseFileSystem.release(testFile, info));
       }
@@ -125,7 +125,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
         Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
         ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(FILE_LEN);
         // O_WRONLY without O_TRUNC cannot overwrite
-        Assert.assertTrue(mFuseFileSystem.write(testFile, buffer, FILE_LEN, 0, info) < 0);
+        Assert.assertTrue(mFuseFileSystem.write(testFile, 0, buffer, info) < 0);
       } finally {
         mFuseFileSystem.release(testFile, info);
       }
@@ -146,7 +146,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
       try {
         Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
         ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(FILE_LEN);
-        Assert.assertEquals(FILE_LEN, mFuseFileSystem.write(testFile, buffer, FILE_LEN, 0, info));
+        Assert.assertEquals(FILE_LEN, mFuseFileSystem.write(testFile, 0, buffer, info));
       } finally {
         mFuseFileSystem.release(testFile, info);
       }
@@ -176,7 +176,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
         Assert.assertEquals(0, mFuseFileSystem.truncate(testFile, 0));
         Assert.assertEquals(0, mFuseFileSystem.truncate(testFile, FILE_LEN * 2));
         ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(FILE_LEN);
-        Assert.assertEquals(FILE_LEN, mFuseFileSystem.write(testFile, buffer, FILE_LEN, 0, info));
+        Assert.assertEquals(FILE_LEN, mFuseFileSystem.write(testFile, 0, buffer, info));
       } finally {
         mFuseFileSystem.release(testFile, info);
       }
@@ -184,11 +184,11 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
       Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
       try {
         ByteBuffer buffer = ByteBuffer.wrap(new byte[FILE_LEN]);
-        Assert.assertEquals(FILE_LEN, mFuseFileSystem.read(testFile, buffer, FILE_LEN, 0, info));
+        Assert.assertEquals(FILE_LEN, mFuseFileSystem.read(testFile, 0, buffer, info));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(FILE_LEN, buffer.array()));
         buffer = ByteBuffer.wrap(new byte[FILE_LEN]);
         Assert.assertEquals(FILE_LEN,
-            mFuseFileSystem.read(testFile, buffer, FILE_LEN, FILE_LEN, info));
+            mFuseFileSystem.read(testFile, FILE_LEN, buffer, info));
         for (byte cur : buffer.array()) {
           Assert.assertEquals((byte) 0, cur);
         }
@@ -210,9 +210,9 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
       Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
       try {
         ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(FILE_LEN);
-        Assert.assertEquals(FILE_LEN, mFuseFileSystem.write(testFile, buffer, FILE_LEN, 0, info));
-        buffer.clear();
-        Assert.assertTrue(mFuseFileSystem.read(testFile, buffer, FILE_LEN, 0, info) < 0);
+        Assert.assertEquals(FILE_LEN, mFuseFileSystem.write(testFile, 0, buffer, info));
+        buffer.clear().limit(FILE_LEN);
+        Assert.assertTrue(mFuseFileSystem.read(testFile, 0, buffer, info) < 0);
       } finally {
         Assert.assertEquals(0, mFuseFileSystem.release(testFile, info));
       }
@@ -234,9 +234,11 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
       Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
       try {
         ByteBuffer buffer = ByteBuffer.wrap(new byte[FILE_LEN]);
-        Assert.assertEquals(FILE_LEN, mFuseFileSystem.read(testFile, buffer, FILE_LEN, 0, info));
+        Assert.assertEquals(FILE_LEN, mFuseFileSystem.read(testFile, 0, buffer, info));
+        buffer.flip();
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(FILE_LEN, buffer.array()));
-        Assert.assertTrue(mFuseFileSystem.write(testFile, buffer, FILE_LEN, 0, info) < 0);
+        buffer.clear().limit(FILE_LEN);
+        Assert.assertTrue(mFuseFileSystem.write(testFile, 0, buffer, info) < 0);
       } finally {
         Assert.assertEquals(0, mFuseFileSystem.release(testFile, info));
       }
@@ -260,9 +262,9 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
       Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
       try {
         ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(FILE_LEN);
-        Assert.assertEquals(FILE_LEN, mFuseFileSystem.write(testFile, buffer, FILE_LEN, 0, info));
-        buffer.clear();
-        Assert.assertTrue(mFuseFileSystem.read(testFile, buffer, FILE_LEN, 0, info) < 0);
+        Assert.assertEquals(FILE_LEN, mFuseFileSystem.write(testFile, 0, buffer, info));
+        buffer.clear().limit(FILE_LEN);
+        Assert.assertTrue(mFuseFileSystem.read(testFile, 0, buffer, info) < 0);
       } finally {
         Assert.assertEquals(0, mFuseFileSystem.release(testFile, info));
       }
@@ -285,9 +287,9 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
       Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
       try {
         ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(FILE_LEN);
-        Assert.assertEquals(FILE_LEN, mFuseFileSystem.write(testFile, buffer, FILE_LEN, 0, info));
-        buffer.clear();
-        Assert.assertTrue(mFuseFileSystem.read(testFile, buffer, FILE_LEN, 0, info) < 0);
+        Assert.assertEquals(FILE_LEN, mFuseFileSystem.write(testFile, 0, buffer, info));
+        buffer.clear().limit(FILE_LEN);
+        Assert.assertTrue(mFuseFileSystem.read(testFile, 0, buffer, info) < 0);
       } finally {
         Assert.assertEquals(0, mFuseFileSystem.release(testFile, info));
       }
@@ -300,7 +302,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
     Assert.assertEquals(0, mFuseFileSystem.create(testFile, 100644, info));
     ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(fileLen);
     try {
-      Assert.assertEquals(fileLen, mFuseFileSystem.write(testFile, buffer, fileLen, 0, info));
+      Assert.assertEquals(fileLen, mFuseFileSystem.write(testFile, 0, buffer, info));
     } finally {
       Assert.assertEquals(0, mFuseFileSystem.release(testFile, info));
     }
@@ -311,7 +313,8 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
     Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
     try {
       ByteBuffer buffer = ByteBuffer.wrap(new byte[fileLen]);
-      Assert.assertEquals(fileLen, mFuseFileSystem.read(testFile, buffer, fileLen, 0, info));
+      Assert.assertEquals(fileLen, mFuseFileSystem.read(testFile, 0, buffer, info));
+      buffer.flip();
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(fileLen, buffer.array()));
     } finally {
       Assert.assertEquals(0, mFuseFileSystem.release(testFile, info));

@@ -49,7 +49,8 @@ public class OutStreamTest extends AbstractStreamTest {
     try (FuseFileStream outStream = createStream(alluxioURI, false)) {
       ByteBuffer buffer = ByteBuffer.allocate(1);
       buffer.put((byte) 'a');
-      outStream.write(buffer, 1, 0);
+      buffer.flip();
+      outStream.write(0, buffer);
     }
   }
 
@@ -61,7 +62,7 @@ public class OutStreamTest extends AbstractStreamTest {
     int newStartValue = 15;
     try (FuseFileStream outStream = createStream(alluxioURI, true)) {
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(newStartValue, newLen);
-      outStream.write(buffer, newLen, 0);
+      outStream.write(0, buffer);
     }
     checkFile(alluxioURI, newLen, newStartValue);
   }
@@ -75,7 +76,7 @@ public class OutStreamTest extends AbstractStreamTest {
     try (FuseFileStream outStream = createStream(alluxioURI, false)) {
       outStream.truncate(0);
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(newStartValue, newLen);
-      outStream.write(buffer, newLen, 0);
+      outStream.write(0, buffer);
     }
     checkFile(alluxioURI, newLen, newStartValue);
   }
@@ -87,8 +88,9 @@ public class OutStreamTest extends AbstractStreamTest {
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
     try (FuseFileStream outStream = createStream(alluxioURI, false)) {
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
-      outStream.write(buffer, DEFAULT_FILE_LEN, 0);
-      outStream.read(buffer, DEFAULT_FILE_LEN, 0);
+      outStream.write(0, buffer);
+      buffer.clear().limit(DEFAULT_FILE_LEN);
+      outStream.read(0, buffer);
     }
   }
 
@@ -99,7 +101,7 @@ public class OutStreamTest extends AbstractStreamTest {
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
     try (FuseFileStream outStream = createStream(alluxioURI, false)) {
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
-      outStream.write(buffer, DEFAULT_FILE_LEN, 15);
+      outStream.write(15, buffer);
     }
   }
 
@@ -110,10 +112,10 @@ public class OutStreamTest extends AbstractStreamTest {
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
     try (FuseFileStream outStream = createStream(alluxioURI, false)) {
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
-      outStream.write(buffer, DEFAULT_FILE_LEN, 0);
+      outStream.write(0, buffer);
       Assert.assertEquals(DEFAULT_FILE_LEN, outStream.getFileStatus().getFileLength());
       buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN, DEFAULT_FILE_LEN);
-      outStream.write(buffer, DEFAULT_FILE_LEN, DEFAULT_FILE_LEN);
+      outStream.write(DEFAULT_FILE_LEN, buffer);
       Assert.assertEquals(DEFAULT_FILE_LEN * 2, outStream.getFileStatus().getFileLength());
     }
     checkFile(alluxioURI, DEFAULT_FILE_LEN * 2, 0);
@@ -126,12 +128,12 @@ public class OutStreamTest extends AbstractStreamTest {
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
     try (FuseFileStream outStream = createStream(alluxioURI, false)) {
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
-      outStream.write(buffer, DEFAULT_FILE_LEN, 0);
+      outStream.write(0, buffer);
       Assert.assertEquals(DEFAULT_FILE_LEN, outStream.getFileStatus().getFileLength());
       outStream.truncate(0);
       Assert.assertEquals(0, outStream.getFileStatus().getFileLength());
       buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN * 2);
-      outStream.write(buffer, DEFAULT_FILE_LEN * 2,  0);
+      outStream.write(0, buffer);
       Assert.assertEquals(DEFAULT_FILE_LEN * 2, outStream.getFileStatus().getFileLength());
       outStream.truncate(DEFAULT_FILE_LEN * 2);
       Assert.assertEquals(DEFAULT_FILE_LEN * 2, outStream.getFileStatus().getFileLength());
@@ -146,7 +148,7 @@ public class OutStreamTest extends AbstractStreamTest {
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
     try (FuseFileStream outStream = createStream(alluxioURI, false)) {
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
-      outStream.write(buffer, DEFAULT_FILE_LEN, 0);
+      outStream.write(0, buffer);
       Assert.assertEquals(DEFAULT_FILE_LEN, outStream.getFileStatus().getFileLength());
       outStream.truncate(DEFAULT_FILE_LEN / 2);
     }
@@ -170,12 +172,12 @@ public class OutStreamTest extends AbstractStreamTest {
     try (FuseFileStream outStream = createStream(alluxioURI, false)) {
       Assert.assertEquals(0, outStream.getFileStatus().getFileLength());
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
-      outStream.write(buffer, DEFAULT_FILE_LEN, 0);
+      outStream.write(0, buffer);
       Assert.assertEquals(DEFAULT_FILE_LEN, outStream.getFileStatus().getFileLength());
       outStream.truncate(DEFAULT_FILE_LEN * 2);
       Assert.assertEquals(DEFAULT_FILE_LEN * 2, outStream.getFileStatus().getFileLength());
       buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN, DEFAULT_FILE_LEN * 2);
-      outStream.write(buffer, DEFAULT_FILE_LEN * 2, DEFAULT_FILE_LEN);
+      outStream.write(DEFAULT_FILE_LEN, buffer);
       Assert.assertEquals(DEFAULT_FILE_LEN * 3, outStream.getFileStatus().getFileLength());
     }
     checkFile(alluxioURI, DEFAULT_FILE_LEN * 3, 0);
@@ -191,7 +193,7 @@ public class OutStreamTest extends AbstractStreamTest {
       outStream.truncate(DEFAULT_FILE_LEN);
       Assert.assertEquals(DEFAULT_FILE_LEN, outStream.getFileStatus().getFileLength());
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
-      outStream.write(buffer, DEFAULT_FILE_LEN, 0);
+      outStream.write(0, buffer);
       Assert.assertEquals(DEFAULT_FILE_LEN, outStream.getFileStatus().getFileLength());
     }
     Assert.assertEquals(DEFAULT_FILE_LEN, mFileSystem.getStatus(alluxioURI).getLength());
@@ -207,7 +209,7 @@ public class OutStreamTest extends AbstractStreamTest {
       outStream.truncate(DEFAULT_FILE_LEN * 2);
       Assert.assertEquals(DEFAULT_FILE_LEN * 2, outStream.getFileStatus().getFileLength());
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
-      outStream.write(buffer, DEFAULT_FILE_LEN, 0);
+      outStream.write(0, buffer);
       Assert.assertEquals(DEFAULT_FILE_LEN * 2, outStream.getFileStatus().getFileLength());
     }
     Assert.assertEquals(DEFAULT_FILE_LEN * 2, mFileSystem.getStatus(alluxioURI).getLength());
@@ -221,7 +223,7 @@ public class OutStreamTest extends AbstractStreamTest {
     try (FuseFileStream outStream = createStream(alluxioURI, false)) {
       Assert.assertEquals(0, outStream.getFileStatus().getFileLength());
       ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
-      outStream.write(buffer, DEFAULT_FILE_LEN, 0);
+      outStream.write(0, buffer);
       Assert.assertEquals(DEFAULT_FILE_LEN, outStream.getFileStatus().getFileLength());
       outStream.truncate(DEFAULT_FILE_LEN * 3);
       Assert.assertEquals(DEFAULT_FILE_LEN * 3, outStream.getFileStatus().getFileLength());

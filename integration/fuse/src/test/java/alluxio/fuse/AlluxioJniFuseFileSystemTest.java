@@ -17,7 +17,6 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.doNothing;
@@ -429,8 +428,8 @@ public class AlluxioJniFuseFileSystemTest {
 
     FileInStream fakeInStream = mock(FileInStream.class);
     mFileSystem.getStatus(expectedPath).getFileInfo().setLength(4);
-    when(fakeInStream.read(any(ByteBuffer.class),
-        anyInt(), anyInt())).then((Answer<Integer>) invocationOnMock -> {
+    when(fakeInStream.read(any(ByteBuffer.class)))
+        .then((Answer<Integer>) invocationOnMock -> {
           ByteBuffer myDest = (ByteBuffer) invocationOnMock.getArguments()[0];
           for (byte i = 0; i < 4; i++) {
             myDest.put(i, i);
@@ -449,8 +448,9 @@ public class AlluxioJniFuseFileSystemTest {
     // actual test
     mFuseFs.open("/foo/bar", mFileInfo);
 
-    mFuseFs.read("/foo/bar", ptr, 4, 0, mFileInfo);
+    mFuseFs.read("/foo/bar", 0, ptr, mFileInfo);
     final byte[] dst = new byte[4];
+    ptr.flip();
     ptr.get(dst, 0, 4);
     final byte[] expected = new byte[] {0, 1, 2, 3};
 
@@ -530,11 +530,12 @@ public class AlluxioJniFuseFileSystemTest {
     ptr.put(expected, 0, 4);
     ptr.flip();
 
-    mFuseFs.write("/foo/bar", ptr, 4, 0, mFileInfo);
+    mFuseFs.write("/foo/bar", 0, ptr, mFileInfo);
     verify(fos).write(expected);
 
+    ptr.clear().limit(4);
     // the second write is no-op because the writes must be sequential and overwriting is supported
-    mFuseFs.write("/foo/bar", ptr, 4, 0, mFileInfo);
+    mFuseFs.write("/foo/bar", 0, ptr, mFileInfo);
     verify(fos, times(1)).write(expected);
   }
 
