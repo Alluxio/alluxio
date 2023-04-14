@@ -23,7 +23,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -67,9 +66,6 @@ public class LocalPositionReaderTest {
 
   @Rule
   public TemporaryFolder mTemporaryFolder = new TemporaryFolder();
-
-  @Rule
-  public ExpectedException mException = ExpectedException.none();
 
   @Before
   public void before() throws IOException {
