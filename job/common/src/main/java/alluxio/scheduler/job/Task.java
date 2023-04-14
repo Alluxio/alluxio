@@ -13,10 +13,13 @@ package alluxio.scheduler.job;
 
 import alluxio.client.block.stream.BlockWorkerClient;
 
+import alluxio.wire.WorkerInfo;
 import com.google.common.base.Stopwatch;
 import com.google.common.util.concurrent.ListenableFuture;
 
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 /**
  * A task that can be executed on a worker. Belongs to a {@link Job}.
@@ -46,6 +49,11 @@ public abstract class Task<V> implements Comparable<Task> {
     }
   }
 
+  public Task () {
+    mTaskStat = new TaskStat();
+  }
+
+
   /**
    * run the task.
    */
@@ -54,6 +62,12 @@ public abstract class Task<V> implements Comparable<Task> {
   private ListenableFuture<V> mResponseFuture;
   private TaskStat mTaskStat;
   private int mPriority = 1;
+  private WorkerInfo mRunsOnWorker;
+  protected Job mMyJob;
+
+  public WorkerInfo getMyRunningWorker() {
+    return mRunsOnWorker;
+  }
 
   /**
    * @return the response future
@@ -66,8 +80,14 @@ public abstract class Task<V> implements Comparable<Task> {
    * run the task and set the response future.
    * @param client worker client
    */
-  public void execute(BlockWorkerClient client) {
+  public void execute(BlockWorkerClient client, WorkerInfo workerInfo) {
+    mRunsOnWorker = workerInfo;
     mResponseFuture = run(client);
+  }
+
+  public Task withJob(Job job) {
+    mMyJob = job;
+    return this;
   }
 
   public TaskStat getTaskStat() {
@@ -82,4 +102,6 @@ public abstract class Task<V> implements Comparable<Task> {
   public int compareTo(Task anotherTask) {
     return mPriority - anotherTask.getPriority();
   }
+
+  public void onComplete(Executor executor) {}
 }

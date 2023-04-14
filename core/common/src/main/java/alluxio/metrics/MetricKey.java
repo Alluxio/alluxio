@@ -994,11 +994,31 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The number of failed Load commands")
           .setMetricType(MetricType.COUNTER)
           .build();
+
   public static final MetricKey MASTER_JOB_LOAD_BLOCK_COUNT =
       new Builder("Master.JobLoadBlockCount")
           .setDescription("The number of blocks loaded by load commands")
           .setMetricType(MetricType.COUNTER)
           .build();
+
+  public static final MetricKey MASTER_JOB_LOAD_FILE_COUNT =
+      new Builder("Master.JobLoadFileCount")
+          .setDescription("The number of files loaded by load commands")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+
+  public static final MetricKey MASTER_JOB_LOAD_FILE_FAIL =
+      new Builder("Master.JobLoadFileFail")
+          .setDescription("The number of files failed to be loaded by load commands")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+
+  public static final MetricKey MASTER_JOB_LOAD_FILE_SIZE =
+      new Builder("Master.JobLoadFileSizes")
+          .setDescription("The total files size loaded by load commands")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+
   public static final MetricKey MASTER_JOB_LOAD_BLOCK_FAIL =
       new Builder("Master.JobLoadBlockFail")
           .setDescription("The number of blocks failed to be loaded by load commands")

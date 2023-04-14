@@ -61,6 +61,8 @@ public interface Job<T extends Task<?>> {
    */
   String getJobId();
 
+  void continueJob();
+
   /**
    * set job as failure with exception.
    * @param reason exception

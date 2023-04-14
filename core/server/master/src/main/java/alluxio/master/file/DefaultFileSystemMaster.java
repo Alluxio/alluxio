@@ -515,7 +515,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     mActiveSyncMetadataExecutor.allowCoreThreadTimeOut(true);
     FileSystemContext schedulerFsContext = FileSystemContext.create();
     JournaledJobMetaStore jobMetaStore = new JournaledJobMetaStore(this);
-    mScheduler = new Scheduler(new DefaultWorkerProvider(this, schedulerFsContext), jobMetaStore);
+    mScheduler = new Scheduler(schedulerFsContext, new DefaultWorkerProvider(this, schedulerFsContext), jobMetaStore);
 
     // The mount table should come after the inode tree because restoring the mount table requires
     // that the inode tree is already restored.

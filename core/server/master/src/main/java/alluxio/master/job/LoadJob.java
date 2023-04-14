@@ -111,8 +111,6 @@ public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
   private FileInfo mCurrentFile;
   private Iterator<Long> mBlockIterator = Collections.emptyIterator();
 
-  private
-
   /**
    * Constructor.
    * @param path file path
@@ -519,6 +517,11 @@ public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
   @Override
   public boolean needVerification() {
     return mVerificationEnabled && mCurrentBlockCount.get() > 0;
+  }
+
+  @Override
+  public void continueJob() {
+    // nothing to do
   }
 
   /**
