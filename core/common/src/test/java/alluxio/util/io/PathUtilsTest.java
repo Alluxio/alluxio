@@ -529,9 +529,12 @@ public final class PathUtilsTest {
 
     paths.add("/a");
     assertEquals(paths, PathUtils.getPossibleMountPoints("/a"));
+    assertEquals(paths, PathUtils.getPossibleMountPoints("/a/"));
     paths.add("/a/b");
     assertEquals(paths, PathUtils.getPossibleMountPoints("/a/b"));
+    assertEquals(paths, PathUtils.getPossibleMountPoints("/a/b/"));
     paths.add("/a/b/c");
     assertEquals(paths, PathUtils.getPossibleMountPoints("/a/b/c"));
+    assertEquals(paths, PathUtils.getPossibleMountPoints("/a/b/c/"));
   }
 }
