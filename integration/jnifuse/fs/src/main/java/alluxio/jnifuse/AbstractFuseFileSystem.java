@@ -189,12 +189,14 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     }
   }
 
-  public int readCallback(String path, long position, ByteBuffer buf, ByteBuffer fibuf) {
+  public int readCallback(String path, ByteBuffer buf, long _size, long position,
+      ByteBuffer fibuf) {
     // this buffer is allocated by libfuse and wrapped as a DirectByteBuffer,
     // its entirety should be appropriate for writing, so set its position to the beginning
     // and the limit to the capacity
     buf.clear();
     final int size = buf.remaining();
+    assert size == _size;
     try {
       return read(path, position, buf, FuseFileInfo.of(fibuf));
     } catch (Exception e) {
@@ -340,11 +342,12 @@ public abstract class AbstractFuseFileSystem implements FuseFileSystem {
     }
   }
 
-  public int writeCallback(String path, long position, ByteBuffer buf, ByteBuffer fi) {
+  public int writeCallback(String path, ByteBuffer buf, long _size, long position, ByteBuffer fi) {
     // this buffer comes from libfuse and its entirety is appropriate for reading
     // set the position to the start and the limit to the capacity
     buf.clear();
     final int size = buf.remaining();
+    assert size == _size;
     try {
       return write(path, position, buf, FuseFileInfo.of(fi));
     } catch (Exception e) {
