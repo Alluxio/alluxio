@@ -74,7 +74,7 @@ public class ActiveSyncer implements HeartbeatExecutor {
   }
 
   @Override
-  public void heartbeat() {
+  public void heartbeat(long timeLimitMs) {
     LOG.debug("start sync heartbeat for {} with mount id {}", mMountUri, mMountId);
     // Remove any previously completed sync tasks
     mSyncTasks.removeIf(Future::isDone);

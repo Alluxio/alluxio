@@ -19,6 +19,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
+import alluxio.heartbeat.FixedIntervalSupplier;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -109,7 +110,8 @@ public final class DefaultThrottleMaster extends AbstractMaster implements NoopJ
     LOG.info("Starting {}", getName());
     mThrottleService = getExecutorService().submit(
         new HeartbeatThread(HeartbeatContext.MASTER_THROTTLE, mThrottleExecutor,
-            () -> Configuration.getMs(PropertyKey.MASTER_THROTTLE_HEARTBEAT_INTERVAL),
+            () -> new FixedIntervalSupplier(
+                Configuration.getMs(PropertyKey.MASTER_THROTTLE_HEARTBEAT_INTERVAL)),
             Configuration.global(),
             mMasterContext.getUserState()));
     LOG.info("{} is started", getName());
@@ -141,7 +143,7 @@ public final class DefaultThrottleMaster extends AbstractMaster implements NoopJ
     }
 
     @Override
-    public void heartbeat() throws InterruptedException {
+    public void heartbeat(long timeLimitMs) throws InterruptedException {
       mSystemMonitor.run();
     }
 

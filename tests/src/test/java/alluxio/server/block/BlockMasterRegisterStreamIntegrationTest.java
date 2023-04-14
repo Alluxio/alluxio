@@ -211,7 +211,7 @@ public class BlockMasterRegisterStreamIntegrationTest {
     mClock.setTimeMs(newTimeMs);
     DefaultBlockMaster.LostWorkerDetectionHeartbeatExecutor lostWorkerDetector =
         ((DefaultBlockMaster) mBlockMaster).new LostWorkerDetectionHeartbeatExecutor();
-    lostWorkerDetector.heartbeat();
+    lostWorkerDetector.heartbeat(Long.MAX_VALUE);
 
     // Verify the worker has been forgotten
     assertEquals(0, mBlockMaster.getWorkerCount());

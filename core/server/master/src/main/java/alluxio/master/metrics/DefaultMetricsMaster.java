@@ -18,6 +18,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.MetricValue;
 import alluxio.grpc.ServiceType;
+import alluxio.heartbeat.FixedIntervalSupplier;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -180,7 +181,8 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
     if (isLeader) {
       getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_CLUSTER_METRICS_UPDATER, new ClusterMetricsUpdater(),
-          () -> Configuration.getMs(PropertyKey.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL),
+          () -> new FixedIntervalSupplier(
+              Configuration.getMs(PropertyKey.MASTER_CLUSTER_METRICS_UPDATE_INTERVAL)),
           Configuration.global(), mMasterContext.getUserState()));
     }
   }
@@ -215,7 +217,7 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
    */
   private class ClusterMetricsUpdater implements HeartbeatExecutor {
     @Override
-    public void heartbeat() throws InterruptedException {
+    public void heartbeat(long timeLimitMs) throws InterruptedException {
       updateMultiValueMasterMetrics();
     }
 

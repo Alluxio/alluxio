@@ -281,7 +281,7 @@ public final class ReplicationCheckerTest {
 
   @Test
   public void heartbeatWhenTreeIsEmpty() throws Exception {
-    mReplicationChecker.heartbeat();
+    mReplicationChecker.heartbeat(Long.MAX_VALUE);
     Assert.assertEquals(EMPTY, mMockReplicationHandler.getSetReplicaRequests());
   }
 
@@ -292,17 +292,17 @@ public final class ReplicationCheckerTest {
         createBlockHelper(TEST_FILE_1, mFileContext, "");
     // One replica, meeting replication min
     addBlockLocationHelper(blockId, 1);
-    mReplicationChecker.heartbeat();
+    mReplicationChecker.heartbeat(Long.MAX_VALUE);
     Assert.assertEquals(EMPTY, mMockReplicationHandler.getSetReplicaRequests());
 
     // Two replicas, good
     heartbeatToAddLocationHelper(blockId, createWorkerHelper(1));
-    mReplicationChecker.heartbeat();
+    mReplicationChecker.heartbeat(Long.MAX_VALUE);
     Assert.assertEquals(EMPTY, mMockReplicationHandler.getSetReplicaRequests());
 
     // Three replicas, meeting replication max, still good
     heartbeatToAddLocationHelper(blockId, createWorkerHelper(2));
-    mReplicationChecker.heartbeat();
+    mReplicationChecker.heartbeat(Long.MAX_VALUE);
     Assert.assertEquals(EMPTY, mMockReplicationHandler.getSetReplicaRequests());
   }
 
@@ -311,7 +311,7 @@ public final class ReplicationCheckerTest {
     mFileContext.getOptions().setReplicationMin(1);
     long blockId = createBlockHelper(TEST_FILE_1, mFileContext, "");
 
-    mReplicationChecker.heartbeat();
+    mReplicationChecker.heartbeat(Long.MAX_VALUE);
     Map<Long, Integer> expected = ImmutableMap.of(blockId, 1);
     Assert.assertEquals(expected, mMockReplicationHandler.getSetReplicaRequests());
   }
@@ -322,7 +322,7 @@ public final class ReplicationCheckerTest {
     long blockId = createBlockHelper(TEST_FILE_1, mFileContext, Constants.MEDIUM_SSD);
     addBlockLocationHelper(blockId, 1);
 
-    mReplicationChecker.heartbeat();
+    mReplicationChecker.heartbeat(Long.MAX_VALUE);
     Map<Long, Pair<String, String>> expected =
         ImmutableMap.of(blockId, new Pair<>("host0", Constants.MEDIUM_SSD));
     Assert.assertEquals(EMPTY, mMockReplicationHandler.getSetReplicaRequests());
@@ -335,7 +335,7 @@ public final class ReplicationCheckerTest {
     long blockId = createBlockHelper(TEST_FILE_1, mFileContext, Constants.MEDIUM_MEM);
     addBlockLocationHelper(blockId, 1);
 
-    mReplicationChecker.heartbeat();
+    mReplicationChecker.heartbeat(Long.MAX_VALUE);
     Assert.assertEquals(EMPTY, mMockReplicationHandler.getSetReplicaRequests());
     Assert.assertEquals(EMPTY, mMockReplicationHandler.getMigrateRequests());
   }
@@ -345,7 +345,7 @@ public final class ReplicationCheckerTest {
     mFileContext.getOptions().setReplicationMin(10);
     long blockId = createBlockHelper(TEST_FILE_1, mFileContext, "");
 
-    mReplicationChecker.heartbeat();
+    mReplicationChecker.heartbeat(Long.MAX_VALUE);
     Map<Long, Integer> expected = ImmutableMap.of(blockId, 10);
     Assert.assertEquals(expected, mMockReplicationHandler.getSetReplicaRequests());
   }
@@ -357,7 +357,7 @@ public final class ReplicationCheckerTest {
     mFileContext.getOptions().setReplicationMin(2);
     long blockId2 = createBlockHelper(TEST_FILE_2, mFileContext, "");
 
-    mReplicationChecker.heartbeat();
+    mReplicationChecker.heartbeat(Long.MAX_VALUE);
     Map<Long, Integer> expected = ImmutableMap.of(blockId1, 1, blockId2, 2);
     Assert.assertEquals(expected, mMockReplicationHandler.getSetReplicaRequests());
   }
@@ -382,7 +382,7 @@ public final class ReplicationCheckerTest {
         ImmutableMap.of(Constants.MEDIUM_MEM, 0L),
         ImmutableList.of(blockId), NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, NO_METRICS);
 
-    mReplicationChecker.heartbeat();
+    mReplicationChecker.heartbeat(Long.MAX_VALUE);
     Assert.assertEquals(EMPTY, mMockReplicationHandler.getSetReplicaRequests());
   }
 
@@ -392,7 +392,7 @@ public final class ReplicationCheckerTest {
     long blockId = createBlockHelper(TEST_FILE_1, mFileContext, "");
     addBlockLocationHelper(blockId, 2);
 
-    mReplicationChecker.heartbeat();
+    mReplicationChecker.heartbeat(Long.MAX_VALUE);
     Map<Long, Integer> expected = ImmutableMap.of(blockId, 1);
     Assert.assertEquals(expected, mMockReplicationHandler.getSetReplicaRequests());
   }
@@ -403,7 +403,7 @@ public final class ReplicationCheckerTest {
     long blockId = createBlockHelper(TEST_FILE_1, mFileContext, "");
     addBlockLocationHelper(blockId, 11);
 
-    mReplicationChecker.heartbeat();
+    mReplicationChecker.heartbeat(Long.MAX_VALUE);
     Map<Long, Integer> expected = ImmutableMap.of(blockId, 1);
     Assert.assertEquals(expected, mMockReplicationHandler.getSetReplicaRequests());
   }
@@ -417,7 +417,7 @@ public final class ReplicationCheckerTest {
     addBlockLocationHelper(blockId1, 2);
     addBlockLocationHelper(blockId2, 4);
 
-    mReplicationChecker.heartbeat();
+    mReplicationChecker.heartbeat(Long.MAX_VALUE);
     Map<Long, Integer> expected = ImmutableMap.of(blockId1, 1, blockId2, 2);
     Assert.assertEquals(expected, mMockReplicationHandler.getSetReplicaRequests());
   }
@@ -431,7 +431,7 @@ public final class ReplicationCheckerTest {
     addBlockLocationHelper(blockId1, 1);
     addBlockLocationHelper(blockId2, 5);
 
-    mReplicationChecker.heartbeat();
+    mReplicationChecker.heartbeat(Long.MAX_VALUE);
     Map<Long, Integer> expected1 = ImmutableMap.of(blockId1, 2, blockId2, 3);
     Assert.assertEquals(expected1, mMockReplicationHandler.getSetReplicaRequests());
   }
@@ -449,7 +449,7 @@ public final class ReplicationCheckerTest {
     addBlockLocationHelper(blockId2, 1);
     addBlockLocationHelper(blockId3, 1);
 
-    mReplicationChecker.heartbeat();
+    mReplicationChecker.heartbeat(Long.MAX_VALUE);
     final Map<Long, Integer> replicateRequests = mMockReplicationHandler.getSetReplicaRequests();
     System.out.println(replicateRequests);
     Assert.assertEquals(2, replicateRequests.size());
@@ -459,11 +459,11 @@ public final class ReplicationCheckerTest {
 
     mMockReplicationHandler.setJobStatus(1, Status.RUNNING);
     mMockReplicationHandler.setJobStatus(2, Status.RUNNING);
-    mReplicationChecker.heartbeat();
+    mReplicationChecker.heartbeat(Long.MAX_VALUE);
     Assert.assertEquals(0, replicateRequests.size());
 
     mMockReplicationHandler.setJobStatus(1, Status.FAILED);
-    mReplicationChecker.heartbeat();
+    mReplicationChecker.heartbeat(Long.MAX_VALUE);
     Assert.assertEquals(1, replicateRequests.size());
     Assert.assertEquals(3, replicateRequests.values().toArray()[0]);
 
@@ -473,7 +473,7 @@ public final class ReplicationCheckerTest {
     mMockReplicationHandler.setJobStatus(2, Status.COMPLETED);
     mMockReplicationHandler.setJobStatus(3, Status.COMPLETED);
 
-    mReplicationChecker.heartbeat();
+    mReplicationChecker.heartbeat(Long.MAX_VALUE);
     Assert.assertEquals(1, replicateRequests.size());
     Assert.assertTrue(replicateRequests.containsKey(blockId3));
     Assert.assertEquals(3, replicateRequests.values().toArray()[0]);

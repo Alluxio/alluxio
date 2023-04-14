@@ -35,6 +35,7 @@ import alluxio.grpc.MetaCommand;
 import alluxio.grpc.RegisterMasterPOptions;
 import alluxio.grpc.Scope;
 import alluxio.grpc.ServiceType;
+import alluxio.heartbeat.FixedIntervalSupplier;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -307,13 +308,14 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_MASTER_DETECTION,
           new LostMasterDetectionHeartbeatExecutor(),
-          () -> Configuration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL),
+          () -> new FixedIntervalSupplier(
+              Configuration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL)),
           Configuration.global(), mMasterContext.getUserState()));
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_LOG_CONFIG_REPORT_SCHEDULING,
               new LogConfigReportHeartbeatExecutor(),
-              () -> Configuration
-                  .getMs(PropertyKey.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL),
+              () -> new FixedIntervalSupplier(
+                  Configuration.getMs(PropertyKey.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL)),
               Configuration.global(), mMasterContext.getUserState()));
 
       if (Configuration.getBoolean(PropertyKey.MASTER_DAILY_BACKUP_ENABLED)) {
@@ -324,7 +326,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       if (mJournalSpaceMonitor != null) {
         getExecutorService().submit(new HeartbeatThread(
             HeartbeatContext.MASTER_JOURNAL_SPACE_MONITOR, mJournalSpaceMonitor,
-            () -> Configuration.getMs(PropertyKey.MASTER_JOURNAL_SPACE_MONITOR_INTERVAL),
+            () -> new FixedIntervalSupplier(
+                Configuration.getMs(PropertyKey.MASTER_JOURNAL_SPACE_MONITOR_INTERVAL)),
             Configuration.global(), mMasterContext.getUserState()));
       }
       if (mState.getClusterID().equals(INVALID_CLUSTER_ID)) {
@@ -337,7 +340,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
             && !Configuration.getBoolean(PropertyKey.TEST_MODE)) {
           getExecutorService().submit(new HeartbeatThread(HeartbeatContext.MASTER_UPDATE_CHECK,
               new UpdateChecker(this),
-              () -> Configuration.getMs(PropertyKey.MASTER_UPDATE_CHECK_INTERVAL),
+              () -> new FixedIntervalSupplier(
+                  Configuration.getMs(PropertyKey.MASTER_UPDATE_CHECK_INTERVAL)),
               Configuration.global(), mMasterContext.getUserState()));
         }
       } else {
@@ -352,7 +356,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
                 .newBuilder(ClientContext.create(Configuration.global())).build());
         getExecutorService().submit(new HeartbeatThread(HeartbeatContext.META_MASTER_SYNC,
             new MetaMasterSync(mMasterAddress, metaMasterClient),
-            () -> Configuration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL),
+            () -> new FixedIntervalSupplier(
+                Configuration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL)),
             Configuration.global(), mMasterContext.getUserState()));
         LOG.info("Standby master with address {} starts sending heartbeat to leader master.",
             mMasterAddress);
@@ -714,7 +719,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     }
 
     @Override
-    public void heartbeat() {
+    public void heartbeat(long timeLimitMs) {
       long masterTimeoutMs = Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_TIMEOUT);
       for (MasterInfo master : mMasters) {
         synchronized (master) {
@@ -743,7 +748,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     private volatile boolean mFirst = true;
 
     @Override
-    public void heartbeat() {
+    public void heartbeat(long timeLimitMs) {
       // Skip the first heartbeat since it happens before servers have time to register their
       // configurations.
       if (mFirst) {

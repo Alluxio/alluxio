@@ -82,7 +82,7 @@ public class JournalSpaceMonitorTest {
     JournalSpaceMonitor monitor = Mockito.spy(
         new JournalSpaceMonitor(Paths.get(".").toAbsolutePath().toString(), 90));
     doReturn(new CommandReturn(0, CMD_RETURN_MOCK)).when(monitor).getRawDiskInfo();
-    monitor.heartbeat();
+    monitor.heartbeat(Long.MAX_VALUE);
     assertTrue(mLogger.wasLoggedWithLevel("The journal disk /dev/nvme0n1p2 backing the journal "
         + "has only .* space left", Level.WARN));
   }
@@ -92,7 +92,7 @@ public class JournalSpaceMonitorTest {
     JournalSpaceMonitor monitor = Mockito.spy(
         new JournalSpaceMonitor(Paths.get(".").toAbsolutePath().toString(), 10));
     doReturn(new CommandReturn(0, CMD_RETURN_MOCK)).when(monitor).getRawDiskInfo();
-    monitor.heartbeat();
+    monitor.heartbeat(Long.MAX_VALUE);
     assertFalse(mLogger.wasLoggedWithLevel("The journal disk /dev/nvme0n1p2 backing the journal "
         + "has only .* space left", Level.WARN));
   }

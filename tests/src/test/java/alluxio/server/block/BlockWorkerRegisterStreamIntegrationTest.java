@@ -462,7 +462,7 @@ public class BlockWorkerRegisterStreamIntegrationTest {
     f.get();
     assertNull(error.get());
     // Validation will happen on the heartbeat
-    sync.heartbeat();
+    sync.heartbeat(Long.MAX_VALUE);
   }
 
   // TODO(jiacheng): an internal block movement happens during register stream
