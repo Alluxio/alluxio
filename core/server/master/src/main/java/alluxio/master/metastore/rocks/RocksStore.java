@@ -50,8 +50,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadInfo;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
@@ -60,10 +58,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicStampedReference;
 import java.util.concurrent.atomic.LongAdder;
 import javax.annotation.concurrent.NotThreadSafe;
+
+import static alluxio.master.metastore.rocks.RocksExclusiveLockHandle.UnlockAction.*;
 
 /**
  * Class for managing a rocksdb database. This class handles common functionality such as
@@ -88,7 +88,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * For operations like closing/restart/restoring on the RocksDB, an exclusive lock should
  * be acquired by calling one of:
  * 1. {@link #lockForClosing()}
- * 2. {@link #lockForRestart()}
+ * 2. {@link #lockForRewrite()}
+ * 3. {@link #lockForCheckpoint()}
  */
 @NotThreadSafe
 public final class RocksStore implements Closeable {
@@ -121,7 +122,8 @@ public final class RocksStore implements Closeable {
   private volatile Checkpoint mCheckpoint;
   private final List<AtomicReference<ColumnFamilyHandle>> mColumnHandles;
 
-  public final AtomicBoolean mStopServing = new AtomicBoolean(false);
+  public final AtomicStampedReference<Boolean> mStopServing =
+      new AtomicStampedReference<>(false, 0);
   public final LongAdder mRefCount = new LongAdder();
 
   /**
@@ -145,7 +147,7 @@ public final class RocksStore implements Closeable {
     mDbOpts = dbOpts;
     mColumnHandles = columnHandles;
     LOG.info("Resetting RocksDB for {} on init", name);
-    try (RocksExclusiveLockHandle lock = lockForRestart()) {
+    try (RocksExclusiveLockHandle lock = lockForRewrite()) {
       resetDb();
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
@@ -164,7 +166,7 @@ public final class RocksStore implements Closeable {
 
   /**
    * Clears and re-initializes the database.
-   * Requires the caller to acquire exclusive lock by calling {@link #lockForRestart()}.
+   * Requires the caller to acquire exclusive lock by calling {@link #lockForRewrite()}.
    */
   public void clear() {
     try {
@@ -252,7 +254,7 @@ public final class RocksStore implements Closeable {
 
   /**
    * Writes a checkpoint of the database's content to the given output stream.
-   * Requires the caller to acquire an exclusive lock by calling {@link #lockForRestart()}.
+   * Requires the caller to acquire an exclusive lock by calling {@link #lockForCheckpoint()}.
    *
    * @param output the stream to write to
    */
@@ -306,7 +308,7 @@ public final class RocksStore implements Closeable {
 
   /**
    * Restores the database from a checkpoint.
-   * Requires the caller to acquire an exclusive lock by calling {@link #lockForRestart()}.
+   * Requires the caller to acquire an exclusive lock by calling {@link #lockForRewrite()}.
    *
    * @param input the checkpoint stream to restore from
    */
@@ -432,9 +434,10 @@ public final class RocksStore implements Closeable {
    * r/w access.
    */
   public RocksSharedLockHandle checkAndAcquireSharedLock() {
-    if (mStopServing.get()) {
+    if (mStopServing.getReference()) {
       throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
     }
+    int lockVersion = mStopServing.getStamp();
     /*
      * The lock action is merely incrementing the lock so it is very fast
      * The closer will respect the ref count and only close when the ref count is zero
@@ -453,15 +456,40 @@ public final class RocksStore implements Closeable {
      * With the 2nd check, we make sure the ref count will be respected by the closer and
      * the closer will therefore wait for this reader to complete/abort.
      */
-    if (mStopServing.get()) {
+    if (mStopServing.getReference()) {
       mRefCount.decrement();
       throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
     }
-    return new RocksSharedLockHandle(mRefCount);
+
+    /*
+     * The version is not checked here because there is so little chance that the thread
+     * is paused after mRefCount.increment() and before the 2nd flag check.
+     * In other words, the sequence of events can look like below:
+     *
+     * 1. Reader checks the flag
+     * 2. Reader increments refCount
+     * 3. Before the 2nd check, Reader is paused due to JVM safe point or GC
+     * 4. Closer waits on refCount
+     * 5. Closer wait times out. Closer forces the exclusive lock and resets refCount
+     * 6. Instead of closing the RocksDB, the exclusive lock is taken for restoring the RocksDB
+     * 7. Closer finishes and resets the flag
+     * 8. Reader wakes up and the 2nd check also passes
+     * 9. Reader reads a new RocksDB and the incorrect reference/index crashes the process
+     *
+     * In order for the above sequence to happen, Reader must be paused while Closer can run.
+     * That is highly unlikely because JVM pauses like GC or safepoints will affect BOTH
+     * Reader and Closer.
+     *
+     * Typically, Reader pauses due to its own logic like sleeping or waiting on a condition.
+     * That means the version check should take place in the access method instead of the locking
+     * method here.
+     */
+    return new RocksSharedLockHandle(mStopServing, mRefCount);
   }
 
   private void blockingWait() {
-    mStopServing.set(true);
+    int version = mStopServing.getStamp();
+    mStopServing.set(true, version + 1);
 
     /*
     * Wait until:
@@ -491,7 +519,6 @@ public final class RocksStore implements Closeable {
     }
     Duration elapsed = Duration.between(waitStart, Instant.now());
     LOG.info("Waited {}ms for ongoing read/write to complete/abort", elapsed.toMillis());
-    System.out.println("Waited " + elapsed.toMillis() + " for ongoing read/write to complete/abort");
 
     /*
      * Reset the ref count to forget about the aborted operations
@@ -499,8 +526,8 @@ public final class RocksStore implements Closeable {
     long unclosedOperations = mRefCount.sumThenReset();
     if (unclosedOperations != 0) {
       if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
-        ThreadInfo[] allThreads = ManagementFactory.getThreadMXBean().dumpAllThreads(true, true);
-        throw new RuntimeException("ref count=" + unclosedOperations + " some operations are not updating ref count correctly!");
+        throw new RuntimeException("ref count=" + unclosedOperations
+            + " some operations are not updating ref count correctly!");
       }
       LOG.warn("{} readers/writers fail to complete/abort before we stop/restart the RocksDB",
           unclosedOperations);
@@ -518,7 +545,7 @@ public final class RocksStore implements Closeable {
    */
   public RocksExclusiveLockHandle lockForClosing() {
     blockingWait();
-    return new RocksExclusiveLockHandle(false, mStopServing, mRefCount);
+    return new RocksExclusiveLockHandle(NO_OP, mStopServing, mRefCount);
   }
 
   /**
@@ -531,9 +558,28 @@ public final class RocksStore implements Closeable {
    * The STOP_SERVING status will be reset and the RocksDB will be open for operations again.
    * See {@link #checkAndAcquireSharedLock} for how this affects the shared lock logic.
    */
-  public RocksExclusiveLockHandle lockForRestart() {
+  public RocksExclusiveLockHandle lockForCheckpoint() {
     blockingWait();
-    return new RocksExclusiveLockHandle(true, mStopServing, mRefCount);
+    // TODO(jiacheng): new version because it may have forced a lock
+    //  Need to change the implementation to an AtomicRef<Pair<Boolean, Integer>> so
+    //  both the version and ref can contain information
+    //  Then it can use the same version but different ref
+    return new RocksExclusiveLockHandle(RESET_NEW_VERSION, mStopServing, mRefCount);
+  }
+
+  /**
+   * Before the process shuts down, acquire an exclusive lock on the RocksDB before closing.
+   * Note this lock only exists on the Alluxio side. A STOP_SERVING flag will be set so all
+   * existing readers/writers will abort asap.
+   * The exclusive lock ensures there are no existing concurrent r/w operations, so it is safe to
+   * restart/checkpoint the RocksDB and update the DB reference.
+   *
+   * The STOP_SERVING status will be reset and the RocksDB will be open for operations again.
+   * See {@link #checkAndAcquireSharedLock} for how this affects the shared lock logic.
+   */
+  public RocksExclusiveLockHandle lockForRewrite() {
+    blockingWait();
+    return new RocksExclusiveLockHandle(RESET_NEW_VERSION, mStopServing, mRefCount);
   }
 
   /**
@@ -541,7 +587,7 @@ public final class RocksStore implements Closeable {
    * to the RocksDB shutdown.
    */
   public void abortIfClosing() {
-    if (mStopServing.get()) {
+    if (mStopServing.getReference()) {
       throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
     }
   }
@@ -550,6 +596,6 @@ public final class RocksStore implements Closeable {
    * Checks whether the RocksDB is marked for exclusive access, so the operation should abort.
    */
   public boolean isServiceStopping() {
-    return mStopServing.get();
+    return mStopServing.getReference();
   }
 }

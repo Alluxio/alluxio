@@ -334,7 +334,7 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
   @Override
   public void clear() {
     LOG.info("Waiting to clear RocksBlockMetaStore..");
-    try (RocksExclusiveLockHandle lock = mRocksStore.lockForRestart()) {
+    try (RocksExclusiveLockHandle lock = mRocksStore.lockForRewrite()) {
       LOG.info("Clearing RocksDB");
       mSize.reset();
       mRocksStore.clear();
