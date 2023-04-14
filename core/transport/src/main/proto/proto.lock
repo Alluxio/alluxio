@@ -4048,6 +4048,11 @@
                 "type": "Exception"
               },
               {
+                "id": 5,
+                "name": "successOpCount",
+                "type": "int64"
+              },
+              {
                 "id": 100,
                 "name": "taskInfoString",
                 "type": "string"

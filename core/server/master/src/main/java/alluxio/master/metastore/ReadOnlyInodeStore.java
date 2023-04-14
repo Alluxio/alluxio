@@ -14,6 +14,7 @@ package alluxio.master.metastore;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.runtime.InternalRuntimeException;
+import alluxio.file.options.DescendantType;
 import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
@@ -190,13 +191,15 @@ public interface ReadOnlyInodeStore extends Closeable {
   }
 
   /**
+   * Creates an iterator starting from the path, and including its
+   * children.
    * @param option the read option
-   * @param recursive if the list is recursive
+   * @param descendantType the type of descendants to load
    * @param lockedPath the locked path to the root inode
    * @return a skippable iterator that supports to skip children during the iteration
    */
   default SkippableInodeIterator getSkippableChildrenIterator(
-      ReadOption option, boolean recursive, LockedInodePath lockedPath) {
+      ReadOption option, DescendantType descendantType, LockedInodePath lockedPath) {
     Inode inode;
     try {
       inode = lockedPath.getInode();
@@ -221,8 +224,32 @@ public interface ReadOnlyInodeStore extends Closeable {
         }
       };
     }
-    if (recursive) {
+    if (descendantType == DescendantType.ALL) {
       return new RecursiveInodeIterator(this, inode, option, lockedPath);
+    } else if (descendantType == DescendantType.NONE) {
+      // if descendant type is none, we should only return the parent node
+      return new SkippableInodeIterator() {
+        InodeIterationResult mFirst = new InodeIterationResult(inode, lockedPath);
+        @Override
+        public void close() {
+        }
+
+        @Override
+        public void skipChildrenOfTheCurrent() {
+        }
+
+        @Override
+        public boolean hasNext() {
+          return mFirst != null;
+        }
+
+        @Override
+        public InodeIterationResult next() {
+          InodeIterationResult ret = mFirst;
+          mFirst = null;
+          return ret;
+        }
+      };
     }
 
     final CloseableIterator<? extends Inode> iterator = getChildren(inode.getId(), option);
@@ -247,7 +274,7 @@ public interface ReadOnlyInodeStore extends Closeable {
         if (mFirst != null) {
           Inode ret = mFirst;
           mFirst = null;
-          return new InodeIterationResult(ret, ret.getName(), lockedPath);
+          return new InodeIterationResult(ret, lockedPath);
         }
         if (mPreviousPath != null) {
           mPreviousPath.close();
@@ -260,7 +287,7 @@ public interface ReadOnlyInodeStore extends Closeable {
           // Should not reach here since the path should be valid
           throw new InternalRuntimeException(e);
         }
-        return new InodeIterationResult(inode, inode.getName(), mPreviousPath);
+        return new InodeIterationResult(inode, mPreviousPath);
       }
 
       @Override

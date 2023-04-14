@@ -18,19 +18,16 @@ import javax.annotation.Nullable;
  */
 public class InodeIterationResult {
   private final Inode mInode;
-  private final String mName;
   private final LockedInodePath mLockedPath;
 
   /**
    * Creates an instance.
    * @param inode the inode
-   * @param name the inode names
    * @param lockedPath the locked path
    */
   public InodeIterationResult(
-      Inode inode, String name, LockedInodePath lockedPath) {
+      Inode inode, LockedInodePath lockedPath) {
     mInode = inode;
-    mName = name;
     mLockedPath = lockedPath;
   }
 
@@ -39,13 +36,6 @@ public class InodeIterationResult {
    */
   public Inode getInode() {
     return mInode;
-  }
-
-  /**
-   * @return the inode name starting from the list root
-   */
-  public String getName() {
-    return mName;
   }
 
   /**

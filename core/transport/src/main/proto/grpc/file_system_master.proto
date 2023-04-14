@@ -698,6 +698,7 @@ message SyncMetadataTask {
   optional SyncMetadataState state = 2;
   optional int64 syncDurationMs = 3;
   optional Exception exception = 4;
+  optional int64 successOpCount = 5;
 
   optional string taskInfoString = 100;
   optional string taskStatString = 101;

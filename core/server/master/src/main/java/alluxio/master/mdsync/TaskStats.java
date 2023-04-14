@@ -11,6 +11,7 @@
 
 package alluxio.master.mdsync;
 
+import alluxio.collections.Pair;
 import alluxio.master.file.metasync.SyncFailReason;
 import alluxio.master.file.metasync.SyncOperation;
 import alluxio.util.CommonUtils;
@@ -96,7 +97,7 @@ public class TaskStats {
   @Override
   public String toString() {
     MoreObjects.ToStringHelper helper = MoreObjects.toStringHelper(this)
-        .add("Success op count", getSuccessOperationCountString())
+        .add("Success op count", getSuccessOperationCountString().getSecond())
         .add("# of batches", mBatches.get())
         .add("# of objects loaded from UFS", mStatuses.get())
         .add("# of load requests", mLoadRequests.get())
@@ -109,9 +110,10 @@ public class TaskStats {
     return helper.toString();
   }
 
-  public String toReportString() {
+  public Pair<Long, String> toReportString() {
+    Pair<Long, String> successOps = getSuccessOperationCountString();
     MoreObjects.ToStringHelper helper = MoreObjects.toStringHelper(this);
-    helper.add("Success op count", getSuccessOperationCountString())
+    helper.add("Success op count", successOps.getSecond())
         .add("# of batches", mBatches.get())
         .add("# of objects loaded from UFS", mStatuses.get())
         .add("# of load requests", mLoadRequests.get())
@@ -119,7 +121,7 @@ public class TaskStats {
     if (mSyncFailReasons.size() > 0) {
       helper.add("Failed load requests", mSyncFailReasons);
     }
-    return helper.toString();
+    return new Pair<>(successOps.getFirst(), helper.toString());
   }
 
   public boolean firstLoadWasFile() {
@@ -193,11 +195,13 @@ public class TaskStats {
     return mSuccessOperationCount;
   }
 
-  private String getSuccessOperationCountString() {
+  private Pair<Long, String> getSuccessOperationCountString() {
     StringBuilder sb = new StringBuilder();
     sb.append("{");
+    long total = 0;
     for (int i = 0; i < mSuccessOperationCount.length; ++i) {
       long value = mSuccessOperationCount[i].get();
+      total += value;
       if (value != 0) {
         sb.append("[")
             .append(SyncOperation.fromInteger(i))
@@ -207,7 +211,7 @@ public class TaskStats {
       }
     }
     sb.append("}");
-    return sb.toString();
+    return new Pair<>(total, sb.toString());
   }
 
   /**

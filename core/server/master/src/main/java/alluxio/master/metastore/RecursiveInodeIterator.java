@@ -130,7 +130,7 @@ public class RecursiveInodeIterator implements SkippableInodeIterator {
     if (mFirst != null) {
       Inode ret = mFirst;
       mFirst = null;
-      return new InodeIterationResult(ret, ret.getName(), mRootPath);
+      return new InodeIterationResult(ret, mRootPath);
     }
     Pair<CloseableIterator<? extends Inode>, LockedInodePath> top = mIteratorStack.peek();
     try {
@@ -156,12 +156,6 @@ public class RecursiveInodeIterator implements SkippableInodeIterator {
       // should not reach here as the path is valid
       throw new InternalRuntimeException(e);
     }
-    StringJoiner joiner = new StringJoiner("/");
-    for (String nxt : mNameComponents) {
-      joiner.add(nxt);
-    }
-    joiner.add(current.getName());
-    String name = joiner.toString();
     if (current.isDirectory()) {
       ReadOption readOption = ReadOption.newBuilder()
           .setReadFrom(populateStartAfter(current.getName())).build();
@@ -173,7 +167,7 @@ public class RecursiveInodeIterator implements SkippableInodeIterator {
       mLastLockedPath = lockedPath;
     }
     mHasNextCalled = false;
-    return new InodeIterationResult(current, name, lockedPath);
+    return new InodeIterationResult(current, lockedPath);
   }
 
   // TODO add comments

@@ -16,7 +16,6 @@ import alluxio.underfs.UfsLoadResult;
 
 import java.util.Optional;
 import javax.annotation.Nullable;
-import com.google.common.annotations.VisibleForTesting;
 
 /**
  * This is the result of a single batch load from the UFS.

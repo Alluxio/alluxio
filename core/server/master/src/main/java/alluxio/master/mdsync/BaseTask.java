@@ -12,6 +12,7 @@
 package alluxio.master.mdsync;
 
 import alluxio.AlluxioURI;
+import alluxio.collections.Pair;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.runtime.DeadlineExceededRuntimeException;
 import alluxio.exception.runtime.InternalRuntimeException;
@@ -240,7 +241,9 @@ public abstract class BaseTask implements PathWaiter {
               .setStacktrace(ExceptionUtils.asPlainText(t)));
     }
     builder.setTaskInfoString(getTaskInfo().toString());
-    builder.setTaskStatString(getTaskInfo().getStats().toReportString());
+    Pair<Long, String> statReport = getTaskInfo().getStats().toReportString();
+    builder.setSuccessOpCount(statReport.getFirst());
+    builder.setTaskStatString(statReport.getSecond());
     return builder.build();
   }
 }

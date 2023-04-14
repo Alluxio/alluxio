@@ -91,6 +91,14 @@ public class TaskInfo {
     return mDescendantType;
   }
 
+  public DescendantType getInodeIteratorDescendantType() {
+    if (mLoadByDirectory != DirectoryLoadType.SINGLE_LISTING
+        && mDescendantType == DescendantType.ALL) {
+      return DescendantType.ONE;
+    }
+    return mDescendantType;
+  }
+
   @Override
   public String toString() {
     return String.format(

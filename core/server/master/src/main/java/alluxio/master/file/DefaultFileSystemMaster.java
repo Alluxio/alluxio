@@ -127,7 +127,6 @@ import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.journal.ufs.UfsJournalSystem;
 import alluxio.master.mdsync.BaseTask;
-import alluxio.master.mdsync.TaskInfo;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
@@ -2258,9 +2257,10 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param inodePath the file {@link LockedInodePath}
    * @param deleteContext the method optitions
    * @param bypassPermCheck whether the permission check has been done before entering this call
+   * @return the number of inodes deleted
    */
   @VisibleForTesting
-  public void deleteInternal(RpcContext rpcContext, LockedInodePath inodePath,
+  public int deleteInternal(RpcContext rpcContext, LockedInodePath inodePath,
       DeleteContext deleteContext, boolean bypassPermCheck) throws FileDoesNotExistException,
       IOException, DirectoryNotEmptyException, InvalidPathException {
     Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE);
@@ -2268,12 +2268,12 @@ public class DefaultFileSystemMaster extends CoreMaster
     // TODO(jiri): A crash after any UFS object is deleted and before the delete operation is
     // journaled will result in an inconsistency between Alluxio and UFS.
     if (!inodePath.fullPathExists()) {
-      return;
+      return 0;
     }
     long opTimeMs = mClock.millis();
     Inode inode = inodePath.getInode();
     if (inode == null) {
-      return;
+      return 0;
     }
 
     boolean recursive = deleteContext.getOptions().getRecursive();
@@ -2431,6 +2431,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
     }
     Metrics.PATHS_DELETED.inc(inodesToDelete.size());
+    return inodesToDelete.size();
   }
 
   private String buildDeleteFailureMessage(List<Pair<String, String>> failedUris) {

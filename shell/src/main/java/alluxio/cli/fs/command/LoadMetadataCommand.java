@@ -92,6 +92,14 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
           .desc("operation, can be load, get, cancel")
           .build();
 
+  private static final Option POLLING_OPTION =
+      Option.builder("p")
+          .required(false)
+          .longOpt("polling")
+          .hasArg()
+          .desc("when running a task asynchronously, how often to poll the task progress in ms")
+          .build();
+
   private static final Option TASK_ID_OPTION =
       Option.builder("id")
           .required(false)
@@ -100,8 +108,6 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
           .build();
 
   private final List<String> mOperationValues = Arrays.asList("load", "get", "cancel");
-
-  private final int mPollingIntervalMs = 10000;
 
   /**
    * Constructs a new instance to load metadata for the given Alluxio path from UFS.
@@ -126,6 +132,7 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
         .addOption(DIR_LOAD_TYPE_OPTION)
         .addOption(V2_OPTION)
         .addOption(OPERATION_OPTION)
+        .addOption(POLLING_OPTION)
         .addOption(TASK_ID_OPTION);
   }
 
@@ -141,7 +148,8 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
       DirectoryLoadPType loadPType = DirectoryLoadPType.valueOf(cl.getOptionValue(
           DIR_LOAD_TYPE_OPTION.getOpt(), "SINGLE_LISTING"));
       loadMetadataV2(plainPath, cl.hasOption(RECURSIVE_OPTION.getOpt()), loadPType,
-          cl.hasOption(ASYNC_OPTION.getOpt()));
+          cl.hasOption(ASYNC_OPTION.getOpt()),
+          Integer.parseInt(cl.getOptionValue(POLLING_OPTION.getOpt(), "10000")));
     } else {
       loadMetadata(plainPath, cl.hasOption(RECURSIVE_OPTION.getOpt()),
           cl.hasOption(FORCE_OPTION.getOpt()));
@@ -173,6 +181,9 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
       System.out.println("State: " + task.getState());
     }
     System.out.println("Sync duration: " + task.getSyncDurationMs());
+    double opsSec = task.getSyncDurationMs() == 0 ? 0
+        : (double) task.getSuccessOpCount() / ((double) task.getSyncDurationMs() / (double) 1000);
+    System.out.println(" Ops/sec: " + opsSec);
     if (task.hasException()) {
       System.out.println(Constants.ANSI_RED + "Exception: " + Constants.ANSI_RESET);
       System.out.println(Constants.ANSI_RED + "\t" + task.getException().getExceptionType()
@@ -211,7 +222,7 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
 
   private void loadMetadataV2(
       AlluxioURI path, boolean recursive, DirectoryLoadPType dirLoadType,
-      boolean async) throws IOException {
+      boolean async, long pollingIntervalMs) throws IOException {
     SyncMetadataPOptions options =
         SyncMetadataPOptions.newBuilder().setLoadDescendantType(recursive
                 ? LoadDescendantPType.ALL : LoadDescendantPType.ONE)
@@ -232,7 +243,7 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
       SyncMetadataAsyncPResponse response = mFileSystem.syncMetadataAsync(path, options);
       long taskId = response.getTaskId();
       System.out.println("Task " + taskId + " has been submitted successfully.");
-      System.out.println("Polling sync progress every " + mPollingIntervalMs + "ms");
+      System.out.println("Polling sync progress every " + pollingIntervalMs + "ms");
       System.out.println("You can also poll the sync progress in another terminal using:");
       System.out.println("\t$bin/alluxio fs loadMetadata -o get -id " + taskId);
       System.out.println("Sync is being executed asynchronously. Ctrl+C or closing the terminal "
@@ -246,7 +257,7 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
         if (task.getState() != SyncMetadataState.RUNNING) {
           return;
         }
-        CommonUtils.sleepMs(mPollingIntervalMs);
+        CommonUtils.sleepMs(pollingIntervalMs);
       }
     } catch (AlluxioException e) {
       throw new IOException(e.getMessage());

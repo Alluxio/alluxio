@@ -177,8 +177,9 @@ public class PathLoaderTask {
     if (shouldLoadMore) {
       final long loadId = mNxtLoadId++;
       addLoadRequest(new LoadRequest(loadId, originalRequest.getBatchSetId(), mTaskInfo,
-          originalRequest.getLoadPath(), ufsLoadResult.getContinuationToken(),
-          ufsLoadResult.getLastItem().orElse(null), computeDescendantType(), false),
+              originalRequest.getLoadPath(), ufsLoadResult.getContinuationToken(),
+              originalRequest.isFirstLoad() ? null : ufsLoadResult.getLastItem().orElse(null),
+              computeDescendantType(), false),
           originalRequest.isFirstLoad());
     }
     if (shouldProcessResult) {

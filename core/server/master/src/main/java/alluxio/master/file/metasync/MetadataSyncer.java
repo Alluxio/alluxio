@@ -239,6 +239,8 @@ public class MetadataSyncer implements SyncProcess {
     final Iterator<UfsItem> mUfsStatusIterator;
     final MountInfo mMountInfo;
     final UnderFileSystem mUfs;
+    boolean mTraversedRootPath = false;
+    boolean mDowngradedRootPath = false;
 
     SyncProcessState(
         String alluxioMountPath,
@@ -265,14 +267,26 @@ public class MetadataSyncer implements SyncProcess {
       mUfs = underFileSystem;
     }
 
+    private void downgradeRootPath() {
+      // once we have traversed the root sync path we downgrade it to a read lock
+      mAlluxioSyncPathLocked.downgradeToRead();
+      mDowngradedRootPath = true;
+    }
+
     @Nullable InodeIterationResult getNextInode() throws InvalidPathException {
+      if (mTraversedRootPath && !mDowngradedRootPath) {
+        downgradeRootPath();
+      }
+      mTraversedRootPath = true;
       InodeIterationResult next = IteratorUtils.nextOrNull(mInodeIterator);
       if (next != null) {
         if (!mAlluxioSyncPath.isAncestorOf(next.getLockedPath().getUri())) {
+          downgradeRootPath();
           return null;
         }
         if (mReadUntil != null) {
           if (next.getLockedPath().getUri().compareTo(mReadUntil) > 0) {
+            downgradeRootPath();
             return null;
           }
         }
@@ -378,9 +392,11 @@ public class MetadataSyncer implements SyncProcess {
               ufsMountPath, alluxioMountPath));
         }
 
+        // Take the root of the sync path as a write_edge, once we traverse
+        // past this node, we will downgrade it to a read lock in
+        // SyncProcessState.getNextInode
         LockingScheme lockingScheme = new LockingScheme(alluxioSyncPath,
             InodeTree.LockPattern.WRITE_EDGE, false);
-        // TODO (yimin) why did we WRITE LOCK the whole path?
         try (LockedInodePath lockedInodePath =
                  mInodeTree.lockInodePath(lockingScheme, rpcContext.getJournalContext())) {
           // after taking the lock on the root path,
@@ -398,11 +414,8 @@ public class MetadataSyncer implements SyncProcess {
           }
           // Get the inode of the sync start
           try (SkippableInodeIterator inodeIterator = mInodeStore.getSkippableChildrenIterator(
-              readOptionBuilder.build(), context.isRecursive()
-                  && loadResult.getTaskInfo().getLoadByDirectory()
-                  == DirectoryLoadType.SINGLE_LISTING,
+              readOptionBuilder.build(), loadResult.getTaskInfo().getInodeIteratorDescendantType(),
               lockedInodePath)) {
-
             SyncProcessState syncState = new SyncProcessState(alluxioMountPath,
                 alluxioSyncPath, lockedInodePath,
                 readFrom, skipInitialReadFrom, ufsMountPath, readUntil,
@@ -411,8 +424,6 @@ public class MetadataSyncer implements SyncProcess {
           }
         }
         context.updateDirectChildrenLoaded(mInodeTree);
-        // TODO(tcrain)
-        // return context.success();
         // the completed path sequence is from the previous last sync path, until our last UFS item
         PathSequence pathSequence = null;
         if (!loadResult.isFirstLoad()) {
@@ -458,17 +469,17 @@ public class MetadataSyncer implements SyncProcess {
     }
     UfsItem lastUfsStatus = currentUfsStatus;
 
-    // Case a. Alluxio /foo and UFS /bar
+    // Case A. Alluxio /foo and UFS /bar
     //    1. WRITE_LOCK lock /bar
     //    2. create /bar
     //    3. unlock /bar
     //    4. move UFS pointer
-    // Case b. Alluxio /bar and UFS /foo
+    // Case B. Alluxio /bar and UFS /foo
     //    1. WRITE_LOCK lock /bar
     //    2. delete /bar RECURSIVELY (call fs master)
     //    3. unlock /bar
     //    4. move Alluxio pointer and SKIP the children of /foo
-    // Case c. Alluxio /foo and Alluxio /foo
+    // Case C. Alluxio /foo and Alluxio /foo
     //    1. compare the fingerprint
     //    2. WRITE_LOCK /foo
     //    3. update the metadata
@@ -521,23 +532,6 @@ public class MetadataSyncer implements SyncProcess {
       @Nullable InodeIterationResult currentInode)
       throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistsException,
       IOException, BlockInfoException, DirectoryNotEmptyException, AccessControlException {
-    // Check if the inode is the mount point, if yes, just skip this one
-    // Skip this check for the sync root where the name of the current inode is ""
-    if (currentInode != null && !currentInode.getName().equals("")) {
-      boolean isMountPoint = mMountTable.isMountPoint(currentInode.getLockedPath().getUri());
-      if (isMountPoint) {
-        // Skip the ufs if it is shadowed by the mount point
-        boolean skipUfs = currentUfsStatus != null
-            && currentUfsStatus.mAlluxioPath.equals(
-                currentInode.getLockedPath().getUri().getPath());
-        if (skipUfs) {
-          syncState.mContext.reportSyncOperationSuccess(SyncOperation.SKIPPED_ON_MOUNT_POINT);
-        }
-        checkShouldSetDescendantsLoaded(currentInode.getInode(), syncState);
-        return new SingleInodeSyncResult(
-            skipUfs, true, true);
-      }
-    }
 
     Optional<Integer> comparisonResult = currentInode != null && currentUfsStatus != null
         ? Optional.of(
@@ -547,9 +541,8 @@ public class MetadataSyncer implements SyncProcess {
       // (Case 1) - in this case the UFS item is missing in the inode tree, so we create it
       // comparisonResult is present implies that currentUfsStatus is not null
       assert currentUfsStatus != null;
-      try (LockedInodePath lockedInodePath = mInodeTree.lockInodePath(
-          currentUfsStatus.mAlluxioUri, InodeTree.LockPattern.WRITE_EDGE,
-          syncState.mContext.getMetadataSyncJournalContext())) {
+      try (LockedInodePath lockedInodePath = syncState.mAlluxioSyncPathLocked.lockDescendant(
+          currentUfsStatus.mAlluxioUri, InodeTree.LockPattern.WRITE_EDGE)) {
         List<Inode> createdInodes;
         if (currentUfsStatus.mUfsItem.isDirectory()) {
           createdInodes = createInodeDirectoryMetadata(syncState.mContext, lockedInodePath,
@@ -582,8 +575,8 @@ public class MetadataSyncer implements SyncProcess {
       try {
         LockedInodePath path = currentInode.getLockedPath();
         path.traverse();
-        deleteFile(syncState.mContext, path);
-        syncState.mContext.reportSyncOperationSuccess(SyncOperation.DELETE);
+        syncState.mContext.reportSyncOperationSuccess(SyncOperation.DELETE,
+            deletePath(syncState.mContext, path));
       } catch (FileDoesNotExistException e) {
         handleConcurrentModification(
             syncState.mContext, currentInode.getLockedPath().getUri().getPath(), false, e);
@@ -592,6 +585,8 @@ public class MetadataSyncer implements SyncProcess {
     }
     // (Case 4) - in this case both the inode, and the UFS item exist, so we check if we need
     // to update the metadata
+    LockedInodePath lockedInodePath = currentInode.getLockedPath();
+    lockedInodePath.traverse();
     // HDFS also fetches ACL list, which is ignored for now
     String ufsType = syncState.mUfs.getUnderFSType();
     Fingerprint ufsFingerprint = Fingerprint.create(ufsType, currentUfsStatus.mUfsItem);
@@ -601,8 +596,6 @@ public class MetadataSyncer implements SyncProcess {
         UfsSyncUtils.computeSyncPlan(currentInode.getInode(), ufsFingerprint, containsMountPoint);
     if (syncPlan.toUpdateMetaData() || syncPlan.toDelete() || syncPlan.toLoadMetadata()) {
       try {
-        currentInode.getLockedPath().traverse();
-        LockedInodePath lockedInodePath = currentInode.getLockedPath();
         if (syncPlan.toUpdateMetaData()) {
           /*
             Inode obtained from the iterator might be stale, especially if the inode is persisted
@@ -635,9 +628,9 @@ public class MetadataSyncer implements SyncProcess {
             syncState.mContext.reportSyncOperationSuccess(SyncOperation.UPDATE);
           }
         } else if (syncPlan.toDelete() && syncPlan.toLoadMetadata()) {
-          deleteFile(syncState.mContext, lockedInodePath);
+          lockedInodePath.getInode().isDirectory();
+          deletePath(syncState.mContext, lockedInodePath);
           lockedInodePath.removeLastInode();
-          // TODO(tcrain) see why we need a new locked path here and cannot use the old one
           try (LockedInodePath newLockedInodePath = mInodeTree.lockInodePath(
               lockedInodePath.getUri(), InodeTree.LockPattern.WRITE_EDGE,
               syncState.mContext.getMetadataSyncJournalContext())) {
@@ -687,7 +680,7 @@ public class MetadataSyncer implements SyncProcess {
     }
   }
 
-  private void deleteFile(MetadataSyncContext context, LockedInodePath lockedInodePath)
+  private int deletePath(MetadataSyncContext context, LockedInodePath lockedInodePath)
       throws FileDoesNotExistException, DirectoryNotEmptyException, IOException,
       InvalidPathException {
     DeleteContext syncDeleteContext = DeleteContext.mergeFrom(
@@ -696,7 +689,8 @@ public class MetadataSyncer implements SyncProcess {
                 .setAlluxioOnly(true)
                 .setUnchecked(true))
         .setMetadataLoad(true);
-    mFsMaster.deleteInternal(context.getRpcContext(), lockedInodePath, syncDeleteContext, true);
+    return mFsMaster.deleteInternal(context.getRpcContext(),
+        lockedInodePath, syncDeleteContext, true);
   }
 
   private void updateInodeMetadata(
@@ -754,7 +748,6 @@ public class MetadataSyncer implements SyncProcess {
     short ufsMode = ufsStatus.getMode();
     Mode mode = new Mode(ufsMode);
     Long ufsLastModified = ufsStatus.getLastModifiedTime();
-    // TODO see if this can be optimized
     if (mountInfo.getOptions().getShared()) {
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
     }

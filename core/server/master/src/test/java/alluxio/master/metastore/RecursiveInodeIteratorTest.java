@@ -1,8 +1,20 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.master.metastore;
 
-
 import static org.junit.Assert.assertEquals;
+
 import alluxio.AlluxioURI;
+import alluxio.file.options.DescendantType;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
 import alluxio.master.file.meta.InodeIterationResult;
@@ -23,6 +35,7 @@ import org.mockito.Mockito;
 
 import java.time.Clock;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
@@ -112,22 +125,22 @@ public class RecursiveInodeIteratorTest extends InodeStoreTestBase {
     );
 
     List<String> paths = Arrays.asList(
-        "",
-        "a",
-        "a/b",
-        "a/b/c",
-        "a/b/c/f1",
-        "a/b/c/f2",
-        "a/c",
-        "a/c/f1",
-        "a/c/f2",
-        "a/c/f3",
-        "a/f1",
-        "b",
-        "c",
-        "f1",
-        "f2",
-        "g"
+        "/",
+        "/a",
+        "/a/b",
+        "/a/b/c",
+        "/a/b/c/f1",
+        "/a/b/c/f2",
+        "/a/c",
+        "/a/c/f1",
+        "/a/c/f2",
+        "/a/c/f3",
+        "/a/f1",
+        "/b",
+        "/c",
+        "/f1",
+        "/f2",
+        "/g"
     );
 
     InodeTree tree = new InodeTree(mStore, Mockito.mock(ContainerIdGenerable.class),
@@ -141,10 +154,11 @@ public class RecursiveInodeIteratorTest extends InodeStoreTestBase {
     try (LockedInodePath lockedPath =
              tree.lockInodePath(lockingScheme, NoopJournalContext.INSTANCE)) {
       RecursiveInodeIterator iterator = (RecursiveInodeIterator)
-          mStore.getSkippableChildrenIterator(ReadOption.defaults(), true, lockedPath);
+          mStore.getSkippableChildrenIterator(ReadOption.defaults(),
+              DescendantType.ALL, lockedPath);
       while (iterator.hasNext()) {
         InodeIterationResult result = iterator.next();
-        assertEquals(paths.get(idx), result.getName());
+        assertEquals(paths.get(idx), result.getLockedPath().getUri().getPath());
         result.getLockedPath().traverse();
         assertEquals(inodes.get(idx).getId(), result.getInode().getId());
         assertEquals(inodes.get(idx).getId(), result.getLockedPath().getInode().getId());
@@ -182,16 +196,16 @@ public class RecursiveInodeIteratorTest extends InodeStoreTestBase {
     );
 
     List<String> paths = Arrays.asList(
-        "",
-        "a",
-        "a/b",
-        "a/c",
-        "a/f1",
-        "b",
-        "c",
-        "f1",
-        "f2",
-        "g"
+        "/",
+        "/a",
+        "/a/b",
+        "/a/c",
+        "/a/f1",
+        "/b",
+        "/c",
+        "/f1",
+        "/f2",
+        "/g"
     );
 
     InodeTree tree = new InodeTree(mStore, Mockito.mock(ContainerIdGenerable.class),
@@ -205,16 +219,18 @@ public class RecursiveInodeIteratorTest extends InodeStoreTestBase {
     try (LockedInodePath lockedPath =
              tree.lockInodePath(lockingScheme, NoopJournalContext.INSTANCE)) {
       RecursiveInodeIterator iterator = (RecursiveInodeIterator)
-          mStore.getSkippableChildrenIterator(ReadOption.defaults(), true, lockedPath);
+          mStore.getSkippableChildrenIterator(ReadOption.defaults(),
+              DescendantType.ALL, lockedPath);
       while (iterator.hasNext()) {
         InodeIterationResult result = iterator.next();
-        assertEquals(paths.get(idx), result.getName());
+        assertEquals(paths.get(idx), result.getLockedPath().getUri().getPath());
         result.getLockedPath().traverse();
         assertEquals(inodes.get(idx).getId(), result.getInode().getId());
         assertEquals(inodes.get(idx).getId(), result.getLockedPath().getInode().getId());
         // The locked inode path will become stale after skipChildrenOfTheCurrent() is called.
-        if (result.getName().equals("a/b") || result.getName().equals("a/c") ||
-        result.getName().equals("g")) {
+        if (result.getLockedPath().getUri().getPath().equals("/a/b")
+            || result.getLockedPath().getUri().getPath().equals("/a/c")
+            || result.getLockedPath().getUri().getPath().equals("/g")) {
           iterator.skipChildrenOfTheCurrent();
         }
         idx++;
@@ -252,21 +268,21 @@ public class RecursiveInodeIteratorTest extends InodeStoreTestBase {
     );
 
     List<String> paths = Arrays.asList(
-        "",
-        "a",
-        "a/b",
-        "a/b/c",
-        "a/b/c/f2",
-        "a/c",
-        "a/c/f1",
-        "a/c/f2",
-        "a/c/f3",
-        "a/f1",
-        "b",
-        "c",
-        "f1",
-        "f2",
-        "g"
+        "/",
+        "/a",
+        "/a/b",
+        "/a/b/c",
+        "/a/b/c/f2",
+        "/a/c",
+        "/a/c/f1",
+        "/a/c/f2",
+        "/a/c/f3",
+        "/a/f1",
+        "/b",
+        "/c",
+        "/f1",
+        "/f2",
+        "/g"
     );
 
     InodeTree tree = new InodeTree(mStore, Mockito.mock(ContainerIdGenerable.class),
@@ -281,10 +297,11 @@ public class RecursiveInodeIteratorTest extends InodeStoreTestBase {
              tree.lockInodePath(lockingScheme, NoopJournalContext.INSTANCE)) {
       RecursiveInodeIterator iterator = (RecursiveInodeIterator)
           mStore.getSkippableChildrenIterator(
-              ReadOption.newBuilder().setReadFrom("a/b/c/f11").build(), true, lockedPath);
+              ReadOption.newBuilder().setReadFrom("a/b/c/f11").build(),
+              DescendantType.ALL, lockedPath);
       while (iterator.hasNext()) {
         InodeIterationResult result = iterator.next();
-        assertEquals(paths.get(idx), result.getName());
+        assertEquals(paths.get(idx), result.getLockedPath().getUri().getPath());
         result.getLockedPath().traverse();
         assertEquals(inodes.get(idx).getId(), result.getInode().getId());
         assertEquals(inodes.get(idx).getId(), result.getLockedPath().getInode().getId());
@@ -323,16 +340,16 @@ public class RecursiveInodeIteratorTest extends InodeStoreTestBase {
     );
 
     List<String> paths = Arrays.asList(
-        "",
-        "a",
-        "a/c",
-        "a/c/f3",
-        "a/f1",
-        "b",
-        "c",
-        "f1",
-        "f2",
-        "g"
+        "/",
+        "/a",
+        "/a/c",
+        "/a/c/f3",
+        "/a/f1",
+        "/b",
+        "/c",
+        "/f1",
+        "/f2",
+        "/g"
     );
 
     InodeTree tree = new InodeTree(mStore, Mockito.mock(ContainerIdGenerable.class),
@@ -347,10 +364,11 @@ public class RecursiveInodeIteratorTest extends InodeStoreTestBase {
              tree.lockInodePath(lockingScheme, NoopJournalContext.INSTANCE)) {
       RecursiveInodeIterator iterator = (RecursiveInodeIterator)
           mStore.getSkippableChildrenIterator(
-              ReadOption.newBuilder().setReadFrom("a/c/f3").build(), true, lockedPath);
+              ReadOption.newBuilder().setReadFrom("a/c/f3").build(),
+              DescendantType.ALL, lockedPath);
       while (iterator.hasNext()) {
         InodeIterationResult result = iterator.next();
-        assertEquals(paths.get(idx), result.getName());
+        assertEquals(paths.get(idx), result.getLockedPath().getUri().getPath());
         result.getLockedPath().traverse();
         assertEquals(inodes.get(idx).getId(), result.getInode().getId());
         assertEquals(inodes.get(idx).getId(), result.getLockedPath().getInode().getId());
@@ -364,9 +382,9 @@ public class RecursiveInodeIteratorTest extends InodeStoreTestBase {
   public void recursiveListingStartFromSkipAll() throws Exception {
     createInodeTree();
 
-    List<MutableInode<?>> inodes = Arrays.asList(mRoot);
+    List<MutableInode<?>> inodes = Collections.singletonList(mRoot);
 
-    List<String> paths = Arrays.asList("");
+    List<String> paths = Collections.singletonList("/");
 
     InodeTree tree = new InodeTree(mStore, Mockito.mock(ContainerIdGenerable.class),
         Mockito.mock(InodeDirectoryIdGenerator.class), new MountTable(
@@ -380,10 +398,10 @@ public class RecursiveInodeIteratorTest extends InodeStoreTestBase {
              tree.lockInodePath(lockingScheme, NoopJournalContext.INSTANCE)) {
       RecursiveInodeIterator iterator = (RecursiveInodeIterator)
           mStore.getSkippableChildrenIterator(
-              ReadOption.newBuilder().setReadFrom("z").build(), true, lockedPath);
+              ReadOption.newBuilder().setReadFrom("z").build(), DescendantType.ALL, lockedPath);
       while (iterator.hasNext()) {
         InodeIterationResult result = iterator.next();
-        assertEquals(paths.get(idx), result.getName());
+        assertEquals(paths.get(idx), result.getLockedPath().getUri().getPath());
         result.getLockedPath().traverse();
         assertEquals(inodes.get(idx).getId(), result.getInode().getId());
         assertEquals(inodes.get(idx).getId(), result.getLockedPath().getInode().getId());
