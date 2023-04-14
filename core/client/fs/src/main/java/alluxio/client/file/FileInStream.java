@@ -75,7 +75,11 @@ public abstract class FileInStream extends InputStream
     if (byteBuffer.hasArray()) {
       byte[] array = byteBuffer.array();
       int arrayOffset = byteBuffer.arrayOffset();
-      return read(array, arrayOffset, bytesToRead);
+      int bytesRead = read(array, arrayOffset, bytesToRead);
+      if (bytesRead > 0) {
+        byteBuffer.position(byteBuffer.position() + bytesRead);
+      }
+      return bytesRead;
     }
 
     byte[] array = new byte[bytesToRead];

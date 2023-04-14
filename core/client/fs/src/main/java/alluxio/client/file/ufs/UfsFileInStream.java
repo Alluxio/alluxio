@@ -23,7 +23,6 @@ import com.google.common.base.Preconditions;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.util.Optional;
 import java.util.function.Function;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -63,25 +62,6 @@ public class UfsFileInStream extends FileInStream {
     }
     mPosition++;
     return res;
-  }
-
-  @Override
-  public int read(ByteBuffer byteBuffer) throws IOException {
-    int len = byteBuffer.remaining();
-    if (byteBuffer.hasArray()) {
-      int bytesRead = read(byteBuffer.array(), byteBuffer.arrayOffset(), len);
-      if (bytesRead > 0) {
-        byteBuffer.position(byteBuffer.position() + bytesRead);
-      }
-      return bytesRead;
-    }
-    byte[] byteArray = new byte[len];
-    int totalBytesRead = read(byteArray, 0, len);
-    if (totalBytesRead <= 0) {
-      return totalBytesRead;
-    }
-    byteBuffer.put(byteArray, 0, totalBytesRead);
-    return totalBytesRead;
   }
 
   @Override
