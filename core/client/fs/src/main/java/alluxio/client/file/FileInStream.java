@@ -51,6 +51,8 @@ public abstract class FileInStream extends InputStream
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
     Preconditions.checkNotNull(b, PreconditionMessage.ERR_READ_BUFFER_NULL);
+    Preconditions.checkArgument(len >= 0 && off >= 0 && len <= b.length - off,
+        PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
     return read(ByteBuffer.wrap(b, off, len));
   }
 
