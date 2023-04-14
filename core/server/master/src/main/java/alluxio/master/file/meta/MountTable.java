@@ -173,13 +173,14 @@ public final class MountTable implements DelegatingJournaled {
     String alluxioPath = alluxioUri.getPath().isEmpty() ? "/" : alluxioUri.getPath();
     LOG.info("Validating Mounting {} at {}, with id {} and options {}",
         ufsUri, alluxioPath, mountId, options);
-    if (mState.getMountTable().containsKey(alluxioPath)) {
+    Map<String, MountInfo> mountTable = getMountTable();
+    if (mountTable.containsKey(alluxioPath)) {
       throw new FileAlreadyExistsException(
           ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(alluxioPath));
     }
     // Make sure that the ufs path we're trying to mount is not a prefix
     // or suffix of any existing mount path.
-    for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
+    for (Map.Entry<String, MountInfo> entry : mountTable.entrySet()) {
       AlluxioURI mountedUfsUri = entry.getValue().getUfsUri();
       if ((ufsUri.getScheme() == null || ufsUri.getScheme().equals(mountedUfsUri.getScheme()))
           && (ufsUri.getAuthority().toString().equals(mountedUfsUri.getAuthority().toString()))) {
@@ -323,18 +324,16 @@ public final class MountTable implements DelegatingJournaled {
   public String getMountPoint(AlluxioURI uri) throws InvalidPathException {
     String path = uri.getPath();
     String lastMount = ROOT;
-    try (LockResource r = new LockResource(mReadLock)) {
-      for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
-        String mount = entry.getKey();
-        // we choose a new candidate path if the previous candidate path is a prefix
-        // of the current alluxioPath and the alluxioPath is a prefix of the path
-        if (!mount.equals(ROOT) && PathUtils.hasPrefix(path, mount)
-            && lastMount.length() < mount.length()) {
-          lastMount = mount;
-        }
+    for (Map.Entry<String, MountInfo> entry : getMountTable().entrySet()) {
+      String mount = entry.getKey();
+      // we choose a new candidate path if the previous candidate path is a prefix
+      // of the current alluxioPath and the alluxioPath is a prefix of the path
+      if (!mount.equals(ROOT) && PathUtils.hasPrefix(path, mount)
+          && lastMount.length() < mount.length()) {
+        lastMount = mount;
       }
-      return lastMount;
     }
+    return lastMount;
   }
 
   /**
@@ -358,15 +357,13 @@ public final class MountTable implements DelegatingJournaled {
       throws InvalidPathException {
     String path = uri.getPath();
 
-    try (LockResource r = new LockResource(mReadLock)) {
-      for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
-        String mountPath = entry.getKey();
-        if (!containsSelf && mountPath.equals(path)) {
-          continue;
-        }
-        if (PathUtils.hasPrefix(mountPath, path)) {
-          return true;
-        }
+    for (Map.Entry<String, MountInfo> entry : getMountTable().entrySet()) {
+      String mountPath = entry.getKey();
+      if (!containsSelf && mountPath.equals(path)) {
+        continue;
+      }
+      if (PathUtils.hasPrefix(mountPath, path)) {
+        return true;
       }
     }
     return false;
@@ -384,15 +381,13 @@ public final class MountTable implements DelegatingJournaled {
     String path = uri.getPath();
     List<MountInfo> childrenMountPoints = new ArrayList<>();
 
-    try (LockResource r = new LockResource(mReadLock)) {
-      for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
-        String mountPath = entry.getKey();
-        if (!containsSelf && mountPath.equals(path)) {
-          continue;
-        }
-        if (PathUtils.hasPrefix(mountPath, path)) {
-          childrenMountPoints.add(entry.getValue());
-        }
+    for (Map.Entry<String, MountInfo> entry : getMountTable().entrySet()) {
+      String mountPath = entry.getKey();
+      if (!containsSelf && mountPath.equals(path)) {
+        continue;
+      }
+      if (PathUtils.hasPrefix(mountPath, path)) {
+        childrenMountPoints.add(entry.getValue());
       }
     }
     return childrenMountPoints;
@@ -403,9 +398,7 @@ public final class MountTable implements DelegatingJournaled {
    * @return whether the given uri is a mount point
    */
   public boolean isMountPoint(AlluxioURI uri) {
-    try (LockResource r = new LockResource(mReadLock)) {
-      return mState.getMountTable().containsKey(uri.getPath());
-    }
+    return getMountTable().containsKey(uri.getPath());
   }
 
   private static AlluxioURI reverseResolve(AlluxioURI mountPoint,
@@ -430,21 +423,19 @@ public final class MountTable implements DelegatingJournaled {
   @Nullable
   public ReverseResolution reverseResolve(AlluxioURI ufsUri) {
     // TODO(ggezer): Consider alternative mount table representations for optimizing this method.
-    try (LockResource r = new LockResource(mReadLock)) {
-      for (Map.Entry<String, MountInfo> mountInfoEntry : mState.getMountTable().entrySet()) {
-        try {
-          if (mountInfoEntry.getValue().getUfsUri().isAncestorOf(ufsUri)) {
-            return new ReverseResolution(mountInfoEntry.getValue(),
-                reverseResolve(mountInfoEntry.getValue().getAlluxioUri(),
-                    mountInfoEntry.getValue().getUfsUri(), ufsUri));
-          }
-        } catch (InvalidPathException e) {
-          // expected when ufsUri does not belong to this particular mountPoint
-          LOG.debug(Throwables.getStackTraceAsString(e));
+    for (Map.Entry<String, MountInfo> mountInfoEntry : getMountTable().entrySet()) {
+      try {
+        if (mountInfoEntry.getValue().getUfsUri().isAncestorOf(ufsUri)) {
+          return new ReverseResolution(mountInfoEntry.getValue(),
+              reverseResolve(mountInfoEntry.getValue().getAlluxioUri(),
+                  mountInfoEntry.getValue().getUfsUri(), ufsUri));
         }
+      } catch (InvalidPathException e) {
+        // expected when ufsUri does not belong to this particular mountPoint
+        LOG.debug(Throwables.getStackTraceAsString(e));
       }
-      return null;
     }
+    return null;
   }
 
   /**
@@ -512,13 +503,10 @@ public final class MountTable implements DelegatingJournaled {
    */
   public void checkUnderWritableMountPoint(AlluxioURI alluxioUri)
       throws InvalidPathException, AccessControlException {
-    try (LockResource r = new LockResource(mReadLock)) {
-      // This will re-acquire the read lock, but that is allowed.
-      String mountPoint = getMountPoint(alluxioUri);
-      MountInfo mountInfo = mState.getMountTable().get(mountPoint);
-      if (mountInfo.getOptions().getReadOnly()) {
-        throw new AccessControlException(ExceptionMessage.MOUNT_READONLY, alluxioUri, mountPoint);
-      }
+    String mountPoint = getMountPoint(alluxioUri);
+    MountInfo mountInfo = getMountTable().get(mountPoint);
+    if (mountInfo.getOptions().getReadOnly()) {
+      throw new AccessControlException(ExceptionMessage.MOUNT_READONLY, alluxioUri, mountPoint);
     }
   }
 
@@ -528,11 +516,9 @@ public final class MountTable implements DelegatingJournaled {
    */
   @Nullable
   public MountInfo getMountInfo(long mountId) {
-    try (LockResource r = new LockResource(mReadLock)) {
-      for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
-        if (entry.getValue().getMountId() == mountId) {
-          return entry.getValue();
-        }
+    for (Map.Entry<String, MountInfo> entry : getMountTable().entrySet()) {
+      if (entry.getValue().getMountId() == mountId) {
+        return entry.getValue();
       }
     }
     return null;
@@ -544,15 +530,13 @@ public final class MountTable implements DelegatingJournaled {
    * @return the mount information
    */
   public MountInfo getMountInfo(AlluxioURI uri) throws InvalidPathException {
-    try (LockResource ignored = new LockResource(mReadLock)) {
-      String path = uri.getPath();
-      LOG.debug("Resolving {}", path);
-      PathUtils.validatePath(uri.getPath());
-      // This will re-acquire the read lock, but that is allowed.
-      String mountPoint = getMountPoint(uri);
-      if (mountPoint != null) {
-        return mState.getMountTable().get(mountPoint);
-      }
+    String path = uri.getPath();
+    LOG.debug("Resolving {}", path);
+    PathUtils.validatePath(uri.getPath());
+    // This will re-acquire the read lock, but that is allowed.
+    String mountPoint = getMountPoint(uri);
+    if (mountPoint != null) {
+      return getMountTable().get(mountPoint);
     }
     throw new IllegalStateException("No mount found for path " + uri);
   }
