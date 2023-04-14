@@ -246,12 +246,22 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   public UfsStatus[] listStatus(String path, ListOptions options) throws IOException {
     UfsStatus[] statuses = mListStatusCache.getIfPresent(path);
     if (statuses == null) {
-      // Not found in cache. Query the Under File System.
-      statuses = mUfs.listStatus(path, options);
-      // Add this into cache. Return value might be null if not found.
-      if (statuses != null) {
-        mListStatusCache.put(path, statuses);
-      }
+      // If not found, let's get it synchronously, avoiding multiple threads listing the same
+      // directory. If a directory contains a large number of files/dirs, the listStatus()
+      // needs a lot of memory for the results.
+      synchronized (mListStatusCache) {
+        // First, query the cache again because this thread was probably blocked
+        // and cache was probably updated.
+        statuses = mListStatusCache.getIfPresent(path);
+        if (statuses == null) {
+          // Not found in cache. Query the Under File System.
+          statuses = mUfs.listStatus(path, options);
+          // Add this into cache. Return value might be null if not found.
+          if (statuses != null) {
+            mListStatusCache.put(path, statuses);
+          }
+        }
+      } // end of synchronized
     }
     return statuses;
   }
@@ -299,24 +309,26 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         fi = fs.get().getFileInfo();
         mUfsStatusCache.put(ufsFullPath, fs.get());
       } else {
-        // This will load UfsFileStatus from UFS and put it in memory cache
-        try {
-          status = mUfsStatusCache.get(ufsFullPath);
-        } catch (ExecutionException e) {
-          Throwable throwable = e.getCause();
-          // this should be the exception thrown by ufs.getFileStatus which is IOException
-          if (throwable instanceof IOException) {
-            throw (IOException) throwable;
-          } else {
-            throw new InternalException("Unexpected exception when retrieving UFS file status",
-                throwable);
+        synchronized (mUfsStatusCache) { //
+          // This will load UfsFileStatus from UFS and put it in memory cache
+          try {
+            status = mUfsStatusCache.get(ufsFullPath);
+          } catch (ExecutionException e) {
+            Throwable throwable = e.getCause();
+            // this should be the exception thrown by ufs.getFileStatus which is IOException
+            if (throwable instanceof IOException) {
+              throw (IOException) throwable;
+            } else {
+              throw new InternalException("Unexpected exception when retrieving UFS file status",
+                  throwable);
+            }
           }
+          if (mMetaStore != null) {
+            mMetaStore.putDoraMeta(ufsFullPath, status);
+          }
+          fi = status.getFileInfo();
         }
-        if (mMetaStore != null) {
-          mMetaStore.putDoraMeta(ufsFullPath, status);
-        }
-        fi = status.getFileInfo();
-      }
+      } // end of synchronized
     } else {
       fi = status.getFileInfo();
     }
