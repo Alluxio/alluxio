@@ -59,7 +59,7 @@ final class LostFileDetector implements HeartbeatExecutor {
   }
 
   @Override
-  public void heartbeat() throws InterruptedException {
+  public void heartbeat(long timeLimitMs) throws InterruptedException {
     Iterator<Long> iter = mBlockMaster.getLostBlocksIterator();
     Set<Long> toMarkFiles = new HashSet<>();
     while (iter.hasNext()) {

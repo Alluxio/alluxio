@@ -18,6 +18,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.heartbeat.FixedIntervalSupplier;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -135,7 +136,8 @@ public class TransformManager implements DelegatingJournaled {
   public void start(ExecutorService executorService, UserState userState) {
     executorService.submit(
         new HeartbeatThread(HeartbeatContext.MASTER_TABLE_TRANSFORMATION_MONITOR, new JobMonitor(),
-            () -> Configuration.getMs(PropertyKey.TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL),
+            () -> new FixedIntervalSupplier(
+                Configuration.getMs(PropertyKey.TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL)),
             Configuration.global(), userState));
   }
 
@@ -300,7 +302,7 @@ public class TransformManager implements DelegatingJournaled {
     }
 
     @Override
-    public void heartbeat() throws InterruptedException {
+    public void heartbeat(long timeLimitMs) throws InterruptedException {
       for (TransformJobInfo job : mState.getRunningJobs()) {
         if (Thread.currentThread().isInterrupted()) {
           throw new InterruptedException("TransformManager's heartbeat was interrupted");

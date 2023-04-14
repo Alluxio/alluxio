@@ -47,7 +47,7 @@ public final class PinListSync implements HeartbeatExecutor {
   }
 
   @Override
-  public void heartbeat() {
+  public void heartbeat(long timeLimitMs) {
     // Send the sync
     try {
       Set<Long> pinList = mMasterClient.getPinList();

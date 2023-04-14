@@ -44,7 +44,7 @@ public class PinListSyncTest {
     };
 
     PinListSync sync = new PinListSync(mBlockWorker, client);
-    sync.heartbeat();
+    sync.heartbeat(Long.MAX_VALUE);
 
     // should receive the latest pin list
     assertEquals(testPinLists, mBlockWorker.getPinList());
@@ -62,7 +62,7 @@ public class PinListSyncTest {
 
     PinListSync sync = new PinListSync(mBlockWorker, client);
     // should fail
-    sync.heartbeat();
+    sync.heartbeat(Long.MAX_VALUE);
 
     // should not get any pin list update
     assertEquals(ImmutableSet.of(), mBlockWorker.getPinList());
