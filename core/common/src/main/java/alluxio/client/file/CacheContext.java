@@ -152,6 +152,19 @@ public class CacheContext {
     return this;
   }
 
+
+  /**
+   * Increments the counter {@code name} by {@code value}.
+   * <p>
+   * Default implementation does nothing. Subclass can implement its own tracking mechanism.
+   *
+   * @param name name of the counter
+   * @param value value of the counter
+   */
+  public void incrementCounter(String name, long value) {
+    // Default implementation does nothing
+  }
+
   /**
    * Increments the counter {@code name} by {@code value}.
    * <p>
