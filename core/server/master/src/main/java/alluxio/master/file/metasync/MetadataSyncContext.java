@@ -66,7 +66,7 @@ public class MetadataSyncContext implements Closeable {
       @Nullable String startAfter,
       boolean allowConcurrentModification
   ) {
-    mDescendantType = loadResult.getTaskInfo().getDescendantType();
+    mDescendantType = loadResult.getLoadRequest().getDescendantType();
     mRpcContext = rpcContext;
     mBaseRpcContext = baseRpcContext;
     mCommonOptions = commonOptions;

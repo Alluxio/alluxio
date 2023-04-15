@@ -57,7 +57,7 @@ public class S3Test {
   SyncProcess mSyncProcess;
   S3AsyncClient mS3Client;
   String mBucket = "alluxiotyler";
-  RateLimiter mRateLimiter = RateLimiter.createRateLimiter(2);
+  RateLimiter mRateLimiter = RateLimiter.createRateLimiter(10);
 
   @Before
   public void before() {

@@ -22,7 +22,7 @@ import javax.annotation.Nullable;
 /**
  * This is a request for a single batch load sent to the UFS.
  */
-class LoadRequest {
+public class LoadRequest {
   private final TaskInfo mTaskInfo;
   private final AlluxioURI mPath;
   private final String mContinuationToken;
@@ -78,7 +78,7 @@ class LoadRequest {
     return mPath;
   }
 
-  DescendantType getDescendantType() {
+  public DescendantType getDescendantType() {
     return mDescendantType;
   }
 

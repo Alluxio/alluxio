@@ -420,11 +420,6 @@ public class MetadataSyncer implements SyncProcess {
       if (result.mMoveUfs) {
         currentUfsStatus = IteratorUtils.nextOrNull(syncState.mUfsStatusIterator);
         lastUfsStatus = currentUfsStatus == null ? lastUfsStatus : currentUfsStatus;
-        if (syncState.mContext.isRecursive() && currentUfsStatus != null
-            && currentUfsStatus.mUfsItem.isDirectory()) {
-          syncState.mContext.addDirectoriesToUpdateIsChildrenLoaded(
-              currentUfsStatus.mAlluxioUri);
-        }
       }
     }
     Preconditions.checkState(!syncState.mUfsStatusIterator.hasNext());
