@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Abstract class for job. It provides basic job information and state management.
@@ -35,7 +36,7 @@ import java.util.OptionalLong;
 public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
   private static final Logger LOG = LoggerFactory.getLogger(LoadJob.class);
   protected final String mJobId;
-  protected JobState mState;
+  protected JobState mState; // TODO make it thread safe state update
   protected OptionalLong mEndTime = OptionalLong.empty();
   protected final long mStartTime;
   protected final Optional<String> mUser;

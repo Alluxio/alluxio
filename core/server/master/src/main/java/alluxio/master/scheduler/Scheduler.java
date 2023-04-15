@@ -68,6 +68,7 @@ public final class Scheduler {
   private static final int EXECUTOR_SHUTDOWN_MS = 10 * Constants.SECOND_MS;
   private final Map<JobDescription, Job<?>>
       mExistingJobs = new ConcurrentHashMap<>();
+  // this will be kept in job itself
   private final Map<Job<?>, Set<WorkerInfo>> mRunningTasks = new ConcurrentHashMap<>();
   private final JobMetaStore mJobMetaStore;
   // initial thread in start method since we would stop and start thread when gainPrimacy
@@ -84,7 +85,7 @@ public final class Scheduler {
       mScheduler = scheduler;
       mWorkerProvider = workerProvider;
     }
-    public final Map<WorkerInfo, PriorityBlockingQueue<Task>>  mWorkerToTaskQ = new ConcurrentHashMap<>();
+    private final Map<WorkerInfo, PriorityBlockingQueue<Task>> mWorkerToTaskQ = new ConcurrentHashMap<>();
     public void enqueueTaskForWorker(WorkerInfo workerInfo, Task task, boolean kickStartTask) {
       PriorityBlockingQueue workerTaskQ = mWorkerToTaskQ
           .computeIfAbsent(workerInfo, k -> new PriorityBlockingQueue<>());
@@ -98,6 +99,10 @@ public final class Scheduler {
         return false;
       PriorityBlockingQueue<Task> pq = mWorkerToTaskQ.get(workerInfo);
       return pq.remove(task);
+    }
+
+    public Map<WorkerInfo, PriorityBlockingQueue<Task>> getWorkerToTaskQ() {
+      return mWorkerToTaskQ;
     }
 
     /**
@@ -179,7 +184,7 @@ public final class Scheduler {
   public void start() {
     if (!mRunning) {
       retrieveJobs();
-      mWorkingExecutor = new ThreadPoolExecutor(4, 4, -1, TimeUnit.SECONDS,
+      mWorkingExecutor = new ThreadPoolExecutor(4, 4, 0, TimeUnit.SECONDS,
         new ArrayBlockingQueue<>(16 * 1024));
       mSchedulerExecutor = Executors.newSingleThreadScheduledExecutor(
           ThreadFactoryUtils.build("scheduler", false));
@@ -191,6 +196,10 @@ public final class Scheduler {
     }
   }
 
+  public void updateWorkers() {
+    mWorkerInfoHub.updateWorkers();
+  }
+
   public ExecutorService getWorkingExecutor() {
     return mWorkingExecutor;
   }
@@ -198,13 +207,16 @@ public final class Scheduler {
   private void retrieveJobs() {
     for (Job<?> job : mJobMetaStore.getJobs()) {
       mExistingJobs.put(job.getDescription(), job);
-      if (job.isDone()) {
-        mRunningTasks.remove(job);
-      }
-      else {
-        mRunningTasks.put(job, new HashSet<>());
-      }
     }
+//    for (Job<?> job : mJobMetaStore.getJobs()) {
+//      mExistingJobs.put(job.getDescription(), job);
+//      if (job.isDone()) {
+//        mRunningTasks.remove(job);
+//      }
+//      else {
+//        mRunningTasks.put(job, new HashSet<>());
+//      }
+//    }
   }
 
   /**
@@ -236,14 +248,17 @@ public final class Scheduler {
       return false;
     }
 
-    if (mRunningTasks.size() >= CAPACITY) {
+    int totalActiveTasks = mWorkerInfoHub.getWorkerToTaskQ()
+        .values().stream().mapToInt(q -> q.size()).sum();
+    if (totalActiveTasks > CAPACITY) {
+//    if (mRunningTasks.size() >= CAPACITY) {
       throw new ResourceExhaustedRuntimeException(
           "Too many jobs running, please submit later.", true);
     }
     mJobMetaStore.updateJob(job);
     mExistingJobs.put(job.getDescription(), job);
-    mRunningTasks.put(job, new HashSet<>());
-    LOG.debug(format("start job: %s", job));
+//    mRunningTasks.put(job, new HashSet<>());
+    LOG.info(format("start job: %s", job));
     return true;
   }
 
@@ -253,7 +268,7 @@ public final class Scheduler {
     LOG.debug(format("updated existing job: %s from %s", existingJob, newJob));
     if (existingJob.getJobState() == JobState.STOPPED) {
       existingJob.setJobState(JobState.RUNNING);
-      mRunningTasks.put(existingJob, new HashSet<>());
+//      mRunningTasks.put(existingJob, new HashSet<>());
       LOG.debug(format("restart existing job: %s", existingJob));
     }
   }
