@@ -9,8 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.underfs.local;
+package alluxio.underfs.s3a;
 
+import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PositionReader;
 import alluxio.PositionReaderTest;
@@ -21,6 +22,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -28,20 +30,18 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.UUID;
 
 /**
- * Unit tests for the {@link LocalPositionReader}.
+ * Unit tests for the {@link S3APositionReader}.
  */
 @RunWith(Parameterized.class)
-public class LocalPositionReaderTest {
+public class S3APositionReaderTest {
+  private static final String TEST_S3A_PATH_CONF = "alluxio.test.s3a.path";
 
   @Parameterized.Parameters(name = "{index}-{0}")
   public static Collection<Object[]> data() {
@@ -49,22 +49,18 @@ public class LocalPositionReaderTest {
         {0},
         {1},
         {128},
-        {256},
         {666},
         {5314},
         { 1 * Constants.KB - 1},
         { 1 * Constants.KB},
         { 1 * Constants.KB + 1},
-        { 64 * Constants.KB - 1},
-        { 64 * Constants.KB},
-        { 64 * Constants.KB + 1},
     });
   }
 
   @Parameterized.Parameter
   public int mFileLen;
 
-  private UnderFileSystem mLocalUfs;
+  private UnderFileSystem mS3Ufs;
   private static final AlluxioConfiguration CONF = Configuration.global();
 
   private String mTestFile;
@@ -76,23 +72,25 @@ public class LocalPositionReaderTest {
 
   @Before
   public void before() throws IOException {
-    String localUfsRoot = mTemporaryFolder.getRoot().getAbsolutePath();
-    mLocalUfs =
-        UnderFileSystem.Factory.create(localUfsRoot, UnderFileSystemConfiguration.defaults(CONF));
-    Path path = Paths.get(localUfsRoot, "testFile" + UUID.randomUUID());
-    try (FileOutputStream os = new FileOutputStream(path.toFile())) {
+    // String s3Path = System.getProperty(TEST_S3A_PATH_CONF);
+    String s3Path = "s3://alluxio-test-fuse/";
+    Assume.assumeTrue(s3Path != null && !s3Path.isEmpty());
+    AlluxioURI ufsRoot = new AlluxioURI(s3Path).join(UUID.randomUUID().toString());
+    mS3Ufs = UnderFileSystem.Factory.create(ufsRoot.toString(),
+        UnderFileSystemConfiguration.defaults(CONF));
+    mTestFile = ufsRoot.join(UUID.randomUUID().toString()).toString();
+    try (OutputStream os = mS3Ufs.create(mTestFile)) {
       os.write(BufferUtils.getIncreasingByteArray(mFileLen));
     }
-    mTestFile = path.toString();
-    mPositionReader = new LocalPositionReader(mTestFile, mFileLen);
+    mPositionReader = mS3Ufs.openPositionRead(mTestFile, mFileLen);
     mPositionReaderTest = new PositionReaderTest(mPositionReader, mFileLen);
   }
 
   @After
   public void after() throws IOException {
     mPositionReader.close();
-    new File(mTestFile).delete();
-    mLocalUfs.close();
+    mS3Ufs.deleteFile(mTestFile);
+    mS3Ufs.close();
   }
 
   @Test

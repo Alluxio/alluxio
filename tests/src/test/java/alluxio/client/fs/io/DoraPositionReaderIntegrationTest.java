@@ -105,9 +105,9 @@ public class DoraPositionReaderIntegrationTest extends BaseIntegrationTest {
 
   @After
   public void after() throws Exception {
-    new File(mFilePath).delete();
     mPositionReader.close();
     mFileSystem.close();
+    new File(mFilePath).delete();
   }
 
   @Test

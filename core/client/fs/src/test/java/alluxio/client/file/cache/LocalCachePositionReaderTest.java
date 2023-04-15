@@ -126,10 +126,10 @@ public final class LocalCachePositionReaderTest {
 
   @After
   public void after() throws Exception {
-    new File(mTestFile).delete();
     mPositionReader.close();
     mCacheManager.close();
     mLocalUfs.close();
+    new File(mTestFile).delete();
   }
 
   @Test
