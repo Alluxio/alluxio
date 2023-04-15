@@ -70,6 +70,12 @@ public final class LocalCachePositionReaderTest {
         {256},
         {666},
         {5314},
+        { 1 * Constants.KB - 1},
+        { 1 * Constants.KB},
+        { 1 * Constants.KB + 1},
+        { 64 * Constants.KB - 1},
+        { 64 * Constants.KB},
+        { 64 * Constants.KB + 1},
     });
   }
 
