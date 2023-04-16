@@ -32,6 +32,7 @@ public interface RocksCheckpointed extends Checkpointed {
   /**
    * @return the {@link RocksStore} that will produce a checkpoint
    */
+  // TODO(jiacheng): add proper locking
   RocksStore getRocksStore();
 
   @Override

@@ -575,20 +575,6 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
     return mRocksStore;
   }
 
-  @Override
-  public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
-    try (RocksExclusiveLockHandle lock = mRocksStore.lockForCheckpoint()) {
-      mRocksStore.writeToCheckpoint(output);
-    }
-  }
-
-  @Override
-  public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
-    try (RocksExclusiveLockHandle lock = mRocksStore.lockForRewrite()) {
-      mRocksStore.restoreFromCheckpoint(input);
-    }
-  }
-
   private class RocksWriteBatch implements WriteBatch {
     private final org.rocksdb.WriteBatch mBatch = new org.rocksdb.WriteBatch();
 

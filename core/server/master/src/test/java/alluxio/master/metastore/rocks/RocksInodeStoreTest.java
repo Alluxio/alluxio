@@ -105,7 +105,7 @@ public class RocksInodeStoreTest {
         System.out.println("RocksStore has refCount=" + mStore.mRocksStore.mRefCount.sum());
 
         if (i == 10) {
-          mStore.mRocksStore.mState.set(true);
+          mStore.mRocksStore.mState.set(new VersionedRocksStoreStatus(true, 1));
           System.out.println("Marked RocksDB for closing");
         }
 
