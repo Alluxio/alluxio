@@ -54,9 +54,33 @@ public final class ShellUtils {
    *
    * @param user the user name
    * @return the Unix command to get a given user's groups list
+   * @deprecated as of Alluxio 2.9.3, replaced by
+   *             {@link ShellUtils#getEffectiveGroupsForUserCommand(String)} and
+   *             {@link ShellUtils#getAllGroupsForUserCommand(String)}
    */
+  @Deprecated
   public static String[] getGroupsForUserCommand(final String user) {
     return new String[] {"bash", "-c", "id -gn " + user + "; id -Gn " + user};
+  }
+
+  /**
+   * Gets a Unix command to get a given user's effective groups list.
+   *
+   * @param user the user name
+   * @return the Unix command to get a given user's effective groups list
+   */
+  public static String[] getEffectiveGroupsForUserCommand(final String user){
+    return new String[] {"id", "-gn", user};
+  }
+
+  /**
+   * Gets a Unix command to get a given user's all groups list.
+   *
+   * @param user the user name
+   * @return the Unix command to get a given user's all groups list
+   */
+  public static String[] getAllGroupsForUserCommand(final String user){
+    return new String[] {"id", "-Gn", user};
   }
 
   /**
