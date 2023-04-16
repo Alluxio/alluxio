@@ -836,7 +836,7 @@ public final class S3RestServiceHandler {
           xattrMap.put(S3Constants.CONTENT_TYPE_XATTR_KEY,
               ByteString.copyFrom(contentTypeParam, S3Constants.HEADER_CHARSET));
         }
-        CreateFilePOptions filePOptions =
+        CreateFilePOptions.Builder filePOptionsBuilder =
             CreateFilePOptions.newBuilder()
                 .setRecursive(true)
                 .setMode(PMode.newBuilder()
@@ -846,8 +846,12 @@ public final class S3RestServiceHandler {
                 .setWriteType(writeType)
                 .putAllXattr(xattrMap).setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
                 .setCheckS3BucketPath(true)
-                .setOverwrite(true)
-                .build();
+                .setOverwrite(true);
+        if (S3RestUtils.isUploadPartOnlyCacheEnabled()) {
+          filePOptionsBuilder
+              .setReplicationMin(mSConf.getInt(PropertyKey.PROXY_S3_UPLOAD_PART_REPLICATION_MIN))
+              .setReplicationMax(mSConf.getInt(PropertyKey.PROXY_S3_UPLOAD_PART_REPLICATION_MAX));
+        }
 
         // not copying from an existing file
         if (copySourceParam == null) {
@@ -866,7 +870,7 @@ public final class S3RestServiceHandler {
             } else {
               toRead = Long.parseLong(contentLength);
             }
-            FileOutStream os = userFs.createFile(objectUri, filePOptions);
+            FileOutStream os = userFs.createFile(objectUri, filePOptionsBuilder.build());
             try (DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5)) {
               long read = ByteStreams.copy(ByteStreams.limit(readStream, toRead),
                   digestOutputStream);
@@ -924,11 +928,16 @@ public final class S3RestServiceHandler {
               .setCheckS3BucketPath(true)
               .setWriteType(writeType)
               .setOverwrite(true);
+          if (S3RestUtils.isUploadPartOnlyCacheEnabled()) {
+            copyFilePOptionsBuilder
+                .setReplicationMin(mSConf.getInt(PropertyKey.PROXY_S3_UPLOAD_PART_REPLICATION_MIN))
+                .setReplicationMax(mSConf.getInt(PropertyKey.PROXY_S3_UPLOAD_PART_REPLICATION_MAX));
+          }
           // Handle metadata directive
           if (metadataDirective == S3Constants.Directive.REPLACE
-              && filePOptions.getXattrMap().containsKey(S3Constants.CONTENT_TYPE_XATTR_KEY)) {
+              && filePOptionsBuilder.getXattrMap().containsKey(S3Constants.CONTENT_TYPE_XATTR_KEY)) {
             copyFilePOptionsBuilder.putXattr(S3Constants.CONTENT_TYPE_XATTR_KEY,
-                filePOptions.getXattrMap().get(S3Constants.CONTENT_TYPE_XATTR_KEY));
+                filePOptionsBuilder.getXattrMap().get(S3Constants.CONTENT_TYPE_XATTR_KEY));
           } else { // defaults to COPY
             try {
               status = userFs.getStatus(new AlluxioURI(copySource));
@@ -944,9 +953,9 @@ public final class S3RestServiceHandler {
           }
           // Handle tagging directive
           if (taggingDirective == S3Constants.Directive.REPLACE
-              && filePOptions.getXattrMap().containsKey(S3Constants.TAGGING_XATTR_KEY)) {
+              && filePOptionsBuilder.getXattrMap().containsKey(S3Constants.TAGGING_XATTR_KEY)) {
             copyFilePOptionsBuilder.putXattr(S3Constants.TAGGING_XATTR_KEY,
-                filePOptions.getXattrMap().get(S3Constants.TAGGING_XATTR_KEY));
+                filePOptionsBuilder.getXattrMap().get(S3Constants.TAGGING_XATTR_KEY));
           } else { // defaults to COPY
             try {
               if (status == null) {

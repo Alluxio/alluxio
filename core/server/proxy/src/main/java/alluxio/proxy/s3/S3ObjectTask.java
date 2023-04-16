@@ -796,14 +796,21 @@ public class S3ObjectTask extends S3BaseTask {
                     .setOwnerBits(Bits.ALL)
                     .setGroupBits(Bits.ALL)
                     .setOtherBits(Bits.NONE).build())
-                .setWriteType(S3RestUtils.getS3WriteType())
+                .setWriteType(S3RestUtils.getWriteTypeForUploadPart())
                 .setOverwrite(true);
+            if (S3RestUtils.isUploadPartOnlyCacheEnabled()) {
+              copyFilePOptionsBuilder
+                  .setReplicationMin(
+                      Configuration.getInt(PropertyKey.PROXY_S3_UPLOAD_PART_REPLICATION_MIN))
+                  .setReplicationMax(
+                      Configuration.getInt(PropertyKey.PROXY_S3_UPLOAD_PART_REPLICATION_MAX));
+            }
             String entityTag = copyObject(userFs, auditContext, objectPath,
                 copySource, copyFilePOptionsBuilder.build());
             return new CopyPartResult(entityTag);
           }
           // UploadPart with source from http body
-          CreateFilePOptions filePOptions =
+          CreateFilePOptions.Builder filePOptionsBuilder =
               CreateFilePOptions.newBuilder()
                   .setRecursive(true)
                   .setMode(PMode.newBuilder()
@@ -811,9 +818,15 @@ public class S3ObjectTask extends S3BaseTask {
                       .setGroupBits(Bits.ALL)
                       .setOtherBits(Bits.NONE).build())
                   .setWriteType(S3RestUtils.getWriteTypeForUploadPart())
-                  .setOverwrite(true)
-                  .build();
-          return createObject(objectPath, userFs, filePOptions, true, auditContext);
+                  .setOverwrite(true);
+          if (S3RestUtils.isUploadPartOnlyCacheEnabled()) {
+            filePOptionsBuilder
+                .setReplicationMin(
+                    Configuration.getInt(PropertyKey.PROXY_S3_UPLOAD_PART_REPLICATION_MIN))
+                .setReplicationMax(
+                    Configuration.getInt(PropertyKey.PROXY_S3_UPLOAD_PART_REPLICATION_MAX));
+          }
+          return createObject(objectPath, userFs, filePOptionsBuilder.build(), true, auditContext);
         }
       });
     }

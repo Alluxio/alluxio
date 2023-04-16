@@ -5469,6 +5469,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey PROXY_S3_UPLOAD_PART_REPLICATION_MIN =
+      intBuilder(Name.PROXY_S3_UPLOAD_PART_REPLICATION_MIN)
+          .setDefaultValue(1)
+          .setDescription("The target min replication level of a file in Alluxio space "
+              + "when set the write type to MUST_CACHE for UploadPart.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey PROXY_S3_UPLOAD_PART_REPLICATION_MAX =
+      intBuilder(Name.PROXY_S3_UPLOAD_PART_REPLICATION_MAX)
+          .setDefaultValue(1)
+          .setDescription("The target max replication level of a file in Alluxio space "
+              + "when set the write type to MUST_CACHE for UploadPart.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
 
   //
   // Locality related properties
@@ -8634,6 +8650,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.proxy.s3.single.connection.read.rate.limit.mb";
     public static final String PROXY_S3_UPLOAD_PART_ONLY_CACHE_ENABLED =
         "alluxio.proxy.s3.upload.part.only.cache.enabled";
+    public static final String PROXY_S3_UPLOAD_PART_REPLICATION_MIN =
+        "alluxio.proxy.s3.upload.part.file.replication.min";
+    public static final String PROXY_S3_UPLOAD_PART_REPLICATION_MAX =
+        "alluxio.proxy.s3.upload.part.file.replication.max";
 
     //
     // Locality related properties
