@@ -242,7 +242,7 @@ public class ExtensionFactoryRegistry<T extends ExtensionFactory<?, S>,
         String jarPath = extensionURL.toString();
 
         ClassLoader extensionsClassLoader = new ExtensionsClassLoader(new URL[] {extensionURL},
-            ClassLoader.getSystemClassLoader());
+            Thread.currentThread().getContextClassLoader());
         ServiceLoader<T> extensionServiceLoader =
             ServiceLoader.load(mFactoryClass, extensionsClassLoader);
         for (T factory : extensionServiceLoader) {
