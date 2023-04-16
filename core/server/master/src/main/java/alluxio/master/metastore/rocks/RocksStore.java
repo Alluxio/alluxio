@@ -485,18 +485,43 @@ public final class RocksStore implements Closeable {
     return new RocksSharedLockHandle(mState, mRefCount);
   }
 
-  private void blockingWait() {
-    // Another known operation has acquired the exclusive lock
+  // TODO(jiacheng): carefully think through the WW contention case
+  /**
+   * This is the core logic of the exclusive lock mechanism.
+   *
+   * There are 4 cases where the exclusive lock is acquired:
+   * 1. The master is closing (and the process will exit).
+   * 2. The RocksDB will be cleared. This happens when the master process starts or in a failover.
+   * 3. The master is just dumping a checkpoint, where the RocksDB contents will not change.
+   * 4. The master is restoring from a checkpoint/backup where the RocksDB is rebuilt.
+   *
+   * When the master is closing, it will not wait for an ongoing checkpoint/restore/clear
+   * operation and will just grab the lock even though the exclusive lock is taken.
+   * Then the master process will exit and whatever operation will be aborted.
+   * This covers case 1 and yieldToAnotherCloser=false.
+   *
+   * In case 2, 3 or 4, we let the later closer(writer) fail. It will be the caller's
+   * responsibility to either retry or abort. In other words, when yieldToAnotherClose=true,
+   * the one who sets the mState will succeed and the other one will fail.
+   *
+   * @param yieldToAnotherCloser if true, the operation will fail if it observes a concurrent
+   *                             action on the exclusive lock
+   */
+  private void setFlagAndBlockingWait(boolean yieldToAnotherCloser) {
     VersionedRocksStoreStatus status = mState.get();
-    if (status.mStopServing) {
+    // Another known operation has acquired the exclusive lock
+    if (yieldToAnotherCloser && status.mStopServing) {
       throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
     }
 
     int version = status.mVersion;
-    // TODO(jiacheng): actually there's a caveat, if a checkpoint operation comes in and
-    //  the process is going to exit, exit should take priority
-    if (!mState.compareAndSet(status, new VersionedRocksStoreStatus(true, version + 1))) {
-      throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
+    if (yieldToAnotherCloser) {
+      if (!mState.compareAndSet(status, new VersionedRocksStoreStatus(true, version + 1))) {
+        throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
+      }
+    } else {
+      // Just set the state with no respect to concurrent actions
+      mState.set(new VersionedRocksStoreStatus(true, version + 1));
     }
 
     /*
@@ -553,7 +578,9 @@ public final class RocksStore implements Closeable {
    * The STOP_SERVING status will NOT be reset, because the process will shut down soon.
    */
   public RocksExclusiveLockHandle lockForClosing() {
-    blockingWait();
+    // Grab the lock with no respect to concurrent operations
+    // Just grab the lock and close
+    setFlagAndBlockingWait(false);
     return new RocksExclusiveLockHandle(NO_OP, mState, mRefCount);
   }
 
@@ -568,7 +595,8 @@ public final class RocksStore implements Closeable {
    * See {@link #checkAndAcquireSharedLock} for how this affects the shared lock logic.
    */
   public RocksExclusiveLockHandle lockForCheckpoint() {
-    blockingWait();
+    // Grab the lock with respect to contenders
+    setFlagAndBlockingWait(true);
     return new RocksExclusiveLockHandle(RESET_SAME_VERSION, mState, mRefCount);
   }
 
@@ -583,7 +611,8 @@ public final class RocksStore implements Closeable {
    * See {@link #checkAndAcquireSharedLock} for how this affects the shared lock logic.
    */
   public RocksExclusiveLockHandle lockForRewrite() {
-    blockingWait();
+    // Grab the lock with respect to contenders
+    setFlagAndBlockingWait(true);
     return new RocksExclusiveLockHandle(RESET_NEW_VERSION, mState, mRefCount);
   }
 

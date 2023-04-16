@@ -1,4 +1,17 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.master.metastore.rocks;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * An object wrapper for RocksDB status. Two states are included.
@@ -10,9 +23,15 @@ package alluxio.master.metastore.rocks;
  *    and abort the iteration. So it will not block the RocksDB from shutting down.
  *
  * The version is needed because RocksBlockMetaStore and RocksInodeStore may clear and restart
- * the RocksDB. If the r/w enters after the restart, it should also abort because the RocksDB
- * may not have the data to operate on.
+ * the RocksDB. If the data in RocksDB has changed, the version will change. For example:
+ * 1. If the RocksDB is cleared or restored to a checkpoint, the version will increment.
+ * 2. If the RocksDB is locked because the master will dump a checkpoint, the version will
+ *    not increment when the checkpoint operation is complete and the lock is released.
+ *
+ * An instance of this class is immutable. So seeing the same instance indicates the state has
+ * not changed. Whenever the state is changed, create a new instance.
  */
+@ThreadSafe
 public class VersionedRocksStoreStatus {
   public final boolean mStopServing;
   public final int mVersion;

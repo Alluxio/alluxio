@@ -547,15 +547,17 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
    * @return an iterator over stored inodes
    */
   public CloseableIterator<InodeView> getCloseableIterator() {
-    RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock();
-    return RocksUtils.createCloseableIterator(
-        db().newIterator(mInodesColumn.get(), mIteratorOption),
-        (iter) -> getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get(),
-        // TODO(jiacheng): validate an ex is thrown in UT
-        () -> {
-          mRocksStore.shouldAbort(lock.mLockedVersion.mVersion);
-          return null;
-        }, lock);
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
+      RocksSharedLockHandle readLock = mRocksStore.checkAndAcquireSharedLock();
+      return RocksUtils.createCloseableIterator(
+          db().newIterator(mInodesColumn.get(), mIteratorOption),
+          (iter) -> getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get(),
+          // TODO(jiacheng): validate an ex is thrown in UT
+          () -> {
+            mRocksStore.shouldAbort(lock.mLockedVersion.mVersion);
+            return null;
+          }, readLock);
+    }
   }
 
   @Override

@@ -427,16 +427,18 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
    * 2. Journal dumping like checkpoint/backup sequences
    */
   public CloseableIterator<Block> getCloseableIterator() {
-    RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock();
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
+      RocksSharedLockHandle readLock = mRocksStore.checkAndAcquireSharedLock();
 
-    RocksIterator iterator = db().newIterator(mBlockMetaColumn.get(), mIteratorOption);
-    return RocksUtils.createCloseableIterator(iterator,
-        (iter) -> new Block(Longs.fromByteArray(iter.key()), BlockMeta.parseFrom(iter.value())),
-        // TODO(jiacheng): UT that aborting gives correct ref count
-        () -> {
-          mRocksStore.shouldAbort(lock.mLockedVersion.mVersion);
-          return null;
-        }, lock);
+      RocksIterator iterator = db().newIterator(mBlockMetaColumn.get(), mIteratorOption);
+      return RocksUtils.createCloseableIterator(iterator,
+          (iter) -> new Block(Longs.fromByteArray(iter.key()), BlockMeta.parseFrom(iter.value())),
+          // TODO(jiacheng): UT that aborting gives correct ref count
+          () -> {
+            mRocksStore.shouldAbort(lock.mLockedVersion.mVersion);
+            return null;
+          }, readLock);
+    }
   }
 
   private RocksDB db() {
