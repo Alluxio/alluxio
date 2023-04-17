@@ -156,10 +156,13 @@ public final class RocksUtils {
     };
 
     return CloseableIterator.create(iter, (whatever) -> {
-      rocksIterator.close();
-      if (rocksDbSharedLock != null) {
-        // Release the lock after recycling the iterator safely
-        rocksDbSharedLock.close();
+      try {
+        rocksIterator.close();
+      } finally {
+        if (rocksDbSharedLock != null) {
+          // Release the lock after recycling the iterator safely
+          rocksDbSharedLock.close();
+        }
       }
     });
   }

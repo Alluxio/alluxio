@@ -89,6 +89,13 @@ import static alluxio.master.metastore.rocks.RocksExclusiveLockHandle.UnlockActi
  * 1. {@link #lockForClosing()}
  * 2. {@link #lockForRewrite()}
  * 3. {@link #lockForCheckpoint()}
+ *
+ * Rule of thumb:
+ * 1. Use the proper locking methods when you access RocksDB.
+ * 2. Make each operation short. Make the locked section short.
+ * 3. If you have to make the operation long (like iteration), utilize {@link #shouldAbort(int)}
+ *    to check and abort voluntarily.
+ * See Javadoc on the locking methods for details.
  */
 @NotThreadSafe
 public final class RocksStore implements Closeable {
@@ -428,9 +435,19 @@ public final class RocksStore implements Closeable {
   }
 
   /**
+   * This is the core logic of the shared lock mechanism.
+   *
    * Before any r/w operation on the RocksDB, acquire a shared lock with this method.
    * The shared lock guarantees the RocksDB will not be restarted/cleared during the
-   * r/w access.
+   * r/w access. In other words, similar to a read-write lock, exclusive lock requests
+   * will wait for shared locks to be released first.
+   *
+   * However, note that exclusive lock acquisition only waits for a certain period of time,
+   * defined by {@link PropertyKey#MASTER_METASTORE_ROCKS_EXCLUSIVE_LOCK_TIMEOUT}.
+   * After this timeout, the exclusive lock will be forced, and the shared lock holders
+   * are disrespected. Normally, the r/w operation should either complete or abort within
+   * seconds so the timeout {@link PropertyKey#MASTER_METASTORE_ROCKS_EXCLUSIVE_LOCK_TIMEOUT}
+   * should not be exceeded at all.
    */
   public RocksSharedLockHandle checkAndAcquireSharedLock() {
     if (mState.get().mStopServing) {
@@ -485,9 +502,27 @@ public final class RocksStore implements Closeable {
     return new RocksSharedLockHandle(mState, mRefCount);
   }
 
-  // TODO(jiacheng): carefully think through the WW contention case
   /**
    * This is the core logic of the exclusive lock mechanism.
+   *
+   * The exclusive lock will first set a flag and then wait for all shared lock holders to
+   * complete/abort. The time to wait is defined by
+   * {@link PropertyKey#MASTER_METASTORE_ROCKS_EXCLUSIVE_LOCK_TIMEOUT}.
+   * When the r/w operations observe this flag by {@link #shouldAbort(int)},
+   * the operation will be aborted and the shared lock will be released.
+   * Some short operations do not check the {@link #shouldAbort(int)} because we expect
+   * them to finish fast.
+   *
+   * Normally, the default value of this timeout is long enough.
+   * However, if the ref count is still not zero after this wait, the exclusive lock will
+   * be forced and some warnings will be logged. There are multiple possibilities:
+   * 1. There is a very slow r/w operation.
+   * 2. Some r/w operation somewhere are not following the rules.
+   * 3. There is a bug somewhere, and the ref count is incorrect.
+   * In either case, submit an issue to https://github.com/Alluxio/alluxio/issues
+   * And we do not recommend tuning
+   * {@link PropertyKey#MASTER_METASTORE_ROCKS_EXCLUSIVE_LOCK_TIMEOUT}
+   * because it usually just covers the real issue.
    *
    * There are 4 cases where the exclusive lock is acquired:
    * 1. The master is closing (and the process will exit).
