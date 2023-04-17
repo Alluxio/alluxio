@@ -152,7 +152,7 @@ public class DoraCacheClient {
     }
   }
 
-  private WorkerNetAddress getWorkerNetAddress(String path) {
+  public WorkerNetAddress getWorkerNetAddress(String path) {
     List<BlockWorkerInfo> workers = null;
     try {
       workers = mContext.getCachedWorkers();
