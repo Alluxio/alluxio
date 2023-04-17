@@ -151,7 +151,7 @@ public class LocalCachePositionReader implements PositionReader {
     int bytesLeftInPage = (int) (mPageSize - currentPageOffset);
     int bytesToReadInPage = Math.min(bytesLeftInPage, length);
     return mCacheManager.getAndLoad(pageId, currentPageOffset, bytesToReadInPage,
-            bytesBuffer, mCacheContext, stopwatch, () -> readExternalPage(position));
+            bytesBuffer, mCacheContext, () -> readExternalPage(position));
   }
 
   private byte[] readExternalPage(long position) {

@@ -34,7 +34,6 @@ import alluxio.resource.LockResource;
 import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Stopwatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -475,6 +474,7 @@ public class LocalCacheManager implements CacheManager {
       return -1;
     }
     ReadWriteLock pageLock = getPageLock(pageId);
+    long startTime = System.nanoTime();
     try (LockResource r = new LockResource(pageLock.readLock())) {
       PageInfo pageInfo;
       try (LockResource r2 = new LockResource(mPageMetaStore.getLock().readLock())) {
@@ -497,31 +497,38 @@ public class LocalCacheManager implements CacheManager {
         }
         return -1;
       }
+      MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesRead);
+      cacheContext.incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), BYTE,
+          bytesRead);
       LOG.debug("get({},pageOffset={}) exits", pageId, pageOffset);
       return bytesRead;
+    } finally {
+      cacheContext.incrementCounter(
+          MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(), NANO,
+          System.nanoTime() - startTime);
     }
   }
 
   @Override
   public int getAndLoad(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer buffer,
-      CacheContext cacheContext, Stopwatch stopwatch, Supplier<byte[]> externalDataSupplier) {
-    int bytesRead = getWithMetrics(pageId, pageOffset,
-        bytesToRead, buffer, cacheContext, stopwatch);
+      CacheContext cacheContext, Supplier<byte[]> externalDataSupplier) {
+    int bytesRead = get(pageId, pageOffset,
+        bytesToRead, buffer, cacheContext);
     if (bytesRead > 0) {
       return bytesRead;
     }
     ReadWriteLock pageLock = getPageLock(pageId);
     try (LockResource r = new LockResource(pageLock.writeLock())) {
-      bytesRead = getWithMetrics(pageId, pageOffset, bytesToRead,
-          buffer, cacheContext, stopwatch);
+      bytesRead = get(pageId, pageOffset, bytesToRead,
+          buffer, cacheContext);
       if (bytesRead > 0) {
         return bytesRead;
       }
       // on local cache miss, read a complete page from external storage. This will always make
       // progress or throw an exception
-      stopwatch.reset().start();
+      long startTime = System.nanoTime();
       byte[] page = externalDataSupplier.get();
-      stopwatch.stop();
+      long timeElapse = System.nanoTime() - startTime;
       // cache misses
       buffer.writeBytes(page, pageOffset, bytesToRead);
       MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
@@ -531,7 +538,7 @@ public class LocalCacheManager implements CacheManager {
           bytesToRead);
       cacheContext.incrementCounter(
           MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName(), NANO,
-          stopwatch.elapsed(TimeUnit.NANOSECONDS));
+          timeElapse);
       put(pageId, page, cacheContext);
       return bytesToRead;
     }
@@ -736,7 +743,7 @@ public class LocalCacheManager implements CacheManager {
   }
 
   private int getPage(PageInfo pageInfo, int pageOffset, int bytesToRead,
-                      ReadTargetBuffer target, CacheContext cacheContext) {
+      ReadTargetBuffer target, CacheContext cacheContext) {
     try {
       int ret = pageInfo.getLocalCacheDir().getPageStore()
           .get(pageInfo.getPageId(), pageOffset, bytesToRead, target,

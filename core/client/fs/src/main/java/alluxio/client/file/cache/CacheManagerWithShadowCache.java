@@ -27,6 +27,7 @@ import com.google.common.hash.PrimitiveSink;
 
 import java.nio.ByteBuffer;
 import java.util.Optional;
+import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 
 /**
@@ -56,6 +57,19 @@ public class CacheManagerWithShadowCache implements CacheManager {
   @Override
   public int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer target,
       CacheContext cacheContext) {
+    getOrUpdateShadowCache(pageId, bytesToRead, cacheContext);
+    return mCacheManager.get(pageId, pageOffset, bytesToRead, target, cacheContext);
+  }
+
+  @Override
+  public int getAndLoad(PageId pageId, int pageOffset, int bytesToRead,
+      ReadTargetBuffer buffer, CacheContext cacheContext, Supplier<byte[]> externalDataSupplier) {
+    getOrUpdateShadowCache(pageId, bytesToRead, cacheContext);
+    return mCacheManager.getAndLoad(pageId, pageOffset, bytesToRead,
+        buffer, cacheContext, externalDataSupplier);
+  }
+
+  private void getOrUpdateShadowCache(PageId pageId, int bytesToRead, CacheContext cacheContext) {
     int nread = mShadowCacheManager.get(pageId, bytesToRead, getCacheScope(cacheContext));
     if (nread > 0) {
       Metrics.SHADOW_CACHE_PAGES_HIT.inc();
@@ -65,7 +79,6 @@ public class CacheManagerWithShadowCache implements CacheManager {
     }
     Metrics.SHADOW_CACHE_PAGES_READ.inc();
     Metrics.SHADOW_CACHE_BYTES_READ.inc(bytesToRead);
-    return mCacheManager.get(pageId, pageOffset, bytesToRead, target, cacheContext);
   }
 
   /**

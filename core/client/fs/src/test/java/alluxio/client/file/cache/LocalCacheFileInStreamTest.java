@@ -91,6 +91,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -639,6 +640,24 @@ public class LocalCacheFileInStreamTest {
       }
       mPagesServed++;
       target.writeBytes(mPages.get(pageId), pageOffset, bytesToRead);
+      return bytesToRead;
+    }
+
+    @Override
+    public int getAndLoad(PageId pageId, int pageOffset, int bytesToRead,
+        ReadTargetBuffer buffer, CacheContext cacheContext,
+        Supplier<byte[]> externalDataSupplier) {
+      int bytesRead = get(pageId, pageOffset,
+          bytesToRead, buffer, cacheContext);
+      if (bytesRead > 0) {
+        return bytesRead;
+      }
+      byte[] page = externalDataSupplier.get();
+      if (page.length == 0) {
+        return 0;
+      }
+      buffer.writeBytes(page, pageOffset, bytesToRead);
+      put(pageId, page, cacheContext);
       return bytesToRead;
     }
 

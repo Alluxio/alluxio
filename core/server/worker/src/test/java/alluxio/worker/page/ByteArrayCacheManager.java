@@ -21,6 +21,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * Implementation of cache manager that stores cached data in byte arrays in memory.
@@ -55,6 +56,24 @@ class ByteArrayCacheManager implements CacheManager {
     }
     mPagesServed++;
     target.writeBytes(mPages.get(pageId), pageOffset, bytesToRead);
+    return bytesToRead;
+  }
+
+  @Override
+  public int getAndLoad(PageId pageId, int pageOffset, int bytesToRead,
+      ReadTargetBuffer buffer, CacheContext cacheContext,
+      Supplier<byte[]> externalDataSupplier) {
+    int bytesRead = get(pageId, pageOffset,
+        bytesToRead, buffer, cacheContext);
+    if (bytesRead > 0) {
+      return bytesRead;
+    }
+    byte[] page = externalDataSupplier.get();
+    if (page.length == 0) {
+      return 0;
+    }
+    buffer.writeBytes(page, pageOffset, bytesToRead);
+    put(pageId, page, cacheContext);
     return bytesToRead;
   }
 

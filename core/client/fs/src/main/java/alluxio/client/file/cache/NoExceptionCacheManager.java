@@ -17,7 +17,6 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.Counter;
-import com.google.common.base.Stopwatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,10 +116,10 @@ public class NoExceptionCacheManager implements CacheManager {
   @Override
   public int getAndLoad(PageId pageId, int pageOffset, int bytesToRead,
       ReadTargetBuffer buffer, CacheContext cacheContext,
-      Stopwatch stopwatch, Supplier<byte[]> externalDataSupplier) {
+      Supplier<byte[]> externalDataSupplier) {
     try {
       return mCacheManager.getAndLoad(pageId, pageOffset, bytesToRead,
-          buffer, cacheContext, stopwatch, externalDataSupplier);
+          buffer, cacheContext, externalDataSupplier);
     } catch (Exception e) {
       LOG.error("Failed to get and load page {}, offset {} cacheContext {}", pageId, pageOffset,
           cacheContext, e);
