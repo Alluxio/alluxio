@@ -53,7 +53,6 @@ import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.security.authorization.Mode;
-import alluxio.underfs.Fingerprint;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;

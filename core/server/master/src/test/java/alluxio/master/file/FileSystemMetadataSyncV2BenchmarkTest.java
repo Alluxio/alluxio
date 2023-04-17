@@ -39,6 +39,7 @@ import java.io.IOException;
 /**
  * Unit tests for {@link FileSystemMaster}.
  */
+@Ignore
 public final class FileSystemMetadataSyncV2BenchmarkTest extends FileSystemMasterTestBase {
   private static final Logger LOG =
       LoggerFactory.getLogger(FileSystemMetadataSyncV2BenchmarkTest.class);

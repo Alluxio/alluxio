@@ -83,7 +83,6 @@ public class MetadataSyncV2TestBase extends FileSystemMasterTestBase {
   public S3ProxyRule mS3Proxy = S3ProxyRule.builder()
       .withBlobStoreProvider("transient")
       .withPort(8001)
-      .withBlobStoreProvider("transient")
       .withCredentials("_", "_")
       .build();
 
@@ -103,7 +102,8 @@ public class MetadataSyncV2TestBase extends FileSystemMasterTestBase {
       mS3Client = AmazonS3ClientBuilder.standard()
           .withRegion(Region.US_WEST_1.toString()).build();
     } else {
-      Configuration.set(PropertyKey.UNDERFS_S3_ENDPOINT, "localhost:8001");
+      Configuration.set(PropertyKey.UNDERFS_S3_ENDPOINT,
+          mS3Proxy.getUri().getHost() + ":" + mS3Proxy.getUri().getPort());
       Configuration.set(PropertyKey.UNDERFS_S3_ENDPOINT_REGION, "us-west-2");
       Configuration.set(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS, true);
       Configuration.set(PropertyKey.S3A_ACCESS_KEY, mS3Proxy.getAccessKey());

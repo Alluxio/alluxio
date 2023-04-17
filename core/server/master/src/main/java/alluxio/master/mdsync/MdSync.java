@@ -12,11 +12,9 @@
 package alluxio.master.mdsync;
 
 import alluxio.AlluxioURI;
-import alluxio.underfs.UfsClient;
 import alluxio.underfs.UfsLoadResult;
 
 import java.util.Optional;
-import java.util.function.Function;
 
 /**
  * The interactions between different task processing steps is exposed through this

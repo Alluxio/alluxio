@@ -11,8 +11,9 @@
 
 package alluxio.master.mdsync;
 
-import java.util.Objects;
 import com.google.common.base.Preconditions;
+
+import java.util.Objects;
 
 class RateLimitedRequest implements Comparable<RateLimitedRequest> {
 

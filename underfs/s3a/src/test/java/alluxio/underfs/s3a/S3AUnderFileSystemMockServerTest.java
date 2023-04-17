@@ -43,6 +43,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 
 import java.io.IOException;
@@ -98,7 +99,7 @@ public class S3AUnderFileSystemMockServerTest {
     S3AsyncClient asyncClient =
         S3AsyncClient.builder().credentialsProvider(StaticCredentialsProvider.create(
                 AwsBasicCredentials.create(mS3Proxy.getAccessKey(), mS3Proxy.getSecretKey())))
-            .endpointOverride(mS3Proxy.getUri()).build();
+            .endpointOverride(mS3Proxy.getUri()).region(Region.US_WEST_2).build();
     mClient.createBucket(TEST_BUCKET);
 
     mS3UnderFileSystem =

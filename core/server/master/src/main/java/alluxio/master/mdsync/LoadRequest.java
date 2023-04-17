@@ -66,10 +66,16 @@ public class LoadRequest {
     return mRetryPolicy.attempt();
   }
 
+  /**
+   * @return the task info
+   */
   public TaskInfo getTaskInfo() {
     return mTaskInfo;
   }
 
+  /**
+   * @return if the load request is the first load request
+   */
   public boolean isFirstLoad() {
     return mIsFirstLoad;
   }
@@ -78,6 +84,9 @@ public class LoadRequest {
     return mPath;
   }
 
+  /**
+   * @return the descendant type (ALL/ONE/NONE)
+   */
   public DescendantType getDescendantType() {
     return mDescendantType;
   }
