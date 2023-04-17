@@ -270,6 +270,10 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
     mS3Client.putObject(TEST_BUCKET, TEST_FILE, TEST_CONTENT);
 
+    long mountPointInodeId = mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync()).getFileId();
+    assertFalse(mFileSystemMaster.getInodeStore()
+        .get(mountPointInodeId).get().asDirectory().isDirectChildrenLoaded());
+
     // Sync one file from UFS
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
         MOUNT_POINT.join(TEST_FILE), DescendantType.ONE, mDirectoryLoadType, 0);
@@ -282,6 +286,8 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     assertFalse(info.isFolder());
     assertTrue(info.isCompleted());
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
+    assertTrue(mFileSystemMaster.getInodeStore()
+        .get(mountPointInodeId).get().asDirectory().isDirectChildrenLoaded());
 
     // Sync again, expect no change
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
