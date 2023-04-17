@@ -46,6 +46,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
@@ -91,7 +92,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       return mDoraClient.getStatus(ufsFullPath.toString(), mergedOptions);
     } catch (RuntimeException ex) {
       if (ex instanceof StatusRuntimeException) {
-        if (((StatusRuntimeException) ex).getStatus().equals(Status.NOT_FOUND)) {
+        if (((StatusRuntimeException) ex).getStatus().getCode() == Status.NOT_FOUND.getCode()) {
           throw new FileNotFoundException();
         }
       }
@@ -148,8 +149,16 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       return mDoraClient.listStatus(ufsFullPath.toString(), options);
     } catch (RuntimeException ex) {
       if (ex instanceof StatusRuntimeException) {
-        if (((StatusRuntimeException) ex).getStatus().equals(Status.NOT_FOUND)) {
-          return Collections.emptyList();
+        if (((StatusRuntimeException) ex).getStatus().getCode() == Status.NOT_FOUND.getCode()) {
+          try {
+            // If NOT FOUND, this path might be a valid file, not a dir. Let's retry getStatus().
+            URIStatus status = getStatus(path, GetStatusPOptions.newBuilder().build());
+            List<URIStatus> list = new ArrayList<>();
+            list.add(status);
+            return list;
+          } catch (Exception e) {
+            return Collections.emptyList();
+          }
         }
       }
 
