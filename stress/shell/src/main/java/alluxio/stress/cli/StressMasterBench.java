@@ -178,9 +178,11 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
       mCachedFs = new FileSystem[mParameters.mClients];
       hdfsConf.set("fs.s3a.access.key", "alluxio");
       hdfsConf.set("fs.s3a.secret.key", "alluxio");
+      // well here seems ought to use http://<master-host>:<master-port>/, and StressBench is hard to know the master ip..?
+      // Maybe need nginx deployed with alluxio as using ClientType S3A
       hdfsConf.set("fs.s3a.endpoint", "s3.amazons.com");
       for (int i = 0; i < mCachedFs.length; i++) {
-        // here the mParameters.mBasePath should be sth like "s3a://bucket-name/"
+        // here the mParameters.mBasePath should be sth like "s3a://bucket-name"
         mCachedFs[i] = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
       }
     }
