@@ -56,6 +56,7 @@ import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Stack;
@@ -142,6 +143,11 @@ public class MetadataSyncV2TestBase extends FileSystemMasterTestBase {
 
     mS3Client.shutdown();
     mClient.close();
+    try {
+      stopS3Server();
+    } catch (Exception e) {
+      LOG.error("Closing s3 mock server failed", e);
+    }
     super.after();
   }
 
@@ -269,10 +275,11 @@ public class MetadataSyncV2TestBase extends FileSystemMasterTestBase {
   }
 
   static void assertSyncOperations(TaskInfo taskInfo, Map<SyncOperation, Long> operations) {
-
     for (SyncOperation operation : SyncOperation.values()) {
       assertEquals(
-          "Operation " + operation.toString() + " count not equal",
+          "Operation " + operation.toString() + " count not equal. "
+              + "Actual operation count: "
+              + Arrays.toString(taskInfo.getStats().getSuccessOperationCount()),
           (long) operations.getOrDefault(operation, 0L),
           taskInfo.getStats().getSuccessOperationCount()[operation.getValue()].get()
       );

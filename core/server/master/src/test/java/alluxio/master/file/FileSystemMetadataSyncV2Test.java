@@ -527,7 +527,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
-    // All created node + root were not changed.
+    // All created node were not changed.
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
         SyncOperation.NOOP, (long) noopInodeCount
     ));
