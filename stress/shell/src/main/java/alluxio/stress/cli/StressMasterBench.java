@@ -174,6 +174,11 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
         mCachedNativeFs[i] = alluxio.client.file.FileSystem.Factory
             .create(alluxioProperties);
       }
+    } else if (mParameters.mClientType == FileSystemClientType.ALLUXIO_S3A) {
+      mCachedFs = new FileSystem[mParameters.mClients];
+      for (int i = 0; i < mCachedFs.length; i++) {
+        mCachedFs[i] = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
+      }
     }
   }
 
@@ -185,6 +190,8 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
         return new AlluxioHDFSBenchThread(context, mCachedFs[index % mCachedFs.length]);
       case ALLUXIO_POSIX:
         return new AlluxioFuseBenchThread(context);
+      case ALLUXIO_S3A:
+        return new AlluxioS3ABenchThread(context, mCachedFs[index % mCachedNativeFs.length]);
       default:
         return new AlluxioNativeBenchThread(context,
             mCachedNativeFs[index % mCachedNativeFs.length]);
@@ -513,6 +520,104 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
             path = mFuseBasePath.resolve(Long.toString(counter));
           }
           Files.delete(path);
+          break;
+        default:
+          throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
+      }
+    }
+  }
+
+  private final class AlluxioS3ABenchThread extends BenchThread {
+    private final FileSystem mFs;
+
+    private AlluxioS3ABenchThread(BenchContext context, FileSystem fs) {
+      super(context);
+      mFs = fs;
+    }
+
+    @Override
+    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
+    protected void applyOperation(long counter) throws IOException {
+      Path path;
+      switch (mParameters.mOperation) {
+        case CREATE_DIR:
+          if (counter < mParameters.mFixedCount) {
+            path = new Path(mFixedBasePath, Long.toString(counter));
+          } else {
+            path = new Path(mBasePath, Long.toString(counter));
+          }
+          mFs.mkdirs(path);
+          break;
+        case CREATE_FILE:
+          if (counter < mParameters.mFixedCount) {
+            path = new Path(mFixedBasePath, Long.toString(counter));
+          } else {
+            path = new Path(mBasePath, Long.toString(counter));
+          }
+          long fileSize = FormatUtils.parseSpaceSize(mParameters.mCreateFileSize);
+          try (FSDataOutputStream stream = mFs.create(path)) {
+            for (long i = 0; i < fileSize; i += StressConstants.WRITE_FILE_ONCE_MAX_BYTES) {
+              stream.write(mFiledata, 0,
+                  (int) Math.min(StressConstants.WRITE_FILE_ONCE_MAX_BYTES, fileSize - i));
+            }
+          }
+          break;
+        case GET_BLOCK_LOCATIONS:
+          counter = counter % mParameters.mFixedCount;
+          path = new Path(mFixedBasePath, Long.toString(counter));
+          mFs.getFileBlockLocations(path, 0, 0);
+          break;
+        case GET_FILE_STATUS:
+          counter = counter % mParameters.mFixedCount;
+          path = new Path(mFixedBasePath, Long.toString(counter));
+          mFs.getFileStatus(path);
+          break;
+        case LIST_DIR:
+          FileStatus[] files = mFs.listStatus(mFixedBasePath);
+          if (files.length != mParameters.mFixedCount) {
+            throw new IOException(String
+                .format("listing `%s` expected %d files but got %d files", mFixedBasePath,
+                    mParameters.mFixedCount, files.length));
+          }
+          break;
+        case LIST_DIR_LOCATED:
+          RemoteIterator<LocatedFileStatus> it = mFs.listLocatedStatus(mFixedBasePath);
+          int listedFiles = 0;
+          while (it.hasNext()) {
+            it.next();
+            listedFiles++;
+          }
+          if (listedFiles != mParameters.mFixedCount) {
+            throw new IOException(String
+                .format("listing located `%s` expected %d files but got %d files", mFixedBasePath,
+                    mParameters.mFixedCount, listedFiles));
+          }
+          break;
+        case OPEN_FILE:
+          counter = counter % mParameters.mFixedCount;
+          path = new Path(mFixedBasePath, Long.toString(counter));
+          mFs.open(path).close();
+          break;
+        case RENAME_FILE:
+          if (counter < mParameters.mFixedCount) {
+            path = new Path(mFixedBasePath, Long.toString(counter));
+          } else {
+            path = new Path(mBasePath, Long.toString(counter));
+          }
+          Path dst = new Path(path + "-renamed");
+          if (!mFs.rename(path, dst)) {
+            throw new IOException(String.format("Failed to rename (%s) to (%s)", path, dst));
+          }
+          break;
+        case DELETE_FILE:
+          if (counter < mParameters.mFixedCount) {
+            path = new Path(mFixedBasePath, Long.toString(counter));
+          } else {
+            path = new Path(mBasePath, Long.toString(counter));
+          }
+          if (!mFs.delete(path, false)) {
+            throw new IOException(String.format("Failed to delete (%s)", path));
+          }
           break;
         default:
           throw new IllegalStateException("Unknown operation: " + mParameters.mOperation);
