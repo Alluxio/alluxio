@@ -344,9 +344,8 @@ public class FileSystemOptionsUtils {
     // Specifically set and override *only* the metadata sync interval
     // Setting other attributes by default will make the server think the user is intentionally
     // setting the values. Most fields withinSetAttributePOptions are set by inclusion
-    FileSystemMasterCommonPOptions.Builder builder;
+    FileSystemMasterCommonPOptions.Builder builder = FileSystemMasterCommonPOptions.newBuilder();
     if (conf.isSetByUser(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL)) {
-      builder = FileSystemMasterCommonPOptions.newBuilder();
       builder.setSyncIntervalMs(conf.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL));
     }
     return SetAttributePOptions.newBuilder()
