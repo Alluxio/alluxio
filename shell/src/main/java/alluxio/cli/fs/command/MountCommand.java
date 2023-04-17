@@ -117,7 +117,7 @@ public final class MountCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "mount [exclude-ufs]/[--readonly] [--shared] [--option <key=val>] "
+    return "mount [--exclude-ufs/--readonly] [--shared] [--option <key=val>] "
         + "<alluxioPath> <ufsURI>";
   }
 
