@@ -370,6 +370,21 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       infoBuilder.setLength(fileStatus.getContentLength())
           .setLastModificationTimeMs(status.getLastModifiedTime())
           .setBlockSizeBytes(fileStatus.getBlockSize());
+
+      // get cached percentage
+      String cacheManagerFileId = new AlluxioURI(ufsFullPath).hash();
+      final long bytesInCache = mCacheManager.getUsage()
+          .flatMap(usage -> usage.partitionedBy(file(cacheManagerFileId)))
+          .map(CacheUsage::used).orElse(0L);
+      final long fileLength = fileStatus.getContentLength();
+      final int cachedPercentage;
+      if (fileLength > 0) {
+        cachedPercentage = (int) (bytesInCache * 100 / fileLength);
+      } else {
+        cachedPercentage = 0;
+      }
+      infoBuilder.setInAlluxioPercentage(cachedPercentage)
+          .setInMemoryPercentage(cachedPercentage);
     }
     return infoBuilder.build();
   }
