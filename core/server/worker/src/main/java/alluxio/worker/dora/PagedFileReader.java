@@ -20,6 +20,9 @@ import alluxio.conf.PropertyKey;
 import alluxio.file.FileId;
 import alluxio.file.NettyBufTargetBuffer;
 import alluxio.file.ReadTargetBuffer;
+import alluxio.resource.CloseableResource;
+import alluxio.underfs.UfsManager;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.worker.block.io.BlockReadableChannel;
 import alluxio.worker.block.io.BlockReader;
 
@@ -38,31 +41,59 @@ public class PagedFileReader extends BlockReader implements PositionReader {
   private static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocate(0);
   private final long mFileSize;
   private final LocalCachePositionReader mPositionReader;
+  private final CloseableResource<UnderFileSystem> mUfs;
   private long mPos;
-  private boolean mClosed = false;
+  private volatile boolean mClosed = false;
+
+  /**
+   * Creates a new {@link PagedFileReader}.
+   *
+   * @param conf
+   * @param cacheManager
+   * @param ufsClient
+   * @param fileId
+   * @param ufsPath
+   * @param fileSize
+   * @param startPosition
+   * @return a new {@link PagedFileReader}
+   */
+  public static PagedFileReader create(AlluxioConfiguration conf, CacheManager cacheManager,
+      UfsManager.UfsClient ufsClient, String fileId,
+      String ufsPath, long fileSize, long startPosition) {
+    FileId fileIdField = FileId.of(fileId);
+    CloseableResource<UnderFileSystem> ufs = ufsClient.acquireUfsResource();
+    try {
+      return new PagedFileReader(ufs, LocalCachePositionReader.create(conf, cacheManager,
+          new CloseableSupplier<>(() -> ufs.get().openPositionRead(ufsPath, fileSize)),
+          fileIdField, fileSize, conf.getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE)),
+          fileSize, startPosition);
+    } catch (Throwable t) {
+      try {
+        ufs.close();
+      } catch (Throwable t1) {
+        t.addSuppressed(t1);
+      }
+      throw t;
+    }
+  }
 
   /**
    * Constructor.
-   * @param conf
-   * @param cacheManager
-   * @param fallbackReader
-   * @param fileId
+   *
+   * @param ufs
+   * @param localCachePositionReader
    * @param fileSize
    * @param startPosition
    */
-  public PagedFileReader(AlluxioConfiguration conf, CacheManager cacheManager,
-      CloseableSupplier<PositionReader> fallbackReader, FileId fileId,
+  public PagedFileReader(CloseableResource<UnderFileSystem> ufs,
+      LocalCachePositionReader localCachePositionReader,
       long fileSize, long startPosition) {
-    Preconditions.checkNotNull(cacheManager, "cacheManager");
-    Preconditions.checkNotNull(fileId, "fileId");
+    mUfs = Preconditions.checkNotNull(ufs);
+    mPositionReader = Preconditions.checkNotNull(localCachePositionReader);
     mFileSize = fileSize;
     mPos = startPosition;
-    mPositionReader = LocalCachePositionReader.create(conf, cacheManager,
-        fallbackReader, fileId, mFileSize, conf.getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE));
   }
 
-  // contract:
-  // 1.
   @Override
   public ByteBuffer read(long offset, long length) throws IOException {
     if (length == 0 || offset >= mFileSize) {
@@ -134,11 +165,14 @@ public class PagedFileReader extends BlockReader implements PositionReader {
   }
 
   @Override
-  public void close() throws IOException {
-    if (!mClosed) {
-      super.close();
-      mClosed = true;
+  public synchronized void close() throws IOException {
+    if (mClosed) {
+      return;
     }
+    mClosed = true;
+    mPositionReader.close();
+    mUfs.close();
+    super.close();
   }
 
   @Override

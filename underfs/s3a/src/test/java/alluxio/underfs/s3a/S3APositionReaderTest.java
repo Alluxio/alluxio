@@ -72,8 +72,7 @@ public class S3APositionReaderTest {
 
   @Before
   public void before() throws IOException {
-    // String s3Path = System.getProperty(TEST_S3A_PATH_CONF);
-    String s3Path = "s3://alluxio-test-fuse/";
+    String s3Path = System.getProperty(TEST_S3A_PATH_CONF);
     Assume.assumeTrue(s3Path != null && !s3Path.isEmpty());
     AlluxioURI ufsRoot = new AlluxioURI(s3Path).join(UUID.randomUUID().toString());
     mS3Ufs = UnderFileSystem.Factory.create(ufsRoot.toString(),

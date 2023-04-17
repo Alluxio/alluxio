@@ -175,4 +175,9 @@ public class HdfsPositionedUnderFileInputStream
     }
     return totalRead;
   }
+
+  @Override
+  public void close() throws IOException {
+    in.close();
+  }
 }

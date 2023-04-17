@@ -16,13 +16,8 @@ import alluxio.PositionReader;
 import alluxio.client.file.dora.netty.NettyDataReader;
 import alluxio.client.file.dora.netty.PartialReadException;
 import alluxio.file.ReadTargetBuffer;
-import alluxio.metrics.MetricKey;
-import alluxio.metrics.MetricsSystem;
 
-import com.codahale.metrics.Counter;
 import com.google.common.base.Throwables;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import javax.annotation.concurrent.ThreadSafe;
@@ -32,10 +27,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class DoraCachePositionReader implements PositionReader {
-  private static final Logger LOG = LoggerFactory.getLogger(DoraCachePositionReader.class);
-  private static final Counter UFS_FALLBACK_COUNTER = MetricsSystem.counter(
-      MetricKey.CLIENT_UFS_FALLBACK_COUNT.getName());
-
   private final NettyDataReader mNettyReader;
   private final long mFileLength;
   private final CloseableSupplier<PositionReader> mFallbackReader;

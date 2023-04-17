@@ -14,7 +14,6 @@ package alluxio.worker.dora;
 import static alluxio.client.file.cache.CacheUsage.PartitionDescriptor.file;
 
 import alluxio.AlluxioURI;
-import alluxio.CloseableSupplier;
 import alluxio.Constants;
 import alluxio.DefaultStorageTierAssoc;
 import alluxio.Server;
@@ -26,7 +25,6 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.InternalException;
 import alluxio.exception.status.NotFoundException;
-import alluxio.file.FileId;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.GetStatusPOptions;
@@ -39,7 +37,6 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.meta.DoraMeta;
-import alluxio.resource.CloseableResource;
 import alluxio.resource.PooledResource;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
@@ -398,12 +395,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             String.format("Failed to get mount point for %s", options.getUfsPath()), e2);
       }
     }
-    CloseableResource<UnderFileSystem> ufs = ufsClient.acquireUfsResource();
-    mResourceCloser.register(ufs);
-    final long fileSize = options.getBlockSize();
-    return new PagedFileReader(mConf, mCacheManager,
-        new CloseableSupplier<>(() -> ufs.get().openPositionRead(options.getUfsPath(), fileSize)),
-        FileId.of(fileId), options.getBlockSize(), offset);
+    return PagedFileReader.create(mConf, mCacheManager, ufsClient, fileId,
+        options.getUfsPath(), options.getBlockSize(), offset);
   }
 
   @Override
