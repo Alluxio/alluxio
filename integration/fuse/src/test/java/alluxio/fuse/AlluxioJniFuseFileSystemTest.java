@@ -23,6 +23,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -69,6 +70,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Optional;
@@ -512,7 +514,14 @@ public class AlluxioJniFuseFileSystemTest {
 
   @Test
   public void write() throws Exception {
-    FileOutStream fos = mock(FileOutStream.class);
+    FileOutStream fos = spy(new FileOutStream() {
+      @Override
+      public void write(int b) throws IOException {
+        // although b is int, the 24 higher bits are ignored
+        // we are effectively writing 1 byte
+        mBytesWritten += 1;
+      }
+    });
     AlluxioURI anyURI = any();
     CreateFilePOptions options = any();
     when(mFileSystem.createFile(anyURI, options)).thenReturn(fos);

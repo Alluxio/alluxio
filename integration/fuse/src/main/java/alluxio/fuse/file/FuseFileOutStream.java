@@ -144,15 +144,16 @@ public class FuseFileOutStream implements FuseFileStream {
       return;
     }
     long bytesWritten = mOutStream.get().getBytesWritten();
-    if (position != bytesWritten && position + bytesToWrite > bytesWritten) {
-      throw new UnimplementedRuntimeException(String.format("Only sequential write is supported. "
-          + "Cannot write bytes of size %s to offset %s when %s bytes have written to path %s",
-          bytesToWrite, position, bytesWritten, mURI));
-    }
-    if (position + bytesToWrite <= bytesWritten) {
-      LOG.warn("Skip writing to file {} offset={} size={} when {} bytes has written to file",
-          mURI, position, bytesToWrite, bytesWritten);
-      // To fulfill vim :wq
+    if (position != bytesWritten) {
+      if (position + bytesToWrite > bytesWritten) {
+        throw new UnimplementedRuntimeException(String.format("Only sequential write is supported. "
+                + "Cannot write bytes of size %s to offset %s when %s bytes have written to path %s",
+            bytesToWrite, position, bytesWritten, mURI));
+      } else { // position + bytesToWrite <= bytesWritten
+        LOG.warn("Skip writing to file {} offset={} size={} when {} bytes has written to file",
+            mURI, position, bytesToWrite, bytesWritten);
+        return;
+      }
     }
     final byte[] dest = new byte[bytesToWrite];
     buf.get(dest, 0, bytesToWrite);
