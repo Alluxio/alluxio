@@ -99,4 +99,29 @@ public class MetadataSyncNonObjectStoreV2Test extends FileSystemMasterTestBase {
     ));
     assertTrue(mFileSystemMaster.exists(new AlluxioURI("/test_directory"), existsNoSync()));
   }
+
+  //  @Test
+//  public void testNonS3Fingerprint() throws Exception {
+//    // this essentially creates a directory and mode its alluxio directory without
+//    // syncing the change down to ufs
+//    mFileSystemMaster.createDirectory(new AlluxioURI("/d"),
+//        CreateDirectoryContext.defaults().setWriteType(WriteType.THROUGH));
+//    mFileSystemMaster.delete(new AlluxioURI("/d"),
+//        DeleteContext.mergeFrom(DeletePOptions.newBuilder().setAlluxioOnly(true)));
+//    mFileSystemMaster.createDirectory(new AlluxioURI("/d"),
+//        CreateDirectoryContext.mergeFrom(
+//                CreateDirectoryPOptions.newBuilder().setMode(new Mode((short) 0777).toProto()))
+//            .setWriteType(WriteType.MUST_CACHE));
+//
+//    SyncResult result =
+//        mFileSystemMaster.syncMetadataInternal(new AlluxioURI("/"),
+//            createContext(DescendantType.ONE));
+//
+//    assertSyncOperations(result, ImmutableMap.of(
+//        // root
+//        SyncOperation.NOOP, 1L,
+//        // d
+//        SyncOperation.UPDATE, 1L
+//    ));
+//  }
 }

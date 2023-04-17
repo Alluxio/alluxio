@@ -5587,7 +5587,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       ReadOnlyInodeStore inodeStore, MountTable mountTable,
       InodeTree inodeTree, UfsSyncPathCache syncPathCache) {
     return new MetadataSyncer(
-        this, inodeStore, mountTable, inodeTree, syncPathCache);
+        this, inodeStore, mountTable, inodeTree, syncPathCache, mUfsAbsentPathCache);
   }
 
   @VisibleForTesting

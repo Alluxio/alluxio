@@ -137,6 +137,10 @@ public class TaskStats {
     mStatuses.addAndGet(size);
   }
 
+  void gotFirstLoad(int size) {
+    mStatuses.addAndGet(size);
+  }
+
   void gotLoadRequest() {
     mLoadRequests.incrementAndGet();
   }

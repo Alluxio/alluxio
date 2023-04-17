@@ -131,6 +131,8 @@ public class PathLoaderTask {
     TaskStats stats = mTaskInfo.getStats();
     if (!originalRequest.isFirstLoad()) {
       stats.gotBatch(ufsLoadResult.getItemsCount());
+    } else {
+      stats.gotFirstLoad(ufsLoadResult.getItemsCount());
     }
     boolean shouldLoadMore;
     boolean shouldProcessResult = true;

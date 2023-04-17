@@ -372,7 +372,8 @@ public class FileSystemMasterTestBase {
       protected MetadataSyncer createMetadataSyncer(
           ReadOnlyInodeStore inodeStore, MountTable mountTable, InodeTree inodeTree,
           UfsSyncPathCache syncPathCache) {
-        return new TestMetadataSyncer(this, inodeStore, mountTable, inodeTree, syncPathCache);
+        return new TestMetadataSyncer(
+            this, inodeStore, mountTable, inodeTree, syncPathCache, getAbsentPathCache());
       }
     };
     mInodeStore = mFileSystemMaster.getInodeStore();

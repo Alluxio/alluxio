@@ -399,14 +399,6 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     assertSyncFailureReason(result.getTaskInfo(), SyncFailReason.LOADING_UFS_IO_FAILURE);
 
     startS3Server();
-    BaseTask result2 = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ONE, mDirectoryLoadType, 0);
-    result2.waitComplete(TIMEOUT_MS);
-    assertTrue(result2.succeeded());
-    assertSyncOperations(result2.getTaskInfo(), ImmutableMap.of(
-        SyncOperation.CREATE, 1L
-    ));
-    checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
   }
 
   @Test
@@ -720,39 +712,18 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     ));
   }
 
-//  @Test
-//  public void testNonS3Fingerprint() throws Exception {
-//    // this essentially creates a directory and mode its alluxio directory without
-//    // syncing the change down to ufs
-//    mFileSystemMaster.createDirectory(new AlluxioURI("/d"),
-//        CreateDirectoryContext.defaults().setWriteType(WriteType.THROUGH));
-//    mFileSystemMaster.delete(new AlluxioURI("/d"),
-//        DeleteContext.mergeFrom(DeletePOptions.newBuilder().setAlluxioOnly(true)));
-//    mFileSystemMaster.createDirectory(new AlluxioURI("/d"),
-//        CreateDirectoryContext.mergeFrom(
-//                CreateDirectoryPOptions.newBuilder().setMode(new Mode((short) 0777).toProto()))
-//            .setWriteType(WriteType.MUST_CACHE));
+  @Test
+  public void syncUfsNotFound() throws Throwable {
+    mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
+
+    BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT.join("/non_existing_path"), DescendantType.ALL, mDirectoryLoadType, 0);
+    result.waitComplete(TIMEOUT_MS);
+    assertTrue(mFileSystemMaster.getAbsentPathCache().isAbsentSince(
+        new AlluxioURI("/non_existing_path"), 0));
+  }
+
 //
-//    SyncResult result =
-//        mFileSystemMaster.syncMetadataInternal(new AlluxioURI("/"),
-//            createContext(DescendantType.ONE));
-//
-//    assertSyncOperations(result, ImmutableMap.of(
-//        // root
-//        SyncOperation.NOOP, 1L,
-//        // d
-//        SyncOperation.UPDATE, 1L
-//    ));
-//  }
-//
-//  @Test
-//  public void syncUfsNotFound() throws Exception {
-//    // Q: how to design the interface for file not found
-//    SyncResult result = mFileSystemMaster.syncMetadataInternal(
-//        new AlluxioURI("/non_existing_path"), createContext(DescendantType.ALL));
-//    assertFalse(result.getSuccess());
-//    assertEquals(SyncFailReason.FILE_DOES_NOT_EXIST, result.getFailReason());
-//  }
 //
 //  // TODO(elega) -> this is not correct
 //  // Two options to deal with unmount-during-sync

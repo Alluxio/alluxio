@@ -15,6 +15,7 @@ import static org.junit.Assert.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 
 import alluxio.AlluxioURI;
+import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsClient;
@@ -38,6 +39,7 @@ public class UfsLoadsTest {
   MdSync mMdSync;
   MockUfsClient mUfsClient;
   UfsSyncPathCache mUfsSyncPathCache;
+  UfsAbsentPathCache mAbsentPathCache;
   SyncProcess mSyncProcess;
   List<UfsStatus> mProcessedItems;
   UfsStatus mFileStatus = new UfsFileStatus("file", "",
@@ -64,11 +66,11 @@ public class UfsLoadsTest {
       result.getUfsLoadResult().getItems().peek(mProcessedItems::add);
       return ans.callRealMethod();
     }).when(mSyncProcess).performSync(any(LoadResult.class), any(UfsSyncPathCache.class));
-
+    mAbsentPathCache = Mockito.mock(UfsAbsentPathCache.class);
     mUfsSyncPathCache = Mockito.mock(UfsSyncPathCache.class);
     mTaskTracker = new TaskTracker(
         1, 1, false, false,
-        mUfsSyncPathCache, mSyncProcess, this::getClient);
+        mUfsSyncPathCache, mAbsentPathCache, mSyncProcess, this::getClient);
     mMdSync = new MdSync(mTaskTracker);
   }
 

@@ -41,6 +41,7 @@ import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.LockingScheme;
 import alluxio.master.file.meta.MountTable;
+import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
 import alluxio.master.file.meta.options.MountInfo;
@@ -105,15 +106,17 @@ public class MetadataSyncer implements SyncProcess {
   /**
    * Constructs a metadata syncer.
    *
-   * @param fsMaster      the file system master
-   * @param inodeStore    the inode store
-   * @param mountTable    the mount table
-   * @param inodeTree     the inode tree
+   * @param fsMaster the file system master
+   * @param inodeStore the inode store
+   * @param mountTable the mount table
+   * @param inodeTree the inode tree
    * @param syncPathCache the sync path cache
+   * @param absentPathCache the absent path cache
    */
   public MetadataSyncer(
       DefaultFileSystemMaster fsMaster, ReadOnlyInodeStore inodeStore,
-      MountTable mountTable, InodeTree inodeTree, UfsSyncPathCache syncPathCache) {
+      MountTable mountTable, InodeTree inodeTree,
+      UfsSyncPathCache syncPathCache, UfsAbsentPathCache absentPathCache) {
     mFsMaster = fsMaster;
     mInodeStore = inodeStore;
     mMountTable = mountTable;
@@ -123,7 +126,7 @@ public class MetadataSyncer implements SyncProcess {
         Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_UFS_CONCURRENT_LOADS),
         Configuration.getBoolean(PropertyKey.MASTER_METADATA_SYNC_UFS_CONCURRENT_GET_STATUS),
         Configuration.getBoolean(PropertyKey.MASTER_METADATA_SYNC_UFS_CONCURRENT_LISTING),
-        syncPathCache, this, this::getUfsClient);
+        syncPathCache, absentPathCache, this, this::getUfsClient);
     mMdSync = new MdSync(mTaskTracker);
   }
 

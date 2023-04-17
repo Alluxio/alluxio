@@ -23,6 +23,7 @@ import alluxio.collections.Pair;
 import alluxio.file.options.DescendantType;
 import alluxio.file.options.DirectoryLoadType;
 import alluxio.master.file.meta.SyncCheck;
+import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsClient;
@@ -61,6 +62,7 @@ public class TaskTrackerTest {
   MdSync mMdSync;
   MockUfsClient mUfsClient;
   UfsSyncPathCache mUfsSyncPathCache;
+  UfsAbsentPathCache mAbsentCache;
   SyncProcess mSyncProcess;
   UfsStatus mFileStatus = new UfsFileStatus("file", "",
       0L, 0L, "", "", (short) 0, 0L);
@@ -81,9 +83,10 @@ public class TaskTrackerTest {
     mUfsClient = Mockito.spy(new MockUfsClient());
     mSyncProcess = Mockito.spy(new TestSyncProcess());
     mUfsSyncPathCache = Mockito.mock(UfsSyncPathCache.class);
+    mAbsentCache = Mockito.mock(UfsAbsentPathCache.class);
     mTaskTracker = new TaskTracker(
         1, 1, false, false,
-        mUfsSyncPathCache, mSyncProcess, this::getClient);
+        mUfsSyncPathCache, mAbsentCache, mSyncProcess, this::getClient);
     mMdSync = new MdSync(mTaskTracker);
   }
 
@@ -149,7 +152,7 @@ public class TaskTrackerTest {
     mTaskTracker.close();
     mTaskTracker = new TaskTracker(
         concurrentProcessing, concurrentUfsLoads, false, false,
-        mUfsSyncPathCache, mSyncProcess, this::getClient);
+        mUfsSyncPathCache, mAbsentCache, mSyncProcess, this::getClient);
     mMdSync = new MdSync(mTaskTracker);
     mUfsClient.setGetStatusFunc(path -> {
       remainingGetStatusCount.decrementAndGet();
@@ -213,7 +216,7 @@ public class TaskTrackerTest {
     int concurrentProcessing = 5;
     mTaskTracker = new TaskTracker(
         concurrentProcessing, concurrentUfsLoads, false, false,
-        mUfsSyncPathCache, mSyncProcess, this::getClient);
+        mUfsSyncPathCache, mAbsentCache, mSyncProcess, this::getClient);
     mMdSync = new MdSync(mTaskTracker);
     AtomicInteger remainingLoadCount = new AtomicInteger(totalBatches);
     AtomicInteger processingCount = new AtomicInteger(0);
@@ -266,7 +269,7 @@ public class TaskTrackerTest {
     AtomicInteger remainingProcessCount = new AtomicInteger(processError);
     mTaskTracker = new TaskTracker(
         concurrentProcessing, concurrentUfsLoads, false, false,
-        mUfsSyncPathCache, mSyncProcess, this::getClient);
+        mUfsSyncPathCache, mAbsentCache, mSyncProcess, this::getClient);
     Mockito.doAnswer(ans -> {
       if (remainingProcessCount.decrementAndGet() == 0) {
         throw new IOException();
@@ -309,7 +312,7 @@ public class TaskTrackerTest {
     int concurrentProcessing = 5;
     mTaskTracker = new TaskTracker(
         concurrentProcessing, concurrentUfsLoads, false, false,
-        mUfsSyncPathCache, mSyncProcess, this::getClient);
+        mUfsSyncPathCache, mAbsentCache, mSyncProcess, this::getClient);
     Mockito.doReturn(SyncCheck.shouldSyncWithTime(0))
         .when(mUfsSyncPathCache).shouldSyncPath(any(), anyLong(), any());
     AtomicInteger remainingLoadCount = new AtomicInteger(totalBatches);
@@ -349,7 +352,7 @@ public class TaskTrackerTest {
     int concurrentProcessing = 5;
     mTaskTracker = new TaskTracker(
         concurrentProcessing, concurrentUfsLoads, false, false,
-        mUfsSyncPathCache, mSyncProcess, this::getClient);
+        mUfsSyncPathCache, mAbsentCache, mSyncProcess, this::getClient);
     mMdSync = new MdSync(mTaskTracker);
     Mockito.doReturn(SyncCheck.shouldSyncWithTime(0))
         .when(mUfsSyncPathCache).shouldSyncPath(any(), anyLong(), any());
@@ -391,7 +394,7 @@ public class TaskTrackerTest {
     int concurrentProcessing = 5;
     mTaskTracker = new TaskTracker(
         concurrentProcessing, concurrentUfsLoads, false, false,
-        mUfsSyncPathCache, mSyncProcess, this::getClient);
+        mUfsSyncPathCache, mAbsentCache, mSyncProcess, this::getClient);
     mMdSync = new MdSync(mTaskTracker);
     AtomicInteger remainingLoadCount = new AtomicInteger(totalBatches);
     AtomicInteger processingCount = new AtomicInteger(0);
@@ -433,7 +436,7 @@ public class TaskTrackerTest {
     int concurrentProcessing = 5;
     mTaskTracker = new TaskTracker(
         concurrentProcessing, concurrentUfsLoads, false, false,
-        mUfsSyncPathCache, mSyncProcess, this::getClient);
+        mUfsSyncPathCache, mAbsentCache, mSyncProcess, this::getClient);
     mMdSync = new MdSync(mTaskTracker);
     AtomicInteger remainingLoadCount = new AtomicInteger(totalBatches);
     mUfsClient.setListingResultFunc(path -> {
@@ -467,7 +470,7 @@ public class TaskTrackerTest {
     int totalBatches = 100;
     mTaskTracker = new TaskTracker(
         1, concurrentUfsLoads, false, false,
-        mUfsSyncPathCache, mSyncProcess, this::getClient);
+        mUfsSyncPathCache, mAbsentCache, mSyncProcess, this::getClient);
     mMdSync = new MdSync(mTaskTracker);
     AtomicInteger count = new AtomicInteger(totalBatches);
     mUfsClient.setListingResultFunc(path -> {

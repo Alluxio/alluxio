@@ -21,6 +21,7 @@ import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.meta.InodeIterationResult;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.MountTable;
+import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 
@@ -44,8 +45,8 @@ public class TestMetadataSyncer extends MetadataSyncer {
 
   public TestMetadataSyncer(DefaultFileSystemMaster fsMaster, ReadOnlyInodeStore inodeStore,
                             MountTable mountTable, InodeTree inodeTree,
-                            UfsSyncPathCache syncPathCache) {
-    super(fsMaster, inodeStore, mountTable, inodeTree, syncPathCache);
+                            UfsSyncPathCache syncPathCache, UfsAbsentPathCache absentPathCache) {
+    super(fsMaster, inodeStore, mountTable, inodeTree, syncPathCache, absentPathCache);
   }
 
   Semaphore mLock = new Semaphore(0);

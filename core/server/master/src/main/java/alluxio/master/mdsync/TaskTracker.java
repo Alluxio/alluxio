@@ -17,6 +17,7 @@ import alluxio.conf.path.TrieNode;
 import alluxio.exception.status.NotFoundException;
 import alluxio.file.options.DescendantType;
 import alluxio.file.options.DirectoryLoadType;
+import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsClient;
@@ -49,6 +50,7 @@ public class TaskTracker implements Closeable {
       CacheBuilder.newBuilder().maximumSize(1000).build();
   private final LoadRequestExecutor mLoadRequestExecutor;
   private final UfsSyncPathCache mSyncPathCache;
+  private final UfsAbsentPathCache mAbsentPathCache;
   private final Function<AlluxioURI, CloseableResource<UfsClient>> mClientSupplier;
 
   private long mNxtId = 0;
@@ -63,17 +65,21 @@ public class TaskTracker implements Closeable {
    * @param allowConcurrentGetStatus if true, getStatus tasks will run concurrently
    *                                 with recursive list tasks
    * @param syncPathCache the sync path cache
+   * @param absentPathCache the absent cache
    * @param syncProcess the sync process
    * @param clientSupplier the client supplier
    */
   public TaskTracker(
       int executorThreads, int maxUfsRequests,
       boolean allowConcurrentGetStatus, boolean allowConcurrentNonRecursiveList,
-      UfsSyncPathCache syncPathCache, SyncProcess syncProcess,
+      UfsSyncPathCache syncPathCache,
+      UfsAbsentPathCache absentPathCache,
+      SyncProcess syncProcess,
       Function<AlluxioURI, CloseableResource<UfsClient>> clientSupplier) {
     LOG.info("Metadata sync executor threads {}, max concurrent ufs requests {}",
         executorThreads, maxUfsRequests);
     mSyncPathCache = syncPathCache;
+    mAbsentPathCache = absentPathCache;
     mLoadRequestExecutor = new LoadRequestExecutor(maxUfsRequests,
         new LoadResultExecutor(syncProcess, executorThreads, syncPathCache));
     mActiveRecursiveListTasks = new TrieNode<>();
@@ -127,6 +133,11 @@ public class TaskTracker implements Closeable {
       mSyncPathCache.notifySyncedPath(baseTask.getTaskInfo().getBasePath(),
           baseTask.getTaskInfo().getDescendantType(), baseTask.getStartTime(),
           null, isFile);
+      if (baseTask.getTaskInfo().getStats().getStatusCount() == 0) {
+        mAbsentPathCache.addSinglePath(baseTask.getTaskInfo().getBasePath());
+      } else {
+        mAbsentPathCache.processExisting(baseTask.getTaskInfo().getBasePath());
+      }
       TrieNode<BaseTask> activeTasks = getActiveTasksForDescendantType(
           baseTask.getTaskInfo().getDescendantType());
       Preconditions.checkNotNull(activeTasks.deleteIf(

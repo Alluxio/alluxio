@@ -17,6 +17,7 @@ import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
 import alluxio.file.options.DescendantType;
 import alluxio.file.options.DirectoryLoadType;
+import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsClient;
@@ -30,6 +31,7 @@ import alluxio.util.io.PathUtils;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.regions.Region;
@@ -48,12 +50,14 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 
+@Ignore
 public class S3Test {
   ExecutorService mThreadPool;
   TaskTracker mTaskTracker;
   MdSync mMdSync;
   UfsClient mUfsClient;
   UfsSyncPathCache mUfsSyncPathCache;
+  UfsAbsentPathCache mAbsentCache;
   SyncProcess mSyncProcess;
   S3AsyncClient mS3Client;
   String mBucket = "alluxiotyler";
@@ -160,9 +164,10 @@ public class S3Test {
     };
     mSyncProcess = Mockito.spy(new TestSyncProcess());
     mUfsSyncPathCache = Mockito.mock(UfsSyncPathCache.class);
+    mAbsentCache = Mockito.mock(UfsAbsentPathCache.class);
     mTaskTracker = new TaskTracker(
         10, 100, false, false,
-        mUfsSyncPathCache, mSyncProcess, a ->
+        mUfsSyncPathCache, mAbsentCache, mSyncProcess, a ->
         new CloseableResource<UfsClient>(mUfsClient) {
           @Override
           public void closeResource() {
