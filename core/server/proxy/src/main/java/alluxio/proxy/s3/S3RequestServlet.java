@@ -87,6 +87,7 @@ public class S3RequestServlet extends HttpServlet {
           : getServletContext().getAttribute(PROXY_S3_V2_HEAVY_POOL));
 
       final AsyncContext asyncCtx = request.startAsync();
+      asyncCtx.setTimeout(Configuration.getLong(PropertyKey.PROXY_S3_V2_ASYNC_CONTEXT_TIMEOUT_MS));
       final S3Handler s3HandlerAsync = s3Handler;
       es.submit(() -> {
         try {

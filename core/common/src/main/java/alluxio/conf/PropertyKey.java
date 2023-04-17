@@ -5358,6 +5358,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
                   .setScope(Scope.SERVER)
                   .build();
+  public static final PropertyKey PROXY_S3_V2_ASYNC_CONTEXT_TIMEOUT_MS =
+      longBuilder(Name.PROXY_S3_V2_ASYNC_CONTEXT_TIMEOUT_MS)
+          .setDefaultValue(30000L)
+          .setDescription("Timeout for async context in milliseconds. "
+              + "Set zero or less indicates no timeout.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey PROXY_S3_V2_ASYNC_LIGHT_POOL_CORE_THREAD_NUMBER =
       intBuilder(Name.PROXY_S3_V2_ASYNC_LIGHT_POOL_CORE_THREAD_NUMBER)
           .setDefaultValue(8)
@@ -8606,6 +8614,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
             "alluxio.proxy.s3.v2.version.enabled";
     public static final String PROXY_S3_V2_ASYNC_PROCESSING_ENABLED =
             "alluxio.proxy.s3.v2.async.processing.enabled";
+    public static final String PROXY_S3_V2_ASYNC_CONTEXT_TIMEOUT_MS =
+        "alluxio.proxy.s3.v2.async.context.timeout.ms";
     public static final String PROXY_S3_V2_ASYNC_LIGHT_POOL_CORE_THREAD_NUMBER =
         "alluxio.proxy.s3.v2.async.light.pool.core.thread.number";
     public static final String PROXY_S3_V2_ASYNC_LIGHT_POOL_MAXIMUM_THREAD_NUMBER =
