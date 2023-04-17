@@ -22,7 +22,6 @@ import alluxio.uri.SingleMasterAuthority;
 import alluxio.uri.UnknownAuthority;
 import alluxio.uri.ZookeeperAuthority;
 import alluxio.uri.ZookeeperLogicalAuthority;
-import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import org.apache.hadoop.conf.Configuration;
@@ -165,6 +164,6 @@ public class FileSystem extends AbstractFileSystem {
 
   @Override
   protected Path getFsPath(String fsUriHeader, URIStatus fileStatus) {
-    return new Path(PathUtils.concatPath(fsUriHeader, fileStatus.getPath()));
+    return new Path(fsUriHeader + fileStatus.getPath());
   }
 }
