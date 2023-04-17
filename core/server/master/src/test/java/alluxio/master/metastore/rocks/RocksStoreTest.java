@@ -197,7 +197,27 @@ public class RocksStoreTest {
     assertTrue(mStore.isServiceStopping());
     exclusiveLock.close();
     assertEquals(0, mStore.getSharedLockCount());
-    // The flag is NOT reset after the lock is released, because the service will exit
+    // The flag is reset after the lock is released, because the service will restore
+    assertFalse(mStore.isServiceStopping());
+  }
+
+  @Test
+  public void exclusiveLockOnRewrite() {
+    RocksExclusiveLockHandle exclusiveLock = mStore.lockForRewrite();
+
+    Exception e = assertThrows(UnavailableRuntimeException.class, () -> {
+      mStore.checkAndAcquireSharedLock();
+    });
+    assertTrue(e.getMessage().contains(ExceptionMessage.ROCKS_DB_CLOSING.getMessage()));
+    Exception f = assertThrows(UnavailableRuntimeException.class, () -> {
+      mStore.shouldAbort(0);
+    });
+    assertTrue(f.getMessage().contains(ExceptionMessage.ROCKS_DB_CLOSING.getMessage()));
+    assertEquals(0, mStore.getSharedLockCount());
+    assertTrue(mStore.isServiceStopping());
+    exclusiveLock.close();
+    assertEquals(0, mStore.getSharedLockCount());
+    // The flag is reset after the lock is released, because the service will restore
     assertFalse(mStore.isServiceStopping());
   }
 
@@ -227,7 +247,6 @@ public class RocksStoreTest {
     });
 
     // One closer comes in and eventually will grab the lock after wait
-    // TODO(jiacheng): UT for lockForClosing
     mWriterStartLatch.await();
     // Manually set this flag, otherwise an exception will be thrown when the exclusive lock
     // is forced.
@@ -270,7 +289,6 @@ public class RocksStoreTest {
     });
 
     // One closer comes in and eventually will grab the lock after wait
-    // TODO(jiacheng): UT for lockForClosing
     mWriterStartLatch.await();
     // In test mode, forcing the exclusive lock will result in an exception
     // This will help us detect issues with the ref count
@@ -320,6 +338,56 @@ public class RocksStoreTest {
     // is forced.
     Configuration.set(PropertyKey.TEST_MODE, false);
     RocksExclusiveLockHandle exclusiveLock = mStore.lockForCheckpoint();
+    // After some wait, the closer will force the lock and reset the ref count
+    // And the ref count will be reset on that force
+    assertEquals(0, mStore.getSharedLockCount());
+    assertTrue(mStore.getRefCountVersion() > refCountTrackerVersion);
+    // Now the checkpointing was done, while the reader is still asleep
+    exclusiveLock.close();
+    // Let the reader wake up and continue
+    mReaderCloseLatch.countDown();
+    f.get();
+    assertEquals(0, mStore.getSharedLockCount());
+    assertTrue(mStore.getRefCountVersion() > refCountTrackerVersion);
+  }
+
+  @Test
+  public void readerCanNotContinueAfterRestore() throws Exception {
+    int refCountTrackerVersion = mStore.getRefCountVersion();
+    // One reader gets the shared lock and does not release for a long time
+    CountDownLatch mReaderCloseLatch = new CountDownLatch(1);
+    CountDownLatch mWriterStartLatch = new CountDownLatch(1);
+    Future<Void> f = mThreadPool.submit(() -> {
+      RocksSharedLockHandle lockHandle = mStore.checkAndAcquireSharedLock();
+      System.out.println("Read lock grabbed");
+      mWriterStartLatch.countDown();
+      try {
+        mReaderCloseLatch.await();
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+      // While this reader is sleeping, one restore action is completed in the background
+      // This check should throw an exception because the RocksDB contents have changed
+      Exception e = assertThrows(UnavailableRuntimeException.class, () -> {
+        mStore.shouldAbort(lockHandle.mDbVersion);
+      });
+      assertTrue(e.getMessage().contains(ExceptionMessage.ROCKS_DB_REWRITTEN.getMessage()));
+
+      System.out.println("Not able to continue reading");
+      // After finishing its work, this lock is released
+      lockHandle.close();
+      System.out.println("Read lock released");
+      // The lock release has passed due but should not mess up the ref count
+      assertEquals(0, mStore.getSharedLockCount());
+      return null;
+    });
+
+    // One closer comes in and eventually will grab the lock after wait
+    mWriterStartLatch.await();
+    // Manually set this flag, otherwise an exception will be thrown when the exclusive lock
+    // is forced.
+    Configuration.set(PropertyKey.TEST_MODE, false);
+    RocksExclusiveLockHandle exclusiveLock = mStore.lockForRewrite();
     // After some wait, the closer will force the lock and reset the ref count
     // And the ref count will be reset on that force
     assertEquals(0, mStore.getSharedLockCount());

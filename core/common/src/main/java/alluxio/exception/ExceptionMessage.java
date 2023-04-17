@@ -195,6 +195,10 @@ public enum ExceptionMessage {
   // RocksDB
   ROCKS_DB_CLOSING("RocksDB is being closed because the master is under one of the following "
       + "events: primary failover/shut down/checkpoint/journal replay"),
+  ROCKS_DB_REWRITTEN("RocksDB has been rewritten. Typically this is because the master is "
+      + "restored to a checkpoint."),
+  ROCKS_DB_EXCLUSIVE_LOCK_FORCED("RocksDB exclusive lock is forced with {0} ongoing "
+      + "r/w operations. There is a risk to crash!")
 
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;

@@ -503,6 +503,7 @@ public final class RocksStore implements Closeable {
      * With the 2nd check, we make sure the ref count will be respected by the closer and
      * the closer will therefore wait for this reader to complete/abort.
      */
+    // TODO(jiacheng): UT for this
     if (mRocksDbState.getReference()) {
       mRefCount.decrement();
       throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
@@ -554,23 +555,17 @@ public final class RocksStore implements Closeable {
   private void setFlagAndBlockingWait(boolean yieldToAnotherCloser) {
     // Another known operation has acquired the exclusive lock
     if (yieldToAnotherCloser && mRocksDbState.getReference()) {
-      System.out.println("Yield to another writer");
       throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
     }
 
     int version = mRocksDbState.getStamp();
     if (yieldToAnotherCloser) {
-//      if (!mState.compareAndSet(status, new VersionedRocksStoreStatus(true, version + 1))) {
       if (!mRocksDbState.compareAndSet(false, true, version, version)) {
-        System.out.println("Yield to another writer at locking");
         throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
-      } else {
-        System.out.println("Set the flag in yield mode");
       }
     } else {
       // Just set the state with no respect to concurrent actions
       mRocksDbState.set(true, version);
-      System.out.println("Set the flag in non-yielding mode");
     }
 
     /*
@@ -600,19 +595,16 @@ public final class RocksStore implements Closeable {
       SleepUtils.sleepMs(100);
     }
     Duration elapsed = Duration.between(waitStart, Instant.now());
-    System.out.format("Waited %s for ongoing read/write to complete/abort%n", elapsed.toMillis());
     LOG.info("Waited {}ms for ongoing read/write to complete/abort", elapsed.toMillis());
 
     /*
      * Reset the ref count to forget about the aborted operations
      */
     long unclosedOperations = mRefCount.sum();
-    System.out.format("After the wait there are still %s operations%n", unclosedOperations);
     if (unclosedOperations != 0) {
       if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
-        // TODO(jiacheng): constant
-        throw new RuntimeException("ref count=" + unclosedOperations
-            + " some operations are not updating ref count correctly!");
+        throw new RuntimeException(ExceptionMessage.ROCKS_DB_EXCLUSIVE_LOCK_FORCED
+            .getMessage(unclosedOperations));
       }
       /*
        * Set the flag so shared locks know that the ref count has been reset,
@@ -622,7 +614,6 @@ public final class RocksStore implements Closeable {
        */
       mRefCount.reset();
       mRefCountVersion.incrementAndGet();
-      System.out.format("%s operations haven't finished when the ex lock is forced%n", unclosedOperations);
       LOG.warn("{} readers/writers fail to complete/abort before we stop/restart the RocksDB",
           unclosedOperations);
     }
@@ -686,7 +677,7 @@ public final class RocksStore implements Closeable {
     if (mRocksDbState.getReference()) {
       throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
     } else if (lockedVersion < mRocksDbState.getStamp()) {
-      throw new UnavailableRuntimeException("RocksDB contents have changed!");
+      throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_REWRITTEN.getMessage());
     }
   }
 
