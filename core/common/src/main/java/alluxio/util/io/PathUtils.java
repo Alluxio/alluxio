@@ -22,8 +22,10 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.FilenameUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import javax.annotation.concurrent.ThreadSafe;
@@ -444,4 +446,26 @@ public final class PathUtils {
   }
 
   private PathUtils() {} // prevent instantiation
+
+  /**
+   * Returns the list of possible mount points of the given path.
+   *
+   * "/a/b/c" => {"/a", "/a/b", "/a/b/c"}
+   *
+   * @param path the path to get the mount points of
+   * @return a list of paths
+   */
+  public static List<String> getPossibleMountPoints(String path) throws InvalidPathException {
+    String basePath = cleanPath(path);
+    List<String> paths = new ArrayList<>();
+    if ((basePath != null) && !basePath.equals(AlluxioURI.SEPARATOR)) {
+      paths.add(basePath);
+      String parent = getParent(path);
+      while (!parent.equals(AlluxioURI.SEPARATOR)) {
+        paths.add(0, parent);
+        parent = getParent(parent);
+      }
+    }
+    return paths;
+  }
 }
