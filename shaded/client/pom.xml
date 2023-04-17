@@ -251,6 +251,10 @@
                   </excludes>
                 </relocation>
                 <relocation>
+                  <pattern>com/google/inject/</pattern>
+                  <shadedPattern>${shading.prefix}.com.google.inject.</shadedPattern>
+                </relocation>
+                <relocation>
                   <pattern>io/</pattern>
                   <shadedPattern>${shading.prefix}.io.</shadedPattern>
                   <excludes>
@@ -267,6 +271,10 @@
                   <excludes>
                     <exclude>**/pom.xml</exclude>
                   </excludes>
+                </relocation>
+                <relocation>
+                  <pattern>javax/inject/</pattern>
+                  <shadedPattern>${shading.prefix}.javax.inject.</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>org/</pattern>
