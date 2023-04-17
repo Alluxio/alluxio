@@ -60,7 +60,7 @@ public class S3APositionReaderTest {
   @Parameterized.Parameter
   public int mFileLen;
 
-  private UnderFileSystem mS3Ufs;
+  private UnderFileSystem mS3Ufs = null;
   private static final AlluxioConfiguration CONF = Configuration.global();
 
   private String mTestFile;
@@ -87,9 +87,11 @@ public class S3APositionReaderTest {
 
   @After
   public void after() throws IOException {
-    mPositionReader.close();
-    mS3Ufs.deleteFile(mTestFile);
-    mS3Ufs.close();
+    if (mS3Ufs != null) {
+      mPositionReader.close();
+      mS3Ufs.deleteFile(mTestFile);
+      mS3Ufs.close();
+    }
   }
 
   @Test
