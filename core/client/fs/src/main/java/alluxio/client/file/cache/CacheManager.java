@@ -299,13 +299,11 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
     stopwatch.stop();
     if (bytesRead > 0) {
       MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesRead);
-      if (cacheContext != null) {
-        cacheContext.incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), BYTE,
-            bytesRead);
-        cacheContext.incrementCounter(
-            MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(), NANO,
-            stopwatch.elapsed(TimeUnit.NANOSECONDS));
-      }
+      cacheContext.incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), BYTE,
+          bytesRead);
+      cacheContext.incrementCounter(
+          MetricKey.CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS.getMetricName(), NANO,
+          stopwatch.elapsed(TimeUnit.NANOSECONDS));
     }
     return bytesRead;
   }
@@ -340,16 +338,14 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
     buffer.writeBytes(page, pageOffset, bytesToRead);
     MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
         .mark(bytesToRead);
-    if (cacheContext != null) {
-      cacheContext.incrementCounter(
-          MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), BYTE,
-          bytesToRead);
-      cacheContext.incrementCounter(
-          MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName(), NANO,
-          stopwatch.elapsed(TimeUnit.NANOSECONDS)
-      );
-      put(pageId, page, cacheContext);
-    }
+    cacheContext.incrementCounter(
+        MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), BYTE,
+        bytesToRead);
+    cacheContext.incrementCounter(
+        MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName(), NANO,
+        stopwatch.elapsed(TimeUnit.NANOSECONDS)
+    );
+    put(pageId, page, cacheContext);
     return bytesToRead;
   }
 

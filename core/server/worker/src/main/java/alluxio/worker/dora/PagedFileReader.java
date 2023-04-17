@@ -13,6 +13,7 @@ package alluxio.worker.dora;
 
 import alluxio.CloseableSupplier;
 import alluxio.PositionReader;
+import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCachePositionReader;
 import alluxio.conf.AlluxioConfiguration;
@@ -63,10 +64,10 @@ public class PagedFileReader extends BlockReader implements PositionReader {
     FileId fileIdField = FileId.of(fileId);
     CloseableResource<UnderFileSystem> ufs = ufsClient.acquireUfsResource();
     try {
-      return new PagedFileReader(ufs, LocalCachePositionReader.create(conf, cacheManager,
+      return new PagedFileReader(ufs, LocalCachePositionReader.create(cacheManager,
           new CloseableSupplier<>(() -> ufs.get().openPositionRead(ufsPath, fileSize)),
-          fileIdField, fileSize, conf.getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE)),
-          fileSize, startPosition);
+          fileIdField, fileSize, conf.getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE),
+          CacheContext.defaults()), fileSize, startPosition);
     } catch (Throwable t) {
       try {
         ufs.close();

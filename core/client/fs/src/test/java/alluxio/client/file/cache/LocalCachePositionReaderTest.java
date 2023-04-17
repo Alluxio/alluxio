@@ -16,6 +16,7 @@ import alluxio.CloseableSupplier;
 import alluxio.Constants;
 import alluxio.PositionReader;
 import alluxio.PositionReaderTest;
+import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.evictor.CacheEvictor;
 import alluxio.client.file.cache.evictor.CacheEvictorOptions;
 import alluxio.client.file.cache.evictor.FIFOCacheEvictor;
@@ -118,9 +119,10 @@ public final class LocalCachePositionReaderTest {
       os.write(BufferUtils.getIncreasingByteArray(mFileLen));
     }
     mTestFile = path.toString();
-    mPositionReader = LocalCachePositionReader.create(mConf, mCacheManager,
+    mPositionReader = LocalCachePositionReader.create(mCacheManager,
         new CloseableSupplier<>(() -> new LocalPositionReader(mTestFile, mFileLen)),
-        FileId.of(new AlluxioURI(mTestFile).hash()), mFileLen, pageSize);
+        FileId.of(new AlluxioURI(mTestFile).hash()), mFileLen, pageSize,
+        CacheContext.defaults());
     mPositionReaderTest = new PositionReaderTest(mPositionReader, mFileLen);
   }
 

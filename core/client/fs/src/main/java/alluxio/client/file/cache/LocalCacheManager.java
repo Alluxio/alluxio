@@ -526,16 +526,13 @@ public class LocalCacheManager implements CacheManager {
       buffer.writeBytes(page, pageOffset, bytesToRead);
       MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
           .mark(bytesToRead);
-      if (cacheContext != null) {
-        cacheContext.incrementCounter(
-            MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), BYTE,
-            bytesToRead);
-        cacheContext.incrementCounter(
-            MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName(), NANO,
-            stopwatch.elapsed(TimeUnit.NANOSECONDS)
-        );
-        put(pageId, page, cacheContext);
-      }
+      cacheContext.incrementCounter(
+          MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), BYTE,
+          bytesToRead);
+      cacheContext.incrementCounter(
+          MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName(), NANO,
+          stopwatch.elapsed(TimeUnit.NANOSECONDS));
+      put(pageId, page, cacheContext);
       return bytesToRead;
     }
   }

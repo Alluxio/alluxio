@@ -14,6 +14,7 @@ package alluxio.client.file.cache;
 import alluxio.AlluxioURI;
 import alluxio.CloseableSupplier;
 import alluxio.PositionReader;
+import alluxio.client.file.CacheContext;
 import alluxio.client.file.DelegatingFileSystem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
@@ -92,6 +93,7 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
     }
     return LocalCachePositionReader.create(mConf, mCacheManager,
         new CloseableSupplier<>(() -> mDelegatedFileSystem.openPositionRead(status, options)),
-        status, mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE));
+        status, mConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE),
+        status.getCacheContext() == null ? CacheContext.defaults() : status.getCacheContext());
   }
 }
