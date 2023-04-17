@@ -47,6 +47,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletException;
@@ -68,9 +69,12 @@ public final class ProxyWebServer extends WebServer {
   public static final String SERVER_CONFIGURATION_RESOURCE_KEY = "Server Configuration";
   public static final String ALLUXIO_PROXY_AUDIT_LOG_WRITER_KEY = "Alluxio Proxy Audit Log Writer";
   public static final String GLOBAL_RATE_LIMITER_SERVLET_RESOURCE_KEY = "Global Rate Limiter";
+  public static final String MULTIPART_UPLOADS_METADATA_DIR_CREATE_FLAG =
+      "Multipart Uploads Metadata Directory Create Flag";
 
   private final RateLimiter mGlobalRateLimiter;
   private final FileSystem mFileSystem;
+  private final AtomicBoolean mMultipartUploadsMetadataDirCreateFlag;
   private AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
   public static final String PROXY_S3_HANDLER_MAP = "Proxy S3 Handler Map";
   public ConcurrentHashMap<Request, S3Handler> mS3HandlerMap = new ConcurrentHashMap<>();
@@ -108,6 +112,10 @@ public final class ProxyWebServer extends WebServer {
         .register(S3RestExceptionMapper.class);
 
     mFileSystem = FileSystem.Factory.create(Configuration.global());
+    // Use this flag to delay creating metadata directory. Do not create directory directly,
+    // this will change the behavior of constructor and cause some tests to fail.
+    mMultipartUploadsMetadataDirCreateFlag = new AtomicBoolean(false);
+
     long rate =
         (long) Configuration.getInt(PropertyKey.PROXY_S3_GLOBAL_READ_RATE_LIMIT_MB) * Constants.MB;
     mGlobalRateLimiter = S3RestUtils.createRateLimiter(rate).orElse(null);
@@ -137,6 +145,8 @@ public final class ProxyWebServer extends WebServer {
           getServletContext().setAttribute(GLOBAL_RATE_LIMITER_SERVLET_RESOURCE_KEY,
               mGlobalRateLimiter);
         }
+        getServletContext().setAttribute(MULTIPART_UPLOADS_METADATA_DIR_CREATE_FLAG,
+            mMultipartUploadsMetadataDirCreateFlag);
       }
 
       @Override
@@ -169,6 +179,8 @@ public final class ProxyWebServer extends WebServer {
               getServletContext().setAttribute(PROXY_S3_V2_LIGHT_POOL, createLightThreadPool());
               getServletContext().setAttribute(PROXY_S3_V2_HEAVY_POOL, createHeavyThreadPool());
               getServletContext().setAttribute(PROXY_S3_HANDLER_MAP, mS3HandlerMap);
+              getServletContext().setAttribute(MULTIPART_UPLOADS_METADATA_DIR_CREATE_FLAG,
+                  mMultipartUploadsMetadataDirCreateFlag);
             }
           });
       mServletContextHandler

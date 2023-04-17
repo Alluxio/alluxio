@@ -15,10 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.grpc.Bits;
-import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.grpc.PMode;
-import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadUtils;
@@ -40,6 +36,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
@@ -94,6 +91,7 @@ public class S3Handler {
   private String mUser;
   private S3BaseTask mS3Task;
   private FileSystem mMetaFS;
+  private AtomicBoolean mMultipartUploadsMetadataDirCreateFlag;
 
   /**
    * S3Handler Constructor.
@@ -237,19 +235,8 @@ public class S3Handler {
     mMetaFS = (FileSystem) context.getAttribute(ProxyWebServer.FILE_SYSTEM_SERVLET_RESOURCE_KEY);
     mAsyncAuditLogWriter = (AsyncUserAccessAuditLogWriter) context.getAttribute(
         ProxyWebServer.ALLUXIO_PROXY_AUDIT_LOG_WRITER_KEY);
-    // Initiate the S3 API metadata directories
-    if (!mMetaFS.exists(new AlluxioURI(S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR))) {
-      mMetaFS.createDirectory(new AlluxioURI(S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR),
-          CreateDirectoryPOptions.newBuilder()
-            .setRecursive(true)
-            .setMode(PMode.newBuilder()
-              .setOwnerBits(Bits.ALL).setGroupBits(Bits.ALL)
-              .setOtherBits(Bits.NONE)
-              .build())
-            .setWriteType(S3RestUtils.getS3WriteType())
-            .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
-            .build());
-    }
+    mMultipartUploadsMetadataDirCreateFlag = (AtomicBoolean) context.getAttribute(
+        ProxyWebServer.MULTIPART_UPLOADS_METADATA_DIR_CREATE_FLAG);
   }
 
   /**
@@ -512,5 +499,13 @@ public class S3Handler {
    */
   public void setStopwatch(Stopwatch stopwatch) {
     mStopwatch = stopwatch;
+  }
+
+  /**
+   * Get multipart uploads metadata dir create flag.
+   * @return multipart uploads metadata dir create flag
+   */
+  public AtomicBoolean getMultipartUploadsMetadataDirCreateFlag() {
+    return mMultipartUploadsMetadataDirCreateFlag;
   }
 }

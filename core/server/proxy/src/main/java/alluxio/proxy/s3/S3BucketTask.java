@@ -198,6 +198,8 @@ public class S3BucketTask extends S3BaseTask {
                 mOPType.name(), user, mHandler.getBucket(), null)) {
           S3RestUtils.checkPathIsAlluxioDirectory(userFs, path, auditContext);
           try {
+            S3RestUtils.initMultipartUploadsMetadataDir(mHandler.getMetaFS(),
+                mHandler.getMultipartUploadsMetadataDirCreateFlag());
             List<URIStatus> children = mHandler.getMetaFS().listStatus(new AlluxioURI(
                     S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR));
             final List<URIStatus> uploadIds = children.stream()
