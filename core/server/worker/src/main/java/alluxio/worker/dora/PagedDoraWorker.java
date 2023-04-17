@@ -346,14 +346,14 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    * @return a FileInfo
    */
   public alluxio.grpc.FileInfo buildFileInfoFromUfsStatus(UfsStatus status, String ufsFullPath) {
-    String path = CommonUtils.stripPrefixIfPresent(status.getName(), mRootUFS.toString());
-    AlluxioURI ufsUri = new AlluxioURI(PathUtils.concatPath(mRootUFS, path));
+    String relativePath = CommonUtils.stripPrefixIfPresent(ufsFullPath, mRootUFS);
+    AlluxioURI ufsUri = new AlluxioURI(PathUtils.concatPath(mRootUFS, relativePath));
     String filename = ufsUri.getName();
 
     alluxio.grpc.FileInfo.Builder infoBuilder = alluxio.grpc.FileInfo.newBuilder()
         .setFileId(ufsFullPath.hashCode())
         .setName(filename)
-        .setPath(ufsUri.toString())
+        .setPath(relativePath)
         .setUfsPath(ufsUri.toString())
         .setMode(status.getMode())
         .setFolder(status.isDirectory())
