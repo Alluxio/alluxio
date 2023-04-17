@@ -350,7 +350,6 @@ public final class RocksStore implements Closeable {
    *
    * @param input the checkpoint stream to restore from
    */
-  // TODO(jiacheng): how do i make this use the lock correctly?
   public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
     LOG.info("Restoring rocksdb from checkpoint");
     long startNano = System.nanoTime();
@@ -363,7 +362,7 @@ public final class RocksStore implements Closeable {
     if (input.getType() == CheckpointType.ROCKS_PARALLEL) {
       List<String> tmpDirs = Configuration.getList(PropertyKey.TMP_DIRS);
       String tmpZipFilePath = new File(tmpDirs.get(0), "alluxioRockStore-" + UUID.randomUUID())
-          .getPath();
+              .getPath();
 
       try {
         try (FileOutputStream fos = new FileOutputStream(tmpZipFilePath)) {
@@ -371,7 +370,7 @@ public final class RocksStore implements Closeable {
         }
 
         ParallelZipUtils.decompress(Paths.get(mDbPath), tmpZipFilePath,
-            mParallelBackupPoolSize);
+                mParallelBackupPoolSize);
 
         FileUtils.deletePathRecursively(tmpZipFilePath);
       } catch (Exception e) {
@@ -388,7 +387,7 @@ public final class RocksStore implements Closeable {
       throw new IOException(e);
     }
     LOG.info("Restored rocksdb checkpoint in {}ms",
-        (System.nanoTime() - startNano) / Constants.MS_NANO);
+            (System.nanoTime() - startNano) / Constants.MS_NANO);
   }
 
   @Override
