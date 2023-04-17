@@ -5361,7 +5361,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey PROXY_S3_V2_ASYNC_CONTEXT_TIMEOUT_MS =
       longBuilder(Name.PROXY_S3_V2_ASYNC_CONTEXT_TIMEOUT_MS)
           .setDefaultValue(30000L)
-          .setDescription("Timeout for async context in milliseconds. "
+          .setDescription("Timeout(in milliseconds) for async context. "
               + "Set zero or less indicates no timeout.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
