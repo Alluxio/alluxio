@@ -88,11 +88,18 @@ public final class Scheduler {
       mWorkerProvider = workerProvider;
     }
     private final Map<WorkerInfo, PriorityBlockingQueue<Task>> mWorkerToTaskQ = new ConcurrentHashMap<>();
-    public void enqueueTaskForWorker(WorkerInfo workerInfo, Task task, boolean kickStartTask) {
+    public boolean enqueueTaskForWorker(WorkerInfo workerInfo, Task task, boolean kickStartTask) {
+      if (workerInfo == null)
+        return false;
       PriorityBlockingQueue workerTaskQ = mWorkerToTaskQ
           .computeIfAbsent(workerInfo, k -> new PriorityBlockingQueue<>());
-      workerTaskQ.offer(task);
-      mScheduler.getWorkingExecutor().submit(() -> task.execute(mActiveWorkers.get(workerInfo).get(), workerInfo));
+      if (!workerTaskQ.offer(task))
+        return false;
+      mScheduler.getWorkingExecutor().submit(() -> {
+        task.execute(mActiveWorkers.get(workerInfo).get(), workerInfo);
+        task.onComplete(mScheduler.getWorkingExecutor());
+      });
+      return true;
     }
 
     public boolean removeTaskFromWorkerQ(Task task) {
@@ -189,7 +196,7 @@ public final class Scheduler {
     if (!mRunning) {
       retrieveJobs();
       mWorkingExecutor = new ThreadPoolExecutor(4, 4, 0, TimeUnit.SECONDS,
-        new ArrayBlockingQueue<>(16 * 1024));
+        new ArrayBlockingQueue<>(16 * 1024), ThreadFactoryUtils.build("SCHEDULER-WORKER-", true));
       mSchedulerExecutor = Executors.newSingleThreadScheduledExecutor(
           ThreadFactoryUtils.build("scheduler", false));
       mSchedulerExecutor.scheduleAtFixedRate(mWorkerInfoHub::updateWorkers, 0, WORKER_UPDATE_INTERVAL,
@@ -206,6 +213,14 @@ public final class Scheduler {
 
   public ExecutorService getWorkingExecutor() {
     return mWorkingExecutor;
+  }
+
+  /*
+   TODO in future we should remove job automatically, but keep all history jobs in db to help
+   user retrieve all submitted jobs status.
+   */
+  public void removeJob(Job job) {
+    mExistingJobs.remove(job.getDescription());
   }
 
   private void retrieveJobs() {
