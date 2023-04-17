@@ -24,6 +24,8 @@ import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.grpc.JobProgressReportFormat;
 import alluxio.job.JobDescription;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
 import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobMetaStore;
@@ -87,6 +89,8 @@ public final class Scheduler {
   public Scheduler(WorkerProvider workerProvider, JobMetaStore jobMetaStore) {
     mWorkerProvider = workerProvider;
     mJobMetaStore = jobMetaStore;
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_JOB_SCHEDULER_RUNNING_COUNT.getName(), mRunningTasks::size);
   }
 
   /**
