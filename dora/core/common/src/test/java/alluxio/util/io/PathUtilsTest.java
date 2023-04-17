@@ -507,4 +507,34 @@ public final class PathUtilsTest {
     assertEquals("/foo/bar//", PathUtils.normalizePath("/foo/bar//", "/"));
     assertEquals("/foo/bar%", PathUtils.normalizePath("/foo/bar", "%"));
   }
+
+  /**
+   * Tests the {@link PathUtils#getPossibleMountPoints(String)} method to
+   * throw an exception in case the path is invalid.
+   */
+  @Test
+  public void getPossibleMountPointsException() throws InvalidPathException {
+    mException.expect(InvalidPathException.class);
+    PathUtils.getPossibleMountPoints("");
+  }
+
+  /**
+   * Tests the {@link PathUtils#getPossibleMountPoints(String)} method.
+   */
+  @Test
+  public void getPossibleMountPointsNoException() throws InvalidPathException {
+    ArrayList<String> paths = new ArrayList<>();
+    assertEquals(paths, PathUtils.getPossibleMountPoints("/"));
+    assertEquals(paths, PathUtils.getPossibleMountPoints("//"));
+
+    paths.add("/a");
+    assertEquals(paths, PathUtils.getPossibleMountPoints("/a"));
+    assertEquals(paths, PathUtils.getPossibleMountPoints("/a/"));
+    paths.add("/a/b");
+    assertEquals(paths, PathUtils.getPossibleMountPoints("/a/b"));
+    assertEquals(paths, PathUtils.getPossibleMountPoints("/a/b/"));
+    paths.add("/a/b/c");
+    assertEquals(paths, PathUtils.getPossibleMountPoints("/a/b/c"));
+    assertEquals(paths, PathUtils.getPossibleMountPoints("/a/b/c/"));
+  }
 }
