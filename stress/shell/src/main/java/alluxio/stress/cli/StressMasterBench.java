@@ -176,9 +176,9 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
       }
     } else if (mParameters.mClientType == FileSystemClientType.ALLUXIO_S3A) {
       mCachedFs = new FileSystem[mParameters.mClients];
-      hdfsConf.set("fs.s3a.access.key", "key");
-      hdfsConf.set("fs.s3a.secret.key", "key");
-      hdfsConf.set("fs.s3a.endpoint", "endpoint");
+      hdfsConf.set("fs.s3a.access.key", "alluxio");
+      hdfsConf.set("fs.s3a.secret.key", "alluxio");
+      hdfsConf.set("fs.s3a.endpoint", "s3.amazons.com");
       for (int i = 0; i < mCachedFs.length; i++) {
         // here the mParameters.mBasePath should be sth like "s3a://bucket-name/"
         mCachedFs[i] = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
