@@ -26,6 +26,7 @@ import alluxio.util.compression.TarUtils;
 import alluxio.util.SleepUtils;
 import alluxio.util.io.FileUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.IOUtils;
 import org.rocksdb.BlockBasedTableConfig;
@@ -58,7 +59,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicStampedReference;
 import java.util.concurrent.atomic.LongAdder;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -128,9 +131,38 @@ public final class RocksStore implements Closeable {
   private volatile Checkpoint mCheckpoint;
   private final List<AtomicReference<ColumnFamilyHandle>> mColumnHandles;
 
-  public final AtomicReference<VersionedRocksStoreStatus> mState =
-      new AtomicReference<>(new VersionedRocksStoreStatus(false, 0));
+  /*
+   * The state consists of two information.
+   *
+   * The boolean flag indicates whether the RocksDB wants to stop serving.
+   * TRUE - Stop serving
+   * FALSE - Serving normally
+   *
+   * The version number indicates whether the RocksDB has been rewritten.
+   * If the RocksDB is restored or wiped out, the version number goes up.
+   * If the RocksDB is paused just to dump a checkpoint, the version number is kept the same.
+   * A reader can rely on the version to tell whether it can still read the RocksDB
+   * after the exclusive lock is taken and released.
+   */
+  // TODO(jiacheng): maybe I can reverse the flags so they are more expressive
+  public final AtomicStampedReference<Boolean> mRocksDbState =
+      new AtomicStampedReference<>(false, 0);
   public final LongAdder mRefCount = new LongAdder();
+  /*
+   * A version is needed to guard the ABA problem. One possible sequence of events goes as below:
+   *
+   * 1. Reader checks the flag.
+   * 2. Reader increments refCount.
+   * 3. Reader is blocked (for a lock) or goes to sleep.
+   * 4. One Closer comes in, sets the flag and waits on refCount.
+   * 5. Closer wait times out. Closer forces the exclusive lock and resets refCount to 0.
+   * 6. Instead of closing the RocksDB, the exclusive lock is taken for restoring the RocksDB.
+   * 7. Closer finishes and resets the flag to 0.
+   * 8. Reader wakes up and releases the shared lock, now it should NOT decrement the ref count.
+   *
+   * A version is applied so the shared lock knows whether the ref count has been reset.
+   */
+  public final AtomicInteger mRefCountVersion = new AtomicInteger(0);
 
   /**
    * @param name a name to distinguish what store this is
@@ -318,6 +350,7 @@ public final class RocksStore implements Closeable {
    *
    * @param input the checkpoint stream to restore from
    */
+  // TODO(jiacheng): how do i make this use the lock correctly?
   public void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
     LOG.info("Restoring rocksdb from checkpoint");
     long startNano = System.nanoTime();
@@ -450,7 +483,7 @@ public final class RocksStore implements Closeable {
    * should not be exceeded at all.
    */
   public RocksSharedLockHandle checkAndAcquireSharedLock() {
-    if (mState.get().mStopServing) {
+    if (mRocksDbState.getReference()) {
       throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
     }
     /*
@@ -471,35 +504,12 @@ public final class RocksStore implements Closeable {
      * With the 2nd check, we make sure the ref count will be respected by the closer and
      * the closer will therefore wait for this reader to complete/abort.
      */
-    if (mState.get().mStopServing) {
+    if (mRocksDbState.getReference()) {
       mRefCount.decrement();
       throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
     }
 
-    /*
-     * The version is not checked here because there is so little chance that the thread
-     * is paused after mRefCount.increment() and before the 2nd flag check.
-     * In other words, the sequence of events can look like below:
-     *
-     * 1. Reader checks the flag
-     * 2. Reader increments refCount
-     * 3. Before the 2nd check, Reader is paused due to JVM safe point or GC
-     * 4. Closer waits on refCount
-     * 5. Closer wait times out. Closer forces the exclusive lock and resets refCount
-     * 6. Instead of closing the RocksDB, the exclusive lock is taken for restoring the RocksDB
-     * 7. Closer finishes and resets the flag
-     * 8. Reader wakes up and the 2nd check also passes
-     * 9. Reader reads a new RocksDB and the incorrect reference/index crashes the process
-     *
-     * In order for the above sequence to happen, Reader must be paused while Closer can run.
-     * That is highly unlikely because JVM pauses like GC or safepoints will affect BOTH
-     * Reader and Closer.
-     *
-     * Typically, Reader pauses due to its own logic like sleeping or waiting on a condition.
-     * That means the version check should take place in the access method instead of the locking
-     * method here.
-     */
-    return new RocksSharedLockHandle(mState, mRefCount);
+    return new RocksSharedLockHandle(mRocksDbState.getStamp(), mRefCount, mRefCountVersion);
   }
 
   /**
@@ -543,20 +553,25 @@ public final class RocksStore implements Closeable {
    *                             action on the exclusive lock
    */
   private void setFlagAndBlockingWait(boolean yieldToAnotherCloser) {
-    VersionedRocksStoreStatus status = mState.get();
     // Another known operation has acquired the exclusive lock
-    if (yieldToAnotherCloser && status.mStopServing) {
+    if (yieldToAnotherCloser && mRocksDbState.getReference()) {
+      System.out.println("Yield to another writer");
       throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
     }
 
-    int version = status.mVersion;
+    int version = mRocksDbState.getStamp();
     if (yieldToAnotherCloser) {
-      if (!mState.compareAndSet(status, new VersionedRocksStoreStatus(true, version + 1))) {
+//      if (!mState.compareAndSet(status, new VersionedRocksStoreStatus(true, version + 1))) {
+      if (!mRocksDbState.compareAndSet(false, true, version, version)) {
+        System.out.println("Yield to another writer at locking");
         throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
+      } else {
+        System.out.println("Set the flag in yield mode");
       }
     } else {
       // Just set the state with no respect to concurrent actions
-      mState.set(new VersionedRocksStoreStatus(true, version + 1));
+      mRocksDbState.set(true, version);
+      System.out.println("Set the flag in non-yielding mode");
     }
 
     /*
@@ -586,18 +601,29 @@ public final class RocksStore implements Closeable {
       SleepUtils.sleepMs(100);
     }
     Duration elapsed = Duration.between(waitStart, Instant.now());
+    System.out.format("Waited %s for ongoing read/write to complete/abort%n", elapsed.toMillis());
     LOG.info("Waited {}ms for ongoing read/write to complete/abort", elapsed.toMillis());
 
     /*
      * Reset the ref count to forget about the aborted operations
      */
-    long unclosedOperations = mRefCount.sumThenReset();
+    long unclosedOperations = mRefCount.sum();
+    System.out.format("After the wait there are still %s operations%n", unclosedOperations);
     if (unclosedOperations != 0) {
       if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
         // TODO(jiacheng): constant
         throw new RuntimeException("ref count=" + unclosedOperations
             + " some operations are not updating ref count correctly!");
       }
+      /*
+       * Set the flag so shared locks know that the ref count has been reset,
+       * no need to update the ref count on unlock.
+       * If one shared lock did not decrement the ref count before this reset, it should not
+       * decrement the ref count when it is released.
+       */
+      mRefCount.reset();
+      mRefCountVersion.incrementAndGet();
+      System.out.format("%s operations haven't finished when the ex lock is forced%n", unclosedOperations);
       LOG.warn("{} readers/writers fail to complete/abort before we stop/restart the RocksDB",
           unclosedOperations);
     }
@@ -616,7 +642,7 @@ public final class RocksStore implements Closeable {
     // Grab the lock with no respect to concurrent operations
     // Just grab the lock and close
     setFlagAndBlockingWait(false);
-    return new RocksExclusiveLockHandle(NO_OP, mState, mRefCount);
+    return new RocksExclusiveLockHandle(NO_OP, mRocksDbState, mRefCount, mRefCountVersion);
   }
 
   /**
@@ -632,7 +658,8 @@ public final class RocksStore implements Closeable {
   public RocksExclusiveLockHandle lockForCheckpoint() {
     // Grab the lock with respect to contenders
     setFlagAndBlockingWait(true);
-    return new RocksExclusiveLockHandle(RESET_SAME_VERSION, mState, mRefCount);
+    return new RocksExclusiveLockHandle(
+        RESET_SAME_VERSION, mRocksDbState, mRefCount, mRefCountVersion);
   }
 
   /**
@@ -648,7 +675,8 @@ public final class RocksStore implements Closeable {
   public RocksExclusiveLockHandle lockForRewrite() {
     // Grab the lock with respect to contenders
     setFlagAndBlockingWait(true);
-    return new RocksExclusiveLockHandle(RESET_NEW_VERSION, mState, mRefCount);
+    return new RocksExclusiveLockHandle(
+        RESET_NEW_VERSION, mRocksDbState, mRefCount, mRefCountVersion);
   }
 
   /**
@@ -656,9 +684,9 @@ public final class RocksStore implements Closeable {
    * to the RocksDB shutdown.
    */
   public void shouldAbort(int lockedVersion) {
-    if (mState.get().mStopServing) {
+    if (mRocksDbState.getReference()) {
       throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
-    } else if (lockedVersion < mState.get().mVersion) {
+    } else if (lockedVersion < mRocksDbState.getStamp()) {
       throw new UnavailableRuntimeException("RocksDB contents have changed!");
     }
   }
@@ -667,6 +695,16 @@ public final class RocksStore implements Closeable {
    * Checks whether the RocksDB is marked for exclusive access, so the operation should abort.
    */
   public boolean isServiceStopping() {
-    return mState.get().mStopServing;
+    return mRocksDbState.getReference();
+  }
+
+  @VisibleForTesting
+  public long getSharedLockCount() {
+    return mRefCount.sum();
+  }
+
+  @VisibleForTesting
+  public int getRefCountVersion() {
+    return mRefCountVersion.get();
   }
 }

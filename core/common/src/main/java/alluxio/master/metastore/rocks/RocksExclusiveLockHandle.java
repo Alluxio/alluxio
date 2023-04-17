@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicStampedReference;
 import java.util.concurrent.atomic.LongAdder;
@@ -21,8 +22,10 @@ public class RocksExclusiveLockHandle implements AutoCloseable {
   private static final boolean TEST_MODE = Configuration.getBoolean(PropertyKey.TEST_MODE);
 
   final UnlockAction mUnlockAction;
-  final AtomicReference<VersionedRocksStoreStatus> mStatus;
+//  final AtomicReference<VersionedRocksStoreStatus> mStatus;
+  final AtomicStampedReference<Boolean> mStatus;
   final LongAdder mRefCount;
+  final AtomicInteger mVersionedRefCountTracker;
 
   /**
    * The constructor.
@@ -30,10 +33,13 @@ public class RocksExclusiveLockHandle implements AutoCloseable {
    * @param refCount the ref count on RocksStore
    */
   public RocksExclusiveLockHandle(UnlockAction unlockAction,
-      AtomicReference<VersionedRocksStoreStatus> status, LongAdder refCount) {
+                                  AtomicStampedReference<Boolean> status,
+                                  LongAdder refCount,
+                                  AtomicInteger refCountVersionTracker) {
     mUnlockAction = unlockAction;
     mStatus = status;
     mRefCount = refCount;
+    mVersionedRefCountTracker = refCountVersionTracker;
   }
 
   @Override
@@ -51,13 +57,16 @@ public class RocksExclusiveLockHandle implements AutoCloseable {
             + "and messed up the ref count! Current ref count is {}", refCount);
       }
       mRefCount.reset();
+      // Mark the version so observers will know the ref count has been reset
+      mVersionedRefCountTracker.incrementAndGet();
     }
+
     switch (mUnlockAction) {
       case RESET_NEW_VERSION:
-        mStatus.set(new VersionedRocksStoreStatus(false, mStatus.get().mVersion + 1));
+        mStatus.set(false, mStatus.getStamp() + 1);
         break;
       case RESET_SAME_VERSION:
-        mStatus.set(new VersionedRocksStoreStatus(false, mStatus.get().mVersion));
+        mStatus.set(false, mStatus.getStamp());
         break;
       case NO_OP:
         break;

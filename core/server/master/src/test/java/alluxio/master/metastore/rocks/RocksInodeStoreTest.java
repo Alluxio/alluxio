@@ -56,6 +56,8 @@ public class RocksInodeStoreTest {
 
   public RocksInodeStore mStore;
 
+  private ExecutorService mThreadPool;
+
   @Before
   public void setUp() throws Exception {
     // Be explicit in this test
@@ -63,11 +65,14 @@ public class RocksInodeStoreTest {
     // Wait for a shorter period of time in test
     Configuration.set(PropertyKey.MASTER_METASTORE_ROCKS_EXCLUSIVE_LOCK_TIMEOUT, "1s");
     mStore = new RocksInodeStore(mFolder.newFolder().getAbsolutePath());
+    mThreadPool = Executors.newCachedThreadPool(ThreadFactoryUtils.build("test-executor-%d", true));
   }
 
   @After
   public void tearDown() throws Exception {
     mStore.close();
+    mThreadPool.shutdownNow();
+    mThreadPool = null;
   }
 
   @Test
@@ -93,6 +98,7 @@ public class RocksInodeStoreTest {
   }
 
   @Test
+  // TODO(jiacheng): can i just test the ref count like this?
   public void refCount() {
     for (int i = 1; i < 20; i++) {
       MutableInodeDirectory dir = MutableInodeDirectory.create(i, 0, "dir" + i, CreateDirectoryContext.defaults());
@@ -102,10 +108,10 @@ public class RocksInodeStoreTest {
     try (CloseableIterator<Long> iter = mStore.getChildIds(0L)) {
       int i = 0;
       while (iter.hasNext()) {
-        System.out.println("RocksStore has refCount=" + mStore.mRocksStore.mRefCount.sum());
+        System.out.println("RocksStore has refCount=" + mStore.getRocksStore().mRefCount.sum());
 
         if (i == 10) {
-          mStore.mRocksStore.mState.set(new VersionedRocksStoreStatus(true, 1));
+          mStore.getRocksStore().mRocksDbState.set(true, 0);
           System.out.println("Marked RocksDB for closing");
         }
 
@@ -115,27 +121,30 @@ public class RocksInodeStoreTest {
     } catch (Exception e) {
       System.out.println("Caught ex from iterator " + e.getMessage());
     } finally {
-      System.out.println("End - RocksStore has refCount=" + mStore.mRocksStore.mRefCount.sum());
+      System.out.println("End - RocksStore has refCount=" + mStore.getRocksStore().mRefCount.sum());
     }
   }
 
 
-
+  // TODO(jiacheng): UT for WW race condition
+  //  close - checkpoint
+  //  close - restore
+  //  close - clear
+  //  checkpoint - restore
 
   @Test
+  // TODO(jiacheng): Improve this UT and replace the rest
   public void concurrentListAndClose() throws Exception {
     int fileNumber = 400;
     int threadCount = 20;
     prepareFiles(fileNumber);
-
-    ExecutorService threadpool = Executors.newFixedThreadPool(threadCount, ThreadFactoryUtils.build("test-executor-%d", true));
 
     CountDownLatch latch = new CountDownLatch(20);
     List<Future> futures = new ArrayList<>();
     ArrayBlockingQueue<Exception> queue = new ArrayBlockingQueue<>(threadCount);
     ArrayBlockingQueue<Integer> results = new ArrayBlockingQueue<>(threadCount);
     for (int k = 0; k < threadCount; k++) {
-      futures.add(threadpool.submit(() -> {
+      futures.add(mThreadPool.submit(() -> {
         int listedCount = 0;
         try (CloseableIterator<Long> iter = mStore.getChildIds(0L)) {
           while (iter.hasNext()) {
@@ -149,7 +158,7 @@ public class RocksInodeStoreTest {
           queue.add(e);
         } finally {
           results.add(listedCount);
-          System.out.println("End - RocksStore has refCount=" + mStore.mRocksStore.mRefCount.sum());
+          System.out.println("End - RocksStore has refCount=" + mStore.getRocksStore().mRefCount.sum());
         }
       }));
     }
@@ -174,6 +183,11 @@ public class RocksInodeStoreTest {
     // List attempts either completed or aborted
     assertEquals(completed + queue.size(), threadCount);
   }
+
+  // TODO(jiacheng): concurrent list and if one iter throws an unexpected exception
+
+  // TODO(jiacheng): assert the lock should not have been forced
+  // TODO(jiacheng): In RocksStore test, validate ref count change in different scenarios
 
   @Test
   public void concurrentListAndClear() throws Exception {
@@ -202,7 +216,7 @@ public class RocksInodeStoreTest {
           queue.add(e);
         } finally {
           results.add(listedCount);
-          System.out.println("End - RocksStore has refCount=" + mStore.mRocksStore.mRefCount.sum());
+          System.out.println("End - RocksStore has refCount=" + mStore.getRocksStore().mRefCount.sum());
         }
       }));
     }
@@ -246,7 +260,7 @@ public class RocksInodeStoreTest {
           queueAgain.add(e);
         } finally {
           resultsAgain.add(listedCount);
-          System.out.println("End - RocksStore has refCount=" + mStore.mRocksStore.mRefCount.sum());
+          System.out.println("End - RocksStore has refCount=" + mStore.getRocksStore().mRefCount.sum());
         }
       }));
     }
@@ -293,7 +307,7 @@ public class RocksInodeStoreTest {
           queue.add(e);
         } finally {
           results.add(listedCount);
-          System.out.println("End - RocksStore has refCount=" + mStore.mRocksStore.mRefCount.sum());
+          System.out.println("End - RocksStore has refCount=" + mStore.getRocksStore().mRefCount.sum());
         }
       }));
     }
@@ -339,7 +353,7 @@ public class RocksInodeStoreTest {
           queueAgain.add(e);
         } finally {
           resultsAgain.add(listedCount);
-          System.out.println("End - RocksStore has refCount=" + mStore.mRocksStore.mRefCount.sum());
+          System.out.println("End - RocksStore has refCount=" + mStore.getRocksStore().mRefCount.sum());
         }
       }));
     }
@@ -391,7 +405,7 @@ public class RocksInodeStoreTest {
           queue.add(e);
         } finally {
           results.add(listedCount);
-          System.out.println("End - RocksStore has refCount=" + mStore.mRocksStore.mRefCount.sum());
+          System.out.println("End - RocksStore has refCount=" + mStore.getRocksStore().mRefCount.sum());
         }
       }));
     }
@@ -436,7 +450,7 @@ public class RocksInodeStoreTest {
           queueAgain.add(e);
         } finally {
           resultsAgain.add(listedCount);
-          System.out.println("End - RocksStore has refCount=" + mStore.mRocksStore.mRefCount.sum());
+          System.out.println("End - RocksStore has refCount=" + mStore.getRocksStore().mRefCount.sum());
         }
       }));
     }
@@ -494,7 +508,7 @@ public class RocksInodeStoreTest {
           queue.add(e);
         } finally {
           results.add(finishedCount);
-          System.out.println("End - RocksStore has refCount=" + mStore.mRocksStore.mRefCount.sum());
+          System.out.println("End - RocksStore has refCount=" + mStore.getRocksStore().mRefCount.sum());
         }
       }));
       System.out.println("Submitted " + k);
@@ -554,7 +568,7 @@ public class RocksInodeStoreTest {
           queue.add(e);
         } finally {
           results.add(finishedCount);
-          System.out.println("End - RocksStore has refCount=" + mStore.mRocksStore.mRefCount.sum());
+          System.out.println("End - RocksStore has refCount=" + mStore.getRocksStore().mRefCount.sum());
         }
       }));
     }
