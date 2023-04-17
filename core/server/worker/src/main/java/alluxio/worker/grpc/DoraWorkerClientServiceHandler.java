@@ -29,6 +29,8 @@ import alluxio.grpc.ReadResponse;
 import alluxio.grpc.ReadResponseMarshaller;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.options.ListOptions;
+import alluxio.util.CommonUtils;
+import alluxio.util.io.PathUtils;
 import alluxio.worker.dora.DoraWorker;
 import alluxio.worker.dora.PagedDoraWorker;
 
@@ -134,7 +136,9 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
 
       for (int i = 0; i < statuses.length; i++) {
         UfsStatus status = statuses[i];
-        String ufsFullPath = status.getName();
+        String ufsFullPath = PathUtils.concatPath(request.getPath(),
+            CommonUtils.stripPrefixIfPresent(status.getName(), request.getPath()));
+
         alluxio.grpc.FileInfo fi =
             ((PagedDoraWorker) mWorker).buildFileInfoFromUfsStatus(status, ufsFullPath);
 

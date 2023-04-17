@@ -55,7 +55,6 @@ import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
-import alluxio.util.CommonUtils;
 import alluxio.util.ModeUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockLocationInfo;
@@ -70,13 +69,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -216,7 +214,11 @@ public class UfsBaseFileSystem implements FileSystem {
 
   @Override
   public URIStatus getStatus(AlluxioURI path, final GetStatusPOptions options) {
-    return callWithReturn(() -> transformStatus(mUfs.get().getStatus(path.toString())));
+    return callWithReturn(() -> {
+      UfsStatus ufsStatus = mUfs.get().getStatus(path.toString());
+
+      return transformStatus(ufsStatus, path.toString());
+    });
   }
 
   @Override
@@ -230,7 +232,13 @@ public class UfsBaseFileSystem implements FileSystem {
       if (ufsStatuses == null || ufsStatuses.length == 0) {
         return Collections.emptyList();
       }
-      return Arrays.stream(ufsStatuses).map(this::transformStatus).collect(Collectors.toList());
+      List<URIStatus> uriStatusList = new ArrayList<>();
+      for (UfsStatus ufsStatus: ufsStatuses) {
+        URIStatus uriStatus = transformStatus(ufsStatus,
+            PathUtils.concatPath(path.toString(), ufsStatus.getName()));
+        uriStatusList.add(uriStatus);
+      }
+      return uriStatusList;
     });
   }
 
@@ -246,7 +254,11 @@ public class UfsBaseFileSystem implements FileSystem {
       if (ufsStatuses == null || ufsStatuses.length == 0) {
         return;
       }
-      Arrays.stream(ufsStatuses).map(this::transformStatus).forEach(action);
+      for (UfsStatus ufsStatus: ufsStatuses) {
+        URIStatus uriStatus = transformStatus(ufsStatus,
+            PathUtils.concatPath(path.toString(), ufsStatus.getName()));
+        action.accept(uriStatus);
+      }
     });
   }
 
@@ -414,13 +426,12 @@ public class UfsBaseFileSystem implements FileSystem {
    * @param ufsStatus the UFS status to transform
    * @return the client-side status
    */
-  private URIStatus transformStatus(UfsStatus ufsStatus) {
-    String path = CommonUtils.stripPrefixIfPresent(ufsStatus.getName(), mRootUFS.toString());
-    AlluxioURI ufsUri = new AlluxioURI(PathUtils.concatPath(mRootUFS, path));
+  private URIStatus transformStatus(UfsStatus ufsStatus, String ufsFullPath) {
+    AlluxioURI ufsUri = new AlluxioURI(ufsFullPath);
     FileInfo info = new FileInfo().setName(ufsUri.getName())
-        .setPath(path)
-        .setFileId(ufsUri.toString().hashCode())
+        .setPath(ufsUri.getPath())
         .setUfsPath(ufsUri.toString())
+        .setFileId(ufsUri.toString().hashCode())
         .setFolder(ufsStatus.isDirectory())
         .setOwner(ufsStatus.getOwner())
         .setGroup(ufsStatus.getGroup())
