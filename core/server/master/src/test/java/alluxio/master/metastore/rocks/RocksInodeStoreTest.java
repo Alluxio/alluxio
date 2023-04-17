@@ -186,9 +186,6 @@ public class RocksInodeStoreTest {
 
   // TODO(jiacheng): concurrent list and if one iter throws an unexpected exception
 
-  // TODO(jiacheng): assert the lock should not have been forced
-  // TODO(jiacheng): In RocksStore test, validate ref count change in different scenarios
-
   @Test
   public void concurrentListAndClear() throws Exception {
     int fileNumber = 400;

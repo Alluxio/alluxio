@@ -99,7 +99,7 @@ public final class RocksUtils {
    * by the caller (See java doc on RocksStore.checkAndAcquireSharedLock()) for how.
    * And the lock is held throughout the lifecycle of this iterator until it is closed
    * either on completion or on exception. This shared lock guarantees thread safety when
-   * accessing the RocksDB. In other word, when this shared lock is held, the underlying
+   * accessing the RocksDB. In other words, when this shared lock is held, the underlying
    * RocksDB will not be stopped/restarted.
    *
    * The abortCheck defines a way to voluntarily abort the iteration. This typically happens

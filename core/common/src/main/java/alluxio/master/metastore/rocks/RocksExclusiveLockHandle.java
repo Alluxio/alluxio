@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicStampedReference;
 import java.util.concurrent.atomic.LongAdder;
 
 /**
- * This is a handle used to close the write lock(exclusive lock) on RocksStore.
+ * This is a handle used to manage the write lock(exclusive lock) on RocksStore.
  * The exclusive lock is acquired when ref count is zero, and the StopServingFlag ensures
  * no new r/w will come in, so the ref count will stay zero throughout the period.
  */
@@ -22,7 +22,6 @@ public class RocksExclusiveLockHandle implements AutoCloseable {
   private static final boolean TEST_MODE = Configuration.getBoolean(PropertyKey.TEST_MODE);
 
   final UnlockAction mUnlockAction;
-//  final AtomicReference<VersionedRocksStoreStatus> mStatus;
   final AtomicStampedReference<Boolean> mStatus;
   final LongAdder mRefCount;
   final AtomicInteger mVersionedRefCountTracker;
@@ -75,6 +74,9 @@ public class RocksExclusiveLockHandle implements AutoCloseable {
     }
   }
 
+  /**
+   * Defines a bunch of actions to take when the exclusive lock is released.
+   */
   public enum UnlockAction {
     // No need to reset the flag when the lock is released. The process is exiting anyway.
     NO_OP,
