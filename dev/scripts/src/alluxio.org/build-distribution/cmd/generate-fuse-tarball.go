@@ -31,9 +31,8 @@ func Fuse(args []string) error {
 		return err
 	}
 	if err := generateTarball(&GenerateTarballOpts{
-		SkipUI:   false,
-		SkipHelm: false,
-		Fuse:     true,
+		SkipUI: false,
+		Fuse:   true,
 	}); err != nil {
 		return err
 	}
