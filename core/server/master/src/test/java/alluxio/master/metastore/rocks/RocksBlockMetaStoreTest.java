@@ -1,7 +1,17 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.master.metastore.rocks;
 
 import static alluxio.master.metastore.rocks.RocksStoreTestUtils.waitForReaders;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -20,7 +30,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import javax.annotation.Nullable;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
@@ -35,6 +44,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.annotation.Nullable;
 
 public class RocksBlockMetaStoreTest {
   private static final int FILE_NUMBER = 400;
@@ -72,7 +82,8 @@ public class RocksBlockMetaStoreTest {
 
     FlakyRocksBlockStore delegateStore = new FlakyRocksBlockStore(mPath, mStore);
     AtomicReference<Exception> exception = new AtomicReference<>(null);
-    try (CloseableIterator<BlockMetaStore.Block> brokenIter = delegateStore.getCloseableIterator(false, true)) {
+    try (CloseableIterator<BlockMetaStore.Block> brokenIter =
+             delegateStore.getCloseableIterator(false, true)) {
       while (brokenIter.hasNext()) {
         brokenIter.next();
       }
@@ -93,7 +104,8 @@ public class RocksBlockMetaStoreTest {
 
     FlakyRocksBlockStore delegateStore = new FlakyRocksBlockStore(mPath, mStore);
     AtomicReference<Exception> exception = new AtomicReference<>(null);
-    try (CloseableIterator<BlockMetaStore.Block> brokenIter = delegateStore.getCloseableIterator(true, false)) {
+    try (CloseableIterator<BlockMetaStore.Block> brokenIter =
+             delegateStore.getCloseableIterator(true, false)) {
       while (brokenIter.hasNext()) {
         brokenIter.next();
       }
@@ -120,28 +132,24 @@ public class RocksBlockMetaStoreTest {
     CountDownLatch restoreLatch = new CountDownLatch(1);
     ArrayBlockingQueue<Exception> errors = new ArrayBlockingQueue<>(THREAD_NUMBER);
     ArrayBlockingQueue<Integer> results = new ArrayBlockingQueue<>(THREAD_NUMBER);
-    List<Future<Void>> futures = submitIterJob(THREAD_NUMBER, errors, results, readerLatch, restoreLatch);
+    List<Future<Void>> futures =
+        submitIterJob(THREAD_NUMBER, errors, results, readerLatch, restoreLatch);
 
     // Await for the 20 threads to be iterating in the middle, then trigger the shutdown event
     readerLatch.await();
-    System.out.println("All 20 threads are running, shut down now");
     File checkpointFile = File.createTempFile("checkpoint-for-recovery", "");
-    try (BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(checkpointFile))) {
+    try (BufferedOutputStream out =
+             new BufferedOutputStream(new FileOutputStream(checkpointFile))) {
       mStore.writeToCheckpoint(out);
     }
-    System.out.println("Written checkpoint file with size " + Files.size(checkpointFile.toPath()));
     assertTrue(Files.size(checkpointFile.toPath()) > 0);
 
     // Verify that the iterators can still run
-    System.out.println("Restore finished, let readers continue");
     restoreLatch.countDown();
-
     waitForReaders(futures);
-    System.out.println("All threads finished on the new RocksDB");
 
     // All iterators should abort because the RocksDB contents have changed
     assertEquals(0, errors.size());
-    System.out.println("Job status: " + results);
     long completed = results.stream().filter(n -> n == FILE_NUMBER).count();
     assertEquals(THREAD_NUMBER, completed);
   }
@@ -155,42 +163,37 @@ public class RocksBlockMetaStoreTest {
 
     // Prepare a checkpoint file
     File checkpointFile = File.createTempFile("checkpoint-for-recovery", "");
-    try (BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(checkpointFile))) {
+    try (BufferedOutputStream out =
+             new BufferedOutputStream(new FileOutputStream(checkpointFile))) {
       mStore.writeToCheckpoint(out);
     }
-    System.out.println("Prepared checkpoint file with size " + Files.size(checkpointFile.toPath()));
 
     // Create a bunch of long running iterators on the InodeStore
     CountDownLatch readerLatch = new CountDownLatch(THREAD_NUMBER);
     CountDownLatch restoreLatch = new CountDownLatch(1);
     ArrayBlockingQueue<Exception> errors = new ArrayBlockingQueue<>(THREAD_NUMBER);
     ArrayBlockingQueue<Integer> results = new ArrayBlockingQueue<>(THREAD_NUMBER);
-    List<Future<Void>> futures = submitIterJob(THREAD_NUMBER, errors, results, readerLatch, restoreLatch);
+    List<Future<Void>> futures =
+        submitIterJob(THREAD_NUMBER, errors, results, readerLatch, restoreLatch);
 
     // Await for the 20 threads to be iterating in the middle, then trigger the shutdown event
     readerLatch.await();
-    System.out.println("All 20 threads are running, shut down now");
-    try (CheckpointInputStream in = new CheckpointInputStream((new DataInputStream(new FileInputStream(checkpointFile))))) {
+    try (CheckpointInputStream in = new CheckpointInputStream(
+        (new DataInputStream(new FileInputStream(checkpointFile))))) {
       mStore.restoreFromCheckpoint(in);
     }
-    System.out.println("Restored from checkpoint");
 
     // Verify that the iterators can still run
-    System.out.println("Restore finished, let readers continue");
     restoreLatch.countDown();
-
     waitForReaders(futures);
-    System.out.println("All threads finished on the new RocksDB");
 
     // All iterators should abort because the RocksDB contents have changed
     assertEquals(THREAD_NUMBER, errors.size());
-    System.out.println("Job status: " + results);
     long completed = results.stream().filter(n -> n == FILE_NUMBER).count();
     assertEquals(0, completed);
     long aborted = results.stream().filter(n -> n == 10).count();
     assertEquals(THREAD_NUMBER, aborted);
   }
-
 
   public static class FlakyRocksBlockStore extends RocksInodeStore {
     private final RocksBlockMetaStore mDelegate;
@@ -200,8 +203,8 @@ public class RocksBlockMetaStoreTest {
       mDelegate = delegate;
     }
 
-    public CloseableIterator<BlockMetaStore.Block> getCloseableIterator(boolean hasNextIsFlaky, boolean nextIsFlaky) {
-      System.out.println("Get an iter from delegate");
+    public CloseableIterator<BlockMetaStore.Block> getCloseableIterator(
+        boolean hasNextIsFlaky, boolean nextIsFlaky) {
       CloseableIterator<BlockMetaStore.Block> iter = mDelegate.getCloseableIterator();
 
       // This iterator is flaky
@@ -215,7 +218,6 @@ public class RocksBlockMetaStoreTest {
 
         @Override
         public boolean hasNext() {
-          System.out.println("hasNext");
           if (mCounter == 5 && hasNextIsFlaky) {
             throw new RuntimeException("Unexpected exception in iterator");
           }
@@ -225,7 +227,6 @@ public class RocksBlockMetaStoreTest {
         @Override
         public BlockMetaStore.Block next() {
           mCounter++;
-          System.out.println("Step " + mCounter);
           if (mCounter == 5 && nextIsFlaky) {
             throw new RuntimeException("Unexpected exception in iterator");
           }
@@ -242,10 +243,9 @@ public class RocksBlockMetaStoreTest {
   }
 
   private List<Future<Void>> submitIterJob(int threadCount,
-                                           ArrayBlockingQueue<Exception> errors,
-                                           ArrayBlockingQueue<Integer> results,
-                                           @Nullable CountDownLatch readersRunningLatch,
-                                           @Nullable CountDownLatch writerCompletedLatch) {
+      ArrayBlockingQueue<Exception> errors, ArrayBlockingQueue<Integer> results,
+      @Nullable CountDownLatch readersRunningLatch,
+      @Nullable CountDownLatch writerCompletedLatch) {
     List<Future<Void>> futures = new ArrayList<>();
     for (int k = 0; k < threadCount; k++) {
       futures.add(mThreadPool.submit(() -> {
@@ -254,11 +254,9 @@ public class RocksBlockMetaStoreTest {
           while (iter.hasNext()) {
             if (listedCount == 10 && readersRunningLatch != null) {
               readersRunningLatch.countDown();
-              System.out.println("Reader is blocked and waits");
               if (writerCompletedLatch != null) {
                 // Pretend the reader is blocked and will wake up after the writer is done
                 writerCompletedLatch.await();
-                System.out.println("Reader resumes after the writer is done");
               }
             }
             iter.next();
@@ -268,7 +266,6 @@ public class RocksBlockMetaStoreTest {
           errors.add(e);
         } finally {
           results.add(listedCount);
-          System.out.println("End - RocksStore has refCount=" + mStore.getRocksStore().getSharedLockCount());
         }
         return null;
       }));

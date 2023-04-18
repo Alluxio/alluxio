@@ -114,6 +114,7 @@ public final class RocksUtils {
    * @param parser parser to produce iterated values from rocks key-value
    * @param <T> iterator value type
    * @param abortCheck if true, abort the iteration
+   * @param rocksDbSharedLock the shared lock acquired by the iterator
    * @return wrapped iterator
    */
   public static <T> CloseableIterator<T> createCloseableIterator(

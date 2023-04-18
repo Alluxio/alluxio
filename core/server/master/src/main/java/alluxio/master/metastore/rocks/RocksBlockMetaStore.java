@@ -16,7 +16,6 @@ import static alluxio.master.metastore.rocks.RocksStore.checkSetTableConfig;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.journal.checkpoint.CheckpointName;
-import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.master.metastore.BlockMetaStore;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;

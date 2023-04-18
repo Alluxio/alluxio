@@ -288,7 +288,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
   }
 
   private long getProperty(String rocksPropertyName) {
-    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()){
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
       return db().getAggregatedLongProperty(rocksPropertyName);
     } catch (RocksDBException e) {
       LOG.warn(String.format("error collecting %s", rocksPropertyName), e);
@@ -298,7 +298,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
   @Override
   public void remove(Long inodeId) {
-    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()){
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
       byte[] id = Longs.toByteArray(inodeId);
       db().delete(mInodesColumn.get(), mDisableWAL, id);
     } catch (RocksDBException e) {
@@ -308,7 +308,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
   @Override
   public void writeInode(MutableInode<?> inode) {
-    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()){
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
       db().put(mInodesColumn.get(), mDisableWAL, Longs.toByteArray(inode.getId()),
           inode.toProto().toByteArray());
     } catch (RocksDBException e) {
@@ -334,7 +334,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
   @Override
   public void addChild(long parentId, String childName, Long childId) {
-    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()){
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
       db().put(mEdgesColumn.get(), mDisableWAL, RocksUtils.toByteArray(parentId, childName),
           Longs.toByteArray(childId));
     } catch (RocksDBException e) {
@@ -344,7 +344,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
 
   @Override
   public void removeChild(long parentId, String name) {
-    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()){
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
       db().delete(mEdgesColumn.get(), mDisableWAL, RocksUtils.toByteArray(parentId, name));
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
@@ -354,7 +354,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
   @Override
   public Optional<MutableInode<?>> getMutable(long id, ReadOption option) {
     byte[] inode;
-    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()){
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
       inode = db().get(mInodesColumn.get(), Longs.toByteArray(id));
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
@@ -418,7 +418,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
   @Override
   public Optional<Long> getChildId(Long inodeId, String name, ReadOption option) {
     byte[] id;
-    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()){
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
       id = db().get(mEdgesColumn.get(), RocksUtils.toByteArray(inodeId, name));
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
@@ -506,8 +506,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
   public Set<EdgeEntry> allEdges() {
     Set<EdgeEntry> edges = new HashSet<>();
     try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock();
-         RocksIterator iter = db().newIterator(mEdgesColumn.get(),
-        mIteratorOption)) {
+         RocksIterator iter = db().newIterator(mEdgesColumn.get(), mIteratorOption)) {
       iter.seekToFirst();
       while (iter.isValid()) {
         mRocksStore.shouldAbort(lock.mDbVersion);
@@ -525,8 +524,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
   public Set<MutableInode<?>> allInodes() {
     Set<MutableInode<?>> inodes = new HashSet<>();
     try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock();
-         RocksIterator iter = db().newIterator(mInodesColumn.get(),
-        mIteratorOption)) {
+         RocksIterator iter = db().newIterator(mInodesColumn.get(), mIteratorOption)) {
       iter.seekToFirst();
       while (iter.isValid()) {
         mRocksStore.shouldAbort(lock.mDbVersion);

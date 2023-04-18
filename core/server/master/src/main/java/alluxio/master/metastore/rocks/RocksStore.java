@@ -21,9 +21,9 @@ import alluxio.master.journal.checkpoint.CheckpointOutputStream;
 import alluxio.master.journal.checkpoint.CheckpointType;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.TimeoutRetry;
+import alluxio.util.SleepUtils;
 import alluxio.util.compression.ParallelZipUtils;
 import alluxio.util.compression.TarUtils;
-import alluxio.util.SleepUtils;
 import alluxio.util.io.FileUtils;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -490,6 +490,8 @@ public final class RocksStore implements Closeable {
    * are disrespected. Normally, the r/w operation should either complete or abort within
    * seconds so the timeout {@link PropertyKey#MASTER_METASTORE_ROCKS_EXCLUSIVE_LOCK_TIMEOUT}
    * should not be exceeded at all.
+   *
+   * @return a shared lock handle used to manage and close the shared lock
    */
   public RocksSharedLockHandle checkAndAcquireSharedLock() {
     if (mRocksDbStopServing.getReference()) {
@@ -657,6 +659,8 @@ public final class RocksStore implements Closeable {
    * close the RocksDB and recycle all relevant resources.
    *
    * The STOP_SERVING status will NOT be reset, because the process will shut down soon.
+   *
+   * @return the exclusive lock handle used to manage and close the lock
    */
   public RocksExclusiveLockHandle lockForClosing() {
     Exception e = new RuntimeException("Log trace here");
@@ -675,18 +679,21 @@ public final class RocksStore implements Closeable {
    * restart/checkpoint the RocksDB and update the DB reference.
    *
    * The STOP_SERVING status will be reset and the RocksDB will be open for operations again.
+   * The version will not be bumped up, because the RocksDB contents has not changed.
    * See {@link #checkAndAcquireSharedLock} for how this affects the shared lock logic.
+   *
+   * @return the exclusive lock handle used to manage and close the lock
    */
   public RocksExclusiveLockHandle lockForCheckpoint() {
     // Grab the lock with respect to contenders
     setFlagAndBlockingWait(true);
     return new RocksExclusiveLockHandle(() -> {
-        mCheckRefCount.call();
-        // There is no need to worry about overwriting another concurrent Closer action
-        // The only chance of concurrency is with lockForClosing()
-        // But lockForClosing() guarantees the master process will close immediately
-        mRocksDbStopServing.set(false, mRocksDbStopServing.getStamp());
-        return null;
+      mCheckRefCount.call();
+      // There is no need to worry about overwriting another concurrent Closer action
+      // The only chance of concurrency is with lockForClosing()
+      // But lockForClosing() guarantees the master process will close immediately
+      mRocksDbStopServing.set(false, mRocksDbStopServing.getStamp());
+      return null;
     });
   }
 
@@ -698,24 +705,31 @@ public final class RocksStore implements Closeable {
    * restart/checkpoint the RocksDB and update the DB reference.
    *
    * The STOP_SERVING status will be reset and the RocksDB will be open for operations again.
+   * The version will be bumped up, because the RocksDB contents has changed. If there is one slow
+   * operation expecting to see the old version, that operation should abort.
    * See {@link #checkAndAcquireSharedLock} for how this affects the shared lock logic.
+   *
+   * @return the exclusive lock handle used to manage and close the lock
    */
   public RocksExclusiveLockHandle lockForRewrite() {
     // Grab the lock with respect to contenders
     setFlagAndBlockingWait(true);
     return new RocksExclusiveLockHandle(() -> {
-        mCheckRefCount.call();
-        // There is no need to worry about overwriting another concurrent Closer action
-        // The only chance of concurrency is with lockForClosing()
-        // But lockForClosing() guarantees the master process will close immediately
-        mRocksDbStopServing.set(false, mRocksDbStopServing.getStamp() + 1);
-        return null;
+      mCheckRefCount.call();
+      // There is no need to worry about overwriting another concurrent Closer action
+      // The only chance of concurrency is with lockForClosing()
+      // But lockForClosing() guarantees the master process will close immediately
+      mRocksDbStopServing.set(false, mRocksDbStopServing.getStamp() + 1);
+      return null;
     });
   }
 
   /**
    * Used by ongoing r/w operations to check if the operation needs to abort and yield
    * to the RocksDB shutdown.
+   *
+   * @param lockedVersion The RocksDB version from the shared lock. This version is used to tell
+   *                      if a restore or clear operation has happened on the RocksDB.
    */
   public void shouldAbort(int lockedVersion) {
     if (mRocksDbStopServing.getReference()) {
@@ -727,11 +741,17 @@ public final class RocksStore implements Closeable {
 
   /**
    * Checks whether the RocksDB is marked for exclusive access, so the operation should abort.
+   * @return whether the RocksDB expects to stop
    */
   public boolean isServiceStopping() {
     return mRocksDbStopServing.getReference();
   }
 
+  /**
+   * Gets the number of shared lock on the RocksStore.
+   *
+   * @return the count
+   */
   @VisibleForTesting
   public long getSharedLockCount() {
     return mRefCount.sum();

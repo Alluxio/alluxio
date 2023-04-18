@@ -12,7 +12,6 @@
 package alluxio.master.metastore.rocks;
 
 import static alluxio.master.metastore.rocks.RocksStoreTestUtils.waitForReaders;
-
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -27,7 +26,6 @@ import alluxio.master.file.meta.MutableInode;
 import alluxio.master.file.meta.MutableInodeDirectory;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.metastore.InodeStore.WriteBatch;
-
 import alluxio.master.metastore.ReadOption;
 import alluxio.resource.CloseableIterator;
 import alluxio.util.ThreadFactoryUtils;
@@ -38,7 +36,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import javax.annotation.Nullable;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
@@ -56,6 +53,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
+import javax.annotation.Nullable;
 
 public class RocksInodeStoreTest {
   private static final int FILE_NUMBER = 400;
@@ -71,18 +69,24 @@ public class RocksInodeStoreTest {
 
   // Functional wrappers of RocksDB r/w actions
   private QuadFunction<ArrayBlockingQueue<Exception>, ArrayBlockingQueue<Integer>,
-          CountDownLatch, CountDownLatch, List<Future<Void>>> createAddReaders = (errors, results, readerRunningLatch, writerCompletedLatch) -> {
-    return submitAddInodeJob(errors, results, readerRunningLatch, writerCompletedLatch);
-  };
+          CountDownLatch, CountDownLatch, List<Future<Void>>> mCreateAddReaders =
+              (errors, results, readerRunningLatch, writerCompletedLatch) -> {
+                return submitAddInodeJob(
+                        errors, results, readerRunningLatch, writerCompletedLatch);
+              };
   private QuadFunction<ArrayBlockingQueue<Exception>, ArrayBlockingQueue<Integer>,
-          CountDownLatch, CountDownLatch, List<Future<Void>>> createGetReaders = (errors, results, readerRunningLatch, writerCompletedLatch) -> {
-    return submitGetInodeJob(errors, results, readerRunningLatch, writerCompletedLatch);
-  };
+          CountDownLatch, CountDownLatch, List<Future<Void>>> mCreateGetReaders =
+              (errors, results, readerRunningLatch, writerCompletedLatch) -> {
+                return submitGetInodeJob(
+                        errors, results, readerRunningLatch, writerCompletedLatch);
+              };
   private QuadFunction<ArrayBlockingQueue<Exception>, ArrayBlockingQueue<Integer>,
-          CountDownLatch, CountDownLatch, List<Future<Void>>> createListReadersAbort = (errors, results, readerRunningLatch, writerCompletedLatch) -> {
-    // Do not wait for the writer latch, meaning the writer will run concurrent to the list actions
-    return submitListingJob(errors, results, readerRunningLatch, null);
-  };
+          CountDownLatch, CountDownLatch, List<Future<Void>>> mCreateListReadersAbort =
+              (errors, results, readerRunningLatch, writerCompletedLatch) -> {
+                // Do not wait for the writer latch, writer will run concurrent to the list actions
+                return submitListingJob(
+                        errors, results, readerRunningLatch, null);
+              };
 
   @Before
   public void setUp() throws Exception {
@@ -92,7 +96,8 @@ public class RocksInodeStoreTest {
     Configuration.set(PropertyKey.MASTER_METASTORE_ROCKS_EXCLUSIVE_LOCK_TIMEOUT, "1s");
     mPath = mFolder.newFolder().getAbsolutePath();
     mStore = new RocksInodeStore(mFolder.newFolder().getAbsolutePath());
-    mThreadPool = Executors.newCachedThreadPool(ThreadFactoryUtils.build("test-executor-%d", true));
+    mThreadPool = Executors.newCachedThreadPool(
+        ThreadFactoryUtils.build("test-executor-%d", true));
   }
 
   @After
@@ -119,21 +124,21 @@ public class RocksInodeStoreTest {
   public void toStringEntries() throws IOException {
     assertEquals("", mStore.toStringEntries());
 
-    mStore.writeInode(MutableInodeDirectory.create(1, 0, "dir", CreateDirectoryContext.defaults()));
+    mStore.writeInode(MutableInodeDirectory.create(
+        1, 0, "dir", CreateDirectoryContext.defaults()));
     assertEquals("dir", mStore.get(1).get().getName());
     assertThat(mStore.toStringEntries(), containsString("name=dir"));
   }
 
   @Test
   public void concurrentListAndClose() throws Exception {
-    testConcurrentReaderAndClose(createListReadersAbort);
+    testConcurrentReaderAndClose(mCreateListReadersAbort);
   }
 
   @Test
   public void concurrentListAndRestore() throws Exception {
-    testConcurrentReaderAndRestore(createListReadersAbort, (errors, results) -> {
+    testConcurrentReaderAndRestore(mCreateListReadersAbort, (errors, results) -> {
       assertTrue(errors.size() <= THREAD_NUMBER);
-      System.out.println("Results are " + results);
       // Depending on the thread execution order, sometimes the reader threads
       // may run to finish before the writer thread picks up the signal and flag
       long completed = results.stream().filter(n -> n == FILE_NUMBER).count();
@@ -142,7 +147,6 @@ public class RocksInodeStoreTest {
     }, (errors, results) -> {
       // Results are all empty after the clear
       assertEquals(0, errors.size());
-      System.out.println("Results are " + results);
       long completed = results.stream().filter(n -> n == FILE_NUMBER).count();
       assertEquals(THREAD_NUMBER, completed);
       return null;
@@ -151,9 +155,8 @@ public class RocksInodeStoreTest {
 
   @Test
   public void concurrentListAndCheckpoint() throws Exception {
-    testConcurrentReaderAndCheckpoint(createListReadersAbort, (errors, results) -> {
+    testConcurrentReaderAndCheckpoint(mCreateListReadersAbort, (errors, results) -> {
       assertTrue(errors.size() <= THREAD_NUMBER);
-      System.out.println("Results are " + results);
       // Depending on the thread execution order, sometimes the reader threads
       // may run to finish before the writer thread picks up the signal and flag
       long completed = results.stream().filter(n -> n == FILE_NUMBER).count();
@@ -161,7 +164,6 @@ public class RocksInodeStoreTest {
       return null;
     }, (errors, results) -> {
       assertEquals(0, errors.size());
-      System.out.println("Results are " + results);
       long completed = results.stream().filter(n -> n == FILE_NUMBER).count();
       assertEquals(THREAD_NUMBER, completed);
       return null;
@@ -170,9 +172,8 @@ public class RocksInodeStoreTest {
 
   @Test
   public void concurrentListAndClear() throws Exception {
-    testConcurrentReaderAndClear(createListReadersAbort, (errors, results) -> {
+    testConcurrentReaderAndClear(mCreateListReadersAbort, (errors, results) -> {
       assertTrue(errors.size() <= THREAD_NUMBER);
-      System.out.println("Results are " + results);
       // Depending on the thread execution order, sometimes the reader threads
       // may run to finish before the writer thread picks up the signal and flag
       long completed = results.stream().filter(n -> n == FILE_NUMBER).count();
@@ -181,7 +182,6 @@ public class RocksInodeStoreTest {
     }, (errors, results) -> {
       // Results are all empty after the clear
       assertEquals(0, errors.size());
-      System.out.println("Results are " + results);
       long seeEmpty = results.stream().filter(n -> n == 0).count();
       assertEquals(THREAD_NUMBER, seeEmpty);
       return null;
@@ -190,22 +190,20 @@ public class RocksInodeStoreTest {
 
   @Test
   public void concurrentGetAndClose() throws Exception {
-    testConcurrentReaderAndClose(createGetReaders);
+    testConcurrentReaderAndClose(mCreateGetReaders);
   }
 
   @Test
   public void concurrentGetAndRestore() throws Exception {
-    testConcurrentReaderAndRestore(createGetReaders, (errors, results) -> {
+    testConcurrentReaderAndRestore(mCreateGetReaders, (errors, results) -> {
       // The closer will finish and the new Get operations are unaffected
       // If one inode does not exist, result will be Optional.empty
       assertEquals(0, errors.size());
-      System.out.println("Results are " + results);
       long completed = results.stream().filter(n -> n == THREAD_NUMBER).count();
       assertEquals(THREAD_NUMBER, completed);
       return null;
     }, (errors, results) -> {
       assertEquals(0, errors.size());
-      System.out.println("Results are " + results);
       long completed = results.stream().filter(n -> n == THREAD_NUMBER).count();
       assertEquals(THREAD_NUMBER, completed);
       return null;
@@ -214,16 +212,14 @@ public class RocksInodeStoreTest {
 
   @Test
   public void concurrentGetAndCheckpoint() throws Exception {
-    testConcurrentReaderAndCheckpoint(createGetReaders, (errors, results) -> {
+    testConcurrentReaderAndCheckpoint(mCreateGetReaders, (errors, results) -> {
       // The closer will finish and the new Get operations are unaffected
       assertEquals(0, errors.size());
-      System.out.println("Results are " + results);
       long completed = results.stream().filter(n -> n == THREAD_NUMBER).count();
       assertEquals(THREAD_NUMBER, completed);
       return null;
     }, (errors, results) -> {
       assertEquals(0, errors.size());
-      System.out.println("Results are " + results);
       long completed = results.stream().filter(n -> n == THREAD_NUMBER).count();
       assertEquals(THREAD_NUMBER, completed);
       return null;
@@ -232,17 +228,15 @@ public class RocksInodeStoreTest {
 
   @Test
   public void concurrentGetAndClear() throws Exception {
-    testConcurrentReaderAndClear(createGetReaders, (errors, results) -> {
+    testConcurrentReaderAndClear(mCreateGetReaders, (errors, results) -> {
       // The closer will finish and the new Get operations are unaffected
       // However, Get after the RocksDB is cleared will get empty results
       assertEquals(0, errors.size());
-      System.out.println("Results are " + results);
       long completed = results.stream().filter(n -> n == THREAD_NUMBER).count();
       assertEquals(THREAD_NUMBER, completed);
       return null;
     }, (errors, results) -> {
       assertEquals(0, errors.size());
-      System.out.println("Results are " + results);
       long completed = results.stream().filter(n -> n == THREAD_NUMBER).count();
       assertEquals(THREAD_NUMBER, completed);
       return null;
@@ -251,22 +245,19 @@ public class RocksInodeStoreTest {
 
   @Test
   public void concurrentAddAndClose() throws Exception {
-    testConcurrentReaderAndClose(createAddReaders);
+    testConcurrentReaderAndClose(mCreateAddReaders);
   }
 
   @Test
   public void concurrentAddAndRestore() throws Exception {
-    testConcurrentReaderAndRestore(createAddReaders, (errors, results) -> {
-      System.out.println("Error size " + errors.size());
+    testConcurrentReaderAndRestore(mCreateAddReaders, (errors, results) -> {
       // After the restore finishes, new add operations can go on unaffected
       assertEquals(0, errors.size());
-      System.out.println("Results are " + results);
       long completed = results.stream().filter(n -> n == THREAD_NUMBER).count();
       assertEquals(THREAD_NUMBER, completed);
       return null;
     }, (errors, results) -> {
       assertEquals(0, errors.size());
-      System.out.println("Results are " + results);
       long completed = results.stream().filter(n -> n == THREAD_NUMBER).count();
       assertEquals(THREAD_NUMBER, completed);
       return null;
@@ -275,17 +266,14 @@ public class RocksInodeStoreTest {
 
   @Test
   public void concurrentAddAndCheckpoint() throws Exception {
-    testConcurrentReaderAndCheckpoint(createAddReaders, (errors, results) -> {
-      System.out.println("Error size " + errors.size());
+    testConcurrentReaderAndCheckpoint(mCreateAddReaders, (errors, results) -> {
       // After the clear finishes, add operations can go on unaffected
       assertEquals(0, errors.size());
-      System.out.println("Results are " + results);
       long completed = results.stream().filter(n -> n == THREAD_NUMBER).count();
       assertEquals(THREAD_NUMBER, completed);
       return null;
     }, (errors, results) -> {
       assertEquals(0, errors.size());
-      System.out.println("Results are " + results);
       long completed = results.stream().filter(n -> n == THREAD_NUMBER).count();
       assertEquals(THREAD_NUMBER, completed);
       return null;
@@ -294,17 +282,14 @@ public class RocksInodeStoreTest {
 
   @Test
   public void concurrentAddAndClear() throws Exception {
-    testConcurrentReaderAndClear(createAddReaders, (errors, results) -> {
-      System.out.println("Error size " + errors.size());
+    testConcurrentReaderAndClear(mCreateAddReaders, (errors, results) -> {
       // After the clear finishes, add operations can go on unaffected
       assertEquals(0, errors.size());
-      System.out.println("Results are " + results);
       long completed = results.stream().filter(n -> n == THREAD_NUMBER).count();
       assertEquals(THREAD_NUMBER, completed);
       return null;
     }, (errors, results) -> {
       assertEquals(0, errors.size());
-      System.out.println("Results are " + results);
       long completed = results.stream().filter(n -> n == THREAD_NUMBER).count();
       assertEquals(THREAD_NUMBER, completed);
       return null;
@@ -324,11 +309,9 @@ public class RocksInodeStoreTest {
           while (iter.hasNext()) {
             if (listedCount == 10 && readersRunningLatch != null) {
               readersRunningLatch.countDown();
-              System.out.println("Reader is blocked and waits");
               if (writerCompletedLatch != null) {
                 // Pretend the reader is blocked and will wake up after the writer is done
                 writerCompletedLatch.await();
-                System.out.println("Reader resumes after the writer is done");
               }
             }
             iter.next();
@@ -338,7 +321,6 @@ public class RocksInodeStoreTest {
           errors.add(e);
         } finally {
           results.add(listedCount);
-          System.out.println("End - RocksStore has refCount=" + mStore.getRocksStore().mRefCount.sum());
         }
         return null;
       }));
@@ -359,11 +341,9 @@ public class RocksInodeStoreTest {
           while (iter.hasNext()) {
             if (listedCount == 10 && readersRunningLatch != null) {
               readersRunningLatch.countDown();
-              System.out.println("Reader is blocked and waits");
               if (writerCompletedLatch != null) {
                 // Pretend the reader is blocked and will wake up after the writer is done
                 writerCompletedLatch.await();
-                System.out.println("Reader resumes after the writer is done");
               }
             }
             iter.next();
@@ -373,7 +353,6 @@ public class RocksInodeStoreTest {
           errors.add(e);
         } finally {
           results.add(listedCount);
-          System.out.println("End - RocksStore has refCount=" + mStore.getRocksStore().getSharedLockCount());
         }
         return null;
       }));
@@ -387,7 +366,8 @@ public class RocksInodeStoreTest {
 
     FlakyRocksInodeStore delegateStore = new FlakyRocksInodeStore(mPath, mStore);
     AtomicReference<Exception> exception = new AtomicReference<>(null);
-    try (CloseableIterator<InodeView> brokenIter = delegateStore.getCloseableIterator(false, true)) {
+    try (CloseableIterator<InodeView> brokenIter =
+             delegateStore.getCloseableIterator(false, true)) {
       while (brokenIter.hasNext()) {
         brokenIter.next();
       }
@@ -408,7 +388,8 @@ public class RocksInodeStoreTest {
 
     FlakyRocksInodeStore delegateStore = new FlakyRocksInodeStore(mPath, mStore);
     AtomicReference<Exception> exception = new AtomicReference<>(null);
-    try (CloseableIterator<InodeView> brokenIter = delegateStore.getCloseableIterator(true, false)) {
+    try (CloseableIterator<InodeView> brokenIter =
+             delegateStore.getCloseableIterator(true, false)) {
       while (brokenIter.hasNext()) {
         brokenIter.next();
       }
@@ -432,36 +413,32 @@ public class RocksInodeStoreTest {
 
     // Prepare a checkpoint file
     File checkpointFile = File.createTempFile("checkpoint-for-recovery", "");
-    try (BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(checkpointFile))) {
+    try (BufferedOutputStream out =
+             new BufferedOutputStream(new FileOutputStream(checkpointFile))) {
       mStore.writeToCheckpoint(out);
     }
-    System.out.println("Prepared checkpoint file with size " + Files.size(checkpointFile.toPath()));
 
     // Create a bunch of long running iterators on the InodeStore
     CountDownLatch readerLatch = new CountDownLatch(THREAD_NUMBER);
     CountDownLatch restoreLatch = new CountDownLatch(1);
     ArrayBlockingQueue<Exception> errors = new ArrayBlockingQueue<>(THREAD_NUMBER);
     ArrayBlockingQueue<Integer> results = new ArrayBlockingQueue<>(THREAD_NUMBER);
-    List<Future<Void>> futures = submitIterJob(THREAD_NUMBER, errors, results, readerLatch, restoreLatch);
+    List<Future<Void>> futures =
+        submitIterJob(THREAD_NUMBER, errors, results, readerLatch, restoreLatch);
 
     // Await for the 20 threads to be iterating in the middle, then trigger the shutdown event
     readerLatch.await();
-    System.out.println("All 20 threads are running, shut down now");
-    try (CheckpointInputStream in = new CheckpointInputStream((new DataInputStream(new FileInputStream(checkpointFile))))) {
+    try (CheckpointInputStream in = new CheckpointInputStream(
+        (new DataInputStream(new FileInputStream(checkpointFile))))) {
       mStore.restoreFromCheckpoint(in);
     }
-    System.out.println("Restored from checkpoint");
 
     // Verify that the iterators can still run
-    System.out.println("Restore finished, let readers continue");
     restoreLatch.countDown();
-
     waitForReaders(futures);
-    System.out.println("All threads finished on the new RocksDB");
 
     // All iterators should abort because the RocksDB contents have changed
     assertEquals(THREAD_NUMBER, errors.size());
-    System.out.println("Job status: " + results);
     long completed = results.stream().filter(n -> n == FILE_NUMBER).count();
     assertEquals(0, completed);
     long aborted = results.stream().filter(n -> n == 10).count();
@@ -480,28 +457,24 @@ public class RocksInodeStoreTest {
     CountDownLatch restoreLatch = new CountDownLatch(1);
     ArrayBlockingQueue<Exception> errors = new ArrayBlockingQueue<>(THREAD_NUMBER);
     ArrayBlockingQueue<Integer> results = new ArrayBlockingQueue<>(THREAD_NUMBER);
-    List<Future<Void>> futures = submitIterJob(THREAD_NUMBER, errors, results, readerLatch, restoreLatch);
+    List<Future<Void>> futures =
+        submitIterJob(THREAD_NUMBER, errors, results, readerLatch, restoreLatch);
 
     // Await for the 20 threads to be iterating in the middle, then trigger the shutdown event
     readerLatch.await();
-    System.out.println("All 20 threads are running, shut down now");
     File checkpointFile = File.createTempFile("checkpoint-for-recovery", "");
-    try (BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(checkpointFile))) {
+    try (BufferedOutputStream out =
+             new BufferedOutputStream(new FileOutputStream(checkpointFile))) {
       mStore.writeToCheckpoint(out);
     }
-    System.out.println("Written checkpoint file with size " + Files.size(checkpointFile.toPath()));
     assertTrue(Files.size(checkpointFile.toPath()) > 0);
 
     // Verify that the iterators can still run
-    System.out.println("Restore finished, let readers continue");
     restoreLatch.countDown();
-
     waitForReaders(futures);
-    System.out.println("All threads finished on the new RocksDB");
 
     // All iterators should abort because the RocksDB contents have changed
     assertEquals(0, errors.size());
-    System.out.println("Job status: " + results);
     long completed = results.stream().filter(n -> n == FILE_NUMBER).count();
     assertEquals(THREAD_NUMBER, completed);
   }
@@ -514,8 +487,8 @@ public class RocksInodeStoreTest {
       mDelegate = delegate;
     }
 
-    public CloseableIterator<InodeView> getCloseableIterator(boolean hasNextIsFlaky, boolean nextIsFlaky) {
-      System.out.println("Get an iter from delegate");
+    public CloseableIterator<InodeView> getCloseableIterator(
+            boolean hasNextIsFlaky, boolean nextIsFlaky) {
       CloseableIterator<InodeView> iter = mDelegate.getCloseableIterator();
 
       // This iterator is flaky
@@ -529,7 +502,6 @@ public class RocksInodeStoreTest {
 
         @Override
         public boolean hasNext() {
-          System.out.println("hasNext");
           if (mCounter == 5 && hasNextIsFlaky) {
             throw new RuntimeException("Unexpected exception in iterator");
           }
@@ -539,7 +511,6 @@ public class RocksInodeStoreTest {
         @Override
         public InodeView next() {
           mCounter++;
-          System.out.println("Step " + mCounter);
           if (mCounter == 5 && nextIsFlaky) {
             throw new RuntimeException("Unexpected exception in iterator");
           }
@@ -548,8 +519,6 @@ public class RocksInodeStoreTest {
       };
     }
   }
-
-
 
   private List<Future<Void>> submitGetInodeJob(
           ArrayBlockingQueue<Exception> errors,
@@ -560,38 +529,28 @@ public class RocksInodeStoreTest {
     for (int k = 0; k < THREAD_NUMBER; k++) {
       final int iterNum = k;
       futures.add(mThreadPool.submit(() -> {
-        System.out.println("Running in thread");
         int finishedCount = 0;
         try {
           for (int x = 0; x < THREAD_NUMBER; x++) {
             long targetInodeId = iterNum * THREAD_NUMBER + x;
-            System.out.println("target id=" + targetInodeId + " and x=" + x);
             Optional<MutableInode<?>> dir = mStore.getMutable(targetInodeId, ReadOption.defaults());
-            System.out.println(dir);
             finishedCount++;
             if (x == 10 && readersRunningLatch != null) {
-              System.out.println("Count down to latch");
               readersRunningLatch.countDown();
-              System.out.println("Reader is blocked and waits");
               if (writerCompletedLatch != null) {
                 // Pretend the reader is blocked and will wake up after the writer is done
                 writerCompletedLatch.await();
-                System.out.println("Reader resumes after the writer is done");
               }
             }
           }
-          System.out.println("Loop ended");
         } catch (Exception e) {
           e.printStackTrace();
-          System.out.println("Exception " + e.getMessage());
           errors.add(e);
         } finally {
           results.add(finishedCount);
-          System.out.println("End - RocksStore has refCount=" + mStore.getRocksStore().mRefCount.sum());
         }
         return null;
       }));
-      System.out.println("Submitted " + k);
     }
     return futures;
   }
@@ -609,15 +568,15 @@ public class RocksInodeStoreTest {
         try {
           for (int x = 0; x < THREAD_NUMBER; x++) {
             long targetInodeId = iterNum * THREAD_NUMBER + x;
-            MutableInodeDirectory dir = MutableInodeDirectory.create(targetInodeId, 0, "dir" + targetInodeId, CreateDirectoryContext.defaults());
+            MutableInodeDirectory dir =
+                MutableInodeDirectory.create(targetInodeId, 0, "dir" + targetInodeId,
+                    CreateDirectoryContext.defaults());
             mStore.addChild(0L, dir);
             if (x == 10 && readersRunningLatch != null) {
               readersRunningLatch.countDown();
-              System.out.println("Reader is blocked and waits");
               if (writerCompletedLatch != null) {
                 // Pretend the reader is blocked and will wake up after the writer is done
                 writerCompletedLatch.await();
-                System.out.println("Reader resumes after the writer is done");
               }
             }
             finishedCount++;
@@ -626,7 +585,6 @@ public class RocksInodeStoreTest {
           errors.add(e);
         } finally {
           results.add(finishedCount);
-          System.out.println("End - RocksStore has refCount=" + mStore.getRocksStore().mRefCount.sum());
         }
         return null;
       }));
@@ -634,31 +592,35 @@ public class RocksInodeStoreTest {
     return futures;
   }
 
-  private void testConcurrentReaderAndClose(QuadFunction<ArrayBlockingQueue<Exception>, ArrayBlockingQueue<Integer>, CountDownLatch, CountDownLatch, List<Future<Void>>> reader) throws Exception {
+  private void testConcurrentReaderAndClose(
+      QuadFunction<ArrayBlockingQueue<Exception>, ArrayBlockingQueue<Integer>, CountDownLatch,
+          CountDownLatch, List<Future<Void>>> reader) throws Exception {
     prepareFiles(FILE_NUMBER);
 
     CountDownLatch readerRunningLatch = new CountDownLatch(THREAD_NUMBER);
     CountDownLatch writerCompletedLatch = new CountDownLatch(1);
     ArrayBlockingQueue<Exception> errors = new ArrayBlockingQueue<>(THREAD_NUMBER);
     ArrayBlockingQueue<Integer> results = new ArrayBlockingQueue<>(THREAD_NUMBER);
-    List<Future<Void>> futures = reader.apply(errors, results, readerRunningLatch, writerCompletedLatch);
+    List<Future<Void>> futures =
+        reader.apply(errors, results, readerRunningLatch, writerCompletedLatch);
 
     // Await for the threads to be running in the middle, then trigger the closer event
     readerRunningLatch.await();
-    System.out.println("All 20 threads are running, shut down now");
     mStore.close();
     writerCompletedLatch.countDown();
 
     waitForReaders(futures);
-    System.out.println("All threads finished");
     // Reaching here means close() was successfully, which implies ref count reached zero
     assertTrue(errors.size() <= THREAD_NUMBER);
   }
 
   private void testConcurrentReaderAndCheckpoint(
-          QuadFunction<ArrayBlockingQueue<Exception>, ArrayBlockingQueue<Integer>, CountDownLatch, CountDownLatch, List<Future<Void>>> reader,
-          BiFunction<ArrayBlockingQueue<Exception>, ArrayBlockingQueue<Integer>, Void> stateCheckAfterReadersFinish,
-          BiFunction<ArrayBlockingQueue<Exception>, ArrayBlockingQueue<Integer>, Void> stateCheckAfterReadersFinishAgain
+      QuadFunction<ArrayBlockingQueue<Exception>, ArrayBlockingQueue<Integer>, CountDownLatch,
+          CountDownLatch, List<Future<Void>>> reader,
+      BiFunction<ArrayBlockingQueue<Exception>, ArrayBlockingQueue<Integer>,
+          Void> stateCheckAfterReadersFinish,
+      BiFunction<ArrayBlockingQueue<Exception>, ArrayBlockingQueue<Integer>,
+          Void> stateCheckAfterReadersFinishAgain
   ) throws Exception {
     prepareFiles(FILE_NUMBER);
 
@@ -666,79 +628,78 @@ public class RocksInodeStoreTest {
     CountDownLatch writerCompletedLatch = new CountDownLatch(1);
     ArrayBlockingQueue<Exception> errors = new ArrayBlockingQueue<>(THREAD_NUMBER);
     ArrayBlockingQueue<Integer> results = new ArrayBlockingQueue<>(THREAD_NUMBER);
-    List<Future<Void>> futures = reader.apply(errors, results, readerRunningLatch, writerCompletedLatch);
+    List<Future<Void>> futures =
+        reader.apply(errors, results, readerRunningLatch, writerCompletedLatch);
 
     // Await for the 20 threads to be iterating in the middle, then trigger the shutdown event
     readerRunningLatch.await();
-    System.out.println("All 20 threads are running, shut down now");
     File checkpointFile = File.createTempFile("checkpoint-file", "");
-    try (BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(checkpointFile))) {
+    try (BufferedOutputStream out =
+             new BufferedOutputStream(new FileOutputStream(checkpointFile))) {
       mStore.writeToCheckpoint(out);
     }
-    System.out.println("Written checkpoint file with size " + Files.size(checkpointFile.toPath()));
     assertTrue(Files.size(checkpointFile.toPath()) > 0);
     writerCompletedLatch.countDown();
 
     waitForReaders(futures);
-    System.out.println("All threads finished");
     stateCheckAfterReadersFinish.apply(errors, results);
 
     // Verify that the RocksDB can still serve
-    System.out.println("Submit new operations to RocksDB");
     ArrayBlockingQueue<Exception> errorsAgain = new ArrayBlockingQueue<>(THREAD_NUMBER);
     ArrayBlockingQueue<Integer> resultsAgain = new ArrayBlockingQueue<>(THREAD_NUMBER);
     List<Future<Void>> futuresAgain = reader.apply(errorsAgain, resultsAgain, null, null);
     waitForReaders(futuresAgain);
-    System.out.println("All threads finished on the new RocksDB");
     stateCheckAfterReadersFinishAgain.apply(errorsAgain, resultsAgain);
   }
 
   private void testConcurrentReaderAndRestore(
-      QuadFunction<ArrayBlockingQueue<Exception>, ArrayBlockingQueue<Integer>, CountDownLatch, CountDownLatch, List<Future<Void>>> reader,
-      BiFunction<ArrayBlockingQueue<Exception>, ArrayBlockingQueue<Integer>, Void> stateCheckAfterReadersFinish,
-      BiFunction<ArrayBlockingQueue<Exception>, ArrayBlockingQueue<Integer>, Void> stateCheckAfterReadersFinishAgain
+      QuadFunction<ArrayBlockingQueue<Exception>, ArrayBlockingQueue<Integer>,
+          CountDownLatch, CountDownLatch, List<Future<Void>>> reader,
+      BiFunction<ArrayBlockingQueue<Exception>, ArrayBlockingQueue<Integer>,
+          Void> stateCheckAfterReadersFinish,
+      BiFunction<ArrayBlockingQueue<Exception>, ArrayBlockingQueue<Integer>,
+          Void> stateCheckAfterReadersFinishAgain
   ) throws Exception {
     prepareFiles(FILE_NUMBER);
     // Prepare a checkpoint file
     File checkpointFile = File.createTempFile("checkpoint-for-recovery", "");
-    try (BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(checkpointFile))) {
+    try (BufferedOutputStream out =
+             new BufferedOutputStream(new FileOutputStream(checkpointFile))) {
       mStore.writeToCheckpoint(out);
     }
-    System.out.println("Prepared checkpoint file with size " + Files.size(checkpointFile.toPath()));
 
     CountDownLatch readerRunningLatch = new CountDownLatch(THREAD_NUMBER);
     CountDownLatch writerCompletedLatch = new CountDownLatch(1);
     ArrayBlockingQueue<Exception> errors = new ArrayBlockingQueue<>(THREAD_NUMBER);
     ArrayBlockingQueue<Integer> results = new ArrayBlockingQueue<>(THREAD_NUMBER);
-    List<Future<Void>> futures = reader.apply(errors, results, readerRunningLatch, writerCompletedLatch);
+    List<Future<Void>> futures =
+        reader.apply(errors, results, readerRunningLatch, writerCompletedLatch);
 
     // Await for the 20 threads to be iterating in the middle, then trigger the shutdown event
     readerRunningLatch.await();
-    System.out.println("All 20 threads are running, shut down now");
-    try (CheckpointInputStream in = new CheckpointInputStream((new DataInputStream(new FileInputStream(checkpointFile))))) {
+    try (CheckpointInputStream in = new CheckpointInputStream(
+        (new DataInputStream(new FileInputStream(checkpointFile))))) {
       mStore.restoreFromCheckpoint(in);
     }
-    System.out.println("Restored from checkpoint");
     writerCompletedLatch.countDown();
-
     waitForReaders(futures);
-    System.out.println("All threads finished");
     stateCheckAfterReadersFinish.apply(errors, results);
 
     // Verify that the RocksDB can still serve
-    System.out.println("Submit new operations to RocksDB");
     ArrayBlockingQueue<Exception> errorsAgain = new ArrayBlockingQueue<>(THREAD_NUMBER);
     ArrayBlockingQueue<Integer> resultsAgain = new ArrayBlockingQueue<>(THREAD_NUMBER);
     List<Future<Void>> futuresAgain = reader.apply(errorsAgain, resultsAgain, null, null);
     waitForReaders(futuresAgain);
-    System.out.println("All threads finished on the new RocksDB");
     stateCheckAfterReadersFinishAgain.apply(errorsAgain, resultsAgain);
   }
 
   private void testConcurrentReaderAndClear(
-      QuadFunction<ArrayBlockingQueue<Exception>, ArrayBlockingQueue<Integer>, CountDownLatch, CountDownLatch, List<Future<Void>>> reader,
-      BiFunction<ArrayBlockingQueue<Exception>, ArrayBlockingQueue<Integer>, Void> stateCheckAfterReadersFinish,
-      BiFunction<ArrayBlockingQueue<Exception>, ArrayBlockingQueue<Integer>, Void> stateCheckAfterReadersFinishAgain
+      QuadFunction<ArrayBlockingQueue<Exception>, ArrayBlockingQueue<Integer>,
+          CountDownLatch, CountDownLatch, List<Future<Void>>> reader,
+      BiFunction<ArrayBlockingQueue<Exception>, ArrayBlockingQueue<Integer>,
+          Void> stateCheckAfterReadersFinish,
+      BiFunction<ArrayBlockingQueue<Exception>, ArrayBlockingQueue<Integer>,
+          Void> stateCheckAfterReadersFinishAgain
   ) throws Exception {
     prepareFiles(FILE_NUMBER);
 
@@ -746,32 +707,29 @@ public class RocksInodeStoreTest {
     CountDownLatch writerCompletedLatch = new CountDownLatch(1);
     ArrayBlockingQueue<Exception> errors = new ArrayBlockingQueue<>(THREAD_NUMBER);
     ArrayBlockingQueue<Integer> results = new ArrayBlockingQueue<>(THREAD_NUMBER);
-    List<Future<Void>> futures = reader.apply(errors, results, readerRunningLatch, writerCompletedLatch);
+    List<Future<Void>> futures =
+        reader.apply(errors, results, readerRunningLatch, writerCompletedLatch);
 
     // Await for the 20 threads to be iterating in the middle, then trigger the shutdown event
     readerRunningLatch.await();
-    System.out.println("All 20 threads are running, shut down now");
     mStore.clear();
-    System.out.println("InodeStore cleared ");
     writerCompletedLatch.countDown();
 
     waitForReaders(futures);
-    System.out.println("All threads finished");
     stateCheckAfterReadersFinish.apply(errors, results);
 
     // Verify that the RocksDB can still serve
-    System.out.println("Submit new operations to RocksDB");
     ArrayBlockingQueue<Exception> errorsAgain = new ArrayBlockingQueue<>(THREAD_NUMBER);
     ArrayBlockingQueue<Integer> resultsAgain = new ArrayBlockingQueue<>(THREAD_NUMBER);
     List<Future<Void>> futuresAgain = reader.apply(errorsAgain, resultsAgain, null, null);
     waitForReaders(futuresAgain);
-    System.out.println("All threads finished on the new RocksDB");
     stateCheckAfterReadersFinishAgain.apply(errorsAgain, resultsAgain);
   }
 
   private void prepareFiles(int fileCount) throws Exception {
     for (int i = 1; i < fileCount + 1; i++) {
-      MutableInodeDirectory dir = MutableInodeDirectory.create(i, 0, "dir" + i, CreateDirectoryContext.defaults());
+      MutableInodeDirectory dir = MutableInodeDirectory.create(i, 0, "dir" + i,
+          CreateDirectoryContext.defaults());
       mStore.addChild(0, dir);
       mStore.writeInode(dir);
     }

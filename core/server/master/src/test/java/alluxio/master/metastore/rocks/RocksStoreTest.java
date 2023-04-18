@@ -22,9 +22,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
-
-import alluxio.util.SleepUtils;
 import alluxio.util.ThreadFactoryUtils;
+
 import com.google.common.primitives.Longs;
 import org.junit.After;
 import org.junit.Before;
@@ -72,25 +71,26 @@ public class RocksStoreTest {
 
     mToClose = new ArrayList<>();
     ColumnFamilyOptions cfOpts = new ColumnFamilyOptions()
-            .setMemTableConfig(new HashLinkedListMemTableConfig())
-            .setCompressionType(CompressionType.NO_COMPRESSION)
-            .useFixedLengthPrefixExtractor(Longs.BYTES); // We always search using the initial long key
+        .setMemTableConfig(new HashLinkedListMemTableConfig())
+        .setCompressionType(CompressionType.NO_COMPRESSION)
+        .useFixedLengthPrefixExtractor(Longs.BYTES); // We always search using the initial long key
     mToClose.add(cfOpts);
 
     mColumnDescriptors =
-            Arrays.asList(new ColumnFamilyDescriptor("test".getBytes(), cfOpts));
+        Arrays.asList(new ColumnFamilyDescriptor("test".getBytes(), cfOpts));
     mDbDir = mFolder.newFolder("rocks").getAbsolutePath();
     mBackupsDir = mFolder.newFolder("rocks-backups").getAbsolutePath();
     mTestColumn = new AtomicReference<>();
     DBOptions dbOpts = new DBOptions().setCreateIfMissing(true)
-            .setCreateMissingColumnFamilies(true)
-            .setAllowConcurrentMemtableWrite(false);
+        .setCreateMissingColumnFamilies(true)
+        .setAllowConcurrentMemtableWrite(false);
     mToClose.add(dbOpts);
 
     mStore = new RocksStore("test", mDbDir, mBackupsDir, dbOpts, mColumnDescriptors,
-                    Arrays.asList(mTestColumn));
+        Arrays.asList(mTestColumn));
 
-    mThreadPool = Executors.newCachedThreadPool(ThreadFactoryUtils.build("test-executor-%d", true));
+    mThreadPool = Executors.newCachedThreadPool(
+        ThreadFactoryUtils.build("test-executor-%d", true));
   }
 
   @After
@@ -224,15 +224,15 @@ public class RocksStoreTest {
   @Test
   public void exclusiveLockForcedAndReleasedAfterSharedLock() throws Exception {
     // One reader gets the shared lock and does not release for a long time
-    CountDownLatch mReaderCloseLatch = new CountDownLatch(1);
-    CountDownLatch mWriterStartLatch = new CountDownLatch(1);
+    CountDownLatch readerCloseLatch = new CountDownLatch(1);
+    CountDownLatch writerStartLatch = new CountDownLatch(1);
     Future<Void> f = mThreadPool.submit(() -> {
       RocksSharedLockHandle lockHandle = mStore.checkAndAcquireSharedLock();
       System.out.println("Read lock grabbed");
-      mWriterStartLatch.countDown();
+      writerStartLatch.countDown();
       assertEquals(1, mStore.getSharedLockCount());
       try {
-        mReaderCloseLatch.await();
+        readerCloseLatch.await();
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
       }
@@ -246,7 +246,7 @@ public class RocksStoreTest {
     });
 
     // One closer comes in and eventually will grab the lock after wait
-    mWriterStartLatch.await();
+    writerStartLatch.await();
     // Manually set this flag, otherwise an exception will be thrown when the exclusive lock
     // is forced.
     Configuration.set(PropertyKey.TEST_MODE, false);
@@ -255,7 +255,7 @@ public class RocksStoreTest {
     // And the ref count will be reset on that force
     assertEquals(0, mStore.getSharedLockCount());
     // Let the reader finish before the exclusive lock is released
-    mReaderCloseLatch.countDown();
+    readerCloseLatch.countDown();
     f.get();
     // That should not mess up the ref count
     assertEquals(0, mStore.getSharedLockCount());
@@ -266,15 +266,15 @@ public class RocksStoreTest {
   @Test
   public void exclusiveLockForcedAndReleasedBeforeSharedLock() throws Exception {
     // One reader gets the shared lock and does not release for a long time
-    CountDownLatch mReaderCloseLatch = new CountDownLatch(1);
-    CountDownLatch mWriterStartLatch = new CountDownLatch(1);
+    CountDownLatch readerCloseLatch = new CountDownLatch(1);
+    CountDownLatch writerStartLatch = new CountDownLatch(1);
     Future<Void> f = mThreadPool.submit(() -> {
       RocksSharedLockHandle lockHandle = mStore.checkAndAcquireSharedLock();
       System.out.println("Read lock grabbed");
-      mWriterStartLatch.countDown();
+      writerStartLatch.countDown();
       assertEquals(1, mStore.getSharedLockCount());
       try {
-        mReaderCloseLatch.await();
+        readerCloseLatch.await();
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
       }
@@ -288,7 +288,7 @@ public class RocksStoreTest {
     });
 
     // One closer comes in and eventually will grab the lock after wait
-    mWriterStartLatch.await();
+    writerStartLatch.await();
     // Manually set this flag, otherwise an exception will be thrown when the exclusive lock
     // is forced.
     Configuration.set(PropertyKey.TEST_MODE, false);
@@ -299,7 +299,7 @@ public class RocksStoreTest {
     // The exclusive lock releases before the reader even wakes up
     exclusiveLock.close();
     // Let the reader finish
-    mReaderCloseLatch.countDown();
+    readerCloseLatch.countDown();
     f.get();
     // The ref count is not messed up
     assertEquals(0, mStore.getSharedLockCount());
@@ -308,15 +308,15 @@ public class RocksStoreTest {
   @Test
   public void forcingExclusiveLockInTestWillErr() throws Exception {
     // One reader gets the shared lock and does not release for a long time
-    CountDownLatch mReaderCloseLatch = new CountDownLatch(1);
-    CountDownLatch mWriterStartLatch = new CountDownLatch(1);
+    CountDownLatch readerCloseLatch = new CountDownLatch(1);
+    CountDownLatch writerStartLatch = new CountDownLatch(1);
     Future<Void> f = mThreadPool.submit(() -> {
       RocksSharedLockHandle lockHandle = mStore.checkAndAcquireSharedLock();
       System.out.println("Read lock grabbed");
-      mWriterStartLatch.countDown();
+      writerStartLatch.countDown();
       assertEquals(1, mStore.getSharedLockCount());
       try {
-        mReaderCloseLatch.await();
+        readerCloseLatch.await();
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
       }
@@ -330,14 +330,14 @@ public class RocksStoreTest {
     });
 
     // One closer comes in and eventually will grab the lock after wait
-    mWriterStartLatch.await();
+    writerStartLatch.await();
     // In test mode, forcing the exclusive lock will result in an exception
     // This will help us detect issues with the ref count
     assertThrows(RuntimeException.class, () -> {
       RocksExclusiveLockHandle exclusiveLock = mStore.lockForCheckpoint();
     });
     // Let the reader finish
-    mReaderCloseLatch.countDown();
+    readerCloseLatch.countDown();
     f.get();
     // Even if the exclusive lock attempt failed, the ref count will be correct
     assertEquals(0, mStore.getSharedLockCount());
@@ -346,14 +346,14 @@ public class RocksStoreTest {
   @Test
   public void readerCanContinueAfterCheckpoint() throws Exception {
     // One reader gets the shared lock and does not release for a long time
-    CountDownLatch mReaderCloseLatch = new CountDownLatch(1);
-    CountDownLatch mWriterStartLatch = new CountDownLatch(1);
+    CountDownLatch readerCloseLatch = new CountDownLatch(1);
+    CountDownLatch writerStartLatch = new CountDownLatch(1);
     Future<Void> f = mThreadPool.submit(() -> {
       RocksSharedLockHandle lockHandle = mStore.checkAndAcquireSharedLock();
       System.out.println("Read lock grabbed");
-      mWriterStartLatch.countDown();
+      writerStartLatch.countDown();
       try {
-        mReaderCloseLatch.await();
+        readerCloseLatch.await();
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
       }
@@ -372,7 +372,7 @@ public class RocksStoreTest {
     });
 
     // One closer comes in and eventually will grab the lock after wait
-    mWriterStartLatch.await();
+    writerStartLatch.await();
     // Manually set this flag, otherwise an exception will be thrown when the exclusive lock
     // is forced.
     Configuration.set(PropertyKey.TEST_MODE, false);
@@ -383,7 +383,7 @@ public class RocksStoreTest {
     // Now the checkpointing was done, while the reader is still asleep
     exclusiveLock.close();
     // Let the reader wake up and continue
-    mReaderCloseLatch.countDown();
+    readerCloseLatch.countDown();
     f.get();
     assertEquals(0, mStore.getSharedLockCount());
   }
@@ -391,14 +391,14 @@ public class RocksStoreTest {
   @Test
   public void readerCanNotContinueAfterRestore() throws Exception {
     // One reader gets the shared lock and does not release for a long time
-    CountDownLatch mReaderCloseLatch = new CountDownLatch(1);
-    CountDownLatch mWriterStartLatch = new CountDownLatch(1);
+    CountDownLatch readerCloseLatch = new CountDownLatch(1);
+    CountDownLatch writerStartLatch = new CountDownLatch(1);
     Future<Void> f = mThreadPool.submit(() -> {
       RocksSharedLockHandle lockHandle = mStore.checkAndAcquireSharedLock();
       System.out.println("Read lock grabbed");
-      mWriterStartLatch.countDown();
+      writerStartLatch.countDown();
       try {
-        mReaderCloseLatch.await();
+        readerCloseLatch.await();
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
       }
@@ -419,7 +419,7 @@ public class RocksStoreTest {
     });
 
     // One closer comes in and eventually will grab the lock after wait
-    mWriterStartLatch.await();
+    writerStartLatch.await();
     // Manually set this flag, otherwise an exception will be thrown when the exclusive lock
     // is forced.
     Configuration.set(PropertyKey.TEST_MODE, false);
@@ -430,7 +430,7 @@ public class RocksStoreTest {
     // Now the checkpointing was done, while the reader is still asleep
     exclusiveLock.close();
     // Let the reader wake up and continue
-    mReaderCloseLatch.countDown();
+    readerCloseLatch.countDown();
     f.get();
     assertEquals(0, mStore.getSharedLockCount());
   }
