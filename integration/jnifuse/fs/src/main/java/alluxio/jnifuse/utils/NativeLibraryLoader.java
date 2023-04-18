@@ -196,12 +196,10 @@ public class NativeLibraryLoader {
    */
   void loadLibraryFromJar(final String sharedLibraryFileName,
       final String jniLibraryFileName, final String tmpDir) throws IOException {
-    if (LOAD_STATE.get() == LoadState.NOT_LOADED) {
-      String libPath = loadLibraryFromJarToTemp(
-          sharedLibraryFileName, jniLibraryFileName, tmpDir).getAbsolutePath();
-      System.load(libPath);
-      LOG.info("Loaded lib by jar from path {}.", libPath);
-    }
+    String libPath = loadLibraryFromJarToTemp(
+        sharedLibraryFileName, jniLibraryFileName, tmpDir).getAbsolutePath();
+    System.load(libPath);
+    LOG.info("Loaded lib by jar from path {}.", libPath);
   }
 
   File loadLibraryFromJarToTemp(final String sharedLibraryFileName,
