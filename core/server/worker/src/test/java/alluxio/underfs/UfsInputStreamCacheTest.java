@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 import alluxio.ConfigurationRule;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.file.FileId;
 import alluxio.test.util.ConcurrencyUtils;
 import alluxio.underfs.options.OpenOptions;
 

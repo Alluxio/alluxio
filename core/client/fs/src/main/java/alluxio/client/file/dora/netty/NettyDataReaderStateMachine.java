@@ -21,6 +21,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.file.ReadTargetBuffer;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
@@ -47,8 +48,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.nio.channels.WritableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -82,7 +81,7 @@ public class NettyDataReaderStateMachine {
   private final WorkerNetAddress mAddress;
   private final Supplier<Protocol.ReadRequest.Builder> mRequestBuilder;
   private final int mLength;
-  private final WritableByteChannel mOutputChannel;
+  private final ReadTargetBuffer mOutputBuffer;
   private final BlockingQueue<ResponseEvent> mResponseEventQueue = new LinkedBlockingQueue<>();
 
   @Nullable
@@ -140,7 +139,7 @@ public class NettyDataReaderStateMachine {
     public final TriggerWithParameters1<ByteBuf, TriggerEvent> mDataAvailableEvent;
     public final TriggerWithParameters1<AlluxioStatusException, TriggerEvent> mServerErrorEvent;
     public final TriggerWithParameters1<Throwable, TriggerEvent> mChannelErrorEvent;
-    public final TriggerWithParameters1<IOException, TriggerEvent> mOutputErrorEvent;
+    public final TriggerWithParameters1<Throwable, TriggerEvent> mOutputErrorEvent;
     public final TriggerWithParameters1<TimeoutException, TriggerEvent> mTimeoutEvent;
     public final TriggerWithParameters1<InterruptedException, TriggerEvent> mInterruptedEvent;
 
@@ -159,7 +158,7 @@ public class NettyDataReaderStateMachine {
       mChannelErrorEvent =
           config.setTriggerParameters(TriggerEvent.CHANNEL_ERROR, Throwable.class);
       mOutputErrorEvent =
-          config.setTriggerParameters(TriggerEvent.OUTPUT_ERROR, IOException.class);
+          config.setTriggerParameters(TriggerEvent.OUTPUT_ERROR, Throwable.class);
       mTimeoutEvent =
           config.setTriggerParameters(TriggerEvent.TIMEOUT, TimeoutException.class);
       mInterruptedEvent =
@@ -173,13 +172,13 @@ public class NettyDataReaderStateMachine {
    * @param context
    * @param address
    * @param requestBuilder
-   * @param outChannel
+   * @param buffer
    */
   public NettyDataReaderStateMachine(
       FileSystemContext context,
       WorkerNetAddress address,
       Protocol.ReadRequest.Builder requestBuilder,
-      WritableByteChannel outChannel) {
+      ReadTargetBuffer buffer) {
     mContext = context;
     AlluxioConfiguration conf = context.getClusterConf();
     mReadTimeoutMs = conf.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
@@ -188,7 +187,7 @@ public class NettyDataReaderStateMachine {
     // clone the builder so that the initial values does not get overridden
     mRequestBuilder = requestBuilder::clone;
     mLength = (int) requestBuilder.getLength();
-    mOutputChannel = outChannel;
+    mOutputBuffer = buffer;
 
     StateMachineConfig<State, TriggerEvent> config = new StateMachineConfig<>();
     mTriggerEventsWithParam = new TriggerEventsWithParam(config);
@@ -429,20 +428,16 @@ public class NettyDataReaderStateMachine {
 
   void onReceivedData(ByteBuf buf, Transition<State, TriggerEvent> transition) {
     Preconditions.checkState(TriggerEvent.DATA_AVAILABLE == transition.getTrigger());
-    ByteBuf byteBuf = buf.slice();
-    int readableBytes = byteBuf.readableBytes();
-    int sliceEnd = Math.min(readableBytes, mLength - mBytesRead);
-    // todo(bowen): handle case where ByteBuf does not support getting a bytebuffer
-    ByteBuffer toWrite = byteBuf.nioBuffer(0, sliceEnd);
+    int bytesToWrite = buf.readableBytes();
     try {
-      mBytesRead += mOutputChannel.write(toWrite);
-    } catch (IOException ioe) {
-      fireNext(mTriggerEventsWithParam.mOutputErrorEvent, ioe);
+      mOutputBuffer.writeBytes(buf);
+    } catch (RuntimeException e) {
+      fireNext(mTriggerEventsWithParam.mOutputErrorEvent, e);
       return;
     } finally {
-      // previously retained in packet read handler
-      byteBuf.release();
+      buf.release();
     }
+    mBytesRead += bytesToWrite;
     if (mBytesRead < mLength) {
       fireNext(TriggerEvent.OUTPUT_LENGTH_NOT_FULFILLED);
     } else {
@@ -469,7 +464,7 @@ public class NettyDataReaderStateMachine {
    * a main exception, it is ignored.
    */
   <T extends Throwable> void addExceptionAsSuppressed(T suppressed,
-                                                      Transition<State, TriggerEvent> transition) {
+      Transition<State, TriggerEvent> transition) {
     if (mLastException != null) {
       mLastException.addSuppressed(suppressed);
     }

@@ -13,7 +13,9 @@ package alluxio.underfs.gcs.v2;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.PositionReader;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
@@ -123,6 +125,11 @@ public class GCSV2UnderFileSystem extends ObjectUnderFileSystem {
   @Override
   public String getUnderFSType() {
     return "gcs";
+  }
+
+  @Override
+  public PositionReader openPositionRead(String path, long fileLength) {
+    throw new UnimplementedRuntimeException("Position read is not implemented");
   }
 
   // Setting GCS owner via Alluxio is not supported yet. This is a no-op.

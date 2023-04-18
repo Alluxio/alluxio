@@ -12,6 +12,7 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
+import alluxio.PositionReader;
 import alluxio.SyncInfo;
 import alluxio.annotation.PublicApi;
 import alluxio.collections.Pair;
@@ -671,6 +672,16 @@ public interface UnderFileSystem extends Closeable {
    * @return The {@code InputStream} object
    */
   InputStream openExistingFile(String path, OpenOptions options) throws IOException;
+
+  /**
+   * Opens a file for position read.
+   *
+   * @param path the path to read
+   * @param fileLength the file length
+   * @return the position reader
+   */
+  // TODO(lu) how to use UFS IO manager to control UFS IO
+  PositionReader openPositionRead(String path, long fileLength);
 
   /**
    * Renames a directory from {@code src} to {@code dst} in under file system.

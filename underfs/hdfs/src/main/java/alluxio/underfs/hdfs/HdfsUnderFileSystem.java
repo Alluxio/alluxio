@@ -686,6 +686,16 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   @Override
+  public HdfsPositionedUnderFileInputStream openPositionRead(String path, long fileLength) {
+    try {
+      FSDataInputStream inputStream = getFs().open(new Path(path));
+      return new HdfsPositionedUnderFileInputStream(inputStream, 0);
+    } catch (IOException e) {
+      throw AlluxioHdfsException.from(e);
+    }
+  }
+
+  @Override
   public boolean renameDirectory(String src, String dst) throws IOException {
     if (!isDirectory(src)) {
       LOG.warn("Unable to rename {} to {} because source does not exist or is a file", src, dst);

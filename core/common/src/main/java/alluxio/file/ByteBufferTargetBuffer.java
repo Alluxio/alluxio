@@ -9,17 +9,25 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.cache.store;
+package alluxio.file;
+
+import alluxio.file.ReadTargetBuffer;
+import alluxio.util.io.ChannelAdapters;
+
+import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 
 /**
  * Target buffer backed by nio ByteBuffer for zero-copy read from page store.
  */
-public class ByteBufferTargetBuffer implements PageReadTargetBuffer {
+public class ByteBufferTargetBuffer implements ReadTargetBuffer {
   private final ByteBuffer mTarget;
 
   /**
@@ -32,7 +40,10 @@ public class ByteBufferTargetBuffer implements PageReadTargetBuffer {
 
   @Override
   public byte[] byteArray() {
-    throw new UnsupportedOperationException();
+    if (mTarget.hasArray()) {
+      return mTarget.array();
+    }
+    throw new UnsupportedOperationException("ByteBuffer is not backed by an array");
   }
 
   @Override
@@ -41,13 +52,18 @@ public class ByteBufferTargetBuffer implements PageReadTargetBuffer {
   }
 
   @Override
-  public long offset() {
+  public int offset() {
     return mTarget.position();
   }
 
   @Override
+  public void offset(int newOffset) {
+    mTarget.position(newOffset);
+  }
+
+  @Override
   public WritableByteChannel byteChannel() {
-    throw new UnsupportedOperationException();
+    return ChannelAdapters.intoByteBuffer(mTarget);
   }
 
   @Override
@@ -61,12 +77,39 @@ public class ByteBufferTargetBuffer implements PageReadTargetBuffer {
   }
 
   @Override
+  public void writeBytes(ByteBuf buf) {
+    if (mTarget.remaining() <= buf.readableBytes()) {
+      buf.readBytes(mTarget);
+      return;
+    }
+    int oldLimit = mTarget.limit();
+    mTarget.limit(mTarget.position() + buf.readableBytes());
+    buf.readBytes(mTarget);
+    mTarget.limit(oldLimit);
+  }
+
+  @Override
   public int readFromFile(RandomAccessFile file, int length) throws IOException {
     int bytesToRead = Math.min(length, mTarget.remaining());
     ByteBuffer slice = mTarget.slice();
     slice.limit(bytesToRead);
     int bytesRead = file.getChannel().read(slice);
-    mTarget.position(mTarget.position() + bytesRead);
+    if (bytesRead > 0) {
+      mTarget.position(mTarget.position() + bytesRead);
+    }
+    return bytesRead;
+  }
+
+  @Override
+  public int readFromInputStream(InputStream is, int length) throws IOException {
+    int bytesToRead = Math.min(length, mTarget.remaining());
+    ReadableByteChannel source = Channels.newChannel(is);
+    ByteBuffer slice = mTarget.slice();
+    slice.limit(bytesToRead);
+    int bytesRead = source.read(slice);
+    if (bytesRead > 0) {
+      mTarget.position(mTarget.position() + bytesRead);
+    }
     return bytesRead;
   }
 }

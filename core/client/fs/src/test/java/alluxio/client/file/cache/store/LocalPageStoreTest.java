@@ -19,6 +19,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageStore;
+import alluxio.file.ByteArrayTargetBuffer;
 
 import org.junit.Before;
 import org.junit.Rule;

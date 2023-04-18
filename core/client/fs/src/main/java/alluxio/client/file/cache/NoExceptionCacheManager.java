@@ -12,7 +12,7 @@
 package alluxio.client.file.cache;
 
 import alluxio.client.file.CacheContext;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
+import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * A wrapper class of CacheManager without throwing unchecked exceptions.
@@ -99,13 +100,28 @@ public class NoExceptionCacheManager implements CacheManager {
   }
 
   @Override
-  public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer buffer,
+  public int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer buffer,
       CacheContext cacheContext) {
     try {
       return mCacheManager
           .get(pageId, pageOffset, bytesToRead, buffer, cacheContext);
     } catch (Exception e) {
       LOG.error("Failed to get page {}, offset {} cacheContext {}", pageId, pageOffset,
+          cacheContext, e);
+      Metrics.GET_ERRORS.inc();
+      return -1;
+    }
+  }
+
+  @Override
+  public int getAndLoad(PageId pageId, int pageOffset, int bytesToRead,
+      ReadTargetBuffer buffer, CacheContext cacheContext,
+      Supplier<byte[]> externalDataSupplier) {
+    try {
+      return mCacheManager.getAndLoad(pageId, pageOffset, bytesToRead,
+          buffer, cacheContext, externalDataSupplier);
+    } catch (Exception e) {
+      LOG.error("Failed to get and load page {}, offset {} cacheContext {}", pageId, pageOffset,
           cacheContext, e);
       Metrics.GET_ERRORS.inc();
       return -1;

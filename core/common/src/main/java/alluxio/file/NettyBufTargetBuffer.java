@@ -9,24 +9,24 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.page;
-
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
+package alluxio.file;
 
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 
 /**
  * Netty Buf backed target buffer for zero-copy read from page store.
  */
-public class NettyBufTargetBuffer implements PageReadTargetBuffer {
+public class NettyBufTargetBuffer implements ReadTargetBuffer {
   private final ByteBuf mTarget;
-  private long mOffset = 0;
 
   /**
    * @param target target buffer
@@ -46,8 +46,13 @@ public class NettyBufTargetBuffer implements PageReadTargetBuffer {
   }
 
   @Override
-  public long offset() {
-    return mOffset;
+  public int offset() {
+    return mTarget.writerIndex();
+  }
+
+  @Override
+  public void offset(int newOffset) {
+    mTarget.writerIndex(newOffset);
   }
 
   @Override
@@ -82,9 +87,26 @@ public class NettyBufTargetBuffer implements PageReadTargetBuffer {
   }
 
   @Override
+  public void writeBytes(ByteBuf buf) {
+    mTarget.writeBytes(buf);
+  }
+
+  @Override
   public int readFromFile(RandomAccessFile file, int length) throws IOException {
     try (FileChannel channel = file.getChannel()) {
       return mTarget.writeBytes(channel, length);
     }
+  }
+
+  @Override
+  public int readFromInputStream(InputStream is, int length) throws IOException {
+    int bytesToRead = Math.min(length, mTarget.writableBytes());
+    ReadableByteChannel source = Channels.newChannel(is);
+    ByteBuffer slice = mTarget.nioBuffer(mTarget.writerIndex(), bytesToRead);
+    int bytesRead = source.read(slice);
+    if (bytesRead > 0) {
+      mTarget.writerIndex(mTarget.writerIndex() + bytesRead);
+    }
+    return bytesRead;
   }
 }

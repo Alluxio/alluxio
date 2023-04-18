@@ -13,6 +13,7 @@ package alluxio.client.file.cache;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.PositionReader;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -20,7 +21,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.ListStatusPartialResult;
 import alluxio.client.file.MockFileInStream;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
@@ -32,6 +32,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.FileIncompleteException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.OpenDirectoryException;
+import alluxio.file.ReadTargetBuffer;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -90,6 +91,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -229,8 +231,8 @@ public class LocalCacheFileInStreamTest {
     ByteBuffer cacheHitBuffer = ByteBuffer.wrap(new byte[partialReadSize]);
     stream.seek(offset);
     Assert.assertEquals(partialReadSize, stream.read(cacheHitBuffer));
-    Assert.assertArrayEquals(
-        Arrays.copyOfRange(testData, offset, offset + partialReadSize), cacheHitBuffer.array());
+    Assert.assertArrayEquals(Arrays.copyOfRange(testData, offset, offset + partialReadSize),
+        cacheHitBuffer.array());
     Assert.assertEquals(1, manager.mPagesServed);
   }
 
@@ -631,13 +633,31 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer target,
+    public int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer target,
         CacheContext cacheContext) {
       if (!mPages.containsKey(pageId)) {
         return 0;
       }
       mPagesServed++;
       target.writeBytes(mPages.get(pageId), pageOffset, bytesToRead);
+      return bytesToRead;
+    }
+
+    @Override
+    public int getAndLoad(PageId pageId, int pageOffset, int bytesToRead,
+        ReadTargetBuffer buffer, CacheContext cacheContext,
+        Supplier<byte[]> externalDataSupplier) {
+      int bytesRead = get(pageId, pageOffset,
+          bytesToRead, buffer, cacheContext);
+      if (bytesRead > 0) {
+        return bytesRead;
+      }
+      byte[] page = externalDataSupplier.get();
+      if (page.length == 0) {
+        return 0;
+      }
+      buffer.writeBytes(page, pageOffset, bytesToRead);
+      put(pageId, page, cacheContext);
       return bytesToRead;
     }
 
@@ -841,6 +861,16 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
+    public PositionReader openPositionRead(AlluxioURI path, OpenFilePOptions options) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public PositionReader openPositionRead(URIStatus status, OpenFilePOptions options) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void persist(AlluxioURI path, ScheduleAsyncPersistencePOptions options)
         throws FileDoesNotExistException, IOException, AlluxioException {
       throw new UnsupportedOperationException();
@@ -1001,7 +1031,7 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer target,
+    public int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer target,
         CacheContext cacheContext) {
       int read = super.get(pageId, pageOffset, bytesToRead, target, cacheContext);
       if (read > 0) {

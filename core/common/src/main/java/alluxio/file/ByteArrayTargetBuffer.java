@@ -9,11 +9,16 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.cache.store;
+package alluxio.file;
 
 import alluxio.annotation.SuppressFBWarnings;
+import alluxio.file.ReadTargetBuffer;
+import alluxio.util.io.ChannelAdapters;
+
+import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
@@ -24,7 +29,7 @@ import java.nio.channels.WritableByteChannel;
 @SuppressFBWarnings(
     value = "EI_EXPOSE_REP2",
     justification = "The target byte array is exposed as we expect.")
-public class ByteArrayTargetBuffer implements PageReadTargetBuffer {
+public class ByteArrayTargetBuffer implements ReadTargetBuffer {
   private final byte[] mTarget;
   private int mOffset;
 
@@ -45,12 +50,17 @@ public class ByteArrayTargetBuffer implements PageReadTargetBuffer {
 
   @Override
   public ByteBuffer byteBuffer() {
-    throw new UnsupportedOperationException();
+    return ByteBuffer.wrap(mTarget);
   }
 
   @Override
-  public long offset() {
+  public int offset() {
     return mOffset;
+  }
+
+  @Override
+  public void offset(int newOffset) {
+    mOffset = newOffset;
   }
 
   @Override
@@ -65,6 +75,13 @@ public class ByteArrayTargetBuffer implements PageReadTargetBuffer {
   }
 
   @Override
+  public void writeBytes(ByteBuf buf) {
+    int bytesToRead = Math.min(buf.readableBytes(), mTarget.length - mOffset);
+    buf.readBytes(mTarget, mOffset, bytesToRead);
+    mOffset += bytesToRead;
+  }
+
+  @Override
   public int readFromFile(RandomAccessFile file, int length) throws IOException {
     int bytesRead = file.read(mTarget, mOffset, length);
     if (bytesRead != -1) {
@@ -74,7 +91,16 @@ public class ByteArrayTargetBuffer implements PageReadTargetBuffer {
   }
 
   @Override
+  public int readFromInputStream(InputStream is, int length) throws IOException {
+    int bytesRead = is.read(mTarget, mOffset, length);
+    if (bytesRead != -1) {
+      mOffset += bytesRead;
+    }
+    return bytesRead;
+  }
+
+  @Override
   public WritableByteChannel byteChannel() {
-    throw new UnsupportedOperationException();
+    return ChannelAdapters.intoByteArray(mTarget, mOffset, mTarget.length - mOffset);
   }
 }

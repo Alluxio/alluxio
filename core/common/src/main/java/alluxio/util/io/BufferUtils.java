@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Preconditions;
+import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -291,6 +292,31 @@ public final class BufferUtils {
   }
 
   /**
+   * Checks if the given byte array contains an increasing sequence of bytes of the given
+   * length, starting from the given value.
+   *
+   * @param start the starting value to use
+   * @param len the target length of the sequence
+   * @param arr the byte array to check
+   * @return true if the byte array has a subarray of length {@code len} that is an increasing
+   *         sequence of bytes starting at {@code start}
+   */
+  public static boolean startsWithIncreasingByteArray(int start, int len, byte[] arr) {
+    if (arr == null) {
+      return false;
+    }
+    if (len >= arr.length) {
+      return false;
+    }
+    for (int k = 0; k < len; k++) {
+      if (arr[k] != (byte) (start + k)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
    * Gets a {@link ByteBuffer} containing an increasing sequence of bytes starting at zero.
    *
    * @param len the target length of the sequence
@@ -332,6 +358,31 @@ public final class BufferUtils {
     }
     for (int k = 0; k < len; k++) {
       if (buf.get() != (byte) (start + k)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Checks if the given {@link ByteBuf} starts with an increasing sequence of bytes starting at
+   * the given value of length equal to or greater than the given length.
+   *
+   * @param start the starting value to use
+   * @param len the target length of the sequence
+   * @param buf the ByteBuffer to check
+   * @return true if the ByteBuf has a prefix of length {@code len} that is an increasing
+   *         sequence of bytes starting at {@code start}
+   */
+  public static boolean equalIncreasingByteBuf(int start, int len, ByteBuf buf) {
+    if (buf == null) {
+      return false;
+    }
+    if (buf.readableBytes() != len) {
+      return false;
+    }
+    for (int k = 0; k < len; k++) {
+      if (buf.readByte() != (byte) (start + k)) {
         return false;
       }
     }

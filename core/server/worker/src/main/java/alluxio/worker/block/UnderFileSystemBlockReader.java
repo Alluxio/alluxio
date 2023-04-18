@@ -15,10 +15,10 @@ import static alluxio.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSO
 
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.file.FileId;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
-import alluxio.underfs.FileId;
 import alluxio.underfs.UfsInputStreamCache;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;

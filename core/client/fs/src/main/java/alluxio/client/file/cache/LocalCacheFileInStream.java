@@ -18,12 +18,12 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.cache.store.ByteArrayTargetBuffer;
-import alluxio.client.file.cache.store.ByteBufferTargetBuffer;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+import alluxio.file.ByteArrayTargetBuffer;
+import alluxio.file.ByteBufferTargetBuffer;
+import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
@@ -141,7 +141,7 @@ public class LocalCacheFileInStream extends FileInStream {
     return totalBytesRead;
   }
 
-  private int bufferedRead(PageReadTargetBuffer targetBuffer, int length,
+  private int bufferedRead(ReadTargetBuffer targetBuffer, int length,
       ReadType readType, long position, Stopwatch stopwatch) throws IOException {
     if (mBuffer == null) { //buffer is disabled, read data from local cache directly.
       return localCachedRead(targetBuffer, length, readType, position, stopwatch);
@@ -171,7 +171,7 @@ public class LocalCacheFileInStream extends FileInStream {
     return dataReadFromBuffer;
   }
 
-  private int localCachedRead(PageReadTargetBuffer bytesBuffer, int length,
+  private int localCachedRead(ReadTargetBuffer bytesBuffer, int length,
       ReadType readType, long position, Stopwatch stopwatch) throws IOException {
     long currentPage = position / mPageSize;
     PageId pageId;
@@ -228,7 +228,7 @@ public class LocalCacheFileInStream extends FileInStream {
   }
 
   // TODO(binfan): take ByteBuffer once CacheManager takes ByteBuffer to avoid extra mem copy
-  private int readInternal(PageReadTargetBuffer targetBuffer, int offset, int length,
+  private int readInternal(ReadTargetBuffer targetBuffer, int offset, int length,
       ReadType readType, long position, boolean isPositionedRead) throws IOException {
     Preconditions.checkArgument(length >= 0, "length should be non-negative");
     Preconditions.checkArgument(offset >= 0, "offset should be non-negative");

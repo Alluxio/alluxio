@@ -13,7 +13,9 @@ package alluxio.underfs.cos;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.PositionReader;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
@@ -255,6 +257,11 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
       return true;
     }
     return getObjectListingChunkForPath(path, true) != null;
+  }
+
+  @Override
+  public PositionReader openPositionRead(String path, long fileLength) {
+    throw new UnimplementedRuntimeException("Position read is not implemented");
   }
 
   @Override

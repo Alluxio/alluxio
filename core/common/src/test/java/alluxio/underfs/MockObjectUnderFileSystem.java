@@ -12,6 +12,8 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
+import alluxio.PositionReader;
+import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.options.OpenOptions;
 
@@ -88,6 +90,11 @@ public class MockObjectUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   public String getUnderFSType() {
     return null;
+  }
+
+  @Override
+  public PositionReader openPositionRead(String path, long fileLength) {
+    throw new UnimplementedRuntimeException("Position read is not implemented");
   }
 
   @Override

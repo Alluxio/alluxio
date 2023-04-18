@@ -12,6 +12,8 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.CloseableSupplier;
+import alluxio.PositionReader;
 import alluxio.client.ReadType;
 import alluxio.client.file.dora.DoraCacheClient;
 import alluxio.client.file.dora.WorkerLocationPolicy;
@@ -24,6 +26,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.FileIncompleteException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.OpenDirectoryException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.ExistsPOptions;
@@ -139,6 +142,39 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   }
 
   @Override
+  public PositionReader openPositionRead(AlluxioURI path, OpenFilePOptions options) {
+    try {
+      return openPositionRead(getStatus(path), options);
+    } catch (IOException | AlluxioException e) {
+      throw AlluxioRuntimeException.from(e);
+    }
+  }
+
+  @Override
+  public PositionReader openPositionRead(URIStatus status, OpenFilePOptions options) {
+    AlluxioURI path = new AlluxioURI(status.getPath());
+    if (status.isFolder()) {
+      throw AlluxioRuntimeException.from(new OpenDirectoryException(path));
+    }
+    if (!status.isCompleted()) {
+      throw AlluxioRuntimeException.from(new FileIncompleteException(path));
+    }
+    AlluxioConfiguration conf = mFsContext.getPathConf(path);
+    OpenFilePOptions mergedOptions = FileSystemOptionsUtils.openFileDefaults(conf)
+        .toBuilder().mergeFrom(options).build();
+    Protocol.OpenUfsBlockOptions openUfsBlockOptions =
+        Protocol.OpenUfsBlockOptions.newBuilder().setUfsPath(status.getUfsPath())
+            .setOffsetInFile(0).setBlockSize(status.getLength())
+            .setMaxUfsReadConcurrency(mergedOptions.getMaxUfsReadConcurrency())
+            .setNoCache(!ReadType.fromProto(mergedOptions.getReadType()).isCache())
+            .setMountId(DUMMY_MOUNT_ID)
+            .build();
+    return mDoraClient.createNettyPositionReader(status, openUfsBlockOptions,
+        new CloseableSupplier<>(() ->
+            mDelegatedFileSystem.openPositionRead(status, mergedOptions)));
+  }
+
+  @Override
   public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
@@ -189,7 +225,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
 
   @Override
   public void iterateStatus(AlluxioURI path, ListStatusPOptions options,
-                            Consumer<? super URIStatus> action)
+      Consumer<? super URIStatus> action)
       throws FileDoesNotExistException, IOException, AlluxioException {
     AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
 

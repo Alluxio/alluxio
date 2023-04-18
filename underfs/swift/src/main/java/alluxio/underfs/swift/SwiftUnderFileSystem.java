@@ -13,9 +13,11 @@ package alluxio.underfs.swift;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.PositionReader;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
@@ -194,6 +196,11 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   public String getUnderFSType() {
     return "swift";
+  }
+
+  @Override
+  public PositionReader openPositionRead(String path, long fileLength) {
+    throw new UnimplementedRuntimeException("Position read is not implemented");
   }
 
   // Setting Swift owner via Alluxio is not supported yet. This is a no-op.

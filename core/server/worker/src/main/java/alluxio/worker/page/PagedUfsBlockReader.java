@@ -12,9 +12,9 @@
 package alluxio.worker.page;
 
 import alluxio.conf.PropertyKey;
+import alluxio.file.FileId;
 import alluxio.network.protocol.databuffer.NioDirectBufferPool;
 import alluxio.resource.CloseableResource;
-import alluxio.underfs.FileId;
 import alluxio.underfs.UfsInputStreamCache;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;

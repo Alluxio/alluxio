@@ -9,9 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.cache.store;
+package alluxio.file;
+
+import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
@@ -19,7 +22,7 @@ import java.nio.channels.WritableByteChannel;
 /**
  * TargetBuffer for zero-copy read from page store.
  */
-public interface PageReadTargetBuffer {
+public interface ReadTargetBuffer {
 
   /**
    * @return the byte array
@@ -35,7 +38,14 @@ public interface PageReadTargetBuffer {
   /**
    * @return offset in the buffer
    */
-  long offset();
+  int offset();
+
+  /**
+   * Sets the new offset in the buffer.
+   *
+   * @param newOffset the new offset
+   */
+  void offset(int newOffset);
 
   /**
    * @return the writable channel
@@ -55,9 +65,22 @@ public interface PageReadTargetBuffer {
   void writeBytes(byte[] srcArray, int srcOffset, int length);
 
   /**
+   * @param buf
+   */
+  void writeBytes(ByteBuf buf);
+
+  /**
    * @param file
    * @param length
    * @return bytes read from the file
    */
   int readFromFile(RandomAccessFile file, int length) throws IOException;
+
+  /**
+   * @param is
+   * @param length
+   * @return bytes read from input stream
+   * @throws IOException
+   */
+  int readFromInputStream(InputStream is, int length) throws IOException;
 }

@@ -17,6 +17,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.OutOfRangeRuntimeException;
 import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
+import alluxio.file.FileId;
 import alluxio.grpc.UfsReadOptions;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;

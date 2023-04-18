@@ -41,8 +41,6 @@ import alluxio.resource.PooledResource;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.ServerUserState;
-import alluxio.underfs.FileId;
-import alluxio.underfs.PagedUfsReader;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsInputStreamCache;
 import alluxio.underfs.UfsManager;
@@ -59,7 +57,6 @@ import alluxio.worker.AbstractWorker;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.block.io.BlockReader;
-import alluxio.worker.page.UfsBlockReadOptions;
 
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
@@ -398,16 +395,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             String.format("Failed to get mount point for %s", options.getUfsPath()), e2);
       }
     }
-
-    FileId id = FileId.of(fileId);
-    final long fileSize = options.getBlockSize();
-    return new PagedFileReader(mConf, mCacheManager,
-        new PagedUfsReader(mConf, ufsClient, mUfsStreamCache, id,
-            fileSize, offset, UfsBlockReadOptions.fromProto(options), mPageSize),
-        id,
-        fileSize,
-        offset,
-        mPageSize);
+    return PagedFileReader.create(mConf, mCacheManager, ufsClient, fileId,
+        options.getUfsPath(), options.getBlockSize(), offset);
   }
 
   @Override

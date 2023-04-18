@@ -13,6 +13,8 @@ package alluxio.client.file.dora;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import alluxio.CloseableSupplier;
+import alluxio.PositionReader;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.GrpcDataReader;
@@ -71,16 +73,31 @@ public class DoraCacheClient {
    * @return the input stream
    */
   public DoraCacheFileInStream getInStream(URIStatus status,
-                                           Protocol.OpenUfsBlockOptions ufsOptions) {
+      Protocol.OpenUfsBlockOptions ufsOptions) {
     WorkerNetAddress workerNetAddress = getWorkerNetAddress(status.getPath());
     // Construct the partial read request
-    DoraDataReader reader;
+    NettyDataReader reader;
     if (mNettyTransEnabled) {
       reader = createNettyDataReader(workerNetAddress, ufsOptions);
     } else {
       throw new UnsupportedOperationException("Grpc dora reader not implemented");
     }
     return new DoraCacheFileInStream(reader, status.getLength());
+  }
+
+  /**
+   * @param status
+   * @param ufsOptions
+   * @param externalPositionReader
+   * @return a netty position reader
+   */
+  public DoraCachePositionReader createNettyPositionReader(URIStatus status,
+      Protocol.OpenUfsBlockOptions ufsOptions,
+      CloseableSupplier<PositionReader> externalPositionReader) {
+    WorkerNetAddress workerNetAddress = getWorkerNetAddress(status.getPath());
+    // Construct the partial read request
+    NettyDataReader reader = createNettyDataReader(workerNetAddress, ufsOptions);
+    return new DoraCachePositionReader(reader, status.getLength(), externalPositionReader);
   }
 
   private GrpcDataReader.Factory createGrpcDataReader(

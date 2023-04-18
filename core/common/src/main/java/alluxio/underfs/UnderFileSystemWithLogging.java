@@ -13,10 +13,12 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.PositionReader;
 import alluxio.SyncInfo;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.status.UnimplementedException;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricInfo;
@@ -937,6 +939,30 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
         return String.format("path=%s, options=%s", path, options);
       }
     });
+  }
+
+  @Override
+  public PositionReader openPositionRead(final String path, final long fileLength) {
+    try {
+      return call(new UfsCallable<PositionReader>() {
+        @Override
+        public PositionReader call() {
+          return mUnderFileSystem.openPositionRead(path, fileLength);
+        }
+
+        @Override
+        public String methodName() {
+          return "OpenPositionRead";
+        }
+
+        @Override
+        public String toString() {
+          return String.format("path=%s, fileLength=%s", path, fileLength);
+        }
+      });
+    } catch (IOException e) {
+      throw AlluxioRuntimeException.from(e);
+    }
   }
 
   @Override

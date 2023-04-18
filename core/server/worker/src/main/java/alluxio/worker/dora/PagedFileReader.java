@@ -11,19 +11,21 @@
 
 package alluxio.worker.dora;
 
+import alluxio.CloseableSupplier;
+import alluxio.PositionReader;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.CacheManager;
-import alluxio.client.file.cache.PageId;
-import alluxio.client.file.cache.store.PageReadTargetBuffer;
+import alluxio.client.file.cache.LocalCachePositionReader;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.metrics.MetricKey;
-import alluxio.metrics.MetricsSystem;
-import alluxio.network.protocol.databuffer.NioDirectBufferPool;
-import alluxio.underfs.FileId;
-import alluxio.underfs.PagedUfsReader;
+import alluxio.conf.PropertyKey;
+import alluxio.file.FileId;
+import alluxio.file.NettyBufTargetBuffer;
+import alluxio.file.ReadTargetBuffer;
+import alluxio.resource.CloseableResource;
+import alluxio.underfs.UfsManager;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.worker.block.io.BlockReadableChannel;
 import alluxio.worker.block.io.BlockReader;
-import alluxio.worker.page.NettyBufTargetBuffer;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
@@ -36,39 +38,63 @@ import java.nio.channels.ReadableByteChannel;
 /**
  * Paged file reader.
  */
-public class PagedFileReader extends BlockReader {
+public class PagedFileReader extends BlockReader implements PositionReader {
   private static final ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocate(0);
-  private final FileId mFileId;
   private final long mFileSize;
-  private final long mPageSize;
-  private final CacheManager mCacheManager;
-  private final PagedUfsReader mUfsReader;
+  private final LocalCachePositionReader mPositionReader;
+  private final CloseableResource<UnderFileSystem> mUfs;
   private long mPos;
-  private boolean mClosed = false;
+  private volatile boolean mClosed = false;
+
+  /**
+   * Creates a new {@link PagedFileReader}.
+   *
+   * @param conf
+   * @param cacheManager
+   * @param ufsClient
+   * @param fileId
+   * @param ufsPath
+   * @param fileSize
+   * @param startPosition
+   * @return a new {@link PagedFileReader}
+   */
+  public static PagedFileReader create(AlluxioConfiguration conf, CacheManager cacheManager,
+      UfsManager.UfsClient ufsClient, String fileId,
+      String ufsPath, long fileSize, long startPosition) {
+    FileId fileIdField = FileId.of(fileId);
+    CloseableResource<UnderFileSystem> ufs = ufsClient.acquireUfsResource();
+    try {
+      return new PagedFileReader(ufs, LocalCachePositionReader.create(cacheManager,
+          new CloseableSupplier<>(() -> ufs.get().openPositionRead(ufsPath, fileSize)),
+          fileIdField, fileSize, conf.getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE),
+          CacheContext.defaults()), fileSize, startPosition);
+    } catch (Throwable t) {
+      try {
+        ufs.close();
+      } catch (Throwable t1) {
+        t.addSuppressed(t1);
+      }
+      throw t;
+    }
+  }
 
   /**
    * Constructor.
-   * @param conf
-   * @param cacheManager
-   * @param pagedUfsReader
-   * @param fileId
+   *
+   * @param ufs
+   * @param localCachePositionReader
    * @param fileSize
    * @param startPosition
-   * @param pageSize
    */
-  public PagedFileReader(AlluxioConfiguration conf, CacheManager cacheManager,
-      PagedUfsReader pagedUfsReader, FileId fileId,
-      long fileSize, long startPosition, long pageSize) {
-    mCacheManager = Preconditions.checkNotNull(cacheManager, "cacheManager");
-    mFileId = Preconditions.checkNotNull(fileId, "fileId");
+  public PagedFileReader(CloseableResource<UnderFileSystem> ufs,
+      LocalCachePositionReader localCachePositionReader,
+      long fileSize, long startPosition) {
+    mUfs = Preconditions.checkNotNull(ufs);
+    mPositionReader = Preconditions.checkNotNull(localCachePositionReader);
     mFileSize = fileSize;
     mPos = startPosition;
-    mPageSize = pageSize;
-    mUfsReader = pagedUfsReader;
   }
 
-  // contract:
-  // 1.
   @Override
   public ByteBuffer read(long offset, long length) throws IOException {
     if (length == 0 || offset >= mFileSize) {
@@ -86,63 +112,15 @@ public class PagedFileReader extends BlockReader {
     // Unpooled.wrappedBuffer returns a buffer with writer index set to capacity, so writable
     // bytes is 0, needs explicit clear
     buf.clear();
-    long bytesRead = read(buf, offset, length);
+    ReadTargetBuffer targetBuffer = new NettyBufTargetBuffer(buf);
+    int bytesRead = mPositionReader.read(offset, targetBuffer, (int) length);
     if (bytesRead < 0) {
       return EMPTY_BYTE_BUFFER;
     }
     buffer.position(0);
-    buffer.limit((int) bytesRead);
+    buffer.limit(bytesRead);
+    mPos += bytesRead;
     return buffer;
-  }
-
-  /**
-   * Preconditions:
-   * 1. reader not closed
-   * 2. offset and length must be valid, check them with ensureReadable
-   * 3. enough space left in buffer for the bytes to read
-   */
-  private long read(ByteBuf byteBuf, long offset, long length) throws IOException {
-    Preconditions.checkArgument(byteBuf.writableBytes() >= length,
-        "buffer overflow, trying to write %s bytes, only %s writable",
-        length, byteBuf.writableBytes());
-    PageReadTargetBuffer target = new NettyBufTargetBuffer(byteBuf);
-    int bytesRead = 0;
-    while (bytesRead < length) {
-      long pos = offset + bytesRead;
-      long pageIndex = pos / mPageSize;
-      PageId pageId = new PageId(mFileId.toString(), pageIndex);
-      int currentPageOffset = (int) (pos % mPageSize);
-      int bytesLeftInPage =
-          (int) Math.min(mPageSize - currentPageOffset, length - bytesRead);
-      int bytesReadFromCache = mCacheManager.get(
-          pageId, currentPageOffset, bytesLeftInPage, target, CacheContext.defaults());
-      if (bytesReadFromCache > 0) {
-        bytesRead += bytesReadFromCache;
-        MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesRead);
-      } else {
-        // get the page at pageIndex as a whole from UFS
-        ByteBuffer ufsBuf = NioDirectBufferPool.acquire((int) mPageSize);
-        try {
-          int pageBytesRead = mUfsReader.readPageAtIndex(ufsBuf, pageIndex);
-          if (pageBytesRead > 0) {
-            ufsBuf.position(currentPageOffset);
-            ufsBuf.limit(currentPageOffset + bytesLeftInPage);
-            byteBuf.writeBytes(ufsBuf);
-            bytesRead += bytesLeftInPage;
-            MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
-                .mark(bytesLeftInPage);
-            ufsBuf.rewind();
-            ufsBuf.limit(pageBytesRead);
-            if (mUfsReader.getUfsReadOptions().isCacheIntoAlluxio()) {
-              mCacheManager.put(pageId, ufsBuf);
-            }
-          }
-        } finally {
-          NioDirectBufferPool.release(ufsBuf);
-        }
-      }
-    }
-    return bytesRead;
   }
 
   private void ensureReadable(long offset, long length) {
@@ -173,18 +151,29 @@ public class PagedFileReader extends BlockReader {
     }
     int bytesToTransfer =
         (int) Math.min(buf.writableBytes(), mFileSize - mPos);
-    ensureReadable(mPos, bytesToTransfer);
-    long bytesRead = read(buf, mPos, bytesToTransfer);
-    mPos += bytesRead;
-    return (int) bytesRead;
+    ReadTargetBuffer targetBuffer = new NettyBufTargetBuffer(buf);
+    int bytesRead = mPositionReader.read(mPos, targetBuffer, bytesToTransfer);
+    if (bytesRead > 0) {
+      mPos += bytesRead;
+    }
+    return bytesRead;
   }
 
   @Override
-  public void close() throws IOException {
-    if (!mClosed) {
-      super.close();
-      mClosed = true;
+  public int readInternal(long position, ReadTargetBuffer buffer, int length)
+      throws IOException {
+    return mPositionReader.read(position, buffer, length);
+  }
+
+  @Override
+  public synchronized void close() throws IOException {
+    if (mClosed) {
+      return;
     }
+    mClosed = true;
+    mPositionReader.close();
+    mUfs.close();
+    super.close();
   }
 
   @Override
