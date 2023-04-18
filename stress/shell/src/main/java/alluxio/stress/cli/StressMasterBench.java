@@ -183,7 +183,7 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
       // well here seems ought to use http://<master-host>:<master-port>/, and StressBench is hard to know the master ip..?
       // Maybe need nginx deployed with alluxio as using ClientType S3A
       hdfsConf.set("fs.s3a.endpoint", "http://localhost:39999/api/v1/s3");
-      LOG.info(String.format("s3 path is: %s"), hdfsConf);
+      LOG.info(String.format("s3 path is: %s", hdfsConf));
       String s3path = alluxioPathToS3APath(mParameters.mBasePath);
       LOG.info(String.format("s3 path is: %s"), s3path);
       for (int i = 0; i < mCachedFs.length; i++) {
