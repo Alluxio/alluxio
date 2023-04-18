@@ -86,7 +86,7 @@ public class RocksInodeStoreTest {
 
   @Before
   public void setUp() throws Exception {
-    // Be explicit in this test
+    Configuration.set(PropertyKey.MASTER_METASTORE_ROCKS_EXCLUSIVE_LOCK_TIMEOUT, "500ms");
     Configuration.set(PropertyKey.TEST_MODE, true);
     // Wait for a shorter period of time in test
     Configuration.set(PropertyKey.MASTER_METASTORE_ROCKS_EXCLUSIVE_LOCK_TIMEOUT, "1s");

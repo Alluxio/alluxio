@@ -60,7 +60,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicStampedReference;
 import java.util.concurrent.atomic.LongAdder;
@@ -144,8 +143,7 @@ public final class RocksStore implements Closeable {
    * A reader can rely on the version to tell whether it can still read the RocksDB
    * after the exclusive lock is taken and released.
    */
-  // TODO(jiacheng): maybe I can reverse the flags so they are more expressive
-  public final AtomicStampedReference<Boolean> mRocksDbState =
+  public final AtomicStampedReference<Boolean> mRocksDbStopServing =
       new AtomicStampedReference<>(false, 0);
   public volatile LongAdder mRefCount = new LongAdder();
 
@@ -494,7 +492,7 @@ public final class RocksStore implements Closeable {
    * should not be exceeded at all.
    */
   public RocksSharedLockHandle checkAndAcquireSharedLock() {
-    if (mRocksDbState.getReference()) {
+    if (mRocksDbStopServing.getReference()) {
       throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
     }
     /*
@@ -515,12 +513,12 @@ public final class RocksStore implements Closeable {
      * With the 2nd check, we make sure the ref count will be respected by the closer and
      * the closer will therefore wait for this reader to complete/abort.
      */
-    if (mRocksDbState.getReference()) {
+    if (mRocksDbStopServing.getReference()) {
       mRefCount.decrement();
       throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
     }
 
-    return new RocksSharedLockHandle(mRocksDbState.getStamp(), mRefCount);
+    return new RocksSharedLockHandle(mRocksDbStopServing.getStamp(), mRefCount);
   }
 
   /**
@@ -565,18 +563,18 @@ public final class RocksStore implements Closeable {
    */
   private void setFlagAndBlockingWait(boolean yieldToAnotherCloser) {
     // Another known operation has acquired the exclusive lock
-    if (yieldToAnotherCloser && mRocksDbState.getReference()) {
+    if (yieldToAnotherCloser && mRocksDbStopServing.getReference()) {
       throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
     }
 
-    int version = mRocksDbState.getStamp();
+    int version = mRocksDbStopServing.getStamp();
     if (yieldToAnotherCloser) {
-      if (!mRocksDbState.compareAndSet(false, true, version, version)) {
+      if (!mRocksDbStopServing.compareAndSet(false, true, version, version)) {
         throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
       }
     } else {
       // Just set the state with no respect to concurrent actions
-      mRocksDbState.set(true, version);
+      mRocksDbStopServing.set(true, version);
     }
 
     /*
@@ -683,11 +681,12 @@ public final class RocksStore implements Closeable {
     // Grab the lock with respect to contenders
     setFlagAndBlockingWait(true);
     return new RocksExclusiveLockHandle(() -> {
-          mCheckRefCount.call();
-          // TODO(jiacheng): the set() does not respect concurrent writer operations so may overwrite
-          //  the flag
-          mRocksDbState.set(false, mRocksDbState.getStamp());
-          return null;
+        mCheckRefCount.call();
+        // There is no need to worry about overwriting another concurrent Closer action
+        // The only chance of concurrency is with lockForClosing()
+        // But lockForClosing() guarantees the master process will close immediately
+        mRocksDbStopServing.set(false, mRocksDbStopServing.getStamp());
+        return null;
     });
   }
 
@@ -705,9 +704,12 @@ public final class RocksStore implements Closeable {
     // Grab the lock with respect to contenders
     setFlagAndBlockingWait(true);
     return new RocksExclusiveLockHandle(() -> {
-          mCheckRefCount.call();
-          mRocksDbState.set(false, mRocksDbState.getStamp() + 1);
-          return null;
+        mCheckRefCount.call();
+        // There is no need to worry about overwriting another concurrent Closer action
+        // The only chance of concurrency is with lockForClosing()
+        // But lockForClosing() guarantees the master process will close immediately
+        mRocksDbStopServing.set(false, mRocksDbStopServing.getStamp() + 1);
+        return null;
     });
   }
 
@@ -716,9 +718,9 @@ public final class RocksStore implements Closeable {
    * to the RocksDB shutdown.
    */
   public void shouldAbort(int lockedVersion) {
-    if (mRocksDbState.getReference()) {
+    if (mRocksDbStopServing.getReference()) {
       throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
-    } else if (lockedVersion < mRocksDbState.getStamp()) {
+    } else if (lockedVersion < mRocksDbStopServing.getStamp()) {
       throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_REWRITTEN.getMessage());
     }
   }
@@ -727,7 +729,7 @@ public final class RocksStore implements Closeable {
    * Checks whether the RocksDB is marked for exclusive access, so the operation should abort.
    */
   public boolean isServiceStopping() {
-    return mRocksDbState.getReference();
+    return mRocksDbStopServing.getReference();
   }
 
   @VisibleForTesting
