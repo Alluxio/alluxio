@@ -182,10 +182,13 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
       // well here seems ought to use http://<master-host>:<master-port>/, and StressBench is hard to know the master ip..?
       // Maybe need nginx deployed with alluxio as using ClientType S3A
       hdfsConf.set("fs.s3a.endpoint", "http://localhost:39999/api/v1/s3");
+      String s3path = alluxioPathToS3APath(mParameters.mBasePath);
+      LOG.info("s3 path is: ", s3path);
       for (int i = 0; i < mCachedFs.length; i++) {
         // here the mParameters.mBasePath should be sth like "s3a://bucket-name"
         LOG.info("Initiating S3A filesystem");
-        mCachedFs[i] = FileSystem.get(new URI(alluxioPathToS3APath(mParameters.mBasePath)), hdfsConf);
+        mCachedFs[i] = FileSystem.get(new URI(s3path),
+            hdfsConf);
         LOG.info("", mCachedFs[i]);
       }
     }
@@ -207,6 +210,11 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
     }
   }
 
+  /**
+   *
+   * @param alluxioBasePath extract alluxioPath to s3a path
+   * @return s3a path
+   */
   protected String alluxioPathToS3APath(String alluxioBasePath) {
     if (alluxioBasePath == null || alluxioBasePath.isEmpty()) {
       return alluxioBasePath;
@@ -215,7 +223,9 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
       return alluxioBasePath;
     }
     String path = alluxioBasePath.substring("alluxio:///".length());
-    return "s3a://" + path + "/";
+    String ret = "s3a://" + path + "/";
+    LOG.info(String.format("the return path is :%s", ret));
+    return ret;
   }
 
   @Override
