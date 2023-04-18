@@ -20,11 +20,13 @@ import alluxio.Server;
 import alluxio.StorageTierAssoc;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheUsage;
+import alluxio.client.file.cache.PageId;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.InternalException;
 import alluxio.exception.status.NotFoundException;
+import alluxio.file.FileId;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.GetStatusPOptions;
@@ -256,9 +258,30 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     return statuses;
   }
 
+  /**
+   * @param fileInfo the FileInfo of this file. Cached pages are identified by PageId
+   * @return true at this moment
+   */
+  @Override
+  public boolean invalidateCachedFile(FileInfo fileInfo) {
+    long pages = (fileInfo.getLength() + mPageSize - 1) / mPageSize;
+    FileId file = FileId.of(new AlluxioURI(fileInfo.getUfsPath()).hash());
+
+    // @TODO(huanghua78) Only invalidate cached pages. Here, we don't check if a page is
+    // cached or not. If a page is not cached at all, the mCacheManager.delete() will log
+    // error messages to complain the non-existance of the page. As an optimization we need
+    // to only invalidate cached pages.
+    for (long i = 0; i < pages; i++) {
+      PageId page = new PageId(file.toString(), i);
+      mCacheManager.delete(page);
+    }
+    return true;
+  }
+
   @Override
   public FileInfo getFileInfo(String ufsFullPath, GetStatusPOptions options) throws IOException {
     alluxio.grpc.FileInfo fi;
+    boolean invalidated = false;
     long syncIntervalMs = options.hasCommonOptions()
         ? (options.getCommonOptions().hasSyncIntervalMs()
           ? options.getCommonOptions().getSyncIntervalMs() : -1) :
@@ -270,6 +293,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       if (System.nanoTime() - status.getTs() > syncIntervalMs * Constants.MS_NANO) {
         // The metadata is expired. Remove it from in-memory cache.
         mUfsStatusCache.invalidate(ufsFullPath);
+        invalidated = invalidateCachedFile(GrpcUtils.fromProto(status.getFileInfo()));
         status = null;
       }
     }
@@ -289,6 +313,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
           // The metadata is expired. Remove it from RocksDB.
           if (mMetaStore != null) {
             mMetaStore.removeDoraMeta(ufsFullPath);
+            if (!invalidated) {
+              invalidated = invalidateCachedFile(GrpcUtils.fromProto(fs.get().getFileInfo()));
+            }
           }
           fs = Optional.empty();
         }
@@ -314,6 +341,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         }
         if (mMetaStore != null) {
           mMetaStore.putDoraMeta(ufsFullPath, status);
+          if (!invalidated) {
+            invalidateCachedFile(GrpcUtils.fromProto(status.getFileInfo()));
+          }
         }
         fi = status.getFileInfo();
       }
