@@ -83,11 +83,11 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
 import software.amazon.awssdk.services.s3.S3Configuration;
-import software.amazon.awssdk.services.s3.endpoints.S3EndpointParams;
 import software.amazon.awssdk.services.s3.model.CommonPrefix;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.S3Object;
 
 import java.io.ByteArrayInputStream;
@@ -248,8 +248,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
     AmazonS3 amazonS3Client
         = createAmazonS3(credentials, clientConf, endpointConfiguration, conf);
-    S3AsyncClient asyncClient = createAmazonS3Async(
-        createEndpointConfigurationAsync(conf, clientConf), conf, clientConf);
+    S3AsyncClient asyncClient = createAmazonS3Async(conf, clientConf);
 
     ExecutorService service = ExecutorServiceFactories
         .fixedThreadPool("alluxio-s3-transfer-manager-worker",
@@ -267,13 +266,11 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   /**
    * Create an async S3 client.
-   * @param endpointConfiguration the endpoint conf
    * @param conf the conf
    * @param clientConf the client conf
    * @return the client
    */
   public static S3AsyncClient createAmazonS3Async(
-      S3EndpointParams endpointConfiguration,
       UnderFileSystemConfiguration conf,
       ClientConfiguration clientConf) {
 
@@ -311,30 +308,26 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       }
       httpClientBuilder.proxyConfiguration(proxyBuilder.build());
     }
-    boolean enableGlobalBucketAccess = true;
+    boolean regionSet = true;
     if (conf.isSet(PropertyKey.UNDERFS_S3_ENDPOINT)) {
       String endpoint = conf.getString(PropertyKey.UNDERFS_S3_ENDPOINT);
       final URI epr = RuntimeHttpUtils.toUri(endpoint, clientConf);
       clientBuilder.endpointOverride(epr);
       if (conf.isSet(PropertyKey.UNDERFS_S3_ENDPOINT_REGION)) {
-        enableGlobalBucketAccess = setRegionAsync(clientBuilder,
+        regionSet = setRegionAsync(clientBuilder,
             conf.getString(PropertyKey.UNDERFS_S3_ENDPOINT_REGION));
       }
     } else if (conf.isSet(PropertyKey.UNDERFS_S3_REGION)) {
-      enableGlobalBucketAccess = setRegionAsync(clientBuilder,
+      regionSet = setRegionAsync(clientBuilder,
           conf.getString(PropertyKey.UNDERFS_S3_REGION));
     }
 
-    if (enableGlobalBucketAccess) {
-      // access bucket without region information
-      // at the cost of an extra HEAD request
-      clientBuilder.disableMultiRegionAccessPoints(false);
-      // The special S3 region which can be used to talk to any bucket
-      // Region is required even if global bucket access enabled
+    if (!regionSet) {
       String defaultRegion = Regions.US_EAST_1.getName();
       clientBuilder.region(Region.of(defaultRegion));
-      LOG.debug("Cannot find S3 endpoint or s3 region in Alluxio configuration, "
-              + "set region to {} and enable global bucket access with extra overhead",
+      LOG.warn("Cannot find S3 endpoint or s3 region in Alluxio configuration, "
+              + "set region to {} as default. S3 client v2 does not support global bucket access "
+              + "considering specify the region in alluxio config.",
           defaultRegion);
     }
     clientBuilder.httpClientBuilder(httpClientBuilder);
@@ -347,12 +340,12 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     try {
       builder.region(Region.of(region));
       LOG.debug("Set S3 region {} to {}", PropertyKey.UNDERFS_S3_REGION.getName(), region);
-      return false;
+      return true;
     } catch (SdkClientException e) {
       LOG.error("S3 region {} cannot be recognized, "
               + "fall back to use global bucket access with an extra HEAD request",
           region, e);
-      return true;
+      return false;
     }
   }
 
@@ -407,46 +400,6 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
           defaultRegion);
     }
     return clientBuilder.build();
-  }
-
-  /**
-   * Creates an endpoint configuration.
-   *
-   * @param conf the aluxio conf
-   * @param clientConf the aws conf
-   * @return the endpoint configuration
-   */
-  @Nullable
-  private static S3EndpointParams createEndpointConfigurationAsync(
-      UnderFileSystemConfiguration conf, ClientConfiguration clientConf) {
-    if (!conf.isSet(PropertyKey.UNDERFS_S3_ENDPOINT)) {
-      LOG.debug("No endpoint configuration generated, using default s3 endpoint");
-      return null;
-    }
-    String endpoint = conf.getString(PropertyKey.UNDERFS_S3_ENDPOINT);
-    final URI epr = RuntimeHttpUtils.toUri(endpoint, clientConf);
-    LOG.debug("Creating endpoint configuration for {}", epr);
-
-    String region;
-    if (conf.isSet(PropertyKey.UNDERFS_S3_ENDPOINT_REGION)) {
-      region = conf.getString(PropertyKey.UNDERFS_S3_ENDPOINT_REGION);
-    } else if (ServiceUtils.isS3USStandardEndpoint(endpoint)) {
-      // endpoint is standard s3 endpoint with default region, no need to set region
-      LOG.debug("Standard s3 endpoint, declare region as null");
-      region = null;
-    } else {
-      LOG.debug("Parsing region fom non-standard s3 endpoint");
-      region = AwsHostNameUtils.parseRegion(
-          epr.getHost(),
-          S3_SERVICE_NAME);
-    }
-    LOG.debug("Region for endpoint {}, URI {} is determined as {}",
-        endpoint, epr, region);
-    S3EndpointParams.Builder params = S3EndpointParams.builder().endpoint(endpoint);
-    if (region != null) {
-      params.region(Region.of(region));
-    }
-    return params.build();
   }
 
   /**
@@ -713,7 +666,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
         if (err.getCause() instanceof NoSuchKeyException) {
           onComplete.accept(null);
         } else {
-          onError.accept(err);
+          onError.accept(parseS3AsyncException(err));
         }
       } else {
         try {
@@ -745,7 +698,6 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       String path, @Nullable String continuationToken, @Nullable String startAfter,
       DescendantType descendantType, boolean checkStatus,
       Consumer<UfsLoadResult> onComplete, Consumer<Throwable> onError) {
-
     if (checkStatus) {
       Preconditions.checkState(continuationToken == null);
       performGetStatusAsync(path, status -> {
@@ -761,6 +713,24 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       finishListingAsync(null, path, continuationToken, startAfter,
           descendantType, onComplete, onError);
     }
+  }
+
+  private Throwable parseS3AsyncException(Throwable e) {
+    if (e instanceof CompletionException) {
+      if (e.getCause() instanceof S3Exception) {
+        S3Exception innerErr = (S3Exception) e.getCause();
+        if (innerErr.statusCode() == 307
+            || (innerErr.awsErrorDetails().errorCode().equals("AuthorizationHeaderMalformed")
+                && innerErr.getMessage().contains("region"))) {
+          return new IOException(
+              "AWS s3 v2 client does not support global region. "
+                  + "Please either specify the region using alluxio.underfs.s3.region "
+                  + "or in your s3 endpoint alluxio.underfs.s3.endpoint.", innerErr);
+        }
+      }
+      return new IOException(e.getCause());
+    }
+    return e;
   }
 
   private void finishListingAsync(@Nullable UfsStatus baseStatus,
@@ -783,11 +753,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     mAsyncClient.listObjectsV2(request.build())
         .whenCompleteAsync((result, err) -> {
           if (err != null) {
-            if (err instanceof CompletionException) {
-              onError.accept(new IOException(err.getCause()));
-            } else {
-              onError.accept(err);
-            }
+            onError.accept(parseS3AsyncException(err));
           } else {
             try {
               AlluxioURI lastItem = null;

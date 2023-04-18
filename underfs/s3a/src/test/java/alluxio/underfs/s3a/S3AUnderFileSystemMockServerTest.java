@@ -22,6 +22,7 @@ import alluxio.file.options.DescendantType;
 import alluxio.underfs.UfsLoadResult;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.UnderFileSystemTestUtil;
 import alluxio.underfs.options.ListOptions;
 
 import com.amazonaws.AmazonClientException;
@@ -52,9 +53,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Unit tests for the {@link S3AUnderFileSystem} using a s3 mock server.
@@ -158,11 +157,53 @@ public class S3AUnderFileSystemMockServerTest {
     assertNotNull(ufsStatuses);
     assertEquals(14, ufsStatuses.length);
 
-    UfsLoadResult result = performListingAsyncAndGetResult("/", DescendantType.ALL);
+    UfsLoadResult result = UnderFileSystemTestUtil.performListingAsyncAndGetResult(
+        mS3UnderFileSystem, "/", DescendantType.ALL);
     Assert.assertEquals(9, result.getItemsCount());
 
-    result = performListingAsyncAndGetResult("/", DescendantType.ONE);
+    result = UnderFileSystemTestUtil.performListingAsyncAndGetResult(
+        mS3UnderFileSystem, "/", DescendantType.ONE);
     Assert.assertEquals(6, result.getItemsCount());
+
+    result = UnderFileSystemTestUtil.performListingAsyncAndGetResult(
+        mS3UnderFileSystem, "d1", DescendantType.NONE);
+    assertEquals(1, result.getItemsCount());
+
+    result = UnderFileSystemTestUtil.performListingAsyncAndGetResult(
+        mS3UnderFileSystem, "d1/", DescendantType.NONE);
+    assertEquals(1, result.getItemsCount());
+
+    result = UnderFileSystemTestUtil.performListingAsyncAndGetResult(
+        mS3UnderFileSystem, "d3", DescendantType.NONE);
+    assertEquals(1, result.getItemsCount());
+
+    result = UnderFileSystemTestUtil.performListingAsyncAndGetResult(
+        mS3UnderFileSystem, "d3/", DescendantType.NONE);
+    assertEquals(1, result.getItemsCount());
+
+    result = UnderFileSystemTestUtil.performListingAsyncAndGetResult(
+        mS3UnderFileSystem, "d4", DescendantType.NONE);
+    assertEquals(1, result.getItemsCount());
+
+    result = UnderFileSystemTestUtil.performListingAsyncAndGetResult(
+        mS3UnderFileSystem, "d4/", DescendantType.NONE);
+    assertEquals(1, result.getItemsCount());
+
+    result = UnderFileSystemTestUtil.performListingAsyncAndGetResult(
+        mS3UnderFileSystem, "f1", DescendantType.NONE);
+    assertEquals(1, result.getItemsCount());
+
+    result = UnderFileSystemTestUtil.performListingAsyncAndGetResult(
+        mS3UnderFileSystem, "f1/", DescendantType.NONE);
+    assertEquals(0, result.getItemsCount());
+
+    result = UnderFileSystemTestUtil.performListingAsyncAndGetResult(
+        mS3UnderFileSystem, "f3", DescendantType.NONE);
+    assertEquals(0, result.getItemsCount());
+
+    result = UnderFileSystemTestUtil.performListingAsyncAndGetResult(
+        mS3UnderFileSystem, "f3/", DescendantType.NONE);
+    assertEquals(0, result.getItemsCount());
   }
 
   @Test
@@ -185,25 +226,5 @@ public class S3AUnderFileSystemMockServerTest {
         Iterators.toArray(ufsStatusesIterator, UfsStatus.class);
     Arrays.sort(statusesFromListing, Comparator.comparing(UfsStatus::getName));
     assertArrayEquals(statusesFromIterator, statusesFromListing);
-  }
-
-  public UfsLoadResult performListingAsyncAndGetResult(String path, DescendantType descendantType)
-      throws Throwable {
-    CountDownLatch latch = new CountDownLatch(1);
-    AtomicReference<Throwable> throwable = new AtomicReference<>();
-    AtomicReference<UfsLoadResult> result = new AtomicReference<>();
-    mS3UnderFileSystem.performListingAsync(path, null, null, descendantType, false,
-        (r) -> {
-          result.set(r);
-          latch.countDown();
-        }, (t) -> {
-          throwable.set(t);
-          latch.countDown();
-        });
-    latch.await();
-    if (throwable.get() != null) {
-      throw throwable.get();
-    }
-    return result.get();
   }
 }

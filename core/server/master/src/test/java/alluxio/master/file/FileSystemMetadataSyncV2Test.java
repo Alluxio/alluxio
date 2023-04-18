@@ -423,6 +423,29 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
   }
 
   @Test
+  public void syncInodeDescendantTypeNoneHappyPath() throws Throwable {
+    mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
+    mS3Client.putObject(TEST_BUCKET, TEST_FILE, TEST_CONTENT);
+
+    long mountPointInodeId = mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync()).getFileId();
+    assertFalse(mFileSystemMaster.getInodeStore()
+        .get(mountPointInodeId).get().asDirectory().isDirectChildrenLoaded());
+
+    // Sync one file from UFS
+    BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT.join(TEST_FILE), DescendantType.NONE, mDirectoryLoadType, 0);
+    result.waitComplete(TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+        SyncOperation.CREATE, 1L
+    ));
+    FileInfo info = mFileSystemMaster.getFileInfo(MOUNT_POINT.join(TEST_FILE), getNoSync());
+    assertFalse(info.isFolder());
+    assertTrue(info.isCompleted());
+    checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
+  }
+
+  @Test
   public void syncInodeHappyPathNestedObjects() throws Throwable {
     mS3Client.putObject(TEST_BUCKET, "d1/1", TEST_CONTENT);
     mS3Client.putObject(TEST_BUCKET, "d1/2", TEST_CONTENT);

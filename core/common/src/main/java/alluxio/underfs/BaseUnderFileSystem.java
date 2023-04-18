@@ -210,13 +210,17 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem, UfsClient 
       String path, @Nullable String continuationToken, @Nullable String startAfter,
       DescendantType descendantType, boolean checkStatus, Consumer<UfsLoadResult> onComplete,
       Consumer<Throwable> onError) {
-
     mAsyncIOExecutor.submit(() -> {
       try {
         UfsStatus baseStatus = null;
         if (checkStatus) {
           try {
             baseStatus = getStatus(path);
+            if (baseStatus == null && !isObjectStorage()) {
+              onComplete.accept(new UfsLoadResult(Stream.empty(), 0,
+                  null, null, false, false, false));
+              return;
+            }
             if (baseStatus != null && (descendantType == DescendantType.NONE
                 || baseStatus.isFile())) {
               onComplete.accept(new UfsLoadResult(Stream.of(baseStatus), 1,
@@ -237,6 +241,14 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem, UfsClient 
         UfsStatus[] items = listStatus(path, ListOptions.defaults()
             .setRecursive(descendantType == DescendantType.ALL));
         if (items != null) {
+          if (descendantType == DescendantType.NONE && items.length > 0) {
+            assert isObjectStorage() && this instanceof ObjectUnderFileSystem;
+            ObjectUnderFileSystem.ObjectPermissions permissions =
+                ((ObjectUnderFileSystem) this).getPermissions();
+            items = new UfsStatus[] {
+                new UfsDirectoryStatus("", permissions.getOwner(), permissions.getGroup(),
+                    permissions.getMode())};
+          }
           Arrays.sort(items, Comparator.comparing(UfsStatus::getName));
           for (UfsStatus item: items) {
             // performListingAsync is used by metadata sync v2
