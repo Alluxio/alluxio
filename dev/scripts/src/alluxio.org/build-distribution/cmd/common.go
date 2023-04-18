@@ -43,9 +43,8 @@ var hadoopDistributions = map[string]version{
 }
 
 type GenerateTarballOpts struct {
-	SkipUI   bool
-	SkipHelm bool
-	Fuse     bool
+	SkipUI bool
+	Fuse   bool
 }
 
 type module struct {
