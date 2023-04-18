@@ -179,7 +179,8 @@ public class MetadataSyncContext implements Closeable {
       try (LockedInodePath lockedInodePath =
                inodeTree.lockInodePath(
                    uri, InodeTree.LockPattern.WRITE_INODE, getRpcContext().getJournalContext())) {
-        if (lockedInodePath.fullPathExists()) {
+        if (lockedInodePath.fullPathExists() && lockedInodePath.getInode().isDirectory()
+            && !lockedInodePath.getInode().asDirectory().isDirectChildrenLoaded()) {
           inodeTree.setDirectChildrenLoaded(
               () -> getRpcContext().getJournalContext(),
               lockedInodePath.getInode().asDirectory());

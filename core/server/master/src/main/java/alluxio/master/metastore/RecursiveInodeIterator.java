@@ -54,16 +54,18 @@ public class RecursiveInodeIterator implements SkippableInodeIterator {
    *
    * @param inodeStore the inode store
    * @param inode    the root inode
+   * @param includeBaseInode if the inode of the base path should be included
    * @param readOption the read option
    * @param lockedPath the locked path to the root inode
    */
   public RecursiveInodeIterator(
       ReadOnlyInodeStore inodeStore,
       Inode inode,
+      boolean includeBaseInode,
       ReadOption readOption,
       LockedInodePath lockedPath
   ) {
-    mFirst = inode;
+    mFirst = includeBaseInode ? inode : null;
     mRootPath = lockedPath;
     String startFrom = readOption.getStartFrom();
     if (startFrom == null) {

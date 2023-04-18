@@ -11,6 +11,7 @@
 
 package alluxio.master.file;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
@@ -77,6 +78,9 @@ public class MetadataSyncDepthV2Test extends MetadataSyncV2TestBase {
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
         SyncOperation.NOOP, 1L
     ));
+    long mountPointInodeId = mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync()).getFileId();
+    assertFalse(mFileSystemMaster.getInodeStore()
+        .get(mountPointInodeId).get().asDirectory().isDirectChildrenLoaded());
   }
 
   @Test
@@ -122,6 +126,9 @@ public class MetadataSyncDepthV2Test extends MetadataSyncV2TestBase {
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
         SyncOperation.DELETE, 1L
     ));
+    long mountPointInodeId = mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync()).getFileId();
+    assertFalse(mFileSystemMaster.getInodeStore()
+        .get(mountPointInodeId).get().asDirectory().isDirectChildrenLoaded());
 
     // Sync the root, expect no change
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
@@ -129,6 +136,9 @@ public class MetadataSyncDepthV2Test extends MetadataSyncV2TestBase {
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of());
+    assertTrue(mFileSystemMaster.getInodeStore()
+        .get(mountPointInodeId).get().asDirectory().isDirectChildrenLoaded());
+    checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
   }
 
   @Test
@@ -166,6 +176,9 @@ public class MetadataSyncDepthV2Test extends MetadataSyncV2TestBase {
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
         SyncOperation.RECREATE, 1L
     ));
+    long mountPointInodeId = mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync()).getFileId();
+    assertFalse(mFileSystemMaster.getInodeStore()
+        .get(mountPointInodeId).get().asDirectory().isDirectChildrenLoaded());
 
     // Delete the file
     mS3Client.deleteObject(TEST_BUCKET, TEST_DIRECTORY + "/" + TEST_FILE);
@@ -177,5 +190,14 @@ public class MetadataSyncDepthV2Test extends MetadataSyncV2TestBase {
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
         SyncOperation.DELETE, mDescendantType == DescendantType.NONE ? 0L : 2L
     ));
+    assertTrue(mFileSystemMaster.getInodeStore()
+        .get(mountPointInodeId).get().asDirectory().isDirectChildrenLoaded());
+    boolean exists = mFileSystemMaster.exists(syncPath, existsNoSync());
+    if (mDescendantType == DescendantType.NONE) {
+      // since we only synced the root path, the nested file should not be deleted
+      assertTrue(exists);
+    } else {
+      assertFalse(exists);
+    }
   }
 }

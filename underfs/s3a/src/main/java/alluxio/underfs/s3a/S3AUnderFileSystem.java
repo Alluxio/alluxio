@@ -84,6 +84,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.endpoints.S3EndpointParams;
+import software.amazon.awssdk.services.s3.model.CommonPrefix;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
@@ -694,15 +695,14 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     return result;
   }
 
-  @Override
-  public void performGetStatusAsync(
-      String path, Consumer<UfsLoadResult> onComplete,
+  void performGetStatusAsync(
+      String path, Consumer<UfsStatus> onComplete,
       Consumer<Throwable> onError) {
     String folderSuffix = getFolderSuffix();
     path = stripPrefixIfPresent(path);
     path = path.equals(folderSuffix) ? "" : path;
     if (path.isEmpty()) {
-      onComplete.accept(new UfsLoadResult(Stream.empty(), 0, null, null, false, false, true));
+      onComplete.accept(null);
       return;
     }
     HeadObjectRequest request =
@@ -711,7 +711,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     mAsyncClient.headObject(request).whenCompleteAsync((result, err) -> {
       if (err != null) {
         if (err.getCause() instanceof NoSuchKeyException) {
-          onComplete.accept(new UfsLoadResult(Stream.empty(), 0, null, null, false, false, true));
+          onComplete.accept(null);
         } else {
           onError.accept(err);
         }
@@ -732,8 +732,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
                 result.contentLength(), lastModifiedTime, permissions.getOwner(),
                 permissions.getGroup(), permissions.getMode(), bytes);
           }
-          onComplete.accept(new UfsLoadResult(Stream.of(status), 1, null,
-              null, false, status.isFile(), true));
+          onComplete.accept(status);
         } catch (Throwable t) {
           onError.accept(t);
         }
@@ -743,6 +742,28 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   public void performListingAsync(
+      String path, @Nullable String continuationToken, @Nullable String startAfter,
+      DescendantType descendantType, boolean checkStatus,
+      Consumer<UfsLoadResult> onComplete, Consumer<Throwable> onError) {
+
+    if (checkStatus) {
+      Preconditions.checkState(continuationToken == null);
+      performGetStatusAsync(path, status -> {
+        if (status != null && (status.isFile() || descendantType == DescendantType.NONE)) {
+          onComplete.accept(new UfsLoadResult(Stream.of(status), 1, null,
+              null, false, status.isFile(), true));
+        } else {
+          finishListingAsync(status, path, null, startAfter,
+              descendantType, onComplete, onError);
+        }
+      }, onError);
+    } else {
+      finishListingAsync(null, path, continuationToken, startAfter,
+          descendantType, onComplete, onError);
+    }
+  }
+
+  private void finishListingAsync(@Nullable UfsStatus baseStatus,
       String path, @Nullable String continuationToken, @Nullable String startAfter,
       DescendantType descendantType,
       Consumer<UfsLoadResult> onComplete, Consumer<Throwable> onError) {
@@ -783,8 +804,9 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
                     ? lastPrefix : lastResult);
               }
               int keyCount = result.keyCount();
-              Stream<UfsStatus> resultStream = resultToStream(result);
+              Stream<UfsStatus> resultStream = resultToStream(baseStatus, result);
               if (descendantType == DescendantType.NONE) {
+                Preconditions.checkState(baseStatus == null);
                 // if descendant type is NONE then we only want to return the directory itself
                 Optional<Stream<UfsStatus>> str = resultStream.findFirst().map(item -> {
                   if (item.isDirectory()) {
@@ -829,7 +851,14 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     }
   }
 
-  private Stream<UfsStatus> resultToStream(ListObjectsV2Response response) {
+  private UfsStatus prefixToUfsStatus(CommonPrefix prefix, ObjectPermissions permissions) {
+    return new UfsDirectoryStatus(
+        prefix.prefix(), permissions.getOwner(), permissions.getGroup(),
+        permissions.getMode());
+  }
+
+  private Stream<UfsStatus> resultToStream(
+      @Nullable UfsStatus baseStatus, ListObjectsV2Response response) {
     // Directories are either keys that end with /
     // Or common prefixes which will also end with /
     // All results contain the full path from the bucket root
@@ -837,11 +866,13 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     String folderSuffix = getFolderSuffix();
     long bytes = mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     Iterator<UfsStatus> prefixes = response.commonPrefixes().stream().map(
-        prefix -> (UfsStatus) new UfsDirectoryStatus(
-        prefix.prefix(), permissions.getOwner(), permissions.getGroup(),
-            permissions.getMode())).iterator();
-    Iterator<UfsStatus> items = response.contents().stream().map(obj ->
-        s3ObjToUfsStatus(obj, folderSuffix, permissions, bytes)).iterator();
+        prefix -> prefixToUfsStatus(prefix, permissions)).iterator();
+    Stream<UfsStatus> itemStream = response.contents().stream().map(obj ->
+        s3ObjToUfsStatus(obj, folderSuffix, permissions, bytes));
+    if (baseStatus != null) {
+      itemStream = Stream.concat(Stream.of(baseStatus), itemStream);
+    }
+    Iterator<UfsStatus> items = itemStream.iterator();
     return StreamSupport.stream(Spliterators.spliteratorUnknownSize(
         IteratorUtils.collatedIterator((s1, s2) -> {
           int val = s1.getName().compareTo(s2.getName());

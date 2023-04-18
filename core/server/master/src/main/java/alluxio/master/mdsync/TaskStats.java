@@ -39,7 +39,6 @@ public class TaskStats {
   volatile boolean mLoadFailed;
   volatile boolean mProcessFailed;
   volatile boolean mFirstLoadFile;
-  volatile boolean mFirstLoadHadResult;
   volatile boolean mSyncFailed = false;
 
   /**
@@ -62,7 +61,6 @@ public class TaskStats {
         .add("# of load errors", mLoadErrors.get())
         .add("Load failed", mLoadFailed)
         .add("Process failed", mProcessFailed)
-        .add("First load had result", mFirstLoadHadResult)
         .add("First load was file", mFirstLoadFile)
         .add("Failed load requests", mSyncFailReasons);
     return helper.toString();
@@ -90,13 +88,6 @@ public class TaskStats {
    */
   public boolean firstLoadWasFile() {
     return mFirstLoadFile;
-  }
-
-  /**
-   * @return if the first load had results
-   */
-  public boolean firstLoadHadResult() {
-    return mFirstLoadHadResult;
   }
 
   /**
@@ -137,10 +128,6 @@ public class TaskStats {
     mStatuses.addAndGet(size);
   }
 
-  void gotFirstLoad(int size) {
-    mStatuses.addAndGet(size);
-  }
-
   void gotLoadRequest() {
     mLoadRequests.incrementAndGet();
   }
@@ -155,10 +142,6 @@ public class TaskStats {
 
   void setProcessFailed() {
     mProcessFailed = true;
-  }
-
-  void setFirstLoadHadResult() {
-    mFirstLoadHadResult = true;
   }
 
   void setFirstLoadFile() {

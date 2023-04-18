@@ -372,19 +372,12 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public void performGetStatusAsync(
-      String path, Consumer<UfsLoadResult> onComplete,
-      Consumer<Throwable> onError) {
-    mUfs.performGetStatusAsync(path, onComplete, onError);
-  }
-
-  @Override
   public void performListingAsync(
       String path, @Nullable String continuationToken, @Nullable String startAfter,
-      DescendantType descendantType, Consumer<UfsLoadResult> onComplete,
+      DescendantType descendantType, boolean checkStatus, Consumer<UfsLoadResult> onComplete,
       Consumer<Throwable> onError) {
     mUfs.performListingAsync(path, continuationToken,
-        startAfter, descendantType, onComplete, onError);
+        startAfter, descendantType, checkStatus, onComplete, onError);
   }
 
   @Override

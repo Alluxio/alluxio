@@ -186,17 +186,11 @@ class LoadRequestExecutor implements Closeable {
 
   private void runTask(PathLoaderTask task, LoadRequest loadRequest) {
     try (CloseableResource<UfsClient> client = task.getClient()) {
-      if (loadRequest.isFirstLoad()) {
-        client.get().performGetStatusAsync(loadRequest.getLoadPath().getPath(),
-            ufsLoadResult -> processLoadResult(loadRequest, ufsLoadResult),
-            t -> onLoadError(loadRequest, t));
-      } else {
-        client.get().performListingAsync(loadRequest.getLoadPath().getPath(),
-            loadRequest.getContinuationToken(), loadRequest.getTaskInfo().getStartAfter(),
-            loadRequest.getDescendantType(),
-            ufsLoadResult -> processLoadResult(loadRequest, ufsLoadResult),
-            t -> onLoadError(loadRequest, t));
-      }
+      client.get().performListingAsync(loadRequest.getLoadPath().getPath(),
+          loadRequest.getContinuationToken(), loadRequest.getTaskInfo().getStartAfter(),
+          loadRequest.getDescendantType(), loadRequest.isFirstLoad(),
+          ufsLoadResult -> processLoadResult(loadRequest, ufsLoadResult),
+          t -> onLoadError(loadRequest, t));
     } catch (Throwable t) {
       onLoadError(loadRequest, t);
     }

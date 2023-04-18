@@ -85,7 +85,11 @@ public class LoadRequest {
   }
 
   /**
-   * @return the descendant type (ALL/ONE/NONE)
+   * @return the descendant type for this specific load request. Note
+   * that this may be different from the descendant type of the overall
+   * sync operation. For example if the {@link alluxio.file.options.DirectoryLoadType}
+   * is BFS or DFS and the overall descendant type is ALL, then the
+   * descendant type of each of the load requests will be ONE.
    */
   public DescendantType getDescendantType() {
     return mDescendantType;

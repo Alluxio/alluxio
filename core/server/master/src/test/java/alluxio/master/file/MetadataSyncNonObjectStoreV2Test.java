@@ -17,10 +17,16 @@ import static alluxio.master.file.MetadataSyncV2TestBase.existsNoSync;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.client.WriteType;
 import alluxio.file.options.DescendantType;
 import alluxio.file.options.DirectoryLoadType;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.DeletePOptions;
+import alluxio.master.file.contexts.CreateDirectoryContext;
+import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.metasync.SyncOperation;
 import alluxio.master.mdsync.BaseTask;
+import alluxio.security.authorization.Mode;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
@@ -47,6 +53,30 @@ public class MetadataSyncNonObjectStoreV2Test extends FileSystemMasterTestBase {
 
   public MetadataSyncNonObjectStoreV2Test(DirectoryLoadType directoryLoadType) {
     mDirectoryLoadType = directoryLoadType;
+  }
+
+  @Test
+  public void syncEmptyDirectory()
+      throws Throwable {
+    String path = mFileSystemMaster.getMountTable().resolve(new AlluxioURI("/")).getUri().getPath();
+    assertTrue(new File(path + "/test_directory").mkdir());
+
+    BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        new AlluxioURI("/"), DescendantType.ALL, mDirectoryLoadType, 0);
+    result.waitComplete(TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+        SyncOperation.CREATE, 1L
+    ));
+    assertTrue(mFileSystemMaster.exists(new AlluxioURI("/test_directory"), existsNoSync()));
+
+    result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        new AlluxioURI("/"), DescendantType.ALL, mDirectoryLoadType, 0);
+    result.waitComplete(TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+        SyncOperation.NOOP, 1L
+    ));
   }
 
   @Test
@@ -100,28 +130,27 @@ public class MetadataSyncNonObjectStoreV2Test extends FileSystemMasterTestBase {
     assertTrue(mFileSystemMaster.exists(new AlluxioURI("/test_directory"), existsNoSync()));
   }
 
-  //  @Test
-//  public void testNonS3Fingerprint() throws Exception {
-//    // this essentially creates a directory and mode its alluxio directory without
-//    // syncing the change down to ufs
-//    mFileSystemMaster.createDirectory(new AlluxioURI("/d"),
-//        CreateDirectoryContext.defaults().setWriteType(WriteType.THROUGH));
-//    mFileSystemMaster.delete(new AlluxioURI("/d"),
-//        DeleteContext.mergeFrom(DeletePOptions.newBuilder().setAlluxioOnly(true)));
-//    mFileSystemMaster.createDirectory(new AlluxioURI("/d"),
-//        CreateDirectoryContext.mergeFrom(
-//                CreateDirectoryPOptions.newBuilder().setMode(new Mode((short) 0777).toProto()))
-//            .setWriteType(WriteType.MUST_CACHE));
-//
-//    SyncResult result =
-//        mFileSystemMaster.syncMetadataInternal(new AlluxioURI("/"),
-//            createContext(DescendantType.ONE));
-//
-//    assertSyncOperations(result, ImmutableMap.of(
-//        // root
-//        SyncOperation.NOOP, 1L,
-//        // d
-//        SyncOperation.UPDATE, 1L
-//    ));
-//  }
+  @Test
+  public void testNonS3Fingerprint() throws Throwable {
+    // this essentially creates a directory and mode its alluxio directory without
+    // syncing the change down to ufs
+    mFileSystemMaster.createDirectory(new AlluxioURI("/d"),
+        CreateDirectoryContext.defaults().setWriteType(WriteType.THROUGH));
+    mFileSystemMaster.delete(new AlluxioURI("/d"),
+        DeleteContext.mergeFrom(DeletePOptions.newBuilder().setAlluxioOnly(true)));
+    mFileSystemMaster.createDirectory(new AlluxioURI("/d"),
+        CreateDirectoryContext.mergeFrom(
+                CreateDirectoryPOptions.newBuilder().setMode(new Mode((short) 0777).toProto()))
+            .setWriteType(WriteType.MUST_CACHE));
+
+    BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        new AlluxioURI("/"), DescendantType.ALL, mDirectoryLoadType, 0);
+    result.waitComplete(TIMEOUT_MS);
+    assertTrue(result.succeeded());
+
+    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+        // d
+        SyncOperation.UPDATE, 1L
+    ));
+  }
 }

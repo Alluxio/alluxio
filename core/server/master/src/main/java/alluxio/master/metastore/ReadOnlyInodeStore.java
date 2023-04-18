@@ -25,6 +25,7 @@ import alluxio.master.file.meta.MutableInode;
 import alluxio.resource.CloseableIterator;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -195,11 +196,13 @@ public interface ReadOnlyInodeStore extends Closeable {
    * children.
    * @param option the read option
    * @param descendantType the type of descendants to load
+   * @param includeBaseInode if the iterator should include the inode from the base path
    * @param lockedPath the locked path to the root inode
    * @return a skippable iterator that supports to skip children during the iteration
    */
   default SkippableInodeIterator getSkippableChildrenIterator(
-      ReadOption option, DescendantType descendantType, LockedInodePath lockedPath) {
+      ReadOption option, DescendantType descendantType, boolean includeBaseInode,
+      LockedInodePath lockedPath) {
     Inode inode;
     try {
       inode = lockedPath.getInode();
@@ -225,8 +228,9 @@ public interface ReadOnlyInodeStore extends Closeable {
       };
     }
     if (descendantType == DescendantType.ALL) {
-      return new RecursiveInodeIterator(this, inode, option, lockedPath);
+      return new RecursiveInodeIterator(this, inode, includeBaseInode, option, lockedPath);
     } else if (descendantType == DescendantType.NONE) {
+      Preconditions.checkState(includeBaseInode);
       // if descendant type is none, we should only return the parent node
       return new SkippableInodeIterator() {
         InodeIterationResult mFirst = new InodeIterationResult(inode, lockedPath);
@@ -260,7 +264,7 @@ public interface ReadOnlyInodeStore extends Closeable {
 
       LockedInodePath mPreviousPath = null;
       final LockedInodePath mRootPath = lockedPath;
-      Inode mFirst = inode;
+      Inode mFirst = includeBaseInode ? inode : null;
 
       @Override
       public void skipChildrenOfTheCurrent() {

@@ -248,6 +248,8 @@ public class MetadataSyncer implements SyncProcess {
         AlluxioURI alluxioMountUri = reverseResolution.getMountInfo().getAlluxioUri();
         final String alluxioMountPath = PathUtils.normalizePath(
             alluxioMountUri.getPath(), AlluxioURI.SEPARATOR);
+        // the Alluxio path that was loaded from the UFS
+        AlluxioURI alluxioSyncPath = reverseResolution.getUri();
 
         Stream<UfsItem> stream = loadResult.getUfsLoadResult().getItems().map(status -> {
           UfsItem item = new UfsItem(status, ufsMountPath, alluxioMountPath);
@@ -294,8 +296,6 @@ public class MetadataSyncer implements SyncProcess {
         // inode was processed in the previous listing
         boolean skipInitialReadFrom = loadResult.getPreviousLast().isPresent();
         Preconditions.checkState(readFrom.getPath().startsWith(alluxioMountUri.getPath()));
-        // the Alluxio path that was loaded from the UFS
-        AlluxioURI alluxioSyncPath = reverseResolution.getUri();
         loadResult.getPreviousLast().ifPresent(prevLast -> {
           String prevLastAlluxio = ufsPathToAlluxioPath(
               prevLast.getPath(), ufsMountPath, alluxioMountPath);
@@ -307,7 +307,7 @@ public class MetadataSyncer implements SyncProcess {
         // We stop iterating the Alluxio metadata at the last loaded item if the load result
         // is truncated
         AlluxioURI readUntil = null;
-        if ((loadResult.getUfsLoadResult().isTruncated() || loadResult.isFirstLoad())
+        if (loadResult.getUfsLoadResult().isTruncated()
             && loadResult.getUfsLoadResult().getLastItem().isPresent()) {
           readUntil = new AlluxioURI(ufsPathToAlluxioPath(
               loadResult.getUfsLoadResult().getLastItem().get().getPath(),
@@ -337,33 +337,32 @@ public class MetadataSyncer implements SyncProcess {
           }
           // Get the inode of the sync start
           try (SkippableInodeIterator inodeIterator = mInodeStore.getSkippableChildrenIterator(
-              readOptionBuilder.build(), loadResult.getTaskInfo().getInodeIteratorDescendantType(),
+              readOptionBuilder.build(), context.getDescendantType(), loadResult.isFirstLoad(),
               lockedInodePath)) {
             SyncProcessState syncState = new SyncProcessState(alluxioMountPath,
-                alluxioSyncPath, lockedInodePath,
+                alluxioSyncPath, lockedInodePath, loadResult.isFirstLoad(),
                 readFrom, skipInitialReadFrom, readUntil,
                 context, inodeIterator, ufsIterator, mountInfo, ufs);
             lastUfsStatus = updateMetadataSync(syncState);
           }
           if (lockedInodePath.fullPathExists() && lockedInodePath.getInode().isDirectory()
               && !lockedInodePath.getInode().asDirectory().isDirectChildrenLoaded()) {
+            // check if the root sync path should have its children marked as loaded
             context.addDirectoriesToUpdateIsChildrenLoaded(lockedInodePath.getUri());
           }
         }
         context.updateDirectChildrenLoaded(mInodeTree);
-        // the completed path sequence is from the previous last sync path, until our last UFS item
-        PathSequence pathSequence = null;
-        if (!loadResult.isFirstLoad()) {
-          AlluxioURI syncStart = new AlluxioURI(ufsPathToAlluxioPath(loadResult.getPreviousLast()
-              .orElse(loadResult.getBaseLoadPath()).getPath(), ufsMountPath, alluxioMountPath));
-          AlluxioURI syncEnd = lastUfsStatus == null ? syncStart
-              : lastUfsStatus.mAlluxioUri;
-          pathSequence = new PathSequence(syncStart, syncEnd);
-          LOG.debug("Completed processing sync from {} until {}", syncStart, syncEnd);
-        }
+        // the completed path sequence is from the previous load's
+        // last sync path, until our last UFS item
+        AlluxioURI syncStart = new AlluxioURI(ufsPathToAlluxioPath(loadResult.getPreviousLast()
+            .orElse(loadResult.getBaseLoadPath()).getPath(), ufsMountPath, alluxioMountPath));
+        AlluxioURI syncEnd = lastUfsStatus == null ? syncStart
+            : lastUfsStatus.mAlluxioUri;
+        PathSequence pathSequence = new PathSequence(syncStart, syncEnd);
+        LOG.debug("Completed processing sync from {} until {}", syncStart, syncEnd);
         return new SyncProcessResult(loadResult.getTaskInfo(), loadResult.getBaseLoadPath(),
             pathSequence, loadResult.getUfsLoadResult().isTruncated(),
-            baseSyncPathIsFile, loadResult.isFirstLoad());
+            baseSyncPathIsFile);
       }
     }
   }
@@ -388,9 +387,12 @@ public class MetadataSyncer implements SyncProcess {
     }
     UfsItem currentUfsStatus = IteratorUtils.nextOrNull(
         syncState.mUfsStatusIterator);
+    // skip the initial mount path of the UFS status
+    // as well as the base sync path if this is not our first load task
     if (currentUfsStatus != null
-        && currentUfsStatus.mAlluxioPath.equals(syncState.mAlluxioMountPath)) {
-      // skip the initial mount path
+        && (currentUfsStatus.mAlluxioPath.equals(syncState.mAlluxioMountPath)
+        || (!syncState.mIsFirstLoad
+        && currentUfsStatus.mAlluxioUri.equals(syncState.mAlluxioSyncPath)))) {
       currentUfsStatus = IteratorUtils.nextOrNull(
           syncState.mUfsStatusIterator);
     }
@@ -769,6 +771,7 @@ public class MetadataSyncer implements SyncProcess {
     final Iterator<UfsItem> mUfsStatusIterator;
     final MountInfo mMountInfo;
     final UnderFileSystem mUfs;
+    final boolean mIsFirstLoad;
     boolean mTraversedRootPath = false;
     boolean mDowngradedRootPath = false;
 
@@ -776,6 +779,7 @@ public class MetadataSyncer implements SyncProcess {
         String alluxioMountPath,
         AlluxioURI alluxioSyncPath,
         LockedInodePath alluxioSyncPathLocked,
+        boolean isFirstLoad,
         AlluxioURI readFrom, boolean skipInitialReadFrom,
         @Nullable AlluxioURI readUntil,
         MetadataSyncContext context,
@@ -785,6 +789,7 @@ public class MetadataSyncer implements SyncProcess {
       mAlluxioMountPath = alluxioMountPath;
       mAlluxioSyncPath = alluxioSyncPath;
       mAlluxioSyncPathLocked = alluxioSyncPathLocked;
+      mIsFirstLoad = isFirstLoad;
       mReadFrom = readFrom;
       mSkipInitialReadFrom = skipInitialReadFrom;
       mReadUntil = readUntil;

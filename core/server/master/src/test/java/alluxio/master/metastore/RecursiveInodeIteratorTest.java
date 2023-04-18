@@ -155,7 +155,7 @@ public class RecursiveInodeIteratorTest extends InodeStoreTestBase {
              tree.lockInodePath(lockingScheme, NoopJournalContext.INSTANCE)) {
       RecursiveInodeIterator iterator = (RecursiveInodeIterator)
           mStore.getSkippableChildrenIterator(ReadOption.defaults(),
-              DescendantType.ALL, lockedPath);
+              DescendantType.ALL, true, lockedPath);
       while (iterator.hasNext()) {
         InodeIterationResult result = iterator.next();
         assertEquals(paths.get(idx), result.getLockedPath().getUri().getPath());
@@ -220,7 +220,7 @@ public class RecursiveInodeIteratorTest extends InodeStoreTestBase {
              tree.lockInodePath(lockingScheme, NoopJournalContext.INSTANCE)) {
       RecursiveInodeIterator iterator = (RecursiveInodeIterator)
           mStore.getSkippableChildrenIterator(ReadOption.defaults(),
-              DescendantType.ALL, lockedPath);
+              DescendantType.ALL, true, lockedPath);
       while (iterator.hasNext()) {
         InodeIterationResult result = iterator.next();
         assertEquals(paths.get(idx), result.getLockedPath().getUri().getPath());
@@ -298,7 +298,7 @@ public class RecursiveInodeIteratorTest extends InodeStoreTestBase {
       RecursiveInodeIterator iterator = (RecursiveInodeIterator)
           mStore.getSkippableChildrenIterator(
               ReadOption.newBuilder().setReadFrom("a/b/c/f11").build(),
-              DescendantType.ALL, lockedPath);
+              DescendantType.ALL, true, lockedPath);
       while (iterator.hasNext()) {
         InodeIterationResult result = iterator.next();
         assertEquals(paths.get(idx), result.getLockedPath().getUri().getPath());
@@ -365,7 +365,7 @@ public class RecursiveInodeIteratorTest extends InodeStoreTestBase {
       RecursiveInodeIterator iterator = (RecursiveInodeIterator)
           mStore.getSkippableChildrenIterator(
               ReadOption.newBuilder().setReadFrom("a/c/f3").build(),
-              DescendantType.ALL, lockedPath);
+              DescendantType.ALL, true, lockedPath);
       while (iterator.hasNext()) {
         InodeIterationResult result = iterator.next();
         assertEquals(paths.get(idx), result.getLockedPath().getUri().getPath());
@@ -398,7 +398,8 @@ public class RecursiveInodeIteratorTest extends InodeStoreTestBase {
              tree.lockInodePath(lockingScheme, NoopJournalContext.INSTANCE)) {
       RecursiveInodeIterator iterator = (RecursiveInodeIterator)
           mStore.getSkippableChildrenIterator(
-              ReadOption.newBuilder().setReadFrom("z").build(), DescendantType.ALL, lockedPath);
+              ReadOption.newBuilder().setReadFrom("z").build(),
+              DescendantType.ALL, true, lockedPath);
       while (iterator.hasNext()) {
         InodeIterationResult result = iterator.next();
         assertEquals(paths.get(idx), result.getLockedPath().getUri().getPath());

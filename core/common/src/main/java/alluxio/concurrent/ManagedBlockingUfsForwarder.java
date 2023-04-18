@@ -594,20 +594,13 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
   }
 
   @Override
-  public void performGetStatusAsync(
-      String path, Consumer<UfsLoadResult> onComplete, Consumer<Throwable> onError) {
-    // given this is an async function, we do not execute it in the thread pool
-    mUfs.performGetStatusAsync(path, onComplete, onError);
-  }
-
-  @Override
   public void performListingAsync(
       String path, @Nullable String continuationToken, @Nullable String startAfter,
-      DescendantType descendantType, Consumer<UfsLoadResult> onComplete,
+      DescendantType descendantType, boolean checkStatus, Consumer<UfsLoadResult> onComplete,
       Consumer<Throwable> onError) {
     // given this is an async function, we do not execute it in the thread pool
     mUfs.performListingAsync(path, continuationToken, startAfter, descendantType,
-        onComplete, onError);
+        checkStatus, onComplete, onError);
   }
 
   @Override

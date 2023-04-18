@@ -89,7 +89,7 @@ public class PathLoaderTask {
     LoadRequest firstRequest = new LoadRequest(loadId, loadId, mTaskInfo, mTaskInfo.getBasePath(),
         continuationToken, null, computeDescendantType(), true);
     mNextLoad = new ConcurrentLinkedDeque<>();
-    addLoadRequest(firstRequest, false);
+    addLoadRequest(firstRequest, true);
     mClientSupplier = clientSupplier;
     try (CloseableResource<UfsClient> client = mClientSupplier.apply(mTaskInfo.getBasePath())) {
       mRateLimiter = client.get().getRateLimiter();
@@ -129,74 +129,25 @@ public class PathLoaderTask {
       return Optional.empty();
     }
     TaskStats stats = mTaskInfo.getStats();
-    if (!originalRequest.isFirstLoad()) {
-      stats.gotBatch(ufsLoadResult.getItemsCount());
-    } else {
-      stats.gotFirstLoad(ufsLoadResult.getItemsCount());
+    stats.gotBatch(ufsLoadResult.getItemsCount());
+    if (originalRequest.isFirstLoad() && ufsLoadResult.isFirstFile()) {
+      stats.setFirstLoadFile();
     }
-    boolean shouldLoadMore;
-    boolean shouldProcessResult = true;
-    if (originalRequest.isFirstLoad()) {
-      if (ufsLoadResult.getItemsCount() > 0) {
-        stats.setFirstLoadHadResult();
-      }
-      if (ufsLoadResult.isFirstFile()) {
-        stats.setFirstLoadFile();
-      }
-    }
-    if (originalRequest.isFirstLoad()) {
-      if (originalRequest.getDescendantType() == DescendantType.NONE
-          && ufsLoadResult.isIsObjectStore()) {
-        // On our first load, and descendant type is none, we have a special
-        // case for the object store, because performing GetObject on a path
-        // will return nothing if there are only nested items for that path.
-        // So we must try the check again, except by trying to list the path
-        // e.g. if there is an object /nested/file, then performing
-        // GetObject on /nested will return nothing, so we then call
-        // ListObjects on /nested/ which will return file, indicating
-        // that /nested should be created as a directory
-        // If our initial request returned a value, and the descendant type was NONE
-        // then we do not need to load any more values
-        shouldLoadMore = ufsLoadResult.getItemsCount() == 0;
-        shouldProcessResult = !shouldLoadMore;
-      } else {
-        // If our initial request returned a value, and it was a file,
-        // or if descendant type was none
-        // then we don't need to load more
-        if (originalRequest.getDescendantType() == DescendantType.NONE) {
-          shouldLoadMore = false;
-        } else {
-          shouldLoadMore = (ufsLoadResult.getItemsCount() == 0 || !ufsLoadResult.isFirstFile());
-        }
-        if (ufsLoadResult.isIsObjectStore() && ufsLoadResult.getItemsCount() == 0) {
-          shouldProcessResult = false;
-        }
-      }
-      if (!shouldProcessResult) {
-        mRunningLoads.remove(requestId);
-        assert shouldLoadMore;
-      }
-    } else {
-      // If truncated, need to submit a new task for the next set of items
-      // unless descendant type is none
-      shouldLoadMore = originalRequest.getDescendantType() != DescendantType.NONE
+    // If truncated, need to submit a new task for the next set of items
+    // unless descendant type is none
+    boolean shouldLoadMore = originalRequest.getDescendantType() != DescendantType.NONE
           && ufsLoadResult.isTruncated();
-    }
     if (shouldLoadMore) {
       final long loadId = mNxtLoadId++;
       addLoadRequest(new LoadRequest(loadId, originalRequest.getBatchSetId(), mTaskInfo,
               originalRequest.getLoadPath(), ufsLoadResult.getContinuationToken(),
-              originalRequest.isFirstLoad() ? null : ufsLoadResult.getLastItem().orElse(null),
+              ufsLoadResult.getLastItem().orElse(null),
               computeDescendantType(), false),
-          originalRequest.isFirstLoad());
+          false);
     }
-    if (shouldProcessResult) {
-      return Optional.of(new LoadResult(originalRequest, originalRequest.getLoadPath(),
-          mTaskInfo, originalRequest.getPreviousLoadLast().orElse(null),
-          ufsLoadResult, originalRequest.isFirstLoad()));
-    } else {
-      return Optional.empty();
-    }
+    return Optional.of(new LoadResult(originalRequest, originalRequest.getLoadPath(),
+        mTaskInfo, originalRequest.getPreviousLoadLast().orElse(null),
+        ufsLoadResult, originalRequest.isFirstLoad()));
   }
 
   void loadNestedDirectory(AlluxioURI path) {
@@ -234,7 +185,7 @@ public class PathLoaderTask {
     boolean completed = false;
     synchronized (this) {
       LoadRequest request = mRunningLoads.remove(loadRequestId);
-      if (request != null && !result.isFirstLoad() && !result.isTruncated()) {
+      if (request != null && !result.isTruncated()) {
         Preconditions.checkState(mTruncatedLoads.remove(request.getBatchSetId()),
             "load request %s finished, without finding the load %s that started the batch loading",
             loadRequestId, request.getBatchSetId());

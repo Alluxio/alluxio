@@ -25,7 +25,6 @@ import alluxio.AlluxioURI;
 import alluxio.file.options.DirectoryLoadType;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsClient;
-import alluxio.underfs.UfsLoadResult;
 
 import com.google.common.collect.Lists;
 import org.junit.After;
@@ -41,7 +40,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 public class BatchPathWaiterTest {
 
@@ -69,14 +67,6 @@ public class BatchPathWaiterTest {
     mThreadPool.shutdown();
   }
 
-  static void completeFirstLoadRequestEmpty(BaseTask task) {
-    // the initial load of metadata sync is a getStatus request
-    // here we complete it as an empty value, which
-    // can happen for example when loading a directory from an ObjectStore
-    task.getPathLoadTask().createLoadResult(0,
-        new UfsLoadResult(Stream.empty(), 0, null, null, false, false, true));
-  }
-
   @Test
   public void TestWaiter() throws Exception {
     long nxtLoadID = 0;
@@ -88,17 +78,15 @@ public class BatchPathWaiterTest {
       path.onComplete(ans.getArgument(1));
       return null;
     }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
-    completeFirstLoadRequestEmpty(path);
-    nxtLoadID++;
 
     Future<Boolean> waiter = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path")));
     assertThrows(TimeoutException.class, () -> waiter.get(1, TimeUnit.SECONDS));
     // Complete the sync
     path.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), null,
-        false, false, true));
+        false, false));
     SyncProcessResult result = new SyncProcessResult(ti, ti.getBasePath(),
         new PathSequence(new AlluxioURI("/path"),
-            new AlluxioURI("/path")), false, true, false);
+            new AlluxioURI("/path")), false, true);
     path.nextCompleted(result);
     // Even though we completed the path being waited for, we only release the waiter for
     // paths greater than the completed path
@@ -120,21 +108,21 @@ public class BatchPathWaiterTest {
       path.onComplete(ans.getArgument(1));
       return null;
     }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
-    completeFirstLoadRequestEmpty(path);
-    nxtLoadID++;
+    // completeFirstLoadRequestEmpty(path);
+    // nxtLoadID++;
 
     Future<Boolean> waiter1 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/1")));
     Future<Boolean> waiter2 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/2")));
     // after completing /path/1 no waiters will be released
     path.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(),
         new PathSequence(new AlluxioURI("/path"),
-            new AlluxioURI("/path/1")), true, false, false));
+            new AlluxioURI("/path/1")), true, false));
     assertThrows(TimeoutException.class, () -> waiter1.get(1, TimeUnit.SECONDS));
     assertThrows(TimeoutException.class, () -> waiter2.get(1, TimeUnit.SECONDS));
     // after completing /path/2, the waiter for /path/1 will be released
     SyncProcessResult result = new SyncProcessResult(ti, ti.getBasePath(),
         new PathSequence(new AlluxioURI("/path/1"),
-            new AlluxioURI("/path/2")), false, false, false);
+            new AlluxioURI("/path/2")), false, false);
     path.nextCompleted(result);
     assertTrue(waiter1.get(1, TimeUnit.SECONDS));
     assertThrows(TimeoutException.class, () -> waiter2.get(1, TimeUnit.SECONDS));
@@ -155,30 +143,30 @@ public class BatchPathWaiterTest {
       path.onComplete(ans.getArgument(1));
       return null;
     }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
-    completeFirstLoadRequestEmpty(path);
-    nxtLoadID++;
+    // completeFirstLoadRequestEmpty(path);
+    // nxtLoadID++;
 
     Future<Boolean> waiter1 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/1")));
     Future<Boolean> waiter2 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/2")));
     assertThrows(TimeoutException.class, () -> waiter1.get(1, TimeUnit.SECONDS));
     path.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(),
         new PathSequence(new AlluxioURI("/path/3"),
-            new AlluxioURI("/path/4")), true, false, false));
+            new AlluxioURI("/path/4")), true, false));
     assertThrows(TimeoutException.class, () -> waiter1.get(1, TimeUnit.SECONDS));
     assertThrows(TimeoutException.class, () -> waiter2.get(1, TimeUnit.SECONDS));
     path.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(),
         new PathSequence(new AlluxioURI("/path/2"),
-            new AlluxioURI("/path/3")), true, false, false));
+            new AlluxioURI("/path/3")), true, false));
     assertThrows(TimeoutException.class, () -> waiter1.get(1, TimeUnit.SECONDS));
     assertThrows(TimeoutException.class, () -> waiter2.get(1, TimeUnit.SECONDS));
     path.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(),
         new PathSequence(new AlluxioURI("/path"),
-            new AlluxioURI("/path/1")), true, false, false));
+            new AlluxioURI("/path/1")), true, false));
     assertThrows(TimeoutException.class, () -> waiter1.get(1, TimeUnit.SECONDS));
     assertThrows(TimeoutException.class, () -> waiter2.get(1, TimeUnit.SECONDS));
     SyncProcessResult result = new SyncProcessResult(ti, ti.getBasePath(),
         new PathSequence(new AlluxioURI("/path/1"),
-            new AlluxioURI("/path/2")), false, false, false);
+            new AlluxioURI("/path/2")), false, false);
     path.nextCompleted(result);
     assertTrue(waiter2.get(1, TimeUnit.SECONDS));
     path.getPathLoadTask().onProcessComplete(nxtLoadID, result);
@@ -196,13 +184,13 @@ public class BatchPathWaiterTest {
       path.onComplete(ans.getArgument(1));
       return null;
     }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
-    completeFirstLoadRequestEmpty(path);
-    nxtLoadID++;
+    // completeFirstLoadRequestEmpty(path);
+    // nxtLoadID++;
 
     assertFalse(path.isCompleted().isPresent());
     SyncProcessResult result = new SyncProcessResult(ti, ti.getBasePath(),
         new PathSequence(new AlluxioURI("/path"),
-            new AlluxioURI("/path")), false, false, false);
+            new AlluxioURI("/path")), false, false);
     path.nextCompleted(result);
     path.getPathLoadTask().onProcessComplete(nxtLoadID, result);
     assertTrue(path.isCompleted().isPresent());
@@ -221,8 +209,8 @@ public class BatchPathWaiterTest {
       return null;
     }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
     assertFalse(root.isCompleted().isPresent());
-    completeFirstLoadRequestEmpty(root);
-    nxtLoadID++;
+    // completeFirstLoadRequestEmpty(root);
+    // nxtLoadID++;
 
     // complete </, /ad>, should have |<,/ad>|
     PathSequence completed = new PathSequence(new AlluxioURI("/"),
@@ -230,14 +218,14 @@ public class BatchPathWaiterTest {
     List<PathSequence> completedList = Lists.newArrayList(
         new PathSequence(new AlluxioURI(""), new AlluxioURI("/ad")));
     root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true,
-        false, false));
+        false));
     assertEquals(completedList, root.getLastCompleted());
 
     // complete </ad, /bf>, should have |<,/bf>|
     completed = new PathSequence(new AlluxioURI("/ad"), new AlluxioURI("/bf"));
     completedList = Lists.newArrayList(new PathSequence(new AlluxioURI(""), new AlluxioURI("/bf")));
     root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true,
-        false, false));
+        false));
     assertEquals(completedList, root.getLastCompleted());
 
     // complete </bf, /bf/eg>, should have |<,/bf/eg|
@@ -245,20 +233,20 @@ public class BatchPathWaiterTest {
     completedList = Lists.newArrayList(new PathSequence(new AlluxioURI(""),
         new AlluxioURI("/bf/eg")));
     root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true,
-        false, false));
+        false));
     assertEquals(completedList, root.getLastCompleted());
 
     // complete </bf/eg, /tr>, should have |<,/tr|
     completed = new PathSequence(new AlluxioURI("/bf/eg"), new AlluxioURI("/tr"));
     completedList = Lists.newArrayList(new PathSequence(new AlluxioURI(""), new AlluxioURI("/tr")));
     root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true,
-        false, false));
+        false));
     assertEquals(completedList, root.getLastCompleted());
 
     // finish with </tr, /trd>
     completed = new PathSequence(new AlluxioURI("/tr"), new AlluxioURI("/trd"));
     SyncProcessResult finalResult = new SyncProcessResult(ti, ti.getBasePath(), completed,
-        false, false, false);
+        false, false);
     root.nextCompleted(finalResult);
     root.getPathLoadTask().onProcessComplete(nxtLoadID, finalResult);
     assertTrue(root.isCompleted().isPresent());
@@ -276,72 +264,72 @@ public class BatchPathWaiterTest {
       return null;
     }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
     assertFalse(root.isCompleted().isPresent());
-    completeFirstLoadRequestEmpty(root);
-    nxtLoadID++;
+    // completeFirstLoadRequestEmpty(root);
+    // nxtLoadID++;
 
     // complete </, /a>, should have |<,a>|
     PathSequence completed = new PathSequence(new AlluxioURI("/"), new AlluxioURI("/a"));
     List<PathSequence> completedList = Lists.newArrayList(
         new PathSequence(new AlluxioURI(""), new AlluxioURI("/a")));
-    root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true, false,
-        false));
+    root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true, false
+    ));
     assertEquals(completedList, root.getLastCompleted());
 
     // complete </a, /b>, should have |<,b>|
     completed = new PathSequence(new AlluxioURI("/a"), new AlluxioURI("/b"));
     completedList = Lists.newArrayList(new PathSequence(new AlluxioURI(""), new AlluxioURI("/b")));
-    root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true, false,
-        false));
+    root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true, false
+    ));
     assertEquals(completedList, root.getLastCompleted());
 
     // complete </c, /d>, should have |<, /b>, </c, /d>|
     completed = new PathSequence(new AlluxioURI("/c"), new AlluxioURI("/d"));
     completedList.add(completed);
-    root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true, false,
-        false));
+    root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true, false
+    ));
     assertEquals(completedList, root.getLastCompleted());
 
     // complete </b, /c>, should have |<,/d>|
     completed = new PathSequence(new AlluxioURI("/b"), new AlluxioURI("/c"));
     completedList = Lists.newArrayList(new PathSequence(new AlluxioURI(""), new AlluxioURI("/d")));
-    root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true, false,
-        false));
+    root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true, false
+    ));
     assertEquals(completedList, root.getLastCompleted());
 
     // complete </g, /h>, should have |<,/d>, </g, /h>|
     completed = new PathSequence(new AlluxioURI("/g"), new AlluxioURI("/h"));
     completedList.add(completed);
-    root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true, false,
-        false));
+    root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true, false
+    ));
     assertEquals(completedList, root.getLastCompleted());
 
     // complete </d,/e>, should have |<,/e>, </g, /h>|
     completed = new PathSequence(new AlluxioURI("/d"), new AlluxioURI("/e"));
     completedList = Lists.newArrayList(new PathSequence(new AlluxioURI(""), new AlluxioURI("/e")),
         new PathSequence(new AlluxioURI("/g"), new AlluxioURI("/h")));
-    root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true, false,
-        false));
+    root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true, false
+    ));
     assertEquals(completedList, root.getLastCompleted());
 
     // complete </f,/g>, should have |<,/e>, </f, /h>|
     completed = new PathSequence(new AlluxioURI("/f"), new AlluxioURI("/g"));
     completedList = Lists.newArrayList(new PathSequence(new AlluxioURI(""), new AlluxioURI("/e")),
         new PathSequence(new AlluxioURI("/f"), new AlluxioURI("/h")));
-    root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true, false,
-        false));
+    root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true, false
+    ));
     assertEquals(completedList, root.getLastCompleted());
 
     // complete </e,/f>, should have |<,/h>|
     completed = new PathSequence(new AlluxioURI("/e"), new AlluxioURI("/f"));
     completedList = Lists.newArrayList(new PathSequence(new AlluxioURI(""), new AlluxioURI("/h")));
-    root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true, false,
-        false));
+    root.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(), completed, true, false
+    ));
     assertEquals(completedList, root.getLastCompleted());
 
     // finish with </h, /j>
     completed = new PathSequence(new AlluxioURI("/h"), new AlluxioURI("/j"));
     SyncProcessResult finalResult = new SyncProcessResult(ti, ti.getBasePath(), completed,
-        false, false, false);
+        false, false);
     root.nextCompleted(finalResult);
     root.getPathLoadTask().onProcessComplete(nxtLoadID, finalResult);
     assertTrue(root.isCompleted().isPresent());

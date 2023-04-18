@@ -1253,42 +1253,16 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public void performGetStatusAsync(
-      String path, Consumer<UfsLoadResult> onComplete, Consumer<Throwable> onError) {
-    try {
-      call(new UfsCallable<Void>() {
-        @Override
-        public Void call() {
-          mUnderFileSystem.performGetStatusAsync(path, onComplete, onError);
-          return null;
-        }
-
-        @Override
-        public String methodName() {
-          return "PerformGetStatusAsync";
-        }
-
-        @Override
-        public String toString() {
-          return String.format("path=%s", path);
-        }
-      });
-    } catch (IOException e) {
-      throw new InternalRuntimeException("should not reach");
-    }
-  }
-
-  @Override
   public void performListingAsync(
       String path, @Nullable String continuationToken, @Nullable String startAfter,
-      DescendantType descendantType, Consumer<UfsLoadResult> onComplete,
+      DescendantType descendantType, boolean checkStatus, Consumer<UfsLoadResult> onComplete,
       Consumer<Throwable> onError) {
     try {
       call(new UfsCallable<Void>() {
         @Override
         public Void call() {
           mUnderFileSystem.performListingAsync(path, continuationToken, startAfter,
-              descendantType, onComplete, onError);
+              descendantType, checkStatus, onComplete, onError);
           return null;
         }
 
@@ -1299,8 +1273,9 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
 
         @Override
         public String toString() {
-          return String.format("path=%s, continuationToken=%s, startAfter=%s, descendantType=%s",
-              path, continuationToken, startAfter, descendantType);
+          return String.format("path=%s, continuationToken=%s, startAfter=%s, descendantType=%s,"
+                  + " checkStatus=%s",
+              path, continuationToken, startAfter, descendantType, checkStatus);
         }
       });
     } catch (IOException e) {

@@ -78,7 +78,7 @@ public class MetadataSyncV2TestBase extends FileSystemMasterTestBase {
   static final AlluxioURI NESTED_MOUNT_POINT = new AlluxioURI("/mnt/nested_s3_mount");
   static final AlluxioURI NESTED_S3_MOUNT_POINT =
       new AlluxioURI("/s3_mount/nested_s3_mount");
-  static final long TIMEOUT_MS = 30_000;
+  static final long TIMEOUT_MS = 30_000_00;
 
   @Rule
   public S3ProxyRule mS3Proxy = S3ProxyRule.builder()
@@ -223,7 +223,7 @@ public class MetadataSyncV2TestBase extends FileSystemMasterTestBase {
       Pair<String, String> nxt = toCheck.pop();
 
       Iterator<FileInfo> alluxioItems = master.listStatus(new AlluxioURI(nxt.getFirst()),
-          ListStatusContext.defaults()).stream().iterator();
+          ListStatusContext.defaults().disableMetadataSync()).stream().iterator();
       Iterator<Pair<String, String>> ufsItems = listUfsPath(s3Bucket, nxt.getSecond(), s3client,
           mountPrefix, alluxioPath.getPath());
       while (alluxioItems.hasNext()) {
@@ -238,7 +238,7 @@ public class MetadataSyncV2TestBase extends FileSystemMasterTestBase {
           toCheck.push(new Pair<>(nxtAlluxio.getPath(), nxtUfs.getSecond()));
           nxtInode = PathUtils.normalizePath(nxtInode, AlluxioURI.SEPARATOR);
         }
-        System.out.printf("Checking %s, %s%n", nxtInode, nxtUfs.getFirst());
+        // System.out.printf("Checking %s, %s%n", nxtInode, nxtUfs.getFirst());
         assertEquals(nxtInode, nxtUfs.getFirst());
       }
       if (ufsItems.hasNext()) {

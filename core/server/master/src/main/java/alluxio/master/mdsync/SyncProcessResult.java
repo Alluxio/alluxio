@@ -26,7 +26,6 @@ public class SyncProcessResult {
   private final PathSequence mLoaded;
   private final boolean mIsTruncated;
   private final boolean mRootPathIsFile;
-  private final boolean mIsFirstLoad;
 
   /**
    * Constructs an instance of {@link SyncProcessResult}.
@@ -36,25 +35,16 @@ public class SyncProcessResult {
    * @param loaded the path sequence
    * @param isTruncated whether the result is truncated or not
    * @param rootPathIsFile whether the root path is a file or not
-   * @param isFirstLoad whether this is the first time loading the data
    */
   public SyncProcessResult(
       TaskInfo taskInfo, AlluxioURI baseLoadPath,
       @Nullable PathSequence loaded, boolean isTruncated,
-      boolean rootPathIsFile, boolean isFirstLoad) {
+      boolean rootPathIsFile) {
     mRootPathIsFile = rootPathIsFile;
     mBaseLoadPath = baseLoadPath;
     mTaskInfo = taskInfo;
     mLoaded = loaded;
     mIsTruncated = isTruncated;
-    mIsFirstLoad = isFirstLoad;
-  }
-
-  /**
-   * @return true if this is the first time loading the data, false otherwise
-   */
-  public boolean isFirstLoad() {
-    return mIsFirstLoad;
   }
 
   /**

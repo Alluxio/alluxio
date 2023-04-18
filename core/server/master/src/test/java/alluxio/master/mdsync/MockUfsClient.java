@@ -52,15 +52,10 @@ public class MockUfsClient implements UfsClient {
     mUfsStatus = item;
   }
 
-  void setGetStatusFunc(Function<String, UfsStatus> getStatusFunc) {
-    mGetStatusFunc = getStatusFunc;
-  }
-
   void setListingResultFunc(Function<String, Pair<Stream<UfsStatus>, Boolean>> resultFunc) {
     mResultFunc = resultFunc;
   }
 
-  @Override
   public void performGetStatusAsync(
       String path, Consumer<UfsLoadResult> onComplete, Consumer<Throwable> onError) {
     UfsStatus status = mUfsStatus;
@@ -77,7 +72,7 @@ public class MockUfsClient implements UfsClient {
   @Override
   public void performListingAsync(
       String path, @Nullable String continuationToken, @Nullable String startAfter,
-      DescendantType descendantType,
+      DescendantType descendantType, boolean checkStatus,
       Consumer<UfsLoadResult> onComplete, Consumer<Throwable> onError) {
     if (mError != null) {
       onError.accept(mError);

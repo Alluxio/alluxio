@@ -100,7 +100,7 @@ public class TaskTrackerTest {
   void checkStats(
       TaskStats stats, int batches, int statuses, int loadErrors,
       int loadRequests, boolean loadFailed, boolean processFailed,
-      boolean firstLoadHadResult, boolean firstLoadWasFile) {
+      boolean firstLoadWasFile) {
     if (batches >= 0) {
       assertEquals(batches, stats.getBatchCount());
     }
@@ -111,13 +111,10 @@ public class TaskTrackerTest {
       assertEquals(loadErrors, stats.getLoadErrors());
     }
     if (loadRequests >= 0) {
-      // we add +1 to the expected load requests, as there is an initial
-      // first getStatus check on the root path before listing
-      assertEquals(loadRequests + 1, stats.getLoadRequestCount());
+      assertEquals(loadRequests, stats.getLoadRequestCount());
     }
     assertEquals(loadFailed, stats.isLoadFailed());
     assertEquals(processFailed, stats.isProcessFailed());
-    assertEquals(firstLoadHadResult, stats.firstLoadHadResult());
     assertEquals(firstLoadWasFile, stats.firstLoadWasFile());
   }
 
@@ -128,7 +125,6 @@ public class TaskTrackerTest {
     int totalBatches = 10;
     int concurrentProcessing = 5;
     AtomicInteger remainingLoadCount = new AtomicInteger(totalBatches);
-    AtomicInteger remainingGetStatusCount = new AtomicInteger(1);
     final AtomicLong time = new AtomicLong(0);
     long permitsPerSecond = 100000;
     long timePerPermit = Duration.ofSeconds(1).toNanos() / permitsPerSecond;
@@ -154,10 +150,6 @@ public class TaskTrackerTest {
         concurrentProcessing, concurrentUfsLoads, false, false,
         mUfsSyncPathCache, mAbsentCache, mSyncProcess, this::getClient);
     mMdSync = new MdSync(mTaskTracker);
-    mUfsClient.setGetStatusFunc(path -> {
-      remainingGetStatusCount.decrementAndGet();
-      return null;
-    });
     mUfsClient.setListingResultFunc(path -> {
       int nxtItem = remainingLoadCount.decrementAndGet();
       boolean truncated = nxtItem > 0;
@@ -167,7 +159,6 @@ public class TaskTrackerTest {
         .when(mUfsSyncPathCache).shouldSyncPath(any(), anyLong(), any());
 
     for (int i = 0; i < 10; i++) {
-      remainingGetStatusCount.set(1);
       remainingLoadCount.set(totalBatches);
 
       // move the time forward, and take a rate limit permit
@@ -180,13 +171,6 @@ public class TaskTrackerTest {
           mTaskTracker.checkTask(mMdSync, new AlluxioURI("/"), new AlluxioURI("/"), null,
               DescendantType.ALL, 0, DirectoryLoadType.SINGLE_LISTING));
 
-      // wait for the initial getStatus call to get its rate limiter permit
-      rateLimiterBlocker.acquire();
-      // allow the rate limited operation to succeed by moving the time forward
-      time.addAndGet(timePerPermit);
-      CommonUtils.waitForResult("Rate limited getStatus", remainingGetStatusCount::get,
-          v -> v == 0,
-          WaitForOptions.defaults().setTimeoutMs(100000));
       for (int j = 0; j < totalBatches; j++) {
         int finalJ = j;
         CommonUtils.waitForResult("Rate limited listStatus", remainingLoadCount::get,
@@ -203,7 +187,7 @@ public class TaskTrackerTest {
       assertEquals(remainingLoadCount.get(), 0);
       TaskStats stats = result.getSecond().getTaskInfo().getStats();
       checkStats(stats, totalBatches, totalBatches, 0, totalBatches,
-          false, false, false, false);
+          false, false, true);
     }
   }
 
@@ -254,7 +238,7 @@ public class TaskTrackerTest {
       result.getSecond().waitComplete(WAIT_TIMEOUT);
       assertEquals(remainingLoadCount.get(), 0);
       TaskStats stats = result.getSecond().getTaskInfo().getStats();
-      checkStats(stats, 100, 100, 0, 100, false, false, false, false);
+      checkStats(stats, 100, 100, 0, 100, false, false, true);
     }
   }
 
@@ -298,7 +282,7 @@ public class TaskTrackerTest {
         assertThrows(IOException.class, () -> result.getSecond().waitComplete(WAIT_TIMEOUT));
         assertFalse(result.getSecond().succeeded());
         TaskStats stats = result.getSecond().getTaskInfo().getStats();
-        checkStats(stats, -1, -1, -1, -1, false, true, false, false);
+        checkStats(stats, -1, -1, -1, -1, false, true, true);
       }
     }
   }
@@ -338,7 +322,7 @@ public class TaskTrackerTest {
         assertFalse(result.getFirst());
         assertThrows(RuntimeException.class, () -> result.getSecond().waitComplete(WAIT_TIMEOUT));
         TaskStats stats = result.getSecond().getTaskInfo().getStats();
-        checkStats(stats, -1, -1, -1, -1, true, false, false, false);
+        checkStats(stats, -1, -1, -1, -1, true, false, true);
       }
     }
   }
@@ -379,7 +363,7 @@ public class TaskTrackerTest {
         assertTrue(result.getFirst());
         result.getSecond().waitComplete(WAIT_TIMEOUT);
         TaskStats stats = result.getSecond().getTaskInfo().getStats();
-        checkStats(stats, -1, -1, 0, -1, false, false, false, false);
+        checkStats(stats, -1, -1, 0, -1, false, false, true);
       }
     }
   }
@@ -422,7 +406,7 @@ public class TaskTrackerTest {
       assertFalse(result.getFirst());
       assertThrows(IOException.class, () -> result.getSecond().waitComplete(WAIT_TIMEOUT));
       TaskStats stats = result.getSecond().getTaskInfo().getStats();
-      checkStats(stats, -1, -1, 0, -1, false, true, false, false);
+      checkStats(stats, -1, -1, 0, -1, false, true, true);
     }
   }
 
@@ -458,7 +442,7 @@ public class TaskTrackerTest {
       assertFalse(result.getFirst());
       assertThrows(RuntimeException.class, () -> result.getSecond().waitComplete(WAIT_TIMEOUT));
       TaskStats stats = result.getSecond().getTaskInfo().getStats();
-      checkStats(stats, -1, -1, 4, -1, true, false, false, false);
+      checkStats(stats, -1, -1, 4, -1, true, false, true);
     }
   }
 
@@ -503,7 +487,7 @@ public class TaskTrackerTest {
       result.getSecond().waitComplete(WAIT_TIMEOUT);
       assertEquals(count.get(), 0);
       TaskStats stats = result.getSecond().getTaskInfo().getStats();
-      checkStats(stats, 100, 100, 0, 100, false, false, false, false);
+      checkStats(stats, 100, 100, 0, 100, false, false, true);
     }
   }
 
@@ -530,7 +514,7 @@ public class TaskTrackerTest {
       assertTrue(result.getFirst());
       result.getSecond().waitComplete(WAIT_TIMEOUT);
       TaskStats stats = result.getSecond().getTaskInfo().getStats();
-      checkStats(stats, 2, 4, 0, 2, false, false, false, false);
+      checkStats(stats, 2, 4, 0, 2, false, false, true);
 
       // run the same request, except have the sync for the nested directory not be needed
       Mockito.doReturn(SyncCheck.shouldNotSyncWithTime(0))
@@ -540,7 +524,7 @@ public class TaskTrackerTest {
       assertTrue(result.getFirst());
       result.getSecond().waitComplete(WAIT_TIMEOUT);
       stats = result.getSecond().getTaskInfo().getStats();
-      checkStats(stats, 1, 2, 0, 1, false, false, false, false);
+      checkStats(stats, 1, 2, 0, 1, false, false, true);
     }
   }
 
@@ -554,7 +538,7 @@ public class TaskTrackerTest {
       assertTrue(result.getFirst());
       result.getSecond().waitComplete(WAIT_TIMEOUT);
       TaskStats stats = result.getSecond().getTaskInfo().getStats();
-      checkStats(stats, 1, 1, 0, 1, false, false, false, false);
+      checkStats(stats, 1, 1, 0, 1, false, false, true);
     }
   }
 
@@ -570,7 +554,7 @@ public class TaskTrackerTest {
       assertTrue(result.getFirst());
       result.getSecond().waitComplete(WAIT_TIMEOUT);
       TaskStats stats = result.getSecond().getTaskInfo().getStats();
-      checkStats(stats, 2, 2, 0, 2, false, false, false, false);
+      checkStats(stats, 2, 2, 0, 2, false, false, true);
     }
   }
 
@@ -585,7 +569,7 @@ public class TaskTrackerTest {
       assertFalse(result.getFirst());
       assertThrows(Throwable.class, () -> result.getSecond().waitComplete(WAIT_TIMEOUT));
       TaskStats stats = result.getSecond().getTaskInfo().getStats();
-      checkStats(stats, 0, 0, 4, 1, true, false, false, false);
+      checkStats(stats, 0, 0, 4, 1, true, false, false);
     }
   }
 
@@ -611,7 +595,7 @@ public class TaskTrackerTest {
       result.getSecond().waitComplete(WAIT_TIMEOUT);
       TaskStats stats = result.getSecond().getTaskInfo().getStats();
       int amount = totalBatches / 2;
-      checkStats(stats, amount + 1, amount + 1, amount - 1, amount + 1, false, false, false, false);
+      checkStats(stats, amount + 1, amount + 1, amount - 1, amount + 1, false, false, true);
     }
   }
 
@@ -628,7 +612,7 @@ public class TaskTrackerTest {
       assertFalse(result.getFirst());
       assertThrows(IOException.class, () -> result.getSecond().waitComplete(WAIT_TIMEOUT));
       TaskStats stats = result.getSecond().getTaskInfo().getStats();
-      checkStats(stats, -1, -1, 0, 2, false, true, false, false);
+      checkStats(stats, -1, -1, 0, 2, false, true, true);
     }
   }
 
@@ -660,9 +644,9 @@ public class TaskTrackerTest {
       assertTrue(task1.get().getFirst());
       assertTrue(task2.get().getFirst());
       TaskStats stats1 = task1.get().getSecond().getTaskInfo().getStats();
-      checkStats(stats1, 1, 1, 0, 1, false, false, false, false);
+      checkStats(stats1, 1, 1, 0, 1, false, false, true);
       TaskStats stats2 = task2.get().getSecond().getTaskInfo().getStats();
-      checkStats(stats2, 1, 1, 0, 1, false, false, false, false);
+      checkStats(stats2, 1, 1, 0, 1, false, false, true);
     }
   }
 }

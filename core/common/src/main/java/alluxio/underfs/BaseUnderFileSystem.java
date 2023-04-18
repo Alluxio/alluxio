@@ -206,39 +206,34 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem, UfsClient 
   }
 
   @Override
-  public void performGetStatusAsync(
-      String path, Consumer<UfsLoadResult> onComplete,
-      Consumer<Throwable> onError) {
-
-    mAsyncIOExecutor.submit(() -> {
-      try {
-        UfsStatus result = getStatus(path);
-        AlluxioURI lastItem = null;
-        if (result != null) {
-          lastItem = new AlluxioURI(result.getName());
-        }
-        onComplete.accept(new UfsLoadResult(
-            result == null ? Stream.empty() : Stream.of(result),
-            result == null ? 0 : 1,
-            null, lastItem, false,
-            result != null && result.isFile(), isObjectStorage()));
-      } catch (FileNotFoundException e) {
-        onComplete.accept(new UfsLoadResult(
-            Stream.empty(), 0, null, null, false, false, isObjectStorage()));
-      } catch (Throwable t) {
-        onError.accept(t);
-      }
-    });
-  }
-
-  @Override
   public void performListingAsync(
       String path, @Nullable String continuationToken, @Nullable String startAfter,
-      DescendantType descendantType, Consumer<UfsLoadResult> onComplete,
+      DescendantType descendantType, boolean checkStatus, Consumer<UfsLoadResult> onComplete,
       Consumer<Throwable> onError) {
 
     mAsyncIOExecutor.submit(() -> {
       try {
+        UfsStatus baseStatus = null;
+        if (checkStatus) {
+          try {
+            baseStatus = getStatus(path);
+            if (baseStatus != null && (descendantType == DescendantType.NONE
+                || baseStatus.isFile())) {
+              onComplete.accept(new UfsLoadResult(Stream.of(baseStatus), 1,
+                  null, new AlluxioURI(baseStatus.getName()), false,
+                  baseStatus.isFile(), isObjectStorage()));
+              return;
+            }
+          } catch (FileNotFoundException e) {
+            // if we are not using object storage we know nothing exists at the path,
+            // so just return an empty result
+            if (!isObjectStorage()) {
+              onComplete.accept(new UfsLoadResult(Stream.empty(), 0,
+                  null, null, false, false, false));
+              return;
+            }
+          }
+        }
         UfsStatus[] items = listStatus(path, ListOptions.defaults()
             .setRecursive(descendantType == DescendantType.ALL));
         if (items != null) {
@@ -249,12 +244,22 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem, UfsClient 
             item.setName(PathUtils.concatPath(path, item.getName()));
           }
         }
-        AlluxioURI lastItem = items == null ? null
-            : new AlluxioURI(items[items.length - 1].getName());
-        onComplete.accept(new UfsLoadResult(
-            items == null ? Stream.empty() : Arrays.stream(items), items == null ? 0 : items.length,
-            null, lastItem, false,
-            items != null && items[0].isFile(), isObjectStorage()));
+        if (items != null && items.length == 0) {
+          items = null;
+        }
+        UfsStatus firstItem = baseStatus != null ? baseStatus
+            : items != null ? items[0] : null;
+        UfsStatus lastItem = items == null ? firstItem
+            : items[items.length - 1];
+        Stream<UfsStatus> itemStream = items == null ? Stream.empty() : Arrays.stream(items);
+        int itemCount = items == null ? 0 : items.length;
+        if (baseStatus != null) {
+          itemStream = Stream.concat(Stream.of(baseStatus), itemStream);
+          itemCount++;
+        }
+        onComplete.accept(new UfsLoadResult(itemStream, itemCount,
+            null, lastItem == null ? null : new AlluxioURI(lastItem.getName()), false,
+            firstItem != null && firstItem.isFile(), isObjectStorage()));
       } catch (Throwable t) {
         onError.accept(t);
       }

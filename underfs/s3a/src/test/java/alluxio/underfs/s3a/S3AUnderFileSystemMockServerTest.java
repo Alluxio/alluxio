@@ -163,30 +163,6 @@ public class S3AUnderFileSystemMockServerTest {
 
     result = performListingAsyncAndGetResult("/", DescendantType.ONE);
     Assert.assertEquals(6, result.getItemsCount());
-
-    result = performGetStatusAsyncAndGetResult("d1");
-    assertEquals(0, result.getItemsCount());
-
-    result = performGetStatusAsyncAndGetResult("d1/");
-    assertEquals(0, result.getItemsCount());
-
-    result = performGetStatusAsyncAndGetResult("d3");
-    assertEquals(0, result.getItemsCount());
-
-    result = performGetStatusAsyncAndGetResult("d3/");
-    assertEquals(1, result.getItemsCount());
-
-    result = performGetStatusAsyncAndGetResult("d4");
-    assertEquals(0, result.getItemsCount());
-
-    result = performGetStatusAsyncAndGetResult("d4/");
-    assertEquals(1, result.getItemsCount());
-
-    result = performGetStatusAsyncAndGetResult("f1");
-    assertEquals(1, result.getItemsCount());
-
-    result = performGetStatusAsyncAndGetResult("f1/");
-    assertEquals(0, result.getItemsCount());
   }
 
   @Test
@@ -216,27 +192,7 @@ public class S3AUnderFileSystemMockServerTest {
     CountDownLatch latch = new CountDownLatch(1);
     AtomicReference<Throwable> throwable = new AtomicReference<>();
     AtomicReference<UfsLoadResult> result = new AtomicReference<>();
-    mS3UnderFileSystem.performListingAsync(path, null, null, descendantType,
-        (r) -> {
-          result.set(r);
-          latch.countDown();
-        }, (t) -> {
-          throwable.set(t);
-          latch.countDown();
-        });
-    latch.await();
-    if (throwable.get() != null) {
-      throw throwable.get();
-    }
-    return result.get();
-  }
-
-  public UfsLoadResult performGetStatusAsyncAndGetResult(String path)
-      throws Throwable {
-    CountDownLatch latch = new CountDownLatch(1);
-    AtomicReference<Throwable> throwable = new AtomicReference<>();
-    AtomicReference<UfsLoadResult> result = new AtomicReference<>();
-    mS3UnderFileSystem.performGetStatusAsync(path,
+    mS3UnderFileSystem.performListingAsync(path, null, null, descendantType, false,
         (r) -> {
           result.set(r);
           latch.countDown();

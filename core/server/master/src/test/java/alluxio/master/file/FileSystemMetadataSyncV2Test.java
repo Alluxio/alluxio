@@ -97,6 +97,9 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
         SyncOperation.NOOP, 1L
     ));
+    long mountPointInodeId = mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync()).getFileId();
+    assertFalse(mFileSystemMaster.getInodeStore()
+        .get(mountPointInodeId).get().asDirectory().isDirectChildrenLoaded());
   }
 
   @Test
@@ -111,7 +114,12 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
-
+    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+        SyncOperation.CREATE, 11L
+    ));
+    long mountPointInodeId = mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync()).getFileId();
+    assertTrue(mFileSystemMaster.getInodeStore()
+        .get(mountPointInodeId).get().asDirectory().isDirectChildrenLoaded());
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET,
         "", mFileSystemMaster, mClient);
 
@@ -119,7 +127,9 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
-
+    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+        SyncOperation.NOOP, 11L
+    ));
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET,
         "", mFileSystemMaster, mClient);
   }
@@ -149,7 +159,13 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
+    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+        SyncOperation.CREATE, 1L
+    ));
 
+    long mountPointInodeId = mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync()).getFileId();
+    assertTrue(mFileSystemMaster.getInodeStore()
+        .get(mountPointInodeId).get().asDirectory().isDirectChildrenLoaded());
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET,
         "", mFileSystemMaster, mClient);
 
@@ -157,7 +173,9 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
-
+    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+        SyncOperation.NOOP, 1L
+    ));
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET,
         "", mFileSystemMaster, mClient);
   }
@@ -173,13 +191,21 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
-
+    long mountPointInodeId = mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync()).getFileId();
+    assertTrue(mFileSystemMaster.getInodeStore()
+        .get(mountPointInodeId).get().asDirectory().isDirectChildrenLoaded());
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, TEST_DIRECTORY, mFileSystemMaster, mClient);
+    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+        SyncOperation.CREATE, 1L
+    ));
 
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
+    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+        SyncOperation.NOOP, 1L
+    ));
 
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, TEST_DIRECTORY, mFileSystemMaster, mClient);
   }
@@ -190,11 +216,11 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
         TEST_DIRECTORY + "/", "");
     mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT.join(TEST_DIRECTORY), MountContext.defaults());
     // create files
-    for (int i = 0; i < 1; i++) {
+    for (int i = 0; i < 10; i++) {
       mS3Client.putObject(TEST_BUCKET, TEST_DIRECTORY + "/" + TEST_FILE + i, TEST_CONTENT);
     }
     // create nested files
-    for (int i = 0; i < 1; i++) {
+    for (int i = 0; i < 10; i++) {
       mS3Client.putObject(TEST_BUCKET, TEST_DIRECTORY + "/"
           + TEST_DIRECTORY + "/" + TEST_FILE + i, TEST_CONTENT);
     }
@@ -203,29 +229,38 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
-
+    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+        SyncOperation.CREATE, 21L
+    ));
+    long mountPointInodeId = mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync()).getFileId();
+    assertTrue(mFileSystemMaster.getInodeStore()
+        .get(mountPointInodeId).get().asDirectory().isDirectChildrenLoaded());
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, TEST_DIRECTORY, mFileSystemMaster, mClient);
 
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
-
+    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+        SyncOperation.NOOP,
+        mDirectoryLoadType == DirectoryLoadType.SINGLE_LISTING ? 20L : 21L
+    ));
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, TEST_DIRECTORY, mFileSystemMaster, mClient);
   }
 
   @Test
   public void basicSyncNestedMountNestedDirWithMarkers() throws Throwable {
     mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
+    long mountPointInodeId = mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync()).getFileId();
     // create directory markers
     mS3Client.putObject(TEST_BUCKET, TEST_DIRECTORY + "/", "");
     mS3Client.putObject(TEST_BUCKET, TEST_DIRECTORY + "/" + TEST_DIRECTORY + "/", "");
     // create files
-    for (int i = 0; i < 1; i++) {
+    for (int i = 0; i < 10; i++) {
       mS3Client.putObject(TEST_BUCKET, TEST_DIRECTORY + "/" + TEST_FILE + i, TEST_CONTENT);
     }
     // create nested files
-    for (int i = 0; i < 1; i++) {
+    for (int i = 0; i < 10; i++) {
       mS3Client.putObject(TEST_BUCKET, TEST_DIRECTORY + "/"
           + TEST_DIRECTORY + "/" + TEST_FILE + i, TEST_CONTENT);
     }
@@ -234,20 +269,57 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
+    assertTrue(mFileSystemMaster.getInodeStore()
+        .get(mountPointInodeId).get().asDirectory().isDirectChildrenLoaded());
+    checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
+    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+        SyncOperation.CREATE, 22L
+    ));
 
+    result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
+    result.waitComplete(TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+        SyncOperation.NOOP, 22L
+    ));
+
+    checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
+  }
+
+  @Test
+  public void basicSyncEmptyDirWithMarkers() throws Throwable {
+    mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
+    long mountPointInodeId = mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync()).getFileId();
+    // create directory marker
+    mS3Client.putObject(TEST_BUCKET, TEST_DIRECTORY + "/", "");
+
+    BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
+    result.waitComplete(TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    assertTrue(mFileSystemMaster.getInodeStore()
+        .get(mountPointInodeId).get().asDirectory().isDirectChildrenLoaded());
+    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+        SyncOperation.CREATE, 1L,
+        SyncOperation.NOOP, 0L
+    ));
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
 
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
-
+    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+        SyncOperation.NOOP, 1L
+    ));
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
   }
 
   @Test
   public void basicSyncNestedFile() throws Throwable {
     mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
+    long mountPointInodeId = mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync()).getFileId();
     for (int i = 0; i < 10; i++) {
       mS3Client.putObject(TEST_BUCKET, TEST_DIRECTORY + "/" + TEST_FILE + i, TEST_CONTENT);
     }
@@ -256,13 +328,52 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
+    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+        SyncOperation.CREATE, 11L
+    ));
+    assertTrue(mFileSystemMaster.getInodeStore()
+        .get(mountPointInodeId).get().asDirectory().isDirectChildrenLoaded());
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
 
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
+    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+        SyncOperation.NOOP,
+        mDirectoryLoadType != DirectoryLoadType.SINGLE_LISTING ? 11L : 10L
+    ));
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
+  }
+
+  @Test
+  public void basicSyncDirectory() throws Throwable {
+    mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
+    long mountPointInodeId = mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync()).getFileId();
+    for (int i = 0; i < 10; i++) {
+      mS3Client.putObject(TEST_BUCKET, TEST_DIRECTORY + "/" + TEST_FILE + i, TEST_CONTENT);
+    }
+
+    AlluxioURI syncPath = MOUNT_POINT.join(TEST_DIRECTORY);
+    BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        syncPath, DescendantType.ALL, mDirectoryLoadType, 0);
+    result.waitComplete(TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    assertFalse(mFileSystemMaster.getInodeStore()
+        .get(mountPointInodeId).get().asDirectory().isDirectChildrenLoaded());
+    checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
+    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+        SyncOperation.CREATE, 11L
+    ));
+
+    result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        syncPath, DescendantType.ALL, mDirectoryLoadType, 0);
+    result.waitComplete(TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
+    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+        SyncOperation.NOOP, 10L
+    ));
   }
 
   @Test
@@ -286,8 +397,6 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     assertFalse(info.isFolder());
     assertTrue(info.isCompleted());
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
-    assertTrue(mFileSystemMaster.getInodeStore()
-        .get(mountPointInodeId).get().asDirectory().isDirectChildrenLoaded());
 
     // Sync again, expect no change
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
@@ -309,6 +418,8 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
         SyncOperation.DELETE, 1L
     ));
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
+    assertFalse(mFileSystemMaster.getInodeStore()
+        .get(mountPointInodeId).get().asDirectory().isDirectChildrenLoaded());
   }
 
   @Test
@@ -337,7 +448,9 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
         SyncOperation.CREATE, numInodes
     ));
-
+    long mountPointInodeId = mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync()).getFileId();
+    assertTrue(mFileSystemMaster.getInodeStore()
+        .get(mountPointInodeId).get().asDirectory().isDirectChildrenLoaded());
     // count the files
     long noopCount = 9;
     if (mDirectoryLoadType != DirectoryLoadType.SINGLE_LISTING) {
@@ -376,7 +489,9 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
         SyncOperation.CREATE, numInodes
     ));
-
+    long mountPointInodeId = mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync()).getFileId();
+    assertTrue(mFileSystemMaster.getInodeStore()
+        .get(mountPointInodeId).get().asDirectory().isDirectChildrenLoaded());
     mS3Client.deleteObject(TEST_BUCKET, "d/1");
     mS3Client.deleteObject(TEST_BUCKET, "d/2");
     mS3Client.deleteObject(TEST_BUCKET, "d/3");
@@ -422,6 +537,9 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
       result.waitComplete(TIMEOUT_MS);
     });
     assertSyncFailureReason(result.getTaskInfo(), SyncFailReason.PROCESSING_UNKNOWN);
+    long mountPointInodeId = mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync()).getFileId();
+    assertFalse(mFileSystemMaster.getInodeStore()
+        .get(mountPointInodeId).get().asDirectory().isDirectChildrenLoaded());
 
     syncer.beforePerformSyncOne((context) -> {
       Exception e = new Exception("fail");
@@ -457,7 +575,9 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
-
+    long mountPointInodeId = mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync()).getFileId();
+    assertTrue(mFileSystemMaster.getInodeStore()
+        .get(mountPointInodeId).get().asDirectory().isDirectChildrenLoaded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
         // file2 & file 3
         SyncOperation.CREATE, 2L,
@@ -479,6 +599,9 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
         MOUNT_POINT, DescendantType.ONE, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
+    long mountPointInodeId = mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync()).getFileId();
+    assertTrue(mFileSystemMaster.getInodeStore()
+        .get(mountPointInodeId).get().asDirectory().isDirectChildrenLoaded());
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
 
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -506,6 +629,9 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
+    long mountPointInodeId = mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync()).getFileId();
+    assertTrue(mFileSystemMaster.getInodeStore()
+        .get(mountPointInodeId).get().asDirectory().isDirectChildrenLoaded());
     assertTrue(result.succeeded());
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
 
@@ -709,6 +835,9 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
         MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
+    long mountPointInodeId = mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync()).getFileId();
+    assertTrue(mFileSystemMaster.getInodeStore()
+        .get(mountPointInodeId).get().asDirectory().isDirectChildrenLoaded());
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
         // f1, f3

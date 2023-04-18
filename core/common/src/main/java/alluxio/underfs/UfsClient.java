@@ -21,28 +21,27 @@ import javax.annotation.Nullable;
  * The async UFS client interface.
  */
 public interface UfsClient {
-  /**
-   * Gets the ufs status of an object.
-   * @param path the path in ufs
-   * @param onComplete the callback when the load is complete
-   * @param onError the callback when the load encountered an error
-   */
-  void performGetStatusAsync(
-      String path, Consumer<UfsLoadResult> onComplete,
-      Consumer<Throwable> onError);
 
   /**
-   * Lists the ufs statuses for a given path.
+   * Lists the ufs statuses for a given path. The {@link UfsStatus#getName()}
+   * function for the returned values should include the full path of each
+   * item from the UFS root (not including the bucket name for object stores).
+   * It differs from a traditional listing in that if the input variable
+   * checkStatus is true, the {@link UfsStatus} for the base path should
+   * be included at the start of the results.
    * @param path the path in ufs
    * @param continuationToken the continuation token
    * @param startAfter the start after string where the loading starts from
    * @param descendantType the load descendant type (NONE/ONE/ALL)
+   * @param checkStatus if true the call will perform a GetStatus on the path
+   *                    to see if an object exists, which should be returned
+   *                    as part of the result
    * @param onComplete the callback when the load is complete
    * @param onError the callback when the load encountered an error
    */
   void performListingAsync(
       String path, @Nullable String continuationToken, @Nullable String startAfter,
-      DescendantType descendantType, Consumer<UfsLoadResult> onComplete,
+      DescendantType descendantType, boolean checkStatus, Consumer<UfsLoadResult> onComplete,
       Consumer<Throwable> onError);
 
   /**

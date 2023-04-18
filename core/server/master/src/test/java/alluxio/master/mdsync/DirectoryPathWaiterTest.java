@@ -12,7 +12,6 @@
 package alluxio.master.mdsync;
 
 import static alluxio.file.options.DescendantType.ALL;
-import static alluxio.master.mdsync.BatchPathWaiterTest.completeFirstLoadRequestEmpty;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -86,13 +85,13 @@ public class DirectoryPathWaiterTest {
       path.onComplete(ans.getArgument(1));
       return null;
     }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
-    completeFirstLoadRequestEmpty(path);
+    // completeFirstLoadRequestEmpty(path);
 
     Future<Boolean> waiter = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path")));
     assertThrows(TimeoutException.class, () -> waiter.get(1, TimeUnit.SECONDS));
     path.nextCompleted(new SyncProcessResult(ti, ti.getBasePath(),
         new PathSequence(new AlluxioURI("/path"),
-            new AlluxioURI("/path")), false, true, false));
+            new AlluxioURI("/path")), false, true));
     assertTrue(waiter.get(1, TimeUnit.SECONDS));
   }
 
@@ -106,23 +105,23 @@ public class DirectoryPathWaiterTest {
       path.onComplete(ans.getArgument(1));
       return null;
     }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
-    completeFirstLoadRequestEmpty(path);
+    // completeFirstLoadRequestEmpty(path);
 
     Future<Boolean> waiter1 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/1")));
     Future<Boolean> waiter2 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/2")));
     assertThrows(TimeoutException.class, () -> waiter1.get(1, TimeUnit.SECONDS));
     path.nextCompleted(new SyncProcessResult(ti, new AlluxioURI("/path/1"),
         new PathSequence(new AlluxioURI("/path/1"),
-            new AlluxioURI("/path/1")), false, false, false));
+            new AlluxioURI("/path/1")), false, false));
     assertTrue(waiter1.get(1, TimeUnit.SECONDS));
     // if the path is truncated, it should not release the waiter on the path
     path.nextCompleted(new SyncProcessResult(ti, new AlluxioURI("/path/2"),
         new PathSequence(new AlluxioURI("/path/2"),
-            new AlluxioURI("/path/2")), true, false, false));
+            new AlluxioURI("/path/2")), true, false));
     assertThrows(TimeoutException.class, () -> waiter2.get(1, TimeUnit.SECONDS));
     path.nextCompleted(new SyncProcessResult(ti, new AlluxioURI("/path/2"),
         new PathSequence(new AlluxioURI("/path/2"),
-            new AlluxioURI("/path/2")), false, false, false));
+            new AlluxioURI("/path/2")), false, false));
     assertTrue(waiter2.get(1, TimeUnit.SECONDS));
   }
 
@@ -136,20 +135,20 @@ public class DirectoryPathWaiterTest {
       path.onComplete(ans.getArgument(1));
       return null;
     }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
-    completeFirstLoadRequestEmpty(path);
+    // completeFirstLoadRequestEmpty(path);
 
     Future<Boolean> waiter1 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/1")));
     Future<Boolean> waiter2 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/2")));
     // a different nested path should not release the waiters
     path.nextCompleted(new SyncProcessResult(ti, new AlluxioURI("/path/other"),
         new PathSequence(new AlluxioURI("/path/1"),
-            new AlluxioURI("/path/1")), false, false, false));
+            new AlluxioURI("/path/1")), false, false));
     assertThrows(TimeoutException.class, () -> waiter1.get(1, TimeUnit.SECONDS));
     assertThrows(TimeoutException.class, () -> waiter2.get(1, TimeUnit.SECONDS));
     // the parent path should release both the children
     path.nextCompleted(new SyncProcessResult(ti, new AlluxioURI("/path"),
         new PathSequence(new AlluxioURI("/path/1"),
-            new AlluxioURI("/path/1")), false, false, false));
+            new AlluxioURI("/path/1")), false, false));
     assertTrue(waiter1.get(1, TimeUnit.SECONDS));
     assertTrue(waiter2.get(1, TimeUnit.SECONDS));
   }
@@ -165,8 +164,8 @@ public class DirectoryPathWaiterTest {
       path.onComplete(ans.getArgument(1));
       return null;
     }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
-    completeFirstLoadRequestEmpty(path);
-    loadRequestID++;
+    // completeFirstLoadRequestEmpty(path);
+    // loadRequestID++;
 
     Future<Boolean> waiter1 = mThreadPool.submit(() ->
         path.waitForSync(new AlluxioURI("/path/nested/1")));
@@ -177,14 +176,14 @@ public class DirectoryPathWaiterTest {
     // finishing the root should only release the direct children
     path.nextCompleted(new SyncProcessResult(ti, new AlluxioURI("/"),
         new PathSequence(new AlluxioURI("/path/1"),
-            new AlluxioURI("/path/1")), false, false, false));
+            new AlluxioURI("/path/1")), false, false));
     assertThrows(TimeoutException.class, () -> waiter1.get(1, TimeUnit.SECONDS));
     assertThrows(TimeoutException.class, () -> waiter2.get(1, TimeUnit.SECONDS));
     assertTrue(waiter3.get(1, TimeUnit.SECONDS));
     // finishing /path should release the direct children of /path
     SyncProcessResult finalResult = new SyncProcessResult(ti, new AlluxioURI("/path"),
         new PathSequence(new AlluxioURI("/path/1"),
-            new AlluxioURI("/path/1")), false, false, false);
+            new AlluxioURI("/path/1")), false, false);
     path.nextCompleted(finalResult);
     assertThrows(TimeoutException.class, () -> waiter1.get(1, TimeUnit.SECONDS));
     assertTrue(waiter2.get(1, TimeUnit.SECONDS));

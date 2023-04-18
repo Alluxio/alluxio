@@ -1145,7 +1145,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       boolean run = true;
       while (run) {
         run = false;
-        if (loadMetadata) {
+        if (loadMetadata && !context.isDisableMetadataSync()) {
           loadMetadataIfNotExist(rpcContext, path, loadMetadataContext);
           ufsAccessed = true;
         }
@@ -1163,7 +1163,7 @@ public class DefaultFileSystemMaster extends CoreMaster
             auditContext.setAllowed(false);
             throw e;
           }
-          if (!loadMetadata) {
+          if (!loadMetadata && !context.isDisableMetadataSync()) {
             Inode inode;
             boolean isLoaded = true;
             if (inodePath.fullPathExists()) {

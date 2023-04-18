@@ -21,10 +21,8 @@ import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsClient;
-import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsLoadResult;
-import alluxio.underfs.UfsStatus;
 import alluxio.util.CommonUtils;
 import alluxio.util.RateLimiter;
 import alluxio.util.io.PathUtils;
@@ -36,18 +34,13 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.model.GetObjectAttributesRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
-import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
-import software.amazon.awssdk.services.s3.model.ObjectAttributes;
 
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 import javax.annotation.Nullable;
 
 @Ignore
@@ -68,53 +61,12 @@ public class S3Test {
     mThreadPool = Executors.newCachedThreadPool();
     mS3Client = S3AsyncClient.builder().region(Region.US_WEST_1).build();
     mUfsClient = new UfsClient() {
-      @Override
-      public void performGetStatusAsync(
-          String path, Consumer<UfsLoadResult> onComplete,
-          Consumer<Throwable> onError) {
-
-        path = CommonUtils.stripPrefixIfPresent(path, AlluxioURI.SEPARATOR);
-        path = path.equals(AlluxioURI.SEPARATOR) ? "" : path;
-        if (path.isEmpty()) {
-          onComplete.accept(
-              new UfsLoadResult(Stream.empty(), 0, null, null, false, false, true));
-          return;
-        }
-        GetObjectAttributesRequest request =
-            GetObjectAttributesRequest.builder().objectAttributes(
-                ObjectAttributes.E_TAG, ObjectAttributes.OBJECT_SIZE)
-                .bucket(mBucket).key(path).build();
-        String finalPath = path;
-        mS3Client.getObjectAttributes(request).whenCompleteAsync((result, err) -> {
-          if (err != null) {
-            if (err.getCause() instanceof NoSuchKeyException) {
-              onComplete.accept(
-                  new UfsLoadResult(Stream.empty(), 0, null, null, false, false, true));
-            } else {
-              onError.accept(err);
-            }
-          } else {
-            Instant lastModifiedDate = result.lastModified();
-            Long lastModifiedTime = lastModifiedDate == null ? null
-                : lastModifiedDate.toEpochMilli();
-            UfsStatus status;
-            if (finalPath.endsWith(AlluxioURI.SEPARATOR)) {
-              status = new UfsDirectoryStatus(finalPath, "", "", (short) 0, lastModifiedTime);
-            } else {
-              status = new UfsFileStatus(finalPath, result.eTag(), result.objectSize(),
-                  lastModifiedTime, "", "", (short) 0, 0L);
-            }
-            onComplete.accept(new UfsLoadResult(Stream.of(status), 1, null,
-                null, false, status.isFile(), true));
-          }
-        });
-      }
 
       @Override
       public void performListingAsync(
           String path, @Nullable String continuationToken, @Nullable String startAfter,
-          DescendantType descendantType, Consumer<UfsLoadResult> onComplete,
-          Consumer<Throwable> onError) {
+          DescendantType descendantType, boolean checkStatus,
+          Consumer<UfsLoadResult> onComplete, Consumer<Throwable> onError) {
         path = CommonUtils.stripPrefixIfPresent(path, AlluxioURI.SEPARATOR);
         path = PathUtils.normalizePath(path, AlluxioURI.SEPARATOR);
         path = path.equals(AlluxioURI.SEPARATOR) ? "" : path;
