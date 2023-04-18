@@ -176,6 +176,7 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
       }
     } else if (mParameters.mClientType == FileSystemClientType.ALLUXIO_S3A) {
       LOG.info("ClientType is AlluxioS3A");
+      LOG.info("VODDLE");
       mCachedFs = new FileSystem[mParameters.mClients];
       hdfsConf.set("fs.s3a.access.key", "alluxio");
       hdfsConf.set("fs.s3a.secret.key", "alluxio");
