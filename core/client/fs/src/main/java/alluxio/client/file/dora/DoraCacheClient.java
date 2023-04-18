@@ -152,6 +152,11 @@ public class DoraCacheClient {
     }
   }
 
+  /**
+   * Get the worker net address of the specific file path.
+   * @param path the file path
+   * @return the related worker net address where file locates
+   */
   public WorkerNetAddress getWorkerNetAddress(String path) {
     List<BlockWorkerInfo> workers = null;
     try {
