@@ -144,6 +144,8 @@ public class S3BucketTask extends S3BaseTask {
                   // debatable (?) potentially breaks backcompat(?)
                   .filter(URIStatus::isFolder)
                   .collect(Collectors.toList());
+          buckets.forEach(
+              (uri) -> mHandler.BUCKET_PATH_CACHE.put(uri.getPath(), true));
           return new ListAllMyBucketsResult(buckets);
         }
       });
@@ -165,7 +167,8 @@ public class S3BucketTask extends S3BaseTask {
 
         try (S3AuditContext auditContext = mHandler.createAuditContext(
                 mOPType.name(), user, mHandler.getBucket(), null)) {
-          S3RestUtils.checkPathIsAlluxioDirectory(userFs, path, auditContext);
+          S3RestUtils.checkPathIsAlluxioDirectory(userFs, path, auditContext,
+              mHandler.BUCKET_PATH_CACHE);
           AlluxioURI uri = new AlluxioURI(path);
           try {
             TaggingData tagData = S3RestUtils.deserializeTags(userFs.getStatus(uri).getXAttr());
@@ -196,7 +199,8 @@ public class S3BucketTask extends S3BaseTask {
 
         try (S3AuditContext auditContext = mHandler.createAuditContext(
                 mOPType.name(), user, mHandler.getBucket(), null)) {
-          S3RestUtils.checkPathIsAlluxioDirectory(userFs, path, auditContext);
+          S3RestUtils.checkPathIsAlluxioDirectory(userFs, path, auditContext,
+              mHandler.BUCKET_PATH_CACHE);
           try {
             List<URIStatus> children = mHandler.getMetaFS().listStatus(new AlluxioURI(
                     S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR));
@@ -256,7 +260,8 @@ public class S3BucketTask extends S3BaseTask {
 
         try (S3AuditContext auditContext = mHandler.createAuditContext(
                 mOPType.name(), user, mHandler.getBucket(), null)) {
-          S3RestUtils.checkPathIsAlluxioDirectory(userFs, path, auditContext);
+          S3RestUtils.checkPathIsAlluxioDirectory(userFs, path, auditContext,
+              mHandler.BUCKET_PATH_CACHE);
           String markerParam = mHandler.getQueryParameter("marker");
           String maxKeysParam = mHandler.getQueryParameter("max-keys");
           String prefixParam = mHandler.getQueryParameter("prefix");
@@ -330,7 +335,8 @@ public class S3BucketTask extends S3BaseTask {
         String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + mHandler.getBucket());
         try (S3AuditContext auditContext = mHandler.createAuditContext(
                 mOPType.name(), mHandler.getUser(), mHandler.getBucket(), null)) {
-          S3RestUtils.checkPathIsAlluxioDirectory(mHandler.getMetaFS(), bucketPath, auditContext);
+          S3RestUtils.checkPathIsAlluxioDirectory(mHandler.getMetaFS(), bucketPath, auditContext,
+              mHandler.BUCKET_PATH_CACHE);
           try {
             TaggingData tagData = new XmlMapper().readerFor(TaggingData.class)
                     .readValue(mHandler.getInputStream());
@@ -395,6 +401,7 @@ public class S3BucketTask extends S3BaseTask {
                 // Silently swallow CreateBucket calls on existing buckets for this user
                 // - S3 clients may prepend PutObject requests with CreateBucket calls instead of
                 //   calling HeadBucket to ensure that the bucket exists
+                mHandler.BUCKET_PATH_CACHE.put(bucketPath, true);
                 return Response.Status.OK;
               }
               // Otherwise, this bucket is owned by a different user
@@ -428,6 +435,7 @@ public class S3BucketTask extends S3BaseTask {
           } catch (Exception e) {
             throw S3RestUtils.toBucketS3Exception(e, bucketPath, auditContext);
           }
+          mHandler.BUCKET_PATH_CACHE.put(bucketPath, true);
           return Response.Status.OK;
         }
       });
@@ -509,7 +517,8 @@ public class S3BucketTask extends S3BaseTask {
 
         try (S3AuditContext auditContext = mHandler.createAuditContext(
                 mOPType.name(), user, mHandler.getBucket(), null)) {
-          S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext);
+          S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
+              mHandler.BUCKET_PATH_CACHE);
         }
         return Response.ok().build();
       });
@@ -530,7 +539,8 @@ public class S3BucketTask extends S3BaseTask {
         String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + mHandler.getBucket());
         try (S3AuditContext auditContext = mHandler.createAuditContext(
                 mOPType.name(), user, mHandler.getBucket(), null)) {
-          S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext);
+          S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
+              mHandler.BUCKET_PATH_CACHE);
 
           LOG.debug("DeleteBucketTagging bucket={}", bucketPath);
           Map<String, ByteString> xattrMap = new HashMap<>();
@@ -565,7 +575,8 @@ public class S3BucketTask extends S3BaseTask {
 
         try (S3AuditContext auditContext = mHandler.createAuditContext(
                 mOPType.name(), user, mHandler.getBucket(), null)) {
-          S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext);
+          S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
+              mHandler.BUCKET_PATH_CACHE);
           // Delete the bucket.
           DeletePOptions options = DeletePOptions.newBuilder().setAlluxioOnly(Configuration
                           .get(PropertyKey.PROXY_S3_DELETE_TYPE)
@@ -573,6 +584,7 @@ public class S3BucketTask extends S3BaseTask {
                   .build();
           try {
             userFs.delete(new AlluxioURI(bucketPath), options);
+            mHandler.BUCKET_PATH_CACHE.put(bucketPath, false);
           } catch (Exception e) {
             throw S3RestUtils.toBucketS3Exception(e, bucketPath, auditContext);
           }
