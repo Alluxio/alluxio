@@ -15,12 +15,16 @@ import static com.google.common.hash.Hashing.md5;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import alluxio.AlluxioURI;
+import alluxio.CloseableSupplier;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.cache.CacheManager;
-import alluxio.client.file.cache.LocalCacheFileInStream;
+import alluxio.client.file.cache.LocalCachePositionReader;
 import alluxio.client.file.cache.filter.CacheFilter;
+import alluxio.client.file.dora.PositionReadFileInStream;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.metrics.MetricsConfig;
 import alluxio.metrics.MetricsSystem;
 import alluxio.wire.FileInfo;
@@ -52,7 +56,6 @@ public class LocalCacheFileSystem extends org.apache.hadoop.fs.FileSystem {
   /** The external Hadoop filesystem to query on cache miss. */
   private final org.apache.hadoop.fs.FileSystem mExternalFileSystem;
   private final HadoopFileOpener mHadoopFileOpener;
-  private final LocalCacheFileInStream.FileInStreamOpener mAlluxioFileOpener;
   private CacheManager mCacheManager;
   private CacheFilter mCacheFilter;
   private org.apache.hadoop.conf.Configuration mHadoopConf;
@@ -73,7 +76,6 @@ public class LocalCacheFileSystem extends org.apache.hadoop.fs.FileSystem {
       HadoopFileOpener fileOpener) {
     mExternalFileSystem = Preconditions.checkNotNull(fileSystem, "filesystem");
     mHadoopFileOpener = Preconditions.checkNotNull(fileOpener, "fileOpener");
-    mAlluxioFileOpener = status -> new AlluxioHdfsInputStream(mHadoopFileOpener.open(status));
   }
 
   @Override
@@ -91,7 +93,6 @@ public class LocalCacheFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
     MetricsSystem.startSinksFromConfig(new MetricsConfig(metricsProperties));
     mCacheManager = CacheManager.Factory.get(mAlluxioConf);
-    LocalCacheFileInStream.registerMetrics();
     mCacheFilter = CacheFilter.create(mAlluxioConf);
   }
 
@@ -148,9 +149,19 @@ public class LocalCacheFileSystem extends org.apache.hadoop.fs.FileSystem {
       return mExternalFileSystem.open(HadoopUtils.toPath(new AlluxioURI(status.getPath())),
           bufferSize);
     }
-    return new FSDataInputStream(new HdfsFileInputStream(
-        new LocalCacheFileInStream(status, mAlluxioFileOpener, mCacheManager, mAlluxioConf),
-        statistics));
+    return new FSDataInputStream(new HdfsFileInputStream(new PositionReadFileInStream(
+        LocalCachePositionReader.create(mAlluxioConf, mCacheManager,
+            new CloseableSupplier<>(() -> {
+              try {
+                return new AlluxioHdfsPositionReader(mHadoopFileOpener.open(status),
+                    status.getLength());
+              } catch (IOException e) {
+                throw AlluxioRuntimeException.from(e);
+              }
+            }),
+            status, mAlluxioConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE),
+            status.getCacheContext()),
+        status.getLength()), statistics));
   }
 
   @Override

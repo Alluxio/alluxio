@@ -26,7 +26,7 @@ import java.util.Objects;
  * Implementation of {@link FileInStream} that reads from a dora cache if possible.
  */
 @NotThreadSafe
-public class DoraCacheFileInStream extends FileInStream {
+public class PositionReadFileInStream extends FileInStream {
   private final long mLength;
   private long mPos = 0;
   private boolean mClosed;
@@ -37,7 +37,7 @@ public class DoraCacheFileInStream extends FileInStream {
    * @param reader
    * @param length
    */
-  public DoraCacheFileInStream(PositionReader reader,
+  public PositionReadFileInStream(PositionReader reader,
       long length) {
     mPositionReader = reader;
     mLength = length;
