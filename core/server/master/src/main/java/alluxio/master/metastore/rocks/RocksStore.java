@@ -59,13 +59,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicStampedReference;
 import java.util.concurrent.atomic.LongAdder;
 import javax.annotation.concurrent.NotThreadSafe;
-
-import static alluxio.master.metastore.rocks.RocksExclusiveLockHandle.UnlockAction.*;
 
 /**
  * Class for managing a rocksdb database. This class handles common functionality such as
@@ -106,6 +105,7 @@ public final class RocksStore implements Closeable {
   public static final int ROCKS_OPEN_RETRY_TIMEOUT = 20 * Constants.SECOND_MS;
   public static final Duration ROCKS_CLOSE_WAIT_TIMEOUT =
       Configuration.getDuration(PropertyKey.MASTER_METASTORE_ROCKS_EXCLUSIVE_LOCK_TIMEOUT);
+  private static final boolean TEST_MODE = Configuration.getBoolean(PropertyKey.TEST_MODE);
 
   private final String mName;
   private final String mDbPath;
@@ -147,22 +147,34 @@ public final class RocksStore implements Closeable {
   // TODO(jiacheng): maybe I can reverse the flags so they are more expressive
   public final AtomicStampedReference<Boolean> mRocksDbState =
       new AtomicStampedReference<>(false, 0);
-  public final LongAdder mRefCount = new LongAdder();
+  public volatile LongAdder mRefCount = new LongAdder();
+
   /*
-   * A version is needed to guard the ABA problem. One possible sequence of events goes as below:
+   * Normally, the ref count will still be zero when the exclusive lock is held because:
+   * 1. If the exclusive lock was not forced, that means the ref count has decremented to zero
+   *    before the exclusive lock was taken. And while the exclusive lock was held, no readers
+   *    was able to come in and increment the ref count.
+   * 2. If the exclusive lock was forced, the old ref count instance was thrown away.
+   *    So even if there were a slow reader, that would not touch the new ref count incorrectly.
+   *    Therefore, the new ref count should stay zero.
    *
-   * 1. Reader checks the flag.
-   * 2. Reader increments refCount.
-   * 3. Reader is blocked (for a lock) or goes to sleep.
-   * 4. One Closer comes in, sets the flag and waits on refCount.
-   * 5. Closer wait times out. Closer forces the exclusive lock and resets refCount to 0.
-   * 6. Instead of closing the RocksDB, the exclusive lock is taken for restoring the RocksDB.
-   * 7. Closer finishes and resets the flag to 0.
-   * 8. Reader wakes up and releases the shared lock, now it should NOT decrement the ref count.
-   *
-   * A version is applied so the shared lock knows whether the ref count has been reset.
+   * However, we still added this sanity check as a canary for incorrect ref count usages.
    */
-  public final AtomicInteger mRefCountVersion = new AtomicInteger(0);
+  private final Callable<Void> mCheckRefCount = () -> {
+    long refCount = getSharedLockCount();
+    if (TEST_MODE) {
+      // In test mode we enforce strict ref count check, as a canary for ref count issues
+      Preconditions.checkState(refCount == 0,
+          ExceptionMessage.ROCKS_DB_REF_COUNT_DIRTY.getMessage(refCount));
+    } else {
+      // In a real deployment, we forgive potential ref count problems and take the risk
+      if (refCount != 0) {
+        LOG.warn(ExceptionMessage.ROCKS_DB_REF_COUNT_DIRTY.getMessage(refCount));
+      }
+      resetRefCounter();
+    }
+    return null;
+  };
 
   /**
    * @param name a name to distinguish what store this is
@@ -508,7 +520,7 @@ public final class RocksStore implements Closeable {
       throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
     }
 
-    return new RocksSharedLockHandle(mRocksDbState.getStamp(), mRefCount, mRefCountVersion);
+    return new RocksSharedLockHandle(mRocksDbState.getStamp(), mRefCount);
   }
 
   /**
@@ -611,11 +623,32 @@ public final class RocksStore implements Closeable {
        * If one shared lock did not decrement the ref count before this reset, it should not
        * decrement the ref count when it is released.
        */
-      mRefCount.reset();
-      mRefCountVersion.incrementAndGet();
+      resetRefCounter();
       LOG.warn("{} readers/writers fail to complete/abort before we stop/restart the RocksDB",
           unclosedOperations);
     }
+  }
+
+  /**
+   * When the exclusive lock is forced (after a timeout), we have to reset the ref count to zero
+   * and throw away the updates from the concurrent readers. In other words, those readers should
+   * not update the ref count when they release the lock. One possible sequence of events
+   * goes as below:
+   *
+   * 1. Reader checks the flag.
+   * 2. Reader increments refCount.
+   * 3. Reader is blocked (for a lock) or goes to sleep.
+   * 4. One Closer comes in, sets the flag and waits on refCount.
+   * 5. Closer wait times out. Closer forces the exclusive lock and resets refCount to 0.
+   * 6. Instead of closing the RocksDB, the exclusive lock is taken for restoring the RocksDB.
+   * 7. Closer finishes and resets the flag to 0.
+   * 8. Reader wakes up and releases the shared lock, now it should NOT decrement the ref count.
+   *
+   * We create a new ref counter and throw away the existing one. So the old readers will
+   * update the old counter when they release the lock, and only the new counter will be used.
+   */
+  private void resetRefCounter() {
+    mRefCount = new LongAdder();
   }
 
   /**
@@ -633,7 +666,7 @@ public final class RocksStore implements Closeable {
     // Grab the lock with no respect to concurrent operations
     // Just grab the lock and close
     setFlagAndBlockingWait(false);
-    return new RocksExclusiveLockHandle(NO_OP, mRocksDbState, mRefCount, mRefCountVersion);
+    return new RocksExclusiveLockHandle(mCheckRefCount);
   }
 
   /**
@@ -649,8 +682,13 @@ public final class RocksStore implements Closeable {
   public RocksExclusiveLockHandle lockForCheckpoint() {
     // Grab the lock with respect to contenders
     setFlagAndBlockingWait(true);
-    return new RocksExclusiveLockHandle(
-        RESET_SAME_VERSION, mRocksDbState, mRefCount, mRefCountVersion);
+    return new RocksExclusiveLockHandle(() -> {
+          mCheckRefCount.call();
+          // TODO(jiacheng): the set() does not respect concurrent writer operations so may overwrite
+          //  the flag
+          mRocksDbState.set(false, mRocksDbState.getStamp());
+          return null;
+    });
   }
 
   /**
@@ -666,8 +704,11 @@ public final class RocksStore implements Closeable {
   public RocksExclusiveLockHandle lockForRewrite() {
     // Grab the lock with respect to contenders
     setFlagAndBlockingWait(true);
-    return new RocksExclusiveLockHandle(
-        RESET_NEW_VERSION, mRocksDbState, mRefCount, mRefCountVersion);
+    return new RocksExclusiveLockHandle(() -> {
+          mCheckRefCount.call();
+          mRocksDbState.set(false, mRocksDbState.getStamp() + 1);
+          return null;
+    });
   }
 
   /**
@@ -692,10 +733,5 @@ public final class RocksStore implements Closeable {
   @VisibleForTesting
   public long getSharedLockCount() {
     return mRefCount.sum();
-  }
-
-  @VisibleForTesting
-  public int getRefCountVersion() {
-    return mRefCountVersion.get();
   }
 }

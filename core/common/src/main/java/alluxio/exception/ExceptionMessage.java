@@ -198,7 +198,9 @@ public enum ExceptionMessage {
   ROCKS_DB_REWRITTEN("RocksDB has been rewritten. Typically this is because the master is "
       + "restored to a checkpoint."),
   ROCKS_DB_EXCLUSIVE_LOCK_FORCED("RocksDB exclusive lock is forced with {0} ongoing "
-      + "r/w operations. There is a risk to crash!")
+      + "r/w operations. There is a risk to crash!"),
+  ROCKS_DB_REF_COUNT_DIRTY("Some read/write operations did not respect the exclusive lock on "
+      + "the RocksStore and messed up the ref count! Current ref count is {0}."),
 
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;

@@ -1,9 +1,5 @@
 package alluxio.master.metastore.rocks;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.atomic.AtomicStampedReference;
 import java.util.concurrent.atomic.LongAdder;
 
 /**
@@ -12,35 +8,28 @@ import java.util.concurrent.atomic.LongAdder;
  * reference count.
  */
 public class RocksSharedLockHandle implements AutoCloseable {
-  final LongAdder mRefCount;
-  final AtomicInteger mVersionedRefCountTracker;
   final int mDbVersion;
-  final int mLockedRefCountVersion;
+  final LongAdder mRefCount;
 
   /**
    * The constructor.
    *
    * @param refCount the ref count to decrement on close
    */
-  public RocksSharedLockHandle(int dbVersion, LongAdder refCount,
-                               AtomicInteger refCountVersionTracker) {
+  public RocksSharedLockHandle(int dbVersion, LongAdder refCount) {
     mDbVersion = dbVersion;
     mRefCount = refCount;
-    mVersionedRefCountTracker = refCountVersionTracker;
-    mLockedRefCountVersion = refCountVersionTracker.get();
   }
 
   @Override
   public void close() {
     /*
-     * If the version(ref) has changed, that means the exclusive lock has been forced by the closer
-     * and the ref count has been reset to zero. In that case, the lock should not decrement
-     * the ref count because the count has been reset.
+     * If the exclusive lock has been forced and the ref count is reset, this reference will point
+     * to an out-of-date counter. Therefore, we can just update this counter without concerns.
+     * If the exclusive lock is has NOT been forced, we decrement the ref count normally.
+     * If the exclusive lock has been forced, we decrement an irrelevant counter which will never
+     * be read.
      */
-    if (mVersionedRefCountTracker.get() != mLockedRefCountVersion) {
-      System.out.println("Ref counter version has changed. Do not update ref count!");
-    } else {
-      mRefCount.decrement();
-    }
+    mRefCount.decrement();
   }
 }

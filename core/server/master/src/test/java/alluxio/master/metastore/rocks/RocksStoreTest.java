@@ -223,7 +223,6 @@ public class RocksStoreTest {
 
   @Test
   public void exclusiveLockForcedAndReleasedAfterSharedLock() throws Exception {
-    int refCountTrackerVersion = mStore.getRefCountVersion();
     // One reader gets the shared lock and does not release for a long time
     CountDownLatch mReaderCloseLatch = new CountDownLatch(1);
     CountDownLatch mWriterStartLatch = new CountDownLatch(1);
@@ -255,7 +254,6 @@ public class RocksStoreTest {
     // After some wait, the closer will force the lock and reset the ref count
     // And the ref count will be reset on that force
     assertEquals(0, mStore.getSharedLockCount());
-    assertTrue(mStore.getRefCountVersion() > refCountTrackerVersion);
     // Let the reader finish before the exclusive lock is released
     mReaderCloseLatch.countDown();
     f.get();
@@ -267,7 +265,6 @@ public class RocksStoreTest {
 
   @Test
   public void exclusiveLockForcedAndReleasedBeforeSharedLock() throws Exception {
-    int refCountTrackerVersion = mStore.getRefCountVersion();
     // One reader gets the shared lock and does not release for a long time
     CountDownLatch mReaderCloseLatch = new CountDownLatch(1);
     CountDownLatch mWriterStartLatch = new CountDownLatch(1);
@@ -299,7 +296,6 @@ public class RocksStoreTest {
     // After some wait, the closer will force the lock and reset the ref count
     // And the ref count will be reset on that force
     assertEquals(0, mStore.getSharedLockCount());
-    assertTrue(mStore.getRefCountVersion() > refCountTrackerVersion);
     // The exclusive lock releases before the reader even wakes up
     exclusiveLock.close();
     // Let the reader finish
@@ -307,12 +303,10 @@ public class RocksStoreTest {
     f.get();
     // The ref count is not messed up
     assertEquals(0, mStore.getSharedLockCount());
-    assertTrue(mStore.getRefCountVersion() > refCountTrackerVersion);
   }
 
   @Test
   public void forcingExclusiveLockInTestWillErr() throws Exception {
-    int refCountTrackerVersion = mStore.getRefCountVersion();
     // One reader gets the shared lock and does not release for a long time
     CountDownLatch mReaderCloseLatch = new CountDownLatch(1);
     CountDownLatch mWriterStartLatch = new CountDownLatch(1);
@@ -347,12 +341,10 @@ public class RocksStoreTest {
     f.get();
     // Even if the exclusive lock attempt failed, the ref count will be correct
     assertEquals(0, mStore.getSharedLockCount());
-    assertEquals(refCountTrackerVersion, mStore.getRefCountVersion());
   }
 
   @Test
   public void readerCanContinueAfterCheckpoint() throws Exception {
-    int refCountTrackerVersion = mStore.getRefCountVersion();
     // One reader gets the shared lock and does not release for a long time
     CountDownLatch mReaderCloseLatch = new CountDownLatch(1);
     CountDownLatch mWriterStartLatch = new CountDownLatch(1);
@@ -388,19 +380,16 @@ public class RocksStoreTest {
     // After some wait, the closer will force the lock and reset the ref count
     // And the ref count will be reset on that force
     assertEquals(0, mStore.getSharedLockCount());
-    assertTrue(mStore.getRefCountVersion() > refCountTrackerVersion);
     // Now the checkpointing was done, while the reader is still asleep
     exclusiveLock.close();
     // Let the reader wake up and continue
     mReaderCloseLatch.countDown();
     f.get();
     assertEquals(0, mStore.getSharedLockCount());
-    assertTrue(mStore.getRefCountVersion() > refCountTrackerVersion);
   }
 
   @Test
   public void readerCanNotContinueAfterRestore() throws Exception {
-    int refCountTrackerVersion = mStore.getRefCountVersion();
     // One reader gets the shared lock and does not release for a long time
     CountDownLatch mReaderCloseLatch = new CountDownLatch(1);
     CountDownLatch mWriterStartLatch = new CountDownLatch(1);
@@ -438,14 +427,12 @@ public class RocksStoreTest {
     // After some wait, the closer will force the lock and reset the ref count
     // And the ref count will be reset on that force
     assertEquals(0, mStore.getSharedLockCount());
-    assertTrue(mStore.getRefCountVersion() > refCountTrackerVersion);
     // Now the checkpointing was done, while the reader is still asleep
     exclusiveLock.close();
     // Let the reader wake up and continue
     mReaderCloseLatch.countDown();
     f.get();
     assertEquals(0, mStore.getSharedLockCount());
-    assertTrue(mStore.getRefCountVersion() > refCountTrackerVersion);
   }
 
   @Test

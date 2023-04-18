@@ -45,8 +45,8 @@ public interface RocksCheckpointed extends Checkpointed {
           getRocksStore().writeToCheckpoint(subDir);
         } catch (RocksDBException e) {
           throw new AlluxioRuntimeException(Status.INTERNAL,
-                  String.format("Failed to take snapshot %s in dir %s", getCheckpointName(), directory),
-                  e, ErrorType.Internal, false);
+              String.format("Failed to take snapshot %s in dir %s", getCheckpointName(), directory),
+              e, ErrorType.Internal, false);
         }
         LOG.debug("taking {} snapshot finished", getCheckpointName());
       }
