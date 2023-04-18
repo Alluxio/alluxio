@@ -225,7 +225,7 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
       return alluxioBasePath;
     }
     String path = alluxioBasePath.substring("alluxio:///".length());
-    String ret = "s3a://" + path + "/";
+    String ret = "s3://" + path + "/";
     LOG.info(String.format("the return path is: %s", ret));
     return ret;
   }
