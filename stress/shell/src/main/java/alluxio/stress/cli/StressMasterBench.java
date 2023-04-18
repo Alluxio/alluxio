@@ -184,6 +184,7 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
       hdfsConf.set("fs.s3a.endpoint", "http://localhost:39999/api/v1/s3");
       for (int i = 0; i < mCachedFs.length; i++) {
         // here the mParameters.mBasePath should be sth like "s3a://bucket-name"
+        LOG.info("Initiating S3A filesystem");
         mCachedFs[i] = FileSystem.get(new URI(alluxioPathToS3APath(mParameters.mBasePath)), hdfsConf);
         LOG.info("", mCachedFs[i]);
       }
