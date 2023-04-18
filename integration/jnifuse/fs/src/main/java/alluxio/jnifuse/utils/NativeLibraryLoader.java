@@ -49,7 +49,7 @@ public class NativeLibraryLoader {
     return LOAD_STATE.get();
   }
 
-  public static void setLoadState(LoadState loadState) {
+  private static void setLoadState(LoadState loadState) {
     LOAD_STATE.set(loadState);
   }
 
@@ -170,6 +170,7 @@ public class NativeLibraryLoader {
     if (LOAD_STATE.compareAndSet(LoadState.NOT_LOADED, LoadState.LOADING)) {
       Optional<UnsatisfiedLinkError> err = load(libName, tmpDir);
       if (err.isPresent()) {
+        setLoadState(LoadState.NOT_LOADED);
         throw err.get();
       }
       setLoadState(LoadState.LOADED);
