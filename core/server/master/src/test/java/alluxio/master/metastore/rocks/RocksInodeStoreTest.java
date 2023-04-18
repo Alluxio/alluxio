@@ -604,9 +604,6 @@ public class RocksInodeStoreTest {
 
   // TODO(jiacheng): ref count closing Iterator from abort
 
-
-  // TODO(jiacheng): ref count normally
-
   // TODO(jiacheng): ref count closing iterator vs listing
 
   // TODO(jiacheng): concurrent ops and close

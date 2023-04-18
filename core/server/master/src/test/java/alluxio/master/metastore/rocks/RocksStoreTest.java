@@ -222,7 +222,7 @@ public class RocksStoreTest {
   }
 
   @Test
-  public void exclusiveLockForced() throws Exception {
+  public void exclusiveLockForcedAndReleasedAfterSharedLock() throws Exception {
     int refCountTrackerVersion = mStore.getRefCountVersion();
     // One reader gets the shared lock and does not release for a long time
     CountDownLatch mReaderCloseLatch = new CountDownLatch(1);
@@ -256,11 +256,58 @@ public class RocksStoreTest {
     // And the ref count will be reset on that force
     assertEquals(0, mStore.getSharedLockCount());
     assertTrue(mStore.getRefCountVersion() > refCountTrackerVersion);
+    // Let the reader finish before the exclusive lock is released
+    mReaderCloseLatch.countDown();
+    f.get();
+    // That should not mess up the ref count
+    assertEquals(0, mStore.getSharedLockCount());
+    exclusiveLock.close();
+    assertEquals(0, mStore.getSharedLockCount());
+  }
+
+  @Test
+  public void exclusiveLockForcedAndReleasedBeforeSharedLock() throws Exception {
+    int refCountTrackerVersion = mStore.getRefCountVersion();
+    // One reader gets the shared lock and does not release for a long time
+    CountDownLatch mReaderCloseLatch = new CountDownLatch(1);
+    CountDownLatch mWriterStartLatch = new CountDownLatch(1);
+    Future<Void> f = mThreadPool.submit(() -> {
+      RocksSharedLockHandle lockHandle = mStore.checkAndAcquireSharedLock();
+      System.out.println("Read lock grabbed");
+      mWriterStartLatch.countDown();
+      assertEquals(1, mStore.getSharedLockCount());
+      try {
+        mReaderCloseLatch.await();
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+      System.out.println("Able to unlock read lock now");
+      // After a long time, this lock is released after the exclusive lock has been forced
+      lockHandle.close();
+      System.out.println("Read lock released");
+      // The lock release should not mess up the ref count
+      assertEquals(0, mStore.getSharedLockCount());
+      return null;
+    });
+
+    // One closer comes in and eventually will grab the lock after wait
+    mWriterStartLatch.await();
+    // Manually set this flag, otherwise an exception will be thrown when the exclusive lock
+    // is forced.
+    Configuration.set(PropertyKey.TEST_MODE, false);
+    RocksExclusiveLockHandle exclusiveLock = mStore.lockForCheckpoint();
+    // After some wait, the closer will force the lock and reset the ref count
+    // And the ref count will be reset on that force
+    assertEquals(0, mStore.getSharedLockCount());
+    assertTrue(mStore.getRefCountVersion() > refCountTrackerVersion);
+    // The exclusive lock releases before the reader even wakes up
+    exclusiveLock.close();
     // Let the reader finish
     mReaderCloseLatch.countDown();
     f.get();
-    exclusiveLock.close();
+    // The ref count is not messed up
     assertEquals(0, mStore.getSharedLockCount());
+    assertTrue(mStore.getRefCountVersion() > refCountTrackerVersion);
   }
 
   @Test
@@ -399,5 +446,88 @@ public class RocksStoreTest {
     f.get();
     assertEquals(0, mStore.getSharedLockCount());
     assertTrue(mStore.getRefCountVersion() > refCountTrackerVersion);
+  }
+
+  @Test
+  public void checkpointThenClose() {
+    RocksExclusiveLockHandle checkpointLock = mStore.lockForCheckpoint();
+    assertEquals(0, mStore.getSharedLockCount());
+    assertTrue(mStore.isServiceStopping());
+
+    // Before the checkpoint finishes, an attempt comes in to close
+    // This should succeed
+    RocksExclusiveLockHandle closeLock = mStore.lockForClosing();
+    assertEquals(0, mStore.getSharedLockCount());
+    assertTrue(mStore.isServiceStopping());
+
+    checkpointLock.close();
+    closeLock.close();
+  }
+
+  @Test
+  public void rewriteThenClose() {
+    RocksExclusiveLockHandle rewriteLock = mStore.lockForRewrite();
+    assertEquals(0, mStore.getSharedLockCount());
+    assertTrue(mStore.isServiceStopping());
+
+    // Before the checkpoint finishes, an attempt comes in to close
+    // This should succeed
+    RocksExclusiveLockHandle closeLock = mStore.lockForClosing();
+    assertEquals(0, mStore.getSharedLockCount());
+    assertTrue(mStore.isServiceStopping());
+
+    rewriteLock.close();
+    closeLock.close();
+  }
+
+  @Test
+  public void closeThenCheckpoint() {
+    RocksExclusiveLockHandle closeLock = mStore.lockForClosing();
+    assertEquals(0, mStore.getSharedLockCount());
+    assertTrue(mStore.isServiceStopping());
+
+    // Closing takes higher priority and a checkpoint attempt will fail
+    Exception e = assertThrows(UnavailableRuntimeException.class, () -> {
+      RocksExclusiveLockHandle checkpointLock = mStore.lockForCheckpoint();
+    });
+    assertTrue(e.getMessage().contains(ExceptionMessage.ROCKS_DB_CLOSING.getMessage()));
+    assertEquals(0, mStore.getSharedLockCount());
+    assertTrue(mStore.isServiceStopping());
+
+    closeLock.close();
+  }
+
+  @Test
+  public void closeThenRewrite() {
+    RocksExclusiveLockHandle closeLock = mStore.lockForClosing();
+    assertEquals(0, mStore.getSharedLockCount());
+    assertTrue(mStore.isServiceStopping());
+
+    // Closing takes higher priority and a checkpoint attempt will fail
+    Exception e = assertThrows(UnavailableRuntimeException.class, () -> {
+      RocksExclusiveLockHandle rewriteLock = mStore.lockForRewrite();
+    });
+    assertTrue(e.getMessage().contains(ExceptionMessage.ROCKS_DB_CLOSING.getMessage()));
+    assertEquals(0, mStore.getSharedLockCount());
+    assertTrue(mStore.isServiceStopping());
+
+    closeLock.close();
+  }
+
+  @Test
+  public void checkpointThenRewrite() {
+    RocksExclusiveLockHandle checkpointLock = mStore.lockForCheckpoint();
+    assertEquals(0, mStore.getSharedLockCount());
+    assertTrue(mStore.isServiceStopping());
+
+    // Rewrite/Checkpoint will yield to exclusive lock
+    Exception e = assertThrows(UnavailableRuntimeException.class, () -> {
+      RocksExclusiveLockHandle rewriteLock = mStore.lockForRewrite();
+    });
+    assertTrue(e.getMessage().contains(ExceptionMessage.ROCKS_DB_CLOSING.getMessage()));
+    assertEquals(0, mStore.getSharedLockCount());
+    assertTrue(mStore.isServiceStopping());
+
+    checkpointLock.close();
   }
 }

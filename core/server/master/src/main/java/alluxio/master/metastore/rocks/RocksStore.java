@@ -503,7 +503,6 @@ public final class RocksStore implements Closeable {
      * With the 2nd check, we make sure the ref count will be respected by the closer and
      * the closer will therefore wait for this reader to complete/abort.
      */
-    // TODO(jiacheng): UT for this
     if (mRocksDbState.getReference()) {
       mRefCount.decrement();
       throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
@@ -629,6 +628,8 @@ public final class RocksStore implements Closeable {
    * The STOP_SERVING status will NOT be reset, because the process will shut down soon.
    */
   public RocksExclusiveLockHandle lockForClosing() {
+    Exception e = new RuntimeException("Log trace here");
+    LOG.error("Just recording the trace here", e);
     // Grab the lock with no respect to concurrent operations
     // Just grab the lock and close
     setFlagAndBlockingWait(false);

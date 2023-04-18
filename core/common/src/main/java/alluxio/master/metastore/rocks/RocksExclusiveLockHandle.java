@@ -60,6 +60,8 @@ public class RocksExclusiveLockHandle implements AutoCloseable {
       mVersionedRefCountTracker.incrementAndGet();
     }
 
+    // TODO(jiacheng): the set() does not respect concurrent writer operations so may overwrite
+    //  the flag
     switch (mUnlockAction) {
       case RESET_NEW_VERSION:
         mStatus.set(false, mStatus.getStamp() + 1);
