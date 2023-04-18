@@ -1915,12 +1915,13 @@ public class DefaultFileSystemMaster extends CoreMaster
         }
 
         mMountTable.checkUnderWritableMountPoint(path);
+        MountTable.Resolution resolution = mMountTable.resolve(path);
         if (context.isPersisted()) {
           // Check if ufs is writable
-          checkUfsMode(path, OperationType.WRITE);
+          checkUfsMode(resolution, OperationType.WRITE);
         }
         deleteFileIfOverwrite(rpcContext, inodePath, context);
-        createFileInternal(rpcContext, inodePath, context);
+        createFileInternal(rpcContext, inodePath, resolution, context);
         auditContext.setSrcInode(inodePath.getInode()).setSucceeded(true);
         cacheOperation(context);
         return getFileInfoInternal(inodePath);
@@ -1970,7 +1971,7 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @return the list of created inodes
    */
   List<Inode> createFileInternal(RpcContext rpcContext, LockedInodePath inodePath,
-      CreateFileContext context)
+      MountTable.Resolution resolution, CreateFileContext context)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException,
       FileDoesNotExistException {
     if (mWhitelist.inList(inodePath.getUri().toString())) {
@@ -1984,7 +1985,6 @@ public class DefaultFileSystemMaster extends CoreMaster
       // actual file does not exist in UFS yet.
       mUfsAbsentPathCache.processExisting(inodePath.getUri().getParent());
     } else {
-      MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
       Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
           Metrics.UFSOps.CREATE_FILE).inc();
     }
@@ -2311,7 +2311,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           } else {
             if (!deleteContext.getOptions().getAlluxioOnly()) {
               try {
-                checkUfsMode(alluxioUriToDelete, OperationType.WRITE);
+                checkUfsMode(mMountTable.resolve(alluxioUriToDelete), OperationType.WRITE);
                 // Attempt to delete node if all children were deleted successfully
                 ufsDeleter.delete(alluxioUriToDelete, inodeToDelete);
               } catch (AccessControlException | IOException e) {
@@ -2738,10 +2738,11 @@ public class DefaultFileSystemMaster extends CoreMaster
         }
 
         mMountTable.checkUnderWritableMountPoint(path);
+        MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
         if (context.isPersisted()) {
-          checkUfsMode(path, OperationType.WRITE);
+          checkUfsMode(resolution, OperationType.WRITE);
         }
-        createDirectoryInternal(rpcContext, inodePath, context);
+        createDirectoryInternal(rpcContext, inodePath, resolution, context);
         auditContext.setSrcInode(inodePath.getInode()).setSucceeded(true);
         cacheOperation(context);
         return inodePath.getInode().getId();
@@ -2811,10 +2812,9 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @return a list of created inodes
    */
   List<Inode> createDirectoryInternal(RpcContext rpcContext, LockedInodePath inodePath,
-      CreateDirectoryContext context) throws InvalidPathException, FileAlreadyExistsException,
-      IOException, FileDoesNotExistException {
+      MountTable.Resolution resolution, CreateDirectoryContext context) throws InvalidPathException,
+      FileAlreadyExistsException, IOException, FileDoesNotExistException {
     Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE);
-    MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
 
     return createDirectoryInternal(rpcContext, inodePath, resolution.getUfsClient(),
         resolution.getUri(), context);
@@ -3069,11 +3069,12 @@ public class DefaultFileSystemMaster extends CoreMaster
     // If the source file is persisted, rename it in the UFS.
     try {
       if (!replayed && srcInode.isPersisted()) {
+        MountTable.Resolution srcResolution = mMountTable.resolve(srcPath);
+        MountTable.Resolution dstResolution = mMountTable.resolve(dstPath);
         // Check if ufs is writable
-        checkUfsMode(srcPath, OperationType.WRITE);
-        checkUfsMode(dstPath, OperationType.WRITE);
+        checkUfsMode(srcResolution, OperationType.WRITE);
+        checkUfsMode(dstResolution, OperationType.WRITE);
 
-        MountTable.Resolution resolution = mMountTable.resolve(srcPath);
         // Persist ancestor directories from top to the bottom. We cannot use recursive create
         // parents here because the permission for the ancestors can be different.
 
@@ -3096,9 +3097,9 @@ public class DefaultFileSystemMaster extends CoreMaster
           }
         }
 
-        String ufsSrcPath = resolution.getUri().toString();
-        String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
-        try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+        String ufsSrcPath = srcResolution.getUri().toString();
+        String ufsDstUri = dstResolution.getUri().toString();
+        try (CloseableResource<UnderFileSystem> ufsResource = srcResolution.acquireUfsResource()) {
           UnderFileSystem ufs = ufsResource.get();
           boolean success;
           if (srcInode.isFile()) {
@@ -3722,8 +3723,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       throws InvalidPathException, AccessControlException {
     Inode inode = inodePath.getInodeOrNull();
 
-    checkUfsMode(inodePath.getUri(), OperationType.WRITE);
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+    checkUfsMode(resolution, OperationType.WRITE);
     String ufsUri = resolution.getUri().toString();
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
@@ -4241,8 +4242,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       if ((inode instanceof InodeFile) && !inode.asFile().isCompleted()) {
         LOG.warn("Alluxio does not propagate chown/chgrp/chmod to UFS for incomplete files.");
       } else {
-        checkUfsMode(inodePath.getUri(), OperationType.WRITE);
         MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+        checkUfsMode(resolution, OperationType.WRITE);
         String ufsUri = resolution.getUri().toString();
         try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
           UnderFileSystem ufs = ufsResource.get();
@@ -4612,7 +4613,7 @@ public class DefaultFileSystemMaster extends CoreMaster
               continue;
             }
             try {
-              checkUfsMode(uri, OperationType.WRITE);
+              checkUfsMode(mMountTable.resolve(uri), OperationType.WRITE);
             } catch (Exception e) {
               LOG.warn("Unable to schedule persist request for path {}: {}", uri, e.toString());
               // Retry when ufs mode permits operation
@@ -5058,12 +5059,11 @@ public class DefaultFileSystemMaster extends CoreMaster
   /**
    * Check if the specified operation type is allowed to the ufs.
    *
-   * @param alluxioPath the Alluxio path
+   * @param resolution the {@link MountTable.Resolution} representing the UFS path
    * @param opType the operation type
    */
-  private void checkUfsMode(AlluxioURI alluxioPath, OperationType opType)
+  private void checkUfsMode(MountTable.Resolution resolution, OperationType opType)
       throws AccessControlException, InvalidPathException {
-    MountTable.Resolution resolution = mMountTable.resolve(alluxioPath);
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       UfsMode ufsMode =
