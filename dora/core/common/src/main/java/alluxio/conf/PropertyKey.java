@@ -5565,9 +5565,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS =
       durationBuilder(Name.PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS)
           .setAlias("alluxio.proxy.s3.bucketpathcache.timeout.ms")
-          .setDefaultValue("1min")
+          .setDefaultValue("0min")
           .setDescription("Expire bucket path statistics in cache for this time period. "
-              + "Set 0min to disable the cache.")
+              + "Set 0min to disable the cache. If enabling the cache, "
+              + "be careful that Alluxio S3 API will behave differently from AWS S3 API"
+              + " if bucket path cache entries become stale.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.NONE)
           .build();
