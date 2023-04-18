@@ -6834,44 +6834,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .build();
 
-  //
-  // Yarn related properties
-  //
-  public static final PropertyKey INTEGRATION_MASTER_RESOURCE_CPU =
-      intBuilder(Name.INTEGRATION_MASTER_RESOURCE_CPU)
-          .setDefaultValue(1)
-          .setDescription("The number of CPUs to run an Alluxio master for YARN framework.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.NONE)
-          .build();
-  public static final PropertyKey INTEGRATION_MASTER_RESOURCE_MEM =
-      dataSizeBuilder(Name.INTEGRATION_MASTER_RESOURCE_MEM)
-          .setDefaultValue("1024MB")
-          .setDescription("The amount of memory to run an Alluxio master for YARN framework.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.NONE)
-          .build();
-  public static final PropertyKey INTEGRATION_WORKER_RESOURCE_CPU =
-      intBuilder(Name.INTEGRATION_WORKER_RESOURCE_CPU)
-          .setDefaultValue(1)
-          .setDescription("The number of CPUs to run an Alluxio worker for YARN framework.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.NONE)
-          .build();
-  public static final PropertyKey INTEGRATION_WORKER_RESOURCE_MEM =
-      dataSizeBuilder(Name.INTEGRATION_WORKER_RESOURCE_MEM)
-          .setDefaultValue("1024MB")
-          .setDescription("The amount of memory to run an Alluxio worker for YARN framework.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.NONE)
-          .build();
-  public static final PropertyKey INTEGRATION_YARN_WORKERS_PER_HOST_MAX =
-      intBuilder(Name.INTEGRATION_YARN_WORKERS_PER_HOST_MAX)
-          .setDefaultValue(1)
-          .setDescription("The number of workers to run on an Alluxio host for YARN framework.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.NONE)
-          .build();
   // Assumes that HDFS is the UFS and version is 3.3
   // TODO(ns) Fix default value to handle other UFS types
   public static final PropertyKey UNDERFS_VERSION =
@@ -7439,16 +7401,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String DEBUG = "alluxio.debug";
     public static final String EXTENSIONS_DIR = "alluxio.extensions.dir";
     public static final String HOME = "alluxio.home";
-    public static final String INTEGRATION_MASTER_RESOURCE_CPU =
-        "alluxio.integration.master.resource.cpu";
-    public static final String INTEGRATION_MASTER_RESOURCE_MEM =
-        "alluxio.integration.master.resource.mem";
-    public static final String INTEGRATION_WORKER_RESOURCE_CPU =
-        "alluxio.integration.worker.resource.cpu";
-    public static final String INTEGRATION_WORKER_RESOURCE_MEM =
-        "alluxio.integration.worker.resource.mem";
-    public static final String INTEGRATION_YARN_WORKERS_PER_HOST_MAX =
-        "alluxio.integration.yarn.workers.per.host.max";
     public static final String LEAK_DETECTOR_LEVEL = "alluxio.leak.detector.level";
     public static final String LEAK_DETECTOR_EXIT_ON_LEAK = "alluxio.leak.detector.exit.on.leak";
     public static final String LOGGER_TYPE = "alluxio.logger.type";

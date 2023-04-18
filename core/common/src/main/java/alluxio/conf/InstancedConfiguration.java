@@ -384,7 +384,6 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     }
 
     checkTimeouts();
-    checkWorkerPorts();
     checkUserFileBufferBytes();
     checkZkConfiguration();
     checkTieredLocality();
@@ -462,23 +461,6 @@ public class InstancedConfiguration implements AlluxioConfiguration {
       resolvedValue = resolved;
     }
     return resolvedValue;
-  }
-
-  /**
-   * Validates worker port configuration.
-   *
-   * @throws IllegalStateException if invalid worker port configuration is encountered
-   */
-  private void checkWorkerPorts() {
-    int maxWorkersPerHost = getInt(PropertyKey.INTEGRATION_YARN_WORKERS_PER_HOST_MAX);
-    if (maxWorkersPerHost > 1) {
-      String message = "%s cannot be specified when allowing multiple workers per host with "
-          + PropertyKey.Name.INTEGRATION_YARN_WORKERS_PER_HOST_MAX + "=" + maxWorkersPerHost;
-      checkState(System.getProperty(PropertyKey.Name.WORKER_RPC_PORT) == null,
-          message, PropertyKey.WORKER_RPC_PORT);
-      checkState(System.getProperty(PropertyKey.Name.WORKER_WEB_PORT) == null,
-          message, PropertyKey.WORKER_WEB_PORT);
-    }
   }
 
   /**

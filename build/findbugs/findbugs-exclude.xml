@@ -7,11 +7,6 @@
   </Match>
 
   <Match>
-    <Class name="alluxio.yarn.ApplicationMaster"/>
-    <Bug code="VO"/>
-  </Match>
-
-  <Match>
     <!--
 	DC: Possible double check of field
 	DE: Method might ignore exception
