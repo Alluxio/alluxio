@@ -179,6 +179,9 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
       LOG.info("VODDLE");
       mCachedFs = new FileSystem[mParameters.mClients];
       String s3path = alluxioPathToS3APath(mParameters.mBasePath);
+      hdfsConf.set(
+          String.format("fs.%s.impl.disable.cache", (new URI(s3path)).getScheme()),
+          "true");
       hdfsConf.set("fs.s3a.access.key", "alluxio");
       hdfsConf.set("fs.s3a.secret.key", "alluxio");
       // well here seems ought to use http://<master-host>:<master-port>/, and StressBench is hard to know the master ip..?
@@ -188,7 +191,7 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
       LOG.info(String.format("s3 path is: %s", s3path));
       for (int i = 0; i < mCachedFs.length; i++) {
         // here the mParameters.mBasePath should be sth like "s3a://bucket-name"
-        LOG.info("Initiating S3A filesystem");
+        LOG.info(String.format("Initiating S3A filesystem: %s", s3path));
         mCachedFs[i] = FileSystem.get(new URI(s3path),
             hdfsConf);
         LOG.info("", mCachedFs[i]);
@@ -225,7 +228,7 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
       return alluxioBasePath;
     }
     String path = alluxioBasePath.substring("alluxio:///".length());
-    String ret = "s3a://" + path + "/";
+    String ret = "s3a://" + path;
     LOG.info(String.format("the return path is: %s", ret));
     return ret;
   }
