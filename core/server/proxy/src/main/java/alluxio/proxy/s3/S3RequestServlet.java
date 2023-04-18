@@ -15,9 +15,12 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.ThreadUtils;
 import alluxio.web.ProxyWebServer;
 
+import com.codahale.metrics.Timer;
 import org.eclipse.jetty.server.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +28,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.servlet.AsyncContext;
+import javax.servlet.AsyncEvent;
+import javax.servlet.AsyncListener;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -47,6 +53,65 @@ public class S3RequestServlet extends HttpServlet {
    * light-weighted metadata-centric requests and heavy io requests */
   public static final String PROXY_S3_V2_LIGHT_POOL = "Proxy S3 V2 Light Pool";
   public static final String PROXY_S3_V2_HEAVY_POOL = "Proxy S3 V2 Heavy Pool";
+
+  public static class AsyncProcessTask implements Runnable {
+    private Timer.Context waitInQTimerCtx;
+    private Timer.Context processTimerCtx;
+    private Runnable mRunnable;
+    private AtomicBoolean mAsyncCtxCompleted = new AtomicBoolean(false);
+
+    public AsyncProcessTask(AsyncContext asyncContext) {
+      asyncContext.addListener(new AsyncListener() {
+        @Override
+        public void onComplete(AsyncEvent event) throws IOException {
+          LOG.debug("async ctx completed.");
+          setAsyncCtxCompleted();
+        }
+
+        @Override
+        public void onTimeout(AsyncEvent event) throws IOException {
+          LOG.info("async ctx timed out.");
+          setAsyncCtxCompleted();
+        }
+
+        @Override
+        public void onError(AsyncEvent event) throws IOException {
+          LOG.info("async ctx errored out.");
+          setAsyncCtxCompleted();
+        }
+
+        @Override
+        public void onStartAsync(AsyncEvent event) throws IOException {
+          // DO NOTHING
+        }
+      });
+      waitInQTimerCtx = MetricsSystem
+          .uniformTimer(MetricKey.PROXY_S3_REQ_WAITINQ_LATENCY.getName()).time();
+
+    }
+
+    public AsyncProcessTask withRunnable(Runnable runnable) {
+      mRunnable = runnable;
+      return this;
+    }
+
+    @Override
+    public void run() {
+      waitInQTimerCtx.close();
+      try (Timer.Context ctx = MetricsSystem
+          .uniformTimer(MetricKey.PROXY_S3_REQ_PROCESS_LATENCY.getName()).time()) {
+        mRunnable.run();
+      }
+    }
+
+    public void setAsyncCtxCompleted() {
+      mAsyncCtxCompleted.compareAndSet(false, true);
+    }
+
+    public boolean isAsyncCtxCompleted() {
+      return mAsyncCtxCompleted.get();
+    }
+  }
 
   /**
    * Implementation to serve the HttpServletRequest and returns HttpServletResponse.
@@ -88,10 +153,15 @@ public class S3RequestServlet extends HttpServlet {
 
       final AsyncContext asyncCtx = request.startAsync();
       final S3Handler s3HandlerAsync = s3Handler;
-      es.submit(() -> {
+      AsyncProcessTask asyncTask = new AsyncProcessTask(asyncCtx);
+      es.submit(asyncTask.withRunnable(() -> {
         try {
+          if (asyncTask.isAsyncCtxCompleted())
+            return;
           serveRequest(s3HandlerAsync);
         } catch (Throwable th) {
+          if (asyncTask.isAsyncCtxCompleted())
+            return;
           try {
             ((HttpServletResponse) asyncCtx.getResponse()).sendError(
                 HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -100,9 +170,11 @@ public class S3RequestServlet extends HttpServlet {
                 s3HandlerAsync.getObject(), ThreadUtils.formatStackTrace(sendErrorEx));
           }
         } finally {
+          if (asyncTask.isAsyncCtxCompleted())
+            return;
           asyncCtx.complete();
         }
-      });
+      }));
     }
     // Handle request in current context
     else {
