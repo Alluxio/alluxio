@@ -149,7 +149,12 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     Duration duration = Configuration.getDuration(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_TTL);
     long ttl = duration.isNegative() ? -1 : duration.getSeconds();
     try {
-      mMetaStore = new RocksDBDoraMetaStore(dbDir, ttl);
+      if (ttl == 0) {
+        LOG.info("Worker MetaStore RocksDB TTL is configured to be ZERO. That means no cache!");
+        mMetaStore = null;
+      } else {
+        mMetaStore = new RocksDBDoraMetaStore(dbDir, ttl);
+      }
     } catch (RuntimeException e) {
       LOG.error("Cannot init RocksDBDoraMetaStore. Continue without MetaStore", e);
       mMetaStore = null;

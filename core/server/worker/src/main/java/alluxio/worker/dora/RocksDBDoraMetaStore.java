@@ -70,7 +70,7 @@ public class RocksDBDoraMetaStore implements DoraMetaStore {
   public RocksDBDoraMetaStore(String baseDir, long metaTTL) {
     RocksDB.loadLibrary();
 
-    Preconditions.checkState(metaTTL >= 0 || metaTTL == -1);
+    Preconditions.checkState(metaTTL > 0 || metaTTL == -1);
 
     // the rocksDB objects must be initialized after RocksDB.loadLibrary() is called
     mWriteOption = new WriteOptions();
