@@ -11,6 +11,10 @@
 
 package alluxio.client.file.cache;
 
+/**
+ * The interface represents callbacks that will be invoked when the page store
+ * finishes restoring pages after start up.
+ */
 public interface CacheRestorationCallback {
   /**
    * The callback that will be invoked when the page store finishes restoring pages after start up.
