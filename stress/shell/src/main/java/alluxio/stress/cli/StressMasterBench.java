@@ -175,15 +175,17 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
             .create(alluxioProperties);
       }
     } else if (mParameters.mClientType == FileSystemClientType.ALLUXIO_S3A) {
+      LOG.info("ClientType is AlluxioS3A");
       mCachedFs = new FileSystem[mParameters.mClients];
       hdfsConf.set("fs.s3a.access.key", "alluxio");
       hdfsConf.set("fs.s3a.secret.key", "alluxio");
       // well here seems ought to use http://<master-host>:<master-port>/, and StressBench is hard to know the master ip..?
       // Maybe need nginx deployed with alluxio as using ClientType S3A
-      hdfsConf.set("fs.s3a.endpoint", "s3.amazons.com");
+      hdfsConf.set("fs.s3a.endpoint", "http://localhost:39999/api/v1/s3");
       for (int i = 0; i < mCachedFs.length; i++) {
         // here the mParameters.mBasePath should be sth like "s3a://bucket-name"
-        mCachedFs[i] = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
+        mCachedFs[i] = FileSystem.get(new URI(alluxioPathToS3APath(mParameters.mBasePath)), hdfsConf);
+        LOG.info("", mCachedFs[i]);
       }
     }
   }
@@ -202,6 +204,17 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
         return new AlluxioNativeBenchThread(context,
             mCachedNativeFs[index % mCachedNativeFs.length]);
     }
+  }
+
+  protected String alluxioPathToS3APath(String alluxioBasePath) {
+    if (alluxioBasePath == null || alluxioBasePath.isEmpty()) {
+      return alluxioBasePath;
+    }
+    if (!alluxioBasePath.startsWith("alluxio:///")) {
+      return alluxioBasePath;
+    }
+    String path = alluxioBasePath.substring("alluxio:///".length());
+    return "s3a://" + path + "/";
   }
 
   @Override
