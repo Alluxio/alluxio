@@ -25,7 +25,6 @@ import io.netty.buffer.ByteBuf;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.ReadableByteChannel;
 
@@ -199,7 +198,6 @@ public class PagedUfsReader extends BlockReader {
   private class UfsReadableChannel implements ReadableByteChannel {
     private final long mOffset;
     private volatile InputStream mUfsInStream;
-    private volatile ReadableByteChannel mUfsChannel;
     private volatile boolean mClosed = false;
 
     UfsReadableChannel(long offset) {
@@ -207,28 +205,45 @@ public class PagedUfsReader extends BlockReader {
     }
 
     @Override
-    public int read(ByteBuffer dst) throws IOException {
+    public synchronized int read(ByteBuffer dst) throws IOException {
       if (mClosed) {
         throw new ClosedChannelException();
       }
+      int length = dst.remaining();
+      if (length == 0) {
+        return 0;
+      }
       String ufsPath = mUfsBlockOptions.getUfsPath();
       if (mUfsInStream == null) {
-        synchronized (this) {
-          if (mUfsInStream == null) {
-            try (CloseableResource<UnderFileSystem> ufsResource = mUfsClient.acquireUfsResource()) {
-              mUfsInStream = mUfsInStreamCache.acquire(
-                  ufsResource.get(),
-                  ufsPath,
-                  mFileId,
-                  OpenOptions.defaults()
-                      .setOffset(mUfsBlockOptions.getOffsetInFile() + mOffset)
-                      .setPositionShort(true));
-              mUfsChannel = Channels.newChannel(mUfsInStream);
-            }
-          }
+        try (CloseableResource<UnderFileSystem> ufsResource = mUfsClient.acquireUfsResource()) {
+          mUfsInStream = mUfsInStreamCache.acquire(
+              ufsResource.get(),
+              ufsPath,
+              mFileId,
+              OpenOptions.defaults()
+                  .setOffset(mUfsBlockOptions.getOffsetInFile() + mOffset)
+                  .setPositionShort(true));
         }
       }
-      return mUfsChannel.read(dst);
+      byte[] array;
+      int arrayOffset;
+      if (dst.hasArray()) {
+        array = dst.array();
+        arrayOffset = dst.arrayOffset();
+        int bytesRead = mUfsInStream.read(array, arrayOffset, length);
+        if (bytesRead > 0) {
+          dst.position(dst.position() + bytesRead);
+        }
+        return bytesRead;
+      } else {
+        array = new byte[length];
+        arrayOffset = 0;
+        int bytesRead = mUfsInStream.read(array, arrayOffset, length);
+        if (bytesRead > 0) {
+          dst.put(array, 0, bytesRead);
+        }
+        return bytesRead;
+      }
     }
 
     @Override
@@ -237,24 +252,15 @@ public class PagedUfsReader extends BlockReader {
     }
 
     @Override
-    public void close() throws IOException {
+    public synchronized void close() throws IOException {
       if (mClosed) {
         return;
       }
-      synchronized (this) {
-        if (mClosed) {
-          return;
-        }
-        if (mUfsInStream != null) {
-          // todo(bowen): cannot release the stream if the channel is being concurrently read from.
-          //  needs to interrupt the reader before releasing
-          // do not close mChannel as it will close the underlying stream transitively
-          mUfsInStreamCache.release(mUfsInStream);
-          mUfsInStream = null;
-          mUfsChannel = null;
-        }
-        mClosed = true;
+      if (mUfsInStream != null) {
+        mUfsInStreamCache.release(mUfsInStream);
+        mUfsInStream = null;
       }
+      mClosed = true;
     }
   }
 }
