@@ -16,6 +16,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import alluxio.AlluxioURI;
 import alluxio.CloseableSupplier;
+import alluxio.PositionReader;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.PositionReadFileInStream;
 import alluxio.client.file.URIStatus;
@@ -149,19 +150,20 @@ public class LocalCacheFileSystem extends org.apache.hadoop.fs.FileSystem {
       return mExternalFileSystem.open(HadoopUtils.toPath(new AlluxioURI(status.getPath())),
           bufferSize);
     }
-    return new FSDataInputStream(new HdfsFileInputStream(new PositionReadFileInStream(
-        LocalCachePositionReader.create(mAlluxioConf, mCacheManager,
-            new CloseableSupplier<>(() -> {
-              try {
-                return new AlluxioHdfsPositionReader(mHadoopFileOpener.open(status),
-                    status.getLength());
-              } catch (IOException e) {
-                throw AlluxioRuntimeException.from(e);
-              }
-            }),
-            status, mAlluxioConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE),
-            status.getCacheContext()),
-        status.getLength()), statistics));
+    CloseableSupplier<PositionReader> fallbackHadoopReader = new CloseableSupplier<>(() -> {
+      try {
+        return new AlluxioHdfsPositionReader(mHadoopFileOpener.open(status),
+            status.getLength());
+      } catch (IOException e) {
+        throw AlluxioRuntimeException.from(e);
+      }
+    });
+    LocalCachePositionReader localCachePositionReader = LocalCachePositionReader
+        .create(mAlluxioConf, mCacheManager, fallbackHadoopReader, status,
+            mAlluxioConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE),
+            status.getCacheContext());
+    return new FSDataInputStream(new HdfsFileInputStream(
+        new PositionReadFileInStream(localCachePositionReader, status.getLength()), statistics));
   }
 
   @Override
