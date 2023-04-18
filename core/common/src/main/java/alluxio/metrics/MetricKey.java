@@ -994,6 +994,11 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The number of failed Load commands")
           .setMetricType(MetricType.COUNTER)
           .build();
+  public static final MetricKey MASTER_JOB_SCHEDULER_RUNNING_COUNT =
+      new Builder("Master.JobSchedulerRunningCount")
+          .setDescription("The number of running scheduler job commands")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_JOB_LOAD_BLOCK_COUNT =
       new Builder("Master.JobLoadBlockCount")
           .setDescription("The number of blocks loaded by load commands")
