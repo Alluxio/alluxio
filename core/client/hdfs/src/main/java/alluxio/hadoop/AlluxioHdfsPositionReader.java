@@ -48,16 +48,13 @@ public class AlluxioHdfsPositionReader implements PositionReader {
     int lengthToRead = (int) Math.min(length, mFileSize - position);
     byte[] byteArray = targetIsByteArray ? buffer.byteArray() : new byte[lengthToRead];
     int arrayPosition = targetIsByteArray ? buffer.offset() : 0;
-    int bytesRead = mInput.read(position, byteArray, arrayPosition, lengthToRead);
-    if (bytesRead <= 0) {
-      return bytesRead;
-    }
+    mInput.readFully(position, byteArray, arrayPosition, lengthToRead);
     if (targetIsByteArray) {
-      buffer.offset(arrayPosition + bytesRead);
+      buffer.offset(arrayPosition + lengthToRead);
     } else {
-      buffer.writeBytes(byteArray, 0, bytesRead);
+      buffer.writeBytes(byteArray, 0, lengthToRead);
     }
-    return bytesRead;
+    return lengthToRead;
   }
 
   @Override
