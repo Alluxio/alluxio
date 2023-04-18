@@ -19,6 +19,7 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.GrpcDataReader;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.PositionReadFileInStream;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.dora.netty.NettyDataReader;
 import alluxio.conf.PropertyKey;

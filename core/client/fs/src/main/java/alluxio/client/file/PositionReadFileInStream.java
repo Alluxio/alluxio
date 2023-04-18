@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.dora;
+package alluxio.client.file;
 
 import alluxio.PositionReader;
 import alluxio.client.file.FileInStream;
