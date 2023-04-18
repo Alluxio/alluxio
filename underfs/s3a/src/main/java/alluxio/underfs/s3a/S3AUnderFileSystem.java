@@ -717,15 +717,16 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   private Throwable parseS3AsyncException(Throwable e) {
     if (e instanceof CompletionException) {
-      if (e.getCause() instanceof S3Exception) {
-        S3Exception innerErr = (S3Exception) e.getCause();
-        if (innerErr.statusCode() == 307
-            || (innerErr.awsErrorDetails().errorCode().equals("AuthorizationHeaderMalformed")
-                && innerErr.getMessage().contains("region"))) {
+      final Throwable innerErr = e.getCause();
+      if (innerErr instanceof S3Exception) {
+        S3Exception innerS3Err = (S3Exception) innerErr;
+        if (innerS3Err.statusCode() == 307
+            || (innerS3Err.awsErrorDetails().errorCode().equals("AuthorizationHeaderMalformed")
+                && innerS3Err.getMessage().contains("region"))) {
           return new IOException(
               "AWS s3 v2 client does not support global region. "
                   + "Please either specify the region using alluxio.underfs.s3.region "
-                  + "or in your s3 endpoint alluxio.underfs.s3.endpoint.", innerErr);
+                  + "or in your s3 endpoint alluxio.underfs.s3.endpoint.", innerS3Err);
         }
       }
       return new IOException(e.getCause());
