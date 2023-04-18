@@ -19,6 +19,7 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.GrpcDataReader;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.PositionReadFileInStream;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.dora.netty.NettyDataReader;
 import alluxio.conf.PropertyKey;
@@ -72,7 +73,7 @@ public class DoraCacheClient {
    * @param ufsOptions
    * @return the input stream
    */
-  public DoraCacheFileInStream getInStream(URIStatus status,
+  public PositionReadFileInStream getInStream(URIStatus status,
       Protocol.OpenUfsBlockOptions ufsOptions) {
     WorkerNetAddress workerNetAddress = getWorkerNetAddress(status.getPath());
     // Construct the partial read request
@@ -82,7 +83,7 @@ public class DoraCacheClient {
     } else {
       throw new UnsupportedOperationException("Grpc dora reader not implemented");
     }
-    return new DoraCacheFileInStream(reader, status.getLength());
+    return new PositionReadFileInStream(reader, status.getLength());
   }
 
   /**
