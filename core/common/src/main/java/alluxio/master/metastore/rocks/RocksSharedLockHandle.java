@@ -22,8 +22,8 @@ import java.util.concurrent.atomic.LongAdder;
  * reference count.
  */
 public class RocksSharedLockHandle implements AutoCloseable {
-  final int mDbVersion;
-  final LongAdder mRefCount;
+  private final int mDbVersion;
+  private final LongAdder mRefCount;
 
   /**
    * The constructor.
@@ -35,6 +35,14 @@ public class RocksSharedLockHandle implements AutoCloseable {
   public RocksSharedLockHandle(int dbVersion, LongAdder refCount) {
     mDbVersion = dbVersion;
     mRefCount = refCount;
+  }
+
+  /**
+   * Gets the version on the lock.
+   * @return version
+   */
+  public int getLockVersion() {
+    return mDbVersion;
   }
 
   @Override

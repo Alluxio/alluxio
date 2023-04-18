@@ -26,7 +26,7 @@ import java.util.concurrent.Callable;
  * {@link RocksSharedLockHandle#close()} for how that is handled.
  */
 public class RocksExclusiveLockHandle implements AutoCloseable {
-  final Callable<Void> mCloseAction;
+  private final Callable<Void> mCloseAction;
 
   /**
    * The constructor.

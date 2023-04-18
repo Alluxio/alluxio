@@ -400,7 +400,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
        */
       RocksSharedLockHandle readLock = mRocksStore.checkAndAcquireSharedLock();
       RocksIter rocksIter = new RocksIter(iter, prefix, () -> {
-        mRocksStore.shouldAbort(readLock.mDbVersion);
+        mRocksStore.shouldAbort(readLock.getLockVersion());
         return null;
       });
       Stream<Long> idStream = StreamSupport.stream(Spliterators
@@ -509,7 +509,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
          RocksIterator iter = db().newIterator(mEdgesColumn.get(), mIteratorOption)) {
       iter.seekToFirst();
       while (iter.isValid()) {
-        mRocksStore.shouldAbort(lock.mDbVersion);
+        mRocksStore.shouldAbort(lock.getLockVersion());
         long parentId = RocksUtils.readLong(iter.key(), 0);
         String childName = new String(iter.key(), Longs.BYTES, iter.key().length - Longs.BYTES);
         long childId = Longs.fromByteArray(iter.value());
@@ -527,7 +527,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
          RocksIterator iter = db().newIterator(mInodesColumn.get(), mIteratorOption)) {
       iter.seekToFirst();
       while (iter.isValid()) {
-        mRocksStore.shouldAbort(lock.mDbVersion);
+        mRocksStore.shouldAbort(lock.getLockVersion());
         inodes.add(getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get());
         iter.next();
       }
@@ -554,7 +554,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
           db().newIterator(mInodesColumn.get(), mIteratorOption),
           (iter) -> getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get(),
           () -> {
-            mRocksStore.shouldAbort(lock.mDbVersion);
+            mRocksStore.shouldAbort(lock.getLockVersion());
             return null;
           }, readLock);
     }
@@ -657,7 +657,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
          RocksIterator inodeIter = db().newIterator(mInodesColumn.get(), readOptions)) {
       inodeIter.seekToFirst();
       while (inodeIter.isValid()) {
-        mRocksStore.shouldAbort(lock.mDbVersion);
+        mRocksStore.shouldAbort(lock.getLockVersion());
         MutableInode<?> inode;
         try {
           inode = MutableInode.fromProto(InodeMeta.Inode.parseFrom(inodeIter.value()));
@@ -673,7 +673,7 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
          RocksIterator edgeIter = db().newIterator(mEdgesColumn.get())) {
       edgeIter.seekToFirst();
       while (edgeIter.isValid()) {
-        mRocksStore.shouldAbort(lock.mDbVersion);
+        mRocksStore.shouldAbort(lock.getLockVersion());
         byte[] key = edgeIter.key();
         byte[] id = new byte[Longs.BYTES];
         byte[] name = new byte[key.length - Longs.BYTES];

@@ -433,7 +433,7 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
       return RocksUtils.createCloseableIterator(iterator,
           (iter) -> new Block(Longs.fromByteArray(iter.key()), BlockMeta.parseFrom(iter.value())),
           () -> {
-            mRocksStore.shouldAbort(lock.mDbVersion);
+            mRocksStore.shouldAbort(lock.getLockVersion());
             return null;
           }, readLock);
     }

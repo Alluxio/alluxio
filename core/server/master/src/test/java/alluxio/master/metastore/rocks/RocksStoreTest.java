@@ -360,7 +360,7 @@ public class RocksStoreTest {
       // While this reader is sleeping, one checkpoint is completed in the background
       // This check should pass without throwing an exception
       // And that means the reader can continue doing what it was doing
-      mStore.shouldAbort(lockHandle.mDbVersion);
+      mStore.shouldAbort(lockHandle.getLockVersion());
 
       System.out.println("Able to continue reading");
       // After finishing its work, this lock is released
@@ -405,7 +405,7 @@ public class RocksStoreTest {
       // While this reader is sleeping, one restore action is completed in the background
       // This check should throw an exception because the RocksDB contents have changed
       Exception e = assertThrows(UnavailableRuntimeException.class, () -> {
-        mStore.shouldAbort(lockHandle.mDbVersion);
+        mStore.shouldAbort(lockHandle.getLockVersion());
       });
       assertTrue(e.getMessage().contains(ExceptionMessage.ROCKS_DB_REWRITTEN.getMessage()));
 
