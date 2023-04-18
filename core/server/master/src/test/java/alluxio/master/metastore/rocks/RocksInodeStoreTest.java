@@ -11,14 +11,13 @@
 
 package alluxio.master.metastore.rocks;
 
+import static alluxio.master.metastore.rocks.RocksStoreTestUtils.waitForReaders;
+
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -32,6 +31,7 @@ import alluxio.master.metastore.InodeStore.WriteBatch;
 import alluxio.master.metastore.ReadOption;
 import alluxio.resource.CloseableIterator;
 import alluxio.util.ThreadFactoryUtils;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -83,8 +83,6 @@ public class RocksInodeStoreTest {
     // Do not wait for the writer latch, meaning the writer will run concurrent to the list actions
     return submitListingJob(errors, results, readerRunningLatch, null);
   };
-
-
 
   @Before
   public void setUp() throws Exception {
@@ -310,16 +308,6 @@ public class RocksInodeStoreTest {
       long completed = results.stream().filter(n -> n == THREAD_NUMBER).count();
       assertEquals(THREAD_NUMBER, completed);
       return null;
-    });
-  }
-
-  private void waitForReaders(List<Future<Void>> futures) {
-    futures.stream().forEach(f -> {
-      try {
-        f.get();
-      } catch (Exception e) {
-        fail("Met uncaught exception from iteration");
-      }
     });
   }
 

@@ -433,7 +433,6 @@ public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
       RocksIterator iterator = db().newIterator(mBlockMetaColumn.get(), mIteratorOption);
       return RocksUtils.createCloseableIterator(iterator,
           (iter) -> new Block(Longs.fromByteArray(iter.key()), BlockMeta.parseFrom(iter.value())),
-          // TODO(jiacheng): UT that aborting gives correct ref count
           () -> {
             mRocksStore.shouldAbort(lock.mDbVersion);
             return null;

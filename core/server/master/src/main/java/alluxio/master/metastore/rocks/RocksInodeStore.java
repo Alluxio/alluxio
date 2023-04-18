@@ -555,7 +555,6 @@ public class RocksInodeStore implements InodeStore, RocksCheckpointed {
       return RocksUtils.createCloseableIterator(
           db().newIterator(mInodesColumn.get(), mIteratorOption),
           (iter) -> getMutable(Longs.fromByteArray(iter.key()), ReadOption.defaults()).get(),
-          // TODO(jiacheng): validate an ex is thrown in UT
           () -> {
             mRocksStore.shouldAbort(lock.mDbVersion);
             return null;
