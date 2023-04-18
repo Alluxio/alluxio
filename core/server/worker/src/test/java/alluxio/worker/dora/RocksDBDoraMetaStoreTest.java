@@ -44,7 +44,7 @@ public class RocksDBDoraMetaStoreTest extends TestCase {
         .build();
     DoraMeta.FileStatus fs = DoraMeta.FileStatus.newBuilder()
         .setFileInfo(fi)
-        .setTs(System.currentTimeMillis())
+        .setTs(System.nanoTime())
         .build();
     mTestMetastore.putDoraMeta(path, fs);
     Optional<DoraMeta.FileStatus> res = mTestMetastore.getDoraMeta(path);
@@ -70,7 +70,7 @@ public class RocksDBDoraMetaStoreTest extends TestCase {
         .build();
     DoraMeta.FileStatus fs = DoraMeta.FileStatus.newBuilder()
         .setFileInfo(fi)
-        .setTs(System.currentTimeMillis())
+        .setTs(System.nanoTime())
         .build();
     mTestMetastore.putDoraMeta(path, fs);
     String pathNotExist = new String("/NOT_EXIST");
@@ -101,7 +101,7 @@ public class RocksDBDoraMetaStoreTest extends TestCase {
         .build();
     DoraMeta.FileStatus fs = DoraMeta.FileStatus.newBuilder()
         .setFileInfo(fi)
-        .setTs(System.currentTimeMillis())
+        .setTs(System.nanoTime())
         .build();
     mTestMetastore.putDoraMeta(path, fs);
 
@@ -129,7 +129,7 @@ public class RocksDBDoraMetaStoreTest extends TestCase {
     for (int i = 0; i < N; i++) {
       String path = new String("/HELLO" + i);
 
-      long ts = System.currentTimeMillis();
+      long ts = System.nanoTime();
 
       FileInfo fi = FileInfo.newBuilder()
           .setFileId(10000000 + i)

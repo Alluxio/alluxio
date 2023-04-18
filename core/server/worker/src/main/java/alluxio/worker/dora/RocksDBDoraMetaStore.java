@@ -11,6 +11,7 @@
 
 package alluxio.worker.dora;
 
+import alluxio.Constants;
 import alluxio.proto.meta.DoraMeta;
 import alluxio.rocks.RocksStore;
 import alluxio.util.io.PathUtils;
@@ -119,7 +120,7 @@ public class RocksDBDoraMetaStore implements DoraMetaStore {
     try {
       DoraMeta.FileStatus fs = DoraMeta.FileStatus.parseFrom(status);
       if (mMetaTTL != -1) {
-        if ((System.currentTimeMillis() - fs.getTs()) / 1000 > mMetaTTL) {
+        if (System.nanoTime() - fs.getTs() > mMetaTTL * Constants.SECOND_NANO) {
           // The Metadata is out of date.
           removeDoraMeta(path);
           return Optional.empty();

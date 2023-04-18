@@ -144,9 +144,14 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
     String dbDir = Configuration.getString(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR);
     Duration duration = Configuration.getDuration(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_TTL);
-    long ttl = duration.isZero() || duration.isNegative() ? -1 : duration.getSeconds();
+    long ttl = duration.isNegative() ? -1 : duration.getSeconds();
     try {
-      mMetaStore = new RocksDBDoraMetaStore(dbDir, ttl);
+      if (ttl == 0) {
+        LOG.info("Worker MetaStore RocksDB TTL is configured to be ZERO. That means no cache!");
+        mMetaStore = null;
+      } else {
+        mMetaStore = new RocksDBDoraMetaStore(dbDir, ttl);
+      }
     } catch (RuntimeException e) {
       LOG.error("Cannot init RocksDBDoraMetaStore. Continue without MetaStore", e);
       mMetaStore = null;
@@ -264,7 +269,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     DoraMeta.FileStatus status = mUfsStatusCache.getIfPresent(ufsFullPath);
     if (syncIntervalMs >= 0 && status != null) {
       // Check if the metadata is still valid.
-      if (System.currentTimeMillis() - status.getTs() > syncIntervalMs) {
+      if (System.nanoTime() - status.getTs() > syncIntervalMs * Constants.MS_NANO) {
         // The metadata is expired. Remove it from in-memory cache.
         mUfsStatusCache.invalidate(ufsFullPath);
         status = null;
@@ -282,7 +287,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       }
       if (syncIntervalMs >= 0 && fs.isPresent()) {
         // Check if the metadata is still valid.
-        if (System.currentTimeMillis() - fs.get().getTs() > syncIntervalMs) {
+        if (System.nanoTime() - fs.get().getTs() > syncIntervalMs * Constants.MS_NANO) {
           // The metadata is expired. Remove it from RocksDB.
           if (mMetaStore != null) {
             mMetaStore.removeDoraMeta(ufsFullPath);
@@ -375,7 +380,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private  DoraMeta.FileStatus buildFileStatusFromUfsStatus(UfsStatus status, String ufsFullPath) {
     return DoraMeta.FileStatus.newBuilder()
         .setFileInfo(buildFileInfoFromUfsStatus(status, ufsFullPath))
-        .setTs(System.currentTimeMillis())
+        .setTs(System.nanoTime())
         .build();
   }
 

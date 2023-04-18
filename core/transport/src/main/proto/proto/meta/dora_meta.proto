@@ -12,6 +12,6 @@ import "grpc/file_system_master.proto";
 message FileStatus {
   optional alluxio.grpc.file.FileInfo fileInfo = 1;
 
-  // the timestamp in milliseconds when this FileStatus is refreshed
+  // the timestamp in nanoseconds when this FileStatus is refreshed
   optional int64 ts = 2;
 }
