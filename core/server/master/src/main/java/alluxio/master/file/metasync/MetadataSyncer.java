@@ -295,7 +295,7 @@ public class MetadataSyncer implements SyncProcess {
             // If we are loading by directory, then we must create a new load task on each
             // directory traversed
             if (loadResult.getTaskInfo().hasDirLoadTasks() && status.isDirectory()
-                && !item.mAlluxioUri.isAncestorOf(loadResult.getTaskInfo().getAlluxioPath())
+                && !item.mAlluxioUri.isAncestorOf(loadResult.getTaskInfo().getAlluxioPath(), false)
                 && !(baseLoadPath.equals(
                 PathUtils.normalizePathStart(status.getName(), AlluxioURI.SEPARATOR)))) {
               // first check if the directory needs to be synced
@@ -479,7 +479,7 @@ public class MetadataSyncer implements SyncProcess {
         // (1) The descendant type is ALL and the inode is contained in the sync path
         // (2) The descendant type is ONE and the inode is the synced path
         if ((syncState.mContext.getDescendantType() == DescendantType.ALL
-            && syncState.mAlluxioSyncPath.isAncestorOf(inodePath))
+            && syncState.mAlluxioSyncPath.isAncestorOf(inodePath, false))
             || (syncState.mContext.getDescendantType() == DescendantType.ONE
             && syncState.mAlluxioSyncPath.equals(inodePath))) {
           syncState.mContext.addDirectoriesToUpdateIsChildrenLoaded(inodePath);
@@ -527,7 +527,8 @@ public class MetadataSyncer implements SyncProcess {
       return new SingleInodeSyncResult(true, false, false);
     } else if (currentUfsStatus == null || comparisonResult.get() < 0) {
       if (currentInode.getInode().isDirectory() && currentUfsStatus != null
-          && currentInode.getLockedPath().getUri().isAncestorOf(currentUfsStatus.mAlluxioUri)) {
+          && currentInode.getLockedPath().getUri().isAncestorOf(
+              currentUfsStatus.mAlluxioUri, false)) {
         // (Case 2) - in this case the inode is a directory and is an ancestor of the current
         // UFS state, so we skip it
         checkShouldSetDescendantsLoaded(currentInode.getInode(), syncState);
@@ -561,7 +562,7 @@ public class MetadataSyncer implements SyncProcess {
     String ufsType = syncState.mUfs.getUnderFSType();
     Fingerprint ufsFingerprint = Fingerprint.create(ufsType, currentUfsStatus.mUfsItem);
     boolean containsMountPoint = mMountTable.containsMountPoint(
-        currentInode.getLockedPath().getUri(), true);
+        currentInode.getLockedPath().getUri(), true, false);
     UfsSyncUtils.SyncPlan syncPlan =
         UfsSyncUtils.computeSyncPlan(currentInode.getInode(), ufsFingerprint, containsMountPoint);
     if (syncPlan.toUpdateMetaData() || syncPlan.toDelete() || syncPlan.toLoadMetadata()) {
@@ -860,7 +861,7 @@ public class MetadataSyncer implements SyncProcess {
       mTraversedRootPath = true;
       InodeIterationResult next = IteratorUtils.nextOrNull(mInodeIterator);
       if (next != null) {
-        if (!mAlluxioSyncPath.isAncestorOf(next.getLockedPath().getUri())) {
+        if (!mAlluxioSyncPath.isAncestorOf(next.getLockedPath().getUri(), false)) {
           downgradeRootPath();
           return null;
         }
