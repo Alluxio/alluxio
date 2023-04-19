@@ -663,8 +663,6 @@ public final class RocksStore implements Closeable {
    * @return the exclusive lock handle used to manage and close the lock
    */
   public RocksExclusiveLockHandle lockForClosing() {
-    Exception e = new RuntimeException("Log trace here");
-    LOG.error("Just recording the trace here", e);
     // Grab the lock with no respect to concurrent operations
     // Just grab the lock and close
     setFlagAndBlockingWait(false);
