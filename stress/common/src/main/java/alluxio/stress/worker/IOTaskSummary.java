@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -149,9 +150,15 @@ public class IOTaskSummary implements Summary {
   public static class SpeedStat implements JsonSerializable {
     public double mTotalDurationSeconds;
     public long mTotalSizeBytes;
+    // Max speed among all nodes
     public double mMaxSpeedMbps;
+    // Min speed among all nodes
     public double mMinSpeedMbps;
+    // Average speed of all nodes
     public double mAvgSpeedMbps;
+    // Cluster-wide throughput
+    public double mClusterAvgSpeedMbps;
+    // Standard deviation of speed reported by each node
     public double mStdDev;
 
     /**
@@ -162,9 +169,10 @@ public class IOTaskSummary implements Summary {
     @Override
     public String toString() {
       return String.format("{totalDuration=%ss, totalSize=%s, maxSpeed=%sMB/s, "
-                      + "minSpeed=%sMB/s, " + "avgSpeed=%sMB/s, stdDev=%s}",
+                      + "minSpeed=%sMB/s, " + "avgSpeed=%sMB/s, clusterAvgSpeed=%sMB/s, "
+                      + "stdDev=%s}",
               mTotalDurationSeconds, FormatUtils.getSizeFromBytes(mTotalSizeBytes),
-              mMaxSpeedMbps, mMinSpeedMbps, mAvgSpeedMbps, mStdDev);
+              mMaxSpeedMbps, mMinSpeedMbps, mAvgSpeedMbps, mClusterAvgSpeedMbps, mStdDev);
     }
   }
 
@@ -177,31 +185,33 @@ public class IOTaskSummary implements Summary {
       return result;
     }
 
-    double totalDuration = 0.0;
     long totalSize = 0L;
     double[] speeds = new double[points.size()];
     double maxSpeed = 0.0;
     double minSpeed = Double.MAX_VALUE;
     int i = 0;
     for (IOTaskResult.Point p : points) {
-      totalDuration += p.mDurationSeconds;
+      result.mTotalDurationSeconds = Math.max(p.mDurationSeconds, result.mTotalDurationSeconds);
       totalSize += p.mDataSizeBytes;
       double speed = p.mDataSizeBytes / (p.mDurationSeconds * 1024 * 1024); // convert B/s to MB/s
       maxSpeed = Math.max(maxSpeed, speed);
       minSpeed = Math.min(minSpeed, speed);
       speeds[i++] = speed;
     }
-    double avgSpeed = totalSize / (totalDuration * 1024 * 1024); // convert B/s to MB/s
+    // calculate the average speed for each point
+    double avgPointSpeed = Arrays.stream(speeds).sum() / points.size();
+    double avgClusterSpeed = totalSize
+        / (result.mTotalDurationSeconds * 1024 * 1024); // convert B/s to MB/s
     double var = 0;
     for (double s : speeds) {
-      var += (s - avgSpeed) * (s - avgSpeed);
+      var += (s - avgPointSpeed) * (s - avgPointSpeed);
     }
 
-    result.mTotalDurationSeconds = totalDuration;
     result.mTotalSizeBytes = totalSize;
     result.mMaxSpeedMbps = maxSpeed;
     result.mMinSpeedMbps = Double.compare(minSpeed, Double.MAX_VALUE) == 0 ? 0.0 : minSpeed;
-    result.mAvgSpeedMbps = avgSpeed;
+    result.mAvgSpeedMbps = avgPointSpeed;
+    result.mClusterAvgSpeedMbps = avgClusterSpeed;
     result.mStdDev = Math.sqrt(var);
 
     return result;
