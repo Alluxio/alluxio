@@ -100,7 +100,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       return mDoraClient.getStatus(ufsFullPath.toString(), mergedOptions);
     } catch (RuntimeException ex) {
       if (ex instanceof StatusRuntimeException) {
-        if (((StatusRuntimeException) ex).getStatus().equals(Status.NOT_FOUND)) {
+        if (((StatusRuntimeException) ex).getStatus().getCode() == Status.NOT_FOUND.getCode()) {
           throw new FileNotFoundException();
         }
       }
@@ -190,7 +190,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       return mDoraClient.listStatus(ufsFullPath.toString(), options);
     } catch (RuntimeException ex) {
       if (ex instanceof StatusRuntimeException) {
-        if (((StatusRuntimeException) ex).getStatus().equals(Status.NOT_FOUND)) {
+        if (((StatusRuntimeException) ex).getStatus().getCode() == Status.NOT_FOUND.getCode()) {
           return Collections.emptyList();
         }
       }

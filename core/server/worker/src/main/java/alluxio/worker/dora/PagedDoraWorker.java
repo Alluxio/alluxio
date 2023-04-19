@@ -71,6 +71,7 @@ import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Collections;
@@ -251,6 +252,20 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     if (statuses == null) {
       // Not found in cache. Query the Under File System.
       statuses = mUfs.listStatus(path, options);
+
+      if (statuses == null) {
+        // If empty, the request path might be a regular file/object. Let's retry getStatus().
+        try {
+          UfsStatus status = mUfs.getStatus(path);
+          // listStatus() expects relative name to the @path.
+          status.setName("");
+          statuses = new UfsStatus[1];
+          statuses[0] = status;
+        } catch (FileNotFoundException e) {
+          statuses = null;
+        }
+      }
+
       // Add this into cache. Return value might be null if not found.
       if (statuses != null) {
         mListStatusCache.put(path, statuses);
