@@ -228,6 +228,8 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 			"integration/metrics/otel-agent-config-worker.yaml",
 			"integration/metrics/otel-collector-config.yaml",
 			"integration/metrics/prometheus.yaml",
+			"integration/tools/ratis-shell/install-ratis-shell.sh",
+			"integration/tools/ratis-shell/README.md",
 		)
 	}
 
