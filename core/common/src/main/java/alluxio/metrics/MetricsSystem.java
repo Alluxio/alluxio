@@ -27,6 +27,7 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.SlidingTimeWindowMovingAverages;
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.UniformReservoir;
 import com.codahale.metrics.jvm.CachedThreadStatesGaugeSet;
@@ -93,6 +94,7 @@ public final class MetricsSystem {
       CommonUtils.memoize(() -> constructSourceName());
   private static final Map<String, InstrumentedExecutorService>
       EXECUTOR_SERVICES = new ConcurrentHashMap<>();
+  private static final int SECONDS_IN_A_MINUTE = 60;
 
   /**
    * An enum of supported instance type.
@@ -593,7 +595,8 @@ public final class MetricsSystem {
    * @return a meter object with the qualified metric name
    */
   public static Meter meter(String name) {
-    return METRIC_REGISTRY.meter(getMetricName(name));
+    return METRIC_REGISTRY.meter(getMetricName(name),
+        () -> new Meter(new SlidingTimeWindowMovingAverages()));
   }
 
   /**
@@ -798,7 +801,7 @@ public final class MetricsSystem {
         // that a value marked. For clients, especially short-life clients,
         // the minute rates will be zero for their whole life.
         // That's why all throughput meters are not aggregated at cluster level.
-        rpcMetrics.add(Metric.from(entry.getKey(), meter.getOneMinuteRate(),
+        rpcMetrics.add(Metric.from(entry.getKey(), meter.getOneMinuteRate() / SECONDS_IN_A_MINUTE,
             MetricType.METER).toProto());
       } else if (metric instanceof Timer) {
         Timer timer = (Timer) metric;
@@ -883,7 +886,7 @@ public final class MetricsSystem {
       return Metric.from(name, counter.getCount(), MetricType.COUNTER);
     } else if (metric instanceof Meter) {
       Meter meter = (Meter) metric;
-      return Metric.from(name, meter.getOneMinuteRate(), MetricType.METER);
+      return Metric.from(name, meter.getOneMinuteRate() / SECONDS_IN_A_MINUTE, MetricType.METER);
     } else if (metric instanceof Timer) {
       Timer timer = (Timer) metric;
       return Metric.from(name, timer.getCount(), MetricType.TIMER);
@@ -915,7 +918,7 @@ public final class MetricsSystem {
             .setDoubleValue(((Counter) metric).getCount());
       } else if (metric instanceof Meter) {
         valueBuilder.setMetricType(MetricType.METER)
-            .setDoubleValue(((Meter) metric).getOneMinuteRate());
+            .setDoubleValue(((Meter) metric).getOneMinuteRate() / SECONDS_IN_A_MINUTE);
       } else if (metric instanceof Timer) {
         valueBuilder.setMetricType(MetricType.TIMER)
             .setDoubleValue(((Timer) metric).getCount());
