@@ -222,7 +222,7 @@ public class UfsBaseFileSystemTest {
     URIStatus status = mFileSystem.getStatus(uri);
     Assert.assertEquals(uri.getName(), status.getName());
     Assert.assertEquals(new AlluxioURI(fileName).getName(), status.getName());
-    Assert.assertEquals(uri.getPath(), status.getPath());
+    Assert.assertEquals(fileName, status.getPath());
     Assert.assertEquals(uri.toString(), status.getUfsPath());
     Assert.assertTrue(status.isCompleted());
     Assert.assertFalse(status.isFolder());
@@ -239,7 +239,7 @@ public class UfsBaseFileSystemTest {
     URIStatus status = mFileSystem.getStatus(uri);
     Assert.assertEquals(uri.getName(), status.getName());
     Assert.assertEquals(new AlluxioURI(fileName).getName(), status.getName());
-    Assert.assertEquals(uri.getPath(), status.getPath());
+    Assert.assertEquals(fileName, status.getPath());
     Assert.assertEquals(uri.toString(), status.getUfsPath());
     Assert.assertTrue(status.isCompleted());
     Assert.assertTrue(status.isFolder());
