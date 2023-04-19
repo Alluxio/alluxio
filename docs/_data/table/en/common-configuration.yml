@@ -167,7 +167,7 @@ alluxio.proxy.audit.logging.enabled:
 alluxio.proxy.s3.bucket.naming.restrictions.enabled:
   'Toggles whether or not the Alluxio S3 API will enforce AWS S3 bucket naming restrictions. See https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html.'
 alluxio.proxy.s3.bucketpathcache.timeout:
-  'Expire bucket path statistics in cache for this time period. Set 0min to disable the cache.'
+  'Expire bucket path statistics in cache for this time period. Set 0min to disable the cache. If enabling the cache, be careful that Alluxio S3 API will behave differently from AWS S3 API if bucket path cache entries become stale.'
 alluxio.proxy.s3.complete.multipart.upload.keepalive.enabled:
   'Whether or not to enabled sending whitespace characters as a keepalive message during CompleteMultipartUpload. Enabling this will cause any errors to be silently ignored. However, the errors will appear in the Proxy logs.'
 alluxio.proxy.s3.complete.multipart.upload.keepalive.time.interval:
@@ -236,8 +236,6 @@ alluxio.site.conf.rocks.inode.file:
   'Path of file containing RocksDB inode store configuration. A template configuration cab be found at ${alluxio.conf.dir}/rocks-inode.ini.template. See https://github.com/facebook/rocksdb/blob/main/examples/rocksdb_option_file_example.ini for more information on RocksDB configuration files. If unset then a default configuration will be used.'
 alluxio.standalone.fuse.jvm.monitor.enabled:
   'Whether to enable start JVM monitor thread on the standalone fuse process. This will start a thread to detect JVM-wide pauses induced by GC or other reasons.'
-alluxio.standby.master.grpc.enabled:
-  'Whether a standby master runs a grpc server'
 alluxio.standby.master.metrics.sink.enabled:
   'Whether a standby master runs the metric sink'
 alluxio.standby.master.web.enabled:
