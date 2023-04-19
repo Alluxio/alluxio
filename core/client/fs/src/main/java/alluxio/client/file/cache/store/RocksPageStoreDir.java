@@ -66,8 +66,11 @@ public class RocksPageStoreDir extends QuotaManagedPageStoreDir {
 
   @Override
   public void scanPages(Consumer<Optional<PageInfo>> pageInfoConsumer) {
+    // Fix thread safety on this iterator or or demise RocksPageStore
+    // https://github.com/Alluxio/alluxio/issues/17131
     try (CloseableIterator<Optional<PageInfo>> pageIterator =
-        RocksUtils.createCloseableIterator(mPageStore.createNewInterator(), this::parsePageInfo)) {
+        RocksUtils.createCloseableIterator(mPageStore.createNewInterator(), this::parsePageInfo,
+            () -> null, null)) {
       Streams.stream(pageIterator).forEach(pageInfoConsumer);
     }
   }
