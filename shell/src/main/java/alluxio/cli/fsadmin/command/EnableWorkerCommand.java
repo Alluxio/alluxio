@@ -90,7 +90,9 @@ public class EnableWorkerCommand extends AbstractFsAdminCommand {
     for (WorkerNetAddress workerAddress : addresses) {
       System.out.format("Re-enabling worker %s:%s%n", workerAddress.getHost(), workerAddress.getWebPort());
       try {
-        mBlockClient.removeDecommissionedWorker(workerAddress.getHost());
+        RemoveDecommissionedWorkerPOptions options = RemoveDecommissionedWorkerPOptions.newBuilder()
+            .setWorkerHostname(workerAddress.getHost()).setWorkerWebPort(workerAddress.getWebPort()).build();
+        mBlockClient.removeDecommissionedWorker(options);
         System.out.format("Reenabled worker %s:%s on master%n", workerAddress.getHost(), workerAddress.getWebPort());
       } catch (IOException ie) {
         System.err.format("Failed to reenable worker %s:%s%n", workerAddress.getHost(), workerAddress.getWebPort());

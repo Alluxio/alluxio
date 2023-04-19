@@ -123,6 +123,7 @@ public final class MasterWorkerInfo {
         WorkerInfoField.WORKER_USED_BYTES,
         WorkerInfoField.WORKER_USED_BYTES_ON_TIERS);
 
+  private volatile boolean mCanRegister = true;
   /** Worker's last updated time in ms. */
   private final AtomicLong mLastUpdatedTimeMs;
   /** Worker's build version (including version and revision). */

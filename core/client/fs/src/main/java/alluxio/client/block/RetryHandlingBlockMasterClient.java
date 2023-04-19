@@ -121,9 +121,8 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public void removeDecommissionedWorker(String workerName) throws IOException {
-    retryRPC(() -> mClient.removeDecommissionedWorker(RemoveDecommissionedWorkerPOptions
-                    .newBuilder().setWorkerName(workerName).build()),
+  public void removeDecommissionedWorker(RemoveDecommissionedWorkerPOptions options) throws IOException {
+    retryRPC(() -> mClient.removeDecommissionedWorker(options),
             RPC_LOG, "RemoveDecommissionedWorker", "");
   }
 
@@ -182,7 +181,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   @Override
   public void decommissionWorker(DecommissionWorkerPOptions options) throws IOException {
     retryRPC(() -> mClient.decommissionWorker(options),
-        RPC_LOG, "DecommissionWorker", "workerName=%s,options=%s",
-        options.getWorkerName(), options);
+        RPC_LOG, "DecommissionWorker", "workerHostName=%s,workerWebPort=%s,options=%s",
+        options.getWorkerHostname(), options.getWorkerWebPort(), options);
   }
 }

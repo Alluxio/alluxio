@@ -23,6 +23,7 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.BuildVersion;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
+import alluxio.grpc.DecommissionWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
@@ -233,7 +234,10 @@ public class BlockMasterTest {
         RegisterWorkerPOptions.getDefaultInstance());
 
     // Decommission worker
-    mBlockMaster.decommissionWorker(NET_ADDRESS_1.getHost());
+    DecommissionWorkerPOptions options = DecommissionWorkerPOptions.newBuilder()
+        .setWorkerHostname(NET_ADDRESS_1.getHost()).setWorkerWebPort(NET_ADDRESS_1.getWebPort())
+        .build();
+    mBlockMaster.decommissionWorker(options);
 
     // Make sure the worker is decommissioned.
     int decommissionedCount = mBlockMaster.getDecommissionedWorkerCount();

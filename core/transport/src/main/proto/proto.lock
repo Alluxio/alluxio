@@ -369,8 +369,13 @@
             "fields": [
               {
                 "id": 1,
-                "name": "workerName",
+                "name": "workerHostname",
                 "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "workerWebPort",
+                "type": "int64"
               }
             ]
           },
@@ -399,8 +404,18 @@
             "fields": [
               {
                 "id": 1,
-                "name": "workerName",
+                "name": "workerHostname",
                 "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "workerWebPort",
+                "type": "int64"
+              },
+              {
+                "id": 3,
+                "name": "canRegisterAgain",
+                "type": "bool"
               }
             ]
           },

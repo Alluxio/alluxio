@@ -82,6 +82,15 @@ public final class DecommissionWorkerCommand extends AbstractFsAdminCommand {
                   .argName("wait")
                   .desc("Time to wait, in human readable form like 5m.")
                   .build();
+  // TODO(jiacheng): a better name for this
+  private static final Option REJECT_OPTION =
+          Option.builder("j")
+                  .longOpt("reject")
+                  .required(false)
+                  .hasArg(false)
+                  .argName("reject")
+                  .desc("Time to wait, in human readable form like 5m.")
+                  .build();
 
 
   /**
@@ -162,6 +171,7 @@ public final class DecommissionWorkerCommand extends AbstractFsAdminCommand {
     FileSystemContext context = FileSystemContext.create();
     List<BlockWorkerInfo> cachedWorkers = context.getCachedWorkers();
 
+    boolean canRegisterAgain = !cl.hasOption(REJECT_OPTION.getLongOpt());
     Set<WorkerNetAddress> failedWorkers = new HashSet<>();
     Map<WorkerNetAddress, WorkerStatus> waitingWorkers = new HashMap<>();
     Set<WorkerNetAddress> finishedWorkers = new HashSet<>();
@@ -171,8 +181,10 @@ public final class DecommissionWorkerCommand extends AbstractFsAdminCommand {
       BlockWorkerInfo worker = findMatchingWorkerAddress(a, cachedWorkers);
       WorkerNetAddress workerAddress = worker.getNetAddress();
       DecommissionWorkerPOptions options =
-              DecommissionWorkerPOptions.newBuilder()
-                      .setWorkerName(workerAddress.getHost()).build();
+          DecommissionWorkerPOptions.newBuilder()
+              .setWorkerHostname(workerAddress.getHost())
+              .setWorkerWebPort(workerAddress.getWebPort())
+              .setCanRegisterAgain(canRegisterAgain).build();
       try {
         mBlockClient.decommissionWorker(options);
         System.out.format("Set worker %s:%s decommissioned on master%n", workerAddress.getHost(), workerAddress.getWebPort());
@@ -370,7 +382,7 @@ public final class DecommissionWorkerCommand extends AbstractFsAdminCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(ADDRESSES_OPTION).addOption(WAIT_OPTION);
+    return new Options().addOption(ADDRESSES_OPTION).addOption(WAIT_OPTION).addOption(REJECT_OPTION);
   }
 
   @Override

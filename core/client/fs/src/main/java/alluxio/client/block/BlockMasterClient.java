@@ -15,6 +15,7 @@ import alluxio.Client;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.DecommissionWorkerPOptions;
+import alluxio.grpc.RemoveDecommissionedWorkerPOptions;
 import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.master.MasterClientContext;
 import alluxio.wire.BlockInfo;
@@ -63,7 +64,7 @@ public interface BlockMasterClient extends Client {
    *
    * @param workerName contains a string, representing the workerName
    */
-  void removeDecommissionedWorker(String workerName) throws IOException;
+  void removeDecommissionedWorker(RemoveDecommissionedWorkerPOptions options) throws IOException;
 
   /**
    * Gets the worker information of selected workers and selected fields for report CLI.

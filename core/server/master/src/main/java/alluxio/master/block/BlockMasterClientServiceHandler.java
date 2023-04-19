@@ -152,7 +152,7 @@ public final class BlockMasterClientServiceHandler
       StreamObserver<RemoveDecommissionedWorkerPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
       // This command is idempotent and is no-op if the address is not recognized
-      mBlockMaster.removeDecommissionedWorker(options.getWorkerName());
+      mBlockMaster.removeDecommissionedWorker(options);
       return RemoveDecommissionedWorkerPResponse.getDefaultInstance();
     }, "RemoveDecommissionedWorker", "options=%s", responseObserver, options);
   }
@@ -177,11 +177,11 @@ public final class BlockMasterClientServiceHandler
   }
 
   @Override
-  public void decommissionWorker(DecommissionWorkerPOptions request,
+  public void decommissionWorker(DecommissionWorkerPOptions options,
       StreamObserver<DecommissionWorkerPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      mBlockMaster.decommissionWorker(request.getWorkerName());
+      mBlockMaster.decommissionWorker(options);
       return DecommissionWorkerPResponse.getDefaultInstance();
-    }, "DecommissionWorker", "request=%s", responseObserver, request);
+    }, "DecommissionWorker", "request=%s", responseObserver, options);
   }
 }

@@ -110,7 +110,8 @@ message WorkerLostStorageInfo {
   map<string, StorageList> lostStorage = 2;
 }
 message RemoveDecommissionedWorkerPOptions {
-  optional string workerName = 1;
+  required string workerHostname = 1;
+  optional int64 workerWebPort = 2;
 }
 message RemoveDecommissionedWorkerPResponse {}
 
@@ -121,7 +122,9 @@ message GetWorkerLostStoragePResponse {
 
 message DecommissionWorkerPResponse {}
 message DecommissionWorkerPOptions {
-  required string workerName = 1;
+  required string workerHostname = 1;
+  optional int64 workerWebPort = 2;
+  optional bool canRegisterAgain = 3;
 }
 
 /**

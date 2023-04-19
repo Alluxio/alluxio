@@ -19,9 +19,11 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.DecommissionWorkerPOptions;
 import alluxio.grpc.GetRegisterLeasePRequest;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
+import alluxio.grpc.RemoveDecommissionedWorkerPOptions;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.master.Master;
@@ -123,17 +125,15 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   List<WorkerLostStorageInfo> getWorkerLostStorage();
 
   /**
-   * @param workerId the worker id
    * @return true if the worker is excluded, otherwise false
    */
-  boolean isNotServing(long workerId);
+  boolean isRejected(WorkerNetAddress address);
 
   /**
    * Decommission a worker.
    *
-   * @param workerName the worker hostname of worker to be decommissioned
    */
-  void decommissionWorker(String workerName) throws NotFoundException;
+  void decommissionWorker(DecommissionWorkerPOptions requestOptions) throws NotFoundException;
 
   /**
    * Removes blocks from workers.
@@ -395,9 +395,8 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * Removes all associated metadata about the decommissioned worker from block master.
    *
    * The worker to free must have been decommissioned.
-   * @param workerId the workerId of target worker
    */
-  void removeDecommissionedWorker(String workerHostName) throws NotFoundException;
+  void removeDecommissionedWorker(RemoveDecommissionedWorkerPOptions requestOptions) throws NotFoundException;
 
   /**
    * Notify the worker id to a master.
