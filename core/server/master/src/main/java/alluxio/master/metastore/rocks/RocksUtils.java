@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 /**
  * Convenience methods for working with RocksDB.
@@ -106,13 +107,31 @@ public final class RocksUtils {
    * Used to wrap an {@link CloseableIterator} over {@link RocksIterator}.
    * It seeks given iterator to first entry before returning the iterator.
    *
+   * The Iterator is associated with a shared lock to the RocksStore. The lock should be acquired
+   * by the caller (See java doc on RocksStore.checkAndAcquireSharedLock()) for how.
+   * And the lock is held throughout the lifecycle of this iterator until it is closed
+   * either on completion or on exception. This shared lock guarantees thread safety when
+   * accessing the RocksDB. In other words, when this shared lock is held, the underlying
+   * RocksDB will not be stopped/restarted.
+   *
+   * The abortCheck defines a way to voluntarily abort the iteration. This typically happens
+   * when the underlying RocksDB will be closed/restart/checkpointed, where all accesses should
+   * be stopped.
+   *
+   * With the thread safety baked into hasNext() and next(), users of this Iterator do not need
+   * to worry about safety and can use this Iterator normally.
+   * See examples in how this iterator is used in RocksBlockMetaStore and RocksInodeStore.
+   *
    * @param rocksIterator the rocks iterator
    * @param parser parser to produce iterated values from rocks key-value
    * @param <T> iterator value type
+   * @param abortCheck if true, abort the iteration
+   * @param rocksDbSharedLock the shared lock acquired by the iterator
    * @return wrapped iterator
    */
   public static <T> CloseableIterator<T> createCloseableIterator(
-      RocksIterator rocksIterator, RocksIteratorParser<T> parser) {
+        RocksIterator rocksIterator, RocksIteratorParser<T> parser,
+        Supplier<Void> abortCheck, RocksSharedLockHandle rocksDbSharedLock) {
     rocksIterator.seekToFirst();
     AtomicBoolean valid = new AtomicBoolean(true);
     Iterator<T> iter = new Iterator<T>() {
@@ -123,25 +142,49 @@ public final class RocksUtils {
 
       @Override
       public T next() {
+        boolean succeeded = false;
+
+        /*
+         * If the RocksDB wants to stop, abort the loop instead of finishing it.
+         * The abortCheck will throw an exception, which closes the CloseableIterator
+         * if the CloseableIterator is correctly put in a try-with-resource section.
+         */
+        abortCheck.get();
+
         try {
-          return parser.next(rocksIterator);
+          T result = parser.next(rocksIterator);
+          rocksIterator.next();
+          succeeded = true;
+          return result;
         } catch (Exception exc) {
           LOG.warn("Iteration aborted because of error", exc);
-          rocksIterator.close();
-          valid.set(false);
           throw new RuntimeException(exc);
         } finally {
-          rocksIterator.next();
-          if (!rocksIterator.isValid()) {
-            rocksIterator.close();
+          if (!succeeded) {
             valid.set(false);
+            rocksIterator.close();
           }
         }
       }
     };
 
+<<<<<<< HEAD:core/server/master/src/main/java/alluxio/master/metastore/rocks/RocksUtils.java
     return CloseableIterator.create(iter, (whatever) -> {
       rocksIterator.close();
     });
+||||||| parent of 9f152c554b (Fix Rocksdb thread safety using refcount(no lock)):core/common/src/main/java/alluxio/master/metastore/rocks/RocksUtils.java
+    return CloseableIterator.create(iter, (whatever) -> rocksIterator.close());
+=======
+    return CloseableIterator.create(iter, (whatever) -> {
+      try {
+        rocksIterator.close();
+      } finally {
+        if (rocksDbSharedLock != null) {
+          // Release the lock after recycling the iterator safely
+          rocksDbSharedLock.close();
+        }
+      }
+    });
+>>>>>>> 9f152c554b (Fix Rocksdb thread safety using refcount(no lock)):core/common/src/main/java/alluxio/master/metastore/rocks/RocksUtils.java
   }
 }
