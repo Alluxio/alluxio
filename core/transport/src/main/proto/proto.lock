@@ -4092,7 +4092,8 @@
               {
                 "id": 1,
                 "name": "task",
-                "type": "SyncMetadataTask"
+                "type": "SyncMetadataTask",
+                "is_repeated": true
               },
               {
                 "id": 1000,
@@ -4132,7 +4133,8 @@
               {
                 "id": 1,
                 "name": "task",
-                "type": "SyncMetadataTask"
+                "type": "SyncMetadataTask",
+                "is_repeated": true
               },
               {
                 "id": 1000,

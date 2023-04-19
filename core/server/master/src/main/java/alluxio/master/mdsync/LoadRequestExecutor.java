@@ -17,6 +17,8 @@ import alluxio.Constants;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.master.file.metasync.SyncFailReason;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsClient;
 import alluxio.underfs.UfsLoadResult;
@@ -43,7 +45,7 @@ class LoadRequestExecutor implements Closeable {
   private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 5L * Constants.SECOND_MS);
 
   /** Limit the number of running (or completed but not yet processed) load requests. **/
-  private final AtomicInteger mRunning;
+  private final AtomicInteger mRemainingTickets;
   private final int mMaxRunning;
 
   private final Map<Long, PathLoaderTask> mPathLoaderTasks = new ConcurrentHashMap<>();
@@ -62,7 +64,7 @@ class LoadRequestExecutor implements Closeable {
 
   LoadRequestExecutor(int maxRunning, LoadResultExecutor resultExecutor) {
     mMaxRunning = maxRunning;
-    mRunning = new AtomicInteger(maxRunning);
+    mRemainingTickets = new AtomicInteger(maxRunning);
     mResultExecutor = resultExecutor;
     mExecutor = new Thread(() -> {
       while (!Thread.interrupted()) {
@@ -75,6 +77,7 @@ class LoadRequestExecutor implements Closeable {
       LOG.info("Load request runner thread exiting");
     }, "LoadRequestRunner");
     mExecutor.start();
+    registerMetrics();
   }
 
   synchronized void addPathLoaderTask(PathLoaderTask task) {
@@ -89,6 +92,7 @@ class LoadRequestExecutor implements Closeable {
   synchronized void hasNewLoadTask(long taskId) {
     if (!mPathLoaderTasksWithPendingLoads.contains(taskId)) {
       mPathLoaderTaskQueue.add(taskId);
+      mPathLoaderTasksWithPendingLoads.add(taskId);
       notifyAll();
     }
   }
@@ -130,12 +134,15 @@ class LoadRequestExecutor implements Closeable {
   private void runNextLoadTask() throws InterruptedException {
     // loop until there is a task ready to execute
     synchronized (this) {
-      while ((mLoadRequests.isEmpty() || mRunning.get() == 0)
+      while ((mLoadRequests.isEmpty() || mRemainingTickets.get() == 0)
           && (mRateLimited.isEmpty() || !mRateLimited.peek().isReady())) {
-        Long nextId = mPathLoaderTaskQueue.poll();
-        if (nextId != null) {
-          checkNextLoad(nextId);
-        } else {
+        // check if a task is ready to run, and we have tickets remaining
+        if (mRemainingTickets.get() > 0 && !mPathLoaderTaskQueue.isEmpty()) {
+          Long nextId = mPathLoaderTaskQueue.poll();
+          if (nextId != null) {
+            checkNextLoad(nextId);
+          }
+        } else { // otherwise, sleep
           long waitNanos = 0;
           if (!mRateLimited.isEmpty()) {
             waitNanos = mRateLimited.peek().getWaitTime();
@@ -156,8 +163,9 @@ class LoadRequestExecutor implements Closeable {
         }
       }
     }
-    SAMPLING_LOG.info("Concurrent running ufs load tasks {}",
-        mMaxRunning - mRunning.get());
+    SAMPLING_LOG.info("Concurrent running ufs load tasks {}, tasks with pending load requests {},"
+            + " rate limited pending requests {}",
+        mMaxRunning - mRemainingTickets.get(), mPathLoaderTasks.size(), mRateLimited.size());
     if (!mRateLimited.isEmpty() && mRateLimited.peek().isReady()) {
       RateLimitedRequest request = mRateLimited.remove();
       runTask(request.mTask, request.mLoadRequest);
@@ -165,7 +173,7 @@ class LoadRequestExecutor implements Closeable {
       LoadRequest nxtRequest = mLoadRequests.take();
       PathLoaderTask task = mPathLoaderTasks.get(nxtRequest.getBaseTaskId());
       if (task != null) {
-        Preconditions.checkState(mRunning.decrementAndGet() >= 0);
+        Preconditions.checkState(mRemainingTickets.decrementAndGet() >= 0);
         Optional<Long> rateLimit = task.getRateLimiter().acquire();
         if (rateLimit.isPresent()) {
           mRateLimited.add(new RateLimitedRequest(task, nxtRequest, rateLimit.get()));
@@ -180,8 +188,12 @@ class LoadRequestExecutor implements Closeable {
   }
 
   private synchronized void releaseRunning() {
-    mRunning.incrementAndGet();
+    mRemainingTickets.incrementAndGet();
     notifyAll();
+  }
+
+  synchronized void onTaskComplete(long taskId) {
+    mPathLoaderTasks.remove(taskId);
   }
 
   private void runTask(PathLoaderTask task, LoadRequest loadRequest) {
@@ -225,5 +237,24 @@ class LoadRequestExecutor implements Closeable {
       LOG.debug("Interrupted while waiting for load request runner to terminate");
     }
     mResultExecutor.close();
+  }
+
+  private void registerMetrics() {
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricsSystem.getMetricName(
+            MetricKey.MASTER_METADATA_SYNC_QUEUED_LOADS.getName()),
+        () -> {
+          synchronized (this) {
+            int count = 0;
+            for (PathLoaderTask task : mPathLoaderTasks.values()) {
+              count += task.getPendingLoadCount();
+            }
+            return count;
+          }
+        });
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricsSystem.getMetricName(
+            MetricKey.MASTER_METADATA_SYNC_RUNNING_LOADS.getName()),
+        () -> mMaxRunning - mRemainingTickets.get());
   }
 }

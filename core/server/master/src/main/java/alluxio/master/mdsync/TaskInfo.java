@@ -121,6 +121,8 @@ public class TaskInfo {
   @Override
   public String toString() {
     return String.format(
-        "TaskInfo{Base path: %s, Descendant Type: %s, Id: %d}", mBasePath, mDescendantType, mId);
+        "TaskInfo{UFS path: %s, AlluxioPath: %s, Descendant Type: %s,"
+            + " Directory Load Type: %s, Id: %d}", mBasePath, mAlluxioPath,
+        mDescendantType, mLoadByDirectory, mId);
   }
 }

@@ -176,6 +176,8 @@ public abstract class BaseTask implements PathWaiter {
 
   /**
    * Blocking waits until the task completes.
+   * If the task fails, the exception causing the failure is thrown.
+   * If the wait times-out a {@link DeadlineExceededRuntimeException} is thrown.
    * @param timeoutMs the timeout in ms, 0 for an endless wait
    */
   public synchronized void waitComplete(long timeoutMs) throws Throwable {

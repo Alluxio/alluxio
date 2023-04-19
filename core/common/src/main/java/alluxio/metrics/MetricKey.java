@@ -715,6 +715,57 @@ public final class MetricKey implements Comparable<MetricKey> {
                   .setMetricType(MetricType.TIMER)
                   .build();
 
+  // Metadata sync v2 metrics
+  public static final MetricKey MASTER_METADATA_SYNC_QUEUED_LOADS =
+      new Builder("Master.MetadataSyncV2QueuedLoads")
+          .setDescription("Total number of load requests that are pending")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_RUNNING_LOADS =
+      new Builder("Master.MetadataSyncV2RunningLoads")
+          .setDescription("The number of load requests that are in progress or"
+              + " have completed, but not yet been processed")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_RUNNING_TASKS =
+      new Builder("Master.MetadataSyncV2RunningTasks")
+          .setDescription("The number of metadata sync tasks currently running")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_COMPLETED_TASKS =
+      new Builder("Master.MetadataSyncV2CompletedTasks")
+          .setDescription("The number of completed metadata sync tasks")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_FAILED_TASKS =
+      new Builder("Master.MetadataSyncV2FailedTasks")
+          .setDescription("The number of failed metadata sync tasks")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_CANCELLED_TASKS =
+      new Builder("Master.MetadataSyncV2CancelledTasks")
+          .setDescription("The number of cancelled metadata sync tasks")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_LOADS_FAILED =
+      new Builder("Master.MetadataSyncV2LoadsFailed")
+          .setDescription("The number of failed load requests during metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PROCESSING_FAILED =
+      new Builder("Master.MetadataSyncV2ProcessingFailed")
+          .setDescription("The number loads failed during processing during metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+
   // Metadata sync metrics
   public static final MetricKey MASTER_METADATA_SYNC_UFS_MOUNT =
       new Builder("Master.MetadataSyncUfsMount.")

@@ -706,7 +706,7 @@ message SyncMetadataTask {
 }
 
 message SyncMetadataPResponse {
-  optional SyncMetadataTask task = 1;
+  repeated SyncMetadataTask task = 1;
 
   optional string debugInfo = 1000;
 }
@@ -721,7 +721,7 @@ message GetSyncProgressPRequest {
 }
 
 message GetSyncProgressPResponse {
-  optional SyncMetadataTask task = 1;
+  repeated SyncMetadataTask task = 1;
 
   optional string debugInfo = 1000;
 }

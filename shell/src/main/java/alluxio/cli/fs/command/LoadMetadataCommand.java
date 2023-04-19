@@ -18,7 +18,6 @@ import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.grpc.CancelSyncMetadataPResponse;
 import alluxio.grpc.DirectoryLoadPType;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetSyncProgressPResponse;
@@ -37,7 +36,9 @@ import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -104,7 +105,7 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
       Option.builder("id")
           .required(false)
           .hasArg()
-          .desc("the numeric task id")
+          .desc("the numeric task group id")
           .build();
 
   private final List<String> mOperationValues = Arrays.asList("load", "get", "cancel");
@@ -159,7 +160,7 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    AlluxioURI path = null;
+    AlluxioURI path;
     if (args.length > 0) {
       path = new AlluxioURI(args[0]);
       runWildCardCmd(path, cl);
@@ -212,12 +213,14 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
 
   private void getSyncProgress(long taskId) throws IOException, AlluxioException {
     GetSyncProgressPResponse syncProgress = mFileSystem.getSyncProgress(taskId);
-    printTask(syncProgress.getTask());
+    for (SyncMetadataTask task : syncProgress.getTaskList()) {
+      printTask(task);
+    }
   }
 
   private void cancel(long taskId) throws IOException, AlluxioException {
-    CancelSyncMetadataPResponse response = mFileSystem.cancelSyncMetadata(taskId);
-    System.out.println("Task " + taskId + " cancelled");
+    mFileSystem.cancelSyncMetadata(taskId);
+    System.out.println("Task group " + taskId + " cancelled");
   }
 
   private void loadMetadataV2(
@@ -232,7 +235,9 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
         System.out.println("Starting metadata sync..");
         SyncMetadataPResponse response = mFileSystem.syncMetadata(path, options);
         System.out.println("Sync Metadata finished");
-        printTask(response.getTask());
+        for (SyncMetadataTask task : response.getTaskList()) {
+          printTask(task);
+        }
         return;
       } catch (AlluxioException e) {
         throw new IOException(e.getMessage());
@@ -242,19 +247,28 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
       System.out.println("Submitting metadata sync task...");
       SyncMetadataAsyncPResponse response = mFileSystem.syncMetadataAsync(path, options);
       long taskId = response.getTaskId();
-      System.out.println("Task " + taskId + " has been submitted successfully.");
+      System.out.println("Task group " + taskId + " has been submitted successfully.");
       System.out.println("Polling sync progress every " + pollingIntervalMs + "ms");
       System.out.println("You can also poll the sync progress in another terminal using:");
       System.out.println("\t$bin/alluxio fs loadMetadata -o get -id " + taskId);
       System.out.println("Sync is being executed asynchronously. Ctrl+C or closing the terminal "
-          + "does not stop the task. To cancel the task, you can use: ");
+          + "does not stop the task group. To cancel the task, you can use: ");
       System.out.println("\t$bin/alluxio fs loadMetadata -o cancel -id " + taskId);
       while (true) {
         System.out.println("------------------------------------------------------");
         GetSyncProgressPResponse syncProgress = mFileSystem.getSyncProgress(taskId);
-        SyncMetadataTask task = syncProgress.getTask();
-        printTask(task);
-        if (task.getState() != SyncMetadataState.RUNNING) {
+        List<SyncMetadataTask> tasks = syncProgress.getTaskList().stream()
+            .sorted(Comparator.comparingLong(SyncMetadataTask::getId)).collect(Collectors.toList());
+        boolean allComplete = true;
+        System.out.println("Task group id: " + taskId);
+        for (SyncMetadataTask task : tasks) {
+          printTask(task);
+          if (task.getState() == SyncMetadataState.RUNNING) {
+            allComplete = false;
+          }
+          System.out.println();
+        }
+        if (allComplete) {
           return;
         }
         CommonUtils.sleepMs(pollingIntervalMs);
@@ -287,7 +301,8 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
   @Override
   public String getUsage() {
     return
-        "loadMetadata [-R] [-F] [-v2] [-a/--async] [-o/--operation <operation>] [-d <type>] <path>";
+        "loadMetadata [-R] [-F] [-v2] [-a/--async] [-o/--operation <operation>] "
+            + "[-d <type>] [-p <polling interval ms>] <path>";
   }
 
   @Override

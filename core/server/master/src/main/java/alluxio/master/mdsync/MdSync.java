@@ -39,7 +39,9 @@ public class MdSync {
   }
 
   void onFailed(long taskId, Throwable t) {
-    mTaskTracker.getActiveTask(taskId).ifPresent(task -> task.onFailed(t));
+    mTaskTracker.getActiveTask(taskId).ifPresent(task -> {
+      task.onFailed(t);
+    });
   }
 
   void onProcessError(long taskId, Throwable t) {

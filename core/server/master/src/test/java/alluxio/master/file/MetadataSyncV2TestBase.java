@@ -78,7 +78,7 @@ public class MetadataSyncV2TestBase extends FileSystemMasterTestBase {
   static final AlluxioURI NESTED_MOUNT_POINT = new AlluxioURI("/mnt/nested_s3_mount");
   static final AlluxioURI NESTED_S3_MOUNT_POINT =
       new AlluxioURI("/s3_mount/nested_s3_mount");
-  static final long TIMEOUT_MS = 30_000_00;
+  static final long TIMEOUT_MS = 30_000;
 
   @Rule
   public S3ProxyRule mS3Proxy = S3ProxyRule.builder()

@@ -126,7 +126,7 @@ import alluxio.master.journal.JournaledGroup;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.journal.ufs.UfsJournalSystem;
-import alluxio.master.mdsync.BaseTask;
+import alluxio.master.mdsync.TaskGroup;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
@@ -222,6 +222,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
@@ -4164,42 +4165,60 @@ public class DefaultFileSystemMaster extends CoreMaster
     System.out.println(CommonUtils.getCurrentMs() - start);
     return SyncMetadataPResponse.getDefaultInstance();
     */
-    BaseTask task = mMetadataSyncer.syncPath(path,
+    TaskGroup task = mMetadataSyncer.syncPath(path,
         GrpcUtils.fromProto(context.getOptions().getLoadDescendantType()),
-        GrpcUtils.fromProto(context.getOptions().getDirectoryLoadType()), 0);
+        GrpcUtils.fromProto(context.getOptions().getDirectoryLoadType()), 0, true);
     try {
-      task.waitComplete(0);
+      task.waitAllComplete(0);
     } catch (Throwable t) {
-      LOG.error("Sync metadata failed for task {}", task.getTaskInfo().getId(), t);
+      LOG.error("Sync metadata failed for task group {}", task.getGroupId(), t);
     }
-    return SyncMetadataPResponse.newBuilder().setTask(task.toProtoTask()).build();
+    return SyncMetadataPResponse.newBuilder().addAllTask(
+        task.toProtoTasks().collect(Collectors.toList())).build();
   }
 
   @Override
   public SyncMetadataAsyncPResponse syncMetadataAsync(AlluxioURI path, SyncMetadataContext context)
       throws InvalidPathException, IOException {
-    BaseTask result = mMetadataSyncer.syncPath(path,
+    TaskGroup result = mMetadataSyncer.syncPath(path,
         GrpcUtils.fromProto(context.getOptions().getLoadDescendantType()),
         GrpcUtils.fromProto(context.getOptions().getDirectoryLoadType()), 0, true);
     return SyncMetadataAsyncPResponse.newBuilder()
-        .setSubmitted(true).setTaskId(result.getTaskInfo().getId()).build();
+        .setSubmitted(true).setTaskId(result.getGroupId()).build();
   }
 
   @Override
-  public GetSyncProgressPResponse getSyncProgress(long taskId) {
-    Optional<BaseTask> task = mMetadataSyncer.getTaskTracker().getTask(taskId);
+  public GetSyncProgressPResponse getSyncProgress(long groupId) {
+    Optional<TaskGroup> task = mMetadataSyncer.getTaskGroup(groupId);
     if (!task.isPresent()) {
-      throw new NotFoundRuntimeException("Task id " + taskId + " not found");
+      throw new NotFoundRuntimeException("Task group id " + groupId + " not found");
     }
     GetSyncProgressPResponse.Builder responseBuilder = GetSyncProgressPResponse.newBuilder();
-    responseBuilder.setTask(task.get().toProtoTask());
+    responseBuilder.addAllTask(task.get().toProtoTasks().collect(Collectors.toList()));
 
     return responseBuilder.build();
   }
 
   @Override
-  public CancelSyncMetadataPResponse cancelSyncMetadata(long taskId) throws NotFoundException {
-    mMetadataSyncer.getTaskTracker().cancelTaskById(taskId);
+  public CancelSyncMetadataPResponse cancelSyncMetadata(long groupId) throws NotFoundException {
+    Optional<TaskGroup> group = mMetadataSyncer.getTaskGroup(groupId);
+    if (!group.isPresent()) {
+      throw new NotFoundRuntimeException("Task group id " + groupId + " not found");
+    }
+    Optional<NotFoundException> ex = group.get().getTasks().map(baseTask -> {
+      try {
+        mMetadataSyncer.getTaskTracker().cancelTaskById(baseTask.getTaskInfo().getId());
+        return null;
+      } catch (NotFoundException e) {
+        return e;
+      }
+    }).filter(Objects::nonNull).reduce((acc, e) -> {
+      acc.addSuppressed(e);
+      return acc;
+    });
+    if (ex.isPresent()) {
+      throw ex.get();
+    }
     return CancelSyncMetadataPResponse.newBuilder().build();
   }
 

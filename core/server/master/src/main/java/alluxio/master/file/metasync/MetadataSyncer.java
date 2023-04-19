@@ -51,6 +51,7 @@ import alluxio.master.mdsync.MdSync;
 import alluxio.master.mdsync.PathSequence;
 import alluxio.master.mdsync.SyncProcess;
 import alluxio.master.mdsync.SyncProcessResult;
+import alluxio.master.mdsync.TaskGroup;
 import alluxio.master.mdsync.TaskTracker;
 import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.master.metastore.ReadOption;
@@ -71,6 +72,8 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.apache.commons.collections4.iterators.PeekingIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,6 +82,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 
@@ -102,6 +106,10 @@ public class MetadataSyncer implements SyncProcess {
       Configuration.getBoolean(PropertyKey.MASTER_METADATA_SYNC_IGNORE_TTL);
   private final CreateFilePOptions mCreateFilePOptions =
       FileSystemOptionsUtils.createFileDefaults(Configuration.global(), false).toBuilder().build();
+
+  private final Cache<Long, TaskGroup> mTaskGroupMap =
+      CacheBuilder.newBuilder().maximumSize(1000).build();
+  private final AtomicLong mTaskGroupIds = new AtomicLong(0);
 
   /**
    * Constructs a metadata syncer.
@@ -153,26 +161,52 @@ public class MetadataSyncer implements SyncProcess {
   }
 
   /**
+   * @param groupId the id of the task group
+   * @return the {@link TaskGroup} corresponding to the id
+   */
+  public Optional<TaskGroup> getTaskGroup(long groupId) {
+    return Optional.ofNullable(mTaskGroupMap.getIfPresent(groupId));
+  }
+
+  /**
    * Perform a metadata sync on the given path. Launches the task asynchronously.
+   * If descendent type is ALL, then a task is launched for each nested mount.
    *
    * @param alluxioPath the path to sync
    * @param descendantType the depth of descendant to load
    * @param directoryLoadType the type of listing to do on directories in the UFS
    * @param syncInterval the sync interval to check if a sync is needed
    * @param isAsyncMetadataLoading if the sync is initiated by an async load metadata cli command
-   * @return the running task
+   * @return the running task group
    */
-  public BaseTask syncPath(
+  public TaskGroup syncPath(
       AlluxioURI alluxioPath, DescendantType descendantType, DirectoryLoadType directoryLoadType,
       long syncInterval, boolean isAsyncMetadataLoading) throws InvalidPathException {
     MountTable.Resolution resolution = mMountTable.resolve(alluxioPath);
+    Stream<BaseTask> tasks = Stream.empty();
+    long groupId = mTaskGroupIds.getAndIncrement();
+    if (descendantType == DescendantType.ALL) {
+      List<MountInfo> nestedMounts = mMountTable.findChildrenMountPoints(alluxioPath, false);
+      tasks = nestedMounts.stream().map(mountInfo ->
+          mTaskTracker.launchTaskAsync(mMdSync, mountInfo.getUfsUri(), mountInfo.getAlluxioUri(),
+              null, descendantType, syncInterval, directoryLoadType, !isAsyncMetadataLoading));
+    }
     AlluxioURI ufsPath = resolution.getUri();
-    return mTaskTracker.launchTaskAsync(mMdSync, ufsPath, alluxioPath, null,
-        descendantType, syncInterval, directoryLoadType, !isAsyncMetadataLoading);
+    TaskGroup group = new TaskGroup(groupId,
+        Stream.concat(Stream.of(mTaskTracker.launchTaskAsync(mMdSync, ufsPath, alluxioPath, null,
+        descendantType, syncInterval, directoryLoadType, !isAsyncMetadataLoading)), tasks)
+        .toArray(BaseTask[]::new));
+    mTaskGroupMap.put(groupId, group);
+    return group;
   }
 
   /**
    * Perform a metadata sync on the given path. Launches the task asynchronously.
+   * If descendent type is ALL, then a task is launched for each nested mount, but
+   * this method only returns the task launched on the sync path. If tracking for
+   * the whole group is needed, then
+   * {@link MetadataSyncer#syncPath(AlluxioURI, DescendantType, DirectoryLoadType, long, boolean)}
+   * should be used.
    *
    * @param alluxioPath the path to sync
    * @param descendantType the depth of descendents to load
@@ -183,7 +217,8 @@ public class MetadataSyncer implements SyncProcess {
   public BaseTask syncPath(
       AlluxioURI alluxioPath, DescendantType descendantType, DirectoryLoadType directoryLoadType,
       long syncInterval) throws InvalidPathException {
-    return syncPath(alluxioPath, descendantType, directoryLoadType, syncInterval, false);
+    return syncPath(alluxioPath, descendantType, directoryLoadType, syncInterval, false)
+        .getBaseTask();
   }
 
   private CloseableResource<UfsClient> getUfsClient(AlluxioURI ufsPath) {
@@ -499,6 +534,10 @@ public class MetadataSyncer implements SyncProcess {
       try {
         LockedInodePath path = currentInode.getLockedPath();
         path.traverse();
+        // skip if this is a mount point
+        if (mMountTable.isMountPoint(currentInode.getLockedPath().getUri())) {
+          return new SingleInodeSyncResult(false, true, true);
+        }
         syncState.mContext.reportSyncOperationSuccess(SyncOperation.DELETE,
             deletePath(syncState.mContext, path));
       } catch (FileDoesNotExistException e) {
@@ -511,6 +550,10 @@ public class MetadataSyncer implements SyncProcess {
     // to update the metadata
     LockedInodePath lockedInodePath = currentInode.getLockedPath();
     lockedInodePath.traverse();
+    // skip if this is a mount point
+    if (mMountTable.isMountPoint(currentInode.getLockedPath().getUri())) {
+      return new SingleInodeSyncResult(true, true, true);
+    }
     // HDFS also fetches ACL list, which is ignored for now
     String ufsType = syncState.mUfs.getUnderFSType();
     Fingerprint ufsFingerprint = Fingerprint.create(ufsType, currentUfsStatus.mUfsItem);

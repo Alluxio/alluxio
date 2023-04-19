@@ -19,9 +19,12 @@ import alluxio.file.options.DescendantType;
 import alluxio.file.options.DirectoryLoadType;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsClient;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -52,6 +55,13 @@ public class TaskTracker implements Closeable {
   private final UfsSyncPathCache mSyncPathCache;
   private final UfsAbsentPathCache mAbsentPathCache;
   private final Function<AlluxioURI, CloseableResource<UfsClient>> mClientSupplier;
+
+  public static final Counter COMPLETED_TASK_COUNT
+      = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_COMPLETED_TASKS.getName());
+  public static final Counter FAILED_TASK_COUNT
+      = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_FAILED_TASKS.getName());
+  public static final Counter CANCELLED_TASK_COUNT
+      = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_CANCELLED_TASKS.getName());
 
   private long mNxtId = 0;
 
@@ -94,6 +104,7 @@ public class TaskTracker implements Closeable {
       mActiveStatusTasks = mActiveRecursiveListTasks;
     }
     mClientSupplier = clientSupplier;
+    registerMetrics();
   }
 
   /**
@@ -122,55 +133,63 @@ public class TaskTracker implements Closeable {
         || mActiveRecursiveListTasks.getCommonRoots().hasNext();
   }
 
-  synchronized void taskComplete(long taskId, boolean isFile) {
-    BaseTask baseTask = mActiveTaskMap.get(taskId);
-    if (baseTask != null) {
-      if (!baseTask.removeOnComplete()) {
-        mFinishedTaskMap.put(taskId, baseTask);
-      }
-      mActiveTaskMap.remove(taskId);
-      LOG.debug("Task {} completed", baseTask);
-      mSyncPathCache.notifySyncedPath(baseTask.getTaskInfo().getBasePath(),
-          baseTask.getTaskInfo().getDescendantType(), baseTask.getStartTime(),
-          null, isFile);
-      if (baseTask.getTaskInfo().getStats().getStatusCount() == 0) {
-        mAbsentPathCache.addSinglePath(baseTask.getTaskInfo().getBasePath());
+  void taskComplete(long taskId, boolean isFile) {
+    synchronized (this) {
+      BaseTask baseTask = mActiveTaskMap.get(taskId);
+      if (baseTask != null) {
+        if (!baseTask.removeOnComplete()) {
+          mFinishedTaskMap.put(taskId, baseTask);
+        }
+        COMPLETED_TASK_COUNT.inc();
+        mActiveTaskMap.remove(taskId);
+        LOG.debug("Task {} completed", baseTask);
+        mSyncPathCache.notifySyncedPath(baseTask.getTaskInfo().getBasePath(),
+            baseTask.getTaskInfo().getDescendantType(), baseTask.getStartTime(),
+            null, isFile);
+        if (baseTask.getTaskInfo().getStats().getStatusCount() == 0) {
+          mAbsentPathCache.addSinglePath(baseTask.getTaskInfo().getBasePath());
+        } else {
+          mAbsentPathCache.processExisting(baseTask.getTaskInfo().getBasePath());
+        }
+        TrieNode<BaseTask> activeTasks = getActiveTasksForDescendantType(
+            baseTask.getTaskInfo().getDescendantType());
+        Preconditions.checkNotNull(activeTasks.deleteIf(
+                baseTask.getTaskInfo().getBasePath().toString(), a -> true),
+            "task missing").setValue(null);
       } else {
-        mAbsentPathCache.processExisting(baseTask.getTaskInfo().getBasePath());
+        LOG.debug("Task with id {} completed, but was already removed", taskId);
       }
-      TrieNode<BaseTask> activeTasks = getActiveTasksForDescendantType(
-          baseTask.getTaskInfo().getDescendantType());
-      Preconditions.checkNotNull(activeTasks.deleteIf(
-              baseTask.getTaskInfo().getBasePath().getPath(), a -> true),
-          "task missing");
-    } else {
-      LOG.debug("Task with id {} completed, but was already removed", taskId);
     }
+    mLoadRequestExecutor.onTaskComplete(taskId);
   }
 
-  synchronized void taskError(long taskId, Throwable t) {
-    BaseTask baseTask = mActiveTaskMap.remove(taskId);
-    if (baseTask != null) {
-      LOG.debug("Task {} failed with error {}", baseTask, t);
-      TrieNode<BaseTask> activeTasks = getActiveTasksForDescendantType(
-          baseTask.getTaskInfo().getDescendantType());
-      Preconditions.checkNotNull(activeTasks.deleteIf(
-              baseTask.getTaskInfo().getBasePath().getPath(), a -> true),
-          "task missing");
-      if (!baseTask.removeOnComplete()) {
-        mFinishedTaskMap.put(taskId, baseTask);
+  void taskError(long taskId, Throwable t) {
+    synchronized (this) {
+      BaseTask baseTask = mActiveTaskMap.remove(taskId);
+      if (baseTask != null) {
+        FAILED_TASK_COUNT.inc();
+        LOG.debug("Task {} failed with error {}", baseTask, t);
+        TrieNode<BaseTask> activeTasks = getActiveTasksForDescendantType(
+            baseTask.getTaskInfo().getDescendantType());
+        Preconditions.checkNotNull(activeTasks.deleteIf(
+                baseTask.getTaskInfo().getBasePath().toString(), a -> true),
+            "task missing").setValue(null);
+        if (!baseTask.removeOnComplete()) {
+          mFinishedTaskMap.put(taskId, baseTask);
+        }
+      } else {
+        LOG.debug("Task with id {} failed with error, but was already removed", taskId, t);
       }
-    } else {
-      LOG.debug("Task with id {} failed with error, but was already removed", taskId, t);
     }
+    mLoadRequestExecutor.onTaskComplete(taskId);
   }
 
   synchronized void cancelTasksUnderPath(AlluxioURI path) {
-    mActiveRecursiveListTasks.getLeafChildren(path.getPath()).forEach(nxt ->
+    mActiveRecursiveListTasks.getLeafChildren(path.toString()).forEach(nxt ->
         mActiveTaskMap.remove(nxt.getValue().cancel()));
-    mActiveListTasks.getLeafChildren(path.getPath()).forEach(nxt ->
+    mActiveListTasks.getLeafChildren(path.toString()).forEach(nxt ->
         mActiveTaskMap.remove(nxt.getValue().cancel()));
-    mActiveStatusTasks.getLeafChildren(path.getPath()).forEach(nxt ->
+    mActiveStatusTasks.getLeafChildren(path.toString()).forEach(nxt ->
         mActiveTaskMap.remove(nxt.getValue().cancel()));
   }
 
@@ -189,12 +208,14 @@ public class TaskTracker implements Closeable {
     if (!baseTask.removeOnComplete()) {
       mFinishedTaskMap.put(taskId, baseTask);
     }
+    CANCELLED_TASK_COUNT.inc();
     mActiveTaskMap.remove(taskId);
     baseTask.cancel();
     TrieNode<BaseTask> activeTasks = getActiveTasksForDescendantType(
         baseTask.getTaskInfo().getDescendantType());
     Preconditions.checkNotNull(activeTasks.deleteIf(
-            baseTask.getTaskInfo().getBasePath().getPath(), a -> true), "task missing");
+            baseTask.getTaskInfo().getBasePath().toString(), a -> true), "task missing")
+        .setValue(null);
   }
 
   private TrieNode<BaseTask> getActiveTasksForDescendantType(DescendantType depth) {
@@ -231,10 +252,11 @@ public class TaskTracker implements Closeable {
     BaseTask task;
     synchronized (this) {
       TrieNode<BaseTask> activeTasks = getActiveTasksForDescendantType(depth);
-      task = activeTasks.getLeafChildren(ufsPath.getPath())
+      task = activeTasks.getLeafChildren(ufsPath.toString())
           .map(TrieNode::getValue).filter(nxt -> nxt.pathIsCovered(ufsPath, depth)).findFirst()
           .orElseGet(() -> {
-            TrieNode<BaseTask> newNode = activeTasks.insert(ufsPath.getPath());
+            TrieNode<BaseTask> newNode = activeTasks.insert(ufsPath.toString());
+            Preconditions.checkState(newNode.getValue() == null);
             final long id = mNxtId++;
             BaseTask newTask = BaseTask.create(
                 new TaskInfo(mdSync, ufsPath, alluxioPath, startAfter,
@@ -288,5 +310,16 @@ public class TaskTracker implements Closeable {
   @Override
   public void close() throws IOException {
     mLoadRequestExecutor.close();
+  }
+
+  private void registerMetrics() {
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricsSystem.getMetricName(
+            MetricKey.MASTER_METADATA_SYNC_RUNNING_TASKS.getName()),
+        () -> {
+          synchronized (this) {
+            return mActiveTaskMap.size();
+          }
+        });
   }
 }

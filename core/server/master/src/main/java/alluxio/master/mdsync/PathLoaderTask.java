@@ -14,11 +14,14 @@ package alluxio.master.mdsync;
 import alluxio.AlluxioURI;
 import alluxio.file.options.DescendantType;
 import alluxio.file.options.DirectoryLoadType;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsClient;
 import alluxio.underfs.UfsLoadResult;
 import alluxio.util.RateLimiter;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +39,11 @@ import javax.annotation.Nullable;
  */
 public class PathLoaderTask {
   private static final Logger LOG = LoggerFactory.getLogger(PathLoaderTask.class);
+
+  public static final Counter PROCESS_FAIL_COUNT
+      = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_PROCESSING_FAILED.getName());
+  public static final Counter LOAD_FAIL_COUNT
+      = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_LOADS_FAILED.getName());
 
   /**
    * All load requests that are ready, but have not yet started executing.
@@ -203,6 +211,7 @@ public class PathLoaderTask {
   }
 
   synchronized void onProcessError(Throwable t) {
+    PROCESS_FAIL_COUNT.inc();
     // If there is a processing error then we fail the entire task
     mTaskInfo.getStats().setProcessFailed();
     mCompleted = true;
@@ -210,6 +219,7 @@ public class PathLoaderTask {
   }
 
   void onLoadRequestError(long id, Throwable t) {
+    LOAD_FAIL_COUNT.inc();
     mTaskInfo.getStats().gotLoadError();
     synchronized (this) {
       if (mCompleted) {
@@ -248,5 +258,9 @@ public class PathLoaderTask {
 
   Optional<LoadRequest> getNext() {
     return Optional.ofNullable(mNextLoad.poll());
+  }
+
+  int getPendingLoadCount() {
+    return mNextLoad.size();
   }
 }

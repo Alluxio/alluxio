@@ -108,8 +108,6 @@ public class BatchPathWaiterTest {
       path.onComplete(ans.getArgument(1));
       return null;
     }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
-    // completeFirstLoadRequestEmpty(path);
-    // nxtLoadID++;
 
     Future<Boolean> waiter1 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/1")));
     Future<Boolean> waiter2 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/2")));
@@ -143,8 +141,6 @@ public class BatchPathWaiterTest {
       path.onComplete(ans.getArgument(1));
       return null;
     }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
-    // completeFirstLoadRequestEmpty(path);
-    // nxtLoadID++;
 
     Future<Boolean> waiter1 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/1")));
     Future<Boolean> waiter2 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/2")));
@@ -184,8 +180,6 @@ public class BatchPathWaiterTest {
       path.onComplete(ans.getArgument(1));
       return null;
     }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
-    // completeFirstLoadRequestEmpty(path);
-    // nxtLoadID++;
 
     assertFalse(path.isCompleted().isPresent());
     SyncProcessResult result = new SyncProcessResult(ti, ti.getBasePath(),
@@ -209,8 +203,6 @@ public class BatchPathWaiterTest {
       return null;
     }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
     assertFalse(root.isCompleted().isPresent());
-    // completeFirstLoadRequestEmpty(root);
-    // nxtLoadID++;
 
     // complete </, /ad>, should have |<,/ad>|
     PathSequence completed = new PathSequence(new AlluxioURI("/"),
@@ -264,8 +256,6 @@ public class BatchPathWaiterTest {
       return null;
     }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
     assertFalse(root.isCompleted().isPresent());
-    // completeFirstLoadRequestEmpty(root);
-    // nxtLoadID++;
 
     // complete </, /a>, should have |<,a>|
     PathSequence completed = new PathSequence(new AlluxioURI("/"), new AlluxioURI("/a"));
