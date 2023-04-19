@@ -228,6 +228,8 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 			"integration/metrics/otel-agent-config-worker.yaml",
 			"integration/metrics/otel-collector-config.yaml",
 			"integration/metrics/prometheus.yaml",
+			"integration/tools/ratis-shell/install-ratis-shell.sh",
+			"integration/tools/ratis-shell/README.md",
 		)
 	}
 
@@ -357,7 +359,6 @@ func generateTarball(opts *GenerateTarballOpts) error {
 		run("adding Alluxio FUSE jar", "mv", fmt.Sprintf("integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "fuse", fmt.Sprintf("alluxio-fuse-%v.jar", version)))
 		// Generate Helm templates in the dstPath
 		run("adding Helm chart", "cp", "-r", filepath.Join(srcPath, "integration/kubernetes/helm-chart"), filepath.Join(dstPath, "integration/kubernetes/helm-chart"))
-		run("adding tool dir", "cp", "-r", filepath.Join(srcPath, "integration/tool"), filepath.Join(dstPath, "integration/tool"))
 		if !opts.SkipHelm {
 			chdir(filepath.Join(dstPath, "integration/kubernetes/helm-chart/alluxio/"))
 			run("generate Helm templates", "bash", "helm-generate.sh", "all")

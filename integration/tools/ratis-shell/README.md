@@ -1,5 +1,3 @@
-This part will contain many useful tools
-
 ### Apache Ratis Shell
 `ratis-shell` can manage the ha of alluxio master, you can quickly install it by
 running `install-ratis-shell.sh`.

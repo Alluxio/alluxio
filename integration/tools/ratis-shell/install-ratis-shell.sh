@@ -15,15 +15,15 @@
 #
 set -ex
 
-TOOL_DIR=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
+RATIS_SHELL_DIR=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 # ratis-shell version
 VERSION=$1
 if [ -z "$VERSION" ]; then
   VERSION=2.4.1
 fi
 
-wget -P "$TOOL_DIR" "https://dlcdn.apache.org/ratis/$VERSION/apache-ratis-$VERSION-bin.tar.gz"
-mkdir ratis-shell
-tar -zxvf apache-ratis-$VERSION-bin.tar.gz -C $TOOL_DIR/ratis-shell --strip-component 1
-chmod 755 ratis-shell/bin/ratis
+wget -P "$RATIS_SHELL_DIR" "https://dlcdn.apache.org/ratis/$VERSION/apache-ratis-$VERSION-bin.tar.gz"
+mkdir ratis-cli
+tar -zxvf apache-ratis-$VERSION-bin.tar.gz -C $RATIS_SHELL_DIR/ratis-cli --strip-component 1
+chmod 755 ratis-cli/bin/ratis
 rm apache-ratis-$VERSION-bin.tar.gz
