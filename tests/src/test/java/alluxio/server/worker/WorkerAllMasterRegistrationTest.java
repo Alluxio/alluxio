@@ -22,6 +22,7 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MultiMasterEmbeddedJournalLocalAlluxioCluster;
 import alluxio.master.block.BlockMaster;
@@ -70,7 +71,6 @@ public class WorkerAllMasterRegistrationTest {
         mNumMasters, mNumWorkers, PortCoordination.WORKER_ALL_MASTER_REGISTRATION);
     mCluster.initConfiguration(
         IntegrationTestUtils.getTestName(getClass().getSimpleName(), mTestName.getMethodName()));
-    Configuration.set(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES, 5);
     Configuration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, 100);
     Configuration.set(PropertyKey.WORKER_REGISTER_TO_ALL_MASTERS, true);
     Configuration.set(PropertyKey.STANDBY_MASTER_GRPC_ENABLED, true);
@@ -80,7 +80,6 @@ public class WorkerAllMasterRegistrationTest {
     Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_WRITE_TIMEOUT, "10sec");
     Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT, "3s");
     Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT, "6s");
-    Configuration.set(PropertyKey.WORKER_REGISTER_TO_ALL_MASTERS, true);
 
     mCluster.start();
 
@@ -126,16 +125,28 @@ public class WorkerAllMasterRegistrationTest {
 
     // New blocks are added by committing journals
     CommonUtils.waitFor("wait for blocks being committed to all masters", () ->
-        mBlockMasters.stream().allMatch(
-            it -> it.getBlockMetaStore().getLocations(blockId).size() == 1),
-        mDefaultWaitForOptions);
+        mBlockMasters.stream().allMatch(it -> {
+          try {
+            return it.getBlockMetaStore().getLocations(blockId).size() == 1;
+          } catch (UnavailableRuntimeException e) {
+            // The RocksDB is unavailable due to events like checkpoint
+            // Just retry
+          }
+          return false;
+        }), mDefaultWaitForOptions);
 
     // Removed blocks are reported by worker-master heartbeats
     mWorker.removeBlock(new Random().nextLong(), blockId);
     CommonUtils.waitFor("wait for blocks being removed to all masters", () ->
-        mBlockMasters.stream().allMatch(
-            it -> it.getBlockMetaStore().getLocations(blockId).size() == 0),
-        mDefaultWaitForOptions);
+        mBlockMasters.stream().allMatch(it -> {
+          try {
+            return it.getBlockMetaStore().getLocations(blockId).size() == 0;
+          } catch (UnavailableRuntimeException e) {
+            // The RocksDB is unavailable due to events like checkpoint
+            // Just retry
+          }
+          return false;
+        }), mDefaultWaitForOptions);
 
     assertTrue(mWorker.getBlockSyncMasterGroup().isRegisteredToAllMasters());
 
@@ -180,9 +191,15 @@ public class WorkerAllMasterRegistrationTest {
     // so even if the heartbeat fails, standby are still in sync with primary.
     CommonUtils.waitFor("wait for blocks being committed to all masters by heartbeats",
         () ->
-        mBlockMasters.stream().allMatch(
-            it -> it.getBlockMetaStore().getLocations(blockId).size() == 1),
-        mDefaultWaitForOptions);
+        mBlockMasters.stream().allMatch(it -> {
+          try {
+            return it.getBlockMetaStore().getLocations(blockId).size() == 1;
+          } catch (UnavailableRuntimeException e) {
+            // The RocksDB is unavailable due to events like checkpoint
+            // Just retry
+          }
+          return false;
+        }), mDefaultWaitForOptions);
 
     // Remove a block
     mWorker.removeBlock(new Random().nextLong(), blockId);
@@ -192,9 +209,15 @@ public class WorkerAllMasterRegistrationTest {
     getBlockSyncOperators().values().forEach(TestSpecificMasterBlockSync::restoreHeartbeat);
     CommonUtils.waitFor("wait for blocks being removed on all masters by heartbeats",
         () ->
-            mBlockMasters.stream().allMatch(
-                it -> it.getBlockMetaStore().getLocations(blockId).size() == 0),
-        mDefaultWaitForOptions);
+            mBlockMasters.stream().allMatch(it -> {
+              try {
+                return it.getBlockMetaStore().getLocations(blockId).size() == 0;
+              } catch (UnavailableRuntimeException e) {
+                // The RocksDB is unavailable due to events like checkpoint
+                // Just retry
+              }
+              return false;
+            }), mDefaultWaitForOptions);
 
     // Make sure registration only happen once to each master
     assertTrue(getBlockSyncOperators().values().stream()
@@ -347,10 +370,17 @@ public class WorkerAllMasterRegistrationTest {
     // so the block meta store should not contain any block location
     blockIdsToRemove.add(testFileBlockId);
     CommonUtils.waitFor("wait for blocks propagated to masters by heartbeats",
-        () -> mBlockMasters.stream()
-            .allMatch(it ->
+        () -> mBlockMasters.stream().allMatch(it ->
                 blockIdsToRemove.stream()
-                    .allMatch(blockId -> it.getBlockMetaStore().getLocations(blockId).size() == 0)
+                    .allMatch(blockId -> {
+                      try {
+                        return it.getBlockMetaStore().getLocations(blockId).size() == 0;
+                      } catch (UnavailableRuntimeException e) {
+                        // The RocksDB is unavailable due to events like checkpoint
+                        // Just retry
+                      }
+                      return false;
+                    })
             ),
         mDefaultWaitForOptions);
   }
