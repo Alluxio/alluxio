@@ -374,27 +374,27 @@ public final class PathUtilsTest {
    */
   @Test
   public void hasPrefix() throws InvalidPathException {
-    assertTrue(PathUtils.hasPrefix("/", "/"));
-    assertTrue(PathUtils.hasPrefix("/a/b/c", "/"));
-    assertTrue(PathUtils.hasPrefix("/a", "/a"));
-    assertTrue(PathUtils.hasPrefix("/a/b/c/", "/a/b/c"));
-    assertTrue(PathUtils.hasPrefix("/a", "/a/"));
-    assertTrue(PathUtils.hasPrefix("/a/b/c", "/a"));
-    assertTrue(PathUtils.hasPrefix("/a/b/c", "/a/b"));
-    assertTrue(PathUtils.hasPrefix("/a/b/c", "/a/b/c"));
-    assertTrue(PathUtils.hasPrefix("/a/b/c/d/e", "/a/b/"));
-    assertTrue(PathUtils.hasPrefix("/a/b/./c/../d", "/a/../a/b/d"));
-    assertFalse(PathUtils.hasPrefix("/a/b/../c", "/a/b"));
-    assertFalse(PathUtils.hasPrefix("/", "/a"));
-    assertFalse(PathUtils.hasPrefix("/", "/a/b/c"));
-    assertFalse(PathUtils.hasPrefix("/a", "/a/b/c"));
-    assertFalse(PathUtils.hasPrefix("/a/b", "/a/b/c"));
-    assertFalse(PathUtils.hasPrefix("/a/b/c", "/aa"));
-    assertFalse(PathUtils.hasPrefix("/a/b/c", "/a/bb"));
-    assertFalse(PathUtils.hasPrefix("/a/b/c", "/a/b/cc"));
-    assertFalse(PathUtils.hasPrefix("/aa/b/c", "/a"));
-    assertFalse(PathUtils.hasPrefix("/a/bb/c", "/a/b"));
-    assertFalse(PathUtils.hasPrefix("/a/b/cc", "/a/b/c"));
+    assertTrue(PathUtils.hasPrefix("/", "/", false));
+    assertTrue(PathUtils.hasPrefix("/a/b/c", "/", false));
+    assertTrue(PathUtils.hasPrefix("/a", "/a", false));
+    assertTrue(PathUtils.hasPrefix("/a/b/c/", "/a/b/c", false));
+    assertTrue(PathUtils.hasPrefix("/a", "/a/", false));
+    assertTrue(PathUtils.hasPrefix("/a/b/c", "/a", false));
+    assertTrue(PathUtils.hasPrefix("/a/b/c", "/a/b", false));
+    assertTrue(PathUtils.hasPrefix("/a/b/c", "/a/b/c", false));
+    assertTrue(PathUtils.hasPrefix("/a/b/c/d/e", "/a/b/", false));
+    assertTrue(PathUtils.hasPrefix("/a/b/./c/../d", "/a/../a/b/d", false));
+    assertFalse(PathUtils.hasPrefix("/a/b/../c", "/a/b", false));
+    assertFalse(PathUtils.hasPrefix("/", "/a", false));
+    assertFalse(PathUtils.hasPrefix("/", "/a/b/c", false));
+    assertFalse(PathUtils.hasPrefix("/a", "/a/b/c", false));
+    assertFalse(PathUtils.hasPrefix("/a/b", "/a/b/c", false));
+    assertFalse(PathUtils.hasPrefix("/a/b/c", "/aa", false));
+    assertFalse(PathUtils.hasPrefix("/a/b/c", "/a/bb", false));
+    assertFalse(PathUtils.hasPrefix("/a/b/c", "/a/b/cc", false));
+    assertFalse(PathUtils.hasPrefix("/aa/b/c", "/a", false));
+    assertFalse(PathUtils.hasPrefix("/a/bb/c", "/a/b", false));
+    assertFalse(PathUtils.hasPrefix("/a/b/cc", "/a/b/c", false));
   }
 
   /**

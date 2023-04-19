@@ -171,15 +171,16 @@ public class ActiveSyncManager implements Journaled {
    * @return true if a URI is being actively synced
    */
   public boolean isUnderSyncPoint(AlluxioURI path) {
-    for (AlluxioURI syncedPath : mSyncPathList) {
-      try {
-        if (PathUtils.hasPrefix(path.getPath(), syncedPath.getPath())
+    try {
+      String cleanedPath = PathUtils.cleanPath(path.getPath());
+      for (AlluxioURI syncedPath : mSyncPathList) {
+        if (PathUtils.hasPrefix(cleanedPath, PathUtils.cleanPath(syncedPath.getPath()), false)
             && mMountTable.getMountPoint(path).equals(mMountTable.getMountPoint(syncedPath))) {
           return true;
         }
-      } catch (InvalidPathException e) {
-        return false;
       }
+    } catch (InvalidPathException e) {
+      return false;
     }
     return false;
   }

@@ -72,7 +72,7 @@ public final class MigrateDefinition
     AlluxioURI destination = new AlluxioURI(config.getDestination());
     // The source cannot be a prefix of the destination -
     // that would be migrating a path inside itself.
-    if (PathUtils.hasPrefix(destination.toString(), source.toString())) {
+    if (PathUtils.hasPrefix(destination.toString(), source.toString(), true)) {
       throw new RuntimeException(ExceptionMessage.MIGRATE_CANNOT_BE_TO_SUBDIRECTORY.getMessage(
           source, config.getDestination()));
     }

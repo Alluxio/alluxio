@@ -2938,7 +2938,8 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
     // Renaming a path to one of its subpaths is not allowed. Check for that, by making sure
     // srcComponents isn't a prefix of dstComponents.
-    if (PathUtils.hasPrefix(dstInodePath.getUri().getPath(), srcInodePath.getUri().getPath())) {
+    if (PathUtils.hasPrefix(dstInodePath.getUri().getPath(), srcInodePath.getUri().getPath(),
+        true)) {
       throw new InvalidPathException(
           MessageFormat.format("Cannot rename because {0} is a prefix of {1}",
               srcInodePath.getUri(), dstInodePath.getUri()));

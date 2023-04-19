@@ -126,7 +126,7 @@ public class DistributedCpCommand extends AbstractDistributedJobCommand {
     AlluxioURI srcPath = new AlluxioURI(args[0]);
     AlluxioURI dstPath = new AlluxioURI(args[1]);
 
-    if (PathUtils.hasPrefix(dstPath.toString(), srcPath.toString())) {
+    if (PathUtils.hasPrefix(dstPath.toString(), srcPath.toString(), true)) {
       throw new RuntimeException(
           ExceptionMessage.MIGRATE_CANNOT_BE_TO_SUBDIRECTORY.getMessage(srcPath, dstPath));
     }

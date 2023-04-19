@@ -195,26 +195,39 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
     if (filePath.isEmpty()) {
       return false;
     }
+
+    String cleanedFilePath = "";
+    String cleanedRenameFilePath = "";
+    try {
+      cleanedFilePath = PathUtils.cleanPath(filePath);
+    } catch (InvalidPathException e) {
+      LOG.info("Invalid path encountered {} ", filePath);
+    }
+    try {
+      if (!renameFilePath.isEmpty()) {
+        cleanedRenameFilePath = PathUtils.cleanPath(filePath);
+      }
+    } catch (InvalidPathException e) {
+      LOG.info("Invalid path encountered {} ", filePath);
+    }
+
     for (AlluxioURI syncPoint :  syncPointList) {
       try {
+        String cleanedSyncPointPath = PathUtils.cleanPath(syncPoint.getPath());
         // find out if the changed file falls under one of the sync points
-        if (PathUtils.hasPrefix(filePath, syncPoint.getPath())) {
+        if (PathUtils.hasPrefix(cleanedFilePath, cleanedSyncPointPath, false)) {
           fileMatch = true;
           recordFileChanged(syncPoint.toString(), filePath, txId);
         }
-      } catch (InvalidPathException e) {
-        LOG.info("Invalid path encountered {} ", filePath);
-      }
 
-      try {
         // find out if the changed file falls under one of the sync points
-        if ((!renameFilePath.isEmpty())
-            && PathUtils.hasPrefix(renameFilePath, syncPoint.getPath())) {
+        if ((!cleanedRenameFilePath.isEmpty())
+            && PathUtils.hasPrefix(cleanedRenameFilePath, cleanedSyncPointPath, false)) {
           fileMatch = true;
           recordFileChanged(syncPoint.toString(), renameFilePath, txId);
         }
       } catch (InvalidPathException e) {
-        LOG.info("Invalid path encountered {} ", renameFilePath);
+        LOG.info("Invalid path encountered {} ", syncPoint.getPath());
       }
     }
     try (LockResource r = new LockResource(mWriteLock)) {
