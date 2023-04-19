@@ -11,25 +11,29 @@
 
 package alluxio.master.file.metasync;
 
+import com.codahale.metrics.Counter;
+
 /**
  * The metadata sync operations.
  */
 public enum SyncOperation {
   // Compared but not updated
-  NOOP(0),
-  CREATE(1),
-  DELETE(2),
+  NOOP(0, SyncOperationMetrics.NOOP_COUNT),
+  CREATE(1, SyncOperationMetrics.CREATE_COUNT),
+  DELETE(2, SyncOperationMetrics.DELETE_COUNT),
   // Deleted then created due to the changed file data
-  RECREATE(3),
+  RECREATE(3, SyncOperationMetrics.RECREATED_COUNT),
   // Metadata updated
-  UPDATE(4),
-  SKIPPED_DUE_TO_CONCURRENT_MODIFICATION(5),
-  SKIPPED_ON_MOUNT_POINT(6);
+  UPDATE(4, SyncOperationMetrics.UPDATE_COUNT),
+  SKIPPED_DUE_TO_CONCURRENT_MODIFICATION(5, SyncOperationMetrics.SKIP_CONCURRENT_UPDATE_COUNT),
+  SKIPPED_ON_MOUNT_POINT(6, SyncOperationMetrics.SKIP_MOUNT_POINT_COUNT);
 
   private final int mValue;
+  private final Counter mCounter;
 
-  SyncOperation(int value) {
+  SyncOperation(int value, Counter counter) {
     mValue = value;
+    mCounter = counter;
   }
 
   /**
@@ -62,5 +66,12 @@ public enum SyncOperation {
    */
   public int getValue() {
     return mValue;
+  }
+
+  /**
+   * @return the metric counter
+   */
+  public Counter getCounter() {
+    return mCounter;
   }
 }

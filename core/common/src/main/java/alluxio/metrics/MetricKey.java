@@ -765,6 +765,51 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey MASTER_METADATA_SYNC_FILES_CREATED =
+      new Builder("Master.MetadataSyncV2FilesCreated")
+          .setDescription("The number of files created during processing during metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_FILES_DELETED =
+      new Builder("Master.MetadataSyncV2FilesDeleted")
+          .setDescription("The number of files deleted during processing during metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_FILES_RECREATED =
+      new Builder("Master.MetadataSyncV2FilesRecreated")
+          .setDescription("The number of files recreated during processing during metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_FILES_UPDATED =
+      new Builder("Master.MetadataSyncV2FilesUpdated")
+          .setDescription("The number of files updated during processing during metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_FILES_SKIPPED_CONCURRENT_UPDATE =
+      new Builder("Master.MetadataSyncV2FilesSkippedConcurrentUpdate")
+          .setDescription("The number of files skipped due to concurrent update "
+              + "during processing during metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_FILES_SKIPPED_MOUNT_POINT =
+      new Builder("Master.MetadataSyncV2FilesSkippedMountPoint")
+          .setDescription("The number of files skipped because the inode is a mount point "
+              + "during processing during metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_FILES_NOOP =
+      new Builder("Master.MetadataSyncV2FilesNoop")
+          .setDescription("The number of files at parity between alluxio and UFS "
+              + "during processing during metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
 
   // Metadata sync metrics
   public static final MetricKey MASTER_METADATA_SYNC_UFS_MOUNT =

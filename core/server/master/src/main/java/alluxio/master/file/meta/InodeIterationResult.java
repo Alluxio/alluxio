@@ -42,4 +42,9 @@ public class InodeIterationResult {
   public LockedInodePath getLockedPath() {
     return mLockedPath;
   }
+
+  @Override
+  public String toString() {
+    return mLockedPath.getUri().toString();
+  }
 }

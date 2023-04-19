@@ -182,7 +182,7 @@ public class RecursiveInodeIteratorTest extends InodeStoreTestBase {
       /a/c/f2 (SKIPPED)
       /a/c/f3 (SKIPPED)
       /a/f1
-      /b
+      /b -> SKIP CHILDREN
       /c
       /f1
       /f2
@@ -229,6 +229,7 @@ public class RecursiveInodeIteratorTest extends InodeStoreTestBase {
         assertEquals(inodes.get(idx).getId(), result.getLockedPath().getInode().getId());
         // The locked inode path will become stale after skipChildrenOfTheCurrent() is called.
         if (result.getLockedPath().getUri().getPath().equals("/a/b")
+            || result.getLockedPath().getUri().getPath().equals("/b")
             || result.getLockedPath().getUri().getPath().equals("/a/c")
             || result.getLockedPath().getUri().getPath().equals("/g")) {
           iterator.skipChildrenOfTheCurrent();

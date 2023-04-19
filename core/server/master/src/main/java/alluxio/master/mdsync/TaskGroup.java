@@ -11,6 +11,7 @@
 
 package alluxio.master.mdsync;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.exception.runtime.DeadlineExceededRuntimeException;
 import alluxio.grpc.SyncMetadataTask;
 
@@ -25,7 +26,7 @@ import java.util.stream.Stream;
  * A TaskGroup represents a set of {@link BaseTask} objects.
  */
 public class TaskGroup {
-
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP2")
   final BaseTask[] mTasks;
   final long mGroupId;
 
@@ -85,6 +86,10 @@ public class TaskGroup {
 
   private static long getRemainingTime(
       Stopwatch sw, long timeoutMs) throws DeadlineExceededRuntimeException {
+    // Endless wait
+    if (timeoutMs == 0) {
+      return 0;
+    }
     long remaining = timeoutMs - sw.elapsed(TimeUnit.MILLISECONDS);
     if (remaining <= 0) {
       throw new DeadlineExceededRuntimeException("Task still running.");

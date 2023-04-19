@@ -39,15 +39,17 @@ import javax.annotation.Nullable;
 public class RecursiveInodeIterator implements SkippableInodeIterator {
   private static final Logger LOG = LoggerFactory.getLogger(RecursiveInodeIterator.class);
 
-  Stack<Pair<CloseableIterator<? extends Inode>, LockedInodePath>> mIteratorStack = new Stack<>();
-  ReadOnlyInodeStore mInodeStore;
-  boolean mHasNextCalled = false;
-  boolean mHasNext;
-  List<String> mNameComponents = new ArrayList<>();
-  List<String> mStartAfterPathComponents;
-  LockedInodePath mLastLockedPath = null;
-  Inode mFirst;
-  LockedInodePath mRootPath;
+  private final Stack<Pair<CloseableIterator<? extends Inode>, LockedInodePath>>
+      mIteratorStack = new Stack<>();
+  private final ReadOnlyInodeStore mInodeStore;
+  private boolean mHasNextCalled = false;
+  private boolean mHasNext;
+  private final List<String> mNameComponents = new ArrayList<>();
+  private final List<String> mStartAfterPathComponents;
+  private LockedInodePath mLastLockedPath = null;
+  private Inode mFirst;
+  private final LockedInodePath mRootPath;
+  private boolean mCurrentInodeDirectory;
 
   /**
    * Constructs an instance.
@@ -98,6 +100,10 @@ public class RecursiveInodeIterator implements SkippableInodeIterator {
     if (mHasNextCalled) {
       throw new IllegalStateException("Cannot call hasNext");
     }
+    if (!mCurrentInodeDirectory) {
+      // If the current inode is a file, then this is just a no-op.
+      return;
+    }
     popStack();
     if (mNameComponents.size() > 0) {
       mNameComponents.remove(mNameComponents.size() - 1);
@@ -142,6 +148,7 @@ public class RecursiveInodeIterator implements SkippableInodeIterator {
     if (mFirst != null) {
       Inode ret = mFirst;
       mFirst = null;
+      mCurrentInodeDirectory = ret.isDirectory();
       return new InodeIterationResult(ret, mRootPath);
     }
     Pair<CloseableIterator<? extends Inode>, LockedInodePath> top = mIteratorStack.peek();
@@ -179,6 +186,7 @@ public class RecursiveInodeIterator implements SkippableInodeIterator {
       mLastLockedPath = lockedPath;
     }
     mHasNextCalled = false;
+    mCurrentInodeDirectory = current.isDirectory();
     return new InodeIterationResult(current, lockedPath);
   }
 

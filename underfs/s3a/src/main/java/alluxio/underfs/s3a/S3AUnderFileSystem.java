@@ -308,7 +308,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       }
       httpClientBuilder.proxyConfiguration(proxyBuilder.build());
     }
-    boolean regionSet = true;
+    boolean regionSet = false;
     if (conf.isSet(PropertyKey.UNDERFS_S3_ENDPOINT)) {
       String endpoint = conf.getString(PropertyKey.UNDERFS_S3_ENDPOINT);
       final URI epr = RuntimeHttpUtils.toUri(endpoint, clientConf);
@@ -326,7 +326,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       String defaultRegion = Regions.US_EAST_1.getName();
       clientBuilder.region(Region.of(defaultRegion));
       LOG.warn("Cannot find S3 endpoint or s3 region in Alluxio configuration, "
-              + "set region to {} as default. S3 client v2 does not support global bucket access "
+              + "set region to {} as default. S3 client v2 does not support global bucket access, "
               + "considering specify the region in alluxio config.",
           defaultRegion);
     }
@@ -776,7 +776,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
                 Preconditions.checkState(baseStatus == null);
                 // if descendant type is NONE then we only want to return the directory itself
                 Optional<Stream<UfsStatus>> str = resultStream.findFirst().map(item -> {
-                  if (item.isDirectory()) {
+                  if (item.isDirectory() && item.getName().equals(finalPath)) {
                     return Stream.of(item);
                   } else {
                     if (item.getName().startsWith(finalPath)) {
@@ -795,7 +795,9 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
               onComplete.accept(
                   new UfsLoadResult(resultStream,
                       keyCount,
-                      result.nextContinuationToken(), lastItem, result.isTruncated(), false, true));
+                      result.nextContinuationToken(), lastItem,
+                      descendantType != DescendantType.NONE && result.isTruncated(),
+                      false, true));
             } catch (Throwable t) {
               onError.accept(t);
             }

@@ -184,7 +184,7 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
     System.out.println("Sync duration: " + task.getSyncDurationMs());
     double opsSec = task.getSyncDurationMs() == 0 ? 0
         : (double) task.getSuccessOpCount() / ((double) task.getSyncDurationMs() / (double) 1000);
-    System.out.println(" Ops/sec: " + opsSec);
+    System.out.println("Ops/sec: " + opsSec);
     if (task.hasException()) {
       System.out.println(Constants.ANSI_RED + "Exception: " + Constants.ANSI_RESET);
       System.out.println(Constants.ANSI_RED + "\t" + task.getException().getExceptionType()

@@ -29,6 +29,7 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.TtlAction;
 import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
@@ -93,6 +94,8 @@ public class MetadataSyncer implements SyncProcess {
   public static final FileSystemMasterCommonPOptions NO_TTL_OPTION =
       FileSystemMasterCommonPOptions.newBuilder()
           .setTtl(-1)
+          .setTtlAction(
+              Configuration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class))
           .build();
   private static final Logger LOG = LoggerFactory.getLogger(MetadataSyncer.class);
   private final DefaultFileSystemMaster mFsMaster;

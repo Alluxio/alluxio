@@ -197,6 +197,7 @@ public class MetadataSyncContext implements Closeable {
    * @param operation the operation
    */
   public void reportSyncOperationSuccess(SyncOperation operation) {
+    operation.getCounter().inc();
     reportSyncOperationSuccess(operation, 1);
   }
 
