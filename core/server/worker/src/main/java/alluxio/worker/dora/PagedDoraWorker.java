@@ -50,6 +50,7 @@ import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.ListOptions;
+import alluxio.util.CommonUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -376,14 +377,17 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    * @return a FileInfo
    */
   public alluxio.grpc.FileInfo buildFileInfoFromUfsStatus(UfsStatus status, String ufsFullPath) {
-    AlluxioURI ufsUri = new AlluxioURI(ufsFullPath);
-    String filename = ufsUri.getName();
+    String filename = new AlluxioURI(ufsFullPath).getName();
+    String relativePath = CommonUtils.stripPrefixIfPresent(ufsFullPath, mRootUFS);
+    if (!relativePath.startsWith(AlluxioURI.SEPARATOR)) {
+      relativePath = AlluxioURI.SEPARATOR + relativePath;
+    }
 
     alluxio.grpc.FileInfo.Builder infoBuilder = alluxio.grpc.FileInfo.newBuilder()
         .setFileId(ufsFullPath.hashCode())
         .setName(filename)
-        .setPath(ufsUri.getPath())
-        .setUfsPath(ufsUri.toString())
+        .setPath(relativePath)
+        .setUfsPath(ufsFullPath)
         .setMode(status.getMode())
         .setFolder(status.isDirectory())
         .setOwner(status.getOwner())

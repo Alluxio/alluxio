@@ -56,6 +56,7 @@ import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.util.CommonUtils;
 import alluxio.util.ModeUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockLocationInfo;
@@ -440,9 +441,14 @@ public class UfsBaseFileSystem implements FileSystem {
    */
   private URIStatus transformStatus(UfsStatus ufsStatus, String ufsFullPath) {
     AlluxioURI ufsUri = new AlluxioURI(ufsFullPath);
+    String relativePath = CommonUtils.stripPrefixIfPresent(ufsFullPath, mRootUFS.toString());
+    if (!relativePath.startsWith(AlluxioURI.SEPARATOR)) {
+      relativePath = AlluxioURI.SEPARATOR + relativePath;
+    }
+
     FileInfo info = new FileInfo().setName(ufsUri.getName())
-        .setPath(ufsUri.getPath())
-        .setUfsPath(ufsUri.toString())
+        .setPath(relativePath)
+        .setUfsPath(ufsFullPath)
         .setFileId(ufsUri.toString().hashCode())
         .setFolder(ufsStatus.isDirectory())
         .setOwner(ufsStatus.getOwner())
