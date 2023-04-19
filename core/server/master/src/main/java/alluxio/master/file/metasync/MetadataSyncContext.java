@@ -208,6 +208,7 @@ public class MetadataSyncContext implements Closeable {
    * @param count     the number of successes
    */
   public void reportSyncOperationSuccess(SyncOperation operation, long count) {
+    operation.getCounter().inc(count);
     mTaskInfo.getStats().reportSyncOperationSuccess(operation, count);
   }
 
