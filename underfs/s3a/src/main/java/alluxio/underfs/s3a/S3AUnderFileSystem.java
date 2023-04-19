@@ -13,6 +13,7 @@ package alluxio.underfs.s3a;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.file.options.DescendantType;
 import alluxio.retry.RetryPolicy;
@@ -23,6 +24,7 @@ import alluxio.underfs.UfsLoadResult;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.ModeUtils;
@@ -150,6 +152,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   /** The permissions associated with the bucket. Fetched once and assumed to be immutable. */
   private final Supplier<ObjectPermissions> mPermissions
       = CommonUtils.memoize(this::getPermissionsInternal);
+
+  private final boolean mBlockS3Writes = Configuration.getBoolean(PropertyKey.S3_WRITE_BLOCKED);
 
   static {
     byte[] dirByteHash = DigestUtils.md5(new byte[0]);
@@ -487,6 +491,10 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected boolean copyObject(String src, String dst) {
+    if (mBlockS3Writes) {
+      throw new UnsupportedOperationException(
+          "S3 write operation is blocked because s3.write.blocked is set to true");
+    }
     LOG.debug("Copying {} to {}", src, dst);
     // Retry copy for a few times, in case some AWS internal errors happened during copy.
     int retries = 3;
@@ -513,6 +521,10 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   public boolean createEmptyObject(String key) {
+    if (mBlockS3Writes) {
+      throw new UnsupportedOperationException(
+          "S3 write operation is blocked because s3.write.blocked is set to true");
+    }
     try {
       ObjectMetadata meta = new ObjectMetadata();
       meta.setContentLength(0);
@@ -529,6 +541,10 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected OutputStream createObject(String key) throws IOException {
+    if (mBlockS3Writes) {
+      throw new UnsupportedOperationException(
+          "S3 write operation is blocked because s3.write.blocked is set to true");
+    }
     if (mStreamingUploadEnabled) {
       return new S3ALowLevelOutputStream(mBucketName, key, mClient, mExecutor, mUfsConf);
     }
@@ -538,7 +554,47 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
+  public OutputStream createNonexistingFile(String path) throws IOException {
+    if (mBlockS3Writes) {
+      throw new UnsupportedOperationException(
+          "S3 write operation is blocked because s3.write.blocked is set to true");
+    }
+    return super.createNonexistingFile(path);
+  }
+
+  @Override
+  public OutputStream createNonexistingFile(String path, CreateOptions options) throws IOException {
+    if (mBlockS3Writes) {
+      throw new UnsupportedOperationException(
+          "S3 write operation is blocked because s3.write.blocked is set to true");
+    }
+    return super.createNonexistingFile(path, options);
+  }
+
+  @Override
+  public OutputStream create(String path) throws IOException {
+    if (mBlockS3Writes) {
+      throw new UnsupportedOperationException(
+          "S3 write operation is blocked because s3.write.blocked is set to true");
+    }
+    return super.create(path);
+  }
+
+  @Override
+  public OutputStream create(String path, CreateOptions options) throws IOException {
+    if (mBlockS3Writes) {
+      throw new UnsupportedOperationException(
+          "S3 write operation is blocked because s3.write.blocked is set to true");
+    }
+    return super.create(path, options);
+  }
+
+  @Override
   protected boolean deleteObject(String key) {
+    if (mBlockS3Writes) {
+      throw new UnsupportedOperationException(
+          "S3 write operation is blocked because s3.write.blocked is set to true");
+    }
     try {
       mClient.deleteObject(mBucketName, key);
     } catch (AmazonClientException e) {
@@ -550,6 +606,10 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected List<String> deleteObjects(List<String> keys) throws IOException {
+    if (mBlockS3Writes) {
+      throw new UnsupportedOperationException(
+          "S3 write operation is blocked because s3.write.blocked is set to true");
+    }
     if (!mUfsConf.getBoolean(PropertyKey.UNDERFS_S3_BULK_DELETE_ENABLED)) {
       return super.deleteObjects(keys);
     }

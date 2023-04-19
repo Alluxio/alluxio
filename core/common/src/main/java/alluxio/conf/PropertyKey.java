@@ -7152,6 +7152,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
            .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
            .setScope(Scope.ALL)
            .build();
+  public static final PropertyKey S3_WRITE_BLOCKED =
+      booleanBuilder("s3.write.blocked")
+          .setDescription("If configured, all writes to s3 will be blocked.")
+          .setDefaultValue(false)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.ALL)
+          .build();
+
   //
   // Network TLS support
   //
