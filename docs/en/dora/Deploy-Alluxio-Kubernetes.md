@@ -35,7 +35,7 @@ and enter the helm chart directory.
 Configure [Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) for:
 
 1. (Required) Embedded journal.
-2. (Optional) Worker tiered storage. HostPath is also supported for worker storage.
+2. (Optional) Worker page store. HostPath is also supported for worker storage.
 3. (Optional) Worker metastore. Only required if you use RocksDB for storing metadata on workers.
 
 Here is an example of a persistent volume of type hostPath for Alluxio embedded journal:
@@ -56,8 +56,8 @@ spec:
     path: /tmp/alluxio-journal-0
 ```
 Note:
-- Each journal volume should have capacity at least requested by its corresponding persistent volume claim,
-configurable through the configuration file which will be talked in the next section.
+- Each journal volume should have capacity at least requested by its corresponding persistentVolumeClaim,
+configurable through the configuration file which will be talked in step 3.
 - If using local hostPath persistent volume, make sure user alluxio has RWX permission.
   - Alluxio containers run as user `alluxio` of group `alluxio` with UID 1000 and GID 1000 by default. 
 
@@ -67,6 +67,19 @@ Prepare a configuration file `config.yaml`.
 All configurable properties can be found in file `values.yaml` from the code downloaded in step 1.
 
 You must specify your dataset configurations to enable Dora in your `config.yaml`.
+More specifically, the following section:
+```yaml
+## Dataset ##
+
+dataset:
+  # The path of the dataset. For example, s3://my-bucket/dataset
+  path:
+  # Any credentials for Alluxio to access the dataset. For example,
+  # credentials:
+  #   aws.accessKeyId: XXXXX
+  #   aws.secretKey: xxxx
+  credentials:
+```
 
 ### Step 4
 Install Dora cluster by running 
