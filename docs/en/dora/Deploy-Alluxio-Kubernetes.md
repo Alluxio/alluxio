@@ -66,11 +66,7 @@ configurable through the configuration file which will be talked in the next sec
 Prepare a configuration file `config.yaml`.
 All configurable properties can be found in file `values.yaml` from the code downloaded in step 1.
 
-The following properties must be included to enable Dora.
-```yaml
-properties:
-  alluxio.dora.client.ufs.root: <under_fs_uri>
-```
+You must specify your dataset configurations to enable Dora in your `config.yaml`.
 
 ### Step 4
 Install Dora cluster by running 
