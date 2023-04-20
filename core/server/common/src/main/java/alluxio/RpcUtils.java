@@ -23,6 +23,10 @@ import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
 
 import com.codahale.metrics.Timer;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import io.grpc.StatusException;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
@@ -181,6 +185,50 @@ public final class RpcUtils {
         logger.debug("Exit: {}: {}", methodName, debugDesc);
         MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).dec();
       });
+    }
+  }
+
+  /**
+   * Calls the given method and handled exception. Exceptions are
+   * accounted for in metrics and then rethrown at the end.
+   *
+   * @param logger           the logger to use for this call
+   * @param future           the future to call
+   * @param methodName       the name of the method, used for metrics
+   * @param description      the format string of the description, used for logging
+   * @param responseObserver gRPC response observer
+   * @param args             the arguments for the description
+   * @param <T>              the return type of the method
+   */
+  public static <T> void invoke(Logger logger, ListenableFuture<T> future, String methodName,
+      String description, StreamObserver<T> responseObserver, Object... args) {
+    // avoid string format for better performance if debug is off
+    String debugDesc =
+        logger.isDebugEnabled() ? String.format(description, processObjects(logger, args)) : null;
+    try (MetricsSystem.MultiTimerContext ctx = new MetricsSystem.MultiTimerContext(
+        MetricsSystem.timer(MetricKey.MASTER_TOTAL_RPCS.getName()),
+        MetricsSystem.timer(getQualifiedMetricName(methodName)))) {
+      MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).inc();
+      logger.debug("Enter: {}: {}", methodName, debugDesc);
+      Futures.addCallback(future, new FutureCallback<T>() {
+        @Override
+        public void onSuccess(T result) {
+          responseObserver.onNext(result);
+          responseObserver.onCompleted();
+          logger.debug("Exit: {}: {}", methodName, debugDesc);
+          MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).dec();
+        }
+
+        @Override
+        public void onFailure(Throwable t) {
+          MetricsSystem.counter(getQualifiedFailureMetricName(methodName)).inc();
+          logger.warn("Exception when invoking : {}: {}", methodName, debugDesc, t);
+          responseObserver.onError(
+              AlluxioRuntimeException.from(t).toGrpcStatusRuntimeException());
+          logger.debug("Exit: {}: {}", methodName, debugDesc);
+          MetricsSystem.counter(getQualifiedInProgressMetricName(methodName)).dec();
+        }
+      }, MoreExecutors.directExecutor());
     }
   }
 

@@ -11,6 +11,8 @@
 
 package alluxio.worker.dora;
 
+import alluxio.grpc.File;
+import alluxio.grpc.FileFailure;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsStatus;
@@ -20,7 +22,10 @@ import alluxio.worker.DataWorker;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
 
+import com.google.common.util.concurrent.ListenableFuture;
+
 import java.io.IOException;
+import java.util.List;
 import javax.annotation.Nullable;
 
 /**
@@ -75,4 +80,11 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
   BlockReader createFileReader(String fileId, long offset,
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws IOException;
+
+  /**
+   * Loads files from UFS to Alluxio.
+   * @param files the files to load
+   * @return a list of failed files
+   */
+  ListenableFuture<List<FileFailure>> load(List<File> files);
 }
