@@ -157,9 +157,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
           if (address != null) {
             return address;
           }
-        } catch (InterruptedException e) {
-          throw new RuntimeException(e);
-        } catch (ExecutionException e) {
+        } catch (InterruptedException | ExecutionException e) {
           break;
         }
       }
