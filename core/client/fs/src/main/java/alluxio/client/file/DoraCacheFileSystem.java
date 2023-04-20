@@ -50,6 +50,7 @@ import com.codahale.metrics.Counter;
 import com.google.common.collect.ImmutableList;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import jdk.nashorn.internal.ir.Block;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,10 +72,12 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   private final FileSystemContext mFsContext;
   private final boolean mMetadataCacheEnabled;
 
+  private final long DEFAULT_MOCK_BLOCK_SIZE = 33554432L;
+
   /**
    * Wraps a file system instance to forward messages.
    *
-   * @param fs the underlying file system
+   * @param fs      the underlying file system
    * @param context
    */
   public DoraCacheFileSystem(FileSystem fs, FileSystemContext context) {
@@ -231,7 +234,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
 
   @Override
   public void iterateStatus(AlluxioURI path, ListStatusPOptions options,
-      Consumer<? super URIStatus> action)
+                            Consumer<? super URIStatus> action)
       throws FileDoesNotExistException, IOException, AlluxioException {
     AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
 
@@ -257,7 +260,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
 
   /**
    * Converts the Alluxio based path to UfsBaseFileSystem based path if needed.
-   *
+   * <p>
    * UfsBaseFileSystem expects absolute/full file path. The Dora Worker
    * expects absolute/full file path, too. So we need to convert the input path from Alluxio
    * relative path to full UFS path if it is an Alluxio relative path.
@@ -311,21 +314,33 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     // Dora does not have blocks; to apps who need block location info, we return a virtual block
     // that has size equal to the length of the file, and located on the Dora worker which hosts
     // the file
-    BlockLocation blockLocation = new BlockLocation().setWorkerAddress(workerNetAddress);
-    BlockInfo bi = new BlockInfo()
-        // a dummy block ID which shouldn't be used to identify the block
-        .setBlockId(1)
-        .setLength(status.getLength())
-        .setLocations(ImmutableList.of(blockLocation));
-    FileBlockInfo fbi = new FileBlockInfo()
-        .setUfsLocations(ImmutableList.of(ufsPath.toString()))
-        .setBlockInfo(bi)
-        // the block is the only block of the file, so offset is 0
-        .setOffset(0);
-    BlockLocationInfo blockLocationInfo =
-        new BlockLocationInfo(fbi, ImmutableList.of(workerNetAddress));
+    long blockSize = DEFAULT_MOCK_BLOCK_SIZE;
+    long length = status.getLength();
+    int blockNum = (int) (length / blockSize) + 1;
+    long[] offsets = new long[blockNum];
+    for (int i = 0; i < blockNum; i++) {
+      offsets[i] = i * blockSize;
+    }
+    // construct BlockLocation
     ImmutableList.Builder<BlockLocationInfo> listBuilder = ImmutableList.builder();
-    listBuilder.add(blockLocationInfo);
+    for (int i = 0; i < blockNum; i++) {
+      BlockLocation blockLocation = new BlockLocation().setWorkerAddress(workerNetAddress);
+      BlockInfo bi = new BlockInfo()
+          // a dummy block ID which shouldn't be used to identify the block
+          .setBlockId(i + 1)
+          .setLength(Math.min(blockSize, status.getLength() - offsets[i]))
+          .setLocations(ImmutableList.of(blockLocation));
+
+      FileBlockInfo fbi = new FileBlockInfo()
+          .setUfsLocations(ImmutableList.of(ufsPath.toString()))
+          .setBlockInfo(bi)
+          // the block is the only block of the file, so offset is 0
+          .setOffset(offsets[i]);
+
+      BlockLocationInfo blockLocationInfo =
+          new BlockLocationInfo(fbi, ImmutableList.of(workerNetAddress));
+      listBuilder.add(blockLocationInfo);
+    }
     return listBuilder.build();
   }
 }
