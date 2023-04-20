@@ -50,7 +50,6 @@ import com.codahale.metrics.Counter;
 import com.google.common.collect.ImmutableList;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
-import jdk.nashorn.internal.ir.Block;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,7 +71,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   private final FileSystemContext mFsContext;
   private final boolean mMetadataCacheEnabled;
 
-  private final long DEFAULT_MOCK_BLOCK_SIZE = 33554432L;
+  private static final long DEFAULT_MOCK_BLOCK_SIZE = 33554432L;
 
   /**
    * Wraps a file system instance to forward messages.
@@ -311,9 +310,8 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       throws IOException, AlluxioException {
     AlluxioURI ufsPath = convertAlluxioPathToUFSPath(new AlluxioURI(status.getUfsPath()));
     WorkerNetAddress workerNetAddress = mDoraClient.getWorkerNetAddress(ufsPath.toString());
-    // Dora does not have blocks; to apps who need block location info, we return a virtual block
-    // that has size equal to the length of the file, and located on the Dora worker which hosts
-    // the file
+    // Dora does not have blocks; to apps who need block location info, we split multiple virtual
+    // blocks from a file according to a fixed size
     long blockSize = DEFAULT_MOCK_BLOCK_SIZE;
     long length = status.getLength();
     int blockNum = (int) (length / blockSize) + 1;
@@ -334,7 +332,6 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       FileBlockInfo fbi = new FileBlockInfo()
           .setUfsLocations(ImmutableList.of(ufsPath.toString()))
           .setBlockInfo(bi)
-          // the block is the only block of the file, so offset is 0
           .setOffset(offsets[i]);
 
       BlockLocationInfo blockLocationInfo =
