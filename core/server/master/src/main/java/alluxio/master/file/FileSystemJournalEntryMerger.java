@@ -70,6 +70,14 @@ public class FileSystemJournalEntryMerger implements JournalEntryMerger {
             MutableInodeDirectory.fromJournalEntry(existingEntry.getInodeDirectory());
         if (entry.hasUpdateInode()) {
           inodeDirectory.updateFromEntry(entry.getUpdateInode());
+          // Update Inode directory does not contain directory fingerprint,
+          // so we still need to add the new inode journal entry to the list to keep the
+          // fingerprint update,
+          // while we still merge it with the existing inode directory on as best efforts.
+          if (entry.getUpdateInode().hasUfsFingerprint()
+              && !entry.getUpdateInode().getUfsFingerprint().equals("")) {
+            mJournalEntries.add(entry);
+          }
         } else if (entry.hasUpdateInodeDirectory()) {
           inodeDirectory.updateFromEntry(entry.getUpdateInodeDirectory());
         }
