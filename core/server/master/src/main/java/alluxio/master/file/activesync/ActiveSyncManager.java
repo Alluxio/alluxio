@@ -174,7 +174,7 @@ public class ActiveSyncManager implements Journaled {
     try {
       String cleanedPath = PathUtils.cleanPath(path.getPath());
       for (AlluxioURI syncedPath : mSyncPathList) {
-        if (PathUtils.hasPrefix(cleanedPath, PathUtils.cleanPath(syncedPath.getPath()), false)
+        if (PathUtils.hasPrefix(cleanedPath, PathUtils.cleanPath(syncedPath.getPath()))
             && mMountTable.getMountPoint(path).equals(mMountTable.getMountPoint(syncedPath))) {
           return true;
         }

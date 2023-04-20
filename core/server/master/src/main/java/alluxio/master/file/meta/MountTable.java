@@ -187,11 +187,11 @@ public final class MountTable implements DelegatingJournaled {
           && (ufsUri.getAuthority().toString().equals(mountedUfsUri.getAuthority().toString()))) {
         String mountedUfsPath = mountedUfsUri.getPath().isEmpty() ? "/" : mountedUfsUri.getPath();
         String cleanedMountedUfsPath = PathUtils.cleanPath(mountedUfsPath);
-        if (PathUtils.hasPrefix(cleanedUfsPath, cleanedMountedUfsPath, false)) {
+        if (PathUtils.hasPrefix(cleanedUfsPath, cleanedMountedUfsPath)) {
           throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
               .getMessage(mountedUfsUri.toString(), ufsUri.toString()));
         }
-        if (PathUtils.hasPrefix(cleanedMountedUfsPath, cleanedUfsPath, false)) {
+        if (PathUtils.hasPrefix(cleanedMountedUfsPath, cleanedUfsPath)) {
           throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
               .getMessage(ufsUri.toString(), mountedUfsUri.toString()));
         }
@@ -261,8 +261,7 @@ public final class MountTable implements DelegatingJournaled {
           try {
             String cleanedPath = PathUtils.cleanPath(path);
             for (String mountPath : mState.getMountTable().keySet()) {
-              String cleanedMountPath = PathUtils.cleanPath(mountPath);
-              if (PathUtils.hasPrefix(cleanedMountPath, cleanedPath, false)
+              if (PathUtils.hasPrefix(mountPath, cleanedPath)
                   && (!path.equals(mountPath))) {
                 LOG.warn("The path to unmount {} contains another nested mountpoint {}",
                     path, mountPath);
@@ -369,7 +368,7 @@ public final class MountTable implements DelegatingJournaled {
         if (!containsSelf && mountPath.equals(path)) {
           continue;
         }
-        if (PathUtils.hasPrefix(mountPath, cleanedPath, false)) {
+        if (PathUtils.hasPrefix(mountPath, cleanedPath)) {
           return true;
         }
       }
@@ -395,7 +394,7 @@ public final class MountTable implements DelegatingJournaled {
         if (!containsSelf && mountPath.equals(path)) {
           continue;
         }
-        if (PathUtils.hasPrefix(mountPath, cleanedPath, false)) {
+        if (PathUtils.hasPrefix(mountPath, cleanedPath)) {
           childrenMountPoints.add(entry.getValue());
         }
       }

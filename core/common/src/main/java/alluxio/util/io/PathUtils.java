@@ -325,7 +325,7 @@ public final class PathUtils {
     if (cleanedPath.equals(cleanedPrefix)) {
       return "";
     }
-    if (!hasPrefix(cleanedPath, cleanedPrefix, false)) {
+    if (!hasPrefix(cleanedPath, cleanedPrefix)) {
       throw new RuntimeException(
           String.format("Cannot subtract %s from %s because it is not a prefix", prefix, path));
     }
@@ -365,6 +365,17 @@ public final class PathUtils {
         || prefix.endsWith("/")
         // Exclude cases like `prefix=/a/b/c, path=/a/b/ccc`
         || path.charAt(prefix.length()) == '/';
+  }
+
+  /**
+   * Checks whether the given path contains the given prefix.
+   * @param path a path
+   * @param prefix a prefix
+   * @return whether the given path has the given prefix
+   * @throws InvalidPathException when the path or prefix is invalid
+   */
+  public static boolean hasPrefix(String path, String prefix) throws InvalidPathException {
+    return hasPrefix(path, prefix, false);
   }
 
   /**

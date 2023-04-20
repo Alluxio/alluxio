@@ -215,14 +215,14 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
       try {
         String cleanedSyncPointPath = PathUtils.cleanPath(syncPoint.getPath());
         // find out if the changed file falls under one of the sync points
-        if (PathUtils.hasPrefix(cleanedFilePath, cleanedSyncPointPath, false)) {
+        if (PathUtils.hasPrefix(cleanedFilePath, cleanedSyncPointPath)) {
           fileMatch = true;
           recordFileChanged(syncPoint.toString(), filePath, txId);
         }
 
         // find out if the changed file falls under one of the sync points
         if ((!cleanedRenameFilePath.isEmpty())
-            && PathUtils.hasPrefix(cleanedRenameFilePath, cleanedSyncPointPath, false)) {
+            && PathUtils.hasPrefix(cleanedRenameFilePath, cleanedSyncPointPath)) {
           fileMatch = true;
           recordFileChanged(syncPoint.toString(), renameFilePath, txId);
         }
