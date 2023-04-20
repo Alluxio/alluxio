@@ -70,13 +70,12 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   private final DoraCacheClient mDoraClient;
   private final FileSystemContext mFsContext;
   private final boolean mMetadataCacheEnabled;
-
   private static final long DEFAULT_MOCK_BLOCK_SIZE = 33554432L;
 
   /**
    * Wraps a file system instance to forward messages.
    *
-   * @param fs      the underlying file system
+   * @param fs the underlying file system
    * @param context
    */
   public DoraCacheFileSystem(FileSystem fs, FileSystemContext context) {
@@ -233,7 +232,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
 
   @Override
   public void iterateStatus(AlluxioURI path, ListStatusPOptions options,
-                            Consumer<? super URIStatus> action)
+      Consumer<? super URIStatus> action)
       throws FileDoesNotExistException, IOException, AlluxioException {
     AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
 
@@ -259,7 +258,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
 
   /**
    * Converts the Alluxio based path to UfsBaseFileSystem based path if needed.
-   * <p>
+   *
    * UfsBaseFileSystem expects absolute/full file path. The Dora Worker
    * expects absolute/full file path, too. So we need to convert the input path from Alluxio
    * relative path to full UFS path if it is an Alluxio relative path.
