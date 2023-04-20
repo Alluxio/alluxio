@@ -29,8 +29,8 @@
       <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
       <!-- run properly from sub-project directories -->
       <build.path>${project.parent.parent.parent.parent.basedir}/build</build.path>
-      <glue.version>1.11.820</glue.version>
-      <aws.java.jdk.version>1.11.820</aws.java.jdk.version>
+      <glue.version>1.11.815</glue.version>
+      <aws.java.jdk.version>1.11.563</aws.java.jdk.version>
       <hive-metastore.version>2.3.7</hive-metastore.version>
   </properties>
 

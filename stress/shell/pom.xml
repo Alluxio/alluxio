@@ -46,6 +46,11 @@
       <groupId>org.hdrhistogram</groupId>
       <artifactId>HdrHistogram</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-s3</artifactId>
+      <version>1.11.563</version>
+    </dependency>
 
     <!-- Internal dependencies -->
     <dependency>

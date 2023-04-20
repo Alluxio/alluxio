@@ -187,13 +187,15 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
       // well here seems ought to use http://<master-host>:<master-port>/, and StressBench is hard to know the master ip..?
       // Maybe need nginx deployed with alluxio as using ClientType S3A
       hdfsConf.set("fs.s3a.endpoint", "http://localhost:39999/api/v1/s3");
-      LOG.info(String.format("s3 path is: %s", hdfsConf));
-      LOG.info(String.format("s3 path is: %s", s3path));
+      hdfsConf.set("fs.s3a.path.style.access", "true");
+      hdfsConf.set("fs.s3a.aws.credentials.provider",
+          "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider");
+      URI uri = new URI("s3a", "metadata-test", "/", null);
       for (int i = 0; i < mCachedFs.length; i++) {
         // here the mParameters.mBasePath should be sth like "s3a://bucket-name"
         LOG.info(String.format("Initiating S3A filesystem: %s", s3path));
-        mCachedFs[i] = FileSystem.get(new URI(s3path),
-            hdfsConf);
+        mCachedFs[i] = FileSystem.get(new Path(s3path).toUri(), hdfsConf);
+        LOG.info(String.format("finished Initiating S3A filesystem: %s", s3path));
         LOG.info("", mCachedFs[i]);
       }
     }
@@ -208,7 +210,9 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
       case ALLUXIO_POSIX:
         return new AlluxioFuseBenchThread(context);
       case ALLUXIO_S3A:
-        return new AlluxioS3ABenchThread(context, mCachedFs[index % mCachedNativeFs.length]);
+        LOG.info(String.format("Getting BenchThread index: %d", index));
+        LOG.info(String.format("Getting BenchThread length: %d", mCachedFs.length));
+        return new AlluxioS3ABenchThread(context, mCachedFs[index % mCachedFs.length]);
       default:
         return new AlluxioNativeBenchThread(context,
             mCachedNativeFs[index % mCachedNativeFs.length]);
@@ -573,6 +577,7 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
     @Override
     @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     protected void applyOperation(long counter) throws IOException {
+      LOG.info("S3A Running");
       Path path;
       switch (mParameters.mOperation) {
         case CREATE_DIR:
