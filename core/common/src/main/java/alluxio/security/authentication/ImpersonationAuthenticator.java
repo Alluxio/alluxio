@@ -11,7 +11,6 @@
 
 package alluxio.security.authentication;
 
-import alluxio.Constants;
 import alluxio.RuntimeConstants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.AlluxioProperties;
@@ -55,7 +54,7 @@ public final class ImpersonationAuthenticator {
   // Maps users configured for impersonation to the set of users which they can impersonate.
   private Map<String, Set<String>> mImpersonationUsers;
 
-  private AlluxioConfiguration mConfiguration;
+  private final AlluxioConfiguration mConfiguration;
   private final ReentrantReadWriteLock mLock = new ReentrantReadWriteLock();
 
   /**
