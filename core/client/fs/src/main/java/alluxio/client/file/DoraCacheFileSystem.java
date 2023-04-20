@@ -70,7 +70,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   private final DoraCacheClient mDoraClient;
   private final FileSystemContext mFsContext;
   private final boolean mMetadataCacheEnabled;
-  private static final long DEFAULT_MOCK_BLOCK_SIZE = 33554432L;
+  private final long mDefaultVirtualBlockSize;
 
   /**
    * Wraps a file system instance to forward messages.
@@ -84,6 +84,8 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     mFsContext = context;
     mMetadataCacheEnabled = context.getClusterConf()
         .getBoolean(PropertyKey.DORA_CLIENT_METADATA_CACHE_ENABLED);
+    mDefaultVirtualBlockSize = context.getClusterConf()
+        .getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   @Override
@@ -311,27 +313,24 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     WorkerNetAddress workerNetAddress = mDoraClient.getWorkerNetAddress(ufsPath.toString());
     // Dora does not have blocks; to apps who need block location info, we split multiple virtual
     // blocks from a file according to a fixed size
-    long blockSize = DEFAULT_MOCK_BLOCK_SIZE;
+    long blockSize = mDefaultVirtualBlockSize;
     long length = status.getLength();
-    int blockNum = (int) (length / blockSize) + 1;
-    long[] offsets = new long[blockNum];
-    for (int i = 0; i < blockNum; i++) {
-      offsets[i] = i * blockSize;
-    }
+    int blockNum = length == blockSize ? 1 : (int) (length / blockSize) + 1;
     // construct BlockLocation
     ImmutableList.Builder<BlockLocationInfo> listBuilder = ImmutableList.builder();
     for (int i = 0; i < blockNum; i++) {
+      long offset = i * blockSize;
       BlockLocation blockLocation = new BlockLocation().setWorkerAddress(workerNetAddress);
       BlockInfo bi = new BlockInfo()
           // a dummy block ID which shouldn't be used to identify the block
           .setBlockId(i + 1)
-          .setLength(Math.min(blockSize, status.getLength() - offsets[i]))
+          .setLength(Math.min(blockSize, status.getLength() - offset))
           .setLocations(ImmutableList.of(blockLocation));
 
       FileBlockInfo fbi = new FileBlockInfo()
           .setUfsLocations(ImmutableList.of(ufsPath.toString()))
           .setBlockInfo(bi)
-          .setOffset(offsets[i]);
+          .setOffset(offset);
 
       BlockLocationInfo blockLocationInfo =
           new BlockLocationInfo(fbi, ImmutableList.of(workerNetAddress));
