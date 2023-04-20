@@ -15,9 +15,10 @@ package alluxio.master.block.meta;
  * The worker state maintained by master.
  */
 public enum WorkerState {
-  LIVE("In Service"),
-  LOST("Out of Service"),
-  DECOMMISSIONED("Decommissioned");
+  LIVE("ACTIVE"),
+  LOST("LOST"),
+  DECOMMISSIONED("Decommissioned"),
+  DISABLED("Disabled");
   private final String mState;
 
   WorkerState(String s) {
