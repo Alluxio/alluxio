@@ -1247,7 +1247,7 @@ public class InodeSyncStream {
           ? rpcContext
           : new RpcContext(
               rpcContext.getBlockDeletionContext(), merger, rpcContext.getOperationContext());
-      fsMaster.createFileInternal(wrapRpcContext, writeLockedPath, createFileContext);
+      fsMaster.createFileInternal(wrapRpcContext, writeLockedPath, createFileContext, true);
       CompleteFileContext completeContext =
           CompleteFileContext.mergeFrom(CompleteFilePOptions.newBuilder().setUfsLength(ufsLength))
               .setUfsStatus(context.getUfsStatus()).setMetadataLoad(true);

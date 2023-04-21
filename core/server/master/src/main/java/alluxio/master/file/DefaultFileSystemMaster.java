@@ -1739,7 +1739,9 @@ public class DefaultFileSystemMaster extends CoreMaster
     createFileContext.setMetadataLoad(true, false);
     createFileContext.setFingerprint(getUfsFingerprint(inodePath.getUri(), ufsStatus, null));
 
-    List<Inode> inodes = createFileInternal(rpcContext, inodePath, createFileContext);
+    // Ufs absent cache is updated in the metadata syncer when a request processing is done,
+    // so ufs absent cache is not updated here.
+    List<Inode> inodes = createFileInternal(rpcContext, inodePath, createFileContext, false);
 
     commitBlockInfosForFile(blockIds, ufsLength, blockSize, rpcContext.getJournalContext());
     mUfsAbsentPathCache.processExisting(inodePath.getUri());
@@ -1917,7 +1919,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       // for the block info so that we do not have to create a new journal
       // context and flush again
       if (context != null && !(mJournalSystem instanceof UfsJournalSystem)) {
-        mBlockMaster.commitBlockInUFS(blockId, currentBlockSize, context);
+        mBlockMaster.commitBlockInUFS(blockId, currentBlockSize, context, false);
       } else {
         mBlockMaster.commitBlockInUFS(blockId, currentBlockSize);
       }
@@ -1973,7 +1975,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           checkUfsMode(path, OperationType.WRITE);
         }
         deleteFileIfOverwrite(rpcContext, inodePath, context);
-        createFileInternal(rpcContext, inodePath, context);
+        createFileInternal(rpcContext, inodePath, context, true);
         auditContext.setSrcInode(inodePath.getInode()).setSucceeded(true);
         cacheOperation(context);
         return getFileInfoInternal(inodePath);
@@ -2023,7 +2025,7 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @return the list of created inodes
    */
   List<Inode> createFileInternal(RpcContext rpcContext, LockedInodePath inodePath,
-      CreateFileContext context)
+      CreateFileContext context, boolean updateUfsAbsentCache)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException,
       FileDoesNotExistException {
     if (mWhitelist.inList(inodePath.getUri().toString())) {
@@ -2035,7 +2037,9 @@ public class DefaultFileSystemMaster extends CoreMaster
     if (context.isPersisted()) {
       // The path exists in UFS, so it is no longer absent. The ancestors exist in UFS, but the
       // actual file does not exist in UFS yet.
-      mUfsAbsentPathCache.processExisting(inodePath.getUri().getParent());
+      if (updateUfsAbsentCache) {
+        mUfsAbsentPathCache.processExisting(inodePath.getUri().getParent());
+      }
     } else {
       MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
       Metrics.getUfsOpsSavedCounter(resolution.getUfsMountPointUri(),
