@@ -75,11 +75,8 @@ public class SleepingTimer implements HeartbeatTimer {
   @Override
   public long tick() throws InterruptedException {
     long now = mClock.millis();
-    long nextInterval = mIntervalSupplier.getNextInterval(mPreviousTickedMs, now);
-    if (nextInterval > 0) {
-      mSleeper.sleep(Duration.ofMillis(nextInterval),
-          millis -> mIntervalSupplier.getNextInterval(mPreviousTickedMs, now));
-    }
+    mSleeper.sleep(
+        () -> Duration.ofMillis(mIntervalSupplier.getNextInterval(mPreviousTickedMs, now)));
     mPreviousTickedMs = mClock.millis();
     return mIntervalSupplier.getRunLimit(mPreviousTickedMs);
   }
