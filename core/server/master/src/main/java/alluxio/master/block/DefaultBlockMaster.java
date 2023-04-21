@@ -1054,9 +1054,15 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public void commitBlockInUFS(long blockId, long length, JournalContext journalContext) {
+    commitBlockInUFS(blockId, length, journalContext, true);
+  }
+
+  @Override
+  public void commitBlockInUFS(
+      long blockId, long length, JournalContext journalContext, boolean checkExists) {
     LOG.debug("Commit block in ufs. blockId: {}, length: {}", blockId, length);
     try (LockResource r = lockBlock(blockId)) {
-      if (mBlockMetaStore.getBlock(blockId).isPresent()) {
+      if (checkExists && mBlockMetaStore.getBlock(blockId).isPresent()) {
         // Block metadata already exists, so do not need to create a new one.
         return;
       }

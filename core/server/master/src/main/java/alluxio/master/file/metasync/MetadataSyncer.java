@@ -114,6 +114,8 @@ public class MetadataSyncer implements SyncProcess {
       CacheBuilder.newBuilder().maximumSize(1000).build();
   private final AtomicLong mTaskGroupIds = new AtomicLong(0);
 
+  private final UfsAbsentPathCache mUfsAbsentCache;
+
   /**
    * Constructs a metadata syncer.
    *
@@ -139,6 +141,7 @@ public class MetadataSyncer implements SyncProcess {
         Configuration.getBoolean(PropertyKey.MASTER_METADATA_SYNC_UFS_CONCURRENT_LISTING),
         syncPathCache, absentPathCache, this, this::getUfsClient);
     mMdSync = new MdSync(mTaskTracker);
+    mUfsAbsentCache = absentPathCache;
   }
 
   private static String ufsPathToAlluxioPath(String ufsPath, String ufsMount, String alluxioMount) {
@@ -390,6 +393,7 @@ public class MetadataSyncer implements SyncProcess {
           }
         }
         context.updateDirectChildrenLoaded(mInodeTree);
+        context.updateAbsentCache(mUfsAbsentCache);
         // the completed path sequence is from the previous load's
         // last sync path, until our last UFS item
         AlluxioURI syncStart = new AlluxioURI(ufsPathToAlluxioPath(loadResult.getPreviousLast()
@@ -732,8 +736,10 @@ public class MetadataSyncer implements SyncProcess {
     if (ufsLastModified != null) {
       createFileContext.setOperationTimeMs(ufsLastModified);
     }
-    return mFsMaster.createCompleteFileInternalForMetadataSync(
+    List<Inode> result = mFsMaster.createCompleteFileInternalForMetadataSync(
         context.getRpcContext(), lockedInodePath, createFileContext, (UfsFileStatus) ufsStatus);
+    context.addDirectoriesToUpdateAbsentCache(lockedInodePath.getUri().getParent());
+    return result;
   }
 
   private List<Inode> createInodeDirectoryMetadata(

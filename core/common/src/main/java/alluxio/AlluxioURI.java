@@ -459,7 +459,8 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @param cleanPath if the paths should be cleaned
    * @return true the current alluxioURI is an ancestor of the AlluxioURI
    */
-  public boolean isAncestorOf(AlluxioURI alluxioURI, boolean cleanPath) throws InvalidPathException {
+  public boolean isAncestorOf(AlluxioURI alluxioURI, boolean cleanPath)
+      throws InvalidPathException {
     // To be an ancestor of another URI, authority and scheme must match
     if (!Objects.equals(getAuthority(), alluxioURI.getAuthority())) {
       return false;

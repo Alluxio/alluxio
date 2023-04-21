@@ -24,6 +24,7 @@ import alluxio.master.file.RpcContext;
 import alluxio.master.file.contexts.OperationContext;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
+import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.journal.FileSystemMergeJournalContext;
 import alluxio.master.journal.MetadataSyncMergeJournalContext;
 import alluxio.master.mdsync.LoadResult;
@@ -46,6 +47,7 @@ public class MetadataSyncContext implements Closeable {
   private final boolean mAllowConcurrentModification;
   private final FileSystemMasterCommonPOptions mCommonOptions;
   private final Set<AlluxioURI> mDirectoriesToUpdateIsLoaded = new ConcurrentHashSet<>();
+  private final Set<AlluxioURI> mDirectoriesToUpdateAbsentCache = new ConcurrentHashSet<>();
   private final TaskInfo mTaskInfo;
   private final LoadResult mLoadResult;
   @Nullable
@@ -170,6 +172,14 @@ public class MetadataSyncContext implements Closeable {
   }
 
   /**
+   * adds directories which exists and needs to update the absent cache later.
+   * @param path the path
+   */
+  public void addDirectoriesToUpdateAbsentCache(AlluxioURI path) {
+    mDirectoriesToUpdateAbsentCache.add(path);
+  }
+
+  /**
    * updates the direct children loaded flag for directories in a recursive sync.
    *
    * @param inodeTree the inode tree
@@ -188,6 +198,16 @@ public class MetadataSyncContext implements Closeable {
       } catch (FileDoesNotExistException e) {
         throw new RuntimeException(e);
       }
+    }
+  }
+
+  /**
+   * Updates the absent cache and set directories existing.
+   * @param ufsAbsentPathCache the absent cache
+   */
+  public void updateAbsentCache(UfsAbsentPathCache ufsAbsentPathCache) {
+    for (AlluxioURI uri: mDirectoriesToUpdateAbsentCache) {
+      ufsAbsentPathCache.processExisting(uri);
     }
   }
 
