@@ -13,13 +13,11 @@ package alluxio.master.meta;
 
 import alluxio.grpc.NetAddress;
 import alluxio.util.CommonUtils;
-import alluxio.wire.Address;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Proxy information.

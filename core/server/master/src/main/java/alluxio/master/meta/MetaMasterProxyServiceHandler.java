@@ -12,18 +12,9 @@
 package alluxio.master.meta;
 
 import alluxio.RpcUtils;
-import alluxio.grpc.GetMasterIdPRequest;
-import alluxio.grpc.GetMasterIdPResponse;
-import alluxio.grpc.MasterHeartbeatPRequest;
-import alluxio.grpc.MasterHeartbeatPResponse;
-import alluxio.grpc.MetaMasterMasterServiceGrpc;
 import alluxio.grpc.MetaMasterProxyServiceGrpc;
-import alluxio.grpc.NetAddress;
 import alluxio.grpc.ProxyHeartbeatPRequest;
 import alluxio.grpc.ProxyHeartbeatPResponse;
-import alluxio.grpc.RegisterMasterPRequest;
-import alluxio.grpc.RegisterMasterPResponse;
-import alluxio.wire.Address;
 
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
@@ -56,7 +47,6 @@ public final class MetaMasterProxyServiceHandler
     RpcUtils.call(LOG, () -> {
       mMetaMaster.proxyHeartbeat(request);
       return ProxyHeartbeatPResponse.newBuilder().build();
-            },
-            "masterHeartbeat", "request=%s", responseObserver, request);
+    }, "masterHeartbeat", "request=%s", responseObserver, request);
   }
 }

@@ -11,18 +11,11 @@
 
 package alluxio.cli.fsadmin.report;
 
-import alluxio.Constants;
-import alluxio.client.block.BlockMasterClient;
-import alluxio.client.block.options.GetWorkerReportOptions;
-import alluxio.client.meta.MetaMasterClient;
 import alluxio.client.meta.RetryHandlingMetaMasterClient;
-import alluxio.conf.Configuration;
 import alluxio.grpc.BuildVersion;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.ProxyStatus;
-import alluxio.util.CommonUtils;
-import alluxio.wire.WorkerInfo;
-import alluxio.wire.WorkerNetAddress;
+
 import org.hamcrest.collection.IsIterableContainingInOrder;
 import org.joda.time.Instant;
 import org.junit.Assert;
@@ -36,9 +29,7 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class ProxyCommandTest {
   private RetryHandlingMetaMasterClient mMetaMasterClient;
@@ -106,16 +97,22 @@ public class ProxyCommandTest {
     long proxy0HeartbeatTime = Instant.parse("2023-04-21T18:30:05").getMillis();
     NetAddress address0 = NetAddress.newBuilder().setHost("proxy-0").setRpcPort(12345).build();
     BuildVersion version0 = BuildVersion.newBuilder().setVersion("1.0").setRevision("abc").build();
-    ProxyStatus proxy0 = ProxyStatus.newBuilder().setAddress(address0).setState("ACTIVE")
-            .setStartTime(proxy0startTime).setLastHeartbeatTime(proxy0HeartbeatTime).setVersion(version0).build();
+    ProxyStatus proxy0 = ProxyStatus.newBuilder()
+            .setAddress(address0).setState("ACTIVE")
+            .setStartTime(proxy0startTime)
+            .setLastHeartbeatTime(proxy0HeartbeatTime)
+            .setVersion(version0).build();
     infoList.add(proxy0);
 
     long proxy1startTime = Instant.parse("2023-04-21T18:27:07").getMillis();
     long proxy1HeartbeatTime = Instant.parse("2023-04-21T19:05:07").getMillis();
     NetAddress address1 = NetAddress.newBuilder().setHost("proxy-1").setRpcPort(23456).build();
     BuildVersion version1 = BuildVersion.newBuilder().setVersion("1.1").setRevision("abc").build();
-    ProxyStatus proxy1 = ProxyStatus.newBuilder().setAddress(address1).setState("LOST")
-            .setStartTime(proxy1startTime).setLastHeartbeatTime(proxy1HeartbeatTime).setVersion(version1).build();
+    ProxyStatus proxy1 = ProxyStatus.newBuilder()
+            .setAddress(address1).setState("LOST")
+            .setStartTime(proxy1startTime)
+            .setLastHeartbeatTime(proxy1HeartbeatTime)
+            .setVersion(version1).build();
     infoList.add(proxy1);
 
     return infoList;

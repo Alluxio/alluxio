@@ -86,7 +86,6 @@ import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -853,7 +852,6 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       // Nothing to clean up
     }
   }
-
 
   /**
    * Periodically log the config check report.

@@ -112,7 +112,8 @@ public class RetryHandlingMetaMasterClient extends AbstractMasterClient
 
   @Override
   public List<ProxyStatus> listProxyStatus() throws IOException {
-    return retryRPC(() -> mClient.listProxyStatus(ListProxyStatusPRequest.getDefaultInstance()).getProxyStatusesList(),
-            RPC_LOG, "ListProxyStatus", "");
+    return retryRPC(() -> mClient.listProxyStatus(
+        ListProxyStatusPRequest.getDefaultInstance()).getProxyStatusesList(),
+        RPC_LOG, "ListProxyStatus", "");
   }
 }

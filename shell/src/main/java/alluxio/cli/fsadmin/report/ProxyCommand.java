@@ -35,9 +35,12 @@ public class ProxyCommand {
   public static final DateTimeFormatter DATETIME_FORMAT =
           DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).ofPattern("yyyyMMdd-HHmmss")
                   .withLocale(Locale.getDefault()).withZone(ZoneId.systemDefault());
+
   /**
    * Creates a new instance of {@link ProxyCommand}.
    *
+   * @param metaMasterClient the client to talk to the master with
+   * @param printStream the stream to print to
    */
   public ProxyCommand(MetaMasterClient metaMasterClient, PrintStream printStream) {
     mMetaMasterClient = metaMasterClient;
@@ -50,7 +53,8 @@ public class ProxyCommand {
    * @return 0 on success, 1 otherwise
    */
   public int run() throws IOException {
-    String[] header = new String[]{"Address", "State", "Start Time", "Last Heartbeat Time", "Version", "Revision"};
+    String[] header = new String[]{"Address", "State", "Start Time", "Last Heartbeat Time",
+        "Version", "Revision"};
 
     try {
       List<ProxyStatus> allProxyStatus = mMetaMasterClient.listProxyStatus();

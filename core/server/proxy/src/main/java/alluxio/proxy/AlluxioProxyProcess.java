@@ -27,8 +27,8 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.ProxyWebServer;
 import alluxio.web.WebServer;
-
 import alluxio.wire.Address;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -95,7 +95,8 @@ public final class AlluxioProxyProcess implements ProxyProcess {
     // reset proxy web port
     Configuration.set(PropertyKey.PROXY_WEB_PORT,
         mWebServer.getLocalPort());
-    NetAddress proxyAddress = NetAddress.newBuilder().setHost(mWebServer.getBindHost()).setRpcPort(mWebServer.getLocalPort()).build();
+    NetAddress proxyAddress = NetAddress.newBuilder()
+        .setHost(mWebServer.getBindHost()).setRpcPort(mWebServer.getLocalPort()).build();
     mWebServer.start();
     MasterClientContext context = MasterClientContext.newBuilder(ClientContext.create()).build();
     mPool.submit(new HeartbeatThread(HeartbeatContext.PROXY_META_MASTER_SYNC,

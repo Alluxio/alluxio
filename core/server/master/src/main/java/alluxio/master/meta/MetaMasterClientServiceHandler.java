@@ -24,7 +24,6 @@ import alluxio.grpc.GetConfigReportPOptions;
 import alluxio.grpc.GetConfigReportPResponse;
 import alluxio.grpc.GetMasterInfoPOptions;
 import alluxio.grpc.GetMasterInfoPResponse;
-import alluxio.grpc.ListProxyStatusPOptions;
 import alluxio.grpc.ListProxyStatusPRequest;
 import alluxio.grpc.ListProxyStatusPResponse;
 import alluxio.grpc.MasterInfo;
@@ -40,7 +39,6 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -195,7 +193,8 @@ public final class MetaMasterClientServiceHandler
   public void listProxyStatus(ListProxyStatusPRequest request,
                               StreamObserver<ListProxyStatusPResponse> responseObserver) {
     RpcUtils.call(LOG,
-            () -> ListProxyStatusPResponse.newBuilder().addAllProxyStatuses(mMetaMaster.listProxyStatus()).build(),
+        () -> ListProxyStatusPResponse.newBuilder()
+            .addAllProxyStatuses(mMetaMaster.listProxyStatus()).build(),
             "listProxyStatus", "options=%s", responseObserver, request.getOptions());
   }
 }
