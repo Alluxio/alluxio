@@ -26,10 +26,11 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.PriorityBlockingQueue;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 
@@ -50,7 +51,7 @@ public class PathLoaderTask {
    * This must be concurrent safe as other threads will poll it to get the
    * next load request.
    */
-  private final ConcurrentLinkedDeque<LoadRequest> mNextLoad;
+  private final PriorityBlockingQueue<LoadRequest> mNextLoad;
   /**
    * True when the task is completed, must be volatile, as other threads
    * will access it to check if they should stop polling {@link PathLoaderTask#mNextLoad}.
@@ -96,7 +97,13 @@ public class PathLoaderTask {
     // the following loads will be listings
     LoadRequest firstRequest = new LoadRequest(loadId, loadId, mTaskInfo, mTaskInfo.getBasePath(),
         continuationToken, null, computeDescendantType(), true);
-    mNextLoad = new ConcurrentLinkedDeque<>();
+    Comparator<LoadRequest> comparator;
+    if (mTaskInfo.getLoadByDirectory() == DirectoryLoadType.BFS) {
+      comparator = Comparator.comparingLong(LoadRequest::getBatchSetId);
+    } else {
+      comparator = (o1, o2) -> Long.compare(o2.getBatchSetId(), o1.getBatchSetId());
+    }
+    mNextLoad = new PriorityBlockingQueue<>(11, comparator);
     addLoadRequest(firstRequest, true);
     mClientSupplier = clientSupplier;
     try (CloseableResource<UfsClient> client = mClientSupplier.apply(mTaskInfo.getBasePath())) {
@@ -170,11 +177,7 @@ public class PathLoaderTask {
 
   private void addLoadRequest(LoadRequest loadRequest, boolean isFirstForPath) {
     mRunningLoads.put(loadRequest.getLoadRequestId(), loadRequest);
-    if (mTaskInfo.getLoadByDirectory() == DirectoryLoadType.BFS) {
-      mNextLoad.addLast(loadRequest);
-    } else {
-      mNextLoad.addFirst(loadRequest);
-    }
+    mNextLoad.add(loadRequest);
     if (isFirstForPath) {
       mTruncatedLoads.add(loadRequest.getBatchSetId());
     }
