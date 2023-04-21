@@ -42,7 +42,7 @@ public class BasicInodeCache extends RocksInodeStore {
         "Maximum cache size %s must be positive, but is set to %s",
         PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE.getName(), maxSize);
 
-    mCache = Caffeine.newBuilder().build();
+    mCache = Caffeine.newBuilder().initialCapacity(maxSize).maximumSize(maxSize).build();
   }
 
   @Override
