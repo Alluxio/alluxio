@@ -50,6 +50,7 @@ import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.journal.JournalType;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
+import alluxio.master.metastore.caching.BasicInodeCache;
 import alluxio.master.metastore.caching.CachingInodeStore;
 import alluxio.master.metastore.heap.HeapBlockMetaStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
@@ -172,6 +173,7 @@ public class FileSystemMasterTestBase {
     return Arrays.asList(
         lockManager -> new HeapInodeStore(),
         lockManager -> new RocksInodeStore(dir),
+        lockManager -> new BasicInodeCache(dir),
         lockManager -> new CachingInodeStore(new RocksInodeStore(dir), lockManager));
   }
 

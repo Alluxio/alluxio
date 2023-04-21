@@ -40,6 +40,7 @@ import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.metastore.InodeStore;
+import alluxio.master.metastore.caching.BasicInodeCache;
 import alluxio.master.metastore.caching.CachingInodeStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.master.metastore.rocks.RocksInodeStore;
@@ -60,6 +61,7 @@ class InodeBenchBase {
   public static final String HEAP = "heap";
   public static final String ROCKS = "rocks";
   public static final String ROCKSCACHE = "rocksCache";
+  public static final String BASICCACHE = "basicCache";
   private static final CreateDirectoryContext DIRECTORY_CONTEXT = CreateDirectoryContext
       .mergeFrom(CreateDirectoryPOptions.newBuilder().setMode(TEST_DIR_MODE.toProto()))
       .setOwner(TEST_OWNER).setGroup(TEST_GROUP);
@@ -115,6 +117,10 @@ class InodeBenchBase {
         dir =
             AlluxioTestDirectory.createTemporaryDirectory("inode-store-bench").getAbsolutePath();
         return new CachingInodeStore(new RocksInodeStore(dir), lockManager);
+      case BASICCACHE:
+        dir =
+            AlluxioTestDirectory.createTemporaryDirectory("inode-store-bench").getAbsolutePath();
+        return new BasicInodeCache(dir);
       default:
         throw new IllegalStateException("Invalid type: " + inodeStoreType);
     }

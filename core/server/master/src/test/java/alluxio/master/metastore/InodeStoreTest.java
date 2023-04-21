@@ -33,6 +33,7 @@ import alluxio.master.file.meta.MutableInode;
 import alluxio.master.file.meta.MutableInodeDirectory;
 import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.master.metastore.InodeStore.WriteBatch;
+import alluxio.master.metastore.caching.BasicInodeCache;
 import alluxio.master.metastore.caching.CachingInodeStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.master.metastore.rocks.RocksInodeStore;
@@ -75,6 +76,7 @@ public class InodeStoreTest {
     return Arrays.asList(
         lockManager -> new HeapInodeStore(),
         lockManager -> new RocksInodeStore(sDir),
+        lockManager -> new BasicInodeCache(sDir),
         lockManager -> new CachingInodeStore(new RocksInodeStore(sDir), lockManager));
   }
 
