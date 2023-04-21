@@ -32,7 +32,6 @@
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-core</artifactId>
-      <version>1.11.563</version>
     </dependency>
     <dependency>
       <groupId>com.amazonaws</groupId>

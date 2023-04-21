@@ -1,0 +1,643 @@
+{
+  "version" : "4.0.0",
+  "gauges" : {
+    "PS-MarkSweep.count" : {
+      "value" : 2
+    },
+    "PS-MarkSweep.time" : {
+      "value" : 92
+    },
+    "PS-Scavenge.count" : {
+      "value" : 5
+    },
+    "PS-Scavenge.time" : {
+      "value" : 84
+    },
+    "Worker.BlockReaderCompleteTaskCount.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.BlockReaderThreadActiveCount.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.BlockReaderThreadCurrentCount.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.BlockReaderThreadMaxCount.dengxinyudembp" : {
+      "value" : 2048
+    },
+    "Worker.BlockRemoverRemovingBlocksSize" : {
+      "value" : 0
+    },
+    "Worker.BlockRemoverTryRemoveBlocksSize" : {
+      "value" : 0
+    },
+    "Worker.BlockSerializedCompleteTaskCount.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.BlockSerializedThreadActiveCount.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.BlockSerializedThreadCurrentCount.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.BlockSerializedThreadMaxCount.dengxinyudembp" : {
+      "value" : 2048
+    },
+    "Worker.BlockWriterCompleteTaskCount.dengxinyudembp" : {
+      "value" : 2
+    },
+    "Worker.BlockWriterThreadActiveCount.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.BlockWriterThreadCurrentCount.dengxinyudembp" : {
+      "value" : 2
+    },
+    "Worker.BlockWriterThreadMaxCount.dengxinyudembp" : {
+      "value" : 1024
+    },
+    "Worker.BlocksCached.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.CacheManagerCompleteTaskCount.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.CacheManagerThreadActiveCount.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.CacheManagerThreadCurrentCount.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.CacheManagerThreadMaxCount.dengxinyudembp" : {
+      "value" : 16
+    },
+    "Worker.CacheManagerThreadQueueWaitingTaskCount.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.CapacityFree.dengxinyudembp" : {
+      "value" : 3221225472
+    },
+    "Worker.CapacityFreeTierMEM.dengxinyudembp" : {
+      "value" : 3221225472
+    },
+    "Worker.CapacityTotal.dengxinyudembp" : {
+      "value" : 3221225472
+    },
+    "Worker.CapacityTotalTierMEM.dengxinyudembp" : {
+      "value" : 3221225472
+    },
+    "Worker.CapacityUsed.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.CapacityUsedTierMEM.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.Process.pool.direct.mem.used.dengxinyudembp" : {
+      "value" : 1
+    },
+    "Worker.RpcQueueLength" : {
+      "value" : 0
+    },
+    "Worker.RpcThreadActiveCount" : {
+      "value" : 0
+    },
+    "Worker.RpcThreadCurrentCount" : {
+      "value" : 0
+    },
+    "Worker.Server.JvmPauseMonitorInfoTimeExceeded.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.Server.JvmPauseMonitorTotalExtraTime.dengxinyudembp" : {
+      "value" : 3631
+    },
+    "Worker.Server.JvmPauseMonitorWarnTimeExceeded.dengxinyudembp" : {
+      "value" : 0
+    },
+    "blocked.count" : {
+      "value" : 0
+    },
+    "count" : {
+      "value" : 57
+    },
+    "daemon.count" : {
+      "value" : 50
+    },
+    "deadlock.count" : {
+      "value" : 0
+    },
+    "deadlocks" : {
+      "value" : [ ]
+    },
+    "heap.committed" : {
+      "value" : 221249536
+    },
+    "heap.init" : {
+      "value" : 134217728
+    },
+    "heap.max" : {
+      "value" : 1908932608
+    },
+    "heap.usage" : {
+      "value" : 0.07834978740119043
+    },
+    "heap.used" : {
+      "value" : 150491704
+    },
+    "loaded" : {
+      "value" : 7619
+    },
+    "name" : {
+      "value" : "43340@dengxinyudeMBP"
+    },
+    "new.count" : {
+      "value" : 0
+    },
+    "non-heap.committed" : {
+      "value" : 67567616
+    },
+    "non-heap.init" : {
+      "value" : 2555904
+    },
+    "non-heap.max" : {
+      "value" : -1
+    },
+    "non-heap.usage" : {
+      "value" : -6.4955448E7
+    },
+    "non-heap.used" : {
+      "value" : 64955512
+    },
+    "os.cpuLoad" : {
+      "value" : 0.0
+    },
+    "os.freePhysicalMemory" : {
+      "value" : 250535936
+    },
+    "os.maxFileCount" : {
+      "value" : 10240
+    },
+    "os.openFileCount" : {
+      "value" : 158
+    },
+    "os.totalPhysicalMemory" : {
+      "value" : 8589934592
+    },
+    "peak.count" : {
+      "value" : 169
+    },
+    "pools.Code-Cache.committed" : {
+      "value" : 15925248
+    },
+    "pools.Code-Cache.init" : {
+      "value" : 2555904
+    },
+    "pools.Code-Cache.max" : {
+      "value" : 251658240
+    },
+    "pools.Code-Cache.usage" : {
+      "value" : 0.06156794230143229
+    },
+    "pools.Code-Cache.used" : {
+      "value" : 15494080
+    },
+    "pools.Compressed-Class-Space.committed" : {
+      "value" : 5898240
+    },
+    "pools.Compressed-Class-Space.init" : {
+      "value" : 0
+    },
+    "pools.Compressed-Class-Space.max" : {
+      "value" : 1073741824
+    },
+    "pools.Compressed-Class-Space.usage" : {
+      "value" : 0.005072928965091705
+    },
+    "pools.Compressed-Class-Space.used" : {
+      "value" : 5447016
+    },
+    "pools.Metaspace.committed" : {
+      "value" : 45744128
+    },
+    "pools.Metaspace.init" : {
+      "value" : 0
+    },
+    "pools.Metaspace.max" : {
+      "value" : -1
+    },
+    "pools.Metaspace.usage" : {
+      "value" : 0.9627069948737464
+    },
+    "pools.Metaspace.used" : {
+      "value" : 44038192
+    },
+    "pools.PS-Eden-Space.committed" : {
+      "value" : 136314880
+    },
+    "pools.PS-Eden-Space.init" : {
+      "value" : 34078720
+    },
+    "pools.PS-Eden-Space.max" : {
+      "value" : 697303040
+    },
+    "pools.PS-Eden-Space.usage" : {
+      "value" : 0.19433555889846688
+    },
+    "pools.PS-Eden-Space.used" : {
+      "value" : 135510776
+    },
+    "pools.PS-Eden-Space.used-after-gc" : {
+      "value" : 0
+    },
+    "pools.PS-Old-Gen.committed" : {
+      "value" : 79691776
+    },
+    "pools.PS-Old-Gen.init" : {
+      "value" : 89653248
+    },
+    "pools.PS-Old-Gen.max" : {
+      "value" : 1431830528
+    },
+    "pools.PS-Old-Gen.usage" : {
+      "value" : 0.01054380089317386
+    },
+    "pools.PS-Old-Gen.used" : {
+      "value" : 15096936
+    },
+    "pools.PS-Old-Gen.used-after-gc" : {
+      "value" : 15096936
+    },
+    "pools.PS-Survivor-Space.committed" : {
+      "value" : 5242880
+    },
+    "pools.PS-Survivor-Space.init" : {
+      "value" : 5242880
+    },
+    "pools.PS-Survivor-Space.max" : {
+      "value" : 5242880
+    },
+    "pools.PS-Survivor-Space.usage" : {
+      "value" : 0.0
+    },
+    "pools.PS-Survivor-Space.used" : {
+      "value" : 0
+    },
+    "pools.PS-Survivor-Space.used-after-gc" : {
+      "value" : 0
+    },
+    "runnable.count" : {
+      "value" : 29
+    },
+    "terminated.count" : {
+      "value" : 0
+    },
+    "timed_waiting.count" : {
+      "value" : 11
+    },
+    "total.committed" : {
+      "value" : 288817152
+    },
+    "total.init" : {
+      "value" : 136773632
+    },
+    "total.max" : {
+      "value" : 1908932607
+    },
+    "total.used" : {
+      "value" : 215658984
+    },
+    "total_started.count" : {
+      "value" : 318
+    },
+    "unloaded" : {
+      "value" : 0
+    },
+    "uptime" : {
+      "value" : 2040107
+    },
+    "vendor" : {
+      "value" : "AdoptOpenJDK OpenJDK 64-Bit Server VM 25.292-b10 (1.8)"
+    },
+    "waiting.count" : {
+      "value" : 17
+    }
+  },
+  "counters" : {
+    "Worker.ActiveClients.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.BlockRemoverBlocksRemovedCount.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.BlockRemoverTryRemoveCount.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.BlocksAccessed.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.BlocksCancelled.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.BlocksDeleted.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.BlocksEvicted.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.BlocksLost.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.BlocksPromoted.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.BytesWrittenPerUfs.UFS:%2FUsers%2Fdengxinyu%2Falluxio-2%2E8%2E0%2Ftmp.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.CacheBlocksSize.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.CacheFailedBlocks.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.CacheRemoteBlocks.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.CacheRequests.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.CacheRequestsAsync.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.CacheRequestsSync.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.CacheSucceededBlocks.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.CacheUfsBlocks.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.Client.BlockMasterClientCount.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.Client.FileSystemMasterClientCount.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.SetOwnerFailures.UFS:%2FUsers%2Fdengxinyu%2Falluxio-2%2E8%2E0%2Ftmp.UFS_TYPE:local.dengxinyudembp" : {
+      "count" : 1
+    },
+    "Worker.SetOwnerFailures.User:alluxio.UFS:%2FUsers%2Fdengxinyu%2Falluxio-2%2E8%2E0%2Ftmp.UFS_TYPE:local.dengxinyudembp" : {
+      "count" : 1
+    },
+    "Worker.UfsSessionCount-Ufs:%2FUsers%2Fdengxinyu%2Falluxio-2%2E8%2E0%2Ftmp.dengxinyudembp" : {
+      "count" : 0
+    }
+  },
+  "histograms" : { },
+  "meters" : {
+    "Worker.BlocksEvictionRate.dengxinyudembp" : {
+      "count" : 0,
+      "m15_rate" : 0.0,
+      "m1_rate" : 0.0,
+      "m5_rate" : 0.0,
+      "mean_rate" : 0.0,
+      "units" : "events/second"
+    },
+    "Worker.BytesWrittenUfsThroughput.UFS:%2FUsers%2Fdengxinyu%2Falluxio-2%2E8%2E0%2Ftmp.dengxinyudembp" : {
+      "count" : 0,
+      "m15_rate" : 0.0,
+      "m1_rate" : 0.0,
+      "m5_rate" : 0.0,
+      "mean_rate" : 0.0,
+      "units" : "events/second"
+    }
+  },
+  "timers" : {
+    "Worker.ConnectFromWorker.User:alluxio.UFS:%2FUsers%2Fdengxinyu%2Falluxio-2%2E8%2E0%2Ftmp.UFS_TYPE:local.dengxinyudembp" : {
+      "count" : 1,
+      "max" : 0.031923,
+      "mean" : 0.031923,
+      "min" : 0.031923,
+      "p50" : 0.031923,
+      "p75" : 0.031923,
+      "p95" : 0.031923,
+      "p98" : 0.031923,
+      "p99" : 0.031923,
+      "p999" : 0.031923,
+      "stddev" : 0.0,
+      "m15_rate" : 0.09342941724453067,
+      "m1_rate" : 2.202087950876174E-6,
+      "m5_rate" : 0.02038876539491075,
+      "mean_rate" : 0.0014472026829234336,
+      "duration_units" : "milliseconds",
+      "rate_units" : "calls/second"
+    },
+    "Worker.CreateNonexistingFile.UFS:%2FUsers%2Fdengxinyu%2Falluxio-2%2E8%2E0%2Ftmp.UFS_TYPE:local.dengxinyudembp" : {
+      "count" : 1,
+      "max" : 16.577261,
+      "mean" : 16.577261,
+      "min" : 16.577261,
+      "p50" : 16.577261,
+      "p75" : 16.577261,
+      "p95" : 16.577261,
+      "p98" : 16.577261,
+      "p99" : 16.577261,
+      "p999" : 16.577261,
+      "stddev" : 0.0,
+      "m15_rate" : 0.11798288702896774,
+      "m1_rate" : 7.292313774605498E-5,
+      "m5_rate" : 0.04105793151598187,
+      "mean_rate" : 0.002072144221280272,
+      "duration_units" : "milliseconds",
+      "rate_units" : "calls/second"
+    },
+    "Worker.CreateNonexistingFile.User:alluxio.UFS:%2FUsers%2Fdengxinyu%2Falluxio-2%2E8%2E0%2Ftmp.UFS_TYPE:local.dengxinyudembp" : {
+      "count" : 1,
+      "max" : 4.890089,
+      "mean" : 4.890089,
+      "min" : 4.890089,
+      "p50" : 4.890089,
+      "p75" : 4.890089,
+      "p95" : 4.890089,
+      "p98" : 4.890089,
+      "p99" : 4.890089,
+      "p999" : 4.890089,
+      "stddev" : 0.0,
+      "m15_rate" : 0.09342941724453067,
+      "m1_rate" : 2.202087950876174E-6,
+      "m5_rate" : 0.02038876539491075,
+      "mean_rate" : 0.0014472672280374025,
+      "duration_units" : "milliseconds",
+      "rate_units" : "calls/second"
+    },
+    "Worker.Exists.User:alluxio.UFS:%2FUsers%2Fdengxinyu%2Falluxio-2%2E8%2E0%2Ftmp.UFS_TYPE:local.dengxinyudembp" : {
+      "count" : 1,
+      "max" : 0.080459,
+      "mean" : 0.080459,
+      "min" : 0.080459,
+      "p50" : 0.080459,
+      "p75" : 0.080459,
+      "p95" : 0.080459,
+      "p98" : 0.080459,
+      "p99" : 0.080459,
+      "p999" : 0.080459,
+      "stddev" : 0.0,
+      "m15_rate" : 0.09342941724453067,
+      "m1_rate" : 2.202087950876174E-6,
+      "m5_rate" : 0.02038876539491075,
+      "mean_rate" : 0.0014472002549030592,
+      "duration_units" : "milliseconds",
+      "rate_units" : "calls/second"
+    },
+    "Worker.GetConfigHash.User:dengxinyu.dengxinyudembp" : {
+      "count" : 102,
+      "max" : 120.19881699999999,
+      "mean" : 11.528989804775197,
+      "min" : 0.654801,
+      "p50" : 9.500703,
+      "p75" : 13.991285,
+      "p95" : 25.725258999999998,
+      "p98" : 25.725258999999998,
+      "p99" : 25.725258999999998,
+      "p999" : 25.725258999999998,
+      "stddev" : 8.021028474256862,
+      "m15_rate" : 0.10675470396701739,
+      "m1_rate" : 0.03489373699045242,
+      "m5_rate" : 0.04746818397715456,
+      "mean_rate" : 0.050213624773625766,
+      "duration_units" : "milliseconds",
+      "rate_units" : "calls/second"
+    },
+    "Worker.GetId.User:dengxinyu.dengxinyudembp" : {
+      "count" : 1,
+      "max" : 95.905923,
+      "mean" : 95.905923,
+      "min" : 95.905923,
+      "p50" : 95.905923,
+      "p75" : 95.905923,
+      "p95" : 95.905923,
+      "p98" : 95.905923,
+      "p99" : 95.905923,
+      "p999" : 95.905923,
+      "stddev" : 0.0,
+      "m15_rate" : 0.021079844912372688,
+      "m1_rate" : 4.401403975950817E-16,
+      "m5_rate" : 2.34175924158235E-4,
+      "mean_rate" : 4.925006257282173E-4,
+      "duration_units" : "milliseconds",
+      "rate_units" : "calls/second"
+    },
+    "Worker.GetPinList.User:dengxinyu.dengxinyudembp" : {
+      "count" : 2026,
+      "max" : 1465.0725559999998,
+      "mean" : 9.72917094670836,
+      "min" : 0.430948,
+      "p50" : 5.286637,
+      "p75" : 7.8267999999999995,
+      "p95" : 12.947595,
+      "p98" : 20.358047,
+      "p99" : 25.223374999999997,
+      "p999" : 1465.0725559999998,
+      "stddev" : 71.59699583115798,
+      "m15_rate" : 0.9980385230116952,
+      "m1_rate" : 0.999267190214927,
+      "m5_rate" : 0.9977372050849733,
+      "mean_rate" : 0.9978763505573135,
+      "duration_units" : "milliseconds",
+      "rate_units" : "calls/second"
+    },
+    "Worker.GetUfsInfo.User:dengxinyu.dengxinyudembp" : {
+      "count" : 1,
+      "max" : 200.327271,
+      "mean" : 200.327271,
+      "min" : 200.327271,
+      "p50" : 200.327271,
+      "p75" : 200.327271,
+      "p95" : 200.327271,
+      "p98" : 200.327271,
+      "p99" : 200.327271,
+      "p999" : 200.327271,
+      "stddev" : 0.0,
+      "m15_rate" : 0.09342941724453067,
+      "m1_rate" : 2.202087950876174E-6,
+      "m5_rate" : 0.02038876539491075,
+      "mean_rate" : 0.0014453561238989886,
+      "duration_units" : "milliseconds",
+      "rate_units" : "calls/second"
+    },
+    "Worker.Heartbeat.User:dengxinyu.dengxinyudembp" : {
+      "count" : 2026,
+      "max" : 1331.340683,
+      "mean" : 9.305898445560137,
+      "min" : 0.5928829999999999,
+      "p50" : 5.335336,
+      "p75" : 7.296418,
+      "p95" : 10.824641,
+      "p98" : 14.61299,
+      "p99" : 23.653544,
+      "p999" : 1331.340683,
+      "stddev" : 64.98693299754733,
+      "m15_rate" : 0.9970794957445405,
+      "m1_rate" : 0.9838311393414289,
+      "m5_rate" : 0.9949648140628237,
+      "mean_rate" : 0.9977989803102374,
+      "duration_units" : "milliseconds",
+      "rate_units" : "calls/second"
+    },
+    "Worker.Register.User:dengxinyu.dengxinyudembp" : {
+      "count" : 1,
+      "max" : 134.554158,
+      "mean" : 134.554158,
+      "min" : 134.554158,
+      "p50" : 134.554158,
+      "p75" : 134.554158,
+      "p95" : 134.554158,
+      "p98" : 134.554158,
+      "p99" : 134.554158,
+      "p999" : 134.554158,
+      "stddev" : 0.0,
+      "m15_rate" : 0.021079844912372688,
+      "m1_rate" : 4.401403975950817E-16,
+      "m5_rate" : 2.34175924158235E-4,
+      "mean_rate" : 4.92459279152194E-4,
+      "duration_units" : "milliseconds",
+      "rate_units" : "calls/second"
+    },
+    "Worker.SetOwner.UFS:%2FUsers%2Fdengxinyu%2Falluxio-2%2E8%2E0%2Ftmp.UFS_TYPE:local.dengxinyudembp" : {
+      "count" : 1,
+      "max" : 16.450108999999998,
+      "mean" : 16.450108999999998,
+      "min" : 16.450108999999998,
+      "p50" : 16.450108999999998,
+      "p75" : 16.450108999999998,
+      "p95" : 16.450108999999998,
+      "p98" : 16.450108999999998,
+      "p99" : 16.450108999999998,
+      "p999" : 16.450108999999998,
+      "stddev" : 0.0,
+      "m15_rate" : 0.11798288702896774,
+      "m1_rate" : 7.292313774605498E-5,
+      "m5_rate" : 0.04105793151598187,
+      "mean_rate" : 0.002070790861113396,
+      "duration_units" : "milliseconds",
+      "rate_units" : "calls/second"
+    },
+    "Worker.SetOwner.User:alluxio.UFS:%2FUsers%2Fdengxinyu%2Falluxio-2%2E8%2E0%2Ftmp.UFS_TYPE:local.dengxinyudembp" : {
+      "count" : 1,
+      "max" : 6.920743,
+      "mean" : 6.920743,
+      "min" : 6.920743,
+      "p50" : 6.920743,
+      "p75" : 6.920743,
+      "p95" : 6.920743,
+      "p98" : 6.920743,
+      "p99" : 6.920743,
+      "p999" : 6.920743,
+      "stddev" : 0.0,
+      "m15_rate" : 0.09342941724453067,
+      "m1_rate" : 2.202087950876174E-6,
+      "m5_rate" : 0.02038876539491075,
+      "mean_rate" : 0.0014465839229365204,
+      "duration_units" : "milliseconds",
+      "rate_units" : "calls/second"
+    }
+  }
+}
