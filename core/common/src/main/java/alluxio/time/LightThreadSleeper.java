@@ -11,6 +11,8 @@
 
 package alluxio.time;
 
+import alluxio.Constants;
+
 import java.time.Duration;
 import java.util.function.Function;
 
@@ -18,6 +20,8 @@ import java.util.function.Function;
  * A light sleeping utility which delegates to Thread.sleep().
  */
 public final class LightThreadSleeper implements Sleeper {
+  private static final long LIGHT_SLEEP_INTERVAL_MS = Constants.MINUTE;
+
   public static final LightThreadSleeper INSTANCE = new LightThreadSleeper();
 
   private LightThreadSleeper() {} // Use ThreadSleeper.INSTANCE instead.
@@ -28,15 +32,22 @@ public final class LightThreadSleeper implements Sleeper {
   }
 
   public void sleep(Duration duration, Function<Long, Long> function) throws InterruptedException {
+    if (duration.toMillis() < LIGHT_SLEEP_INTERVAL_MS) {
+      sleep(duration);
+      return;
+    }
     long startSleepMs = System.currentTimeMillis();
     long sleepTo = startSleepMs + duration.toMillis();
-    while (System.currentTimeMillis() < sleepTo) {
+    long timeNow;
+    while ((timeNow = System.currentTimeMillis()) < sleepTo) {
+      // TODO(baoloongmao): Make sure we need to config it.
+      Thread.sleep(sleepTo - timeNow > LIGHT_SLEEP_INTERVAL_MS
+          ? LIGHT_SLEEP_INTERVAL_MS : sleepTo - timeNow);
+
       long newInterval = function.apply(duration.toMillis());
       if (newInterval >= 0) {
         sleepTo = startSleepMs + newInterval;
       }
-      // TODO(baoloongmao): Make sure we need to config it.
-      Thread.sleep(60000);
     }
   }
 }
