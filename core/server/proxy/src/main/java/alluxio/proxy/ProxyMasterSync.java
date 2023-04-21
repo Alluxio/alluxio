@@ -42,7 +42,7 @@ public final class ProxyMasterSync implements HeartbeatExecutor {
    * Heartbeats to the primary master node.
    */
   @Override
-  public void heartbeat() {
+  public void heartbeat(long timeLimitMs) {
     try {
       LOG.info("Heart beating to primary master");
       mMasterClient.proxyHeartbeat();

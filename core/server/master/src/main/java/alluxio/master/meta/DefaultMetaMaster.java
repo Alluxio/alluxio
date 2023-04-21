@@ -335,7 +335,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       getExecutorService().submit(new HeartbeatThread(
               HeartbeatContext.MASTER_LOST_PROXY_DETECTION,
               new LostProxyDetectionHeartbeatExecutor(),
-              () -> Configuration.getMs(PropertyKey.MASTER_PROXY_CHECK_HEARTBEAT_INTERVAL),
+              () -> new FixedIntervalSupplier(
+                  Configuration.getMs(PropertyKey.MASTER_PROXY_CHECK_HEARTBEAT_INTERVAL)),
               Configuration.global(), mMasterContext.getUserState()));
 
       if (Configuration.getBoolean(PropertyKey.MASTER_DAILY_BACKUP_ENABLED)) {
@@ -820,7 +821,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     }
 
     @Override
-    public void heartbeat() {
+    public void heartbeat(long timeLimitMs) {
       long proxyTimeoutMs = Configuration.getMs(PropertyKey.MASTER_PROXY_TIMEOUT_MS);
       long masterProxyDeleteTimeoutMs =
               Configuration.getMs(PropertyKey.MASTER_LOST_PROXY_DELETION_TIMEOUT_MS);
