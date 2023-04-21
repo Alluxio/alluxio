@@ -48,17 +48,18 @@
       <artifactId>guava</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.google.inject</groupId>
+      <artifactId>guice</artifactId>
+      <version>5.0.1</version> <!-- S3 proxy invokes a guice method by reflection that is only available since 5.0 -->
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.findify</groupId>
-      <artifactId>s3mock_2.13</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>
@@ -228,6 +229,18 @@
           <version>${project.version}</version>
           <scope>test</scope>
       </dependency>
+    <dependency>
+      <groupId>org.gaul</groupId>
+      <artifactId>s3proxy</artifactId>
+      <version>2.0.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>ch.qos.logback</groupId>
+          <artifactId>logback-classic</artifactId>
+        </exclusion>
+      </exclusions>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <profiles>

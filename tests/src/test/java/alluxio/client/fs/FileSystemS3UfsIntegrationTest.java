@@ -25,13 +25,14 @@ import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.AnonymousAWSCredentials;
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.S3Object;
-import io.findify.s3mock.S3Mock;
 import org.apache.commons.io.IOUtils;
+import org.gaul.s3proxy.junit.S3ProxyRule;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -46,6 +47,11 @@ public class FileSystemS3UfsIntegrationTest extends BaseIntegrationTest {
   private static final String TEST_FILE = "test_file";
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   @Rule
+  public S3ProxyRule mS3Proxy = S3ProxyRule.builder()
+      .withPort(8001)
+      .withCredentials("_", "_")
+      .build();
+  @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, USER_QUOTA_UNIT_BYTES)
@@ -53,29 +59,27 @@ public class FileSystemS3UfsIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.UNDERFS_S3_ENDPOINT_REGION, "us-west-2")
           .setProperty(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS, true)
           .setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, "s3://" + TEST_BUCKET)
-          .setProperty(PropertyKey.S3A_ACCESS_KEY, "_")
-          .setProperty(PropertyKey.S3A_SECRET_KEY, "_")
+          .setProperty(PropertyKey.S3A_ACCESS_KEY, mS3Proxy.getAccessKey())
+          .setProperty(PropertyKey.S3A_SECRET_KEY, mS3Proxy.getSecretKey())
           .setStartCluster(false)
           .build();
   private FileSystem mFileSystem = null;
   private AmazonS3 mS3Client = null;
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
-  private S3Mock mS3MockServer;
   private static final String TEST_BUCKET = "test-bucket";
 
   @Before
   public void before() throws Exception {
-    mS3MockServer = new S3Mock.Builder().withPort(8001).withInMemoryBackend().build();
-    mS3MockServer.start();
-    AwsClientBuilder.EndpointConfiguration
-        endpoint = new AwsClientBuilder.EndpointConfiguration(
-        "http://localhost:8001", "us-west-2");
     mS3Client = AmazonS3ClientBuilder
         .standard()
         .withPathStyleAccessEnabled(true)
-        .withEndpointConfiguration(endpoint)
-        .withCredentials(new AWSStaticCredentialsProvider(new AnonymousAWSCredentials()))
+        .withCredentials(
+            new AWSStaticCredentialsProvider(
+                new BasicAWSCredentials(mS3Proxy.getAccessKey(), mS3Proxy.getSecretKey())))
+        .withEndpointConfiguration(
+            new AwsClientBuilder.EndpointConfiguration(mS3Proxy.getUri().toString(),
+                Regions.US_WEST_2.getName()))
         .build();
     mS3Client.createBucket(TEST_BUCKET);
 
@@ -86,13 +90,6 @@ public class FileSystemS3UfsIntegrationTest extends BaseIntegrationTest {
   @After
   public void after() {
     mS3Client = null;
-    try {
-      if (mS3MockServer != null) {
-        mS3MockServer.shutdown();
-      }
-    } finally {
-      mS3MockServer = null;
-    }
   }
 
   @Test

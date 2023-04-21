@@ -23,14 +23,14 @@ import alluxio.underfs.options.ListOptions;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.AnonymousAWSCredentials;
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.transfer.TransferManager;
-import io.findify.s3mock.S3Mock;
 import org.apache.commons.io.IOUtils;
-import org.junit.After;
+import org.gaul.s3proxy.junit.S3ProxyRule;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -55,42 +55,37 @@ public class S3AUnderFileSystemMockServerTest {
   private S3AUnderFileSystem mS3UnderFileSystem;
   private AmazonS3 mClient;
 
-  private S3Mock mS3MockServer;
+  @Rule
+  public S3ProxyRule mS3Proxy = S3ProxyRule.builder()
+      // This is a must to close the behavior gap between native s3 and s3 proxy
+      .withBlobStoreProvider("transient")
+      .withPort(8001)
+      .withCredentials("_", "_")
+      .build();
 
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public void before() throws AmazonClientException {
-    mS3MockServer = new S3Mock.Builder().withPort(8001).withInMemoryBackend().build();
-    mS3MockServer.start();
-
     AwsClientBuilder.EndpointConfiguration
         endpoint = new AwsClientBuilder.EndpointConfiguration(
         "http://localhost:8001", "us-west-2");
     mClient = AmazonS3ClientBuilder
         .standard()
         .withPathStyleAccessEnabled(true)
-        .withEndpointConfiguration(endpoint)
-        .withCredentials(new AWSStaticCredentialsProvider(new AnonymousAWSCredentials()))
+        .withCredentials(
+            new AWSStaticCredentialsProvider(
+                new BasicAWSCredentials(mS3Proxy.getAccessKey(), mS3Proxy.getSecretKey())))
+        .withEndpointConfiguration(
+            new AwsClientBuilder.EndpointConfiguration(mS3Proxy.getUri().toString(),
+                Regions.US_WEST_2.getName()))
         .build();
     mClient.createBucket(TEST_BUCKET);
     mS3UnderFileSystem =
         new S3AUnderFileSystem(new AlluxioURI("s3://" + TEST_BUCKET), mClient, TEST_BUCKET,
             Executors.newSingleThreadExecutor(), new TransferManager(),
             UnderFileSystemConfiguration.defaults(CONF), false);
-  }
-
-  @After
-  public void after() {
-    mClient = null;
-    try {
-      if (mS3MockServer != null) {
-        mS3MockServer.shutdown();
-      }
-    } finally {
-      mS3MockServer = null;
-    }
   }
 
   @Test

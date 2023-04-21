@@ -118,9 +118,15 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>io.findify</groupId>
-      <artifactId>s3mock_2.13</artifactId>
+      <groupId>org.gaul</groupId>
+      <artifactId>s3proxy</artifactId>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>ch.qos.logback</groupId>
+          <artifactId>logback-classic</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- Internal test dependencies -->
