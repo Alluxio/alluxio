@@ -15,7 +15,7 @@ import java.time.Duration;
 import java.util.function.Function;
 
 /**
- * A sleeping utility which delegates to Thread.sleep().
+ * A light sleeping utility which delegates to Thread.sleep().
  */
 public final class LightThreadSleeper implements Sleeper {
   public static final LightThreadSleeper INSTANCE = new LightThreadSleeper();
