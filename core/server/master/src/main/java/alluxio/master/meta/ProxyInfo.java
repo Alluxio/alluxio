@@ -22,25 +22,25 @@ import javax.annotation.concurrent.NotThreadSafe;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Master information.
+ * Proxy information.
  */
 @NotThreadSafe
 public final class ProxyInfo {
-  /** Master's address. */
+  /** Proxy's address. */
   private final NetAddress mAddress;
-  /** Master's last updated time in ms. */
+  /** Proxy's last updated time in ms. */
   private long mLastHeartbeatTimeMs;
-  /** Master's start time in ms. */
+  /** Proxy's start time in ms. */
   private long mStartTimeMs = 0;
-  /** Master's version. */
+  /** Proxy's version. */
   private String mVersion = "";
-  /** Master's revision. */
+  /** Proxy's revision. */
   private String mRevision = "";
 
   /**
    * Creates a new instance of {@link ProxyInfo}.
    *
-   * @param address the master address to use
+   * @param address the proxy address to use
    */
   public ProxyInfo(NetAddress address) {
     mAddress = Preconditions.checkNotNull(address, "address");
@@ -48,35 +48,35 @@ public final class ProxyInfo {
   }
 
   /**
-   * @return the master's address
+   * @return the proxy's address
    */
   public NetAddress getAddress() {
     return mAddress;
   }
 
   /**
-   * @return the last updated time of the master in ms
+   * @return the last updated time of the proxy in ms
    */
   public long getLastHeartbeatTimeMs() {
     return mLastHeartbeatTimeMs;
   }
 
   /**
-   * @return the start time of the master in ms
+   * @return the start time of the proxy in ms
    */
   public long getStartTimeMs() {
     return mStartTimeMs;
   }
 
   /**
-   * @return the version of the master
+   * @return the version of the proxy
    */
   public String getVersion() {
     return mVersion;
   }
 
   /**
-   * @return the revision of the master
+   * @return the revision of the proxy
    */
   public String getRevision() {
     return mRevision;
@@ -84,35 +84,37 @@ public final class ProxyInfo {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this).add("address", mAddress)
-            .add("lastHeartbeatTimeMs", mLastHeartbeatTimeMs)
-            .add("startTimeMs", mStartTimeMs)
-            .add("version", mVersion).add("revision", mRevision).toString();
+    return MoreObjects.toStringHelper(this)
+        .add("address", mAddress)
+        .add("lastHeartbeatTimeMs", mLastHeartbeatTimeMs)
+        .add("startTimeMs", mStartTimeMs)
+        .add("version", mVersion)
+        .add("revision", mRevision).toString();
   }
 
   /**
-   * @param startTimeMs the start time of the master in ms
+   * @param startTimeMs the start time of the proxy in ms
    */
   public void setStartTimeMs(long startTimeMs) {
     mStartTimeMs = startTimeMs;
   }
 
   /**
-   * @param version the version of the master
+   * @param version the version of the proxy
    */
   public void setVersion(String version) {
     mVersion = version;
   }
 
   /**
-   * @param revision the revision of the master
+   * @param revision the revision of the proxy
    */
   public void setRevision(String revision) {
     mRevision = revision;
   }
 
   /**
-   * Updates the last updated time of the master in ms.
+   * Updates the last updated time of the proxy in ms.
    */
   public void updateLastHeartbeatTimeMs() {
     mLastHeartbeatTimeMs = CommonUtils.getCurrentMs();

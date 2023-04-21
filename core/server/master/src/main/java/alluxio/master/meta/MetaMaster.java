@@ -39,9 +39,6 @@ import java.util.Set;
  * The interface of meta master.
  */
 public interface MetaMaster extends BackupOps, Master {
-
-  void proxyHeartbeat(ProxyHeartbeatPRequest request);
-
   /**
    * @return the cluster ID
    */
@@ -193,5 +190,17 @@ public interface MetaMaster extends BackupOps, Master {
    */
   Map<String, Boolean> updateConfiguration(Map<String, String> propertiesMap);
 
+  /**
+   * A Proxy periodically heartbeats with the primary master.
+   *
+   * @param request the heartbeat message
+   */
+  void proxyHeartbeat(ProxyHeartbeatPRequest request);
+
+  /**
+   * Lists information of all known Proxy instances.
+   *
+   * @return a list of status
+   */
   List<ProxyStatus> listProxyStatus();
 }

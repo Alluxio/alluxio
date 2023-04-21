@@ -52,38 +52,43 @@ public class ProxyCommand {
   public int run() throws IOException {
     String[] header = new String[]{"Address", "State", "Start Time", "Last Heartbeat Time", "Version", "Revision"};
 
-    List<ProxyStatus> allProxyStatus = mMetaMasterClient.listProxyStatus();
-    int liveCount = 0;
-    int lostCount = 0;
-    int maxAddressLength = 24;
-    for (ProxyStatus proxyStatus : allProxyStatus) {
-      String state = proxyStatus.getState();
-      if (state.equals("ACTIVE")) {
-        liveCount++;
-      } else if (state.equals("LOST")) {
-        lostCount++;
+    try {
+      List<ProxyStatus> allProxyStatus = mMetaMasterClient.listProxyStatus();
+      int liveCount = 0;
+      int lostCount = 0;
+      int maxAddressLength = 24;
+      for (ProxyStatus proxyStatus : allProxyStatus) {
+        String state = proxyStatus.getState();
+        if (state.equals("ACTIVE")) {
+          liveCount++;
+        } else if (state.equals("LOST")) {
+          lostCount++;
+        }
+        NetAddress address = proxyStatus.getAddress();
+        String addressStr = address.getHost() + ":" + address.getRpcPort();
+        if (maxAddressLength < addressStr.length()) {
+          maxAddressLength = addressStr.length();
+        }
       }
-      NetAddress address = proxyStatus.getAddress();
-      String addressStr = address.getHost() + ":" + address.getRpcPort();
-      if (maxAddressLength < addressStr.length()) {
-        maxAddressLength = addressStr.length();
-      }
-    }
-    mPrintStream.printf("%s Proxy instances in the cluster, %s serving and %s lost%n%n",
-        liveCount + lostCount, liveCount, lostCount);
+      mPrintStream.printf("%s Proxy instances in the cluster, %s serving and %s lost%n%n",
+              liveCount + lostCount, liveCount, lostCount);
 
-    String format = "%-" + maxAddressLength + "s %-8s %-16s %-20s %-32s %-8s%n";
-    mPrintStream.printf(format, header);
-    for (ProxyStatus proxyStatus : allProxyStatus) {
-      NetAddress address = proxyStatus.getAddress();
-      BuildVersion version = proxyStatus.getVersion();
-      mPrintStream.printf(format,
-          address.getHost() + ":" + address.getRpcPort(),
-          proxyStatus.getState(),
-          DATETIME_FORMAT.format(Instant.ofEpochMilli(proxyStatus.getStartTime())),
-          DATETIME_FORMAT.format(Instant.ofEpochMilli(proxyStatus.getLastHeartbeatTime())),
-              version.getVersion(), version.getRevision());
+      String format = "%-" + maxAddressLength + "s %-8s %-16s %-20s %-32s %-8s%n";
+      mPrintStream.printf(format, header);
+      for (ProxyStatus proxyStatus : allProxyStatus) {
+        NetAddress address = proxyStatus.getAddress();
+        BuildVersion version = proxyStatus.getVersion();
+        mPrintStream.printf(format,
+                address.getHost() + ":" + address.getRpcPort(),
+                proxyStatus.getState(),
+                DATETIME_FORMAT.format(Instant.ofEpochMilli(proxyStatus.getStartTime())),
+                DATETIME_FORMAT.format(Instant.ofEpochMilli(proxyStatus.getLastHeartbeatTime())),
+                version.getVersion(), version.getRevision());
+      }
+      return 0;
+    } catch (Exception e) {
+      e.printStackTrace();
+      return 1;
     }
-    return 0;
   }
 }

@@ -74,5 +74,10 @@ public interface MetaMasterClient extends Client {
    */
   String checkpoint() throws IOException;
 
+  /**
+   * Lists information of all known proxy instances from the primary master.
+   *
+   * @return the list of proxy status
+   */
   List<ProxyStatus> listProxyStatus() throws IOException;
 }

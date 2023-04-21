@@ -149,8 +149,8 @@ enum ErrorType {
 }
 
 message BuildVersion {
-  /** the project version of the worker */
+  /** the project version */
   optional string version = 1;
-  /** the git revision at the time of building the worker */
+  /** the git revision at the time of building */
   optional string revision = 2;
 }

@@ -131,8 +131,10 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   /** Keeps track of standby masters which are no longer in communication with the leader master. */
   private final IndexedSet<MasterInfo> mLostMasters =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
-  
+
+  /** Keeps track of proxies which are in communication with the primary master. */
   private final Map<NetAddress, ProxyInfo> mProxies = new ConcurrentHashMap<>();
+  /** Keeps track of proxies which are no longer in communication with the primary master. */
   private final Map<NetAddress, ProxyInfo> mLostProxies = new ConcurrentHashMap<>();
 
   /** The connect address for the rpc server. */
@@ -677,8 +679,11 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         info.setStartTimeMs(options.getStartTime());
         info.setVersion(options.getVersion().getVersion());
         info.setRevision(options.getVersion().getRevision());
+        info.updateLastHeartbeatTimeMs();
         return info;
       } else {
+        proxyInfo.setVersion(options.getVersion().getVersion());
+        proxyInfo.setRevision(options.getVersion().getRevision());
         proxyInfo.updateLastHeartbeatTimeMs();
         return proxyInfo;
       }

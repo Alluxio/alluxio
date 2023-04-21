@@ -161,7 +161,6 @@ message ListProxyStatusPRequest {
 }
 
 message ListProxyStatusPOptions {
-
 }
 
 message ListProxyStatusPResponse {
@@ -197,6 +196,9 @@ service MetaMasterClientService {
    */
   rpc Checkpoint(CheckpointPOptions) returns (CheckpointPResponse);
 
+  /**
+   * Returns the status of all known Proxy instances in the cluster.
+   */
   rpc ListProxyStatus(ListProxyStatusPRequest) returns (ListProxyStatusPResponse);
 }
 
@@ -330,6 +332,12 @@ message ProxyHeartbeatPRequest {
 message ProxyHeartbeatPResponse {
 }
 
+/**
+  * This interface contains meta master service endpoints for Alluxio Proxy instances.
+  */
 service MetaMasterProxyService {
+  /**
+   * Stateless heartbeat from proxy instances to report the current status.
+   */
   rpc ProxyHeartbeat(ProxyHeartbeatPRequest) returns (ProxyHeartbeatPResponse);
 }

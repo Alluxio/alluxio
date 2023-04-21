@@ -45,7 +45,6 @@ public class ProxyCommandTest {
 
   @Before
   public void prepareDependencies() throws IOException {
-    // Prepare mock block master client
     mMetaMasterClient = Mockito.mock(RetryHandlingMetaMasterClient.class);
   }
 

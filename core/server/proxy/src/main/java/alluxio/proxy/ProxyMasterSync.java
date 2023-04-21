@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.time.Instant;
 import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * The Proxy will maintain a stateless heartbeat with the primary master.
  * This enables the admin to list all living Proxy instances in the cluster.
@@ -27,18 +28,18 @@ public final class ProxyMasterSync implements HeartbeatExecutor {
   /**
    * Creates a new instance of {@link ProxyMasterSync}.
    *
-   * @param masterAddress the master address
+   * @param address the proxy address
    * @param context the communication context
    * @param startTimeMs start time of this instance
    */
-  public ProxyMasterSync(Address masterAddress, MasterClientContext context, long startTimeMs) {
-    mAddress = masterAddress;
+  public ProxyMasterSync(Address address, MasterClientContext context, long startTimeMs) {
+    mAddress = address;
     mMasterClient = new RetryHandlingMetaMasterProxyClient(mAddress, context, startTimeMs);
     LOG.info("Proxy start time is {}", Instant.ofEpochMilli(startTimeMs));
   }
 
   /**
-   * Heartbeats to the leader master node.
+   * Heartbeats to the primary master node.
    */
   @Override
   public void heartbeat() {
