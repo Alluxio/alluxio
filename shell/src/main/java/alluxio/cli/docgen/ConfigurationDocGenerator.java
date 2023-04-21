@@ -105,8 +105,12 @@ public final class ConfigurationDocGenerator {
           fileWriter = fileWriterMap.get("security");
         } else if (pKey.startsWith("alluxio.integration")) {
           fileWriter = fileWriterMap.get("cluster-management");
-        } else {
+        } else if (pKey.startsWith("alluxio.") || pKey.startsWith("fs.")
+            || pKey.startsWith("s3a.")) {
           fileWriter = fileWriterMap.get("common");
+        } else {
+          // skip configuration properties unrelated to Alluxio
+          continue;
         }
         fileWriter.append(keyValueStr);
       }
@@ -183,8 +187,12 @@ public final class ConfigurationDocGenerator {
           fileWriter = fileWriterMap.get("security");
         } else if (pKey.startsWith("alluxio.integration.")) {
           fileWriter = fileWriterMap.get("cluster-management");
-        } else {
+        } else if (pKey.startsWith("alluxio.") || pKey.startsWith("fs.")
+            || pKey.startsWith("s3a.")) {
           fileWriter = fileWriterMap.get("common");
+        } else {
+          // skip configuration properties unrelated to Alluxio
+          continue;
         }
         fileWriter.append(StringEscapeUtils.escapeHtml4(keyValueStr));
       }

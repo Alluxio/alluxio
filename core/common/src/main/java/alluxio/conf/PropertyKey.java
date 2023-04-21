@@ -412,7 +412,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      * @return the updated builder instance
      */
     public Builder setDefaultValue(Object defaultValue) {
-      checkArgument(validateValue(defaultValue, mType, mEnumType, mValueValidationFunction));
+      checkArgument(validateValue(defaultValue, mType, mEnumType, mValueValidationFunction),
+          String.format("default value %s of %s validate failed", defaultValue, mName));
       mDefaultValue = formatValue(defaultValue, mType, mEnumType, mDelimiter);
       return this;
     }
@@ -2613,6 +2614,19 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "{NO_COMPRESSION SNAPPY_COMPRESSION ZLIB_COMPRESSION BZLIB2_COMPRESSION "
               + "LZ4_COMPRESSION LZ4HC_COMPRESSION XPRESS_COMPRESSION ZSTD_COMPRESSION "
               + "DISABLE_COMPRESSION_OPTION}")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_METASTORE_ROCKS_EXCLUSIVE_LOCK_TIMEOUT =
+      durationBuilder(Name.MASTER_METASTORE_ROCKS_EXCLUSIVE_LOCK_TIMEOUT)
+          .setDefaultValue("10s")
+          .setIsHidden(true)
+          .setDescription("Before RocksDB is shut down/restarted/restored, Master will wait for "
+              + "ongoing operations to complete/abort. This timeout specifies how long to wait "
+              + "before forcing the action. Then the leftover operations will fail. Normally the "
+              + "wait will be short, because when master fails over/shuts down/replays journal, "
+              + "all other concurrent operations should have been stopped. This is just one extra "
+              + "safety guard. Therefore we do not recommend setting this manually.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -5473,9 +5487,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS =
       durationBuilder(Name.PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS)
           .setAlias("alluxio.proxy.s3.bucketpathcache.timeout.ms")
-          .setDefaultValue("1min")
+          .setDefaultValue("0min")
           .setDescription("Expire bucket path statistics in cache for this time period. "
-              + "Set 0min to disable the cache.")
+              + "Set 0min to disable the cache. If enabling the cache, "
+              + "be careful that Alluxio S3 API will behave differently from AWS S3 API"
+              + " if bucket path cache entries become stale.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.NONE)
           .build();
@@ -8126,6 +8142,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.rocks.checkpoint.compression.level";
     public static final String MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_TYPE =
         "alluxio.master.metastore.rocks.checkpoint.compression.type";
+    public static final String MASTER_METASTORE_ROCKS_EXCLUSIVE_LOCK_TIMEOUT =
+        "alluxio.master.metastore.rocks.exclusive.lock.timeout";
     public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP =
         "alluxio.master.metastore.rocks.parallel.backup";
     public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS =

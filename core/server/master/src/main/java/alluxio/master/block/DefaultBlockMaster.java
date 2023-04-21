@@ -41,6 +41,7 @@ import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
+import alluxio.heartbeat.FixedIntervalSupplier;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -481,6 +482,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         if (!hasNext()) {
           throw new NoSuchElementException();
         }
+        /*
+         * When the BlockStore is RocksBlockMetaStore, thread safety is embedded in the iterator.
+         * So no need to worry if the RocksDB is closed while this iterator is active.
+         */
         Block block = blockStoreIterator.next();
         BlockInfoEntry blockInfoEntry =
             BlockInfoEntry.newBuilder().setBlockId(block.getId())
@@ -513,7 +518,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         .getMs(PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT);
 
     @Override
-    public void heartbeat() {
+    public void heartbeat(long timeLimitMs) {
       AtomicInteger removedSessions = new AtomicInteger(0);
       mActiveRegisterContexts.entrySet().removeIf((entry) -> {
         WorkerRegisterContext context = entry.getValue();
@@ -558,7 +563,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     if (isLeader || mWorkerRegisterToAllMasters) {
       getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_WORKER_DETECTION, new LostWorkerDetectionHeartbeatExecutor(),
-          () -> Configuration.getMs(PropertyKey.MASTER_LOST_WORKER_DETECTION_INTERVAL),
+          () -> new FixedIntervalSupplier(
+              Configuration.getMs(PropertyKey.MASTER_LOST_WORKER_DETECTION_INTERVAL)),
           Configuration.global(), mMasterContext.getUserState()));
     }
 
@@ -566,7 +572,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_WORKER_REGISTER_SESSION_CLEANER,
             new WorkerRegisterStreamGCExecutor(),
-            () -> Configuration.getMs(PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT),
+            () -> new FixedIntervalSupplier(Configuration.getMs(
+                PropertyKey.MASTER_WORKER_REGISTER_STREAM_RESPONSE_TIMEOUT)),
             Configuration.global(), mMasterContext.getUserState()));
   }
 
@@ -1765,7 +1772,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     public LostWorkerDetectionHeartbeatExecutor() {}
 
     @Override
-    public void heartbeat() {
+    public void heartbeat(long timeLimitMs) {
       long masterWorkerTimeoutMs = Configuration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS);
       long masterWorkerDeleteTimeoutMs =
           Configuration.getMs(PropertyKey.MASTER_LOST_WORKER_DELETION_TIMEOUT_MS);

@@ -91,14 +91,14 @@ public class BlockMasterDeleteLostWorkerIntegrationTest {
     // The worker will not be deleted, if the lost time is less than MASTER_WORKER_TIMEOUT_MS
     long newTimeMs = worker.getLastUpdatedTimeMs() + MASTER_WORKER_TIMEOUT_MS + 1;
     mClock.setTimeMs(newTimeMs);
-    lostWorkerDetector.heartbeat();
+    lostWorkerDetector.heartbeat(Long.MAX_VALUE);
     assertEquals(0, mBlockMaster.getWorkerCount());
     assertEquals(1, mBlockMaster.getLostWorkerCount());
 
     // The worker will be deleted, if the lost time is greater than MASTER_WORKER_TIMEOUT_MS
     newTimeMs = newTimeMs + MASTER_WORKER_DELETE_TIMEOUT_MS + 1;
     mClock.setTimeMs(newTimeMs);
-    lostWorkerDetector.heartbeat();
+    lostWorkerDetector.heartbeat(Long.MAX_VALUE);
     assertEquals(0, mBlockMaster.getWorkerCount());
     assertEquals(0, mBlockMaster.getLostWorkerCount());
   }

@@ -30,7 +30,7 @@ final class UfsCleaner implements HeartbeatExecutor {
   }
 
   @Override
-  public void heartbeat() {
+  public void heartbeat(long timeLimitMs) {
     mFileSystemMaster.cleanupUfs();
   }
 

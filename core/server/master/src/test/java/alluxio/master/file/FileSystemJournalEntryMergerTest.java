@@ -13,6 +13,7 @@ package alluxio.master.file;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.master.block.BlockId;
@@ -111,5 +112,39 @@ public class FileSystemJournalEntryMergerTest {
 
     merger.clear();
     assertEquals(0, merger.getMergedJournalEntries().size());
+  }
+
+  @Test
+  public void testMergeDirectoryFingerprint() {
+    AlluxioURI uri = new AlluxioURI("/dir/test1");
+
+    FileSystemJournalEntryMerger merger = new FileSystemJournalEntryMerger();
+
+    merger.add(Journal.JournalEntry.newBuilder().setInodeDirectory(
+        File.InodeDirectoryEntry.newBuilder().setId(1).setParentId(0)
+            .setPersistenceState(PersistenceState.PERSISTED.name())
+            .setName("test_dir").setPath("test_dir").build()).build());
+
+    merger.add(Journal.JournalEntry.newBuilder().setUpdateInodeDirectory(
+        File.UpdateInodeDirectoryEntry.newBuilder().setId(1)
+            .setDirectChildrenLoaded(true).build()).build());
+
+    merger.add(Journal.JournalEntry.newBuilder().setUpdateInode(
+        File.UpdateInodeEntry.newBuilder().setId(1)
+            .setName("test_dir_updated")
+            .setUfsFingerprint("fingerprint")
+            .build()).build());
+
+    List<Journal.JournalEntry> entries = merger.getMergedJournalEntries();
+    Journal.JournalEntry entry = entries.get(0);
+    assertNotNull(entry.getInodeDirectory());
+    assertEquals(1, entry.getInodeDirectory().getId());
+    assertEquals("test_dir_updated", entry.getInodeDirectory().getName());
+    assertEquals("test_dir", entry.getInodeDirectory().getPath());
+    assertTrue(entry.getInodeDirectory().getDirectChildrenLoaded());
+
+    Journal.JournalEntry entry2 = entries.get(1);
+    assertNotNull(entry2.getUpdateInode());
+    assertEquals("fingerprint", entry2.getUpdateInode().getUfsFingerprint());
   }
 }

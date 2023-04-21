@@ -39,21 +39,25 @@ public interface RocksCheckpointed extends Checkpointed {
                                                    ExecutorService executorService) {
     return CompletableFuture.runAsync(() -> {
       LOG.debug("taking {} snapshot started", getCheckpointName());
-      File subDir = new File(directory, getCheckpointName().toString());
-      try {
-        getRocksStore().writeToCheckpoint(subDir);
-      } catch (RocksDBException e) {
-        throw new AlluxioRuntimeException(Status.INTERNAL,
-            String.format("Failed to take snapshot %s in dir %s", getCheckpointName(), directory),
-            e, ErrorType.Internal, false);
+      try (RocksExclusiveLockHandle lock = getRocksStore().lockForCheckpoint()) {
+        File subDir = new File(directory, getCheckpointName().toString());
+        try {
+          getRocksStore().writeToCheckpoint(subDir);
+        } catch (RocksDBException e) {
+          throw new AlluxioRuntimeException(Status.INTERNAL,
+              String.format("Failed to take snapshot %s in dir %s", getCheckpointName(), directory),
+              e, ErrorType.Internal, false);
+        }
+        LOG.debug("taking {} snapshot finished", getCheckpointName());
       }
-      LOG.debug("taking {} snapshot finished", getCheckpointName());
     }, executorService);
   }
 
   @Override
   default void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
-    getRocksStore().writeToCheckpoint(output);
+    try (RocksExclusiveLockHandle lock = getRocksStore().lockForCheckpoint()) {
+      getRocksStore().writeToCheckpoint(output);
+    }
   }
 
   @Override
@@ -62,7 +66,7 @@ public interface RocksCheckpointed extends Checkpointed {
     return CompletableFuture.runAsync(() -> {
       LOG.debug("loading {} snapshot started", getCheckpointName());
       File subDir = new File(directory, getCheckpointName().toString());
-      try {
+      try (RocksExclusiveLockHandle lock = getRocksStore().lockForRewrite()) {
         getRocksStore().restoreFromCheckpoint(subDir);
       } catch (Exception e) {
         throw new AlluxioRuntimeException(Status.INTERNAL,
@@ -75,6 +79,8 @@ public interface RocksCheckpointed extends Checkpointed {
 
   @Override
   default void restoreFromCheckpoint(CheckpointInputStream input) throws IOException {
-    getRocksStore().restoreFromCheckpoint(input);
+    try (RocksExclusiveLockHandle lock = getRocksStore().lockForRewrite()) {
+      getRocksStore().restoreFromCheckpoint(input);
+    }
   }
 }

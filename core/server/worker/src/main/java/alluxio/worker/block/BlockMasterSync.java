@@ -117,7 +117,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * Heartbeats to the master node about the change in the worker's managed space.
    */
   @Override
-  public void heartbeat() {
+  public void heartbeat(long timeLimitMs) {
     boolean success = mBlockMasterSyncHelper.heartbeat(
         mWorkerId.get(), mBlockWorker.getReport(),
         mBlockWorker.getStoreMeta(), this::handleMasterCommand);

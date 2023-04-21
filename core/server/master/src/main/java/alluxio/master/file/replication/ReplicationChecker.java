@@ -148,7 +148,7 @@ public final class ReplicationChecker implements HeartbeatExecutor {
    * (2) Is there any blocks over replicated, schedule evict jobs to reduce the replication level.
    */
   @Override
-  public void heartbeat() throws InterruptedException {
+  public void heartbeat(long timeLimitMs) throws InterruptedException {
     if (!shouldRun()) {
       return;
     }

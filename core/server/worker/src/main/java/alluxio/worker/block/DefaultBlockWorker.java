@@ -38,6 +38,7 @@ import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.UfsReadOptions;
+import alluxio.heartbeat.FixedIntervalSupplier;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -223,7 +224,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         new PinListSync(this, mFileSystemMasterClient));
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_PIN_LIST_SYNC, pinListSync,
-            () -> Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+            () -> new FixedIntervalSupplier(
+                Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)),
             Configuration.global(), ServerUserState.global()));
 
     // Setup session cleaner
@@ -236,7 +238,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       StorageChecker storageChecker = mResourceCloser.register(new StorageChecker());
       getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.WORKER_STORAGE_HEALTH, storageChecker,
-              () -> Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+              () -> new FixedIntervalSupplier(
+                  Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)),
                   Configuration.global(), ServerUserState.global()));
     }
 
@@ -251,7 +254,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         .register(new BlockMasterSync(this, mWorkerId, mAddress, mBlockMasterClientPool));
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, blockMasterSync,
-            () -> Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+            () -> new FixedIntervalSupplier(
+                Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)),
             Configuration.global(), ServerUserState.global()));
   }
 
@@ -568,7 +572,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public final class StorageChecker implements HeartbeatExecutor {
 
     @Override
-    public void heartbeat() {
+    public void heartbeat(long timeLimitMs) {
       try {
         mBlockStore.removeInaccessibleStorage();
       } catch (Exception e) {

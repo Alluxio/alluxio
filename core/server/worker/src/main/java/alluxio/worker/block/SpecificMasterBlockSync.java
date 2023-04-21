@@ -182,7 +182,7 @@ public class SpecificMasterBlockSync implements HeartbeatExecutor, Closeable {
   }
 
   @Override
-  public synchronized void heartbeat() throws InterruptedException {
+  public synchronized void heartbeat(long runLimit) throws InterruptedException {
     if (mWorkerState == WorkerMasterRegistrationState.NOT_REGISTERED) {
       // Not registered because:
       // 1. The worker just started, we kick off the 1st registration here.

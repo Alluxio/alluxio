@@ -73,16 +73,19 @@ public class IOTaskSummaryTest {
     IOTaskResult result = new IOTaskResult();
     double[] durations = new double[]{1.0, 1.5, 2.0, 1.11};
     long[] sizes = new long[]{200_000_000, 300_000_000, 500_000_000, 800_000_000};
+    double[] speeds = new double[sizes.length];
     for (int i = 0; i < sizes.length; i++) {
       result.addPoint(new IOTaskResult.Point(IOTaskResult.IOMode.READ, durations[i], sizes[i]));
       result.addPoint(new IOTaskResult.Point(IOTaskResult.IOMode.WRITE, durations[i], sizes[i]));
+      speeds[i] = sizes[i] / (durations[i] * 1024 * 1024);
     }
 
     IOTaskSummary summary = new IOTaskSummary(result);
     IOTaskSummary.SpeedStat readStat = summary.getReadSpeedStat();
-    double totalDuration = Arrays.stream(durations).sum();
+    double totalDuration = Arrays.stream(durations).max().orElse(0L);
     long totalSize = Arrays.stream(sizes).sum();
-    double avgSpeed = totalSize / (totalDuration * 1024 * 1024);
+    double avgSpeed = Arrays.stream(speeds).sum() / speeds.length;
+    double clusterAvgSpeed = totalSize / (2.0 * 1024 * 1024);
     double maxSpeed = 800_000_000 / (1.11 * 1024 * 1024);
     double minSpeed = 200_000_000 / (1.0 * 1024 * 1024);
     assertEquals(totalDuration, readStat.mTotalDurationSeconds, 1e-5);
@@ -90,6 +93,7 @@ public class IOTaskSummaryTest {
     assertEquals(avgSpeed, readStat.mAvgSpeedMbps, 1e-5);
     assertEquals(maxSpeed, readStat.mMaxSpeedMbps, 1e-5);
     assertEquals(minSpeed, readStat.mMinSpeedMbps, 1e-5);
+    assertEquals(clusterAvgSpeed, readStat.mClusterAvgSpeedMbps, 1e-5);
 
     IOTaskSummary.SpeedStat writeStat = summary.getWriteSpeedStat();
     assertEquals(totalDuration, writeStat.mTotalDurationSeconds, 1e-5);
@@ -97,6 +101,7 @@ public class IOTaskSummaryTest {
     assertEquals(avgSpeed, writeStat.mAvgSpeedMbps, 1e-5);
     assertEquals(maxSpeed, writeStat.mMaxSpeedMbps, 1e-5);
     assertEquals(minSpeed, writeStat.mMinSpeedMbps, 1e-5);
+    assertEquals(clusterAvgSpeed, writeStat.mClusterAvgSpeedMbps, 1e-5);
   }
 
   private void checkEquality(IOTaskSummary.SpeedStat a, IOTaskSummary.SpeedStat b) {

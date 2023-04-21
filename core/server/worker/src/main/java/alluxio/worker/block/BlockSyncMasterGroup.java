@@ -15,6 +15,7 @@ import alluxio.ClientContext;
 import alluxio.ProcessUtils;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.heartbeat.FixedIntervalSupplier;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.MasterClientContext;
@@ -91,7 +92,8 @@ public class BlockSyncMasterGroup implements Closeable {
     }
     mMasterSyncOperators.values().forEach(blockMasterSync -> executorService
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, blockMasterSync,
-            () -> Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+            () -> new FixedIntervalSupplier(
+                Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)),
             Configuration.global(), ServerUserState.global())));
   }
 
