@@ -98,9 +98,9 @@ public final class AlluxioProxyProcess implements ProxyProcess {
     mWebServer.start();
     MasterClientContext context = MasterClientContext.newBuilder(ClientContext.create()).build();
     mPool.submit(new HeartbeatThread(HeartbeatContext.PROXY_META_MASTER_SYNC,
-            new ProxySync(Address.fromProto(proxyAddress), context, mStartTimeMs),
-            () -> Configuration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL),
-            Configuration.global(), context.getUserState()));
+        new ProxyMasterSync(Address.fromProto(proxyAddress), context, mStartTimeMs),
+        () -> Configuration.getMs(PropertyKey.PROXY_MASTER_HEARTBEAT_INTERVAL),
+        Configuration.global(), context.getUserState()));
 
     mLatch.await();
   }

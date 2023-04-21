@@ -706,21 +706,6 @@
             ]
           },
           {
-            "name": "BuildVersion",
-            "fields": [
-              {
-                "id": 1,
-                "name": "version",
-                "type": "string"
-              },
-              {
-                "id": 2,
-                "name": "revision",
-                "type": "string"
-              }
-            ]
-          },
-          {
             "name": "RegisterWorkerPOptions",
             "fields": [
               {
@@ -1903,6 +1888,21 @@
                 "id": 1,
                 "name": "errorType",
                 "type": "ErrorType"
+              }
+            ]
+          },
+          {
+            "name": "BuildVersion",
+            "fields": [
+              {
+                "id": 1,
+                "name": "version",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "revision",
+                "type": "string"
               }
             ]
           }
@@ -6194,12 +6194,7 @@
               {
                 "id": 5,
                 "name": "version",
-                "type": "string"
-              },
-              {
-                "id": 6,
-                "name": "revision",
-                "type": "string"
+                "type": "grpc.BuildVersion"
               }
             ]
           },
@@ -6462,12 +6457,7 @@
               {
                 "id": 3,
                 "name": "version",
-                "type": "string"
-              },
-              {
-                "id": 4,
-                "name": "revision",
-                "type": "string"
+                "type": "grpc.BuildVersion"
               }
             ]
           },

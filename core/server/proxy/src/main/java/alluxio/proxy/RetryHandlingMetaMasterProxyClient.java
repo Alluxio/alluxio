@@ -16,6 +16,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.BuildVersion;
 import alluxio.grpc.GetConfigHashPOptions;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
@@ -85,18 +86,22 @@ public class RetryHandlingMetaMasterProxyClient extends AbstractMasterClient {
     mClient = MetaMasterProxyServiceGrpc.newBlockingStub(mChannel);
   }
 
+  /**
+   * Sends a heartbeat to the primary master.
+   */
   public void proxyHeartbeat() throws IOException {
     RPC_LOG.info("Heart beating to master");
-    // TODO(jiacheng): timeout appropriately
+    BuildVersion version = BuildVersion.newBuilder().setVersion(RuntimeConstants.VERSION)
+        .setRevision(RuntimeConstants.REVISION_SHORT).build();
     ProxyHeartbeatPOptions options = ProxyHeartbeatPOptions.newBuilder()
         .setProxyAddress(mProxyAddress.toProto())
         .setStartTime(mStartTimeMs)
-        .setVersion(RuntimeConstants.VERSION)
-        .setRevision(RuntimeConstants.REVISION_SHORT).build();
-    retryRPC(() -> mClient.withDeadlineAfter(
-                    mContext.getClusterConf().getMs(PropertyKey.WORKER_MASTER_PERIODICAL_RPC_TIMEOUT),
-                    TimeUnit.MILLISECONDS).proxyHeartbeat(ProxyHeartbeatPRequest.newBuilder().setOptions(options).build()),
-            RPC_LOG, "ProxyHeartbeat", "options=%s", options);
+        .setVersion(version).build();
+    retryRPC(() -> mClient
+      .withDeadlineAfter(mContext.getClusterConf().getMs(PropertyKey.USER_RPC_RETRY_MAX_DURATION),
+              TimeUnit.MILLISECONDS)
+      .proxyHeartbeat(ProxyHeartbeatPRequest.newBuilder().setOptions(options).build()),
+      RPC_LOG, "ProxyHeartbeat", "options=%s", options);
   }
 }
 

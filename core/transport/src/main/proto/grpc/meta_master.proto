@@ -153,8 +153,7 @@ message ProxyStatus {
   optional string state = 2;
   optional int64 startTime = 3;
   optional int64 lastHeartbeatTime = 4;
-  optional string version = 5;
-  optional string revision = 6;
+  optional grpc.BuildVersion version = 5;
 }
 
 message ListProxyStatusPRequest {
@@ -323,8 +322,7 @@ service MetaMasterMasterService {
 message ProxyHeartbeatPOptions {
   optional grpc.NetAddress proxyAddress = 1;
   optional int64 startTime = 2;
-  optional string version = 3;
-  optional string revision = 4;
+  optional grpc.BuildVersion version = 3;
 }
 message ProxyHeartbeatPRequest {
   optional ProxyHeartbeatPOptions options = 1;

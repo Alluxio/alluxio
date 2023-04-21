@@ -11,17 +11,10 @@
 
 package alluxio.cli.fsadmin.report;
 
-import alluxio.client.job.JobMasterClient;
 import alluxio.client.meta.MetaMasterClient;
+import alluxio.grpc.BuildVersion;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.ProxyStatus;
-import alluxio.job.wire.JobInfo;
-import alluxio.job.wire.JobServiceSummary;
-import alluxio.job.wire.JobWorkerHealth;
-import alluxio.job.wire.StatusSummary;
-import alluxio.util.CommonUtils;
-
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -29,15 +22,13 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
-import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
 /**
- * Prints job service metric information.
+ * Prints information about proxy instances in the cluster.
  */
 public class ProxyCommand {
-
   private final MetaMasterClient mMetaMasterClient;
   private final PrintStream mPrintStream;
 
@@ -45,11 +36,8 @@ public class ProxyCommand {
           DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).ofPattern("yyyyMMdd-HHmmss")
                   .withLocale(Locale.getDefault()).withZone(ZoneId.systemDefault());
   /**
-   * Creates a new instance of {@link JobServiceMetricsCommand}.
+   * Creates a new instance of {@link ProxyCommand}.
    *
-   * @param JobMasterClient client to connect to job master client
-   * @param printStream stream to print job services metrics information to
-   * @param dateFormatPattern the pattern to follow when printing the date
    */
   public ProxyCommand(MetaMasterClient metaMasterClient, PrintStream printStream) {
     mMetaMasterClient = metaMasterClient;
@@ -57,23 +45,44 @@ public class ProxyCommand {
   }
 
   /**
-   * Runs a job services report metrics command.
+   * Runs a proxy report command.
    *
    * @return 0 on success, 1 otherwise
    */
   public int run() throws IOException {
-    List<ProxyStatus> allProxyStatus = mMetaMasterClient.listProxyStatus();
+    String[] header = new String[]{"Address", "State", "Start Time", "Last Heartbeat Time", "Version", "Revision"};
 
+    List<ProxyStatus> allProxyStatus = mMetaMasterClient.listProxyStatus();
+    int liveCount = 0;
+    int lostCount = 0;
+    int maxAddressLength = 24;
+    for (ProxyStatus proxyStatus : allProxyStatus) {
+      String state = proxyStatus.getState();
+      if (state.equals("ACTIVE")) {
+        liveCount++;
+      } else if (state.equals("LOST")) {
+        lostCount++;
+      }
+      NetAddress address = proxyStatus.getAddress();
+      String addressStr = address.getHost() + ":" + address.getRpcPort();
+      if (maxAddressLength < addressStr.length()) {
+        maxAddressLength = addressStr.length();
+      }
+    }
+    mPrintStream.printf("%s Proxy instances in the cluster, %s serving and %s lost%n%n",
+        liveCount + lostCount, liveCount, lostCount);
+
+    String format = "%-" + maxAddressLength + "s %-8s %-16s %-20s %-32s %-8s%n";
+    mPrintStream.printf(format, header);
     for (ProxyStatus proxyStatus : allProxyStatus) {
       NetAddress address = proxyStatus.getAddress();
-      mPrintStream.printf("Proxy Address: %-24s  ", address.getHost() + ":" + address.getRpcPort());
-      mPrintStream.printf("Proxy State: %-8s  ", proxyStatus.getState());
-      mPrintStream.printf("Proxy Start Time: %-16s",
-          DATETIME_FORMAT.format(Instant.ofEpochMilli(proxyStatus.getStartTime())));
-      mPrintStream.printf("Proxy Last Heartbeat Time: %-16s",
-          DATETIME_FORMAT.format(Instant.ofEpochMilli(proxyStatus.getLastHeartbeatTime())));
-      mPrintStream.printf("Proxy Version: %-32s", proxyStatus.getVersion());
-      mPrintStream.printf("Proxy Revision: %-8s%n", proxyStatus.getRevision());
+      BuildVersion version = proxyStatus.getVersion();
+      mPrintStream.printf(format,
+          address.getHost() + ":" + address.getRpcPort(),
+          proxyStatus.getState(),
+          DATETIME_FORMAT.format(Instant.ofEpochMilli(proxyStatus.getStartTime())),
+          DATETIME_FORMAT.format(Instant.ofEpochMilli(proxyStatus.getLastHeartbeatTime())),
+              version.getVersion(), version.getRevision());
     }
     return 0;
   }
