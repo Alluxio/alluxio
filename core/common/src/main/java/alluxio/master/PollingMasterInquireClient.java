@@ -32,12 +32,15 @@ import alluxio.security.user.UserState;
 import alluxio.uri.Authority;
 import alluxio.uri.MultiMasterAuthority;
 
+import com.google.common.base.Suppliers;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.grpc.StatusRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -57,6 +60,13 @@ import javax.annotation.Nullable;
  */
 public class PollingMasterInquireClient implements MasterInquireClient {
   private static final Logger LOG = LoggerFactory.getLogger(PollingMasterInquireClient.class);
+  private static final Supplier<ExecutorService> EXECUTOR_SERVICE = Suppliers.memoize(() ->
+      Executors.newCachedThreadPool(
+          new ThreadFactoryBuilder()
+              .setDaemon(true)
+              .setNameFormat("pollingMasterThread-%d")
+              .build()
+      ));
 
   private final MultiMasterConnectDetails mConnectDetails;
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
@@ -143,12 +153,12 @@ public class PollingMasterInquireClient implements MasterInquireClient {
 
   @Nullable
   private InetSocketAddress findActiveAddressConcurrent(List<InetSocketAddress> addresses) {
-    ExecutorService executorService = Executors.newFixedThreadPool(addresses.size());
+    List<Future<InetSocketAddress>> futures = new ArrayList<>(addresses.size());
     try {
       ExecutorCompletionService<InetSocketAddress> completionService =
-          new ExecutorCompletionService<>(executorService);
+          new ExecutorCompletionService<>(EXECUTOR_SERVICE.get());
       for (InetSocketAddress address : addresses) {
-        completionService.submit(() -> checkActiveAddress(address));
+        futures.add(completionService.submit(() -> checkActiveAddress(address)));
       }
       for (int i = 0; i < addresses.size(); i++) {
         try {
@@ -163,7 +173,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
       }
       return null;
     } finally {
-      executorService.shutdownNow();
+      futures.forEach(it -> it.cancel(true));
     }
   }
 
