@@ -12,6 +12,7 @@
 package alluxio.time;
 
 import java.time.Duration;
+import java.util.function.Function;
 
 /**
  * An interface for a utility which provides a sleep method.
@@ -25,4 +26,9 @@ public interface Sleeper {
    * @throws InterruptedException if the sleep is interrupted
    */
   void sleep(Duration duration) throws InterruptedException;
+
+  default void sleep(Duration duration, Function<Long, Long> function)
+      throws InterruptedException {
+    sleep(duration);
+  }
 }
