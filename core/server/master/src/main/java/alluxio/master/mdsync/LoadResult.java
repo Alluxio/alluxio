@@ -20,7 +20,7 @@ import javax.annotation.Nullable;
 /**
  * This is the result of a single batch load from the UFS.
  */
-public class LoadResult {
+public class LoadResult implements Comparable<LoadResult> {
   private final TaskInfo mTaskInfo;
   private final AlluxioURI mBaseLoadPath;
   private final UfsLoadResult mUfsLoadResult;
@@ -98,5 +98,14 @@ public class LoadResult {
    */
   public LoadRequest getLoadRequest() {
     return mLoadRequest;
+  }
+
+  @Override
+  public int compareTo(LoadResult o) {
+    int idCmp = Long.compare(mTaskInfo.getId(), o.mTaskInfo.getId());
+    if (idCmp != 0) {
+      return idCmp;
+    }
+    return mLoadRequest.compareTo(o.mLoadRequest);
   }
 }

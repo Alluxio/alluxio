@@ -22,7 +22,7 @@ import javax.annotation.Nullable;
 /**
  * This is a request for a single batch load sent to the UFS.
  */
-public class LoadRequest {
+public class LoadRequest implements Comparable<LoadRequest> {
   private final TaskInfo mTaskInfo;
   private final AlluxioURI mPath;
   private final String mContinuationToken;
@@ -58,7 +58,12 @@ public class LoadRequest {
     return Optional.ofNullable(mPreviousLoadLast);
   }
 
-  long getBatchSetId() {
+  /**
+   * @return the batch ID, i.e. the load ID of the directory that initiated this load
+   * if using {@link alluxio.file.options.DirectoryLoadType#BFS} or
+   * {@link alluxio.file.options.DirectoryLoadType#DFS}
+   */
+  public long getBatchSetId() {
     return mBatchSetId;
   }
 
@@ -99,7 +104,10 @@ public class LoadRequest {
     return mTaskInfo.getId();
   }
 
-  long getLoadRequestId() {
+  /**
+   * @return the unique id for this specific load request
+   */
+  public long getLoadRequestId() {
     return mId;
   }
 
@@ -110,5 +118,26 @@ public class LoadRequest {
 
   void onError(Throwable t) {
     mTaskInfo.getMdSync().onLoadRequestError(mTaskInfo.getId(), mId, t);
+  }
+
+  @Override
+  public int compareTo(LoadRequest o) {
+    // First compare the directory load id
+    int baseTaskCmp;
+    switch (o.mTaskInfo.getLoadByDirectory()) {
+      case SINGLE_LISTING:
+        return Long.compare(mId, o.mId);
+      case DFS:
+        baseTaskCmp = Long.compare(o.mBatchSetId, mBatchSetId);
+        break;
+      default:
+        baseTaskCmp = Long.compare(mBatchSetId, o.mBatchSetId);
+        break;
+    }
+    if (baseTaskCmp != 0) {
+      return baseTaskCmp;
+    }
+    // then compare the base id
+    return Long.compare(mId, o.mId);
   }
 }
