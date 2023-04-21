@@ -78,7 +78,7 @@ public class SleepingTimer implements HeartbeatTimer {
     long nextInterval = mIntervalSupplier.getNextInterval(mPreviousTickedMs, now);
     if (nextInterval > 0) {
       mSleeper.sleep(Duration.ofMillis(nextInterval),
-          sleepTo -> mIntervalSupplier.getNextInterval(mPreviousTickedMs, now));
+          millis -> mIntervalSupplier.getNextInterval(mPreviousTickedMs, now));
     }
     mPreviousTickedMs = mClock.millis();
     return mIntervalSupplier.getRunLimit(mPreviousTickedMs);
