@@ -291,6 +291,13 @@ public class MetadataSyncer implements SyncProcess {
             alluxioMountUri.getPath(), AlluxioURI.SEPARATOR);
         // the Alluxio path that was loaded from the UFS
         AlluxioURI alluxioSyncPath = reverseResolution.getUri();
+        // the completed path sequence is from the previous load's
+        // last sync path, until our last UFS item
+        AlluxioURI syncStart = new AlluxioURI(ufsPathToAlluxioPath(loadResult.getPreviousLast()
+            .orElse(loadResult.getBaseLoadPath()).getPath(), ufsMountPath, alluxioMountPath));
+        LOG.debug("Syncing from {}, load batch id {}, load id {}", syncStart,
+            loadResult.getLoadRequest().getBatchSetId(),
+            loadResult.getLoadRequest().getLoadRequestId());
 
         Stream<UfsItem> stream = loadResult.getUfsLoadResult().getItems().map(status -> {
           UfsItem item = new UfsItem(status, ufsMountPath, alluxioMountPath);
@@ -394,10 +401,6 @@ public class MetadataSyncer implements SyncProcess {
         }
         context.updateDirectChildrenLoaded(mInodeTree);
         context.updateAbsentCache(mUfsAbsentCache);
-        // the completed path sequence is from the previous load's
-        // last sync path, until our last UFS item
-        AlluxioURI syncStart = new AlluxioURI(ufsPathToAlluxioPath(loadResult.getPreviousLast()
-            .orElse(loadResult.getBaseLoadPath()).getPath(), ufsMountPath, alluxioMountPath));
         AlluxioURI syncEnd = lastUfsStatus == null ? syncStart
             : lastUfsStatus.mAlluxioUri;
         PathSequence pathSequence = new PathSequence(syncStart, syncEnd);

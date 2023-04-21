@@ -26,7 +26,6 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Optional;
@@ -97,13 +96,7 @@ public class PathLoaderTask {
     // the following loads will be listings
     LoadRequest firstRequest = new LoadRequest(loadId, loadId, mTaskInfo, mTaskInfo.getBasePath(),
         continuationToken, null, computeDescendantType(), true);
-    Comparator<LoadRequest> comparator;
-    if (mTaskInfo.getLoadByDirectory() == DirectoryLoadType.BFS) {
-      comparator = Comparator.comparingLong(LoadRequest::getBatchSetId);
-    } else {
-      comparator = (o1, o2) -> Long.compare(o2.getBatchSetId(), o1.getBatchSetId());
-    }
-    mNextLoad = new PriorityBlockingQueue<>(11, comparator);
+    mNextLoad = new PriorityBlockingQueue<>();
     addLoadRequest(firstRequest, true);
     mClientSupplier = clientSupplier;
     try (CloseableResource<UfsClient> client = mClientSupplier.apply(mTaskInfo.getBasePath())) {
