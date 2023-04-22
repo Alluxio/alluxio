@@ -18,25 +18,33 @@ import alluxio.master.file.meta.MutableInode;
 import alluxio.master.metastore.ReadOption;
 import alluxio.master.metastore.rocks.RocksInodeStore;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.base.Preconditions;
+import org.cache2k.Cache2kBuilder;
 
 import java.util.Optional;
 
 /**
  * A cache that only caches inodes.
  */
-public class BasicInodeCache extends RocksInodeStore {
+public class BasicInodeCache2k extends RocksInodeStore {
 
-  com.github.benmanes.caffeine.cache.Cache<Long, MutableInode<?>> mInodeCache;
-  com.github.benmanes.caffeine.cache.Cache<Edge, Long> mEdgeCache;
+  org.cache2k.Cache<Long, InodeItem> mInodeCache;
+  org.cache2k.Cache<Edge, Long> mEdgeCache;
+
+  static class InodeItem {
+    MutableInode<?> mItem;
+
+    InodeItem(MutableInode<?> item) {
+      mItem = item;
+    }
+  }
 
   /**
    * Creates and initializes a rocks block store.
    *
    * @param baseDir the base directory in which to store inode metadata
    */
-  public BasicInodeCache(String baseDir) {
+  public BasicInodeCache2k(String baseDir) {
     super(baseDir);
 
     int maxSize = Configuration.getInt(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE);
@@ -44,20 +52,23 @@ public class BasicInodeCache extends RocksInodeStore {
         "Maximum cache size %s must be positive, but is set to %s",
         PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE.getName(), maxSize);
 
-    mInodeCache = Caffeine.newBuilder().initialCapacity(maxSize).maximumSize(maxSize).build();
-    mEdgeCache = Caffeine.newBuilder().initialCapacity(maxSize).maximumSize(maxSize).build();
+    mInodeCache = new Cache2kBuilder<Long, InodeItem>() {}
+        .eternal(true).entryCapacity(maxSize).build();
+    mEdgeCache = new Cache2kBuilder<Edge, Long>() {}
+        .eternal(true).entryCapacity(maxSize).build();
   }
 
   @Override
   public Optional<MutableInode<?>> getMutable(long inodeId, ReadOption option) {
     return Optional.ofNullable(mInodeCache.asMap().computeIfAbsent(inodeId, id ->
-      BasicInodeCache.super.getMutable(inodeId, option).orElse(null)));
+      BasicInodeCache2k.super.getMutable(inodeId, option).map(InodeItem::new)
+          .orElse(null))).map(nxt -> nxt.mItem);
   }
 
   @Override
   public void remove(Long inodeId) {
     mInodeCache.asMap().compute(inodeId, (id, inode) -> {
-      BasicInodeCache.super.remove(inodeId);
+      BasicInodeCache2k.super.remove(inodeId);
       return null;
     });
   }
@@ -65,8 +76,8 @@ public class BasicInodeCache extends RocksInodeStore {
   @Override
   public void writeInode(MutableInode<?> inode) {
     mInodeCache.asMap().compute(inode.getId(), (id, oldInode) -> {
-      BasicInodeCache.super.writeInode(inode);
-      return inode;
+      BasicInodeCache2k.super.writeInode(inode);
+      return new InodeItem(inode);
     });
   }
 
@@ -74,14 +85,14 @@ public class BasicInodeCache extends RocksInodeStore {
   public Optional<Long> getChildId(Long inodeId, String name, ReadOption option) {
     Edge edge = new Edge(inodeId, name);
     return Optional.ofNullable(mEdgeCache.asMap().computeIfAbsent(edge, id ->
-        BasicInodeCache.super.getChildId(inodeId, name, option).orElse(null)));
+        BasicInodeCache2k.super.getChildId(inodeId, name, option).orElse(null)));
   }
 
   @Override
   public void addChild(long parentId, String childName, Long childId) {
     Edge edge = new Edge(parentId, childName);
     mEdgeCache.asMap().compute(edge, (id, oldEdge) -> {
-      BasicInodeCache.super.addChild(parentId, childName, childId);
+      BasicInodeCache2k.super.addChild(parentId, childName, childId);
       return childId;
     });
   }
@@ -90,7 +101,7 @@ public class BasicInodeCache extends RocksInodeStore {
   public void removeChild(long parentId, String name) {
     Edge edge = new Edge(parentId, name);
     mEdgeCache.asMap().compute(edge, (id, oldEdge) -> {
-      BasicInodeCache.super.removeChild(parentId, name);
+      BasicInodeCache2k.super.removeChild(parentId, name);
       return null;
     });
   }

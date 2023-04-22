@@ -18,6 +18,7 @@ import alluxio.master.metastore.BlockMetaStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.MetastoreType;
 import alluxio.master.metastore.caching.BasicInodeCache;
+import alluxio.master.metastore.caching.BasicInodeCache2k;
 import alluxio.master.metastore.caching.CachingInodeStore;
 import alluxio.master.metastore.heap.HeapBlockMetaStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
@@ -91,10 +92,13 @@ public final class MasterUtils {
         if (Configuration.getInt(PropertyKey.MASTER_METASTORE_INODE_CACHE_MAX_SIZE) == 0) {
           return lockManager -> new RocksInodeStore(baseDir);
         } else {
-          if (Configuration.getBoolean(PropertyKey.MASTER_METASTORE_INODE_CACHE_BASIC)) {
+          int basicCache = Configuration.getInt(PropertyKey.MASTER_METASTORE_INODE_CACHE_BASIC);
+          if (basicCache == 0) {
+            return lockManager -> new CachingInodeStore(new RocksInodeStore(baseDir), lockManager);
+          } else if (basicCache == 1) {
             return lockManager -> new BasicInodeCache(baseDir);
           } else {
-            return lockManager -> new CachingInodeStore(new RocksInodeStore(baseDir), lockManager);
+            return lockManager -> new BasicInodeCache2k(baseDir);
           }
         }
       default:
