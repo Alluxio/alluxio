@@ -27,6 +27,7 @@ import alluxio.master.file.meta.MutableInode;
 import alluxio.master.file.meta.MutableInodeDirectory;
 import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.master.metastore.InodeStore.WriteBatch;
+import alluxio.master.metastore.caching.BasicInodeCache;
 import alluxio.master.metastore.caching.CachingInodeStore;
 import alluxio.master.metastore.rocks.RocksInodeStore;
 import alluxio.resource.CloseableIterator;
