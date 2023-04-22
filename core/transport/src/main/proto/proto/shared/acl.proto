@@ -2,6 +2,8 @@ syntax = "proto2";
 
 package alluxio.proto.shared;
 
+import "grpc/common.proto";
+
 // next available id: 3
 enum AclAction {
     READ = 0;
@@ -21,7 +23,9 @@ enum AclEntryType {
 
 // next available id: 2
 message AclActions {
-    repeated AclAction actions = 1;
+    // deprecated, use the modeBits field instead
+    repeated AclAction actions = 1 [deprecated=true];
+    optional grpc.Bits modeBits = 2;
 }
 
 // next available id: 5
@@ -49,4 +53,20 @@ message AccessControlList {
     optional AclActions otherActions = 6;
     optional bool isDefault = 7;
     optional bool isEmpty = 8;
+}
+
+message NewAccessControlList {
+    optional string owningUser = 1;
+    optional string owningGroup = 2;
+    optional uint32 mode = 3;
+    repeated ExtendedAclAction namedActions = 4;
+    repeated ExtendedAclAction groupedActions = 5;
+    optional grpc.Bits maskActions = 6;
+    optional bool isDefault = 8;
+    optional bool isEmpty = 9;
+}
+
+message ExtendedAclAction {
+    optional string name = 1;
+    optional grpc.Bits modeBits = 2;
 }

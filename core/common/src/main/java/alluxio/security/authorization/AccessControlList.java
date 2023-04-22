@@ -99,6 +99,16 @@ public class AccessControlList implements Serializable {
   }
 
   /**
+   * @return the extended entries (initializing them if not yet done)
+   */
+  public ExtendedACLEntries getOrInitializeExtendedEntries() {
+    if (mExtendedEntries == null) {
+      mExtendedEntries = new ExtendedACLEntries();
+    }
+    return mExtendedEntries;
+  }
+
+  /**
    * @return the owning user
    */
   public String getOwningUser() {

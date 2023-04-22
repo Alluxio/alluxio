@@ -12,6 +12,8 @@
 package alluxio.master.file.meta;
 
 import alluxio.Constants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.BlockInfoException;
 import alluxio.grpc.CreateFilePOptionsOrBuilder;
 import alluxio.master.ProtobufUtils;
@@ -53,6 +55,8 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
   private int mReplicationMax;
   private int mReplicationMin;
   private String mTempUfsPath;
+  private static final boolean NEW_ACL = Configuration.getBoolean(
+      PropertyKey.MASTER_METASTORE_ACL_NEW);
 
   /**
    * Creates a new instance of {@link MutableInodeFile}.
@@ -402,7 +406,9 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setTtlAction((ProtobufUtils.fromProtobuf(entry.getTtlAction())))
         .setUfsFingerprint(entry.hasUfsFingerprint() ? entry.getUfsFingerprint() :
             Constants.INVALID_UFS_FINGERPRINT);
-    if (entry.hasAcl()) {
+    if (entry.hasNewAcl()) {
+      ret.mAcl = ProtoUtils.fromProto(entry.getNewAcl());
+    } else if (entry.hasAcl()) {
       ret.mAcl = ProtoUtils.fromProto(entry.getAcl());
     } else {
       // Backward compatibility.
@@ -497,8 +503,12 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setTempUfsPath(getTempUfsPath())
         .setTtl(getTtl())
         .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))
-        .setUfsFingerprint(getUfsFingerprint())
-        .setAcl(ProtoUtils.toProto(mAcl));
+        .setUfsFingerprint(getUfsFingerprint());
+    if (NEW_ACL) {
+      inodeFile.setNewAcl(ProtoUtils.toProtoNew(mAcl));
+    } else {
+      inodeFile.setAcl(ProtoUtils.toProto(mAcl));
+    }
     if (getXAttr() != null) {
       inodeFile.putAllXAttr(CommonUtils.convertToByteString(getXAttr()));
     }
@@ -540,9 +550,10 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setTtlAction(inode.getTtlAction())
         .setName(inode.getName())
         .setParentId(inode.getParentId())
-        .setPersistenceState(PersistenceState.valueOf(inode.getPersistenceState()))
+        .setPersistenceState(inode.hasPersistenceStateEnum()
+            ? PersistenceState.fromProto(inode.getPersistenceStateEnum())
+            : PersistenceState.valueOf(inode.getPersistenceState()))
         .setPinned(inode.getIsPinned())
-        .setInternalAcl(ProtoUtils.fromProto(inode.getAccessAcl()))
         .setUfsFingerprint(inode.getUfsFingerprint())
         .setBlockSizeBytes(inode.getBlockSizeBytes())
         .setBlockIds(inode.getBlocksList())
@@ -555,6 +566,11 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setPersistJobId(inode.getPersistJobId())
         .setShouldPersistTime(inode.getShouldPersistTime())
         .setTempUfsPath(inode.getPersistJobTempUfsPath());
+    if (NEW_ACL) {
+      f.setInternalAcl(ProtoUtils.fromProto(inode.getNewAccessAcl()));
+    } else {
+      f.setInternalAcl(ProtoUtils.fromProto(inode.getNewAccessAcl()));
+    }
     if (!inode.getMediumTypeList().isEmpty()) {
       f.setMediumTypes(ImmutableSet.copyOf(inode.getMediumTypeList()));
     }
