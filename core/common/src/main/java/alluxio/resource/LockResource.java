@@ -14,6 +14,7 @@ package alluxio.resource;
 import com.google.common.annotations.VisibleForTesting;
 import io.netty.util.ResourceLeakDetector;
 import io.netty.util.ResourceLeakTracker;
+import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,6 +114,15 @@ public class LockResource implements Closeable {
   @VisibleForTesting
   public boolean hasSameLock(LockResource other) {
     return mLock == other.mLock;
+  }
+
+  /**
+   * @return the value of {@link ObjectUtils#identityToString}
+   * for the underlying lock object
+   */
+  @VisibleForTesting
+  public String getLockIdentity() {
+    return ObjectUtils.identityToString(mLock);
   }
 
   /**

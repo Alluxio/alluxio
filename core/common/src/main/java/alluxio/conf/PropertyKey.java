@@ -2991,22 +2991,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Initial size of the lock pool for master inodes.")
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_LOCK_POOL_LOW_WATERMARK =
-      intBuilder(Name.MASTER_LOCK_POOL_LOW_WATERMARK)
-          .setDefaultValue(500000)
-          .setDescription("Low watermark of lock pool size. "
-              + "When the size grows over the high watermark, a background thread will try to "
-              + "evict unused locks until the size reaches the low watermark.")
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_LOCK_POOL_HIGH_WATERMARK =
-      intBuilder(Name.MASTER_LOCK_POOL_HIGH_WATERMARK)
-          .setDefaultValue(1000000)
-          .setDescription("High watermark of lock pool size. "
-              + "When the size grows over the high watermark, a background thread starts evicting "
-              + "unused locks from the pool.")
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_LOCK_POOL_CONCURRENCY_LEVEL =
       intBuilder(Name.MASTER_LOCK_POOL_CONCURRENCY_LEVEL)
           .setDefaultValue(100)
@@ -3663,22 +3647,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       intBuilder(Name.MASTER_METADATA_SYNC_LOCK_POOL_INITSIZE)
           .setDefaultValue(1_000)
           .setDescription("Initial size of the lock pool for master metadata sync.")
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_METADATA_SYNC_LOCK_POOL_LOW_WATERMARK =
-      intBuilder(Name.MASTER_METADATA_SYNC_LOCK_POOL_LOW_WATERMARK)
-          .setDefaultValue(20_000)
-          .setDescription("Low watermark of metadata sync lock pool size. "
-              + "When the size grows over the high watermark, a background thread will try to "
-              + "evict unused locks until the size reaches the low watermark.")
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_METADATA_SYNC_LOCK_POOL_HIGH_WATERMARK =
-      intBuilder(Name.MASTER_METADATA_SYNC_LOCK_POOL_HIGH_WATERMARK)
-          .setDefaultValue(50_000)
-          .setDescription("High watermark of metadata sync lock pool size. "
-              + "When the size grows over the high watermark, a background thread starts evicting "
-              + "unused locks from the pool.")
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METADATA_SYNC_LOCK_POOL_CONCURRENCY_LEVEL =
@@ -8015,10 +7983,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_HOSTNAME = "alluxio.master.hostname";
     public static final String MASTER_LOCK_POOL_INITSIZE =
         "alluxio.master.lock.pool.initsize";
-    public static final String MASTER_LOCK_POOL_LOW_WATERMARK =
-        "alluxio.master.lock.pool.low.watermark";
-    public static final String MASTER_LOCK_POOL_HIGH_WATERMARK =
-        "alluxio.master.lock.pool.high.watermark";
     public static final String MASTER_LOCK_POOL_CONCURRENCY_LEVEL =
         "alluxio.master.lock.pool.concurrency.level";
     public static final String MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED =
@@ -8102,10 +8066,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_KEYTAB_KEY_FILE = "alluxio.master.keytab.file";
     public static final String MASTER_METADATA_SYNC_LOCK_POOL_INITSIZE =
         "alluxio.master.metadata.sync.lock.pool.initsize";
-    public static final String MASTER_METADATA_SYNC_LOCK_POOL_LOW_WATERMARK =
-        "alluxio.master.metadata.sync.lock.pool.low.watermark";
-    public static final String MASTER_METADATA_SYNC_LOCK_POOL_HIGH_WATERMARK =
-        "alluxio.master.metadata.sync.lock.pool.high.watermark";
     public static final String MASTER_METADATA_SYNC_LOCK_POOL_CONCURRENCY_LEVEL =
         "alluxio.master.metadata.sync.lock.pool.concurrency.level";
     public static final String MASTER_METADATA_CONCURRENT_SYNC_DEDUP =
