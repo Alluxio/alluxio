@@ -14,7 +14,6 @@ package alluxio.time;
 import alluxio.Constants;
 
 import java.time.Duration;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**

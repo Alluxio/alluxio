@@ -27,9 +27,8 @@ public interface Sleeper {
    */
   void sleep(Duration duration) throws InterruptedException;
 
-
   /**
-   * Sleeps for given duration but period wake-up by function
+   * Sleeps for given duration but period wake-up by new interval supplier.
    * @param newIntervalSupplier New sleep interval supplier
    * @throws InterruptedException
    */
