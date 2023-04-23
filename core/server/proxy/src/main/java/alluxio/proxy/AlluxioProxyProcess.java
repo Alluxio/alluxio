@@ -96,7 +96,9 @@ public final class AlluxioProxyProcess implements ProxyProcess {
     Configuration.set(PropertyKey.PROXY_WEB_PORT,
         mWebServer.getLocalPort());
     NetAddress proxyAddress = NetAddress.newBuilder()
-        .setHost(mWebServer.getBindHost()).setRpcPort(mWebServer.getLocalPort()).build();
+        .setHost(NetworkAddressUtils.getConnectHost(ServiceType.PROXY_WEB,
+                Configuration.global()))
+        .setRpcPort(mWebServer.getLocalPort()).build();
     mWebServer.start();
     MasterClientContext context = MasterClientContext.newBuilder(ClientContext.create()).build();
     mPool.submit(new HeartbeatThread(HeartbeatContext.PROXY_META_MASTER_SYNC,
