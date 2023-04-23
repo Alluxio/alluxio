@@ -18,10 +18,10 @@ import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
-import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Splitter;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +31,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.sasl.AuthenticationException;
@@ -50,12 +50,24 @@ public final class ImpersonationAuthenticator {
   public static final String WILDCARD = "*";
   private static final Splitter SPLITTER = Splitter.on(',').trimResults().omitEmptyStrings();
   // Maps users configured for impersonation to the set of groups which they can impersonate.
+  // Because volatile visibility piggy-backs, there is no need to add volatile on the
+  // mImpersonationGroups property.
   private Map<String, Set<String>> mImpersonationGroups;
   // Maps users configured for impersonation to the set of users which they can impersonate.
-  private Map<String, Set<String>> mImpersonationUsers;
+  private volatile Map<String, Set<String>> mImpersonationUsers;
 
   private final AlluxioConfiguration mConfiguration;
-  private final ReentrantReadWriteLock mLock = new ReentrantReadWriteLock();
+  private static final Supplier<ImpersonationAuthenticator> SINGLETON =
+      Suppliers.memoize(() -> new ImpersonationAuthenticator(Configuration.global()));
+
+  /**
+   * return a {@link ImpersonationAuthenticator} singleton instance.
+   *
+   * @return ImpersonationAuthenticator
+   */
+  public static ImpersonationAuthenticator getInstance() {
+    return SINGLETON.get();
+  }
 
   /**
    * Constructs a new {@link ImpersonationAuthenticator}.
@@ -65,7 +77,7 @@ public final class ImpersonationAuthenticator {
    *
    * @param conf conf Alluxio configuration
    */
-  public ImpersonationAuthenticator(AlluxioConfiguration conf) {
+  ImpersonationAuthenticator(AlluxioConfiguration conf) {
     mConfiguration = conf;
     loadImpersonationConfig(conf);
     if (conf.getBoolean(PropertyKey.SECURITY_DYNAMIC_IMPERSONATION_ENABLED)) {
@@ -156,10 +168,8 @@ public final class ImpersonationAuthenticator {
         }
       }
     }
-    try (LockResource ignored = new LockResource(mLock.writeLock())) {
-      mImpersonationUsers = impersonationUsers;
-      mImpersonationGroups = impersonationGroups;
-    }
+    mImpersonationGroups = impersonationGroups;
+    mImpersonationUsers = impersonationUsers;
   }
 
   /**
@@ -175,12 +185,8 @@ public final class ImpersonationAuthenticator {
       return;
     }
 
-    Set<String> allowedUsers;
-    Set<String> allowedGroups;
-    try (LockResource ignored = new LockResource(mLock.readLock())) {
-      allowedUsers = mImpersonationUsers.get(connectionUser);
-      allowedGroups = mImpersonationGroups.get(connectionUser);
-    }
+    Set<String> allowedUsers = mImpersonationUsers.get(connectionUser);
+    Set<String> allowedGroups = mImpersonationGroups.get(connectionUser);
 
     if (allowedUsers == null && allowedGroups == null) {
       throw new AuthenticationException(String.format(
