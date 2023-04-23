@@ -47,6 +47,6 @@ public final class MetaMasterProxyServiceHandler
     RpcUtils.call(LOG, () -> {
       mMetaMaster.proxyHeartbeat(request);
       return ProxyHeartbeatPResponse.newBuilder().build();
-    }, "masterHeartbeat", "request=%s", responseObserver, request);
+    }, "proxyHeartbeat", "request=%s", responseObserver, request);
   }
 }

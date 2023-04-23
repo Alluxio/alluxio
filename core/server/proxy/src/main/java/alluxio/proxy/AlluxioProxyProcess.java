@@ -60,6 +60,7 @@ public final class AlluxioProxyProcess implements ProxyProcess {
   private final long mStartTimeMs;
 
   private final CountDownLatch mLatch;
+  private ProxyMasterSync mMasterSync;
 
   private ExecutorService mPool = Executors.newFixedThreadPool(1,
       ThreadFactoryUtils.build("proxy-routine-%d", true));
@@ -101,8 +102,9 @@ public final class AlluxioProxyProcess implements ProxyProcess {
         .setRpcPort(mWebServer.getLocalPort()).build();
     mWebServer.start();
     MasterClientContext context = MasterClientContext.newBuilder(ClientContext.create()).build();
-    mPool.submit(new HeartbeatThread(HeartbeatContext.PROXY_META_MASTER_SYNC,
-        new ProxyMasterSync(Address.fromProto(proxyAddress), context, mStartTimeMs),
+    mMasterSync = new ProxyMasterSync(
+        Address.fromProto(proxyAddress), context, mStartTimeMs);
+    mPool.submit(new HeartbeatThread(HeartbeatContext.PROXY_META_MASTER_SYNC, mMasterSync,
         () -> new FixedIntervalSupplier(
             Configuration.getMs(PropertyKey.PROXY_MASTER_HEARTBEAT_INTERVAL)),
         Configuration.global(), context.getUserState()));
@@ -116,6 +118,7 @@ public final class AlluxioProxyProcess implements ProxyProcess {
       mWebServer.stop();
       mWebServer = null;
     }
+    mMasterSync.close();
     if (mPool != null) {
       mPool.shutdownNow();
       mPool = null;

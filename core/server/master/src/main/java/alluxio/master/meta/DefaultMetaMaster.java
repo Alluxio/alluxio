@@ -840,7 +840,6 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         if (lastUpdate > masterProxyDeleteTimeoutMs) {
           LOG.warn("Proxy {} has been LOST for more than {}ms. "
               + "Master will forget about this Proxy", entry.getKey(), masterProxyDeleteTimeoutMs);
-          mLostProxies.put(entry.getKey(), entry.getValue());
           return true;
         }
         return false;
