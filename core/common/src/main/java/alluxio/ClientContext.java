@@ -16,6 +16,7 @@ import static java.util.Objects.requireNonNull;
 import alluxio.annotation.PublicApi;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.path.PathConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
@@ -123,8 +124,11 @@ public class ClientContext {
     GetConfigurationPResponse response = Configuration.loadConfiguration(address,
         conf, !loadClusterConf, !loadPathConf);
     if (loadClusterConf) {
-      mClusterConf = Configuration.getClusterConf(response, conf, Scope.CLIENT);
+      InstancedConfiguration clusterConf =
+          Configuration.getClusterConf(response, conf, Scope.CLIENT);
+      mClusterConf = clusterConf;
       mClusterConfHash = response.getClusterConfigHash();
+      Configuration.updateNewConf(clusterConf);
     }
     if (loadPathConf) {
       mPathConf = Configuration.getPathConf(response, conf);

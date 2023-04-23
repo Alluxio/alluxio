@@ -641,4 +641,15 @@ public final class Configuration
     }
     return Optional.of(properties);
   }
+
+  /**
+   * Update new configuration.
+   * @param newConf the new configuration
+   */
+  public static void updateNewConf(InstancedConfiguration newConf) {
+    InstancedConfiguration conf;
+    do {
+      conf = SERVER_CONFIG_REFERENCE.get();
+    } while (!SERVER_CONFIG_REFERENCE.compareAndSet(conf, newConf));
+  }
 }
