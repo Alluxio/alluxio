@@ -223,4 +223,26 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
     assertEquals(statusBeforeB.getFileInfo().getLength(), statusAfterB.getFileInfo().getLength());
   }
 
+  // The main idea of this test is start an async loadMetadata task and get its status
+  @Test
+  public void loadMetadataTestV2get() throws IOException, AlluxioException {
+
+  }
+
+  // The main idea of this test is start an async loadMetadata task and cancel it when it's running
+  @Test
+  public void loadMetadataTestV2cancel() throws IOException, AlluxioException {
+
+  }
+
+  // I think here each Param should have a Test
+  @Test
+  public void loadMetadataTestV2R() throws IOException, AlluxioException {
+
+  }
+
+  @Test
+  public void loadMetadataTestV2F() throws IOException, AlluxioException {
+
+  }
 }
