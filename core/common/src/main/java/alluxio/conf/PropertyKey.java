@@ -7330,7 +7330,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   public static final PropertyKey DORA_UFS_FILE_STATUS_CACHE_TTL =
       durationBuilder(Name.DORA_UFS_FILE_STATUS_CACHE_TTL)
-          .setDefaultValue("10min")
+          .setDefaultValue("48h")
           .setDescription("The TTL of the cache of UFS file status")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
@@ -7355,7 +7355,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   public static final PropertyKey DORA_UFS_LIST_STATUS_CACHE_TTL =
       durationBuilder(Name.DORA_UFS_LIST_STATUS_CACHE_TTL)
-          .setDefaultValue("2min")
+          .setDefaultValue("48h")
           .setDescription("The TTL of the cache of UFS list status results")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.WORKER)
@@ -7363,7 +7363,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   public static final PropertyKey DORA_UFS_LIST_STATUS_CACHE_NR_DIRS =
       intBuilder(Name.DORA_UFS_LIST_STATUS_CACHE_NR_DIRS)
-          .setDefaultValue(1)
+          .setDefaultValue(50)
           .setDescription("Number of the file/dir cache of UFS list status results")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.WORKER)
