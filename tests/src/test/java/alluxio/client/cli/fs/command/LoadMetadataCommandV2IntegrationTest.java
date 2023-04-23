@@ -1,6 +1,7 @@
 package alluxio.client.cli.fs.command;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.SystemErrRule;
@@ -59,6 +60,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationTest {
   private static String TEST_BUCKET = "test-bucket";
@@ -69,8 +72,8 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
   public ByteArrayOutputStream mErrOutput = new ByteArrayOutputStream();
   public ExpectedException mException = ExpectedException.none();
 
-  @Rule
-  public SystemOutRule r = new SystemOutRule(System.out);
+  // @Rule
+  // public SystemOutRule r = new SystemOutRule(System.out);
 
   @Rule
   public SystemErrRule mErrRule = new SystemErrRule(mErrOutput);
@@ -232,7 +235,25 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
   // The main idea of this test is start an async loadMetadata task and cancel it when it's running
   @Test
   public void loadMetadataTestV2cancel() throws IOException, AlluxioException {
-
+    // the cancel dir should be big enough
+    mS3Client.putObject(TEST_BUCKET, TEST_FILE, TEST_CONTENT);
+    AlluxioURI uriDir = new AlluxioURI("/" + TEST_FILE);
+    mFsShell.run("loadMetadata", "-v2", "-R", "-a", uriDir.toString());
+    // this is task group id that comes from mFsShell loadMetadata
+    int id = 0;
+    Pattern pattern = Pattern.compile("Task group id: (\\d+)");
+    Matcher matcher = pattern.matcher(mOutput.toString());
+    if (matcher.find()) {
+      id = Integer.parseInt(matcher.group(0));
+    }
+    mOutput.flush();
+    FileSystemShell anotherFsShell = new FileSystemShell(Configuration.global());
+    anotherFsShell.run("loadMetadata", "-v2", "-o cancel", String.format("-id %d", id));
+    assertTrue(mOutput.toString().contains("Load Metadata Canceled"));
+    assertTrue(mOutput.toString().contains(String.format("Task gourp %d cancelled", id)));
+    mOutput.flush();
+    anotherFsShell.run("loadMetadata", "-v2", "-o cancel", String.format("-id %d", id));
+    assertTrue(mOutput.toString().contains(String.format("Task  %d not found or has already been cancelled", id)));
   }
 
   // I think here each Param should have a Test
@@ -241,8 +262,20 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
 
   }
 
+  // This seems not supported for v2
   @Test
   public void loadMetadataTestV2F() throws IOException, AlluxioException {
 
   }
+
+  @Test
+  public void loadMetadataTestV2() throws IOException, AlluxioException {
+
+  }
+
+  // heavy load success
+  // cancel
+  // -R
+  // get..?
+  // id
 }
