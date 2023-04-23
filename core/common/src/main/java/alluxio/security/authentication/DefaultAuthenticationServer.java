@@ -80,7 +80,7 @@ public class DefaultAuthenticationServer
         Executors.newScheduledThreadPool(1, ThreadFactoryUtils.build("auth-cleanup", true));
     mScheduler.scheduleAtFixedRate(this::cleanupStaleClients, mCleanupIntervalMs,
         mCleanupIntervalMs, TimeUnit.MILLISECONDS);
-    mImpersonationAuthenticator = new ImpersonationAuthenticator(conf);
+    mImpersonationAuthenticator = ImpersonationAuthenticator.getInstance();
   }
 
   @Override
