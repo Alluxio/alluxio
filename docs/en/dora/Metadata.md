@@ -59,3 +59,4 @@ Applications using Alluxio client jar can also do this in a java program like th
 When file/object metadata is invalidated, the data associated with the same file/object will also be invalidated from PageStore.
 In future, we need a finer-grained way to invalidate the cached data of a file/object, e.g. based on checksum of a file/object.
 But as of now, PageStore does not have such information stored with its pages. There will need some optimization.
+
