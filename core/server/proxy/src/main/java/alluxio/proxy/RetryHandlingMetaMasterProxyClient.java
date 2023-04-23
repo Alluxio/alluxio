@@ -79,7 +79,6 @@ public class RetryHandlingMetaMasterProxyClient extends AbstractMasterClient {
    * Sends a heartbeat to the primary master.
    */
   public void proxyHeartbeat() throws IOException {
-    RPC_LOG.info("Heart beating to master");
     BuildVersion version = BuildVersion.newBuilder().setVersion(RuntimeConstants.VERSION)
         .setRevision(RuntimeConstants.REVISION_SHORT).build();
     ProxyHeartbeatPOptions options = ProxyHeartbeatPOptions.newBuilder()

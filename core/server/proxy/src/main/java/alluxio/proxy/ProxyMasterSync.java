@@ -55,7 +55,7 @@ public final class ProxyMasterSync implements HeartbeatExecutor {
   @Override
   public void heartbeat(long timeLimitMs) {
     try {
-      LOG.info("Heart beating to primary master");
+      LOG.debug("Heart beating to primary master");
       mMasterClient.proxyHeartbeat();
     } catch (IOException e) {
       // Log the error but do not shut down the proxy
