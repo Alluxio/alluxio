@@ -60,13 +60,13 @@ import javax.annotation.Nullable;
  */
 public class PollingMasterInquireClient implements MasterInquireClient {
   private static final Logger LOG = LoggerFactory.getLogger(PollingMasterInquireClient.class);
-  private static final Supplier<ExecutorService> EXECUTOR_SERVICE = Suppliers.memoize(() ->
+  private static final ExecutorService EXECUTOR_SERVICE =
       Executors.newCachedThreadPool(
           new ThreadFactoryBuilder()
               .setDaemon(true)
               .setNameFormat("pollingMasterThread-%d")
               .build()
-      ));
+      );
 
   private final MultiMasterConnectDetails mConnectDetails;
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
@@ -156,7 +156,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
     List<Future<InetSocketAddress>> futures = new ArrayList<>(addresses.size());
     try {
       ExecutorCompletionService<InetSocketAddress> completionService =
-          new ExecutorCompletionService<>(EXECUTOR_SERVICE.get());
+          new ExecutorCompletionService<>(EXECUTOR_SERVICE);
       for (InetSocketAddress address : addresses) {
         futures.add(completionService.submit(() -> checkActiveAddress(address)));
       }
