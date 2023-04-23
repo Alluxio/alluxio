@@ -824,7 +824,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
       long proxyTimeoutMs = Configuration.getMs(PropertyKey.MASTER_PROXY_TIMEOUT_MS);
       long masterProxyDeleteTimeoutMs =
               Configuration.getMs(PropertyKey.MASTER_LOST_PROXY_DELETION_TIMEOUT_MS);
-      LOG.info("LostProxyDetection checking proxies at {}", mProxies.keySet());
+      LOG.debug("LostProxyDetection checking proxies at {}", mProxies.keySet());
       mProxies.entrySet().removeIf(entry -> {
         final long lastUpdate = mClock.millis() - entry.getValue().getLastHeartbeatTimeMs();
         if (lastUpdate > proxyTimeoutMs) {
