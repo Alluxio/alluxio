@@ -118,7 +118,9 @@ public final class AlluxioProxyProcess implements ProxyProcess {
       mWebServer.stop();
       mWebServer = null;
     }
-    mMasterSync.close();
+    if (mMasterSync != null) {
+      mMasterSync.close();
+    }
     if (mPool != null) {
       mPool.shutdownNow();
       mPool = null;
