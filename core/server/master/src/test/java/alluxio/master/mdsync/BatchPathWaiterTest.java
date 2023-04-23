@@ -72,7 +72,7 @@ public class BatchPathWaiterTest {
     long nxtLoadID = 0;
     TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/path"),
         new AlluxioURI("/path"), null,
-        NONE, 0, DirectoryLoadType.SINGLE_LISTING, 0);
+        NONE, 0, DirectoryLoadType.SINGLE_LISTING, 0, 0, true);
     BaseTask path = BaseTask.create(ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
       path.onComplete(ans.getArgument(1));
@@ -102,7 +102,7 @@ public class BatchPathWaiterTest {
     long nxtLoadID = 0;
     TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/path"),
         new AlluxioURI("/path"), null,
-        ONE, 0, DirectoryLoadType.SINGLE_LISTING, 0);
+        ONE, 0, DirectoryLoadType.SINGLE_LISTING, 0, 0, true);
     BaseTask path = BaseTask.create(ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
       path.onComplete(ans.getArgument(1));
@@ -135,7 +135,7 @@ public class BatchPathWaiterTest {
     long nxtLoadID = 0;
     TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/path"),
         new AlluxioURI("/path"), null,
-        ONE, 0, DirectoryLoadType.SINGLE_LISTING, 0);
+        ONE, 0, DirectoryLoadType.SINGLE_LISTING, 0, 0, true);
     BaseTask path = BaseTask.create(ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
       path.onComplete(ans.getArgument(1));
@@ -174,7 +174,7 @@ public class BatchPathWaiterTest {
     long nxtLoadID = 0;
     TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/path"),
         new AlluxioURI("/path"), null,
-        NONE, 0, DirectoryLoadType.SINGLE_LISTING, 0);
+        NONE, 0, DirectoryLoadType.SINGLE_LISTING, 0, 0, true);
     BaseTask path = BaseTask.create(ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
       path.onComplete(ans.getArgument(1));
@@ -195,7 +195,7 @@ public class BatchPathWaiterTest {
     long nxtLoadID = 0;
     TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/"),
         new AlluxioURI("/"), null,
-        ALL, 0, DirectoryLoadType.SINGLE_LISTING, 0);
+        ALL, 0, DirectoryLoadType.SINGLE_LISTING, 0, 0, true);
     BatchPathWaiter root = (BatchPathWaiter) BaseTask.create(
         ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
@@ -249,7 +249,7 @@ public class BatchPathWaiterTest {
     long nxtLoadID = 0;
     TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/"),
         new AlluxioURI("/"), null,
-        ONE, 0, DirectoryLoadType.SINGLE_LISTING, 0);
+        ONE, 0, DirectoryLoadType.SINGLE_LISTING, 0, 0, true);
     BatchPathWaiter root = (BatchPathWaiter) BaseTask.create(ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
       root.onComplete(ans.getArgument(1));

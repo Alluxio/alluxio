@@ -62,7 +62,8 @@ public class MetadataSyncNonObjectStoreV2Test extends FileSystemMasterTestBase {
     assertTrue(new File(path + "/test_directory").mkdir());
 
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        new AlluxioURI("/"), DescendantType.ALL, mDirectoryLoadType, 0);
+        new AlluxioURI("/"), DescendantType.ALL, mDirectoryLoadType, 0)
+        .getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -71,7 +72,8 @@ public class MetadataSyncNonObjectStoreV2Test extends FileSystemMasterTestBase {
     assertTrue(mFileSystemMaster.exists(new AlluxioURI("/test_directory"), existsNoSync()));
 
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        new AlluxioURI("/"), DescendantType.ALL, mDirectoryLoadType, 0);
+        new AlluxioURI("/"), DescendantType.ALL, mDirectoryLoadType, 0)
+        .getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -90,7 +92,8 @@ public class MetadataSyncNonObjectStoreV2Test extends FileSystemMasterTestBase {
     assertTrue(new File(path + "/test_directory/nested_directory/test_file").createNewFile());
 
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        new AlluxioURI("/test_directory"), DescendantType.NONE, mDirectoryLoadType, 0);
+        new AlluxioURI("/test_directory"), DescendantType.NONE, mDirectoryLoadType, 0)
+        .getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -99,7 +102,8 @@ public class MetadataSyncNonObjectStoreV2Test extends FileSystemMasterTestBase {
     assertTrue(mFileSystemMaster.exists(new AlluxioURI("/test_directory"), existsNoSync()));
 
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        new AlluxioURI("/test_file"), DescendantType.NONE, mDirectoryLoadType, 0);
+        new AlluxioURI("/test_file"), DescendantType.NONE, mDirectoryLoadType, 0)
+        .getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -110,7 +114,8 @@ public class MetadataSyncNonObjectStoreV2Test extends FileSystemMasterTestBase {
     // TODO(yimin) when the descendant type is ONE/ALL, seems like the NOOP of the root inode
     // itself is not counted.
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        new AlluxioURI("/test_directory"), DescendantType.ONE, mDirectoryLoadType, 0);
+        new AlluxioURI("/test_directory"), DescendantType.ONE, mDirectoryLoadType, 0)
+        .getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -120,7 +125,8 @@ public class MetadataSyncNonObjectStoreV2Test extends FileSystemMasterTestBase {
     assertTrue(mFileSystemMaster.exists(new AlluxioURI("/test_directory"), existsNoSync()));
 
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        new AlluxioURI("/test_directory"), DescendantType.ALL, mDirectoryLoadType, 0);
+        new AlluxioURI("/test_directory"), DescendantType.ALL, mDirectoryLoadType, 0)
+        .getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -144,7 +150,8 @@ public class MetadataSyncNonObjectStoreV2Test extends FileSystemMasterTestBase {
             .setWriteType(WriteType.MUST_CACHE));
 
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        new AlluxioURI("/"), DescendantType.ALL, mDirectoryLoadType, 0);
+        new AlluxioURI("/"), DescendantType.ALL, mDirectoryLoadType, 0)
+        .getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
 
