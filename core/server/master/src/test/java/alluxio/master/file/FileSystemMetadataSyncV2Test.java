@@ -11,6 +11,7 @@
 
 package alluxio.master.file;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
@@ -36,6 +37,7 @@ import org.junit.runners.Parameterized;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Unit tests for {@link FileSystemMaster}.
@@ -64,7 +66,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     // Sync the dir
     AlluxioURI syncPath = MOUNT_POINT.join(TEST_DIRECTORY);
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        syncPath, DescendantType.NONE, mDirectoryLoadType, 0);
+        syncPath, DescendantType.NONE, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -73,7 +75,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
 
     // Sync again, expect no change
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        syncPath, DescendantType.NONE, mDirectoryLoadType, 0);
+        syncPath, DescendantType.NONE, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -82,7 +84,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
 
     // Sync with depth 1, should see the file
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        syncPath, DescendantType.ONE, mDirectoryLoadType, 0);
+        syncPath, DescendantType.ONE, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -91,7 +93,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
 
     // Sync again, expect no change
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        syncPath, DescendantType.NONE, mDirectoryLoadType, 0);
+        syncPath, DescendantType.NONE, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -111,7 +113,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     mS3Client.putObject(TEST_BUCKET, TEST_FILE, TEST_CONTENT);
 
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -124,7 +126,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
         "", mFileSystemMaster, mClient);
 
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -134,21 +136,19 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
         "", mFileSystemMaster, mClient);
   }
 
-//  @Test
-//  public void dirTest() throws Throwable {
-//    mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
-//    List<FileInfo> items = mFileSystemMaster.listStatus(
-//    MOUNT_POINT, ListStatusContext.defaults());
-//    mS3Client.putObject(TEST_BUCKET, TEST_DIRECTORY + "/" + TEST_FILE, TEST_CONTENT);
-//
-//    // load the dir with depth 1
-//    BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-//        MOUNT_POINT, DescendantType.NONE, mDirectoryLoadType, 0);
-//    result.waitComplete(TIMEOUT_MS);
-//    assertTrue(result.succeeded());
-//    items = mFileSystemMaster.listStatus(MOUNT_POINT, ListStatusContext.create(
-//        ListStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER)));
-//  }
+  @Test
+  public void dirTest() throws Throwable {
+    mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
+    mS3Client.putObject(TEST_BUCKET, TEST_DIRECTORY + "/" + TEST_FILE, TEST_CONTENT);
+
+    // load the dir with depth 1
+    BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ONE, mDirectoryLoadType, 0).getBaseTask();
+    result.waitComplete(TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    List<FileInfo> items = mFileSystemMaster.listStatus(MOUNT_POINT, listNoSync(true));
+    assertEquals(1, items.size());
+  }
 
   @Test
   public void basicSync() throws Throwable {
@@ -156,7 +156,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     mS3Client.putObject(TEST_BUCKET, TEST_FILE, TEST_CONTENT);
 
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -170,7 +170,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
         "", mFileSystemMaster, mClient);
 
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -188,7 +188,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     mS3Client.putObject(TEST_BUCKET, TEST_DIRECTORY + "/" + TEST_FILE, TEST_CONTENT);
 
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     long mountPointInodeId = mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync()).getFileId();
@@ -200,7 +200,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     ));
 
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -226,7 +226,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     }
 
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -238,7 +238,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, TEST_DIRECTORY, mFileSystemMaster, mClient);
 
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -266,7 +266,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     }
 
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertTrue(mFileSystemMaster.getInodeStore()
@@ -277,7 +277,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     ));
 
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -295,7 +295,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     mS3Client.putObject(TEST_BUCKET, TEST_DIRECTORY + "/", "");
 
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertTrue(mFileSystemMaster.getInodeStore()
@@ -307,7 +307,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
 
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -325,7 +325,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     }
 
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -336,7 +336,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
 
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -356,7 +356,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
 
     AlluxioURI syncPath = MOUNT_POINT.join(TEST_DIRECTORY);
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        syncPath, DescendantType.ALL, mDirectoryLoadType, 0);
+        syncPath, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertFalse(mFileSystemMaster.getInodeStore()
@@ -367,7 +367,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     ));
 
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        syncPath, DescendantType.ALL, mDirectoryLoadType, 0);
+        syncPath, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
@@ -387,7 +387,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
 
     // Sync one file from UFS
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT.join(TEST_FILE), DescendantType.ONE, mDirectoryLoadType, 0);
+        MOUNT_POINT.join(TEST_FILE), DescendantType.ONE, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -400,7 +400,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
 
     // Sync again, expect no change
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT.join(TEST_FILE), DescendantType.ONE, mDirectoryLoadType, 0);
+        MOUNT_POINT.join(TEST_FILE), DescendantType.ONE, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -411,7 +411,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     // Delete the file from UFS, then sync again
     mS3Client.deleteObject(TEST_BUCKET, TEST_FILE);
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT.join(TEST_FILE), DescendantType.ONE, mDirectoryLoadType, 0);
+        MOUNT_POINT.join(TEST_FILE), DescendantType.ONE, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -433,7 +433,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
 
     // Sync one file from UFS
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT.join(TEST_FILE), DescendantType.NONE, mDirectoryLoadType, 0);
+        MOUNT_POINT.join(TEST_FILE), DescendantType.NONE, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -453,7 +453,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
 
     // Sync two files from UFS
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT.join("foo"), DescendantType.ALL, mDirectoryLoadType, 0);
+        MOUNT_POINT.join("foo"), DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -465,7 +465,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     mS3Client.deleteObject(TEST_BUCKET, "foo/a");
     mS3Client.putObject(TEST_BUCKET, "foo/b", TEST_CONTENT);
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT.join("foo"), DescendantType.ALL, mDirectoryLoadType, 0);
+        MOUNT_POINT.join("foo"), DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -484,7 +484,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     mS3Client.putObject(TEST_BUCKET, "d2/f1", TEST_CONTENT);
 
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -496,7 +496,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     mS3Client.deleteObject(TEST_BUCKET, "d1/f2");
     mS3Client.putObject(TEST_BUCKET, "d0/f1", TEST_CONTENT);
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
 
@@ -535,7 +535,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
 
     // Sync one file from UFS
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -553,7 +553,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
 
     // Sync again, expect no change
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -576,7 +576,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
 
     // Sync one file from UFS
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -590,7 +590,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     mS3Client.deleteObject(TEST_BUCKET, "d/3");
 
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -606,7 +606,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
 
     stopS3Server();
     final BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ONE, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.ONE, mDirectoryLoadType, 0).getBaseTask();
     assertThrows(IOException.class, () -> {
       result.waitComplete(TIMEOUT_MS);
     });
@@ -625,7 +625,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
       throw new Exception("fail");
     });
     final BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ONE, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.ONE, mDirectoryLoadType, 0).getBaseTask();
     assertThrows(Exception.class, () -> {
       result.waitComplete(TIMEOUT_MS);
     });
@@ -640,7 +640,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
       throw e;
     });
     final BaseTask result2 = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ONE, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.ONE, mDirectoryLoadType, 0).getBaseTask();
     assertThrows(Exception.class, () -> {
       result2.waitComplete(TIMEOUT_MS);
     });
@@ -664,7 +664,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
         CreateDirectoryContext.defaults());
 
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ONE, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.ONE, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
@@ -689,7 +689,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     }
 
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ONE, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.ONE, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     long mountPointInodeId = mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync()).getFileId();
@@ -720,7 +720,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     }
 
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     long mountPointInodeId = mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync()).getFileId();
     assertTrue(mFileSystemMaster.getInodeStore()
@@ -740,7 +740,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     }
 
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
@@ -759,7 +759,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     mFileSystemMaster.createDirectory(new AlluxioURI("/test_directory/sub_directory"),
         CreateDirectoryContext.defaults());
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        new AlluxioURI("/test_directory"), DescendantType.ALL, mDirectoryLoadType, 0);
+        new AlluxioURI("/test_directory"), DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -772,7 +772,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     mFileSystemMaster.createDirectory(new AlluxioURI("/test_directory/sub_directory"),
         CreateDirectoryContext.defaults());
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        new AlluxioURI("/test_directory"), DescendantType.ONE, mDirectoryLoadType, 0);
+        new AlluxioURI("/test_directory"), DescendantType.ONE, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -785,7 +785,8 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     mFileSystemMaster.createDirectory(new AlluxioURI("/test_directory/sub_directory"),
         CreateDirectoryContext.defaults());
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        new AlluxioURI("/test_directory"), DescendantType.NONE, mDirectoryLoadType, 0);
+        new AlluxioURI("/test_directory"), DescendantType.NONE, mDirectoryLoadType, 0)
+        .getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -812,95 +813,6 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
 //    ));
 //  }
 //
-//  @Test
-//  public void syncNonS3DirectoryShadowingMountPoint()
-//      throws Exception {
-//    /*
-//      / (root) -> local file system (disk)
-//      /s3_mount -> s3 bucket
-//      create /s3_mount in the local first system that shadows the mount point and then do
-//      a metadata sync
-//      the sync of the local file system /s3_mount is expected to be skipped
-//     */
-//
-//    String localUfsPath
-//    = mFileSystemMaster.getMountTable().resolve(MOUNT_POINT).getUri().getPath();
-//    mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
-//    assertTrue(new File(localUfsPath).createNewFile());
-//
-//    SyncResult result =
-//        mFileSystemMaster.syncMetadataInternal(new AlluxioURI("/"),
-//            createContext(DescendantType.ONE));
-//    assertTrue(result.getSuccess());
-//    assertSyncOperations(result, ImmutableMap.of(
-//        // Root (/)
-//        SyncOperation.NOOP, 1L,
-//        // Mount point (/s3_mount)
-//        SyncOperation.SKIPPED_ON_MOUNT_POINT, 1L
-//    ));
-//    FileInfo mountPointFileInfo = mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync());
-//    assertTrue(mountPointFileInfo.isMountPoint());
-//    assertTrue(mountPointFileInfo.isFolder());
-//  }
-//
-//  @Test(expected = InvalidPathException.class)
-//  public void syncS3DirectoryNestedMount()
-//      throws FileDoesNotExistException, FileAlreadyExistsException, AccessControlException,
-//      IOException, InvalidPathException {
-//    mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
-//    mFileSystemMaster.mount(NESTED_S3_MOUNT_POINT, UFS_ROOT2, MountContext.defaults());
-//    // In the existing UFS S3 implementation, ufs.exists() always returns true,
-//    // regardless if an object exists in s3 or not. If the object does not exist,
-//    // alluxio S3 UFS implementation treats it as a pseudo directory.
-//    // This essentially makes it impossible to do a nested mount under an s3 mount point.
-//  }
-//
-//  @Test
-//  public void syncNestedMountPointRecursive()
-//      throws FileDoesNotExistException, FileAlreadyExistsException, AccessControlException,
-//      IOException, InvalidPathException {
-//    // mount /s3_mount -> s3://test-bucket
-//    mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
-//    mS3Client.putObject(TEST_BUCKET, "foo/bar", TEST_CONTENT);
-//    mS3Client.putObject(TEST_BUCKET, "foo/baz", TEST_CONTENT);
-//
-//    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt"),
-//        CreateDirectoryContext.defaults().setWriteType(WriteType.THROUGH));
-//    // mount /mnt/nested_s3_mount -> s3://test-bucket-2
-//    mFileSystemMaster.mount(NESTED_MOUNT_POINT, UFS_ROOT2, MountContext.defaults());
-//    mS3Client.putObject(TEST_BUCKET2, "foo/bar", TEST_CONTENT);
-//    mS3Client.putObject(TEST_BUCKET2, "foo/baz", TEST_CONTENT);
-//
-//    SyncResult result =
-//        mFileSystemMaster.syncMetadataInternal(new AlluxioURI("/"),
-//            createContext(DescendantType.ALL));
-//
-//    /*
-//      / (ROOT) -> unchanged (root mount point local fs)
-//        /s3_mount -> unchanged (mount point s3://test-bucket)
-//          /foo -> pseudo directory (created)
-//            /bar -> (created)
-//            /baz -> (created)
-//        /mnt -> unchanged
-//          /nested_s3_mount -> unchanged (mount point s3://test-bucket-2)
-//            /foo -> pseudo directory (created)
-//              /bar -> (created)
-//              /baz -> (created)
-//     */
-//
-//    List<FileInfo> inodes = mFileSystemMaster.listStatus(new AlluxioURI("/"), listNoSync(true));
-//    assertEquals(9, inodes.size());
-//
-//    assertSyncOperations(result, ImmutableMap.of(
-//        SyncOperation.NOOP, 4L,
-//        SyncOperation.CREATE, 6L
-//    ));
-//
-//    assertEquals(4, (long) result.getSuccessOperationCount()
-//    .getOrDefault(SyncOperation.NOOP, 0L));
-//    assertEquals(6,
-//        (long) result.getSuccessOperationCount().getOrDefault(SyncOperation.CREATE, 0L));
-//  }
 
   @Test
   public void testS3Fingerprint() throws Throwable {
@@ -912,7 +824,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     // Sync to load metadata
 
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     checkUfsMatches(MOUNT_POINT, TEST_BUCKET, "", mFileSystemMaster, mClient);
@@ -925,7 +837,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     mS3Client.putObject(TEST_BUCKET, "f2", TEST_CONTENT);
 
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     long mountPointInodeId = mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync()).getFileId();
@@ -947,7 +859,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     mS3Client.putObject(TEST_BUCKET, "d1/f2", TEST_CONTENT);
 
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.NONE, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.NONE, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -962,7 +874,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     mS3Client.putObject(TEST_BUCKET, "d2/f1", TEST_CONTENT);
 
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, DescendantType.NONE, mDirectoryLoadType, 0);
+        MOUNT_POINT, DescendantType.NONE, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -974,7 +886,8 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
 
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT.join("/non_existing_path"), DescendantType.ALL, mDirectoryLoadType, 0);
+        MOUNT_POINT.join("/non_existing_path"), DescendantType.ALL, mDirectoryLoadType, 0)
+        .getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(mFileSystemMaster.getAbsentPathCache().isAbsentSince(
         new AlluxioURI("/non_existing_path"), 0));

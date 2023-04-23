@@ -56,6 +56,20 @@ public class TaskGroup {
   }
 
   /**
+   * @return the task count
+   */
+  public int getTaskCount() {
+    return mTasks.length;
+  }
+
+  /**
+   * @return true if all tasks succeeded
+   */
+  public boolean allSucceeded() {
+    return Arrays.stream(mTasks).allMatch(BaseTask::succeeded);
+  }
+
+  /**
    * @return a stream of the tasks in protobuf format
    */
   public Stream<SyncMetadataTask> toProtoTasks() {
