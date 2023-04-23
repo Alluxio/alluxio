@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Clock;
 import java.time.Duration;
+import java.util.Objects;
 import java.util.function.Supplier;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -33,7 +34,7 @@ public class SleepingTimer implements HeartbeatTimer {
   protected final Clock mClock;
   protected final Sleeper mSleeper;
   protected final Supplier<SleepIntervalSupplier> mIntervalSupplierSupplier;
-  protected SleepIntervalSupplier mIntervalSupplier;
+  protected volatile SleepIntervalSupplier mIntervalSupplier;
 
   /**
    * Creates a new instance of {@link SleepingTimer}.
@@ -84,7 +85,10 @@ public class SleepingTimer implements HeartbeatTimer {
 
   @Override
   public void update() {
-    mIntervalSupplier = mIntervalSupplierSupplier.get();
-    mLogger.info("update {} interval supplier.", mThreadName);
+    SleepIntervalSupplier newSupplier = mIntervalSupplierSupplier.get();
+    if (Objects.equals(mIntervalSupplier, newSupplier)) {
+      mIntervalSupplier = newSupplier;
+      mLogger.info("update {} interval supplier.", mThreadName);
+    }
   }
 }

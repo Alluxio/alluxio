@@ -16,6 +16,7 @@ import org.apache.logging.log4j.core.util.CronExpression;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Objects;
 
 /**
 * Calculate the next interval by given cron expression.
@@ -55,5 +56,23 @@ public class CronExpressionIntervalSupplier implements SleepIntervalSupplier {
     Date now = Date.from(Instant.ofEpochMilli(mPreviousTickedMs));
     return Duration.between(now.toInstant(),
         mCron.getNextInvalidTimeAfter(now).toInstant()).toMillis();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    CronExpressionIntervalSupplier that = (CronExpressionIntervalSupplier) o;
+    return mInterval == that.mInterval
+        && Objects.equals(mCron.getCronExpression(), that.mCron.getCronExpression());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(mInterval, mCron.getCronExpression());
   }
 }
