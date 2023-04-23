@@ -13,7 +13,7 @@ package alluxio.dora.security.authentication.plain;
 
 import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.exception.status.UnauthenticatedException;
-import alluxio.dora.grpc.ChannelAuthenticationScheme;
+import alluxio.grpc.ChannelAuthenticationScheme;
 import alluxio.dora.security.User;
 import alluxio.dora.security.authentication.AbstractSaslClientHandler;
 import alluxio.dora.security.authentication.AuthenticationUtils;

@@ -11,10 +11,10 @@
 
 package alluxio.dora.master.job.command;
 
-import alluxio.dora.grpc.CancelTaskCommand;
-import alluxio.dora.grpc.JobCommand;
-import alluxio.dora.grpc.RunTaskCommand;
-import alluxio.dora.grpc.SetTaskPoolSizeCommand;
+import alluxio.grpc.CancelTaskCommand;
+import alluxio.grpc.JobCommand;
+import alluxio.grpc.RunTaskCommand;
+import alluxio.grpc.SetTaskPoolSizeCommand;
 import alluxio.dora.job.JobConfig;
 import alluxio.dora.job.util.SerializationUtils;
 
@@ -118,7 +118,7 @@ public final class CommandManager {
    * @param workerId id of the worker to send the commands to
    * @return the list of the commends polled
    */
-  public synchronized List<alluxio.dora.grpc.JobCommand> pollAllPendingCommands(long workerId) {
+  public synchronized List<alluxio.grpc.JobCommand> pollAllPendingCommands(long workerId) {
     if (!mWorkerIdToPendingCommands.containsKey(workerId)) {
       return Lists.newArrayList();
     }

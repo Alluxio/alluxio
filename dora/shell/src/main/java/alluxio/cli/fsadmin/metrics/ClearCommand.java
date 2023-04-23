@@ -20,7 +20,7 @@ import alluxio.dora.client.block.stream.BlockWorkerClient;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.dora.grpc.ClearMetricsRequest;
+import alluxio.grpc.ClearMetricsRequest;
 import alluxio.dora.resource.CloseableResource;
 import alluxio.dora.util.ThreadFactoryUtils;
 import alluxio.dora.wire.WorkerNetAddress;

@@ -11,7 +11,7 @@
 
 package alluxio.dora.job;
 
-import alluxio.dora.grpc.JobStatusBlock;
+import alluxio.grpc.JobStatusBlock;
 import alluxio.dora.job.wire.CmdStatusBlock;
 import alluxio.dora.job.wire.JobInfo;
 import alluxio.dora.job.wire.PlanInfo;
@@ -35,7 +35,7 @@ public class ProtoUtils {
    * @return {@link JobInfo} representation
    * @throws IOException if result can't be deserialized
    */
-  public static JobInfo fromProto(alluxio.dora.grpc.JobInfo jobInfo) throws IOException {
+  public static JobInfo fromProto(alluxio.grpc.JobInfo jobInfo) throws IOException {
     switch (jobInfo.getType()) {
       case PLAN:
         return new PlanInfo(jobInfo);
@@ -53,7 +53,7 @@ public class ProtoUtils {
    * @return {@link Status} representation
    * @throws IOException if result can't be deserialized
    */
-  public static Status fromProto(alluxio.dora.grpc.Status status) throws IOException {
+  public static Status fromProto(alluxio.grpc.Status status) throws IOException {
     switch (status) {
       case CREATED:
         return Status.CREATED;
@@ -77,9 +77,9 @@ public class ProtoUtils {
    * @throws IOException if result can't be deserialized
    */
   public static CmdStatusBlock protoToCmdStatusBlock(
-          alluxio.dora.grpc.CmdStatusBlock cmdStatusBlock) throws IOException {
+          alluxio.grpc.CmdStatusBlock cmdStatusBlock) throws IOException {
     List<SimpleJobStatusBlock> simpleJobStatusBlockList = Lists.newArrayList();
-    List<alluxio.dora.grpc.JobStatusBlock> blocks = cmdStatusBlock
+    List<alluxio.grpc.JobStatusBlock> blocks = cmdStatusBlock
             .getJobStatusBlockList();
     for (JobStatusBlock block : blocks) {
       simpleJobStatusBlockList

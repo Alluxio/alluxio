@@ -13,7 +13,7 @@ package alluxio.dora.master.file.meta;
 
 import alluxio.dora.AlluxioURI;
 import alluxio.dora.conf.Configuration;
-import alluxio.dora.grpc.MountPOptions;
+import alluxio.grpc.MountPOptions;
 import alluxio.dora.master.file.contexts.MountContext;
 import alluxio.dora.master.file.meta.options.MountInfo;
 import alluxio.dora.master.journal.NoopJournalContext;

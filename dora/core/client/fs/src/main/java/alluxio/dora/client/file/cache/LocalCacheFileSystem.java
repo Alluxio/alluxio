@@ -18,7 +18,7 @@ import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.URIStatus;
 import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.grpc.OpenFilePOptions;
+import alluxio.grpc.OpenFilePOptions;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;

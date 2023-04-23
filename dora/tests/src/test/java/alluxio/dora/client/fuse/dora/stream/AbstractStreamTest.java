@@ -19,8 +19,8 @@ import alluxio.dora.client.fuse.dora.AbstractFuseDoraTest;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.LaunchUserGroupAuthPolicy;
 import alluxio.fuse.file.FuseFileStream;
-import alluxio.dora.grpc.CreateFilePOptions;
-import alluxio.dora.grpc.OpenFilePOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.OpenFilePOptions;
 import alluxio.dora.security.authorization.Mode;
 import alluxio.dora.util.io.BufferUtils;
 

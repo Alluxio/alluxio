@@ -11,7 +11,7 @@
 
 package alluxio.dora.worker.netty;
 
-import alluxio.dora.proto.dataserver.Protocol;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.dora.underfs.UnderFileSystem;
 import alluxio.dora.underfs.options.CreateOptions;
 

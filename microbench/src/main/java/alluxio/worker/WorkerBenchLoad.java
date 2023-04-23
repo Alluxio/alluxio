@@ -11,8 +11,8 @@
 
 package alluxio.worker;
 
-import alluxio.dora.grpc.Block;
-import alluxio.dora.grpc.UfsReadOptions;
+import alluxio.grpc.Block;
+import alluxio.grpc.UfsReadOptions;
 
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;

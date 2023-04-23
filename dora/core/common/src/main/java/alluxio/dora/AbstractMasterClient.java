@@ -12,7 +12,7 @@
 package alluxio.dora;
 
 import alluxio.dora.exception.status.UnavailableException;
-import alluxio.dora.grpc.GrpcServerAddress;
+import alluxio.grpc.GrpcServerAddress;
 import alluxio.dora.master.MasterClientContext;
 import alluxio.dora.master.MasterInquireClient;
 import alluxio.dora.master.selectionpolicy.MasterSelectionPolicy;

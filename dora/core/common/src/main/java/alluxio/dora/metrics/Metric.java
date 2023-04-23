@@ -11,7 +11,7 @@
 
 package alluxio.dora.metrics;
 
-import alluxio.dora.grpc.MetricType;
+import alluxio.grpc.MetricType;
 import alluxio.dora.util.CommonUtils;
 
 import com.google.common.base.MoreObjects;
@@ -195,8 +195,8 @@ public final class Metric implements Serializable {
   /**
    * @return the proto object it converts to. Note the value must be either integer or long
    */
-  public alluxio.dora.grpc.Metric toProto() {
-    alluxio.dora.grpc.Metric.Builder metric = alluxio.dora.grpc.Metric.newBuilder();
+  public alluxio.grpc.Metric toProto() {
+    alluxio.grpc.Metric.Builder metric = alluxio.grpc.Metric.newBuilder();
     metric.setInstance(mInstanceType.toString()).setMetricType(mMetricType)
         .setName(mName).setValue(mValue.get()).putAllTags(mTags);
 
@@ -321,7 +321,7 @@ public final class Metric implements Serializable {
    * @param metric the metric in proto format
    * @return the constructed metric
    */
-  public static Metric fromProto(alluxio.dora.grpc.Metric metric) {
+  public static Metric fromProto(alluxio.grpc.Metric metric) {
     Metric created = new Metric(
         MetricsSystem.InstanceType.fromString(metric.getInstance()),
         metric.getSource(),

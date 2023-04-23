@@ -58,7 +58,7 @@ public class LayoutRegistry {
    * @param layoutProto the proto representation of the layout
    * @return a new instance of the layout
    */
-  public Layout create(alluxio.dora.grpc.table.Layout layoutProto) {
+  public Layout create(alluxio.grpc.table.Layout layoutProto) {
     Map<String, LayoutFactory> map = mFactories;
     String type = layoutProto.getLayoutType();
     LayoutFactory factory = map.get(type);

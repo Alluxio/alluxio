@@ -12,7 +12,7 @@
 package alluxio.dora.wire;
 
 import alluxio.dora.Constants;
-import alluxio.dora.grpc.TtlAction;
+import alluxio.grpc.TtlAction;
 import alluxio.dora.security.authorization.AccessControlList;
 import alluxio.dora.security.authorization.DefaultAccessControlList;
 

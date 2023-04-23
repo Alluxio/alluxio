@@ -18,7 +18,7 @@ import alluxio.dora.client.file.FileSystemTestUtils;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.grpc.WritePType;
+import alluxio.grpc.WritePType;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;

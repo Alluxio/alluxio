@@ -21,7 +21,7 @@ import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.InstancedConfiguration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.grpc.CreateFilePOptions;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.dora.util.CommonUtils;
 import alluxio.dora.util.FormatUtils;
 

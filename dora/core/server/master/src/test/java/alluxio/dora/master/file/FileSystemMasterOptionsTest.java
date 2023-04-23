@@ -12,7 +12,7 @@
 package alluxio.dora.master.file;
 
 import alluxio.dora.master.file.FileSystemMasterOptions;
-import alluxio.dora.grpc.CompleteFilePOptions;
+import alluxio.grpc.CompleteFilePOptions;
 
 import org.junit.Assert;
 import org.junit.Test;

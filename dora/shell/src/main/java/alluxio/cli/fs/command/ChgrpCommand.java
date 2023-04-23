@@ -17,7 +17,7 @@ import alluxio.dora.cli.CommandUtils;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.dora.grpc.SetAttributePOptions;
+import alluxio.grpc.SetAttributePOptions;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;

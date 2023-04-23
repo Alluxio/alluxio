@@ -12,8 +12,8 @@
 package alluxio.dora.client.block.stream;
 
 import alluxio.dora.exception.status.DeadlineExceededException;
-import alluxio.dora.grpc.DataMessage;
-import alluxio.dora.grpc.DataMessageMarshaller;
+import alluxio.grpc.DataMessage;
+import alluxio.grpc.DataMessageMarshaller;
 import alluxio.dora.network.protocol.databuffer.DataBuffer;
 
 import com.google.common.base.Preconditions;

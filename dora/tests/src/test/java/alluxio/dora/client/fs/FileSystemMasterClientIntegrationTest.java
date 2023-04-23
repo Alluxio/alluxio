@@ -19,7 +19,7 @@ import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.status.NotFoundException;
-import alluxio.dora.grpc.GetStatusPOptions;
+import alluxio.grpc.GetStatusPOptions;
 import alluxio.dora.master.MasterClientContext;
 import alluxio.dora.testutils.BaseIntegrationTest;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;

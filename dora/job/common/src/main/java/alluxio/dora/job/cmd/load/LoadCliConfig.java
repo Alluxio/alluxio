@@ -11,7 +11,7 @@
 
 package alluxio.dora.job.cmd.load;
 
-import alluxio.dora.grpc.OperationType;
+import alluxio.grpc.OperationType;
 import alluxio.dora.job.cmd.CliConfig;
 import alluxio.dora.job.wire.JobSource;
 

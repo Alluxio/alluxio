@@ -18,8 +18,8 @@ import alluxio.dora.master.file.state.DirectoryId;
 import alluxio.dora.master.journal.JournalContext;
 import alluxio.dora.master.journal.Journaled;
 import alluxio.dora.master.journal.checkpoint.CheckpointName;
-import alluxio.dora.proto.journal.File.InodeDirectoryIdGeneratorEntry;
-import alluxio.dora.proto.journal.Journal.JournalEntry;
+import alluxio.proto.journal.File.InodeDirectoryIdGeneratorEntry;
+import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.dora.resource.CloseableIterator;
 import alluxio.dora.util.CommonUtils;
 

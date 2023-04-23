@@ -15,7 +15,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.grpc.table.ColumnStatisticsInfo;
+import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.dora.util.CommonUtils;
 
 import com.amazonaws.services.glue.model.BinaryColumnStatisticsData;
@@ -314,7 +314,7 @@ public class GlueUtilsTest {
 
     if (glueColStats.getStatisticsData() != null) {
       ColumnStatisticsData glueData = glueColStats.getStatisticsData();
-      alluxio.dora.grpc.table.ColumnStatisticsData data = colStats.getData();
+      alluxio.grpc.table.ColumnStatisticsData data = colStats.getData();
 
       //verify boolean
       if (glueData.getBooleanColumnStatisticsData() != null) {
@@ -325,7 +325,7 @@ public class GlueUtilsTest {
                 && glueBoolean.getNumberOfNulls() != null,
             data.hasBooleanStats());
         if (data.hasBooleanStats()) {
-          alluxio.dora.grpc.table.BooleanColumnStatsData boolData = data.getBooleanStats();
+          alluxio.grpc.table.BooleanColumnStatsData boolData = data.getBooleanStats();
           assertEquals(glueBoolean.getNumberOfFalses().longValue(), boolData.getNumFalses());
           assertEquals(glueBoolean.getNumberOfTrues().longValue(), boolData.getNumTrues());
           assertEquals(glueBoolean.getNumberOfNulls().longValue(), boolData.getNumNulls());
@@ -340,7 +340,7 @@ public class GlueUtilsTest {
                 && glueDate.getNumberOfNulls() != null,
             data.hasDateStats());
         if (data.hasDateStats()) {
-          alluxio.dora.grpc.table.DateColumnStatsData date = data.getDateStats();
+          alluxio.grpc.table.DateColumnStatsData date = data.getDateStats();
           assertEquals(glueDate.getNumberOfDistinctValues().longValue(), date.getNumDistincts());
           assertEquals(glueDate.getNumberOfNulls().longValue(), date.getNumNulls());
           assertEquals(glueDate.getMaximumValue() != null, date.hasHighValue());
@@ -364,7 +364,7 @@ public class GlueUtilsTest {
                 && glueDecimal.getNumberOfNulls() != null,
             data.hasDecimalStats());
         if (data.hasDecimalStats()) {
-          alluxio.dora.grpc.table.DecimalColumnStatsData decimal = data.getDecimalStats();
+          alluxio.grpc.table.DecimalColumnStatsData decimal = data.getDecimalStats();
           assertEquals(glueDecimal.getNumberOfDistinctValues().longValue(),
               decimal.getNumDistincts());
           assertEquals(glueDecimal.getNumberOfNulls().longValue(), decimal.getNumNulls());
@@ -393,7 +393,7 @@ public class GlueUtilsTest {
                 && glueDouble.getNumberOfNulls() != null,
             data.hasDoubleStats());
         if (data.hasDoubleStats()) {
-          alluxio.dora.grpc.table.DoubleColumnStatsData doubleData = data.getDoubleStats();
+          alluxio.grpc.table.DoubleColumnStatsData doubleData = data.getDoubleStats();
           assertEquals(glueDouble.getNumberOfDistinctValues().longValue(),
               doubleData.getNumDistincts());
           assertEquals(glueDouble.getNumberOfNulls().longValue(), doubleData.getNumNulls());
@@ -418,7 +418,7 @@ public class GlueUtilsTest {
                 && glueLong.getNumberOfNulls() != null,
             data.hasLongStats());
         if (data.hasLongStats()) {
-          alluxio.dora.grpc.table.LongColumnStatsData longData = data.getLongStats();
+          alluxio.grpc.table.LongColumnStatsData longData = data.getLongStats();
           assertEquals(glueLong.getNumberOfDistinctValues().longValue(),
               longData.getNumDistincts());
           assertEquals(glueLong.getNumberOfNulls().longValue(), longData.getNumNulls());
@@ -443,7 +443,7 @@ public class GlueUtilsTest {
                 && glueString.getAverageLength() != null,
             data.hasStringStats());
         if (data.hasStringStats()) {
-          alluxio.dora.grpc.table.StringColumnStatsData stringData = data.getStringStats();
+          alluxio.grpc.table.StringColumnStatsData stringData = data.getStringStats();
           assertEquals(glueString.getNumberOfDistinctValues().longValue(),
               stringData.getNumDistincts());
           assertEquals(glueString.getNumberOfNulls().longValue(), stringData.getNumNulls());
@@ -462,7 +462,7 @@ public class GlueUtilsTest {
                 && glueBinary.getNumberOfNulls() != null,
             data.hasBinaryStats());
         if (data.hasBinaryStats()) {
-          alluxio.dora.grpc.table.BinaryColumnStatsData binary = data.getBinaryStats();
+          alluxio.grpc.table.BinaryColumnStatsData binary = data.getBinaryStats();
           assertEquals(glueBinary.getAverageLength().doubleValue(), binary.getAvgColLen(), 0.01);
           assertEquals(glueBinary.getMaximumLength().longValue(), binary.getMaxColLen());
           assertEquals(glueBinary.getNumberOfNulls().longValue(), binary.getNumNulls());

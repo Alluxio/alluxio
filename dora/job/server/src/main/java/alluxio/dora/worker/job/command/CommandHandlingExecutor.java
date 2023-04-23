@@ -15,11 +15,11 @@ import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.ConnectionFailedException;
-import alluxio.dora.grpc.CancelTaskCommand;
-import alluxio.dora.grpc.JobCommand;
-import alluxio.dora.grpc.JobInfo;
-import alluxio.dora.grpc.RunTaskCommand;
-import alluxio.dora.grpc.SetTaskPoolSizeCommand;
+import alluxio.grpc.CancelTaskCommand;
+import alluxio.grpc.JobCommand;
+import alluxio.grpc.JobInfo;
+import alluxio.grpc.RunTaskCommand;
+import alluxio.grpc.SetTaskPoolSizeCommand;
 import alluxio.dora.heartbeat.HeartbeatExecutor;
 import alluxio.dora.job.JobServerContext;
 import alluxio.dora.job.RunTaskContext;
@@ -103,7 +103,7 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
 
     List<TaskInfo> taskStatusList = mTaskExecutorManager.getAndClearTaskUpdates();
 
-    List<alluxio.dora.grpc.JobCommand> commands;
+    List<alluxio.grpc.JobCommand> commands;
 
     List<JobInfo> taskProtoList = taskStatusList.stream().map(TaskInfo::toProto)
         .collect(Collectors.toList());

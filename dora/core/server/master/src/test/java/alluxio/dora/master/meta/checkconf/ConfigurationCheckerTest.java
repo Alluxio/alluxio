@@ -17,9 +17,9 @@ import static org.junit.Assert.assertEquals;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.master.meta.checkconf.ConfigurationChecker;
 import alluxio.dora.master.meta.checkconf.ConfigurationStore;
-import alluxio.dora.grpc.ConfigProperty;
-import alluxio.dora.grpc.ConfigStatus;
-import alluxio.dora.grpc.Scope;
+import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.ConfigStatus;
+import alluxio.grpc.Scope;
 import alluxio.dora.wire.Address;
 import alluxio.dora.wire.ConfigCheckReport;
 

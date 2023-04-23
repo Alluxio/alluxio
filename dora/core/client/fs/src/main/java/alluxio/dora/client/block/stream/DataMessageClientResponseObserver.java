@@ -11,8 +11,8 @@
 
 package alluxio.dora.client.block.stream;
 
-import alluxio.dora.grpc.DataMessageMarshaller;
-import alluxio.dora.grpc.DataMessageMarshallerProvider;
+import alluxio.grpc.DataMessageMarshaller;
+import alluxio.grpc.DataMessageMarshallerProvider;
 
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.ClientResponseObserver;

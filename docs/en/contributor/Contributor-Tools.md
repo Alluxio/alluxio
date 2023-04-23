@@ -315,10 +315,10 @@ To run those tests, please install the libraries referenced in
 Alluxio uses [gRPC](https://grpc.io/) 1.37.0 for RPC communication between clients and servers. The `.proto`
 files defined in `core/transport/src/grpc/` are used to auto-generate Java code for calling the
 RPCs on clients and implementing the RPCs on servers. To regenerate Java code after changing 
-a gRPC definition, you must rebuild `alluxio-core-transport` module with `'generate'` maven profile.
+a gRPC definition, you must rebuild `alluxio-common-transport` module with `'generate'` maven profile.
 
 ```shell
-$ mvn clean install -Pgenerate -pl "org.alluxio:alluxio-core-transport"
+$ mvn clean install -Pgenerate -pl "org.alluxio:alluxio-common-transport"
 ```
 
 ## Modifying a Protocol Buffer Message
@@ -330,11 +330,11 @@ buffer messages.
 To change one of these messages, first read about
 [updating a message type](https://developers.google.com/protocol-buffers/docs/proto#updating)
 to make sure your change will not break backwards compatibility.
-To regenerate Java code after changing a definition, you must rebuild `alluxio-core-transport` module with
+To regenerate Java code after changing a definition, you must rebuild `alluxio-common-transport` module with
 the `'generate'` maven profile.
 
 ```shell
-$ mvn clean install -Pgenerate -pl "org.alluxio:alluxio-core-transport"
+$ mvn clean install -Pgenerate -pl "org.alluxio:alluxio-common-transport"
 ```
 
 ## Usage of `./bin/alluxio`

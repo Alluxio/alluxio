@@ -14,13 +14,13 @@ package alluxio.dora.worker.block;
 import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.exception.status.AlluxioStatusException;
-import alluxio.dora.grpc.GrpcChannel;
-import alluxio.dora.grpc.GrpcChannelBuilder;
-import alluxio.dora.grpc.GrpcServer;
-import alluxio.dora.grpc.GrpcServerAddress;
-import alluxio.dora.grpc.GrpcServerBuilder;
-import alluxio.dora.grpc.GrpcService;
-import alluxio.dora.grpc.ServiceType;
+import alluxio.grpc.GrpcChannel;
+import alluxio.grpc.GrpcChannelBuilder;
+import alluxio.grpc.GrpcServer;
+import alluxio.grpc.GrpcServerAddress;
+import alluxio.grpc.GrpcServerBuilder;
+import alluxio.grpc.GrpcService;
+import alluxio.grpc.ServiceType;
 
 import io.grpc.BindableService;
 

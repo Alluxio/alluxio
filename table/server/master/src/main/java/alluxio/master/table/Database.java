@@ -15,13 +15,13 @@ import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.ExceptionMessage;
 import alluxio.dora.exception.status.NotFoundException;
-import alluxio.dora.grpc.table.FileStatistics;
-import alluxio.dora.grpc.table.Schema;
-import alluxio.dora.grpc.table.SyncStatus;
+import alluxio.grpc.table.FileStatistics;
+import alluxio.grpc.table.Schema;
+import alluxio.grpc.table.SyncStatus;
 import alluxio.dora.master.journal.JournalContext;
 import alluxio.dora.master.journal.Journaled;
 import alluxio.dora.master.journal.checkpoint.CheckpointName;
-import alluxio.dora.proto.journal.Journal;
+import alluxio.proto.journal.Journal;
 import alluxio.dora.resource.CloseableIterator;
 import alluxio.table.common.udb.UdbContext;
 import alluxio.table.common.udb.UdbTable;
@@ -255,7 +255,7 @@ public class Database implements Journaled {
 
           if (newTable != null) {
             // table was created or was updated
-            alluxio.dora.proto.journal.Table.AddTableEntry addTableEntry
+            alluxio.proto.journal.Table.AddTableEntry addTableEntry
                 = newTable.getTableJournalProto();
             Journal.JournalEntry entry =
                 Journal.JournalEntry.newBuilder().setAddTable(addTableEntry).build();
@@ -336,8 +336,8 @@ public class Database implements Journaled {
     for (Table existingTable : mTables.values()) {
       if (!udbTableNames.contains(existingTable.getName())) {
         // this table no longer exists in udb
-        alluxio.dora.proto.journal.Table.RemoveTableEntry removeTableEntry =
-            alluxio.dora.proto.journal.Table.RemoveTableEntry.newBuilder()
+        alluxio.proto.journal.Table.RemoveTableEntry removeTableEntry =
+            alluxio.proto.journal.Table.RemoveTableEntry.newBuilder()
                 .setDbName(mName)
                 .setTableName(existingTable.getName())
                 .setVersion(existingTable.getVersion())
@@ -389,7 +389,7 @@ public class Database implements Journaled {
   }
 
   private boolean applyUpdateDbInfo(@Nullable JournalContext context, Journal.JournalEntry entry) {
-    alluxio.dora.proto.journal.Table.UpdateDatabaseInfoEntry updateDb = entry.getUpdateDatabaseInfo();
+    alluxio.proto.journal.Table.UpdateDatabaseInfoEntry updateDb = entry.getUpdateDatabaseInfo();
     if (!updateDb.getDbName().equals(mName)) {
       return false;
     }
@@ -402,7 +402,7 @@ public class Database implements Journaled {
   }
 
   private boolean applyAddTable(@Nullable JournalContext context, Journal.JournalEntry entry) {
-    alluxio.dora.proto.journal.Table.AddTableEntry addTable = entry.getAddTable();
+    alluxio.proto.journal.Table.AddTableEntry addTable = entry.getAddTable();
     if (!addTable.getDbName().equals(mName)) {
       return false;
     }
@@ -442,7 +442,7 @@ public class Database implements Journaled {
 
   private boolean applyAddTablePartitions(@Nullable JournalContext context,
       Journal.JournalEntry entry) {
-    alluxio.dora.proto.journal.Table.AddTablePartitionsEntry addTablePartitions
+    alluxio.proto.journal.Table.AddTablePartitionsEntry addTablePartitions
         = entry.getAddTablePartitions();
     if (!addTablePartitions.getDbName().equals(mName)) {
       return false;
@@ -473,7 +473,7 @@ public class Database implements Journaled {
   }
 
   private boolean applyRemoveTable(@Nullable JournalContext context, Journal.JournalEntry entry) {
-    alluxio.dora.proto.journal.Table.RemoveTableEntry removeTable = entry.getRemoveTable();
+    alluxio.proto.journal.Table.RemoveTableEntry removeTable = entry.getRemoveTable();
     if (!removeTable.getDbName().equals(mName)) {
       return false;
     }
@@ -509,7 +509,7 @@ public class Database implements Journaled {
     final Iterator<Table> it = getTables().iterator();
     return new Iterator<Journal.JournalEntry>() {
       private Table mEntry = null;
-      private Iterator<alluxio.dora.proto.journal.Table.AddTablePartitionsEntry> mPartitionIterator;
+      private Iterator<alluxio.proto.journal.Table.AddTablePartitionsEntry> mPartitionIterator;
 
       @Override
       public boolean hasNext() {
@@ -535,7 +535,7 @@ public class Database implements Journaled {
         if (mEntry != null) {
           Table table = mEntry;
           mEntry = null;
-          alluxio.dora.proto.journal.Table.AddTableEntry addTableEntry = table.getTableJournalProto();
+          alluxio.proto.journal.Table.AddTableEntry addTableEntry = table.getTableJournalProto();
           return Journal.JournalEntry.newBuilder().setAddTable(addTableEntry).build();
         }
         if (mPartitionIterator != null && mPartitionIterator.hasNext()) {
@@ -572,10 +572,10 @@ public class Database implements Journaled {
    * @param dbName database name
    * @return the journal proto representation
    */
-  public static alluxio.dora.proto.journal.Table.UpdateDatabaseInfoEntry toJournalProto(
+  public static alluxio.proto.journal.Table.UpdateDatabaseInfoEntry toJournalProto(
       DatabaseInfo dbInfo, String dbName) {
-    alluxio.dora.proto.journal.Table.UpdateDatabaseInfoEntry.Builder builder =
-        alluxio.dora.proto.journal.Table.UpdateDatabaseInfoEntry.newBuilder()
+    alluxio.proto.journal.Table.UpdateDatabaseInfoEntry.Builder builder =
+        alluxio.proto.journal.Table.UpdateDatabaseInfoEntry.newBuilder()
             .setDbName(dbName).putAllParameter(dbInfo.getParameters());
     if (dbInfo.getComment() != null) {
       builder.setComment(dbInfo.getComment());

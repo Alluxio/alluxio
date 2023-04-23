@@ -28,7 +28,7 @@ import alluxio.dora.master.journal.checkpoint.CheckpointType;
 import alluxio.dora.master.metastore.ReadOption;
 import alluxio.dora.metrics.MetricKey;
 import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.proto.meta.InodeMeta;
+import alluxio.proto.meta.InodeMeta;
 import alluxio.dora.resource.CloseableIterator;
 import alluxio.dora.util.ObjectSizeCalculator;
 

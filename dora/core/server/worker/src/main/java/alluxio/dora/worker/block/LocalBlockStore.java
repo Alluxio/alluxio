@@ -12,7 +12,7 @@
 package alluxio.dora.worker.block;
 
 import alluxio.dora.exception.runtime.BlockDoesNotExistRuntimeException;
-import alluxio.dora.proto.dataserver.Protocol;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.dora.worker.SessionCleanable;
 import alluxio.dora.worker.block.io.BlockReader;
 import alluxio.dora.worker.block.io.BlockWriter;

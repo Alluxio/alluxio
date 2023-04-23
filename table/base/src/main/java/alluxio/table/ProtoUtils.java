@@ -11,10 +11,10 @@
 
 package alluxio.table;
 
-import alluxio.dora.grpc.table.Layout;
-import alluxio.dora.grpc.table.Partition;
-import alluxio.dora.grpc.table.Transformation;
-import alluxio.dora.grpc.table.layout.hive.PartitionInfo;
+import alluxio.grpc.table.Layout;
+import alluxio.grpc.table.Partition;
+import alluxio.grpc.table.Transformation;
+import alluxio.grpc.table.layout.hive.PartitionInfo;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 

@@ -19,7 +19,7 @@ import static org.junit.Assume.assumeTrue;
 
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.InstancedConfiguration;
-import alluxio.dora.grpc.GrpcUtils;
+import alluxio.grpc.GrpcUtils;
 import alluxio.dora.network.TieredIdentityFactory;
 import alluxio.dora.util.CommonUtils;
 import alluxio.dora.util.TieredIdentityUtils;

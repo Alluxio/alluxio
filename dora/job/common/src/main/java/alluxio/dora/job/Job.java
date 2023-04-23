@@ -12,8 +12,8 @@
 package alluxio.dora.job;
 
 import alluxio.dora.exception.runtime.AlluxioRuntimeException;
-import alluxio.dora.grpc.JobProgressReportFormat;
-import alluxio.dora.proto.journal.Journal;
+import alluxio.grpc.JobProgressReportFormat;
+import alluxio.proto.journal.Journal;
 import alluxio.dora.wire.WorkerInfo;
 
 import java.util.Optional;

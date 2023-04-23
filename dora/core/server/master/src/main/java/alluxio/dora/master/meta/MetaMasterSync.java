@@ -12,8 +12,8 @@
 package alluxio.dora.master.meta;
 
 import alluxio.dora.conf.Configuration;
-import alluxio.dora.grpc.MetaCommand;
-import alluxio.dora.grpc.Scope;
+import alluxio.grpc.MetaCommand;
+import alluxio.grpc.Scope;
 import alluxio.dora.heartbeat.HeartbeatExecutor;
 import alluxio.dora.wire.Address;
 

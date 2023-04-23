@@ -15,8 +15,8 @@ import static org.junit.Assert.assertFalse;
 
 import alluxio.dora.AlluxioURI;
 import alluxio.dora.client.file.FileSystemMasterClient;
-import alluxio.dora.grpc.UfsPMode;
-import alluxio.dora.grpc.UpdateUfsModePOptions;
+import alluxio.grpc.UfsPMode;
+import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.master.backcompat.TestOp;
 import alluxio.dora.process.Clients;
 

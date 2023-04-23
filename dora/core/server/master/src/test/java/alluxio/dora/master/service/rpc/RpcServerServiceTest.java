@@ -12,8 +12,8 @@
 package alluxio.dora.master.service.rpc;
 
 import alluxio.dora.conf.Configuration;
-import alluxio.dora.grpc.GrpcServerAddress;
-import alluxio.dora.grpc.GrpcServerBuilder;
+import alluxio.grpc.GrpcServerAddress;
+import alluxio.grpc.GrpcServerBuilder;
 import alluxio.dora.master.AlluxioMasterProcess;
 import alluxio.dora.master.MasterRegistry;
 import alluxio.dora.master.PortReservationRule;

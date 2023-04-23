@@ -18,9 +18,9 @@ import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.status.AlluxioStatusException;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.dora.grpc.table.Constraint;
-import alluxio.dora.grpc.table.Partition;
-import alluxio.dora.grpc.table.TableInfo;
+import alluxio.grpc.table.Constraint;
+import alluxio.grpc.table.Partition;
+import alluxio.grpc.table.TableInfo;
 
 import org.apache.commons.cli.CommandLine;
 

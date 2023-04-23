@@ -17,7 +17,7 @@ import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.InvalidPathException;
 import alluxio.dora.file.options.DescendantType;
 import alluxio.dora.master.file.DefaultFileSystemMaster;
-import alluxio.dora.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 
 import com.google.common.base.MoreObjects;
 

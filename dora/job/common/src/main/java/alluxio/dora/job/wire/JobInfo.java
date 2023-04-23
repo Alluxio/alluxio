@@ -96,5 +96,5 @@ public interface JobInfo {
    */
 
   @Nonnull
-  alluxio.dora.grpc.JobInfo toProto() throws IOException;
+  alluxio.grpc.JobInfo toProto() throws IOException;
 }

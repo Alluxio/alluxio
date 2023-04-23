@@ -15,8 +15,8 @@ import static org.junit.Assert.assertFalse;
 
 import alluxio.dora.worker.block.BlockMapIterator;
 import alluxio.dora.worker.block.BlockStoreLocation;
-import alluxio.dora.grpc.LocationBlockIdListEntry;
-import alluxio.dora.proto.meta.Block;
+import alluxio.grpc.LocationBlockIdListEntry;
+import alluxio.proto.meta.Block;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;

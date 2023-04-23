@@ -11,7 +11,7 @@
 
 package alluxio.dora.worker.dora;
 
-import alluxio.dora.proto.meta.DoraMeta;
+import alluxio.proto.meta.DoraMeta;
 import alluxio.dora.rocks.RocksStore;
 import alluxio.dora.util.io.PathUtils;
 

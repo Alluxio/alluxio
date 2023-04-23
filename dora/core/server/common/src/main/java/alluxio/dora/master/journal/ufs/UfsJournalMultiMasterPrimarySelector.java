@@ -16,7 +16,7 @@ import alluxio.dora.Constants;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.master.AbstractPrimarySelector;
-import alluxio.dora.grpc.NodeState;
+import alluxio.grpc.NodeState;
 import alluxio.dora.master.ZookeeperConnectionErrorPolicy;
 
 import com.google.common.base.Preconditions;

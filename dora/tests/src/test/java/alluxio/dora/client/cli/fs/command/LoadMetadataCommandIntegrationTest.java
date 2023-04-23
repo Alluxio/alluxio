@@ -18,10 +18,10 @@ import alluxio.dora.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.dora.client.file.FileSystemTestUtils;
 import alluxio.dora.client.file.URIStatus;
 import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.grpc.DeletePOptions;
-import alluxio.dora.grpc.GetStatusPOptions;
-import alluxio.dora.grpc.LoadMetadataPType;
-import alluxio.dora.grpc.WritePType;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.WritePType;
 import alluxio.dora.util.io.PathUtils;
 
 import org.junit.Test;

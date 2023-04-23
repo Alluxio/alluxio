@@ -11,22 +11,22 @@
 
 package alluxio.table.under.hive;
 
-import alluxio.dora.grpc.table.BinaryColumnStatsData;
-import alluxio.dora.grpc.table.BooleanColumnStatsData;
-import alluxio.dora.grpc.table.ColumnStatisticsData;
-import alluxio.dora.grpc.table.ColumnStatisticsInfo;
-import alluxio.dora.grpc.table.Date;
-import alluxio.dora.grpc.table.DateColumnStatsData;
-import alluxio.dora.grpc.table.Decimal;
-import alluxio.dora.grpc.table.DecimalColumnStatsData;
-import alluxio.dora.grpc.table.DoubleColumnStatsData;
-import alluxio.dora.grpc.table.LongColumnStatsData;
-import alluxio.dora.grpc.table.Schema;
-import alluxio.dora.grpc.table.StringColumnStatsData;
-import alluxio.dora.grpc.table.layout.hive.HiveBucketProperty;
-import alluxio.dora.grpc.table.layout.hive.SortingColumn;
-import alluxio.dora.grpc.table.layout.hive.Storage;
-import alluxio.dora.grpc.table.layout.hive.StorageFormat;
+import alluxio.grpc.table.BinaryColumnStatsData;
+import alluxio.grpc.table.BooleanColumnStatsData;
+import alluxio.grpc.table.ColumnStatisticsData;
+import alluxio.grpc.table.ColumnStatisticsInfo;
+import alluxio.grpc.table.Date;
+import alluxio.grpc.table.DateColumnStatsData;
+import alluxio.grpc.table.Decimal;
+import alluxio.grpc.table.DecimalColumnStatsData;
+import alluxio.grpc.table.DoubleColumnStatsData;
+import alluxio.grpc.table.LongColumnStatsData;
+import alluxio.grpc.table.Schema;
+import alluxio.grpc.table.StringColumnStatsData;
+import alluxio.grpc.table.layout.hive.HiveBucketProperty;
+import alluxio.grpc.table.layout.hive.SortingColumn;
+import alluxio.grpc.table.layout.hive.Storage;
+import alluxio.grpc.table.layout.hive.StorageFormat;
 import alluxio.table.common.udb.PathTranslator;
 
 import com.google.protobuf.ByteString;
@@ -62,10 +62,10 @@ public class HiveUtils {
    * @param hiveSchema the hive schema
    * @return the proto representation
    */
-  public static List<alluxio.dora.grpc.table.FieldSchema> toProto(List<FieldSchema> hiveSchema) {
-    List<alluxio.dora.grpc.table.FieldSchema> list = new ArrayList<>();
+  public static List<alluxio.grpc.table.FieldSchema> toProto(List<FieldSchema> hiveSchema) {
+    List<alluxio.grpc.table.FieldSchema> list = new ArrayList<>();
     for (FieldSchema field : hiveSchema) {
-      alluxio.dora.grpc.table.FieldSchema.Builder builder = alluxio.dora.grpc.table.FieldSchema.newBuilder()
+      alluxio.grpc.table.FieldSchema.Builder builder = alluxio.grpc.table.FieldSchema.newBuilder()
           .setName(field.getName())
           .setType(field.getType()); // does not support complex types now
       if (field.isSetComment()) {

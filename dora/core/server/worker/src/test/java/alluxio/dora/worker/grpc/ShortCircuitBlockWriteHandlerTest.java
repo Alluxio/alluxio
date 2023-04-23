@@ -17,8 +17,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.grpc.CreateLocalBlockRequest;
-import alluxio.dora.grpc.CreateLocalBlockResponse;
+import alluxio.grpc.CreateLocalBlockRequest;
+import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.dora.util.io.PathUtils;
 import alluxio.dora.worker.block.CreateBlockOptions;
 import alluxio.dora.worker.block.NoopBlockWorker;

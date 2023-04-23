@@ -14,9 +14,9 @@ package alluxio.dora.master.block;
 import alluxio.dora.RpcUtils;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.status.DeadlineExceededException;
-import alluxio.dora.grpc.GrpcExceptionUtils;
-import alluxio.dora.grpc.RegisterWorkerPRequest;
-import alluxio.dora.grpc.RegisterWorkerPResponse;
+import alluxio.grpc.GrpcExceptionUtils;
+import alluxio.grpc.RegisterWorkerPRequest;
+import alluxio.grpc.RegisterWorkerPResponse;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;

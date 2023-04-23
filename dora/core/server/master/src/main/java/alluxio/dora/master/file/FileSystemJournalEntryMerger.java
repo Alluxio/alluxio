@@ -14,7 +14,7 @@ package alluxio.dora.master.file;
 import alluxio.dora.master.file.meta.MutableInodeDirectory;
 import alluxio.dora.master.file.meta.MutableInodeFile;
 import alluxio.dora.master.journal.JournalEntryMerger;
-import alluxio.dora.proto.journal.Journal;
+import alluxio.proto.journal.Journal;
 
 import java.util.ArrayList;
 import java.util.Collections;

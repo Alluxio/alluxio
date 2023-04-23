@@ -19,7 +19,7 @@ import alluxio.dora.master.job.JobFactoryProducer;
 import alluxio.dora.master.journal.JournalContext;
 import alluxio.dora.master.journal.Journaled;
 import alluxio.dora.master.journal.checkpoint.CheckpointName;
-import alluxio.dora.proto.journal.Journal;
+import alluxio.proto.journal.Journal;
 import alluxio.dora.resource.CloseableIterator;
 import alluxio.dora.job.Job;
 import alluxio.dora.job.JobMetaStore;

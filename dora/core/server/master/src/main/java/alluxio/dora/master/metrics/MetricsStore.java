@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.metrics;
 
-import alluxio.dora.grpc.MetricType;
+import alluxio.grpc.MetricType;
 import alluxio.dora.metrics.Metric;
 import alluxio.dora.metrics.MetricInfo;
 import alluxio.dora.metrics.MetricKey;

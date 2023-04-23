@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.dora.grpc;
+package alluxio.grpc;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -17,7 +17,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.grpc.ReadResponseMarshaller;
+import alluxio.grpc.ReadResponseMarshaller;
 import alluxio.dora.network.protocol.databuffer.DataBuffer;
 import alluxio.dora.network.protocol.databuffer.NettyDataBuffer;
 

@@ -11,8 +11,8 @@
 
 package alluxio.dora.worker.grpc;
 
-import alluxio.dora.grpc.DataMessageMarshaller;
-import alluxio.dora.grpc.DataMessageMarshallerProvider;
+import alluxio.grpc.DataMessageMarshaller;
+import alluxio.grpc.DataMessageMarshallerProvider;
 
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;

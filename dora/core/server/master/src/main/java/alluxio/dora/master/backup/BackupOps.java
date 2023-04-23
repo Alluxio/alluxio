@@ -12,8 +12,8 @@
 package alluxio.dora.master.backup;
 
 import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.grpc.BackupPRequest;
-import alluxio.dora.grpc.BackupStatusPRequest;
+import alluxio.grpc.BackupPRequest;
+import alluxio.grpc.BackupStatusPRequest;
 import alluxio.dora.master.StateLockOptions;
 import alluxio.dora.wire.BackupStatus;
 

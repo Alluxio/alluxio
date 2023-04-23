@@ -12,9 +12,9 @@
 package alluxio.dora.client.journal;
 
 import alluxio.dora.exception.status.AlluxioStatusException;
-import alluxio.dora.grpc.GetQuorumInfoPResponse;
-import alluxio.dora.grpc.GetTransferLeaderMessagePResponse;
-import alluxio.dora.grpc.NetAddress;
+import alluxio.grpc.GetQuorumInfoPResponse;
+import alluxio.grpc.GetTransferLeaderMessagePResponse;
+import alluxio.grpc.NetAddress;
 
 import java.io.Closeable;
 

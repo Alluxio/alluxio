@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.dora.grpc;
+package alluxio.grpc;
 
 /**
  * Used to define connection level multiplexing groups.

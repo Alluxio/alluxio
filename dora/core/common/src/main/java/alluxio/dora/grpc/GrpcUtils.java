@@ -9,13 +9,13 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.dora.grpc;
+package alluxio.grpc;
 
 import static alluxio.dora.util.StreamUtils.map;
 
 import alluxio.dora.Constants;
 import alluxio.dora.file.options.DescendantType;
-import alluxio.dora.proto.journal.File;
+import alluxio.proto.journal.File;
 import alluxio.dora.security.authorization.AccessControlList;
 import alluxio.dora.security.authorization.AclAction;
 import alluxio.dora.security.authorization.AclEntry;
@@ -185,7 +185,7 @@ public final class GrpcUtils {
    * @param blockPLocation the proto type to convert
    * @return the converted wire type
    */
-  public static BlockLocation fromProto(alluxio.dora.grpc.BlockLocation blockPLocation) {
+  public static BlockLocation fromProto(alluxio.grpc.BlockLocation blockPLocation) {
     BlockLocation blockLocation = new BlockLocation();
     blockLocation.setWorkerId(blockPLocation.getWorkerId());
     blockLocation.setWorkerAddress(fromProto(blockPLocation.getWorkerAddress()));
@@ -200,7 +200,7 @@ public final class GrpcUtils {
    * @param blockPInfo the proto type to convert
    * @return the converted wire type
    */
-  public static BlockInfo fromProto(alluxio.dora.grpc.BlockInfo blockPInfo) {
+  public static BlockInfo fromProto(alluxio.grpc.BlockInfo blockPInfo) {
     BlockInfo blockInfo = new BlockInfo();
     blockInfo.setBlockId(blockPInfo.getBlockId());
     blockInfo.setLength(blockPInfo.getLength());
@@ -214,7 +214,7 @@ public final class GrpcUtils {
    * @param pDescendantType the proto representation of a descendant type
    * @return the wire representation of the descendant type
    */
-  public static DescendantType fromProto(alluxio.dora.grpc.LoadDescendantPType pDescendantType) {
+  public static DescendantType fromProto(alluxio.grpc.LoadDescendantPType pDescendantType) {
     switch (pDescendantType) {
       case NONE:
         return DescendantType.NONE;
@@ -233,7 +233,7 @@ public final class GrpcUtils {
    * @param pInfo the proto representation of a file information
    * @return wire representation of the file information
    */
-  public static FileInfo fromProto(alluxio.dora.grpc.FileInfo pInfo) {
+  public static FileInfo fromProto(alluxio.grpc.FileInfo pInfo) {
     FileInfo fileInfo = new FileInfo().setFileId(pInfo.getFileId()).setName(pInfo.getName())
         .setPath(pInfo.getPath()).setUfsPath(pInfo.getUfsPath()).setLength(pInfo.getLength())
         .setBlockSizeBytes(pInfo.getBlockSizeBytes()).setCreationTimeMs(pInfo.getCreationTimeMs())
@@ -267,7 +267,7 @@ public final class GrpcUtils {
    * @param fileBlockPInfo the proto type to convert
    * @return the converted wire type
    */
-  public static FileBlockInfo fromProto(alluxio.dora.grpc.FileBlockInfo fileBlockPInfo) {
+  public static FileBlockInfo fromProto(alluxio.grpc.FileBlockInfo fileBlockPInfo) {
     return new FileBlockInfo().setBlockInfo(fromProto(fileBlockPInfo.getBlockInfo()))
         .setOffset(fileBlockPInfo.getOffset()).setUfsLocations(
             fileBlockPInfo.getUfsLocationsCount() > 0 ? fileBlockPInfo.getUfsStringLocationsList()
@@ -281,7 +281,7 @@ public final class GrpcUtils {
    * @param tieredPIdentity the proto type to convert
    * @return the converted wire type
    */
-  public static TieredIdentity fromProto(alluxio.dora.grpc.TieredIdentity tieredPIdentity) {
+  public static TieredIdentity fromProto(alluxio.grpc.TieredIdentity tieredPIdentity) {
     return new TieredIdentity(tieredPIdentity.getTiersList().stream().map(GrpcUtils::fromProto)
         .collect(Collectors.toList()));
   }
@@ -292,7 +292,7 @@ public final class GrpcUtils {
    * @param localityPTier the proto type to convert
    * @return the converted wire type
    */
-  public static TieredIdentity.LocalityTier fromProto(alluxio.dora.grpc.LocalityTier localityPTier) {
+  public static TieredIdentity.LocalityTier fromProto(alluxio.grpc.LocalityTier localityPTier) {
     return new TieredIdentity.LocalityTier(localityPTier.getTierName(),
         localityPTier.hasValue() ? localityPTier.getValue() : null);
   }
@@ -303,7 +303,7 @@ public final class GrpcUtils {
    * @param mountPointPInfo the proto type to convert
    * @return the converted wire type
    */
-  public static MountPointInfo fromProto(alluxio.dora.grpc.MountPointInfo mountPointPInfo) {
+  public static MountPointInfo fromProto(alluxio.grpc.MountPointInfo mountPointPInfo) {
     return new MountPointInfo().setUfsUri(mountPointPInfo.getUfsUri())
         .setUfsType(mountPointPInfo.getUfsType())
         .setUfsCapacityBytes(mountPointPInfo.getUfsCapacityBytes())
@@ -320,7 +320,7 @@ public final class GrpcUtils {
    * @param workerInfo the proto type to convert
    * @return the converted wire type
    */
-  public static WorkerInfo fromProto(alluxio.dora.grpc.WorkerInfo workerInfo) {
+  public static WorkerInfo fromProto(alluxio.grpc.WorkerInfo workerInfo) {
     return new WorkerInfo().setAddress(fromProto(workerInfo.getAddress()))
         .setCapacityBytes(workerInfo.getCapacityBytes())
         .setCapacityBytesOnTiers(workerInfo.getCapacityBytesOnTiers()).setId(workerInfo.getId())
@@ -338,7 +338,7 @@ public final class GrpcUtils {
    * @param workerNetPAddress the proto type to convert
    * @return the converted wire type
    */
-  public static WorkerNetAddress fromProto(alluxio.dora.grpc.WorkerNetAddress workerNetPAddress) {
+  public static WorkerNetAddress fromProto(alluxio.grpc.WorkerNetAddress workerNetPAddress) {
     WorkerNetAddress workerNetAddress = new WorkerNetAddress();
     workerNetAddress.setHost(workerNetPAddress.getHost());
     workerNetAddress.setContainerHost(workerNetPAddress.getContainerHost());
@@ -440,12 +440,12 @@ public final class GrpcUtils {
    * @param blockInfo the wire type to convert
    * @return the converted proto type
    */
-  public static alluxio.dora.grpc.BlockInfo toProto(BlockInfo blockInfo) {
-    List<alluxio.dora.grpc.BlockLocation> locations = new ArrayList<>();
+  public static alluxio.grpc.BlockInfo toProto(BlockInfo blockInfo) {
+    List<alluxio.grpc.BlockLocation> locations = new ArrayList<>();
     for (BlockLocation location : blockInfo.getLocations()) {
       locations.add(toProto(location));
     }
-    return alluxio.dora.grpc.BlockInfo.newBuilder().setBlockId(blockInfo.getBlockId())
+    return alluxio.grpc.BlockInfo.newBuilder().setBlockId(blockInfo.getBlockId())
         .setLength(blockInfo.getLength()).addAllLocations(locations).build();
   }
 
@@ -455,8 +455,8 @@ public final class GrpcUtils {
    * @param blockLocation the wire type to convert
    * @return the converted proto type
    */
-  public static alluxio.dora.grpc.BlockLocation toProto(BlockLocation blockLocation) {
-    return alluxio.dora.grpc.BlockLocation.newBuilder().setWorkerId(blockLocation.getWorkerId())
+  public static alluxio.grpc.BlockLocation toProto(BlockLocation blockLocation) {
+    return alluxio.grpc.BlockLocation.newBuilder().setWorkerId(blockLocation.getWorkerId())
         .setWorkerAddress(toProto(blockLocation.getWorkerAddress()))
         .setTierAlias(blockLocation.getTierAlias())
         .setMediumType(blockLocation.getMediumType())
@@ -469,12 +469,12 @@ public final class GrpcUtils {
    * @param fileInfo the wire representation of a file information
    * @return proto representation of the file information
    */
-  public static alluxio.dora.grpc.FileInfo toProto(FileInfo fileInfo) {
-    List<alluxio.dora.grpc.FileBlockInfo> fileBlockInfos = new ArrayList<>();
+  public static alluxio.grpc.FileInfo toProto(FileInfo fileInfo) {
+    List<alluxio.grpc.FileBlockInfo> fileBlockInfos = new ArrayList<>();
     for (FileBlockInfo fileBlockInfo : fileInfo.getFileBlockInfos()) {
       fileBlockInfos.add(toProto(fileBlockInfo));
     }
-    alluxio.dora.grpc.FileInfo.Builder builder = alluxio.dora.grpc.FileInfo.newBuilder()
+    alluxio.grpc.FileInfo.Builder builder = alluxio.grpc.FileInfo.newBuilder()
         .setFileId(fileInfo.getFileId()).setName(fileInfo.getName()).setPath(fileInfo.getPath())
         .setUfsPath(fileInfo.getUfsPath()).setLength(fileInfo.getLength())
         .setBlockSizeBytes(fileInfo.getBlockSizeBytes())
@@ -517,14 +517,14 @@ public final class GrpcUtils {
    * @param fileBlockInfo the wire representation to convert
    * @return converted proto representation
    */
-  public static alluxio.dora.grpc.FileBlockInfo toProto(FileBlockInfo fileBlockInfo) {
-    List<alluxio.dora.grpc.WorkerNetAddress> ufsLocations = new ArrayList<>();
+  public static alluxio.grpc.FileBlockInfo toProto(FileBlockInfo fileBlockInfo) {
+    List<alluxio.grpc.WorkerNetAddress> ufsLocations = new ArrayList<>();
     for (String ufsLocation : fileBlockInfo.getUfsLocations()) {
       HostAndPort address = HostAndPort.fromString(ufsLocation);
-      ufsLocations.add(alluxio.dora.grpc.WorkerNetAddress.newBuilder().setHost(address.getHost())
+      ufsLocations.add(alluxio.grpc.WorkerNetAddress.newBuilder().setHost(address.getHost())
           .setDataPort(address.getPortOrDefault(-1)).build());
     }
-    return alluxio.dora.grpc.FileBlockInfo.newBuilder()
+    return alluxio.grpc.FileBlockInfo.newBuilder()
         .setBlockInfo(toProto(fileBlockInfo.getBlockInfo())).setOffset(fileBlockInfo.getOffset())
         .addAllUfsLocations(ufsLocations).addAllUfsStringLocations(fileBlockInfo.getUfsLocations())
         .build();
@@ -556,9 +556,9 @@ public final class GrpcUtils {
    * @param localityTier the wire representation to convert
    * @return converted proto representation
    */
-  public static alluxio.dora.grpc.LocalityTier toProto(TieredIdentity.LocalityTier localityTier) {
-    alluxio.dora.grpc.LocalityTier.Builder tier =
-        alluxio.dora.grpc.LocalityTier.newBuilder().setTierName(localityTier.getTierName());
+  public static alluxio.grpc.LocalityTier toProto(TieredIdentity.LocalityTier localityTier) {
+    alluxio.grpc.LocalityTier.Builder tier =
+        alluxio.grpc.LocalityTier.newBuilder().setTierName(localityTier.getTierName());
     if (localityTier.getValue() != null) {
       tier.setValue(localityTier.getValue());
     }
@@ -571,8 +571,8 @@ public final class GrpcUtils {
    * @param info the wire representation to convert
    * @return converted proto representation
    */
-  public static alluxio.dora.grpc.MountPointInfo toProto(MountPointInfo info) {
-    return alluxio.dora.grpc.MountPointInfo.newBuilder().setUfsUri(info.getUfsUri())
+  public static alluxio.grpc.MountPointInfo toProto(MountPointInfo info) {
+    return alluxio.grpc.MountPointInfo.newBuilder().setUfsUri(info.getUfsUri())
         .setUfsType(info.getUfsType()).setUfsCapacityBytes(info.getUfsCapacityBytes())
         .setReadOnly(info.getReadOnly()).putAllProperties(info.getProperties())
         .setShared(info.getShared())
@@ -587,8 +587,8 @@ public final class GrpcUtils {
    * @param tieredIdentity the wire representation to convert
    * @return the converted proto representation
    */
-  public static alluxio.dora.grpc.TieredIdentity toProto(TieredIdentity tieredIdentity) {
-    return alluxio.dora.grpc.TieredIdentity.newBuilder()
+  public static alluxio.grpc.TieredIdentity toProto(TieredIdentity tieredIdentity) {
+    return alluxio.grpc.TieredIdentity.newBuilder()
         .addAllTiers(
             tieredIdentity.getTiers().stream().map(GrpcUtils::toProto).collect(Collectors.toList()))
         .build();
@@ -600,8 +600,8 @@ public final class GrpcUtils {
    * @param workerInfo the wire representation to convert
    * @return the converted proto representation
    */
-  public static alluxio.dora.grpc.WorkerInfo toProto(WorkerInfo workerInfo) {
-    return alluxio.dora.grpc.WorkerInfo.newBuilder().setId(workerInfo.getId())
+  public static alluxio.grpc.WorkerInfo toProto(WorkerInfo workerInfo) {
+    return alluxio.grpc.WorkerInfo.newBuilder().setId(workerInfo.getId())
         .setAddress(toProto(workerInfo.getAddress()))
         .setLastContactSec(workerInfo.getLastContactSec()).setState(workerInfo.getState())
         .setCapacityBytes(workerInfo.getCapacityBytes()).setUsedBytes(workerInfo.getUsedBytes())
@@ -619,8 +619,8 @@ public final class GrpcUtils {
    * @param workerNetAddress the wire representation to convert
    * @return the converted proto representation
    */
-  public static alluxio.dora.grpc.WorkerNetAddress toProto(WorkerNetAddress workerNetAddress) {
-    alluxio.dora.grpc.WorkerNetAddress.Builder address = alluxio.dora.grpc.WorkerNetAddress.newBuilder()
+  public static alluxio.grpc.WorkerNetAddress toProto(WorkerNetAddress workerNetAddress) {
+    alluxio.grpc.WorkerNetAddress.Builder address = alluxio.grpc.WorkerNetAddress.newBuilder()
         .setHost(workerNetAddress.getHost())
         .setContainerHost(workerNetAddress.getContainerHost())
         .setRpcPort(workerNetAddress.getRpcPort())
@@ -637,16 +637,16 @@ public final class GrpcUtils {
    * @param commandType wire type
    * @return proto representation of given wire type
    */
-  public static alluxio.dora.grpc.CommandType toProto(CommandType commandType) {
-    return alluxio.dora.grpc.CommandType.valueOf(commandType.name());
+  public static alluxio.grpc.CommandType toProto(CommandType commandType) {
+    return alluxio.grpc.CommandType.valueOf(commandType.name());
   }
 
   /**
    * @param persistFile wire type
    * @return proto representation of given wire type
    */
-  public static alluxio.dora.grpc.PersistFile toProto(PersistFile persistFile) {
-    return alluxio.dora.grpc.PersistFile.newBuilder().setFileId(persistFile.getFileId())
+  public static alluxio.grpc.PersistFile toProto(PersistFile persistFile) {
+    return alluxio.grpc.PersistFile.newBuilder().setFileId(persistFile.getFileId())
         .addAllBlockIds(persistFile.getBlockIds()).build();
   }
 
@@ -654,9 +654,9 @@ public final class GrpcUtils {
    * @param fsCommand wire type
    * @return proto representation of given wire type
    */
-  public static alluxio.dora.grpc.FileSystemCommand toProto(FileSystemCommand fsCommand) {
+  public static alluxio.grpc.FileSystemCommand toProto(FileSystemCommand fsCommand) {
 
-    return alluxio.dora.grpc.FileSystemCommand.newBuilder()
+    return alluxio.grpc.FileSystemCommand.newBuilder()
         .setCommandType(toProto(fsCommand.getCommandType()))
         .setCommandOptions(FileSystemCommandOptions.newBuilder()
             .setPersistOptions(PersistCommandOptions.newBuilder().addAllPersistFiles(
@@ -669,8 +669,8 @@ public final class GrpcUtils {
    * @param ufsInfo wire type
    * @return proto representation of given wire type
    */
-  public static alluxio.dora.grpc.UfsInfo toProto(UfsInfo ufsInfo) {
-    return alluxio.dora.grpc.UfsInfo.newBuilder().setUri(ufsInfo.getUri().toString())
+  public static alluxio.grpc.UfsInfo toProto(UfsInfo ufsInfo) {
+    return alluxio.grpc.UfsInfo.newBuilder().setUri(ufsInfo.getUri().toString())
         .setProperties(ufsInfo.getMountOptions()).build();
   }
 
@@ -679,7 +679,7 @@ public final class GrpcUtils {
    * @param lease the lease decision from the master
    * @return a {@link GetRegisterLeasePResponse}
    */
-  public static alluxio.dora.grpc.GetRegisterLeasePResponse toProto(
+  public static alluxio.grpc.GetRegisterLeasePResponse toProto(
       long workerId, Optional<RegisterLease> lease) {
     if (lease.isPresent()) {
       RegisterLease l = lease.get();

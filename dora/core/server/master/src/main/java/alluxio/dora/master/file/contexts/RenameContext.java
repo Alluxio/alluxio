@@ -12,7 +12,7 @@
 package alluxio.dora.master.file.contexts;
 
 import alluxio.dora.conf.Configuration;
-import alluxio.dora.grpc.RenamePOptions;
+import alluxio.grpc.RenamePOptions;
 import alluxio.dora.util.FileSystemOptionsUtils;
 import alluxio.dora.wire.OperationId;
 

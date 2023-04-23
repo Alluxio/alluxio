@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.dora.grpc;
+package alluxio.grpc;
 
 /**
  * A struct that carries a message with a data buffer.

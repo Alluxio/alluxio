@@ -11,12 +11,12 @@
 
 package alluxio.master.table;
 
-import alluxio.dora.grpc.table.ColumnStatisticsInfo;
-import alluxio.dora.grpc.table.ColumnStatisticsList;
-import alluxio.dora.grpc.table.Constraint;
-import alluxio.dora.grpc.table.Database;
-import alluxio.dora.grpc.table.Partition;
-import alluxio.dora.grpc.table.SyncStatus;
+import alluxio.grpc.table.ColumnStatisticsInfo;
+import alluxio.grpc.table.ColumnStatisticsList;
+import alluxio.grpc.table.Constraint;
+import alluxio.grpc.table.Database;
+import alluxio.grpc.table.Partition;
+import alluxio.grpc.table.SyncStatus;
 import alluxio.dora.master.Master;
 import alluxio.master.table.transform.TransformJobInfo;
 

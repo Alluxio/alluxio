@@ -13,8 +13,8 @@ package alluxio.dora.master.file.meta.options;
 
 import alluxio.dora.AlluxioURI;
 import alluxio.dora.master.file.meta.options.MountInfo;
-import alluxio.dora.grpc.MountPOptions;
-import alluxio.dora.grpc.UfsInfo;
+import alluxio.grpc.MountPOptions;
+import alluxio.grpc.UfsInfo;
 import alluxio.dora.master.file.contexts.MountContext;
 
 import org.junit.Assert;

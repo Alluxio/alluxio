@@ -15,7 +15,7 @@ import alluxio.dora.ClientContext;
 import alluxio.dora.Constants;
 import alluxio.dora.exception.status.AlluxioStatusException;
 import alluxio.dora.exception.status.UnavailableException;
-import alluxio.dora.grpc.ClientMetrics;
+import alluxio.grpc.ClientMetrics;
 import alluxio.dora.master.MasterClientContext;
 import alluxio.dora.master.MasterInquireClient;
 import alluxio.dora.metrics.MetricsSystem;
@@ -83,8 +83,8 @@ public final class ClientMasterSync {
     // TODO(zac): Support per FileSystem instance metrics
     // Currently we only support JVM-level metrics. A list is used here because in the near
     // future we will support sending per filesystem client-level metrics.
-    List<alluxio.dora.grpc.ClientMetrics> fsClientMetrics = new ArrayList<>();
-    List<alluxio.dora.grpc.Metric> metrics = MetricsSystem.reportClientMetrics();
+    List<alluxio.grpc.ClientMetrics> fsClientMetrics = new ArrayList<>();
+    List<alluxio.grpc.Metric> metrics = MetricsSystem.reportClientMetrics();
     if (metrics.size() == 0) {
       // Likely when all should report metrics are counters
       // and this client doesn't do any actual operations (only used for meta sync)

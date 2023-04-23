@@ -11,8 +11,8 @@
 
 package alluxio.dora.master.file;
 
-import alluxio.dora.grpc.GrpcUtils;
-import alluxio.dora.grpc.ListStatusPResponse;
+import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.ListStatusPResponse;
 import alluxio.dora.wire.FileInfo;
 
 import com.google.common.base.Preconditions;

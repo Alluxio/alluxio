@@ -19,7 +19,7 @@ import alluxio.dora.client.file.URIStatus;
 import alluxio.dora.collections.Pair;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.exception.status.NotFoundException;
-import alluxio.dora.grpc.RemoveBlockRequest;
+import alluxio.grpc.RemoveBlockRequest;
 import alluxio.dora.job.RunTaskContext;
 import alluxio.dora.job.SelectExecutorsContext;
 import alluxio.dora.job.plan.AbstractVoidPlanDefinition;

@@ -12,12 +12,12 @@
 package alluxio.dora.master.job;
 
 import alluxio.dora.RpcUtils;
-import alluxio.dora.grpc.GrpcUtils;
-import alluxio.dora.grpc.JobHeartbeatPRequest;
-import alluxio.dora.grpc.JobHeartbeatPResponse;
-import alluxio.dora.grpc.JobMasterWorkerServiceGrpc;
-import alluxio.dora.grpc.RegisterJobWorkerPRequest;
-import alluxio.dora.grpc.RegisterJobWorkerPResponse;
+import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.JobHeartbeatPRequest;
+import alluxio.grpc.JobHeartbeatPResponse;
+import alluxio.grpc.JobMasterWorkerServiceGrpc;
+import alluxio.grpc.RegisterJobWorkerPRequest;
+import alluxio.grpc.RegisterJobWorkerPResponse;
 import alluxio.dora.job.wire.JobWorkerHealth;
 import alluxio.dora.job.wire.TaskInfo;
 
@@ -55,7 +55,7 @@ public final class JobMasterWorkerServiceHandler
 
     RpcUtils.call(LOG, () -> {
       List<TaskInfo> wireTaskInfoList = Lists.newArrayList();
-      for (alluxio.dora.grpc.JobInfo taskInfo : request.getTaskInfosList()) {
+      for (alluxio.grpc.JobInfo taskInfo : request.getTaskInfosList()) {
         try {
           wireTaskInfoList.add(new TaskInfo(taskInfo));
         } catch (IOException e) {

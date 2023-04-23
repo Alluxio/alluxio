@@ -13,7 +13,7 @@ package alluxio.dora.client.block.stream;
 
 import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.grpc.GrpcServerAddress;
+import alluxio.grpc.GrpcServerAddress;
 import alluxio.dora.metrics.MetricKey;
 import alluxio.dora.metrics.MetricsSystem;
 import alluxio.dora.resource.DynamicResourcePool;

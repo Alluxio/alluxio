@@ -11,8 +11,8 @@
 
 package alluxio.master.table;
 
-import alluxio.dora.grpc.table.FieldSchema;
-import alluxio.dora.grpc.table.Layout;
+import alluxio.grpc.table.FieldSchema;
+import alluxio.grpc.table.Layout;
 
 import com.google.common.base.Preconditions;
 

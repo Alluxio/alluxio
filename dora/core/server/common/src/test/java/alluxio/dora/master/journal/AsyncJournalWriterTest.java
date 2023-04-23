@@ -24,7 +24,7 @@ import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.master.journal.AsyncJournalWriter;
 import alluxio.dora.master.journal.JournalWriter;
-import alluxio.dora.proto.journal.Journal.JournalEntry;
+import alluxio.proto.journal.Journal.JournalEntry;
 
 import org.junit.After;
 import org.junit.Test;

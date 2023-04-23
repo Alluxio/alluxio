@@ -17,7 +17,7 @@ import alluxio.dora.client.journal.JournalMasterClient;
 import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.exception.ExceptionMessage;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.dora.grpc.JournalDomain;
+import alluxio.grpc.JournalDomain;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;

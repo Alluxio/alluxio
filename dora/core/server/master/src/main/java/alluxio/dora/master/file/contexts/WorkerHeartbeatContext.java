@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.file.contexts;
 
-import alluxio.dora.grpc.FileSystemHeartbeatPOptions;
+import alluxio.grpc.FileSystemHeartbeatPOptions;
 
 import com.google.common.base.MoreObjects;
 

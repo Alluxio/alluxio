@@ -11,7 +11,7 @@
 
 package alluxio.dora.job.wire;
 
-import alluxio.dora.grpc.OperationType;
+import alluxio.grpc.OperationType;
 
 import com.google.common.collect.Lists;
 
@@ -85,11 +85,11 @@ public class CmdStatusBlock {
    * Convert to proto type.
    * @return return proto type of CmdStatusBlock
    */
-  public alluxio.dora.grpc.CmdStatusBlock toProto() throws IOException {
-    List<alluxio.dora.grpc.JobStatusBlock> jobStatusBlockList = Lists.newArrayList();
+  public alluxio.grpc.CmdStatusBlock toProto() throws IOException {
+    List<alluxio.grpc.JobStatusBlock> jobStatusBlockList = Lists.newArrayList();
     mJobStatusBlockList.forEach(block -> {
-      alluxio.dora.grpc.JobStatusBlock protoBlock =
-              alluxio.dora.grpc.JobStatusBlock
+      alluxio.grpc.JobStatusBlock protoBlock =
+              alluxio.grpc.JobStatusBlock
                       .newBuilder()
                       .setJobId(block.getJobId())
                       .setJobStatus(block.getStatus().toProto())
@@ -98,7 +98,7 @@ public class CmdStatusBlock {
                       .build();
       jobStatusBlockList.add(protoBlock);
     });
-    return alluxio.dora.grpc.CmdStatusBlock
+    return alluxio.grpc.CmdStatusBlock
             .newBuilder()
             .setJobControlId(mJobControlId)
             .addAllJobStatusBlock(jobStatusBlockList)

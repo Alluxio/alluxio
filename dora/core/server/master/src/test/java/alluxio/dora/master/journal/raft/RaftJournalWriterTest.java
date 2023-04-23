@@ -22,8 +22,8 @@ import static org.mockito.Mockito.when;
 import alluxio.dora.master.journal.raft.RaftJournalAppender;
 import alluxio.dora.master.journal.raft.RaftJournalUtils;
 import alluxio.dora.master.journal.raft.RaftJournalWriter;
-import alluxio.dora.proto.journal.File;
-import alluxio.dora.proto.journal.Journal;
+import alluxio.proto.journal.File;
+import alluxio.proto.journal.Journal;
 
 import org.apache.ratis.protocol.ClientId;
 import org.apache.ratis.protocol.Message;

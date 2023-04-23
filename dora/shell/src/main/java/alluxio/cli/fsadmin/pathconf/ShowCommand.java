@@ -21,7 +21,7 @@ import alluxio.dora.conf.InstancedConfiguration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.conf.path.PathConfiguration;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.dora.grpc.GetConfigurationPOptions;
+import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.dora.wire.Configuration;
 import alluxio.dora.wire.Property;
 

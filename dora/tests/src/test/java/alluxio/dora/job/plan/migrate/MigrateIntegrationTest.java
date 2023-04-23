@@ -15,8 +15,8 @@ import alluxio.dora.AlluxioURI;
 import alluxio.dora.client.WriteType;
 import alluxio.dora.client.file.FileInStream;
 import alluxio.dora.client.file.FileOutStream;
-import alluxio.dora.grpc.CreateFilePOptions;
-import alluxio.dora.grpc.WritePType;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.dora.job.JobIntegrationTest;
 import alluxio.dora.job.wire.JobInfo;
 

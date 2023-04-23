@@ -19,10 +19,10 @@ import alluxio.dora.RpcSensitiveConfigMask;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.status.AlluxioStatusException;
-import alluxio.dora.grpc.Chunk;
-import alluxio.dora.grpc.DataMessage;
-import alluxio.dora.grpc.ReadRequest;
-import alluxio.dora.grpc.ReadResponse;
+import alluxio.grpc.Chunk;
+import alluxio.grpc.DataMessage;
+import alluxio.grpc.ReadRequest;
+import alluxio.grpc.ReadResponse;
 import alluxio.dora.metrics.MetricKey;
 import alluxio.dora.metrics.MetricsSystem;
 import alluxio.dora.network.protocol.databuffer.DataBuffer;
@@ -105,7 +105,7 @@ public class FileReadHandler implements StreamObserver<ReadRequest> {
   }
 
   @Override
-  public void onNext(alluxio.dora.grpc.ReadRequest request) {
+  public void onNext(alluxio.grpc.ReadRequest request) {
     // Expected state: context equals null as this handler is new for request.
     // Otherwise, notify the client an illegal state. Note that, we reset the context before
     // validation msg as validation may require to update error in context.
@@ -196,7 +196,7 @@ public class FileReadHandler implements StreamObserver<ReadRequest> {
     AlluxioStatusException statusExc = AlluxioStatusException.from(status);
     try (LockResource lr = new LockResource(mLock)) {
       if (mContext == null) {
-        mContext = createRequestContext(alluxio.dora.grpc.ReadRequest.newBuilder().build());
+        mContext = createRequestContext(alluxio.grpc.ReadRequest.newBuilder().build());
       }
       setError(new Error(statusExc, true));
     }
@@ -225,7 +225,7 @@ public class FileReadHandler implements StreamObserver<ReadRequest> {
    * @param request the block read request
    * @return an instance of read request based on the request read from channel
    */
-  protected BlockReadRequestContext createRequestContext(alluxio.dora.grpc.ReadRequest request) {
+  protected BlockReadRequestContext createRequestContext(alluxio.grpc.ReadRequest request) {
     BlockReadRequestContext context = new BlockReadRequestContext(request);
 
     context.setCounter(MetricsSystem.counter(MetricKey.WORKER_BYTES_READ_REMOTE.getName()));

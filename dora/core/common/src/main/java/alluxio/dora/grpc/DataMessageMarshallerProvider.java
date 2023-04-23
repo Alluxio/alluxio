@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.dora.grpc;
+package alluxio.grpc;
 
 import java.util.Optional;
 import javax.annotation.Nullable;

@@ -12,7 +12,7 @@
 package alluxio.dora.job;
 
 import alluxio.dora.Client;
-import alluxio.dora.grpc.ListAllPOptions;
+import alluxio.grpc.ListAllPOptions;
 import alluxio.dora.job.wire.CmdStatusBlock;
 import alluxio.dora.job.wire.JobInfo;
 import alluxio.dora.job.wire.JobServiceSummary;

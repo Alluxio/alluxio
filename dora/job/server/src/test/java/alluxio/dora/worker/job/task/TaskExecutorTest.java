@@ -18,7 +18,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.dora.AlluxioMockUtil;
-import alluxio.dora.grpc.RunTaskCommand;
+import alluxio.grpc.RunTaskCommand;
 import alluxio.dora.job.JobConfig;
 import alluxio.dora.job.RunTaskContext;
 import alluxio.dora.job.SleepJobConfig;

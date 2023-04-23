@@ -12,7 +12,7 @@
 package alluxio.dora.master.journal.ufs;
 
 import alluxio.dora.master.AbstractPrimarySelector;
-import alluxio.dora.grpc.NodeState;
+import alluxio.grpc.NodeState;
 
 import java.net.InetSocketAddress;
 

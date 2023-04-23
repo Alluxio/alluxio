@@ -76,7 +76,7 @@ public final class BlockReadRequestContext {
   /**
    * @param request the read request
    */
-  public BlockReadRequestContext(alluxio.dora.grpc.ReadRequest request) {
+  public BlockReadRequestContext(alluxio.grpc.ReadRequest request) {
     mRequest = BlockReadRequest.from(request);
     mPosToQueue = 0;
     mDataReaderActive = false;

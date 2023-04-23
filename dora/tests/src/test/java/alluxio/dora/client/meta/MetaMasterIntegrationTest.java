@@ -15,9 +15,9 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.dora.ClientContext;
 import alluxio.dora.conf.Configuration;
-import alluxio.dora.grpc.GetConfigurationPOptions;
-import alluxio.dora.grpc.MasterInfo;
-import alluxio.dora.grpc.MasterInfoField;
+import alluxio.grpc.GetConfigurationPOptions;
+import alluxio.grpc.MasterInfo;
+import alluxio.grpc.MasterInfoField;
 import alluxio.dora.master.MasterClientContext;
 import alluxio.dora.testutils.BaseIntegrationTest;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;

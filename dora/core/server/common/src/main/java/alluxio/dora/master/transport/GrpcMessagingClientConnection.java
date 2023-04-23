@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.transport;
 
-import alluxio.dora.grpc.GrpcChannel;
+import alluxio.grpc.GrpcChannel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

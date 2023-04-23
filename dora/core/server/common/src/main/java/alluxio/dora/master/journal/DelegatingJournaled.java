@@ -13,7 +13,7 @@ package alluxio.dora.master.journal;
 
 import alluxio.dora.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.dora.master.journal.checkpoint.CheckpointName;
-import alluxio.dora.proto.journal.Journal.JournalEntry;
+import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.dora.resource.CloseableIterator;
 
 import java.io.IOException;

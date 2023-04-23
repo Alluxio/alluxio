@@ -25,7 +25,7 @@ import alluxio.dora.master.journal.JournalContext;
 import alluxio.dora.master.journal.NoopJournalContext;
 import alluxio.dora.metrics.MetricKey;
 import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.proto.journal.File.UpdateInodeEntry;
+import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.dora.util.IdUtils;
 
 import org.slf4j.Logger;

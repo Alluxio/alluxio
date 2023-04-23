@@ -16,7 +16,7 @@ import alluxio.dora.master.file.contexts.CreateFileContext;
 import alluxio.dora.master.file.meta.*;
 import alluxio.dora.master.metastore.InodeStore;
 import alluxio.dora.master.metastore.heap.HeapInodeStore;
-import alluxio.dora.proto.journal.Journal;
+import alluxio.proto.journal.Journal;
 import alluxio.dora.resource.CloseableIterator;
 
 import org.junit.After;

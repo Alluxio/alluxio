@@ -16,7 +16,7 @@ import alluxio.dora.ClientContext;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.exception.status.NotFoundException;
 import alluxio.dora.exception.status.UnavailableException;
-import alluxio.dora.grpc.UfsInfo;
+import alluxio.grpc.UfsInfo;
 import alluxio.dora.master.MasterClientContext;
 import alluxio.dora.master.file.FileSystemMasterClient;
 import alluxio.dora.resource.CloseableResource;

@@ -180,6 +180,7 @@
     <module>dora/minicluster</module>
     <module>dora/job</module>
     <module>dora/tests</module>-->
+    <module>common</module>
     <module>dora</module>
     <module>examples</module>
     <module>logserver</module>

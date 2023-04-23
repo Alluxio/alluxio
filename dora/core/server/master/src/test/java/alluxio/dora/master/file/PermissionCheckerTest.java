@@ -20,7 +20,7 @@ import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.AccessControlException;
 import alluxio.dora.exception.ExceptionMessage;
 import alluxio.dora.exception.InvalidPathException;
-import alluxio.dora.grpc.CreateFilePOptions;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.dora.master.CoreMasterContext;
 import alluxio.dora.master.MasterRegistry;
 import alluxio.dora.master.MasterTestUtils;

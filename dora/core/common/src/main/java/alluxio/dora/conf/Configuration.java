@@ -17,15 +17,15 @@ import alluxio.dora.conf.path.PathConfiguration;
 import alluxio.dora.exception.status.AlluxioStatusException;
 import alluxio.dora.exception.status.UnauthenticatedException;
 import alluxio.dora.exception.status.UnavailableException;
-import alluxio.dora.grpc.ConfigProperty;
-import alluxio.dora.grpc.GetConfigurationPOptions;
-import alluxio.dora.grpc.GetConfigurationPResponse;
-import alluxio.dora.grpc.GrpcChannel;
-import alluxio.dora.grpc.GrpcChannelBuilder;
-import alluxio.dora.grpc.GrpcServerAddress;
-import alluxio.dora.grpc.GrpcUtils;
-import alluxio.dora.grpc.MetaMasterConfigurationServiceGrpc;
-import alluxio.dora.grpc.Scope;
+import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GetConfigurationPOptions;
+import alluxio.grpc.GetConfigurationPResponse;
+import alluxio.grpc.GrpcChannel;
+import alluxio.grpc.GrpcChannelBuilder;
+import alluxio.grpc.GrpcServerAddress;
+import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
+import alluxio.grpc.Scope;
 import alluxio.dora.util.ConfigurationUtils;
 import alluxio.dora.util.io.PathUtils;
 
@@ -483,7 +483,7 @@ public final class Configuration
     String clientVersion = conf.getString(PropertyKey.VERSION);
     LOG.debug("Alluxio {} (version {}) is trying to load cluster level configurations",
         scope, clientVersion);
-    List<alluxio.dora.grpc.ConfigProperty> clusterConfig = response.getClusterConfigsList();
+    List<alluxio.grpc.ConfigProperty> clusterConfig = response.getClusterConfigsList();
     Properties clusterProps = filterAndLoadProperties(clusterConfig, scope, (key, value) ->
         String.format("Loading property: %s (%s) -> %s", key, key.getScope(), value));
     // Check version.

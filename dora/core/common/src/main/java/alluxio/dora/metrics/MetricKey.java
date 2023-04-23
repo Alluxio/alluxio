@@ -12,7 +12,7 @@
 package alluxio.dora.metrics;
 
 import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.grpc.MetricType;
+import alluxio.grpc.MetricType;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;

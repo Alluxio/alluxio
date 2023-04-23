@@ -28,7 +28,7 @@ import alluxio.dora.AlluxioURI;
 import alluxio.dora.Constants;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.exception.InvalidPathException;
-import alluxio.dora.grpc.MountPOptions;
+import alluxio.grpc.MountPOptions;
 import alluxio.dora.master.file.BlockDeletionContext;
 import alluxio.dora.master.file.RpcContext;
 import alluxio.dora.master.file.contexts.CallTracker;

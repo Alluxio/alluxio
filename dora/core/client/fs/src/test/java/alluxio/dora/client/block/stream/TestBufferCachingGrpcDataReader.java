@@ -11,8 +11,8 @@
 
 package alluxio.dora.client.block.stream;
 
-import alluxio.dora.grpc.ReadRequest;
-import alluxio.dora.grpc.ReadResponse;
+import alluxio.grpc.ReadRequest;
+import alluxio.grpc.ReadResponse;
 import alluxio.dora.network.protocol.databuffer.DataBuffer;
 import alluxio.dora.network.protocol.databuffer.NioDataBuffer;
 import alluxio.dora.resource.CloseableResource;

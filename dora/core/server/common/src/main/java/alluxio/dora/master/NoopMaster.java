@@ -12,8 +12,8 @@
 package alluxio.dora.master;
 
 import alluxio.dora.Server;
-import alluxio.dora.grpc.GrpcService;
-import alluxio.dora.grpc.ServiceType;
+import alluxio.grpc.GrpcService;
+import alluxio.grpc.ServiceType;
 import alluxio.dora.master.journal.JournalContext;
 import alluxio.dora.master.journal.NoopJournaled;
 import alluxio.dora.master.journal.noop.NoopJournalSystem;

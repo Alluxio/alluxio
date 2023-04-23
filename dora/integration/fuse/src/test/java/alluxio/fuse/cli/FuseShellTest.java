@@ -32,7 +32,7 @@ import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.conf.Source;
 import alluxio.dora.exception.runtime.InvalidArgumentRuntimeException;
 import alluxio.dora.exception.status.AlluxioStatusException;
-import alluxio.dora.grpc.GetStatusPOptions;
+import alluxio.grpc.GetStatusPOptions;
 import alluxio.dora.resource.CloseableResource;
 import alluxio.dora.wire.FileInfo;
 

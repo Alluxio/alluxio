@@ -24,8 +24,8 @@ import alluxio.dora.client.file.URIStatus;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.InstancedConfiguration;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.grpc.CreateDirectoryPOptions;
-import alluxio.dora.grpc.CreateFilePOptions;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.dora.master.file.meta.PersistenceState;
 
 import org.junit.Assert;

@@ -17,7 +17,7 @@ import alluxio.cli.fsadmin.command.Context;
 import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.dora.grpc.GetConfigurationPOptions;
+import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.dora.wire.Configuration;
 
 import com.google.common.annotations.VisibleForTesting;

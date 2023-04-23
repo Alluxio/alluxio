@@ -22,8 +22,8 @@ import alluxio.cli.GetConf;
 import alluxio.dora.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.grpc.ConfigProperty;
-import alluxio.dora.grpc.GetConfigurationPResponse;
+import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GetConfigurationPResponse;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;

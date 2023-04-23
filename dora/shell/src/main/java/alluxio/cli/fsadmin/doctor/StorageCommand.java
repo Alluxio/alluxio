@@ -12,8 +12,8 @@
 package alluxio.cli.fsadmin.doctor;
 
 import alluxio.dora.client.block.BlockMasterClient;
-import alluxio.dora.grpc.StorageList;
-import alluxio.dora.grpc.WorkerLostStorageInfo;
+import alluxio.grpc.StorageList;
+import alluxio.grpc.WorkerLostStorageInfo;
 
 import java.io.IOException;
 import java.io.PrintStream;

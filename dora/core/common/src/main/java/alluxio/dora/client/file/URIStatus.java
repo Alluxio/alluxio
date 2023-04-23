@@ -12,7 +12,7 @@
 package alluxio.dora.client.file;
 
 import alluxio.dora.annotation.PublicApi;
-import alluxio.dora.grpc.TtlAction;
+import alluxio.grpc.TtlAction;
 import alluxio.dora.security.authorization.AccessControlList;
 import alluxio.dora.security.authorization.DefaultAccessControlList;
 import alluxio.dora.wire.BlockInfo;

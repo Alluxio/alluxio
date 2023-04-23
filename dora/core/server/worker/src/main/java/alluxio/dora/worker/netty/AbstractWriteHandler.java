@@ -19,7 +19,7 @@ import alluxio.dora.exception.status.InvalidArgumentException;
 import alluxio.dora.network.protocol.RPCMessage;
 import alluxio.dora.network.protocol.RPCProtoMessage;
 import alluxio.dora.network.protocol.databuffer.DataBuffer;
-import alluxio.dora.proto.dataserver.Protocol;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.dora.resource.LockResource;
 import alluxio.dora.util.network.NettyUtils;
 

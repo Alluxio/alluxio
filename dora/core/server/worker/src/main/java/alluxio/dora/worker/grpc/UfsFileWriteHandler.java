@@ -13,13 +13,13 @@ package alluxio.dora.worker.grpc;
 
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.annotation.SuppressFBWarnings;
-import alluxio.dora.grpc.WriteRequest;
-import alluxio.dora.grpc.WriteResponse;
+import alluxio.grpc.WriteRequest;
+import alluxio.grpc.WriteResponse;
 import alluxio.dora.metrics.MetricInfo;
 import alluxio.dora.metrics.MetricKey;
 import alluxio.dora.metrics.MetricsSystem;
 import alluxio.dora.network.protocol.databuffer.DataBuffer;
-import alluxio.dora.proto.dataserver.Protocol;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.dora.resource.CloseableResource;
 import alluxio.dora.security.authentication.AuthenticatedUserInfo;
 import alluxio.dora.security.authorization.Mode;

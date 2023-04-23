@@ -11,7 +11,7 @@
 
 package alluxio.dora.client.block.stream;
 
-import alluxio.dora.grpc.GrpcSerializationUtils;
+import alluxio.grpc.GrpcSerializationUtils;
 
 import io.grpc.CallOptions;
 import io.grpc.Channel;

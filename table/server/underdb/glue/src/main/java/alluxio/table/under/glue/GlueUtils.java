@@ -11,22 +11,22 @@
 
 package alluxio.table.under.glue;
 
-import alluxio.dora.grpc.table.BinaryColumnStatsData;
-import alluxio.dora.grpc.table.BooleanColumnStatsData;
-import alluxio.dora.grpc.table.ColumnStatisticsData;
-import alluxio.dora.grpc.table.ColumnStatisticsInfo;
-import alluxio.dora.grpc.table.Date;
-import alluxio.dora.grpc.table.DateColumnStatsData;
-import alluxio.dora.grpc.table.Decimal;
-import alluxio.dora.grpc.table.DecimalColumnStatsData;
-import alluxio.dora.grpc.table.DoubleColumnStatsData;
-import alluxio.dora.grpc.table.LongColumnStatsData;
-import alluxio.dora.grpc.table.Schema;
-import alluxio.dora.grpc.table.StringColumnStatsData;
-import alluxio.dora.grpc.table.layout.hive.HiveBucketProperty;
-import alluxio.dora.grpc.table.layout.hive.SortingColumn;
-import alluxio.dora.grpc.table.layout.hive.Storage;
-import alluxio.dora.grpc.table.layout.hive.StorageFormat;
+import alluxio.grpc.table.BinaryColumnStatsData;
+import alluxio.grpc.table.BooleanColumnStatsData;
+import alluxio.grpc.table.ColumnStatisticsData;
+import alluxio.grpc.table.ColumnStatisticsInfo;
+import alluxio.grpc.table.Date;
+import alluxio.grpc.table.DateColumnStatsData;
+import alluxio.grpc.table.Decimal;
+import alluxio.grpc.table.DecimalColumnStatsData;
+import alluxio.grpc.table.DoubleColumnStatsData;
+import alluxio.grpc.table.LongColumnStatsData;
+import alluxio.grpc.table.Schema;
+import alluxio.grpc.table.StringColumnStatsData;
+import alluxio.grpc.table.layout.hive.HiveBucketProperty;
+import alluxio.grpc.table.layout.hive.SortingColumn;
+import alluxio.grpc.table.layout.hive.Storage;
+import alluxio.grpc.table.layout.hive.StorageFormat;
 import alluxio.table.common.udb.PathTranslator;
 
 import com.amazonaws.services.glue.model.Column;
@@ -68,13 +68,13 @@ public class GlueUtils {
    * @param glueCloumns Glue FiledSchema
    * @return list of Alluxio FieldSchema
    */
-  public static List<alluxio.dora.grpc.table.FieldSchema> toProto(List<Column> glueCloumns) {
+  public static List<alluxio.grpc.table.FieldSchema> toProto(List<Column> glueCloumns) {
     if (glueCloumns == null) {
       return Collections.emptyList();
     }
-    List<alluxio.dora.grpc.table.FieldSchema> list = new ArrayList<>();
+    List<alluxio.grpc.table.FieldSchema> list = new ArrayList<>();
     for (Column column:glueCloumns) {
-      alluxio.dora.grpc.table.FieldSchema.Builder builder = alluxio.dora.grpc.table.FieldSchema.newBuilder()
+      alluxio.grpc.table.FieldSchema.Builder builder = alluxio.grpc.table.FieldSchema.newBuilder()
           .setName(column.getName())
           .setType(column.getType());
       if (column.getComment() != null) {
@@ -301,8 +301,8 @@ public class GlueUtils {
       formatBuilder.setSerde(serDe); // Check SerDe info
     }
 
-    alluxio.dora.grpc.table.layout.hive.Storage.Builder storageBuilder =
-        alluxio.dora.grpc.table.layout.hive.Storage.newBuilder();
+    alluxio.grpc.table.layout.hive.Storage.Builder storageBuilder =
+        alluxio.grpc.table.layout.hive.Storage.newBuilder();
     List<String> bucketColumn = sd.getBucketColumns() == null
         ? Collections.emptyList() : sd.getBucketColumns();
     List<Order> orderList = sd.getSortColumns();

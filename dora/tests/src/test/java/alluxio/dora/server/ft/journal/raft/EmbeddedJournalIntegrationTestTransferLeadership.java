@@ -12,9 +12,9 @@
 package alluxio.dora.server.ft.journal.raft;
 
 import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.grpc.GetTransferLeaderMessagePResponse;
-import alluxio.dora.grpc.NetAddress;
-import alluxio.dora.grpc.QuorumServerState;
+import alluxio.grpc.GetTransferLeaderMessagePResponse;
+import alluxio.grpc.NetAddress;
+import alluxio.grpc.QuorumServerState;
 import alluxio.dora.master.journal.JournalType;
 import alluxio.dora.process.MasterNetAddress;
 import alluxio.dora.process.MultiProcessCluster;

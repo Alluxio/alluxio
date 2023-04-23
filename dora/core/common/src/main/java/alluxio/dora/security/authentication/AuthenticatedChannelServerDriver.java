@@ -12,9 +12,9 @@
 package alluxio.dora.security.authentication;
 
 import alluxio.dora.exception.status.AlluxioStatusException;
-import alluxio.dora.grpc.ChannelAuthenticationScheme;
-import alluxio.dora.grpc.SaslMessage;
-import alluxio.dora.grpc.SaslMessageType;
+import alluxio.grpc.ChannelAuthenticationScheme;
+import alluxio.grpc.SaslMessage;
+import alluxio.grpc.SaslMessageType;
 
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;

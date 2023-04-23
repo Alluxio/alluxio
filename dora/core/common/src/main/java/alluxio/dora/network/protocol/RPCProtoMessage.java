@@ -15,7 +15,7 @@ import alluxio.dora.exception.status.AlluxioStatusException;
 import alluxio.dora.network.protocol.databuffer.DataBuffer;
 import alluxio.dora.network.protocol.databuffer.DataFileChannel;
 import alluxio.dora.network.protocol.databuffer.NettyDataBuffer;
-import alluxio.dora.proto.dataserver.Protocol.Response;
+import alluxio.proto.dataserver.Protocol.Response;
 import alluxio.dora.util.proto.ProtoMessage;
 
 import com.google.common.base.MoreObjects;
@@ -241,44 +241,44 @@ public final class RPCProtoMessage extends RPCMessage {
    * @param status the status to convert
    * @return the protocol buffer type status
    */
-  public static alluxio.dora.proto.status.Status.PStatus toProto(Status status) {
+  public static alluxio.proto.status.Status.PStatus toProto(Status status) {
     switch (status.getCode()) {
       case ABORTED:
-        return alluxio.dora.proto.status.Status.PStatus.ABORTED;
+        return alluxio.proto.status.Status.PStatus.ABORTED;
       case ALREADY_EXISTS:
-        return alluxio.dora.proto.status.Status.PStatus.ALREADY_EXISTS;
+        return alluxio.proto.status.Status.PStatus.ALREADY_EXISTS;
       case CANCELLED:
-        return alluxio.dora.proto.status.Status.PStatus.CANCELLED;
+        return alluxio.proto.status.Status.PStatus.CANCELLED;
       case DATA_LOSS:
-        return alluxio.dora.proto.status.Status.PStatus.DATA_LOSS;
+        return alluxio.proto.status.Status.PStatus.DATA_LOSS;
       case DEADLINE_EXCEEDED:
-        return alluxio.dora.proto.status.Status.PStatus.DEADLINE_EXCEEDED;
+        return alluxio.proto.status.Status.PStatus.DEADLINE_EXCEEDED;
       case FAILED_PRECONDITION:
-        return alluxio.dora.proto.status.Status.PStatus.FAILED_PRECONDITION;
+        return alluxio.proto.status.Status.PStatus.FAILED_PRECONDITION;
       case INTERNAL:
-        return alluxio.dora.proto.status.Status.PStatus.INTERNAL;
+        return alluxio.proto.status.Status.PStatus.INTERNAL;
       case INVALID_ARGUMENT:
-        return alluxio.dora.proto.status.Status.PStatus.INVALID_ARGUMENT;
+        return alluxio.proto.status.Status.PStatus.INVALID_ARGUMENT;
       case NOT_FOUND:
-        return alluxio.dora.proto.status.Status.PStatus.NOT_FOUND;
+        return alluxio.proto.status.Status.PStatus.NOT_FOUND;
       case OK:
-        return alluxio.dora.proto.status.Status.PStatus.OK;
+        return alluxio.proto.status.Status.PStatus.OK;
       case OUT_OF_RANGE:
-        return alluxio.dora.proto.status.Status.PStatus.OUT_OF_RANGE;
+        return alluxio.proto.status.Status.PStatus.OUT_OF_RANGE;
       case PERMISSION_DENIED:
-        return alluxio.dora.proto.status.Status.PStatus.PERMISSION_DENIED;
+        return alluxio.proto.status.Status.PStatus.PERMISSION_DENIED;
       case RESOURCE_EXHAUSTED:
-        return alluxio.dora.proto.status.Status.PStatus.RESOURCE_EXHAUSTED;
+        return alluxio.proto.status.Status.PStatus.RESOURCE_EXHAUSTED;
       case UNAUTHENTICATED:
-        return alluxio.dora.proto.status.Status.PStatus.UNAUTHENTICATED;
+        return alluxio.proto.status.Status.PStatus.UNAUTHENTICATED;
       case UNAVAILABLE:
-        return alluxio.dora.proto.status.Status.PStatus.UNAVAILABLE;
+        return alluxio.proto.status.Status.PStatus.UNAVAILABLE;
       case UNIMPLEMENTED:
-        return alluxio.dora.proto.status.Status.PStatus.UNIMPLEMENTED;
+        return alluxio.proto.status.Status.PStatus.UNIMPLEMENTED;
       case UNKNOWN:
-        return alluxio.dora.proto.status.Status.PStatus.UNKNOWN;
+        return alluxio.proto.status.Status.PStatus.UNKNOWN;
       default:
-        return alluxio.dora.proto.status.Status.PStatus.UNKNOWN;
+        return alluxio.proto.status.Status.PStatus.UNKNOWN;
     }
   }
 
@@ -288,7 +288,7 @@ public final class RPCProtoMessage extends RPCMessage {
    * @param status the protocol buffer type status
    * @return the corresponding {@link Status}
    */
-  public static Status fromProto(alluxio.dora.proto.status.Status.PStatus status) {
+  public static Status fromProto(alluxio.proto.status.Status.PStatus status) {
     switch (status) {
       case ABORTED:
         return Status.ABORTED;

@@ -12,8 +12,8 @@
 package alluxio.stress;
 
 import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.grpc.ConfigProperty;
-import alluxio.dora.grpc.LocationBlockIdListEntry;
+import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.dora.master.MasterClientContext;
 import alluxio.dora.worker.block.BlockMapIterator;
 import alluxio.dora.worker.block.BlockMasterClient;

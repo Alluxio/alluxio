@@ -18,32 +18,32 @@ import alluxio.dora.annotation.SuppressFBWarnings;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.worker.block.DefaultBlockWorker;
-import alluxio.dora.grpc.AsyncCacheRequest;
-import alluxio.dora.grpc.AsyncCacheResponse;
-import alluxio.dora.grpc.BlockStatus;
-import alluxio.dora.grpc.BlockWorkerGrpc;
-import alluxio.dora.grpc.CacheRequest;
-import alluxio.dora.grpc.CacheResponse;
-import alluxio.dora.grpc.ClearMetricsRequest;
-import alluxio.dora.grpc.ClearMetricsResponse;
-import alluxio.dora.grpc.CreateLocalBlockRequest;
-import alluxio.dora.grpc.CreateLocalBlockResponse;
-import alluxio.dora.grpc.FreeWorkerRequest;
-import alluxio.dora.grpc.FreeWorkerResponse;
-import alluxio.dora.grpc.LoadRequest;
-import alluxio.dora.grpc.LoadResponse;
-import alluxio.dora.grpc.MoveBlockRequest;
-import alluxio.dora.grpc.MoveBlockResponse;
-import alluxio.dora.grpc.OpenLocalBlockRequest;
-import alluxio.dora.grpc.OpenLocalBlockResponse;
-import alluxio.dora.grpc.ReadRequest;
-import alluxio.dora.grpc.ReadResponse;
-import alluxio.dora.grpc.ReadResponseMarshaller;
-import alluxio.dora.grpc.RemoveBlockRequest;
-import alluxio.dora.grpc.RemoveBlockResponse;
-import alluxio.dora.grpc.TaskStatus;
-import alluxio.dora.grpc.WriteRequestMarshaller;
-import alluxio.dora.grpc.WriteResponse;
+import alluxio.grpc.AsyncCacheRequest;
+import alluxio.grpc.AsyncCacheResponse;
+import alluxio.grpc.BlockStatus;
+import alluxio.grpc.BlockWorkerGrpc;
+import alluxio.grpc.CacheRequest;
+import alluxio.grpc.CacheResponse;
+import alluxio.grpc.ClearMetricsRequest;
+import alluxio.grpc.ClearMetricsResponse;
+import alluxio.grpc.CreateLocalBlockRequest;
+import alluxio.grpc.CreateLocalBlockResponse;
+import alluxio.grpc.FreeWorkerRequest;
+import alluxio.grpc.FreeWorkerResponse;
+import alluxio.grpc.LoadRequest;
+import alluxio.grpc.LoadResponse;
+import alluxio.grpc.MoveBlockRequest;
+import alluxio.grpc.MoveBlockResponse;
+import alluxio.grpc.OpenLocalBlockRequest;
+import alluxio.grpc.OpenLocalBlockResponse;
+import alluxio.grpc.ReadRequest;
+import alluxio.grpc.ReadResponse;
+import alluxio.grpc.ReadResponseMarshaller;
+import alluxio.grpc.RemoveBlockRequest;
+import alluxio.grpc.RemoveBlockResponse;
+import alluxio.grpc.TaskStatus;
+import alluxio.grpc.WriteRequestMarshaller;
+import alluxio.grpc.WriteResponse;
 import alluxio.dora.security.authentication.AuthenticatedClientUser;
 import alluxio.dora.security.authentication.AuthenticatedUserInfo;
 import alluxio.dora.underfs.UfsManager;
@@ -126,7 +126,7 @@ public class BlockWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorker
   }
 
   @Override
-  public StreamObserver<alluxio.dora.grpc.WriteRequest> writeBlock(
+  public StreamObserver<alluxio.grpc.WriteRequest> writeBlock(
       StreamObserver<WriteResponse> responseObserver) {
     ServerCallStreamObserver<WriteResponse> serverResponseObserver =
         (ServerCallStreamObserver<WriteResponse>) responseObserver;

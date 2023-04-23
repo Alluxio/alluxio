@@ -38,7 +38,7 @@ public class StatusSummary {
    *
    * @param statusSummary the proto object
    */
-  public StatusSummary(alluxio.dora.grpc.StatusSummary statusSummary) {
+  public StatusSummary(alluxio.grpc.StatusSummary statusSummary) {
     mStatus = Status.valueOf(statusSummary.getStatus().name());
     mCount = statusSummary.getCount();
   }
@@ -64,8 +64,8 @@ public class StatusSummary {
   /**
    * @return proto representation of the status summary
    */
-  public alluxio.dora.grpc.StatusSummary toProto() {
-    alluxio.dora.grpc.StatusSummary.Builder jobServiceBuilder = alluxio.dora.grpc.StatusSummary.newBuilder()
+  public alluxio.grpc.StatusSummary toProto() {
+    alluxio.grpc.StatusSummary.Builder jobServiceBuilder = alluxio.grpc.StatusSummary.newBuilder()
           .setStatus(mStatus.toProto()).setCount(mCount);
 
     return jobServiceBuilder.build();

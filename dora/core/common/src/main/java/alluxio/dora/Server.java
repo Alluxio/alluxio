@@ -11,8 +11,8 @@
 
 package alluxio.dora;
 
-import alluxio.dora.grpc.GrpcService;
-import alluxio.dora.grpc.ServiceType;
+import alluxio.grpc.GrpcService;
+import alluxio.grpc.ServiceType;
 
 import java.io.IOException;
 import java.util.Map;

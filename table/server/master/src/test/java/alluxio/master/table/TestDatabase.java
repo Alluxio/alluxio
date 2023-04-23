@@ -14,7 +14,7 @@ package alluxio.master.table;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.collections.ConcurrentHashSet;
 import alluxio.dora.exception.status.NotFoundException;
-import alluxio.dora.grpc.table.PrincipalType;
+import alluxio.grpc.table.PrincipalType;
 import alluxio.table.common.udb.UdbBypassSpec;
 import alluxio.table.common.udb.UdbConfiguration;
 import alluxio.table.common.udb.UdbContext;

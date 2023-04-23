@@ -11,9 +11,9 @@
 
 package alluxio.dora.master.file;
 
-import alluxio.dora.grpc.GrpcUtils;
-import alluxio.dora.grpc.ListStatusPartialPOptions;
-import alluxio.dora.grpc.ListStatusPartialPResponse;
+import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.ListStatusPartialPOptions;
+import alluxio.grpc.ListStatusPartialPResponse;
 import alluxio.dora.master.file.contexts.ListStatusContext;
 import alluxio.dora.wire.FileInfo;
 
@@ -27,7 +27,7 @@ import java.util.Objects;
  * Used to track the results of a call to a partial listing.
  */
 public class ListStatusPartialResultStream implements ResultStream<FileInfo> {
-  private final List<alluxio.dora.grpc.FileInfo> mInfos;
+  private final List<alluxio.grpc.FileInfo> mInfos;
   private final StreamObserver<ListStatusPartialPResponse> mClientObserver;
   private final ListStatusContext mContext;
 

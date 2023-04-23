@@ -27,8 +27,8 @@ import alluxio.dora.Constants;
 import alluxio.dora.exception.status.CancelledException;
 import alluxio.dora.exception.status.DeadlineExceededException;
 import alluxio.dora.exception.status.UnauthenticatedException;
-import alluxio.dora.grpc.WriteRequest;
-import alluxio.dora.grpc.WriteResponse;
+import alluxio.grpc.WriteRequest;
+import alluxio.grpc.WriteResponse;
 import alluxio.dora.util.ThreadFactoryUtils;
 
 import io.grpc.Status;

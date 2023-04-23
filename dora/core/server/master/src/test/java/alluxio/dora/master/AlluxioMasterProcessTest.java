@@ -18,7 +18,7 @@ import alluxio.dora.Constants;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.status.UnavailableException;
-import alluxio.dora.grpc.NodeState;
+import alluxio.grpc.NodeState;
 import alluxio.dora.master.journal.JournalUtils;
 import alluxio.dora.master.journal.noop.NoopJournalSystem;
 import alluxio.dora.master.journal.raft.RaftJournalSystem;

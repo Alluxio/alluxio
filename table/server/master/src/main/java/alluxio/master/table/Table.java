@@ -13,11 +13,11 @@ package alluxio.master.table;
 
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.grpc.table.ColumnStatisticsInfo;
-import alluxio.dora.grpc.table.Schema;
-import alluxio.dora.grpc.table.TableInfo;
-import alluxio.dora.proto.journal.Table.AddTableEntry;
-import alluxio.dora.proto.journal.Table.AddTablePartitionsEntry;
+import alluxio.grpc.table.ColumnStatisticsInfo;
+import alluxio.grpc.table.Schema;
+import alluxio.grpc.table.TableInfo;
+import alluxio.proto.journal.Table.AddTableEntry;
+import alluxio.proto.journal.Table.AddTablePartitionsEntry;
 import alluxio.table.common.UdbPartition;
 import alluxio.table.common.transform.TransformContext;
 import alluxio.table.common.transform.TransformDefinition;
@@ -132,7 +132,7 @@ public class Table {
         PartitionScheme.create(partitions, udbTable.getLayout(), udbTable.getPartitionCols());
   }
 
-  private Table(Database database, alluxio.dora.proto.journal.Table.AddTableEntry entry) {
+  private Table(Database database, alluxio.proto.journal.Table.AddTableEntry entry) {
     List<Partition> partitions = entry.getPartitionsList().stream()
         .map(p -> Partition.fromProto(database.getContext().getLayoutRegistry(), p))
         .collect(Collectors.toList());
@@ -170,7 +170,7 @@ public class Table {
    * @param entry the add table journal entry
    * @return a new instance
    */
-  public static Table create(Database database, alluxio.dora.proto.journal.Table.AddTableEntry entry) {
+  public static Table create(Database database, alluxio.proto.journal.Table.AddTableEntry entry) {
     return new Table(database, entry);
   }
 
@@ -179,7 +179,7 @@ public class Table {
    *
    * @param entry the add table partitions entry
    */
-  public void addPartitions(alluxio.dora.proto.journal.Table.AddTablePartitionsEntry entry) {
+  public void addPartitions(alluxio.proto.journal.Table.AddTablePartitionsEntry entry) {
     mPartitionScheme.addPartitions(entry.getPartitionsList().stream()
         .map(p -> Partition.fromProto(mDatabase.getContext().getLayoutRegistry(), p))
         .collect(Collectors.toList()));

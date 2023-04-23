@@ -24,7 +24,7 @@ import alluxio.dora.exception.runtime.NotFoundRuntimeException;
 import alluxio.dora.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.fuse.lock.FuseReadWriteLockManager;
-import alluxio.dora.grpc.OpenFilePOptions;
+import alluxio.grpc.OpenFilePOptions;
 import alluxio.dora.resource.CloseableResource;
 
 import com.google.common.base.Preconditions;

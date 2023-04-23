@@ -13,7 +13,7 @@ package alluxio.dora.wire;
 
 import alluxio.dora.AlluxioURI;
 import alluxio.dora.annotation.PublicApi;
-import alluxio.dora.grpc.SyncPointStatus;
+import alluxio.grpc.SyncPointStatus;
 
 /**
  * This class represents the state of a sync point, whether the intial syncing is done,
@@ -64,7 +64,7 @@ public class SyncPointInfo {
   /**
    * @return proto representation of the sync point information
    */
-  public alluxio.dora.grpc.SyncPointInfo toProto() {
+  public alluxio.grpc.SyncPointInfo toProto() {
     SyncPointStatus status;
     switch (mSyncStatus) {
       case NOT_INITIALLY_SYNCED:
@@ -80,7 +80,7 @@ public class SyncPointInfo {
         status = SyncPointStatus.Not_Initially_Synced;
     }
 
-    alluxio.dora.grpc.SyncPointInfo info = alluxio.dora.grpc.SyncPointInfo.newBuilder()
+    alluxio.grpc.SyncPointInfo info = alluxio.grpc.SyncPointInfo.newBuilder()
         .setSyncPointUri(mSyncPointUri.getPath()).setSyncStatus(status).build();
     return info;
   }
@@ -90,7 +90,7 @@ public class SyncPointInfo {
    * @param syncPointInfo the proto representation
    * @return sync point info object
    */
-  public static SyncPointInfo fromProto(alluxio.dora.grpc.SyncPointInfo syncPointInfo) {
+  public static SyncPointInfo fromProto(alluxio.grpc.SyncPointInfo syncPointInfo) {
     SyncStatus syncStatus;
     switch (syncPointInfo.getSyncStatus()) {
       case Not_Initially_Synced:

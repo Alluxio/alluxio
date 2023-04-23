@@ -11,7 +11,7 @@
 
 package alluxio.dora.worker.block.meta;
 
-import alluxio.dora.proto.dataserver.Protocol;
+import alluxio.proto.dataserver.Protocol;
 
 /**
  * This class represents the metadata of a block that is in UFS. This class is immutable.

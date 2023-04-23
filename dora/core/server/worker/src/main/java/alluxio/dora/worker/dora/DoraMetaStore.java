@@ -11,7 +11,7 @@
 
 package alluxio.dora.worker.dora;
 
-import alluxio.dora.proto.meta.DoraMeta.FileStatus;
+import alluxio.proto.meta.DoraMeta.FileStatus;
 
 import java.util.Optional;
 

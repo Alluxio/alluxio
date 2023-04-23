@@ -28,7 +28,7 @@ import alluxio.dora.metrics.MetricInfo;
 import alluxio.dora.metrics.MetricKey;
 import alluxio.dora.metrics.MetricsSystem;
 import alluxio.dora.worker.block.*;
-import alluxio.dora.proto.dataserver.Protocol;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.dora.underfs.UfsInputStreamCache;
 import alluxio.dora.underfs.UfsManager;
 import alluxio.dora.underfs.UfsManager.UfsClient;

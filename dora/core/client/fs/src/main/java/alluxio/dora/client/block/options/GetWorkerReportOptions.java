@@ -11,7 +11,7 @@
 
 package alluxio.dora.client.block.options;
 
-import alluxio.dora.grpc.GetWorkerReportPOptions;
+import alluxio.grpc.GetWorkerReportPOptions;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
@@ -54,10 +54,10 @@ public final class GetWorkerReportOptions implements Serializable {
    *
    * @param options the proto representation of a GetWorkerReportOptions
    */
-  public GetWorkerReportOptions(alluxio.dora.grpc.GetWorkerReportPOptions options) {
+  public GetWorkerReportOptions(alluxio.grpc.GetWorkerReportPOptions options) {
     mAddresses = new HashSet<>(options.getAddressesList());
     mFieldRange = new HashSet<>();
-    for (alluxio.dora.grpc.WorkerInfoField field: options.getFieldRangesList()) {
+    for (alluxio.grpc.WorkerInfoField field: options.getFieldRangesList()) {
       mFieldRange.add(WorkerInfoField.fromProto(field));
     }
     mWorkerRange = WorkerRange.fromProto(options.getWorkerRange());
@@ -146,7 +146,7 @@ public final class GetWorkerReportOptions implements Serializable {
     GetWorkerReportPOptions.Builder optionsBuilder = GetWorkerReportPOptions.newBuilder();
     optionsBuilder.addAllAddresses(mAddresses);
     if (mFieldRange != null) {
-      Set<alluxio.dora.grpc.WorkerInfoField> protoFieldRange = new HashSet<>();
+      Set<alluxio.grpc.WorkerInfoField> protoFieldRange = new HashSet<>();
       for (WorkerInfoField field : mFieldRange) {
         protoFieldRange.add(field.toProto());
       }
@@ -169,15 +169,15 @@ public final class GetWorkerReportOptions implements Serializable {
     /**
      * @return the proto representation of this worker info filter type
      */
-    public alluxio.dora.grpc.WorkerRange toProto() {
-      return alluxio.dora.grpc.WorkerRange.valueOf(name());
+    public alluxio.grpc.WorkerRange toProto() {
+      return alluxio.grpc.WorkerRange.valueOf(name());
     }
 
     /**
      * @param workerRange the proto representation of the worker range to create
      * @return the wire type version of the worker range
      */
-    public static WorkerRange fromProto(alluxio.dora.grpc.WorkerRange workerRange) {
+    public static WorkerRange fromProto(alluxio.grpc.WorkerRange workerRange) {
       return WorkerRange.valueOf(workerRange.name());
     }
   }
@@ -203,8 +203,8 @@ public final class GetWorkerReportOptions implements Serializable {
     /**
      * @return the proto representation of this worker info fields
      */
-    public alluxio.dora.grpc.WorkerInfoField toProto() {
-      return alluxio.dora.grpc.WorkerInfoField.valueOf(name());
+    public alluxio.grpc.WorkerInfoField toProto() {
+      return alluxio.grpc.WorkerInfoField.valueOf(name());
     }
 
     /**
@@ -212,7 +212,7 @@ public final class GetWorkerReportOptions implements Serializable {
      * @return the wire type version of the worker info field
      */
     public static WorkerInfoField fromProto(
-        alluxio.dora.grpc.WorkerInfoField fieldRange) {
+        alluxio.grpc.WorkerInfoField fieldRange) {
       return WorkerInfoField.valueOf(fieldRange.name());
     }
   }

@@ -30,18 +30,18 @@ import alluxio.dora.exception.status.NotFoundException;
 import alluxio.dora.worker.block.BlockMasterClient;
 import alluxio.dora.worker.block.BlockMasterClientPool;
 import alluxio.dora.worker.page.UfsBlockReadOptions;
-import alluxio.dora.grpc.Command;
-import alluxio.dora.grpc.CommandType;
-import alluxio.dora.grpc.GetStatusPOptions;
-import alluxio.dora.grpc.GrpcService;
-import alluxio.dora.grpc.GrpcUtils;
-import alluxio.dora.grpc.Scope;
-import alluxio.dora.grpc.ServiceType;
+import alluxio.grpc.Command;
+import alluxio.grpc.CommandType;
+import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.GrpcService;
+import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.Scope;
+import alluxio.grpc.ServiceType;
 import alluxio.dora.heartbeat.HeartbeatContext;
 import alluxio.dora.heartbeat.HeartbeatExecutor;
 import alluxio.dora.heartbeat.HeartbeatThread;
-import alluxio.dora.proto.dataserver.Protocol;
-import alluxio.dora.proto.meta.DoraMeta;
+import alluxio.proto.dataserver.Protocol;
+import alluxio.proto.meta.DoraMeta;
 import alluxio.dora.resource.PooledResource;
 import alluxio.dora.retry.RetryPolicy;
 import alluxio.dora.retry.RetryUtils;
@@ -263,7 +263,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   @Override
   public FileInfo getFileInfo(String ufsFullPath, GetStatusPOptions options) throws IOException {
-    alluxio.dora.grpc.FileInfo fi;
+    alluxio.grpc.FileInfo fi;
     long syncIntervalMs = options.hasCommonOptions()
         ? (options.getCommonOptions().hasSyncIntervalMs()
           ? options.getCommonOptions().getSyncIntervalMs() : -1) :
@@ -350,12 +350,12 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    * @param ufsFullPath
    * @return a FileInfo
    */
-  public alluxio.dora.grpc.FileInfo buildFileInfoFromUfsStatus(UfsStatus status, String ufsFullPath) {
+  public alluxio.grpc.FileInfo buildFileInfoFromUfsStatus(UfsStatus status, String ufsFullPath) {
     String path = CommonUtils.stripPrefixIfPresent(status.getName(), mRootUFS.toString());
     AlluxioURI ufsUri = new AlluxioURI(PathUtils.concatPath(mRootUFS, path));
     String filename = ufsUri.getName();
 
-    alluxio.dora.grpc.FileInfo.Builder infoBuilder = alluxio.dora.grpc.FileInfo.newBuilder()
+    alluxio.grpc.FileInfo.Builder infoBuilder = alluxio.grpc.FileInfo.newBuilder()
         .setFileId(ufsFullPath.hashCode())
         .setName(filename)
         .setPath(ufsUri.toString())

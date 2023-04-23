@@ -11,7 +11,7 @@
 
 package alluxio.dora.worker.grpc;
 
-import alluxio.dora.proto.dataserver.Protocol;
+import alluxio.proto.dataserver.Protocol;
 
 import com.google.common.base.MoreObjects;
 
@@ -30,7 +30,7 @@ public final class BlockWriteRequest extends WriteRequest {
   /**
    * @param request block request in proto
    */
-  BlockWriteRequest(alluxio.dora.grpc.WriteRequest request) {
+  BlockWriteRequest(alluxio.grpc.WriteRequest request) {
     super(request);
     mTier = request.getCommand().getTier();
     mMediumType = request.getCommand().getMediumType();

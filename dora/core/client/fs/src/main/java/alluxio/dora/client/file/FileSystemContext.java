@@ -30,7 +30,7 @@ import alluxio.dora.conf.path.SpecificPathConfiguration;
 import alluxio.dora.exception.ExceptionMessage;
 import alluxio.dora.exception.status.AlluxioStatusException;
 import alluxio.dora.exception.status.UnavailableException;
-import alluxio.dora.grpc.GrpcServerAddress;
+import alluxio.grpc.GrpcServerAddress;
 import alluxio.dora.master.MasterClientContext;
 import alluxio.dora.master.MasterInquireClient;
 import alluxio.dora.metrics.MetricsSystem;

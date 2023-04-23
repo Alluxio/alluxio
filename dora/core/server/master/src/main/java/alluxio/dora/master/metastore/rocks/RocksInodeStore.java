@@ -27,7 +27,7 @@ import alluxio.dora.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.dora.master.journal.checkpoint.CheckpointName;
 import alluxio.dora.metrics.MetricKey;
 import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.proto.meta.InodeMeta;
+import alluxio.proto.meta.InodeMeta;
 import alluxio.dora.resource.CloseableIterator;
 import alluxio.dora.rocks.RocksStore;
 import alluxio.dora.util.io.PathUtils;

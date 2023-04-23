@@ -18,7 +18,7 @@ import alluxio.dora.AlluxioMockUtil;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.collections.Pair;
-import alluxio.dora.grpc.JobCommand;
+import alluxio.grpc.JobCommand;
 import alluxio.dora.job.JobConfig;
 import alluxio.dora.job.JobServerContext;
 import alluxio.dora.job.SelectExecutorsContext;

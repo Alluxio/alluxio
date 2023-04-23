@@ -14,10 +14,10 @@ package alluxio.dora.client.file;
 import alluxio.dora.AlluxioURI;
 import alluxio.dora.client.WriteType;
 import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.grpc.CreateFilePOptions;
-import alluxio.dora.grpc.OpenFilePOptions;
-import alluxio.dora.grpc.ReadPType;
-import alluxio.dora.grpc.WritePType;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.ReadPType;
+import alluxio.grpc.WritePType;
 
 import com.google.common.io.ByteStreams;
 import org.apache.commons.io.IOUtils;

@@ -15,7 +15,7 @@ import alluxio.dora.master.journal.JournalEntryAssociation;
 import alluxio.dora.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.dora.master.journal.raft.RaftJournalSystem;
 import alluxio.dora.master.journal.raft.RaftJournalUtils;
-import alluxio.dora.proto.journal.Journal;
+import alluxio.proto.journal.Journal;
 import alluxio.dora.util.io.FileUtils;
 
 import com.google.common.base.Preconditions;

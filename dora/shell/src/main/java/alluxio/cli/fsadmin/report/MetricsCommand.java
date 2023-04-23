@@ -12,7 +12,7 @@
 package alluxio.cli.fsadmin.report;
 
 import alluxio.dora.client.metrics.MetricsMasterClient;
-import alluxio.dora.grpc.MetricValue;
+import alluxio.grpc.MetricValue;
 import alluxio.dora.metrics.MetricsSystem;
 import alluxio.dora.util.FormatUtils;
 

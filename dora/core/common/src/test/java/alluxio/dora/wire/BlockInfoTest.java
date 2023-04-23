@@ -13,7 +13,7 @@ package alluxio.dora.wire;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.dora.grpc.GrpcUtils;
+import alluxio.grpc.GrpcUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;

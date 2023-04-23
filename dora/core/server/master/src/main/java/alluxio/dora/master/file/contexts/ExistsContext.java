@@ -12,7 +12,7 @@
 package alluxio.dora.master.file.contexts;
 
 import alluxio.dora.conf.Configuration;
-import alluxio.dora.grpc.ExistsPOptions;
+import alluxio.grpc.ExistsPOptions;
 import alluxio.dora.util.FileSystemOptionsUtils;
 
 import com.google.common.base.MoreObjects;

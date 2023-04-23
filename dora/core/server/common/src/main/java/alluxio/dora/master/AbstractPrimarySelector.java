@@ -11,7 +11,7 @@
 
 package alluxio.dora.master;
 
-import alluxio.dora.grpc.NodeState;
+import alluxio.grpc.NodeState;
 import alluxio.dora.resource.LockResource;
 import alluxio.dora.util.interfaces.Scoped;
 

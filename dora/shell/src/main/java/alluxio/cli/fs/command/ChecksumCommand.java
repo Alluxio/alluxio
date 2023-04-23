@@ -21,8 +21,8 @@ import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.ExceptionMessage;
 import alluxio.dora.exception.FileDoesNotExistException;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.dora.grpc.OpenFilePOptions;
-import alluxio.dora.grpc.ReadPType;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.ReadPType;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.codec.digest.DigestUtils;

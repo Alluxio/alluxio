@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.block;
 
-import alluxio.dora.grpc.GetRegisterLeasePRequest;
+import alluxio.grpc.GetRegisterLeasePRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

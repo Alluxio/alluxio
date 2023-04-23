@@ -31,7 +31,7 @@ public class WriteRequest {
   /** The session id associated with all temporary resources of this request. */
   private final long mSessionId;
 
-  WriteRequest(alluxio.dora.grpc.WriteRequest request) {
+  WriteRequest(alluxio.grpc.WriteRequest request) {
     mId = request.getCommand().getId();
     mPinOnCreate = request.getCommand().getPinOnCreate();
     mSessionId = IdUtils.createSessionId();

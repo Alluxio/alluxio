@@ -16,7 +16,7 @@ import static alluxio.dora.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.dora.Process;
 import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.conf.Configuration;
-import alluxio.dora.grpc.GrpcServerBuilder;
+import alluxio.grpc.GrpcServerBuilder;
 import alluxio.dora.master.journal.JournalSystem;
 import alluxio.dora.master.service.SimpleService;
 import alluxio.dora.master.service.rpc.RpcServerService;

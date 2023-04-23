@@ -27,7 +27,7 @@ import alluxio.dora.underfs.FileId;
 import alluxio.dora.underfs.UfsIOManager;
 import alluxio.dora.underfs.UnderFileSystem;
 import alluxio.dora.underfs.UnderFileSystemConfiguration;
-import alluxio.dora.grpc.UfsReadOptions;
+import alluxio.grpc.UfsReadOptions;
 import alluxio.dora.underfs.UfsManager.UfsClient;
 import alluxio.dora.util.io.BufferUtils;
 

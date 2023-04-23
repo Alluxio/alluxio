@@ -14,17 +14,17 @@ package alluxio.dora.client.block;
 import alluxio.dora.AbstractMasterClient;
 import alluxio.dora.Constants;
 import alluxio.dora.client.block.options.GetWorkerReportOptions;
-import alluxio.dora.grpc.BlockMasterClientServiceGrpc;
-import alluxio.dora.grpc.GetBlockInfoPRequest;
-import alluxio.dora.grpc.GetBlockMasterInfoPOptions;
-import alluxio.dora.grpc.GetCapacityBytesPOptions;
-import alluxio.dora.grpc.GetUsedBytesPOptions;
-import alluxio.dora.grpc.GetWorkerInfoListPOptions;
-import alluxio.dora.grpc.GetWorkerLostStoragePOptions;
-import alluxio.dora.grpc.GrpcUtils;
-import alluxio.dora.grpc.RemoveDecommissionedWorkerPOptions;
-import alluxio.dora.grpc.ServiceType;
-import alluxio.dora.grpc.WorkerLostStorageInfo;
+import alluxio.grpc.BlockMasterClientServiceGrpc;
+import alluxio.grpc.GetBlockInfoPRequest;
+import alluxio.grpc.GetBlockMasterInfoPOptions;
+import alluxio.grpc.GetCapacityBytesPOptions;
+import alluxio.grpc.GetUsedBytesPOptions;
+import alluxio.grpc.GetWorkerInfoListPOptions;
+import alluxio.grpc.GetWorkerLostStoragePOptions;
+import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.RemoveDecommissionedWorkerPOptions;
+import alluxio.grpc.ServiceType;
+import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.dora.master.MasterClientContext;
 import alluxio.dora.wire.BlockInfo;
 import alluxio.dora.wire.BlockMasterInfo;
@@ -83,7 +83,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   public List<WorkerInfo> getWorkerInfoList() throws IOException {
     return retryRPC(() -> {
       List<WorkerInfo> result = new ArrayList<>();
-      for (alluxio.dora.grpc.WorkerInfo workerInfo : mClient
+      for (alluxio.grpc.WorkerInfo workerInfo : mClient
           .getWorkerInfoList(GetWorkerInfoListPOptions.getDefaultInstance())
           .getWorkerInfosList()) {
         result.add(GrpcUtils.fromProto(workerInfo));
@@ -104,7 +104,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
       throws IOException {
     return retryRPC(() -> {
       List<WorkerInfo> result = new ArrayList<>();
-      for (alluxio.dora.grpc.WorkerInfo workerInfo : mClient.getWorkerReport(options.toProto())
+      for (alluxio.grpc.WorkerInfo workerInfo : mClient.getWorkerReport(options.toProto())
           .getWorkerInfosList()) {
         result.add(GrpcUtils.fromProto(workerInfo));
       }

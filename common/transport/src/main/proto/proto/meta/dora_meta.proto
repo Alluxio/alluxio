@@ -1,0 +1,17 @@
+syntax = "proto2";
+
+package alluxio.proto.meta;
+
+import "grpc/file_system_master.proto";
+
+/**
+ * Metadata used in Dora Worker.
+ *
+ * next available id: 3
+ */
+message FileStatus {
+  optional alluxio.grpc.file.FileInfo fileInfo = 1;
+
+  // the timestamp in milliseconds when this FileStatus is refreshed
+  optional int64 ts = 2;
+}

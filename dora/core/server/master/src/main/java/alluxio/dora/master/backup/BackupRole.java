@@ -11,8 +11,8 @@
 
 package alluxio.dora.master.backup;
 
-import alluxio.dora.grpc.GrpcService;
-import alluxio.dora.grpc.ServiceType;
+import alluxio.grpc.GrpcService;
+import alluxio.grpc.ServiceType;
 
 import java.io.Closeable;
 import java.util.Map;

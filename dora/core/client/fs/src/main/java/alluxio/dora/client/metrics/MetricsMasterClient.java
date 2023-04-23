@@ -12,8 +12,8 @@
 package alluxio.dora.client.metrics;
 
 import alluxio.dora.exception.status.AlluxioStatusException;
-import alluxio.dora.grpc.ClientMetrics;
-import alluxio.dora.grpc.MetricValue;
+import alluxio.grpc.ClientMetrics;
+import alluxio.grpc.MetricValue;
 
 import java.io.Closeable;
 import java.io.IOException;

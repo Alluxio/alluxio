@@ -24,9 +24,9 @@ import alluxio.dora.client.file.URIStatus;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.grpc.DeletePOptions;
-import alluxio.dora.grpc.OpenFilePOptions;
-import alluxio.dora.grpc.ReadPType;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.ReadPType;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
 import alluxio.dora.util.io.BufferUtils;
 

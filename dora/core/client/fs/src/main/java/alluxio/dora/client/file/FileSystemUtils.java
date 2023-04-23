@@ -17,7 +17,7 @@ import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.FileDoesNotExistException;
-import alluxio.dora.grpc.ScheduleAsyncPersistencePOptions;
+import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.dora.util.CommonUtils;
 import alluxio.dora.util.WaitForOptions;
 

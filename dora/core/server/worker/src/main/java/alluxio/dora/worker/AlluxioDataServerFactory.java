@@ -13,7 +13,7 @@ package alluxio.dora.worker;
 
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.grpc.BlockWorkerGrpc;
+import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.dora.underfs.UfsManager;
 import alluxio.dora.util.io.FileUtils;
 import alluxio.dora.util.io.PathUtils;

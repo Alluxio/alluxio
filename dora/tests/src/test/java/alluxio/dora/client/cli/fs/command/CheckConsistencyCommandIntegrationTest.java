@@ -20,9 +20,9 @@ import alluxio.dora.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.dora.client.file.FileSystemTestUtils;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.grpc.ExistsPOptions;
-import alluxio.dora.grpc.LoadMetadataPType;
-import alluxio.dora.grpc.WritePType;
+import alluxio.grpc.ExistsPOptions;
+import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.WritePType;
 import alluxio.dora.underfs.UnderFileSystem;
 import alluxio.dora.underfs.options.DeleteOptions;
 

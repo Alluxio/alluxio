@@ -20,8 +20,8 @@ import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.FileAlreadyExistsException;
-import alluxio.dora.grpc.CreateFilePOptions;
-import alluxio.dora.grpc.OpenFilePOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.OpenFilePOptions;
 import alluxio.dora.util.CommonUtils;
 import alluxio.dora.util.FormatUtils;
 

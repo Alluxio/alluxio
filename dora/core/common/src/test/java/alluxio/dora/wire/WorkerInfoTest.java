@@ -12,7 +12,7 @@
 package alluxio.dora.wire;
 
 import alluxio.dora.Constants;
-import alluxio.dora.grpc.GrpcUtils;
+import alluxio.grpc.GrpcUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.codec.digest.DigestUtils;

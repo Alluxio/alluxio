@@ -11,10 +11,10 @@
 
 package alluxio.table.common.udb;
 
-import alluxio.dora.grpc.table.ColumnStatisticsInfo;
-import alluxio.dora.grpc.table.FieldSchema;
-import alluxio.dora.grpc.table.Layout;
-import alluxio.dora.grpc.table.Schema;
+import alluxio.grpc.table.ColumnStatisticsInfo;
+import alluxio.grpc.table.FieldSchema;
+import alluxio.grpc.table.Layout;
+import alluxio.grpc.table.Schema;
 import alluxio.table.common.UdbPartition;
 
 import java.util.List;

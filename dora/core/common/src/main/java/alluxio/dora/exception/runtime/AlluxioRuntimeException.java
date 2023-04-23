@@ -12,9 +12,9 @@
 package alluxio.dora.exception.runtime;
 
 import alluxio.dora.exception.status.AlluxioStatusException;
-import alluxio.dora.grpc.ErrorInfo;
-import alluxio.dora.grpc.ErrorType;
-import alluxio.dora.grpc.RetryInfo;
+import alluxio.grpc.ErrorInfo;
+import alluxio.grpc.ErrorType;
+import alluxio.grpc.RetryInfo;
 
 import com.google.common.base.Preconditions;
 import com.google.protobuf.Any;

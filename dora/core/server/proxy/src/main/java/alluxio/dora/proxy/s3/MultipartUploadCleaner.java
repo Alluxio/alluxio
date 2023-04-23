@@ -18,7 +18,7 @@ import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.FileDoesNotExistException;
-import alluxio.dora.grpc.DeletePOptions;
+import alluxio.grpc.DeletePOptions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

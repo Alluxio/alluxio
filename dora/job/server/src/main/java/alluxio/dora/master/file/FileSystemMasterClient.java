@@ -13,12 +13,12 @@ package alluxio.dora.master.file;
 
 import alluxio.dora.AbstractMasterClient;
 import alluxio.dora.Constants;
-import alluxio.dora.grpc.FileSystemMasterWorkerServiceGrpc;
-import alluxio.dora.grpc.GetFileInfoPRequest;
-import alluxio.dora.grpc.GetUfsInfoPRequest;
-import alluxio.dora.grpc.GrpcUtils;
-import alluxio.dora.grpc.ServiceType;
-import alluxio.dora.grpc.UfsInfo;
+import alluxio.grpc.FileSystemMasterWorkerServiceGrpc;
+import alluxio.grpc.GetFileInfoPRequest;
+import alluxio.grpc.GetUfsInfoPRequest;
+import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.ServiceType;
+import alluxio.grpc.UfsInfo;
 import alluxio.dora.master.MasterClientContext;
 import alluxio.dora.wire.FileInfo;
 

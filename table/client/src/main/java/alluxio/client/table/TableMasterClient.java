@@ -13,13 +13,13 @@ package alluxio.client.table;
 
 import alluxio.dora.Client;
 import alluxio.dora.exception.status.AlluxioStatusException;
-import alluxio.dora.grpc.table.ColumnStatisticsInfo;
-import alluxio.dora.grpc.table.Constraint;
-import alluxio.dora.grpc.table.Database;
-import alluxio.dora.grpc.table.Partition;
-import alluxio.dora.grpc.table.SyncStatus;
-import alluxio.dora.grpc.table.TableInfo;
-import alluxio.dora.grpc.table.TransformJobInfo;
+import alluxio.grpc.table.ColumnStatisticsInfo;
+import alluxio.grpc.table.Constraint;
+import alluxio.grpc.table.Database;
+import alluxio.grpc.table.Partition;
+import alluxio.grpc.table.SyncStatus;
+import alluxio.grpc.table.TableInfo;
+import alluxio.grpc.table.TransformJobInfo;
 import alluxio.dora.master.MasterClientContext;
 
 import java.util.List;

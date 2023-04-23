@@ -17,10 +17,10 @@ import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.client.file.URIStatus;
 import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.grpc.OpenFilePOptions;
+import alluxio.grpc.OpenFilePOptions;
 import alluxio.dora.master.block.BlockId;
 import alluxio.dora.master.file.meta.PersistenceState;
-import alluxio.dora.proto.dataserver.Protocol;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.dora.util.FileSystemOptionsUtils;
 import alluxio.dora.wire.BlockInfo;
 import alluxio.dora.wire.FileBlockInfo;
@@ -37,7 +37,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Information for reading a file. This is an internal options class which contains information
  * from {@link OpenFilePOptions} as well as the {@link URIStatus} being read. In addition to
  * providing access to the fields, it provides convenience functions for various nested
- * fields and creating {@link alluxio.dora.proto.dataserver.Protocol.ReadRequest}s.
+ * fields and creating {@link alluxio.proto.dataserver.Protocol.ReadRequest}s.
  */
 @NotThreadSafe
 // TODO(calvin, jianjian): Rename this class since it's not used by InStream

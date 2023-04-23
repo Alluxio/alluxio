@@ -14,11 +14,11 @@ package alluxio.dora.master.journal.raft;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.dora.grpc.DownloadSnapshotPRequest;
-import alluxio.dora.grpc.DownloadSnapshotPResponse;
-import alluxio.dora.grpc.SnapshotData;
-import alluxio.dora.grpc.UploadSnapshotPRequest;
-import alluxio.dora.grpc.UploadSnapshotPResponse;
+import alluxio.grpc.DownloadSnapshotPRequest;
+import alluxio.grpc.DownloadSnapshotPResponse;
+import alluxio.grpc.SnapshotData;
+import alluxio.grpc.UploadSnapshotPRequest;
+import alluxio.grpc.UploadSnapshotPResponse;
 
 import com.google.protobuf.UnsafeByteOperations;
 import io.grpc.stub.ClientCallStreamObserver;

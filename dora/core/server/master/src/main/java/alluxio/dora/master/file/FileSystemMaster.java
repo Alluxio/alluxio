@@ -25,7 +25,7 @@ import alluxio.dora.exception.InvalidPathException;
 import alluxio.dora.exception.UnexpectedAlluxioException;
 import alluxio.dora.exception.status.InvalidArgumentException;
 import alluxio.dora.exception.status.UnavailableException;
-import alluxio.dora.grpc.SetAclAction;
+import alluxio.grpc.SetAclAction;
 import alluxio.dora.master.Master;
 import alluxio.dora.master.file.contexts.CheckAccessContext;
 import alluxio.dora.master.file.contexts.CheckConsistencyContext;

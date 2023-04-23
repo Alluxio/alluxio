@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.journal.sink;
 
-import alluxio.dora.proto.journal.Journal.JournalEntry;
+import alluxio.proto.journal.Journal.JournalEntry;
 
 /**
  * The interface for the journal to push events.  Implementations must complete these actions

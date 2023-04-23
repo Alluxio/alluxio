@@ -11,11 +11,11 @@
 
 package alluxio.dora.master.journal;
 
-import alluxio.dora.proto.journal.Journal;
+import alluxio.proto.journal.Journal;
 import alluxio.dora.resource.CloseableIterator;
 
 /**
- * Interface to get an iterator of {@link alluxio.dora.proto.journal.Journal.JournalEntry}s.
+ * Interface to get an iterator of {@link alluxio.proto.journal.Journal.JournalEntry}s.
  */
 public interface JournalEntryIterable {
   /**

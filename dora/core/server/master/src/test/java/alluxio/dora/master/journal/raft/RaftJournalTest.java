@@ -14,13 +14,13 @@ package alluxio.dora.master.journal.raft;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.master.journal.CountingNoopFileSystemMaster;
-import alluxio.dora.grpc.QuorumServerInfo;
+import alluxio.grpc.QuorumServerInfo;
 import alluxio.dora.master.NoopMaster;
 import alluxio.dora.master.StateLockManager;
 import alluxio.dora.master.journal.CatchupFuture;
 import alluxio.dora.master.journal.JournalContext;
-import alluxio.dora.proto.journal.File;
-import alluxio.dora.proto.journal.Journal;
+import alluxio.proto.journal.File;
+import alluxio.proto.journal.Journal;
 import alluxio.dora.util.CommonUtils;
 import alluxio.dora.util.WaitForOptions;
 
@@ -101,7 +101,7 @@ public class RaftJournalTest {
              mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
       for (int i = 0; i < entryCount; i++) {
         journalContext.append(
-            alluxio.dora.proto.journal.Journal.JournalEntry.newBuilder().setInodeLastModificationTime(
+            alluxio.proto.journal.Journal.JournalEntry.newBuilder().setInodeLastModificationTime(
                 File.InodeLastModificationTimeEntry.newBuilder().setId(i).build()).build());
       }
     }
@@ -120,7 +120,7 @@ public class RaftJournalTest {
              mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
       for (int i = 0; i < entryCount; i++) {
         journalContext.append(
-            alluxio.dora.proto.journal.Journal.JournalEntry.newBuilder().setInodeLastModificationTime(
+            alluxio.proto.journal.Journal.JournalEntry.newBuilder().setInodeLastModificationTime(
                 File.InodeLastModificationTimeEntry.newBuilder().setId(i).build()).build());
       }
     }
@@ -135,7 +135,7 @@ public class RaftJournalTest {
     try (JournalContext journalContext =
              mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
       journalContext
-          .append(alluxio.dora.proto.journal.Journal.JournalEntry.newBuilder()
+          .append(alluxio.proto.journal.Journal.JournalEntry.newBuilder()
               .setInodeLastModificationTime(
                   File.InodeLastModificationTimeEntry.newBuilder().setId(entryCount).build())
               .build());
@@ -172,7 +172,7 @@ public class RaftJournalTest {
         mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
       for (int i = 0; i < entryCount; i++) {
         journalContext.append(
-            alluxio.dora.proto.journal.Journal.JournalEntry.newBuilder().setInodeLastModificationTime(
+            alluxio.proto.journal.Journal.JournalEntry.newBuilder().setInodeLastModificationTime(
                 File.InodeLastModificationTimeEntry.newBuilder().setId(i).build()).build());
       }
     }
@@ -193,7 +193,7 @@ public class RaftJournalTest {
     try (JournalContext journalContext =
         mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
       journalContext
-          .append(alluxio.dora.proto.journal.Journal.JournalEntry.newBuilder()
+          .append(alluxio.proto.journal.Journal.JournalEntry.newBuilder()
               .setInodeLastModificationTime(
                   File.InodeLastModificationTimeEntry.newBuilder().setId(entryCount).build())
               .build());
@@ -213,7 +213,7 @@ public class RaftJournalTest {
              mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
       for (int i = 0; i < entryCount; i++) {
         journalContext.append(
-            alluxio.dora.proto.journal.Journal.JournalEntry.newBuilder().setInodeLastModificationTime(
+            alluxio.proto.journal.Journal.JournalEntry.newBuilder().setInodeLastModificationTime(
                 File.InodeLastModificationTimeEntry.newBuilder().setId(i).build()).build());
       }
     }
@@ -225,7 +225,7 @@ public class RaftJournalTest {
     try (JournalContext journalContext =
              mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
       journalContext
-          .append(alluxio.dora.proto.journal.Journal.JournalEntry.newBuilder()
+          .append(alluxio.proto.journal.Journal.JournalEntry.newBuilder()
               .setInodeLastModificationTime(
                   File.InodeLastModificationTimeEntry.newBuilder().setId(entryCount).build())
               .build());
@@ -263,7 +263,7 @@ public class RaftJournalTest {
         mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
       for (int i = 0; i < entryBatchCount; i++) {
         journalContext.append(
-            alluxio.dora.proto.journal.Journal.JournalEntry.newBuilder().setInodeLastModificationTime(
+            alluxio.proto.journal.Journal.JournalEntry.newBuilder().setInodeLastModificationTime(
                 File.InodeLastModificationTimeEntry.newBuilder().setId(i).build()).build());
       }
     }
@@ -278,7 +278,7 @@ public class RaftJournalTest {
         mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
       for (int i = 0; i < entryBatchCount; i++) {
         journalContext.append(
-            alluxio.dora.proto.journal.Journal.JournalEntry.newBuilder().setInodeLastModificationTime(
+            alluxio.proto.journal.Journal.JournalEntry.newBuilder().setInodeLastModificationTime(
                 File.InodeLastModificationTimeEntry.newBuilder().setId(i).build()).build());
       }
     }
@@ -307,7 +307,7 @@ public class RaftJournalTest {
         mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
       for (int i = 0; i < entryBatchCount * 2; i++) {
         journalContext.append(
-            alluxio.dora.proto.journal.Journal.JournalEntry.newBuilder().setInodeLastModificationTime(
+            alluxio.proto.journal.Journal.JournalEntry.newBuilder().setInodeLastModificationTime(
                 File.InodeLastModificationTimeEntry.newBuilder().setId(i).build()).build());
       }
     }
@@ -341,7 +341,7 @@ public class RaftJournalTest {
         mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
       for (int i = 0; i < entryCount; i++) {
         journalContext.append(
-            alluxio.dora.proto.journal.Journal.JournalEntry.newBuilder().setInodeLastModificationTime(
+            alluxio.proto.journal.Journal.JournalEntry.newBuilder().setInodeLastModificationTime(
                 File.InodeLastModificationTimeEntry.newBuilder().setId(i).build()).build());
       }
     }
@@ -378,7 +378,7 @@ public class RaftJournalTest {
         mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
       for (int i = 0; i < entryCount; i++) {
         journalContext.append(
-            alluxio.dora.proto.journal.Journal.JournalEntry.newBuilder().setInodeLastModificationTime(
+            alluxio.proto.journal.Journal.JournalEntry.newBuilder().setInodeLastModificationTime(
                 File.InodeLastModificationTimeEntry.newBuilder().setId(i).build()).build());
       }
     }
@@ -428,7 +428,7 @@ public class RaftJournalTest {
           mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
         for (int i = 0; i < entryCount; i++) {
           journalContext.append(
-              alluxio.dora.proto.journal.Journal.JournalEntry.newBuilder()
+              alluxio.proto.journal.Journal.JournalEntry.newBuilder()
                   .setInodeLastModificationTime(
                       File.InodeLastModificationTimeEntry.newBuilder().setId(i).build())
                   .build());
@@ -474,7 +474,7 @@ public class RaftJournalTest {
            mLeaderJournalSystem.createJournal(new NoopMaster()).createJournalContext()) {
         for (int i = 0; i < entryCount; i++) {
           journalContext.append(
-              alluxio.dora.proto.journal.Journal.JournalEntry.newBuilder()
+              alluxio.proto.journal.Journal.JournalEntry.newBuilder()
                   .setInodeLastModificationTime(
                       File.InodeLastModificationTimeEntry.newBuilder().setId(i).build())
                   .build());

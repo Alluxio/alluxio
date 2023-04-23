@@ -19,7 +19,7 @@ import alluxio.dora.client.fuse.dora.readonly.AbstractFuseDoraReadOnlyTest;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.LaunchUserGroupAuthPolicy;
 import alluxio.fuse.file.FuseFileStream;
-import alluxio.dora.grpc.OpenFilePOptions;
+import alluxio.grpc.OpenFilePOptions;
 import alluxio.dora.security.authorization.Mode;
 import alluxio.dora.util.io.BufferUtils;
 

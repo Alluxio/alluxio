@@ -13,8 +13,8 @@ package alluxio.dora.wire;
 
 import alluxio.dora.AlluxioURI;
 import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.grpc.BackupPStatus;
-import alluxio.dora.grpc.BackupState;
+import alluxio.grpc.BackupPStatus;
+import alluxio.grpc.BackupState;
 
 import com.google.common.base.MoreObjects;
 import com.google.protobuf.ByteString;

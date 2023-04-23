@@ -11,8 +11,8 @@
 
 package alluxio.table.common;
 
-import alluxio.dora.grpc.table.layout.hive.PartitionInfo;
-import alluxio.dora.grpc.table.layout.hive.Storage;
+import alluxio.grpc.table.layout.hive.PartitionInfo;
+import alluxio.grpc.table.layout.hive.Storage;
 import alluxio.table.common.layout.HiveLayout;
 
 import java.util.Collections;

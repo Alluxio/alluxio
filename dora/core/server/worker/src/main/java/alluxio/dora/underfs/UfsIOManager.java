@@ -18,7 +18,7 @@ import alluxio.dora.exception.runtime.AlluxioRuntimeException;
 import alluxio.dora.exception.runtime.OutOfRangeRuntimeException;
 import alluxio.dora.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.dora.security.authentication.AuthenticatedClientUser;
-import alluxio.dora.grpc.UfsReadOptions;
+import alluxio.grpc.UfsReadOptions;
 import alluxio.dora.metrics.MetricInfo;
 import alluxio.dora.metrics.MetricKey;
 import alluxio.dora.metrics.MetricsSystem;

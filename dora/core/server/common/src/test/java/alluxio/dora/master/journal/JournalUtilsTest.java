@@ -19,8 +19,8 @@ import alluxio.dora.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.dora.master.journal.checkpoint.CheckpointName;
 import alluxio.dora.master.journal.checkpoint.CheckpointOutputStream;
 import alluxio.dora.master.journal.checkpoint.CheckpointType;
-import alluxio.dora.proto.journal.File.AddMountPointEntry;
-import alluxio.dora.proto.journal.Journal.JournalEntry;
+import alluxio.proto.journal.File.AddMountPointEntry;
+import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.dora.resource.CloseableIterator;
 
 import org.junit.Rule;

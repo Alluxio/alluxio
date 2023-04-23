@@ -9,9 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.dora.grpc;
+package alluxio.grpc;
 
-import static alluxio.dora.grpc.GrpcUtils.netAddressToSocketAddress;
+import static alluxio.grpc.GrpcUtils.netAddressToSocketAddress;
 
 import org.junit.Assert;
 import org.junit.Test;

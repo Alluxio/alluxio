@@ -18,8 +18,8 @@ import alluxio.dora.AlluxioURI;
 import alluxio.dora.master.block.BlockId;
 import alluxio.dora.master.file.FileSystemJournalEntryMerger;
 import alluxio.dora.master.file.meta.PersistenceState;
-import alluxio.dora.proto.journal.File;
-import alluxio.dora.proto.journal.Journal;
+import alluxio.proto.journal.File;
+import alluxio.proto.journal.Journal;
 
 import org.junit.Test;
 

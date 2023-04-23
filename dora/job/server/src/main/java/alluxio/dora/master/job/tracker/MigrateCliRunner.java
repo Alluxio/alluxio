@@ -22,7 +22,7 @@ import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.FileAlreadyExistsException;
 import alluxio.dora.exception.InvalidPathException;
-import alluxio.dora.grpc.OperationType;
+import alluxio.grpc.OperationType;
 import alluxio.dora.job.JobConfig;
 import alluxio.dora.job.plan.BatchedJobConfig;
 import alluxio.dora.job.plan.migrate.MigrateConfig;

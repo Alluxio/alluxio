@@ -21,7 +21,7 @@ import alluxio.dora.master.NoopMaster;
 import alluxio.dora.master.journal.JournalReader;
 import alluxio.dora.master.journal.JournalReader.State;
 import alluxio.dora.master.journal.ufs.*;
-import alluxio.dora.proto.journal.Journal;
+import alluxio.proto.journal.Journal;
 import alluxio.dora.underfs.UnderFileSystem;
 import alluxio.dora.util.URIUtils;
 

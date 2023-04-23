@@ -13,10 +13,10 @@ package alluxio.dora.master.transport;
 
 import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.grpc.GrpcServer;
-import alluxio.dora.grpc.GrpcServerAddress;
-import alluxio.dora.grpc.GrpcServerBuilder;
-import alluxio.dora.grpc.GrpcService;
+import alluxio.grpc.GrpcServer;
+import alluxio.grpc.GrpcServerAddress;
+import alluxio.grpc.GrpcServerBuilder;
+import alluxio.grpc.GrpcService;
 import alluxio.dora.security.authentication.ClientIpAddressInjector;
 import alluxio.dora.security.user.UserState;
 

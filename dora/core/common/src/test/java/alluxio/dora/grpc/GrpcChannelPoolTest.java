@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.dora.grpc;
+package alluxio.grpc;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -18,7 +18,7 @@ import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.InstancedConfiguration;
 import alluxio.dora.conf.PropertyKey;
 
-import alluxio.dora.grpc.*;
+import alluxio.grpc.*;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.BeforeClass;

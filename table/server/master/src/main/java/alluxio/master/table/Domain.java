@@ -12,8 +12,8 @@
 package alluxio.master.table;
 
 import alluxio.dora.collections.Pair;
-import alluxio.dora.grpc.table.Range;
-import alluxio.dora.grpc.table.Value;
+import alluxio.grpc.table.Range;
+import alluxio.grpc.table.Value;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +34,7 @@ public abstract class Domain<T> {
    * @param domain proto representation
    * @return a Domain object
    */
-  public static Domain parseFrom(alluxio.dora.grpc.table.Domain domain) {
+  public static Domain parseFrom(alluxio.grpc.table.Domain domain) {
     if (domain.hasAllOrNone()) {
       return new AllOrNoneDomain(domain.getAllOrNone().getAll());
     }

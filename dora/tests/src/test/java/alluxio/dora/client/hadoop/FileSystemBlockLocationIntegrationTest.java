@@ -13,7 +13,7 @@ package alluxio.dora.client.hadoop;
 
 import alluxio.dora.client.file.FileSystemTestUtils;
 import alluxio.dora.conf.Configuration;
-import alluxio.dora.grpc.WritePType;
+import alluxio.grpc.WritePType;
 import alluxio.dora.hadoop.FileSystem;
 import alluxio.dora.hadoop.HadoopConfigurationUtils;
 import alluxio.dora.testutils.BaseIntegrationTest;

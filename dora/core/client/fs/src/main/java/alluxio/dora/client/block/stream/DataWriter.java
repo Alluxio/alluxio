@@ -17,7 +17,7 @@ import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.client.file.options.OutStreamOptions;
 import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.grpc.RequestType;
+import alluxio.grpc.RequestType;
 import alluxio.dora.util.CommonUtils;
 import alluxio.dora.util.network.NettyUtils;
 import alluxio.dora.util.network.NetworkAddressUtils;

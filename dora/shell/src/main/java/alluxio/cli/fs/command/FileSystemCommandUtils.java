@@ -16,9 +16,9 @@ import alluxio.dora.Constants;
 import alluxio.dora.annotation.PublicApi;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.grpc.FileSystemMasterCommonPOptions;
-import alluxio.dora.grpc.SetAttributePOptions;
-import alluxio.dora.grpc.TtlAction;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.TtlAction;
 
 import java.io.IOException;
 import java.util.List;

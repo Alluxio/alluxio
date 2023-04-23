@@ -17,7 +17,7 @@ import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.client.file.FileSystemMasterClient;
 import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.exception.status.UnavailableException;
-import alluxio.dora.grpc.ServiceType;
+import alluxio.grpc.ServiceType;
 import alluxio.dora.master.MasterInquireClient;
 import alluxio.dora.master.PollingMasterInquireClient;
 import alluxio.dora.resource.CloseableResource;

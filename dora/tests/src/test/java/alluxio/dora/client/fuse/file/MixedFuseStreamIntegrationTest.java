@@ -13,7 +13,7 @@ package alluxio.dora.client.fuse.file;
 
 import alluxio.dora.AlluxioURI;
 import alluxio.fuse.file.FuseFileStream;
-import alluxio.dora.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.dora.util.io.BufferUtils;
 import alluxio.dora.util.io.PathUtils;
 

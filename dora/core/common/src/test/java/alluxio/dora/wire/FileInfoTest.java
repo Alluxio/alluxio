@@ -11,8 +11,8 @@
 
 package alluxio.dora.wire;
 
-import alluxio.dora.grpc.GrpcUtils;
-import alluxio.dora.grpc.TtlAction;
+import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.TtlAction;
 import alluxio.dora.security.authorization.AccessControlList;
 import alluxio.dora.security.authorization.DefaultAccessControlList;
 import alluxio.dora.util.CommonUtils;

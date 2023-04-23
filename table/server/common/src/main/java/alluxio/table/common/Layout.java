@@ -12,8 +12,8 @@
 package alluxio.table.common;
 
 import alluxio.dora.AlluxioURI;
-import alluxio.dora.grpc.table.ColumnStatisticsInfo;
-import alluxio.dora.grpc.table.LayoutSpec;
+import alluxio.grpc.table.ColumnStatisticsInfo;
+import alluxio.grpc.table.LayoutSpec;
 import alluxio.table.common.transform.TransformContext;
 import alluxio.table.common.transform.TransformDefinition;
 import alluxio.table.common.transform.TransformPlan;
@@ -63,8 +63,8 @@ public interface Layout {
   /**
    * @return the proto representation
    */
-  default alluxio.dora.grpc.table.Layout toProto() {
-    return alluxio.dora.grpc.table.Layout.newBuilder()
+  default alluxio.grpc.table.Layout toProto() {
+    return alluxio.grpc.table.Layout.newBuilder()
         .setLayoutType(getType())
         .setLayoutSpec(LayoutSpec.newBuilder()
             .setSpec(getSpec())

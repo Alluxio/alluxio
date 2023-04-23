@@ -16,11 +16,11 @@ import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.status.AlluxioStatusException;
 import alluxio.dora.util.CommonUtils;
 import alluxio.dora.wire.WorkerNetAddress;
-import alluxio.dora.grpc.GetServiceVersionPRequest;
-import alluxio.dora.grpc.GrpcChannel;
-import alluxio.dora.grpc.GrpcChannelBuilder;
-import alluxio.dora.grpc.GrpcServerAddress;
-import alluxio.dora.grpc.ServiceVersionClientServiceGrpc;
+import alluxio.grpc.GetServiceVersionPRequest;
+import alluxio.grpc.GrpcChannel;
+import alluxio.grpc.GrpcChannelBuilder;
+import alluxio.grpc.GrpcServerAddress;
+import alluxio.grpc.ServiceVersionClientServiceGrpc;
 import alluxio.dora.security.user.UserState;
 import alluxio.dora.util.OSUtils;
 
@@ -745,7 +745,7 @@ public final class NetworkAddressUtils {
    * @param conf Alluxio configuration
    * @param userState the UserState
    */
-  public static void pingService(InetSocketAddress address, alluxio.dora.grpc.ServiceType serviceType,
+  public static void pingService(InetSocketAddress address, alluxio.grpc.ServiceType serviceType,
       AlluxioConfiguration conf, UserState userState)
       throws AlluxioStatusException {
     Preconditions.checkNotNull(address, "address");

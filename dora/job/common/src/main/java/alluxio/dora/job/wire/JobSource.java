@@ -23,16 +23,16 @@ public enum JobSource {
   /**
    * @return proto representation of the JobSource
    */
-  public alluxio.dora.grpc.JobSource toProto() {
+  public alluxio.grpc.JobSource toProto() {
     switch (this) {
       case CLI:
-        return alluxio.dora.grpc.JobSource.CLI;
+        return alluxio.grpc.JobSource.CLI;
       case POLICY:
-        return alluxio.dora.grpc.JobSource.POLICY;
+        return alluxio.grpc.JobSource.POLICY;
       case SYSTEM:
-        return alluxio.dora.grpc.JobSource.SYSTEM;
+        return alluxio.grpc.JobSource.SYSTEM;
       default:
-        return alluxio.dora.grpc.JobSource.UNSUPPORTED;
+        return alluxio.grpc.JobSource.UNSUPPORTED;
     }
   }
 }

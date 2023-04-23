@@ -35,15 +35,15 @@ import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.BackupAbortedException;
 import alluxio.dora.exception.status.FailedPreconditionException;
-import alluxio.dora.grpc.BackupPOptions;
-import alluxio.dora.grpc.BackupPRequest;
-import alluxio.dora.grpc.BackupState;
-import alluxio.dora.grpc.CreateDirectoryPOptions;
-import alluxio.dora.grpc.CreateFilePOptions;
-import alluxio.dora.grpc.DeletePOptions;
-import alluxio.dora.grpc.ListStatusPOptions;
-import alluxio.dora.grpc.LoadMetadataPType;
-import alluxio.dora.grpc.WritePType;
+import alluxio.grpc.BackupPOptions;
+import alluxio.grpc.BackupPRequest;
+import alluxio.grpc.BackupState;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.WritePType;
 import alluxio.dora.master.MasterClientContext;
 import alluxio.dora.master.NoopMaster;
 import alluxio.dora.master.journal.JournalReader;
@@ -54,7 +54,7 @@ import alluxio.dora.master.journal.ufs.UfsJournalReader;
 import alluxio.dora.master.metastore.MetastoreType;
 import alluxio.dora.process.MultiProcessCluster;
 import alluxio.dora.process.PortCoordination;
-import alluxio.dora.proto.journal.Journal;
+import alluxio.proto.journal.Journal;
 import alluxio.dora.testutils.AlluxioOperationThread;
 import alluxio.dora.testutils.BaseIntegrationTest;
 import alluxio.dora.util.CommonUtils;
@@ -241,7 +241,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
     try (UfsJournalLogWriter writer = new UfsJournalLogWriter(fsMaster, nextSN)) {
       Journal.JournalEntry entry = Journal.JournalEntry.newBuilder()
           .setSequenceNumber(nextSN)
-          .setDeleteFile(alluxio.dora.proto.journal.File.DeleteFileEntry.newBuilder()
+          .setDeleteFile(alluxio.proto.journal.File.DeleteFileEntry.newBuilder()
               .setId(4563728) // random non-zero ID number (zero would delete the root)
               .setPath("/nonexistant")
               .build())

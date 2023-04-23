@@ -13,7 +13,7 @@ package alluxio.dora.master;
 
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.grpc.NodeState;
+import alluxio.grpc.NodeState;
 import alluxio.dora.master.journal.ufs.UfsJournalMultiMasterPrimarySelector;
 import alluxio.dora.util.interfaces.Scoped;
 

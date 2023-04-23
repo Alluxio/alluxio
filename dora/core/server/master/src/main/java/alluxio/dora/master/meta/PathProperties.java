@@ -17,10 +17,10 @@ import alluxio.dora.master.journal.DelegatingJournaled;
 import alluxio.dora.master.journal.JournalContext;
 import alluxio.dora.master.journal.Journaled;
 import alluxio.dora.master.journal.checkpoint.CheckpointName;
-import alluxio.dora.proto.journal.Journal;
-import alluxio.dora.proto.journal.Journal.JournalEntry;
-import alluxio.dora.proto.journal.Meta.PathPropertiesEntry;
-import alluxio.dora.proto.journal.Meta.RemovePathPropertiesEntry;
+import alluxio.proto.journal.Journal;
+import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.proto.journal.Meta.PathPropertiesEntry;
+import alluxio.proto.journal.Meta.RemovePathPropertiesEntry;
 import alluxio.dora.resource.CloseableIterator;
 import alluxio.dora.resource.LockResource;
 

@@ -19,7 +19,7 @@ import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.ExceptionMessage;
 import alluxio.dora.exception.FileDoesNotExistException;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.dora.grpc.DeletePOptions;
+import alluxio.grpc.DeletePOptions;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;

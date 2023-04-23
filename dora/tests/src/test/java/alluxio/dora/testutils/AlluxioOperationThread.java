@@ -14,7 +14,7 @@ package alluxio.dora.testutils;
 import alluxio.dora.AlluxioURI;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemTestUtils;
-import alluxio.dora.grpc.CreateFilePOptions;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.dora.util.CommonUtils;
 
 import com.google.common.base.Preconditions;

@@ -11,8 +11,8 @@
 
 package alluxio.dora.worker.grpc;
 
-import alluxio.dora.grpc.BufferRepository;
-import alluxio.dora.grpc.DataMessage;
+import alluxio.grpc.BufferRepository;
+import alluxio.grpc.DataMessage;
 import alluxio.dora.network.protocol.databuffer.DataBuffer;
 
 import io.grpc.stub.CallStreamObserver;

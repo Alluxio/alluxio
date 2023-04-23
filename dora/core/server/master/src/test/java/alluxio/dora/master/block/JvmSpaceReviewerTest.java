@@ -18,7 +18,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import alluxio.dora.master.block.JvmSpaceReviewer;
-import alluxio.dora.grpc.GetRegisterLeasePRequest;
+import alluxio.grpc.GetRegisterLeasePRequest;
 
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;

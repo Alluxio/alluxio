@@ -15,35 +15,35 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import alluxio.dora.master.journal.JournalEntryAssociation;
-import alluxio.dora.proto.journal.Block.BlockContainerIdGeneratorEntry;
-import alluxio.dora.proto.journal.Block.BlockInfoEntry;
-import alluxio.dora.proto.journal.Block.DeleteBlockEntry;
-import alluxio.dora.proto.journal.File;
-import alluxio.dora.proto.journal.File.AddMountPointEntry;
-import alluxio.dora.proto.journal.File.AddSyncPointEntry;
-import alluxio.dora.proto.journal.File.AsyncPersistRequestEntry;
-import alluxio.dora.proto.journal.File.CompleteFileEntry;
-import alluxio.dora.proto.journal.File.DeleteFileEntry;
-import alluxio.dora.proto.journal.File.DeleteMountPointEntry;
-import alluxio.dora.proto.journal.File.InodeDirectoryEntry;
-import alluxio.dora.proto.journal.File.InodeDirectoryIdGeneratorEntry;
-import alluxio.dora.proto.journal.File.InodeFileEntry;
-import alluxio.dora.proto.journal.File.InodeLastModificationTimeEntry;
-import alluxio.dora.proto.journal.File.NewBlockEntry;
-import alluxio.dora.proto.journal.File.PersistDirectoryEntry;
-import alluxio.dora.proto.journal.File.RemoveSyncPointEntry;
-import alluxio.dora.proto.journal.File.RenameEntry;
-import alluxio.dora.proto.journal.File.SetAclEntry;
-import alluxio.dora.proto.journal.File.SetAttributeEntry;
-import alluxio.dora.proto.journal.File.UpdateInodeDirectoryEntry;
-import alluxio.dora.proto.journal.File.UpdateInodeEntry;
-import alluxio.dora.proto.journal.File.UpdateInodeFileEntry;
-import alluxio.dora.proto.journal.File.UpdateUfsModeEntry;
-import alluxio.dora.proto.journal.Journal.JournalEntry;
-import alluxio.dora.proto.journal.Meta.ClusterInfoEntry;
-import alluxio.dora.proto.journal.Meta.PathPropertiesEntry;
-import alluxio.dora.proto.journal.Meta.RemovePathPropertiesEntry;
-import alluxio.dora.proto.journal.Table;
+import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
+import alluxio.proto.journal.Block.BlockInfoEntry;
+import alluxio.proto.journal.Block.DeleteBlockEntry;
+import alluxio.proto.journal.File;
+import alluxio.proto.journal.File.AddMountPointEntry;
+import alluxio.proto.journal.File.AddSyncPointEntry;
+import alluxio.proto.journal.File.AsyncPersistRequestEntry;
+import alluxio.proto.journal.File.CompleteFileEntry;
+import alluxio.proto.journal.File.DeleteFileEntry;
+import alluxio.proto.journal.File.DeleteMountPointEntry;
+import alluxio.proto.journal.File.InodeDirectoryEntry;
+import alluxio.proto.journal.File.InodeDirectoryIdGeneratorEntry;
+import alluxio.proto.journal.File.InodeFileEntry;
+import alluxio.proto.journal.File.InodeLastModificationTimeEntry;
+import alluxio.proto.journal.File.NewBlockEntry;
+import alluxio.proto.journal.File.PersistDirectoryEntry;
+import alluxio.proto.journal.File.RemoveSyncPointEntry;
+import alluxio.proto.journal.File.RenameEntry;
+import alluxio.proto.journal.File.SetAclEntry;
+import alluxio.proto.journal.File.SetAttributeEntry;
+import alluxio.proto.journal.File.UpdateInodeDirectoryEntry;
+import alluxio.proto.journal.File.UpdateInodeEntry;
+import alluxio.proto.journal.File.UpdateInodeFileEntry;
+import alluxio.proto.journal.File.UpdateUfsModeEntry;
+import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.proto.journal.Meta.ClusterInfoEntry;
+import alluxio.proto.journal.Meta.PathPropertiesEntry;
+import alluxio.proto.journal.Meta.RemovePathPropertiesEntry;
+import alluxio.proto.journal.Table;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -100,8 +100,8 @@ public class JournalEntryAssociationTest {
       JournalEntry.newBuilder().setAddTransformJobInfo(Table.AddTransformJobInfoEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setRemoveTransformJobInfo(Table.RemoveTransformJobInfoEntry.getDefaultInstance()).build(),
       JournalEntry.newBuilder().setCompleteTransformTable(Table.CompleteTransformTableEntry.getDefaultInstance()).build(),
-      JournalEntry.newBuilder().setLoadJob(alluxio.dora.proto.journal.Job.LoadJobEntry.newBuilder()
-          .setLoadPath("/test").setState(alluxio.dora.proto.journal.Job.PJobState.CREATED)
+      JournalEntry.newBuilder().setLoadJob(alluxio.proto.journal.Job.LoadJobEntry.newBuilder()
+          .setLoadPath("/test").setState(alluxio.proto.journal.Job.PJobState.CREATED)
           .setBandwidth(1).setPartialListing(false).setVerify(true).setJobId("1").build()).build()
   );
   // CHECKSTYLE.OFF: LineLengthExceed

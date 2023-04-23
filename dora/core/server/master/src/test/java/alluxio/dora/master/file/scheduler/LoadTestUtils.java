@@ -11,8 +11,8 @@
 
 package alluxio.dora.master.file.scheduler;
 
-import alluxio.dora.grpc.Block;
-import alluxio.dora.grpc.BlockStatus;
+import alluxio.grpc.Block;
+import alluxio.grpc.BlockStatus;
 import alluxio.dora.util.CommonUtils;
 import alluxio.dora.wire.BlockInfo;
 import alluxio.dora.wire.BlockLocation;

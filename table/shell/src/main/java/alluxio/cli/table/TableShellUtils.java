@@ -11,7 +11,7 @@
 
 package alluxio.cli.table;
 
-import alluxio.dora.grpc.table.SyncStatus;
+import alluxio.grpc.table.SyncStatus;
 
 import org.slf4j.Logger;
 

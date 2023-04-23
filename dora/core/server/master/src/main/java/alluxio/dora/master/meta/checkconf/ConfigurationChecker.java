@@ -13,8 +13,8 @@ package alluxio.dora.master.meta.checkconf;
 
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.conf.PropertyKey.ConsistencyCheckLevel;
-import alluxio.dora.grpc.ConfigStatus;
-import alluxio.dora.grpc.Scope;
+import alluxio.grpc.ConfigStatus;
+import alluxio.grpc.Scope;
 import alluxio.dora.wire.Address;
 import alluxio.dora.wire.ConfigCheckReport;
 import alluxio.dora.wire.InconsistentProperty;

@@ -15,7 +15,7 @@ import alluxio.dora.SystemPropertyRule;
 import alluxio.dora.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.dora.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.dora.client.file.FileSystemTestUtils;
-import alluxio.dora.grpc.WritePType;
+import alluxio.grpc.WritePType;
 
 import org.junit.Assert;
 import org.junit.Rule;

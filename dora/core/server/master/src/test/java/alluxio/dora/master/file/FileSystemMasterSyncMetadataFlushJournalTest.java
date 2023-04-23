@@ -20,7 +20,7 @@ import alluxio.dora.exception.AccessControlException;
 import alluxio.dora.exception.InvalidPathException;
 import alluxio.dora.exception.status.UnavailableException;
 import alluxio.dora.file.options.DescendantType;
-import alluxio.dora.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.dora.master.file.contexts.InternalOperationContext;
 import alluxio.dora.master.file.meta.InodeTree;
 import alluxio.dora.master.file.meta.LockingScheme;
@@ -29,7 +29,7 @@ import alluxio.dora.master.file.meta.UfsSyncPathCache;
 import alluxio.dora.master.journal.FileSystemMergeJournalContext;
 import alluxio.dora.master.journal.JournalContext;
 import alluxio.dora.master.journal.MetadataSyncMergeJournalContext;
-import alluxio.dora.proto.journal.Journal;
+import alluxio.proto.journal.Journal;
 import alluxio.dora.underfs.UnderFileSystem;
 
 import org.junit.Test;

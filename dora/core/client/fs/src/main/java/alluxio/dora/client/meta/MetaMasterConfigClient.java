@@ -14,7 +14,7 @@ package alluxio.dora.client.meta;
 import alluxio.dora.AlluxioURI;
 import alluxio.dora.Client;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.grpc.GetConfigurationPOptions;
+import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.dora.wire.ConfigHash;
 import alluxio.dora.wire.Configuration;
 

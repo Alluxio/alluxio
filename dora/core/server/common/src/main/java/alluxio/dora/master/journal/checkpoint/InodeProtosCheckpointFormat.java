@@ -11,8 +11,8 @@
 
 package alluxio.dora.master.journal.checkpoint;
 
-import alluxio.dora.proto.meta.InodeMeta;
-import alluxio.dora.proto.meta.InodeMeta.Inode;
+import alluxio.proto.meta.InodeMeta;
+import alluxio.proto.meta.InodeMeta.Inode;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;

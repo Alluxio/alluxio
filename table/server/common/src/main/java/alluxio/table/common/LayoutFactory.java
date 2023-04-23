@@ -25,5 +25,5 @@ public interface LayoutFactory {
    * @param layoutProto the proto representation of the layout
    * @return a new instance of the layout
    */
-  Layout create(alluxio.dora.grpc.table.Layout layoutProto);
+  Layout create(alluxio.grpc.table.Layout layoutProto);
 }

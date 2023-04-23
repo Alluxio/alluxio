@@ -18,7 +18,7 @@ import alluxio.client.table.TableMasterClient;
 import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.exception.status.AlluxioStatusException;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.dora.grpc.table.SyncStatus;
+import alluxio.grpc.table.SyncStatus;
 
 import org.apache.commons.cli.CommandLine;
 import org.slf4j.Logger;

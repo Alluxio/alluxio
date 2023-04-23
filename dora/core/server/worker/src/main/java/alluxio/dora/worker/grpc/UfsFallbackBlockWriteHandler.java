@@ -16,13 +16,13 @@ import alluxio.dora.annotation.SuppressFBWarnings;
 import alluxio.dora.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.dora.resource.CloseableResource;
 import alluxio.dora.worker.block.DefaultBlockWorker;
-import alluxio.dora.grpc.WriteRequestCommand;
-import alluxio.dora.grpc.WriteResponse;
+import alluxio.grpc.WriteRequestCommand;
+import alluxio.grpc.WriteResponse;
 import alluxio.dora.metrics.MetricInfo;
 import alluxio.dora.metrics.MetricKey;
 import alluxio.dora.metrics.MetricsSystem;
 import alluxio.dora.network.protocol.databuffer.DataBuffer;
-import alluxio.dora.proto.dataserver.Protocol;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.dora.security.authentication.AuthenticatedUserInfo;
 import alluxio.dora.underfs.UfsManager;
 import alluxio.dora.underfs.UnderFileSystem;
@@ -80,7 +80,7 @@ public final class UfsFallbackBlockWriteHandler
   }
 
   @Override
-  protected BlockWriteRequestContext createRequestContext(alluxio.dora.grpc.WriteRequest msg)
+  protected BlockWriteRequestContext createRequestContext(alluxio.grpc.WriteRequest msg)
       throws Exception {
     BlockWriteRequestContext context = new BlockWriteRequestContext(msg, FILE_BUFFER_SIZE);
     if (mDomainSocketEnabled) {

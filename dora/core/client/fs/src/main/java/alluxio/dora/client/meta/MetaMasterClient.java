@@ -12,9 +12,9 @@
 package alluxio.dora.client.meta;
 
 import alluxio.dora.Client;
-import alluxio.dora.grpc.BackupPRequest;
-import alluxio.dora.grpc.MasterInfo;
-import alluxio.dora.grpc.MasterInfoField;
+import alluxio.grpc.BackupPRequest;
+import alluxio.grpc.MasterInfo;
+import alluxio.grpc.MasterInfoField;
 import alluxio.dora.wire.BackupStatus;
 import alluxio.dora.wire.ConfigCheckReport;
 

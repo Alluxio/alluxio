@@ -18,7 +18,7 @@ import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.annotation.SuppressFBWarnings;
 import alluxio.dora.metrics.MetricsSystem;
 import alluxio.dora.network.protocol.RPCProtoMessage;
-import alluxio.dora.proto.dataserver.Protocol;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.dora.underfs.UfsManager;
 import alluxio.dora.worker.block.BlockWorker;
 

@@ -133,7 +133,7 @@
     <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-transport</artifactId>
+      <artifactId>alluxio-common-transport</artifactId>
       <version>${project.version}</version>
     </dependency>
 

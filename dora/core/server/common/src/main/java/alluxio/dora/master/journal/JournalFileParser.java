@@ -12,7 +12,7 @@
 package alluxio.dora.master.journal;
 
 import alluxio.dora.master.journal.ufs.UfsJournalFileParser;
-import alluxio.dora.proto.journal.Journal.JournalEntry;
+import alluxio.proto.journal.Journal.JournalEntry;
 
 import java.io.Closeable;
 import java.io.IOException;

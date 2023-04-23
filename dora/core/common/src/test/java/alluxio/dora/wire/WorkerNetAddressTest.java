@@ -11,7 +11,7 @@
 
 package alluxio.dora.wire;
 
-import alluxio.dora.grpc.GrpcUtils;
+import alluxio.grpc.GrpcUtils;
 import alluxio.dora.util.CommonUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;

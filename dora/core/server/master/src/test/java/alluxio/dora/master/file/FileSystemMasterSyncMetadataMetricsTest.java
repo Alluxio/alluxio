@@ -21,7 +21,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.dora.AlluxioURI;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.file.options.DescendantType;
-import alluxio.dora.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.dora.master.file.contexts.ListStatusContext;
 import alluxio.dora.master.file.meta.InodeTree;
 import alluxio.dora.master.file.meta.LockingScheme;

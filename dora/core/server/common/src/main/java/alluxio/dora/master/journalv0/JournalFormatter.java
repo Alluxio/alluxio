@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.journalv0;
 
-import alluxio.dora.proto.journal.Journal.JournalEntry;
+import alluxio.proto.journal.Journal.JournalEntry;
 
 import java.io.IOException;
 import java.io.InputStream;

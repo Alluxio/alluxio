@@ -11,7 +11,7 @@
 
 package alluxio.dora.exception.runtime;
 
-import alluxio.dora.grpc.ErrorType;
+import alluxio.grpc.ErrorType;
 
 import io.grpc.Status;
 

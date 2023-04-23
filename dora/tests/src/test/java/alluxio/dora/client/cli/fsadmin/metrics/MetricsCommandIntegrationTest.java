@@ -16,7 +16,7 @@ import static org.junit.Assert.assertThat;
 
 import alluxio.dora.client.cli.fsadmin.AbstractFsAdminShellTest;
 import alluxio.dora.client.file.FileSystemTestUtils;
-import alluxio.dora.grpc.WritePType;
+import alluxio.grpc.WritePType;
 
 import org.hamcrest.CoreMatchers;
 import org.junit.Test;

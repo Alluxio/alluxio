@@ -11,7 +11,7 @@
 
 package alluxio.dora.job;
 
-import alluxio.dora.proto.journal.Job;
+import alluxio.proto.journal.Job;
 
 /**
  * Job status.

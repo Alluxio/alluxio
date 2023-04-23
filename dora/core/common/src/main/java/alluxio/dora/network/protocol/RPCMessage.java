@@ -12,7 +12,7 @@
 package alluxio.dora.network.protocol;
 
 import alluxio.dora.network.protocol.databuffer.DataBuffer;
-import alluxio.dora.proto.dataserver.Protocol;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.dora.util.proto.ProtoMessage;
 
 import com.google.common.primitives.Ints;

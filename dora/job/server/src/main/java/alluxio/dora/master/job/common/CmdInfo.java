@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.job.common;
 
-import alluxio.dora.grpc.OperationType;
+import alluxio.grpc.OperationType;
 import alluxio.dora.job.wire.JobSource;
 import alluxio.dora.master.job.tracker.CmdRunAttempt;
 

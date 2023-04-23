@@ -15,10 +15,10 @@ import static alluxio.stress.cli.RpcBenchPreparationUtils.CAPACITY;
 import static alluxio.stress.rpc.TierAlias.MEM;
 import static org.junit.Assert.assertEquals;
 
-import alluxio.dora.grpc.ConfigProperty;
-import alluxio.dora.grpc.LocationBlockIdListEntry;
-import alluxio.dora.grpc.RegisterWorkerPRequest;
-import alluxio.dora.grpc.RegisterWorkerPResponse;
+import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.LocationBlockIdListEntry;
+import alluxio.grpc.RegisterWorkerPRequest;
+import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.stress.cli.RpcBenchPreparationUtils;
 import alluxio.stress.rpc.TierAlias;
 import alluxio.dora.wire.WorkerNetAddress;

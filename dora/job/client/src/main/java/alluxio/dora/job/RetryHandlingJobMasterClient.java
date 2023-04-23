@@ -13,19 +13,19 @@ package alluxio.dora.job;
 
 import alluxio.dora.AbstractJobMasterClient;
 import alluxio.dora.Constants;
-import alluxio.dora.grpc.CancelPRequest;
-import alluxio.dora.grpc.GetAllWorkerHealthPRequest;
-import alluxio.dora.grpc.GetCmdStatusDetailedRequest;
-import alluxio.dora.grpc.GetCmdStatusRequest;
-import alluxio.dora.grpc.GetJobServiceSummaryPRequest;
-import alluxio.dora.grpc.GetJobStatusDetailedPRequest;
-import alluxio.dora.grpc.GetJobStatusPRequest;
-import alluxio.dora.grpc.JobMasterClientServiceGrpc;
-import alluxio.dora.grpc.ListAllPOptions;
-import alluxio.dora.grpc.ListAllPRequest;
-import alluxio.dora.grpc.RunPRequest;
-import alluxio.dora.grpc.ServiceType;
-import alluxio.dora.grpc.SubmitRequest;
+import alluxio.grpc.CancelPRequest;
+import alluxio.grpc.GetAllWorkerHealthPRequest;
+import alluxio.grpc.GetCmdStatusDetailedRequest;
+import alluxio.grpc.GetCmdStatusRequest;
+import alluxio.grpc.GetJobServiceSummaryPRequest;
+import alluxio.grpc.GetJobStatusDetailedPRequest;
+import alluxio.grpc.GetJobStatusPRequest;
+import alluxio.grpc.JobMasterClientServiceGrpc;
+import alluxio.grpc.ListAllPOptions;
+import alluxio.grpc.ListAllPRequest;
+import alluxio.grpc.RunPRequest;
+import alluxio.grpc.ServiceType;
+import alluxio.grpc.SubmitRequest;
 import alluxio.dora.job.util.SerializationUtils;
 import alluxio.dora.job.wire.CmdStatusBlock;
 import alluxio.dora.job.wire.JobInfo;
@@ -124,11 +124,11 @@ public final class RetryHandlingJobMasterClient extends AbstractJobMasterClient
 
   @Override
   public List<JobInfo> listDetailed() throws IOException {
-    List<alluxio.dora.grpc.JobInfo> jobProtoInfos =
+    List<alluxio.grpc.JobInfo> jobProtoInfos =
         retryRPC(() -> mClient.listAll(ListAllPRequest.getDefaultInstance()).getJobInfosList(),
             RPC_LOG, "ListDetailed", "");
     ArrayList<JobInfo> result = Lists.newArrayList();
-    for (alluxio.dora.grpc.JobInfo jobProtoInfo : jobProtoInfos) {
+    for (alluxio.grpc.JobInfo jobProtoInfo : jobProtoInfos) {
       result.add(ProtoUtils.fromProto(jobProtoInfo));
     }
     return result;
@@ -153,7 +153,7 @@ public final class RetryHandlingJobMasterClient extends AbstractJobMasterClient
   @Override
   public List<JobWorkerHealth> getAllWorkerHealth() throws IOException {
     return retryRPC(() -> {
-      List<alluxio.dora.grpc.JobWorkerHealth> workerHealthsList =
+      List<alluxio.grpc.JobWorkerHealth> workerHealthsList =
           mClient.getAllWorkerHealth(GetAllWorkerHealthPRequest.newBuilder().build())
               .getWorkerHealthsList();
       return workerHealthsList.stream().map(JobWorkerHealth::new).collect(Collectors.toList());

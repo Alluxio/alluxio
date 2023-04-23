@@ -12,13 +12,13 @@
 package alluxio.dora.master.metrics;
 
 import alluxio.dora.RpcUtils;
-import alluxio.dora.grpc.ClearMetricsPRequest;
-import alluxio.dora.grpc.ClearMetricsPResponse;
-import alluxio.dora.grpc.GetMetricsPOptions;
-import alluxio.dora.grpc.GetMetricsPResponse;
-import alluxio.dora.grpc.MetricsHeartbeatPRequest;
-import alluxio.dora.grpc.MetricsHeartbeatPResponse;
-import alluxio.dora.grpc.MetricsMasterClientServiceGrpc;
+import alluxio.grpc.ClearMetricsPRequest;
+import alluxio.grpc.ClearMetricsPResponse;
+import alluxio.grpc.GetMetricsPOptions;
+import alluxio.grpc.GetMetricsPResponse;
+import alluxio.grpc.MetricsHeartbeatPRequest;
+import alluxio.grpc.MetricsHeartbeatPResponse;
+import alluxio.grpc.MetricsMasterClientServiceGrpc;
 import alluxio.dora.metrics.Metric;
 
 import com.google.common.base.Preconditions;
@@ -64,10 +64,10 @@ public final class MetricsMasterClientServiceHandler
     RpcUtils.call(LOG,
         (RpcUtils.RpcCallableThrowsIOException<MetricsHeartbeatPResponse>) () -> {
 
-          for (alluxio.dora.grpc.ClientMetrics clientMetric :
+          for (alluxio.grpc.ClientMetrics clientMetric :
               request.getOptions().getClientMetricsList()) {
             List<Metric> metrics = Lists.newArrayList();
-            for (alluxio.dora.grpc.Metric metric : clientMetric.getMetricsList()) {
+            for (alluxio.grpc.Metric metric : clientMetric.getMetricsList()) {
               metrics.add(Metric.fromProto(metric));
             }
             mMetricsMaster.clientHeartbeat(

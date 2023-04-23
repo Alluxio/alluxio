@@ -18,7 +18,7 @@ import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.dora.grpc.TtlAction;
+import alluxio.grpc.TtlAction;
 import alluxio.dora.util.CommonUtils;
 
 import org.apache.commons.cli.CommandLine;

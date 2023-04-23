@@ -12,7 +12,7 @@
 package alluxio.underfs.s3a;
 
 import alluxio.dora.exception.runtime.AlluxioRuntimeException;
-import alluxio.dora.grpc.ErrorType;
+import alluxio.grpc.ErrorType;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.s3.model.AmazonS3Exception;

@@ -58,7 +58,7 @@ public class JobWorkerHealth {
    *
    * @param jobWorkerHealth grpc representation
    */
-  public JobWorkerHealth(alluxio.dora.grpc.JobWorkerHealth jobWorkerHealth) {
+  public JobWorkerHealth(alluxio.grpc.JobWorkerHealth jobWorkerHealth) {
     mWorkerId = jobWorkerHealth.getWorkerId();
     mLoadAverage = jobWorkerHealth.getLoadAverageList();
     mUnfinishedTasks = jobWorkerHealth.getUnfinishedTasks();
@@ -117,8 +117,8 @@ public class JobWorkerHealth {
   /**
    * @return proto representation of JobWorkerInfo
    */
-  public alluxio.dora.grpc.JobWorkerHealth toProto() {
-    alluxio.dora.grpc.JobWorkerHealth.Builder builder = alluxio.dora.grpc.JobWorkerHealth.newBuilder()
+  public alluxio.grpc.JobWorkerHealth toProto() {
+    alluxio.grpc.JobWorkerHealth.Builder builder = alluxio.grpc.JobWorkerHealth.newBuilder()
         .setWorkerId(mWorkerId).addAllLoadAverage(mLoadAverage).setUnfinishedTasks(mUnfinishedTasks)
         .setTaskPoolSize(mTaskPoolSize).setNumActiveTasks(mNumActiveTasks)
         .setLastUpdated(mLastUpdated).setHostname(mHostname);

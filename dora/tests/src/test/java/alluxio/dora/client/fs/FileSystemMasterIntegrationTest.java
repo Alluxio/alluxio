@@ -31,17 +31,17 @@ import alluxio.dora.exception.FileAlreadyExistsException;
 import alluxio.dora.exception.FileDoesNotExistException;
 import alluxio.dora.exception.InvalidPathException;
 import alluxio.dora.exception.status.FailedPreconditionException;
-import alluxio.dora.grpc.CompleteFilePOptions;
-import alluxio.dora.grpc.CreateDirectoryPOptions;
-import alluxio.dora.grpc.CreateFilePOptions;
-import alluxio.dora.grpc.DeletePOptions;
-import alluxio.dora.grpc.FileSystemMasterCommonPOptions;
-import alluxio.dora.grpc.FreePOptions;
-import alluxio.dora.grpc.ListStatusPOptions;
-import alluxio.dora.grpc.LoadMetadataPType;
-import alluxio.dora.grpc.SetAttributePOptions;
-import alluxio.dora.grpc.TtlAction;
-import alluxio.dora.grpc.WritePType;
+import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.FreePOptions;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.TtlAction;
+import alluxio.grpc.WritePType;
 import alluxio.dora.heartbeat.HeartbeatContext;
 import alluxio.dora.heartbeat.HeartbeatScheduler;
 import alluxio.dora.heartbeat.ManuallyScheduleHeartbeat;
@@ -645,7 +645,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     long ttl = 100;
     CreateFileContext context = CreateFileContext
         .mergeFrom(CreateFilePOptions.newBuilder().setCommonOptions(FileSystemMasterCommonPOptions
-            .newBuilder().setTtl(ttl).setTtlAction(alluxio.dora.grpc.TtlAction.FREE)));
+            .newBuilder().setTtl(ttl).setTtlAction(alluxio.grpc.TtlAction.FREE)));
     mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"), context);
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
@@ -678,7 +678,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     long ttl = 1;
     CreateFileContext context = CreateFileContext
         .mergeFrom(CreateFilePOptions.newBuilder().setCommonOptions(FileSystemMasterCommonPOptions
-            .newBuilder().setTtl(ttl).setTtlAction(alluxio.dora.grpc.TtlAction.FREE)))
+            .newBuilder().setTtl(ttl).setTtlAction(alluxio.grpc.TtlAction.FREE)))
         .setWriteType(WriteType.CACHE_THROUGH);
     long fileId =
         mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), context).getFileId();

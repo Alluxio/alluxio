@@ -13,7 +13,7 @@ package alluxio.master.backcompat.ops;
 
 import alluxio.dora.AlluxioURI;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.master.backcompat.FsTestOp;
 import alluxio.master.backcompat.Utils;
 

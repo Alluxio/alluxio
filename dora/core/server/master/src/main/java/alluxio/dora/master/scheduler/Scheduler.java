@@ -22,7 +22,7 @@ import alluxio.dora.exception.runtime.InternalRuntimeException;
 import alluxio.dora.exception.runtime.NotFoundRuntimeException;
 import alluxio.dora.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.dora.exception.runtime.UnavailableRuntimeException;
-import alluxio.dora.grpc.JobProgressReportFormat;
+import alluxio.grpc.JobProgressReportFormat;
 import alluxio.dora.job.JobDescription;
 import alluxio.dora.resource.CloseableResource;
 import alluxio.dora.job.Job;

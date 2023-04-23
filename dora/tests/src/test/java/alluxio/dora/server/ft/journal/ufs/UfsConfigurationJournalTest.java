@@ -16,7 +16,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.dora.AlluxioURI;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.grpc.MountPOptions;
+import alluxio.grpc.MountPOptions;
 import alluxio.dora.master.file.FileSystemMaster;
 import alluxio.dora.master.file.meta.MountTable;
 import alluxio.dora.resource.CloseableResource;

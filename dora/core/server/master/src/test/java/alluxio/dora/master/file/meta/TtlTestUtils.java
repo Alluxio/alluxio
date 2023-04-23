@@ -13,8 +13,8 @@ package alluxio.dora.master.file.meta;
 
 import alluxio.dora.master.file.meta.Inode;
 import alluxio.dora.master.file.meta.MutableInodeFile;
-import alluxio.dora.grpc.CreateFilePOptions;
-import alluxio.dora.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.dora.master.file.contexts.CreateFileContext;
 
 public class TtlTestUtils {

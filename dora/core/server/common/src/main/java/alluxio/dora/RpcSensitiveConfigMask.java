@@ -13,11 +13,11 @@ package alluxio.dora;
 
 import alluxio.dora.conf.CredentialPropertyKeys;
 import alluxio.dora.conf.SensitiveConfigMask;
-import alluxio.dora.grpc.GetUfsInfoPResponse;
-import alluxio.dora.grpc.MountPOptions;
-import alluxio.dora.grpc.MountPRequest;
-import alluxio.dora.grpc.UfsInfo;
-import alluxio.dora.grpc.UpdateMountPRequest;
+import alluxio.grpc.GetUfsInfoPResponse;
+import alluxio.grpc.MountPOptions;
+import alluxio.grpc.MountPRequest;
+import alluxio.grpc.UfsInfo;
+import alluxio.grpc.UpdateMountPRequest;
 
 import org.slf4j.Logger;
 

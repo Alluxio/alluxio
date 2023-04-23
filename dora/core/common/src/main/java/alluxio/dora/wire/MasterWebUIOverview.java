@@ -11,8 +11,8 @@
 
 package alluxio.dora.wire;
 
-import alluxio.dora.grpc.ConfigStatus;
-import alluxio.dora.grpc.Scope;
+import alluxio.grpc.ConfigStatus;
+import alluxio.grpc.Scope;
 import alluxio.dora.util.webui.StorageTierInfo;
 
 import com.google.common.base.MoreObjects;

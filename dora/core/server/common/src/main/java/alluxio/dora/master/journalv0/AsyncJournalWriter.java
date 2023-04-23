@@ -13,7 +13,7 @@ package alluxio.dora.master.journalv0;
 
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.proto.journal.Journal.JournalEntry;
+import alluxio.proto.journal.Journal.JournalEntry;
 
 import com.google.common.base.Preconditions;
 

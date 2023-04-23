@@ -28,9 +28,9 @@ import alluxio.dora.exception.FileIncompleteException;
 import alluxio.dora.exception.OpenDirectoryException;
 import alluxio.dora.security.authorization.Mode;
 import alluxio.fuse.options.FuseOptions;
-import alluxio.dora.grpc.CreateDirectoryPOptions;
-import alluxio.dora.grpc.CreateFilePOptions;
-import alluxio.dora.grpc.SetAttributePOptions;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.dora.master.MasterClientContext;
 import alluxio.dora.wire.BlockMasterInfo;
 

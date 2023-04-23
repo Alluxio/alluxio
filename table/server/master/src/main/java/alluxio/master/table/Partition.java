@@ -11,7 +11,7 @@
 
 package alluxio.master.table;
 
-import alluxio.dora.grpc.table.PartitionSpec;
+import alluxio.grpc.table.PartitionSpec;
 import alluxio.table.common.Layout;
 import alluxio.table.common.LayoutRegistry;
 import alluxio.table.common.UdbPartition;
@@ -70,8 +70,8 @@ public class Partition {
     /**
      * @return the proto representation
      */
-    public alluxio.dora.grpc.table.Transformation toProto() {
-      return alluxio.dora.grpc.table.Transformation.newBuilder()
+    public alluxio.grpc.table.Transformation toProto() {
+      return alluxio.grpc.table.Transformation.newBuilder()
           .setDefinition(mDefinition)
           .setLayout(mLayout.toProto())
           .build();
@@ -83,7 +83,7 @@ public class Partition {
      * @return the java representation
      */
     public static Transformation fromProto(LayoutRegistry layoutRegistry,
-        alluxio.dora.grpc.table.Transformation proto) {
+        alluxio.grpc.table.Transformation proto) {
       return new Transformation(proto.getDefinition(), layoutRegistry.create(proto.getLayout()));
     }
   }
@@ -187,8 +187,8 @@ public class Partition {
   /**
    * @return the proto representation
    */
-  public alluxio.dora.grpc.table.Partition toProto() {
-    alluxio.dora.grpc.table.Partition.Builder builder = alluxio.dora.grpc.table.Partition.newBuilder()
+  public alluxio.grpc.table.Partition toProto() {
+    alluxio.grpc.table.Partition.Builder builder = alluxio.grpc.table.Partition.newBuilder()
         .setPartitionSpec(PartitionSpec.newBuilder().setSpec(mPartitionSpec).build())
         .setBaseLayout(mBaseLayout.toProto())
         .setVersion(mVersion)
@@ -205,11 +205,11 @@ public class Partition {
    * @return the java representation
    */
   public static Partition fromProto(LayoutRegistry layoutRegistry,
-      alluxio.dora.grpc.table.Partition proto) {
+      alluxio.grpc.table.Partition proto) {
     Partition partition = new Partition(proto.getPartitionSpec().getSpec(),
         layoutRegistry.create(proto.getBaseLayout()), proto.getVersion(),
         proto.getVersionCreationTime());
-    List<alluxio.dora.grpc.table.Transformation> transformations = proto.getTransformationsList();
+    List<alluxio.grpc.table.Transformation> transformations = proto.getTransformationsList();
     if (!transformations.isEmpty()) {
       partition.mTransformation = Transformation.fromProto(layoutRegistry, transformations.get(0));
     }

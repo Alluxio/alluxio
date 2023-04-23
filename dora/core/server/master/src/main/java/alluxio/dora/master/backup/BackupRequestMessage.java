@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.backup;
 
-import alluxio.dora.grpc.BackupPRequest;
+import alluxio.grpc.BackupPRequest;
 
 import com.google.common.base.MoreObjects;
 import com.google.protobuf.InvalidProtocolBufferException;

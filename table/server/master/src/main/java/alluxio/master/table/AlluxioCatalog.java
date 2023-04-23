@@ -15,15 +15,15 @@ import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.collections.Pair;
 import alluxio.dora.exception.ExceptionMessage;
 import alluxio.dora.exception.status.NotFoundException;
-import alluxio.dora.grpc.table.ColumnStatisticsInfo;
-import alluxio.dora.grpc.table.ColumnStatisticsList;
-import alluxio.dora.grpc.table.Constraint;
-import alluxio.dora.grpc.table.SyncStatus;
+import alluxio.grpc.table.ColumnStatisticsInfo;
+import alluxio.grpc.table.ColumnStatisticsList;
+import alluxio.grpc.table.Constraint;
+import alluxio.grpc.table.SyncStatus;
 import alluxio.dora.master.journal.JournalContext;
 import alluxio.dora.master.journal.JournalEntryIterable;
 import alluxio.dora.master.journal.Journaled;
 import alluxio.dora.master.journal.checkpoint.CheckpointName;
-import alluxio.dora.proto.journal.Journal;
+import alluxio.proto.journal.Journal;
 import alluxio.dora.resource.CloseableIterator;
 import alluxio.dora.resource.LockResource;
 import alluxio.table.common.Layout;
@@ -114,7 +114,7 @@ public class AlluxioCatalog implements Journaled {
       }
 
       applyAndJournal(journalContext, Journal.JournalEntry.newBuilder().setAttachDb(
-          alluxio.dora.proto.journal.Table.AttachDbEntry.newBuilder()
+          alluxio.proto.journal.Table.AttachDbEntry.newBuilder()
               .setUdbType(udbType)
               .setUdbConnectionUri(udbConnectionUri)
               .setUdbDbName(udbDbName)
@@ -137,7 +137,7 @@ public class AlluxioCatalog implements Journaled {
       } finally {
         if (syncError && !ignoreSyncErrors) {
           applyAndJournal(journalContext, Journal.JournalEntry.newBuilder().setDetachDb(
-              alluxio.dora.proto.journal.Table.DetachDbEntry.newBuilder().setDbName(dbName).build())
+              alluxio.proto.journal.Table.DetachDbEntry.newBuilder().setDbName(dbName).build())
               .build());
         }
       }
@@ -178,7 +178,7 @@ public class AlluxioCatalog implements Journaled {
             .format("Unable to detach database. Database name %s does not exist", dbName));
       }
       applyAndJournal(journalContext, Journal.JournalEntry.newBuilder().setDetachDb(
-          alluxio.dora.proto.journal.Table.DetachDbEntry.newBuilder()
+          alluxio.proto.journal.Table.DetachDbEntry.newBuilder()
               .setDbName(dbName).build()).build());
       return true;
     }
@@ -216,11 +216,11 @@ public class AlluxioCatalog implements Journaled {
    * @param dbName database name
    * @return a database object
    */
-  public alluxio.dora.grpc.table.Database getDatabase(String dbName) throws IOException {
+  public alluxio.grpc.table.Database getDatabase(String dbName) throws IOException {
     Database db = getDatabaseByName(dbName);
     DatabaseInfo dbInfo = db.getDatabaseInfo();
 
-    alluxio.dora.grpc.table.Database.Builder builder = alluxio.dora.grpc.table.Database.newBuilder()
+    alluxio.grpc.table.Database.Builder builder = alluxio.grpc.table.Database.newBuilder()
         .setDbName(db.getName())
         .putAllParameter(dbInfo.getParameters());
     if (dbInfo.getComment() != null) {
@@ -302,7 +302,7 @@ public class AlluxioCatalog implements Journaled {
    * @param constraint the column contraint
    * @return the partition info for the specified table
    */
-  public List<alluxio.dora.grpc.table.Partition> readTable(String dbName, String tableName,
+  public List<alluxio.grpc.table.Partition> readTable(String dbName, String tableName,
       Constraint constraint) throws IOException {
     Table table = getTableInternal(dbName, tableName);
     // TODO(david): implement partition pruning
@@ -323,8 +323,8 @@ public class AlluxioCatalog implements Journaled {
     try (LockResource l = getDbLock(dbName)) {
       // Check existence of table.
       getTableInternal(dbName, tableName);
-      alluxio.dora.proto.journal.Table.CompleteTransformTableEntry entry =
-          alluxio.dora.proto.journal.Table.CompleteTransformTableEntry.newBuilder()
+      alluxio.proto.journal.Table.CompleteTransformTableEntry entry =
+          alluxio.proto.journal.Table.CompleteTransformTableEntry.newBuilder()
               .setDbName(dbName)
               .setTableName(tableName)
               .setDefinition(definition)
@@ -346,7 +346,7 @@ public class AlluxioCatalog implements Journaled {
     return getTableInternal(dbName, tableName).getTransformPlans(definition);
   }
 
-  private void apply(alluxio.dora.proto.journal.Table.AttachDbEntry entry) {
+  private void apply(alluxio.proto.journal.Table.AttachDbEntry entry) {
     String udbType = entry.getUdbType();
     String udbConnectionUri = entry.getUdbConnectionUri();
     String udbDbName = entry.getUdbDbName();
@@ -361,12 +361,12 @@ public class AlluxioCatalog implements Journaled {
     mDBs.put(dbName, db);
   }
 
-  private void apply(alluxio.dora.proto.journal.Table.DetachDbEntry entry) {
+  private void apply(alluxio.proto.journal.Table.DetachDbEntry entry) {
     String dbName = entry.getDbName();
     mDBs.remove(dbName);
   }
 
-  private void apply(alluxio.dora.proto.journal.Table.CompleteTransformTableEntry entry) {
+  private void apply(alluxio.proto.journal.Table.CompleteTransformTableEntry entry) {
     String dbName = entry.getDbName();
     String tableName = entry.getTableName();
     Table table;
@@ -375,7 +375,7 @@ public class AlluxioCatalog implements Journaled {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    for (Map.Entry<String, alluxio.dora.grpc.table.Layout> e : entry.getTransformedLayoutsMap()
+    for (Map.Entry<String, alluxio.grpc.table.Layout> e : entry.getTransformedLayoutsMap()
         .entrySet()) {
       String spec = e.getKey();
       Layout layout = mLayoutRegistry.create(e.getValue());
@@ -446,7 +446,7 @@ public class AlluxioCatalog implements Journaled {
         mEntry = null;
 
         return Journal.JournalEntry.newBuilder().setAttachDb(
-            alluxio.dora.proto.journal.Table.AttachDbEntry.newBuilder()
+            alluxio.proto.journal.Table.AttachDbEntry.newBuilder()
                 .setUdbType(database.getType())
                 .setUdbConnectionUri(udbContext.getConnectionUri())
                 .setUdbDbName(udbContext.getUdbDbName())

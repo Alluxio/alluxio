@@ -13,7 +13,7 @@ package alluxio.dora.client.block.stream;
 
 import alluxio.dora.annotation.SuppressFBWarnings;
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.grpc.ReadRequest;
+import alluxio.grpc.ReadRequest;
 import alluxio.dora.network.protocol.databuffer.DataBuffer;
 import alluxio.dora.network.protocol.databuffer.NioDataBuffer;
 import alluxio.dora.resource.LockResource;

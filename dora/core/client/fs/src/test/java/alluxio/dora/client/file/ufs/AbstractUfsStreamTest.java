@@ -24,7 +24,7 @@ import alluxio.dora.conf.InstancedConfiguration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.conf.Source;
 import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.grpc.DeletePOptions;
+import alluxio.grpc.DeletePOptions;
 import alluxio.dora.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.dora.underfs.local.LocalUnderFileSystemFactory;
 

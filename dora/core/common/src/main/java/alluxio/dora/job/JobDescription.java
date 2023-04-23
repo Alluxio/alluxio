@@ -72,7 +72,7 @@ public class JobDescription {
    * @param jobDescription JobDescription proto
    * @return job description
    */
-  public static JobDescription from(alluxio.dora.grpc.JobDescription jobDescription) {
+  public static JobDescription from(alluxio.grpc.JobDescription jobDescription) {
     return new JobDescription(jobDescription.getType(), jobDescription.getPath());
   }
 

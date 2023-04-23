@@ -12,8 +12,8 @@
 package alluxio.dora.wire;
 
 import alluxio.dora.collections.Pair;
-import alluxio.dora.grpc.FsOpPId;
-import alluxio.dora.proto.journal.Journal;
+import alluxio.grpc.FsOpPId;
+import alluxio.proto.journal.Journal;
 
 import java.util.UUID;
 

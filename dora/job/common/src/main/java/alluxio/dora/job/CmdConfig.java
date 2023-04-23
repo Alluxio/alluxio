@@ -11,7 +11,7 @@
 
 package alluxio.dora.job;
 
-import alluxio.dora.grpc.OperationType;
+import alluxio.grpc.OperationType;
 import alluxio.dora.job.wire.JobSource;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

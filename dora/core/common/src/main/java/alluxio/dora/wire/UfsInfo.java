@@ -12,7 +12,7 @@
 package alluxio.dora.wire;
 
 import alluxio.dora.AlluxioURI;
-import alluxio.dora.grpc.MountPOptions;
+import alluxio.grpc.MountPOptions;
 
 /**
  * Class to represent a ufs info.

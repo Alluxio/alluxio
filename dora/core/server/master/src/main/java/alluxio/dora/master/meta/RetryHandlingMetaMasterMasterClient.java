@@ -13,14 +13,14 @@ package alluxio.dora.master.meta;
 
 import alluxio.dora.AbstractMasterClient;
 import alluxio.dora.Constants;
-import alluxio.dora.grpc.ConfigProperty;
-import alluxio.dora.grpc.GetMasterIdPRequest;
-import alluxio.dora.grpc.MasterHeartbeatPRequest;
-import alluxio.dora.grpc.MetaCommand;
-import alluxio.dora.grpc.MetaMasterMasterServiceGrpc;
-import alluxio.dora.grpc.RegisterMasterPOptions;
-import alluxio.dora.grpc.RegisterMasterPRequest;
-import alluxio.dora.grpc.ServiceType;
+import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GetMasterIdPRequest;
+import alluxio.grpc.MasterHeartbeatPRequest;
+import alluxio.grpc.MetaCommand;
+import alluxio.grpc.MetaMasterMasterServiceGrpc;
+import alluxio.grpc.RegisterMasterPOptions;
+import alluxio.grpc.RegisterMasterPRequest;
+import alluxio.grpc.ServiceType;
 import alluxio.dora.master.MasterClientContext;
 import alluxio.dora.wire.Address;
 

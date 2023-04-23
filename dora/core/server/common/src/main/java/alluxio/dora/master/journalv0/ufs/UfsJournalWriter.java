@@ -18,7 +18,7 @@ import alluxio.dora.exception.ExceptionMessage;
 import alluxio.dora.master.journalv0.JournalFormatter;
 import alluxio.dora.master.journalv0.JournalOutputStream;
 import alluxio.dora.master.journalv0.JournalWriter;
-import alluxio.dora.proto.journal.Journal.JournalEntry;
+import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.dora.underfs.UnderFileSystem;
 import alluxio.dora.underfs.UnderFileSystemConfiguration;
 import alluxio.dora.underfs.options.CreateOptions;

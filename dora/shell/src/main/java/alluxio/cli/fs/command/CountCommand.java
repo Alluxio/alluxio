@@ -17,7 +17,7 @@ import alluxio.dora.cli.CommandUtils;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.dora.grpc.ListStatusPOptions;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.dora.util.FormatUtils;
 
 import com.google.common.annotations.VisibleForTesting;

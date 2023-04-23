@@ -129,7 +129,7 @@ public final class JournalUpgrader {
         long end = -1;
         logNumber++;
         try (JournalFileParser parser = JournalFileParser.Factory.create(completedLog)) {
-          alluxio.dora.proto.journal.Journal.JournalEntry entry;
+          alluxio.proto.journal.Journal.JournalEntry entry;
           while ((entry = parser.next()) != null) {
             if (start == -1) {
               start = entry.getSequenceNumber();

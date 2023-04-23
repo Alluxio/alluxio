@@ -17,7 +17,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.dora.AlluxioURI;
 import alluxio.dora.clock.SystemClock;
 import alluxio.dora.master.metrics.MetricsStore;
-import alluxio.dora.grpc.MetricType;
+import alluxio.grpc.MetricType;
 import alluxio.dora.metrics.Metric;
 import alluxio.dora.metrics.MetricInfo;
 import alluxio.dora.metrics.MetricKey;

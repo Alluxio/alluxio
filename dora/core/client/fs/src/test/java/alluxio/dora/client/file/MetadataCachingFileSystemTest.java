@@ -24,12 +24,12 @@ import alluxio.dora.conf.Source;
 import alluxio.dora.exception.FileDoesNotExistException;
 import alluxio.dora.exception.status.AlluxioStatusException;
 import alluxio.dora.exception.status.NotFoundException;
-import alluxio.dora.grpc.CreateDirectoryPOptions;
-import alluxio.dora.grpc.CreateFilePOptions;
-import alluxio.dora.grpc.DeletePOptions;
-import alluxio.dora.grpc.GetStatusPOptions;
-import alluxio.dora.grpc.ListStatusPOptions;
-import alluxio.dora.grpc.RenamePOptions;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.RenamePOptions;
 import alluxio.dora.resource.CloseableResource;
 import alluxio.dora.wire.FileInfo;
 

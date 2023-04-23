@@ -12,7 +12,7 @@
 package alluxio.dora.network.netty;
 
 import alluxio.dora.network.protocol.RPCProtoMessage;
-import alluxio.dora.proto.dataserver.Protocol;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.dora.util.proto.ProtoMessage;
 
 import io.netty.channel.ChannelDuplexHandler;

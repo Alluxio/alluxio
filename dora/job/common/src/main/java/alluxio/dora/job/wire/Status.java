@@ -30,20 +30,20 @@ public enum Status {
   /**
    * @return proto representation of the status
    */
-  public alluxio.dora.grpc.Status toProto() {
+  public alluxio.grpc.Status toProto() {
     switch (this) {
       case CREATED:
-        return alluxio.dora.grpc.Status.CREATED;
+        return alluxio.grpc.Status.CREATED;
       case CANCELED:
-        return alluxio.dora.grpc.Status.CANCELED;
+        return alluxio.grpc.Status.CANCELED;
       case FAILED:
-        return alluxio.dora.grpc.Status.FAILED;
+        return alluxio.grpc.Status.FAILED;
       case RUNNING:
-        return alluxio.dora.grpc.Status.RUNNING;
+        return alluxio.grpc.Status.RUNNING;
       case COMPLETED:
-        return alluxio.dora.grpc.Status.COMPLETED;
+        return alluxio.grpc.Status.COMPLETED;
       default:
-        return alluxio.dora.grpc.Status.UNKNOWN;
+        return alluxio.grpc.Status.UNKNOWN;
     }
   }
 }

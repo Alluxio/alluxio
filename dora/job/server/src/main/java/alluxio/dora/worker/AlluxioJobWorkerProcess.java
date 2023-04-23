@@ -16,10 +16,10 @@ import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.grpc.GrpcServer;
-import alluxio.dora.grpc.GrpcServerAddress;
-import alluxio.dora.grpc.GrpcServerBuilder;
-import alluxio.dora.grpc.GrpcService;
+import alluxio.grpc.GrpcServer;
+import alluxio.grpc.GrpcServerAddress;
+import alluxio.grpc.GrpcServerBuilder;
+import alluxio.grpc.GrpcService;
 import alluxio.dora.underfs.JobUfsManager;
 import alluxio.dora.underfs.UfsManager;
 import alluxio.dora.util.CommonUtils;
@@ -191,7 +191,7 @@ public final class AlluxioJobWorkerProcess implements JobWorkerProcess {
           GrpcServerAddress.create(mRpcConnectAddress.getHostName(), mRpcBindAddress),
           Configuration.global());
 
-      for (Map.Entry<alluxio.dora.grpc.ServiceType, GrpcService> serviceEntry : mJobWorker.getServices()
+      for (Map.Entry<alluxio.grpc.ServiceType, GrpcService> serviceEntry : mJobWorker.getServices()
           .entrySet()) {
         LOG.info("Registered service:{}", serviceEntry.getKey().name());
         serverBuilder.addService(serviceEntry.getValue());

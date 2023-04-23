@@ -17,10 +17,10 @@ import static org.junit.Assert.assertTrue;
 import alluxio.dora.AlluxioURI;
 import alluxio.dora.Constants;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.grpc.CreateFilePOptions;
-import alluxio.dora.grpc.FileSystemMasterCommonPOptions;
-import alluxio.dora.grpc.TtlAction;
-import alluxio.dora.grpc.WritePType;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.TtlAction;
+import alluxio.grpc.WritePType;
 import alluxio.master.backcompat.FsTestOp;
 import alluxio.master.backcompat.Utils;
 import alluxio.dora.security.authorization.Mode;
@@ -51,7 +51,7 @@ public final class CreateFile extends FsTestOp {
     Utils.createFile(fs, TTL,
         CreateFilePOptions.newBuilder().setBlockSizeBytes(Constants.KB).setRecursive(true)
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(TEST_TTL)
-                .setTtlAction(alluxio.dora.grpc.TtlAction.FREE))
+                .setTtlAction(alluxio.grpc.TtlAction.FREE))
             .build());
   }
 

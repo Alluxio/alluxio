@@ -21,7 +21,7 @@ import alluxio.dora.client.WriteType;
 import alluxio.dora.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemTestUtils;
-import alluxio.dora.grpc.WritePType;
+import alluxio.grpc.WritePType;
 import alluxio.dora.job.plan.load.LoadConfig;
 import alluxio.dora.job.plan.migrate.MigrateConfig;
 import alluxio.dora.job.plan.persist.PersistConfig;

@@ -12,7 +12,7 @@
 package alluxio.dora.master.journal;
 
 import alluxio.dora.master.NoopMaster;
-import alluxio.dora.proto.journal.Journal;
+import alluxio.proto.journal.Journal;
 
 import java.util.NoSuchElementException;
 

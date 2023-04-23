@@ -18,7 +18,7 @@ import alluxio.dora.client.cli.fsadmin.AbstractFsAdminShellTest;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemTestUtils;
 import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.grpc.WritePType;
+import alluxio.grpc.WritePType;
 import alluxio.dora.master.block.BlockId;
 
 import org.junit.Assert;

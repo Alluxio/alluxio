@@ -17,9 +17,9 @@ import alluxio.dora.client.journal.JournalMasterClient;
 import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.exception.ExceptionMessage;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.dora.grpc.GetQuorumInfoPResponse;
-import alluxio.dora.grpc.NetAddress;
-import alluxio.dora.grpc.QuorumServerInfo;
+import alluxio.grpc.GetQuorumInfoPResponse;
+import alluxio.grpc.NetAddress;
+import alluxio.grpc.QuorumServerInfo;
 import alluxio.dora.util.CommonUtils;
 import alluxio.dora.util.WaitForOptions;
 

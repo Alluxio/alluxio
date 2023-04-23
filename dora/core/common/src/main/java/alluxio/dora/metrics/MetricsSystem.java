@@ -16,8 +16,8 @@ import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.metrics.sink.Sink;
-import alluxio.dora.grpc.MetricType;
-import alluxio.dora.grpc.MetricValue;
+import alluxio.grpc.MetricType;
+import alluxio.grpc.MetricValue;
 import alluxio.dora.util.CommonUtils;
 import alluxio.dora.util.network.NetworkAddressUtils;
 
@@ -738,12 +738,12 @@ public final class MetricsSystem {
    *
    * The synchronized keyword is added for correctness with {@link #resetAllMetrics}
    */
-  private static synchronized List<alluxio.dora.grpc.Metric> reportMetrics(InstanceType instanceType) {
+  private static synchronized List<alluxio.grpc.Metric> reportMetrics(InstanceType instanceType) {
     if (!sReported.contains(instanceType)) {
       initShouldReportMetrics(instanceType);
       sReported.add(instanceType);
     }
-    List<alluxio.dora.grpc.Metric> rpcMetrics = new ArrayList<>(20);
+    List<alluxio.grpc.Metric> rpcMetrics = new ArrayList<>(20);
     // Use the getMetrics() call instead of getGauges(),getCounters()... to avoid
     // unneeded metrics copy
     Map<String, com.codahale.metrics.Metric> metrics = METRIC_REGISTRY.getMetrics();
@@ -803,9 +803,9 @@ public final class MetricsSystem {
   /**
    * @return the worker metrics to send via RPC
    */
-  public static List<alluxio.dora.grpc.Metric> reportWorkerMetrics() {
+  public static List<alluxio.grpc.Metric> reportWorkerMetrics() {
     long start = System.currentTimeMillis();
-    List<alluxio.dora.grpc.Metric> metricsList = reportMetrics(InstanceType.WORKER);
+    List<alluxio.grpc.Metric> metricsList = reportMetrics(InstanceType.WORKER);
     LOG.debug("Get the worker metrics list contains {} metrics to report to leading master in {}ms",
         metricsList.size(), System.currentTimeMillis() - start);
     return metricsList;
@@ -814,9 +814,9 @@ public final class MetricsSystem {
   /**
    * @return the client metrics to send via RPC
    */
-  public static List<alluxio.dora.grpc.Metric> reportClientMetrics() {
+  public static List<alluxio.grpc.Metric> reportClientMetrics() {
     long start = System.currentTimeMillis();
-    List<alluxio.dora.grpc.Metric> metricsList = reportMetrics(InstanceType.CLIENT);
+    List<alluxio.grpc.Metric> metricsList = reportMetrics(InstanceType.CLIENT);
     LOG.debug("Get the client metrics list contains {} metrics to report to leading master in {}ms",
         metricsList.size(), System.currentTimeMillis() - start);
     return metricsList;

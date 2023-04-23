@@ -11,10 +11,10 @@
 
 package alluxio.dora.util.proto;
 
-import alluxio.dora.grpc.SetAclAction;
-import alluxio.dora.proto.journal.File;
-import alluxio.dora.proto.shared.Acl;
-import alluxio.dora.proto.status.Status.PStatus;
+import alluxio.grpc.SetAclAction;
+import alluxio.proto.journal.File;
+import alluxio.proto.shared.Acl;
+import alluxio.proto.status.Status.PStatus;
 import alluxio.dora.security.authorization.AccessControlList;
 import alluxio.dora.security.authorization.AclAction;
 import alluxio.dora.security.authorization.AclActions;
@@ -429,7 +429,7 @@ public final class ProtoUtils {
    * @param status the protocol buffer type status
    * @return the corresponding {@link Status}
    */
-  public static Status fromProto(alluxio.dora.proto.status.Status.PStatus status) {
+  public static Status fromProto(alluxio.proto.status.Status.PStatus status) {
     switch (status) {
       case ABORTED:
         return Status.ABORTED;

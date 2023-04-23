@@ -17,24 +17,24 @@ package alluxio.dora.master.service;
  */
 public interface SimpleService {
   /**
-   * Starts the service. Leaves the service in {@link alluxio.dora.grpc.NodeState#STANDBY} state.
+   * Starts the service. Leaves the service in {@link alluxio.grpc.NodeState#STANDBY} state.
    * Leaves the service in the same state as {@link #demote()}.
    * Can only be called once.
    */
   void start();
 
   /**
-   * Promotes the service to {@link alluxio.dora.grpc.NodeState#PRIMARY} state.
+   * Promotes the service to {@link alluxio.grpc.NodeState#PRIMARY} state.
    * Can only be called on a started service (i.e. {@link #start()} must precede this method).
-   * Can only be called in {@link alluxio.dora.grpc.NodeState#STANDBY} state.
+   * Can only be called in {@link alluxio.grpc.NodeState#STANDBY} state.
    * Can be called multiple times (e.g. a service is promoted, then demoted, then promoted again).
    */
   void promote();
 
   /**
-   * Demotes the service back to {@link alluxio.dora.grpc.NodeState#STANDBY} state.
+   * Demotes the service back to {@link alluxio.grpc.NodeState#STANDBY} state.
    * Can only be called on a started service (i.e. {@link #start()} must precede this method).
-   * Can only be called in {@link alluxio.dora.grpc.NodeState#PRIMARY} state (i.e. {@link #promote()}
+   * Can only be called in {@link alluxio.grpc.NodeState#PRIMARY} state (i.e. {@link #promote()}
    * must precede this method).
    * Can be called multiple times (e.g. a service is promoted, then demoted, then promoted again,
    * and demoted again).

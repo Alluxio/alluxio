@@ -13,7 +13,7 @@ package alluxio.dora.client.block;
 
 import alluxio.dora.Client;
 import alluxio.dora.client.block.options.GetWorkerReportOptions;
-import alluxio.dora.grpc.WorkerLostStorageInfo;
+import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.dora.master.MasterClientContext;
 import alluxio.dora.wire.BlockInfo;
 import alluxio.dora.wire.BlockMasterInfo;

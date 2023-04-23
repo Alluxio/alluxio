@@ -21,7 +21,7 @@ import alluxio.dora.client.meta.MetaMasterClient;
 import alluxio.dora.conf.AlluxioConfiguration;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.grpc.MasterInfo;
+import alluxio.grpc.MasterInfo;
 import alluxio.dora.util.CommonUtils;
 import alluxio.dora.wire.BlockMasterInfo;
 

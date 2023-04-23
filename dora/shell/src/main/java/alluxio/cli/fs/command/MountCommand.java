@@ -17,7 +17,7 @@ import alluxio.cli.fsadmin.report.UfsCommand;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.dora.grpc.MountPOptions;
+import alluxio.grpc.MountPOptions;
 import alluxio.dora.wire.MountPointInfo;
 
 import com.google.common.collect.Maps;

@@ -13,7 +13,7 @@ package alluxio.dora.worker.grpc;
 
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.grpc.RequestType;
+import alluxio.grpc.RequestType;
 import alluxio.dora.util.CommonUtils;
 import alluxio.dora.worker.block.BlockWorker;
 import alluxio.dora.worker.block.NoopBlockWorker;

@@ -17,8 +17,8 @@ import alluxio.dora.cli.CommandUtils;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.dora.grpc.SetAclAction;
-import alluxio.dora.grpc.SetAclPOptions;
+import alluxio.grpc.SetAclAction;
+import alluxio.grpc.SetAclPOptions;
 import alluxio.dora.security.authorization.AclEntry;
 
 import org.apache.commons.cli.CommandLine;

@@ -12,7 +12,7 @@
 package alluxio.dora.client;
 
 import alluxio.dora.annotation.PublicApi;
-import alluxio.dora.grpc.ReadPType;
+import alluxio.grpc.ReadPType;
 
 import javax.annotation.concurrent.ThreadSafe;
 

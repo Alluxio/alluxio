@@ -11,9 +11,9 @@
 
 package alluxio.dora.wire;
 
-import alluxio.dora.grpc.ConfigStatus;
-import alluxio.dora.grpc.InconsistentProperties;
-import alluxio.dora.grpc.Scope;
+import alluxio.grpc.ConfigStatus;
+import alluxio.grpc.InconsistentProperties;
+import alluxio.grpc.Scope;
 
 import java.util.HashMap;
 import java.util.List;
@@ -61,7 +61,7 @@ public class ConfigCheckReport {
    *
    * @param configCheckReport the proto representation of a configuration check report
    */
-  public ConfigCheckReport(alluxio.dora.grpc.ConfigCheckReport configCheckReport) {
+  public ConfigCheckReport(alluxio.grpc.ConfigCheckReport configCheckReport) {
     mConfigErrors = new HashMap<>();
     for (Map.Entry<String, InconsistentProperties> entry : configCheckReport.getErrorsMap()
         .entrySet()) {
@@ -83,7 +83,7 @@ public class ConfigCheckReport {
    * @param report the proto representation of a configuration check report
    * @return the instance
    */
-  public static ConfigCheckReport fromProto(alluxio.dora.grpc.ConfigCheckReport report) {
+  public static ConfigCheckReport fromProto(alluxio.grpc.ConfigCheckReport report) {
     return new ConfigCheckReport(report);
   }
 
@@ -111,7 +111,7 @@ public class ConfigCheckReport {
   /**
    * @return proto representation of the configuration check report
    */
-  public alluxio.dora.grpc.ConfigCheckReport toProto() {
+  public alluxio.grpc.ConfigCheckReport toProto() {
     Map<String, InconsistentProperties> protoErrors = new HashMap<>();
     for (Map.Entry<Scope, List<InconsistentProperty>> entry : mConfigErrors.entrySet()) {
       protoErrors.put(entry.getKey().name(), InconsistentProperties.newBuilder().addAllProperties(
@@ -125,7 +125,7 @@ public class ConfigCheckReport {
           .build());
     }
 
-    return alluxio.dora.grpc.ConfigCheckReport.newBuilder().putAllErrors(protoErrors)
+    return alluxio.grpc.ConfigCheckReport.newBuilder().putAllErrors(protoErrors)
         .putAllWarns(protoWarns).setStatus(mConfigStatus).build();
   }
 }

@@ -16,7 +16,7 @@ import alluxio.dora.job.JobMasterClient;
 import alluxio.dora.job.JobMasterClientPool;
 import alluxio.dora.exception.AlluxioException;
 import alluxio.dora.exception.status.NotFoundException;
-import alluxio.dora.grpc.ListAllPOptions;
+import alluxio.grpc.ListAllPOptions;
 import alluxio.dora.job.plan.replicate.MoveConfig;
 import alluxio.dora.job.plan.replicate.SetReplicaConfig;
 import alluxio.dora.job.wire.Status;

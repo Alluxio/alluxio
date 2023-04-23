@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.file.contexts;
 
-import alluxio.dora.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 
 /**
  * Used for wiring call-tracking to non-rpc requests.

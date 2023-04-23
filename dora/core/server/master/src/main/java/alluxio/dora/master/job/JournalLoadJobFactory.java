@@ -26,14 +26,14 @@ public class JournalLoadJobFactory implements JobFactory {
 
   private final FileSystemMaster mFsMaster;
 
-  private final alluxio.dora.proto.journal.Job.LoadJobEntry mJobEntry;
+  private final alluxio.proto.journal.Job.LoadJobEntry mJobEntry;
 
   /**
    * Create factory.
    * @param journalEntry journal entry
    * @param fsMaster file system master
    */
-  public JournalLoadJobFactory(alluxio.dora.proto.journal.Job.LoadJobEntry journalEntry,
+  public JournalLoadJobFactory(alluxio.proto.journal.Job.LoadJobEntry journalEntry,
        FileSystemMaster fsMaster) {
     mFsMaster = fsMaster;
     mJobEntry = journalEntry;

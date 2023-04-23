@@ -13,7 +13,7 @@ package alluxio.dora.client.block.stream;
 
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.client.file.options.OutStreamOptions;
-import alluxio.dora.grpc.RequestType;
+import alluxio.grpc.RequestType;
 import alluxio.dora.metrics.MetricKey;
 import alluxio.dora.metrics.MetricsSystem;
 import alluxio.dora.wire.WorkerNetAddress;

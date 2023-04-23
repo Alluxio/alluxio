@@ -13,7 +13,7 @@ package alluxio.dora.client.rest;
 
 import alluxio.dora.Constants;
 import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.grpc.ListAllPOptions;
+import alluxio.grpc.ListAllPOptions;
 import alluxio.dora.job.JobConfig;
 import alluxio.dora.job.ServiceConstants;
 import alluxio.dora.job.SleepJobConfig;

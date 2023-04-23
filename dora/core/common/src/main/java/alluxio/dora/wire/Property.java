@@ -12,7 +12,7 @@
 package alluxio.dora.wire;
 
 import alluxio.dora.conf.Source;
-import alluxio.dora.grpc.ConfigProperty;
+import alluxio.grpc.ConfigProperty;
 
 import com.google.common.base.Preconditions;
 

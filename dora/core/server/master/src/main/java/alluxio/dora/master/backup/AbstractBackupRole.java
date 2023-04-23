@@ -15,7 +15,7 @@ import alluxio.dora.AlluxioURI;
 import alluxio.dora.conf.Configuration;
 import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.master.CoreMasterContext;
-import alluxio.dora.grpc.BackupPRequest;
+import alluxio.grpc.BackupPRequest;
 import alluxio.dora.master.BackupManager;
 import alluxio.dora.master.journal.JournalSystem;
 import alluxio.dora.master.transport.GrpcMessagingConnection;

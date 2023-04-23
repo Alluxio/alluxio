@@ -12,7 +12,7 @@
 package alluxio.dora.master.file.contexts;
 
 import alluxio.dora.conf.Configuration;
-import alluxio.dora.grpc.MountPOptions;
+import alluxio.grpc.MountPOptions;
 import alluxio.dora.recorder.Recorder;
 import alluxio.dora.util.FileSystemOptionsUtils;
 

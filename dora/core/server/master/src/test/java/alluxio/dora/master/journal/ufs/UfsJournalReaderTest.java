@@ -22,7 +22,7 @@ import alluxio.dora.master.journal.JournalReader.State;
 import alluxio.dora.master.journal.checkpoint.CheckpointOutputStream;
 import alluxio.dora.master.journal.checkpoint.CheckpointType;
 import alluxio.dora.master.journal.ufs.*;
-import alluxio.dora.proto.journal.Journal;
+import alluxio.proto.journal.Journal;
 import alluxio.dora.underfs.UnderFileSystem;
 import alluxio.dora.util.CommonUtils;
 import alluxio.dora.util.URIUtils;

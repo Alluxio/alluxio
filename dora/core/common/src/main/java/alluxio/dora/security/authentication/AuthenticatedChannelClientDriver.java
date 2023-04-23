@@ -14,8 +14,8 @@ package alluxio.dora.security.authentication;
 import alluxio.dora.exception.status.AlluxioStatusException;
 import alluxio.dora.exception.status.UnauthenticatedException;
 import alluxio.dora.exception.status.UnavailableException;
-import alluxio.dora.grpc.GrpcChannelKey;
-import alluxio.dora.grpc.SaslMessage;
+import alluxio.grpc.GrpcChannelKey;
+import alluxio.grpc.SaslMessage;
 import alluxio.dora.util.LogUtils;
 
 import com.google.common.util.concurrent.SettableFuture;

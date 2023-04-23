@@ -17,7 +17,7 @@ import static org.junit.Assert.assertThat;
 
 import alluxio.dora.AlluxioURI;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.grpc.SetAclAction;
+import alluxio.grpc.SetAclAction;
 import alluxio.master.backcompat.FsTestOp;
 import alluxio.master.backcompat.Version;
 import alluxio.dora.security.authorization.AclEntry;

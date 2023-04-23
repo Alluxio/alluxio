@@ -21,7 +21,7 @@ import alluxio.dora.conf.PropertyKey;
 import alluxio.dora.exception.AccessControlException;
 import alluxio.dora.exception.InvalidPathException;
 import alluxio.dora.file.options.DescendantType;
-import alluxio.dora.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.dora.master.file.meta.InodeTree;
 import alluxio.dora.master.file.meta.LockingScheme;
 import alluxio.dora.underfs.UnderFileSystem;

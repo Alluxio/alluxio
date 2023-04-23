@@ -16,7 +16,7 @@ import alluxio.dora.client.file.cache.CacheManager;
 import alluxio.dora.client.file.cache.PageId;
 import alluxio.dora.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.dora.exception.runtime.AlluxioRuntimeException;
-import alluxio.dora.grpc.ErrorType;
+import alluxio.grpc.ErrorType;
 import alluxio.dora.metrics.MetricKey;
 import alluxio.dora.metrics.MetricsSystem;
 import alluxio.dora.network.protocol.databuffer.NioDirectBufferPool;
