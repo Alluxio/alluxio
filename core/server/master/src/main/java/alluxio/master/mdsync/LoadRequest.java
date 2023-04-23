@@ -140,4 +140,18 @@ public class LoadRequest implements Comparable<LoadRequest> {
     // then compare the base id
     return Long.compare(mId, o.mId);
   }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof LoadRequest) {
+      return compareTo((LoadRequest) obj) == 0;
+    }
+    return false;
+  }
+
+  @Override
+  public int hashCode() {
+    // fix find bugs
+    return super.hashCode();
+  }
 }
