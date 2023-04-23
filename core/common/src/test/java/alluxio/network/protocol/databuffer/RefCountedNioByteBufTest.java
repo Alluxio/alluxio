@@ -12,10 +12,13 @@
 package alluxio.network.protocol.databuffer;
 
 import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
+import alluxio.util.io.BufferUtils;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
@@ -54,6 +57,18 @@ public class RefCountedNioByteBufTest {
       ByteBuf buf = new LeakyByteBuf(ByteBuffer.allocate(8), 8, 8);
       assertThrows(IllegalArgumentException.class,
           () -> buf.capacity(10));
+    }
+
+    @Test
+    public void setBytesWithAnotherByteBuf() {
+      ByteBuf srcBuf = Unpooled.directBuffer(100);
+      srcBuf.setBytes(0, BufferUtils.getIncreasingByteArray(100));
+      ByteBuf dstBuf = new LeakyByteBuf(ByteBuffer.allocateDirect(100), 100, 100);
+      final int offset = 42;
+      final int length = 17;
+      dstBuf.setBytes(0, srcBuf, offset, length);
+      assertTrue(BufferUtils.equalIncreasingByteBuffer(
+          offset, length, dstBuf.slice(0, length).nioBuffer()));
     }
   }
 
