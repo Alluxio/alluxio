@@ -24,6 +24,7 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 
 import java.util.concurrent.ExecutorService;
 
@@ -32,11 +33,14 @@ import java.util.concurrent.ExecutorService;
  */
 public class S3MultiUnderFileSystem extends S3AUnderFileSystem {
 
+  private final String mRootKey;
+
   /**
    * Constructor for {@link S3AUnderFileSystem}.
    *
    * @param uri                    the {@link AlluxioURI} for this UFS
    * @param amazonS3Client         AWS-SDK S3 client
+   * @param asyncClient
    * @param bucketName             bucket name of user's configured Alluxio bucket
    * @param executor               the executor for executing upload tasks
    * @param transferManager        Transfer Manager for efficient I/O to S3
@@ -44,15 +48,14 @@ public class S3MultiUnderFileSystem extends S3AUnderFileSystem {
    * @param streamingUploadEnabled whether streaming upload is enabled
    */
   protected S3MultiUnderFileSystem(
-      AlluxioURI uri, AmazonS3 amazonS3Client, String bucketName, ExecutorService executor,
-      TransferManager transferManager, UnderFileSystemConfiguration conf,
-      boolean streamingUploadEnabled) {
-    super(uri, amazonS3Client, bucketName, executor, transferManager, conf, streamingUploadEnabled);
+      AlluxioURI uri, AmazonS3 amazonS3Client, S3AsyncClient asyncClient, String bucketName,
+      ExecutorService executor, TransferManager transferManager,
+      UnderFileSystemConfiguration conf, boolean streamingUploadEnabled) {
+    super(uri, amazonS3Client, asyncClient, bucketName, executor, transferManager,
+        conf, streamingUploadEnabled);
 
     mRootKey = mUri.getScheme() + "://" + bucketName;
   }
-
-  private final String mRootKey;
 
   @Override
   protected String getRootKey() {
@@ -130,6 +133,7 @@ public class S3MultiUnderFileSystem extends S3AUnderFileSystem {
 
     AmazonS3 amazonS3Client
         = createAmazonS3(credentials, clientConf, endpointConfiguration, conf);
+    S3AsyncClient asyncClient = createAmazonS3Async(conf, clientConf);
 
     ExecutorService service = ExecutorServiceFactories
         .fixedThreadPool("alluxio-s3-transfer-manager-worker",
@@ -141,7 +145,7 @@ public class S3MultiUnderFileSystem extends S3AUnderFileSystem {
         .withMultipartCopyThreshold(MULTIPART_COPY_THRESHOLD)
         .build();
 
-    return new S3MultiUnderFileSystem(uri, amazonS3Client, bucketName,
+    return new S3MultiUnderFileSystem(uri, amazonS3Client, asyncClient, bucketName,
         service, transferManager, conf, streamingUploadEnabled);
   }
 }
