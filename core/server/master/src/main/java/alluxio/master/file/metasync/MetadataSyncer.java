@@ -92,6 +92,19 @@ import javax.annotation.Nullable;
  * The metadata syncer.
  */
 public class MetadataSyncer implements SyncProcess {
+  /**
+   * the mount point not found runtime exception.
+   */
+  public static class MountPointNotFoundRuntimeException extends NotFoundRuntimeException {
+    /**
+     * Creates the instance.
+     * @param message the error message
+     */
+    public MountPointNotFoundRuntimeException(String message) {
+      super(message);
+    }
+  }
+
   public static final FileSystemMasterCommonPOptions NO_TTL_OPTION =
       FileSystemMasterCommonPOptions.newBuilder()
           .setTtl(-1)
@@ -183,12 +196,14 @@ public class MetadataSyncer implements SyncProcess {
    * @param descendantType the depth of descendant to load
    * @param directoryLoadType the type of listing to do on directories in the UFS
    * @param syncInterval the sync interval to check if a sync is needed
+   * @param startAfter the start after mark where the sync starts
    * @param isAsyncMetadataLoading if the sync is initiated by an async load metadata cli command
    * @return the running task group
    */
   public TaskGroup syncPath(
       AlluxioURI alluxioPath, DescendantType descendantType, DirectoryLoadType directoryLoadType,
-      long syncInterval, boolean isAsyncMetadataLoading) throws InvalidPathException {
+      long syncInterval, @Nullable String startAfter, boolean isAsyncMetadataLoading)
+      throws InvalidPathException {
     MountTable.Resolution resolution = mMountTable.resolve(alluxioPath);
     Stream<BaseTask> tasks = Stream.empty();
     long groupId = mTaskGroupIds.getAndIncrement();
@@ -199,6 +214,9 @@ public class MetadataSyncer implements SyncProcess {
         // Nest mount exists, we need to do additional check to make sure
         // nested mount path does not shadow the parent mount path.
         syncRootContainNestedMount = true;
+        if (startAfter != null) {
+          throw new InvalidPathException("StartAfter param does not work with nested mount");
+        }
       }
       tasks = nestedMounts.stream().map(mountInfo -> {
         try {
@@ -219,7 +237,7 @@ public class MetadataSyncer implements SyncProcess {
     AlluxioURI ufsPath = resolution.getUri();
     TaskGroup group = new TaskGroup(groupId,
         Stream.concat(Stream.of(mTaskTracker.launchTaskAsync(mMdSync, ufsPath, alluxioPath,
-            resolution.getMountId(), null, descendantType, syncInterval, directoryLoadType,
+            resolution.getMountId(), startAfter, descendantType, syncInterval, directoryLoadType,
                 !isAsyncMetadataLoading, syncRootContainNestedMount)), tasks)
             .toArray(BaseTask[]::new));
     mTaskGroupMap.put(groupId, group);
@@ -228,11 +246,7 @@ public class MetadataSyncer implements SyncProcess {
 
   /**
    * Perform a metadata sync on the given path. Launches the task asynchronously.
-   * If descendent type is ALL, then a task is launched for each nested mount, but
-   * this method only returns the task launched on the sync path. If tracking for
-   * the whole group is needed, then
-   * {@link MetadataSyncer#syncPath(AlluxioURI, DescendantType, DirectoryLoadType, long, boolean)}
-   * should be used.
+   * If descendant type is ALL, then a task is launched for each nested mount.
    *
    * @param alluxioPath the path to sync
    * @param descendantType the depth of descendents to load
@@ -243,7 +257,7 @@ public class MetadataSyncer implements SyncProcess {
   public TaskGroup syncPath(
       AlluxioURI alluxioPath, DescendantType descendantType, DirectoryLoadType directoryLoadType,
       long syncInterval) throws InvalidPathException {
-    return syncPath(alluxioPath, descendantType, directoryLoadType, syncInterval, false);
+    return syncPath(alluxioPath, descendantType, directoryLoadType, syncInterval, null, false);
   }
 
   private CloseableResource<UfsClient> getUfsClient(AlluxioURI ufsPath) {
@@ -268,11 +282,11 @@ public class MetadataSyncer implements SyncProcess {
   }
 
   private MountTable.ReverseResolution reverseResolve(
-      AlluxioURI ufsPath) throws NotFoundRuntimeException {
+      AlluxioURI ufsPath) throws MountPointNotFoundRuntimeException {
     MountTable.ReverseResolution reverseResolution = mMountTable.reverseResolve(
         ufsPath);
     if (reverseResolution == null) {
-      throw new NotFoundRuntimeException(String.format("Mount not found for UFS path %s",
+      throw new MountPointNotFoundRuntimeException(String.format("Mount not found for UFS path %s",
           ufsPath));
     }
     return reverseResolution;
@@ -702,8 +716,12 @@ public class MetadataSyncer implements SyncProcess {
                 .setAlluxioOnly(true)
                 .setUnchecked(true))
         .setMetadataLoad(true);
-    return mFsMaster.deleteInternal(context.getRpcContext(),
+    int deletedInodes = mFsMaster.deleteInternal(context.getRpcContext(),
         lockedInodePath, syncDeleteContext, true);
+    if (deletedInodes == 0) {
+      throw new FileDoesNotExistException(lockedInodePath + " does not exist.");
+    }
+    return deletedInodes;
   }
 
   private void updateInodeMetadata(

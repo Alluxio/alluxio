@@ -68,6 +68,15 @@ public class TestMetadataSyncer extends MetadataSyncer {
         throw new RuntimeException();
       }
     }
+    mSyncCount++;
+    if (mSyncCount == mBlockOnNth && mCallback != null) {
+      try {
+        mCallback.apply();
+      } catch (Exception e) {
+        throw new RuntimeException();
+      }
+      mLock.release();
+    }
     return super.performSyncOne(syncState, currentUfsStatus, currentInode);
   }
 
