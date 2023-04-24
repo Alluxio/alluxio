@@ -29,6 +29,7 @@ import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.metasync.SyncFailReason;
 import alluxio.master.file.metasync.SyncOperation;
+import alluxio.master.mdsync.TaskGroup;
 import alluxio.master.mdsync.TaskInfo;
 import alluxio.master.mdsync.TaskStats;
 import alluxio.util.io.PathUtils;
@@ -60,6 +61,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Stack;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -125,7 +127,7 @@ public class MetadataSyncV2TestBase extends FileSystemMasterTestBase {
           .build();
     }
     mS3Client.createBucket(TEST_BUCKET);
-    // mS3Client.createBucket(TEST_BUCKET2);
+    mS3Client.createBucket(TEST_BUCKET2);
     super.before();
   }
 
@@ -274,13 +276,34 @@ public class MetadataSyncV2TestBase extends FileSystemMasterTestBase {
   }
 
   static void assertSyncOperations(TaskInfo taskInfo, Map<SyncOperation, Long> operations) {
+    assertSyncOperations(taskInfo.getStats().getSuccessOperationCount(), operations);
+  }
+
+  static void assertSyncOperations(TaskGroup taskGroup, Map<SyncOperation, Long> operations) {
+    AtomicLong[] stats = new AtomicLong[SyncOperation.values().length];
+    for (int i = 0; i < stats.length; ++i) {
+      stats[i] = new AtomicLong();
+    }
+    taskGroup.getTasks().forEach(
+        it -> {
+          AtomicLong[] taskStats = it.getTaskInfo().getStats().getSuccessOperationCount();
+          for (int i = 0; i < taskStats.length; ++i) {
+            stats[i].addAndGet(taskStats[i].get());
+          }
+        }
+    );
+    assertSyncOperations(stats, operations);
+  }
+
+  private static void assertSyncOperations(
+      AtomicLong[] stats, Map<SyncOperation, Long> operations) {
     for (SyncOperation operation : SyncOperation.values()) {
       assertEquals(
           "Operation " + operation.toString() + " count not equal. "
               + "Actual operation count: "
-              + Arrays.toString(taskInfo.getStats().getSuccessOperationCount()),
+              + Arrays.toString(stats),
           (long) operations.getOrDefault(operation, 0L),
-          taskInfo.getStats().getSuccessOperationCount()[operation.getValue()].get()
+          stats[operation.getValue()].get()
       );
     }
   }

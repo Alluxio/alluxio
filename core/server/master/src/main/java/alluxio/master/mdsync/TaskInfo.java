@@ -30,6 +30,8 @@ public class TaskInfo {
   private final long mSyncInterval;
   private final MdSync mMdSync;
   private final TaskStats mStats;
+  private final long mMountId;
+  private final boolean mCheckNestedMount;
 
   TaskInfo(
       MdSync mdSync,
@@ -38,7 +40,10 @@ public class TaskInfo {
       @Nullable String startAfter,
       DescendantType descendantType,
       long syncInterval,
-      DirectoryLoadType loadByDirectory, long id) {
+      DirectoryLoadType loadByDirectory,
+      long id,
+      long mountId,
+      boolean checkNestedMount) {
     mBasePath = ufsPath;
     mAlluxioPath = alluxioPath;
     mSyncInterval = syncInterval;
@@ -48,6 +53,8 @@ public class TaskInfo {
     mStartAfter = startAfter;
     mMdSync = mdSync;
     mStats = new TaskStats();
+    mMountId = mountId;
+    mCheckNestedMount = checkNestedMount;
   }
 
   /**
@@ -116,6 +123,20 @@ public class TaskInfo {
    */
   public DescendantType getDescendantType() {
     return mDescendantType;
+  }
+
+  /**
+   * @return the mount id
+   */
+  public long getMountId() {
+    return mMountId;
+  }
+
+  /**
+   * @return true if nested mount should be checked during sync processing
+   */
+  public boolean checkNestedMount() {
+    return mCheckNestedMount;
   }
 
   @Override

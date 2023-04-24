@@ -63,7 +63,7 @@ public class MetadataSyncDepthV2Test extends MetadataSyncV2TestBase {
     // Sync the dir
     AlluxioURI syncPath = MOUNT_POINT.join(TEST_DIRECTORY);
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        syncPath, mDescendantType, mDirectoryLoadType, 0);
+        syncPath, mDescendantType, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -72,7 +72,7 @@ public class MetadataSyncDepthV2Test extends MetadataSyncV2TestBase {
 
     // Sync again, expect no change
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        syncPath, mDescendantType, mDirectoryLoadType, 0);
+        syncPath, mDescendantType, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -92,7 +92,7 @@ public class MetadataSyncDepthV2Test extends MetadataSyncV2TestBase {
     // Sync the dir
     AlluxioURI syncPath = MOUNT_POINT.join(TEST_DIRECTORY).join(TEST_DIRECTORY);
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        syncPath, mDescendantType, mDirectoryLoadType, 0);
+        syncPath, mDescendantType, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -101,7 +101,7 @@ public class MetadataSyncDepthV2Test extends MetadataSyncV2TestBase {
 
     // Sync again, expect no change
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        syncPath, mDescendantType, mDirectoryLoadType, 0);
+        syncPath, mDescendantType, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -111,7 +111,7 @@ public class MetadataSyncDepthV2Test extends MetadataSyncV2TestBase {
     // Delete the dir
     mS3Client.deleteObject(TEST_BUCKET, dirPath);
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        syncPath, mDescendantType, mDirectoryLoadType, 0);
+        syncPath, mDescendantType, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -120,7 +120,8 @@ public class MetadataSyncDepthV2Test extends MetadataSyncV2TestBase {
 
     // The parent should also be gone
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT.join(TEST_DIRECTORY), mDescendantType, mDirectoryLoadType, 0);
+        MOUNT_POINT.join(TEST_DIRECTORY), mDescendantType, mDirectoryLoadType, 0)
+        .getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -132,7 +133,7 @@ public class MetadataSyncDepthV2Test extends MetadataSyncV2TestBase {
 
     // Sync the root, expect no change
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, mDescendantType, mDirectoryLoadType, 0);
+        MOUNT_POINT, mDescendantType, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of());
@@ -149,7 +150,7 @@ public class MetadataSyncDepthV2Test extends MetadataSyncV2TestBase {
     // Sync the file
     AlluxioURI syncPath = MOUNT_POINT.join(TEST_DIRECTORY).join(TEST_FILE);
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        syncPath, mDescendantType, mDirectoryLoadType, 0);
+        syncPath, mDescendantType, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -158,7 +159,7 @@ public class MetadataSyncDepthV2Test extends MetadataSyncV2TestBase {
 
     // Sync again, expect no change
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        syncPath, mDescendantType, mDirectoryLoadType, 0);
+        syncPath, mDescendantType, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -170,7 +171,7 @@ public class MetadataSyncDepthV2Test extends MetadataSyncV2TestBase {
 
     // Sync should see the change
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        syncPath, mDescendantType, mDirectoryLoadType, 0);
+        syncPath, mDescendantType, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
@@ -184,7 +185,7 @@ public class MetadataSyncDepthV2Test extends MetadataSyncV2TestBase {
     mS3Client.deleteObject(TEST_BUCKET, TEST_DIRECTORY + "/" + TEST_FILE);
     // Sync the root, all should be removed
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-        MOUNT_POINT, mDescendantType, mDirectoryLoadType, 0);
+        MOUNT_POINT, mDescendantType, mDirectoryLoadType, 0).getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(

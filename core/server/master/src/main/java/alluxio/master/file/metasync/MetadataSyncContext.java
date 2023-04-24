@@ -241,6 +241,13 @@ public class MetadataSyncContext implements Closeable {
     mTaskInfo.getStats().reportSyncFailReason(mLoadResult.getLoadRequest(), mLoadResult, reason, t);
   }
 
+  /**
+   * @return the task info
+   */
+  public TaskInfo getTaskInfo() {
+    return mTaskInfo;
+  }
+
   @Override
   public void close() throws IOException {
     mRpcContext.close();

@@ -25,6 +25,7 @@ import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsClient;
 
 import com.codahale.metrics.Counter;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -235,20 +236,24 @@ public class TaskTracker implements Closeable {
    * @param mdSync the MdSync object
    * @param ufsPath the ufsPath to sync
    * @param alluxioPath the alluxio path matching the mounted ufsPath
+   * @param mountId the mount id; each task is only for one mount point
    * @param startAfter if the sync should start after a given internal path
    * @param depth the depth of descendents to load
    * @param syncInterval the sync interval
    * @param loadByDirectory the load by directory type
    * @param removeOnComplete if the task should be removed on complete
+   * @param checkNestedMount if the task might contain nested mount
    * @return the running task object
    */
   public BaseTask launchTaskAsync(
       MdSync mdSync,
       AlluxioURI ufsPath, AlluxioURI alluxioPath,
+      long mountId,
       @Nullable String startAfter,
       DescendantType depth, long syncInterval,
       DirectoryLoadType loadByDirectory,
-      boolean removeOnComplete) {
+      boolean removeOnComplete,
+      boolean checkNestedMount) {
     BaseTask task;
     synchronized (this) {
       TrieNode<BaseTask> activeTasks = getActiveTasksForDescendantType(depth);
@@ -260,7 +265,7 @@ public class TaskTracker implements Closeable {
             final long id = mNxtId++;
             BaseTask newTask = BaseTask.create(
                 new TaskInfo(mdSync, ufsPath, alluxioPath, startAfter,
-                    depth, syncInterval, loadByDirectory, id),
+                    depth, syncInterval, loadByDirectory, id, mountId, checkNestedMount),
                 mSyncPathCache.recordStartSync(),
                 mClientSupplier,
                 removeOnComplete);
@@ -296,14 +301,16 @@ public class TaskTracker implements Closeable {
    * @param loadByDirectory the load by directory type
    * @return the running task object
    */
+  @VisibleForTesting
   public Pair<Boolean, BaseTask> checkTask(
       MdSync mdSync,
       AlluxioURI ufsPath, AlluxioURI alluxioPath,
       @Nullable String startAfter,
       DescendantType depth, long syncInterval,
       DirectoryLoadType loadByDirectory) {
-    BaseTask task = launchTaskAsync(mdSync, ufsPath, alluxioPath, startAfter,
-        depth, syncInterval, loadByDirectory, true);
+    // TODO(elega/tcrain) This method needs to be updated to support nested sync
+    BaseTask task = launchTaskAsync(mdSync, ufsPath, alluxioPath, 0, startAfter,
+        depth, syncInterval, loadByDirectory, true, true);
     return new Pair<>(task.waitForSync(ufsPath), task);
   }
 
