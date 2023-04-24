@@ -14,19 +14,12 @@ package alluxio.master.meta;
 import alluxio.RpcUtils;
 import alluxio.grpc.GetJobMasterIdPRequest;
 import alluxio.grpc.GetJobMasterIdPResponse;
-import alluxio.grpc.GetMasterIdPRequest;
-import alluxio.grpc.GetMasterIdPResponse;
 import alluxio.grpc.JobMasterHeartbeatPRequest;
 import alluxio.grpc.JobMasterHeartbeatPResponse;
 import alluxio.grpc.JobMasterMasterServiceGrpc;
-import alluxio.grpc.MasterHeartbeatPRequest;
-import alluxio.grpc.MasterHeartbeatPResponse;
-import alluxio.grpc.MetaMasterMasterServiceGrpc;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.RegisterJobMasterPRequest;
 import alluxio.grpc.RegisterJobMasterPResponse;
-import alluxio.grpc.RegisterMasterPRequest;
-import alluxio.grpc.RegisterMasterPResponse;
 import alluxio.master.job.JobMaster;
 import alluxio.wire.Address;
 
@@ -37,7 +30,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This class is a gRPC handler for meta master RPCs invoked by an Alluxio standby master.
+ * This class is a gRPC handler for the primary job master to answer RPC from standby job masters.
  */
 @NotThreadSafe
 public final class JobMasterMasterServiceHandler
@@ -47,13 +40,13 @@ public final class JobMasterMasterServiceHandler
   private final JobMaster mJobMaster;
 
   /**
-   * Creates a new instance of {@link MetaMasterMasterServiceHandler}.
+   * Creates a new instance of {@link JobMasterMasterServiceHandler}.
    *
-   * @param metaMaster the Alluxio meta master
+   * @param jobMaster the job master from the primary job master process
    */
-  public JobMasterMasterServiceHandler(JobMaster metaMaster) {
+  public JobMasterMasterServiceHandler(JobMaster jobMaster) {
     LOG.info("Started to serve standby job master requests");
-    mJobMaster = metaMaster;
+    mJobMaster = jobMaster;
   }
 
   @Override
@@ -62,23 +55,23 @@ public final class JobMasterMasterServiceHandler
     NetAddress masterAddress = request.getMasterAddress();
     RpcUtils.call(LOG, () -> GetJobMasterIdPResponse.newBuilder()
                     .setMasterId(mJobMaster.getMasterId(Address.fromProto(masterAddress))).build(),
-            "getJobMasterId", "request=%s", responseObserver, request);
+            "GetJobMasterId", "request=%s", responseObserver, request);
   }
 
   @Override
   public void registerMaster(RegisterJobMasterPRequest request,
                              StreamObserver<RegisterJobMasterPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      mJobMaster.masterRegister(request.getJobMasterId(), request.getOptions());
+      mJobMaster.jobMasterRegister(request.getJobMasterId(), request.getOptions());
       return RegisterJobMasterPResponse.getDefaultInstance();
-    }, "registerJobMaster", "request=%s", responseObserver, request);
+    }, "RegisterJobMaster", "request=%s", responseObserver, request);
   }
 
   @Override
   public void masterHeartbeat(JobMasterHeartbeatPRequest request,
                               StreamObserver<JobMasterHeartbeatPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> JobMasterHeartbeatPResponse.newBuilder().setCommand(
-                    mJobMaster.jobMasterHeartbeat(request.getMasterId(), request.getOptions())).build(),
-            "jobMasterHeartbeat", "request=%s", responseObserver, request);
+        mJobMaster.jobMasterHeartbeat(request.getMasterId(), request.getOptions())).build(),
+"JobMasterHeartbeat", "request=%s", responseObserver, request);
   }
 }

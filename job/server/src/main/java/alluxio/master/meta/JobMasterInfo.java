@@ -20,7 +20,7 @@ import com.google.common.base.Preconditions;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Master information.
+ * Job master information.
  */
 @NotThreadSafe
 public final class JobMasterInfo {

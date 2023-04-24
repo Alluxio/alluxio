@@ -49,8 +49,8 @@ import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A wrapper for the gRPC client to interact with the primary meta master,
- * used by Alluxio standby masters.
+ * A wrapper for the gRPC client to interact with the primary job master,
+ * used by Alluxio standby job masters.
  */
 @ThreadSafe
 public final class RetryHandlingJobMasterMasterClient extends AbstractJobMasterClient {
@@ -70,7 +70,6 @@ public final class RetryHandlingJobMasterMasterClient extends AbstractJobMasterC
   @Override
   public void connect() throws AlluxioStatusException {
     super.connect();
-    LOG.info("Connected to target {}", mServerAddress);
   }
 
   @Override
@@ -85,7 +84,6 @@ public final class RetryHandlingJobMasterMasterClient extends AbstractJobMasterC
 
   @Override
   protected long getServiceVersion() {
-    LOG.info("Returning JOB_MASTER_MASTER_SERVICE_VERSION={}", Constants.JOB_MASTER_MASTER_SERVICE_VERSION);
     return Constants.JOB_MASTER_MASTER_SERVICE_VERSION;
   }
 
@@ -102,8 +100,9 @@ public final class RetryHandlingJobMasterMasterClient extends AbstractJobMasterC
    */
   public long getId(final Address address) throws IOException {
     return retryRPC(() -> mClient
-            .getMasterId(GetJobMasterIdPRequest.newBuilder().setMasterAddress(address.toProto()).build())
-            .getMasterId(), LOG, "GetId", "address=%s", address);
+        .getMasterId(GetJobMasterIdPRequest.newBuilder()
+            .setMasterAddress(address.toProto()).build())
+        .getMasterId(), LOG, "GetId", "address=%s", address);
   }
 
   /**
@@ -116,7 +115,7 @@ public final class RetryHandlingJobMasterMasterClient extends AbstractJobMasterC
   public JobMasterMetaCommand heartbeat(final long masterId) throws IOException {
     return retryRPC(() -> mClient
         .masterHeartbeat(JobMasterHeartbeatPRequest.newBuilder().setMasterId(masterId)
-                .setOptions(JobMasterHeartbeatPOptions.getDefaultInstance()).build())
+            .setOptions(JobMasterHeartbeatPOptions.getDefaultInstance()).build())
         .getCommand(), LOG, "JobMasterHeartbeat", "masterId=%d", masterId);
   }
 
@@ -129,8 +128,7 @@ public final class RetryHandlingJobMasterMasterClient extends AbstractJobMasterC
           throws IOException {
     final Map<String, Gauge> gauges = MetricsSystem.METRIC_REGISTRY.getGauges();
     RegisterJobMasterPOptions.Builder optionsBuilder = RegisterJobMasterPOptions.newBuilder()
-            .setVersion(RuntimeConstants.VERSION)
-            .setRevision(RuntimeConstants.REVISION_SHORT);
+        .setVersion(RuntimeConstants.VERSION).setRevision(RuntimeConstants.REVISION_SHORT);
     Gauge startTimeGauge = gauges.get(MetricKey.MASTER_START_TIME.getName());
     if (startTimeGauge != null) {
       optionsBuilder.setStartTimeMs((long) startTimeGauge.getValue());

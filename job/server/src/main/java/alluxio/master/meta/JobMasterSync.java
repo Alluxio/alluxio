@@ -11,9 +11,7 @@
 
 package alluxio.master.meta;
 
-import alluxio.conf.Configuration;
 import alluxio.grpc.JobMasterMetaCommand;
-import alluxio.grpc.Scope;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.wire.Address;
 
@@ -25,23 +23,19 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * If a master is detected as a standby master. It will set up its MetaMasterSync and manage its own
- * {@link RetryHandlingMetaMasterMasterClient} which helps communicate with the leader master.
- *
- * When running, the standby master will send its heartbeat to the leader master. The leader master
- * may respond to the heartbeat with a command which will be executed. After which, the task will
- * wait for the elapsed time since its last heartbeat has reached the heartbeat interval. Then the
- * cycle will continue.
+ * If a job master is detected as a standby job master. It will set up its JobMasterSync and
+ * use its {@link RetryHandlingMetaMasterMasterClient} to register to the primary job master,
+ * then maintain a heartbeat with the primary.
  */
 @NotThreadSafe
 public final class JobMasterSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(JobMasterSync.class);
   private static final long UNINITIALIZED_MASTER_ID = -1L;
 
-  /** The address of this standby master. */
+  /** The address of this standby job master. */
   private final Address mMasterAddress;
 
-  /** Client for communication with the leader master. */
+  /** Client for communication with the primary master. */
   private final RetryHandlingJobMasterMasterClient mMasterClient;
 
   /** The ID of this standby master. */
@@ -63,21 +57,19 @@ public final class JobMasterSync implements HeartbeatExecutor {
    */
   @Override
   public void heartbeat(long timeout) {
-    LOG.info("Heart beating to primary");
     JobMasterMetaCommand command = null;
     try {
       if (mMasterId.get() == UNINITIALIZED_MASTER_ID) {
         setIdAndRegister();
       }
-      LOG.info("Heart beating to primary job master");
       command = mMasterClient.heartbeat(mMasterId.get());
       handleCommand(command);
     } catch (IOException e) {
       // An error occurred, log and ignore it or error if heartbeat timeout is reached
       if (command == null) {
-        LOG.error("Failed to receive leader master heartbeat command.", e);
+        LOG.error("Failed to receive primary master heartbeat command.", e);
       } else {
-        LOG.error("Failed to execute leader master heartbeat command: {}", command, e);
+        LOG.error("Failed to execute primary master heartbeat command: {}", command, e);
       }
       mMasterClient.disconnect();
     }
@@ -95,7 +87,7 @@ public final class JobMasterSync implements HeartbeatExecutor {
     switch (cmd) {
       case MetaCommand_Nothing:
         break;
-      // Leader master requests re-registration
+      // Primary master requests re-registration
       case MetaCommand_Register:
         setIdAndRegister();
         break;
@@ -104,7 +96,7 @@ public final class JobMasterSync implements HeartbeatExecutor {
         LOG.error("Master heartbeat sends unknown command {}", cmd);
         break;
       default:
-        throw new RuntimeException("Un-recognized command from leader master " + cmd);
+        throw new RuntimeException("Un-recognized command from primary master " + cmd);
     }
   }
 
