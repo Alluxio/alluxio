@@ -56,7 +56,7 @@ public final class PlainSaslServerCallbackHandlerTest {
   public void before() throws Exception {
     mPlainServerCBHandler = new PlainSaslServerCallbackHandler(
         AuthenticationProvider.Factory.create(AuthType.CUSTOM, mConfiguration),
-        new ImpersonationAuthenticator(mConfiguration));
+        new ImpersonationAuthenticator());
   }
 
   @After

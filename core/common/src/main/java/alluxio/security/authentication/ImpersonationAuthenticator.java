@@ -16,18 +16,15 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Reconfigurable;
-import alluxio.conf.ReconfigurableRegistry;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Splitter;
-import com.google.common.base.Suppliers;
 import com.google.common.collect.Sets;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.sasl.AuthenticationException;
@@ -52,30 +49,15 @@ public final class ImpersonationAuthenticator implements Reconfigurable {
   private volatile Map<String, Set<String>> mImpersonationUsers;
 
   private AlluxioConfiguration mConfiguration;
-  private static final Supplier<ImpersonationAuthenticator> SINGLETON =
-      Suppliers.memoize(() -> new ImpersonationAuthenticator(Configuration.global()));
-
-  /**
-   * return a {@link ImpersonationAuthenticator} singleton instance.
-   *
-   * @return ImpersonationAuthenticator
-   */
-  public static ImpersonationAuthenticator getInstance() {
-    return SINGLETON.get();
-  }
 
   /**
    * Constructs a new {@link ImpersonationAuthenticator}.
    *
    * Note the constructor for this object is expensive. Take care with how many of these are
    * instantiated.
-   *
-   * @param conf conf Alluxio configuration
    */
-  ImpersonationAuthenticator(AlluxioConfiguration conf) {
-    mConfiguration = conf;
-    loadImpersonationUser(conf);
-    ReconfigurableRegistry.register(this);
+  public ImpersonationAuthenticator() {
+    loadImpersonationUser(Configuration.global());
   }
 
   /**
@@ -172,6 +154,7 @@ public final class ImpersonationAuthenticator implements Reconfigurable {
         }
       }
     }
+    mConfiguration = conf;
     mImpersonationGroups = impersonationGroups;
     mImpersonationUsers = impersonationUsers;
   }
