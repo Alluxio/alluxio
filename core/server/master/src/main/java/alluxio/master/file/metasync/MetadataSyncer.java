@@ -362,11 +362,14 @@ public class MetadataSyncer implements SyncProcess {
               ufsMountPath, alluxioMountPath));
         }
 
-        // Take the root of the sync path as a write_edge, once we traverse
+        // Take the root of the sync path as a write_edge (unless it is the mount path
+        // as in this case we will not modify the node), once we traverse
         // past this node, we will downgrade it to a read lock in
         // SyncProcessState.getNextInode
+        InodeTree.LockPattern rootLockPattern = alluxioSyncPath.equals(alluxioMountUri)
+            ? InodeTree.LockPattern.READ : InodeTree.LockPattern.WRITE_EDGE;
         LockingScheme lockingScheme = new LockingScheme(alluxioSyncPath,
-            InodeTree.LockPattern.WRITE_EDGE, false);
+            rootLockPattern, false);
         try (LockedInodePath lockedInodePath =
                  mInodeTree.lockInodePath(
                      lockingScheme, context.getRpcContext().getJournalContext())) {
