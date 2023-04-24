@@ -2617,8 +2617,6 @@
                     "value": "NEW_PATHS"
                   }
                 ]
-<<<<<<< HEAD
-||||||| parent of a600ed9007... add copy job proto and update related code to make cherry-pick smooth
               },
               {
                 "id": 13,
@@ -2634,28 +2632,6 @@
                 "id": 15,
                 "name": "workerLocation",
                 "type": "grpc.WorkerNetAddress"
-=======
-              },
-              {
-                "id": 13,
-                "name": "overwrite",
-                "type": "bool"
-              },
-              {
-                "id": 14,
-                "name": "checkS3BucketPath",
-                "type": "bool"
-              },
-              {
-                "id": 15,
-                "name": "workerLocation",
-                "type": "grpc.WorkerNetAddress"
-              },
-              {
-                "id": 16,
-                "name": "isAtomicWrite",
-                "type": "bool"
->>>>>>> a600ed9007... add copy job proto and update related code to make cherry-pick smooth
               }
             ],
             "maps": [

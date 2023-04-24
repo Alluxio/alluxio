@@ -20,7 +20,6 @@ import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageMetaStore;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.grpc.File;
 import alluxio.grpc.FileFailure;
 import alluxio.grpc.Route;
 import alluxio.grpc.RouteFailure;
@@ -38,6 +37,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.File;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -80,7 +80,7 @@ public class PagedDoraWorkerTest {
     String ufsPath = mTestFolder.newFile("test").getAbsolutePath();
     byte[] buffer = BufferUtils.getIncreasingByteArray((int) length);
     BufferUtils.writeBufferToFile(ufsPath, buffer);
-    File file = File.newBuilder().setUfsPath(ufsPath).setLength(length).setMountId(1).build();
+    alluxio.grpc.File file = alluxio.grpc.File.newBuilder().setUfsPath(ufsPath).setLength(length).setMountId(1).build();
     ListenableFuture<List<FileFailure>> load = mWorker.load(Collections.singletonList(file),
         UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build());
     List<FileFailure> fileFailures = load.get(30, TimeUnit.SECONDS);
@@ -99,18 +99,18 @@ public class PagedDoraWorkerTest {
 
   @Test
   public void testSingleFileCopy() throws IOException, ExecutionException, InterruptedException {
-    java.io.File srcFolder = mTestFolder.newFolder("src");
-    java.io.File dstFolder = mTestFolder.newFolder("dst");
+    File srcRoot = mTestFolder.newFolder("src");
+    File dstRoot = mTestFolder.newFolder("dst");
     // create test file under mSrcFolder
-    java.io.File a = new java.io.File(srcFolder, "a");
+    File a = new File(srcRoot, "a");
     a.createNewFile();
-    java.io.File b = new java.io.File(dstFolder, "b");
+    File b = new File(dstRoot, "b");
     int length = 10;
     byte[] buffer = BufferUtils.getIncreasingByteArray(length);
     BufferUtils.writeBufferToFile(a.getAbsolutePath(), buffer);
     Route route =
-        Route.newBuilder().setDst("/b").setSrc("/a").setDstUfsAddress(dstFolder.getAbsolutePath())
-             .setSrcUfsAddress(srcFolder.getAbsolutePath()).setLength(length).build();
+        Route.newBuilder().setDst("/b").setSrc("/a").setDstUfsAddress(dstRoot.getAbsolutePath())
+             .setSrcUfsAddress(srcRoot.getAbsolutePath()).setLength(length).build();
 
     WriteOptions writeOptions = WriteOptions.newBuilder().setOverwrite(false).build();
     UfsReadOptions read =
@@ -119,9 +119,7 @@ public class PagedDoraWorkerTest {
         mWorker.copy(Collections.singletonList(route), read, writeOptions);
     List<RouteFailure> failures = copy.get();
     Assert.assertEquals(0, failures.size());
-    // check if the file is copied under mDstFolder
     Assert.assertTrue(b.exists());
-    // open file b through java file input stream
     try (InputStream in = Files.newInputStream(b.toPath())) {
       byte[] readBuffer = new byte[length];
       while (in.read(readBuffer) != -1) {
@@ -132,18 +130,18 @@ public class PagedDoraWorkerTest {
 
   @Test
   public void testCopyException() throws IOException, ExecutionException, InterruptedException {
-    java.io.File srcFolder = mTestFolder.newFolder("srcException");
-    java.io.File dstFolder = mTestFolder.newFolder("dstException");
+    File srcRoot = mTestFolder.newFolder("srcException");
+    File dstRoot = mTestFolder.newFolder("dstException");
     // create test file under mSrcFolder
-    java.io.File a = new java.io.File(srcFolder, "a");
+    File a = new File(srcRoot, "a");
     a.createNewFile();
-    java.io.File b = new java.io.File(dstFolder, "b");
+    File b = new File(dstRoot, "b");
     int length = 10;
     byte[] buffer = BufferUtils.getIncreasingByteArray(length);
     BufferUtils.writeBufferToFile(a.getAbsolutePath(), buffer);
     Route route =
-        Route.newBuilder().setDst("/b").setSrc("/a").setDstUfsAddress(dstFolder.getAbsolutePath())
-             .setSrcUfsAddress(srcFolder.getAbsolutePath()).setLength(length).build();
+        Route.newBuilder().setDst("/b").setSrc("/a").setDstUfsAddress(dstRoot.getAbsolutePath())
+             .setSrcUfsAddress(srcRoot.getAbsolutePath()).setLength(length).build();
 
     WriteOptions writeOptions = WriteOptions.newBuilder().setOverwrite(false).build();
     ListenableFuture<List<RouteFailure>> copy = mWorker.copy(Collections.singletonList(route),
@@ -155,16 +153,15 @@ public class PagedDoraWorkerTest {
 
   @Test
   public void testSingleFolderCopy() throws IOException, ExecutionException, InterruptedException {
-    java.io.File srcFolder = mTestFolder.newFolder("src");
-    java.io.File dstFolder = mTestFolder.newFolder("dst");
+    File srcRoot = mTestFolder.newFolder("src");
+    File dstRoot = mTestFolder.newFolder("dst");
     // create test file under mSrcFolder
-    java.io.File a = new java.io.File(srcFolder, "a");
+    File a = new File(srcRoot, "a");
     a.mkdirs();
-    java.io.File b = new java.io.File(dstFolder, "b");
-    int length = 10;
+    File b = new File(dstRoot, "b");
     Route route =
-        Route.newBuilder().setDst("/b").setSrc("/a").setDstUfsAddress(dstFolder.getAbsolutePath())
-             .setSrcUfsAddress(srcFolder.getAbsolutePath()).setLength(length).build();
+        Route.newBuilder().setDst("/b").setSrc("/a").setDstUfsAddress(dstRoot.getAbsolutePath())
+             .setSrcUfsAddress(srcRoot.getAbsolutePath()).build();
     WriteOptions writeOptions = WriteOptions.newBuilder().setOverwrite(false).build();
     UfsReadOptions read =
         UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build();
@@ -172,46 +169,52 @@ public class PagedDoraWorkerTest {
         mWorker.copy(Collections.singletonList(route), read, writeOptions);
     List<RouteFailure> failures = copy.get();
     Assert.assertEquals(0, failures.size());
-    // check if the file is copied under mDstFolder
     Assert.assertTrue(b.exists());
     Assert.assertTrue(b.isDirectory());
   }
 
   @Test
   public void testFolderWithFileCopy() throws IOException, ExecutionException, InterruptedException {
-    java.io.File srcFolder = mTestFolder.newFolder("src");
-    java.io.File dstFolder = mTestFolder.newFolder("dst");
+    File srcRoot = mTestFolder.newFolder("src");
+    File dstRoot = mTestFolder.newFolder("dst");
     // create test file under mSrcFolder
-    java.io.File a = new java.io.File(srcFolder, "a");
+    File a = new File(srcRoot, "a");
     a.mkdirs();
-    java.io.File c = new java.io.File(a, "c");
+    File c = new File(a, "c");
     c.createNewFile();
-    java.io.File b = new java.io.File(dstFolder, "b");
+    File d = new File(a, "d");
+    d.mkdirs();
+    File b = new File(dstRoot, "b");
     int length = 10;
     byte[] buffer = BufferUtils.getIncreasingByteArray(length);
     BufferUtils.writeBufferToFile(c.getAbsolutePath(), buffer);
     List<Route> routes = new ArrayList<>();
     Route route =
-        Route.newBuilder().setDst("/b/c").setSrc("/a/c").setDstUfsAddress(dstFolder.getAbsolutePath())
-             .setSrcUfsAddress(srcFolder.getAbsolutePath()).setLength(length).build();
+        Route.newBuilder().setDst("/b/c").setSrc("/a/c").setDstUfsAddress(dstRoot.getAbsolutePath())
+             .setSrcUfsAddress(srcRoot.getAbsolutePath()).setLength(length).build();
     Route route2 =
-        Route.newBuilder().setDst("/b").setSrc("/a").setDstUfsAddress(dstFolder.getAbsolutePath())
-             .setSrcUfsAddress(srcFolder.getAbsolutePath()).setLength(length).build();
+        Route.newBuilder().setDst("/b").setSrc("/a").setDstUfsAddress(dstRoot.getAbsolutePath())
+             .setSrcUfsAddress(srcRoot.getAbsolutePath()).build();
+    Route route3 =
+        Route.newBuilder().setDst("/b/d").setSrc("/a/d").setDstUfsAddress(dstRoot.getAbsolutePath())
+             .setSrcUfsAddress(srcRoot.getAbsolutePath()).build();
     routes.add(route);
     routes.add(route2);
+    routes.add(route3);
     WriteOptions writeOptions = WriteOptions.newBuilder().setOverwrite(false).build();
     UfsReadOptions read =
         UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build();
     ListenableFuture<List<RouteFailure>> copy =
-        mWorker.copy(Collections.singletonList(route), read, writeOptions);
+        mWorker.copy(routes, read, writeOptions);
     List<RouteFailure> failures = copy.get();
+
     Assert.assertEquals(0, failures.size());
-    // check if the file is copied under mDstFolder
-    Assert.assertTrue(c.exists());
+    Assert.assertTrue(new File(b, "c").exists());
     Assert.assertTrue(b.exists());
     Assert.assertTrue(b.isDirectory());
-    // open file b through java file input stream
-    try (InputStream in = Files.newInputStream(c.toPath())) {
+    Assert.assertTrue(new File(b, "d").exists());
+    Assert.assertTrue(new File(b, "d").isDirectory());
+    try (InputStream in = Files.newInputStream(new File(b, "c").toPath())) {
       byte[] readBuffer = new byte[length];
       while (in.read(readBuffer) != -1) {
       }

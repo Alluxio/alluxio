@@ -23,6 +23,7 @@ import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.grpc.Bits;
+import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.ErrorType;
 import alluxio.grpc.PMode;
@@ -91,7 +92,7 @@ public final class CopyHandler {
 
     if (sourceStatus.isFolder()) {
       try {
-        dstFs.createDirectory(dst);
+        dstFs.createDirectory(dst, CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
         // preserve attributes
         return;
       } catch (Exception e) {
