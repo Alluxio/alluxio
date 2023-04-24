@@ -8,10 +8,6 @@ import alluxio.SystemErrRule;
 import alluxio.SystemOutRule;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.cli.job.JobShell;
-import alluxio.client.cli.fs.AbstractFileSystemShellTest;
-import alluxio.client.cli.fs.AbstractShellIntegrationTest;
-import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
@@ -19,7 +15,6 @@ import alluxio.concurrent.jsr.CompletableFuture;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
-import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
@@ -37,30 +32,17 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.AccessControlList;
-import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3Object;
-import org.apache.commons.io.IOUtils;
 import org.gaul.s3proxy.junit.S3ProxyRule;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.rules.TestRule;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.S3AsyncClient;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -284,7 +266,7 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
     assertTrue(mOutput.toString().contains("Task group 0 cancelled"));
     // assertTrue(mOutput.toString().contains("Load Metadata Canceled"));
     // assertTrue(mOutput.toString().contains(String.format("Task gourp %d cancelled", id)));
-    mOutput.flush();
+    mOutput.reset();
     anotherFsShell.run("loadMetadata", "-v2", "-o", "cancel", "-id", "0");
     assertTrue(mOutput.toString().contains(String.format("Task %d not found or has already been canceled", 0)));
   }
@@ -292,12 +274,21 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
   // I think here each Param should have a Test
   @Test
   public void loadMetadataTestV2R() throws IOException, AlluxioException {
+    for (int i = 0; i < 100; i++) {
+      mS3Client.putObject(TEST_BUCKET, "test0" + "/" + i, TEST_CONTENT);
+    }
+    for (int i = 0; i < 100; i++) {
+      mS3Client.putObject(TEST_BUCKET, "test1" + "/" + i, TEST_CONTENT);
+    }
+    AlluxioURI uriDir = new AlluxioURI("/" );
+    // mFsShell.run("loadMetadata", "-v2", "-R", "-a", uriDir.toString());
 
-  }
+    mFsShell.run("loadMetadata", "-v2", "-a", uriDir.toString());
+    assertTrue(mOutput.toString().contains("Success op count={[CREATE:2]}"));
+    mOutput.reset();
+    mFsShell.run("loadMetadata", "-v2", "-R", "-a", uriDir.toString());
+    assertTrue(mOutput.toString().contains("Success op count={[CREATE:200]}"));
 
-  // This seems not supported for v2
-  @Test
-  public void loadMetadataTestV2F() throws IOException, AlluxioException {
 
   }
 
