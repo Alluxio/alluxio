@@ -69,7 +69,6 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       MetricKey.CLIENT_UFS_FALLBACK_COUNT.getName());
   private final DoraCacheClient mDoraClient;
   private final FileSystemContext mFsContext;
-  private final boolean mMetadataCacheEnabled;
   private final long mDefaultVirtualBlockSize;
 
   /**
@@ -82,8 +81,6 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     super(fs);
     mDoraClient = new DoraCacheClient(context, new WorkerLocationPolicy(2000));
     mFsContext = context;
-    mMetadataCacheEnabled = context.getClusterConf()
-        .getBoolean(PropertyKey.DORA_CLIENT_METADATA_CACHE_ENABLED);
     mDefaultVirtualBlockSize = context.getClusterConf()
         .getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
@@ -92,10 +89,6 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   public URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
       throws IOException, AlluxioException {
     AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
-
-    if (!mMetadataCacheEnabled) {
-      return mDelegatedFileSystem.getStatus(ufsFullPath, options);
-    }
     try {
       GetStatusPOptions mergedOptions = FileSystemOptionsUtils.getStatusDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();

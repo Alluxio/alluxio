@@ -136,8 +136,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         mRootUFS,
         UnderFileSystemConfiguration.defaults(Configuration.global()));
     mUfsStatusCache = CacheBuilder.newBuilder()
-        .maximumSize(Configuration.getInt(PropertyKey.DORA_UFS_FILE_STATUS_CACHE_SIZE))
-        .expireAfterWrite(Configuration.getDuration(PropertyKey.DORA_UFS_FILE_STATUS_CACHE_TTL))
+        .maximumSize(Configuration.getInt(PropertyKey.DORA_WORKER_FILE_STATUS_MEM_CACHE_SIZE))
+        .expireAfterWrite(Configuration.getDuration(
+            PropertyKey.DORA_WORKER_FILE_STATUS_MEM_CACHE_TTL))
         .build(new CacheLoader<String, DoraMeta.FileStatus>() {
           @Override
           public DoraMeta.FileStatus load(String path) throws IOException {
@@ -147,15 +148,17 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
           }
         });
     mListStatusCache = CacheBuilder.newBuilder()
-        .maximumSize(Configuration.getInt(PropertyKey.DORA_UFS_LIST_STATUS_CACHE_NR_DIRS))
-        .expireAfterWrite(Configuration.getDuration(PropertyKey.DORA_UFS_LIST_STATUS_CACHE_TTL))
+        .maximumSize(Configuration.getInt(PropertyKey.DORA_WORKER_LIST_STATUS_MEM_CACHE_SIZE))
+        .expireAfterWrite(Configuration.getDuration(
+            PropertyKey.DORA_WORKER_LIST_STATUS_MEM_CACHE_TTL))
         .build();
 
     mPageSize = Configuration.global().getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
     mBlockMasterClientPool = new BlockMasterClientPool();
 
-    String dbDir = Configuration.getString(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR);
-    Duration duration = Configuration.getDuration(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_TTL);
+    String dbDir = Configuration.getString(PropertyKey.DORA_WORKER_METADATA_ROCKSDB_CACHE_DIR);
+    Duration duration = Configuration.getDuration(
+        PropertyKey.DORA_WORKER_METADATA_ROCKSDB_CACHE_TTL);
     long ttl = duration.isNegative() ? -1 : duration.getSeconds();
     try {
       if (ttl == 0) {

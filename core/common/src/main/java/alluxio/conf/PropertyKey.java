@@ -4105,11 +4105,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_FILE_BUFFER_SIZE =
-      dataSizeBuilder(Name.WORKER_FILE_BUFFER_SIZE)
-          .setDefaultValue("1MB")
-          .setDescription("The buffer size for worker to write data into the tiered storage.")
-          .build();
   public static final PropertyKey WORKER_FREE_SPACE_TIMEOUT =
       durationBuilder(Name.WORKER_FREE_SPACE_TIMEOUT)
           .setDefaultValue("10sec")
@@ -6617,16 +6612,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
-  public static final PropertyKey FUSE_POSITION_READ_ENABLED =
-      booleanBuilder(Name.FUSE_POSITION_READ_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("By default FUSE uses sequential reader "
-              + "which may have unsatisfied performance "
-              + "when having random read operations. Note that even user side sequential read "
-              + "may lead to Alluxio FUSE side small range random read behavior")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.ALL)
-          .build();
   public static final PropertyKey FUSE_STAT_CACHE_REFRESH_INTERVAL =
       durationBuilder(Name.FUSE_STAT_CACHE_REFRESH_INTERVAL)
           .setDefaultValue("5min")
@@ -7234,7 +7219,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   public static final PropertyKey USER_NETTY_DATA_TRANSMISSION_ENABLED =
       booleanBuilder(Name.USER_NETTY_DATA_TRANSMISSION_ENABLED)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .setDescription("Whether to enable Netty data transmission.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.WORKER)
@@ -7311,41 +7296,32 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
 
-  public static final PropertyKey DORA_CLIENT_METADATA_CACHE_ENABLED =
-      booleanBuilder(Name.DORA_CLIENT_METADATA_CACHE_ENABLED)
-          .setDefaultValue(true)
-          .setDescription("Whether to enable metadata cache for dora client. "
-              + "This is only valid for read only workloads.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.ALL)
-          .build();
-
-  public static final PropertyKey DORA_UFS_FILE_STATUS_CACHE_SIZE =
-      intBuilder(Name.DORA_UFS_FILE_STATUS_CACHE_SIZE)
+  public static final PropertyKey DORA_WORKER_FILE_STATUS_MEM_CACHE_SIZE =
+      intBuilder(Name.DORA_WORKER_FILE_STATUS_MEM_CACHE_SIZE)
           .setDefaultValue(100000)
-          .setDescription("The max size of the cache of UFS file status")
+          .setDescription("The max number of file status cached in worker memory")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
 
-  public static final PropertyKey DORA_UFS_FILE_STATUS_CACHE_TTL =
-      durationBuilder(Name.DORA_UFS_FILE_STATUS_CACHE_TTL)
+  public static final PropertyKey DORA_WORKER_FILE_STATUS_MEM_CACHE_TTL =
+      durationBuilder(Name.DORA_WORKER_FILE_STATUS_MEM_CACHE_TTL)
           .setDefaultValue("10min")
           .setDescription("The TTL of the cache of UFS file status")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
 
-  public static final PropertyKey DORA_WORKER_METASTORE_ROCKSDB_DIR =
-      stringBuilder(Name.DORA_WORKER_METASTORE_ROCKSDB_DIR)
+  public static final PropertyKey DORA_WORKER_METADATA_ROCKSDB_CACHE_DIR =
+      stringBuilder(Name.DORA_WORKER_METADATA_ROCKSDB_CACHE_DIR)
           .setDefaultValue(format("${%s}/metastore", Name.WORK_DIR))
           .setDescription("The base dir of RocksDB to store Dora metadata")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
 
-  public static final PropertyKey DORA_WORKER_METASTORE_ROCKSDB_TTL =
-      durationBuilder(Name.DORA_WORKER_METASTORE_ROCKSDB_TTL)
+  public static final PropertyKey DORA_WORKER_METADATA_ROCKSDB_CACHE_TTL =
+      durationBuilder(Name.DORA_WORKER_METADATA_ROCKSDB_CACHE_TTL)
           .setDefaultValue("-1s") // -1s means no expiry
           .setDescription("The TTL (Time To Live) in duration of RocksDB of Dora metadata. "
               + "0s or negative value means no expiry")
@@ -7353,16 +7329,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
 
-  public static final PropertyKey DORA_UFS_LIST_STATUS_CACHE_TTL =
-      durationBuilder(Name.DORA_UFS_LIST_STATUS_CACHE_TTL)
+  public static final PropertyKey DORA_WORKER_LIST_STATUS_MEM_CACHE_TTL =
+      durationBuilder(Name.DORA_WORKER_LIST_STATUS_MEM_CACHE_TTL)
           .setDefaultValue("2min")
           .setDescription("The TTL of the cache of UFS list status results")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.WORKER)
           .build();
 
-  public static final PropertyKey DORA_UFS_LIST_STATUS_CACHE_NR_DIRS =
-      intBuilder(Name.DORA_UFS_LIST_STATUS_CACHE_NR_DIRS)
+  public static final PropertyKey DORA_WORKER_LIST_STATUS_MEM_CACHE_SIZE =
+      intBuilder(Name.DORA_WORKER_LIST_STATUS_MEM_CACHE_SIZE)
           .setDefaultValue(1)
           .setDescription("Number of the file/dir cache of UFS list status results")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -8866,26 +8842,24 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.dora.client.read.location.policy.enabled";
 
     public static final String DORA_CLIENT_UFS_ROOT = "alluxio.dora.client.ufs.root";
-    public static final String DORA_CLIENT_METADATA_CACHE_ENABLED
-        = "alluxio.dora.client.metadata.cache.enabled";
 
-    public static final String DORA_UFS_FILE_STATUS_CACHE_SIZE =
-        "alluxio.dora.ufs.file.status.cache.size";
+    public static final String DORA_WORKER_FILE_STATUS_MEM_CACHE_SIZE =
+        "alluxio.dora.worker.file.status.mem.cache.size";
 
-    public static final String DORA_UFS_FILE_STATUS_CACHE_TTL =
-        "alluxio.dora.ufs.file.status.cache.ttl";
+    public static final String DORA_WORKER_FILE_STATUS_MEM_CACHE_TTL =
+        "alluxio.dora.worker.file.status.mem.cache.ttl";
 
-    public static final String DORA_WORKER_METASTORE_ROCKSDB_DIR =
-        "alluxio.dora.worker.metastore.rocksdb.dir";
+    public static final String DORA_WORKER_METADATA_ROCKSDB_CACHE_DIR =
+        "alluxio.dora.worker.metadata.rocksdb.cache.dir";
 
-    public static final String DORA_WORKER_METASTORE_ROCKSDB_TTL =
-        "alluxio.dora.worker.metastore.rocksdb.ttl";
+    public static final String DORA_WORKER_METADATA_ROCKSDB_CACHE_TTL =
+        "alluxio.dora.worker.metadata.rocksdb.cache.ttl";
 
-    public static final String DORA_UFS_LIST_STATUS_CACHE_TTL =
-        "alluxio.dora.ufs.list.status.cache.ttl";
+    public static final String DORA_WORKER_LIST_STATUS_MEM_CACHE_TTL =
+        "alluxio.dora.worker.list.status.mem.cache.ttl";
 
-    public static final String DORA_UFS_LIST_STATUS_CACHE_NR_DIRS =
-        "alluxio.dora.ufs.list.status.cache.nr.dirs";
+    public static final String DORA_WORKER_LIST_STATUS_MEM_CACHE_SIZE =
+        "alluxio.dora.worker.list.status.mem.cache.size";
 
     private Name() {} // prevent instantiation
   }

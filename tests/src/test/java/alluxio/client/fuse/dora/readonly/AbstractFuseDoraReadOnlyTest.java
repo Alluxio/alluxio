@@ -59,7 +59,6 @@ public abstract class AbstractFuseDoraReadOnlyTest {
   public LocalAlluxioClusterResource mClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED, true)
-          .setProperty(PropertyKey.DORA_CLIENT_METADATA_CACHE_ENABLED, true)
           .setProperty(PropertyKey.DORA_CLIENT_UFS_ROOT, UFS_ROOT.toString())
           .setProperty(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false)
           .setProperty(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, false)
