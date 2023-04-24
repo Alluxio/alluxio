@@ -123,7 +123,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   private static final String DIR_HASH;
 
   /** Threshold to do multipart copy. */
-  private static final long MULTIPART_COPY_THRESHOLD = 100L * Constants.MB;
+  static final long MULTIPART_COPY_THRESHOLD = 100L * Constants.MB;
 
   /** Default owner of objects if owner cannot be determined. */
   private static final String DEFAULT_OWNER = "";
@@ -410,7 +410,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    * @return the endpoint configuration
    */
   @Nullable
-  private static AwsClientBuilder.EndpointConfiguration createEndpointConfiguration(
+  static AwsClientBuilder.EndpointConfiguration createEndpointConfiguration(
       UnderFileSystemConfiguration conf, ClientConfiguration clientConf) {
     if (!conf.isSet(PropertyKey.UNDERFS_S3_ENDPOINT)) {
       LOG.debug("No endpoint configuration generated, using default s3 endpoint");
