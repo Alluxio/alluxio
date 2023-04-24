@@ -39,6 +39,7 @@ import alluxio.grpc.FileFailure;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.Route;
 import alluxio.grpc.RouteFailure;
 import alluxio.grpc.Scope;
@@ -119,7 +120,13 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private final BlockMasterClientPool mBlockMasterClientPool;
   private final String mRootUFS;
   private final LoadingCache<String, DoraMeta.FileStatus> mUfsStatusCache;
-  private final Cache<String, UfsStatus[]> mListStatusCache;
+
+  private class ListStatusResult {
+    public long mTimeStamp;
+    public UfsStatus[] mUfsStatuses;
+  }
+
+  private final Cache<String, ListStatusResult> mListStatusCache;
   private WorkerNetAddress mAddress;
 
   private RocksDBDoraMetaStore mMetaStore;
@@ -267,31 +274,54 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   }
 
   @Override
-  public UfsStatus[] listStatus(String path, ListOptions options) throws IOException {
-    UfsStatus[] statuses = mListStatusCache.getIfPresent(path);
-    if (statuses == null) {
-      // Not found in cache. Query the Under File System.
-      statuses = mUfs.listStatus(path, options);
+  public UfsStatus[] listStatus(String path, ListStatusPOptions options) throws IOException {
+    ListOptions listOptions = ListOptions.defaults().setRecursive(
+        options.hasRecursive() ? options.getRecursive() : false);
 
-      if (statuses == null) {
+    long syncIntervalMs = options.hasCommonOptions()
+        ? (options.getCommonOptions().hasSyncIntervalMs()
+        ? options.getCommonOptions().getSyncIntervalMs() : -1) :
+        -1;
+
+    ListStatusResult result = mListStatusCache.getIfPresent(path);
+    if (syncIntervalMs >= 0 && result != null) {
+      // Check if the metadata is still valid.
+      if (System.nanoTime() - result.mTimeStamp > syncIntervalMs * Constants.MS_NANO) {
+        // The metadata is expired. Remove it from in-memory cache.
+        mListStatusCache.invalidate(path);
+        result = null;
+      }
+    }
+
+    if (result == null) {
+      result = new ListStatusResult();
+      result.mTimeStamp = System.nanoTime();
+      result.mUfsStatuses = null;
+    }
+
+    if (result.mUfsStatuses == null) {
+      // Not found in cache. Query the Under File System.
+      result.mUfsStatuses = mUfs.listStatus(path, listOptions);
+
+      if (result.mUfsStatuses == null) {
         // If empty, the request path might be a regular file/object. Let's retry getStatus().
         try {
           UfsStatus status = mUfs.getStatus(path);
           // listStatus() expects relative name to the @path.
           status.setName("");
-          statuses = new UfsStatus[1];
-          statuses[0] = status;
+          result.mUfsStatuses = new UfsStatus[1];
+          result.mUfsStatuses[0] = status;
         } catch (FileNotFoundException e) {
-          statuses = null;
+          result.mUfsStatuses = null;
         }
       }
 
       // Add this into cache. Return value might be null if not found.
-      if (statuses != null) {
-        mListStatusCache.put(path, statuses);
+      if (result.mUfsStatuses != null) {
+        mListStatusCache.put(path, result);
       }
     }
-    return statuses;
+    return result.mUfsStatuses;
   }
 
   /**

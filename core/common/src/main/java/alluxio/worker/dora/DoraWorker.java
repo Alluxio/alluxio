@@ -14,13 +14,13 @@ package alluxio.worker.dora;
 import alluxio.grpc.File;
 import alluxio.grpc.FileFailure;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.Route;
 import alluxio.grpc.RouteFailure;
 import alluxio.grpc.UfsReadOptions;
 import alluxio.grpc.WriteOptions;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsStatus;
-import alluxio.underfs.options.ListOptions;
 import alluxio.wire.FileInfo;
 import alluxio.worker.DataWorker;
 import alluxio.worker.SessionCleanable;
@@ -58,7 +58,7 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    * @throws IOException
    */
   @Nullable
-  UfsStatus[] listStatus(String path, ListOptions options) throws IOException;
+  UfsStatus[] listStatus(String path, ListStatusPOptions options) throws IOException;
 
   /**
    * Invalidate all cached pages of this file.
