@@ -30,4 +30,20 @@ public enum AclAction {
   public static AclAction ofOrdinal(int ordinal) {
     return VALUES[ordinal];
   }
+
+  /**
+   * @return the AclAction of type {@link alluxio.security.authorization.Mode.Bits}
+   */
+  public Mode.Bits toBit() {
+    switch (this) {
+      case READ:
+        return Mode.Bits.READ;
+      case WRITE:
+        return Mode.Bits.WRITE;
+      case EXECUTE:
+        return Mode.Bits.EXECUTE;
+      default:
+        throw new IllegalStateException(String.format("Unknown AclAction type %s", this));
+    }
+  }
 }
