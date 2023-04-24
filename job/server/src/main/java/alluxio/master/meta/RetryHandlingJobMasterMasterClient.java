@@ -114,27 +114,23 @@ public final class RetryHandlingJobMasterMasterClient extends AbstractJobMasterC
    * @return whether this master should re-register
    */
   public JobMasterMetaCommand heartbeat(final long masterId) throws IOException {
-    // TODO(jiacheng): remove useless fields from heartbeat
-    JobMasterHeartbeatPOptions.Builder optionsBuilder = JobMasterHeartbeatPOptions.newBuilder();
     return retryRPC(() -> mClient
-            .masterHeartbeat(JobMasterHeartbeatPRequest.newBuilder().setMasterId(masterId)
-                    .setOptions(optionsBuilder).build())
-            .getCommand(), LOG, "JobMasterHeartbeat", "masterId=%d", masterId);
+        .masterHeartbeat(JobMasterHeartbeatPRequest.newBuilder().setMasterId(masterId)
+                .setOptions(JobMasterHeartbeatPOptions.getDefaultInstance()).build())
+        .getCommand(), LOG, "JobMasterHeartbeat", "masterId=%d", masterId);
   }
 
   /**
    * Registers with the leader master.
    *
    * @param masterId the master id of the standby master registering
-   * @param configList the configuration of this master
    */
-  public void register(final long masterId, final List<ConfigProperty> configList)
+  public void register(final long masterId)
           throws IOException {
     final Map<String, Gauge> gauges = MetricsSystem.METRIC_REGISTRY.getGauges();
     RegisterJobMasterPOptions.Builder optionsBuilder = RegisterJobMasterPOptions.newBuilder()
             .setVersion(RuntimeConstants.VERSION)
             .setRevision(RuntimeConstants.REVISION_SHORT);
-    // TODO(jiacheng): use separate metrics
     Gauge startTimeGauge = gauges.get(MetricKey.MASTER_START_TIME.getName());
     if (startTimeGauge != null) {
       optionsBuilder.setStartTimeMs((long) startTimeGauge.getValue());
@@ -147,6 +143,6 @@ public final class RetryHandlingJobMasterMasterClient extends AbstractJobMasterC
       mClient.registerMaster(RegisterJobMasterPRequest.newBuilder().setJobMasterId(masterId)
               .setOptions(optionsBuilder).build());
       return null;
-    }, LOG, "Register", "jobMasterId=%d,configList=%s", masterId, configList);
+    }, LOG, "Register", "jobMasterId=%d", masterId);
   }
 }

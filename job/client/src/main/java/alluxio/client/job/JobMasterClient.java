@@ -113,6 +113,11 @@ public interface JobMasterClient extends Client {
    */
   long submit(CmdConfig cmdConfig) throws IOException;
 
+  /**
+   * Gets the status of all job masters in the cluster.
+   *
+   * @return a list of status
+   */
   List<JobMasterStatus> getAllMasterStatus() throws IOException;
 
   /**

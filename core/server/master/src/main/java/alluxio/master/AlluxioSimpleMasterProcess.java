@@ -73,8 +73,6 @@ public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
 
   @Override
   public void start() throws Exception {
-    LOG.info("Start AlluxioSimpleMasterProcess");
-    // RPC service and web service here
     mServices.forEach(SimpleService::start);
     mJournalSystem.start();
     // the leader selector is created in state STANDBY. Once mLeaderSelector.start is called, it
@@ -83,7 +81,6 @@ public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
 
     while (!Thread.interrupted()) {
       startMasterComponents(false);
-      LOG.info("Waiting for primary state");
       // We are in standby mode. Nothing to do until we become the primary.
       mLeaderSelector.waitForState(NodeState.PRIMARY);
       LOG.info("Transitioning from standby to primary");
@@ -93,7 +90,6 @@ public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
       startMasterComponents(true);
       mServices.forEach(SimpleService::promote);
       LOG.info("Primary started");
-      LOG.info("Waiting for standby state");
       // We are in primary mode. Nothing to do until we become the standby.
       mLeaderSelector.waitForState(NodeState.STANDBY);
       LOG.info("Transitioning from primary to standby");

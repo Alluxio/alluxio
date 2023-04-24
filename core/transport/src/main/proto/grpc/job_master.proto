@@ -377,8 +377,6 @@ message RegisterJobMasterPRequest {
 message RegisterJobMasterPResponse {}
 
 message JobMasterHeartbeatPOptions {
-  optional int64 lastCheckpointTime = 1;
-  optional int64 journalEntriesSinceCheckpoint = 2;
 }
 message JobMasterHeartbeatPRequest {
   optional int64 masterId = 1;

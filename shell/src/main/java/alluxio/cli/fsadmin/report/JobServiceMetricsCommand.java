@@ -55,10 +55,9 @@ public class JobServiceMetricsCommand {
     mDateFormatPattern = dateFormatPattern;
   }
 
-  // TODO(jiacheng): extract this
   public static final DateTimeFormatter DATETIME_FORMAT =
-          DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).ofPattern("yyyyMMdd-HHmmss")
-                  .withLocale(Locale.getDefault()).withZone(ZoneId.systemDefault());
+      DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).ofPattern("yyyyMMdd-HHmmss")
+          .withLocale(Locale.getDefault()).withZone(ZoneId.systemDefault());
 
   /**
    * Runs a job services report metrics command.
@@ -67,6 +66,7 @@ public class JobServiceMetricsCommand {
    */
   public int run() throws IOException {
     List<JobMasterStatus> allMasterStatus = mJobMasterClient.getAllMasterStatus();
+    // TODO(jiacheng): further improve format here
     for (JobMasterStatus masterStatus : allMasterStatus) {
       NetAddress address = masterStatus.getMasterAddress();
       mPrintStream.printf("Master Address (RPC port): %-32s  %n", address.getHost() + ":" + address.getRpcPort());
@@ -78,7 +78,7 @@ public class JobServiceMetricsCommand {
     mPrintStream.println();
 
     List<JobWorkerHealth> allWorkerHealth = mJobMasterClient.getAllWorkerHealth();
-
+    // TODO(jiacheng): further improve format here
     for (JobWorkerHealth workerHealth : allWorkerHealth) {
       mPrintStream.printf("Worker: %-10s  ", workerHealth.getHostname());
       mPrintStream.printf("Worker Version: %-16s  ", workerHealth.getVersion());

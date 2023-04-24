@@ -11,6 +11,7 @@
 
 package alluxio.job.wire;
 
+import alluxio.RuntimeConstants;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.MoreObjects;
@@ -44,16 +45,10 @@ public class JobWorkerHealth {
    * @param unfinishedTasks number of unfinished tasks that the worker has
    * @param hostname hostname of the worker
    */
-  // TODO(jiacheng): migrate tests to not use this constructor
   public JobWorkerHealth(long workerId, List<Double> loadAverage, int taskPoolSize,
       int numActiveTasks, int unfinishedTasks, String hostname) {
-    mWorkerId = workerId;
-    mLoadAverage = loadAverage;
-    mUnfinishedTasks = unfinishedTasks;
-    mLastUpdated = CommonUtils.getCurrentMs();
-    mTaskPoolSize = taskPoolSize;
-    mNumActiveTasks = numActiveTasks;
-    mHostname = hostname;
+    this(workerId, loadAverage, taskPoolSize, numActiveTasks, unfinishedTasks, hostname,
+        RuntimeConstants.VERSION, RuntimeConstants.REVISION_SHORT);
   }
 
   /**

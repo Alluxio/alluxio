@@ -260,11 +260,11 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
               () -> new FixedIntervalSupplier(
                   Configuration.getMs(PropertyKey.JOB_MASTER_LOST_WORKER_INTERVAL)),
               Configuration.global(), mMasterContext.getUserState()));
-      getExecutorService().submit(new HeartbeatThread(
-              HeartbeatContext.JOB_MASTER_LOST_MASTER_DETECTION,
+      getExecutorService()
+          .submit(new HeartbeatThread(HeartbeatContext.JOB_MASTER_LOST_MASTER_DETECTION,
               new LostMasterDetectionHeartbeatExecutor(),
               () -> new FixedIntervalSupplier(
-                  Configuration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL)),
+                  Configuration.getMs(PropertyKey.JOB_MASTER_LOST_MASTER_INTERVAL)),
               Configuration.global(), mMasterContext.getUserState()));
       LOG.info("Created heartbeater to detect lost standby job masters");
       if (Configuration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
@@ -283,9 +283,10 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
                 new RetryHandlingJobMasterMasterClient(JobMasterClientContext
                         .newBuilder(ClientContext.create(Configuration.global())).build());
         getExecutorService().submit(new HeartbeatThread(HeartbeatContext.JOB_MASTER_SYNC,
-                new JobMasterSync(mJobMasterAddress, jobMasterClient),
-                () -> Configuration.getMs(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL),
-                Configuration.global(), mMasterContext.getUserState()));
+            new JobMasterSync(mJobMasterAddress, jobMasterClient),
+            () -> new FixedIntervalSupplier(
+                Configuration.getMs(PropertyKey.JOB_MASTER_MASTER_HEARTBEAT_INTERVAL)),
+            Configuration.global(), mMasterContext.getUserState()));
         LOG.info("Standby job master with address {} starts sending heartbeat to leader master.",
                 mJobMasterAddress);
       }
@@ -890,17 +891,14 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     }
 
     @Override
-    // TODO(jiacheng): update the config keys
-    public void heartbeat() {
-      long masterTimeoutMs = Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_TIMEOUT);
-      LOG.info("Heart beat checking status of masters {}",
-              mJobMasters.stream().map(m -> m.getId() + " " + m.getVersion()).collect(Collectors.toList()));
+    public void heartbeat(long timeout) {
+      long masterTimeoutMs = Configuration.getMs(PropertyKey.JOB_MASTER_MASTER_TIMEOUT);
       for (JobMasterInfo master : mJobMasters) {
         synchronized (master) {
           final long lastUpdate = mClock.millis() - master.getLastUpdatedTimeMs();
           if (lastUpdate > masterTimeoutMs) {
-            LOG.error("The standby job master {}({}) timed out after {}ms without a heartbeat!", master.getId(),
-                    master.getAddress(), lastUpdate);
+            LOG.error("A standby job master {}({}) timed out after {}ms without a heartbeat!",
+                master.getId(), master.getAddress(), lastUpdate);
             mLostJobMasters.add(master);
             mJobMasters.remove(master);
           }

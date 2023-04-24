@@ -41,7 +41,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 
@@ -114,8 +113,6 @@ public class RpcServerService implements SimpleService {
     stopRejectingServer();
     waitForFree();
     startGrpcServer(Master::getServices);
-    LOG.info("Started RPC server with {}",
-        mMasterRegistry.getServers().stream().map(m -> m.getServices().keySet()).collect(Collectors.toList()));
   }
 
   protected synchronized void startGrpcServer(

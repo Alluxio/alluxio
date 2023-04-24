@@ -95,7 +95,6 @@ public final class Constants {
   public static final long META_MASTER_CONFIG_SERVICE_VERSION = 2;
   public static final long META_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long META_MASTER_MASTER_SERVICE_VERSION = 1;
-  public static final long META_MASTER_PROXY_SERVICE_VERSION = 1;
   public static final long JOB_MASTER_MASTER_SERVICE_VERSION = 1;
   public static final long METRICS_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long JOURNAL_MASTER_CLIENT_SERVICE_VERSION = 1;

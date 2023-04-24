@@ -62,7 +62,7 @@ public final class JobMasterSync implements HeartbeatExecutor {
    * Heartbeats to the leader master node.
    */
   @Override
-  public void heartbeat() {
+  public void heartbeat(long timeout) {
     LOG.info("Heart beating to primary");
     JobMasterMetaCommand command = null;
     try {
@@ -115,9 +115,7 @@ public final class JobMasterSync implements HeartbeatExecutor {
     LOG.info("Prepare to register to primary job master");
     mMasterId.set(mMasterClient.getId(mMasterAddress));
     LOG.info("Received job master ID {}", mMasterId.get());
-    // TODO(jiacheng): double check the configs to use here
-    mMasterClient.register(mMasterId.get(),
-            Configuration.getConfiguration(Scope.MASTER));
+    mMasterClient.register(mMasterId.get());
     LOG.info("Registered with primary job master");
   }
 

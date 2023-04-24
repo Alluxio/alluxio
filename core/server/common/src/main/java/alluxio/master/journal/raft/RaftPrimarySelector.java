@@ -13,8 +13,6 @@ package alluxio.master.journal.raft;
 
 import alluxio.grpc.NodeState;
 import alluxio.master.AbstractPrimarySelector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import javax.annotation.concurrent.ThreadSafe;
@@ -24,7 +22,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class RaftPrimarySelector extends AbstractPrimarySelector {
-  private static final Logger LOG = LoggerFactory.getLogger(RaftPrimarySelector.class);
 
   /**
    * Notifies leadership state changed.
@@ -37,7 +34,6 @@ public class RaftPrimarySelector extends AbstractPrimarySelector {
   @Override
   public void start(InetSocketAddress address) {
     // The Ratis cluster is owned by the outer {@link RaftJournalSystem}.
-    LOG.info("Job master Raft journal started in state {}", getState());
   }
 
   @Override

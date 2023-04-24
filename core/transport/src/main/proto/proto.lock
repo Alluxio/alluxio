@@ -5359,19 +5359,7 @@
             "name": "RegisterJobMasterPResponse"
           },
           {
-            "name": "JobMasterHeartbeatPOptions",
-            "fields": [
-              {
-                "id": 1,
-                "name": "lastCheckpointTime",
-                "type": "int64"
-              },
-              {
-                "id": 2,
-                "name": "journalEntriesSinceCheckpoint",
-                "type": "int64"
-              }
-            ]
+            "name": "JobMasterHeartbeatPOptions"
           },
           {
             "name": "JobMasterHeartbeatPRequest",
