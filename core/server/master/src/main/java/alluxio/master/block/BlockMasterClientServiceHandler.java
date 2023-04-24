@@ -13,7 +13,6 @@ package alluxio.master.block;
 
 import alluxio.RpcUtils;
 import alluxio.client.block.options.GetWorkerReportOptions;
-import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.BlockMasterClientServiceGrpc;
 import alluxio.grpc.BlockMasterInfo;
 import alluxio.grpc.BlockMasterInfoField;
@@ -34,19 +33,15 @@ import alluxio.grpc.GetWorkerLostStoragePOptions;
 import alluxio.grpc.GetWorkerLostStoragePResponse;
 import alluxio.grpc.GetWorkerReportPOptions;
 import alluxio.grpc.GrpcUtils;
-import alluxio.grpc.RemoveDecommissionedWorkerPOptions;
-import alluxio.grpc.RemoveDecommissionedWorkerPResponse;
-import alluxio.grpc.WorkerInfoField;
-import alluxio.grpc.WorkerRange;
-import alluxio.wire.WorkerInfo;
 
+import alluxio.grpc.RemoveDisabledWorkerPOptions;
+import alluxio.grpc.RemoveDisabledWorkerPResponse;
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -148,13 +143,13 @@ public final class BlockMasterClientServiceHandler
   }
 
   @Override
-  public void removeDecommissionedWorker(RemoveDecommissionedWorkerPOptions options,
-      StreamObserver<RemoveDecommissionedWorkerPResponse> responseObserver) {
+  public void removeDisabledWorker(RemoveDisabledWorkerPOptions options,
+       StreamObserver<RemoveDisabledWorkerPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
       // This command is idempotent and is no-op if the address is not recognized
-      mBlockMaster.removeDecommissionedWorker(options);
-      return RemoveDecommissionedWorkerPResponse.getDefaultInstance();
-    }, "RemoveDecommissionedWorker", "options=%s", responseObserver, options);
+      mBlockMaster.removeDisabledWorker(options);
+      return RemoveDisabledWorkerPResponse.getDefaultInstance();
+    }, "RemoveDisabledWorker", "options=%s", responseObserver, options);
   }
 
   @Override

@@ -189,28 +189,26 @@ public final class AlluxioWorkerRestServiceHandler {
        * thread pool task queues.
        */
       long operations = MetricsSystem.counter(MetricKey.WORKER_ACTIVE_OPERATIONS.getName()).getCount();
-
-      // Queue sizes are not very helpful so we can remove them
-      // This name is just different from others
+      /*
+       * Only the RPC thread pool can have a meaningful length. The other block reader/writer
+       * thread pools all have 0/1 queue length and create threads immediately when there is
+       * a request. So we only need to consider the RPC pool queue length for idleness.
+       */
       String workerRpcPoolSizeGaugeName = MetricKey.WORKER_RPC_QUEUE_LENGTH.getName();
-      int rpcQueueSize = getGaugeValue(workerRpcPoolSizeGaugeName);
-
-      // TODO(jiacheng): Add comment about short circuit
-
-      // Return the WORKER_ACTIVE_CLIENTS as a reference, as info from another source
-      long clients = MetricsSystem.counter(MetricKey.WORKER_ACTIVE_CLIENTS.getName()).getCount();
-      // TODO(jiacheng): further see if the rpc queue size is relevant
-      response.setOperationCount(operations).setClientCount(clients)
+      long rpcQueueSize = getGaugeValue(workerRpcPoolSizeGaugeName);
+      response.setOperationCount(operations)
           .setRpcQueueLength(rpcQueueSize);
-      LOG.info("Checking worker activity: {}", response);
+      LOG.debug("Checking worker activity: {}", response);
       return response;
     }, Configuration.global());
   }
 
-  private static int getGaugeValue(String gaugeName) {
+  // Cast to long to safely handle all gauges
+  private static long getGaugeValue(String gaugeName) {
     try {
       Gauge gauge = MetricsSystem.METRIC_REGISTRY.gauge(gaugeName, null);
-      return (int) gauge.getValue();
+      // Carefully cast here because Integer cannot be cast to Long directly
+      return ((Number) gauge.getValue()).longValue();
     } catch (Exception e) {
       LOG.error("Incorrect gauge name {}. Available names are: {}",
           gaugeName, MetricsSystem.METRIC_REGISTRY.getGauges().keySet(), e);

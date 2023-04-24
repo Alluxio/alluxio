@@ -508,7 +508,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   @Override
   public void cleanupSession(long sessionId) {
     mBlockStore.cleanupSession(sessionId);
-    // TODO(jiacheng): is this a correct spot for block reader close?
     Metrics.WORKER_ACTIVE_CLIENTS.dec();
   }
 

@@ -365,7 +365,7 @@
             ]
           },
           {
-            "name": "RemoveDecommissionedWorkerPOptions",
+            "name": "RemoveDisabledWorkerPOptions",
             "fields": [
               {
                 "id": 1,
@@ -380,7 +380,7 @@
             ]
           },
           {
-            "name": "RemoveDecommissionedWorkerPResponse"
+            "name": "RemoveDisabledWorkerPResponse"
           },
           {
             "name": "GetWorkerLostStoragePOptions"
@@ -846,9 +846,9 @@
                 "out_type": "GetWorkerInfoListPResponse"
               },
               {
-                "name": "RemoveDecommissionedWorker",
-                "in_type": "RemoveDecommissionedWorkerPOptions",
-                "out_type": "RemoveDecommissionedWorkerPResponse"
+                "name": "RemoveDisabledWorker",
+                "in_type": "RemoveDisabledWorkerPOptions",
+                "out_type": "RemoveDisabledWorkerPResponse"
               },
               {
                 "name": "GetWorkerReport",
@@ -1626,6 +1626,14 @@
               {
                 "name": "Persist",
                 "integer": 5
+              },
+              {
+                "name": "Decommissioned",
+                "integer": 6
+              },
+              {
+                "name": "Disabled",
+                "integer": 7
               }
             ]
           },

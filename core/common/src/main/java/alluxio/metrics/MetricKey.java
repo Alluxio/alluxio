@@ -1759,7 +1759,6 @@ public final class MetricKey implements Comparable<MetricKey> {
    * Given time, it should be deprecated and replaced by WORKER_ACTIVE_OPERATIONS.
    */
   @Deprecated
-  // TODO(jiacheng): understand why this gets so big
   public static final MetricKey WORKER_ACTIVE_CLIENTS =
       new Builder("Worker.ActiveClients")
           .setDescription("The number of clients actively reading from or writing to this worker")
@@ -1768,9 +1767,10 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
   public static final MetricKey WORKER_ACTIVE_OPERATIONS =
       new Builder("Worker.ActiveOperations")
-          .setDescription("The number of clients actively reading from or writing to this worker")
+          .setDescription("The number of active RPCs in the worker, including control RPCs "
+              + "and data I/O. Used to tell if the worker is idle or busy.")
           .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(true)
+          .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_BLOCKS_ACCESSED =
       new Builder("Worker.BlocksAccessed")

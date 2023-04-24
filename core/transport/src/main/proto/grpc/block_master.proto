@@ -109,11 +109,11 @@ message WorkerLostStorageInfo {
   /** a map from tier alias to the lost storage paths */
   map<string, StorageList> lostStorage = 2;
 }
-message RemoveDecommissionedWorkerPOptions {
+message RemoveDisabledWorkerPOptions {
   required string workerHostname = 1;
   optional int64 workerWebPort = 2;
 }
-message RemoveDecommissionedWorkerPResponse {}
+message RemoveDisabledWorkerPResponse {}
 
 message GetWorkerLostStoragePOptions {}
 message GetWorkerLostStoragePResponse {
@@ -161,8 +161,8 @@ service BlockMasterClientService {
    * If target worker is in the decommissioned worker set,
    * return true, remove target worker from decommissioned worker set; else, return false.
    */
-  rpc RemoveDecommissionedWorker(RemoveDecommissionedWorkerPOptions)
-      returns (RemoveDecommissionedWorkerPResponse);
+  rpc RemoveDisabledWorker(RemoveDisabledWorkerPOptions)
+      returns (RemoveDisabledWorkerPResponse);
 
   /**
    * Returns a list of workers information for report CLI.

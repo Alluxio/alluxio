@@ -24,7 +24,6 @@ public final class WorkerWebUIOperations implements Serializable {
   private static final long serialVersionUID = 5444572986825500733L;
 
   private long mOperationCount;
-  private long mClientCount;
   private long mRpcQueueLength;
 
   /**
@@ -36,17 +35,13 @@ public final class WorkerWebUIOperations implements Serializable {
   public long getOperationCount() {
     return mOperationCount;
   }
-  public long getClientCount() {
-    return mClientCount;
+
+  public long getRpcQueueLength() {
+    return mRpcQueueLength;
   }
 
   public WorkerWebUIOperations setOperationCount(long operationCount) {
     mOperationCount = operationCount;
-    return this;
-  }
-
-  public WorkerWebUIOperations setClientCount(long clientCount) {
-    mClientCount = clientCount;
     return this;
   }
 
@@ -59,7 +54,6 @@ public final class WorkerWebUIOperations implements Serializable {
   public String toString() {
     return MoreObjects.toStringHelper(this)
             .add("operationCount", mOperationCount)
-            .add("clientCount", mClientCount)
             .add("rpcQueueLength", mRpcQueueLength)
             .toString();
   }

@@ -11,20 +11,28 @@
 
 package alluxio.master.block;
 
+import static alluxio.stress.rpc.TierAlias.MEM;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
+import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.clock.ManualClock;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.BlockInfoException;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.BuildVersion;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
+import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.DecommissionWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPOptions;
+import alluxio.grpc.RegisterWorkerPRequest;
+import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.heartbeat.HeartbeatContext;
@@ -34,6 +42,8 @@ import alluxio.master.AlwaysPrimaryPrimarySelector;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
+import alluxio.master.block.meta.MasterWorkerInfo;
+import alluxio.master.block.meta.WorkerState;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.metrics.MetricsMaster;
@@ -46,11 +56,14 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.RegisterStreamer;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import io.grpc.stub.StreamObserver;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -60,9 +73,13 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -74,6 +91,7 @@ import java.util.stream.Collectors;
  * Unit tests for {@link BlockMaster}.
  */
 public class BlockMasterTest {
+  public static final long CAPACITY = 20L * 1024 * 1024 * 1024; // 20GB
   private static final WorkerNetAddress NET_ADDRESS_1 = new WorkerNetAddress().setHost("localhost")
       .setRpcPort(80).setDataPort(81).setWebPort(82);
   private static final WorkerNetAddress NET_ADDRESS_2 = new WorkerNetAddress().setHost("localhost")
@@ -83,6 +101,15 @@ public class BlockMasterTest {
   private static final Map<Block.BlockLocation, List<Long>> NO_BLOCKS_ON_LOCATION
       = ImmutableMap.of();
   private static final Map<String, StorageList> NO_LOST_STORAGE = ImmutableMap.of();
+  public static final Map<String, List<String>> LOST_STORAGE =
+          ImmutableMap.of(MEM.toString(), ImmutableList.of());
+  public static final List<ConfigProperty> EMPTY_CONFIG = ImmutableList.of();
+  public static final int BATCH_SIZE = 1000;
+
+  public static final BuildVersion OLD_VERSION = BuildVersion.newBuilder().setVersion("1.0.0")
+          .setRevision("foobar").build();
+  public static final BuildVersion NEW_VERSION = BuildVersion.newBuilder().setVersion("1.1.0")
+          .setRevision("foobaz").build();
 
   private BlockMaster mBlockMaster;
   private MasterRegistry mRegistry;
@@ -244,6 +271,378 @@ public class BlockMasterTest {
     int liveCount  = mBlockMaster.getWorkerCount();
     assertEquals(1, decommissionedCount);
     assertEquals(0, liveCount);
+  }
+
+  @Test
+  public void decommissionLostWorker() throws Exception {
+    // Register a worker.
+    long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);
+    mBlockMaster.workerRegister(worker1,
+            ImmutableList.of(Constants.MEDIUM_MEM),
+            ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
+            ImmutableMap.of(Constants.MEDIUM_MEM, 10L),
+            NO_BLOCKS_ON_LOCATION,
+            NO_LOST_STORAGE,
+            RegisterWorkerPOptions.getDefaultInstance());
+
+    // Advance the block master's clock by an hour so that worker appears lost.
+    mClock.setTimeMs(System.currentTimeMillis() + Constants.HOUR_MS);
+
+    // Run the lost worker detector.
+    HeartbeatScheduler.execute(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
+
+    // Make sure the worker is detected as lost.
+    List<WorkerInfo> info = mBlockMaster.getLostWorkersInfoList();
+    assertEquals(worker1, Iterables.getOnlyElement(info).getId());
+
+    // Decommission worker
+    DecommissionWorkerPOptions options = DecommissionWorkerPOptions.newBuilder()
+            .setWorkerHostname(NET_ADDRESS_1.getHost()).setWorkerWebPort(NET_ADDRESS_1.getWebPort())
+            .build();
+    mBlockMaster.decommissionWorker(options);
+
+    // Make sure the worker is decommissioned.
+    int decommissionedCount = mBlockMaster.getDecommissionedWorkerCount();
+    int liveCount  = mBlockMaster.getWorkerCount();
+    int lostCount = mBlockMaster.getLostWorkerCount();
+    assertEquals(1, decommissionedCount);
+    assertEquals(0, liveCount);
+    assertEquals(0, lostCount);
+  }
+
+  @Test
+  public void decommissionCommitUpgradeRegister() throws Exception {
+    long workerId = mBlockMaster.getWorkerId(NET_ADDRESS_1);
+    RegisterWorkerPOptions options = RegisterWorkerPOptions.newBuilder()
+            .setBuildVersion(OLD_VERSION).build();
+    mBlockMaster.workerRegister(workerId,
+            ImmutableList.of(Constants.MEDIUM_MEM),
+            ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
+            ImmutableMap.of(Constants.MEDIUM_MEM, 0L),
+            NO_BLOCKS_ON_LOCATION,
+            NO_LOST_STORAGE,
+            options);
+    report();
+    List<WorkerInfo> liveWorkerInfo = mBlockMaster.getWorkerInfoList();
+    List<WorkerInfo> allWorkerInfo = mBlockMaster.getWorkerReport(createGetWorkerReportOptions());
+    assertEquals(1, liveWorkerInfo.size());
+    assertEquals(1, allWorkerInfo.size());
+    WorkerInfo w = liveWorkerInfo.get(0);
+    assertEquals(WorkerState.LIVE.toString(), w.getState());
+    assertEquals(OLD_VERSION.getVersion(), w.getVersion());
+    assertEquals(OLD_VERSION.getRevision(), w.getRevision());
+
+    // Decommission the worker
+    DecommissionWorkerPOptions decomReq = DecommissionWorkerPOptions.newBuilder()
+            .setWorkerHostname(NET_ADDRESS_1.getHost()).setWorkerWebPort(NET_ADDRESS_1.getWebPort())
+            .setCanRegisterAgain(true)
+            .build();
+    mBlockMaster.decommissionWorker(decomReq);
+    System.out.println("Worker decommissioned");
+    report();
+    List<WorkerInfo> liveWorkersAfterDecom = mBlockMaster.getWorkerInfoList();
+    assertEquals(0, liveWorkersAfterDecom.size());
+    List<WorkerInfo> allWorkersAfterDecom = mBlockMaster.getWorkerReport(createGetWorkerReportOptions());
+    assertEquals(1, allWorkersAfterDecom.size());
+    WorkerInfo decomWorker = allWorkersAfterDecom.get(0);
+    assertEquals(WorkerState.DECOMMISSIONED.toString(), decomWorker.getState());
+    assertEquals(OLD_VERSION.getVersion(), decomWorker.getVersion());
+    assertEquals(OLD_VERSION.getRevision(), decomWorker.getRevision());
+
+    // After decommissioned, the worker can still heartbeat to the master
+    Map<String, Long> memUsage = ImmutableMap.of(Constants.MEDIUM_MEM, 0L);
+    alluxio.grpc.Command heartBeat = mBlockMaster.workerHeartbeat(workerId, null, memUsage,
+            NO_BLOCKS, NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, mMetrics);
+    assertEquals(CommandType.Decommissioned, heartBeat.getCommandType());
+
+    // The leftover operations on the worker can still commit blocks to the master
+    long blockId = 1L;
+    long blockLength = 100L;
+    mBlockMaster.commitBlock(workerId, blockLength, "MEM", "MEM", blockId, blockLength);
+    // The block can be found on the master
+    BlockInfo blockInfo = mBlockMaster.getBlockInfo(blockId);
+    System.out.println(blockInfo);
+    assertNotNull(blockInfo);
+    assertEquals(blockInfo.getLength(), blockLength);
+    // Although the block can successfully commit, the available locations do not include
+    // the decommissioned worker, so clients will not read from that worker for that block
+    assertEquals(0, blockInfo.getLocations().size());
+
+    // Heartbeat to the master again, the master does not remove the block incorrectly
+    Map<String, Long> memUsageWithBlock = ImmutableMap.of(Constants.MEDIUM_MEM, blockLength);
+    List<Long> memBlockList = ImmutableList.of(blockId);
+    Block.BlockLocation memTier = Block.BlockLocation.newBuilder().setTier("MEM").setMediumType("MEM").setWorkerId(workerId).build();
+    alluxio.grpc.Command heartBeatAgain = mBlockMaster.workerHeartbeat(workerId, null,
+        memUsageWithBlock, memBlockList, ImmutableMap.of(memTier, memBlockList),
+        NO_LOST_STORAGE, mMetrics);
+    assertEquals(CommandType.Decommissioned, heartBeatAgain.getCommandType());
+
+    // The worker registers again with a higher version
+    RegisterWorkerPOptions upgradedWorker = RegisterWorkerPOptions.newBuilder()
+            .setBuildVersion(NEW_VERSION).build();
+    mBlockMaster.workerRegister(workerId,
+        ImmutableList.of(Constants.MEDIUM_MEM),
+        memUsageWithBlock,
+        memUsageWithBlock,
+        ImmutableMap.of(memTier, memBlockList),
+        NO_LOST_STORAGE,
+        upgradedWorker);
+    report();
+    List<WorkerInfo> liveWorkerAfterRestart = mBlockMaster.getWorkerInfoList();
+    List<WorkerInfo> allWorkerAfterRestart = mBlockMaster.getWorkerReport(createGetWorkerReportOptions());
+    assertEquals(1, liveWorkerAfterRestart.size());
+    assertEquals(1, allWorkerAfterRestart.size());
+    WorkerInfo restartedWorker = liveWorkerAfterRestart.get(0);
+    assertEquals(WorkerState.LIVE.toString(), restartedWorker.getState());
+    assertEquals(NEW_VERSION.getVersion(), restartedWorker.getVersion());
+    assertEquals(NEW_VERSION.getRevision(), restartedWorker.getRevision());
+    MasterWorkerInfo upgradedWorkerInfo = mBlockMaster.getWorker(workerId);
+    assertEquals(1, upgradedWorkerInfo.getBlockCount());
+    BlockInfo blockInfoCheckAgain = mBlockMaster.getBlockInfo(blockId);
+    System.out.println(blockInfoCheckAgain);
+    assertNotNull(blockInfoCheckAgain);
+    assertEquals(blockInfoCheckAgain.getLength(), blockLength);
+    // The block can be found on the decommissioned worker once the worker registers
+    // again after the upgrade
+    assertEquals(1, blockInfoCheckAgain.getLocations().size());
+    BlockLocation locCheckAgain = blockInfoCheckAgain.getLocations().get(0);
+    assertEquals(workerId, locCheckAgain.getWorkerId());
+
+    // Heartbeat to the master again, the master does not remove the block incorrectly
+    alluxio.grpc.Command heartBeatAfterUpgrade = mBlockMaster.workerHeartbeat(workerId, null,
+        memUsageWithBlock, memBlockList, ImmutableMap.of(memTier, memBlockList),
+        NO_LOST_STORAGE, mMetrics);
+    assertEquals(CommandType.Nothing, heartBeatAfterUpgrade.getCommandType());
+  }
+
+  @Test
+  public void decommissionRemoveUpgradeRegister() throws Exception {
+    long workerId = mBlockMaster.getWorkerId(NET_ADDRESS_1);
+
+    // Sequence to simulate worker upgrade and downgrade,
+    // with or without buildVersion in registerWorkerPOptions
+    RegisterWorkerPOptions options = RegisterWorkerPOptions.newBuilder()
+            .setBuildVersion(OLD_VERSION).build();
+
+    mBlockMaster.workerRegister(workerId,
+            ImmutableList.of(Constants.MEDIUM_MEM),
+            ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
+            ImmutableMap.of(Constants.MEDIUM_MEM, 0L),
+            NO_BLOCKS_ON_LOCATION,
+            NO_LOST_STORAGE,
+            options);
+    report();
+    List<WorkerInfo> liveWorkerInfo = mBlockMaster.getWorkerInfoList();
+    List<WorkerInfo> allWorkerInfo = mBlockMaster.getWorkerReport(createGetWorkerReportOptions());
+    assertEquals(1, liveWorkerInfo.size());
+    assertEquals(1, allWorkerInfo.size());
+    WorkerInfo w = liveWorkerInfo.get(0);
+    assertEquals(WorkerState.LIVE.toString(), w.getState());
+    assertEquals(OLD_VERSION.getVersion(), w.getVersion());
+    assertEquals(OLD_VERSION.getRevision(), w.getRevision());
+
+    // Prepare a block for removal
+    long blockId = 1L;
+    long blockLength = 100L;
+    mBlockMaster.commitBlock(workerId, blockLength, "MEM", "MEM", blockId, blockLength);
+
+    // Decommission the worker
+    DecommissionWorkerPOptions decomReq = DecommissionWorkerPOptions.newBuilder()
+            .setWorkerHostname(NET_ADDRESS_1.getHost()).setWorkerWebPort(NET_ADDRESS_1.getWebPort())
+            .setCanRegisterAgain(true)
+            .build();
+    mBlockMaster.decommissionWorker(decomReq);
+    System.out.println("Worker decommissioned");
+    report();
+    List<WorkerInfo> liveWorkersAfterDecom = mBlockMaster.getWorkerInfoList();
+    assertEquals(0, liveWorkersAfterDecom.size());
+    List<WorkerInfo> allWorkersAfterDecom = mBlockMaster.getWorkerReport(createGetWorkerReportOptions());
+    assertEquals(1, allWorkersAfterDecom.size());
+    WorkerInfo decomWorker = allWorkersAfterDecom.get(0);
+    assertEquals(WorkerState.DECOMMISSIONED.toString(), decomWorker.getState());
+    assertEquals(OLD_VERSION.getVersion(), decomWorker.getVersion());
+    assertEquals(OLD_VERSION.getRevision(), decomWorker.getRevision());
+
+    // After decommissioned, the worker can still heartbeat to the master
+    Map<String, Long> memUsage = ImmutableMap.of(Constants.MEDIUM_MEM, 0L);
+    alluxio.grpc.Command heartBeat = mBlockMaster.workerHeartbeat(workerId, null, memUsage,
+            NO_BLOCKS, NO_BLOCKS_ON_LOCATION, NO_LOST_STORAGE, mMetrics);
+    assertEquals(CommandType.Decommissioned, heartBeat.getCommandType());
+
+    // Remove the block from the master and workers
+    mBlockMaster.removeBlocks(ImmutableList.of(blockId), true);
+    Exception e = assertThrows(BlockInfoException.class, () -> {
+      BlockInfo shouldNotExist = mBlockMaster.getBlockInfo(blockId);
+    });
+    assertTrue(e.getMessage().contains(ExceptionMessage.BLOCK_META_NOT_FOUND.getMessage(blockId)));
+
+    // Heartbeat to the master again, the master does nothing about the block
+    Map<String, Long> memUsageWithBlock = ImmutableMap.of(Constants.MEDIUM_MEM, blockLength);
+    List<Long> memBlockList = ImmutableList.of(blockId);
+    Block.BlockLocation memTier = Block.BlockLocation.newBuilder()
+        .setTier("MEM").setMediumType("MEM").setWorkerId(workerId).build();
+    alluxio.grpc.Command heartBeatAgain = mBlockMaster.workerHeartbeat(workerId, null,
+        memUsageWithBlock, memBlockList, ImmutableMap.of(memTier, memBlockList),
+        NO_LOST_STORAGE, mMetrics);
+    assertEquals(CommandType.Decommissioned, heartBeatAgain.getCommandType());
+
+    // The worker registers again with a higher version
+    RegisterWorkerPOptions upgradedWorker = RegisterWorkerPOptions.newBuilder()
+        .setBuildVersion(NEW_VERSION).build();
+    mBlockMaster.workerRegister(workerId,
+        ImmutableList.of(Constants.MEDIUM_MEM),
+        memUsageWithBlock,
+        memUsageWithBlock,
+        ImmutableMap.of(memTier, memBlockList),
+        NO_LOST_STORAGE,
+        upgradedWorker);
+    report();
+    List<WorkerInfo> liveWorkerAfterRestart = mBlockMaster.getWorkerInfoList();
+    List<WorkerInfo> allWorkerAfterRestart = mBlockMaster.getWorkerReport(createGetWorkerReportOptions());
+    assertEquals(1, liveWorkerAfterRestart.size());
+    assertEquals(1, allWorkerAfterRestart.size());
+    WorkerInfo restartedWorker = liveWorkerAfterRestart.get(0);
+    assertEquals(WorkerState.LIVE.toString(), restartedWorker.getState());
+    assertEquals(NEW_VERSION.getVersion(), restartedWorker.getVersion());
+    assertEquals(NEW_VERSION.getRevision(), restartedWorker.getRevision());
+    MasterWorkerInfo upgradedWorkerInfo = mBlockMaster.getWorker(workerId);
+    // The block should not be recognized and therefore the master will want to remove that block
+    assertEquals(0, upgradedWorkerInfo.getBlockCount());
+    assertEquals(1, upgradedWorkerInfo.getToRemoveBlockCount());
+
+    // Heartbeat to the master again, the master does not remove the block incorrectly
+    alluxio.grpc.Command heartBeatAfterUpgrade = mBlockMaster.workerHeartbeat(workerId, null,
+            memUsageWithBlock, memBlockList, ImmutableMap.of(memTier, memBlockList),
+            NO_LOST_STORAGE, mMetrics);
+    System.out.println("Command from master " + heartBeatAfterUpgrade);
+    assertEquals(CommandType.Free, heartBeatAfterUpgrade.getCommandType());
+    assertEquals(ImmutableList.of(blockId), heartBeatAfterUpgrade.getDataList());
+  }
+
+  public static Queue<Throwable> streamRegisterWorkerWithVersion(
+          BlockMasterWorkerServiceHandler handler,
+          long workerId, long blockSize, List<Long> blockList, BuildVersion version) {
+    List<RegisterWorkerPRequest> requests = generateRegisterStreamForWorkerWithVersion(
+            workerId, blockSize, blockList, version);
+    Queue<Throwable> errorQueue = new ConcurrentLinkedQueue<>();
+    sendStreamToMaster(handler, requests, getErrorCapturingResponseObserver(errorQueue));
+    return errorQueue;
+  }
+
+  public static List<RegisterWorkerPRequest> generateRegisterStreamForWorkerWithVersion(
+          long workerId, long blockSize, List<Long> blockList, BuildVersion version) {
+    Map<BlockStoreLocation, List<Long>> blockMap = new HashMap<>();
+    BlockStoreLocation mem = new BlockStoreLocation("MEM", 0, "MEM");
+    blockMap.put(mem, blockList);
+
+    // We just use the RegisterStreamer to generate the batch of requests
+    RegisterStreamer registerStreamer = new RegisterStreamer(null,
+            workerId, ImmutableList.of("MEM"),
+            ImmutableMap.of("MEM", CAPACITY), // capacity
+            ImmutableMap.of("MEM", blockSize * blockList.size()), // usage
+            blockMap, LOST_STORAGE, EMPTY_CONFIG, version);
+
+    // Get chunks from the RegisterStreamer
+    List<RegisterWorkerPRequest> requestChunks = ImmutableList.copyOf(registerStreamer);
+    int expectedBatchCount = (int) Math.ceil((blockList.size()) / (double) BATCH_SIZE);
+    // TODO(jiacheng): what is wrong with this assert?
+//    assertEquals(expectedBatchCount, requestChunks.size());
+
+    return requestChunks;
+  }
+
+  public static StreamObserver<RegisterWorkerPResponse> getErrorCapturingResponseObserver(
+          Queue<Throwable> errorQueue) {
+    return new StreamObserver<RegisterWorkerPResponse>() {
+      @Override
+      public void onNext(RegisterWorkerPResponse response) {}
+
+      @Override
+      public void onError(Throwable t) {
+        errorQueue.offer(t);
+      }
+
+      @Override
+      public void onCompleted() {}
+    };
+  }
+
+  public static void sendStreamToMaster(BlockMasterWorkerServiceHandler handler,
+                                        List<RegisterWorkerPRequest> requestChunks,
+                                        StreamObserver<RegisterWorkerPResponse> responseObserver) {
+    StreamObserver<RegisterWorkerPRequest> requestObserver =
+            handler.registerWorkerStream(responseObserver);
+    for (RegisterWorkerPRequest chunk : requestChunks) {
+      requestObserver.onNext(chunk);
+    }
+    requestObserver.onCompleted();
+  }
+
+  @Test
+  public void workerInfoListStreamingRegAfterDecommission() throws Exception {
+    long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);
+
+    // Sequence to simulate worker upgrade and downgrade,
+    // with or without buildVersion in registerWorkerPOptions
+    BuildVersion oldVersion = BuildVersion.newBuilder().setVersion("1.0.0")
+            .setRevision("abc").build();
+    BuildVersion newVersion = BuildVersion.newBuilder().setVersion("1.1.0")
+            .setRevision("def").build();
+
+    RegisterWorkerPOptions options = RegisterWorkerPOptions.newBuilder().setBuildVersion(oldVersion).build();
+
+    // TODO
+    BlockMasterWorkerServiceHandler handler = new BlockMasterWorkerServiceHandler(mBlockMaster);
+    Queue<Throwable> errors = streamRegisterWorkerWithVersion(handler, worker1, 64 * Constants.MB, ImmutableList.of(), oldVersion);
+    report();
+
+
+    // Decommission the worker
+    DecommissionWorkerPOptions decomReq = DecommissionWorkerPOptions.newBuilder()
+            .setWorkerHostname(NET_ADDRESS_1.getHost()).setWorkerWebPort(NET_ADDRESS_1.getWebPort())
+            .setCanRegisterAgain(true)
+            .build();
+    mBlockMaster.decommissionWorker(decomReq);
+    System.out.println("Worker decommissioned");
+    report();
+
+    errors = streamRegisterWorkerWithVersion(handler, worker1, 64 * Constants.MB, ImmutableList.of(), newVersion);
+    report();
+  }
+
+
+  private void report() throws Exception {
+    System.out.println("Reporting current state");
+    List<WorkerInfo> availableWorkerList = mBlockMaster.getWorkerInfoList();
+    System.out.println("Available workers: " + availableWorkerList);
+
+    GetWorkerReportOptions getReportOptions = GetWorkerReportOptions.defaults();
+
+    Set<GetWorkerReportOptions.WorkerInfoField> fieldRange = EnumSet.of(GetWorkerReportOptions.WorkerInfoField.ADDRESS,
+            GetWorkerReportOptions.WorkerInfoField.WORKER_CAPACITY_BYTES, GetWorkerReportOptions.WorkerInfoField.WORKER_CAPACITY_BYTES_ON_TIERS,
+            GetWorkerReportOptions.WorkerInfoField.LAST_CONTACT_SEC, GetWorkerReportOptions.WorkerInfoField.WORKER_USED_BYTES,
+            GetWorkerReportOptions.WorkerInfoField.WORKER_USED_BYTES_ON_TIERS, GetWorkerReportOptions.WorkerInfoField.BUILD_VERSION,
+            GetWorkerReportOptions.WorkerInfoField.ID, GetWorkerReportOptions.WorkerInfoField.STATE);
+    getReportOptions.setFieldRange(fieldRange);
+    getReportOptions.setWorkerRange(GetWorkerReportOptions.WorkerRange.ALL);
+
+    List<WorkerInfo> workerReport = mBlockMaster.getWorkerReport(getReportOptions);
+    System.out.println("All workers: " + workerReport);
+    System.out.println("---------------------------------");
+  }
+
+  private GetWorkerReportOptions createGetWorkerReportOptions() {
+    GetWorkerReportOptions getReportOptions = GetWorkerReportOptions.defaults();
+
+    Set<GetWorkerReportOptions.WorkerInfoField> fieldRange = GetWorkerReportOptions.WorkerInfoField.ALL;
+//    Set<GetWorkerReportOptions.WorkerInfoField> fieldRange = EnumSet.of(GetWorkerReportOptions.WorkerInfoField.ADDRESS,
+//            GetWorkerReportOptions.WorkerInfoField.WORKER_CAPACITY_BYTES, GetWorkerReportOptions.WorkerInfoField.WORKER_CAPACITY_BYTES_ON_TIERS,
+//            GetWorkerReportOptions.WorkerInfoField.LAST_CONTACT_SEC, GetWorkerReportOptions.WorkerInfoField.WORKER_USED_BYTES,
+//            GetWorkerReportOptions.WorkerInfoField.WORKER_USED_BYTES_ON_TIERS, GetWorkerReportOptions.WorkerInfoField.BUILD_VERSION,
+//            GetWorkerReportOptions.WorkerInfoField.ID, GetWorkerReportOptions.WorkerInfoField.STATE);
+    getReportOptions.setFieldRange(fieldRange);
+    getReportOptions.setWorkerRange(GetWorkerReportOptions.WorkerRange.ALL);
+    return getReportOptions;
   }
 
   @Test

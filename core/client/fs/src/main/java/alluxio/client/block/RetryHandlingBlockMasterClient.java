@@ -23,7 +23,7 @@ import alluxio.grpc.GetUsedBytesPOptions;
 import alluxio.grpc.GetWorkerInfoListPOptions;
 import alluxio.grpc.GetWorkerLostStoragePOptions;
 import alluxio.grpc.GrpcUtils;
-import alluxio.grpc.RemoveDecommissionedWorkerPOptions;
+import alluxio.grpc.RemoveDisabledWorkerPOptions;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.master.MasterClientContext;
@@ -121,9 +121,9 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public void removeDecommissionedWorker(RemoveDecommissionedWorkerPOptions options) throws IOException {
-    retryRPC(() -> mClient.removeDecommissionedWorker(options),
-            RPC_LOG, "RemoveDecommissionedWorker", "");
+  public void removeDisabledWorker(RemoveDisabledWorkerPOptions options) throws IOException {
+    retryRPC(() -> mClient.removeDisabledWorker(options),
+            RPC_LOG, "RemoveDisabledWorker", "");
   }
 
   @Override

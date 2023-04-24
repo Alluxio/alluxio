@@ -19,6 +19,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.util.SleepUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.UniqueBlockingQueue;
 import alluxio.util.logging.SamplingLogger;
@@ -40,6 +41,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.ThreadSafe;
+import javax.validation.constraints.NotNull;
 
 /**
  * Executors for gRPC block server.
@@ -63,12 +65,9 @@ public final class GrpcExecutors {
   public static final ExecutorService CACHE_MANAGER_EXECUTOR =
       new ImpersonateThreadPoolExecutor(CACHE_MANAGER_THREAD_POOL_EXECUTOR, false);
 
-  // Only in BlockWorkerClientServiceHandler.readBlock() and if not zero_copy enabled
-  // This is used by DataReader threads where each DataReader reads a block content for reply
-  // This pool is 4~2048 threads, the queue is always empty
-  // If the non-core threads have no tasks to execute, they will terminate after the keepalive time
-  // But the core threads will never die so we never know if there are tasks by looking at the
-  // thread pool size
+  // Used by BlockWorkerClientServiceHandler.readBlock() by DataReader threads,
+  // where each DataReader reads a block content for reply.
+  // The thread pool queue is always empty.
   private static final ThreadPoolExecutor BLOCK_READER_THREAD_POOL_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN, Configuration.getInt(
           PropertyKey.WORKER_NETWORK_BLOCK_READER_THREADS_MAX), THREAD_STOP_MS,
@@ -77,10 +76,8 @@ public final class GrpcExecutors {
   public static final ExecutorService BLOCK_READER_EXECUTOR =
       new ImpersonateThreadPoolExecutor(BLOCK_READER_THREAD_POOL_EXECUTOR, true);
 
-  // For replying data to the client in BlockReadHandler
-  // This thread pool has 4~2048 threads
-  // A new task goes to new core thread -> queue -> new thread
-  // so the queue size does not help much
+  // Used for replying data to the client in BlockReadHandler.
+  // The thread pool has a small queue of a constant size.
   private static final ThreadPoolExecutor BLOCK_SERIALIZED_THREAD_POOL_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN,
           Configuration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_READER_THREADS_MAX),
@@ -90,9 +87,7 @@ public final class GrpcExecutors {
   public static final ExecutorService BLOCK_READER_SERIALIZED_RUNNER_EXECUTOR =
       new ImpersonateThreadPoolExecutor(BLOCK_SERIALIZED_THREAD_POOL_EXECUTOR, true);
 
-  // For writing
-  // This thread pool has 4~2048 threads, the queue is always empty
-  // So the queue size does not really help
+  // Used for writing blocks. The queue is always empty.
   private static final ThreadPoolExecutor BLOCK_WRITE_THREAD_POOL_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN, Configuration.getInt(
           PropertyKey.WORKER_NETWORK_BLOCK_WRITER_THREADS_MAX), THREAD_STOP_MS,
@@ -120,7 +115,6 @@ public final class GrpcExecutors {
         MetricKey.WORKER_CACHE_MANAGER_COMPLETED_TASK_COUNT.getName()),
         CACHE_MANAGER_THREAD_POOL_EXECUTOR::getCompletedTaskCount, 5, TimeUnit.SECONDS);
 
-    // TODO(jiacheng): many of these gauges can be cached
     MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
         MetricKey.WORKER_BLOCK_READER_THREAD_ACTIVE_COUNT.getName()),
         BLOCK_READER_THREAD_POOL_EXECUTOR::getActiveCount);
@@ -172,7 +166,6 @@ public final class GrpcExecutors {
    * This executor delegates operations to the underlying executor while setting the
    * ThreadLocal context for execution.
    * */
-  // TODO(jiacheng): double check EE code
   private static class ImpersonateThreadPoolExecutor extends AbstractExecutorService {
     private final ExecutorService mDelegate;
     private final boolean mTracked;
@@ -184,20 +177,19 @@ public final class GrpcExecutors {
 
     @Override
     public void execute(final Runnable command) {
-      final Counter clientCounter = DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS;
       // If there's no impersonation, proxyUser is just null
       User proxyUser = AuthenticatedClientUser.getOrNull();
       mDelegate.execute(() -> {
         if (mTracked) {
-          clientCounter.inc();
-          LOG.trace("Incremented count from execute(Runnable) to {}", clientCounter.getCount());
+          DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS.inc();
         }
         try {
+//          SleepUtils.sleepMs(1000);
           AuthenticatedClientUser.set(proxyUser);
           command.run();
         } finally {
           if (mTracked) {
-            clientCounter.dec();
+            DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS.dec();
           }
           AuthenticatedClientUser.remove();
         }
@@ -206,20 +198,19 @@ public final class GrpcExecutors {
 
     @Override
     public <T> Future<T> submit(Callable<T> task) {
-      final Counter clientCounter = DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS;
       // If there's no impersonation, proxyUser is just null
       User proxyUser = AuthenticatedClientUser.getOrNull();
       return mDelegate.submit(() -> {
         if (mTracked) {
-          clientCounter.inc();
-          LOG.trace("Incremented count from submit(Callable) to {}", clientCounter.getCount());
+          DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS.inc();
         }
         try {
+//          SleepUtils.sleepMs(1000);
           AuthenticatedClientUser.set(proxyUser);
           return task.call();
         } finally {
           if (mTracked) {
-            clientCounter.dec();
+            DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS.dec();
           }
           AuthenticatedClientUser.remove();
         }
@@ -228,25 +219,40 @@ public final class GrpcExecutors {
 
     @Override
     public <T> Future<T> submit(Runnable task, T result) {
-      throw new UnsupportedOperationException("submit(Runnable,T) is not supported");
-    }
-
-    @Override
-    public Future<?> submit(Runnable task) {
-      final Counter clientCounter = DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS;
       // If there's no impersonation, proxyUser is just null
       User proxyUser = AuthenticatedClientUser.getOrNull();
       return mDelegate.submit(() -> {
         if (mTracked) {
-          clientCounter.inc();
-          LOG.trace("Incremented count from submit(Runnable) to {}", clientCounter.getCount());
+          DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS.inc();
         }
         try {
+//          SleepUtils.sleepMs(1000);
           AuthenticatedClientUser.set(proxyUser);
           task.run();
         } finally {
           if (mTracked) {
-            clientCounter.dec();
+            DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS.dec();
+          }
+          AuthenticatedClientUser.remove();
+        }
+      }, result);
+    }
+
+    @Override
+    public Future<?> submit(Runnable task) {
+      // If there's no impersonation, proxyUser is just null
+      User proxyUser = AuthenticatedClientUser.getOrNull();
+      return mDelegate.submit(() -> {
+        if (mTracked) {
+          DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS.inc();
+        }
+        try {
+//          SleepUtils.sleepMs(1000);
+          AuthenticatedClientUser.set(proxyUser);
+          task.run();
+        } finally {
+          if (mTracked) {
+            DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS.dec();
           }
           AuthenticatedClientUser.remove();
         }
@@ -255,33 +261,37 @@ public final class GrpcExecutors {
 
     @Override
     public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks)
-            throws InterruptedException {
+        throws InterruptedException {
+      // Not used. Also the active counter is hard, so we do not support it.
       throw new UnsupportedOperationException("invokeAll(Collection) is not supported");
     }
 
     @Override
     public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout,
-                                         TimeUnit unit) throws InterruptedException {
-      throw new UnsupportedOperationException("invokeAll(Collection,long,TimeUnit) is not supported");
+        TimeUnit unit) throws InterruptedException {
+      // Not used. Also the active counter is hard, so we do not support it.
+      throw new UnsupportedOperationException(
+          "invokeAll(Collection,long,TimeUnit) is not supported");
     }
 
     @Override
-    public <T> T invokeAny(Collection<? extends Callable<T>> tasks)
-            throws InterruptedException, ExecutionException {
+    public <T> T invokeAny(Collection<? extends Callable<T>> tasks) {
+      // Not used. Also the active counter is hard, so we do not support it.
       throw new UnsupportedOperationException("invokeAny(Callable) is not supported");
     }
 
     @Override
-    public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
-            throws InterruptedException, ExecutionException, TimeoutException {
-      throw new UnsupportedOperationException("invokeAny(Callable,long,TimeUnit) is not supported");
+    public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) {
+      // Not used. Also the active counter is hard, so we do not support it.
+      throw new UnsupportedOperationException(
+          "invokeAny(Callable,long,TimeUnit) is not supported");
     }
 
     @Override
     public void shutdown() {
       long operationCount = DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS.getCount();
       if (operationCount > 0) {
-        LOG.warn("{} operations have not completed", operationCount);
+        LOG.warn("{} operations have not completed at shutdown()", operationCount);
       }
       mDelegate.shutdown();
     }
@@ -290,7 +300,7 @@ public final class GrpcExecutors {
     public List<Runnable> shutdownNow() {
       long operationCount = DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS.getCount();
       if (operationCount > 0) {
-        LOG.warn("{} operations have not completed", operationCount);
+        LOG.warn("{} operations have not completed at shutdownNow()", operationCount);
       }
       return mDelegate.shutdownNow();
     }

@@ -80,6 +80,8 @@ enum CommandType {
   Free = 3;     // Ask the worker to free files.
   Delete = 4;   // Ask the worker to delete files.
   Persist = 5;  // Ask the worker to persist a file for lineage
+  Decommissioned = 6; // Notify the worker that it has been decommissioned
+  Disabled = 7; // Notify the worker that it has been disabled
 }
 
 message ConfigProperty {

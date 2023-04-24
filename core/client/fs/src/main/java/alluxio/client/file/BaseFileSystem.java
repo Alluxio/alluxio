@@ -398,6 +398,8 @@ public class BaseFileSystem implements FileSystem {
             .setAccessMode(Bits.READ)
             .setUpdateTimestamps(options.getUpdateLastAccessTime())
             .build());
+    List<BlockLocation> locs = status.getFileBlockInfos().get(0).getBlockInfo().getLocations();
+    System.out.println("In openFile() the file location is " + locs);
     return openFile(status, options);
   }
 

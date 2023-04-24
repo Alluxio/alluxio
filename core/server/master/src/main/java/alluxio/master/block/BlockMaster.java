@@ -23,7 +23,7 @@ import alluxio.grpc.DecommissionWorkerPOptions;
 import alluxio.grpc.GetRegisterLeasePRequest;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
-import alluxio.grpc.RemoveDecommissionedWorkerPOptions;
+import alluxio.grpc.RemoveDisabledWorkerPOptions;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.master.Master;
@@ -392,11 +392,9 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   long getJournaledNextContainerId();
 
   /**
-   * Removes all associated metadata about the decommissioned worker from block master.
-   *
-   * The worker to free must have been decommissioned.
+   * Revert disabling a worker, enabling it to register to the cluster.
    */
-  void removeDecommissionedWorker(RemoveDecommissionedWorkerPOptions requestOptions) throws NotFoundException;
+  void removeDisabledWorker(RemoveDisabledWorkerPOptions requestOptions) throws NotFoundException;
 
   /**
    * Notify the worker id to a master.

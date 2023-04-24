@@ -207,16 +207,16 @@ public class AlluxioExecutorService implements ExecutorService {
   }
 
   @Override
-  public <T> T invokeAny(Collection<? extends Callable<T>> tasks)
-      throws InterruptedException, ExecutionException {
-    // TODO(jiacheng): change to UnsupportedOperationException
-    return null;
+  public <T> T invokeAny(Collection<? extends Callable<T>> tasks) {
+    // Not used. Also the active counter is hard, so we do not support it.
+    throw new UnsupportedOperationException("invokeAny(Collection) is not supported");
   }
 
   @Override
-  public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
-      throws InterruptedException, ExecutionException, TimeoutException {
-    return mExecutor.invokeAny(tasks, timeout, unit);
+  public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) {
+    // Not used. Also the active counter is hard, so we do not support it.
+    throw new UnsupportedOperationException(
+        "invokeAny(Collection,long,TimeUnit) is not supported");
   }
 
   @Override

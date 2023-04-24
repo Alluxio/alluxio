@@ -48,6 +48,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -396,13 +397,16 @@ public class AlluxioFileInStream extends FileInStream {
     if (mFailedWorkers.isEmpty() || mFailedWorkers.size() < blockInfo.getLocations().size()) {
       isBlockInfoOutdated = false;
     } else {
-      for (BlockLocation location : blockInfo.getLocations()) {
+      List<BlockLocation> locs = blockInfo.getLocations();
+      System.out.println("In AlluxioFileInStream the target block locations are " + locs);
+      for (BlockLocation location : locs) {
         if (!mFailedWorkers.containsKey(location.getWorkerAddress())) {
           isBlockInfoOutdated = false;
           break;
         }
       }
     }
+    System.out.println("isBlockInfoOutdated=" + isBlockInfoOutdated);
     if (isBlockInfoOutdated) {
       mBlockInStream = mBlockStore.getInStream(blockId, mOptions, mFailedWorkers);
     } else {
