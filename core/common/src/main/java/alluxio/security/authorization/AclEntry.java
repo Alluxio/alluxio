@@ -77,6 +77,13 @@ public final class AclEntry implements Serializable {
   }
 
   /**
+   * @return the mode bits for the actions
+   */
+  public Mode.Bits getModeBits() {
+    return mActions.toModeBits();
+  }
+
+  /**
    * @return whether the action applies to default ACL
    */
   public boolean isDefault() {
@@ -348,7 +355,6 @@ public final class AclEntry implements Serializable {
      */
     public Builder() {
       mSubject = "";
-      mActions = new AclActions();
     }
 
     /**
@@ -391,12 +397,26 @@ public final class AclEntry implements Serializable {
     }
 
     /**
+     * Sets the ACL actions from the given mode bits.
+     *
+     * @param bits the mode bits
+     * @return the builder
+     */
+    public Builder setActions(Mode.Bits bits) {
+      mActions = new AclActions(bits);
+      return this;
+    }
+
+    /**
      * Adds a permitted action.
      *
      * @param action the permitted action
      * @return the builder
      */
     public Builder addAction(AclAction action) {
+      if (mActions == null) {
+        mActions = new AclActions();
+      }
       mActions.add(action);
       return this;
     }
@@ -424,6 +444,9 @@ public final class AclEntry implements Serializable {
           || mType.equals(AclEntryType.NAMED_GROUP);
       if (subjectRequired && mSubject.isEmpty()) {
         throw new IllegalStateException("Subject for type " + mType + " cannot be empty");
+      }
+      if (mActions == null) {
+        mActions = new AclActions();
       }
       return new AclEntry(mType, mSubject, mActions, mIsDefault);
     }

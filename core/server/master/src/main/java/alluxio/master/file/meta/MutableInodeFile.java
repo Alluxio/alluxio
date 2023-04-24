@@ -557,10 +557,10 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setPersistJobId(inode.getPersistJobId())
         .setShouldPersistTime(inode.getShouldPersistTime())
         .setTempUfsPath(inode.getPersistJobTempUfsPath());
-    if (NEW_ACL) {
+    if (inode.hasNewAccessAcl()) {
       f.setInternalAcl(ProtoUtils.fromProto(inode.getNewAccessAcl()));
     } else {
-      f.setInternalAcl(ProtoUtils.fromProto(inode.getNewAccessAcl()));
+      f.setInternalAcl(ProtoUtils.fromProto(inode.getAccessAcl()));
     }
     if (!inode.getMediumTypeList().isEmpty()) {
       f.setMediumTypes(ImmutableSet.copyOf(inode.getMediumTypeList()));

@@ -159,13 +159,12 @@ public final class ProtoUtils {
    * @return the protobuf representation of {@link AclActions}
    */
   public static Acl.AclActions toProto(AclActions actions) {
-    return Acl.AclActions.newBuilder().setModeBits(actions.toModeBits().toProto()).build();
-//    Acl.AclActions.Builder builder = Acl.AclActions.newBuilder();
-//    for (AclAction action : actions.getActions()) {
-//      Acl.AclAction pAction = toProto(action);
-//      builder.addActions(pAction);
-//    }
-//    return builder.build();
+    Acl.AclActions.Builder builder = Acl.AclActions.newBuilder();
+    for (AclAction action : actions.getActions()) {
+      Acl.AclAction pAction = toProto(action);
+      builder.addActions(pAction);
+    }
+    return builder.build();
   }
 
   /**
@@ -194,9 +193,7 @@ public final class ProtoUtils {
     builder.setType(toProto(aclEntry.getType()));
     builder.setSubject(aclEntry.getSubject());
     builder.setIsDefault(aclEntry.isDefault());
-    for (AclAction action : aclEntry.getActions().getActions()) {
-      builder.addActions(toProto(action));
-    }
+    builder.setModeBits(aclEntry.getModeBits().toProto());
     return builder.build();
   }
 
@@ -410,9 +407,6 @@ public final class ProtoUtils {
    * @return the {@link AclActions} decoded from the protobuf representation
    */
   public static AclActions fromProto(Acl.AclActions actions) {
-    if (actions.hasModeBits()) {
-      return new AclActions(Mode.Bits.fromProto(actions.getModeBits()));
-    }
     AclActions ret = new AclActions();
     for (Acl.AclAction action : actions.getActionsList()) {
       ret.add(fromProto(action));
@@ -447,8 +441,12 @@ public final class ProtoUtils {
     builder.setSubject(pEntry.getSubject());
     builder.setIsDefault(pEntry.getIsDefault());
 
-    for (Acl.AclAction pAction : pEntry.getActionsList()) {
-      builder.addAction(fromProto(pAction));
+    if (pEntry.hasModeBits()) {
+      builder.setActions(Mode.Bits.fromProto(pEntry.getModeBits()));
+    } else {
+      for (Acl.AclAction pAction : pEntry.getActionsList()) {
+        builder.addAction(fromProto(pAction));
+      }
     }
     return builder.build();
   }

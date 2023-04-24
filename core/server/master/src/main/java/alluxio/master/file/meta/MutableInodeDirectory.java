@@ -327,7 +327,7 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setMountPoint(inode.getIsMountPoint())
         .setDirectChildrenLoaded(inode.getHasDirectChildrenLoaded())
         .setChildCount(inode.getChildCount());
-    if (NEW_ACL) {
+    if (inode.hasNewAccessAcl()) {
       d.setInternalAcl(ProtoUtils.fromProto(inode.getNewAccessAcl()));
       d.setDefaultACL((DefaultAccessControlList) ProtoUtils.fromProto(inode.getNewDefaultAcl()));
     } else {
