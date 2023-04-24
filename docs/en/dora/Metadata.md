@@ -21,14 +21,14 @@ be tuned according to available memory resources.
 ### Property Keys for In-memory Cache
 The following keys are used to control the size of in-memory metadata cache from getStatus() result, and the life (Time To Live, TTL) of such metadata.
 - `DORA_UFS_FILE_STATUS_CACHE_SIZE (alluxio.dora.ufs.file.status.cache.size)`: the maximum number of metadata items cached in memory. The average size of a metadata item is about 2K bytes. So if this property key is set to 1M (1024 * 1024), the total memoey required by cache is about 2G bytes.
-- `DORA_UFS_FILE_STATUS_CACHE_TTL (alluxio.dora.ufs.file.status.cache.ttl)`  : the maximum time in seconds that a cached metadata is valid. When a metadata is loaded into memory cache, its TTL starts to tick. After the TTL reaches zero, the metadata is invalidated and will not be accessible. A subsequent access has to load the metadata again.
+- `DORA_UFS_FILE_STATUS_CACHE_TTL (alluxio.dora.ufs.file.status.cache.ttl)`  : the maximum time that a cached metadata is valid. When a metadata is loaded into memory cache, its TTL starts to tick. After the TTL reaches zero, the metadata is invalidated and will not be accessible. A subsequent access has to load the metadata again.
 
 ### Property Keys for In-RocksDB Cache
-- `DORA_WORKER_METASTORE_ROCKSDB_TTL (alluxio.dora.worker.metastore.rocksdb.ttl)`: the maximum time in seconds that a cached metadata in RocksDB is valid. When a metadata is loaded into RocksDB cache, its TTL starts to tick. After the TTL reaches zero, the metadata is invalidated and will not be accessible. The cached metadata will be removed from RocksDB, and subsequent access has to load the metadata again.
+- `DORA_WORKER_METASTORE_ROCKSDB_TTL (alluxio.dora.worker.metastore.rocksdb.ttl)`: the maximum time that a cached metadata in RocksDB is valid. When a metadata is loaded into RocksDB cache, its TTL starts to tick. After the TTL reaches zero, the metadata is invalidated and will not be accessible. The cached metadata will be removed from RocksDB, and subsequent access has to load the metadata again.
 
 ### Property Keys for In-memory ListStatus Cache
 Alluxio workers also cache the result of a ListStatus() request in memory to speed up this operation.
-- `DORA_UFS_LIST_STATUS_CACHE_TTL (alluxio.dora.ufs.list.status.cache.ttl)`: the maximum time in seconds that a ListStatus() result is cached.
+- `DORA_UFS_LIST_STATUS_CACHE_TTL (alluxio.dora.ufs.list.status.cache.ttl)`: the maximum time that a ListStatus() result is cached.
 - `DORA_UFS_LIST_STATUS_CACHE_NR_DIRS (alluxio.dora.ufs.list.status.cache.nr.dirs)`: the maximum number of ListStatus() results cached in memory.
 
 
