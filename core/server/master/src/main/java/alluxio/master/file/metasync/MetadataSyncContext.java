@@ -217,7 +217,6 @@ public class MetadataSyncContext implements Closeable {
    * @param operation the operation
    */
   public void reportSyncOperationSuccess(SyncOperation operation) {
-    operation.getCounter().inc();
     reportSyncOperationSuccess(operation, 1);
   }
 
@@ -240,6 +239,13 @@ public class MetadataSyncContext implements Closeable {
    */
   public void reportSyncFailReason(SyncFailReason reason, Throwable t) {
     mTaskInfo.getStats().reportSyncFailReason(mLoadResult.getLoadRequest(), mLoadResult, reason, t);
+  }
+
+  /**
+   * @return the task info
+   */
+  public TaskInfo getTaskInfo() {
+    return mTaskInfo;
   }
 
   @Override

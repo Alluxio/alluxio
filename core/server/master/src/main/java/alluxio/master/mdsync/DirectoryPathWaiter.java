@@ -28,7 +28,8 @@ class DirectoryPathWaiter extends BaseTask {
 
   DirectoryPathWaiter(
       TaskInfo info, long startTime, Function<AlluxioURI,
-      CloseableResource<UfsClient>> clientSupplier, boolean removeOnComplete) {
+      CloseableResource<UfsClient>> clientSupplier,
+      boolean removeOnComplete) {
     super(info, startTime, clientSupplier, removeOnComplete);
   }
 
