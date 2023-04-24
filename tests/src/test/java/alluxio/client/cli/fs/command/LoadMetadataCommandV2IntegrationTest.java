@@ -98,7 +98,6 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
 
   @Before
   public void before() throws Exception {
-    System.out.println("before before");
     mS3Client = AmazonS3ClientBuilder
         .standard()
         .withPathStyleAccessEnabled(true)
@@ -121,10 +120,7 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
     mJobMaster = mLocalAlluxioJobCluster.getMaster().getJobMaster();
     mJobShell = new alluxio.cli.job.JobShell(Configuration.global());
     mFsShell = new FileSystemShell(Configuration.global());
-    System.out.println("after before");
   }
-
-
 
   @After
   public void after() throws Exception {
@@ -142,95 +138,47 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
 
   @Test
   public void test() {
-
-    System.out.println("testing");
-  }
-
-  @Test
-  public void loadMetadataTestV2Test() throws IOException, AlluxioException {
-    mS3Client.putObject(TEST_BUCKET, TEST_FILE, TEST_CONTENT);
-    AlluxioURI uriDir = new AlluxioURI("/" + TEST_FILE);
-    AlluxioURI uriA = new AlluxioURI(uriDir + "/" + TEST_CONTENT);
-    try {
-      URIStatus statusBeforeA = mFileSystem.getStatus(new AlluxioURI("/"));
-      System.out.println("StatusBefore: " + statusBeforeA);
-    } catch (Exception e) {
-      System.out.println("getting A: " + e);
+    String str = "...... Task group 0 has been submitted successfully. ......";
+    Pattern pattern = Pattern.compile("Task group (\\d+)");
+    Matcher matcher = pattern.matcher(str);
+    if (matcher.find()) {
+      String match = matcher.group(1); // 获取匹配到的数字字符串
+      int num = Integer.parseInt(match); // 将字符串转换为 int 类型
+      System.out.println(num);
     }
-    mFsShell.run("loadMetadata", "-v2", "-R", uriDir.toString());
-    System.out.println("-------------");
-    mFsShell.run("ls", "-R", "/");
-    System.out.println("-------------");
-    S3Object s = mS3Client.getObject(TEST_BUCKET, TEST_FILE);
-    ObjectListing o = mS3Client.listObjects(TEST_BUCKET);
-    System.out.println("ObjectListing: " + o);
-    System.out.println("s: " + s);
-    // Use LoadMetadataPType.NEVER to avoid loading metadata during get file status.
-    GetStatusPOptions getStatusPOptions =
-        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).build();
-    // Check testFileA's metadata.
-    URIStatus statusAfterA = mFileSystem.getStatus(new AlluxioURI("/" + TEST_FILE), getStatusPOptions);
-    // System.out.println("StatusBefore: " + statusBeforeA);
-    System.out.println("StatusAfter: " + statusAfterA);
-    // assertEquals(statusBeforeA.getFileInfo().getName(), statusAfterA.getFileInfo().getName());
-    // assertEquals(statusBeforeA.getFileInfo().getLength(), statusAfterA.getFileInfo().getLength());
-    // Check testFileB's metadata.
-  }
-
-  @Test
-  public void loadMetadataTestV2Dir() throws IOException, AlluxioException {
-    String dirPath = "/testRoot/layer1/layer2/layer3/";
-    String filePathA = PathUtils.concatPath(dirPath, "testFileA");
-    String filePathB = PathUtils.concatPath(dirPath, "testFileB");
-    FileSystemTestUtils
-        .createByteFile(mFileSystem, filePathA, WritePType.CACHE_THROUGH, 10);
-    FileSystemTestUtils
-        .createByteFile(mFileSystem, filePathB, WritePType.CACHE_THROUGH, 30);
-    AlluxioURI uriDir = new AlluxioURI(dirPath);
-    AlluxioURI uriA = new AlluxioURI(filePathA);
-    AlluxioURI uriB = new AlluxioURI(filePathB);
-    URIStatus statusBeforeA = mFileSystem.getStatus(uriA);
-    URIStatus statusBeforeB = mFileSystem.getStatus(uriB);
-    // Delete layer3 directory metadata recursively.
-    DeletePOptions deletePOptions =
-        DeletePOptions.newBuilder().setAlluxioOnly(true).setRecursive(true).build();
-    mFileSystem.delete(uriDir, deletePOptions);
-    // Load metadata from ufs.
-    mFsShell.run("loadMetadata", "-v2", dirPath);
-    // Use LoadMetadataPType.NEVER to avoid loading metadata during get file status.
-    GetStatusPOptions getStatusPOptions =
-        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).build();
-    // Check testFileA's metadata.
-    URIStatus statusAfterA = mFileSystem.getStatus(uriA, getStatusPOptions);
-    assertEquals(statusBeforeA.getFileInfo().getName(), statusAfterA.getFileInfo().getName());
-    assertEquals(statusBeforeA.getFileInfo().getLength(), statusAfterA.getFileInfo().getLength());
-    // Check testFileB's metadata.
-    URIStatus statusAfterB = mFileSystem.getStatus(uriB, getStatusPOptions);
-    assertEquals(statusBeforeB.getFileInfo().getName(), statusAfterB.getFileInfo().getName());
-    assertEquals(statusBeforeB.getFileInfo().getLength(), statusAfterB.getFileInfo().getLength());
   }
 
   // The main idea of this test is start an async loadMetadata task and get its status
+  // Totally three status were tested, RUNNING, CANCELED, SUCCESSES
   @Test
   public void loadMetadataTestV2get() throws IOException, AlluxioException {
     // the cancel dir should be big enough
     for (int i = 0; i < 100; i++) {
       mS3Client.putObject(TEST_BUCKET, TEST_FILE + i, TEST_CONTENT);
     }
+    mOutput.reset();
     AlluxioURI uriDir = new AlluxioURI("/" );
+    // To avoid the loadMetadata blocked until finish
+    // -a/--async param will disable loadMetadata tell anything include task group id, so can't obtain group id from output here
     CompletableFuture<Void> future = CompletableFuture.supplyAsync(() -> {
       mFsShell.run("loadMetadata", "-v2", "-R", uriDir.toString());
       return null;
     });
     FileSystemShell anotherFsShell = new FileSystemShell(Configuration.global());
+    // Running
     anotherFsShell.run("loadMetadata", "-v2", "-o", "get", "-id", "0");
     assertTrue(mOutput.toString().contains("State: RUNNING"));
+    // Cancel success
     anotherFsShell.run("loadMetadata", "-v2", "-o", "cancel", "-id", "0");
     assertTrue(mOutput.toString().contains("Task group 0 cancelled"));
+    // Get cancel
     anotherFsShell.run("loadMetadata", "-v2", "-o", "get", "-id", "0");
     assertTrue(mOutput.toString().contains("State: CANCELED"));
-    mFsShell.run("loadMetadata", "-v2", "-R", uriDir.toString());
     mOutput.reset();
+    mFsShell.run("loadMetadata", "-v2", "-R", uriDir.toString());
+    // clean the mOutput stream
+    mOutput.reset();
+    // start a new loadMetadata task for SUCCEEDED test
     anotherFsShell.run("loadMetadata", "-v2", "-o", "get", "-id", "1");
     assertTrue(mOutput.toString().contains("State: SUCCEEDED"));
   }
@@ -238,63 +186,59 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
   // The main idea of this test is start an async loadMetadata task and cancel it when it's running
   @Test
   public void loadMetadataTestV2cancel() throws IOException, InterruptedException, AlluxioException {
-    // the cancel dir should be big enough
     for (int i = 0; i < 100; i++) {
       mS3Client.putObject(TEST_BUCKET, TEST_FILE + i, TEST_CONTENT);
     }
-    // AlluxioURI uriDir = new AlluxioURI("/" + TEST_FILE);
+    mOutput.reset();
     AlluxioURI uriDir = new AlluxioURI("/" );
     CompletableFuture<Void> future = CompletableFuture.supplyAsync(() -> {
       mFsShell.run("loadMetadata", "-v2", "-R", "-a", uriDir.toString());
       return null;
     });
-    // mFsShell.run("loadMetadata", "-v2", "-R", "-a", uriDir.toString());
-    // this is task group id that comes from mFsShell loadMetadata
-    int id = 0;
-    Pattern pattern = Pattern.compile("Task group id: (\\d+)");
+    String id;
+    Pattern pattern = Pattern.compile("Task group (\\d+)");
     Matcher matcher = pattern.matcher(mOutput.toString());
-    // if (matcher.find()) {
-    //   id = Integer.parseInt(matcher.group(1));
-    // } else {
-    //   // assertTrue(false);
-    // }
-    // mOutput.flush();
+    while(!matcher.find()) {
+      matcher = pattern.matcher(mOutput.toString());
+    }
+    id = matcher.group(1);
     FileSystemShell anotherFsShell = new FileSystemShell(Configuration.global());
-    // anotherFsShell.run("loadMetadata", "-v2", "-o cancel", "-id", matcher.group(1));
 
-    anotherFsShell.run("loadMetadata", "-v2", "-o", "cancel", "-id", "0");
-    assertTrue(mOutput.toString().contains("Task group 0 cancelled"));
-    // assertTrue(mOutput.toString().contains("Load Metadata Canceled"));
-    // assertTrue(mOutput.toString().contains(String.format("Task gourp %d cancelled", id)));
+    anotherFsShell.run("loadMetadata", "-v2", "-o", "cancel", "-id", id);
+    assertTrue(mOutput.toString().contains(String.format("Task group %s cancelled", id)));
     mOutput.reset();
-    anotherFsShell.run("loadMetadata", "-v2", "-o", "cancel", "-id", "0");
-    assertTrue(mOutput.toString().contains(String.format("Task %d not found or has already been canceled", 0)));
+    anotherFsShell.run("loadMetadata", "-v2", "-o", "cancel", "-id", id);
+    assertTrue(mOutput.toString().contains(String.format("Task %s not found or has already been canceled", id)));
   }
 
   // I think here each Param should have a Test
   @Test
   public void loadMetadataTestV2R() throws IOException, AlluxioException {
-    for (int i = 0; i < 100; i++) {
-      mS3Client.putObject(TEST_BUCKET, "test0" + "/" + i, TEST_CONTENT);
-    }
-    for (int i = 0; i < 100; i++) {
-      mS3Client.putObject(TEST_BUCKET, "test1" + "/" + i, TEST_CONTENT);
+    // dir number
+    int dirCount = 2;
+    // Child number for one dir
+    int fileCount = 100;
+    for (int dirIndex = 0; dirIndex < dirCount; dirIndex++) {
+      for (int fileIndex = 0; fileIndex < fileCount; fileIndex++) {
+        mS3Client.putObject(TEST_BUCKET, "test" + dirIndex + "/" + fileIndex, TEST_CONTENT);
+      }
     }
     AlluxioURI uriDir = new AlluxioURI("/" );
-    // mFsShell.run("loadMetadata", "-v2", "-R", "-a", uriDir.toString());
 
     mFsShell.run("loadMetadata", "-v2", "-a", uriDir.toString());
-    assertTrue(mOutput.toString().contains("Success op count={[CREATE:2]}"));
+    assertTrue(mOutput.toString().contains(String.format("Success op count={[CREATE:%d]}", dirCount)));
     mOutput.reset();
     mFsShell.run("loadMetadata", "-v2", "-R", "-a", uriDir.toString());
-    assertTrue(mOutput.toString().contains("Success op count={[CREATE:200]}"));
+    assertTrue(mOutput.toString().contains(String.format("Success op count={[CREATE:%d]}", dirCount * fileCount)));
 
 
   }
 
   @Test
-  public void loadMetadataTestV2() throws IOException, AlluxioException {
-
+  public void loadMetadataTestV2HeavyLoad() throws IOException, AlluxioException {
+    for (int i = 0; i < 1000000; i++) {
+      mS3Client.putObject(TEST_BUCKET, TEST_FILE + i, TEST_CONTENT);
+    }
   }
 
   // heavy load success
