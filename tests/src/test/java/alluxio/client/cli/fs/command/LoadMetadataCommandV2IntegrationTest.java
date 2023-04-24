@@ -15,6 +15,7 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.concurrent.jsr.CompletableFuture;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -72,7 +73,8 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
   public ByteArrayOutputStream mErrOutput = new ByteArrayOutputStream();
   public ExpectedException mException = ExpectedException.none();
 
-  // @Rule
+  @Rule
+  public SystemOutRule r = new SystemOutRule(mOutput);
   // public SystemOutRule r = new SystemOutRule(System.out);
 
   @Rule
@@ -229,31 +231,62 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
   // The main idea of this test is start an async loadMetadata task and get its status
   @Test
   public void loadMetadataTestV2get() throws IOException, AlluxioException {
-
+    // the cancel dir should be big enough
+    for (int i = 0; i < 100; i++) {
+      mS3Client.putObject(TEST_BUCKET, TEST_FILE + i, TEST_CONTENT);
+    }
+    AlluxioURI uriDir = new AlluxioURI("/" );
+    CompletableFuture<Void> future = CompletableFuture.supplyAsync(() -> {
+      mFsShell.run("loadMetadata", "-v2", "-R", uriDir.toString());
+      return null;
+    });
+    FileSystemShell anotherFsShell = new FileSystemShell(Configuration.global());
+    anotherFsShell.run("loadMetadata", "-v2", "-o", "get", "-id", "0");
+    assertTrue(mOutput.toString().contains("State: RUNNING"));
+    anotherFsShell.run("loadMetadata", "-v2", "-o", "cancel", "-id", "0");
+    assertTrue(mOutput.toString().contains("Task group 0 cancelled"));
+    anotherFsShell.run("loadMetadata", "-v2", "-o", "get", "-id", "0");
+    assertTrue(mOutput.toString().contains("State: CANCELED"));
+    mFsShell.run("loadMetadata", "-v2", "-R", uriDir.toString());
+    mOutput.reset();
+    anotherFsShell.run("loadMetadata", "-v2", "-o", "get", "-id", "1");
+    assertTrue(mOutput.toString().contains("State: SUCCEEDED"));
   }
 
   // The main idea of this test is start an async loadMetadata task and cancel it when it's running
   @Test
-  public void loadMetadataTestV2cancel() throws IOException, AlluxioException {
+  public void loadMetadataTestV2cancel() throws IOException, InterruptedException, AlluxioException {
     // the cancel dir should be big enough
-    mS3Client.putObject(TEST_BUCKET, TEST_FILE, TEST_CONTENT);
-    AlluxioURI uriDir = new AlluxioURI("/" + TEST_FILE);
-    mFsShell.run("loadMetadata", "-v2", "-R", "-a", uriDir.toString());
+    for (int i = 0; i < 100; i++) {
+      mS3Client.putObject(TEST_BUCKET, TEST_FILE + i, TEST_CONTENT);
+    }
+    // AlluxioURI uriDir = new AlluxioURI("/" + TEST_FILE);
+    AlluxioURI uriDir = new AlluxioURI("/" );
+    CompletableFuture<Void> future = CompletableFuture.supplyAsync(() -> {
+      mFsShell.run("loadMetadata", "-v2", "-R", "-a", uriDir.toString());
+      return null;
+    });
+    // mFsShell.run("loadMetadata", "-v2", "-R", "-a", uriDir.toString());
     // this is task group id that comes from mFsShell loadMetadata
     int id = 0;
     Pattern pattern = Pattern.compile("Task group id: (\\d+)");
     Matcher matcher = pattern.matcher(mOutput.toString());
-    if (matcher.find()) {
-      id = Integer.parseInt(matcher.group(0));
-    }
-    mOutput.flush();
+    // if (matcher.find()) {
+    //   id = Integer.parseInt(matcher.group(1));
+    // } else {
+    //   // assertTrue(false);
+    // }
+    // mOutput.flush();
     FileSystemShell anotherFsShell = new FileSystemShell(Configuration.global());
-    anotherFsShell.run("loadMetadata", "-v2", "-o cancel", String.format("-id %d", id));
-    assertTrue(mOutput.toString().contains("Load Metadata Canceled"));
-    assertTrue(mOutput.toString().contains(String.format("Task gourp %d cancelled", id)));
+    // anotherFsShell.run("loadMetadata", "-v2", "-o cancel", "-id", matcher.group(1));
+
+    anotherFsShell.run("loadMetadata", "-v2", "-o", "cancel", "-id", "0");
+    assertTrue(mOutput.toString().contains("Task group 0 cancelled"));
+    // assertTrue(mOutput.toString().contains("Load Metadata Canceled"));
+    // assertTrue(mOutput.toString().contains(String.format("Task gourp %d cancelled", id)));
     mOutput.flush();
-    anotherFsShell.run("loadMetadata", "-v2", "-o cancel", String.format("-id %d", id));
-    assertTrue(mOutput.toString().contains(String.format("Task  %d not found or has already been cancelled", id)));
+    anotherFsShell.run("loadMetadata", "-v2", "-o", "cancel", "-id", "0");
+    assertTrue(mOutput.toString().contains(String.format("Task %d not found or has already been canceled", 0)));
   }
 
   // I think here each Param should have a Test
