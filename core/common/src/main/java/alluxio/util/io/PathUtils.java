@@ -288,7 +288,7 @@ public final class PathUtils {
    */
   public static String[] getPathComponents(String path) throws InvalidPathException {
     path = cleanPath(path);
-    if (isRoot(path)) {
+    if (isRootCleaned(path)) {
       return new String[]{""};
     }
     return path.split(AlluxioURI.SEPARATOR);
@@ -371,8 +371,20 @@ public final class PathUtils {
    * @throws InvalidPathException if the path is invalid
    */
   public static boolean isRoot(String path) throws InvalidPathException {
-    return AlluxioURI.SEPARATOR.equals(cleanPath(path));
+    return isRootCleaned(cleanPath(path));
   }
+
+  /**
+   * Checks if the given cleaned path is the root.
+   *
+   * @param path The path to check
+   * @return true if the path is the root
+   * @throws InvalidPathException if the path is invalid
+   */
+  public static boolean isRootCleaned(String path) {
+    return AlluxioURI.SEPARATOR.equals(path);
+  }
+
 
   /**
    * Checks if the given path is properly formed.
@@ -459,11 +471,12 @@ public final class PathUtils {
     String basePath = cleanPath(path);
     List<String> paths = new ArrayList<>();
     if ((basePath != null) && !basePath.equals(AlluxioURI.SEPARATOR)) {
+      basePath = cleanPath(path);
       paths.add(basePath);
-      String parent = getParent(path);
+      String parent = getParentCleaned(path);
       while (!parent.equals(AlluxioURI.SEPARATOR)) {
         paths.add(0, parent);
-        parent = getParent(parent);
+        parent = getParentCleaned(parent);
       }
     }
     return paths;

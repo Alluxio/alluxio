@@ -224,6 +224,9 @@ public class InodeSyncStream {
           .setTtl(-1)
           .build();
 
+  private static final long USER_FILE_METADATA_SYNC_INTERVAL =
+      Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
+
   /** The root path. Should be locked with a write lock. */
   private final LockingScheme mRootScheme;
 
@@ -356,7 +359,7 @@ public class InodeSyncStream {
     mAuditContext = auditContext;
     mAuditContextSrcInodeFunc = auditContextSrcInodeFunc;
     mSyncInterval = options.hasSyncIntervalMs() ? options.getSyncIntervalMs() :
-        Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
+        USER_FILE_METADATA_SYNC_INTERVAL;
     // If an absent cache entry was more recent than this value, then it is valid for this sync
     long validCacheTime;
     if (loadOnly) {

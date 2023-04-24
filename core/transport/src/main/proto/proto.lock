@@ -3123,7 +3123,13 @@
               {
                 "id": 19,
                 "name": "persistenceState",
-                "type": "string"
+                "type": "string",
+                "options": [
+                  {
+                    "name": "deprecated",
+                    "value": "true"
+                  }
+                ]
               },
               {
                 "id": 20,
@@ -3191,6 +3197,11 @@
                 "name": "mediumType",
                 "type": "string",
                 "is_repeated": true
+              },
+              {
+                "id": 34,
+                "name": "persistenceStateEnum",
+                "type": "PersistenceState"
               }
             ],
             "maps": [

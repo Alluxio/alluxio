@@ -141,7 +141,7 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
     ret.setOwner(getOwner());
     ret.setGroup(getGroup());
     ret.setMode(getMode());
-    ret.setPersistenceState(getPersistenceState().toString());
+    ret.setPersistenceState(getPersistenceState());
     ret.setMountPoint(isMountPoint());
     ret.setUfsFingerprint(Constants.INVALID_UFS_FINGERPRINT);
     ret.setAcl(mAcl);

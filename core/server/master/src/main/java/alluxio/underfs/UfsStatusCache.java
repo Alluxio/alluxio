@@ -58,7 +58,9 @@ public class UfsStatusCache {
   private final UfsAbsentPathCache mAbsentCache;
   private final long mCacheValidTime;
   private final ExecutorService mPrefetchExecutor;
-  private final long mUfsFetchTimeout;
+
+  private static final long UFS_FETCH_TIMEOUT =
+      Configuration.getMs(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_TIMEOUT);
 
   /**
    * Create a new instance of {@link UfsStatusCache}.
@@ -77,8 +79,6 @@ public class UfsStatusCache {
     mAbsentCache = absentPathCache;
     mCacheValidTime = cacheValidTime;
     mPrefetchExecutor = prefetchExecutor;
-    mUfsFetchTimeout =
-        Configuration.getMs(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_TIMEOUT);
   }
 
   /**
@@ -262,7 +262,7 @@ public class UfsStatusCache {
       while (true) {
         try {
           Collection<UfsStatus> statuses = prefetchJob.get(
-              mUfsFetchTimeout, TimeUnit.MILLISECONDS);
+              UFS_FETCH_TIMEOUT, TimeUnit.MILLISECONDS);
           if (statuses != null) {
             DefaultFileSystemMaster.Metrics.METADATA_SYNC_PREFETCH_PATHS.inc(statuses.size());
           }

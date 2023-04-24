@@ -28,6 +28,9 @@ public class LoadMetadataContext
 
   private UfsStatus mUfsStatus;
 
+  private static final LoadMetadataPOptions MASTER_DEFAULTS =
+      FileSystemOptionsUtils.loadMetadataDefaults(Configuration.global());
+
   /**
    * Creates context with given option data.
    *
@@ -52,10 +55,9 @@ public class LoadMetadataContext
    * @return the instance of {@link LoadMetadataContext} with default values for master
    */
   public static LoadMetadataContext mergeFrom(LoadMetadataPOptions.Builder optionsBuilder) {
-    LoadMetadataPOptions masterOptions =
-        FileSystemOptionsUtils.loadMetadataDefaults(Configuration.global());
+
     LoadMetadataPOptions.Builder mergedOptionsBuilder =
-        masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
+        MASTER_DEFAULTS.toBuilder().mergeFrom(optionsBuilder.build());
     return create(mergedOptionsBuilder);
   }
 

@@ -380,7 +380,7 @@ message FileInfo {
   optional string owner = 16;
   optional string group = 17;
   optional int32 mode = 18;
-  optional string persistenceState = 19;
+  optional string persistenceState = 19 [deprecated = true];
   optional bool mountPoint = 20;
   repeated FileBlockInfo fileBlockInfos = 21;
   optional grpc.TtlAction ttlAction = 22;
@@ -395,6 +395,8 @@ message FileInfo {
   optional int64 lastAccessTimeMs = 31;
   map<string, bytes> xattr = 32;
   repeated string mediumType = 33;
+
+  optional PersistenceState persistenceStateEnum = 34;
 }
 
 message GetFilePathPResponse {

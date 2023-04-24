@@ -13,6 +13,7 @@ package alluxio.wire;
 
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.TtlAction;
+import alluxio.master.file.meta.PersistenceState;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.util.CommonUtils;
@@ -134,7 +135,7 @@ public class FileInfoTest {
     String userName = CommonUtils.randomAlphaNumString(random.nextInt(10));
     String groupName = CommonUtils.randomAlphaNumString(random.nextInt(10));
     int permission = random.nextInt();
-    String persistenceState = CommonUtils.randomAlphaNumString(random.nextInt(10));
+    PersistenceState persistenceState = PersistenceState.NOT_PERSISTED;
     boolean mountPoint = random.nextBoolean();
     List<FileBlockInfo> fileBlocksInfos = new ArrayList<>();
     long numFileBlockInfos = random.nextInt(10);
