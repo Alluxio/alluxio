@@ -10,3 +10,4 @@
 #
 
 alluxio.underfs.s3a.S3AUnderFileSystemFactory
+alluxio.underfs.s3a.S3MultiUnderFileSystemFactory
