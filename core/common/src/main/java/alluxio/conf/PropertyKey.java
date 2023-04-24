@@ -5983,6 +5983,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "aggregated, so different applications must set their own ids or leave this value "
               + "unset to use a randomly generated id.")
           .build();
+  public static final PropertyKey USER_POSITION_READER_STREAMING_MULTIPLIER =
+      intBuilder(Name.USER_POSITION_READER_STREAMING_MULTIPLIER)
+          .setScope(Scope.CLIENT)
+          .setDefaultValue(16)
+          .setDescription("The size of the sliding window of historic read calls that will be "
+              + "used to determine the size of dynamic buffering. Larger window allows more "
+              + "aggressive prefetching, but uses more memory and suffers a greater loss if the "
+              + "buffered data ends up being unused.")
+          .setIsHidden(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .build();
   public static final PropertyKey USER_SKIP_AUTHORITY_CHECK =
       booleanBuilder(Name.USER_SKIP_AUTHORITY_CHECK)
           .setScope(Scope.CLIENT)
@@ -8564,6 +8575,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_METRICS_HEARTBEAT_INTERVAL_MS =
         "alluxio.user.metrics.heartbeat.interval";
     public static final String USER_APP_ID = "alluxio.user.app.id";
+    public static final String USER_POSITION_READER_STREAMING_MULTIPLIER =
+        "alluxio.user.position.reader.streaming.multiplier";
     public static final String USER_NETWORK_DATA_TIMEOUT =
         "alluxio.user.network.data.timeout";
     public static final String USER_NETWORK_READER_BUFFER_SIZE_MESSAGES =

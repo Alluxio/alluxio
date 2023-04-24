@@ -12,6 +12,8 @@
 package alluxio.client.file;
 
 import alluxio.PositionReader;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
 import alluxio.network.protocol.databuffer.PooledDirectNioByteBuf;
 
@@ -38,16 +40,15 @@ public class PositionReadFileInStream extends FileInStream {
   private final PrefetchCache mCache;
 
   private static class PrefetchCache implements AutoCloseable {
-    private static final int MAX_PREFETCH_MULTIPLIER = 16;
     private final long mFileLength;
-    private final EvictingQueue<CallTrace> mCallHistory =
-        EvictingQueue.create(MAX_PREFETCH_MULTIPLIER);
+    private final EvictingQueue<CallTrace> mCallHistory;
     private int mPrefetchSize = 0;
 
     private ByteBuf mCache = Unpooled.wrappedBuffer(new byte[0]);
     private long mCacheStartPos = 0;
 
-    PrefetchCache(long fileLength) {
+    PrefetchCache(int prefetchMultiplier, long fileLength) {
+      mCallHistory = EvictingQueue.create(prefetchMultiplier);
       mFileLength = fileLength;
     }
 
@@ -159,7 +160,8 @@ public class PositionReadFileInStream extends FileInStream {
       long length) {
     mPositionReader = reader;
     mLength = length;
-    mCache = new PrefetchCache(mLength);
+    mCache = new PrefetchCache(
+        Configuration.getInt(PropertyKey.USER_POSITION_READER_STREAMING_MULTIPLIER), mLength);
   }
 
   @Override
