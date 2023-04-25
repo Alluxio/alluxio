@@ -94,6 +94,13 @@ public final class MasterWorkerInfo {
   public synchronized long getStartTime() {
     return mStartTimeMs;
   }
+  
+  /**
+   * @return the build version
+   */
+  public synchronized BuildVersion getVersion() {
+    return mVersion;
+  }
 
   /**
    * @return generated {@link WorkerInfo} for this worker
