@@ -6612,6 +6612,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
+  public static final PropertyKey FUSE_POSITION_READ_ENABLED =
+      booleanBuilder(Name.FUSE_POSITION_READ_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("By default FUSE uses sequential reader "
+              + "which may have unsatisfied performance "
+              + "when having random read operations. Note that even user side sequential read "
+              + "may lead to Alluxio FUSE side small range random read behavior")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
+          .build();
   public static final PropertyKey FUSE_STAT_CACHE_REFRESH_INTERVAL =
       durationBuilder(Name.FUSE_STAT_CACHE_REFRESH_INTERVAL)
           .setDefaultValue("5min")

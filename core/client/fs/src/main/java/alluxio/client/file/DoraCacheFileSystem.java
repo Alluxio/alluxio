@@ -68,8 +68,8 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   private static final Counter UFS_FALLBACK_COUNTER = MetricsSystem.counter(
       MetricKey.CLIENT_UFS_FALLBACK_COUNT.getName());
   private final DoraCacheClient mDoraClient;
-  private final boolean mMetadataCacheEnabled;
   private final FileSystemContext mFsContext;
+  private final boolean mMetadataCacheEnabled;
   private final long mDefaultVirtualBlockSize;
 
   /**
