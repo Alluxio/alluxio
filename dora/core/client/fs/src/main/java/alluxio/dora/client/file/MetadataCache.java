@@ -11,7 +11,8 @@
 
 package alluxio.dora.client.file;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.client.file.URIStatus;
+import alluxio.AlluxioURI;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;

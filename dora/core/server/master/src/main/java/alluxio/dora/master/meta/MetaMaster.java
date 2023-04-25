@@ -11,19 +11,19 @@
 
 package alluxio.dora.master.meta;
 
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.status.NotFoundException;
-import alluxio.dora.exception.status.UnavailableException;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.dora.master.backup.BackupOps;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.MetaCommand;
 import alluxio.grpc.RegisterMasterPOptions;
-import alluxio.dora.master.Master;
-import alluxio.dora.wire.Address;
-import alluxio.dora.wire.ConfigCheckReport;
-import alluxio.dora.wire.ConfigHash;
-import alluxio.dora.wire.Configuration;
-import alluxio.dora.wire.MasterInfo;
+import alluxio.master.Master;
+import alluxio.wire.Address;
+import alluxio.wire.ConfigCheckReport;
+import alluxio.wire.ConfigHash;
+import alluxio.wire.Configuration;
+import alluxio.wire.MasterInfo;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

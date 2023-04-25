@@ -11,8 +11,8 @@
 
 package alluxio.dora.master.file;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.time.ExponentialTimer;
+import alluxio.AlluxioURI;
+import alluxio.time.ExponentialTimer;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;

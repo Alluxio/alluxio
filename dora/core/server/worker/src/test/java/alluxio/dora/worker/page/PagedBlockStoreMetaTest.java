@@ -18,19 +18,18 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.ConfigurationRule;
-import alluxio.dora.Constants;
+import alluxio.ConfigurationRule;
+import alluxio.Constants;
 import alluxio.dora.client.file.cache.CacheManagerOptions;
 import alluxio.dora.client.file.cache.PageId;
 import alluxio.dora.client.file.cache.PageInfo;
 import alluxio.dora.client.file.cache.store.PageStoreDir;
-import alluxio.dora.collections.Pair;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.util.io.PathUtils;
-import alluxio.dora.worker.block.BlockStoreLocation;
+import alluxio.collections.Pair;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.io.PathUtils;
+import alluxio.worker.block.BlockStoreLocation;
 
-import alluxio.dora.worker.page.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;

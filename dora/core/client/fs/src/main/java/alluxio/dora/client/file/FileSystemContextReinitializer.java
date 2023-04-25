@@ -11,10 +11,10 @@
 
 package alluxio.dora.client.file;
 
-import alluxio.dora.ClientContext;
-import alluxio.dora.concurrent.CountingLatch;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.util.ThreadFactoryUtils;
+import alluxio.ClientContext;
+import alluxio.concurrent.CountingLatch;
+import alluxio.conf.PropertyKey;
+import alluxio.util.ThreadFactoryUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

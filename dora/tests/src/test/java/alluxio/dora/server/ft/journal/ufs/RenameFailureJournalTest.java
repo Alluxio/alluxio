@@ -13,17 +13,17 @@ package alluxio.dora.server.ft.journal.ufs;
 
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.UnderFileSystemFactoryRegistryRule;
+import alluxio.AlluxioURI;
+import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
 import alluxio.dora.testutils.underfs.delegating.DelegatingUnderFileSystem;
 import alluxio.dora.testutils.underfs.delegating.DelegatingUnderFileSystemFactory;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.underfs.UnderFileSystem.Factory;
-import alluxio.dora.util.CommonUtils;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystem.Factory;
+import alluxio.util.CommonUtils;
 
 import com.google.common.io.Files;
 import org.junit.Before;

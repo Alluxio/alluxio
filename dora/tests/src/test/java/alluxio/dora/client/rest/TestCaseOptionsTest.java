@@ -11,8 +11,7 @@
 
 package alluxio.dora.client.rest;
 
-import alluxio.dora.util.CommonUtils;
-
+import alluxio.util.CommonUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -75,7 +74,7 @@ public class TestCaseOptionsTest {
 
   @Test
   public void equals() throws Exception {
-    alluxio.dora.test.util.CommonUtils.testEquals(TestCaseOptions.class, "mCharset");
+    CommonUtils.testEquals(TestCaseOptions.class, "mCharset");
 
     Assert.assertEquals(TestCaseOptions.defaults().setCharset(StandardCharsets.US_ASCII),
         TestCaseOptions.defaults().setCharset(StandardCharsets.US_ASCII));

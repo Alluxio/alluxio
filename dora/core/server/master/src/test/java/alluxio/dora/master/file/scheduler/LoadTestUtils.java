@@ -13,11 +13,11 @@ package alluxio.dora.master.file.scheduler;
 
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.wire.BlockInfo;
-import alluxio.dora.wire.BlockLocation;
-import alluxio.dora.wire.FileBlockInfo;
-import alluxio.dora.wire.FileInfo;
+import alluxio.util.CommonUtils;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.BlockLocation;
+import alluxio.wire.FileBlockInfo;
+import alluxio.wire.FileInfo;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;

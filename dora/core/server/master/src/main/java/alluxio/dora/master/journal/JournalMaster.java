@@ -11,12 +11,12 @@
 
 package alluxio.dora.master.journal;
 
-import alluxio.dora.master.journal.JournalType;
+import alluxio.master.journal.JournalType;
 import alluxio.grpc.GetNodeStatePResponse;
 import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.GetTransferLeaderMessagePResponse;
 import alluxio.grpc.NetAddress;
-import alluxio.dora.master.Master;
+import alluxio.master.Master;
 
 import java.io.IOException;
 

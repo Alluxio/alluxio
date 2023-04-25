@@ -11,11 +11,11 @@
 
 package alluxio.dora.master.metastore.rocks;
 
-import static alluxio.dora.rocks.RocksStore.checkSetTableConfig;
+import static alluxio.rocks.RocksStore.checkSetTableConfig;
 
-import alluxio.dora.collections.Pair;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.collections.Pair;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.master.metastore.InodeStore;
 import alluxio.dora.master.metastore.ReadOption;
 import alluxio.dora.master.file.meta.EdgeEntry;
@@ -23,14 +23,15 @@ import alluxio.dora.master.file.meta.Inode;
 import alluxio.dora.master.file.meta.InodeDirectoryView;
 import alluxio.dora.master.file.meta.InodeView;
 import alluxio.dora.master.file.meta.MutableInode;
-import alluxio.dora.master.journal.checkpoint.CheckpointInputStream;
-import alluxio.dora.master.journal.checkpoint.CheckpointName;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
+import alluxio.master.journal.checkpoint.CheckpointName;
+import alluxio.master.metastore.rocks.RocksUtils;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.meta.InodeMeta;
-import alluxio.dora.resource.CloseableIterator;
-import alluxio.dora.rocks.RocksStore;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.resource.CloseableIterator;
+import alluxio.rocks.RocksStore;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;

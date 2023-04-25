@@ -11,10 +11,12 @@
 
 package alluxio.dora.worker.block;
 
-import alluxio.dora.StorageTierAssoc;
-import alluxio.dora.collections.Pair;
-import alluxio.dora.worker.block.meta.StorageDir;
-import alluxio.dora.worker.block.meta.StorageTier;
+import alluxio.StorageTierAssoc;
+import alluxio.collections.Pair;
+import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.BlockStoreMeta;
+import alluxio.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.StorageTier;
 
 import com.google.common.base.Preconditions;
 

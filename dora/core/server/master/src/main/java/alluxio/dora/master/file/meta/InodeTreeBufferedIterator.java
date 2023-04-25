@@ -11,12 +11,12 @@
 
 package alluxio.dora.master.file.meta;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.master.metastore.InodeStore;
 import alluxio.proto.journal.Journal;
-import alluxio.dora.resource.CloseableIterator;
-import alluxio.dora.util.ThreadFactoryUtils;
+import alluxio.resource.CloseableIterator;
+import alluxio.util.ThreadFactoryUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

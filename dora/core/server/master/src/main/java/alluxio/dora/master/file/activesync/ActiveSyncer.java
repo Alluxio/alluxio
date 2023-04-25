@@ -11,18 +11,18 @@
 
 package alluxio.dora.master.file.activesync;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.SyncInfo;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.heartbeat.HeartbeatExecutor;
+import alluxio.AlluxioURI;
+import alluxio.SyncInfo;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.dora.master.file.FileSystemMaster;
 import alluxio.dora.master.file.meta.MountTable;
-import alluxio.dora.resource.CloseableResource;
-import alluxio.dora.retry.RetryUtils;
-import alluxio.dora.underfs.UfsManager;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.util.LogUtils;
+import alluxio.resource.CloseableResource;
+import alluxio.retry.RetryUtils;
+import alluxio.underfs.UfsManager;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.util.LogUtils;
 
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;

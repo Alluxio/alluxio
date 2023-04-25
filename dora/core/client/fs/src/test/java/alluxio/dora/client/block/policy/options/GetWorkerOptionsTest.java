@@ -13,11 +13,11 @@ package alluxio.dora.client.block.policy.options;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.dora.Constants;
+import alluxio.Constants;
 import alluxio.dora.client.block.BlockWorkerInfo;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.wire.BlockInfo;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.test.util.CommonUtils;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Test;
 
@@ -78,6 +78,6 @@ public final class GetWorkerOptionsTest {
 
   @Test
   public void equalTest() throws Exception {
-    alluxio.dora.test.util.CommonUtils.testEquals(GetWorkerOptions.class);
+    CommonUtils.testEquals(GetWorkerOptions.class);
   }
 }

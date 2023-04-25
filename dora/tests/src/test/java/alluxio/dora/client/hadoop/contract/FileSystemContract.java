@@ -11,7 +11,7 @@
 
 package alluxio.dora.client.hadoop.contract;
 
-import alluxio.dora.Constants;
+import alluxio.Constants;
 import alluxio.dora.hadoop.AbstractFileSystem;
 import alluxio.dora.hadoop.FileSystem;
 import alluxio.dora.master.LocalAlluxioCluster;

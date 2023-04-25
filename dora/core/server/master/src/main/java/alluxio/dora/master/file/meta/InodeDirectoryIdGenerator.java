@@ -11,17 +11,17 @@
 
 package alluxio.dora.master.file.meta;
 
-import alluxio.dora.exception.status.UnavailableException;
-import alluxio.dora.master.block.BlockId;
+import alluxio.exception.status.UnavailableException;
+import alluxio.master.block.BlockId;
 import alluxio.dora.master.block.ContainerIdGenerable;
 import alluxio.dora.master.file.state.DirectoryId;
-import alluxio.dora.master.journal.JournalContext;
-import alluxio.dora.master.journal.Journaled;
-import alluxio.dora.master.journal.checkpoint.CheckpointName;
+import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.Journaled;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.File.InodeDirectoryIdGeneratorEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.dora.resource.CloseableIterator;
-import alluxio.dora.util.CommonUtils;
+import alluxio.resource.CloseableIterator;
+import alluxio.util.CommonUtils;
 
 import com.google.common.base.Preconditions;
 

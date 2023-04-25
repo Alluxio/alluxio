@@ -11,7 +11,7 @@
 
 package alluxio.dora.hadoop;
 
-import alluxio.dora.client.file.URIStatus;
+import alluxio.client.file.URIStatus;
 
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;

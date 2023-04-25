@@ -11,9 +11,10 @@
 
 package alluxio.dora.client.file.cache;
 
-import alluxio.dora.client.quota.CacheScope;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.client.file.cache.ShadowCacheType;
+import alluxio.client.quota.CacheScope;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 
 /**
  * The interface represents a shadow cache which supports put/read/delete/aging operations.

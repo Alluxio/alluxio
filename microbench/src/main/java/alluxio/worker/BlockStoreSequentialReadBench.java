@@ -11,14 +11,14 @@
 
 package alluxio.worker;
 
-import alluxio.dora.AlluxioTestDirectory;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.AlluxioTestDirectory;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.worker.grpc.BlockReadHandler;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.dora.util.io.PathUtils;
-import alluxio.dora.worker.block.BlockStore;
-import alluxio.dora.worker.block.io.BlockReader;
+import alluxio.util.io.PathUtils;
+import alluxio.worker.block.BlockStore;
+import alluxio.worker.block.io.BlockReader;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;

@@ -19,9 +19,8 @@ import alluxio.dora.client.file.cache.evictor.CacheEvictorOptions;
 import alluxio.dora.client.file.cache.evictor.FIFOCacheEvictor;
 import alluxio.dora.client.file.cache.evictor.LFUCacheEvictor;
 import alluxio.dora.client.file.cache.evictor.LRUCacheEvictor;
-import alluxio.dora.util.CommonUtils;
+import alluxio.util.CommonUtils;
 
-import alluxio.dora.worker.page.BlockPageEvictor;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.junit.Before;

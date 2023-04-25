@@ -11,21 +11,21 @@
 
 package alluxio.underfs.web;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.underfs.ConsistentUnderFileSystem;
-import alluxio.dora.underfs.UfsDirectoryStatus;
-import alluxio.dora.underfs.UfsFileStatus;
-import alluxio.dora.underfs.UfsStatus;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.underfs.UnderFileSystemConfiguration;
-import alluxio.dora.underfs.options.CreateOptions;
-import alluxio.dora.underfs.options.DeleteOptions;
-import alluxio.dora.underfs.options.FileLocationOptions;
-import alluxio.dora.underfs.options.MkdirsOptions;
-import alluxio.dora.underfs.options.OpenOptions;
-import alluxio.dora.util.UnderFileSystemUtils;
-import alluxio.dora.util.network.HttpUtils;
+import alluxio.AlluxioURI;
+import alluxio.conf.PropertyKey;
+import alluxio.underfs.ConsistentUnderFileSystem;
+import alluxio.underfs.UfsDirectoryStatus;
+import alluxio.underfs.UfsFileStatus;
+import alluxio.underfs.UfsStatus;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.DeleteOptions;
+import alluxio.underfs.options.FileLocationOptions;
+import alluxio.underfs.options.MkdirsOptions;
+import alluxio.underfs.options.OpenOptions;
+import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.network.HttpUtils;
 
 import com.google.common.io.ByteStreams;
 import org.apache.http.Header;

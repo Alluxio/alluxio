@@ -11,8 +11,8 @@
 
 package alluxio.dora.client.block;
 
-import alluxio.dora.AbstractMasterClient;
-import alluxio.dora.Constants;
+import alluxio.AbstractMasterClient;
+import alluxio.Constants;
 import alluxio.dora.client.block.options.GetWorkerReportOptions;
 import alluxio.grpc.BlockMasterClientServiceGrpc;
 import alluxio.grpc.GetBlockInfoPRequest;
@@ -25,11 +25,11 @@ import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.RemoveDecommissionedWorkerPOptions;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.WorkerLostStorageInfo;
-import alluxio.dora.master.MasterClientContext;
-import alluxio.dora.wire.BlockInfo;
-import alluxio.dora.wire.BlockMasterInfo;
-import alluxio.dora.wire.BlockMasterInfo.BlockMasterInfoField;
-import alluxio.dora.wire.WorkerInfo;
+import alluxio.master.MasterClientContext;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.BlockMasterInfo;
+import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
+import alluxio.wire.WorkerInfo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

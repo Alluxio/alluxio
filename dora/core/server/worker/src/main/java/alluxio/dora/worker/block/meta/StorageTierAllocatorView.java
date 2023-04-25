@@ -11,6 +11,9 @@
 
 package alluxio.dora.worker.block.meta;
 
+import alluxio.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.StorageTier;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

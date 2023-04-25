@@ -11,11 +11,11 @@
 
 package alluxio.dora.master.meta;
 
-import alluxio.dora.conf.Configuration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.MetaCommand;
 import alluxio.grpc.Scope;
-import alluxio.dora.heartbeat.HeartbeatExecutor;
-import alluxio.dora.wire.Address;
+import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.wire.Address;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

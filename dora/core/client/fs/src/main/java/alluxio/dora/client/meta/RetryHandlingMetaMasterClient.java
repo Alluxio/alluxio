@@ -11,8 +11,8 @@
 
 package alluxio.dora.client.meta;
 
-import alluxio.dora.AbstractMasterClient;
-import alluxio.dora.Constants;
+import alluxio.AbstractMasterClient;
+import alluxio.Constants;
 import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.BackupStatusPRequest;
 import alluxio.grpc.CheckpointPOptions;
@@ -22,9 +22,9 @@ import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
 import alluxio.grpc.ServiceType;
-import alluxio.dora.master.MasterClientContext;
-import alluxio.dora.wire.BackupStatus;
-import alluxio.dora.wire.ConfigCheckReport;
+import alluxio.master.MasterClientContext;
+import alluxio.wire.BackupStatus;
+import alluxio.wire.ConfigCheckReport;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

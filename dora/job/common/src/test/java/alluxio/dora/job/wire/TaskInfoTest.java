@@ -13,9 +13,7 @@ package alluxio.dora.job.wire;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.dora.job.wire.Status;
-import alluxio.dora.job.wire.TaskInfo;
-import alluxio.dora.util.CommonUtils;
+import alluxio.util.CommonUtils;
 
 import org.junit.Test;
 

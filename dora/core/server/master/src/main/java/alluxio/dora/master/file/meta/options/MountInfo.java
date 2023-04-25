@@ -11,12 +11,12 @@
 
 package alluxio.dora.master.file.meta.options;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.conf.ConfigurationValueOptions;
+import alluxio.AlluxioURI;
+import alluxio.conf.ConfigurationValueOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.UfsInfo;
-import alluxio.dora.underfs.UnderFileSystemConfiguration;
-import alluxio.dora.wire.MountPointInfo;
+import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.wire.MountPointInfo;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;

@@ -12,7 +12,7 @@
 package alluxio.dora.client.cli.fs.command;
 
 import alluxio.dora.client.cli.fs.AbstractFileSystemShellTest;
-import alluxio.dora.exception.ExceptionMessage;
+import alluxio.exception.ExceptionMessage;
 
 import org.junit.Assert;
 import org.junit.Test;

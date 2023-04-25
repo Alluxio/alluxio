@@ -15,10 +15,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.dora.job.plan.transform.format.TableRow;
 
-import alluxio.dora.job.plan.transform.format.orc.OrcReader;
 import org.junit.Test;
 
 import java.io.File;

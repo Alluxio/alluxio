@@ -11,12 +11,12 @@
 
 package alluxio.dora.master.job.tracker;
 
-import alluxio.dora.exception.JobDoesNotExistException;
+import alluxio.exception.JobDoesNotExistException;
 import alluxio.dora.job.JobConfig;
 import alluxio.dora.job.wire.JobInfo;
 import alluxio.dora.job.wire.Status;
 import alluxio.dora.master.job.JobMaster;
-import alluxio.dora.retry.RetryPolicy;
+import alluxio.retry.RetryPolicy;
 
 import com.beust.jcommander.internal.Sets;
 import org.apache.commons.lang3.StringUtils;

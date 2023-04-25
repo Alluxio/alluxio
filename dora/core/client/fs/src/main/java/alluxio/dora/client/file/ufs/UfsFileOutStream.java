@@ -12,7 +12,7 @@
 package alluxio.dora.client.file.ufs;
 
 import alluxio.dora.client.file.FileOutStream;
-import alluxio.dora.exception.PreconditionMessage;
+import alluxio.exception.PreconditionMessage;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;

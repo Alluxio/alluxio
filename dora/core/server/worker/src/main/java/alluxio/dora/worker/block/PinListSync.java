@@ -11,9 +11,10 @@
 
 package alluxio.dora.worker.block;
 
-import alluxio.dora.heartbeat.HeartbeatExecutor;
+import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.dora.worker.file.FileSystemMasterClient;
 
+import alluxio.worker.block.BlockWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

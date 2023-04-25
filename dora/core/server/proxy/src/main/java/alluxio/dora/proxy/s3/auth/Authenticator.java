@@ -11,10 +11,10 @@
 
 package alluxio.dora.proxy.s3.auth;
 
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.proxy.s3.S3Exception;
-import alluxio.dora.util.CommonUtils;
+import alluxio.util.CommonUtils;
 
 /**
  * Interface to authenticate.

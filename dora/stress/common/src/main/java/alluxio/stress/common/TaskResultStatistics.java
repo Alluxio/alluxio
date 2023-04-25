@@ -11,8 +11,8 @@
 
 package alluxio.stress.common;
 
-import alluxio.dora.Constants;
-import alluxio.dora.annotation.SuppressFBWarnings;
+import alluxio.Constants;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.stress.StressConstants;
 import alluxio.stress.TaskResult;
 

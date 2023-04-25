@@ -11,16 +11,16 @@
 
 package alluxio.cli.command.metadatacache;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.cli.command.AbstractFuseShellCommand;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemUtils;
 import alluxio.dora.client.file.MetadataCachingFileSystem;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.runtime.InvalidArgumentRuntimeException;
-import alluxio.dora.exception.status.InvalidArgumentException;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.InvalidArgumentRuntimeException;
+import alluxio.exception.status.InvalidArgumentException;
 
 /**
  * Metadata cache sub command.

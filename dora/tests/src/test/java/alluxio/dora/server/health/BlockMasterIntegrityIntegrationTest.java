@@ -11,10 +11,10 @@
 
 package alluxio.dora.server.health;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemTestUtils;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.WritePType;
 import alluxio.dora.master.LocalAlluxioCluster;
 import alluxio.dora.master.file.DefaultFileSystemMaster;
@@ -25,9 +25,9 @@ import alluxio.dora.master.file.meta.InodeTree;
 import alluxio.dora.master.file.meta.InodeTree.LockPattern;
 import alluxio.dora.master.file.meta.LockedInodePath;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.WaitForOptions;
-import alluxio.dora.worker.block.BlockWorker;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
+import alluxio.worker.block.BlockWorker;
 
 import org.junit.Assert;
 import org.junit.Before;

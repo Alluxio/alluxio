@@ -11,13 +11,13 @@
 
 package alluxio.dora.worker.block.management.tier;
 
-import alluxio.dora.collections.Pair;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.runtime.ResourceExhaustedRuntimeException;
+import alluxio.collections.Pair;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.dora.worker.block.BlockMetadataEvictorView;
 import alluxio.dora.worker.block.BlockMetadataManager;
-import alluxio.dora.worker.block.BlockStoreLocation;
+import alluxio.worker.block.BlockStoreLocation;
 import alluxio.dora.worker.block.LocalBlockStore;
 import alluxio.dora.worker.block.annotator.BlockOrder;
 import alluxio.dora.worker.block.evictor.BlockTransferInfo;
@@ -27,7 +27,7 @@ import alluxio.dora.worker.block.management.BlockOperationResult;
 import alluxio.dora.worker.block.management.BlockOperationType;
 import alluxio.dora.worker.block.management.ManagementTaskCoordinator;
 import alluxio.dora.worker.block.management.StoreLoadTracker;
-import alluxio.dora.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.BlockMeta;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;

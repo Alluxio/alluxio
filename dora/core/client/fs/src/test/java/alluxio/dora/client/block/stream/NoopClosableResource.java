@@ -11,7 +11,7 @@
 
 package alluxio.dora.client.block.stream;
 
-import alluxio.dora.resource.CloseableResource;
+import alluxio.resource.CloseableResource;
 
 /**
  * A closable resource that does nothing when {@link #closeResource()} is called.

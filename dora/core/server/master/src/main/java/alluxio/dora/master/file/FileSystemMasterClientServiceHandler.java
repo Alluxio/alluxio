@@ -11,11 +11,11 @@
 
 package alluxio.dora.master.file;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.RpcUtils;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.AlluxioException;
+import alluxio.AlluxioURI;
+import alluxio.RpcUtils;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
 import alluxio.dora.master.scheduler.Scheduler;
 import alluxio.grpc.CheckAccessPRequest;
 import alluxio.grpc.CheckAccessPResponse;
@@ -85,8 +85,8 @@ import alluxio.grpc.UpdateMountPRequest;
 import alluxio.grpc.UpdateMountPResponse;
 import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.grpc.UpdateUfsModePResponse;
-import alluxio.dora.job.JobDescription;
-import alluxio.dora.job.JobRequest;
+import alluxio.job.JobDescription;
+import alluxio.job.JobRequest;
 import alluxio.dora.job.util.SerializationUtils;
 import alluxio.dora.master.file.contexts.CheckAccessContext;
 import alluxio.dora.master.file.contexts.CheckConsistencyContext;
@@ -105,11 +105,11 @@ import alluxio.dora.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.dora.master.file.contexts.SetAclContext;
 import alluxio.dora.master.file.contexts.SetAttributeContext;
 import alluxio.dora.master.job.JobFactoryProducer;
-import alluxio.dora.recorder.Recorder;
+import alluxio.recorder.Recorder;
 import alluxio.dora.job.Job;
-import alluxio.dora.underfs.UfsMode;
-import alluxio.dora.wire.MountPointInfo;
-import alluxio.dora.wire.SyncPointInfo;
+import alluxio.underfs.UfsMode;
+import alluxio.wire.MountPointInfo;
+import alluxio.wire.SyncPointInfo;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;

@@ -11,16 +11,16 @@
 
 package alluxio.dora.master;
 
-import alluxio.dora.Server;
+import alluxio.Server;
 import alluxio.grpc.GrpcService;
-import alluxio.dora.master.Master;
-import alluxio.dora.master.MasterContext;
 import alluxio.grpc.ServiceType;
-import alluxio.dora.master.journal.JournalContext;
-import alluxio.dora.master.journal.checkpoint.CheckpointName;
+import alluxio.master.Master;
+import alluxio.master.MasterContext;
+import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.dora.resource.CloseableIterator;
+import alluxio.resource.CloseableIterator;
 
 import java.util.ArrayDeque;
 import java.util.Map;

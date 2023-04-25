@@ -11,10 +11,10 @@
 
 package alluxio.dora.master.job;
 
-import alluxio.dora.master.Master;
-import alluxio.dora.master.audit.AsyncUserAccessAuditLogWriter;
-import alluxio.dora.master.audit.AuditContext;
-import alluxio.dora.security.authentication.AuthType;
+import alluxio.master.Master;
+import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
+import alluxio.master.audit.AuditContext;
+import alluxio.security.authentication.AuthType;
 
 import javax.annotation.concurrent.NotThreadSafe;
 

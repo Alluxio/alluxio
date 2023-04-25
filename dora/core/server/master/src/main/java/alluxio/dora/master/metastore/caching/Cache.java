@@ -11,11 +11,11 @@
 
 package alluxio.dora.master.metastore.caching;
 
-import alluxio.dora.Constants;
+import alluxio.Constants;
 import alluxio.dora.master.metastore.ReadOption;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.util.logging.SamplingLogger;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.util.logging.SamplingLogger;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;

@@ -11,15 +11,15 @@
 
 package alluxio.dora.client.metrics;
 
-import alluxio.dora.ClientContext;
-import alluxio.dora.Constants;
-import alluxio.dora.exception.status.AlluxioStatusException;
-import alluxio.dora.exception.status.UnavailableException;
+import alluxio.ClientContext;
+import alluxio.Constants;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ClientMetrics;
-import alluxio.dora.master.MasterClientContext;
-import alluxio.dora.master.MasterInquireClient;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.util.logging.SamplingLogger;
+import alluxio.master.MasterClientContext;
+import alluxio.master.MasterInquireClient;
+import alluxio.metrics.MetricsSystem;
+import alluxio.util.logging.SamplingLogger;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;

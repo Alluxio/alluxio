@@ -11,21 +11,21 @@
 
 package alluxio.dora.master.meta;
 
-import alluxio.dora.Constants;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.Constants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.BackupPRequest;
-import alluxio.dora.master.BackupManager;
-import alluxio.dora.master.StateLockOptions;
-import alluxio.dora.resource.CloseableResource;
-import alluxio.dora.underfs.UfsManager;
-import alluxio.dora.underfs.UfsStatus;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.FormatUtils;
-import alluxio.dora.util.io.PathUtils;
-import alluxio.dora.wire.BackupStatus;
+import alluxio.master.BackupManager;
+import alluxio.master.StateLockOptions;
+import alluxio.resource.CloseableResource;
+import alluxio.underfs.UfsManager;
+import alluxio.underfs.UfsStatus;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
+import alluxio.util.io.PathUtils;
+import alluxio.wire.BackupStatus;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;

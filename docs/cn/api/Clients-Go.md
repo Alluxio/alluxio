@@ -47,7 +47,7 @@ import (
 	"github.com/alluxio/alluxio-go/option"
 )
 
-func write(fs *alluxio.dora.Client, path, s string) error {
+func write(fs *alluxio.Client, path, s string) error {
 	id, err := fs.CreateFile(path, &option.CreateFile{})
 	if err != nil {
 		return err
@@ -57,7 +57,7 @@ func write(fs *alluxio.dora.Client, path, s string) error {
 	return err
 }
 
-func read(fs *alluxio.dora.Client, path string) (string, error) {
+func read(fs *alluxio.Client, path string) (string, error) {
 	id, err := fs.OpenFile(path, &option.OpenFile{})
 	if err != nil {
 		return "", err

@@ -11,9 +11,9 @@
 
 package alluxio.dora.master.block;
 
-import alluxio.dora.RpcUtils;
+import alluxio.RpcUtils;
 import alluxio.dora.client.block.options.GetWorkerReportOptions;
-import alluxio.dora.exception.status.NotFoundException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.BlockMasterClientServiceGrpc;
 import alluxio.grpc.BlockMasterInfo;
 import alluxio.grpc.BlockMasterInfoField;
@@ -35,7 +35,7 @@ import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.RemoveDecommissionedWorkerPOptions;
 import alluxio.grpc.RemoveDecommissionedWorkerPResponse;
 import alluxio.grpc.WorkerRange;
-import alluxio.dora.wire.WorkerInfo;
+import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;

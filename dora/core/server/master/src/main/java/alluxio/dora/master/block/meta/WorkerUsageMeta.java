@@ -11,8 +11,8 @@
 
 package alluxio.dora.master.block.meta;
 
-import alluxio.dora.DefaultStorageTierAssoc;
-import alluxio.dora.StorageTierAssoc;
+import alluxio.DefaultStorageTierAssoc;
+import alluxio.StorageTierAssoc;
 
 import java.util.EnumSet;
 import java.util.HashMap;

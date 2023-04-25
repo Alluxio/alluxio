@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.throttle;
 
-import alluxio.dora.metrics.MetricsSystem;
+import alluxio.metrics.MetricsSystem;
 
 import com.google.common.base.MoreObjects;
 

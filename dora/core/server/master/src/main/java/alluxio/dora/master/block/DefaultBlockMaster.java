@@ -11,24 +11,24 @@
 
 package alluxio.dora.master.block;
 
-import alluxio.dora.Constants;
-import alluxio.dora.DefaultStorageTierAssoc;
-import alluxio.dora.Server;
-import alluxio.dora.StorageTierAssoc;
-import alluxio.dora.annotation.SuppressFBWarnings;
+import alluxio.Constants;
+import alluxio.DefaultStorageTierAssoc;
+import alluxio.Server;
+import alluxio.StorageTierAssoc;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.dora.client.block.options.GetWorkerReportOptions;
 import alluxio.dora.client.block.options.GetWorkerReportOptions.WorkerRange;
-import alluxio.dora.clock.SystemClock;
-import alluxio.dora.collections.ConcurrentHashSet;
-import alluxio.dora.collections.IndexDefinition;
-import alluxio.dora.collections.IndexedSet;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.BlockInfoException;
-import alluxio.dora.exception.ExceptionMessage;
-import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.dora.exception.status.NotFoundException;
-import alluxio.dora.exception.status.UnavailableException;
+import alluxio.clock.SystemClock;
+import alluxio.collections.ConcurrentHashSet;
+import alluxio.collections.IndexDefinition;
+import alluxio.collections.IndexedSet;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.BlockInfoException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.InvalidArgumentException;
+import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.ConfigProperty;
@@ -40,41 +40,40 @@ import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
-import alluxio.dora.heartbeat.HeartbeatContext;
-import alluxio.dora.heartbeat.HeartbeatExecutor;
-import alluxio.dora.heartbeat.HeartbeatThread;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.heartbeat.HeartbeatThread;
 import alluxio.dora.master.CoreMaster;
 import alluxio.dora.master.CoreMasterContext;
 import alluxio.dora.master.block.meta.MasterWorkerInfo;
 import alluxio.dora.master.block.meta.WorkerMetaLockSection;
-import alluxio.dora.master.journal.JournalContext;
-import alluxio.dora.master.journal.checkpoint.CheckpointName;
+import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.dora.master.metastore.BlockMetaStore;
-import alluxio.dora.master.metastore.BlockMetaStore.Block;
 import alluxio.dora.master.metrics.MetricsMaster;
-import alluxio.dora.metrics.Metric;
-import alluxio.dora.metrics.MetricInfo;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
+import alluxio.metrics.Metric;
+import alluxio.metrics.MetricInfo;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
 import alluxio.proto.journal.Block.DeleteBlockEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
-import alluxio.dora.resource.CloseableIterator;
-import alluxio.dora.resource.LockResource;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.IdUtils;
-import alluxio.dora.util.ThreadFactoryUtils;
-import alluxio.dora.util.executor.ExecutorServiceFactories;
-import alluxio.dora.util.executor.ExecutorServiceFactory;
-import alluxio.dora.util.network.NetworkAddressUtils;
-import alluxio.dora.wire.Address;
-import alluxio.dora.wire.BlockInfo;
-import alluxio.dora.wire.RegisterLease;
-import alluxio.dora.wire.WorkerInfo;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.resource.CloseableIterator;
+import alluxio.resource.LockResource;
+import alluxio.util.CommonUtils;
+import alluxio.util.IdUtils;
+import alluxio.util.ThreadFactoryUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.util.executor.ExecutorServiceFactory;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.Address;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.RegisterLease;
+import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -1510,7 +1509,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     blockLocations.sort(Comparator.comparingInt(
             o -> MASTER_STORAGE_TIER_ASSOC.getOrdinal(o.getTier())));
 
-    List<alluxio.dora.wire.BlockLocation> locations = new ArrayList<>(blockLocations.size());
+    List<alluxio.wire.BlockLocation> locations = new ArrayList<>(blockLocations.size());
     for (BlockLocation location : blockLocations) {
       MasterWorkerInfo workerInfo =
           mWorkers.getFirstByField(ID_INDEX, location.getWorkerId());
@@ -1518,7 +1517,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         // worker metadata is intentionally not locked here because:
         // - it would be an incorrect order (correct order is lock worker first, then block)
         // - only uses getters of final variables
-        locations.add(new alluxio.dora.wire.BlockLocation().setWorkerId(location.getWorkerId())
+        locations.add(new alluxio.wire.BlockLocation().setWorkerId(location.getWorkerId())
             .setWorkerAddress(workerInfo.getWorkerAddress())
             .setTierAlias(location.getTier()).setMediumType(location.getMediumType()));
       }

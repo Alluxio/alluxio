@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.job;
 
-import alluxio.dora.RpcUtils;
+import alluxio.RpcUtils;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.JobHeartbeatPRequest;
 import alluxio.grpc.JobHeartbeatPResponse;

@@ -11,8 +11,8 @@
 
 package alluxio.dora.job.plan.transform.format;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.exception.ExceptionMessage;
+import alluxio.AlluxioURI;
+import alluxio.exception.ExceptionMessage;
 import alluxio.dora.job.JobIntegrationTest;
 import alluxio.dora.job.plan.transform.PartitionInfo;
 

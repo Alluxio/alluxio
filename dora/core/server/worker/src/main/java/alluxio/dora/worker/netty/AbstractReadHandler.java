@@ -11,16 +11,16 @@
 
 package alluxio.dora.worker.netty;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.status.AlluxioStatusException;
-import alluxio.dora.exception.status.InternalException;
-import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.dora.network.protocol.RPCMessage;
-import alluxio.dora.network.protocol.RPCProtoMessage;
-import alluxio.dora.network.protocol.databuffer.DataBuffer;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.InternalException;
+import alluxio.exception.status.InvalidArgumentException;
+import alluxio.network.protocol.RPCMessage;
+import alluxio.network.protocol.RPCProtoMessage;
+import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.dora.resource.LockResource;
+import alluxio.resource.LockResource;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;

@@ -11,13 +11,13 @@
 
 package alluxio.dora.job.util;
 
-import alluxio.dora.Constants;
-import alluxio.dora.exception.JobDoesNotExistException;
+import alluxio.Constants;
+import alluxio.exception.JobDoesNotExistException;
 import alluxio.dora.job.wire.JobInfo;
 import alluxio.dora.job.wire.Status;
 import alluxio.dora.master.job.JobMaster;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.WaitForOptions;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;

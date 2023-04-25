@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.file.meta;
 
-import alluxio.dora.exception.BlockInfoException;
+import alluxio.exception.BlockInfoException;
 
 import java.util.List;
 

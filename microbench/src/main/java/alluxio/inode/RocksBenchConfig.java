@@ -13,11 +13,11 @@ package alluxio.inode;
 
 import static org.apache.commons.io.FileUtils.writeStringToFile;
 
-import alluxio.dora.conf.InstancedConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.dora.master.metastore.rocks.DataBlockIndexType;
-import alluxio.dora.master.metastore.rocks.IndexType;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.status.InvalidArgumentException;
+import alluxio.master.metastore.rocks.DataBlockIndexType;
+import alluxio.master.metastore.rocks.IndexType;
 import alluxio.dora.master.metastore.rocks.RocksInodeStore;
 
 import java.io.File;

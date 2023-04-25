@@ -18,17 +18,17 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-import alluxio.dora.Constants;
+import alluxio.Constants;
 import alluxio.grpc.Chunk;
 import alluxio.grpc.RequestType;
 import alluxio.grpc.WriteRequestCommand;
 import alluxio.grpc.WriteResponse;
 import alluxio.dora.databuffer.ByteArrayDataBuffer;
-import alluxio.dora.network.protocol.databuffer.DataBuffer;
-import alluxio.dora.security.authentication.AuthenticatedUserInfo;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.WaitForOptions;
-import alluxio.dora.util.io.BufferUtils;
+import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.security.authentication.AuthenticatedUserInfo;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
+import alluxio.util.io.BufferUtils;
 
 import com.google.protobuf.ByteString;
 import io.grpc.Status;

@@ -13,10 +13,9 @@ package alluxio.dora.worker.grpc;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.dora.security.User;
-import alluxio.dora.security.authentication.AuthenticatedClientUser;
+import alluxio.security.User;
+import alluxio.security.authentication.AuthenticatedClientUser;
 
-import alluxio.dora.worker.grpc.GrpcExecutors;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

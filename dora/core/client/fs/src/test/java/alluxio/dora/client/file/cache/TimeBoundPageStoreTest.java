@@ -19,14 +19,14 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import alluxio.dora.Constants;
+import alluxio.Constants;
 import alluxio.dora.client.file.cache.store.ByteArrayTargetBuffer;
 import alluxio.dora.client.file.cache.store.PageStoreOptions;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.InstancedConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.PageNotFoundException;
-import alluxio.dora.util.io.BufferUtils;
+import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.PageNotFoundException;
+import alluxio.util.io.BufferUtils;
 
 import org.junit.Before;
 import org.junit.Rule;

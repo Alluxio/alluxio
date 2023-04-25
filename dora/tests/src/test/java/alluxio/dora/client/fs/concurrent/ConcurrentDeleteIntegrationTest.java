@@ -11,14 +11,14 @@
 
 package alluxio.dora.client.fs.concurrent;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.AuthenticatedUserRule;
-import alluxio.dora.Constants;
-import alluxio.dora.UnderFileSystemFactoryRegistryRule;
+import alluxio.AlluxioURI;
+import alluxio.AuthenticatedUserRule;
+import alluxio.Constants;
+import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;

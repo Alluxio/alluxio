@@ -11,8 +11,8 @@
 
 package alluxio.underfs.swift;
 
-import alluxio.dora.retry.RetryPolicy;
-import alluxio.dora.underfs.MultiRangeObjectInputStream;
+import alluxio.retry.RetryPolicy;
+import alluxio.underfs.MultiRangeObjectInputStream;
 
 import org.javaswift.joss.exception.NotFoundException;
 import org.javaswift.joss.instructions.DownloadInstructions;

@@ -11,7 +11,7 @@
 
 package alluxio.dora.job.plan.transform.format.orc;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.dora.job.plan.transform.format.JobPath;
 import alluxio.dora.job.plan.transform.format.ReadWriterUtils;
 import alluxio.dora.job.plan.transform.format.TableReader;

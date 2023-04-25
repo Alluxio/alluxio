@@ -11,15 +11,15 @@
 
 package alluxio.dora.client.file;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Constants;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.exception.FileDoesNotExistException;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.ScheduleAsyncPersistencePOptions;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.WaitForOptions;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;

@@ -12,16 +12,16 @@
 package alluxio.dora.client.block.stream;
 
 import alluxio.dora.client.Cancelable;
-import alluxio.dora.client.WriteType;
+import alluxio.client.WriteType;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.client.file.options.OutStreamOptions;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.RequestType;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.network.NettyUtils;
-import alluxio.dora.util.network.NetworkAddressUtils;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.util.CommonUtils;
+import alluxio.util.network.NettyUtils;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.WorkerNetAddress;
 
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;

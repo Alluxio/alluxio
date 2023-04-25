@@ -11,9 +11,9 @@
 
 package alluxio.inode;
 
-import alluxio.dora.AlluxioTestDirectory;
-import alluxio.dora.collections.Pair;
-import alluxio.dora.conf.Configuration;
+import alluxio.AlluxioTestDirectory;
+import alluxio.collections.Pair;
+import alluxio.conf.Configuration;
 import alluxio.dora.master.file.contexts.CreateDirectoryContext;
 import alluxio.dora.master.file.contexts.CreateFileContext;
 import alluxio.dora.master.file.meta.Inode;

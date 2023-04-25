@@ -11,9 +11,8 @@
 
 package alluxio;
 
-import static alluxio.dora.RpcUtils.callAndReturn;
+import static alluxio.RpcUtils.callAndReturn;
 
-import alluxio.dora.RpcUtils;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;

@@ -11,25 +11,25 @@
 
 package alluxio.dora.client.block.stream;
 
-import alluxio.dora.Seekable;
+import alluxio.Seekable;
 import alluxio.dora.client.BoundedStream;
 import alluxio.dora.client.PositionedReadable;
-import alluxio.dora.client.ReadType;
+import alluxio.client.ReadType;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.client.file.options.InStreamOptions;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.PreconditionMessage;
-import alluxio.dora.exception.status.NotFoundException;
-import alluxio.dora.exception.status.OutOfRangeException;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.PreconditionMessage;
+import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.OutOfRangeException;
 import alluxio.grpc.ReadRequest;
-import alluxio.dora.network.protocol.databuffer.DataBuffer;
+import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.dora.util.io.BufferUtils;
-import alluxio.dora.util.network.NettyUtils;
-import alluxio.dora.util.network.NetworkAddressUtils;
-import alluxio.dora.wire.BlockInfo;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.util.io.BufferUtils;
+import alluxio.util.network.NettyUtils;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;

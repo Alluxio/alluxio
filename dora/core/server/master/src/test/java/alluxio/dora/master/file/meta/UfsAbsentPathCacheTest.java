@@ -11,12 +11,9 @@
 
 package alluxio.dora.master.file.meta;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 
-import alluxio.dora.master.file.meta.AsyncUfsAbsentPathCache;
-import alluxio.dora.master.file.meta.NoopUfsAbsentPathCache;
-import alluxio.dora.master.file.meta.UfsAbsentPathCache;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;

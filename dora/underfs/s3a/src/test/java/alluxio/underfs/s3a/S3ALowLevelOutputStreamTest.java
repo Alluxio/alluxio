@@ -16,10 +16,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.InstancedConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.util.FormatUtils;
+import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.FormatUtils;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;

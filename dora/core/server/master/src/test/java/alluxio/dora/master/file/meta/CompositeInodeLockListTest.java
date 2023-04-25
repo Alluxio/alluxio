@@ -14,7 +14,7 @@ package alluxio.dora.master.file.meta;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-import alluxio.dora.concurrent.LockMode;
+import alluxio.concurrent.LockMode;
 
 import org.junit.After;
 import org.junit.Rule;

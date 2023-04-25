@@ -15,21 +15,20 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.ConfigurationRule;
-import alluxio.dora.Constants;
+import alluxio.ConfigurationRule;
+import alluxio.Constants;
 import alluxio.dora.client.file.cache.CacheManagerOptions;
 import alluxio.dora.client.file.cache.PageId;
 import alluxio.dora.client.file.cache.PageInfo;
 import alluxio.dora.client.file.cache.allocator.Allocator;
 import alluxio.dora.client.file.cache.store.PageStoreDir;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.PageNotFoundException;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.PageNotFoundException;
 import alluxio.dora.worker.block.AbstractBlockStoreEventListener;
-import alluxio.dora.worker.block.BlockStoreEventListener;
-import alluxio.dora.worker.block.BlockStoreLocation;
+import alluxio.worker.block.BlockStoreEventListener;
+import alluxio.worker.block.BlockStoreLocation;
 
-import alluxio.dora.worker.page.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;

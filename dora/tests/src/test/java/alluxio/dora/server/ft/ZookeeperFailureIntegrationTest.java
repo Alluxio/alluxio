@@ -15,22 +15,22 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 
-import alluxio.dora.ConfigurationRule;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.ConfigurationRule;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.FileSystemMasterClientServiceGrpc;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ListStatusPRequest;
-import alluxio.dora.master.ZookeeperConnectionErrorPolicy;
-import alluxio.dora.master.journal.JournalType;
+import alluxio.master.ZookeeperConnectionErrorPolicy;
+import alluxio.master.journal.JournalType;
 import alluxio.dora.process.MasterNetAddress;
 import alluxio.dora.process.MultiProcessCluster;
 import alluxio.dora.process.PortCoordination;
 import alluxio.dora.testutils.AlluxioOperationThread;
 import alluxio.dora.testutils.BaseIntegrationTest;
-import alluxio.dora.util.CommonUtils;
+import alluxio.util.CommonUtils;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;

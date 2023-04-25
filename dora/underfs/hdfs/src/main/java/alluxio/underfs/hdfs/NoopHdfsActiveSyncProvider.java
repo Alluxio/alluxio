@@ -11,8 +11,8 @@
 
 package alluxio.underfs.hdfs;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.SyncInfo;
+import alluxio.AlluxioURI;
+import alluxio.SyncInfo;
 
 /**
  * The noop HDFS Active Sync provider.

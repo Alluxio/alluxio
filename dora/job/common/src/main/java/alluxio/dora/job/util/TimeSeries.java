@@ -11,7 +11,7 @@
 
 package alluxio.dora.job.util;
 
-import alluxio.dora.Constants;
+import alluxio.Constants;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

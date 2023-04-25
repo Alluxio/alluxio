@@ -13,21 +13,21 @@ package alluxio.dora.server.ft.journal;
 
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Constants;
-import alluxio.dora.client.WriteType;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.client.WriteType;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.exception.FileAlreadyExistsException;
-import alluxio.dora.exception.status.CancelledException;
-import alluxio.dora.exception.status.UnavailableException;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.FileAlreadyExistsException;
+import alluxio.exception.status.CancelledException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.dora.master.LocalAlluxioCluster;
-import alluxio.dora.master.journal.JournalSystem;
-import alluxio.dora.master.journal.JournalType;
+import alluxio.master.journal.JournalSystem;
+import alluxio.master.journal.JournalType;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.WaitForOptions;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import org.junit.Before;
 import org.junit.Rule;

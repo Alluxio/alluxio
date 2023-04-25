@@ -11,15 +11,15 @@
 
 package alluxio.dora.worker;
 
-import alluxio.dora.ProcessUtils;
-import alluxio.dora.RuntimeConstants;
-import alluxio.dora.conf.Configuration;
+import alluxio.ProcessUtils;
+import alluxio.RuntimeConstants;
+import alluxio.conf.Configuration;
 import alluxio.grpc.Scope;
-import alluxio.dora.master.MasterInquireClient;
-import alluxio.dora.retry.RetryUtils;
-import alluxio.dora.user.ServerUserState;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.ConfigurationUtils;
+import alluxio.master.MasterInquireClient;
+import alluxio.retry.RetryUtils;
+import alluxio.user.ServerUserState;
+import alluxio.util.CommonUtils;
+import alluxio.util.ConfigurationUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

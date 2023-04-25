@@ -11,13 +11,13 @@
 
 package alluxio.stress;
 
-import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.LocationBlockIdListEntry;
-import alluxio.dora.master.MasterClientContext;
+import alluxio.master.MasterClientContext;
 import alluxio.dora.worker.block.BlockMapIterator;
 import alluxio.dora.worker.block.BlockMasterClient;
-import alluxio.dora.worker.block.BlockStoreLocation;
+import alluxio.worker.block.BlockStoreLocation;
 import alluxio.dora.worker.block.RegisterStreamer;
 
 import org.slf4j.Logger;

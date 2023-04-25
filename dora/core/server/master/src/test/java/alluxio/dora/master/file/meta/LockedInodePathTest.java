@@ -17,15 +17,15 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.TestLoggerRule;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.InvalidPathException;
-import alluxio.dora.exception.status.UnavailableException;
+import alluxio.AlluxioURI;
+import alluxio.TestLoggerRule;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.dora.master.file.meta.InodeTree.LockPattern;
-import alluxio.dora.master.journal.JournalContext;
-import alluxio.dora.master.journal.NoopJournalContext;
+import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.NoopJournalContext;
 
 import org.junit.After;
 import org.junit.Assert;

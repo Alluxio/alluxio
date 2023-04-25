@@ -15,17 +15,16 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import alluxio.dora.Constants;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.metrics.MetricInfo;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.worker.block.BlockStoreMeta;
-import alluxio.dora.worker.block.BlockWorker;
-import alluxio.dora.worker.block.DefaultBlockWorker;
+import alluxio.Constants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.metrics.MetricInfo;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.dora.worker.block.DefaultBlockWorker.Metrics;
 
+import alluxio.worker.block.BlockStoreMeta;
+import alluxio.worker.block.BlockWorker;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Before;

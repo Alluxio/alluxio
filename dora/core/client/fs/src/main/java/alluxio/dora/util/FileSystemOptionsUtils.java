@@ -11,10 +11,10 @@
 
 package alluxio.dora.util;
 
-import alluxio.dora.client.ReadType;
-import alluxio.dora.client.WriteType;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.client.ReadType;
+import alluxio.client.WriteType;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -37,8 +37,9 @@ import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.UnmountPOptions;
-import alluxio.dora.security.authorization.Mode;
-import alluxio.dora.wire.OperationId;
+import alluxio.security.authorization.Mode;
+import alluxio.util.ModeUtils;
+import alluxio.wire.OperationId;
 
 import java.util.UUID;
 

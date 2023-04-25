@@ -11,16 +11,16 @@
 
 package alluxio.dora.client.cli.fs.command;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.UnderFileSystemFactoryRegistryRule;
+import alluxio.AlluxioURI;
+import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.dora.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.dora.client.file.FileSystemTestUtils;
-import alluxio.dora.client.file.URIStatus;
+import alluxio.client.file.URIStatus;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.WritePType;
 import alluxio.dora.testutils.underfs.ConfExpectingUnderFileSystemFactory;
-import alluxio.dora.util.io.BufferUtils;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.util.io.BufferUtils;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;

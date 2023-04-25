@@ -12,7 +12,7 @@
 package alluxio.dora.master.backup;
 
 import alluxio.grpc.BackupPStatus;
-import alluxio.dora.wire.BackupStatus;
+import alluxio.wire.BackupStatus;
 
 import com.google.common.base.MoreObjects;
 import io.atomix.catalyst.buffer.BufferInput;

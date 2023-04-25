@@ -11,13 +11,13 @@
 
 package alluxio.dora.master.journal.tool;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.master.NoopMaster;
-import alluxio.dora.master.journal.JournalReader;
-import alluxio.dora.master.journal.checkpoint.CheckpointInputStream;
-import alluxio.dora.master.journal.ufs.UfsJournal;
-import alluxio.dora.master.journal.ufs.UfsJournalReader;
-import alluxio.dora.master.journal.ufs.UfsJournalSystem;
+import alluxio.AlluxioURI;
+import alluxio.master.NoopMaster;
+import alluxio.master.journal.JournalReader;
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
+import alluxio.master.journal.ufs.UfsJournal;
+import alluxio.master.journal.ufs.UfsJournalReader;
+import alluxio.master.journal.ufs.UfsJournalSystem;
 import alluxio.proto.journal.Journal;
 
 import org.apache.commons.lang3.StringUtils;

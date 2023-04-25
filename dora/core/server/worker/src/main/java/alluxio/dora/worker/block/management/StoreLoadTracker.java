@@ -11,7 +11,7 @@
 
 package alluxio.dora.worker.block.management;
 
-import alluxio.dora.worker.block.BlockStoreLocation;
+import alluxio.worker.block.BlockStoreLocation;
 
 /**
  * Interface for detecting user activity on worker locations.

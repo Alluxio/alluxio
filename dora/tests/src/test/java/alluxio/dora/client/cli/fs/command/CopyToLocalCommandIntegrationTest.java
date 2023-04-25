@@ -11,7 +11,7 @@
 
 package alluxio.dora.client.cli.fs.command;
 
-import alluxio.dora.SystemPropertyRule;
+import alluxio.SystemPropertyRule;
 import alluxio.dora.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.dora.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.dora.client.file.FileSystemTestUtils;

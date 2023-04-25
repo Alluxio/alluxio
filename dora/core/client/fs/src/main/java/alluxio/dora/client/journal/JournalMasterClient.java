@@ -11,7 +11,7 @@
 
 package alluxio.dora.client.journal;
 
-import alluxio.dora.exception.status.AlluxioStatusException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.GetTransferLeaderMessagePResponse;
 import alluxio.grpc.NetAddress;

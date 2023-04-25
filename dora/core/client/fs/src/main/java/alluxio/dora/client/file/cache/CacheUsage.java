@@ -11,7 +11,7 @@
 
 package alluxio.dora.client.file.cache;
 
-import alluxio.dora.client.quota.CacheScope;
+import alluxio.client.quota.CacheScope;
 
 import com.google.common.base.MoreObjects;
 

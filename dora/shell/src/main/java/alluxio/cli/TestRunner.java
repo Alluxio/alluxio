@@ -11,14 +11,13 @@
 
 package alluxio.cli;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.cli.RunTestUtils;
-import alluxio.dora.client.ReadType;
-import alluxio.dora.client.WriteType;
+import alluxio.AlluxioURI;
+import alluxio.client.ReadType;
+import alluxio.client.WriteType;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.grpc.DeletePOptions;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.util.io.PathUtils;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;

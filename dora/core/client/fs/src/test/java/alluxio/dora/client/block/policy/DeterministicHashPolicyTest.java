@@ -14,14 +14,14 @@ package alluxio.dora.client.block.policy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
-import alluxio.dora.Constants;
+import alluxio.Constants;
 import alluxio.dora.client.block.BlockWorkerInfo;
 import alluxio.dora.client.block.policy.options.GetWorkerOptions;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.InstancedConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.wire.BlockInfo;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Before;
 import org.junit.Test;

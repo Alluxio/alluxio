@@ -14,8 +14,8 @@ package alluxio.cli.fsadmin.doctor;
 import alluxio.dora.client.meta.MetaMasterClient;
 import alluxio.grpc.ConfigStatus;
 import alluxio.grpc.Scope;
-import alluxio.dora.wire.ConfigCheckReport;
-import alluxio.dora.wire.InconsistentProperty;
+import alluxio.wire.ConfigCheckReport;
+import alluxio.wire.InconsistentProperty;
 
 import java.io.IOException;
 import java.io.PrintStream;

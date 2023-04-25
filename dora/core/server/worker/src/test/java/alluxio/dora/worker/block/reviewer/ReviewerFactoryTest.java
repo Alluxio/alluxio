@@ -13,11 +13,9 @@ package alluxio.dora.worker.block.reviewer;
 
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 
-import alluxio.dora.worker.block.reviewer.ProbabilisticBufferReviewer;
-import alluxio.dora.worker.block.reviewer.Reviewer;
 import org.junit.Test;
 
 /**

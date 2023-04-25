@@ -13,16 +13,16 @@ package alluxio.dora.client.cli.fs.command;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.dora.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.dora.client.file.FileSystemTestUtils;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.exception.AlluxioException;
+import alluxio.client.file.URIStatus;
+import alluxio.exception.AlluxioException;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.WritePType;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.util.io.PathUtils;
 
 import org.junit.Test;
 

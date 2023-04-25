@@ -11,9 +11,9 @@
 
 package alluxio.fsmaster;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.annotation.SuppressFBWarnings;
-import alluxio.dora.conf.Configuration;
+import alluxio.AlluxioURI;
+import alluxio.annotation.SuppressFBWarnings;
+import alluxio.conf.Configuration;
 import alluxio.dora.hadoop.AbstractFileSystem;
 import alluxio.grpc.FileSystemMasterClientServiceGrpc;
 import alluxio.grpc.GetStatusPOptions;

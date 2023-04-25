@@ -11,8 +11,8 @@
 
 package alluxio.dora.client.fs;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.client.ReadType;
+import alluxio.AlluxioURI;
+import alluxio.client.ReadType;
 import alluxio.dora.client.block.stream.BlockWorkerClient;
 import alluxio.dora.client.file.ConfigHashSync;
 import alluxio.dora.client.file.FileOutStream;
@@ -21,11 +21,11 @@ import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.client.file.FileSystemContextReinitializer;
 import alluxio.dora.client.meta.MetaMasterConfigClient;
 import alluxio.dora.client.meta.RetryHandlingMetaMasterConfigClient;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.dora.master.MasterClientContext;
-import alluxio.dora.resource.CloseableResource;
+import alluxio.master.MasterClientContext;
+import alluxio.resource.CloseableResource;
 import alluxio.dora.testutils.BaseIntegrationTest;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
 

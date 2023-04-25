@@ -11,10 +11,10 @@
 
 package alluxio.underfs.hdfs.acl;
 
-import alluxio.dora.collections.Pair;
-import alluxio.dora.security.authorization.AccessControlList;
-import alluxio.dora.security.authorization.AclAction;
-import alluxio.dora.security.authorization.DefaultAccessControlList;
+import alluxio.collections.Pair;
+import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.AclAction;
+import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.hdfs.HdfsAclProvider;
 
 import org.apache.hadoop.fs.FileSystem;
@@ -60,8 +60,8 @@ public class SupportedHdfsAclProvider implements HdfsAclProvider {
     defaultAcl.setOwningUser(hdfsAcl.getOwner());
     defaultAcl.setOwningGroup(hdfsAcl.getGroup());
     for (AclEntry entry : hdfsAcl.getEntries()) {
-      alluxio.dora.security.authorization.AclEntry.Builder builder =
-          new alluxio.dora.security.authorization.AclEntry.Builder();
+      alluxio.security.authorization.AclEntry.Builder builder =
+          new alluxio.security.authorization.AclEntry.Builder();
       builder.setType(getAclEntryType(entry));
       builder.setSubject(entry.getName() == null ? "" : entry.getName());
       FsAction permission = entry.getPermission();
@@ -89,11 +89,11 @@ public class SupportedHdfsAclProvider implements HdfsAclProvider {
 
   @Override
   public void setAclEntries(FileSystem hdfs, String path,
-      List<alluxio.dora.security.authorization.AclEntry> aclEntries) throws IOException {
+      List<alluxio.security.authorization.AclEntry> aclEntries) throws IOException {
     // convert AccessControlList into hdfsAcl
     List<AclEntry> aclSpecs = new ArrayList<>();
 
-    for (alluxio.dora.security.authorization.AclEntry entry : aclEntries) {
+    for (alluxio.security.authorization.AclEntry entry : aclEntries) {
       AclEntry hdfsAclEntry = getHdfsAclEntry(entry);
       aclSpecs.add(hdfsAclEntry);
     }
@@ -105,12 +105,12 @@ public class SupportedHdfsAclProvider implements HdfsAclProvider {
     }
   }
 
-  private AclEntry getHdfsAclEntry(alluxio.dora.security.authorization.AclEntry entry)
+  private AclEntry getHdfsAclEntry(alluxio.security.authorization.AclEntry entry)
       throws IOException {
     AclEntry.Builder builder = new AclEntry.Builder();
     // Do not set name for unnamed entries
-    if (entry.getType() != alluxio.dora.security.authorization.AclEntryType.OWNING_USER
-        && entry.getType() != alluxio.dora.security.authorization.AclEntryType.OWNING_GROUP) {
+    if (entry.getType() != alluxio.security.authorization.AclEntryType.OWNING_USER
+        && entry.getType() != alluxio.security.authorization.AclEntryType.OWNING_GROUP) {
       builder.setName(entry.getSubject());
     }
 
@@ -125,7 +125,7 @@ public class SupportedHdfsAclProvider implements HdfsAclProvider {
    * @param aclEntry an alluxio acl entry
    * @return hdfs acl entry type
    */
-  private AclEntryType getHdfsAclEntryType(alluxio.dora.security.authorization.AclEntry aclEntry)
+  private AclEntryType getHdfsAclEntryType(alluxio.security.authorization.AclEntry aclEntry)
       throws IOException {
     switch (aclEntry.getType()) {
       case OWNING_USER:
@@ -147,21 +147,21 @@ public class SupportedHdfsAclProvider implements HdfsAclProvider {
    * @param entry an hdfs acl entry
    * @return alluxio acl entry type
    */
-  private alluxio.dora.security.authorization.AclEntryType getAclEntryType(AclEntry entry)
+  private alluxio.security.authorization.AclEntryType getAclEntryType(AclEntry entry)
       throws IOException {
     switch (entry.getType()) {
       case USER:
         return entry.getName() == null || entry.getName().isEmpty()
-            ? alluxio.dora.security.authorization.AclEntryType.OWNING_USER
-            : alluxio.dora.security.authorization.AclEntryType.NAMED_USER;
+            ? alluxio.security.authorization.AclEntryType.OWNING_USER
+            : alluxio.security.authorization.AclEntryType.NAMED_USER;
       case GROUP:
         return entry.getName() == null || entry.getName().isEmpty()
-            ? alluxio.dora.security.authorization.AclEntryType.OWNING_GROUP
-            : alluxio.dora.security.authorization.AclEntryType.NAMED_GROUP;
+            ? alluxio.security.authorization.AclEntryType.OWNING_GROUP
+            : alluxio.security.authorization.AclEntryType.NAMED_GROUP;
       case MASK:
-        return alluxio.dora.security.authorization.AclEntryType.MASK;
+        return alluxio.security.authorization.AclEntryType.MASK;
       case OTHER:
-        return alluxio.dora.security.authorization.AclEntryType.OTHER;
+        return alluxio.security.authorization.AclEntryType.OTHER;
       default:
         throw new IOException("Unknown HDFS ACL entry type: " + entry.getType());
     }

@@ -11,7 +11,7 @@
 
 package alluxio.dora.client.block.stream;
 
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;
 import org.junit.Test;

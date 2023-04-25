@@ -16,13 +16,11 @@ import static junit.framework.TestCase.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.util.FormatUtils;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.FormatUtils;
 import alluxio.dora.worker.block.meta.StorageDirView;
 
-import alluxio.dora.worker.block.reviewer.ProbabilisticBufferReviewer;
-import alluxio.dora.worker.block.reviewer.Reviewer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

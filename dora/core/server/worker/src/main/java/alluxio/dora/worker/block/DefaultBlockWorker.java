@@ -13,28 +13,28 @@ package alluxio.dora.worker.block;
 
 import static alluxio.dora.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSOC;
 
-import alluxio.dora.ClientContext;
-import alluxio.dora.Constants;
-import alluxio.dora.RuntimeConstants;
-import alluxio.dora.Server;
-import alluxio.dora.Sessions;
-import alluxio.dora.annotation.SuppressFBWarnings;
+import alluxio.ClientContext;
+import alluxio.Constants;
+import alluxio.RuntimeConstants;
+import alluxio.Server;
+import alluxio.Sessions;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.collections.PrefixList;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.ConfigurationValueOptions;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.conf.Source;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.exception.BlockAlreadyExistsException;
-import alluxio.dora.exception.BlockDoesNotExistException;
-import alluxio.dora.exception.ExceptionMessage;
-import alluxio.dora.exception.InvalidWorkerStateException;
-import alluxio.dora.exception.WorkerOutOfSpaceException;
-import alluxio.dora.exception.runtime.AlluxioRuntimeException;
-import alluxio.dora.exception.runtime.ResourceExhaustedRuntimeException;
-import alluxio.dora.exception.status.AlluxioStatusException;
-import alluxio.dora.web.WebInterfaceAbstractMetricsServlet;
+import alluxio.collections.PrefixList;
+import alluxio.conf.Configuration;
+import alluxio.conf.ConfigurationValueOptions;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.Source;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.BlockAlreadyExistsException;
+import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.InvalidWorkerStateException;
+import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.web.WebInterfaceAbstractMetricsServlet;
 import alluxio.dora.worker.page.PagedBlockStore;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.Block;
@@ -44,25 +44,26 @@ import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.UfsReadOptions;
-import alluxio.dora.heartbeat.HeartbeatContext;
-import alluxio.dora.heartbeat.HeartbeatExecutor;
-import alluxio.dora.heartbeat.HeartbeatThread;
-import alluxio.dora.metrics.MetricInfo;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.heartbeat.HeartbeatThread;
+import alluxio.metrics.MetricInfo;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.dora.retry.RetryUtils;
-import alluxio.dora.user.ServerUserState;
+import alluxio.retry.RetryUtils;
+import alluxio.user.ServerUserState;
 import alluxio.dora.underfs.WorkerUfsManager;
-import alluxio.dora.util.executor.ExecutorServiceFactories;
-import alluxio.dora.util.io.FileUtils;
-import alluxio.dora.wire.FileInfo;
-import alluxio.dora.wire.WorkerNetAddress;
-import alluxio.dora.worker.AbstractWorker;
+import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.util.io.FileUtils;
+import alluxio.wire.FileInfo;
+import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.AbstractWorker;
 import alluxio.dora.worker.SessionCleaner;
-import alluxio.dora.worker.block.io.BlockReader;
-import alluxio.dora.worker.block.io.BlockWriter;
-import alluxio.dora.worker.block.meta.BlockMeta;
+import alluxio.worker.block.*;
+import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.block.meta.BlockMeta;
 import alluxio.dora.worker.file.FileSystemMasterClient;
 import alluxio.dora.worker.grpc.GrpcExecutors;
 
@@ -610,12 +611,12 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-  public alluxio.dora.wire.Configuration getConfiguration(GetConfigurationPOptions options) {
+  public alluxio.wire.Configuration getConfiguration(GetConfigurationPOptions options) {
     // NOTE(cc): there is no guarantee that the returned cluster and path configurations are
     // consistent snapshot of the system's state at a certain time, the path configuration might
     // be in a newer state. But it's guaranteed that the hashes are respectively correspondent to
     // the properties.
-    alluxio.dora.wire.Configuration.Builder builder = alluxio.dora.wire.Configuration.newBuilder();
+    alluxio.wire.Configuration.Builder builder = alluxio.wire.Configuration.newBuilder();
 
     if (!options.getIgnoreClusterConf()) {
       for (PropertyKey key : Configuration.keySet()) {

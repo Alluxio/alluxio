@@ -11,8 +11,8 @@
 
 package alluxio.underfs.s3a;
 
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.util.CommonUtils;
+import alluxio.util.io.PathUtils;
 
 import com.amazonaws.services.s3.internal.Mimetypes;
 import com.amazonaws.services.s3.model.ObjectMetadata;

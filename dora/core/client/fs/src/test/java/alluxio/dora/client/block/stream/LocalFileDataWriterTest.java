@@ -13,17 +13,17 @@ package alluxio.dora.client.block.stream;
 
 import static org.mockito.Mockito.mock;
 
-import alluxio.dora.AlluxioTestDirectory;
-import alluxio.dora.ClientContext;
+import alluxio.AlluxioTestDirectory;
+import alluxio.ClientContext;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.client.file.options.OutStreamOptions;
-import alluxio.dora.conf.Configuration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
-import alluxio.dora.util.IdUtils;
-import alluxio.dora.util.io.PathUtils;
-import alluxio.dora.wire.WorkerNetAddress;
-import alluxio.dora.worker.block.io.LocalFileBlockWriter;
+import alluxio.util.IdUtils;
+import alluxio.util.io.PathUtils;
+import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.block.io.LocalFileBlockWriter;
 
 import org.junit.After;
 import org.junit.Assert;

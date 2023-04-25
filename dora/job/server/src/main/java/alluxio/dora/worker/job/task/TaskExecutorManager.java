@@ -11,17 +11,17 @@
 
 package alluxio.dora.worker.job.task;
 
-import alluxio.dora.collections.Pair;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.collections.Pair;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.RunTaskCommand;
 import alluxio.dora.job.ErrorUtils;
 import alluxio.dora.job.RunTaskContext;
 import alluxio.dora.job.wire.Status;
 import alluxio.dora.job.wire.TaskInfo;
-import alluxio.dora.util.ThreadFactoryUtils;
-import alluxio.dora.util.logging.SamplingLogger;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.util.ThreadFactoryUtils;
+import alluxio.util.logging.SamplingLogger;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;

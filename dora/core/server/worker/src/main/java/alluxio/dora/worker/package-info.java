@@ -15,7 +15,7 @@
  * Main entry point for the worker is {@link alluxio.dora.worker.AlluxioWorker#main}
  * which gets started by the alluxio start scripts. The {@link alluxio.dora.worker.WorkerProcess}
  * spins up the different RPC services (gRPC, data) which are mostly wrappers around
- * {@link alluxio.dora.worker.block.BlockWorker}.
+ * {@link alluxio.worker.block.BlockWorker}.
  *
  * <h1>Services</h1>
  *

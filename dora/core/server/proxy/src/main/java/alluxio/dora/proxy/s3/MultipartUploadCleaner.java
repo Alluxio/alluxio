@@ -11,13 +11,13 @@
 
 package alluxio.dora.proxy.s3;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.exception.FileDoesNotExistException;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.DeletePOptions;
 
 import org.slf4j.Logger;

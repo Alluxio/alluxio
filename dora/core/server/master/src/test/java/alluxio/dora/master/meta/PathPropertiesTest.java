@@ -11,12 +11,11 @@
 
 package alluxio.dora.master.meta;
 
-import alluxio.dora.client.ReadType;
-import alluxio.dora.client.WriteType;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.master.journal.NoopJournalContext;
+import alluxio.client.ReadType;
+import alluxio.client.WriteType;
+import alluxio.conf.PropertyKey;
+import alluxio.master.journal.NoopJournalContext;
 
-import alluxio.dora.master.meta.PathProperties;
 import org.junit.Assert;
 import org.junit.Test;
 

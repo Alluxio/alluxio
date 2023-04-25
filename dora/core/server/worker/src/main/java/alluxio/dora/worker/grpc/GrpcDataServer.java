@@ -12,9 +12,9 @@
 package alluxio.dora.worker.grpc;
 
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.executor.ExecutorServiceBuilder;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.executor.ExecutorServiceBuilder;
 import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.grpc.GrpcSerializationUtils;
 import alluxio.grpc.GrpcServer;
@@ -22,11 +22,11 @@ import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
-import alluxio.dora.master.AlluxioExecutorService;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.network.ChannelType;
-import alluxio.dora.util.network.NettyUtils;
+import alluxio.master.AlluxioExecutorService;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.network.ChannelType;
+import alluxio.util.network.NettyUtils;
 import alluxio.dora.worker.DataServer;
 
 import io.grpc.MethodDescriptor;

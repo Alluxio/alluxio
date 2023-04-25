@@ -11,14 +11,16 @@
 
 package alluxio.dora.master;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.JournalDomain;
 import alluxio.grpc.NodeState;
-import alluxio.dora.master.journal.JournalSystem;
+import alluxio.master.AbstractMaster;
+import alluxio.master.PrimarySelector;
+import alluxio.master.journal.JournalSystem;
 import alluxio.dora.master.service.SimpleService;
-import alluxio.dora.util.network.NetworkAddressUtils;
-import alluxio.dora.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

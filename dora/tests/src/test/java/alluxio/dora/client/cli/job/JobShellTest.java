@@ -11,10 +11,10 @@
 
 package alluxio.dora.client.cli.job;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.dora.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.dora.client.file.FileOutStream;
-import alluxio.dora.client.file.URIStatus;
+import alluxio.client.file.URIStatus;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.dora.job.plan.persist.PersistConfig;

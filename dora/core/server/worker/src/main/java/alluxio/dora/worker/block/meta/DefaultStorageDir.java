@@ -13,14 +13,18 @@ package alluxio.dora.worker.block.meta;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import alluxio.dora.annotation.SuppressFBWarnings;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.ExceptionMessage;
-import alluxio.dora.exception.runtime.ResourceExhaustedRuntimeException;
-import alluxio.dora.util.io.FileUtils;
-import alluxio.dora.worker.block.BlockStoreLocation;
+import alluxio.annotation.SuppressFBWarnings;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
+import alluxio.util.io.FileUtils;
+import alluxio.worker.block.BlockStoreLocation;
 
+import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.StorageTier;
+import alluxio.worker.block.meta.TempBlockMeta;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;

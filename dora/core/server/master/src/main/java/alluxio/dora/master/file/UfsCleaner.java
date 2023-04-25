@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.file;
 
-import alluxio.dora.heartbeat.HeartbeatExecutor;
+import alluxio.heartbeat.HeartbeatExecutor;
 
 import javax.annotation.concurrent.NotThreadSafe;
 

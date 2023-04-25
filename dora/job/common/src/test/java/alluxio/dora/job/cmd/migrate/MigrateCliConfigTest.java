@@ -11,9 +11,8 @@
 
 package alluxio.dora.job.cmd.migrate;
 
-import alluxio.dora.client.WriteType;
+import alluxio.client.WriteType;
 
-import alluxio.dora.job.cmd.migrate.MigrateCliConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;

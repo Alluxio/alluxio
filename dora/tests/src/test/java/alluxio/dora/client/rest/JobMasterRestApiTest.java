@@ -11,11 +11,11 @@
 
 package alluxio.dora.client.rest;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.master.AlluxioJobMasterRestServiceHandler;
 import alluxio.dora.master.LocalAlluxioJobCluster;
-import alluxio.dora.security.authentication.AuthType;
+import alluxio.security.authentication.AuthType;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
 
 import org.junit.After;

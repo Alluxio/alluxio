@@ -11,10 +11,10 @@
 
 package alluxio.dora.client.file.cache;
 
-import alluxio.dora.client.file.CacheContext;
+import alluxio.client.file.CacheContext;
 import alluxio.dora.client.file.cache.store.PageReadTargetBuffer;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.Counter;
 import org.slf4j.Logger;

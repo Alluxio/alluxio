@@ -15,7 +15,7 @@ import alluxio.dora.master.file.meta.Inode;
 import alluxio.dora.master.file.meta.InodeLockManager;
 import alluxio.dora.master.file.meta.InodeView;
 import alluxio.dora.master.file.meta.MutableInode;
-import alluxio.dora.master.journal.checkpoint.Checkpointed;
+import alluxio.master.journal.checkpoint.Checkpointed;
 
 import java.io.Closeable;
 import java.util.Optional;

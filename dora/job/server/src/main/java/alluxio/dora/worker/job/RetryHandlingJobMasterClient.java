@@ -11,8 +11,8 @@
 
 package alluxio.dora.worker.job;
 
-import alluxio.dora.AbstractJobMasterClient;
-import alluxio.dora.Constants;
+import alluxio.AbstractJobMasterClient;
+import alluxio.Constants;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.JobCommand;
 import alluxio.grpc.JobHeartbeatPRequest;
@@ -22,8 +22,8 @@ import alluxio.grpc.RegisterJobWorkerPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.dora.job.JobMasterClientContext;
 import alluxio.dora.job.wire.JobWorkerHealth;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.util.CommonUtils;
+import alluxio.wire.WorkerNetAddress;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

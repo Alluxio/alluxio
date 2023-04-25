@@ -11,17 +11,17 @@
 
 package alluxio.dora.master.file.meta;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.conf.Configuration;
+import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
 import alluxio.grpc.MountPOptions;
 import alluxio.dora.master.file.contexts.MountContext;
 import alluxio.dora.master.file.meta.options.MountInfo;
-import alluxio.dora.master.journal.NoopJournalContext;
+import alluxio.master.journal.NoopJournalContext;
 import alluxio.dora.underfs.MasterUfsManager;
-import alluxio.dora.underfs.UfsManager;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.underfs.UnderFileSystemConfiguration;
-import alluxio.dora.util.IdUtils;
+import alluxio.underfs.UfsManager;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.util.IdUtils;
 
 import com.google.common.io.Files;
 import org.junit.Assert;

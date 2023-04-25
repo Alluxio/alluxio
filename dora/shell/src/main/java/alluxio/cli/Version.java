@@ -11,9 +11,9 @@
 
 package alluxio.cli;
 
-import alluxio.dora.ProjectConstants;
-import alluxio.dora.RuntimeConstants;
-import alluxio.dora.annotation.PublicApi;
+import alluxio.ProjectConstants;
+import alluxio.RuntimeConstants;
+import alluxio.annotation.PublicApi;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;

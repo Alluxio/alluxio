@@ -13,13 +13,10 @@ package alluxio.dora.master.file.meta;
 
 import static org.junit.Assert.assertFalse;
 
-import alluxio.dora.concurrent.LockMode;
+import alluxio.concurrent.LockMode;
 import alluxio.dora.master.file.contexts.CreateFileContext;
-import alluxio.dora.master.file.meta.Edge;
-import alluxio.dora.master.file.meta.InodeLockManager;
-import alluxio.dora.master.file.meta.MutableInodeFile;
-import alluxio.dora.resource.LockResource;
-import alluxio.dora.util.CommonUtils;
+import alluxio.resource.LockResource;
+import alluxio.util.CommonUtils;
 
 import org.junit.Test;
 

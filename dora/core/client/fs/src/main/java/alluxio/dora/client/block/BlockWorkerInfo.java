@@ -11,8 +11,8 @@
 
 package alluxio.dora.client.block;
 
-import alluxio.dora.annotation.PublicApi;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.annotation.PublicApi;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;

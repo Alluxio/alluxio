@@ -15,19 +15,19 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.Constants;
+import alluxio.Constants;
 import alluxio.dora.client.meta.MetaMasterClient;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.ConfigStatus;
 import alluxio.grpc.Scope;
-import alluxio.dora.master.journal.JournalType;
+import alluxio.master.journal.JournalType;
 import alluxio.dora.process.MultiProcessCluster;
 import alluxio.dora.process.MultiProcessCluster.DeployMode;
 import alluxio.dora.process.PortCoordination;
 import alluxio.dora.testutils.BaseIntegrationTest;
-import alluxio.dora.wire.ConfigCheckReport;
-import alluxio.dora.wire.InconsistentProperty;
+import alluxio.wire.ConfigCheckReport;
+import alluxio.wire.InconsistentProperty;
 
 import com.google.common.collect.ImmutableMap;
 import org.hamcrest.CoreMatchers;

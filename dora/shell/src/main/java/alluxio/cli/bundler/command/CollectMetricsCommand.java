@@ -13,11 +13,11 @@ package alluxio.cli.bundler.command;
 
 import alluxio.dora.client.block.BlockWorkerInfo;
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.exception.status.UnavailableException;
-import alluxio.dora.util.SleepUtils;
-import alluxio.dora.util.network.HttpUtils;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.status.UnavailableException;
+import alluxio.util.SleepUtils;
+import alluxio.util.network.HttpUtils;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;

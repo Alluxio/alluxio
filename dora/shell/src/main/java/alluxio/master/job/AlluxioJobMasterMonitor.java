@@ -11,14 +11,14 @@
 
 package alluxio.master.job;
 
-import alluxio.dora.HealthCheckClient;
-import alluxio.dora.RuntimeConstants;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.Configuration;
+import alluxio.HealthCheckClient;
+import alluxio.RuntimeConstants;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.AlluxioMasterMonitor;
 import alluxio.master.MasterHealthCheckClient;
-import alluxio.dora.util.ConfigurationUtils;
-import alluxio.dora.util.network.NetworkAddressUtils;
+import alluxio.util.ConfigurationUtils;
+import alluxio.util.network.NetworkAddressUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

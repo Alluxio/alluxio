@@ -11,18 +11,22 @@
 
 package alluxio.dora.master;
 
-import alluxio.dora.Constants;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.Constants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.master.metastore.BlockMetaStore;
 import alluxio.dora.master.metastore.InodeStore;
-import alluxio.dora.master.metastore.MetastoreType;
+import alluxio.master.MasterContext;
+import alluxio.master.MasterFactory;
+import alluxio.master.MasterRegistry;
+import alluxio.master.ServiceUtils;
+import alluxio.master.metastore.MetastoreType;
 import alluxio.dora.master.metastore.caching.CachingInodeStore;
 import alluxio.dora.master.metastore.heap.HeapBlockMetaStore;
 import alluxio.dora.master.metastore.heap.HeapInodeStore;
 import alluxio.dora.master.metastore.rocks.RocksBlockMetaStore;
 import alluxio.dora.master.metastore.rocks.RocksInodeStore;
-import alluxio.dora.util.CommonUtils;
+import alluxio.util.CommonUtils;
 
 import java.util.ArrayList;
 import java.util.List;

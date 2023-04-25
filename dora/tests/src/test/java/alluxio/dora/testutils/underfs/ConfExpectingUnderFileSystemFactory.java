@@ -11,10 +11,10 @@
 
 package alluxio.dora.testutils.underfs;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.underfs.UnderFileSystemConfiguration;
-import alluxio.dora.underfs.UnderFileSystemFactory;
+import alluxio.AlluxioURI;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.dora.underfs.local.LocalUnderFileSystem;
 
 import com.google.common.base.Preconditions;

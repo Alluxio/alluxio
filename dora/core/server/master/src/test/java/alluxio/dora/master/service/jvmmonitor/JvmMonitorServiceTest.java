@@ -11,12 +11,11 @@
 
 package alluxio.dora.master.service.jvmmonitor;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.master.service.NoopService;
 import alluxio.dora.master.service.SimpleService;
-import alluxio.dora.master.service.jvmmonitor.JvmMonitorService;
-import alluxio.dora.metrics.MetricsSystem;
+import alluxio.metrics.MetricsSystem;
 
 import org.junit.After;
 import org.junit.Assert;

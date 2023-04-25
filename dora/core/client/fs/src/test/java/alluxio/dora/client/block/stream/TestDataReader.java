@@ -11,8 +11,8 @@
 
 package alluxio.dora.client.block.stream;
 
-import alluxio.dora.network.protocol.databuffer.DataBuffer;
-import alluxio.dora.network.protocol.databuffer.NioDataBuffer;
+import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.network.protocol.databuffer.NioDataBuffer;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

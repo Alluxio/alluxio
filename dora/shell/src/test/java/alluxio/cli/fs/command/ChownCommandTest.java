@@ -11,8 +11,8 @@
 
 package alluxio.cli.fs.command;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.exception.AlluxioException;
+import alluxio.AlluxioURI;
+import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
 import org.junit.After;

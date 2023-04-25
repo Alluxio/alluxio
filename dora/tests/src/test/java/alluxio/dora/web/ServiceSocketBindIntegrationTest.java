@@ -11,19 +11,19 @@
 
 package alluxio.dora.web;
 
-import alluxio.dora.ClientContext;
+import alluxio.ClientContext;
 import alluxio.dora.client.block.BlockMasterClient;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.exception.ConnectionFailedException;
-import alluxio.dora.exception.status.UnavailableException;
+import alluxio.conf.Configuration;
+import alluxio.exception.ConnectionFailedException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.dora.master.LocalAlluxioCluster;
-import alluxio.dora.master.MasterClientContext;
-import alluxio.dora.master.SingleMasterInquireClient;
+import alluxio.master.MasterClientContext;
+import alluxio.master.SingleMasterInquireClient;
 import alluxio.dora.testutils.BaseIntegrationTest;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
-import alluxio.dora.util.network.NetworkAddressUtils;
-import alluxio.dora.util.network.NetworkAddressUtils.ServiceType;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;
 import org.junit.Rule;

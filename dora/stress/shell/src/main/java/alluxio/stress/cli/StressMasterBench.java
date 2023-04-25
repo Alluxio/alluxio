@@ -11,19 +11,19 @@
 
 package alluxio.stress.cli;
 
-import alluxio.dora.annotation.SuppressFBWarnings;
-import alluxio.dora.conf.InstancedConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.conf.Source;
-import alluxio.dora.exception.AlluxioException;
+import alluxio.annotation.SuppressFBWarnings;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.Source;
+import alluxio.exception.AlluxioException;
 import alluxio.dora.hadoop.HadoopConfigurationUtils;
 import alluxio.stress.StressConstants;
 import alluxio.stress.common.FileSystemClientType;
 import alluxio.stress.master.MasterBenchParameters;
 import alluxio.stress.master.MasterBenchTaskResult;
 import alluxio.stress.master.Operation;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.FormatUtils;
+import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.RateLimiter;
@@ -157,7 +157,7 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
         mCachedFs[i] = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
       }
     } else if (mParameters.mClientType == FileSystemClientType.ALLUXIO_NATIVE) {
-      InstancedConfiguration alluxioProperties = alluxio.dora.conf.Configuration.copyGlobal();
+      InstancedConfiguration alluxioProperties = alluxio.conf.Configuration.copyGlobal();
       alluxioProperties.merge(HadoopConfigurationUtils.getConfigurationFromHadoop(hdfsConf),
           Source.RUNTIME);
 

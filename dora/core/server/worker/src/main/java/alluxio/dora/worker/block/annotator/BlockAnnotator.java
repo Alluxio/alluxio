@@ -11,11 +11,11 @@
 
 package alluxio.dora.worker.block.annotator;
 
-import alluxio.dora.annotation.PublicApi;
-import alluxio.dora.collections.Pair;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.util.CommonUtils;
+import alluxio.annotation.PublicApi;
+import alluxio.collections.Pair;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.CommonUtils;
 
 import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;

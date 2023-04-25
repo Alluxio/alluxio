@@ -11,15 +11,15 @@
 
 package alluxio.cli.fs;
 
-import alluxio.dora.cli.AbstractShell;
-import alluxio.dora.cli.Command;
+import alluxio.cli.AbstractShell;
+import alluxio.cli.Command;
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.InstancedConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.conf.Source;
-import alluxio.dora.util.ConfigurationUtils;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.Source;
+import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;

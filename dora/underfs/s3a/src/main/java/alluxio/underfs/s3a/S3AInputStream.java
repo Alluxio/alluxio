@@ -11,10 +11,10 @@
 
 package alluxio.underfs.s3a;
 
-import alluxio.dora.Seekable;
-import alluxio.dora.exception.PreconditionMessage;
-import alluxio.dora.file.SeekableBufferedInputStream;
-import alluxio.dora.retry.RetryPolicy;
+import alluxio.Seekable;
+import alluxio.exception.PreconditionMessage;
+import alluxio.file.SeekableBufferedInputStream;
+import alluxio.retry.RetryPolicy;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;

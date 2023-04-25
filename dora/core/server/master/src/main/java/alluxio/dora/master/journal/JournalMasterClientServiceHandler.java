@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.journal;
 
-import alluxio.dora.RpcUtils;
+import alluxio.RpcUtils;
 import alluxio.grpc.GetNodeStatePRequest;
 import alluxio.grpc.GetNodeStatePResponse;
 import alluxio.grpc.GetQuorumInfoPRequest;

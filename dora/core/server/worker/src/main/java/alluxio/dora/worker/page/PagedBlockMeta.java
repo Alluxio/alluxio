@@ -11,9 +11,9 @@
 
 package alluxio.dora.worker.page;
 
-import alluxio.dora.worker.block.BlockStoreLocation;
-import alluxio.dora.worker.block.meta.BlockMeta;
-import alluxio.dora.worker.block.meta.StorageDir;
+import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.StorageDir;
 
 /**
  * Metadata of a paged block.

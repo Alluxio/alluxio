@@ -11,28 +11,28 @@
 
 package alluxio.dora.client.cli.fsadmin.command;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.ConfigurationRule;
-import alluxio.dora.SystemErrRule;
-import alluxio.dora.SystemOutRule;
+import alluxio.AlluxioURI;
+import alluxio.ConfigurationRule;
+import alluxio.SystemErrRule;
+import alluxio.SystemOutRule;
 import alluxio.cli.fsadmin.FileSystemAdminShell;
 import alluxio.cli.fsadmin.journal.QuorumCommand;
 import alluxio.cli.fsadmin.journal.QuorumElectCommand;
 import alluxio.cli.fsadmin.journal.QuorumInfoCommand;
 import alluxio.cli.fsadmin.journal.QuorumRemoveCommand;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.ExceptionMessage;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.JournalDomain;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.grpc.QuorumServerState;
-import alluxio.dora.master.journal.JournalType;
+import alluxio.master.journal.JournalType;
 import alluxio.dora.process.MasterNetAddress;
 import alluxio.dora.process.MultiProcessCluster;
 import alluxio.dora.process.PortCoordination;
 import alluxio.dora.testutils.BaseIntegrationTest;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.WaitForOptions;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import org.junit.After;
 import org.junit.Assert;

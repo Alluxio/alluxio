@@ -11,7 +11,8 @@
 
 package alluxio.dora.worker.block.io;
 
-import alluxio.dora.worker.block.meta.TempBlockMeta;
+import alluxio.worker.block.io.LocalFileBlockWriter;
+import alluxio.worker.block.meta.TempBlockMeta;
 
 import java.io.IOException;
 

@@ -13,7 +13,7 @@ package alluxio.dora.job;
 
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.underfs.UfsManager;
+import alluxio.underfs.UfsManager;
 
 import javax.annotation.concurrent.ThreadSafe;
 

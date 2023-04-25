@@ -11,11 +11,11 @@
 
 package alluxio.dora.proxy;
 
-import alluxio.dora.HealthCheckClient;
-import alluxio.dora.RuntimeConstants;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.retry.ExponentialBackoffRetry;
-import alluxio.dora.util.network.NetworkAddressUtils;
+import alluxio.HealthCheckClient;
+import alluxio.RuntimeConstants;
+import alluxio.conf.Configuration;
+import alluxio.retry.ExponentialBackoffRetry;
+import alluxio.util.network.NetworkAddressUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

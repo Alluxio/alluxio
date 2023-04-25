@@ -11,22 +11,22 @@
 
 package alluxio.dora.master.file;
 
-import alluxio.dora.exception.FileDoesNotExistException;
-import alluxio.dora.exception.status.UnavailableException;
-import alluxio.dora.heartbeat.HeartbeatExecutor;
-import alluxio.dora.master.block.BlockId;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.status.UnavailableException;
+import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.master.block.BlockId;
 import alluxio.dora.master.block.BlockMaster;
 import alluxio.dora.master.file.meta.Inode;
 import alluxio.dora.master.file.meta.InodeTree;
 import alluxio.dora.master.file.meta.InodeTree.LockPattern;
 import alluxio.dora.master.file.meta.LockedInodePath;
-import alluxio.dora.master.file.meta.PersistenceState;
-import alluxio.dora.master.journal.JournalContext;
-import alluxio.dora.master.journal.NoopJournalContext;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
+import alluxio.master.file.meta.PersistenceState;
+import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.NoopJournalContext;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File.UpdateInodeEntry;
-import alluxio.dora.util.IdUtils;
+import alluxio.util.IdUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

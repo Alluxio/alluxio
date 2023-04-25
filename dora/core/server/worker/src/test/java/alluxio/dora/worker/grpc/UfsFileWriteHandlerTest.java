@@ -13,14 +13,14 @@ package alluxio.dora.worker.grpc;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.grpc.RequestType;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.dora.underfs.UfsManager;
-import alluxio.dora.underfs.UfsManager.UfsClient;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.underfs.options.CreateOptions;
-import alluxio.dora.util.CommonUtils;
+import alluxio.underfs.UfsManager;
+import alluxio.underfs.UfsManager.UfsClient;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
+import alluxio.util.CommonUtils;
 
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;

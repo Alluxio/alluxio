@@ -11,10 +11,10 @@
 
 package alluxio.dora.proxy.s3;
 
-import alluxio.dora.exception.runtime.AlluxioRuntimeException;
-import alluxio.dora.exception.runtime.NotFoundRuntimeException;
-import alluxio.dora.exception.status.*;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.NotFoundRuntimeException;
 
+import alluxio.exception.status.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.slf4j.Logger;

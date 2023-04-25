@@ -11,7 +11,7 @@
 
 package alluxio.dora.master;
 
-import alluxio.dora.master.AbstractPrimarySelector;
+import alluxio.master.AbstractPrimarySelector;
 
 import java.net.InetSocketAddress;
 

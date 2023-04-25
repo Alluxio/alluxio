@@ -12,7 +12,7 @@
 package alluxio.dora.worker.block.allocator;
 
 import alluxio.dora.worker.block.BlockMetadataView;
-import alluxio.dora.worker.block.BlockStoreLocation;
+import alluxio.worker.block.BlockStoreLocation;
 import alluxio.dora.worker.block.meta.StorageDirView;
 import alluxio.dora.worker.block.meta.StorageTierView;
 import alluxio.dora.worker.block.reviewer.Reviewer;

@@ -11,12 +11,12 @@
 
 package alluxio.dora.client.block.stream;
 
-import alluxio.dora.client.WriteType;
+import alluxio.client.WriteType;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.client.file.options.OutStreamOptions;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.status.UnavailableException;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Chunk;
 import alluxio.grpc.DataMessage;
 import alluxio.grpc.RequestType;
@@ -24,11 +24,11 @@ import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteRequestCommand;
 import alluxio.grpc.WriteRequestMarshaller;
 import alluxio.grpc.WriteResponse;
-import alluxio.dora.network.protocol.databuffer.NettyDataBuffer;
+import alluxio.network.protocol.databuffer.NettyDataBuffer;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.dora.resource.CloseableResource;
-import alluxio.dora.util.proto.ProtoUtils;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.resource.CloseableResource;
+import alluxio.util.proto.ProtoUtils;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;

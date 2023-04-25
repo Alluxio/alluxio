@@ -14,10 +14,10 @@ package alluxio.logserver;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
-import alluxio.dora.Constants;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.util.executor.ExecutorServiceFactories;
+import alluxio.Constants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.executor.ExecutorServiceFactories;
 
 import org.apache.commons.io.serialization.ValidatingObjectInputStream;
 import org.apache.log4j.Level;

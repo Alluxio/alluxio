@@ -17,11 +17,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import alluxio.dora.ClientContext;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.master.MasterClientContext;
-import alluxio.dora.master.MasterInquireClient;
+import alluxio.ClientContext;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.master.MasterClientContext;
+import alluxio.master.MasterInquireClient;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

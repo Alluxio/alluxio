@@ -11,18 +11,18 @@
 
 package alluxio.dora.client.fs.concurrent;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.dora.client.file.FileInStream;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemTestUtils;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.dora.test.util.ConcurrencyUtils;
+import alluxio.util.ConcurrencyUtils;
 import alluxio.dora.testutils.BaseIntegrationTest;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Throwables;
 import org.junit.Before;

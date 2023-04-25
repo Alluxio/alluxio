@@ -11,9 +11,9 @@
 
 package alluxio.cli.fsadmin.command;
 
-import alluxio.dora.annotation.PublicApi;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.annotation.PublicApi;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;

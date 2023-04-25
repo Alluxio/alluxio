@@ -11,12 +11,12 @@
 
 package alluxio.dora.client.cli.fsadmin.command;
 
-import alluxio.dora.ProjectConstants;
+import alluxio.ProjectConstants;
 import alluxio.dora.client.cli.fsadmin.AbstractFsAdminShellTest;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
-import alluxio.dora.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils;
 
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;

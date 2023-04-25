@@ -11,9 +11,9 @@
 
 package alluxio.stress.cli.fuse;
 
-import alluxio.dora.ClientContext;
-import alluxio.dora.Constants;
-import alluxio.dora.annotation.SuppressFBWarnings;
+import alluxio.ClientContext;
+import alluxio.Constants;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.dora.job.JobMasterClient;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
@@ -22,9 +22,9 @@ import alluxio.stress.common.SummaryStatistics;
 import alluxio.stress.fuse.FuseIOOperation;
 import alluxio.stress.fuse.FuseIOParameters;
 import alluxio.stress.fuse.FuseIOTaskResult;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.FormatUtils;
-import alluxio.dora.util.executor.ExecutorServiceFactories;
+import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.dora.job.JobMasterClientContext;
 
 import com.beust.jcommander.ParametersDelegate;

@@ -11,27 +11,27 @@
 
 package alluxio.cli.fs.command;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Constants;
-import alluxio.dora.annotation.PublicApi;
-import alluxio.dora.cli.CommandUtils;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.annotation.PublicApi;
+import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.dora.client.file.FileInStream;
 import alluxio.dora.client.file.FileOutStream;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.exception.ExceptionMessage;
-import alluxio.dora.exception.FileAlreadyExistsException;
-import alluxio.dora.exception.FileDoesNotExistException;
-import alluxio.dora.exception.InvalidPathException;
-import alluxio.dora.exception.status.InvalidArgumentException;
+import alluxio.client.file.URIStatus;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileAlreadyExistsException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.dora.security.authorization.Mode;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.security.authorization.Mode;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Joiner;
 import com.google.common.io.Closer;

@@ -11,7 +11,7 @@
 
 package alluxio.dora.worker.block;
 
-import alluxio.dora.worker.block.meta.StorageTier;
+import alluxio.worker.block.meta.StorageTier;
 import alluxio.dora.worker.block.meta.StorageTierAllocatorView;
 
 import javax.annotation.concurrent.NotThreadSafe;

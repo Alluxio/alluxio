@@ -15,12 +15,12 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.grpc.SetAclAction;
 import alluxio.master.backcompat.FsTestOp;
 import alluxio.master.backcompat.Version;
-import alluxio.dora.security.authorization.AclEntry;
+import alluxio.security.authorization.AclEntry;
 
 import java.util.Arrays;
 

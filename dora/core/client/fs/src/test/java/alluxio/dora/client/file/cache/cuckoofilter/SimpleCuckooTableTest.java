@@ -14,8 +14,8 @@ package alluxio.dora.client.file.cache.cuckoofilter;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.collections.BitSet;
-import alluxio.dora.collections.BuiltinBitSet;
+import alluxio.collections.BitSet;
+import alluxio.collections.BuiltinBitSet;
 
 import org.junit.Test;
 

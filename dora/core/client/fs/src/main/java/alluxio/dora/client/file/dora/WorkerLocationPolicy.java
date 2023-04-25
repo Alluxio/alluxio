@@ -17,7 +17,7 @@ import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import alluxio.dora.client.block.BlockWorkerInfo;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.hash.HashFunction;

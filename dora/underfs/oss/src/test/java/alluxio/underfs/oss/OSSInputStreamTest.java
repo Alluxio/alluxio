@@ -19,10 +19,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.retry.CountingRetry;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.retry.CountingRetry;
 
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.model.OSSObject;

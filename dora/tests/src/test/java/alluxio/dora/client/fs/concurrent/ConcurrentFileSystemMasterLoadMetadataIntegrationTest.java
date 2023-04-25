@@ -13,11 +13,11 @@ package alluxio.dora.client.fs.concurrent;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Constants;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
 
 import org.junit.Before;

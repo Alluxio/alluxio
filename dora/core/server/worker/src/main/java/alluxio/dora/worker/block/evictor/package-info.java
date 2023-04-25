@@ -49,4 +49,4 @@
 package alluxio.dora.worker.block.evictor;
 
 import alluxio.dora.worker.block.BlockMetadataEvictorView;
-import alluxio.dora.worker.block.BlockStoreLocation;
+import alluxio.worker.block.BlockStoreLocation;

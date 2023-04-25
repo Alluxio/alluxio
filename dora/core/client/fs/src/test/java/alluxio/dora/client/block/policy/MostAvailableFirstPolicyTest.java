@@ -11,14 +11,14 @@
 
 package alluxio.dora.client.block.policy;
 
-import alluxio.dora.Constants;
+import alluxio.Constants;
 import alluxio.dora.client.block.BlockWorkerInfo;
 import alluxio.dora.client.block.policy.options.GetWorkerOptions;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.wire.BlockInfo;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.test.util.CommonUtils;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -54,7 +54,7 @@ public final class MostAvailableFirstPolicyTest {
 
   @Test
   public void equalsTest() {
-    alluxio.dora.test.util.CommonUtils.testEquals(MostAvailableFirstPolicy.class,
+    CommonUtils.testEquals(MostAvailableFirstPolicy.class,
         new Class[]{AlluxioConfiguration.class},
         new Object[]{Configuration.global()});
   }

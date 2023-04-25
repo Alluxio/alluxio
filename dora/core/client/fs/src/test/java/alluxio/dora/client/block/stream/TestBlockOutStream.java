@@ -11,7 +11,7 @@
 
 package alluxio.dora.client.block.stream;
 
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

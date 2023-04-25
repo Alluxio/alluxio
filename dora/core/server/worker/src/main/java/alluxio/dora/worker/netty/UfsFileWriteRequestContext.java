@@ -12,8 +12,8 @@
 package alluxio.dora.worker.netty;
 
 import alluxio.proto.dataserver.Protocol;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.underfs.options.CreateOptions;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
 
 import java.io.OutputStream;
 import javax.annotation.Nullable;

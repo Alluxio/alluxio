@@ -13,9 +13,9 @@ package alluxio.dora.client.file.cache;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-import alluxio.dora.client.quota.CacheScope;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.client.quota.CacheScope;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 
 import com.google.common.hash.BloomFilter;
 

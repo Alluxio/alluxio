@@ -11,8 +11,8 @@
 
 package alluxio.dora.job.plan.migrate;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.client.WriteType;
+import alluxio.AlluxioURI;
+import alluxio.client.WriteType;
 import alluxio.dora.client.file.FileInStream;
 import alluxio.dora.client.file.FileOutStream;
 import alluxio.grpc.CreateFilePOptions;

@@ -11,11 +11,11 @@
 
 package alluxio.dora.client.fuse.file;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.fuse.file.FuseFileStream;
 import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.dora.util.io.BufferUtils;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.util.io.BufferUtils;
+import alluxio.util.io.PathUtils;
 
 import jnr.constants.platform.OpenFlags;
 import org.junit.Assert;

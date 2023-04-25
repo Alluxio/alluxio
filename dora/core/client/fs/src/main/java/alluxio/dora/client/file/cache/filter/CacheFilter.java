@@ -11,10 +11,10 @@
 
 package alluxio.dora.client.file.cache.filter;
 
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.util.CommonUtils;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.CommonUtils;
 
 /**
  * The Cache Filter interface which is used to determine

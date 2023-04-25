@@ -11,10 +11,10 @@
 
 package alluxio.dora.client.file.cache.store;
 
-import alluxio.dora.Constants;
+import alluxio.Constants;
 import alluxio.dora.client.file.cache.PageId;
 import alluxio.dora.client.file.cache.PageStore;
-import alluxio.dora.exception.PageNotFoundException;
+import alluxio.exception.PageNotFoundException;
 import alluxio.proto.client.Cache;
 
 import com.google.common.base.Preconditions;

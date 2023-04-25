@@ -11,15 +11,17 @@
 
 package alluxio.dora.underfs;
 
-import alluxio.dora.Constants;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.runtime.AlluxioRuntimeException;
-import alluxio.dora.underfs.options.OpenOptions;
-import alluxio.dora.util.IdUtils;
-import alluxio.dora.util.executor.ExecutorServiceFactories;
-import alluxio.dora.util.logging.SamplingLogger;
-import alluxio.dora.worker.block.io.BlockReader;
+import alluxio.Constants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.underfs.SeekableUnderFileInputStream;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.OpenOptions;
+import alluxio.util.IdUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.util.logging.SamplingLogger;
+import alluxio.worker.block.io.BlockReader;
 
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;

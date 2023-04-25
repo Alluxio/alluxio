@@ -11,12 +11,11 @@
 
 package alluxio.dora.worker.block;
 
-import alluxio.dora.Server;
-import alluxio.dora.exception.BlockAlreadyExistsException;
-import alluxio.dora.exception.BlockDoesNotExistException;
-import alluxio.dora.exception.InvalidWorkerStateException;
-import alluxio.dora.exception.WorkerOutOfSpaceException;
-import alluxio.dora.worker.block.*;
+import alluxio.Server;
+import alluxio.exception.BlockAlreadyExistsException;
+import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.InvalidWorkerStateException;
+import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.grpc.AsyncCacheRequest;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
@@ -26,11 +25,12 @@ import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.UfsReadOptions;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.dora.wire.Configuration;
-import alluxio.dora.wire.FileInfo;
-import alluxio.dora.wire.WorkerNetAddress;
-import alluxio.dora.worker.block.io.BlockReader;
-import alluxio.dora.worker.block.io.BlockWriter;
+import alluxio.wire.Configuration;
+import alluxio.wire.FileInfo;
+import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.block.*;
+import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.io.BlockWriter;
 
 import java.io.IOException;
 import java.util.List;

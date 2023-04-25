@@ -14,12 +14,11 @@ package alluxio.dora.master.block;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.master.block.RegisterLeaseManager;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.GetRegisterLeasePRequest;
-import alluxio.dora.util.SleepUtils;
-import alluxio.dora.wire.RegisterLease;
+import alluxio.util.SleepUtils;
+import alluxio.wire.RegisterLease;
 
 import org.junit.Before;
 import org.junit.Test;

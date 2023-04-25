@@ -11,8 +11,8 @@
 
 package alluxio.dora.worker.block.evictor;
 
-import alluxio.dora.collections.Pair;
-import alluxio.dora.worker.block.BlockStoreLocation;
+import alluxio.collections.Pair;
+import alluxio.worker.block.BlockStoreLocation;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;

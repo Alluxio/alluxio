@@ -11,7 +11,7 @@
 
 package alluxio.dora.job.wire;
 
-import alluxio.dora.util.CommonUtils;
+import alluxio.util.CommonUtils;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;

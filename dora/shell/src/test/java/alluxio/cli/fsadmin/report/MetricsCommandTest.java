@@ -14,7 +14,7 @@ package alluxio.cli.fsadmin.report;
 import alluxio.dora.client.metrics.MetricsMasterClient;
 import alluxio.grpc.MetricType;
 import alluxio.grpc.MetricValue;
-import alluxio.dora.metrics.MetricKey;
+import alluxio.metrics.MetricKey;
 
 import org.hamcrest.collection.IsIterableContainingInOrder;
 import org.junit.After;

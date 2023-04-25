@@ -14,18 +14,18 @@ package alluxio.dora.client.fs;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.WritePType;
-import alluxio.dora.heartbeat.HeartbeatContext;
-import alluxio.dora.heartbeat.HeartbeatScheduler;
-import alluxio.dora.heartbeat.ManuallyScheduleHeartbeat;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.dora.testutils.BaseIntegrationTest;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
-import alluxio.dora.util.CommonUtils;
+import alluxio.util.CommonUtils;
 
 import org.junit.Before;
 import org.junit.ClassRule;

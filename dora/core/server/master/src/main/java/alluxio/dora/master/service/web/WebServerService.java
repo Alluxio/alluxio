@@ -11,12 +11,12 @@
 
 package alluxio.dora.master.service.web;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.master.AlluxioMasterProcess;
 import alluxio.dora.master.MasterProcess;
 import alluxio.dora.master.service.SimpleService;
-import alluxio.dora.web.WebServer;
+import alluxio.web.WebServer;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;

@@ -15,7 +15,7 @@ import alluxio.dora.master.file.meta.EdgeEntry;
 import alluxio.dora.master.file.meta.Inode;
 import alluxio.dora.master.file.meta.InodeDirectoryView;
 import alluxio.dora.master.file.meta.MutableInode;
-import alluxio.dora.resource.CloseableIterator;
+import alluxio.resource.CloseableIterator;
 
 import com.google.common.annotations.VisibleForTesting;
 

@@ -11,13 +11,13 @@
 
 package alluxio.dora.client.file.cache;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.dora.client.file.DelegatingFileSystem;
 import alluxio.dora.client.file.FileInStream;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.exception.AlluxioException;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.exception.AlluxioException;
 import alluxio.grpc.OpenFilePOptions;
 
 import com.google.common.base.Preconditions;

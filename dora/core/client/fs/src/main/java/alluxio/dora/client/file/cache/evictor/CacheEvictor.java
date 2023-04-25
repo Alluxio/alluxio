@@ -12,7 +12,7 @@
 package alluxio.dora.client.file.cache.evictor;
 
 import alluxio.dora.client.file.cache.PageId;
-import alluxio.dora.util.CommonUtils;
+import alluxio.util.CommonUtils;
 
 import java.util.function.Predicate;
 import javax.annotation.Nullable;

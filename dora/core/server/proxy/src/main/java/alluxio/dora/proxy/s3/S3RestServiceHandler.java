@@ -11,21 +11,21 @@
 
 package alluxio.dora.proxy.s3;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Constants;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.dora.client.file.FileInStream;
 import alluxio.dora.client.file.FileOutStream;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.InstancedConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.AccessControlException;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.exception.DirectoryNotEmptyException;
-import alluxio.dora.exception.FileAlreadyExistsException;
-import alluxio.dora.exception.FileDoesNotExistException;
-import alluxio.dora.exception.InvalidPathException;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.AccessControlException;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.DirectoryNotEmptyException;
+import alluxio.exception.FileAlreadyExistsException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
 import alluxio.grpc.Bits;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -34,9 +34,9 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.PMode;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.XAttrPropagationStrategy;
-import alluxio.dora.master.audit.AsyncUserAccessAuditLogWriter;
+import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.proto.journal.File;
-import alluxio.dora.util.CommonUtils;
+import alluxio.util.CommonUtils;
 import alluxio.dora.web.ProxyWebServer;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;

@@ -11,19 +11,19 @@
 
 package alluxio.dora.client.block.stream;
 
-import alluxio.dora.client.WriteType;
+import alluxio.client.WriteType;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.client.file.options.OutStreamOptions;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.resource.CloseableResource;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.wire.WorkerNetAddress;
-import alluxio.dora.worker.block.io.LocalFileBlockWriter;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.resource.CloseableResource;
+import alluxio.util.CommonUtils;
+import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.block.io.LocalFileBlockWriter;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;

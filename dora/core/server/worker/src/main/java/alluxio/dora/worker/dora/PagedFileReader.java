@@ -11,18 +11,18 @@
 
 package alluxio.dora.worker.dora;
 
-import alluxio.dora.client.file.CacheContext;
+import alluxio.client.file.CacheContext;
 import alluxio.dora.client.file.cache.CacheManager;
 import alluxio.dora.client.file.cache.PageId;
 import alluxio.dora.client.file.cache.store.PageReadTargetBuffer;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.network.protocol.databuffer.NioDirectBufferPool;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.network.protocol.databuffer.NioDirectBufferPool;
 import alluxio.dora.underfs.FileId;
 import alluxio.dora.underfs.PagedUfsReader;
-import alluxio.dora.worker.block.io.BlockReadableChannel;
-import alluxio.dora.worker.block.io.BlockReader;
+import alluxio.worker.block.io.BlockReadableChannel;
+import alluxio.worker.block.io.BlockReader;
 import alluxio.dora.worker.page.NettyBufTargetBuffer;
 
 import com.google.common.base.Preconditions;

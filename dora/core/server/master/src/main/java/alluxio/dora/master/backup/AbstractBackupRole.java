@@ -11,23 +11,23 @@
 
 package alluxio.dora.master.backup;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.master.CoreMasterContext;
 import alluxio.grpc.BackupPRequest;
-import alluxio.dora.master.BackupManager;
-import alluxio.dora.master.journal.JournalSystem;
-import alluxio.dora.master.transport.GrpcMessagingConnection;
-import alluxio.dora.master.transport.GrpcMessagingContext;
-import alluxio.dora.resource.CloseableResource;
-import alluxio.dora.security.user.UserState;
-import alluxio.dora.underfs.UfsManager;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.underfs.UnderFileSystemConfiguration;
-import alluxio.dora.underfs.options.MkdirsOptions;
-import alluxio.dora.util.ThreadFactoryUtils;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.master.BackupManager;
+import alluxio.master.journal.JournalSystem;
+import alluxio.master.transport.GrpcMessagingConnection;
+import alluxio.master.transport.GrpcMessagingContext;
+import alluxio.resource.CloseableResource;
+import alluxio.security.user.UserState;
+import alluxio.underfs.UfsManager;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.options.MkdirsOptions;
+import alluxio.util.ThreadFactoryUtils;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.io.Closer;
 import io.atomix.catalyst.serializer.Serializer;

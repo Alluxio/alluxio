@@ -11,12 +11,12 @@
 
 package alluxio.cli.fs.command;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.cli.Command;
+import alluxio.AlluxioURI;
+import alluxio.cli.Command;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.exception.AlluxioException;
+import alluxio.exception.AlluxioException;
 
 import com.google.common.base.Joiner;
 import org.apache.commons.cli.CommandLine;

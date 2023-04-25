@@ -11,9 +11,9 @@
 
 package alluxio.dora.testutils.underfs.delegating;
 
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.underfs.UnderFileSystemConfiguration;
-import alluxio.dora.underfs.UnderFileSystemFactory;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.UnderFileSystemFactory;
 
 /**
  * Factory for delegating under file systems.

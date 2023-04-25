@@ -11,10 +11,14 @@
 
 package alluxio.dora.master;
 
-import alluxio.dora.master.journal.JournalSystem;
+import alluxio.master.BackupManager;
+import alluxio.master.MasterContext;
+import alluxio.master.PrimarySelector;
+import alluxio.master.SafeModeManager;
+import alluxio.master.journal.JournalSystem;
 import alluxio.dora.master.metastore.BlockMetaStore;
 import alluxio.dora.master.metastore.InodeStore;
-import alluxio.dora.security.user.UserState;
+import alluxio.security.user.UserState;
 import alluxio.dora.underfs.MasterUfsManager;
 
 import com.google.common.base.Preconditions;

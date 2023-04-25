@@ -11,11 +11,11 @@
 
 package alluxio.dora.client.cli.fs;
 
-import alluxio.dora.Constants;
-import alluxio.dora.SystemErrRule;
-import alluxio.dora.SystemOutRule;
-import alluxio.dora.client.WriteType;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.Constants;
+import alluxio.SystemErrRule;
+import alluxio.SystemOutRule;
+import alluxio.client.WriteType;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.testutils.BaseIntegrationTest;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
 

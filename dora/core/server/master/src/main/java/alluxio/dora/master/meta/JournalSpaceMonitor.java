@@ -11,16 +11,16 @@
 
 package alluxio.dora.master.meta;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.heartbeat.HeartbeatExecutor;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.shell.CommandReturn;
-import alluxio.dora.util.LogUtils;
-import alluxio.dora.util.ShellUtils;
-import alluxio.dora.wire.JournalDiskInfo;
+import alluxio.AlluxioURI;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.shell.CommandReturn;
+import alluxio.util.LogUtils;
+import alluxio.util.ShellUtils;
+import alluxio.wire.JournalDiskInfo;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;

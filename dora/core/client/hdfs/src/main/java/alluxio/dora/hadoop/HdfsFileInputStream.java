@@ -11,12 +11,12 @@
 
 package alluxio.dora.hadoop;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.dora.client.file.FileInStream;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.exception.ExceptionMessage;
-import alluxio.dora.exception.FileDoesNotExistException;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileDoesNotExistException;
 
 import org.apache.hadoop.fs.ByteBufferReadable;
 import org.apache.hadoop.fs.FileSystem.Statistics;

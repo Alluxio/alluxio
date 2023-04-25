@@ -11,13 +11,13 @@
 
 package alluxio.dora.client.block;
 
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.master.MasterClientContext;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.resource.DynamicResourcePool;
-import alluxio.dora.resource.ResourcePool;
-import alluxio.dora.util.ThreadFactoryUtils;
+import alluxio.conf.PropertyKey;
+import alluxio.master.MasterClientContext;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.resource.DynamicResourcePool;
+import alluxio.resource.ResourcePool;
+import alluxio.util.ThreadFactoryUtils;
 
 import com.codahale.metrics.Counter;
 

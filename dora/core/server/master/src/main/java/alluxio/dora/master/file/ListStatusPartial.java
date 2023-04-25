@@ -11,18 +11,18 @@
 
 package alluxio.dora.master.file;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.exception.ExceptionMessage;
-import alluxio.dora.exception.FileDoesNotExistException;
-import alluxio.dora.exception.InvalidPathException;
+import alluxio.AlluxioURI;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
 import alluxio.dora.master.metastore.ReadOnlyInodeStore;
 import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.dora.master.file.contexts.ListStatusContext;
 import alluxio.dora.master.file.meta.Inode;
 import alluxio.dora.master.file.meta.InodeTree;
 import alluxio.dora.master.file.meta.LockedInodePath;
-import alluxio.dora.resource.CloseableIterator;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.resource.CloseableIterator;
+import alluxio.util.io.PathUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;

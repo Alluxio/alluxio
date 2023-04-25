@@ -11,19 +11,21 @@
 
 package alluxio.dora.web;
 
-import alluxio.dora.Constants;
+import alluxio.Constants;
 import alluxio.dora.StreamCache;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.master.audit.AsyncUserAccessAuditLogWriter;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.dora.proxy.ProxyProcess;
 import alluxio.dora.proxy.s3.CompleteMultipartUploadHandler;
 import alluxio.dora.proxy.s3.S3RestExceptionMapper;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.util.io.PathUtils;
 
+import alluxio.web.JacksonProtobufObjectMapperProvider;
+import alluxio.web.WebServer;
 import com.google.common.base.Stopwatch;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.server.ResourceConfig;

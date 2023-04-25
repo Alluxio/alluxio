@@ -11,17 +11,17 @@
 
 package alluxio.dora.client.cli.fs.command;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.dora.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.client.file.FileSystemTestUtils;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.AlluxioException;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
 import alluxio.grpc.WritePType;
-import alluxio.dora.security.user.TestUserState;
+import alluxio.security.user.TestUserState;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
 
 import org.junit.Assert;
@@ -40,7 +40,7 @@ import java.util.List;
         PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
         PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
         PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS,
-        "alluxio.dora.security.group.provider.IdentityUserGroupsMapping",
+        "alluxio.provider.group.security.IdentityUserGroupsMapping",
         PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "setfacl_test_user"})
 public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShellTest {
   private static final List<String> FACL_STRING_ENTRIES

@@ -11,14 +11,14 @@
 
 package alluxio.stress.cli;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.annotation.SuppressFBWarnings;
+import alluxio.AlluxioURI;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.exception.AlluxioException;
+import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.dora.retry.CountingRetry;
-import alluxio.dora.retry.RetryPolicy;
+import alluxio.retry.CountingRetry;
+import alluxio.retry.RetryPolicy;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.common.FileSystemClientType;
 import alluxio.stress.common.FileSystemParameters;
@@ -26,10 +26,10 @@ import alluxio.stress.master.MasterBenchBaseParameters;
 import alluxio.stress.master.MasterBenchParameters;
 import alluxio.stress.master.MasterBenchTaskResult;
 import alluxio.stress.master.Operation;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.FormatUtils;
-import alluxio.dora.util.executor.ExecutorServiceFactories;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.util.io.PathUtils;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Strings;

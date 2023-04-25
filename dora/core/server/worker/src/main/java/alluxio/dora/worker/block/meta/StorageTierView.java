@@ -11,6 +11,7 @@
 
 package alluxio.dora.worker.block.meta;
 
+import alluxio.worker.block.meta.StorageTier;
 import com.google.common.base.Preconditions;
 
 import java.util.Collection;

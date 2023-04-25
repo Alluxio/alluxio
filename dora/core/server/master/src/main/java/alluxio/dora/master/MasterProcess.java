@@ -11,22 +11,23 @@
 
 package alluxio.dora.master;
 
-import static alluxio.dora.util.network.NetworkAddressUtils.ServiceType;
+import static alluxio.util.network.NetworkAddressUtils.ServiceType;
 
-import alluxio.dora.Process;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.Configuration;
+import alluxio.Process;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.GrpcServerBuilder;
-import alluxio.dora.master.journal.JournalSystem;
+import alluxio.master.*;
+import alluxio.master.journal.JournalSystem;
 import alluxio.dora.master.service.SimpleService;
 import alluxio.dora.master.service.rpc.RpcServerService;
 import alluxio.dora.master.service.web.WebServerService;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.ConfigurationUtils;
-import alluxio.dora.util.WaitForOptions;
-import alluxio.dora.util.network.NetworkAddressUtils;
-import alluxio.dora.web.WebServer;
+import alluxio.metrics.MetricsSystem;
+import alluxio.util.CommonUtils;
+import alluxio.util.ConfigurationUtils;
+import alluxio.util.WaitForOptions;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.web.WebServer;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;

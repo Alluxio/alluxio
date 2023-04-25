@@ -17,7 +17,7 @@ import alluxio.dora.client.file.cache.CacheManagerOptions;
 import alluxio.dora.client.file.cache.CacheStatus;
 import alluxio.dora.client.file.cache.PageInfo;
 import alluxio.dora.client.file.cache.PageStore;
-import alluxio.dora.util.io.FileUtils;
+import alluxio.util.io.FileUtils;
 
 import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;

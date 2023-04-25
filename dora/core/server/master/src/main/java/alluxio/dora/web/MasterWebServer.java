@@ -11,13 +11,15 @@
 
 package alluxio.dora.web;
 
-import alluxio.dora.Constants;
+import alluxio.Constants;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.master.AlluxioMasterProcess;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.util.io.PathUtils;
 
+import alluxio.web.JacksonProtobufObjectMapperProvider;
+import alluxio.web.WebServer;
 import com.google.common.base.Preconditions;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ErrorPageErrorHandler;

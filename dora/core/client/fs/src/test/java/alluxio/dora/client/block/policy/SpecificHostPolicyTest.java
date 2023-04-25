@@ -11,11 +11,11 @@
 
 package alluxio.dora.client.block.policy;
 
-import alluxio.dora.Constants;
+import alluxio.Constants;
 import alluxio.dora.client.block.BlockWorkerInfo;
 import alluxio.dora.client.block.policy.options.GetWorkerOptions;
-import alluxio.dora.wire.BlockInfo;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;
 import org.junit.Test;

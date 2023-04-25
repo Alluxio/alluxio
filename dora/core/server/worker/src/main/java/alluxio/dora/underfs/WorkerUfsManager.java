@@ -11,12 +11,15 @@
 
 package alluxio.dora.underfs;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.exception.status.NotFoundException;
-import alluxio.dora.exception.status.UnavailableException;
+import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
+import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.UfsInfo;
-import alluxio.dora.util.network.NetworkAddressUtils;
+import alluxio.underfs.AbstractUfsManager;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.dora.worker.file.FileSystemMasterClient;
 
 import com.google.common.base.Preconditions;

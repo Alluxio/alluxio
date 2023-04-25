@@ -16,10 +16,10 @@ import static org.mockito.Mockito.when;
 
 import alluxio.cli.bundler.InfoCollectorTestUtils;
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.InstancedConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.AlluxioException;
+import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
 import org.junit.After;

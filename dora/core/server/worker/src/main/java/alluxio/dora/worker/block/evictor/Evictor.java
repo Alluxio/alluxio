@@ -11,13 +11,13 @@
 
 package alluxio.dora.worker.block.evictor;
 
-import alluxio.dora.annotation.PublicApi;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.worker.block.meta.StorageDir;
+import alluxio.annotation.PublicApi;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.CommonUtils;
+import alluxio.worker.block.meta.StorageDir;
 import alluxio.dora.worker.block.BlockMetadataEvictorView;
-import alluxio.dora.worker.block.BlockStoreLocation;
+import alluxio.worker.block.BlockStoreLocation;
 import alluxio.dora.worker.block.LocalBlockStore;
 import alluxio.dora.worker.block.allocator.Allocator;
 

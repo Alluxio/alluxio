@@ -11,12 +11,9 @@
 
 package alluxio.dora.master.service.metrics;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.master.service.metrics.AlwaysOnMetricsService;
-import alluxio.dora.master.service.metrics.MetricsService;
-import alluxio.dora.master.service.metrics.PrimaryOnlyMetricsService;
-import alluxio.dora.metrics.MetricsSystem;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.metrics.MetricsSystem;
 
 import org.junit.Assert;
 import org.junit.Test;

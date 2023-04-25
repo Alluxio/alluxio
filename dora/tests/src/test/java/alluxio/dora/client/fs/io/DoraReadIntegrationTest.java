@@ -14,19 +14,19 @@ package alluxio.dora.client.fs.io;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.AlluxioTestDirectory;
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Constants;
+import alluxio.AlluxioTestDirectory;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.dora.client.file.FileInStream;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.client.file.FileSystemTestUtils;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.WritePType;
 import alluxio.dora.testutils.BaseIntegrationTest;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
-import alluxio.dora.util.io.BufferUtils;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.util.io.BufferUtils;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.io.ByteStreams;
 import org.junit.Before;

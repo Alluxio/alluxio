@@ -11,18 +11,18 @@
 
 package alluxio.dora.master.meta;
 
-import alluxio.dora.conf.Hash;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.master.journal.DelegatingJournaled;
-import alluxio.dora.master.journal.JournalContext;
-import alluxio.dora.master.journal.Journaled;
-import alluxio.dora.master.journal.checkpoint.CheckpointName;
+import alluxio.conf.Hash;
+import alluxio.conf.PropertyKey;
+import alluxio.master.journal.DelegatingJournaled;
+import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.Journaled;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.Meta.PathPropertiesEntry;
 import alluxio.proto.journal.Meta.RemovePathPropertiesEntry;
-import alluxio.dora.resource.CloseableIterator;
-import alluxio.dora.resource.LockResource;
+import alluxio.resource.CloseableIterator;
+import alluxio.resource.LockResource;
 
 import com.google.common.collect.Iterators;
 

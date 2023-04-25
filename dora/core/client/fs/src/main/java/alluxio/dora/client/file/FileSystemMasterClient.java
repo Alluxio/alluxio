@@ -11,12 +11,14 @@
 
 package alluxio.dora.client.file;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Client;
-import alluxio.dora.exception.AccessControlException;
-import alluxio.dora.exception.status.AlluxioStatusException;
-import alluxio.dora.exception.status.AlreadyExistsException;
-import alluxio.dora.exception.status.NotFoundException;
+import alluxio.client.file.ListStatusPartialResult;
+import alluxio.client.file.URIStatus;
+import alluxio.AlluxioURI;
+import alluxio.Client;
+import alluxio.exception.AccessControlException;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.AlreadyExistsException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CompleteFilePOptions;
@@ -36,12 +38,12 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UpdateUfsModePOptions;
-import alluxio.dora.job.JobDescription;
-import alluxio.dora.job.JobRequest;
-import alluxio.dora.master.MasterClientContext;
-import alluxio.dora.security.authorization.AclEntry;
-import alluxio.dora.wire.MountPointInfo;
-import alluxio.dora.wire.SyncPointInfo;
+import alluxio.job.JobDescription;
+import alluxio.job.JobRequest;
+import alluxio.master.MasterClientContext;
+import alluxio.security.authorization.AclEntry;
+import alluxio.wire.MountPointInfo;
+import alluxio.wire.SyncPointInfo;
 
 import java.util.List;
 import java.util.Map;

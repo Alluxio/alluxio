@@ -12,14 +12,14 @@
 package alluxio.dora.client.block.stream;
 
 import alluxio.dora.client.file.options.InStreamOptions;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.network.protocol.databuffer.DataBuffer;
-import alluxio.dora.network.protocol.databuffer.NioDataBuffer;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.network.protocol.databuffer.NioDataBuffer;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.dora.util.IdUtils;
-import alluxio.dora.worker.block.BlockWorker;
-import alluxio.dora.worker.block.io.BlockReader;
+import alluxio.util.IdUtils;
+import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.io.BlockReader;
 
 import com.google.common.base.Preconditions;
 

@@ -11,14 +11,14 @@
 
 package alluxio.cli.fsadmin.pathconf;
 
-import alluxio.dora.cli.CommandUtils;
+import alluxio.cli.CommandUtils;
 import alluxio.cli.fsadmin.command.AbstractFsAdminCommand;
 import alluxio.cli.fsadmin.command.Context;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.exception.status.InvalidArgumentException;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.GetConfigurationPOptions;
-import alluxio.dora.wire.Configuration;
+import alluxio.wire.Configuration;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;

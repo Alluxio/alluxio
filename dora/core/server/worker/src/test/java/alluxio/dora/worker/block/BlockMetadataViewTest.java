@@ -17,15 +17,16 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import alluxio.dora.Constants;
-import alluxio.dora.exception.ExceptionMessage;
-import alluxio.dora.master.block.BlockId;
-import alluxio.dora.worker.block.meta.BlockMeta;
+import alluxio.Constants;
+import alluxio.exception.ExceptionMessage;
+import alluxio.master.block.BlockId;
+import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.meta.BlockMeta;
 import alluxio.dora.worker.block.meta.DefaultBlockMeta;
-import alluxio.dora.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.StorageDir;
 import alluxio.dora.worker.block.meta.StorageDirEvictorView;
 import alluxio.dora.worker.block.meta.StorageDirView;
-import alluxio.dora.worker.block.meta.StorageTier;
+import alluxio.worker.block.meta.StorageTier;
 import alluxio.dora.worker.block.meta.StorageTierEvictorView;
 import alluxio.dora.worker.block.meta.StorageTierView;
 

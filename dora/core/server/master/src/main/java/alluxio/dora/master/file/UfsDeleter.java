@@ -11,8 +11,8 @@
 
 package alluxio.dora.master.file;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.exception.InvalidPathException;
+import alluxio.AlluxioURI;
+import alluxio.exception.InvalidPathException;
 import alluxio.dora.master.file.meta.Inode;
 
 import java.io.IOException;

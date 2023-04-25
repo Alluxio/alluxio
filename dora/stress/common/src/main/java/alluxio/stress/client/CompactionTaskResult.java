@@ -11,7 +11,7 @@
 
 package alluxio.stress.client;
 
-import alluxio.dora.annotation.SuppressFBWarnings;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.GraphGenerator;
 import alluxio.stress.Summary;

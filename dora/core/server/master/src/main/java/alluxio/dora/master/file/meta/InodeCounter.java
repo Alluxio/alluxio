@@ -11,11 +11,11 @@
 
 package alluxio.dora.master.file.meta;
 
-import alluxio.dora.master.journal.checkpoint.CheckpointInputStream;
-import alluxio.dora.master.journal.checkpoint.CheckpointName;
-import alluxio.dora.master.journal.checkpoint.CheckpointOutputStream;
-import alluxio.dora.master.journal.checkpoint.CheckpointType;
-import alluxio.dora.master.journal.checkpoint.Checkpointed;
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
+import alluxio.master.journal.checkpoint.CheckpointName;
+import alluxio.master.journal.checkpoint.CheckpointOutputStream;
+import alluxio.master.journal.checkpoint.CheckpointType;
+import alluxio.master.journal.checkpoint.Checkpointed;
 
 import com.google.common.base.Preconditions;
 

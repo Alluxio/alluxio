@@ -11,20 +11,20 @@
 
 package alluxio.dora.master.file;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.AccessControlException;
-import alluxio.dora.exception.ExceptionMessage;
-import alluxio.dora.exception.InvalidPathException;
-import alluxio.dora.exception.PreconditionMessage;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.AccessControlException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.InvalidPathException;
+import alluxio.exception.PreconditionMessage;
 import alluxio.dora.master.file.meta.InodeTree;
 import alluxio.dora.master.file.meta.InodeView;
 import alluxio.dora.master.file.meta.LockedInodePath;
-import alluxio.dora.security.authentication.AuthenticatedClientUser;
-import alluxio.dora.security.authorization.AclAction;
-import alluxio.dora.security.authorization.Mode;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.authorization.AclAction;
+import alluxio.security.authorization.Mode;
+import alluxio.util.CommonUtils;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 

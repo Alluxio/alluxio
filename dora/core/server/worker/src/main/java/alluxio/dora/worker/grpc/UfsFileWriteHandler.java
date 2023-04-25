@@ -11,22 +11,22 @@
 
 package alluxio.dora.worker.grpc;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.annotation.SuppressFBWarnings;
+import alluxio.conf.Configuration;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
-import alluxio.dora.metrics.MetricInfo;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.network.protocol.databuffer.DataBuffer;
+import alluxio.metrics.MetricInfo;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.dora.resource.CloseableResource;
-import alluxio.dora.security.authentication.AuthenticatedUserInfo;
-import alluxio.dora.security.authorization.Mode;
-import alluxio.dora.underfs.UfsManager;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.underfs.options.CreateOptions;
-import alluxio.dora.util.proto.ProtoUtils;
+import alluxio.resource.CloseableResource;
+import alluxio.security.authentication.AuthenticatedUserInfo;
+import alluxio.security.authorization.Mode;
+import alluxio.underfs.UfsManager;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
+import alluxio.util.proto.ProtoUtils;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;

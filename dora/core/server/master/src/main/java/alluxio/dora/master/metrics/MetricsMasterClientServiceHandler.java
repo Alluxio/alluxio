@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.metrics;
 
-import alluxio.dora.RpcUtils;
+import alluxio.RpcUtils;
 import alluxio.grpc.ClearMetricsPRequest;
 import alluxio.grpc.ClearMetricsPResponse;
 import alluxio.grpc.GetMetricsPOptions;
@@ -19,7 +19,7 @@ import alluxio.grpc.GetMetricsPResponse;
 import alluxio.grpc.MetricsHeartbeatPRequest;
 import alluxio.grpc.MetricsHeartbeatPResponse;
 import alluxio.grpc.MetricsMasterClientServiceGrpc;
-import alluxio.dora.metrics.Metric;
+import alluxio.metrics.Metric;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;

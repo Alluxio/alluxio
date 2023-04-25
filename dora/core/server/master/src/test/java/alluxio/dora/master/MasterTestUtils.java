@@ -13,13 +13,15 @@ package alluxio.dora.master;
 
 import static org.mockito.Mockito.mock;
 
-import alluxio.dora.master.journal.JournalSystem;
-import alluxio.dora.master.journal.noop.NoopJournalSystem;
+import alluxio.master.AlwaysStandbyPrimarySelector;
+import alluxio.master.BackupManager;
+import alluxio.master.journal.JournalSystem;
+import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.dora.master.metastore.BlockMetaStore;
 import alluxio.dora.master.metastore.InodeStore;
 import alluxio.dora.master.metastore.heap.HeapBlockMetaStore;
 import alluxio.dora.master.metastore.heap.HeapInodeStore;
-import alluxio.dora.security.user.UserState;
+import alluxio.security.user.UserState;
 import alluxio.dora.underfs.MasterUfsManager;
 
 /**

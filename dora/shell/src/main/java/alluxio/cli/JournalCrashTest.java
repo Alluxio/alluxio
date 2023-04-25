@@ -11,19 +11,18 @@
 
 package alluxio.cli;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.RuntimeConstants;
-import alluxio.dora.cli.RunTestUtils;
+import alluxio.AlluxioURI;
+import alluxio.RuntimeConstants;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.exception.FileAlreadyExistsException;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.FileAlreadyExistsException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.util.CommonUtils;
+import alluxio.util.io.PathUtils;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;

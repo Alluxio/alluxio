@@ -11,10 +11,9 @@
 
 package alluxio.dora.worker.dora;
 
-import alluxio.dora.worker.dora.RocksDBDoraMetaStore;
 import alluxio.grpc.FileInfo;
 import alluxio.proto.meta.DoraMeta;
-import alluxio.dora.util.CommonUtils;
+import alluxio.util.CommonUtils;
 
 import junit.framework.TestCase;
 

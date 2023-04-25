@@ -11,12 +11,11 @@
 
 package alluxio.dora.master.throttle;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.master.throttle.ServerIndicator;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.util.JvmPauseMonitor;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.util.JvmPauseMonitor;
 
 import org.junit.After;
 import org.junit.Assert;

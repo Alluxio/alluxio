@@ -14,7 +14,7 @@ package alluxio.stress.rpc;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.Summary;
 import alluxio.stress.TaskResult;
-import alluxio.dora.util.JsonSerializable;
+import alluxio.util.JsonSerializable;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

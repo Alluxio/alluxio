@@ -11,21 +11,21 @@
 
 package alluxio.dora.client.block.stream;
 
-import alluxio.dora.client.ReadType;
+import alluxio.client.ReadType;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.client.file.options.InStreamOptions;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.status.NotFoundException;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.network.protocol.databuffer.DataBuffer;
-import alluxio.dora.network.protocol.databuffer.NioDataBuffer;
-import alluxio.dora.resource.CloseableResource;
-import alluxio.dora.wire.WorkerNetAddress;
-import alluxio.dora.worker.block.io.LocalFileBlockReader;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.network.protocol.databuffer.NioDataBuffer;
+import alluxio.resource.CloseableResource;
+import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.block.io.LocalFileBlockReader;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;

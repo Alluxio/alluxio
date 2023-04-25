@@ -11,18 +11,18 @@
 
 package alluxio.dora.master.block.meta;
 
-import alluxio.dora.Constants;
-import alluxio.dora.StorageTierAssoc;
+import alluxio.Constants;
+import alluxio.StorageTierAssoc;
 import alluxio.dora.client.block.options.GetWorkerReportOptions;
 import alluxio.dora.client.block.options.GetWorkerReportOptions.WorkerInfoField;
 import alluxio.dora.master.block.DefaultBlockMaster;
 import alluxio.dora.master.block.WorkerRegisterContext;
 import alluxio.grpc.BuildVersion;
 import alluxio.grpc.StorageList;
-import alluxio.dora.resource.LockResource;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.wire.WorkerInfo;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.resource.LockResource;
+import alluxio.util.CommonUtils;
+import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;

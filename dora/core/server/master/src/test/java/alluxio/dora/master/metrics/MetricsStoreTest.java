@@ -14,14 +14,13 @@ package alluxio.dora.master.metrics;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.clock.SystemClock;
-import alluxio.dora.master.metrics.MetricsStore;
+import alluxio.AlluxioURI;
+import alluxio.clock.SystemClock;
 import alluxio.grpc.MetricType;
-import alluxio.dora.metrics.Metric;
-import alluxio.dora.metrics.MetricInfo;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
+import alluxio.metrics.Metric;
+import alluxio.metrics.MetricInfo;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 
 import com.google.common.collect.Lists;
 import org.junit.Before;

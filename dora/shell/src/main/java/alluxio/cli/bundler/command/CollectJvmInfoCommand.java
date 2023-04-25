@@ -12,11 +12,11 @@
 package alluxio.cli.bundler.command;
 
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.shell.CommandReturn;
-import alluxio.dora.shell.ShellCommand;
-import alluxio.dora.util.ShellUtils;
-import alluxio.dora.util.SleepUtils;
+import alluxio.exception.AlluxioException;
+import alluxio.shell.CommandReturn;
+import alluxio.shell.ShellCommand;
+import alluxio.util.ShellUtils;
+import alluxio.util.SleepUtils;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FileUtils;

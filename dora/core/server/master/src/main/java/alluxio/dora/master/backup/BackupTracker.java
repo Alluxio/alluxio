@@ -11,12 +11,12 @@
 
 package alluxio.dora.master.backup;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.exception.BackupException;
+import alluxio.AlluxioURI;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.BackupException;
 import alluxio.grpc.BackupState;
-import alluxio.dora.resource.LockResource;
-import alluxio.dora.wire.BackupStatus;
+import alluxio.resource.LockResource;
+import alluxio.wire.BackupStatus;
 
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.SettableFuture;

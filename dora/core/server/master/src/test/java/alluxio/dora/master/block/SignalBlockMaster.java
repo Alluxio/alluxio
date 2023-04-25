@@ -11,12 +11,11 @@
 
 package alluxio.dora.master.block;
 
-import alluxio.dora.clock.ManualClock;
+import alluxio.clock.ManualClock;
 import alluxio.dora.master.CoreMasterContext;
-import alluxio.dora.master.block.DefaultBlockMaster;
 import alluxio.dora.master.metrics.MetricsMaster;
-import alluxio.dora.resource.LockResource;
-import alluxio.dora.util.executor.ExecutorServiceFactory;
+import alluxio.resource.LockResource;
+import alluxio.util.executor.ExecutorServiceFactory;
 
 import java.util.concurrent.CountDownLatch;
 

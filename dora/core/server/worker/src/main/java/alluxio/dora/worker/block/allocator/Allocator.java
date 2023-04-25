@@ -11,13 +11,13 @@
 
 package alluxio.dora.worker.block.allocator;
 
-import alluxio.dora.annotation.PublicApi;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.util.CommonUtils;
+import alluxio.annotation.PublicApi;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.CommonUtils;
 import alluxio.dora.worker.block.reviewer.Reviewer;
 import alluxio.dora.worker.block.BlockMetadataView;
-import alluxio.dora.worker.block.BlockStoreLocation;
+import alluxio.worker.block.BlockStoreLocation;
 import alluxio.dora.worker.block.meta.StorageDirView;
 
 import com.google.common.base.Preconditions;

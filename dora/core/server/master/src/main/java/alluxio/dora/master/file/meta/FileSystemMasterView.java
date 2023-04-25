@@ -11,15 +11,15 @@
 
 package alluxio.dora.master.file.meta;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.exception.AccessControlException;
-import alluxio.dora.exception.FileDoesNotExistException;
-import alluxio.dora.exception.InvalidPathException;
-import alluxio.dora.exception.status.UnavailableException;
+import alluxio.AlluxioURI;
+import alluxio.exception.AccessControlException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.dora.master.file.FileSystemMaster;
-import alluxio.dora.wire.FileBlockInfo;
-import alluxio.dora.wire.FileInfo;
-import alluxio.dora.wire.WorkerInfo;
+import alluxio.wire.FileBlockInfo;
+import alluxio.wire.FileInfo;
+import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Preconditions;
 

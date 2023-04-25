@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.meta.checkconf;
 
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.PropertyKey;
 
 import java.util.Optional;
 import javax.annotation.Nullable;

@@ -14,17 +14,15 @@ package alluxio.dora.process;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Constants;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.dora.client.file.FileInStream;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemTestUtils;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.dora.master.journal.JournalType;
+import alluxio.master.journal.JournalType;
 
-import alluxio.dora.process.MultiProcessCluster;
-import alluxio.dora.process.PortCoordination;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;

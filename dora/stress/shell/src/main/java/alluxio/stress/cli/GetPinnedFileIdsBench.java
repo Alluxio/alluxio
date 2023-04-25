@@ -11,25 +11,25 @@
 
 package alluxio.stress.cli;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.ClientContext;
+import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.client.file.FileSystemMasterClient;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.status.AlluxioStatusException;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterWorkerServiceGrpc;
 import alluxio.grpc.GetPinnedFileIdsPRequest;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.dora.master.MasterClientContext;
-import alluxio.dora.resource.CloseableResource;
+import alluxio.master.MasterClientContext;
+import alluxio.resource.CloseableResource;
 import alluxio.stress.rpc.GetPinnedFileIdsParameters;
 import alluxio.stress.rpc.RpcTaskResult;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.FormatUtils;
+import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
 
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.base.Stopwatch;

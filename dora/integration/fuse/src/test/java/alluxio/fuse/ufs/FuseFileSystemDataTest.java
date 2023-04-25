@@ -20,7 +20,7 @@ import static org.junit.Assert.assertEquals;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.jnifuse.ErrorCodes;
 import alluxio.jnifuse.struct.FileStat;
-import alluxio.dora.util.io.BufferUtils;
+import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;
 import org.junit.Test;

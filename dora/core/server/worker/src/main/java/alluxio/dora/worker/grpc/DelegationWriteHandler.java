@@ -16,8 +16,8 @@ import alluxio.grpc.DataMessageMarshallerProvider;
 import alluxio.dora.worker.block.DefaultBlockWorker;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
-import alluxio.dora.security.authentication.AuthenticatedUserInfo;
-import alluxio.dora.underfs.UfsManager;
+import alluxio.security.authentication.AuthenticatedUserInfo;
+import alluxio.underfs.UfsManager;
 
 import io.grpc.stub.StreamObserver;
 

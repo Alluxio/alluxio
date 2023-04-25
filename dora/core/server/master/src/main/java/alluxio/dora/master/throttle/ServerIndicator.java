@@ -11,9 +11,9 @@
 
 package alluxio.dora.master.throttle;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.metrics.MetricsSystem;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.metrics.MetricsSystem;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;

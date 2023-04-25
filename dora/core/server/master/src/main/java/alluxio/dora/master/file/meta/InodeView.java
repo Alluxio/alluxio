@@ -12,13 +12,14 @@
 package alluxio.dora.master.file.meta;
 
 import alluxio.grpc.TtlAction;
-import alluxio.dora.master.journal.JournalEntryRepresentable;
+import alluxio.master.journal.JournalEntryRepresentable;
+import alluxio.master.file.meta.PersistenceState;
 import alluxio.proto.meta.InodeMeta;
-import alluxio.dora.security.authorization.AccessControlList;
-import alluxio.dora.security.authorization.AclAction;
-import alluxio.dora.security.authorization.AclActions;
-import alluxio.dora.security.authorization.DefaultAccessControlList;
-import alluxio.dora.wire.FileInfo;
+import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.AclAction;
+import alluxio.security.authorization.AclActions;
+import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.wire.FileInfo;
 
 import com.google.common.collect.ImmutableSet;
 

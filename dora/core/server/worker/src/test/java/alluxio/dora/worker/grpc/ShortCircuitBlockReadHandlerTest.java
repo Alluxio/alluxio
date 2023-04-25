@@ -11,7 +11,7 @@
 
 package alluxio.dora.worker.grpc;
 
-import static alluxio.dora.AlluxioMockUtil.setStaticInternalState;
+import static alluxio.AlluxioMockUtil.setStaticInternalState;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -21,27 +21,26 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import alluxio.dora.ConfigurationRule;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.worker.grpc.ShortCircuitBlockReadHandler;
+import alluxio.ConfigurationRule;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
-import alluxio.dora.underfs.UfsManager;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.underfs.UfsManager;
+import alluxio.util.io.PathUtils;
 import alluxio.dora.worker.block.BlockLockManager;
 import alluxio.dora.worker.block.BlockMasterClient;
 import alluxio.dora.worker.block.BlockMasterClientPool;
 import alluxio.dora.worker.block.BlockMetadataManager;
-import alluxio.dora.worker.block.BlockStore;
-import alluxio.dora.worker.block.BlockStoreType;
-import alluxio.dora.worker.block.CreateBlockOptions;
+import alluxio.worker.block.BlockStore;
+import alluxio.worker.block.BlockStoreType;
+import alluxio.worker.block.CreateBlockOptions;
 import alluxio.dora.worker.block.MonoBlockStore;
 import alluxio.dora.worker.block.TieredBlockReaderFactory;
 import alluxio.dora.worker.block.TieredBlockStore;
 import alluxio.dora.worker.block.TieredBlockWriterFactory;
 import alluxio.dora.worker.block.TieredTempBlockMetaFactory;
-import alluxio.dora.worker.block.io.BlockWriter;
+import alluxio.worker.block.io.BlockWriter;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;

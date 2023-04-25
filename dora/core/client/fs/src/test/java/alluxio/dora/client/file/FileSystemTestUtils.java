@@ -11,9 +11,10 @@
 
 package alluxio.dora.client.file;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.client.WriteType;
-import alluxio.dora.exception.AlluxioException;
+import alluxio.client.file.URIStatus;
+import alluxio.AlluxioURI;
+import alluxio.client.WriteType;
+import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;

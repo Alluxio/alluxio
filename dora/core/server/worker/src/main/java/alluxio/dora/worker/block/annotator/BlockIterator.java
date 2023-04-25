@@ -11,9 +11,9 @@
 
 package alluxio.dora.worker.block.annotator;
 
-import alluxio.dora.collections.Pair;
-import alluxio.dora.worker.block.BlockStoreEventListener;
-import alluxio.dora.worker.block.BlockStoreLocation;
+import alluxio.collections.Pair;
+import alluxio.worker.block.BlockStoreEventListener;
+import alluxio.worker.block.BlockStoreLocation;
 
 import java.util.Iterator;
 import java.util.List;

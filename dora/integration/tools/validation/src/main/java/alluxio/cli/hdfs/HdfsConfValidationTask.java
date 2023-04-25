@@ -11,16 +11,16 @@
 
 package alluxio.cli.hdfs;
 
-import alluxio.dora.cli.AbstractValidationTask;
+import alluxio.cli.AbstractValidationTask;
 import alluxio.cli.ApplicableUfsType;
-import alluxio.dora.cli.ValidationTaskResult;
-import alluxio.dora.cli.ValidationUtils;
-import alluxio.dora.collections.Pair;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.InvalidPathException;
-import alluxio.dora.util.ExceptionUtils;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.cli.ValidationTaskResult;
+import alluxio.cli.ValidationUtils;
+import alluxio.collections.Pair;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.InvalidPathException;
+import alluxio.util.ExceptionUtils;
+import alluxio.util.io.PathUtils;
 
 import java.io.IOException;
 import java.net.URI;

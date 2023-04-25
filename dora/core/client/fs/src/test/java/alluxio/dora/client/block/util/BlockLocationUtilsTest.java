@@ -18,16 +18,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-import alluxio.dora.Constants;
+import alluxio.Constants;
 import alluxio.dora.client.block.BlockWorkerInfo;
-import alluxio.dora.collections.Pair;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.InstancedConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.network.TieredIdentityFactory;
-import alluxio.dora.util.network.NettyUtils;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.collections.Pair;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.network.TieredIdentityFactory;
+import alluxio.util.network.NettyUtils;
+import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

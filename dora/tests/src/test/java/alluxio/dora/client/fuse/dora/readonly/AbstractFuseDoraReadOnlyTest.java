@@ -11,20 +11,20 @@
 
 package alluxio.dora.client.fuse.dora.readonly;
 
-import alluxio.dora.AlluxioTestDirectory;
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.ClientContext;
-import alluxio.dora.Constants;
+import alluxio.AlluxioTestDirectory;
+import alluxio.AlluxioURI;
+import alluxio.ClientContext;
+import alluxio.Constants;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.client.file.options.UfsFileSystemOptions;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.jnifuse.LibFuse;
-import alluxio.dora.security.authorization.Mode;
+import alluxio.security.authorization.Mode;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
-import alluxio.dora.util.io.FileUtils;
+import alluxio.util.io.FileUtils;
 
 import org.junit.After;
 import org.junit.Before;

@@ -11,8 +11,8 @@
 
 package alluxio.underfs.hdfs;
 
-import alluxio.dora.underfs.SeekableUnderFileInputStream;
-import alluxio.dora.util.io.BufferUtils;
+import alluxio.underfs.SeekableUnderFileInputStream;
+import alluxio.util.io.BufferUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;

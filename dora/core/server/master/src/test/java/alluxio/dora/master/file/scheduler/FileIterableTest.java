@@ -16,11 +16,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 
-import alluxio.dora.exception.AccessControlException;
-import alluxio.dora.exception.FileDoesNotExistException;
-import alluxio.dora.exception.InvalidPathException;
-import alluxio.dora.exception.runtime.NotFoundRuntimeException;
-import alluxio.dora.exception.runtime.UnauthenticatedRuntimeException;
+import alluxio.exception.AccessControlException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
+import alluxio.exception.runtime.NotFoundRuntimeException;
+import alluxio.exception.runtime.UnauthenticatedRuntimeException;
 import alluxio.dora.master.file.FileSystemMaster;
 import alluxio.dora.master.job.FileIterable;
 import alluxio.dora.master.job.LoadJob;

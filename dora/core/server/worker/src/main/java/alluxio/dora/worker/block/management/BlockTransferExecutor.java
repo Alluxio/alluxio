@@ -11,8 +11,8 @@
 
 package alluxio.dora.worker.block.management;
 
-import alluxio.dora.Sessions;
-import alluxio.dora.worker.block.AllocateOptions;
+import alluxio.Sessions;
+import alluxio.worker.block.AllocateOptions;
 import alluxio.dora.worker.block.LocalBlockStore;
 import alluxio.dora.worker.block.evictor.BlockTransferInfo;
 

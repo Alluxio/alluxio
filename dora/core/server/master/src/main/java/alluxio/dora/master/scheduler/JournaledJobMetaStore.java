@@ -11,16 +11,16 @@
 
 package alluxio.dora.master.scheduler;
 
-import alluxio.dora.collections.ConcurrentHashSet;
-import alluxio.dora.exception.runtime.UnavailableRuntimeException;
-import alluxio.dora.exception.status.UnavailableException;
+import alluxio.collections.ConcurrentHashSet;
+import alluxio.exception.runtime.UnavailableRuntimeException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.dora.master.file.FileSystemMaster;
 import alluxio.dora.master.job.JobFactoryProducer;
-import alluxio.dora.master.journal.JournalContext;
-import alluxio.dora.master.journal.Journaled;
-import alluxio.dora.master.journal.checkpoint.CheckpointName;
+import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.Journaled;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.Journal;
-import alluxio.dora.resource.CloseableIterator;
+import alluxio.resource.CloseableIterator;
 import alluxio.dora.job.Job;
 import alluxio.dora.job.JobMetaStore;
 

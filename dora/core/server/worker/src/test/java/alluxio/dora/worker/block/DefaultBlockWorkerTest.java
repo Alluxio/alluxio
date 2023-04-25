@@ -11,7 +11,7 @@
 
 package alluxio.dora.worker.block;
 
-import static alluxio.dora.util.CommonUtils.waitFor;
+import static alluxio.util.CommonUtils.waitFor;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -30,19 +30,18 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.ConfigurationRule;
-import alluxio.dora.Constants;
-import alluxio.dora.Sessions;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.runtime.AlluxioRuntimeException;
-import alluxio.dora.exception.runtime.BlockDoesNotExistRuntimeException;
-import alluxio.dora.exception.runtime.ResourceExhaustedRuntimeException;
-import alluxio.dora.exception.status.DeadlineExceededException;
-import alluxio.dora.exception.status.NotFoundException;
-import alluxio.dora.exception.status.UnavailableException;
-import alluxio.dora.worker.block.*;
+import alluxio.AlluxioURI;
+import alluxio.ConfigurationRule;
+import alluxio.Constants;
+import alluxio.Sessions;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
+import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
+import alluxio.exception.status.DeadlineExceededException;
+import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
 import alluxio.grpc.CacheRequest;
@@ -50,18 +49,19 @@ import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.UfsReadOptions;
-import alluxio.dora.master.NoopUfsManager;
+import alluxio.master.NoopUfsManager;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.dora.underfs.UfsManager;
-import alluxio.dora.underfs.UnderFileSystemConfiguration;
-import alluxio.dora.util.IdUtils;
-import alluxio.dora.util.WaitForOptions;
-import alluxio.dora.util.io.BufferUtils;
-import alluxio.dora.util.network.NetworkAddressUtils;
-import alluxio.dora.wire.WorkerNetAddress;
-import alluxio.dora.worker.block.io.BlockReader;
-import alluxio.dora.worker.block.io.BlockWriter;
-import alluxio.dora.worker.block.meta.TempBlockMeta;
+import alluxio.underfs.UfsManager;
+import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.util.IdUtils;
+import alluxio.util.WaitForOptions;
+import alluxio.util.io.BufferUtils;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.block.*;
+import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.dora.worker.file.FileSystemMasterClient;
 
 import com.google.common.collect.ImmutableList;
@@ -610,7 +610,7 @@ public class DefaultBlockWorkerTest {
 
   @Test
   public void getConfiguration() {
-    alluxio.dora.wire.Configuration conf = mBlockWorker.getConfiguration(
+    alluxio.wire.Configuration conf = mBlockWorker.getConfiguration(
         GetConfigurationPOptions
             .newBuilder()
             .setIgnoreClusterConf(false)

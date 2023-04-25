@@ -11,10 +11,10 @@
 
 package alluxio.dora.client.block.stream;
 
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.status.AlluxioStatusException;
-import alluxio.dora.exception.status.UnauthenticatedException;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.UnauthenticatedException;
 import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.ClearMetricsRequest;
@@ -45,10 +45,10 @@ import alluxio.grpc.RemoveBlockRequest;
 import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
-import alluxio.dora.resource.AlluxioResourceLeakDetectorFactory;
-import alluxio.dora.retry.RetryPolicy;
-import alluxio.dora.retry.RetryUtils;
-import alluxio.dora.security.user.UserState;
+import alluxio.resource.AlluxioResourceLeakDetectorFactory;
+import alluxio.retry.RetryPolicy;
+import alluxio.retry.RetryUtils;
+import alluxio.security.user.UserState;
 
 import com.google.common.io.Closer;
 import com.google.common.util.concurrent.ListenableFuture;

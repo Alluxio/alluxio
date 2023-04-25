@@ -14,10 +14,9 @@ package alluxio.dora.master.file;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.master.block.BlockId;
-import alluxio.dora.master.file.FileSystemJournalEntryMerger;
-import alluxio.dora.master.file.meta.PersistenceState;
+import alluxio.AlluxioURI;
+import alluxio.master.block.BlockId;
+import alluxio.master.file.meta.PersistenceState;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.Journal;
 

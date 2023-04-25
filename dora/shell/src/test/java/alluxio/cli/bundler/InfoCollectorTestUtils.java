@@ -13,7 +13,7 @@ package alluxio.cli.bundler;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.dora.util.CommonUtils;
+import alluxio.util.CommonUtils;
 
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;

@@ -11,10 +11,10 @@
 
 package alluxio.dora.worker.block.annotator;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.worker.block.BlockStoreLocation;
-import alluxio.dora.worker.block.meta.StorageDir;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.meta.StorageDir;
 
 import org.junit.Before;
 import org.junit.Test;

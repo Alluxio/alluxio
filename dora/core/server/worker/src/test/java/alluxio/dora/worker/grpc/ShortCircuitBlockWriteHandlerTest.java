@@ -19,8 +19,8 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
-import alluxio.dora.util.io.PathUtils;
-import alluxio.dora.worker.block.CreateBlockOptions;
+import alluxio.util.io.PathUtils;
+import alluxio.worker.block.CreateBlockOptions;
 import alluxio.dora.worker.block.NoopBlockWorker;
 
 import com.amazonaws.annotation.NotThreadSafe;

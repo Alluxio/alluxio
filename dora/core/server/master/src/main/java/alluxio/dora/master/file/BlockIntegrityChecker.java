@@ -11,9 +11,9 @@
 
 package alluxio.dora.master.file;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.heartbeat.HeartbeatExecutor;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.heartbeat.HeartbeatExecutor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -14,9 +14,8 @@ package alluxio.dora.master.metrics;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import alluxio.dora.master.metrics.TimeSeriesStore;
-import alluxio.dora.metrics.TimeSeries;
-import alluxio.dora.util.CommonUtils;
+import alluxio.metrics.TimeSeries;
+import alluxio.util.CommonUtils;
 
 import org.junit.Assert;
 import org.junit.Test;

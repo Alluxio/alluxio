@@ -13,9 +13,9 @@ package alluxio.dora.job.workflow;
 
 import alluxio.dora.job.JobConfig;
 import alluxio.dora.job.wire.Status;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.util.CommonUtils;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.util.CommonUtils;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;

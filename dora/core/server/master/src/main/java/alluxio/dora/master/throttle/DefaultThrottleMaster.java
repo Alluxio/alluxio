@@ -11,26 +11,26 @@
 
 package alluxio.dora.master.throttle;
 
-import alluxio.dora.Constants;
-import alluxio.dora.Server;
-import alluxio.dora.annotation.SuppressFBWarnings;
-import alluxio.dora.clock.SystemClock;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.Constants;
+import alluxio.Server;
+import alluxio.annotation.SuppressFBWarnings;
+import alluxio.clock.SystemClock;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.GrpcService;
 import alluxio.dora.master.MasterProcess;
 import alluxio.dora.master.metrics.MetricsMaster;
 import alluxio.grpc.ServiceType;
-import alluxio.dora.heartbeat.HeartbeatContext;
-import alluxio.dora.heartbeat.HeartbeatExecutor;
-import alluxio.dora.heartbeat.HeartbeatThread;
-import alluxio.dora.master.AbstractMaster;
-import alluxio.dora.master.MasterContext;
-import alluxio.dora.master.MasterRegistry;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.heartbeat.HeartbeatThread;
+import alluxio.master.AbstractMaster;
+import alluxio.master.MasterContext;
+import alluxio.master.MasterRegistry;
 import alluxio.dora.master.block.BlockMaster;
 import alluxio.dora.master.file.FileSystemMaster;
-import alluxio.dora.master.journal.NoopJournaled;
-import alluxio.dora.util.executor.ExecutorServiceFactories;
+import alluxio.master.journal.NoopJournaled;
+import alluxio.util.executor.ExecutorServiceFactories;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;

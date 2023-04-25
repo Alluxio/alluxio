@@ -11,10 +11,10 @@
 
 package alluxio.fsmaster;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.security.authentication.AuthType;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.security.authentication.AuthType;
+import alluxio.util.io.PathUtils;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;

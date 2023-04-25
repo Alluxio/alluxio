@@ -11,19 +11,19 @@
 
 package alluxio.dora.job.plan.migrate;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Constants;
-import alluxio.dora.client.WriteType;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.client.WriteType;
 import alluxio.dora.client.block.BlockWorkerInfo;
 import alluxio.dora.client.file.FileInStream;
 import alluxio.dora.client.file.FileOutStream;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.collections.Pair;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.ExceptionMessage;
-import alluxio.dora.exception.FileAlreadyExistsException;
+import alluxio.client.file.URIStatus;
+import alluxio.collections.Pair;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileAlreadyExistsException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
@@ -33,8 +33,8 @@ import alluxio.dora.job.SelectExecutorsContext;
 import alluxio.dora.job.plan.AbstractVoidPlanDefinition;
 import alluxio.dora.job.util.JobUtils;
 import alluxio.dora.job.util.SerializableVoid;
-import alluxio.dora.util.io.PathUtils;
-import alluxio.dora.wire.WorkerInfo;
+import alluxio.util.io.PathUtils;
+import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;

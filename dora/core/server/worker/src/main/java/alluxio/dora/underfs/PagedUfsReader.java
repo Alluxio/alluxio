@@ -11,12 +11,14 @@
 
 package alluxio.dora.underfs;
 
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.network.protocol.databuffer.NioDirectBufferPool;
-import alluxio.dora.resource.CloseableResource;
-import alluxio.dora.underfs.options.OpenOptions;
-import alluxio.dora.worker.block.io.BlockReader;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.network.protocol.databuffer.NioDirectBufferPool;
+import alluxio.resource.CloseableResource;
+import alluxio.underfs.UfsManager;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.OpenOptions;
+import alluxio.worker.block.io.BlockReader;
 import alluxio.dora.worker.page.UfsBlockReadOptions;
 
 import com.google.common.base.Preconditions;

@@ -11,11 +11,11 @@
 
 package alluxio.dora.job;
 
-import alluxio.dora.Constants;
+import alluxio.Constants;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.job.util.JobTestUtils;
 import alluxio.dora.job.wire.JobInfo;
 import alluxio.dora.job.wire.Status;

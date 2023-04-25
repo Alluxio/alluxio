@@ -14,12 +14,12 @@ package alluxio.dora.client.fuse.dora;
 import static jnr.constants.platform.OpenFlags.O_WRONLY;
 
 import alluxio.dora.client.file.options.FileSystemOptions;
-import alluxio.dora.conf.Configuration;
+import alluxio.conf.Configuration;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.fuse.AlluxioJniFuseFileSystem;
 import alluxio.fuse.options.FuseOptions;
 import alluxio.jnifuse.struct.FileStat;
-import alluxio.dora.util.io.BufferUtils;
+import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;
 

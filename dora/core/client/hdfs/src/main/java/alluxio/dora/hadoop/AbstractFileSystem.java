@@ -13,31 +13,31 @@ package alluxio.dora.hadoop;
 
 import static java.util.stream.Collectors.toList;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.ClientContext;
-import alluxio.dora.Constants;
+import alluxio.AlluxioURI;
+import alluxio.ClientContext;
+import alluxio.Constants;
 import alluxio.dora.client.file.FileOutStream;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.AlluxioProperties;
-import alluxio.dora.conf.InstancedConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.conf.Source;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.exception.FileDoesNotExistException;
-import alluxio.dora.exception.InvalidPathException;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.AlluxioProperties;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.Source;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.dora.master.MasterInquireClient.Factory;
-import alluxio.dora.security.CurrentUser;
-import alluxio.dora.security.authorization.Mode;
-import alluxio.dora.wire.BlockLocationInfo;
-import alluxio.dora.wire.FileBlockInfo;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.master.MasterInquireClient.Factory;
+import alluxio.security.CurrentUser;
+import alluxio.security.authorization.Mode;
+import alluxio.wire.BlockLocationInfo;
+import alluxio.wire.FileBlockInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.net.HostAndPort;
@@ -513,7 +513,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
         hadoopConfProperties, uriConfProperties);
     AlluxioProperties alluxioProps =
         (alluxioConfiguration != null) ? alluxioConfiguration.copyProperties()
-            : alluxio.dora.conf.Configuration.copyProperties();
+            : alluxio.conf.Configuration.copyProperties();
     // Merge relevant Hadoop configuration into Alluxio's configuration.
     alluxioProps.merge(hadoopConfProperties, Source.RUNTIME);
     // Merge relevant connection details in the URI with the highest priority

@@ -18,8 +18,8 @@ import alluxio.dora.client.file.cache.PageId;
 import alluxio.dora.client.file.cache.PageInfo;
 import alluxio.dora.client.file.cache.PageStore;
 import alluxio.dora.client.file.cache.evictor.CacheEvictor;
-import alluxio.dora.master.metastore.rocks.RocksUtils;
-import alluxio.dora.resource.CloseableIterator;
+import alluxio.master.metastore.rocks.RocksUtils;
+import alluxio.resource.CloseableIterator;
 
 import com.google.common.collect.Streams;
 import org.rocksdb.RocksIterator;

@@ -15,18 +15,18 @@ import static alluxio.stress.cli.RpcBenchPreparationUtils.CAPACITY;
 import static alluxio.stress.cli.RpcBenchPreparationUtils.EMPTY_CONFIG;
 import static alluxio.stress.cli.RpcBenchPreparationUtils.LOST_STORAGE;
 
-import alluxio.dora.ClientContext;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.ClientContext;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.LocationBlockIdListEntry;
-import alluxio.dora.master.MasterClientContext;
+import alluxio.master.MasterClientContext;
 import alluxio.stress.CachingBlockMasterClient;
 import alluxio.stress.rpc.BlockMasterBenchParameters;
 import alluxio.stress.rpc.RpcTaskResult;
 import alluxio.stress.rpc.TierAlias;
 import alluxio.dora.worker.block.BlockMasterClient;
 import alluxio.dora.worker.block.BlockMasterSync;
-import alluxio.dora.worker.block.BlockStoreLocation;
+import alluxio.worker.block.BlockStoreLocation;
 
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.base.Preconditions;

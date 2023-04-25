@@ -11,19 +11,19 @@
 
 package alluxio.dora.server.worker;
 
-import alluxio.dora.AlluxioTestDirectory;
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Constants;
+import alluxio.AlluxioTestDirectory;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.dora.client.file.FileInStream;
 import alluxio.dora.client.file.FileOutStream;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.dora.testutils.BaseIntegrationTest;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
-import alluxio.dora.util.io.BufferUtils;
-import alluxio.dora.worker.block.BlockStoreType;
+import alluxio.util.io.BufferUtils;
+import alluxio.worker.block.BlockStoreType;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.ByteStreams;

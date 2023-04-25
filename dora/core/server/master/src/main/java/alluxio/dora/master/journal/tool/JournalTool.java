@@ -11,11 +11,11 @@
 
 package alluxio.dora.master.journal.tool;
 
-import alluxio.dora.RuntimeConstants;
-import alluxio.dora.annotation.SuppressFBWarnings;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.master.journal.JournalType;
+import alluxio.RuntimeConstants;
+import alluxio.annotation.SuppressFBWarnings;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.master.journal.JournalType;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;

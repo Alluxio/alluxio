@@ -11,15 +11,12 @@
 
 package alluxio.cli;
 
-import alluxio.dora.Constants;
-import alluxio.dora.cli.AbstractValidationTask;
-import alluxio.dora.cli.ValidationTaskResult;
-import alluxio.dora.cli.ValidationUtils;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.util.ExceptionUtils;
-import alluxio.dora.util.FormatUtils;
-import alluxio.dora.util.ShellUtils;
+import alluxio.Constants;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.ExceptionUtils;
+import alluxio.util.FormatUtils;
+import alluxio.util.ShellUtils;
 
 import org.apache.commons.io.FileUtils;
 

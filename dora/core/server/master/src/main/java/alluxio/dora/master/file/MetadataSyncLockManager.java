@@ -11,14 +11,14 @@
 
 package alluxio.dora.master.file;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.collections.LockPool;
-import alluxio.dora.concurrent.LockMode;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.InvalidPathException;
-import alluxio.dora.resource.LockResource;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.AlluxioURI;
+import alluxio.collections.LockPool;
+import alluxio.concurrent.LockMode;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.InvalidPathException;
+import alluxio.resource.LockResource;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 

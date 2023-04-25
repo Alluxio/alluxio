@@ -11,19 +11,19 @@
 
 package alluxio.underfs.hdfs.activesync;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Constants;
-import alluxio.dora.SyncInfo;
-import alluxio.dora.collections.ConcurrentHashSet;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.InvalidPathException;
-import alluxio.dora.resource.LockResource;
-import alluxio.dora.underfs.UnderFileSystemConfiguration;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.SyncInfo;
+import alluxio.collections.ConcurrentHashSet;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.InvalidPathException;
+import alluxio.resource.LockResource;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.hdfs.HdfsActiveSyncProvider;
-import alluxio.dora.util.LogUtils;
-import alluxio.dora.util.ThreadFactoryUtils;
-import alluxio.dora.util.io.PathUtils;
-import alluxio.dora.util.logging.SamplingLogger;
+import alluxio.util.LogUtils;
+import alluxio.util.ThreadFactoryUtils;
+import alluxio.util.io.PathUtils;
+import alluxio.util.logging.SamplingLogger;
 
 import org.apache.hadoop.hdfs.DFSInotifyEventInputStream;
 import org.apache.hadoop.hdfs.client.HdfsAdmin;

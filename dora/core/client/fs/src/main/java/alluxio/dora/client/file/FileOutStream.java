@@ -11,7 +11,7 @@
 
 package alluxio.dora.client.file;
 
-import alluxio.dora.annotation.PublicApi;
+import alluxio.annotation.PublicApi;
 import alluxio.dora.client.Cancelable;
 
 import java.io.IOException;

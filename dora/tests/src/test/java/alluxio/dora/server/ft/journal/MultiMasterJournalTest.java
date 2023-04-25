@@ -13,11 +13,11 @@ package alluxio.dora.server.ft.journal;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Constants;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
@@ -25,8 +25,8 @@ import alluxio.dora.master.MultiMasterLocalAlluxioCluster;
 import alluxio.dora.master.file.meta.TtlIntervalRule;
 import alluxio.dora.testutils.BaseIntegrationTest;
 import alluxio.dora.testutils.IntegrationTestUtils;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.WaitForOptions;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import org.junit.After;
 import org.junit.Before;

@@ -13,8 +13,8 @@ package alluxio.dora.testutils;
 
 import alluxio.dora.master.file.FileSystemMaster;
 import alluxio.dora.master.file.PersistJob;
-import alluxio.dora.time.ExponentialTimer;
-import alluxio.dora.util.CommonUtils;
+import alluxio.time.ExponentialTimer;
+import alluxio.util.CommonUtils;
 
 import org.powermock.reflect.Whitebox;
 

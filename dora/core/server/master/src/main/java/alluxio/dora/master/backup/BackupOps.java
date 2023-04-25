@@ -11,11 +11,11 @@
 
 package alluxio.dora.master.backup;
 
-import alluxio.dora.exception.AlluxioException;
+import alluxio.exception.AlluxioException;
 import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.BackupStatusPRequest;
-import alluxio.dora.master.StateLockOptions;
-import alluxio.dora.wire.BackupStatus;
+import alluxio.master.StateLockOptions;
+import alluxio.wire.BackupStatus;
 
 /**
  * Interface for backup operations.

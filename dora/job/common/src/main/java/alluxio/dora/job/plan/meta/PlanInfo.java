@@ -14,10 +14,10 @@ package alluxio.dora.job.plan.meta;
 import alluxio.dora.job.JobConfig;
 import alluxio.dora.job.wire.Status;
 import alluxio.dora.job.wire.TaskInfo;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.wire.WorkerInfo;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.util.CommonUtils;
+import alluxio.wire.WorkerInfo;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Objects;

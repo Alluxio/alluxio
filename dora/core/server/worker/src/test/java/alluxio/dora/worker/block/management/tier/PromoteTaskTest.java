@@ -11,10 +11,10 @@
 
 package alluxio.dora.worker.block.management.tier;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.WaitForOptions;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.dora.worker.block.TieredBlockStoreTestUtils;
 
 import org.junit.Assert;

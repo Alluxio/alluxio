@@ -11,8 +11,7 @@
 
 package alluxio.dora.master.file.meta.options;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.master.file.meta.options.MountInfo;
+import alluxio.AlluxioURI;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.UfsInfo;
 import alluxio.dora.master.file.contexts.MountContext;

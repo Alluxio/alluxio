@@ -11,25 +11,25 @@
 
 package alluxio.dora.master.meta;
 
-import alluxio.dora.ClientContext;
-import alluxio.dora.Constants;
-import alluxio.dora.Server;
-import alluxio.dora.clock.SystemClock;
-import alluxio.dora.collections.IndexDefinition;
-import alluxio.dora.collections.IndexedSet;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.ConfigurationValueOptions;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.conf.Source;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.exception.status.NotFoundException;
-import alluxio.dora.exception.status.UnavailableException;
+import alluxio.ClientContext;
+import alluxio.Constants;
+import alluxio.Server;
+import alluxio.clock.SystemClock;
+import alluxio.collections.IndexDefinition;
+import alluxio.collections.IndexedSet;
+import alluxio.conf.Configuration;
+import alluxio.conf.ConfigurationValueOptions;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.Source;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.dora.master.CoreMaster;
 import alluxio.dora.master.CoreMasterContext;
 import alluxio.dora.master.backup.BackupLeaderRole;
 import alluxio.dora.master.backup.BackupRole;
 import alluxio.dora.master.backup.BackupWorkerRole;
-import alluxio.dora.master.journal.Journaled;
+import alluxio.master.journal.Journaled;
 import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.BackupStatusPRequest;
@@ -39,32 +39,32 @@ import alluxio.grpc.MetaCommand;
 import alluxio.grpc.RegisterMasterPOptions;
 import alluxio.grpc.Scope;
 import alluxio.grpc.ServiceType;
-import alluxio.dora.heartbeat.HeartbeatContext;
-import alluxio.dora.heartbeat.HeartbeatExecutor;
-import alluxio.dora.heartbeat.HeartbeatThread;
-import alluxio.dora.master.MasterClientContext;
-import alluxio.dora.master.StateLockOptions;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.heartbeat.HeartbeatThread;
+import alluxio.master.MasterClientContext;
+import alluxio.master.StateLockOptions;
 import alluxio.dora.master.block.BlockMaster;
-import alluxio.dora.master.journal.JournalContext;
-import alluxio.dora.master.journal.JournalType;
-import alluxio.dora.master.journal.checkpoint.CheckpointName;
+import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.JournalType;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.dora.master.meta.checkconf.ConfigurationChecker;
 import alluxio.dora.master.meta.checkconf.ConfigurationStore;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Meta;
-import alluxio.dora.resource.CloseableIterator;
-import alluxio.dora.underfs.UfsManager;
-import alluxio.dora.util.ConfigurationUtils;
-import alluxio.dora.util.IdUtils;
-import alluxio.dora.util.OSUtils;
-import alluxio.dora.util.ThreadFactoryUtils;
-import alluxio.dora.util.executor.ExecutorServiceFactories;
-import alluxio.dora.util.executor.ExecutorServiceFactory;
-import alluxio.dora.util.network.NetworkAddressUtils;
-import alluxio.dora.wire.Address;
-import alluxio.dora.wire.BackupStatus;
-import alluxio.dora.wire.ConfigCheckReport;
-import alluxio.dora.wire.ConfigHash;
+import alluxio.resource.CloseableIterator;
+import alluxio.underfs.UfsManager;
+import alluxio.util.ConfigurationUtils;
+import alluxio.util.IdUtils;
+import alluxio.util.OSUtils;
+import alluxio.util.ThreadFactoryUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.util.executor.ExecutorServiceFactory;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.Address;
+import alluxio.wire.BackupStatus;
+import alluxio.wire.ConfigCheckReport;
+import alluxio.wire.ConfigHash;
 
 import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
@@ -403,12 +403,12 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
-  public alluxio.dora.wire.Configuration getConfiguration(GetConfigurationPOptions options) {
+  public alluxio.wire.Configuration getConfiguration(GetConfigurationPOptions options) {
     // NOTE(cc): there is no guarantee that the returned cluster and path configurations are
     // consistent snapshot of the system's state at a certain time, the path configuration might
     // be in a newer state. But it's guaranteed that the hashes are respectively correspondent to
     // the properties.
-    alluxio.dora.wire.Configuration.Builder builder = alluxio.dora.wire.Configuration.newBuilder();
+    alluxio.wire.Configuration.Builder builder = alluxio.wire.Configuration.newBuilder();
 
     if (!options.getIgnoreClusterConf()) {
       for (PropertyKey key : Configuration.keySet()) {
@@ -490,11 +490,11 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
-  public alluxio.dora.wire.MasterInfo[] getMasterInfos() {
-    alluxio.dora.wire.MasterInfo[] masterInfos = new alluxio.dora.wire.MasterInfo[mMasters.size()];
+  public alluxio.wire.MasterInfo[] getMasterInfos() {
+    alluxio.wire.MasterInfo[] masterInfos = new alluxio.wire.MasterInfo[mMasters.size()];
     int indexNum = 0;
     for (MasterInfo master : mMasters) {
-      masterInfos[indexNum] = new alluxio.dora.wire.MasterInfo(master.getId(),
+      masterInfos[indexNum] = new alluxio.wire.MasterInfo(master.getId(),
           master.getAddress(), master.getLastUpdatedTimeMs());
       indexNum++;
     }
@@ -502,11 +502,11 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
-  public alluxio.dora.wire.MasterInfo[] getLostMasterInfos() {
-    alluxio.dora.wire.MasterInfo[] masterInfos = new alluxio.dora.wire.MasterInfo[mLostMasters.size()];
+  public alluxio.wire.MasterInfo[] getLostMasterInfos() {
+    alluxio.wire.MasterInfo[] masterInfos = new alluxio.wire.MasterInfo[mLostMasters.size()];
     int indexNum = 0;
     for (MasterInfo master : mLostMasters) {
-      masterInfos[indexNum] = new alluxio.dora.wire.MasterInfo(master.getId(),
+      masterInfos[indexNum] = new alluxio.wire.MasterInfo(master.getId(),
           master.getAddress(), master.getLastUpdatedTimeMs());
       indexNum++;
     }

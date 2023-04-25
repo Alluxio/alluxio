@@ -17,12 +17,12 @@ import alluxio.dora.client.file.cache.allocator.Allocator;
 import alluxio.dora.client.file.cache.allocator.HashAllocator;
 import alluxio.dora.client.file.cache.evictor.CacheEvictor;
 import alluxio.dora.client.file.cache.store.PageStoreDir;
-import alluxio.dora.client.quota.CacheScope;
-import alluxio.dora.collections.IndexDefinition;
-import alluxio.dora.collections.IndexedSet;
-import alluxio.dora.exception.PageNotFoundException;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
+import alluxio.client.quota.CacheScope;
+import alluxio.collections.IndexDefinition;
+import alluxio.collections.IndexedSet;
+import alluxio.exception.PageNotFoundException;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;

@@ -11,9 +11,10 @@
 
 package alluxio.dora.worker.block;
 
-import alluxio.dora.worker.block.io.BlockWriter;
+import alluxio.worker.block.BlockWriterFactory;
+import alluxio.worker.block.io.BlockWriter;
 import alluxio.dora.worker.block.io.StoreBlockWriter;
-import alluxio.dora.worker.block.meta.TempBlockMeta;
+import alluxio.worker.block.meta.TempBlockMeta;
 
 import java.io.IOException;
 

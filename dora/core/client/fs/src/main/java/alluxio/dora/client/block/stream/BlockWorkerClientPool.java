@@ -11,14 +11,14 @@
 
 package alluxio.dora.client.block.stream;
 
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.GrpcServerAddress;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.resource.DynamicResourcePool;
-import alluxio.dora.security.user.UserState;
-import alluxio.dora.util.ThreadFactoryUtils;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.resource.DynamicResourcePool;
+import alluxio.security.user.UserState;
+import alluxio.util.ThreadFactoryUtils;
 
 import com.codahale.metrics.Counter;
 import org.slf4j.Logger;

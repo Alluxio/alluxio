@@ -11,10 +11,10 @@
 
 package alluxio.dora.master.journal.ufs;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.master.journal.ufs.UfsJournal;
-import alluxio.dora.underfs.UnderFileSystemConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.master.journal.ufs.UfsJournal;
+import alluxio.underfs.UnderFileSystemConfiguration;
 
 import org.junit.After;
 import org.junit.Assert;

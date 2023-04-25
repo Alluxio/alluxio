@@ -18,15 +18,14 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
-import alluxio.dora.AlluxioTestDirectory;
-import alluxio.dora.ConfigurationRule;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.master.metastore.BlockMetaStore;
+import alluxio.AlluxioTestDirectory;
+import alluxio.ConfigurationRule;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.master.metastore.heap.HeapBlockMetaStore;
 import alluxio.dora.master.metastore.rocks.RocksBlockMetaStore;
 import alluxio.proto.meta.Block;
-import alluxio.dora.resource.CloseableIterator;
+import alluxio.resource.CloseableIterator;
 
 import org.junit.After;
 import org.junit.Before;

@@ -11,15 +11,15 @@
 
 package alluxio.dora.worker.grpc;
 
-import alluxio.dora.RpcUtils;
-import alluxio.dora.exception.runtime.ResourceExhaustedRuntimeException;
+import alluxio.RpcUtils;
+import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.GrpcExceptionUtils;
-import alluxio.dora.util.IdUtils;
-import alluxio.dora.util.LogUtils;
-import alluxio.dora.worker.block.BlockWorker;
-import alluxio.dora.worker.block.CreateBlockOptions;
+import alluxio.util.IdUtils;
+import alluxio.util.LogUtils;
+import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.CreateBlockOptions;
 
 import com.google.common.base.Preconditions;
 import io.grpc.Context;

@@ -11,19 +11,19 @@
 
 package alluxio.dora.master;
 
-import alluxio.dora.AlluxioTestDirectory;
-import alluxio.dora.ConfigurationTestUtils;
-import alluxio.dora.Constants;
+import alluxio.AlluxioTestDirectory;
+import alluxio.ConfigurationTestUtils;
+import alluxio.Constants;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.master.journal.JournalType;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.underfs.options.DeleteOptions;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.WaitForOptions;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.master.journal.JournalType;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.DeleteOptions;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Throwables;
 import org.apache.curator.test.TestingServer;

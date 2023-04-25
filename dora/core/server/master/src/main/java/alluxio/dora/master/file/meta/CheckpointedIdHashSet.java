@@ -11,12 +11,12 @@
 
 package alluxio.dora.master.file.meta;
 
-import alluxio.dora.collections.DelegatingSet;
-import alluxio.dora.master.journal.checkpoint.CheckpointInputStream;
-import alluxio.dora.master.journal.checkpoint.CheckpointOutputStream;
-import alluxio.dora.master.journal.checkpoint.CheckpointType;
-import alluxio.dora.master.journal.checkpoint.Checkpointed;
-import alluxio.dora.master.journal.checkpoint.LongsCheckpointFormat.LongsCheckpointReader;
+import alluxio.collections.DelegatingSet;
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
+import alluxio.master.journal.checkpoint.CheckpointOutputStream;
+import alluxio.master.journal.checkpoint.CheckpointType;
+import alluxio.master.journal.checkpoint.Checkpointed;
+import alluxio.master.journal.checkpoint.LongsCheckpointFormat.LongsCheckpointReader;
 
 import java.io.IOException;
 import java.io.OutputStream;

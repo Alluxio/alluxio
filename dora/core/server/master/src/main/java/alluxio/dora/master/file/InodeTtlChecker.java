@@ -11,14 +11,14 @@
 
 package alluxio.dora.master.file;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Constants;
-import alluxio.dora.exception.FileDoesNotExistException;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.dora.master.ProtobufUtils;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.TtlAction;
-import alluxio.dora.heartbeat.HeartbeatExecutor;
+import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.dora.master.file.contexts.DeleteContext;
 import alluxio.dora.master.file.contexts.FreeContext;
 import alluxio.dora.master.file.meta.Inode;
@@ -27,8 +27,8 @@ import alluxio.dora.master.file.meta.InodeTree.LockPattern;
 import alluxio.dora.master.file.meta.LockedInodePath;
 import alluxio.dora.master.file.meta.TtlBucket;
 import alluxio.dora.master.file.meta.TtlBucketList;
-import alluxio.dora.master.journal.JournalContext;
-import alluxio.dora.master.journal.NoopJournalContext;
+import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.NoopJournalContext;
 import alluxio.proto.journal.File.UpdateInodeEntry;
 
 import org.slf4j.Logger;

@@ -11,11 +11,11 @@
 
 package alluxio.dora.master.journal.ufs;
 
-import alluxio.dora.master.NoopMaster;
-import alluxio.dora.master.journal.ufs.UfsJournal;
-import alluxio.dora.master.journal.ufs.UfsJournalFile;
-import alluxio.dora.master.journal.ufs.UfsJournalSnapshot;
-import alluxio.dora.util.URIUtils;
+import alluxio.master.NoopMaster;
+import alluxio.master.journal.ufs.UfsJournal;
+import alluxio.master.journal.ufs.UfsJournalFile;
+import alluxio.master.journal.ufs.UfsJournalSnapshot;
+import alluxio.util.URIUtils;
 
 import org.junit.Assert;
 import org.junit.Before;

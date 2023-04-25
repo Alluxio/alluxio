@@ -11,10 +11,10 @@
 
 package alluxio.cli.hms;
 
-import alluxio.dora.cli.AbstractValidationTask;
-import alluxio.dora.cli.ValidationTaskResult;
-import alluxio.dora.cli.ValidationUtils;
-import alluxio.dora.collections.Pair;
+import alluxio.cli.AbstractValidationTask;
+import alluxio.cli.ValidationTaskResult;
+import alluxio.cli.ValidationUtils;
+import alluxio.collections.Pair;
 
 import java.util.Map;
 import javax.annotation.Nullable;

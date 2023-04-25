@@ -11,22 +11,23 @@
 
 package alluxio.dora.master.file.meta;
 
-import alluxio.dora.Constants;
-import alluxio.dora.exception.BlockInfoException;
+import alluxio.Constants;
+import alluxio.exception.BlockInfoException;
 import alluxio.dora.master.ProtobufUtils;
 import alluxio.grpc.CreateFilePOptionsOrBuilder;
-import alluxio.dora.master.block.BlockId;
+import alluxio.master.block.BlockId;
 import alluxio.dora.master.file.contexts.CreateFileContext;
+import alluxio.master.file.meta.PersistenceState;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.meta.InodeMeta;
 import alluxio.proto.meta.InodeMeta.InodeOrBuilder;
-import alluxio.dora.security.authorization.AccessControlList;
-import alluxio.dora.security.authorization.DefaultAccessControlList;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.proto.ProtoUtils;
-import alluxio.dora.wire.FileInfo;
+import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.util.CommonUtils;
+import alluxio.util.proto.ProtoUtils;
+import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;

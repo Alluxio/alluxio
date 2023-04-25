@@ -13,11 +13,11 @@ package alluxio.dora.client.block.stream;
 
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
-import alluxio.dora.network.protocol.databuffer.DataBuffer;
-import alluxio.dora.network.protocol.databuffer.NioDataBuffer;
-import alluxio.dora.resource.CloseableResource;
-import alluxio.dora.util.io.BufferUtils;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.network.protocol.databuffer.NioDataBuffer;
+import alluxio.resource.CloseableResource;
+import alluxio.util.io.BufferUtils;
+import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

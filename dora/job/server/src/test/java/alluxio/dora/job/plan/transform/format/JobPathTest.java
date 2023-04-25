@@ -19,10 +19,9 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import alluxio.dora.client.ReadType;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.client.ReadType;
+import alluxio.conf.PropertyKey;
 
-import alluxio.dora.job.plan.transform.format.JobPath;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.security.UserGroupInformation;

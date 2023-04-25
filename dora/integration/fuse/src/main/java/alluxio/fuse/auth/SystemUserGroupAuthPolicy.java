@@ -11,9 +11,9 @@
 
 package alluxio.fuse.auth;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.jnifuse.FuseFileSystem;
 import alluxio.jnifuse.struct.FuseContext;

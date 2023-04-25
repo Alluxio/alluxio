@@ -11,10 +11,7 @@
 
 package alluxio.cli;
 
-import alluxio.dora.cli.ValidationConfig;
-import alluxio.dora.cli.ValidationTool;
-import alluxio.dora.cli.ValidationToolFactory;
-import alluxio.dora.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.UnderFileSystemConfiguration;
 
 import java.util.Map;
 

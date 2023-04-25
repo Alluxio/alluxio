@@ -11,16 +11,16 @@
 
 package alluxio.dora.worker.netty;
 
-import alluxio.dora.DefaultStorageTierAssoc;
-import alluxio.dora.StorageTierAssoc;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.annotation.SuppressFBWarnings;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.network.protocol.RPCProtoMessage;
+import alluxio.DefaultStorageTierAssoc;
+import alluxio.StorageTierAssoc;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.annotation.SuppressFBWarnings;
+import alluxio.metrics.MetricsSystem;
+import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.dora.underfs.UfsManager;
-import alluxio.dora.worker.block.BlockWorker;
+import alluxio.underfs.UfsManager;
+import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;

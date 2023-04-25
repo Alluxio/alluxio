@@ -11,8 +11,8 @@
 
 package alluxio.dora.client.file.cache.cuckoofilter;
 
-import alluxio.dora.annotation.SuppressFBWarnings;
-import alluxio.dora.client.quota.CacheScope;
+import alluxio.annotation.SuppressFBWarnings;
+import alluxio.client.quota.CacheScope;
 
 import com.google.common.base.Preconditions;
 

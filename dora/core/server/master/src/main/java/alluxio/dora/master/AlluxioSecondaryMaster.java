@@ -11,17 +11,20 @@
 
 package alluxio.dora.master;
 
-import alluxio.dora.Process;
-import alluxio.dora.ProcessUtils;
-import alluxio.dora.RuntimeConstants;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.master.journal.JournalSystem;
-import alluxio.dora.master.journal.JournalUtils;
+import alluxio.Process;
+import alluxio.ProcessUtils;
+import alluxio.RuntimeConstants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.master.AlwaysStandbyPrimarySelector;
+import alluxio.master.BackupManager;
+import alluxio.master.MasterRegistry;
+import alluxio.master.journal.JournalSystem;
+import alluxio.master.journal.JournalUtils;
 import alluxio.dora.underfs.MasterUfsManager;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.CommonUtils.ProcessType;
-import alluxio.dora.util.WaitForOptions;
+import alluxio.util.CommonUtils;
+import alluxio.util.CommonUtils.ProcessType;
+import alluxio.util.WaitForOptions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

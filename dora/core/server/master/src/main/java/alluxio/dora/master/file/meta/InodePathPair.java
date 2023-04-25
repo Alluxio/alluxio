@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.file.meta;
 
-import alluxio.dora.collections.Pair;
+import alluxio.collections.Pair;
 
 import javax.annotation.concurrent.ThreadSafe;
 

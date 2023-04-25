@@ -13,9 +13,9 @@ package alluxio.dora.worker.block;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.dora.ClientContext;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.master.MasterClientContext;
+import alluxio.ClientContext;
+import alluxio.conf.Configuration;
+import alluxio.master.MasterClientContext;
 import alluxio.dora.worker.file.FileSystemMasterClient;
 
 import com.google.common.collect.ImmutableSet;

@@ -19,9 +19,9 @@ import static org.mockito.Mockito.when;
 
 import alluxio.cli.bundler.InfoCollectorTestUtils;
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.shell.CommandReturn;
-import alluxio.dora.shell.ShellCommand;
+import alluxio.exception.AlluxioException;
+import alluxio.shell.CommandReturn;
+import alluxio.shell.ShellCommand;
 
 import org.apache.commons.cli.CommandLine;
 import org.junit.Test;

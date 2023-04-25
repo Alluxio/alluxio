@@ -11,8 +11,8 @@
 
 package alluxio.underfs.gcs;
 
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.util.CommonUtils;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import org.jets3t.service.ServiceException;

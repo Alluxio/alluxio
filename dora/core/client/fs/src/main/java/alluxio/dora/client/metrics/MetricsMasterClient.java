@@ -11,7 +11,7 @@
 
 package alluxio.dora.client.metrics;
 
-import alluxio.dora.exception.status.AlluxioStatusException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.ClientMetrics;
 import alluxio.grpc.MetricValue;
 

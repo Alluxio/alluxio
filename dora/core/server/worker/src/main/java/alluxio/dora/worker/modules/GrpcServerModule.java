@@ -11,8 +11,8 @@
 
 package alluxio.dora.worker.modules;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.util.network.NetworkAddressUtils;
+import alluxio.conf.Configuration;
+import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;

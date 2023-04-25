@@ -11,23 +11,23 @@
 
 package alluxio.dora.client.hadoop;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.client.ReadType;
+import alluxio.AlluxioURI;
+import alluxio.client.ReadType;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemTestUtils;
 import alluxio.dora.client.file.FileSystemUtils;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.InstancedConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.exception.PreconditionMessage;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.PreconditionMessage;
 import alluxio.grpc.WritePType;
 import alluxio.dora.hadoop.HadoopClientTestUtils;
 import alluxio.dora.hadoop.HdfsFileInputStream;
 import alluxio.dora.testutils.BaseIntegrationTest;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
-import alluxio.dora.util.io.BufferUtils;
+import alluxio.util.io.BufferUtils;
 
 import org.apache.hadoop.fs.Seekable;
 import org.junit.After;

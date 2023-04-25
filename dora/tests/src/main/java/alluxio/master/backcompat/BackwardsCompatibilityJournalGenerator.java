@@ -11,10 +11,10 @@
 
 package alluxio.master.backcompat;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Constants;
-import alluxio.dora.ProjectConstants;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.ProjectConstants;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.BackupPRequest;
 import alluxio.master.backcompat.ops.AsyncPersist;
@@ -27,10 +27,10 @@ import alluxio.master.backcompat.ops.PersistFile;
 import alluxio.master.backcompat.ops.Rename;
 import alluxio.master.backcompat.ops.SetAcl;
 import alluxio.master.backcompat.ops.UpdateUfsMode;
-import alluxio.dora.master.journal.JournalType;
+import alluxio.master.journal.JournalType;
 import alluxio.dora.process.MultiProcessCluster;
 import alluxio.dora.process.PortCoordination;
-import alluxio.dora.user.ServerUserState;
+import alluxio.user.ServerUserState;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;

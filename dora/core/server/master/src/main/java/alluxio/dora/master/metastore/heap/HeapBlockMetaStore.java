@@ -11,16 +11,16 @@
 
 package alluxio.dora.master.metastore.heap;
 
-import alluxio.dora.collections.TwoKeyConcurrentMap;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.collections.TwoKeyConcurrentMap;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.master.metastore.BlockMetaStore;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
-import alluxio.dora.resource.CloseableIterator;
-import alluxio.dora.util.ObjectSizeCalculator;
+import alluxio.resource.CloseableIterator;
+import alluxio.util.ObjectSizeCalculator;
 
 import com.google.common.collect.ImmutableSet;
 

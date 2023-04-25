@@ -11,16 +11,17 @@
 
 package alluxio.dora.master.journal.ufs;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.master.MockMaster;
-import alluxio.dora.master.NoopMaster;
+import alluxio.master.NoopMaster;
+import alluxio.master.journal.ufs.*;
 import alluxio.proto.journal.Journal;
-import alluxio.dora.resource.CloseableIterator;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.URIUtils;
-import alluxio.dora.util.WaitForOptions;
+import alluxio.resource.CloseableIterator;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.util.CommonUtils;
+import alluxio.util.URIUtils;
+import alluxio.util.WaitForOptions;
 
 import com.google.common.collect.Iterators;
 import org.junit.After;

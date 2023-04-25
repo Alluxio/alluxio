@@ -11,13 +11,13 @@
 
 package alluxio.dora.worker;
 
-import alluxio.dora.RestUtils;
-import alluxio.dora.RuntimeConstants;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.util.LogUtils;
+import alluxio.RestUtils;
+import alluxio.RuntimeConstants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.LogUtils;
 import alluxio.dora.web.JobWorkerWebServer;
-import alluxio.dora.wire.AlluxioJobWorkerInfo;
+import alluxio.wire.AlluxioJobWorkerInfo;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

@@ -11,12 +11,12 @@
 
 package alluxio.dora.client.fs;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.client.WriteType;
+import alluxio.AlluxioURI;
+import alluxio.client.WriteType;
 import alluxio.dora.client.file.FileInStream;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.WritePType;
@@ -27,13 +27,13 @@ import alluxio.dora.testutils.LocalAlluxioClusterResource;
 import alluxio.dora.testutils.master.FsMasterResource;
 import alluxio.dora.testutils.master.MasterTestUtils;
 import alluxio.dora.testutils.underfs.ConfExpectingUnderFileSystemFactory;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.underfs.UnderFileSystemConfiguration;
-import alluxio.dora.underfs.UnderFileSystemFactoryRegistry;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.dora.underfs.local.LocalUnderFileSystemFactory;
-import alluxio.dora.util.UnderFileSystemUtils;
-import alluxio.dora.util.io.PathUtils;
-import alluxio.dora.wire.MountPointInfo;
+import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.io.PathUtils;
+import alluxio.wire.MountPointInfo;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;

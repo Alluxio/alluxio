@@ -11,7 +11,7 @@
 
 package alluxio.master.backcompat.ops;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.backcompat.FsTestOp;

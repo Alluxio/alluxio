@@ -11,13 +11,13 @@
 
 package alluxio.dora.client.cli.fs.command;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.ConfigurationRule;
+import alluxio.AlluxioURI;
+import alluxio.ConfigurationRule;
 import alluxio.dora.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.dora.client.file.FileSystemTestUtils;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.AlluxioException;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
 import alluxio.grpc.WritePType;
 
 import com.google.common.collect.ImmutableMap;

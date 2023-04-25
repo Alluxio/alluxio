@@ -11,15 +11,15 @@
 
 package alluxio.underfs.s3a;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.ConfigurationRule;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.InstancedConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.underfs.ObjectUnderFileSystem;
-import alluxio.dora.underfs.UfsMode;
-import alluxio.dora.underfs.UnderFileSystemConfiguration;
-import alluxio.dora.underfs.options.DeleteOptions;
+import alluxio.AlluxioURI;
+import alluxio.ConfigurationRule;
+import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.underfs.ObjectUnderFileSystem;
+import alluxio.underfs.UfsMode;
+import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.options.DeleteOptions;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;

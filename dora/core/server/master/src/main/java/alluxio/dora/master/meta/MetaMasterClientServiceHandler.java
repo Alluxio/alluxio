@@ -11,10 +11,10 @@
 
 package alluxio.dora.master.meta;
 
-import alluxio.dora.RpcUtils;
-import alluxio.dora.RuntimeConstants;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.RpcUtils;
+import alluxio.RuntimeConstants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.BackupPStatus;
 import alluxio.grpc.BackupStatusPRequest;
@@ -27,9 +27,9 @@ import alluxio.grpc.GetMasterInfoPResponse;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
-import alluxio.dora.master.StateLockOptions;
-import alluxio.dora.master.journal.raft.RaftJournalSystem;
-import alluxio.dora.wire.Address;
+import alluxio.master.StateLockOptions;
+import alluxio.master.journal.raft.RaftJournalSystem;
+import alluxio.wire.Address;
 
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;

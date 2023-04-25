@@ -12,8 +12,8 @@
 package alluxio.dora.client.file.options;
 
 import alluxio.dora.client.file.FileSystemUtils;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 
 import com.google.common.base.Preconditions;
 import alluxio.dora.client.file.FileSystem;

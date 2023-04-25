@@ -11,15 +11,14 @@
 
 package alluxio.dora.master.service.rpc;
 
-import alluxio.dora.conf.Configuration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.dora.master.AlluxioMasterProcess;
-import alluxio.dora.master.MasterRegistry;
-import alluxio.dora.master.PortReservationRule;
-import alluxio.dora.master.service.rpc.RpcServerService;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.WaitForOptions;
+import alluxio.master.MasterRegistry;
+import alluxio.master.PortReservationRule;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import org.junit.Assert;
 import org.junit.Before;

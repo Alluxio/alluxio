@@ -11,11 +11,11 @@
 
 package alluxio.dora.proxy;
 
-import alluxio.dora.ProcessUtils;
-import alluxio.dora.RuntimeConstants;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.ConfigurationUtils;
+import alluxio.ProcessUtils;
+import alluxio.RuntimeConstants;
+import alluxio.conf.Configuration;
+import alluxio.util.CommonUtils;
+import alluxio.util.ConfigurationUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

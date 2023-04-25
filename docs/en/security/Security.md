@@ -63,7 +63,7 @@ Authentication is **enabled** when the authentication type is `CUSTOM`.
 
 Alluxio clients retrieves user information via the class provided by the
 `alluxio.dora.security.authentication.custom.provider.class` property.
-The specified class must implement the interface `alluxio.dora.security.authentication.AuthenticationProvider`.
+The specified class must implement the interface `alluxio.authentication.security.AuthenticationProvider`.
 
 This mode is currently experimental and should only be used in tests.
 
@@ -107,7 +107,7 @@ drwxr-xr-x jack           staff                       24       PERSISTED 06-14-2
 
 For a given user, the list of groups is determined by a group mapping service, configured by
 the `alluxio.dora.security.group.mapping.class` property, with a default implementation of
-`alluxio.dora.security.group.provider.ShellBasedUnixGroupsMapping`.
+`alluxio.provider.group.security.ShellBasedUnixGroupsMapping`.
 This implementation executes the `groups` shell command on the local machine
 to fetch the group memberships of a particular user.
 Running the `groups` command for every query may be expensive, so

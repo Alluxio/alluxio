@@ -11,14 +11,14 @@
 
 package alluxio.dora.proxy;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.RestUtils;
+import alluxio.AlluxioURI;
+import alluxio.RestUtils;
 import alluxio.dora.StreamCache;
 import alluxio.dora.client.file.FileInStream;
 import alluxio.dora.client.file.FileOutStream;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.conf.Configuration;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;

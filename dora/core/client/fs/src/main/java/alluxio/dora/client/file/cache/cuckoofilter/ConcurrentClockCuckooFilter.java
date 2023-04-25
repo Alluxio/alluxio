@@ -11,10 +11,10 @@
 
 package alluxio.dora.client.file.cache.cuckoofilter;
 
-import alluxio.dora.Constants;
-import alluxio.dora.client.quota.CacheScope;
-import alluxio.dora.collections.BitSet;
-import alluxio.dora.collections.BuiltinBitSet;
+import alluxio.Constants;
+import alluxio.client.quota.CacheScope;
+import alluxio.collections.BitSet;
+import alluxio.collections.BuiltinBitSet;
 
 import com.google.common.base.Preconditions;
 import com.google.common.hash.Funnel;

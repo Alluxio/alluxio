@@ -11,13 +11,13 @@
 
 package alluxio.dora.master.file;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.master.Master;
-import alluxio.dora.master.audit.AsyncUserAccessAuditLogWriter;
-import alluxio.dora.master.audit.AuditContext;
+import alluxio.AlluxioURI;
+import alluxio.master.Master;
+import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
+import alluxio.master.audit.AuditContext;
 import alluxio.dora.master.file.meta.Inode;
-import alluxio.dora.security.authentication.AuthType;
-import alluxio.dora.security.authorization.Mode;
+import alluxio.security.authentication.AuthType;
+import alluxio.security.authorization.Mode;
 
 import javax.annotation.concurrent.NotThreadSafe;
 

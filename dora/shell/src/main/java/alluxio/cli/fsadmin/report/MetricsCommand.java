@@ -13,8 +13,8 @@ package alluxio.cli.fsadmin.report;
 
 import alluxio.dora.client.metrics.MetricsMasterClient;
 import alluxio.grpc.MetricValue;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.util.FormatUtils;
+import alluxio.metrics.MetricsSystem;
+import alluxio.util.FormatUtils;
 
 import com.google.common.math.DoubleMath;
 

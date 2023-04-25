@@ -11,6 +11,7 @@
 
 package alluxio.dora.underfs;
 
+import alluxio.underfs.SeekableUnderFileInputStream;
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;

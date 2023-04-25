@@ -13,17 +13,21 @@ package alluxio.dora.worker.grpc;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import alluxio.dora.RpcUtils;
-import alluxio.dora.exception.InvalidWorkerStateException;
-import alluxio.dora.exception.runtime.BlockDoesNotExistRuntimeException;
+import alluxio.RpcUtils;
+import alluxio.exception.InvalidWorkerStateException;
+import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
 import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.dora.worker.block.*;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
-import alluxio.dora.util.IdUtils;
-import alluxio.dora.util.LogUtils;
+import alluxio.util.IdUtils;
+import alluxio.util.LogUtils;
 import alluxio.dora.worker.block.DefaultBlockWorker;
-import alluxio.dora.worker.block.meta.BlockMeta;
+import alluxio.worker.block.AllocateOptions;
+import alluxio.worker.block.BlockLock;
+import alluxio.worker.block.BlockStore;
+import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.meta.BlockMeta;
 
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;

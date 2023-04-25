@@ -16,13 +16,17 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.Constants;
-import alluxio.dora.exception.ExceptionMessage;
-import alluxio.dora.exception.runtime.ResourceExhaustedRuntimeException;
-import alluxio.dora.util.io.BufferUtils;
-import alluxio.dora.worker.block.BlockStoreLocation;
+import alluxio.Constants;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
+import alluxio.util.io.BufferUtils;
+import alluxio.worker.block.BlockStoreLocation;
 import alluxio.dora.worker.block.TieredBlockStoreTestUtils;
 
+import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.StorageTier;
+import alluxio.worker.block.meta.TempBlockMeta;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
 import org.junit.Assert;

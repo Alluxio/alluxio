@@ -11,10 +11,10 @@
 
 package alluxio.dora.master.file.contexts;
 
-import alluxio.dora.conf.Configuration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.dora.util.FileSystemOptionsUtils;
-import alluxio.dora.wire.OperationId;
+import alluxio.wire.OperationId;
 
 import com.google.common.base.MoreObjects;
 

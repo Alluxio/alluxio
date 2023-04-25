@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.file.meta;
 
-import alluxio.dora.file.options.DescendantType;
+import alluxio.file.options.DescendantType;
 
 /**
  * This class is used to keep the state of the items in {@link UfsSyncPathCache},

@@ -11,20 +11,20 @@
 
 package alluxio.dora.testutils;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.AuthenticatedClientUserResource;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.AlluxioURI;
+import alluxio.AuthenticatedClientUserResource;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.DeletePOptions;
 import alluxio.dora.master.LocalAlluxioCluster;
 import alluxio.dora.master.file.FileSystemMaster;
 import alluxio.dora.master.file.contexts.DeleteContext;
 import alluxio.dora.master.file.contexts.ListStatusContext;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.security.authentication.AuthenticatedClientUser;
-import alluxio.dora.underfs.UfsMode;
-import alluxio.dora.util.SecurityUtils;
-import alluxio.dora.wire.FileInfo;
+import alluxio.metrics.MetricsSystem;
+import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.underfs.UfsMode;
+import alluxio.util.SecurityUtils;
+import alluxio.wire.FileInfo;
 
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;

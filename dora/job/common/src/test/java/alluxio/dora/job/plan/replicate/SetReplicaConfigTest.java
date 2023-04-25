@@ -11,8 +11,7 @@
 
 package alluxio.dora.job.plan.replicate;
 
-import alluxio.dora.job.plan.replicate.SetReplicaConfig;
-import alluxio.dora.util.CommonUtils;
+import alluxio.util.CommonUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;

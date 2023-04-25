@@ -11,19 +11,19 @@
 
 package alluxio.cli.fsadmin.metrics;
 
-import alluxio.dora.cli.CommandUtils;
+import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.cli.fsadmin.command.AbstractFsAdminCommand;
 import alluxio.cli.fsadmin.command.Context;
 import alluxio.dora.client.block.BlockWorkerInfo;
 import alluxio.dora.client.block.stream.BlockWorkerClient;
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.exception.status.InvalidArgumentException;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.ClearMetricsRequest;
-import alluxio.dora.resource.CloseableResource;
-import alluxio.dora.util.ThreadFactoryUtils;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.resource.CloseableResource;
+import alluxio.util.ThreadFactoryUtils;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;

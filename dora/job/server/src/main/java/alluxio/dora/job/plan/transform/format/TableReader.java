@@ -11,7 +11,7 @@
 
 package alluxio.dora.job.plan.transform.format;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.dora.job.plan.transform.Format;
 import alluxio.dora.job.plan.transform.PartitionInfo;
 import alluxio.dora.job.plan.transform.format.csv.CsvReader;

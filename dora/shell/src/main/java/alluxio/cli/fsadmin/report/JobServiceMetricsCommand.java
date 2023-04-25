@@ -16,7 +16,7 @@ import alluxio.dora.job.wire.JobInfo;
 import alluxio.dora.job.wire.JobServiceSummary;
 import alluxio.dora.job.wire.JobWorkerHealth;
 import alluxio.dora.job.wire.StatusSummary;
-import alluxio.dora.util.CommonUtils;
+import alluxio.util.CommonUtils;
 
 import org.apache.commons.lang3.StringUtils;
 

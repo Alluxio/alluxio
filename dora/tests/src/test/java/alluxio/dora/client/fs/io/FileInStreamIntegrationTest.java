@@ -11,28 +11,28 @@
 
 package alluxio.dora.client.fs.io;
 
-import alluxio.dora.AlluxioTestDirectory;
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Constants;
-import alluxio.dora.client.ReadType;
+import alluxio.AlluxioTestDirectory;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.client.ReadType;
 import alluxio.dora.client.file.FileInStream;
 import alluxio.dora.client.file.FileOutStream;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemTestUtils;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.grpc.WritePType;
-import alluxio.dora.security.authorization.Mode;
+import alluxio.security.authorization.Mode;
 import alluxio.dora.testutils.BaseIntegrationTest;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.io.BufferUtils;
-import alluxio.dora.util.io.PathUtils;
-import alluxio.dora.wire.FileBlockInfo;
-import alluxio.dora.worker.block.BlockStoreType;
+import alluxio.util.CommonUtils;
+import alluxio.util.io.BufferUtils;
+import alluxio.util.io.PathUtils;
+import alluxio.wire.FileBlockInfo;
+import alluxio.worker.block.BlockStoreType;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Assert;

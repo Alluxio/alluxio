@@ -18,7 +18,7 @@ import alluxio.dora.client.file.cache.CacheUsage;
 import alluxio.dora.client.file.cache.PageInfo;
 import alluxio.dora.client.file.cache.PageStore;
 import alluxio.dora.client.file.cache.store.PageStoreDir;
-import alluxio.dora.worker.block.BlockStoreLocation;
+import alluxio.worker.block.BlockStoreLocation;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.HashMultimap;

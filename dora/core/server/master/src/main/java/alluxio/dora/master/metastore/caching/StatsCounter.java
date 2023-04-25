@@ -11,10 +11,10 @@
 
 package alluxio.dora.master.metastore.caching;
 
-import static alluxio.dora.metrics.MetricKey.MASTER_INODE_CACHE_HIT_RATIO;
+import static alluxio.metrics.MetricKey.MASTER_INODE_CACHE_HIT_RATIO;
 
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.Counter;
 

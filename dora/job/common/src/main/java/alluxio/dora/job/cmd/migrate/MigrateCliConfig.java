@@ -11,7 +11,7 @@
 
 package alluxio.dora.job.cmd.migrate;
 
-import alluxio.dora.client.WriteType;
+import alluxio.client.WriteType;
 import alluxio.grpc.OperationType;
 import alluxio.dora.job.cmd.CliConfig;
 import alluxio.dora.job.wire.JobSource;

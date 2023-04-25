@@ -11,11 +11,11 @@
 
 package alluxio.dora.master.block;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.GetRegisterLeasePRequest;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.wire.RegisterLease;
+import alluxio.util.CommonUtils;
+import alluxio.wire.RegisterLease;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;

@@ -11,11 +11,11 @@
 
 package alluxio.logserver;
 
-import alluxio.dora.Process;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.WaitForOptions;
+import alluxio.Process;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

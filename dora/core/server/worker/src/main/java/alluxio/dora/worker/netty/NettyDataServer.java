@@ -11,13 +11,13 @@
 
 package alluxio.dora.worker.netty;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.network.ChannelType;
-import alluxio.dora.underfs.UfsManager;
-import alluxio.dora.util.network.NettyUtils;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.network.ChannelType;
+import alluxio.underfs.UfsManager;
+import alluxio.util.network.NettyUtils;
 import alluxio.dora.worker.DataServer;
-import alluxio.dora.worker.dora.DoraWorker;
+import alluxio.worker.dora.DoraWorker;
 
 import com.google.common.base.Throwables;
 import com.google.inject.Inject;

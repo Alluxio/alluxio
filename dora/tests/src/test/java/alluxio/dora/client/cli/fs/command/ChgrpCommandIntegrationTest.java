@@ -11,10 +11,10 @@
 
 package alluxio.dora.client.cli.fs.command;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.dora.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.dora.client.file.FileSystemTestUtils;
-import alluxio.dora.exception.AlluxioException;
+import alluxio.exception.AlluxioException;
 import alluxio.grpc.WritePType;
 
 import org.junit.Assert;

@@ -11,8 +11,8 @@
 
 package alluxio.dora.proxy.s3;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.client.file.URIStatus;
+import alluxio.AlluxioURI;
+import alluxio.client.file.URIStatus;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;

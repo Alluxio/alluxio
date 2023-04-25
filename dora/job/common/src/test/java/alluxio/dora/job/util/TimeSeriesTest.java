@@ -11,9 +11,8 @@
 
 package alluxio.dora.job.util;
 
-import alluxio.dora.Constants;
+import alluxio.Constants;
 
-import alluxio.dora.job.util.TimeSeries;
 import org.junit.Assert;
 import org.junit.Test;
 

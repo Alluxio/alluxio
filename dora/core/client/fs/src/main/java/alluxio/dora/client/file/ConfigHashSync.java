@@ -12,10 +12,10 @@
 package alluxio.dora.client.file;
 
 import alluxio.dora.client.meta.RetryHandlingMetaMasterConfigClient;
-import alluxio.dora.exception.status.UnavailableException;
-import alluxio.dora.heartbeat.HeartbeatExecutor;
-import alluxio.dora.master.MasterClientContext;
-import alluxio.dora.wire.ConfigHash;
+import alluxio.exception.status.UnavailableException;
+import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.master.MasterClientContext;
+import alluxio.wire.ConfigHash;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

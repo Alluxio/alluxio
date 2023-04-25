@@ -11,12 +11,12 @@
 
 package alluxio.dora.worker.block;
 
-import alluxio.dora.ProjectConstants;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.status.CancelledException;
-import alluxio.dora.exception.status.DeadlineExceededException;
-import alluxio.dora.exception.status.InternalException;
+import alluxio.ProjectConstants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.status.CancelledException;
+import alluxio.exception.status.DeadlineExceededException;
+import alluxio.exception.status.InternalException;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
 import alluxio.grpc.BuildVersion;
 import alluxio.grpc.ConfigProperty;
@@ -26,6 +26,7 @@ import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.StorageList;
 
+import alluxio.worker.block.BlockStoreLocation;
 import com.google.common.annotations.VisibleForTesting;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;

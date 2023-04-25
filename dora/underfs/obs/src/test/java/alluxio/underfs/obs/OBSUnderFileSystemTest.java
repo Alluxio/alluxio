@@ -11,10 +11,10 @@
 
 package alluxio.underfs.obs;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.underfs.UnderFileSystemConfiguration;
-import alluxio.dora.underfs.options.DeleteOptions;
+import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
+import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.options.DeleteOptions;
 
 import com.obs.services.ObsClient;
 import com.obs.services.exception.ObsException;

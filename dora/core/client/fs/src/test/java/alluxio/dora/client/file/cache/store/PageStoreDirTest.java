@@ -15,15 +15,16 @@ import static alluxio.dora.client.file.cache.CacheUsage.PartitionDescriptor.file
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.ProjectConstants;
+import alluxio.ProjectConstants;
+import alluxio.client.file.cache.store.PageStoreType;
 import alluxio.dora.client.file.cache.CacheManagerOptions;
 import alluxio.dora.client.file.cache.CacheUsage;
 import alluxio.dora.client.file.cache.CacheUsageView;
 import alluxio.dora.client.file.cache.PageId;
 import alluxio.dora.client.file.cache.PageInfo;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.util.io.BufferUtils;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.util.io.BufferUtils;
 
 import org.junit.After;
 import org.junit.Before;

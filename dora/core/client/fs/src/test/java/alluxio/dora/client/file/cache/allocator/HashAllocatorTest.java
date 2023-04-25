@@ -20,8 +20,8 @@ import alluxio.dora.client.file.cache.evictor.FIFOCacheEvictor;
 import alluxio.dora.client.file.cache.store.LocalPageStoreDir;
 import alluxio.dora.client.file.cache.store.PageStoreDir;
 import alluxio.dora.client.file.cache.store.PageStoreOptions;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;

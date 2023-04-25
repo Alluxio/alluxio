@@ -11,11 +11,11 @@
 
 package alluxio.cli.fsadmin.report;
 
-import alluxio.dora.Constants;
+import alluxio.Constants;
 import alluxio.dora.client.block.BlockMasterClient;
 import alluxio.dora.client.block.options.GetWorkerReportOptions;
-import alluxio.dora.wire.WorkerInfo;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import org.hamcrest.collection.IsIterableContainingInOrder;
 import org.junit.Assert;

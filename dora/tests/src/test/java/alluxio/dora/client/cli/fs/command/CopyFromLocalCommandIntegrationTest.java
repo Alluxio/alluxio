@@ -13,22 +13,22 @@ package alluxio.dora.client.cli.fs.command;
 
 import static org.hamcrest.CoreMatchers.containsString;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.ConfigurationRule;
-import alluxio.dora.SystemPropertyRule;
-import alluxio.dora.client.WriteType;
+import alluxio.AlluxioURI;
+import alluxio.ConfigurationRule;
+import alluxio.SystemPropertyRule;
+import alluxio.client.WriteType;
 import alluxio.dora.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.dora.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.dora.client.file.FileInStream;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.AlluxioException;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
-import alluxio.dora.util.io.BufferUtils;
+import alluxio.util.io.BufferUtils;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;

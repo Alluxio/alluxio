@@ -14,20 +14,20 @@ package alluxio.dora.server.ft;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Constants;
-import alluxio.dora.UnderFileSystemFactoryRegistryRule;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.master.MultiMasterLocalAlluxioCluster;
 import alluxio.dora.testutils.BaseIntegrationTest;
 import alluxio.dora.testutils.IntegrationTestUtils;
 import alluxio.dora.testutils.underfs.delegating.DelegatingUnderFileSystem;
 import alluxio.dora.testutils.underfs.delegating.DelegatingUnderFileSystemFactory;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.underfs.options.DeleteOptions;
-import alluxio.dora.util.CommonUtils;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.DeleteOptions;
+import alluxio.util.CommonUtils;
 
 import com.google.common.io.Files;
 import org.junit.After;

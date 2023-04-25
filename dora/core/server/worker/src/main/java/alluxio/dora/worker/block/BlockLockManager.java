@@ -11,17 +11,18 @@
 
 package alluxio.dora.worker.block;
 
-import alluxio.dora.collections.IndexDefinition;
-import alluxio.dora.collections.IndexedSet;
-import alluxio.dora.collections.Pair;
-import alluxio.dora.concurrent.ClientRWLock;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.BlockDoesNotExistException;
-import alluxio.dora.exception.ExceptionMessage;
-import alluxio.dora.exception.InvalidWorkerStateException;
-import alluxio.dora.resource.ResourcePool;
+import alluxio.collections.IndexDefinition;
+import alluxio.collections.IndexedSet;
+import alluxio.collections.Pair;
+import alluxio.concurrent.ClientRWLock;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.InvalidWorkerStateException;
+import alluxio.resource.ResourcePool;
 
+import alluxio.worker.block.BlockLock;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;

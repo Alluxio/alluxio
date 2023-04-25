@@ -11,16 +11,16 @@
 
 package alluxio.cli.fs.command;
 
-import alluxio.dora.ClientContext;
+import alluxio.ClientContext;
 import alluxio.cli.fs.command.job.JobAttempt;
 import alluxio.cli.util.DistributedCommandUtil;
-import alluxio.dora.cli.Command;
+import alluxio.cli.Command;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.job.JobMasterClient;
-import alluxio.dora.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.dora.job.CmdConfig;
 import alluxio.dora.job.wire.Status;
-import alluxio.dora.util.CommonUtils;
+import alluxio.util.CommonUtils;
 import alluxio.dora.job.JobMasterClientContext;
 
 import com.google.common.collect.Lists;

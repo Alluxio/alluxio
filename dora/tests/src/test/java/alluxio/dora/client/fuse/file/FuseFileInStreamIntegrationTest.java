@@ -11,14 +11,14 @@
 
 package alluxio.dora.client.fuse.file;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.exception.runtime.FailedPreconditionRuntimeException;
-import alluxio.dora.exception.runtime.NotFoundRuntimeException;
-import alluxio.dora.exception.runtime.UnimplementedRuntimeException;
+import alluxio.AlluxioURI;
+import alluxio.client.file.URIStatus;
+import alluxio.exception.runtime.FailedPreconditionRuntimeException;
+import alluxio.exception.runtime.NotFoundRuntimeException;
+import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.file.FuseFileStream;
-import alluxio.dora.util.io.BufferUtils;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.util.io.BufferUtils;
+import alluxio.util.io.PathUtils;
 
 import jnr.constants.platform.OpenFlags;
 import org.junit.Assert;

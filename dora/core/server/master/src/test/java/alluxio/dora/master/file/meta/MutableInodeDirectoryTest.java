@@ -11,13 +11,13 @@
 
 package alluxio.dora.master.file.meta;
 
-import alluxio.dora.Constants;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.Constants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.master.file.contexts.CreateDirectoryContext;
-import alluxio.dora.security.authorization.Mode;
-import alluxio.dora.util.ModeUtils;
-import alluxio.dora.wire.FileInfo;
+import alluxio.security.authorization.Mode;
+import alluxio.util.ModeUtils;
+import alluxio.wire.FileInfo;
 
 import org.junit.Assert;
 import org.junit.Test;

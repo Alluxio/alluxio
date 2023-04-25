@@ -12,8 +12,8 @@
 package alluxio.dora.master.metrics;
 
 import alluxio.grpc.MetricValue;
-import alluxio.dora.master.Master;
-import alluxio.dora.metrics.Metric;
+import alluxio.master.Master;
+import alluxio.metrics.Metric;
 
 import java.util.List;
 import java.util.Map;

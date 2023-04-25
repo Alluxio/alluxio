@@ -11,16 +11,16 @@
 
 package alluxio.stress.cli;
 
-import alluxio.dora.conf.Configuration;
+import alluxio.conf.Configuration;
 import alluxio.stress.worker.IOTaskResult;
 import alluxio.stress.worker.UfsIOParameters;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.underfs.UnderFileSystemConfiguration;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.ExceptionUtils;
-import alluxio.dora.util.FormatUtils;
-import alluxio.dora.util.executor.ExecutorServiceFactories;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.util.CommonUtils;
+import alluxio.util.ExceptionUtils;
+import alluxio.util.FormatUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.util.io.PathUtils;
 
 import com.beust.jcommander.ParametersDelegate;
 import com.google.common.collect.ImmutableList;

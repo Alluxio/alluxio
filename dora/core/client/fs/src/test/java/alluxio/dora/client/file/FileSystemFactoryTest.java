@@ -18,15 +18,15 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import alluxio.dora.SystemPropertyRule;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.InstancedConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.master.MasterInquireClient;
-import alluxio.dora.security.User;
-import alluxio.dora.uri.MultiMasterAuthority;
-import alluxio.dora.uri.ZookeeperAuthority;
+import alluxio.SystemPropertyRule;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.master.MasterInquireClient;
+import alluxio.security.User;
+import alluxio.uri.MultiMasterAuthority;
+import alluxio.uri.ZookeeperAuthority;
 
 import org.junit.After;
 import org.junit.Before;

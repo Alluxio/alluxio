@@ -19,13 +19,11 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-import alluxio.dora.exception.status.UnavailableException;
-import alluxio.dora.master.file.BlockDeletionContext;
-import alluxio.dora.master.file.RpcContext;
+import alluxio.exception.status.UnavailableException;
 import alluxio.dora.master.file.contexts.CallTracker;
 import alluxio.dora.master.file.contexts.InternalOperationContext;
 import alluxio.dora.master.file.contexts.OperationContext;
-import alluxio.dora.master.journal.JournalContext;
+import alluxio.master.journal.JournalContext;
 
 import org.junit.Before;
 import org.junit.Rule;

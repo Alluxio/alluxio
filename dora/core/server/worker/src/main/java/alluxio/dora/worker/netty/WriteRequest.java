@@ -12,7 +12,7 @@
 package alluxio.dora.worker.netty;
 
 import alluxio.proto.dataserver.Protocol;
-import alluxio.dora.util.IdUtils;
+import alluxio.util.IdUtils;
 
 import javax.annotation.concurrent.ThreadSafe;
 

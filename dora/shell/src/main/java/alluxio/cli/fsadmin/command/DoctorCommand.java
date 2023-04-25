@@ -11,13 +11,13 @@
 
 package alluxio.cli.fsadmin.command;
 
-import alluxio.dora.annotation.PublicApi;
-import alluxio.dora.cli.CommandUtils;
+import alluxio.annotation.PublicApi;
+import alluxio.cli.CommandUtils;
 import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
 import alluxio.cli.fsadmin.doctor.ConfigurationCommand;
 import alluxio.cli.fsadmin.doctor.StorageCommand;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.exception.status.InvalidArgumentException;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.exception.status.InvalidArgumentException;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;

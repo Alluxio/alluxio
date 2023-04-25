@@ -13,23 +13,23 @@ package alluxio.dora.job.plan.replicate;
 
 import static org.mockito.Mockito.mock;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.TestLoggerRule;
+import alluxio.AlluxioURI;
+import alluxio.TestLoggerRule;
 import alluxio.dora.client.file.FileOutStream;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.dora.heartbeat.HeartbeatContext;
-import alluxio.dora.heartbeat.HeartbeatScheduler;
-import alluxio.dora.heartbeat.ManuallyScheduleHeartbeat;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.dora.job.JobIntegrationTest;
 import alluxio.dora.master.job.plan.PlanTracker;
 import alluxio.dora.master.job.workflow.WorkflowTracker;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
-import alluxio.dora.util.io.BufferUtils;
-import alluxio.dora.wire.BlockInfo;
+import alluxio.util.io.BufferUtils;
+import alluxio.wire.BlockInfo;
 
 import org.junit.Assert;
 import org.junit.Before;

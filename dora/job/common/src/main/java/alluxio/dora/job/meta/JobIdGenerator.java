@@ -11,7 +11,7 @@
 
 package alluxio.dora.job.meta;
 
-import alluxio.dora.util.CommonUtils;
+import alluxio.util.CommonUtils;
 
 import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.concurrent.ThreadSafe;

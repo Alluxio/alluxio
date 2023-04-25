@@ -11,8 +11,8 @@
 
 package alluxio.dora.hadoop;
 
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

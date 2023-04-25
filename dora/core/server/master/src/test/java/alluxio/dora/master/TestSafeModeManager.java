@@ -11,7 +11,7 @@
 
 package alluxio.dora.master;
 
-import alluxio.dora.master.SafeModeManager;
+import alluxio.master.SafeModeManager;
 
 /**
  * Test implementation of @SafeModeManager.

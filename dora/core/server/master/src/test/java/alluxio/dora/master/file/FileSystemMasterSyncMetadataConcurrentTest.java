@@ -13,18 +13,18 @@ package alluxio.dora.master.file;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.collections.Pair;
-import alluxio.dora.concurrent.jsr.CompletableFuture;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.AccessControlException;
-import alluxio.dora.exception.InvalidPathException;
-import alluxio.dora.file.options.DescendantType;
+import alluxio.AlluxioURI;
+import alluxio.collections.Pair;
+import alluxio.concurrent.jsr.CompletableFuture;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.AccessControlException;
+import alluxio.exception.InvalidPathException;
+import alluxio.file.options.DescendantType;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.dora.master.file.meta.InodeTree;
 import alluxio.dora.master.file.meta.LockingScheme;
-import alluxio.dora.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystem;
 
 import com.google.common.math.IntMath;
 import org.junit.Test;

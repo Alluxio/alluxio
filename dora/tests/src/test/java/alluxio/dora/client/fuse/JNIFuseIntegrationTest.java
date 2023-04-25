@@ -13,16 +13,16 @@ package alluxio.dora.client.fuse;
 
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.fuse.AlluxioFuseUtils.CloseableFuseFileInfo;
 import alluxio.fuse.AlluxioJniFuseFileSystem;
 import alluxio.fuse.options.FuseOptions;
 import alluxio.jnifuse.LibFuse;
 import alluxio.jnifuse.struct.FuseFileInfo;
-import alluxio.dora.util.io.BufferUtils;
+import alluxio.util.io.BufferUtils;
 
 import jnr.constants.platform.OpenFlags;
 import org.junit.Assert;

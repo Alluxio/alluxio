@@ -11,9 +11,9 @@
 
 package alluxio.dora.master.file.meta;
 
-import alluxio.dora.concurrent.LockMode;
-import alluxio.dora.resource.LockResource;
-import alluxio.dora.resource.RWLockResource;
+import alluxio.concurrent.LockMode;
+import alluxio.resource.LockResource;
+import alluxio.resource.RWLockResource;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;

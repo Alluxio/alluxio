@@ -11,8 +11,8 @@
 
 package alluxio.dora.worker.block.evictor;
 
-import alluxio.dora.collections.Pair;
-import alluxio.dora.worker.block.meta.StorageDir;
+import alluxio.collections.Pair;
+import alluxio.worker.block.meta.StorageDir;
 import alluxio.dora.worker.block.meta.StorageDirEvictorView;
 
 import java.util.ArrayList;

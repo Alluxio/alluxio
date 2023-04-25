@@ -11,12 +11,12 @@
 
 package alluxio.dora.client.metrics;
 
-import alluxio.dora.ClientContext;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.master.MasterInquireClient;
-import alluxio.dora.util.IdUtils;
-import alluxio.dora.util.ThreadFactoryUtils;
+import alluxio.ClientContext;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.master.MasterInquireClient;
+import alluxio.util.IdUtils;
+import alluxio.util.ThreadFactoryUtils;
 
 import com.google.common.base.Preconditions;
 import alluxio.dora.client.file.FileSystemContext;

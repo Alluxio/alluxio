@@ -14,12 +14,12 @@ package alluxio.fuse.lock;
 import static com.google.common.hash.Hashing.md5;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import alluxio.dora.Constants;
-import alluxio.dora.concurrent.ClientRWLock;
-import alluxio.dora.concurrent.LockMode;
-import alluxio.dora.exception.runtime.CancelledRuntimeException;
-import alluxio.dora.exception.runtime.DeadlineExceededRuntimeException;
-import alluxio.dora.resource.CloseableResource;
+import alluxio.Constants;
+import alluxio.concurrent.ClientRWLock;
+import alluxio.concurrent.LockMode;
+import alluxio.exception.runtime.CancelledRuntimeException;
+import alluxio.exception.runtime.DeadlineExceededRuntimeException;
+import alluxio.resource.CloseableResource;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;

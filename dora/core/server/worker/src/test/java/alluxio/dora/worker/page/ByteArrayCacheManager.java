@@ -11,7 +11,7 @@
 
 package alluxio.dora.worker.page;
 
-import alluxio.dora.client.file.CacheContext;
+import alluxio.client.file.CacheContext;
 import alluxio.dora.client.file.cache.CacheManager;
 import alluxio.dora.client.file.cache.CacheUsage;
 import alluxio.dora.client.file.cache.PageId;

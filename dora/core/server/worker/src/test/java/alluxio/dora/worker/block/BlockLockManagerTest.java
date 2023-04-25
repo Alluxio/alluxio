@@ -16,13 +16,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.collections.ConcurrentHashSet;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.collections.ConcurrentHashSet;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 
-import alluxio.dora.worker.block.BlockLock;
-import alluxio.dora.worker.block.BlockLockManager;
-import alluxio.dora.worker.block.BlockLockType;
+import alluxio.worker.block.BlockLock;
 import com.google.common.base.Throwables;
 import org.junit.After;
 import org.junit.Assert;

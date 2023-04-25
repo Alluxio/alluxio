@@ -13,18 +13,18 @@ package alluxio.dora.server.ft.journal;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.dora.AlluxioTestDirectory;
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.ClientContext;
+import alluxio.AlluxioTestDirectory;
+import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.meta.MetaMasterClient;
 import alluxio.dora.client.meta.RetryHandlingMetaMasterClient;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.BackupPRequest;
-import alluxio.dora.master.MasterClientContext;
-import alluxio.dora.master.journal.JournalType;
+import alluxio.master.MasterClientContext;
+import alluxio.master.journal.JournalType;
 import alluxio.dora.process.MultiProcessCluster;
 import alluxio.dora.process.MultiProcessCluster.DeployMode;
 import alluxio.dora.process.PortCoordination;

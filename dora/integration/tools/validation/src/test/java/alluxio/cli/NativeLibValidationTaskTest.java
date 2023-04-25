@@ -15,8 +15,6 @@ import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
-import alluxio.dora.cli.ValidationTaskResult;
-import alluxio.dora.cli.ValidationUtils;
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Before;

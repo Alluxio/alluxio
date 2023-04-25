@@ -14,16 +14,16 @@ package alluxio.dora.hadoop;
 import static com.google.common.hash.Hashing.md5;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.client.file.CacheContext;
-import alluxio.dora.client.file.URIStatus;
+import alluxio.AlluxioURI;
+import alluxio.client.file.CacheContext;
+import alluxio.client.file.URIStatus;
 import alluxio.dora.client.file.cache.CacheManager;
 import alluxio.dora.client.file.cache.LocalCacheFileInStream;
 import alluxio.dora.client.file.cache.filter.CacheFilter;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.metrics.MetricsConfig;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.wire.FileInfo;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.metrics.MetricsConfig;
+import alluxio.metrics.MetricsSystem;
+import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
 import org.apache.hadoop.fs.FSDataInputStream;

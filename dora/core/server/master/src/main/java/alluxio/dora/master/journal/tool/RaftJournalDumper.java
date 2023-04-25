@@ -11,12 +11,12 @@
 
 package alluxio.dora.master.journal.tool;
 
-import alluxio.dora.master.journal.JournalEntryAssociation;
-import alluxio.dora.master.journal.checkpoint.CheckpointInputStream;
-import alluxio.dora.master.journal.raft.RaftJournalSystem;
-import alluxio.dora.master.journal.raft.RaftJournalUtils;
+import alluxio.master.journal.JournalEntryAssociation;
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
+import alluxio.master.journal.raft.RaftJournalSystem;
+import alluxio.master.journal.raft.RaftJournalUtils;
 import alluxio.proto.journal.Journal;
-import alluxio.dora.util.io.FileUtils;
+import alluxio.util.io.FileUtils;
 
 import com.google.common.base.Preconditions;
 import org.apache.ratis.server.RaftServerConfigKeys;

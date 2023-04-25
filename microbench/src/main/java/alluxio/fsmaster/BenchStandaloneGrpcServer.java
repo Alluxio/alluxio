@@ -11,11 +11,11 @@
 
 package alluxio.fsmaster;
 
-import alluxio.dora.Constants;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.conf.Source;
-import alluxio.dora.executor.ExecutorServiceBuilder;
+import alluxio.Constants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.Source;
+import alluxio.executor.ExecutorServiceBuilder;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.FileInfo;
 import alluxio.grpc.FileSystemMasterClientServiceGrpc;
@@ -36,10 +36,10 @@ import alluxio.grpc.PAcl;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.ServiceVersionClientServiceGrpc;
 import alluxio.grpc.TtlAction;
-import alluxio.dora.master.AlluxioExecutorService;
+import alluxio.master.AlluxioExecutorService;
 import alluxio.dora.master.meta.PathProperties;
-import alluxio.dora.security.authentication.AuthType;
-import alluxio.dora.wire.ConfigHash;
+import alluxio.security.authentication.AuthType;
+import alluxio.wire.ConfigHash;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;

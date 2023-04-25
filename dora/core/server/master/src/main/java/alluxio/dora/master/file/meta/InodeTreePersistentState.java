@@ -11,20 +11,21 @@
 
 package alluxio.dora.master.file.meta;
 
-import static alluxio.dora.conf.PropertyKey.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED;
-import static alluxio.dora.conf.PropertyKey.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_SIZE;
-import static alluxio.dora.conf.PropertyKey.MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS;
+import static alluxio.conf.PropertyKey.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED;
+import static alluxio.conf.PropertyKey.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_SIZE;
+import static alluxio.conf.PropertyKey.MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS;
 
-import alluxio.dora.ProcessUtils;
-import alluxio.dora.Constants;
-import alluxio.dora.conf.Configuration;
+import alluxio.ProcessUtils;
+import alluxio.Constants;
+import alluxio.conf.Configuration;
 import alluxio.dora.master.file.RpcContext;
 import alluxio.dora.master.metastore.InodeStore;
-import alluxio.dora.master.journal.JournalContext;
-import alluxio.dora.master.journal.JournalUtils;
-import alluxio.dora.master.journal.Journaled;
-import alluxio.dora.master.journal.checkpoint.CheckpointInputStream;
-import alluxio.dora.master.journal.checkpoint.CheckpointName;
+import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.JournalUtils;
+import alluxio.master.journal.Journaled;
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
+import alluxio.master.journal.checkpoint.CheckpointName;
+import alluxio.master.file.meta.PersistenceState;
 import alluxio.proto.journal.File.AsyncPersistRequestEntry;
 import alluxio.proto.journal.File.CompleteFileEntry;
 import alluxio.proto.journal.File.DeleteFileEntry;
@@ -41,15 +42,15 @@ import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.proto.journal.File.UpdateInodeEntry.Builder;
 import alluxio.proto.journal.File.UpdateInodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.dora.resource.CloseableIterator;
-import alluxio.dora.resource.LockResource;
-import alluxio.dora.security.authorization.AclEntry;
-import alluxio.dora.security.authorization.DefaultAccessControlList;
-import alluxio.dora.util.BucketCounter;
-import alluxio.dora.util.FormatUtils;
-import alluxio.dora.util.StreamUtils;
-import alluxio.dora.util.proto.ProtoUtils;
-import alluxio.dora.wire.OperationId;
+import alluxio.resource.CloseableIterator;
+import alluxio.resource.LockResource;
+import alluxio.security.authorization.AclEntry;
+import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.util.BucketCounter;
+import alluxio.util.FormatUtils;
+import alluxio.util.StreamUtils;
+import alluxio.util.proto.ProtoUtils;
+import alluxio.wire.OperationId;
 
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;

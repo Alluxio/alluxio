@@ -13,13 +13,15 @@ package alluxio.dora.worker.block;
 
 import static java.util.Objects.requireNonNull;
 
-import alluxio.dora.Sessions;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.underfs.UfsManager;
-import alluxio.dora.worker.WorkerFactory;
+import alluxio.Sessions;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.underfs.UfsManager;
+import alluxio.worker.WorkerFactory;
 import alluxio.dora.worker.file.FileSystemMasterClient;
 
+import alluxio.worker.block.BlockStore;
+import alluxio.worker.block.BlockWorker;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import org.slf4j.Logger;

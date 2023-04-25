@@ -13,9 +13,9 @@ package alluxio.fuse.auth;
 
 import static org.mockito.ArgumentMatchers.eq;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.conf.Configuration;
+import alluxio.AlluxioURI;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.jnifuse.struct.FuseContext;
 

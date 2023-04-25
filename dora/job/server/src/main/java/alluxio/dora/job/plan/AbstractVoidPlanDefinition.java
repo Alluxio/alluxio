@@ -13,7 +13,7 @@ package alluxio.dora.job.plan;
 
 import alluxio.dora.job.JobConfig;
 import alluxio.dora.job.util.SerializableVoid;
-import alluxio.dora.wire.WorkerInfo;
+import alluxio.wire.WorkerInfo;
 
 import java.io.Serializable;
 import java.util.Map;

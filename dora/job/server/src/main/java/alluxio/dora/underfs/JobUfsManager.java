@@ -11,16 +11,19 @@
 
 package alluxio.dora.underfs;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.ClientContext;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.exception.status.NotFoundException;
-import alluxio.dora.exception.status.UnavailableException;
+import alluxio.AlluxioURI;
+import alluxio.ClientContext;
+import alluxio.conf.Configuration;
+import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.UfsInfo;
-import alluxio.dora.master.MasterClientContext;
+import alluxio.master.MasterClientContext;
 import alluxio.dora.master.file.FileSystemMasterClient;
-import alluxio.dora.resource.CloseableResource;
-import alluxio.dora.util.network.NetworkAddressUtils;
+import alluxio.resource.CloseableResource;
+import alluxio.underfs.AbstractUfsManager;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;

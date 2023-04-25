@@ -11,10 +11,10 @@
 
 package alluxio.dora.master;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.ConnectionFailedException;
-import alluxio.dora.util.network.NetworkAddressUtils;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.ConnectionFailedException;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.dora.worker.JobWorkerProcess;
 
 import org.slf4j.Logger;

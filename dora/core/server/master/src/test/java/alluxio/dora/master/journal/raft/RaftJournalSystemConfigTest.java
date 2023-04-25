@@ -14,11 +14,11 @@ package alluxio.dora.master.journal.raft;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.master.journal.raft.RaftJournalSystem;
-import alluxio.dora.util.network.NetworkAddressUtils;
-import alluxio.dora.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.master.journal.raft.RaftJournalSystem;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.collect.Sets;
 import org.junit.After;

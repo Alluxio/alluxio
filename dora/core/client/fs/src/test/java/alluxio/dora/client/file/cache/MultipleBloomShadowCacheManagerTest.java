@@ -15,11 +15,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.Constants;
-import alluxio.dora.client.quota.CacheScope;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.InstancedConfiguration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.Constants;
+import alluxio.client.quota.CacheScope;
+import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 
 import org.junit.Before;
 import org.junit.Test;

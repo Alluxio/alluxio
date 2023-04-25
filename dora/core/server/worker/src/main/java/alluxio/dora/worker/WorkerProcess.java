@@ -11,17 +11,18 @@
 
 package alluxio.dora.worker;
 
-import alluxio.dora.Process;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.underfs.UfsManager;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.Process;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.underfs.UfsManager;
+import alluxio.wire.WorkerNetAddress;
 import alluxio.dora.worker.modules.AlluxioWorkerProcessModule;
 import alluxio.dora.worker.modules.BlockWorkerModule;
 import alluxio.dora.worker.modules.DoraWorkerModule;
 import alluxio.dora.worker.modules.GrpcServerModule;
 import alluxio.dora.worker.modules.NettyServerModule;
 
+import alluxio.worker.Worker;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Guice;
 import com.google.inject.Injector;

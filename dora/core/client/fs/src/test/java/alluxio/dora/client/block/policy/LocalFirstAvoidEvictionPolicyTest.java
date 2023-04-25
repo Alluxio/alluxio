@@ -14,16 +14,16 @@ package alluxio.dora.client.block.policy;
 import static alluxio.dora.client.util.ClientTestUtils.worker;
 import static org.junit.Assert.assertEquals;
 
-import alluxio.dora.Constants;
+import alluxio.Constants;
 import alluxio.dora.client.block.BlockWorkerInfo;
 import alluxio.dora.client.block.policy.options.GetWorkerOptions;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.network.TieredIdentityFactory;
-import alluxio.dora.util.network.NetworkAddressUtils;
-import alluxio.dora.wire.BlockInfo;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.network.TieredIdentityFactory;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.testing.EqualsTester;
 import org.junit.Test;

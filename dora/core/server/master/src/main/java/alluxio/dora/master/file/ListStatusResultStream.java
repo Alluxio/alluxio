@@ -13,7 +13,7 @@ package alluxio.dora.master.file;
 
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPResponse;
-import alluxio.dora.wire.FileInfo;
+import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;

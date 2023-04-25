@@ -13,12 +13,12 @@ package alluxio.dora.web;
 
 import alluxio.dora.client.rest.TestCase;
 import alluxio.dora.client.rest.TestCaseOptions;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.sink.MetricsServlet;
+import alluxio.conf.Configuration;
+import alluxio.sink.MetricsServlet;
 import alluxio.dora.testutils.BaseIntegrationTest;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
-import alluxio.dora.util.network.NetworkAddressUtils;
-import alluxio.dora.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

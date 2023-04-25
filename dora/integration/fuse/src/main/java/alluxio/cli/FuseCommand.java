@@ -11,10 +11,9 @@
 
 package alluxio.cli;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.cli.Command;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.exception.status.InvalidArgumentException;
+import alluxio.AlluxioURI;
+import alluxio.client.file.URIStatus;
+import alluxio.exception.status.InvalidArgumentException;
 
 /**
  * An interface for all fuse shell commands.

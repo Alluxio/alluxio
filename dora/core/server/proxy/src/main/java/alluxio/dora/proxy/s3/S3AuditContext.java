@@ -11,8 +11,8 @@
 
 package alluxio.dora.proxy.s3;
 
-import alluxio.dora.master.audit.AsyncUserAccessAuditLogWriter;
-import alluxio.dora.master.audit.AuditContext;
+import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
+import alluxio.master.audit.AuditContext;
 
 /**
  * An audit context for s3 rest service.

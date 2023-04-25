@@ -11,7 +11,7 @@
 
 package alluxio.dora.client.file.cache.cuckoofilter;
 
-import alluxio.dora.client.quota.CacheScope;
+import alluxio.client.quota.CacheScope;
 
 /**
  * This interface represents a clock cuckoo filter that supports Put/Get/Delete operations.

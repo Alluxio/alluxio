@@ -18,7 +18,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.dora.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.dora.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.dora.client.file.FileSystemTestUtils;
-import alluxio.dora.exception.AlluxioException;
+import alluxio.exception.AlluxioException;
 import alluxio.grpc.WritePType;
 
 import org.junit.Test;

@@ -11,8 +11,8 @@
 
 package alluxio.dora.worker.grpc;
 
-import alluxio.dora.wire.BlockReadRequest;
-import alluxio.dora.worker.block.io.BlockReader;
+import alluxio.wire.BlockReadRequest;
+import alluxio.worker.block.io.BlockReader;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;

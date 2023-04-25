@@ -15,12 +15,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.Constants;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.BlockInfoException;
-import alluxio.dora.security.authorization.Mode;
-import alluxio.dora.util.ModeUtils;
+import alluxio.Constants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.BlockInfoException;
+import alluxio.security.authorization.Mode;
+import alluxio.util.ModeUtils;
 
 import org.junit.Assert;
 import org.junit.Rule;

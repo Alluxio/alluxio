@@ -11,15 +11,15 @@
 
 package alluxio.dora.client.hadoop;
 
-import alluxio.dora.client.WriteType;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.client.WriteType;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.hadoop.FileSystem;
 import alluxio.dora.hadoop.HadoopConfigurationUtils;
 import alluxio.dora.testutils.BaseIntegrationTest;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.util.io.PathUtils;
 
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;

@@ -13,11 +13,11 @@ package alluxio.dora.master.journal.tool;
 
 import alluxio.dora.master.file.meta.InodeView;
 import alluxio.dora.master.metastore.rocks.RocksInodeStore;
-import alluxio.dora.master.journal.checkpoint.CheckpointInputStream;
-import alluxio.dora.master.journal.checkpoint.CompoundCheckpointFormat;
-import alluxio.dora.resource.CloseableIterator;
-import alluxio.dora.util.io.FileUtils;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
+import alluxio.master.journal.checkpoint.CompoundCheckpointFormat;
+import alluxio.resource.CloseableIterator;
+import alluxio.util.io.FileUtils;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Strings;
 import org.slf4j.Logger;

@@ -11,19 +11,19 @@
 
 package alluxio.dora.master.file;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.status.UnavailableException;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.status.UnavailableException;
 import alluxio.dora.master.file.meta.Inode;
 import alluxio.dora.master.file.meta.InodeTree;
-import alluxio.dora.master.journal.JournalContext;
-import alluxio.dora.master.journal.JournalSystem;
-import alluxio.dora.master.journal.sink.JournalSink;
+import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.JournalSystem;
+import alluxio.master.journal.sink.JournalSink;
 import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.proto.journal.Journal;
-import alluxio.dora.resource.LockResource;
-import alluxio.dora.util.ThreadFactoryUtils;
-import alluxio.dora.util.ThreadUtils;
+import alluxio.resource.LockResource;
+import alluxio.util.ThreadFactoryUtils;
+import alluxio.util.ThreadUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;

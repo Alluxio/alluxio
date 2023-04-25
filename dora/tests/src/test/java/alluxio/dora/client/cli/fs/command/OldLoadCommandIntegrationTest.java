@@ -14,11 +14,11 @@ package alluxio.dora.client.cli.fs.command;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.dora.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.dora.client.file.FileSystemTestUtils;
 import alluxio.dora.client.file.FileSystemUtils;
-import alluxio.dora.client.file.URIStatus;
+import alluxio.client.file.URIStatus;
 import alluxio.grpc.WritePType;
 
 import org.junit.Assert;

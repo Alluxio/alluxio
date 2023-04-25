@@ -17,7 +17,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import alluxio.dora.AlluxioMockUtil;
+import alluxio.AlluxioMockUtil;
 import alluxio.grpc.RunTaskCommand;
 import alluxio.dora.job.JobConfig;
 import alluxio.dora.job.RunTaskContext;
@@ -26,8 +26,6 @@ import alluxio.dora.job.plan.PlanDefinition;
 import alluxio.dora.job.plan.PlanDefinitionRegistry;
 import alluxio.dora.job.util.SerializationUtils;
 
-import alluxio.dora.worker.job.task.TaskExecutor;
-import alluxio.dora.worker.job.task.TaskExecutorManager;
 import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
 import org.junit.Before;

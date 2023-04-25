@@ -15,11 +15,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.Constants;
+import alluxio.Constants;
 
-import alluxio.dora.worker.block.BlockHeartbeatReport;
-import alluxio.dora.worker.block.BlockHeartbeatReporter;
-import alluxio.dora.worker.block.BlockStoreLocation;
+import alluxio.worker.block.BlockHeartbeatReport;
+import alluxio.worker.block.BlockStoreLocation;
 import org.junit.Before;
 import org.junit.Test;
 

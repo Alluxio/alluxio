@@ -11,11 +11,11 @@
 
 package alluxio.dora.server.ft.journal.raft;
 
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.GetTransferLeaderMessagePResponse;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerState;
-import alluxio.dora.master.journal.JournalType;
+import alluxio.master.journal.JournalType;
 import alluxio.dora.process.MasterNetAddress;
 import alluxio.dora.process.MultiProcessCluster;
 import alluxio.dora.process.PortCoordination;

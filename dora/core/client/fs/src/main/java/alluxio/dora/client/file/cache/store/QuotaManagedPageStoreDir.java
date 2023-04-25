@@ -16,7 +16,7 @@ import static com.google.common.base.Preconditions.checkState;
 import alluxio.dora.client.file.cache.evictor.CacheEvictor;
 import alluxio.dora.client.file.cache.CacheUsage;
 import alluxio.dora.client.file.cache.PageInfo;
-import alluxio.dora.resource.LockResource;
+import alluxio.resource.LockResource;
 
 import java.io.IOException;
 import java.nio.file.Path;

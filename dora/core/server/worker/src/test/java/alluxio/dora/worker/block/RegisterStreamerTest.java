@@ -16,12 +16,12 @@ import static alluxio.dora.worker.block.BlockMasterWorkerServiceTestUtils.create
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
-import alluxio.dora.ConfigurationRule;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.status.CancelledException;
-import alluxio.dora.exception.status.DeadlineExceededException;
-import alluxio.dora.exception.status.InternalException;
+import alluxio.ConfigurationRule;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.status.CancelledException;
+import alluxio.exception.status.DeadlineExceededException;
+import alluxio.exception.status.InternalException;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GrpcChannel;
@@ -30,8 +30,9 @@ import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.Scope;
 import alluxio.grpc.ServiceType;
-import alluxio.dora.security.authentication.AuthType;
+import alluxio.security.authentication.AuthType;
 
+import alluxio.worker.block.BlockStoreLocation;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.grpc.Channel;

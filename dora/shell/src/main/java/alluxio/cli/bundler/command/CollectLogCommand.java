@@ -12,9 +12,9 @@
 package alluxio.cli.bundler.command;
 
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.util.CommonUtils;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
+import alluxio.util.CommonUtils;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;

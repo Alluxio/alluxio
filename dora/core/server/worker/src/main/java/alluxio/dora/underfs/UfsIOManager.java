@@ -11,20 +11,22 @@
 
 package alluxio.dora.underfs;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.runtime.AlluxioRuntimeException;
-import alluxio.dora.exception.runtime.OutOfRangeRuntimeException;
-import alluxio.dora.exception.runtime.ResourceExhaustedRuntimeException;
-import alluxio.dora.security.authentication.AuthenticatedClientUser;
+import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.OutOfRangeRuntimeException;
+import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.grpc.UfsReadOptions;
-import alluxio.dora.metrics.MetricInfo;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.resource.CloseableResource;
-import alluxio.dora.underfs.options.OpenOptions;
-import alluxio.dora.util.ThreadFactoryUtils;
+import alluxio.metrics.MetricInfo;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.resource.CloseableResource;
+import alluxio.underfs.UfsManager;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.OpenOptions;
+import alluxio.util.ThreadFactoryUtils;
 
 import com.codahale.metrics.Meter;
 import com.google.common.annotations.VisibleForTesting;

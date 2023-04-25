@@ -11,9 +11,9 @@
 
 package alluxio.dora.job.plan.transform.format;
 
-import alluxio.dora.client.ReadType;
-import alluxio.dora.client.WriteType;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.client.ReadType;
+import alluxio.client.WriteType;
+import alluxio.conf.PropertyKey;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
@@ -60,10 +60,10 @@ public class JobPath extends Path {
       mAuthority = uri.getAuthority() == null ? "" : uri.getAuthority().toLowerCase();
       mUgi = UserGroupInformation.getCurrentUser();
       mReadType = conf.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT.getName(),
-          alluxio.dora.conf.Configuration.getEnum(
+          alluxio.conf.Configuration.getEnum(
               PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class));
       mWriteType = conf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT.getName(),
-          alluxio.dora.conf.Configuration.getEnum(
+          alluxio.conf.Configuration.getEnum(
               PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class));
     }
 

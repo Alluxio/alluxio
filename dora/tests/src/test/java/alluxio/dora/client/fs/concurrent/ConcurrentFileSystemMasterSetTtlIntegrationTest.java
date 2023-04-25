@@ -11,26 +11,26 @@
 
 package alluxio.dora.client.fs.concurrent;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.AuthenticatedUserRule;
-import alluxio.dora.Constants;
+import alluxio.AlluxioURI;
+import alluxio.AuthenticatedUserRule;
+import alluxio.Constants;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.collections.ConcurrentHashSet;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.collections.ConcurrentHashSet;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
-import alluxio.dora.heartbeat.HeartbeatContext;
-import alluxio.dora.heartbeat.HeartbeatScheduler;
-import alluxio.dora.heartbeat.ManuallyScheduleHeartbeat;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.dora.master.file.FileSystemMaster;
-import alluxio.dora.security.authentication.AuthenticatedClientUser;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.dora.testutils.BaseIntegrationTest;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
-import alluxio.dora.util.CommonUtils;
+import alluxio.util.CommonUtils;
 
 import com.google.common.base.Joiner;
 import org.junit.Assert;

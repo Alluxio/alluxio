@@ -11,12 +11,12 @@
 
 package alluxio.stress.cli;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.annotation.SuppressFBWarnings;
+import alluxio.AlluxioURI;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.dora.client.file.FileOutStream;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.exception.UnexpectedAlluxioException;
+import alluxio.client.file.URIStatus;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.grpc.Bits;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -30,10 +30,10 @@ import alluxio.stress.master.MasterBenchBaseParameters;
 import alluxio.stress.master.MasterBenchTaskResultBase;
 import alluxio.stress.master.MasterBenchTaskResultStatistics;
 import alluxio.stress.master.Operation;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.FormatUtils;
-import alluxio.dora.util.executor.ExecutorServiceFactories;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.util.concurrent.RateLimiter;
 import org.apache.hadoop.fs.FileStatus;

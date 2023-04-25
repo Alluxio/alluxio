@@ -11,13 +11,13 @@
 
 package alluxio.dora.worker.block;
 
-import alluxio.dora.AbstractMasterClient;
-import alluxio.dora.Constants;
-import alluxio.dora.ProjectConstants;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.FailedToAcquireRegisterLeaseException;
-import alluxio.dora.exception.status.AlluxioStatusException;
-import alluxio.dora.wire.RegisterLease;
+import alluxio.AbstractMasterClient;
+import alluxio.Constants;
+import alluxio.ProjectConstants;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.FailedToAcquireRegisterLeaseException;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.wire.RegisterLease;
 import alluxio.grpc.BlockHeartbeatPOptions;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockIdList;
@@ -38,10 +38,11 @@ import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
-import alluxio.dora.master.MasterClientContext;
-import alluxio.dora.retry.RetryPolicy;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.master.MasterClientContext;
+import alluxio.retry.RetryPolicy;
+import alluxio.wire.WorkerNetAddress;
 
+import alluxio.worker.block.BlockStoreLocation;
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -14,11 +14,10 @@ package alluxio.dora.master.block;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
-import alluxio.dora.exception.BlockInfoException;
-import alluxio.dora.master.block.BlockMaster;
-import alluxio.dora.wire.BlockInfo;
-import alluxio.dora.wire.BlockLocation;
-import alluxio.dora.wire.WorkerInfo;
+import alluxio.exception.BlockInfoException;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.BlockLocation;
+import alluxio.wire.WorkerInfo;
 
 import java.util.ArrayList;
 import java.util.HashSet;

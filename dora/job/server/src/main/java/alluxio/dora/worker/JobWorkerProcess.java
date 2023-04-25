@@ -11,8 +11,8 @@
 
 package alluxio.dora.worker;
 
-import alluxio.dora.Process;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.Process;
+import alluxio.wire.WorkerNetAddress;
 
 import java.net.InetSocketAddress;
 import javax.annotation.concurrent.ThreadSafe;

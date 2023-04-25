@@ -13,8 +13,7 @@ package alluxio.dora.worker.block;
 
 import static org.junit.Assert.assertFalse;
 
-import alluxio.dora.worker.block.BlockMapIterator;
-import alluxio.dora.worker.block.BlockStoreLocation;
+import alluxio.worker.block.BlockStoreLocation;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.proto.meta.Block;
 

@@ -11,11 +11,11 @@
 
 package alluxio.worker.job;
 
-import alluxio.dora.HealthCheckClient;
-import alluxio.dora.RuntimeConstants;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.util.network.NetworkAddressUtils;
+import alluxio.HealthCheckClient;
+import alluxio.RuntimeConstants;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.AlluxioWorkerMonitor;
 
 import org.slf4j.Logger;

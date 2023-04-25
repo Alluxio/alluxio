@@ -11,8 +11,8 @@
 
 package alluxio.dora.master.job;
 
-import alluxio.dora.job.JobRequest;
-import alluxio.dora.job.LoadJobRequest;
+import alluxio.job.JobRequest;
+import alluxio.job.LoadJobRequest;
 import alluxio.dora.master.file.FileSystemMaster;
 import alluxio.proto.journal.Journal;
 import alluxio.dora.job.JobFactory;

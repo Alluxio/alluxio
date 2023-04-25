@@ -11,13 +11,12 @@
 
 package alluxio.dora.master.file.meta;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.InvalidPathException;
-import alluxio.dora.file.options.DescendantType;
+import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.InvalidPathException;
+import alluxio.file.options.DescendantType;
 
-import alluxio.dora.master.file.meta.UfsSyncPathCache;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

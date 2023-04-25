@@ -11,13 +11,13 @@
 
 package alluxio.dora.client.util;
 
-import alluxio.dora.Constants;
+import alluxio.Constants;
 import alluxio.dora.client.block.BlockWorkerInfo;
-import alluxio.dora.conf.InstancedConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.wire.TieredIdentity;
-import alluxio.dora.wire.TieredIdentity.LocalityTier;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.wire.TieredIdentity;
+import alluxio.wire.TieredIdentity.LocalityTier;
+import alluxio.wire.WorkerNetAddress;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -11,21 +11,21 @@
 
 package alluxio.fuse.file;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.dora.client.file.FileInStream;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.concurrent.LockMode;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.exception.PreconditionMessage;
-import alluxio.dora.exception.runtime.AlluxioRuntimeException;
-import alluxio.dora.exception.runtime.FailedPreconditionRuntimeException;
-import alluxio.dora.exception.runtime.NotFoundRuntimeException;
-import alluxio.dora.exception.runtime.UnimplementedRuntimeException;
+import alluxio.client.file.URIStatus;
+import alluxio.concurrent.LockMode;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.PreconditionMessage;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.FailedPreconditionRuntimeException;
+import alluxio.exception.runtime.NotFoundRuntimeException;
+import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.fuse.lock.FuseReadWriteLockManager;
 import alluxio.grpc.OpenFilePOptions;
-import alluxio.dora.resource.CloseableResource;
+import alluxio.resource.CloseableResource;
 
 import com.google.common.base.Preconditions;
 

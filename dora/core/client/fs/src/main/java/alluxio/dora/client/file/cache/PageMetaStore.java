@@ -12,8 +12,8 @@
 package alluxio.dora.client.file.cache;
 
 import alluxio.dora.client.file.cache.store.PageStoreDir;
-import alluxio.dora.client.quota.CacheScope;
-import alluxio.dora.exception.PageNotFoundException;
+import alluxio.client.quota.CacheScope;
+import alluxio.exception.PageNotFoundException;
 
 import java.io.IOException;
 import java.util.List;

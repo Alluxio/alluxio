@@ -11,31 +11,31 @@
 
 package alluxio.dora.client.file.ufs;
 
-import alluxio.dora.AlluxioTestDirectory;
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.ClientContext;
+import alluxio.AlluxioTestDirectory;
+import alluxio.AlluxioURI;
+import alluxio.ClientContext;
 import alluxio.dora.client.file.FileInStream;
 import alluxio.dora.client.file.FileOutStream;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.client.file.URIStatus;
+import alluxio.client.file.URIStatus;
 import alluxio.dora.client.file.options.FileSystemOptions;
 import alluxio.dora.client.file.options.UfsFileSystemOptions;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.InstancedConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.conf.Source;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.exception.runtime.AlluxioRuntimeException;
-import alluxio.dora.exception.runtime.NotFoundRuntimeException;
+import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.Source;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.dora.security.authorization.Mode;
-import alluxio.dora.underfs.UnderFileSystemFactoryRegistry;
+import alluxio.security.authorization.Mode;
+import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.dora.underfs.local.LocalUnderFileSystemFactory;
-import alluxio.dora.util.io.BufferUtils;
+import alluxio.util.io.BufferUtils;
 
 import org.junit.After;
 import org.junit.Assert;

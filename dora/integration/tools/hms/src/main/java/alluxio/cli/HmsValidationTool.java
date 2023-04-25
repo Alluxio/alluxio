@@ -11,12 +11,8 @@
 
 package alluxio.cli;
 
-import alluxio.dora.Constants;
-import alluxio.dora.cli.ValidationConfig;
-import alluxio.dora.cli.ValidationTask;
-import alluxio.dora.cli.ValidationTaskResult;
-import alluxio.dora.cli.ValidationTool;
-import alluxio.dora.cli.ValidationUtils.State;
+import alluxio.Constants;
+import alluxio.cli.ValidationUtils.State;
 import alluxio.cli.hms.CreateHmsClientValidationTask;
 import alluxio.cli.hms.DatabaseValidationTask;
 import alluxio.cli.hms.TableValidationTask;

@@ -12,8 +12,8 @@
 package alluxio.dora.worker.dora;
 
 import alluxio.proto.meta.DoraMeta;
-import alluxio.dora.rocks.RocksStore;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.rocks.RocksStore;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import org.rocksdb.ColumnFamilyDescriptor;

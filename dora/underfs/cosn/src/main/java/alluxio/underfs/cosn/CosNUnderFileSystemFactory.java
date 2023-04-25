@@ -11,12 +11,12 @@
 
 package alluxio.underfs.cosn;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Constants;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.CosnUfsConstants;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.underfs.UnderFileSystemConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.hdfs.HdfsUnderFileSystemFactory;
 
 import com.google.common.base.Preconditions;

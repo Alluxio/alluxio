@@ -163,7 +163,7 @@
                 <filter>
                   <artifact>org.alluxio:alluxio-underfs-hdfs</artifact>
                   <excludes>
-                    <exclude>META-INF/services/alluxio.dora.underfs.UnderFileSystemFactory</exclude>
+                    <exclude>META-INF/services/alluxio.underfs.UnderFileSystemFactory</exclude>
                   </excludes>
                 </filter>
               </filters>

@@ -11,25 +11,26 @@
 
 package alluxio.dora.master.file.meta;
 
-import alluxio.dora.Constants;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.Constants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.master.ProtobufUtils;
 import alluxio.grpc.TtlAction;
+import alluxio.master.file.meta.PersistenceState;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.meta.InodeMeta;
 import alluxio.proto.meta.InodeMeta.InodeOrBuilder;
-import alluxio.dora.security.authorization.AccessControlList;
-import alluxio.dora.security.authorization.AclAction;
-import alluxio.dora.security.authorization.AclActions;
-import alluxio.dora.security.authorization.AclEntry;
-import alluxio.dora.security.authorization.AclEntryType;
-import alluxio.dora.security.authorization.DefaultAccessControlList;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.proto.ProtoUtils;
-import alluxio.dora.wire.FileInfo;
+import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.AclAction;
+import alluxio.security.authorization.AclActions;
+import alluxio.security.authorization.AclEntry;
+import alluxio.security.authorization.AclEntryType;
+import alluxio.security.authorization.DefaultAccessControlList;
+import alluxio.util.CommonUtils;
+import alluxio.util.proto.ProtoUtils;
+import alluxio.wire.FileInfo;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;

@@ -13,11 +13,11 @@ package alluxio.dora.client.file;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.dora.ClientContext;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.master.MasterClientContext;
-import alluxio.dora.master.MasterInquireClient;
+import alluxio.ClientContext;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.master.MasterClientContext;
+import alluxio.master.MasterInquireClient;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

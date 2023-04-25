@@ -13,11 +13,10 @@ package alluxio.dora.master.file.meta;
 
 import alluxio.dora.master.file.contexts.CreateDirectoryContext;
 import alluxio.dora.master.file.contexts.CreateFileContext;
-import alluxio.dora.master.file.meta.*;
 import alluxio.dora.master.metastore.InodeStore;
 import alluxio.dora.master.metastore.heap.HeapInodeStore;
 import alluxio.proto.journal.Journal;
-import alluxio.dora.resource.CloseableIterator;
+import alluxio.resource.CloseableIterator;
 
 import org.junit.After;
 import org.junit.Assert;

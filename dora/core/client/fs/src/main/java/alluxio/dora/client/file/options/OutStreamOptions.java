@@ -11,22 +11,22 @@
 
 package alluxio.dora.client.file.options;
 
-import alluxio.dora.annotation.PublicApi;
-import alluxio.dora.client.AlluxioStorageType;
-import alluxio.dora.client.UnderStorageType;
-import alluxio.dora.client.WriteType;
+import alluxio.annotation.PublicApi;
+import alluxio.client.AlluxioStorageType;
+import alluxio.client.UnderStorageType;
+import alluxio.client.WriteType;
 import alluxio.dora.client.block.policy.BlockLocationPolicy;
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
-import alluxio.dora.security.authorization.AccessControlList;
-import alluxio.dora.security.authorization.Mode;
-import alluxio.dora.util.CommonUtils;
+import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.Mode;
+import alluxio.util.CommonUtils;
 import alluxio.dora.util.FileSystemOptionsUtils;
-import alluxio.dora.util.IdUtils;
-import alluxio.dora.util.ModeUtils;
+import alluxio.util.IdUtils;
+import alluxio.util.ModeUtils;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;

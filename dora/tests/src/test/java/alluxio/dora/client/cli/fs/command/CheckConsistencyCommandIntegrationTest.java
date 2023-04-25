@@ -15,16 +15,16 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.dora.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.dora.client.file.FileSystemTestUtils;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.exception.AlluxioException;
+import alluxio.conf.Configuration;
+import alluxio.exception.AlluxioException;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.WritePType;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.underfs.options.DeleteOptions;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.DeleteOptions;
 
 import org.junit.Test;
 

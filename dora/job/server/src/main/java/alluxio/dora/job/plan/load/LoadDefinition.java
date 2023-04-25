@@ -11,24 +11,24 @@
 
 package alluxio.dora.job.plan.load;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Constants;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.dora.client.block.BlockWorkerInfo;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.collections.Pair;
-import alluxio.dora.exception.status.FailedPreconditionException;
+import alluxio.client.file.URIStatus;
+import alluxio.collections.Pair;
+import alluxio.exception.status.FailedPreconditionException;
 import alluxio.dora.job.RunTaskContext;
 import alluxio.dora.job.SelectExecutorsContext;
 import alluxio.dora.job.plan.AbstractVoidPlanDefinition;
 import alluxio.dora.job.util.JobUtils;
 import alluxio.dora.job.plan.load.LoadDefinition.LoadTask;
 import alluxio.dora.job.util.SerializableVoid;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.wire.BlockLocation;
-import alluxio.dora.wire.FileBlockInfo;
-import alluxio.dora.wire.TieredIdentity.LocalityTier;
-import alluxio.dora.wire.WorkerInfo;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.util.CommonUtils;
+import alluxio.wire.BlockLocation;
+import alluxio.wire.FileBlockInfo;
+import alluxio.wire.TieredIdentity.LocalityTier;
+import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.LinkedListMultimap;

@@ -11,19 +11,19 @@
 
 package alluxio.cli;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.client.AlluxioStorageType;
-import alluxio.dora.client.ReadType;
-import alluxio.dora.client.WriteType;
+import alluxio.AlluxioURI;
+import alluxio.client.AlluxioStorageType;
+import alluxio.client.ReadType;
+import alluxio.client.WriteType;
 import alluxio.dora.client.file.FileOutStream;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.exception.FileAlreadyExistsException;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.FileAlreadyExistsException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.FormatUtils;
+import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

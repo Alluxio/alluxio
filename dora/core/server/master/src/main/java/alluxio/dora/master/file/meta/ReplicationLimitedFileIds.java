@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.file.meta;
 
-import alluxio.dora.master.journal.checkpoint.CheckpointName;
+import alluxio.master.journal.checkpoint.CheckpointName;
 
 /**
  * Keeps track of which files have limited replication factors.

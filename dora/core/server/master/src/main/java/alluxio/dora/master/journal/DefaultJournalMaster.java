@@ -11,8 +11,8 @@
 
 package alluxio.dora.master.journal;
 
-import alluxio.dora.Constants;
-import alluxio.dora.clock.SystemClock;
+import alluxio.Constants;
+import alluxio.clock.SystemClock;
 import alluxio.grpc.GetNodeStatePResponse;
 import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.GetTransferLeaderMessagePResponse;
@@ -20,11 +20,13 @@ import alluxio.grpc.GrpcService;
 import alluxio.grpc.JournalDomain;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.ServiceType;
-import alluxio.dora.master.AbstractMaster;
-import alluxio.dora.master.MasterContext;
-import alluxio.dora.master.PrimarySelector;
-import alluxio.dora.master.journal.raft.RaftJournalSystem;
-import alluxio.dora.util.executor.ExecutorServiceFactories;
+import alluxio.master.AbstractMaster;
+import alluxio.master.MasterContext;
+import alluxio.master.PrimarySelector;
+import alluxio.master.journal.JournalSystem;
+import alluxio.master.journal.NoopJournaled;
+import alluxio.master.journal.raft.RaftJournalSystem;
+import alluxio.util.executor.ExecutorServiceFactories;
 
 import java.io.IOException;
 import java.util.HashMap;

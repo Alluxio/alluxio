@@ -15,6 +15,10 @@ import alluxio.dora.worker.block.BlockMetadataEvictorView;
 import alluxio.dora.worker.block.BlockMetadataManager;
 import alluxio.dora.worker.block.TieredBlockStoreTestUtils;
 
+import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.StorageTier;
+import alluxio.worker.block.meta.TempBlockMeta;
 import com.google.common.collect.Lists;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;

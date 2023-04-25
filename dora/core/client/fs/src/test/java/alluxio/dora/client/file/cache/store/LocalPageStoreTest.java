@@ -17,6 +17,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.client.file.cache.store.PageStoreType;
 import alluxio.dora.client.file.cache.PageId;
 import alluxio.dora.client.file.cache.PageStore;
 

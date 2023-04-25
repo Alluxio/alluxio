@@ -11,8 +11,8 @@
 
 package alluxio.dora.worker.netty;
 
-import alluxio.dora.exception.status.UnimplementedException;
-import alluxio.dora.network.protocol.RPCProtoMessage;
+import alluxio.exception.status.UnimplementedException;
+import alluxio.network.protocol.RPCProtoMessage;
 
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;

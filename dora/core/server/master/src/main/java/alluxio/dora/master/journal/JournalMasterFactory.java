@@ -11,12 +11,12 @@
 
 package alluxio.dora.master.journal;
 
-import alluxio.dora.Constants;
+import alluxio.Constants;
 import alluxio.grpc.JournalDomain;
-import alluxio.dora.master.Master;
-import alluxio.dora.master.MasterContext;
-import alluxio.dora.master.MasterFactory;
-import alluxio.dora.master.MasterRegistry;
+import alluxio.master.Master;
+import alluxio.master.MasterContext;
+import alluxio.master.MasterFactory;
+import alluxio.master.MasterRegistry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

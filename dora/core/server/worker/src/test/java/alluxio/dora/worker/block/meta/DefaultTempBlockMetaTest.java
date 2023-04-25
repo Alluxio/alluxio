@@ -11,10 +11,13 @@
 
 package alluxio.dora.worker.block.meta;
 
-import alluxio.dora.Constants;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.Constants;
+import alluxio.util.io.PathUtils;
 import alluxio.dora.worker.block.TieredBlockStoreTestUtils;
 
+import alluxio.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.StorageTier;
+import alluxio.worker.block.meta.TempBlockMeta;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;

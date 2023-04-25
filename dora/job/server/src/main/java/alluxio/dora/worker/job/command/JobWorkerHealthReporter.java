@@ -11,7 +11,7 @@
 
 package alluxio.dora.worker.job.command;
 
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.wire.WorkerNetAddress;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

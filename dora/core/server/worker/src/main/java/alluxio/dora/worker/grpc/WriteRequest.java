@@ -11,7 +11,7 @@
 
 package alluxio.dora.worker.grpc;
 
-import alluxio.dora.util.IdUtils;
+import alluxio.util.IdUtils;
 
 import com.google.common.base.MoreObjects;
 

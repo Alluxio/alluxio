@@ -20,11 +20,11 @@ import alluxio.dora.client.file.cache.evictor.CacheEvictorOptions;
 import alluxio.dora.client.file.cache.evictor.FIFOCacheEvictor;
 import alluxio.dora.client.file.cache.store.PageStoreDir;
 import alluxio.dora.client.file.cache.store.PageStoreOptions;
-import alluxio.dora.client.quota.CacheScope;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
+import alluxio.client.quota.CacheScope;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;

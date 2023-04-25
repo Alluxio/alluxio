@@ -13,12 +13,11 @@ package alluxio.dora.job;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.dora.ConfigurationRule;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.InstancedConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.job.JobContext;
-import alluxio.dora.security.user.UserState;
+import alluxio.ConfigurationRule;
+import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.security.user.UserState;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Rule;

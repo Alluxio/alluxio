@@ -11,6 +11,9 @@
 
 package alluxio.dora.worker.block;
 
+import alluxio.worker.block.BlockHeartbeatReport;
+import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.BlockWorker;
 import com.google.common.collect.Lists;
 
 import java.util.ArrayList;

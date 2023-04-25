@@ -11,8 +11,8 @@
 
 package alluxio.dora.worker.block;
 
-import alluxio.dora.exception.ExceptionMessage;
-import alluxio.dora.worker.block.meta.StorageTier;
+import alluxio.exception.ExceptionMessage;
+import alluxio.worker.block.meta.StorageTier;
 import alluxio.dora.worker.block.meta.StorageTierView;
 
 import com.google.common.base.Preconditions;

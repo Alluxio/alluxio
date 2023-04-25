@@ -11,13 +11,15 @@
 
 package alluxio.dora.worker.block;
 
-import alluxio.dora.master.block.BlockId;
-import alluxio.dora.worker.block.meta.*;
+import alluxio.master.block.BlockId;
 import alluxio.dora.worker.block.meta.StorageDirEvictorView;
 import alluxio.dora.worker.block.meta.StorageDirView;
 import alluxio.dora.worker.block.meta.StorageTierEvictorView;
 import alluxio.dora.worker.block.meta.StorageTierView;
 
+import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.StorageTier;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

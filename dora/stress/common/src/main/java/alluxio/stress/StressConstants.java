@@ -11,7 +11,7 @@
 
 package alluxio.stress;
 
-import alluxio.dora.Constants;
+import alluxio.Constants;
 
 /**
  * Constants for stress tests.

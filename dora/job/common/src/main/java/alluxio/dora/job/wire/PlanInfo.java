@@ -11,7 +11,7 @@
 
 package alluxio.dora.job.wire;
 
-import alluxio.dora.exception.status.InvalidArgumentException;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.JobType;
 import alluxio.dora.job.util.SerializationUtils;
 

@@ -20,11 +20,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import alluxio.dora.ConfigurationRule;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.test.util.ConcurrencyUtils;
-import alluxio.dora.underfs.options.OpenOptions;
+import alluxio.ConfigurationRule;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.ConcurrencyUtils;
+import alluxio.underfs.SeekableUnderFileInputStream;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.OpenOptions;
 
 import org.junit.Assert;
 import org.junit.Before;

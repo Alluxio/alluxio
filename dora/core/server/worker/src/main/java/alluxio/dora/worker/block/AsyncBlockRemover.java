@@ -11,11 +11,12 @@
 
 package alluxio.dora.worker.block;
 
-import alluxio.dora.Sessions;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.util.ThreadFactoryUtils;
+import alluxio.Sessions;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.util.ThreadFactoryUtils;
 
+import alluxio.worker.block.BlockWorker;
 import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;

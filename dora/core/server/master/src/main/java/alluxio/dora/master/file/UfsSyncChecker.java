@@ -11,19 +11,19 @@
 
 package alluxio.dora.master.file;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.annotation.SuppressFBWarnings;
-import alluxio.dora.exception.InvalidPathException;
+import alluxio.AlluxioURI;
+import alluxio.annotation.SuppressFBWarnings;
+import alluxio.exception.InvalidPathException;
 import alluxio.dora.master.metastore.ReadOnlyInodeStore;
 import alluxio.dora.master.file.meta.Inode;
 import alluxio.dora.master.file.meta.InodeDirectory;
 import alluxio.dora.master.file.meta.MountTable;
-import alluxio.dora.resource.CloseableIterator;
-import alluxio.dora.resource.CloseableResource;
-import alluxio.dora.underfs.UfsStatus;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.underfs.options.ListOptions;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.resource.CloseableIterator;
+import alluxio.resource.CloseableResource;
+import alluxio.underfs.UfsStatus;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.ListOptions;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;

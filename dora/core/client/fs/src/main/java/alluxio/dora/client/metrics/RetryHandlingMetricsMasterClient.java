@@ -11,10 +11,10 @@
 
 package alluxio.dora.client.metrics;
 
-import alluxio.dora.AbstractMasterClient;
-import alluxio.dora.Constants;
-import alluxio.dora.exception.status.AlluxioStatusException;
-import alluxio.dora.exception.status.UnavailableException;
+import alluxio.AbstractMasterClient;
+import alluxio.Constants;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ClearMetricsPRequest;
 import alluxio.grpc.ClientMetrics;
 import alluxio.grpc.GetMetricsPOptions;
@@ -23,7 +23,7 @@ import alluxio.grpc.MetricsHeartbeatPOptions;
 import alluxio.grpc.MetricsHeartbeatPRequest;
 import alluxio.grpc.MetricsMasterClientServiceGrpc;
 import alluxio.grpc.ServiceType;
-import alluxio.dora.master.MasterClientContext;
+import alluxio.master.MasterClientContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

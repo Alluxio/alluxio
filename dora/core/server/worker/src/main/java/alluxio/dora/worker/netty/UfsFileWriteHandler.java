@@ -11,15 +11,15 @@
 
 package alluxio.dora.worker.netty;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.annotation.SuppressFBWarnings;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.network.protocol.RPCProtoMessage;
+import alluxio.conf.Configuration;
+import alluxio.annotation.SuppressFBWarnings;
+import alluxio.metrics.MetricsSystem;
+import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.dora.security.authorization.Mode;
-import alluxio.dora.underfs.UfsManager;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.underfs.options.CreateOptions;
+import alluxio.security.authorization.Mode;
+import alluxio.underfs.UfsManager;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;

@@ -13,12 +13,12 @@ package alluxio.fuse.auth;
 
 import static org.mockito.ArgumentMatchers.eq;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.InstancedConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.conf.Source;
+import alluxio.AlluxioURI;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.Source;
 import alluxio.fuse.AlluxioFuseUtils;
 
 import org.junit.Assert;

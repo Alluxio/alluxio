@@ -11,19 +11,20 @@
 
 package alluxio.dora.client.file;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.client.ReadType;
+import alluxio.client.file.URIStatus;
+import alluxio.AlluxioURI;
+import alluxio.client.ReadType;
 import alluxio.dora.client.file.dora.DoraCacheClient;
 import alluxio.dora.client.file.dora.WorkerLocationPolicy;
 import alluxio.dora.client.file.ufs.UfsBaseFileSystem;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.exception.FileAlreadyExistsException;
-import alluxio.dora.exception.FileDoesNotExistException;
-import alluxio.dora.exception.FileIncompleteException;
-import alluxio.dora.exception.InvalidPathException;
-import alluxio.dora.exception.OpenDirectoryException;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.FileAlreadyExistsException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.FileIncompleteException;
+import alluxio.exception.InvalidPathException;
+import alluxio.exception.OpenDirectoryException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.ExistsPOptions;
@@ -32,11 +33,11 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.dora.util.FileSystemOptionsUtils;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.util.io.PathUtils;
 
 import com.codahale.metrics.Counter;
 import io.grpc.Status;

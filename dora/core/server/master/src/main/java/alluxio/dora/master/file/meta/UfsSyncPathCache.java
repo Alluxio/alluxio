@@ -11,18 +11,18 @@
 
 package alluxio.dora.master.file.meta;
 
-import static alluxio.dora.util.io.PathUtils.cleanPath;
+import static alluxio.util.io.PathUtils.cleanPath;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.collections.Pair;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.InvalidPathException;
-import alluxio.dora.file.options.DescendantType;
+import alluxio.AlluxioURI;
+import alluxio.collections.Pair;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.InvalidPathException;
+import alluxio.file.options.DescendantType;
 import alluxio.dora.master.file.DefaultFileSystemMaster;
 import alluxio.dora.master.file.InodeSyncStream;
-import alluxio.dora.resource.LockResource;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.resource.LockResource;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;

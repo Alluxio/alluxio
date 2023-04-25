@@ -15,17 +15,15 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.exception.BlockAlreadyExistsException;
-import alluxio.dora.exception.runtime.NotFoundRuntimeException;
-import alluxio.dora.master.NoopUfsManager;
-import alluxio.dora.worker.block.LocalBlockStore;
-import alluxio.dora.worker.block.UnderFileSystemBlockStore;
+import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
+import alluxio.exception.BlockAlreadyExistsException;
+import alluxio.exception.runtime.NotFoundRuntimeException;
+import alluxio.master.NoopUfsManager;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.dora.underfs.UfsManager;
-import alluxio.dora.underfs.UnderFileSystemConfiguration;
-import alluxio.dora.worker.block.io.BlockReader;
+import alluxio.underfs.UfsManager;
+import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.worker.block.io.BlockReader;
 
 import org.junit.Before;
 import org.junit.Rule;

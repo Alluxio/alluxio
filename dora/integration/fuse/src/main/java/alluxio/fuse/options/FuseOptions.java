@@ -12,9 +12,9 @@
 package alluxio.fuse.options;
 
 import alluxio.dora.client.file.options.FileSystemOptions;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.runtime.InvalidArgumentRuntimeException;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.InvalidArgumentRuntimeException;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.jnifuse.utils.LibfuseVersion;
 

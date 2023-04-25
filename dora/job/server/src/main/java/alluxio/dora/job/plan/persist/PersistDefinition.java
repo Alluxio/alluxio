@@ -11,13 +11,13 @@
 
 package alluxio.dora.job.plan.persist;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Constants;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.dora.client.block.BlockWorkerInfo;
 import alluxio.dora.client.file.FileInStream;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.collections.Pair;
-import alluxio.dora.conf.Configuration;
+import alluxio.client.file.URIStatus;
+import alluxio.collections.Pair;
+import alluxio.conf.Configuration;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.dora.job.RunTaskContext;
@@ -25,15 +25,15 @@ import alluxio.dora.job.SelectExecutorsContext;
 import alluxio.dora.job.plan.AbstractVoidPlanDefinition;
 import alluxio.dora.job.util.JobUtils;
 import alluxio.dora.job.util.SerializableVoid;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.resource.CloseableResource;
-import alluxio.dora.security.authorization.AclEntry;
-import alluxio.dora.security.authorization.Mode;
-import alluxio.dora.underfs.UfsManager;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.underfs.options.CreateOptions;
-import alluxio.dora.underfs.options.MkdirsOptions;
-import alluxio.dora.wire.WorkerInfo;
+import alluxio.metrics.MetricsSystem;
+import alluxio.resource.CloseableResource;
+import alluxio.security.authorization.AclEntry;
+import alluxio.security.authorization.Mode;
+import alluxio.underfs.UfsManager;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.MkdirsOptions;
+import alluxio.wire.WorkerInfo;
 
 import com.google.common.collect.Sets;
 import com.google.common.io.Closer;

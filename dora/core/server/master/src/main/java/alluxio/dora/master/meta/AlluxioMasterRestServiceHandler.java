@@ -11,25 +11,25 @@
 
 package alluxio.dora.master.meta;
 
-import static alluxio.dora.metrics.MetricInfo.UFS_OP_PREFIX;
-import static alluxio.dora.metrics.MetricInfo.UFS_OP_SAVED_PREFIX;
+import static alluxio.metrics.MetricInfo.UFS_OP_PREFIX;
+import static alluxio.metrics.MetricInfo.UFS_OP_SAVED_PREFIX;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Constants;
-import alluxio.dora.RestUtils;
-import alluxio.dora.RuntimeConstants;
-import alluxio.dora.StorageTierAssoc;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.RestUtils;
+import alluxio.RuntimeConstants;
+import alluxio.StorageTierAssoc;
 import alluxio.dora.client.file.FileInStream;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.ConfigurationValueOptions;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.AccessControlException;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.exception.FileDoesNotExistException;
-import alluxio.dora.exception.InvalidPathException;
-import alluxio.dora.exception.status.UnavailableException;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
+import alluxio.conf.ConfigurationValueOptions;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.AccessControlException;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.dora.master.AlluxioMasterProcess;
 import alluxio.dora.master.file.DefaultFileSystemMaster;
 import alluxio.dora.master.file.FileSystemMaster;
@@ -40,44 +40,44 @@ import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.dora.master.block.BlockMaster;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.security.authentication.AuthenticatedClientUser;
-import alluxio.dora.user.ServerUserState;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.ConfigurationUtils;
-import alluxio.dora.util.FormatUtils;
-import alluxio.dora.util.LogUtils;
-import alluxio.dora.util.SecurityUtils;
-import alluxio.dora.util.io.PathUtils;
-import alluxio.dora.util.network.NetworkAddressUtils;
-import alluxio.dora.util.webui.NodeInfo;
-import alluxio.dora.util.webui.StorageTierInfo;
-import alluxio.dora.util.webui.UIFileBlockInfo;
-import alluxio.dora.util.webui.UIFileInfo;
-import alluxio.dora.util.webui.WebUtils;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.user.ServerUserState;
+import alluxio.util.CommonUtils;
+import alluxio.util.ConfigurationUtils;
+import alluxio.util.FormatUtils;
+import alluxio.util.LogUtils;
+import alluxio.util.SecurityUtils;
+import alluxio.util.io.PathUtils;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.webui.NodeInfo;
+import alluxio.util.webui.StorageTierInfo;
+import alluxio.util.webui.UIFileBlockInfo;
+import alluxio.util.webui.UIFileInfo;
+import alluxio.util.webui.WebUtils;
 import alluxio.dora.web.MasterWebServer;
-import alluxio.dora.wire.Address;
-import alluxio.dora.wire.AlluxioMasterInfo;
-import alluxio.dora.wire.BlockLocation;
-import alluxio.dora.wire.Capacity;
-import alluxio.dora.wire.ConfigCheckReport;
-import alluxio.dora.wire.FileBlockInfo;
-import alluxio.dora.wire.FileInfo;
-import alluxio.dora.wire.MasterInfo;
-import alluxio.dora.wire.MasterWebUIBrowse;
-import alluxio.dora.wire.MasterWebUIConfiguration;
-import alluxio.dora.wire.MasterWebUIData;
-import alluxio.dora.wire.MasterWebUIInit;
-import alluxio.dora.wire.MasterWebUILogs;
-import alluxio.dora.wire.MasterWebUIMasters;
-import alluxio.dora.wire.MasterWebUIMetrics;
-import alluxio.dora.wire.MasterWebUIMountTable;
-import alluxio.dora.wire.MasterWebUIOverview;
-import alluxio.dora.wire.MasterWebUIWorkers;
-import alluxio.dora.wire.MountPointInfo;
-import alluxio.dora.wire.WorkerInfo;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.wire.Address;
+import alluxio.wire.AlluxioMasterInfo;
+import alluxio.wire.BlockLocation;
+import alluxio.wire.Capacity;
+import alluxio.wire.ConfigCheckReport;
+import alluxio.wire.FileBlockInfo;
+import alluxio.wire.FileInfo;
+import alluxio.wire.MasterInfo;
+import alluxio.wire.MasterWebUIBrowse;
+import alluxio.wire.MasterWebUIConfiguration;
+import alluxio.wire.MasterWebUIData;
+import alluxio.wire.MasterWebUIInit;
+import alluxio.wire.MasterWebUILogs;
+import alluxio.wire.MasterWebUIMasters;
+import alluxio.wire.MasterWebUIMetrics;
+import alluxio.wire.MasterWebUIMountTable;
+import alluxio.wire.MasterWebUIOverview;
+import alluxio.wire.MasterWebUIWorkers;
+import alluxio.wire.MountPointInfo;
+import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
@@ -1052,12 +1052,12 @@ public final class AlluxioMasterRestServiceHandler {
         String metricName = entry.getKey();
         long value = entry.getValue().getCount();
         if (metricName.contains(MetricKey.CLUSTER_BYTES_READ_UFS.getName())) {
-          String ufs = alluxio.dora.metrics.Metric.getTagUfsValueFromFullName(metricName);
+          String ufs = alluxio.metrics.Metric.getTagUfsValueFromFullName(metricName);
           if (ufs != null && isMounted(ufs)) {
             ufsReadSizeMap.put(MetricsSystem.unescape(ufs), FormatUtils.getSizeFromBytes(value));
           }
         } else if (metricName.contains(MetricKey.CLUSTER_BYTES_WRITTEN_UFS.getName())) {
-          String ufs = alluxio.dora.metrics.Metric.getTagUfsValueFromFullName(metricName);
+          String ufs = alluxio.metrics.Metric.getTagUfsValueFromFullName(metricName);
           if (ufs != null && isMounted(ufs)) {
             ufsWriteSizeMap.put(MetricsSystem.unescape(ufs), FormatUtils.getSizeFromBytes(value));
           }
@@ -1065,13 +1065,13 @@ public final class AlluxioMasterRestServiceHandler {
           rpcInvocations
               .put(MetricsSystem.stripInstanceAndHost(metricName), entry.getValue());
         } else if (metricName.contains(UFS_OP_SAVED_PREFIX)) {
-          String ufs = alluxio.dora.metrics.Metric.getTagUfsValueFromFullName(metricName);
+          String ufs = alluxio.metrics.Metric.getTagUfsValueFromFullName(metricName);
           if (ufs != null && isMounted(ufs)) {
             // Unescape the URI for display
             String ufsUnescaped = MetricsSystem.unescape(ufs);
             Map<String, Long> perUfsMap = ufsOpsSavedMap.getOrDefault(
                 ufsUnescaped, new TreeMap<>());
-            String alluxioOperation = alluxio.dora.metrics.Metric.getBaseName(metricName)
+            String alluxioOperation = alluxio.metrics.Metric.getBaseName(metricName)
                 .substring(UFS_OP_SAVED_PREFIX.length());
             String equivalentOp = DefaultFileSystemMaster.Metrics.UFS_OPS_DESC.get(
                 DefaultFileSystemMaster.Metrics.UFSOps.valueOf(alluxioOperation));
@@ -1103,12 +1103,12 @@ public final class AlluxioMasterRestServiceHandler {
       for (Map.Entry<String, Gauge> entry : gauges.entrySet()) {
         String metricName = entry.getKey();
         if (metricName.contains(UFS_OP_PREFIX)) {
-          String ufs = alluxio.dora.metrics.Metric.getTagUfsValueFromFullName(metricName);
+          String ufs = alluxio.metrics.Metric.getTagUfsValueFromFullName(metricName);
           if (ufs != null && isMounted(ufs)) {
             // Unescape the URI for display
             String ufsUnescaped = MetricsSystem.unescape(ufs);
             Map<String, Long> perUfsMap = ufsOpsMap.getOrDefault(ufsUnescaped, new TreeMap<>());
-            perUfsMap.put(alluxio.dora.metrics.Metric.getBaseName(metricName)
+            perUfsMap.put(alluxio.metrics.Metric.getBaseName(metricName)
                 .substring(UFS_OP_PREFIX.length()), (Long) entry.getValue().getValue());
             ufsOpsMap.put(ufsUnescaped, perUfsMap);
           }

@@ -11,18 +11,18 @@
 
 package alluxio.dora.master.file;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.collections.Pair;
-import alluxio.dora.exception.FileDoesNotExistException;
-import alluxio.dora.exception.InvalidPathException;
+import alluxio.AlluxioURI;
+import alluxio.collections.Pair;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
 import alluxio.dora.master.metastore.ReadOnlyInodeStore;
 import alluxio.grpc.DeletePOptions;
 import alluxio.dora.master.file.meta.Inode;
 import alluxio.dora.master.file.meta.LockedInodePath;
 import alluxio.dora.master.file.meta.MountTable;
-import alluxio.dora.resource.CloseableResource;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.underfs.options.DeleteOptions;
+import alluxio.resource.CloseableResource;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.DeleteOptions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

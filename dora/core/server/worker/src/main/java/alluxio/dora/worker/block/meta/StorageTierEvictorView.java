@@ -13,6 +13,8 @@ package alluxio.dora.worker.block.meta;
 
 import alluxio.dora.worker.block.BlockMetadataEvictorView;
 
+import alluxio.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.StorageTier;
 import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.ThreadSafe;

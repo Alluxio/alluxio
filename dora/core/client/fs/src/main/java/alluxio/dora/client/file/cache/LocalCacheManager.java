@@ -11,19 +11,19 @@
 
 package alluxio.dora.client.file.cache;
 
-import alluxio.dora.client.file.CacheContext;
+import alluxio.client.file.CacheContext;
 import alluxio.dora.client.file.cache.store.ByteArrayTargetBuffer;
 import alluxio.dora.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.dora.client.file.cache.store.PageStoreDir;
-import alluxio.dora.client.quota.CacheQuota;
-import alluxio.dora.client.quota.CacheScope;
-import alluxio.dora.collections.ConcurrentHashSet;
-import alluxio.dora.collections.Pair;
-import alluxio.dora.exception.PageNotFoundException;
-import alluxio.dora.exception.status.ResourceExhaustedException;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.resource.LockResource;
+import alluxio.client.quota.CacheQuota;
+import alluxio.client.quota.CacheScope;
+import alluxio.collections.ConcurrentHashSet;
+import alluxio.collections.Pair;
+import alluxio.exception.PageNotFoundException;
+import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.resource.LockResource;
 
 import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;

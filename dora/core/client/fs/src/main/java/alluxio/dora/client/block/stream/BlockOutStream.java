@@ -15,7 +15,7 @@ import alluxio.dora.client.BoundedStream;
 import alluxio.dora.client.Cancelable;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.client.file.options.OutStreamOptions;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;

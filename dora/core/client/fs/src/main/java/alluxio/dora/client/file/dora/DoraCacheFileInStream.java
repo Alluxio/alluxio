@@ -13,9 +13,9 @@ package alluxio.dora.client.file.dora;
 
 import alluxio.dora.client.block.stream.DataReader;
 import alluxio.dora.client.file.FileInStream;
-import alluxio.dora.exception.PreconditionMessage;
-import alluxio.dora.exception.status.OutOfRangeException;
-import alluxio.dora.network.protocol.databuffer.DataBuffer;
+import alluxio.exception.PreconditionMessage;
+import alluxio.exception.status.OutOfRangeException;
+import alluxio.network.protocol.databuffer.DataBuffer;
 
 import com.google.common.base.Preconditions;
 

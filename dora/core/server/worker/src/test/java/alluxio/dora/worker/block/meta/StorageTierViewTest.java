@@ -15,6 +15,7 @@ import alluxio.dora.worker.block.BlockMetadataEvictorView;
 import alluxio.dora.worker.block.BlockMetadataManager;
 import alluxio.dora.worker.block.TieredBlockStoreTestUtils;
 
+import alluxio.worker.block.meta.StorageTier;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;

@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.metrics;
 
-import alluxio.dora.metrics.TimeSeries;
+import alluxio.metrics.TimeSeries;
 
 import com.google.common.collect.ImmutableList;
 

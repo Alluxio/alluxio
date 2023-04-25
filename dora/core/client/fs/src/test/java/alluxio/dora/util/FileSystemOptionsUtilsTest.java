@@ -15,8 +15,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.LoadDescendantPType;
 import alluxio.grpc.LoadMetadataPOptions;

@@ -13,8 +13,8 @@ package alluxio.dora.worker.block.allocator;
 
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.worker.block.BlockMetadataEvictorView;
 import alluxio.dora.worker.block.BlockMetadataView;
 import alluxio.dora.worker.block.TieredBlockStoreTestUtils;

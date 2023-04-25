@@ -11,21 +11,21 @@
 
 package alluxio.dora.client.file.cache;
 
-import static alluxio.dora.client.file.CacheContext.StatsUnit.BYTE;
-import static alluxio.dora.client.file.CacheContext.StatsUnit.NANO;
+import static alluxio.client.file.CacheContext.StatsUnit.BYTE;
+import static alluxio.client.file.CacheContext.StatsUnit.NANO;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.client.file.CacheContext;
+import alluxio.AlluxioURI;
+import alluxio.client.file.CacheContext;
 import alluxio.dora.client.file.cache.store.ByteArrayTargetBuffer;
 import alluxio.dora.client.file.cache.store.ByteBufferTargetBuffer;
 import alluxio.dora.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.dora.client.file.FileInStream;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;

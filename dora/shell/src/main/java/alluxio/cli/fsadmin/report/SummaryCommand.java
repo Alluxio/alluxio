@@ -16,10 +16,10 @@ import alluxio.dora.client.block.BlockMasterClient;
 import alluxio.dora.client.meta.MetaMasterClient;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.FormatUtils;
-import alluxio.dora.wire.BlockMasterInfo;
-import alluxio.dora.wire.BlockMasterInfo.BlockMasterInfoField;
+import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
+import alluxio.wire.BlockMasterInfo;
+import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
 
 import com.google.common.base.Strings;
 

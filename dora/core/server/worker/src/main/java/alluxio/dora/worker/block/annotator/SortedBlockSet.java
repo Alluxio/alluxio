@@ -11,7 +11,7 @@
 
 package alluxio.dora.worker.block.annotator;
 
-import alluxio.dora.collections.Pair;
+import alluxio.collections.Pair;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Iterators;

@@ -11,13 +11,13 @@
 
 package alluxio.dora.job;
 
-import alluxio.dora.ClientContext;
-import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.ClientContext;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.dora.job.wire.JobInfo;
 import alluxio.dora.job.wire.Status;
-import alluxio.dora.retry.CountingRetry;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.WaitForOptions;
+import alluxio.retry.CountingRetry;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

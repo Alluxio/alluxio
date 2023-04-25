@@ -12,11 +12,11 @@
 package alluxio.dora.client.cli.fsadmin.pathconf;
 
 import alluxio.cli.fsadmin.FileSystemAdminShell;
-import alluxio.dora.client.ReadType;
-import alluxio.dora.client.WriteType;
+import alluxio.client.ReadType;
+import alluxio.client.WriteType;
 import alluxio.dora.client.cli.fs.AbstractShellIntegrationTest;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 
 import org.junit.Assert;
 import org.junit.Test;

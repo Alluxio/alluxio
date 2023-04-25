@@ -13,14 +13,14 @@ package alluxio.dora.worker.block.annotator;
 
 import static java.util.Objects.requireNonNull;
 
-import alluxio.dora.collections.ConcurrentHashSet;
-import alluxio.dora.collections.Pair;
+import alluxio.collections.ConcurrentHashSet;
+import alluxio.collections.Pair;
 import alluxio.dora.worker.block.AbstractBlockStoreEventListener;
 import alluxio.dora.worker.block.BlockMetadataManager;
-import alluxio.dora.worker.block.BlockStoreEventListener;
-import alluxio.dora.worker.block.BlockStoreLocation;
-import alluxio.dora.worker.block.meta.StorageDir;
-import alluxio.dora.worker.block.meta.StorageTier;
+import alluxio.worker.block.BlockStoreEventListener;
+import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.StorageTier;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;

@@ -11,23 +11,23 @@
 
 package alluxio.dora.worker;
 
-import alluxio.dora.RuntimeConstants;
+import alluxio.RuntimeConstants;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.dora.underfs.JobUfsManager;
-import alluxio.dora.underfs.UfsManager;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.WaitForOptions;
-import alluxio.dora.util.network.NetworkAddressUtils;
-import alluxio.dora.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.underfs.UfsManager;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.dora.web.JobWorkerWebServer;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;

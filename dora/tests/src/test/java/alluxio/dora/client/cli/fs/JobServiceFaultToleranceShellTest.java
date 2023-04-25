@@ -14,10 +14,10 @@ package alluxio.dora.client.cli.fs;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.conf.Configuration;
+import alluxio.conf.Configuration;
 import alluxio.dora.master.LocalAlluxioJobCluster;
 import alluxio.dora.master.MultiMasterLocalAlluxioCluster;
 import alluxio.dora.testutils.BaseIntegrationTest;

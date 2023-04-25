@@ -11,7 +11,7 @@
 
 package alluxio.dora.hadoop;
 
-import alluxio.dora.Constants;
+import alluxio.Constants;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.DelegateToFileSystem;

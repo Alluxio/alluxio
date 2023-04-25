@@ -11,16 +11,13 @@
 
 package alluxio.dora.master.service.web;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.master.AlluxioMasterProcess;
-import alluxio.dora.master.PortReservationRule;
-import alluxio.dora.master.service.web.AlwaysOnWebServerService;
-import alluxio.dora.master.service.web.PrimaryOnlyWebServerService;
-import alluxio.dora.master.service.web.WebServerService;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.WaitForOptions;
-import alluxio.dora.util.network.NetworkAddressUtils;
+import alluxio.master.PortReservationRule;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.dora.web.MasterWebServer;
 
 import org.junit.Assert;

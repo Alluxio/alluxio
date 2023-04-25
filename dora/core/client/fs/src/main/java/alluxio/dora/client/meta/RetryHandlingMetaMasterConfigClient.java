@@ -11,10 +11,10 @@
 
 package alluxio.dora.client.meta;
 
-import alluxio.dora.AbstractMasterClient;
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Constants;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.AbstractMasterClient;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.GetConfigHashPOptions;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
@@ -22,9 +22,9 @@ import alluxio.grpc.RemovePathConfigurationPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.SetPathConfigurationPRequest;
 import alluxio.grpc.UpdateConfigurationPRequest;
-import alluxio.dora.master.MasterClientContext;
-import alluxio.dora.wire.ConfigHash;
-import alluxio.dora.wire.Configuration;
+import alluxio.master.MasterClientContext;
+import alluxio.wire.ConfigHash;
+import alluxio.wire.Configuration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

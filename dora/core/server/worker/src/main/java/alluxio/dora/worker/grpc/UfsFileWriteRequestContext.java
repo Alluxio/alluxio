@@ -11,9 +11,9 @@
 
 package alluxio.dora.worker.grpc;
 
-import alluxio.dora.resource.CloseableResource;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.underfs.options.CreateOptions;
+import alluxio.resource.CloseableResource;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
 
 import java.io.OutputStream;
 import javax.annotation.Nullable;

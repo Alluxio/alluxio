@@ -15,11 +15,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.master.meta.checkconf.ConfigRecord;
-import alluxio.dora.master.meta.checkconf.ConfigurationStore;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.ConfigProperty;
-import alluxio.dora.wire.Address;
+import alluxio.wire.Address;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;

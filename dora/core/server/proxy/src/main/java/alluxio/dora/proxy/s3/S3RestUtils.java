@@ -11,19 +11,19 @@
 
 package alluxio.dora.proxy.s3;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.client.WriteType;
+import alluxio.AlluxioURI;
+import alluxio.client.WriteType;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.AccessControlException;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.exception.DirectoryNotEmptyException;
-import alluxio.dora.exception.FileAlreadyExistsException;
-import alluxio.dora.exception.FileDoesNotExistException;
-import alluxio.dora.exception.InvalidPathException;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.AccessControlException;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.DirectoryNotEmptyException;
+import alluxio.exception.FileAlreadyExistsException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
@@ -31,11 +31,11 @@ import alluxio.proto.journal.File;
 import alluxio.dora.proxy.s3.auth.Authenticator;
 import alluxio.dora.proxy.s3.auth.AwsAuthInfo;
 import alluxio.dora.proxy.s3.signature.AwsSignatureProcessor;
-import alluxio.dora.security.User;
-import alluxio.dora.security.authentication.AuthType;
-import alluxio.dora.security.authentication.AuthenticatedClientUser;
-import alluxio.dora.user.ServerUserState;
-import alluxio.dora.util.SecurityUtils;
+import alluxio.security.User;
+import alluxio.security.authentication.AuthType;
+import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.user.ServerUserState;
+import alluxio.util.SecurityUtils;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.annotations.VisibleForTesting;

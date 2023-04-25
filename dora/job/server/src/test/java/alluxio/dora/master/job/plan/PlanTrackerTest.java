@@ -19,19 +19,18 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
-import alluxio.dora.AlluxioMockUtil;
-import alluxio.dora.exception.JobDoesNotExistException;
-import alluxio.dora.exception.status.ResourceExhaustedException;
+import alluxio.AlluxioMockUtil;
+import alluxio.exception.JobDoesNotExistException;
+import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.dora.job.JobServerContext;
 import alluxio.dora.job.SleepJobConfig;
 import alluxio.dora.job.meta.JobIdGenerator;
 import alluxio.dora.job.plan.replicate.SetReplicaConfig;
 import alluxio.dora.job.wire.Status;
 import alluxio.dora.master.job.command.CommandManager;
-import alluxio.dora.master.job.plan.PlanTracker;
 import alluxio.dora.master.job.workflow.WorkflowTracker;
-import alluxio.dora.util.FormatUtils;
-import alluxio.dora.wire.WorkerInfo;
+import alluxio.util.FormatUtils;
+import alluxio.wire.WorkerInfo;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;

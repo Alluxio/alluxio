@@ -11,9 +11,10 @@
 
 package alluxio.dora.client.file.cache.store;
 
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.util.FormatUtils;
+import alluxio.client.file.cache.store.PageStoreType;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.FormatUtils;
 
 import com.google.common.base.Preconditions;
 import alluxio.dora.client.file.cache.PageStore;

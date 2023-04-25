@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.file;
 
-import alluxio.dora.RpcUtils;
+import alluxio.RpcUtils;
 import alluxio.grpc.FileSystemHeartbeatPOptions;
 import alluxio.grpc.FileSystemHeartbeatPRequest;
 import alluxio.grpc.FileSystemHeartbeatPResponse;

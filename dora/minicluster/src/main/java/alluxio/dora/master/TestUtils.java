@@ -11,11 +11,11 @@
 
 package alluxio.dora.master;
 
-import alluxio.dora.Constants;
-import alluxio.dora.Process;
+import alluxio.Constants;
+import alluxio.Process;
 import alluxio.dora.master.file.FileSystemMaster;
 import alluxio.dora.master.file.meta.InodeLockManager;
-import alluxio.dora.util.ThreadUtils;
+import alluxio.util.ThreadUtils;
 
 import org.powermock.reflect.Whitebox;
 

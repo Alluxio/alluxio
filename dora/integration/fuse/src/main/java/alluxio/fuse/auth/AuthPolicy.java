@@ -11,7 +11,7 @@
 
 package alluxio.fuse.auth;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 
 import java.util.Optional;
 

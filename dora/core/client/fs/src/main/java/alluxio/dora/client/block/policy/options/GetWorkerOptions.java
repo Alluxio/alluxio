@@ -11,9 +11,9 @@
 
 package alluxio.dora.client.block.policy.options;
 
-import alluxio.dora.annotation.PublicApi;
+import alluxio.annotation.PublicApi;
 import alluxio.dora.client.block.BlockWorkerInfo;
-import alluxio.dora.wire.BlockInfo;
+import alluxio.wire.BlockInfo;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;

@@ -11,12 +11,12 @@
 
 package alluxio.dora.client.file.ufs;
 
-import alluxio.dora.Constants;
-import alluxio.dora.Seekable;
+import alluxio.Constants;
+import alluxio.Seekable;
 import alluxio.dora.client.file.FileInStream;
-import alluxio.dora.exception.PreconditionMessage;
-import alluxio.dora.exception.runtime.InternalRuntimeException;
-import alluxio.dora.file.SeekableBufferedInputStream;
+import alluxio.exception.PreconditionMessage;
+import alluxio.exception.runtime.InternalRuntimeException;
+import alluxio.file.SeekableBufferedInputStream;
 
 import com.google.common.base.Preconditions;
 

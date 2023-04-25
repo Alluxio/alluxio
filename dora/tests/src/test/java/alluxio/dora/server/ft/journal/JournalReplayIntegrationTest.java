@@ -14,10 +14,10 @@ package alluxio.dora.server.ft.journal;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.DeletePOptions;
 import alluxio.dora.master.LocalAlluxioCluster;
 import alluxio.dora.testutils.BaseIntegrationTest;

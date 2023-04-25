@@ -11,7 +11,7 @@
 
 package alluxio.dora.worker.block.annotator;
 
-import alluxio.dora.annotation.PublicApi;
+import alluxio.annotation.PublicApi;
 
 /**
  * Used by {@link BlockAnnotator} implementations to embed sorted-fields per blocks.

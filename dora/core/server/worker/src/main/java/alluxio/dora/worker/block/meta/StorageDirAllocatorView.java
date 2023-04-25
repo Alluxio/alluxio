@@ -11,6 +11,8 @@
 
 package alluxio.dora.worker.block.meta;
 
+import alluxio.worker.block.meta.StorageDir;
+
 /**
  * This class is a wrapper of {@link StorageDir} to provide more limited access for allocators.
  */

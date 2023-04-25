@@ -13,7 +13,7 @@ package alluxio.stress.cli;
 
 import alluxio.stress.rpc.RpcBenchParameters;
 import alluxio.stress.rpc.RpcTaskResult;
-import alluxio.dora.util.executor.ExecutorServiceFactories;
+import alluxio.util.executor.ExecutorServiceFactories;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

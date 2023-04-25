@@ -11,15 +11,17 @@
 
 package alluxio.dora.client.file;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.exception.DirectoryNotEmptyException;
-import alluxio.dora.exception.FileAlreadyExistsException;
-import alluxio.dora.exception.FileDoesNotExistException;
-import alluxio.dora.exception.FileIncompleteException;
-import alluxio.dora.exception.InvalidPathException;
-import alluxio.dora.exception.OpenDirectoryException;
+import alluxio.client.file.ListStatusPartialResult;
+import alluxio.client.file.URIStatus;
+import alluxio.AlluxioURI;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.DirectoryNotEmptyException;
+import alluxio.exception.FileAlreadyExistsException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.FileIncompleteException;
+import alluxio.exception.InvalidPathException;
+import alluxio.exception.OpenDirectoryException;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -38,12 +40,12 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
-import alluxio.dora.job.JobDescription;
-import alluxio.dora.job.JobRequest;
-import alluxio.dora.security.authorization.AclEntry;
-import alluxio.dora.wire.BlockLocationInfo;
-import alluxio.dora.wire.MountPointInfo;
-import alluxio.dora.wire.SyncPointInfo;
+import alluxio.job.JobDescription;
+import alluxio.job.JobRequest;
+import alluxio.security.authorization.AclEntry;
+import alluxio.wire.BlockLocationInfo;
+import alluxio.wire.MountPointInfo;
+import alluxio.wire.SyncPointInfo;
 
 import java.io.IOException;
 import java.util.List;

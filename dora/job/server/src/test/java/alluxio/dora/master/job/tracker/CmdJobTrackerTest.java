@@ -14,11 +14,11 @@ package alluxio.dora.master.job.tracker;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.client.WriteType;
+import alluxio.AlluxioURI;
+import alluxio.client.WriteType;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.exception.JobDoesNotExistException;
+import alluxio.exception.JobDoesNotExistException;
 import alluxio.grpc.OperationType;
 import alluxio.dora.job.cmd.load.LoadCliConfig;
 import alluxio.dora.job.cmd.migrate.MigrateCliConfig;

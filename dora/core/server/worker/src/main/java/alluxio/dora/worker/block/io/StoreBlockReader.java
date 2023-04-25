@@ -11,7 +11,8 @@
 
 package alluxio.dora.worker.block.io;
 
-import alluxio.dora.worker.block.meta.BlockMeta;
+import alluxio.worker.block.io.LocalFileBlockReader;
+import alluxio.worker.block.meta.BlockMeta;
 
 import java.io.IOException;
 

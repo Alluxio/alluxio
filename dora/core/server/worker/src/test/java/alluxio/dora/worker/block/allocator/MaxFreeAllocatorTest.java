@@ -11,9 +11,9 @@
 
 package alluxio.dora.worker.block.allocator;
 
-import alluxio.dora.Constants;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.Constants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.worker.block.reviewer.MockReviewer;
 
 import com.google.common.collect.Sets;

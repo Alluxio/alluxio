@@ -16,11 +16,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.fail;
 
-import alluxio.dora.ProjectConstants;
+import alluxio.ProjectConstants;
+import alluxio.client.file.cache.store.PageStoreType;
 import alluxio.dora.client.file.cache.PageId;
 import alluxio.dora.client.file.cache.PageStore;
-import alluxio.dora.exception.PageNotFoundException;
-import alluxio.dora.util.io.BufferUtils;
+import alluxio.exception.PageNotFoundException;
+import alluxio.util.io.BufferUtils;
 
 import org.junit.After;
 import org.junit.Before;

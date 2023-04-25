@@ -11,7 +11,7 @@
 
 package alluxio.dora.client.fs;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.dora.client.block.BlockStoreClient;
 import alluxio.dora.client.block.stream.BlockInStream;
 import alluxio.dora.client.block.stream.BlockInStream.BlockInStreamSource;
@@ -21,25 +21,25 @@ import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.client.file.FileSystemTestUtils;
 import alluxio.dora.client.file.FileSystemUtils;
-import alluxio.dora.client.file.URIStatus;
+import alluxio.client.file.URIStatus;
 import alluxio.dora.client.file.options.InStreamOptions;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.PreconditionMessage;
-import alluxio.dora.exception.status.NotFoundException;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.PreconditionMessage;
+import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.grpc.WritePType;
-import alluxio.dora.security.user.UserState;
+import alluxio.security.user.UserState;
 import alluxio.dora.testutils.BaseIntegrationTest;
 import alluxio.dora.testutils.IntegrationTestUtils;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.io.BufferUtils;
-import alluxio.dora.util.io.PathUtils;
-import alluxio.dora.wire.BlockInfo;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.util.CommonUtils;
+import alluxio.util.io.BufferUtils;
+import alluxio.util.io.PathUtils;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import org.junit.After;
 import org.junit.Assert;

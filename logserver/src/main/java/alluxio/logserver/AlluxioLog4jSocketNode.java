@@ -11,8 +11,8 @@
 
 package alluxio.logserver;
 
-import alluxio.dora.AlluxioRemoteLogFilter;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.AlluxioRemoteLogFilter;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;

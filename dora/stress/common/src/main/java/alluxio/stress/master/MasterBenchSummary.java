@@ -11,8 +11,8 @@
 
 package alluxio.stress.master;
 
-import alluxio.dora.annotation.SuppressFBWarnings;
-import alluxio.dora.collections.Pair;
+import alluxio.annotation.SuppressFBWarnings;
+import alluxio.collections.Pair;
 import alluxio.stress.Parameters;
 import alluxio.stress.Summary;
 import alluxio.stress.common.GeneralBenchSummary;

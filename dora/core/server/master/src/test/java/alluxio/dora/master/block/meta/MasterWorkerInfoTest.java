@@ -15,13 +15,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.Constants;
-import alluxio.dora.DefaultStorageTierAssoc;
-import alluxio.dora.StorageTierAssoc;
+import alluxio.Constants;
+import alluxio.DefaultStorageTierAssoc;
+import alluxio.StorageTierAssoc;
 import alluxio.dora.client.block.options.GetWorkerReportOptions;
-import alluxio.dora.master.block.meta.MasterWorkerInfo;
-import alluxio.dora.wire.WorkerInfo;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;

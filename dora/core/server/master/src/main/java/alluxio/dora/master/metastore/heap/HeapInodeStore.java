@@ -11,9 +11,9 @@
 
 package alluxio.dora.master.metastore.heap;
 
-import alluxio.dora.collections.TwoKeyConcurrentSortedMap;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.collections.TwoKeyConcurrentSortedMap;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.master.metastore.InodeStore;
 import alluxio.dora.master.file.meta.EdgeEntry;
 import alluxio.dora.master.file.meta.Inode;
@@ -21,16 +21,16 @@ import alluxio.dora.master.file.meta.InodeDirectoryView;
 import alluxio.dora.master.file.meta.MutableInode;
 import alluxio.dora.master.file.meta.MutableInodeDirectory;
 import alluxio.dora.master.file.meta.MutableInodeFile;
-import alluxio.dora.master.journal.checkpoint.CheckpointInputStream;
-import alluxio.dora.master.journal.checkpoint.CheckpointName;
-import alluxio.dora.master.journal.checkpoint.CheckpointOutputStream;
-import alluxio.dora.master.journal.checkpoint.CheckpointType;
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
+import alluxio.master.journal.checkpoint.CheckpointName;
+import alluxio.master.journal.checkpoint.CheckpointOutputStream;
+import alluxio.master.journal.checkpoint.CheckpointType;
 import alluxio.dora.master.metastore.ReadOption;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.meta.InodeMeta;
-import alluxio.dora.resource.CloseableIterator;
-import alluxio.dora.util.ObjectSizeCalculator;
+import alluxio.resource.CloseableIterator;
+import alluxio.util.ObjectSizeCalculator;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;

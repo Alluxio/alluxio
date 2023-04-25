@@ -11,11 +11,9 @@
 
 package alluxio.dora.job.plan;
 
-import alluxio.dora.AlluxioMockUtil;
+import alluxio.AlluxioMockUtil;
 import alluxio.dora.job.JobConfig;
 
-import alluxio.dora.job.plan.PlanDefinition;
-import alluxio.dora.job.plan.PlanDefinitionRegistry;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;

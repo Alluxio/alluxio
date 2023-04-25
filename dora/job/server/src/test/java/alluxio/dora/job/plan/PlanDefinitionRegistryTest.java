@@ -11,8 +11,8 @@
 
 package alluxio.dora.job.plan;
 
-import alluxio.dora.exception.ExceptionMessage;
-import alluxio.dora.exception.JobDoesNotExistException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.JobDoesNotExistException;
 import alluxio.dora.job.TestPlanConfig;
 
 import org.junit.Assert;

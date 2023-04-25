@@ -11,10 +11,9 @@
 
 package alluxio.dora.master.file;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.master.file.PersistJob;
-import alluxio.dora.time.ExponentialTimer;
-import alluxio.dora.util.CommonUtils;
+import alluxio.AlluxioURI;
+import alluxio.time.ExponentialTimer;
+import alluxio.util.CommonUtils;
 
 import org.junit.Assert;
 import org.junit.Test;

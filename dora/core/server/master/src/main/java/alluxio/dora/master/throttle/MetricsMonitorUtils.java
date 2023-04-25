@@ -11,8 +11,8 @@
 
 package alluxio.dora.master.throttle;
 
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 
 /**
  * The Metrics monitor utils.

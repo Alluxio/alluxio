@@ -19,18 +19,18 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import alluxio.dora.Constants;
-import alluxio.dora.exception.AccessControlException;
-import alluxio.dora.exception.FileDoesNotExistException;
-import alluxio.dora.exception.InvalidPathException;
-import alluxio.dora.exception.runtime.InternalRuntimeException;
+import alluxio.Constants;
+import alluxio.exception.AccessControlException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
+import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.grpc.Block;
 import alluxio.grpc.JobProgressReportFormat;
 import alluxio.dora.master.file.FileSystemMaster;
 import alluxio.dora.master.job.FileIterable;
 import alluxio.dora.master.job.LoadJob;
 import alluxio.dora.job.JobState;
-import alluxio.dora.wire.FileInfo;
+import alluxio.wire.FileInfo;
 
 import com.google.common.collect.ImmutableSet;
 import org.junit.Test;

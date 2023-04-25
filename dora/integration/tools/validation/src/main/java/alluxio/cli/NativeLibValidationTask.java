@@ -11,10 +11,6 @@
 
 package alluxio.cli;
 
-import alluxio.dora.cli.AbstractValidationTask;
-import alluxio.dora.cli.ValidationTaskResult;
-import alluxio.dora.cli.ValidationUtils;
-
 import java.io.File;
 import java.util.Map;
 import java.util.StringTokenizer;

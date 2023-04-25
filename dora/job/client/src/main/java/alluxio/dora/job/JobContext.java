@@ -11,12 +11,12 @@
 
 package alluxio.dora.job;
 
-import alluxio.dora.ClientContext;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.exception.status.UnavailableException;
-import alluxio.dora.master.MasterInquireClient;
-import alluxio.dora.resource.CloseableResource;
-import alluxio.dora.security.user.UserState;
+import alluxio.ClientContext;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.exception.status.UnavailableException;
+import alluxio.master.MasterInquireClient;
+import alluxio.resource.CloseableResource;
+import alluxio.security.user.UserState;
 
 import java.io.Closeable;
 import java.io.IOException;

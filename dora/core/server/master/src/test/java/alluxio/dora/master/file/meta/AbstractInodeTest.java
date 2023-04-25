@@ -11,15 +11,13 @@
 
 package alluxio.dora.master.file.meta;
 
-import alluxio.dora.Constants;
-import alluxio.dora.master.file.meta.MutableInodeDirectory;
-import alluxio.dora.master.file.meta.MutableInodeFile;
+import alluxio.Constants;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.dora.master.block.BlockId;
+import alluxio.master.block.BlockId;
 import alluxio.dora.master.file.contexts.CreateDirectoryContext;
 import alluxio.dora.master.file.contexts.CreateFileContext;
-import alluxio.dora.security.authorization.Mode;
+import alluxio.security.authorization.Mode;
 
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;

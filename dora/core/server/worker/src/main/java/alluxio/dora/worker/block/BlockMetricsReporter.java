@@ -13,9 +13,10 @@ package alluxio.dora.worker.block;
 
 import static alluxio.dora.worker.block.BlockMetadataManager.WORKER_STORAGE_TIER_ASSOC;
 
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 
+import alluxio.worker.block.BlockStoreLocation;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
 

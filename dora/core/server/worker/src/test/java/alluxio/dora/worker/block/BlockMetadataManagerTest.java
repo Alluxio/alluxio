@@ -15,17 +15,19 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.Constants;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.ExceptionMessage;
-import alluxio.dora.exception.runtime.ResourceExhaustedRuntimeException;
-import alluxio.dora.worker.block.meta.BlockMeta;
+import alluxio.Constants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
+import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.BlockStoreMeta;
+import alluxio.worker.block.meta.BlockMeta;
 import alluxio.dora.worker.block.meta.DefaultBlockMeta;
 import alluxio.dora.worker.block.meta.DefaultTempBlockMeta;
-import alluxio.dora.worker.block.meta.StorageDir;
-import alluxio.dora.worker.block.meta.StorageTier;
-import alluxio.dora.worker.block.meta.TempBlockMeta;
+import alluxio.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.StorageTier;
+import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;

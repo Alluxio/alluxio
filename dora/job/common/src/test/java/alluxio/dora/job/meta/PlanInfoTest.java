@@ -15,7 +15,7 @@ import alluxio.dora.job.JobConfig;
 import alluxio.dora.job.TestPlanConfig;
 import alluxio.dora.job.plan.meta.PlanInfo;
 import alluxio.dora.job.wire.Status;
-import alluxio.dora.util.CommonUtils;
+import alluxio.util.CommonUtils;
 
 import org.junit.Assert;
 import org.junit.Test;

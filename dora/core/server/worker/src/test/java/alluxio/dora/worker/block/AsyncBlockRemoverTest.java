@@ -15,11 +15,10 @@ import static junit.framework.TestCase.assertEquals;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doAnswer;
 
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.WaitForOptions;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
-import alluxio.dora.worker.block.AsyncBlockRemover;
-import alluxio.dora.worker.block.BlockWorker;
+import alluxio.worker.block.BlockWorker;
 import org.junit.Test;
 import org.mockito.Mockito;
 

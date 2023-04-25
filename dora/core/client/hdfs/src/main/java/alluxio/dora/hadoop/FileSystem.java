@@ -11,17 +11,17 @@
 
 package alluxio.dora.hadoop;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Constants;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.uri.Authority;
-import alluxio.dora.uri.EmbeddedLogicalAuthority;
-import alluxio.dora.uri.MultiMasterAuthority;
-import alluxio.dora.uri.SingleMasterAuthority;
-import alluxio.dora.uri.UnknownAuthority;
-import alluxio.dora.uri.ZookeeperAuthority;
-import alluxio.dora.uri.ZookeeperLogicalAuthority;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.PropertyKey;
+import alluxio.uri.Authority;
+import alluxio.uri.EmbeddedLogicalAuthority;
+import alluxio.uri.MultiMasterAuthority;
+import alluxio.uri.SingleMasterAuthority;
+import alluxio.uri.UnknownAuthority;
+import alluxio.uri.ZookeeperAuthority;
+import alluxio.uri.ZookeeperLogicalAuthority;
 
 import com.google.common.base.Preconditions;
 import org.apache.hadoop.conf.Configuration;

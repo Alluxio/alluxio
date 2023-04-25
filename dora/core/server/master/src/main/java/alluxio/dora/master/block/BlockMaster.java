@@ -11,12 +11,12 @@
 
 package alluxio.dora.master.block;
 
-import alluxio.dora.StorageTierAssoc;
+import alluxio.StorageTierAssoc;
 import alluxio.dora.client.block.options.GetWorkerReportOptions;
-import alluxio.dora.exception.BlockInfoException;
-import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.dora.exception.status.NotFoundException;
-import alluxio.dora.exception.status.UnavailableException;
+import alluxio.exception.BlockInfoException;
+import alluxio.exception.status.InvalidArgumentException;
+import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetRegisterLeasePRequest;
@@ -24,15 +24,15 @@ import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
-import alluxio.dora.master.Master;
+import alluxio.master.Master;
 import alluxio.dora.master.block.meta.MasterWorkerInfo;
-import alluxio.dora.metrics.Metric;
+import alluxio.metrics.Metric;
 import alluxio.proto.meta.Block;
-import alluxio.dora.wire.Address;
-import alluxio.dora.wire.BlockInfo;
-import alluxio.dora.wire.RegisterLease;
-import alluxio.dora.wire.WorkerInfo;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.wire.Address;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.RegisterLease;
+import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
 

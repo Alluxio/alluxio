@@ -14,8 +14,8 @@ package alluxio.dora.databuffer;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.network.protocol.databuffer.NioDataBuffer;
-import alluxio.dora.util.io.BufferUtils;
+import alluxio.network.protocol.databuffer.NioDataBuffer;
+import alluxio.util.io.BufferUtils;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.FileRegion;

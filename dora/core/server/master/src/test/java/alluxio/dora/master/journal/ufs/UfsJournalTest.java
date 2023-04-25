@@ -14,13 +14,14 @@ package alluxio.dora.master.journal.ufs;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.exception.status.UnavailableException;
-import alluxio.dora.master.journal.CatchupFuture;
+import alluxio.exception.status.UnavailableException;
+import alluxio.master.journal.CatchupFuture;
 import alluxio.dora.master.journal.CountingNoopFileSystemMaster;
+import alluxio.master.journal.ufs.*;
 import alluxio.proto.journal.Journal;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.URIUtils;
-import alluxio.dora.util.WaitForOptions;
+import alluxio.util.CommonUtils;
+import alluxio.util.URIUtils;
+import alluxio.util.WaitForOptions;
 
 import org.junit.Assert;
 import org.junit.Before;

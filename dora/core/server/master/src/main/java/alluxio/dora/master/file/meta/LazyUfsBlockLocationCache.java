@@ -11,13 +11,13 @@
 
 package alluxio.dora.master.file.meta;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.InvalidPathException;
-import alluxio.dora.resource.CloseableResource;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.underfs.options.FileLocationOptions;
+import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.InvalidPathException;
+import alluxio.resource.CloseableResource;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.FileLocationOptions;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;

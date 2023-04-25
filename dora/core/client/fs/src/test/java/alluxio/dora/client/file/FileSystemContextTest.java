@@ -13,11 +13,11 @@ package alluxio.dora.client.file;
 
 import static org.junit.Assert.fail;
 
-import alluxio.dora.ClientContext;
-import alluxio.dora.Constants;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.resource.CloseableResource;
+import alluxio.ClientContext;
+import alluxio.Constants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.resource.CloseableResource;
 
 import com.google.common.io.Closer;
 import org.junit.Test;

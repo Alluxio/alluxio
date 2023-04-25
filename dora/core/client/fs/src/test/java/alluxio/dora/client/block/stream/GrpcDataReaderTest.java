@@ -20,16 +20,16 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.when;
 
-import alluxio.dora.ClientContext;
+import alluxio.ClientContext;
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.conf.Configuration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.Chunk;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
-import alluxio.dora.network.protocol.databuffer.DataBuffer;
-import alluxio.dora.network.protocol.databuffer.NioDataBuffer;
-import alluxio.dora.util.io.BufferUtils;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.network.protocol.databuffer.NioDataBuffer;
+import alluxio.util.io.BufferUtils;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.protobuf.ByteString;
 import io.grpc.stub.ClientCallStreamObserver;

@@ -13,15 +13,15 @@ package alluxio.dora.client.meta;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.dora.ClientContext;
-import alluxio.dora.conf.Configuration;
+import alluxio.ClientContext;
+import alluxio.conf.Configuration;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
-import alluxio.dora.master.MasterClientContext;
+import alluxio.master.MasterClientContext;
 import alluxio.dora.testutils.BaseIntegrationTest;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
-import alluxio.dora.wire.Property;
+import alluxio.wire.Property;
 
 import org.junit.Before;
 import org.junit.Rule;

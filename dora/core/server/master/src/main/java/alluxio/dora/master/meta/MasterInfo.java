@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.meta;
 
-import alluxio.dora.wire.Address;
+import alluxio.wire.Address;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;

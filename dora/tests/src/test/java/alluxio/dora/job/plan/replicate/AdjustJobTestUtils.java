@@ -13,9 +13,9 @@ package alluxio.dora.job.plan.replicate;
 
 import alluxio.dora.client.block.BlockMasterClient;
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.resource.CloseableResource;
-import alluxio.dora.wire.BlockInfo;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.resource.CloseableResource;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.WorkerNetAddress;
 
 /**
  * Utils for replication integration tests.

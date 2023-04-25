@@ -11,10 +11,10 @@
 
 package alluxio.dora.worker.block.reviewer;
 
-import alluxio.dora.annotation.PublicApi;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.util.CommonUtils;
+import alluxio.annotation.PublicApi;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.CommonUtils;
 import alluxio.dora.worker.block.allocator.Allocator;
 import alluxio.dora.worker.block.meta.StorageDirView;
 

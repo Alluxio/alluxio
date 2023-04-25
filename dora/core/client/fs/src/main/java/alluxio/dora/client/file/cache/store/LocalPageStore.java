@@ -13,8 +13,8 @@ package alluxio.dora.client.file.cache.store;
 
 import alluxio.dora.client.file.cache.PageId;
 import alluxio.dora.client.file.cache.PageStore;
-import alluxio.dora.exception.PageNotFoundException;
-import alluxio.dora.exception.status.ResourceExhaustedException;
+import alluxio.exception.PageNotFoundException;
+import alluxio.exception.status.ResourceExhaustedException;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;

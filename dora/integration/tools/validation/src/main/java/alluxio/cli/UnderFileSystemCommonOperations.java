@@ -11,21 +11,21 @@
 
 package alluxio.cli;
 
-import alluxio.dora.conf.InstancedConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.underfs.UfsDirectoryStatus;
-import alluxio.dora.underfs.UfsFileStatus;
-import alluxio.dora.underfs.UfsStatus;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.underfs.options.CreateOptions;
-import alluxio.dora.underfs.options.DeleteOptions;
-import alluxio.dora.underfs.options.ListOptions;
-import alluxio.dora.underfs.options.MkdirsOptions;
-import alluxio.dora.underfs.options.OpenOptions;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.UnderFileSystemUtils;
-import alluxio.dora.util.WaitForOptions;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.underfs.UfsDirectoryStatus;
+import alluxio.underfs.UfsFileStatus;
+import alluxio.underfs.UfsStatus;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.DeleteOptions;
+import alluxio.underfs.options.ListOptions;
+import alluxio.underfs.options.MkdirsOptions;
+import alluxio.underfs.options.OpenOptions;
+import alluxio.util.CommonUtils;
+import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.WaitForOptions;
+import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

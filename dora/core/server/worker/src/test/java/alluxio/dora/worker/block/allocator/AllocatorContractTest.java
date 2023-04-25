@@ -13,9 +13,9 @@ package alluxio.dora.worker.block.allocator;
 
 import static org.junit.Assert.fail;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.worker.block.meta.StorageTier;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.worker.block.meta.StorageTier;
 
 import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.Reflection;

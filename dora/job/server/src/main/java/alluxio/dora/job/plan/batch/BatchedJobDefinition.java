@@ -11,7 +11,7 @@
 
 package alluxio.dora.job.plan.batch;
 
-import alluxio.dora.collections.Pair;
+import alluxio.collections.Pair;
 import alluxio.dora.job.JobConfig;
 import alluxio.dora.job.RunTaskContext;
 import alluxio.dora.job.SelectExecutorsContext;
@@ -22,7 +22,7 @@ import alluxio.dora.job.plan.migrate.MigrateDefinition;
 import alluxio.dora.job.plan.persist.PersistDefinition;
 import alluxio.dora.job.plan.BatchedJobConfig;
 import alluxio.dora.job.util.SerializableVoid;
-import alluxio.dora.wire.WorkerInfo;
+import alluxio.wire.WorkerInfo;
 
 import com.beust.jcommander.internal.Sets;
 import com.fasterxml.jackson.databind.ObjectMapper;

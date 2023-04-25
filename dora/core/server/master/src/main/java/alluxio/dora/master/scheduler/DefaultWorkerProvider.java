@@ -13,14 +13,14 @@ package alluxio.dora.master.scheduler;
 
 import alluxio.dora.client.block.stream.BlockWorkerClient;
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.exception.runtime.AlluxioRuntimeException;
-import alluxio.dora.exception.runtime.UnavailableRuntimeException;
-import alluxio.dora.exception.status.UnavailableException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.UnavailableRuntimeException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.dora.master.file.FileSystemMaster;
-import alluxio.dora.resource.CloseableResource;
+import alluxio.resource.CloseableResource;
 import alluxio.dora.job.WorkerProvider;
-import alluxio.dora.wire.WorkerInfo;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
 import java.util.List;

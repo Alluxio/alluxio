@@ -11,7 +11,7 @@
 
 package alluxio.dora.client.file.cache.cuckoofilter;
 
-import alluxio.dora.collections.BitSet;
+import alluxio.collections.BitSet;
 
 import com.google.common.base.Preconditions;
 

@@ -11,16 +11,16 @@
 
 package alluxio.cli.job.command;
 
-import alluxio.dora.annotation.PublicApi;
-import alluxio.dora.cli.CommandUtils;
+import alluxio.annotation.PublicApi;
+import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.command.AbstractFileSystemCommand;
 import alluxio.cli.util.DistributedCommandUtil;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.job.JobContext;
 import alluxio.dora.job.JobMasterClient;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.exception.status.InvalidArgumentException;
-import alluxio.dora.resource.CloseableResource;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.status.InvalidArgumentException;
+import alluxio.resource.CloseableResource;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;

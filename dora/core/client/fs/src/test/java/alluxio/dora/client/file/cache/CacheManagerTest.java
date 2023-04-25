@@ -15,8 +15,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.Configuration;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 
 import org.junit.Test;
 

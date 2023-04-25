@@ -11,16 +11,16 @@
 
 package alluxio.stress.cli.client;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Constants;
-import alluxio.dora.annotation.SuppressFBWarnings;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.dora.client.file.FileInStream;
 import alluxio.dora.client.file.FileOutStream;
-import alluxio.dora.conf.AlluxioProperties;
-import alluxio.dora.conf.InstancedConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.conf.Source;
-import alluxio.dora.exception.AlluxioException;
+import alluxio.conf.AlluxioProperties;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.Source;
+import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.dora.hadoop.HadoopConfigurationUtils;
 import alluxio.stress.BaseParameters;
@@ -31,9 +31,9 @@ import alluxio.stress.client.ClientIOParameters;
 import alluxio.stress.client.ClientIOTaskResult;
 import alluxio.stress.common.FileSystemClientType;
 import alluxio.stress.common.SummaryStatistics;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.FormatUtils;
-import alluxio.dora.util.executor.ExecutorServiceFactories;
+import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.hadoop.conf.Configuration;
@@ -167,7 +167,7 @@ public class StressClientIOBench extends AbstractStressBench
     } else if (mParameters.mClientType == FileSystemClientType.ALLUXIO_NATIVE) {
       LOG.info("Using ALLUXIO Native API to perform the test.");
 
-      AlluxioProperties alluxioProperties = alluxio.dora.conf.Configuration
+      AlluxioProperties alluxioProperties = alluxio.conf.Configuration
           .copyProperties();
       alluxioProperties.merge(HadoopConfigurationUtils.getConfigurationFromHadoop(hdfsConf),
           Source.RUNTIME);

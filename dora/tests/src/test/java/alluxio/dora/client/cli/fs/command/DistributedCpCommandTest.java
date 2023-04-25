@@ -14,7 +14,7 @@ package alluxio.dora.client.cli.fs.command;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.dora.client.cli.fs.AbstractFileSystemShellTest;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Joiner;
 import com.google.common.io.Files;

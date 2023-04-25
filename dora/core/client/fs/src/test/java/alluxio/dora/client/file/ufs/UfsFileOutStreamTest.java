@@ -15,10 +15,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.dora.client.file.FileOutStream;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.util.io.BufferUtils;
+import alluxio.exception.AlluxioException;
+import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;
 import org.junit.Test;

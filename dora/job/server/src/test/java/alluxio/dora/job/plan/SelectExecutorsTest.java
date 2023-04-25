@@ -15,9 +15,9 @@ import static org.mockito.Mockito.mock;
 
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.underfs.UfsManager;
-import alluxio.dora.wire.WorkerInfo;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.underfs.UfsManager;
+import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;

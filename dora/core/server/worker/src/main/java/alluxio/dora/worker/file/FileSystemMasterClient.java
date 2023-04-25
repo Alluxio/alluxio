@@ -11,9 +11,9 @@
 
 package alluxio.dora.worker.file;
 
-import alluxio.dora.AbstractMasterClient;
-import alluxio.dora.Constants;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.AbstractMasterClient;
+import alluxio.Constants;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.FileSystemMasterWorkerServiceGrpc;
 import alluxio.grpc.GetFileInfoPRequest;
 import alluxio.grpc.GetPinnedFileIdsPRequest;
@@ -21,8 +21,8 @@ import alluxio.grpc.GetUfsInfoPRequest;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.UfsInfo;
-import alluxio.dora.master.MasterClientContext;
-import alluxio.dora.wire.FileInfo;
+import alluxio.master.MasterClientContext;
+import alluxio.wire.FileInfo;
 
 import com.google.inject.Inject;
 import org.slf4j.Logger;

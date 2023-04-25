@@ -11,12 +11,12 @@
 
 package alluxio.dora.worker.page;
 
-import alluxio.dora.client.file.CacheContext;
+import alluxio.client.file.CacheContext;
 import alluxio.dora.client.file.cache.CacheManager;
 import alluxio.dora.client.file.cache.PageId;
-import alluxio.dora.exception.runtime.InternalRuntimeException;
-import alluxio.dora.network.protocol.databuffer.DataBuffer;
-import alluxio.dora.worker.block.io.BlockWriter;
+import alluxio.exception.runtime.InternalRuntimeException;
+import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.worker.block.io.BlockWriter;
 
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;

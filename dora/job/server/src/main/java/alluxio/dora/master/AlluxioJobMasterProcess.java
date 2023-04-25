@@ -11,30 +11,32 @@
 
 package alluxio.dora.master;
 
-import alluxio.dora.Constants;
+import alluxio.Constants;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.JournalDomain;
 import alluxio.dora.master.job.JobMaster;
 import alluxio.dora.master.journal.DefaultJournalMaster;
 import alluxio.dora.master.journal.JournalMaster;
-import alluxio.dora.master.journal.JournalSystem;
-import alluxio.dora.master.journal.JournalUtils;
-import alluxio.dora.master.journal.raft.RaftJournalSystem;
-import alluxio.dora.master.journal.ufs.UfsJournalSingleMasterPrimarySelector;
+import alluxio.master.MasterContext;
+import alluxio.master.PrimarySelector;
+import alluxio.master.journal.JournalSystem;
+import alluxio.master.journal.JournalUtils;
+import alluxio.master.journal.raft.RaftJournalSystem;
+import alluxio.master.journal.ufs.UfsJournalSingleMasterPrimarySelector;
 import alluxio.dora.master.service.rpc.RpcServerService;
 import alluxio.dora.master.service.web.WebServerService;
 import alluxio.dora.underfs.JobUfsManager;
-import alluxio.dora.underfs.UfsManager;
-import alluxio.dora.util.CommonUtils.ProcessType;
-import alluxio.dora.util.URIUtils;
-import alluxio.dora.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.underfs.UfsManager;
+import alluxio.util.CommonUtils.ProcessType;
+import alluxio.util.URIUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.dora.web.JobMasterWebServer;
-import alluxio.dora.web.WebServer;
+import alluxio.web.WebServer;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;

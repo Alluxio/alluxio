@@ -14,9 +14,9 @@ package alluxio.cli.fsadmin.journal;
 import alluxio.cli.fsadmin.command.AbstractFsAdminCommand;
 import alluxio.cli.fsadmin.command.Context;
 import alluxio.dora.client.journal.JournalMasterClient;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.exception.ExceptionMessage;
-import alluxio.dora.exception.status.InvalidArgumentException;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.JournalDomain;
 
 import com.google.common.annotations.VisibleForTesting;

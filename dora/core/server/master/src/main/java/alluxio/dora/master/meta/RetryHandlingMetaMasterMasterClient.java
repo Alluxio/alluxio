@@ -11,8 +11,8 @@
 
 package alluxio.dora.master.meta;
 
-import alluxio.dora.AbstractMasterClient;
-import alluxio.dora.Constants;
+import alluxio.AbstractMasterClient;
+import alluxio.Constants;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetMasterIdPRequest;
 import alluxio.grpc.MasterHeartbeatPRequest;
@@ -21,8 +21,8 @@ import alluxio.grpc.MetaMasterMasterServiceGrpc;
 import alluxio.grpc.RegisterMasterPOptions;
 import alluxio.grpc.RegisterMasterPRequest;
 import alluxio.grpc.ServiceType;
-import alluxio.dora.master.MasterClientContext;
-import alluxio.dora.wire.Address;
+import alluxio.master.MasterClientContext;
+import alluxio.wire.Address;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

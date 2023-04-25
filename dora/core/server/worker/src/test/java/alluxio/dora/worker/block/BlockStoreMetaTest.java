@@ -11,12 +11,13 @@
 
 package alluxio.dora.worker.block;
 
-import alluxio.dora.Constants;
-import alluxio.dora.collections.Pair;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.worker.block.meta.StorageDir;
-import alluxio.dora.worker.block.meta.StorageTier;
+import alluxio.Constants;
+import alluxio.collections.Pair;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.worker.block.BlockStoreMeta;
+import alluxio.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.StorageTier;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;

@@ -13,8 +13,8 @@ package alluxio.dora.client.block.policy;
 
 import alluxio.dora.client.block.policy.options.GetWorkerOptions;
 import alluxio.dora.client.block.BlockWorkerInfo;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;

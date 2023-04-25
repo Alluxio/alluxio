@@ -25,24 +25,24 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.ClientContext;
-import alluxio.dora.ConfigurationRule;
-import alluxio.dora.Constants;
-import alluxio.dora.SystemPropertyRule;
+import alluxio.AlluxioURI;
+import alluxio.ClientContext;
+import alluxio.ConfigurationRule;
+import alluxio.Constants;
+import alluxio.SystemPropertyRule;
 import alluxio.dora.client.block.BlockStoreClient;
 import alluxio.dora.client.block.BlockWorkerInfo;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.client.file.FileSystemMasterClient;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.conf.InstancedConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.FileAlreadyExistsException;
-import alluxio.dora.util.ConfigurationUtils;
-import alluxio.dora.wire.BlockInfo;
-import alluxio.dora.wire.FileBlockInfo;
-import alluxio.dora.wire.FileInfo;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.FileAlreadyExistsException;
+import alluxio.util.ConfigurationUtils;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.FileBlockInfo;
+import alluxio.wire.FileInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
 import com.google.common.net.HostAndPort;
@@ -91,7 +91,7 @@ import java.util.Map;
 public class AbstractFileSystemTest {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractFileSystemTest.class);
 
-  private InstancedConfiguration mConfiguration = alluxio.dora.conf.Configuration.copyGlobal();
+  private InstancedConfiguration mConfiguration = alluxio.conf.Configuration.copyGlobal();
 
   /**
    * Sets up the configuration before a test runs.
@@ -112,7 +112,7 @@ public class AbstractFileSystemTest {
 
   @After
   public void after() {
-    mConfiguration = alluxio.dora.conf.Configuration.copyGlobal();
+    mConfiguration = alluxio.conf.Configuration.copyGlobal();
     HadoopClientTestUtils.disableMetrics(mConfiguration);
   }
 
@@ -491,7 +491,7 @@ public class AbstractFileSystemTest {
     sysProps.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), "true");
     sysProps.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), "zkHost:2181");
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
-      alluxio.dora.conf.Configuration.reloadProperties();
+      alluxio.conf.Configuration.reloadProperties();
       URI uri = URI.create("alluxio:///");
       FileSystem fs = getHadoopFilesystem(org.apache.hadoop.fs.FileSystem.get(uri, getConf()));
 
@@ -506,7 +506,7 @@ public class AbstractFileSystemTest {
     // those in the URI has the highest priority.
     try (Closeable p = new SystemPropertyRule(
          PropertyKey.ZOOKEEPER_ENABLED.getName(), "false").toResource()) {
-      alluxio.dora.conf.Configuration.reloadProperties();
+      alluxio.conf.Configuration.reloadProperties();
       URI uri = URI.create("alluxio://zk@zkHost:2181");
       FileSystem fs = getHadoopFilesystem(org.apache.hadoop.fs.FileSystem.get(uri, getConf()));
       assertTrue(fs.mFileSystem.getConf().getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
@@ -518,14 +518,14 @@ public class AbstractFileSystemTest {
     sysProps.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), "true");
     sysProps.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), "zkHost1:2181");
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
-      alluxio.dora.conf.Configuration.reloadProperties();
+      alluxio.conf.Configuration.reloadProperties();
       URI uri = URI.create("alluxio://zk@zkHost2:2181");
       FileSystem fs = getHadoopFilesystem(org.apache.hadoop.fs.FileSystem.get(uri, getConf()));
       assertTrue(fs.mFileSystem.getConf().getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
       assertEquals("zkHost2:2181", fs.mFileSystem.getConf().get(PropertyKey.ZOOKEEPER_ADDRESS));
       fs.close();
     }
-    alluxio.dora.conf.Configuration.reloadProperties();
+    alluxio.conf.Configuration.reloadProperties();
   }
 
   @Test
@@ -701,7 +701,7 @@ public class AbstractFileSystemTest {
       List<WorkerNetAddress> allWorkers, List<WorkerNetAddress> expectedWorkers) throws Exception {
     FileBlockInfo blockInfo = new FileBlockInfo().setBlockInfo(
         new BlockInfo().setLocations(blockWorkers.stream().map(
-            addr -> new alluxio.dora.wire.BlockLocation().setWorkerAddress(addr)).collect(
+            addr -> new alluxio.wire.BlockLocation().setWorkerAddress(addr)).collect(
             toList()))).setUfsLocations(ufsLocations);
     FileInfo fileInfo = new FileInfo()
         .setLastModificationTimeMs(111L)

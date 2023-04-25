@@ -16,10 +16,10 @@ import alluxio.dora.client.file.cache.store.MemoryPageStore;
 import alluxio.dora.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.dora.client.file.cache.store.PageStoreOptions;
 import alluxio.dora.client.file.cache.store.RocksPageStore;
-import alluxio.dora.exception.PageNotFoundException;
-import alluxio.dora.exception.status.ResourceExhaustedException;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
+import alluxio.exception.PageNotFoundException;
+import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.Counter;
 import org.slf4j.Logger;

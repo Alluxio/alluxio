@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.meta;
 
-import alluxio.dora.RpcUtils;
+import alluxio.RpcUtils;
 import alluxio.grpc.GetMasterIdPRequest;
 import alluxio.grpc.GetMasterIdPResponse;
 import alluxio.grpc.MasterHeartbeatPRequest;
@@ -20,7 +20,7 @@ import alluxio.grpc.MetaMasterMasterServiceGrpc;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.RegisterMasterPRequest;
 import alluxio.grpc.RegisterMasterPResponse;
-import alluxio.dora.wire.Address;
+import alluxio.wire.Address;
 
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;

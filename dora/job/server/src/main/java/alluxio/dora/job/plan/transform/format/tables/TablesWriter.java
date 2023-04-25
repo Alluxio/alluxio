@@ -11,7 +11,7 @@
 
 package alluxio.dora.job.plan.transform.format.tables;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.dora.job.plan.transform.format.TableRow;
 import alluxio.dora.job.plan.transform.format.TableSchema;
 import alluxio.dora.job.plan.transform.format.TableWriter;

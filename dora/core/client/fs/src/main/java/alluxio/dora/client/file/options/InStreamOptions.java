@@ -11,19 +11,19 @@
 
 package alluxio.dora.client.file.options;
 
-import alluxio.dora.client.ReadType;
+import alluxio.client.ReadType;
 import alluxio.dora.client.block.policy.BlockLocationPolicy;
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.OpenFilePOptions;
-import alluxio.dora.master.block.BlockId;
-import alluxio.dora.master.file.meta.PersistenceState;
+import alluxio.master.block.BlockId;
+import alluxio.master.file.meta.PersistenceState;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.dora.util.FileSystemOptionsUtils;
-import alluxio.dora.wire.BlockInfo;
-import alluxio.dora.wire.FileBlockInfo;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.FileBlockInfo;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;

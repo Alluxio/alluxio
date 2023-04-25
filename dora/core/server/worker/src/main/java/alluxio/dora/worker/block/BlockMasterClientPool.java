@@ -11,11 +11,11 @@
 
 package alluxio.dora.worker.block;
 
-import alluxio.dora.ClientContext;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.master.MasterClientContext;
-import alluxio.dora.resource.ResourcePool;
+import alluxio.ClientContext;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.master.MasterClientContext;
+import alluxio.resource.ResourcePool;
 
 import com.google.common.io.Closer;
 import com.google.inject.Inject;

@@ -15,16 +15,15 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.exception.FileDoesNotExistException;
+import alluxio.AlluxioURI;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.dora.master.file.FileSystemMaster;
-import alluxio.dora.master.file.async.DefaultAsyncPersistHandler;
 import alluxio.dora.master.file.meta.FileSystemMasterView;
-import alluxio.dora.wire.BlockInfo;
-import alluxio.dora.wire.BlockLocation;
-import alluxio.dora.wire.FileBlockInfo;
-import alluxio.dora.wire.FileInfo;
-import alluxio.dora.wire.PersistFile;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.BlockLocation;
+import alluxio.wire.FileBlockInfo;
+import alluxio.wire.FileInfo;
+import alluxio.wire.PersistFile;
 
 import com.google.common.collect.Lists;
 import org.junit.Before;

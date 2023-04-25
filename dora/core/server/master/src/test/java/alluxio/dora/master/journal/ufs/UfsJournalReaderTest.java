@@ -15,17 +15,17 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.master.NoopMaster;
-import alluxio.dora.master.journal.JournalReader;
-import alluxio.dora.master.journal.JournalReader.State;
-import alluxio.dora.master.journal.checkpoint.CheckpointOutputStream;
-import alluxio.dora.master.journal.checkpoint.CheckpointType;
-import alluxio.dora.master.journal.ufs.*;
+import alluxio.conf.Configuration;
+import alluxio.master.NoopMaster;
+import alluxio.master.journal.JournalReader;
+import alluxio.master.journal.JournalReader.State;
+import alluxio.master.journal.checkpoint.CheckpointOutputStream;
+import alluxio.master.journal.checkpoint.CheckpointType;
+import alluxio.master.journal.ufs.*;
 import alluxio.proto.journal.Journal;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.URIUtils;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.util.CommonUtils;
+import alluxio.util.URIUtils;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.After;

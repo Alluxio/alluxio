@@ -11,12 +11,12 @@
 
 package alluxio.dora.master.file.contexts;
 
-import alluxio.dora.conf.Configuration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.dora.security.authorization.AclEntry;
-import alluxio.dora.underfs.UfsStatus;
+import alluxio.security.authorization.AclEntry;
+import alluxio.underfs.UfsStatus;
 import alluxio.dora.util.FileSystemOptionsUtils;
-import alluxio.dora.wire.OperationId;
+import alluxio.wire.OperationId;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;

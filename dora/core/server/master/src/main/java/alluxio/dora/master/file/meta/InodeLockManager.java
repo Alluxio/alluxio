@@ -11,15 +11,15 @@
 
 package alluxio.dora.master.file.meta;
 
-import alluxio.dora.collections.LockPool;
-import alluxio.dora.concurrent.LockMode;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.resource.LockResource;
-import alluxio.dora.resource.RWLockResource;
-import alluxio.dora.util.interfaces.Scoped;
+import alluxio.collections.LockPool;
+import alluxio.concurrent.LockMode;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.resource.LockResource;
+import alluxio.resource.RWLockResource;
+import alluxio.util.interfaces.Scoped;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.CacheBuilder;

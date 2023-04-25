@@ -11,9 +11,9 @@
 
 package alluxio.dora.worker.grpc;
 
-import alluxio.dora.resource.CloseableResource;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.worker.block.io.BlockWriter;
+import alluxio.resource.CloseableResource;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.worker.block.io.BlockWriter;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;

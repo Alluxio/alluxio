@@ -15,13 +15,14 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.Constants;
-import alluxio.dora.client.file.CacheContext;
+import alluxio.client.file.cache.ShadowCacheType;
+import alluxio.Constants;
+import alluxio.client.file.CacheContext;
 import alluxio.dora.client.file.cache.store.PageReadTargetBuffer;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.InstancedConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.util.io.BufferUtils;
+import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.io.BufferUtils;
 
 import org.junit.Before;
 import org.junit.Test;

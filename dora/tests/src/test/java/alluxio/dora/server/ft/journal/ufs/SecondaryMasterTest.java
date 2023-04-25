@@ -11,11 +11,11 @@
 
 package alluxio.dora.server.ft.journal.ufs;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Constants;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.master.journal.JournalType;
+import alluxio.conf.PropertyKey;
+import alluxio.master.journal.JournalType;
 import alluxio.dora.testutils.BaseIntegrationTest;
 import alluxio.dora.testutils.IntegrationTestUtils;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;

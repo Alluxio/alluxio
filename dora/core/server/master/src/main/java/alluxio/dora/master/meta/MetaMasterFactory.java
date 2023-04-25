@@ -11,10 +11,10 @@
 
 package alluxio.dora.master.meta;
 
-import alluxio.dora.Constants;
+import alluxio.Constants;
 import alluxio.dora.master.CoreMasterContext;
-import alluxio.dora.master.MasterFactory;
-import alluxio.dora.master.MasterRegistry;
+import alluxio.master.MasterFactory;
+import alluxio.master.MasterRegistry;
 import alluxio.dora.master.block.BlockMaster;
 
 import org.slf4j.Logger;

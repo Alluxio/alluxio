@@ -11,8 +11,11 @@
 
 package alluxio.dora.worker.block.meta;
 
-import alluxio.dora.worker.block.BlockStoreLocation;
+import alluxio.worker.block.BlockStoreLocation;
 
+import alluxio.worker.block.meta.DirView;
+import alluxio.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.TempBlockMeta;
 import com.google.common.base.Preconditions;
 
 /**

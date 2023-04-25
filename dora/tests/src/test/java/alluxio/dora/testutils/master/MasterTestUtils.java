@@ -13,23 +13,23 @@ package alluxio.dora.testutils.master;
 
 import static org.mockito.Mockito.mock;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.master.AlwaysStandbyPrimarySelector;
-import alluxio.dora.master.BackupManager;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.master.AlwaysStandbyPrimarySelector;
+import alluxio.master.BackupManager;
 import alluxio.dora.master.CoreMasterContext;
-import alluxio.dora.master.MasterRegistry;
+import alluxio.master.MasterRegistry;
 import alluxio.dora.master.MasterUtils;
-import alluxio.dora.master.SafeModeManager;
+import alluxio.master.SafeModeManager;
 import alluxio.dora.master.TestSafeModeManager;
 import alluxio.dora.master.block.BlockMasterFactory;
 import alluxio.dora.master.file.FileSystemMaster;
 import alluxio.dora.master.file.FileSystemMasterFactory;
-import alluxio.dora.master.journal.JournalSystem;
+import alluxio.master.journal.JournalSystem;
 import alluxio.dora.master.journal.JournalTestUtils;
 import alluxio.dora.master.metrics.MetricsMasterFactory;
-import alluxio.dora.user.ServerUserState;
-import alluxio.dora.security.user.UserState;
+import alluxio.user.ServerUserState;
+import alluxio.security.user.UserState;
 import alluxio.dora.underfs.MasterUfsManager;
 
 import com.google.common.io.Files;

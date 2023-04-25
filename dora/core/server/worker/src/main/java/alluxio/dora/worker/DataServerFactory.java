@@ -11,28 +11,11 @@
 
 package alluxio.dora.worker;
 
+import alluxio.worker.DataWorker;
+
 import static java.util.Objects.requireNonNull;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.worker.block.DefaultBlockWorker;
-import alluxio.dora.worker.grpc.BlockWorkerClientServiceHandler;
-import alluxio.dora.worker.grpc.DoraWorkerClientServiceHandler;
-import alluxio.dora.worker.grpc.GrpcDataServer;
-import alluxio.grpc.BlockWorkerGrpc;
-import alluxio.dora.underfs.UfsManager;
-import alluxio.dora.util.io.FileUtils;
-import alluxio.dora.util.io.PathUtils;
-import alluxio.dora.worker.dora.DoraWorker;
-
-import com.google.inject.Inject;
-import io.netty.channel.unix.DomainSocketAddress;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.net.InetSocketAddress;
-import java.util.UUID;
-import javax.inject.Named;
 
 /**
  * Factory for data server.

@@ -19,9 +19,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import alluxio.dora.master.journal.raft.RaftJournalAppender;
-import alluxio.dora.master.journal.raft.RaftJournalUtils;
-import alluxio.dora.master.journal.raft.RaftJournalWriter;
+import alluxio.master.journal.raft.RaftJournalAppender;
+import alluxio.master.journal.raft.RaftJournalUtils;
+import alluxio.master.journal.raft.RaftJournalWriter;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.Journal;
 

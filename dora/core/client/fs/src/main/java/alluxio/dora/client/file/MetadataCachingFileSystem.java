@@ -11,15 +11,16 @@
 
 package alluxio.dora.client.file;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.exception.FileAlreadyExistsException;
-import alluxio.dora.exception.FileDoesNotExistException;
-import alluxio.dora.exception.FileIncompleteException;
-import alluxio.dora.exception.InvalidPathException;
-import alluxio.dora.exception.OpenDirectoryException;
+import alluxio.client.file.URIStatus;
+import alluxio.AlluxioURI;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.FileAlreadyExistsException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.FileIncompleteException;
+import alluxio.exception.InvalidPathException;
+import alluxio.exception.OpenDirectoryException;
 import alluxio.grpc.Bits;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -28,12 +29,12 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.dora.util.FileSystemOptionsUtils;
-import alluxio.dora.util.ThreadUtils;
-import alluxio.dora.wire.BlockLocationInfo;
-import alluxio.dora.wire.FileInfo;
+import alluxio.util.ThreadUtils;
+import alluxio.wire.BlockLocationInfo;
+import alluxio.wire.FileInfo;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;

@@ -11,13 +11,10 @@
 
 package alluxio.cli;
 
-import alluxio.dora.cli.AbstractValidationTask;
-import alluxio.dora.cli.ValidationTaskResult;
-import alluxio.dora.cli.ValidationUtils;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.underfs.UfsStatus;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.util.ExceptionUtils;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.underfs.UfsStatus;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.util.ExceptionUtils;
 
 import java.util.Map;
 

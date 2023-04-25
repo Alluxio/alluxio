@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.block;
 
-import alluxio.dora.exception.status.UnavailableException;
+import alluxio.exception.status.UnavailableException;
 
 /**
  * Provides generation of container IDs.

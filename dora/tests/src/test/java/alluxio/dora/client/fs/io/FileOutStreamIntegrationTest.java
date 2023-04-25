@@ -11,24 +11,24 @@
 
 package alluxio.dora.client.fs.io;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Constants;
-import alluxio.dora.client.WriteType;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.client.WriteType;
 import alluxio.dora.client.file.FileOutStream;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.dora.master.file.FileSystemMaster;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.io.BufferUtils;
-import alluxio.dora.util.io.PathUtils;
-import alluxio.dora.wire.FileBlockInfo;
-import alluxio.dora.wire.WorkerInfo;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.util.CommonUtils;
+import alluxio.util.io.BufferUtils;
+import alluxio.util.io.PathUtils;
+import alluxio.wire.FileBlockInfo;
+import alluxio.wire.WorkerInfo;
 
 import org.junit.Assert;
 import org.junit.Test;

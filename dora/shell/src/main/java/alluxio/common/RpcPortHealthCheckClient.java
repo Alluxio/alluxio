@@ -11,14 +11,14 @@
 
 package alluxio.common;
 
-import alluxio.dora.HealthCheckClient;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.exception.status.AlluxioStatusException;
-import alluxio.dora.exception.status.UnavailableException;
+import alluxio.HealthCheckClient;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ServiceType;
-import alluxio.dora.retry.RetryPolicy;
-import alluxio.dora.security.user.UserState;
-import alluxio.dora.util.network.NetworkAddressUtils;
+import alluxio.retry.RetryPolicy;
+import alluxio.security.user.UserState;
+import alluxio.util.network.NetworkAddressUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

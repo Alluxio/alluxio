@@ -11,12 +11,12 @@
 
 package alluxio.dora.proxy;
 
-import alluxio.dora.RestUtils;
-import alluxio.dora.RuntimeConstants;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.ConfigurationValueOptions;
+import alluxio.RestUtils;
+import alluxio.RuntimeConstants;
+import alluxio.conf.Configuration;
+import alluxio.conf.ConfigurationValueOptions;
 import alluxio.dora.web.ProxyWebServer;
-import alluxio.dora.wire.AlluxioProxyInfo;
+import alluxio.wire.AlluxioProxyInfo;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

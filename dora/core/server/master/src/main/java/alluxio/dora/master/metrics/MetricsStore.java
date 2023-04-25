@@ -12,12 +12,12 @@
 package alluxio.dora.master.metrics;
 
 import alluxio.grpc.MetricType;
-import alluxio.dora.metrics.Metric;
-import alluxio.dora.metrics.MetricInfo;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.metrics.MetricsSystem.InstanceType;
-import alluxio.dora.resource.LockResource;
+import alluxio.metrics.Metric;
+import alluxio.metrics.MetricInfo;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.MetricsSystem.InstanceType;
+import alluxio.resource.LockResource;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Objects;

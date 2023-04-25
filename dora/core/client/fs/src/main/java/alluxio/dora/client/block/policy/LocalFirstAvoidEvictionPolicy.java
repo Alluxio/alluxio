@@ -13,11 +13,11 @@ package alluxio.dora.client.block.policy;
 
 import alluxio.dora.client.block.BlockWorkerInfo;
 import alluxio.dora.client.block.policy.options.GetWorkerOptions;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.util.TieredIdentityUtils;
-import alluxio.dora.wire.TieredIdentity;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.TieredIdentityUtils;
+import alluxio.wire.TieredIdentity;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;

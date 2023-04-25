@@ -14,13 +14,12 @@ package alluxio.dora.master;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.ConfigurationRule;
-import alluxio.dora.clock.ManualClock;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.ConfigurationRule;
+import alluxio.clock.ManualClock;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 
-import alluxio.dora.master.DefaultSafeModeManager;
-import alluxio.dora.master.SafeModeManager;
+import alluxio.master.SafeModeManager;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Rule;

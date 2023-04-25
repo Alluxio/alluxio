@@ -11,8 +11,8 @@
 
 package alluxio.underfs.oss;
 
-import alluxio.dora.retry.RetryPolicy;
-import alluxio.dora.underfs.MultiRangeObjectInputStream;
+import alluxio.retry.RetryPolicy;
+import alluxio.underfs.MultiRangeObjectInputStream;
 
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSException;

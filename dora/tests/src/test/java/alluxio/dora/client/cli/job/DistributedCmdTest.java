@@ -14,18 +14,18 @@ package alluxio.dora.client.cli.job;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.never;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.client.file.URIStatus;
+import alluxio.client.file.URIStatus;
 import alluxio.dora.job.plan.NoopPlanConfig;
 import alluxio.dora.job.plan.load.LoadConfig;
 import alluxio.dora.job.plan.migrate.MigrateConfig;
 import alluxio.dora.job.plan.persist.PersistConfig;
 import alluxio.dora.master.job.metrics.DistributedCmdMetrics;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.retry.CountingRetry;
-import alluxio.dora.retry.RetryPolicy;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.retry.CountingRetry;
+import alluxio.retry.RetryPolicy;
 
 import org.junit.Before;
 import org.junit.Rule;

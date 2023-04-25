@@ -18,18 +18,18 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
-import alluxio.dora.ClientContext;
+import alluxio.ClientContext;
 import alluxio.dora.client.block.BlockWorkerInfo;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.job.JobMasterClient;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.InstancedConfiguration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.job.wire.JobWorkerHealth;
-import alluxio.dora.master.MasterInquireClient;
-import alluxio.dora.uri.MultiMasterAuthority;
-import alluxio.dora.uri.ZookeeperAuthority;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.master.MasterInquireClient;
+import alluxio.uri.MultiMasterAuthority;
+import alluxio.uri.ZookeeperAuthority;
+import alluxio.wire.WorkerNetAddress;
 
 import org.apache.commons.cli.CommandLine;
 import org.junit.Before;

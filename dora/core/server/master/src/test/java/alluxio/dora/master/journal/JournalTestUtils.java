@@ -11,8 +11,8 @@
 
 package alluxio.dora.master.journal;
 
-import alluxio.dora.master.journal.JournalSystem;
-import alluxio.dora.util.CommonUtils.ProcessType;
+import alluxio.master.journal.JournalSystem;
+import alluxio.util.CommonUtils.ProcessType;
 
 import org.junit.rules.TemporaryFolder;
 

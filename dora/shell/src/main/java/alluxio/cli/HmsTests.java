@@ -11,11 +11,7 @@
 
 package alluxio.cli;
 
-import alluxio.dora.cli.ValidationConfig;
-import alluxio.dora.cli.ValidationTool;
-import alluxio.dora.cli.ValidationToolRegistry;
-import alluxio.dora.cli.ValidationUtils;
-import alluxio.dora.conf.Configuration;
+import alluxio.conf.Configuration;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;

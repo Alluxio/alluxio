@@ -15,12 +15,12 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
-import alluxio.dora.security.authorization.AclEntry;
+import alluxio.security.authorization.AclEntry;
 
 import org.junit.Before;
 import org.junit.Test;

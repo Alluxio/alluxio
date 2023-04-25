@@ -11,21 +11,21 @@
 
 package alluxio.dora.master.file.meta;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.concurrent.LockMode;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.ExceptionMessage;
-import alluxio.dora.exception.FileDoesNotExistException;
-import alluxio.dora.exception.InvalidPathException;
-import alluxio.dora.exception.status.UnavailableException;
+import alluxio.AlluxioURI;
+import alluxio.concurrent.LockMode;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.dora.master.file.InodeSyncStream;
-import alluxio.dora.master.journal.FileSystemMergeJournalContext;
-import alluxio.dora.master.journal.MetadataSyncMergeJournalContext;
+import alluxio.master.journal.FileSystemMergeJournalContext;
+import alluxio.master.journal.MetadataSyncMergeJournalContext;
 import alluxio.dora.master.metastore.ReadOnlyInodeStore;
-import alluxio.dora.master.journal.JournalContext;
-import alluxio.dora.resource.AlluxioResourceLeakDetectorFactory;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.master.journal.JournalContext;
+import alluxio.resource.AlluxioResourceLeakDetectorFactory;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import io.netty.util.ResourceLeakDetector;

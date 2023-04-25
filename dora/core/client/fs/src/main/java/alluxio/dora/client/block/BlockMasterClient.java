@@ -11,14 +11,14 @@
 
 package alluxio.dora.client.block;
 
-import alluxio.dora.Client;
+import alluxio.Client;
 import alluxio.dora.client.block.options.GetWorkerReportOptions;
 import alluxio.grpc.WorkerLostStorageInfo;
-import alluxio.dora.master.MasterClientContext;
-import alluxio.dora.wire.BlockInfo;
-import alluxio.dora.wire.BlockMasterInfo;
-import alluxio.dora.wire.BlockMasterInfo.BlockMasterInfoField;
-import alluxio.dora.wire.WorkerInfo;
+import alluxio.master.MasterClientContext;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.BlockMasterInfo;
+import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
+import alluxio.wire.WorkerInfo;
 
 import java.io.IOException;
 import java.util.List;

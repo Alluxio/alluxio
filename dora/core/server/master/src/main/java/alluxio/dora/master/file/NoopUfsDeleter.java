@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.file;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.dora.master.file.meta.Inode;
 
 import javax.annotation.concurrent.ThreadSafe;

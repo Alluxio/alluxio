@@ -11,18 +11,18 @@
 
 package alluxio.dora.client.block.stream;
 
-import alluxio.dora.client.WriteType;
+import alluxio.client.WriteType;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.client.file.options.OutStreamOptions;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.runtime.ResourceExhaustedRuntimeException;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.util.IdUtils;
-import alluxio.dora.worker.block.BlockWorker;
-import alluxio.dora.worker.block.CreateBlockOptions;
-import alluxio.dora.worker.block.io.BlockWriter;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.util.IdUtils;
+import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.CreateBlockOptions;
+import alluxio.worker.block.io.BlockWriter;
 
 import io.netty.buffer.ByteBuf;
 

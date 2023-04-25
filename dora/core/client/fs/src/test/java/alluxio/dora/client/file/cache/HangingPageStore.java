@@ -14,7 +14,7 @@ package alluxio.dora.client.file.cache;
 import alluxio.dora.client.file.cache.store.LocalPageStore;
 import alluxio.dora.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.dora.client.file.cache.store.PageStoreOptions;
-import alluxio.dora.exception.PageNotFoundException;
+import alluxio.exception.PageNotFoundException;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

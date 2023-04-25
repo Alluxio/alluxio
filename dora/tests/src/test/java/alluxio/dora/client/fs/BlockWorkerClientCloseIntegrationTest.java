@@ -13,15 +13,15 @@ package alluxio.dora.client.fs;
 
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.TestLoggerRule;
+import alluxio.TestLoggerRule;
 import alluxio.dora.client.block.stream.BlockWorkerClient;
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.resource.CloseableResource;
-import alluxio.dora.security.user.TestUserState;
+import alluxio.conf.Configuration;
+import alluxio.resource.CloseableResource;
+import alluxio.security.user.TestUserState;
 import alluxio.dora.testutils.BaseIntegrationTest;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.wire.WorkerNetAddress;
 
 import io.netty.util.ResourceLeakDetector;
 import org.junit.After;

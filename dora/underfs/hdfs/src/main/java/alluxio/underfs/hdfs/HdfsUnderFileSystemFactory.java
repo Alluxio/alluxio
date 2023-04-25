@@ -11,13 +11,13 @@
 
 package alluxio.underfs.hdfs;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.underfs.UnderFileSystemConfiguration;
-import alluxio.dora.underfs.UnderFileSystemFactory;
+import alluxio.AlluxioURI;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.UnderFileSystemFactory;
 
 import com.google.common.base.Preconditions;
 

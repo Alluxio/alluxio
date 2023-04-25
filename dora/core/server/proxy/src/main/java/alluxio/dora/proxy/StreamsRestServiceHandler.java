@@ -11,11 +11,11 @@
 
 package alluxio.dora.proxy;
 
-import alluxio.dora.RestUtils;
+import alluxio.RestUtils;
 import alluxio.dora.StreamCache;
 import alluxio.dora.client.file.FileInStream;
 import alluxio.dora.client.file.FileOutStream;
-import alluxio.dora.conf.Configuration;
+import alluxio.conf.Configuration;
 import alluxio.dora.web.ProxyWebServer;
 
 import com.google.common.io.ByteStreams;

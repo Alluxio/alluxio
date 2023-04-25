@@ -11,15 +11,15 @@
 
 package alluxio.dora.proxy.s3;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.client.WriteType;
+import alluxio.AlluxioURI;
+import alluxio.client.WriteType;
 import alluxio.dora.client.file.FileInStream;
 import alluxio.dora.client.file.FileOutStream;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.AlluxioException;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
 import alluxio.grpc.Bits;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -27,9 +27,9 @@ import alluxio.grpc.PMode;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.S3SyntaxOptions;
 import alluxio.grpc.XAttrPropagationStrategy;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.util.ThreadUtils;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.util.ThreadUtils;
 import alluxio.dora.web.ProxyWebServer;
 
 import com.codahale.metrics.Timer;

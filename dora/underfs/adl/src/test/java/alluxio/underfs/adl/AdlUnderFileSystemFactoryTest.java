@@ -11,10 +11,10 @@
 
 package alluxio.underfs.adl;
 
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.underfs.UnderFileSystemFactory;
-import alluxio.dora.underfs.UnderFileSystemFactoryRegistry;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.underfs.UnderFileSystemFactory;
+import alluxio.underfs.UnderFileSystemFactoryRegistry;
 
 import org.junit.Assert;
 import org.junit.Test;

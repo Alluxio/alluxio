@@ -11,8 +11,8 @@
 
 package alluxio.dora.job;
 
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.resource.ResourcePool;
+import alluxio.conf.PropertyKey;
+import alluxio.resource.ResourcePool;
 
 import java.io.IOException;
 import java.util.Queue;

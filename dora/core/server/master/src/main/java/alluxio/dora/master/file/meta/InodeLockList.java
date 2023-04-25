@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.file.meta;
 
-import alluxio.dora.concurrent.LockMode;
+import alluxio.concurrent.LockMode;
 
 import java.util.ArrayList;
 import java.util.List;

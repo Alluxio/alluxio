@@ -11,10 +11,11 @@
 
 package alluxio.dora.master;
 
-import alluxio.dora.clock.ElapsedTimeClock;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.clock.ElapsedTimeClock;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 
+import alluxio.master.SafeModeManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -11,11 +11,13 @@
 
 package alluxio.dora.client.file;
 
-import alluxio.dora.AbstractMasterClient;
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Constants;
-import alluxio.dora.exception.status.AlluxioStatusException;
-import alluxio.dora.wire.MountPointInfo;
+import alluxio.client.file.ListStatusPartialResult;
+import alluxio.client.file.URIStatus;
+import alluxio.AbstractMasterClient;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.exception.status.AlluxioStatusException;
+import alluxio.wire.MountPointInfo;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CheckAccessPRequest;
 import alluxio.grpc.CheckConsistencyPOptions;
@@ -76,13 +78,13 @@ import alluxio.grpc.UnmountPRequest;
 import alluxio.grpc.UpdateMountPRequest;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.UpdateUfsModePRequest;
-import alluxio.dora.job.JobDescription;
-import alluxio.dora.job.JobRequest;
-import alluxio.dora.master.MasterClientContext;
-import alluxio.dora.retry.CountingRetry;
-import alluxio.dora.security.authorization.AclEntry;
+import alluxio.job.JobDescription;
+import alluxio.job.JobRequest;
+import alluxio.master.MasterClientContext;
+import alluxio.retry.CountingRetry;
+import alluxio.security.authorization.AclEntry;
 import alluxio.dora.util.FileSystemOptionsUtils;
-import alluxio.dora.wire.SyncPointInfo;
+import alluxio.wire.SyncPointInfo;
 
 import com.google.protobuf.ByteString;
 import org.apache.commons.lang3.SerializationUtils;

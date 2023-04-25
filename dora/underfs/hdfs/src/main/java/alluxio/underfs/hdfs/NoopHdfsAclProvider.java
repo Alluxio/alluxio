@@ -11,10 +11,10 @@
 
 package alluxio.underfs.hdfs;
 
-import alluxio.dora.collections.Pair;
-import alluxio.dora.security.authorization.AccessControlList;
-import alluxio.dora.security.authorization.AclEntry;
-import alluxio.dora.security.authorization.DefaultAccessControlList;
+import alluxio.collections.Pair;
+import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.AclEntry;
+import alluxio.security.authorization.DefaultAccessControlList;
 
 import org.apache.hadoop.fs.FileSystem;
 

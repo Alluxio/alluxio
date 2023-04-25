@@ -18,11 +18,10 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 
-import alluxio.dora.TestLoggerRule;
-import alluxio.dora.master.meta.JournalSpaceMonitor;
-import alluxio.dora.shell.CommandReturn;
-import alluxio.dora.util.OSUtils;
-import alluxio.dora.wire.JournalDiskInfo;
+import alluxio.TestLoggerRule;
+import alluxio.shell.CommandReturn;
+import alluxio.util.OSUtils;
+import alluxio.wire.JournalDiskInfo;
 
 import org.apache.log4j.Level;
 import org.junit.Assume;

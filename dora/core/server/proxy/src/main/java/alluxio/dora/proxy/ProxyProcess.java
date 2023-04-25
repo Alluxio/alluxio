@@ -11,7 +11,7 @@
 
 package alluxio.dora.proxy;
 
-import alluxio.dora.Process;
+import alluxio.Process;
 
 import javax.annotation.concurrent.ThreadSafe;
 

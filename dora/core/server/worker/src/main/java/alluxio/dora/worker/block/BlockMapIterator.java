@@ -11,13 +11,14 @@
 
 package alluxio.dora.worker.block;
 
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.BlockIdList;
 import alluxio.grpc.BlockStoreLocationProto;
 import alluxio.grpc.LocationBlockIdListEntry;
 
+import alluxio.worker.block.BlockStoreLocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -22,7 +22,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import alluxio.dora.exception.status.ResourceExhaustedException;
+import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.dora.job.JobConfig;
 import alluxio.dora.job.JobServerContext;
 import alluxio.dora.job.SleepJobConfig;
@@ -35,8 +35,7 @@ import alluxio.dora.job.workflow.composite.CompositeConfig;
 import alluxio.dora.master.job.JobMaster;
 import alluxio.dora.master.job.command.CommandManager;
 import alluxio.dora.master.job.plan.PlanTracker;
-import alluxio.dora.master.job.workflow.WorkflowTracker;
-import alluxio.dora.wire.WorkerInfo;
+import alluxio.wire.WorkerInfo;
 
 import com.google.common.collect.Lists;
 import org.junit.Before;

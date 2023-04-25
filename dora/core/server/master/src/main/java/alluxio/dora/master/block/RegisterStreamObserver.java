@@ -11,9 +11,9 @@
 
 package alluxio.dora.master.block;
 
-import alluxio.dora.RpcUtils;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.status.DeadlineExceededException;
+import alluxio.RpcUtils;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.status.DeadlineExceededException;
 import alluxio.grpc.GrpcExceptionUtils;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;

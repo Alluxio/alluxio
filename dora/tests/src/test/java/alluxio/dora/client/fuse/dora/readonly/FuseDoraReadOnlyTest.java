@@ -15,7 +15,7 @@ import static jnr.constants.platform.OpenFlags.O_RDONLY;
 import static jnr.constants.platform.OpenFlags.O_RDWR;
 
 import alluxio.jnifuse.ErrorCodes;
-import alluxio.dora.util.io.BufferUtils;
+import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;
 import org.junit.Test;

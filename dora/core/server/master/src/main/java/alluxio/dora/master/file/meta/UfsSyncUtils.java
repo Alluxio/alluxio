@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.file.meta;
 
-import alluxio.dora.underfs.Fingerprint;
+import alluxio.underfs.Fingerprint;
 
 import javax.annotation.concurrent.NotThreadSafe;
 

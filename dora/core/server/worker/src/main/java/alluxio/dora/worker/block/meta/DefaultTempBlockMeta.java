@@ -11,11 +11,14 @@
 
 package alluxio.dora.worker.block.meta;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.util.io.PathUtils;
-import alluxio.dora.worker.block.BlockStoreLocation;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.io.PathUtils;
+import alluxio.worker.block.BlockStoreLocation;
 
+import alluxio.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.StorageTier;
+import alluxio.worker.block.meta.TempBlockMeta;
 import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.NotThreadSafe;

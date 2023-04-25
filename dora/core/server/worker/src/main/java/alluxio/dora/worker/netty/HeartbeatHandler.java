@@ -11,7 +11,7 @@
 
 package alluxio.dora.worker.netty;
 
-import alluxio.dora.network.protocol.RPCProtoMessage;
+import alluxio.network.protocol.RPCProtoMessage;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;

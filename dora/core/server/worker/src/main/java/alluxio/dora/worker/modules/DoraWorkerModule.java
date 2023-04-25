@@ -11,21 +11,21 @@
 
 package alluxio.dora.worker.modules;
 
-import alluxio.dora.ClientContext;
+import alluxio.ClientContext;
 import alluxio.dora.client.file.cache.CacheManager;
 import alluxio.dora.client.file.cache.CacheManagerOptions;
 import alluxio.dora.client.file.cache.store.PageStoreDir;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.master.MasterClientContext;
-import alluxio.dora.network.TieredIdentityFactory;
-import alluxio.dora.underfs.UfsManager;
-import alluxio.dora.wire.TieredIdentity;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.master.MasterClientContext;
+import alluxio.network.TieredIdentityFactory;
+import alluxio.underfs.UfsManager;
+import alluxio.wire.TieredIdentity;
 import alluxio.dora.worker.AlluxioDataServerFactory;
 import alluxio.dora.worker.DataServerFactory;
-import alluxio.dora.worker.WorkerFactory;
-import alluxio.dora.worker.block.BlockStore;
+import alluxio.worker.WorkerFactory;
+import alluxio.worker.block.BlockStore;
 import alluxio.dora.worker.dora.DoraUfsManager;
 import alluxio.dora.worker.dora.DoraWorkerFactory;
 import alluxio.dora.worker.dora.PagedDoraWorker;
@@ -33,7 +33,7 @@ import alluxio.dora.worker.file.FileSystemMasterClient;
 import alluxio.dora.worker.page.PagedBlockMetaStore;
 import alluxio.dora.worker.page.PagedBlockStore;
 import alluxio.dora.worker.page.PagedBlockStoreDir;
-import alluxio.dora.worker.dora.DoraWorker;
+import alluxio.worker.dora.DoraWorker;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;

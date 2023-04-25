@@ -12,7 +12,7 @@
 package alluxio.dora.worker.netty;
 
 import alluxio.proto.dataserver.Protocol;
-import alluxio.dora.worker.block.io.BlockWriter;
+import alluxio.worker.block.io.BlockWriter;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;

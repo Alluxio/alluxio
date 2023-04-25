@@ -13,7 +13,7 @@ package alluxio.dora.client.cli.fsadmin.command;
 
 import alluxio.cli.fsadmin.report.CapacityCommand;
 import alluxio.dora.client.cli.fsadmin.AbstractFsAdminShellTest;
-import alluxio.dora.util.FormatUtils;
+import alluxio.util.FormatUtils;
 
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;

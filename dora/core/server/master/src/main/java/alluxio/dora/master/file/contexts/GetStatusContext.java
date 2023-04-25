@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.file.contexts;
 
-import alluxio.dora.conf.Configuration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.dora.util.FileSystemOptionsUtils;
 

@@ -11,16 +11,14 @@
 
 package alluxio.cli;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Constants;
-import alluxio.dora.cli.Command;
-import alluxio.dora.cli.CommandUtils;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.runtime.InvalidArgumentRuntimeException;
-import alluxio.dora.exception.status.InvalidArgumentException;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.InvalidArgumentRuntimeException;
+import alluxio.exception.status.InvalidArgumentException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -18,7 +18,7 @@ import alluxio.dora.client.file.cache.CacheUsage;
 import alluxio.dora.client.file.cache.PageId;
 import alluxio.dora.client.file.cache.PageInfo;
 import alluxio.dora.client.file.cache.PageStore;
-import alluxio.dora.client.quota.CacheScope;
+import alluxio.client.quota.CacheScope;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;

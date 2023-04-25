@@ -11,9 +11,9 @@
 
 package alluxio.dora.master.job.workflow;
 
-import alluxio.dora.collections.ConcurrentHashSet;
-import alluxio.dora.exception.JobDoesNotExistException;
-import alluxio.dora.exception.status.ResourceExhaustedException;
+import alluxio.collections.ConcurrentHashSet;
+import alluxio.exception.JobDoesNotExistException;
+import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.dora.job.ErrorUtils;
 import alluxio.dora.job.JobConfig;
 import alluxio.dora.job.plan.meta.PlanInfo;

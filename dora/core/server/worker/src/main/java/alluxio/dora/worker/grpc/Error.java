@@ -11,7 +11,7 @@
 
 package alluxio.dora.worker.grpc;
 
-import alluxio.dora.exception.status.AlluxioStatusException;
+import alluxio.exception.status.AlluxioStatusException;
 
 import com.google.common.base.MoreObjects;
 

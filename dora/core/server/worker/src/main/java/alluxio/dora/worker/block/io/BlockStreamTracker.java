@@ -11,10 +11,10 @@
 
 package alluxio.dora.worker.block.io;
 
-import alluxio.dora.worker.block.BlockStoreLocation;
-import alluxio.dora.worker.block.io.BlockClientListener;
-import alluxio.dora.worker.block.io.BlockReader;
-import alluxio.dora.worker.block.io.BlockWriter;
+import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.io.BlockClientListener;
+import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.io.BlockWriter;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;

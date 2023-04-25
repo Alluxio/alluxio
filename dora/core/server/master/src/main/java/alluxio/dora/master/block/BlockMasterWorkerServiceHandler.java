@@ -11,10 +11,10 @@
 
 package alluxio.dora.master.block;
 
-import alluxio.dora.RpcUtils;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.RegisterLeaseNotFoundException;
+import alluxio.RpcUtils;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.RegisterLeaseNotFoundException;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockHeartbeatPResponse;
 import alluxio.grpc.BlockMasterWorkerServiceGrpc;
@@ -32,7 +32,7 @@ import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.StorageList;
-import alluxio.dora.metrics.Metric;
+import alluxio.metrics.Metric;
 import alluxio.proto.meta.Block;
 
 import com.google.common.base.Preconditions;

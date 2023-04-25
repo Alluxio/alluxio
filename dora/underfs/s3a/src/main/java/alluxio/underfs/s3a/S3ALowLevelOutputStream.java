@@ -11,12 +11,12 @@
 
 package alluxio.underfs.s3a;
 
-import alluxio.dora.Constants;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.retry.CountingRetry;
-import alluxio.dora.retry.RetryPolicy;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.Constants;
+import alluxio.conf.PropertyKey;
+import alluxio.retry.CountingRetry;
+import alluxio.retry.RetryPolicy;
+import alluxio.util.CommonUtils;
+import alluxio.util.io.PathUtils;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.s3.AmazonS3;

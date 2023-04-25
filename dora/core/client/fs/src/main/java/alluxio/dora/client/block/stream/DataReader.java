@@ -11,7 +11,7 @@
 
 package alluxio.dora.client.block.stream;
 
-import alluxio.dora.network.protocol.databuffer.DataBuffer;
+import alluxio.network.protocol.databuffer.DataBuffer;
 
 import java.io.Closeable;
 import java.io.IOException;

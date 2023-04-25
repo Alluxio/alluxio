@@ -22,22 +22,21 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import alluxio.dora.ConfigurationRule;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.master.metastore.caching.CachingInodeStore;
-import alluxio.dora.util.CommonUtils;
+import alluxio.ConfigurationRule;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.CommonUtils;
 import alluxio.dora.master.file.contexts.CreateDirectoryContext;
 import alluxio.dora.master.file.contexts.CreateFileContext;
 import alluxio.dora.master.file.meta.Inode;
 import alluxio.dora.master.file.meta.InodeLockManager;
 import alluxio.dora.master.file.meta.MutableInodeDirectory;
 import alluxio.dora.master.file.meta.MutableInodeFile;
-import alluxio.dora.master.journal.checkpoint.CheckpointInputStream;
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.dora.master.metastore.InodeStore;
 import alluxio.dora.master.metastore.ReadOption;
 import alluxio.dora.master.metastore.heap.HeapInodeStore;
-import alluxio.dora.resource.CloseableIterator;
+import alluxio.resource.CloseableIterator;
 
 import com.google.common.collect.ImmutableMap;
 import io.netty.util.ResourceLeakDetector;

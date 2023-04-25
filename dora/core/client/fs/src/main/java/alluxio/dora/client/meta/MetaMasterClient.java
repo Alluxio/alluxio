@@ -11,12 +11,12 @@
 
 package alluxio.dora.client.meta;
 
-import alluxio.dora.Client;
+import alluxio.Client;
 import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
-import alluxio.dora.wire.BackupStatus;
-import alluxio.dora.wire.ConfigCheckReport;
+import alluxio.wire.BackupStatus;
+import alluxio.wire.ConfigCheckReport;
 
 import java.io.IOException;
 import java.util.Set;

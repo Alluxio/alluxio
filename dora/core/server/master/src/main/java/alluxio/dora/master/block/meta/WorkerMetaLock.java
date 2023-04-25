@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.block.meta;
 
-import alluxio.dora.resource.LockResource;
+import alluxio.resource.LockResource;
 import com.google.common.collect.Lists;
 
 import java.util.Arrays;

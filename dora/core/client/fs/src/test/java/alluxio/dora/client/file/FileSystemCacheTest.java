@@ -18,10 +18,10 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.security.User;
+import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
+import alluxio.exception.AlluxioException;
+import alluxio.security.User;
 
 import org.junit.Test;
 

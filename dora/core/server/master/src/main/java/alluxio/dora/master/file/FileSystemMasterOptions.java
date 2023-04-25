@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.file;
 
-import alluxio.dora.conf.Configuration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.dora.util.FileSystemOptionsUtils;
 

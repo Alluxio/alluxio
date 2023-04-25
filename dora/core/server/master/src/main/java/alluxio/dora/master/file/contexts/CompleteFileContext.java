@@ -13,8 +13,8 @@ package alluxio.dora.master.file.contexts;
 
 import alluxio.dora.master.file.FileSystemMasterOptions;
 import alluxio.grpc.CompleteFilePOptions;
-import alluxio.dora.underfs.UfsStatus;
-import alluxio.dora.wire.OperationId;
+import alluxio.underfs.UfsStatus;
+import alluxio.wire.OperationId;
 
 import com.google.common.base.MoreObjects;
 

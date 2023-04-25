@@ -11,7 +11,7 @@
 
 package alluxio.dora.job.plan.migrate;
 
-import alluxio.dora.client.WriteType;
+import alluxio.client.WriteType;
 import alluxio.dora.job.plan.PlanConfig;
 
 import com.fasterxml.jackson.annotation.JsonProperty;

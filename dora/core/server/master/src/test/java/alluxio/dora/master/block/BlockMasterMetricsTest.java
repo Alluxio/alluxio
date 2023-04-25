@@ -14,14 +14,13 @@ package alluxio.dora.master.block;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
-import alluxio.dora.Constants;
-import alluxio.dora.DefaultStorageTierAssoc;
-import alluxio.dora.StorageTierAssoc;
-import alluxio.dora.master.block.DefaultBlockMaster;
+import alluxio.Constants;
+import alluxio.DefaultStorageTierAssoc;
+import alluxio.StorageTierAssoc;
 import alluxio.dora.master.block.DefaultBlockMaster.Metrics;
-import alluxio.dora.metrics.MetricInfo;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
+import alluxio.metrics.MetricInfo;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;

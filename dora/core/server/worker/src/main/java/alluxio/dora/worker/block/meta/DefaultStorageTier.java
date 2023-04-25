@@ -11,18 +11,20 @@
 
 package alluxio.dora.worker.block.meta;
 
-import alluxio.dora.Constants;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.InvalidPathException;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.FormatUtils;
-import alluxio.dora.util.OSUtils;
-import alluxio.dora.util.ShellUtils;
-import alluxio.dora.util.UnixMountInfo;
-import alluxio.dora.util.io.FileUtils;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.Constants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.InvalidPathException;
+import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
+import alluxio.util.OSUtils;
+import alluxio.util.ShellUtils;
+import alluxio.util.UnixMountInfo;
+import alluxio.util.io.FileUtils;
+import alluxio.util.io.PathUtils;
 
+import alluxio.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.StorageTier;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;

@@ -11,8 +11,8 @@
 
 package alluxio.dora.master.block.meta;
 
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.util.CommonUtils;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 

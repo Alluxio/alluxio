@@ -11,12 +11,12 @@
 
 package alluxio.dora.master.throttle;
 
-import alluxio.dora.Constants;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.master.MasterContext;
-import alluxio.dora.master.MasterFactory;
-import alluxio.dora.master.MasterRegistry;
+import alluxio.Constants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.master.MasterContext;
+import alluxio.master.MasterFactory;
+import alluxio.master.MasterRegistry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

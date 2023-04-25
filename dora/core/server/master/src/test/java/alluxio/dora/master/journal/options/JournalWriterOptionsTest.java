@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.journal.options;
 
-import alluxio.dora.master.journal.options.JournalWriterOptions;
+import alluxio.master.journal.options.JournalWriterOptions;
 import org.junit.Assert;
 import org.junit.Test;
 

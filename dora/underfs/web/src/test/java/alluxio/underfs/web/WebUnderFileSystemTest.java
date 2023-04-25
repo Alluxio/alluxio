@@ -14,9 +14,9 @@ package alluxio.underfs.web;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.underfs.UnderFileSystem;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.underfs.UnderFileSystem;
 
 import org.junit.Before;
 import org.junit.Test;

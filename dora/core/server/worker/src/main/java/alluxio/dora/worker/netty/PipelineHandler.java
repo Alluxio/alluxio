@@ -11,14 +11,14 @@
 
 package alluxio.dora.worker.netty;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.network.netty.FileTransferType;
-import alluxio.dora.network.protocol.RPCMessage;
-import alluxio.dora.network.protocol.RPCMessageDecoder;
-import alluxio.dora.network.protocol.RPCMessageEncoder;
-import alluxio.dora.underfs.UfsManager;
-import alluxio.dora.worker.dora.DoraWorker;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.network.netty.FileTransferType;
+import alluxio.network.protocol.RPCMessage;
+import alluxio.network.protocol.RPCMessageDecoder;
+import alluxio.network.protocol.RPCMessageEncoder;
+import alluxio.underfs.UfsManager;
+import alluxio.worker.dora.DoraWorker;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;

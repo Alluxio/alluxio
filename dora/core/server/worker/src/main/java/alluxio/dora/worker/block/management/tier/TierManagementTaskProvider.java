@@ -11,18 +11,18 @@
 
 package alluxio.dora.worker.block.management.tier;
 
-import alluxio.dora.collections.Pair;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.collections.Pair;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.worker.block.BlockMetadataEvictorView;
 import alluxio.dora.worker.block.BlockMetadataManager;
-import alluxio.dora.worker.block.BlockStoreLocation;
+import alluxio.worker.block.BlockStoreLocation;
 import alluxio.dora.worker.block.LocalBlockStore;
 import alluxio.dora.worker.block.annotator.BlockOrder;
 import alluxio.dora.worker.block.management.BlockManagementTask;
 import alluxio.dora.worker.block.management.ManagementTaskProvider;
 import alluxio.dora.worker.block.management.StoreLoadTracker;
-import alluxio.dora.worker.block.meta.StorageTier;
+import alluxio.worker.block.meta.StorageTier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

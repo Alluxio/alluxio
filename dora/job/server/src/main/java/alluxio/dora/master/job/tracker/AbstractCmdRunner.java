@@ -15,7 +15,7 @@ import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.job.wire.Status;
 import alluxio.dora.master.job.JobMaster;
-import alluxio.dora.util.CommonUtils;
+import alluxio.util.CommonUtils;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;

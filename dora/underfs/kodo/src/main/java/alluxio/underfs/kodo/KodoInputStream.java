@@ -11,9 +11,9 @@
 
 package alluxio.underfs.kodo;
 
-import alluxio.dora.exception.status.NotFoundException;
-import alluxio.dora.retry.RetryPolicy;
-import alluxio.dora.underfs.MultiRangeObjectInputStream;
+import alluxio.exception.status.NotFoundException;
+import alluxio.retry.RetryPolicy;
+import alluxio.underfs.MultiRangeObjectInputStream;
 
 import com.qiniu.common.QiniuException;
 import org.slf4j.Logger;

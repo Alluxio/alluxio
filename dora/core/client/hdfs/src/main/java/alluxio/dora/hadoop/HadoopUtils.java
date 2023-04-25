@@ -11,12 +11,12 @@
 
 package alluxio.dora.hadoop;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.AlluxioProperties;
-import alluxio.dora.conf.InstancedConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.conf.Source;
+import alluxio.AlluxioURI;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.AlluxioProperties;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.conf.Source;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -183,7 +183,7 @@ public final class HadoopUtils {
     // Take hadoop configuration to merge to Alluxio configuration
     Map<String, Object> hadoopConfProperties =
         HadoopConfigurationUtils.getConfigurationFromHadoop(conf);
-    AlluxioProperties alluxioProps = alluxio.dora.conf.Configuration.copyProperties();
+    AlluxioProperties alluxioProps = alluxio.conf.Configuration.copyProperties();
     // Merge relevant Hadoop configuration into Alluxio's configuration.
     alluxioProps.merge(hadoopConfProperties, Source.RUNTIME);
     // Creating a new instanced configuration from an AlluxioProperties object isn't expensive.

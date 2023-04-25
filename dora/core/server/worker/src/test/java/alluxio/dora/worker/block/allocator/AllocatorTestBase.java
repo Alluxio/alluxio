@@ -15,19 +15,19 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.Constants;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.Constants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.worker.block.BlockMetadataEvictorView;
 import alluxio.dora.worker.block.BlockMetadataManager;
-import alluxio.dora.worker.block.BlockStoreLocation;
+import alluxio.worker.block.BlockStoreLocation;
 import alluxio.dora.worker.block.reviewer.MockReviewer;
 import alluxio.dora.worker.block.TieredBlockStoreTestUtils;
 import alluxio.dora.worker.block.meta.DefaultBlockMeta;
-import alluxio.dora.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.StorageDir;
 import alluxio.dora.worker.block.meta.StorageDirView;
-import alluxio.dora.worker.block.meta.StorageTier;
-import alluxio.dora.worker.block.meta.TempBlockMeta;
+import alluxio.worker.block.meta.StorageTier;
+import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.google.common.collect.Sets;
 import org.junit.Before;

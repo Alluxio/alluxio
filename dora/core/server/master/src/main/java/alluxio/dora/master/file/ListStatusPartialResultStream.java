@@ -15,7 +15,7 @@ import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.ListStatusPartialPResponse;
 import alluxio.dora.master.file.contexts.ListStatusContext;
-import alluxio.dora.wire.FileInfo;
+import alluxio.wire.FileInfo;
 
 import io.grpc.stub.StreamObserver;
 

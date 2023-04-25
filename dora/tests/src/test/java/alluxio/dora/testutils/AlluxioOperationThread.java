@@ -11,11 +11,11 @@
 
 package alluxio.dora.testutils;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.dora.client.file.FileSystem;
 import alluxio.dora.client.file.FileSystemTestUtils;
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.dora.util.CommonUtils;
+import alluxio.util.CommonUtils;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;

@@ -11,11 +11,11 @@
 
 package alluxio.dora.client.block.stream;
 
-import alluxio.dora.Constants;
+import alluxio.Constants;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
-import alluxio.dora.network.protocol.databuffer.DataBuffer;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;
 import org.junit.Before;

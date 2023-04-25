@@ -11,8 +11,8 @@
 
 package alluxio.dora.master.meta;
 
-import alluxio.dora.RpcUtils;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.RpcUtils;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.GetConfigHashPOptions;
 import alluxio.grpc.GetConfigHashPResponse;
 import alluxio.grpc.GetConfigurationPOptions;
@@ -24,7 +24,7 @@ import alluxio.grpc.SetPathConfigurationPRequest;
 import alluxio.grpc.SetPathConfigurationPResponse;
 import alluxio.grpc.UpdateConfigurationPRequest;
 import alluxio.grpc.UpdateConfigurationPResponse;
-import alluxio.dora.wire.ConfigHash;
+import alluxio.wire.ConfigHash;
 
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;

@@ -11,22 +11,22 @@
 
 package alluxio.fuse.file;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Constants;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.dora.client.file.FileOutStream;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.concurrent.LockMode;
-import alluxio.dora.exception.PreconditionMessage;
-import alluxio.dora.exception.runtime.AlluxioRuntimeException;
-import alluxio.dora.exception.runtime.AlreadyExistsRuntimeException;
-import alluxio.dora.exception.runtime.FailedPreconditionRuntimeException;
-import alluxio.dora.exception.runtime.UnimplementedRuntimeException;
+import alluxio.client.file.URIStatus;
+import alluxio.concurrent.LockMode;
+import alluxio.exception.PreconditionMessage;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.AlreadyExistsRuntimeException;
+import alluxio.exception.runtime.FailedPreconditionRuntimeException;
+import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.AlluxioFuseOpenUtils;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.lock.FuseReadWriteLockManager;
-import alluxio.dora.resource.CloseableResource;
+import alluxio.resource.CloseableResource;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;

@@ -11,15 +11,15 @@
 
 package alluxio.dora.worker.block.annotator;
 
-import alluxio.dora.StorageTierAssoc;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.StorageTierAssoc;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.worker.block.BlockMetadataManager;
-import alluxio.dora.worker.block.BlockStoreEventListener;
+import alluxio.worker.block.BlockStoreEventListener;
 import alluxio.dora.worker.block.TieredBlockStoreTestUtils;
 import alluxio.dora.worker.block.evictor.LRUEvictor;
-import alluxio.dora.worker.block.meta.StorageDir;
-import alluxio.dora.worker.block.meta.StorageTier;
+import alluxio.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.StorageTier;
 
 import org.junit.Assert;
 import org.junit.Before;

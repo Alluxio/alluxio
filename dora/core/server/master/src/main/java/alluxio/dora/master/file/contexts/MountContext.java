@@ -11,9 +11,9 @@
 
 package alluxio.dora.master.file.contexts;
 
-import alluxio.dora.conf.Configuration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.MountPOptions;
-import alluxio.dora.recorder.Recorder;
+import alluxio.recorder.Recorder;
 import alluxio.dora.util.FileSystemOptionsUtils;
 
 import com.google.common.base.MoreObjects;

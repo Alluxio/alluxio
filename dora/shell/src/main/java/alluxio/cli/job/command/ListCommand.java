@@ -11,15 +11,15 @@
 
 package alluxio.cli.job.command;
 
-import alluxio.dora.annotation.PublicApi;
-import alluxio.dora.cli.CommandUtils;
+import alluxio.annotation.PublicApi;
+import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.command.AbstractFileSystemCommand;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.job.JobContext;
 import alluxio.dora.job.JobMasterClient;
-import alluxio.dora.exception.status.InvalidArgumentException;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.dora.job.wire.JobInfo;
-import alluxio.dora.resource.CloseableResource;
+import alluxio.resource.CloseableResource;
 
 import org.apache.commons.cli.CommandLine;
 import org.slf4j.Logger;

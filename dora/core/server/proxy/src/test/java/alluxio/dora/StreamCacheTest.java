@@ -14,8 +14,7 @@ package alluxio.dora;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-import alluxio.dora.Constants;
-import alluxio.dora.StreamCache;
+import alluxio.Constants;
 import alluxio.dora.client.file.FileInStream;
 import alluxio.dora.client.file.FileOutStream;
 

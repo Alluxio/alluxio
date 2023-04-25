@@ -11,17 +11,17 @@
 
 package alluxio.dora.master.file.contexts;
 
-import alluxio.dora.client.WriteType;
-import alluxio.dora.conf.Configuration;
+import alluxio.client.WriteType;
+import alluxio.conf.Configuration;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
 import alluxio.grpc.XAttrPropagationStrategy;
-import alluxio.dora.security.authorization.AclEntry;
-import alluxio.dora.security.authorization.Mode;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.SecurityUtils;
+import alluxio.security.authorization.AclEntry;
+import alluxio.security.authorization.Mode;
+import alluxio.util.CommonUtils;
+import alluxio.util.SecurityUtils;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;

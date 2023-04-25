@@ -13,14 +13,14 @@ package alluxio.dora.server.ft;
 
 import static org.junit.Assert.assertThrows;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.AuthenticatedUserRule;
-import alluxio.dora.Constants;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.FileAlreadyCompletedException;
-import alluxio.dora.exception.FileAlreadyExistsException;
-import alluxio.dora.exception.FileDoesNotExistException;
+import alluxio.AlluxioURI;
+import alluxio.AuthenticatedUserRule;
+import alluxio.Constants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.FileAlreadyCompletedException;
+import alluxio.exception.FileAlreadyExistsException;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
@@ -35,8 +35,8 @@ import alluxio.dora.master.file.contexts.DeleteContext;
 import alluxio.dora.master.file.contexts.RenameContext;
 import alluxio.dora.testutils.BaseIntegrationTest;
 import alluxio.dora.testutils.IntegrationTestUtils;
-import alluxio.dora.wire.FileInfo;
-import alluxio.dora.wire.OperationId;
+import alluxio.wire.FileInfo;
+import alluxio.wire.OperationId;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;

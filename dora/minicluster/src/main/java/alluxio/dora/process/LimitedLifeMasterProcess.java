@@ -11,7 +11,7 @@
 
 package alluxio.dora.process;
 
-import alluxio.dora.Constants;
+import alluxio.Constants;
 import alluxio.dora.master.AlluxioMaster;
 
 /**

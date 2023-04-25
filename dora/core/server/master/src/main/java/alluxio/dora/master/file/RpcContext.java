@@ -11,14 +11,14 @@
 
 package alluxio.dora.master.file;
 
-import alluxio.dora.exception.status.UnavailableException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.dora.master.file.contexts.CallTracker;
 import alluxio.dora.master.file.contexts.InternalOperationContext;
 import alluxio.dora.master.file.contexts.OperationContext;
-import alluxio.dora.master.journal.JournalContext;
-import alluxio.dora.master.journal.NoopJournalContext;
+import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.NoopJournalContext;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.dora.wire.OperationId;
+import alluxio.wire.OperationId;
 
 import com.google.common.base.Throwables;
 

@@ -11,14 +11,14 @@
 
 package alluxio.dora.client.file.cache;
 
-import alluxio.dora.client.file.CacheContext;
+import alluxio.client.file.CacheContext;
 import alluxio.dora.client.file.cache.store.ByteArrayTargetBuffer;
 import alluxio.dora.client.file.cache.store.PageReadTargetBuffer;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.resource.LockResource;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.resource.LockResource;
 
 import com.codahale.metrics.Counter;
 import org.slf4j.Logger;

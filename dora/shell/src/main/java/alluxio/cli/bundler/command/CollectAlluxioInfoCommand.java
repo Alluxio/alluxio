@@ -12,8 +12,8 @@
 package alluxio.cli.bundler.command;
 
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.shell.ShellCommand;
+import alluxio.conf.PropertyKey;
+import alluxio.shell.ShellCommand;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

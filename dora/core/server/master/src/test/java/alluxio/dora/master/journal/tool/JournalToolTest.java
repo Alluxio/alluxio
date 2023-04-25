@@ -11,9 +11,9 @@
 
 package alluxio.dora.master.journal.tool;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.master.journal.JournalType;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.master.journal.JournalType;
 
 import org.junit.Assert;
 import org.junit.Before;

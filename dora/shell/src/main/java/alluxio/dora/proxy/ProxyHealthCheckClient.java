@@ -11,9 +11,9 @@
 
 package alluxio.dora.proxy;
 
-import alluxio.dora.HealthCheckClient;
-import alluxio.dora.retry.RetryPolicy;
-import alluxio.dora.util.network.NetworkAddressUtils;
+import alluxio.HealthCheckClient;
+import alluxio.retry.RetryPolicy;
+import alluxio.util.network.NetworkAddressUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

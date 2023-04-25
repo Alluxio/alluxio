@@ -15,16 +15,16 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.AlluxioException;
-import alluxio.dora.exception.ExceptionMessage;
-import alluxio.dora.master.MasterContext;
+import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.master.MasterContext;
 import alluxio.dora.master.MasterProcess;
-import alluxio.dora.master.StateLockManager;
-import alluxio.dora.master.StateLockOptions;
-import alluxio.dora.resource.LockResource;
+import alluxio.master.StateLockManager;
+import alluxio.master.StateLockOptions;
+import alluxio.resource.LockResource;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
 
 import org.junit.Test;

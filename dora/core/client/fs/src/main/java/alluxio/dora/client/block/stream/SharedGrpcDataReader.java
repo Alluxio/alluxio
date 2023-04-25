@@ -11,13 +11,13 @@
 
 package alluxio.dora.client.block.stream;
 
-import alluxio.dora.annotation.SuppressFBWarnings;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.grpc.ReadRequest;
-import alluxio.dora.network.protocol.databuffer.DataBuffer;
-import alluxio.dora.network.protocol.databuffer.NioDataBuffer;
-import alluxio.dora.resource.LockResource;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.network.protocol.databuffer.NioDataBuffer;
+import alluxio.resource.LockResource;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.hash.HashFunction;

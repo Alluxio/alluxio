@@ -11,19 +11,19 @@
 
 package alluxio.stress.cli;
 
-import alluxio.dora.annotation.SuppressFBWarnings;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.dora.job.JobGrpcClientUtils;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.job.plan.PlanConfig;
 import alluxio.dora.job.wire.JobInfo;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
 import alluxio.stress.TaskResult;
 import alluxio.stress.job.StressBenchConfig;
-import alluxio.dora.util.FormatUtils;
-import alluxio.dora.util.ShellUtils;
+import alluxio.util.FormatUtils;
+import alluxio.util.ShellUtils;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParametersDelegate;

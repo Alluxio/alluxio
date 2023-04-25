@@ -13,15 +13,15 @@ package alluxio.master.backcompat.ops;
 
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Constants;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.dora.client.file.FileOutStream;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.exception.AlluxioException;
+import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.backcompat.FsTestOp;
-import alluxio.dora.util.CommonUtils;
+import alluxio.util.CommonUtils;
 
 import java.io.IOException;
 

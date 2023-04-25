@@ -12,8 +12,8 @@
 package alluxio.dora.master.job.plan;
 
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.collections.Pair;
-import alluxio.dora.exception.JobDoesNotExistException;
+import alluxio.collections.Pair;
+import alluxio.exception.JobDoesNotExistException;
 import alluxio.dora.job.ErrorUtils;
 import alluxio.dora.job.JobConfig;
 import alluxio.dora.job.JobServerContext;
@@ -26,8 +26,8 @@ import alluxio.dora.job.wire.Status;
 import alluxio.dora.job.wire.TaskInfo;
 import alluxio.dora.master.job.command.CommandManager;
 import alluxio.dora.master.job.metrics.DistributedCmdMetrics;
-import alluxio.dora.retry.CountingRetry;
-import alluxio.dora.wire.WorkerInfo;
+import alluxio.retry.CountingRetry;
+import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;

@@ -14,7 +14,7 @@ package alluxio.stress.cli.report;
 import alluxio.stress.GraphGenerator;
 import alluxio.stress.Summary;
 import alluxio.stress.graph.Graph;
-import alluxio.dora.util.JsonSerializable;
+import alluxio.util.JsonSerializable;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;

@@ -12,10 +12,10 @@
 package alluxio.dora.job;
 
 import alluxio.dora.client.block.stream.BlockWorkerClient;
-import alluxio.dora.exception.runtime.AlluxioRuntimeException;
-import alluxio.dora.resource.CloseableResource;
-import alluxio.dora.wire.WorkerInfo;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.resource.CloseableResource;
+import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import java.util.List;
 

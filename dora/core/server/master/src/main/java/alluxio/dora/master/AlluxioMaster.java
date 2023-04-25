@@ -11,9 +11,9 @@
 
 package alluxio.dora.master;
 
-import alluxio.dora.ProcessUtils;
-import alluxio.dora.RuntimeConstants;
-import alluxio.dora.util.CommonUtils;
+import alluxio.ProcessUtils;
+import alluxio.RuntimeConstants;
+import alluxio.util.CommonUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

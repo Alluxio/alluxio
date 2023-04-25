@@ -11,13 +11,13 @@
 
 package alluxio.dora.master;
 
-import alluxio.dora.RestUtils;
-import alluxio.dora.RuntimeConstants;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.ConfigurationValueOptions;
-import alluxio.dora.util.LogUtils;
+import alluxio.RestUtils;
+import alluxio.RuntimeConstants;
+import alluxio.conf.Configuration;
+import alluxio.conf.ConfigurationValueOptions;
+import alluxio.util.LogUtils;
 import alluxio.dora.web.JobMasterWebServer;
-import alluxio.dora.wire.AlluxioJobMasterInfo;
+import alluxio.wire.AlluxioJobMasterInfo;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

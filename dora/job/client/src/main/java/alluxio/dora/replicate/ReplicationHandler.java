@@ -11,8 +11,8 @@
 
 package alluxio.dora.replicate;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.exception.AlluxioException;
+import alluxio.AlluxioURI;
+import alluxio.exception.AlluxioException;
 import alluxio.dora.job.wire.Status;
 
 import java.io.IOException;

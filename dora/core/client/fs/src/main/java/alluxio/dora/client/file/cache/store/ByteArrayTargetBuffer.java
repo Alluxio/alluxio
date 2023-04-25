@@ -11,7 +11,7 @@
 
 package alluxio.dora.client.file.cache.store;
 
-import alluxio.dora.annotation.SuppressFBWarnings;
+import alluxio.annotation.SuppressFBWarnings;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;

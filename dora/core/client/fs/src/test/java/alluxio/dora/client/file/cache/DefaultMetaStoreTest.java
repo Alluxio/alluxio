@@ -16,18 +16,18 @@ import static alluxio.dora.client.file.cache.CacheUsage.PartitionDescriptor.file
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
-import alluxio.dora.Constants;
+import alluxio.Constants;
 import alluxio.dora.client.file.cache.evictor.CacheEvictorOptions;
 import alluxio.dora.client.file.cache.evictor.FIFOCacheEvictor;
 import alluxio.dora.client.file.cache.store.MemoryPageStore;
 import alluxio.dora.client.file.cache.store.MemoryPageStoreDir;
 import alluxio.dora.client.file.cache.store.PageStoreDir;
 import alluxio.dora.client.file.cache.store.PageStoreOptions;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.exception.PageNotFoundException;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.exception.PageNotFoundException;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.Gauge;
 import com.google.common.collect.ImmutableList;

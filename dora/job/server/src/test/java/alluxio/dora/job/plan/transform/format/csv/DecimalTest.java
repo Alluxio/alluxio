@@ -13,9 +13,8 @@ package alluxio.dora.job.plan.transform.format.csv;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.dora.collections.Pair;
+import alluxio.collections.Pair;
 
-import alluxio.dora.job.plan.transform.format.csv.Decimal;
 import org.junit.Test;
 
 import java.math.BigInteger;

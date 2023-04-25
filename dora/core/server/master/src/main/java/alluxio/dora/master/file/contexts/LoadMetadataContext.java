@@ -11,9 +11,9 @@
 
 package alluxio.dora.master.file.contexts;
 
-import alluxio.dora.conf.Configuration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.LoadMetadataPOptions;
-import alluxio.dora.underfs.UfsStatus;
+import alluxio.underfs.UfsStatus;
 import alluxio.dora.util.FileSystemOptionsUtils;
 
 import com.google.common.base.MoreObjects;

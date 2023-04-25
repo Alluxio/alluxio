@@ -89,7 +89,7 @@ FileSystem fs = FileSystem.Factory.get();
 All metadata operations as well as opening a file for reading or creating a file for writing are
 executed through the `FileSystem` object. Since Alluxio files are immutable once written, the
 idiomatic way to create files is to use
-[`FileSystem#createFile(AlluxioURI)`](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.html#createFile-alluxio.dora.AlluxioURI-),
+[`FileSystem#createFile(AlluxioURI)`](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.html#createFile-alluxio.AlluxioURI-),
 which returns a stream object that can be used to write the file. For example:
 
 > Note: there are some file path name limitation when creating files through Alluxio. Please check [Alluxio limitations]({{ '/en/administration/Troubleshooting.html' | relativize_url }}#file-path-limitations)
@@ -113,7 +113,7 @@ metadata (i.e. TTL or pin state) or getting an input stream to read the file.
 
 #### Reading Data
 
-Use [`FileSystem#openFile(AlluxioURI)`](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.html#openFile-alluxio.dora.AlluxioURI-)
+Use [`FileSystem#openFile(AlluxioURI)`](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.html#openFile-alluxio.AlluxioURI-)
 to obtain a stream object that can be used to read a file. For example:
 
 ```java
@@ -298,7 +298,7 @@ blocks to the highest tier.
 By default, data is written to the top tier. Users can modify the default setting through the
 `alluxio.user.file.write.tier.default` [property]({{ '/en/reference/Properties-List.html' | relativize_url }}#alluxio.user.file.write.tier.default)
 or override it through an option to the 
-[`FileSystem#createFile(AlluxioURI, CreateFilePOptions)`](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.html#createFile-alluxio.dora.AlluxioURI-alluxio.grpc.CreateFilePOptions-)
+[`FileSystem#createFile(AlluxioURI, CreateFilePOptions)`](https://docs.alluxio.io/os/javadoc/{{site.ALLUXIO_MAJOR_VERSION}}/alluxio/client/file/FileSystem.html#createFile-alluxio.AlluxioURI-alluxio.grpc.CreateFilePOptions-)
 API call.
 
 #### Javadoc

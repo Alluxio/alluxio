@@ -11,9 +11,9 @@
 
 package alluxio.dora.hadoop;
 
-import alluxio.dora.ProjectConstants;
-import alluxio.dora.conf.InstancedConfiguration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.ProjectConstants;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 
 import org.powermock.core.classloader.MockClassLoader;
 

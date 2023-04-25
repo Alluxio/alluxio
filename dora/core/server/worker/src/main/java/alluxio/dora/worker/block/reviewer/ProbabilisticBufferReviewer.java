@@ -11,10 +11,10 @@
 
 package alluxio.dora.worker.block.reviewer;
 
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.worker.block.meta.StorageDir;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.worker.block.meta.StorageDir;
 import alluxio.dora.worker.block.meta.StorageDirView;
 
 import org.slf4j.Logger;

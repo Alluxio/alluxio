@@ -11,15 +11,15 @@
 
 package alluxio.dora.worker.block.evictor;
 
-import alluxio.dora.collections.Pair;
+import alluxio.collections.Pair;
 import alluxio.dora.worker.block.allocator.Allocator;
-import alluxio.dora.worker.block.meta.StorageDir;
+import alluxio.worker.block.meta.StorageDir;
 import alluxio.dora.worker.block.meta.StorageDirView;
 import alluxio.dora.worker.block.meta.StorageTierView;
 import alluxio.dora.worker.block.AbstractBlockStoreEventListener;
 import alluxio.dora.worker.block.BlockMetadataEvictorView;
-import alluxio.dora.worker.block.BlockStoreLocation;
-import alluxio.dora.worker.block.meta.BlockMeta;
+import alluxio.worker.block.BlockStoreLocation;
+import alluxio.worker.block.meta.BlockMeta;
 import alluxio.dora.worker.block.meta.StorageDirEvictorView;
 
 import com.google.common.base.Preconditions;

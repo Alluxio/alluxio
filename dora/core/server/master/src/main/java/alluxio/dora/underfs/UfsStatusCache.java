@@ -11,17 +11,19 @@
 
 package alluxio.dora.underfs;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.collections.UnmodifiableArrayList;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.InvalidPathException;
+import alluxio.AlluxioURI;
+import alluxio.collections.UnmodifiableArrayList;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.InvalidPathException;
 import alluxio.dora.master.file.DefaultFileSystemMaster;
 import alluxio.dora.master.file.RpcContext;
 import alluxio.dora.master.file.meta.MountTable;
 import alluxio.dora.master.file.meta.UfsAbsentPathCache;
-import alluxio.dora.resource.CloseableResource;
-import alluxio.dora.util.LogUtils;
+import alluxio.resource.CloseableResource;
+import alluxio.underfs.UfsStatus;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.util.LogUtils;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;

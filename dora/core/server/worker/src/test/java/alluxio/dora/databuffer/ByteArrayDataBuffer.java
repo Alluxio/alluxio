@@ -11,7 +11,7 @@
 
 package alluxio.dora.databuffer;
 
-import alluxio.dora.network.protocol.databuffer.DataBuffer;
+import alluxio.network.protocol.databuffer.DataBuffer;
 import com.google.common.base.Preconditions;
 import io.netty.buffer.Unpooled;
 

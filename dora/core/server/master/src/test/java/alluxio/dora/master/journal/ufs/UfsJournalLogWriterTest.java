@@ -13,17 +13,17 @@ package alluxio.dora.master.journal.ufs;
 
 import static org.hamcrest.CoreMatchers.containsString;
 
-import alluxio.dora.RuntimeConstants;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.ExceptionMessage;
-import alluxio.dora.master.NoopMaster;
-import alluxio.dora.master.journal.JournalReader;
-import alluxio.dora.master.journal.JournalReader.State;
-import alluxio.dora.master.journal.ufs.*;
+import alluxio.RuntimeConstants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.ExceptionMessage;
+import alluxio.master.NoopMaster;
+import alluxio.master.journal.JournalReader;
+import alluxio.master.journal.JournalReader.State;
+import alluxio.master.journal.ufs.*;
 import alluxio.proto.journal.Journal;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.util.URIUtils;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.util.URIUtils;
 
 import org.hamcrest.core.StringStartsWith;
 import org.junit.After;

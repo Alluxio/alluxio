@@ -11,8 +11,11 @@
 
 package alluxio.dora.master;
 
-import alluxio.dora.master.journal.JournalSystem;
-import alluxio.dora.util.executor.ExecutorServiceFactory;
+import alluxio.master.AbstractMaster;
+import alluxio.master.BackupManager;
+import alluxio.master.SafeModeManager;
+import alluxio.master.journal.JournalSystem;
+import alluxio.util.executor.ExecutorServiceFactory;
 
 import java.time.Clock;
 

@@ -11,7 +11,7 @@
 
 package alluxio.dora.worker.block.management.tier;
 
-import alluxio.dora.worker.block.BlockStoreLocation;
+import alluxio.worker.block.BlockStoreLocation;
 import alluxio.dora.worker.block.evictor.BlockTransferInfo;
 import alluxio.dora.worker.block.management.BlockTransferPartitioner;
 

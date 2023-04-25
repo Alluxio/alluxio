@@ -16,9 +16,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.exception.FileDoesNotExistException;
-import alluxio.dora.exception.InvalidPathException;
+import alluxio.AlluxioURI;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
@@ -27,7 +27,7 @@ import alluxio.dora.master.file.contexts.DeleteContext;
 import alluxio.dora.master.file.contexts.ListStatusContext;
 import alluxio.dora.master.file.contexts.RenameContext;
 import alluxio.dora.master.metastore.InodeStore;
-import alluxio.dora.wire.FileInfo;
+import alluxio.wire.FileInfo;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

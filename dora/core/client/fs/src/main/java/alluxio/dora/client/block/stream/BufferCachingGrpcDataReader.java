@@ -12,15 +12,15 @@
 package alluxio.dora.client.block.stream;
 
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
-import alluxio.dora.network.protocol.databuffer.DataBuffer;
-import alluxio.dora.network.protocol.databuffer.NioDataBuffer;
-import alluxio.dora.resource.CloseableResource;
-import alluxio.dora.resource.LockResource;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.network.protocol.databuffer.NioDataBuffer;
+import alluxio.resource.CloseableResource;
+import alluxio.resource.LockResource;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;

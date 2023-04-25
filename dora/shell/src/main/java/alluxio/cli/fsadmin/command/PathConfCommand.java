@@ -11,13 +11,13 @@
 
 package alluxio.cli.fsadmin.command;
 
-import alluxio.dora.annotation.PublicApi;
-import alluxio.dora.cli.Command;
+import alluxio.annotation.PublicApi;
+import alluxio.cli.Command;
 import alluxio.cli.fsadmin.pathconf.AddCommand;
 import alluxio.cli.fsadmin.pathconf.ListCommand;
 import alluxio.cli.fsadmin.pathconf.RemoveCommand;
 import alluxio.cli.fsadmin.pathconf.ShowCommand;
-import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.conf.AlluxioConfiguration;
 
 import com.google.common.annotations.VisibleForTesting;
 

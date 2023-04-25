@@ -11,8 +11,8 @@
 
 package alluxio.dora.client.hadoop.contract;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.hadoop.HadoopConfigurationUtils;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
 

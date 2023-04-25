@@ -13,22 +13,22 @@ package alluxio.dora.job.plan.migrate;
 
 import static org.mockito.Mockito.when;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.client.WriteType;
+import alluxio.AlluxioURI;
+import alluxio.client.WriteType;
 import alluxio.dora.client.block.BlockWorkerInfo;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.collections.Pair;
-import alluxio.dora.exception.ExceptionMessage;
-import alluxio.dora.exception.FileDoesNotExistException;
+import alluxio.client.file.URIStatus;
+import alluxio.collections.Pair;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.dora.job.JobServerContext;
 import alluxio.dora.job.SelectExecutorsContext;
 import alluxio.dora.job.plan.SelectExecutorsTest;
-import alluxio.dora.wire.BlockInfo;
-import alluxio.dora.wire.BlockLocation;
-import alluxio.dora.wire.FileBlockInfo;
-import alluxio.dora.wire.FileInfo;
-import alluxio.dora.wire.WorkerInfo;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.BlockLocation;
+import alluxio.wire.FileBlockInfo;
+import alluxio.wire.FileInfo;
+import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;

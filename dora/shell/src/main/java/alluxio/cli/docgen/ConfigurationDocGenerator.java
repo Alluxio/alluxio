@@ -11,10 +11,10 @@
 
 package alluxio.cli.docgen;
 
-import alluxio.dora.annotation.PublicApi;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.annotation.PublicApi;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Closer;

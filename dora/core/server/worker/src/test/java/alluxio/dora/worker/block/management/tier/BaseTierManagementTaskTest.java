@@ -11,12 +11,12 @@
 
 package alluxio.dora.worker.block.management.tier;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.worker.block.AllocateOptions;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.worker.block.AllocateOptions;
 import alluxio.dora.worker.block.BlockLockManager;
 import alluxio.dora.worker.block.BlockMetadataManager;
-import alluxio.dora.worker.block.BlockStoreLocation;
+import alluxio.worker.block.BlockStoreLocation;
 import alluxio.dora.worker.block.TieredBlockReaderFactory;
 import alluxio.dora.worker.block.TieredBlockStore;
 import alluxio.dora.worker.block.TieredBlockStoreTestUtils;
@@ -24,8 +24,8 @@ import alluxio.dora.worker.block.TieredBlockWriterFactory;
 import alluxio.dora.worker.block.TieredTempBlockMetaFactory;
 import alluxio.dora.worker.block.annotator.BlockIterator;
 import alluxio.dora.worker.block.annotator.LRUAnnotator;
-import alluxio.dora.worker.block.io.BlockWriter;
-import alluxio.dora.worker.block.meta.StorageDir;
+import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.block.meta.StorageDir;
 
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;

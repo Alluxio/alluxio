@@ -11,19 +11,23 @@
 
 package alluxio.dora.underfs;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.exception.InvalidPathException;
-import alluxio.dora.master.journal.DelegatingJournaled;
-import alluxio.dora.master.journal.JournalContext;
-import alluxio.dora.master.journal.Journaled;
-import alluxio.dora.master.journal.checkpoint.CheckpointName;
+import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
+import alluxio.exception.InvalidPathException;
+import alluxio.master.journal.DelegatingJournaled;
+import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.Journaled;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.UpdateUfsModeEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.dora.recorder.Recorder;
-import alluxio.dora.resource.CloseableIterator;
-import alluxio.dora.util.network.NetworkAddressUtils;
+import alluxio.recorder.Recorder;
+import alluxio.resource.CloseableIterator;
+import alluxio.underfs.AbstractUfsManager;
+import alluxio.underfs.UfsMode;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.util.network.NetworkAddressUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

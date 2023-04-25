@@ -13,8 +13,8 @@ package alluxio.dora.client.file.cache;
 
 import alluxio.dora.client.file.cache.evictor.CacheEvictorOptions;
 import alluxio.dora.client.file.cache.store.PageStoreOptions;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 
 import java.util.List;
 

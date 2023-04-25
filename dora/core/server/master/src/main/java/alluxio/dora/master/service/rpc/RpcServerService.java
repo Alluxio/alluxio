@@ -11,20 +11,20 @@
 
 package alluxio.dora.master.service.rpc;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.runtime.AlluxioRuntimeException;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.dora.master.MasterProcess;
 import alluxio.dora.master.service.SimpleService;
 import alluxio.grpc.ErrorType;
 import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
-import alluxio.dora.master.AlluxioExecutorService;
-import alluxio.dora.master.MasterRegistry;
-import alluxio.dora.master.SafeModeManager;
-import alluxio.dora.network.RejectingServer;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.WaitForOptions;
+import alluxio.master.AlluxioExecutorService;
+import alluxio.master.MasterRegistry;
+import alluxio.master.SafeModeManager;
+import alluxio.network.RejectingServer;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import com.google.common.base.Preconditions;
 import io.grpc.Status;

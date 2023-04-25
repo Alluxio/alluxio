@@ -14,9 +14,9 @@ package alluxio.dora.client.block.stream;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.client.file.options.OutStreamOptions;
 import alluxio.grpc.RequestType;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Timer;
 

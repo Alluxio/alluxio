@@ -15,10 +15,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.argThat;
 
-import alluxio.dora.ConfigurationRule;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.master.journal.raft.*;
+import alluxio.ConfigurationRule;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.JournalQueryRequest;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
@@ -26,9 +25,10 @@ import alluxio.grpc.RaftJournalServiceGrpc;
 import alluxio.grpc.SnapshotData;
 import alluxio.grpc.UploadSnapshotPRequest;
 import alluxio.grpc.UploadSnapshotPResponse;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.WaitForOptions;
-import alluxio.dora.util.io.BufferUtils;
+import alluxio.master.journal.raft.*;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
+import alluxio.util.io.BufferUtils;
 
 import io.grpc.ManagedChannel;
 import io.grpc.Server;

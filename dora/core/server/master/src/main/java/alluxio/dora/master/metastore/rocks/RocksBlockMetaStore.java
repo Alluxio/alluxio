@@ -11,19 +11,20 @@
 
 package alluxio.dora.master.metastore.rocks;
 
-import static alluxio.dora.rocks.RocksStore.checkSetTableConfig;
+import static alluxio.rocks.RocksStore.checkSetTableConfig;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.master.metastore.BlockMetaStore;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
+import alluxio.master.metastore.rocks.RocksUtils;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
-import alluxio.dora.resource.CloseableIterator;
-import alluxio.dora.rocks.RocksStore;
-import alluxio.dora.util.io.FileUtils;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.resource.CloseableIterator;
+import alluxio.rocks.RocksStore;
+import alluxio.util.io.FileUtils;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;

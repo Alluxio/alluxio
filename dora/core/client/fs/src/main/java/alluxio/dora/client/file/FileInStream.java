@@ -11,11 +11,11 @@
 
 package alluxio.dora.client.file;
 
-import alluxio.dora.Seekable;
+import alluxio.Seekable;
 import alluxio.dora.client.BoundedStream;
 import alluxio.dora.client.PositionedReadable;
-import alluxio.dora.exception.PreconditionMessage;
-import alluxio.dora.util.io.BufferUtils;
+import alluxio.exception.PreconditionMessage;
+import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Preconditions;
 

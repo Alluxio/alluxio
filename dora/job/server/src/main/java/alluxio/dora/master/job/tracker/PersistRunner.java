@@ -19,7 +19,7 @@ import alluxio.dora.job.wire.JobSource;
 import alluxio.dora.master.job.JobMaster;
 import alluxio.dora.master.job.common.CmdInfo;
 import alluxio.dora.master.job.metrics.DistributedCmdMetrics;
-import alluxio.dora.retry.CountingRetry;
+import alluxio.retry.CountingRetry;
 
 import com.google.common.collect.Lists;
 

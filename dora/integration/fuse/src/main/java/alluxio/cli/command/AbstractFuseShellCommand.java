@@ -13,7 +13,7 @@ package alluxio.cli.command;
 
 import alluxio.cli.FuseCommand;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.conf.AlluxioConfiguration;
 
 import javax.annotation.concurrent.ThreadSafe;
 

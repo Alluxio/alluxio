@@ -11,9 +11,9 @@
 
 package alluxio.dora.master.meta;
 
-import alluxio.dora.ProjectConstants;
-import alluxio.dora.check.UpdateCheck;
-import alluxio.dora.heartbeat.HeartbeatExecutor;
+import alluxio.ProjectConstants;
+import alluxio.check.UpdateCheck;
+import alluxio.heartbeat.HeartbeatExecutor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

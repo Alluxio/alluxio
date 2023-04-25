@@ -11,14 +11,14 @@
 
 package alluxio.dora.client.file.cache;
 
-import static alluxio.dora.client.file.CacheContext.StatsUnit.BYTE;
+import static alluxio.client.file.CacheContext.StatsUnit.BYTE;
 
-import alluxio.dora.client.file.CacheContext;
+import alluxio.client.file.CacheContext;
 import alluxio.dora.client.file.cache.store.PageReadTargetBuffer;
-import alluxio.dora.client.quota.CacheScope;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
+import alluxio.client.quota.CacheScope;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;

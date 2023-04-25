@@ -11,8 +11,8 @@
 
 package alluxio.dora.client.rest;
 
-import alluxio.dora.Constants;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.Constants;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.ListAllPOptions;
 import alluxio.dora.job.JobConfig;
 import alluxio.dora.job.ServiceConstants;
@@ -21,10 +21,10 @@ import alluxio.dora.job.wire.Status;
 import alluxio.dora.master.LocalAlluxioJobCluster;
 import alluxio.dora.master.job.JobMaster;
 import alluxio.dora.master.job.JobMasterClientRestServiceHandler;
-import alluxio.dora.security.authentication.AuthType;
+import alluxio.security.authentication.AuthType;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.WaitForOptions;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

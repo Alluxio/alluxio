@@ -11,11 +11,11 @@
 
 package alluxio.dora.client.block.policy;
 
-import alluxio.dora.annotation.PublicApi;
+import alluxio.annotation.PublicApi;
 import alluxio.dora.client.block.policy.options.GetWorkerOptions;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.wire.WorkerNetAddress;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.util.CommonUtils;
+import alluxio.wire.WorkerNetAddress;
 import alluxio.dora.client.file.FileInStream;
 
 import java.util.Optional;

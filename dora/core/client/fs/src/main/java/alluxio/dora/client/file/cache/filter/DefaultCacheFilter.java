@@ -11,8 +11,8 @@
 
 package alluxio.dora.client.file.cache.filter;
 
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.conf.AlluxioConfiguration;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
 
 /**
  * Default Cache Filter cache everything.

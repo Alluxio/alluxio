@@ -11,18 +11,19 @@
 
 package alluxio.dora.master.journal.raft;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.master.journal.CountingNoopFileSystemMaster;
 import alluxio.grpc.QuorumServerInfo;
-import alluxio.dora.master.NoopMaster;
-import alluxio.dora.master.StateLockManager;
-import alluxio.dora.master.journal.CatchupFuture;
-import alluxio.dora.master.journal.JournalContext;
+import alluxio.master.NoopMaster;
+import alluxio.master.StateLockManager;
+import alluxio.master.journal.CatchupFuture;
+import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.Journal;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.util.WaitForOptions;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.ratis.conf.RaftProperties;

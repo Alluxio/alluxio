@@ -14,11 +14,11 @@ package alluxio.dora.worker.grpc;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.grpc.RequestType;
-import alluxio.dora.util.CommonUtils;
-import alluxio.dora.worker.block.BlockWorker;
+import alluxio.util.CommonUtils;
+import alluxio.worker.block.BlockWorker;
 import alluxio.dora.worker.block.NoopBlockWorker;
-import alluxio.dora.worker.block.io.BlockWriter;
-import alluxio.dora.worker.block.io.LocalFileBlockWriter;
+import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.block.io.LocalFileBlockWriter;
 
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;

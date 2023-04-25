@@ -11,10 +11,10 @@
 
 package alluxio.dora.worker.dora;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.underfs.AbstractUfsManager;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.util.network.NetworkAddressUtils;
+import alluxio.conf.Configuration;
+import alluxio.underfs.AbstractUfsManager;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.util.network.NetworkAddressUtils;
 
 import java.io.IOException;
 

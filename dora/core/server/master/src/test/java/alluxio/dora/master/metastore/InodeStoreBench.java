@@ -11,15 +11,15 @@
 
 package alluxio.dora.master.metastore;
 
-import alluxio.dora.Constants;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.Constants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.master.file.contexts.CreateDirectoryContext;
 import alluxio.dora.master.file.meta.MutableInodeDirectory;
-import alluxio.dora.master.journal.checkpoint.CheckpointInputStream;
+import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.dora.master.metastore.heap.HeapInodeStore;
 import alluxio.dora.master.metastore.rocks.RocksInodeStore;
-import alluxio.dora.util.CommonUtils;
+import alluxio.util.CommonUtils;
 
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Layout;

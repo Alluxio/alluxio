@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.file.contexts;
 
-import alluxio.dora.wire.OperationId;
+import alluxio.wire.OperationId;
 
 import com.google.protobuf.GeneratedMessageV3;
 

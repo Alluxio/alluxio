@@ -11,12 +11,12 @@
 
 package alluxio.dora.client.meta;
 
-import alluxio.dora.AlluxioURI;
-import alluxio.dora.Client;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.AlluxioURI;
+import alluxio.Client;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.GetConfigurationPOptions;
-import alluxio.dora.wire.ConfigHash;
-import alluxio.dora.wire.Configuration;
+import alluxio.wire.ConfigHash;
+import alluxio.wire.Configuration;
 
 import java.io.IOException;
 import java.util.HashMap;

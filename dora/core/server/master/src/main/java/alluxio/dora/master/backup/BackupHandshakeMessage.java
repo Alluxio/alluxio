@@ -11,7 +11,7 @@
 
 package alluxio.dora.master.backup;
 
-import alluxio.dora.master.transport.GrpcMessagingConnection;
+import alluxio.master.transport.GrpcMessagingConnection;
 
 import com.google.common.base.MoreObjects;
 import io.atomix.catalyst.buffer.BufferInput;

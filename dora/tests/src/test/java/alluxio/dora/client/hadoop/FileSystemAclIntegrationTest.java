@@ -11,23 +11,23 @@
 
 package alluxio.dora.client.hadoop;
 
-import alluxio.dora.Constants;
-import alluxio.dora.client.WriteType;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.Constants;
+import alluxio.client.WriteType;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.hadoop.FileSystem;
 import alluxio.dora.hadoop.HadoopClientTestUtils;
 import alluxio.dora.hadoop.HadoopConfigurationUtils;
-import alluxio.dora.security.authentication.AuthType;
-import alluxio.dora.security.authorization.Mode;
+import alluxio.security.authentication.AuthType;
+import alluxio.security.authorization.Mode;
 import alluxio.dora.testutils.BaseIntegrationTest;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
-import alluxio.dora.underfs.UfsStatus;
-import alluxio.dora.underfs.UnderFileSystem;
-import alluxio.dora.underfs.options.CreateOptions;
-import alluxio.dora.underfs.options.MkdirsOptions;
-import alluxio.dora.util.UnderFileSystemUtils;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.underfs.UfsStatus;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.MkdirsOptions;
+import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.Lists;
 import org.apache.hadoop.fs.FSDataOutputStream;

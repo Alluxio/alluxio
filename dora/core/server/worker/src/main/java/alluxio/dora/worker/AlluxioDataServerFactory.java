@@ -11,14 +11,15 @@
 
 package alluxio.dora.worker;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.BlockWorkerGrpc;
-import alluxio.dora.underfs.UfsManager;
-import alluxio.dora.util.io.FileUtils;
-import alluxio.dora.util.io.PathUtils;
+import alluxio.underfs.UfsManager;
+import alluxio.util.io.FileUtils;
+import alluxio.util.io.PathUtils;
 import alluxio.dora.worker.block.DefaultBlockWorker;
-import alluxio.dora.worker.dora.DoraWorker;
+import alluxio.worker.DataWorker;
+import alluxio.worker.dora.DoraWorker;
 import alluxio.dora.worker.grpc.BlockWorkerClientServiceHandler;
 import alluxio.dora.worker.grpc.DoraWorkerClientServiceHandler;
 import alluxio.dora.worker.grpc.GrpcDataServer;

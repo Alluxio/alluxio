@@ -11,8 +11,8 @@
 
 package alluxio.dora.master.file.contexts;
 
-import alluxio.dora.Constants;
-import alluxio.dora.conf.Configuration;
+import alluxio.Constants;
+import alluxio.conf.Configuration;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.dora.util.FileSystemOptionsUtils;
 

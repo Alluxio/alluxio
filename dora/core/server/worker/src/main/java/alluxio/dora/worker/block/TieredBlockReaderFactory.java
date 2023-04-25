@@ -11,9 +11,10 @@
 
 package alluxio.dora.worker.block;
 
-import alluxio.dora.worker.block.io.BlockReader;
+import alluxio.worker.block.BlockReaderFactory;
+import alluxio.worker.block.io.BlockReader;
 import alluxio.dora.worker.block.io.StoreBlockReader;
-import alluxio.dora.worker.block.meta.BlockMeta;
+import alluxio.worker.block.meta.BlockMeta;
 
 import java.io.IOException;
 import java.nio.channels.FileChannel;

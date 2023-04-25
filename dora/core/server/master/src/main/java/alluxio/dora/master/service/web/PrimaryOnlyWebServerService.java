@@ -13,7 +13,7 @@ package alluxio.dora.master.service.web;
 
 import alluxio.dora.master.MasterProcess;
 import alluxio.dora.master.service.rpc.RpcServerService;
-import alluxio.dora.network.RejectingServer;
+import alluxio.network.RejectingServer;
 
 import com.google.common.base.Preconditions;
 

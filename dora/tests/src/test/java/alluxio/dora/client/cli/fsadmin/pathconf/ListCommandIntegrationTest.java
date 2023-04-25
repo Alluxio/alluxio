@@ -11,18 +11,18 @@
 
 package alluxio.dora.client.cli.fsadmin.pathconf;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.cli.fsadmin.FileSystemAdminShell;
-import alluxio.dora.client.ReadType;
-import alluxio.dora.client.WriteType;
+import alluxio.client.ReadType;
+import alluxio.client.WriteType;
 import alluxio.dora.client.cli.fs.AbstractShellIntegrationTest;
 import alluxio.dora.client.file.FileSystemContext;
 import alluxio.dora.client.meta.MetaMasterConfigClient;
 import alluxio.dora.client.meta.RetryHandlingMetaMasterConfigClient;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.InstancedConfiguration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.master.MasterClientContext;
+import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
+import alluxio.master.MasterClientContext;
 
 import org.junit.Assert;
 import org.junit.Test;

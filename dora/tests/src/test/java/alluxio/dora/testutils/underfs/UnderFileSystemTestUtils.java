@@ -11,8 +11,8 @@
 
 package alluxio.dora.testutils.underfs;
 
-import alluxio.dora.Constants;
-import alluxio.dora.underfs.UnderFileSystem;
+import alluxio.Constants;
+import alluxio.underfs.UnderFileSystem;
 
 import javax.annotation.concurrent.ThreadSafe;
 

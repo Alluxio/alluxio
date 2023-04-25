@@ -11,11 +11,11 @@
 
 package alluxio.dora.worker.dora;
 
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.worker.Worker;
-import alluxio.dora.worker.WorkerFactory;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.worker.Worker;
+import alluxio.worker.WorkerFactory;
 
 import com.google.inject.Inject;
 

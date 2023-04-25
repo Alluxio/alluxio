@@ -14,16 +14,15 @@ package alluxio.dora.master.file;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.master.file.DefaultFileSystemMaster;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.master.file.DefaultFileSystemMaster.Metrics;
 import alluxio.dora.master.file.meta.InodeTree;
-import alluxio.dora.metrics.MetricKey;
-import alluxio.dora.metrics.MetricsSystem;
-import alluxio.dora.resource.CloseableResource;
-import alluxio.dora.underfs.UfsManager;
-import alluxio.dora.underfs.UnderFileSystem;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.resource.CloseableResource;
+import alluxio.underfs.UfsManager;
+import alluxio.underfs.UnderFileSystem;
 
 import org.junit.Before;
 import org.junit.Test;

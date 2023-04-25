@@ -11,8 +11,8 @@
 
 package alluxio.dora.worker.block.management;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.dora.worker.block.BlockMetadataEvictorView;
 import alluxio.dora.worker.block.BlockMetadataManager;
 import alluxio.dora.worker.block.LocalBlockStore;

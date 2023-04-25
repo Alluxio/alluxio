@@ -11,10 +11,10 @@
 
 package alluxio.dora.master.file;
 
-import alluxio.dora.exception.AccessControlException;
-import alluxio.dora.exception.InvalidPathException;
+import alluxio.exception.AccessControlException;
+import alluxio.exception.InvalidPathException;
 import alluxio.dora.master.file.meta.LockedInodePath;
-import alluxio.dora.security.authorization.Mode;
+import alluxio.security.authorization.Mode;
 
 /**
  * interface to provide permission check logic.

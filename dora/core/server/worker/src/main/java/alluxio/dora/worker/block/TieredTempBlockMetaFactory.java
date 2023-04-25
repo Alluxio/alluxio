@@ -11,9 +11,9 @@
 
 package alluxio.dora.worker.block;
 
-import alluxio.dora.worker.block.TempBlockMetaFactory;
-import alluxio.dora.worker.block.meta.DirView;
-import alluxio.dora.worker.block.meta.TempBlockMeta;
+import alluxio.worker.block.TempBlockMetaFactory;
+import alluxio.worker.block.meta.DirView;
+import alluxio.worker.block.meta.TempBlockMeta;
 
 /**
  * Factory of TempBlockMeta.

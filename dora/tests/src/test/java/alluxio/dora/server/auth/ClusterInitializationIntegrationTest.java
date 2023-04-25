@@ -13,18 +13,18 @@ package alluxio.dora.server.auth;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
-import alluxio.dora.exception.ExceptionMessage;
-import alluxio.dora.exception.status.PermissionDeniedException;
+import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.PermissionDeniedException;
 import alluxio.dora.master.file.FileSystemMaster;
 import alluxio.dora.master.file.contexts.GetStatusContext;
-import alluxio.dora.security.authentication.AuthType;
-import alluxio.dora.security.authentication.AuthenticatedClientUser;
-import alluxio.dora.security.user.TestUserState;
+import alluxio.security.authentication.AuthType;
+import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.user.TestUserState;
 import alluxio.dora.testutils.BaseIntegrationTest;
 import alluxio.dora.testutils.LocalAlluxioClusterResource;
 import alluxio.dora.testutils.master.FsMasterResource;

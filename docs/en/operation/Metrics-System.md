@@ -99,7 +99,7 @@ In the metrics property file, `$ALLUXIO_HOME/conf/metrics.properties` by default
 
 ```properties
 # Enable PrometheusMetricsServlet
-sink.prometheus.class=alluxio.dora.sink.PrometheusMetricsServlet
+sink.prometheus.class=alluxio.sink.PrometheusMetricsServlet
 ```
 
 If Alluxio is deployed in a cluster, this file needs to be distributed to all the nodes.
@@ -179,7 +179,7 @@ In the metrics property file, `$ALLUXIO_HOME/conf/metrics.properties` by default
 
 ```properties
 # Enable CsvSink
-sink.csv.class=alluxio.dora.metrics.sink.CsvSink
+sink.csv.class=alluxio.sink.metrics.CsvSink
 
 # Polling period for CsvSink
 sink.csv.period=1

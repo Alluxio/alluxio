@@ -11,8 +11,8 @@
 
 package alluxio.dora.master.file.meta;
 
-import alluxio.dora.conf.Configuration;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 
 import com.google.common.base.Objects;
 

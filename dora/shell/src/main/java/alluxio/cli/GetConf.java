@@ -11,17 +11,17 @@
 
 package alluxio.cli;
 
-import alluxio.dora.ClientContext;
-import alluxio.dora.annotation.PublicApi;
+import alluxio.ClientContext;
+import alluxio.annotation.PublicApi;
 import alluxio.dora.client.meta.RetryHandlingMetaMasterConfigClient;
-import alluxio.dora.conf.AlluxioConfiguration;
-import alluxio.dora.conf.ConfigurationValueOptions;
-import alluxio.dora.conf.PropertyKey;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.ConfigurationValueOptions;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
-import alluxio.dora.master.MasterClientContext;
-import alluxio.dora.util.ConfigurationUtils;
-import alluxio.dora.util.FormatUtils;
+import alluxio.master.MasterClientContext;
+import alluxio.util.ConfigurationUtils;
+import alluxio.util.FormatUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;

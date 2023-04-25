@@ -11,10 +11,10 @@
 
 package alluxio.dora.master.job.tracker;
 
-import alluxio.dora.AlluxioURI;
+import alluxio.AlluxioURI;
 import alluxio.dora.client.file.FileSystemContext;
-import alluxio.dora.client.file.URIStatus;
-import alluxio.dora.exception.AlluxioException;
+import alluxio.client.file.URIStatus;
+import alluxio.exception.AlluxioException;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.OperationType;
 import alluxio.dora.job.JobConfig;
@@ -24,7 +24,7 @@ import alluxio.dora.job.wire.JobSource;
 import alluxio.dora.master.job.JobMaster;
 import alluxio.dora.master.job.common.CmdInfo;
 import alluxio.dora.master.job.metrics.DistributedCmdMetrics;
-import alluxio.dora.retry.CountingRetry;
+import alluxio.retry.CountingRetry;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
