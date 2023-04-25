@@ -1326,6 +1326,123 @@
             "name": "CacheResponse"
           },
           {
+            "name": "CopyRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "routes",
+                "type": "Route",
+                "is_repeated": true
+              },
+              {
+                "id": 2,
+                "name": "ufs_read_options",
+                "type": "UfsReadOptions"
+              },
+              {
+                "id": 3,
+                "name": "write_options",
+                "type": "WriteOptions"
+              },
+              {
+                "id": 4,
+                "name": "ufs_only",
+                "type": "bool"
+              }
+            ]
+          },
+          {
+            "name": "Route",
+            "fields": [
+              {
+                "id": 1,
+                "name": "src",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "dst",
+                "type": "string"
+              },
+              {
+                "id": 3,
+                "name": "length",
+                "type": "int64"
+              },
+              {
+                "id": 4,
+                "name": "src_ufs_address",
+                "type": "string"
+              },
+              {
+                "id": 5,
+                "name": "dst_ufs_address",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "CopyResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "status",
+                "type": "TaskStatus"
+              },
+              {
+                "id": 2,
+                "name": "file_status",
+                "type": "FileStatus",
+                "is_repeated": true
+              }
+            ]
+          },
+          {
+            "name": "WriteOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "overwrite",
+                "type": "bool"
+              },
+              {
+                "id": 2,
+                "name": "write_type",
+                "type": "grpc.file.WritePType"
+              },
+              {
+                "id": 3,
+                "name": "check_content",
+                "type": "bool"
+              }
+            ]
+          },
+          {
+            "name": "FileStatus",
+            "fields": [
+              {
+                "id": 1,
+                "name": "route",
+                "type": "Route"
+              },
+              {
+                "id": 2,
+                "name": "code",
+                "type": "int32"
+              },
+              {
+                "id": 3,
+                "name": "message",
+                "type": "string"
+              },
+              {
+                "id": 4,
+                "name": "retryable",
+                "type": "bool"
+              }
+            ]
+          },
+          {
             "name": "OpenLocalBlockRequest",
             "fields": [
               {
@@ -1500,6 +1617,11 @@
                 "name": "LoadFile",
                 "in_type": "LoadFileRequest",
                 "out_type": "LoadFileResponse"
+              },
+              {
+                "name": "Copy",
+                "in_type": "CopyRequest",
+                "out_type": "CopyResponse"
               },
               {
                 "name": "RemoveBlock",
@@ -2495,6 +2617,21 @@
                     "value": "NEW_PATHS"
                   }
                 ]
+              },
+              {
+                "id": 13,
+                "name": "overwrite",
+                "type": "bool"
+              },
+              {
+                "id": 14,
+                "name": "checkS3BucketPath",
+                "type": "bool"
+              },
+              {
+                "id": 15,
+                "name": "workerLocation",
+                "type": "grpc.WorkerNetAddress"
               }
             ],
             "maps": [
@@ -3870,6 +4007,16 @@
               {
                 "id": 4,
                 "name": "overwrite",
+                "type": "bool"
+              },
+              {
+                "id": 5,
+                "name": "writeType",
+                "type": "WritePType"
+              },
+              {
+                "id": 6,
+                "name": "ufs_only",
                 "type": "bool"
               }
             ]
@@ -9982,45 +10129,65 @@
               },
               {
                 "id": 3,
+                "name": "src_ufs_address",
+                "type": "string"
+              },
+              {
+                "id": 4,
+                "name": "dst_ufs_address",
+                "type": "string"
+              },
+              {
+                "id": 5,
                 "name": "state",
                 "type": "PJobState"
               },
               {
-                "id": 4,
+                "id": 6,
                 "name": "bandwidth",
                 "type": "int64"
               },
               {
-                "id": 5,
+                "id": 7,
                 "name": "verify",
                 "type": "bool"
               },
               {
-                "id": 6,
+                "id": 8,
                 "name": "user",
                 "type": "string"
               },
               {
-                "id": 7,
+                "id": 9,
                 "name": "partialListing",
                 "type": "bool"
               },
               {
-                "id": 8,
+                "id": 10,
                 "name": "job_id",
                 "type": "string"
               },
               {
-                "id": 9,
+                "id": 11,
                 "name": "end_time",
                 "type": "int64"
               },
               {
-                "id": 10,
+                "id": 12,
                 "name": "overwrite",
-                "type": "int64"
+                "type": "bool"
+              },
+              {
+                "id": 13,
+                "name": "writeType",
+                "type": "grpc.file.WritePType"
               }
             ]
+          }
+        ],
+        "imports": [
+          {
+            "path": "grpc/file_system_master.proto"
           }
         ],
         "package": {

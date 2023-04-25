@@ -36,6 +36,7 @@ service BlockWorker {
   rpc Cache (CacheRequest) returns (CacheResponse);
   rpc Load(LoadRequest)returns (LoadResponse);
   rpc LoadFile(LoadFileRequest)returns (LoadFileResponse);
+  rpc Copy(CopyRequest)returns (CopyResponse);
   rpc RemoveBlock (RemoveBlockRequest) returns (RemoveBlockResponse);
   rpc MoveBlock (MoveBlockRequest) returns (MoveBlockResponse);
 
@@ -189,6 +190,7 @@ enum TaskStatus {
 
 message LoadFileRequest {
   repeated File files = 1;
+  required UfsReadOptions options = 2;
 }
 
 message File{
@@ -230,6 +232,40 @@ message AsyncCacheResponse {}
 
 // Response for an async cache request
 message CacheResponse {}
+
+message CopyRequest {
+  repeated Route routes = 1;
+  optional UfsReadOptions ufs_read_options = 2;
+  required WriteOptions write_options= 3;
+}
+
+message Route {
+  required string src = 1;
+  required string dst = 2;
+  optional int64 length = 3;
+  optional string src_ufs_address = 4;
+  optional string dst_ufs_address = 5;
+}
+
+message CopyResponse {
+  required TaskStatus status = 1;
+  repeated RouteFailure failures = 2;
+}
+
+message WriteOptions {
+  optional bool overwrite = 1;
+  optional grpc.file.WritePType write_type = 2;
+  optional bool check_content = 3;
+}
+
+message RouteFailure {
+  required Route route = 1;
+  // The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
+  required int32 code = 2;
+  // A developer-facing error message
+  optional string message = 3;
+  optional bool retryable = 4;
+}
 
 // next available id: 3
 message OpenLocalBlockRequest {

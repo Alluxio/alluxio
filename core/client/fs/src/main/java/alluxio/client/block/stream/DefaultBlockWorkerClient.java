@@ -19,6 +19,8 @@ import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.ClearMetricsRequest;
 import alluxio.grpc.ClearMetricsResponse;
+import alluxio.grpc.CopyRequest;
+import alluxio.grpc.CopyResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.DataMessageMarshaller;
@@ -264,5 +266,10 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   public Iterator<ListStatusPResponse> listStatus(ListStatusPRequest request) {
     return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
         .listStatus(request);
+  }
+
+  @Override
+  public ListenableFuture<CopyResponse> copy(CopyRequest request) {
+    return mRpcFutureStub.copy(request);
   }
 }

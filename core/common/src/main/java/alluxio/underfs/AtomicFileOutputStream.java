@@ -75,13 +75,15 @@ public class AtomicFileOutputStream extends OutputStream {
       return;
     }
     mTemporaryOutputStream.close();
-
-    if (!mUfs.renameFile(mTemporaryPath, mPermanentPath)) {
+    try {
+      if (!mUfs.renameFile(mTemporaryPath, mPermanentPath)) {
+        throw new IOException(
+            ExceptionMessage.FAILED_UFS_RENAME.getMessage(mTemporaryPath, mPermanentPath));
+      }
+    } finally {
       if (!mUfs.deleteFile(mTemporaryPath)) {
         LOG.error("Failed to delete temporary file {}", mTemporaryPath);
       }
-      throw new IOException(
-          ExceptionMessage.FAILED_UFS_RENAME.getMessage(mTemporaryPath, mPermanentPath));
     }
 
     // Preserve owner and group in case delegation was used to create the path

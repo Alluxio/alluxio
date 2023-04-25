@@ -142,7 +142,7 @@ public class AlluxioRuntimeException extends RuntimeException {
     if (t instanceof IllegalArgumentException) {
       return new InvalidArgumentRuntimeException(t);
     }
-    if (t instanceof IllegalStateException) {
+    if (t instanceof IllegalStateException || t instanceof NullPointerException) {
       return new InternalRuntimeException(t);
     }
     if (t instanceof CompletionException) {
@@ -193,6 +193,7 @@ public class AlluxioRuntimeException extends RuntimeException {
   }
 
   @Override
+  @Nullable
   public String getMessage() {
     String message = super.getMessage();
     if (message == null && getCause() != null) {

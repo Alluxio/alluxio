@@ -68,7 +68,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Stack;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -566,33 +565,20 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
           LOG.debug("Trying to create existing directory at {}", path);
           return false;
         }
-        // Create directories one by one with explicit permissions to ensure no umask is applied,
-        // using mkdirs will apply the permission only to the last directory
-        Stack<Path> dirsToMake = new Stack<>();
-        dirsToMake.push(hdfsPath);
-        Path parent = hdfsPath.getParent();
-        while (!hdfs.exists(parent)) {
-          dirsToMake.push(parent);
-          parent = parent.getParent();
+        if (!hdfs.mkdirs(hdfsPath, new FsPermission(options.getMode().toShort()))) {
+          return false;
         }
-        while (!dirsToMake.empty()) {
-          Path dirToMake = dirsToMake.pop();
-          if (!FileSystem.mkdirs(hdfs, dirToMake,
-              new FsPermission(options.getMode().toShort()))) {
-            return false;
-          }
-          // Set the owner to the Alluxio client user to achieve permission delegation.
-          // Alluxio server-side user is required to be a HDFS superuser. If it fails to set owner,
-          // proceeds with mkdirs and print out an warning message.
-          try {
-            setOwner(dirToMake.toString(), options.getOwner(), options.getGroup());
-          } catch (IOException e) {
-            LOG.warn("Failed to update the ufs dir ownership, default values will be used. " + e);
-          }
+        // Set the owner to the Alluxio client user to achieve permission delegation.
+        // Alluxio server-side user is required to be a HDFS superuser. If it fails to set owner,
+        // proceeds with mkdirs and print out an warning message.
+        try {
+          setOwner(hdfsPath.toString(), options.getOwner(), options.getGroup());
+        } catch (IOException e) {
+          LOG.warn("Failed to update the ufs dir ownership, default values will be used. " + e);
         }
         return true;
       } catch (IOException e) {
-        LOG.warn("{} try to make directory for {} : {}", retryPolicy.getAttemptCount(), path,
+        LOG.debug("{} try to make directory for {} : {}", retryPolicy.getAttemptCount(), path,
             e.toString());
         te = e;
       }

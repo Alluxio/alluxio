@@ -13,6 +13,7 @@ package alluxio.master.scheduler;
 
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.runtime.UnavailableRuntimeException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.job.JobFactoryProducer;
@@ -23,25 +24,35 @@ import alluxio.proto.journal.Journal;
 import alluxio.resource.CloseableIterator;
 import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobMetaStore;
+import alluxio.underfs.UfsManager;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.wire.MountPointInfo;
 
 import com.google.common.collect.Iterators;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
  * A journaled job meta store.
  */
 public class JournaledJobMetaStore implements JobMetaStore, Journaled {
+  private static final Logger LOG = LoggerFactory.getLogger(JournaledJobMetaStore.class);
   private final FileSystemMaster mFileSystemMaster;
-  private final Set<Job<?>>
-      mExistingJobs = new ConcurrentHashSet<>();
+  private final Set<Job<?>> mExistingJobs = new ConcurrentHashSet<>();
+  private final UfsManager mUfsManager;
 
   /**
-   *  Creates a new instance of {@link JournaledJobMetaStore}.
+   * Creates a new instance of {@link JournaledJobMetaStore}.
+   *
    * @param fileSystemMaster the file system master
+   * @param ufsManager
    */
-  public JournaledJobMetaStore(FileSystemMaster fileSystemMaster) {
+  public JournaledJobMetaStore(FileSystemMaster fileSystemMaster, UfsManager ufsManager) {
     mFileSystemMaster = fileSystemMaster;
+    mUfsManager = ufsManager;
   }
 
   @Override
@@ -52,12 +63,31 @@ public class JournaledJobMetaStore implements JobMetaStore, Journaled {
 
   @Override
   public boolean processJournalEntry(Journal.JournalEntry entry) {
-    if (!entry.hasLoadJob()) {
+    if (!entry.hasLoadJob() && !entry.hasCopyJob()) {
       return false;
     }
-    Job<?> job = JobFactoryProducer
-        .create(entry, mFileSystemMaster).create();
-    mExistingJobs.add(job);
+    if (entry.hasLoadJob()) {
+      Job<?> job = JobFactoryProducer.create(entry, mFileSystemMaster).create();
+      mExistingJobs.add(job);
+    }
+    if (entry.hasCopyJob()) {
+      Map<String, MountPointInfo> mountPointInfoSummary =
+          mFileSystemMaster.getMountPointInfoSummary(false);
+      UnderFileSystem ufsClient = null;
+      // no need to close under file system cause most close methods are noop
+      try {
+        ufsClient = mUfsManager
+            .get(mountPointInfoSummary.get(entry.getCopyJob().getSrcUfsAddress()).getMountId())
+            .acquireUfsResource().get();
+      } catch (NotFoundException | UnavailableException e) {
+        // should not happen in normal case, only happens when there's change in mount table during
+        // journal processing, but we should not fail the journal processing
+        LOG.warn("Failed to get ufs client for ufs address {}",
+            entry.getCopyJob().getSrcUfsAddress(), e);
+      }
+      Job<?> job = JobFactoryProducer.create(entry, ufsClient).create();
+      mExistingJobs.add(job);
+    }
     return true;
   }
 
