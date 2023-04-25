@@ -35,9 +35,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.File;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -80,7 +80,8 @@ public class PagedDoraWorkerTest {
     String ufsPath = mTestFolder.newFile("test").getAbsolutePath();
     byte[] buffer = BufferUtils.getIncreasingByteArray((int) length);
     BufferUtils.writeBufferToFile(ufsPath, buffer);
-    alluxio.grpc.File file = alluxio.grpc.File.newBuilder().setUfsPath(ufsPath).setLength(length).setMountId(1).build();
+    alluxio.grpc.File file =
+        alluxio.grpc.File.newBuilder().setUfsPath(ufsPath).setLength(length).setMountId(1).build();
     ListenableFuture<List<FileFailure>> load = mWorker.load(Collections.singletonList(file),
         UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build());
     List<FileFailure> fileFailures = load.get(30, TimeUnit.SECONDS);
@@ -144,8 +145,8 @@ public class PagedDoraWorkerTest {
              .setSrcUfsAddress(srcRoot.getAbsolutePath()).setLength(length).build();
 
     WriteOptions writeOptions = WriteOptions.newBuilder().setOverwrite(false).build();
-    ListenableFuture<List<RouteFailure>> copy = mWorker.copy(Collections.singletonList(route),
-        null, writeOptions);
+    ListenableFuture<List<RouteFailure>> copy =
+        mWorker.copy(Collections.singletonList(route), null, writeOptions);
     List<RouteFailure> failures = copy.get();
     Assert.assertEquals(1, failures.size());
     Assert.assertFalse(b.exists());
@@ -174,7 +175,8 @@ public class PagedDoraWorkerTest {
   }
 
   @Test
-  public void testFolderWithFileCopy() throws IOException, ExecutionException, InterruptedException {
+  public void testFolderWithFileCopy()
+      throws IOException, ExecutionException, InterruptedException {
     File srcRoot = mTestFolder.newFolder("src");
     File dstRoot = mTestFolder.newFolder("dst");
     // create test file under mSrcFolder
@@ -204,8 +206,7 @@ public class PagedDoraWorkerTest {
     WriteOptions writeOptions = WriteOptions.newBuilder().setOverwrite(false).build();
     UfsReadOptions read =
         UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build();
-    ListenableFuture<List<RouteFailure>> copy =
-        mWorker.copy(routes, read, writeOptions);
+    ListenableFuture<List<RouteFailure>> copy = mWorker.copy(routes, read, writeOptions);
     List<RouteFailure> failures = copy.get();
 
     Assert.assertEquals(0, failures.size());

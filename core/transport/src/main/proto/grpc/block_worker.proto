@@ -237,9 +237,6 @@ message CopyRequest {
   repeated Route routes = 1;
   optional UfsReadOptions ufs_read_options = 2;
   required WriteOptions write_options= 3;
-  // temporary option to only copy from UFS to UFS, will be removed in the future when new
-  // write type is introduced
-  optional bool ufs_only = 4;
 }
 
 message Route {

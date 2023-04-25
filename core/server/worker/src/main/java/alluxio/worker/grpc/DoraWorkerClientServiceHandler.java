@@ -135,7 +135,8 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   public void copy(CopyRequest request, StreamObserver<CopyResponse> responseObserver) {
     try {
       ListenableFuture<List<RouteFailure>> failures =
-          mWorker.copy(request.getRoutesList(),request.getUfsReadOptions(),request.getWriteOptions());
+          mWorker.copy(request.getRoutesList(), request.getUfsReadOptions(),
+              request.getWriteOptions());
       ListenableFuture<CopyResponse> future = Futures.transform(failures, fail -> {
         int numFiles = request.getRoutesCount();
         TaskStatus taskStatus = TaskStatus.SUCCESS;
