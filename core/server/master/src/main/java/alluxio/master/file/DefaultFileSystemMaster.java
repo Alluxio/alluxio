@@ -514,7 +514,8 @@ public class DefaultFileSystemMaster extends CoreMaster
     mSyncMetadataExecutor.allowCoreThreadTimeOut(true);
     mActiveSyncMetadataExecutor.allowCoreThreadTimeOut(true);
     FileSystemContext schedulerFsContext = FileSystemContext.create();
-    JournaledJobMetaStore jobMetaStore = new JournaledJobMetaStore(this);
+    JournaledJobMetaStore jobMetaStore = new JournaledJobMetaStore(this, masterContext
+        .getUfsManager());
     mScheduler = new Scheduler(new DefaultWorkerProvider(this, schedulerFsContext), jobMetaStore);
 
     // The mount table should come after the inode tree because restoring the mount table requires
@@ -3255,6 +3256,13 @@ public class DefaultFileSystemMaster extends CoreMaster
       lostFiles.add(fileId);
     }
     return lostFiles;
+  }
+
+  /**
+   * @return the {@link MasterUfsManager} for this master
+   */
+  public MasterUfsManager getUfsManager() {
+    return mUfsManager;
   }
 
   /**

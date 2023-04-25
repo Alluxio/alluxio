@@ -1010,13 +1010,44 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_JOB_LOAD_BLOCK_SIZE =
-      new Builder("Master.JobDistributedLoadBlockSizes")
+      new Builder("Master.JobLoadBlockSize")
           .setDescription("The total block size loaded by load commands")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_JOB_LOAD_RATE =
       new Builder("Master.JobLoadRate")
           .setDescription("The average loading rate of Load commands")
+          .setMetricType(MetricType.METER)
+          .setIsClusterAggregated(true)
+          .build();
+  public static final MetricKey MASTER_JOB_COPY_SUCCESS =
+      new Builder("Master.JobCopySuccess")
+          .setDescription("The number of successful Load commands")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_COPY_FAIL =
+      new Builder("Master.JobCopyFail")
+          .setDescription("The number of failed Load commands")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_COPY_FILE_COUNT =
+      new Builder("Master.JobCopyFileCount")
+          .setDescription("The number of files copies by copy commands")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_COPY_FAIL_FILE_COUNT =
+      new Builder("Master.JobCopyFailFileCount")
+          .setDescription("The number of files failed to be copied by copy commands")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_COPY_SIZE =
+      new Builder("Master.JobCopyFileSize")
+          .setDescription("The total block size copied by copy commands")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_JOB_COPY_RATE =
+      new Builder("Master.JobCopyRate")
+          .setDescription("The average copy rate of copy commands")
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(true)
           .build();

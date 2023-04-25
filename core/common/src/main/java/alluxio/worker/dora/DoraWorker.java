@@ -14,6 +14,10 @@ package alluxio.worker.dora;
 import alluxio.grpc.File;
 import alluxio.grpc.FileFailure;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.Route;
+import alluxio.grpc.RouteFailure;
+import alluxio.grpc.UfsReadOptions;
+import alluxio.grpc.WriteOptions;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.options.ListOptions;
@@ -83,8 +87,21 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
 
   /**
    * Loads files from UFS to Alluxio.
-   * @param files the files to load
+   *
+   * @param files   the files to load
+   * @param options
    * @return a list of failed files
    */
-  ListenableFuture<List<FileFailure>> load(List<File> files);
+  ListenableFuture<List<FileFailure>> load(List<File> files, UfsReadOptions options);
+
+  /**
+   * Copies files from src to dst.
+   *
+   * @param routes   the files to copy
+   * @param readOptions the options for reading
+   * @param writeOptions the options for writing
+   * @return a list of failed files
+   */
+  ListenableFuture<List<RouteFailure>> copy(List<Route> routes, UfsReadOptions readOptions,
+      WriteOptions writeOptions);
 }

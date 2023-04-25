@@ -54,7 +54,6 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Stack;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -321,46 +320,30 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
     File file = new File(path);
     if (!options.getCreateParent()) {
       if (file.mkdir()) {
-        setMode(file.getPath(), options.getMode().toShort());
-        FileUtils.setLocalDirStickyBit(file.getPath());
-        try {
-          setOwner(file.getPath(), options.getOwner(), options.getGroup());
-        } catch (IOException e) {
-          LOG.warn("Failed to update the ufs dir ownership, default values will be used: {}",
-              e.toString());
-        }
+        setFileSecurity(options, file);
         return true;
       }
       return false;
     }
-    // Create parent directories one by one and set their permissions to rwxrwxrwx.
-    Stack<File> dirsToMake = new Stack<>();
-    dirsToMake.push(file);
-    File parent = file.getParentFile();
-    while (parent != null && !parent.exists()) {
-      dirsToMake.push(parent);
-      parent = parent.getParentFile();
+    boolean result = file.mkdirs();
+    if (result) {
+      setFileSecurity(options, file);
     }
-    while (!dirsToMake.empty()) {
-      File dirToMake = dirsToMake.pop();
-      if (dirToMake.mkdir()) {
-        setMode(dirToMake.getAbsolutePath(), options.getMode().toShort());
-        FileUtils.setLocalDirStickyBit(file.getPath());
-        // Set the owner to the Alluxio client user to achieve permission delegation.
-        // Alluxio server-side user is required to be a superuser. If it fails to set owner,
-        // proceeds with mkdirs and print out an warning message.
-        try {
-          setOwner(dirToMake.getAbsolutePath(), options.getOwner(), options.getGroup());
-        } catch (IOException e) {
-          LOG.warn("Failed to update the ufs dir ownership, default values will be used: {}",
-              e.toString());
-        }
-      } else {
-        return false;
-      }
-    }
+    return result;
+  }
 
-    return true;
+  private void setFileSecurity(MkdirsOptions options, File file) throws IOException {
+    setMode(file.getAbsolutePath(), options.getMode().toShort());
+    FileUtils.setLocalDirStickyBit(file.getPath());
+    // Set the owner to the Alluxio client user to achieve permission delegation.
+    // Alluxio server-side user is required to be a superuser. If it fails to set owner,
+    // proceeds with mkdirs and print out an warning message.
+    try {
+      setOwner(file.getAbsolutePath(), options.getOwner(), options.getGroup());
+    } catch (IOException e) {
+      LOG.warn("Failed to update the ufs dir ownership, default values will be used: {}",
+          e.toString());
+    }
   }
 
   @Override
