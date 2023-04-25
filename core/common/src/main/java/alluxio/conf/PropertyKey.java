@@ -2678,9 +2678,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METASTORE_INODE_CACHE_BASIC =
       booleanBuilder(Name.MASTER_METASTORE_INODE_CACHE_BASIC)
-          .setDefaultValue(true)
-          .setDescription("If true will use a basic cache that only store inodes"
-              + "with all edges being stored on RocksDB")
+          .setDefaultValue(false)
+          .setDescription("If true a basic cache is used that only caches inodes "
+              + "with edges being accessed from RocksDB directly. "
+              + "This cache is recommended when using a master with limited memory "
+              + "or when individual directories contain large numbers of files.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
