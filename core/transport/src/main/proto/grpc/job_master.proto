@@ -107,6 +107,7 @@ message JobWorkerHealth {
   optional int32 taskPoolSize = 5;
   optional int32 numActiveTasks = 6;
   optional int32 unfinishedTasks = 7;
+  optional grpc.BuildVersion version = 8;
 }
 
 message JobCommand {
@@ -197,6 +198,21 @@ message GetAllWorkerHealthPResponse {
   repeated JobWorkerHealth workerHealths = 1;
 }
 
+message JobMasterStatus {
+  optional string state = 1;
+  optional grpc.NetAddress masterAddress = 2;
+  optional int64 startTime = 3;
+  optional grpc.BuildVersion version = 4;
+}
+
+message GetAllMasterStatusPOptions {}
+message GetAllMasterStatusPRequest {
+  optional GetAllMasterStatusPOptions options = 1;
+}
+message GetAllMasterStatusPResponse {
+  repeated JobMasterStatus jobMasterStatus = 1;
+}
+
 message SubmitOptions {}
 message SubmitRequest {
   optional bytes cmdConfig = 1;
@@ -276,6 +292,11 @@ service JobMasterClientService {
   rpc GetAllWorkerHealth(GetAllWorkerHealthPRequest) returns (GetAllWorkerHealthPResponse);
 
   /**
+   * Lists all job master status.
+   */
+  rpc GetAllMasterStatus(GetAllMasterStatusPRequest) returns (GetAllMasterStatusPResponse);
+
+  /**
    * Submit a CMD job, return a jobControlId.
    */
   rpc Submit(SubmitRequest) returns (SubmitResponse);
@@ -305,6 +326,7 @@ message RegisterJobWorkerPOptions {}
 message RegisterJobWorkerPRequest {
   optional grpc.WorkerNetAddress workerNetAddress = 1;
   optional RegisterJobWorkerPOptions options = 2;
+  optional grpc.BuildVersion version = 3;
 }
 message RegisterJobWorkerPResponse {
  optional int64 id = 1;
@@ -325,3 +347,62 @@ service JobMasterWorkerService {
    */
   rpc RegisterJobWorker(RegisterJobWorkerPRequest) returns (RegisterJobWorkerPResponse);
 }
+
+message GetJobMasterIdPOptions {}
+message GetJobMasterIdPRequest {
+  optional grpc.NetAddress masterAddress = 1;
+  optional GetJobMasterIdPOptions options = 2;
+}
+message GetJobMasterIdPResponse {
+  optional int64 masterId = 1;
+}
+
+enum JobMasterMetaCommand {
+  MetaCommand_Unknown = 0;
+  MetaCommand_Nothing = 1;
+  MetaCommand_Register = 2; // Ask the standby master to re-register.
+}
+
+message RegisterJobMasterPOptions {
+  optional int64 startTimeMs = 2;
+  optional int64 losePrimacyTimeMs = 3;
+  optional grpc.BuildVersion version = 4;
+}
+
+message RegisterJobMasterPRequest {
+  optional int64 jobMasterId = 1;
+  optional RegisterJobMasterPOptions options = 2;
+}
+message RegisterJobMasterPResponse {}
+
+message JobMasterHeartbeatPOptions {
+}
+message JobMasterHeartbeatPRequest {
+  optional int64 masterId = 1;
+  optional JobMasterHeartbeatPOptions options = 2;
+}
+message JobMasterHeartbeatPResponse {
+  optional JobMasterMetaCommand command = 1;
+}
+
+/**
+  * This interface contains meta master service endpoints for Alluxio standby masters.
+  */
+service JobMasterMasterService {
+
+  /**
+   * Returns a master id for the given master address.
+   */
+  rpc GetMasterId(GetJobMasterIdPRequest) returns (GetJobMasterIdPResponse);
+
+  /**
+   * Registers a master.
+   */
+  rpc RegisterMaster(RegisterJobMasterPRequest) returns (RegisterJobMasterPResponse);
+
+  /**
+   * Heartbeats to indicate the master is lost or not.
+   */
+  rpc MasterHeartbeat(JobMasterHeartbeatPRequest) returns (JobMasterHeartbeatPResponse);
+}
+

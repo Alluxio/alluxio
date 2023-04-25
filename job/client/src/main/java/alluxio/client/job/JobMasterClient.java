@@ -12,6 +12,7 @@
 package alluxio.client.job;
 
 import alluxio.Client;
+import alluxio.grpc.JobMasterStatus;
 import alluxio.grpc.ListAllPOptions;
 import alluxio.job.CmdConfig;
 import alluxio.job.JobConfig;
@@ -111,6 +112,13 @@ public interface JobMasterClient extends Client {
    * @throws IOException
    */
   long submit(CmdConfig cmdConfig) throws IOException;
+
+  /**
+   * Gets the status of all job masters in the cluster.
+   *
+   * @return a list of status
+   */
+  List<JobMasterStatus> getAllMasterStatus() throws IOException;
 
   /**
    * Gets the status of the given command jobControlId.
