@@ -11,14 +11,21 @@
 
 package alluxio.master.file.meta;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.file.contexts.CreateDirectoryContext;
+import alluxio.proto.meta.InodeMeta;
+import alluxio.security.authorization.AclEntry;
+import alluxio.security.authorization.AclEntryType;
 import alluxio.security.authorization.Mode;
 import alluxio.util.ModeUtils;
+import alluxio.util.proto.ProtoUtils;
 import alluxio.wire.FileInfo;
 
+import com.google.common.collect.ImmutableList;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -51,7 +58,7 @@ public final class MutableInodeDirectoryTest extends AbstractInodeTest {
    */
   @Test
   public void getId() {
-    Assert.assertEquals(1, createInodeDirectory().getId());
+    assertEquals(1, createInodeDirectory().getId());
   }
 
   /**
@@ -81,6 +88,37 @@ public final class MutableInodeDirectoryTest extends AbstractInodeTest {
     Assert.assertTrue(inode1.isDeleted());
     inode1.setDeleted(false);
     Assert.assertFalse(inode1.isDeleted());
+  }
+
+  @Test
+  public void testProto() {
+    MutableInodeDirectory inode = createInodeDirectory();
+    inode.setAcl(ImmutableList.of(new AclEntry.Builder().setType(AclEntryType.MASK)
+            .setActions(Mode.Bits.READ_EXECUTE).build(),
+        new AclEntry.Builder().setType(AclEntryType.NAMED_USER)
+            .setActions(Mode.Bits.ALL).setSubject("Subject").build(),
+        new AclEntry.Builder().setType(AclEntryType.NAMED_GROUP)
+            .setActions(Mode.Bits.READ).setSubject("Other").build(),
+        new AclEntry.Builder().setType(AclEntryType.OTHER)
+            .setActions(Mode.Bits.NONE).setIsDefault(true).build()));
+    inode.setPersistenceState(PersistenceState.PERSISTED);
+    InodeMeta.Inode proto = inode.toProto();
+
+    MutableInodeDirectory newInode = MutableInodeDirectory.fromProto(proto);
+    assertEquals(inode, newInode);
+    assertEquals(inode.getACL(), newInode.getACL());
+
+    // use the deprecated proto fields
+    InodeMeta.Inode.Builder builder = proto.toBuilder();
+    builder.clearNewAccessAcl();
+    builder.setAccessAcl(ProtoUtils.toProto(inode.getACL()));
+    builder.clearPersistenceStateEnum();
+    builder.setPersistenceState(inode.getPersistenceState().toString());
+    builder.clearNewDefaultAcl();
+    builder.setDefaultAcl(ProtoUtils.toProto(inode.getDefaultACL()));
+    newInode = MutableInodeDirectory.fromProto(builder.build());
+    assertEquals(inode, newInode);
+    assertEquals(inode.getACL(), newInode.getACL());
   }
 
   /**
@@ -118,7 +156,7 @@ public final class MutableInodeDirectoryTest extends AbstractInodeTest {
     long lastModificationTimeMs = inodeDirectory.getLastModificationTimeMs();
     long newLastModificationTimeMs = lastModificationTimeMs + Constants.SECOND_MS;
     inodeDirectory.setLastModificationTimeMs(newLastModificationTimeMs);
-    Assert.assertEquals(newLastModificationTimeMs, inodeDirectory.getLastModificationTimeMs());
+    assertEquals(newLastModificationTimeMs, inodeDirectory.getLastModificationTimeMs());
   }
 
   /**
@@ -131,7 +169,7 @@ public final class MutableInodeDirectoryTest extends AbstractInodeTest {
     long lastModificationTimeMs = inodeDirectory.getLastModificationTimeMs();
     long invalidModificationTimeMs = lastModificationTimeMs - Constants.SECOND_MS;
     inodeDirectory.setLastModificationTimeMs(invalidModificationTimeMs);
-    Assert.assertEquals(lastModificationTimeMs, inodeDirectory.getLastModificationTimeMs());
+    assertEquals(lastModificationTimeMs, inodeDirectory.getLastModificationTimeMs());
   }
 
   /**
@@ -143,7 +181,7 @@ public final class MutableInodeDirectoryTest extends AbstractInodeTest {
     long lastAccessTimeMs = inodeDirectory.getLastAccessTimeMs();
     long newLastAccessTimeMs = lastAccessTimeMs + Constants.SECOND_MS;
     inodeDirectory.setLastAccessTimeMs(newLastAccessTimeMs);
-    Assert.assertEquals(newLastAccessTimeMs, inodeDirectory.getLastAccessTimeMs());
+    assertEquals(newLastAccessTimeMs, inodeDirectory.getLastAccessTimeMs());
   }
 
   /**
@@ -155,7 +193,7 @@ public final class MutableInodeDirectoryTest extends AbstractInodeTest {
     long lastAccessTimeMs = inodeDirectory.getLastAccessTimeMs();
     long invalidAccessTimeMs = lastAccessTimeMs - Constants.SECOND_MS;
     inodeDirectory.setLastAccessTimeMs(invalidAccessTimeMs);
-    Assert.assertEquals(lastAccessTimeMs, inodeDirectory.getLastAccessTimeMs());
+    assertEquals(lastAccessTimeMs, inodeDirectory.getLastAccessTimeMs());
   }
 
   /**
@@ -164,9 +202,9 @@ public final class MutableInodeDirectoryTest extends AbstractInodeTest {
   @Test
   public void setName() {
     MutableInodeDirectory inode1 = createInodeDirectory();
-    Assert.assertEquals("test1", inode1.getName());
+    assertEquals("test1", inode1.getName());
     inode1.setName("test2");
-    Assert.assertEquals("test2", inode1.getName());
+    assertEquals("test2", inode1.getName());
   }
 
   /**
@@ -175,9 +213,9 @@ public final class MutableInodeDirectoryTest extends AbstractInodeTest {
   @Test
   public void setParentId() {
     MutableInodeDirectory inode1 = createInodeDirectory();
-    Assert.assertEquals(0, inode1.getParentId());
+    assertEquals(0, inode1.getParentId());
     inode1.setParentId(2);
-    Assert.assertEquals(2, inode1.getParentId());
+    assertEquals(2, inode1.getParentId());
   }
 
   /**
@@ -186,9 +224,9 @@ public final class MutableInodeDirectoryTest extends AbstractInodeTest {
   @Test
   public void permissionStatus() {
     MutableInodeDirectory inode2 = createInodeDirectory();
-    Assert.assertEquals(TEST_OWNER, inode2.getOwner());
-    Assert.assertEquals(TEST_GROUP, inode2.getGroup());
-    Assert.assertEquals(ModeUtils.applyDirectoryUMask(Mode.defaults(),
+    assertEquals(TEST_OWNER, inode2.getOwner());
+    assertEquals(TEST_GROUP, inode2.getGroup());
+    assertEquals(ModeUtils.applyDirectoryUMask(Mode.defaults(),
         Configuration.getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK))
             .toShort(),
         inode2.getMode());
@@ -202,19 +240,19 @@ public final class MutableInodeDirectoryTest extends AbstractInodeTest {
     MutableInodeDirectory inodeDirectory = createInodeDirectory();
     String path = "/test/path";
     FileInfo info = inodeDirectory.generateClientFileInfo(path);
-    Assert.assertEquals(inodeDirectory.getId(), info.getFileId());
-    Assert.assertEquals(inodeDirectory.getName(), info.getName());
-    Assert.assertEquals(path, info.getPath());
-    Assert.assertEquals("", info.getUfsPath());
-    Assert.assertEquals(0, info.getLength());
-    Assert.assertEquals(0, info.getBlockSizeBytes());
-    Assert.assertEquals(inodeDirectory.getCreationTimeMs(), info.getCreationTimeMs());
+    assertEquals(inodeDirectory.getId(), info.getFileId());
+    assertEquals(inodeDirectory.getName(), info.getName());
+    assertEquals(path, info.getPath());
+    assertEquals("", info.getUfsPath());
+    assertEquals(0, info.getLength());
+    assertEquals(0, info.getBlockSizeBytes());
+    assertEquals(inodeDirectory.getCreationTimeMs(), info.getCreationTimeMs());
     Assert.assertTrue(info.isCompleted());
     Assert.assertTrue(info.isFolder());
-    Assert.assertEquals(inodeDirectory.isPinned(), info.isPinned());
+    assertEquals(inodeDirectory.isPinned(), info.isPinned());
     Assert.assertFalse(info.isCacheable());
     Assert.assertNotNull(info.getBlockIds());
-    Assert.assertEquals(inodeDirectory.getLastModificationTimeMs(),
+    assertEquals(inodeDirectory.getLastModificationTimeMs(),
         info.getLastModificationTimeMs());
   }
 }

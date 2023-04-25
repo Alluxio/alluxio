@@ -105,7 +105,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
     ret.setOwner(getOwner());
     ret.setGroup(getGroup());
     ret.setMode(getMode());
-    ret.setPersistenceState(getPersistenceState());
+    ret.setPersistenceStateEnum(getPersistenceState());
     ret.setMountPoint(false);
     ret.setReplicationMax(getReplicationMax());
     ret.setReplicationMin(getReplicationMin());

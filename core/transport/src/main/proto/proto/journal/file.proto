@@ -217,7 +217,7 @@ message InodeFileEntry {
   optional int32 mode = 16;
   optional PTtlAction ttlAction = 17 [default = DELETE];
   optional string ufs_fingerprint = 18;
-  // deprecated, replaced by newAcl = 30
+  // deprecated, replaced by newAcl = 31
   optional alluxio.proto.shared.AccessControlList acl = 19 [deprecated = true];
   optional int32 replication_max = 20;
   optional int32 replication_min = 21;
@@ -232,7 +232,7 @@ message InodeFileEntry {
 
   // replaces deprecated field persistence_state = 4
   optional grpc.PersistenceState persistence_state_enum = 30;
-  // replaces field acl =19
+  // replaces deprecated field acl = 19
   optional alluxio.proto.shared.NewAccessControlList newAcl = 31;
 }
 

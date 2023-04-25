@@ -301,15 +301,12 @@ public final class ProtoUtils {
     } else {
       ret = new AccessControlList();
     }
-    // ret.setOwningUser(acl.getOwningUser().intern());
-    // ret.setOwningGroup(acl.getOwningGroup().intern());
     ret.setOwningUser(acl.getOwningUser());
     ret.setOwningGroup(acl.getOwningGroup());
 
     if (acl.getIsEmpty()) {
       return ret;
     }
-    // Preconditions.checkState(acl.getMode() <= 7);
     ret.setMode((short) acl.getMode());
 
     // true if there are any extended entries (named user or named group)
@@ -344,8 +341,6 @@ public final class ProtoUtils {
     } else {
       ret = new AccessControlList();
     }
-    // ret.setOwningUser(acl.getOwningUser().intern());
-    // ret.setOwningGroup(acl.getOwningGroup().intern());
     ret.setOwningUser(acl.getOwningUser());
     ret.setOwningGroup(acl.getOwningGroup());
 

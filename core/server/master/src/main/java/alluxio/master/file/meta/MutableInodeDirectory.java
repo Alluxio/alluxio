@@ -137,7 +137,7 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
     ret.setOwner(getOwner());
     ret.setGroup(getGroup());
     ret.setMode(getMode());
-    ret.setPersistenceState(getPersistenceState());
+    ret.setPersistenceStateEnum(getPersistenceState());
     ret.setMountPoint(isMountPoint());
     ret.setUfsFingerprint(Constants.INVALID_UFS_FINGERPRINT);
     ret.setAcl(mAcl);
@@ -286,12 +286,11 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
 
   @Override
   public InodeMeta.Inode toProto() {
-    InodeMeta.Inode.Builder builder = super.toProtoBuilder()
+    return super.toProtoBuilder()
         .setIsMountPoint(isMountPoint())
         .setHasDirectChildrenLoaded(isDirectChildrenLoaded())
         .setNewDefaultAcl(ProtoUtils.toProtoNew(getDefaultACL()))
-        .setChildCount(getChildCount());
-    return builder.build();
+        .setChildCount(getChildCount()).build();
   }
 
   /**

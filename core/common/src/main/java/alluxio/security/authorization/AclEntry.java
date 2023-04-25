@@ -390,9 +390,6 @@ public final class AclEntry implements Serializable {
      */
     public Builder setActions(AclActions actions) {
       mActions = new AclActions(actions);
-//      for (AclAction action : actions.getActions()) {
-//        mActions.add(action);
-//      }
       return this;
     }
 

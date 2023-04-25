@@ -87,6 +87,7 @@ public class RocksBenchRead {
     public void setup() throws IOException {
       Assert.assertTrue("mFileCount must be > 0", mFileCount > 0);
       super.init(0, mWidth, mFileCount, mDistribution);
+
       MutableInode<?> inode = genInode(mIsDirectory);
       mBase = new RocksBenchBase(mRocksConfig);
       for (long i = 0; i < mFileCount; i++) {

@@ -11,6 +11,11 @@
 
 package alluxio.wire;
 
+import static alluxio.master.file.meta.PersistenceState.LOST;
+import static alluxio.master.file.meta.PersistenceState.NOT_PERSISTED;
+import static alluxio.master.file.meta.PersistenceState.PERSISTED;
+import static alluxio.master.file.meta.PersistenceState.TO_BE_PERSISTED;
+
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.TtlAction;
 import alluxio.master.file.meta.PersistenceState;
@@ -60,6 +65,17 @@ public class FileInfoTest {
   public void proto() {
     FileInfo fileInfo = createRandom();
     FileInfo other = GrpcUtils.fromProto(GrpcUtils.toProto(fileInfo));
+    checkEquality(fileInfo, other);
+  }
+
+  @Test
+  public void fromProtoOld() {
+    FileInfo fileInfo = createRandom();
+    alluxio.grpc.FileInfo.Builder builder = GrpcUtils.toProto(fileInfo).toBuilder();
+    // create a new proto using the deprecated persistence state
+    builder.setPersistenceState(builder.getPersistenceStateEnum().toString());
+    builder.clearPersistenceStateEnum();
+    FileInfo other = GrpcUtils.fromProto(builder.build());
     checkEquality(fileInfo, other);
   }
 
@@ -135,7 +151,7 @@ public class FileInfoTest {
     String userName = CommonUtils.randomAlphaNumString(random.nextInt(10));
     String groupName = CommonUtils.randomAlphaNumString(random.nextInt(10));
     int permission = random.nextInt();
-    PersistenceState persistenceState = PersistenceState.NOT_PERSISTED;
+    PersistenceState persistenceState = fromInt(random.nextInt(4));
     boolean mountPoint = random.nextBoolean();
     List<FileBlockInfo> fileBlocksInfos = new ArrayList<>();
     long numFileBlockInfos = random.nextInt(10);
@@ -171,7 +187,7 @@ public class FileInfoTest {
     result.setOwner(userName);
     result.setPath(path);
     result.setPersisted(persisted);
-    result.setPersistenceState(persistenceState);
+    result.setPersistenceStateEnum(persistenceState);
     result.setPinned(pinned);
     result.setTtl(ttl);
     result.setTtlAction(TtlAction.DELETE);
@@ -188,5 +204,21 @@ public class FileInfoTest {
         .fromStringEntries(userName, groupName, defaultStringEntries));
     result.setXAttr(xttrs);
     return result;
+  }
+
+  private static PersistenceState fromInt(int idx) {
+    switch (idx) {
+      case 0:
+        return NOT_PERSISTED;
+      case 1:
+        return TO_BE_PERSISTED;
+      case 2:
+        return PERSISTED;
+      case 3:
+        return LOST;
+      default:
+        throw new IllegalStateException(
+            String.format("Invalid idx %d for persistence state", idx));
+    }
   }
 }

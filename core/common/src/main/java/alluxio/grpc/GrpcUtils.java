@@ -246,7 +246,7 @@ public final class GrpcUtils {
         .setLastAccessTimeMs(pInfo.getLastAccessTimeMs())
         .setTtlAction(pInfo.getTtlAction()).setOwner(pInfo.getOwner())
         .setGroup(pInfo.getGroup()).setMode(pInfo.getMode())
-        .setPersistenceState(pInfo.hasPersistenceStateEnum()
+        .setPersistenceStateEnum(pInfo.hasPersistenceStateEnum()
             ? PersistenceState.fromProto(pInfo.getPersistenceStateEnum())
             : PersistenceState.valueOf(pInfo.getPersistenceState()))
         .setMountPoint(pInfo.getMountPoint())

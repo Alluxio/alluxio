@@ -380,6 +380,7 @@ message FileInfo {
   optional string owner = 16;
   optional string group = 17;
   optional int32 mode = 18;
+  // Deprecated, replaced by persistenceStateEnum = 34
   optional string persistenceState = 19 [deprecated = true];
   optional bool mountPoint = 20;
   repeated FileBlockInfo fileBlockInfos = 21;
@@ -396,6 +397,7 @@ message FileInfo {
   map<string, bytes> xattr = 32;
   repeated string mediumType = 33;
 
+  // replaced deprecated field persistenceState = 19
   optional PersistenceState persistenceStateEnum = 34;
 }
 

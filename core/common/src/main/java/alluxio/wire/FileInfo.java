@@ -61,7 +61,7 @@ public final class FileInfo implements Serializable {
   private String mOwner = "";
   private String mGroup = "";
   private int mMode;
-  private PersistenceState mPersistenceState;
+  private PersistenceState mPersistenceState = PersistenceState.NOT_PERSISTED;
   private boolean mMountPoint;
   private ArrayList<FileBlockInfo> mFileBlockInfoList = new ArrayList<>();
   /* Index of mFileBlockInfoList. */
@@ -551,8 +551,17 @@ public final class FileInfo implements Serializable {
    * @param persistenceState the file persistence state to use
    * @return the file information
    */
-  public FileInfo setPersistenceState(PersistenceState persistenceState) {
+  public FileInfo setPersistenceStateEnum(PersistenceState persistenceState) {
     mPersistenceState = persistenceState;
+    return this;
+  }
+
+  /**
+   * @param persistenceState the file persistence state to use
+   * @return the file information
+   */
+  public FileInfo setPersistenceState(String persistenceState) {
+    mPersistenceState = PersistenceState.valueOf(persistenceState);
     return this;
   }
 
