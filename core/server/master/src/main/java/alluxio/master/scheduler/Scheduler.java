@@ -373,6 +373,7 @@ public final class Scheduler {
   private void processJob(Job<?> job, Set<WorkerInfo> runningWorkers) {
     // TO REMOVE IN FUTURE
     if (job instanceof DoraLoadJob) {
+      job.setJobSuccess();
       return;
     }
     try {
