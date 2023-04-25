@@ -8635,7 +8635,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.proxy.s3.v2.async.heavy.pool.maximum.thread.number";
     public static final String PROXY_S3_V2_ASYNC_HEAVY_POOL_QUEUE_SIZE =
         "alluxio.proxy.s3.v2.async.heavy.pool.queue.size";
-    public static final String S3_UPLOADS_ID_XATTR_KEY = "s3_uploads_mulitpartupload_id";
     public static final String PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS =
         "alluxio.proxy.s3.bucketpathcache.timeout";
     public static final String PROXY_S3_GLOBAL_READ_RATE_LIMIT_MB =

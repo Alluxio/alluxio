@@ -1150,7 +1150,7 @@ public class S3ObjectTask extends S3BaseTask {
               .setOwnerBits(Bits.ALL)
               .setGroupBits(Bits.ALL)
               .setOtherBits(Bits.NONE).build())
-          .putXattr(PropertyKey.Name.S3_UPLOADS_ID_XATTR_KEY,
+          .putXattr(S3Constants.S3_UPLOADS_ID_XATTR_KEY,
               ByteString.copyFrom(mUploadId, StandardCharsets.UTF_8))
           .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
           .setWriteType(S3RestUtils.getS3WriteType());
@@ -1279,7 +1279,7 @@ public class S3ObjectTask extends S3BaseTask {
       try {
         URIStatus objStatus = mUserFs.getStatus(new AlluxioURI(objectPath));
         String uploadId = new String(objStatus.getXAttr()
-            .getOrDefault(PropertyKey.Name.S3_UPLOADS_ID_XATTR_KEY, new byte[0]));
+            .getOrDefault(S3Constants.S3_UPLOADS_ID_XATTR_KEY, new byte[0]));
         if (objStatus.isCompleted() && StringUtils.equals(uploadId, mUploadId)) {
           return objStatus;
         }
