@@ -706,21 +706,6 @@
             ]
           },
           {
-            "name": "BuildVersion",
-            "fields": [
-              {
-                "id": 1,
-                "name": "version",
-                "type": "string"
-              },
-              {
-                "id": 2,
-                "name": "revision",
-                "type": "string"
-              }
-            ]
-          },
-          {
             "name": "RegisterWorkerPOptions",
             "fields": [
               {
@@ -1903,6 +1888,21 @@
                 "id": 1,
                 "name": "errorType",
                 "type": "ErrorType"
+              }
+            ]
+          },
+          {
+            "name": "BuildVersion",
+            "fields": [
+              {
+                "id": 1,
+                "name": "version",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "revision",
+                "type": "string"
               }
             ]
           }
@@ -6169,6 +6169,60 @@
             ]
           },
           {
+            "name": "ProxyStatus",
+            "fields": [
+              {
+                "id": 1,
+                "name": "address",
+                "type": "grpc.NetAddress"
+              },
+              {
+                "id": 2,
+                "name": "state",
+                "type": "string"
+              },
+              {
+                "id": 3,
+                "name": "startTime",
+                "type": "int64"
+              },
+              {
+                "id": 4,
+                "name": "lastHeartbeatTime",
+                "type": "int64"
+              },
+              {
+                "id": 5,
+                "name": "version",
+                "type": "grpc.BuildVersion"
+              }
+            ]
+          },
+          {
+            "name": "ListProxyStatusPRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "options",
+                "type": "ListProxyStatusPOptions"
+              }
+            ]
+          },
+          {
+            "name": "ListProxyStatusPOptions"
+          },
+          {
+            "name": "ListProxyStatusPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "proxyStatuses",
+                "type": "ProxyStatus",
+                "is_repeated": true
+              }
+            ]
+          },
+          {
             "name": "SetPathConfigurationPOptions"
           },
           {
@@ -6386,6 +6440,39 @@
                 }
               }
             ]
+          },
+          {
+            "name": "ProxyHeartbeatPOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "proxyAddress",
+                "type": "grpc.NetAddress"
+              },
+              {
+                "id": 2,
+                "name": "startTime",
+                "type": "int64"
+              },
+              {
+                "id": 3,
+                "name": "version",
+                "type": "grpc.BuildVersion"
+              }
+            ]
+          },
+          {
+            "name": "ProxyHeartbeatPRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "options",
+                "type": "ProxyHeartbeatPOptions"
+              }
+            ]
+          },
+          {
+            "name": "ProxyHeartbeatPResponse"
           }
         ],
         "services": [
@@ -6416,6 +6503,11 @@
                 "name": "Checkpoint",
                 "in_type": "CheckpointPOptions",
                 "out_type": "CheckpointPResponse"
+              },
+              {
+                "name": "ListProxyStatus",
+                "in_type": "ListProxyStatusPRequest",
+                "out_type": "ListProxyStatusPResponse"
               }
             ]
           },
@@ -6466,6 +6558,16 @@
                 "name": "MasterHeartbeat",
                 "in_type": "MasterHeartbeatPRequest",
                 "out_type": "MasterHeartbeatPResponse"
+              }
+            ]
+          },
+          {
+            "name": "MetaMasterProxyService",
+            "rpcs": [
+              {
+                "name": "ProxyHeartbeat",
+                "in_type": "ProxyHeartbeatPRequest",
+                "out_type": "ProxyHeartbeatPResponse"
               }
             ]
           }
@@ -8373,6 +8475,10 @@
               {
                 "name": "META_MASTER_MASTER_SERVICE",
                 "integer": 8
+              },
+              {
+                "name": "META_MASTER_PROXY_SERVICE",
+                "integer": 18
               },
               {
                 "name": "METRICS_MASTER_CLIENT_SERVICE",
