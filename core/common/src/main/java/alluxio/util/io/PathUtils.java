@@ -385,7 +385,6 @@ public final class PathUtils {
     return AlluxioURI.SEPARATOR.equals(path);
   }
 
-
   /**
    * Checks if the given path is properly formed.
    *

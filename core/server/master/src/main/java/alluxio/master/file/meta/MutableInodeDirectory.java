@@ -12,8 +12,6 @@
 package alluxio.master.file.meta;
 
 import alluxio.Constants;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
 import alluxio.master.ProtobufUtils;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
@@ -41,8 +39,6 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
   private boolean mDirectChildrenLoaded;
   private long mChildCount;
   private DefaultAccessControlList mDefaultAcl;
-  private static final boolean NEW_ACL = Configuration.getBoolean(
-      PropertyKey.MASTER_METASTORE_ACL_NEW);
 
   /**
    * Creates a new instance of {@link MutableInodeDirectory}.
@@ -272,14 +268,10 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setTtl(getTtl())
         .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))
         .setDirectChildrenLoaded(isDirectChildrenLoaded())
+        .setNewAcl(ProtoUtils.toProtoNew(mAcl))
+        .setNewDefaultAcl(ProtoUtils.toProtoNew(mDefaultAcl))
         .addAllMediumType(getMediumTypes());
-    if (NEW_ACL) {
-      inodeDirectory.setNewAcl(ProtoUtils.toProtoNew(mAcl));
-      inodeDirectory.setNewDefaultAcl(ProtoUtils.toProtoNew(mDefaultAcl));
-    } else {
-      inodeDirectory.setAcl(ProtoUtils.toProto(mAcl));
-      inodeDirectory.setDefaultAcl(ProtoUtils.toProto(mDefaultAcl));
-    }
+
     if (getXAttr() != null) {
       inodeDirectory.putAllXAttr(CommonUtils.convertToByteString(getXAttr()));
     }
@@ -297,12 +289,8 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
     InodeMeta.Inode.Builder builder = super.toProtoBuilder()
         .setIsMountPoint(isMountPoint())
         .setHasDirectChildrenLoaded(isDirectChildrenLoaded())
+        .setNewDefaultAcl(ProtoUtils.toProtoNew(getDefaultACL()))
         .setChildCount(getChildCount());
-    if (NEW_ACL) {
-      builder.setNewDefaultAcl(ProtoUtils.toProtoNew(getDefaultACL()));
-    } else {
-      builder.setDefaultAcl(ProtoUtils.toProto(getDefaultACL()));
-    }
     return builder.build();
   }
 

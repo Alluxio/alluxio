@@ -184,14 +184,25 @@ public class ExtendedACLEntries {
     return mMaskActions;
   }
 
+  /**
+   * @param actions the new mask actions
+   */
   public void setMask(AclActions actions) {
     mMaskActions = actions;
   }
 
+  /**
+   * @param subject the named subject to set
+   * @param actions the acl actions corresponding to the subject
+   */
   public void setNamedActions(String subject, AclActions actions) {
     mNamedUserActions.put(subject, actions);
   }
 
+  /**
+   * @param subject the group subject to set
+   * @param actions the acl actions corresponding to the subject
+   */
   public void setGroupActions(String subject, AclActions actions) {
     mNamedGroupActions.put(subject, actions);
   }

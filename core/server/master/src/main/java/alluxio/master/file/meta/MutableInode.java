@@ -51,9 +51,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public abstract class MutableInode<T extends MutableInode> implements InodeView {
   private static final Logger LOG = LoggerFactory.getLogger(MutableInode.class);
 
-  private static final boolean NEW_ACL = Configuration.getBoolean(
-      PropertyKey.MASTER_METASTORE_ACL_NEW);
-
   public static final ImmutableSet<String> NO_MEDIUM = ImmutableSet.of();
   private static final ImmutableSet<String> MEDIUMS = ImmutableSet.copyOf(
       Configuration.getList(PropertyKey.MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE));
@@ -607,8 +604,7 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
   public void updateFromEntry(UpdateInodeEntry entry) {
     if (entry.hasNewAcl()) {
       setInternalAcl(ProtoUtils.fromProto(entry.getNewAcl()));
-    }
-    if (entry.hasAcl()) {
+    } else if (entry.hasAcl()) {
       setInternalAcl(ProtoUtils.fromProto(entry.getAcl()));
     }
     if (entry.hasCreationTimeMs()) {
@@ -746,16 +742,11 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
         .setLastAccessedMs(getLastAccessTimeMs())
         .setName(getName())
         .setParentId(getParentId())
-        // .setPersistenceState(getPersistenceState().name())
         .setPersistenceStateEnum(getPersistenceState().toProto())
         .setIsPinned(isPinned())
+        .setNewAccessAcl(ProtoUtils.toProtoNew(getACL()))
         .setUfsFingerprint(getUfsFingerprint())
         .addAllMediumType(getMediumTypes());
-    if (NEW_ACL) {
-      inode.setNewAccessAcl(ProtoUtils.toProtoNew(getACL()));
-    } else {
-      inode.setAccessAcl(ProtoUtils.toProto(getACL()));
-    }
     if (getXAttr() != null) {
       inode.putAllXAttr(CommonUtils.convertToByteString(getXAttr()));
     }

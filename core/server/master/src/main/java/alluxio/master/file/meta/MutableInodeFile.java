@@ -12,8 +12,6 @@
 package alluxio.master.file.meta;
 
 import alluxio.Constants;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.BlockInfoException;
 import alluxio.grpc.CreateFilePOptionsOrBuilder;
 import alluxio.master.ProtobufUtils;
@@ -55,8 +53,6 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
   private int mReplicationMax;
   private int mReplicationMin;
   private String mTempUfsPath;
-  private static final boolean NEW_ACL = Configuration.getBoolean(
-      PropertyKey.MASTER_METASTORE_ACL_NEW);
 
   /**
    * Creates a new instance of {@link MutableInodeFile}.
@@ -494,12 +490,8 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setTempUfsPath(getTempUfsPath())
         .setTtl(getTtl())
         .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))
+        .setNewAcl(ProtoUtils.toProtoNew(mAcl))
         .setUfsFingerprint(getUfsFingerprint());
-    if (NEW_ACL) {
-      inodeFile.setNewAcl(ProtoUtils.toProtoNew(mAcl));
-    } else {
-      inodeFile.setAcl(ProtoUtils.toProto(mAcl));
-    }
     if (getXAttr() != null) {
       inodeFile.putAllXAttr(CommonUtils.convertToByteString(getXAttr()));
     }
