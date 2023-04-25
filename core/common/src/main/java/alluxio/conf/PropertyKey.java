@@ -7313,19 +7313,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
 
-<<<<<<< HEAD
   public static final PropertyKey DORA_WORKER_FILE_STATUS_MEM_CACHE_TTL =
       durationBuilder(Name.DORA_WORKER_FILE_STATUS_MEM_CACHE_TTL)
-          .setDefaultValue("10min")
-||||||| 861df42529
-  public static final PropertyKey DORA_UFS_FILE_STATUS_CACHE_TTL =
-      durationBuilder(Name.DORA_UFS_FILE_STATUS_CACHE_TTL)
-          .setDefaultValue("10min")
-=======
-  public static final PropertyKey DORA_UFS_FILE_STATUS_CACHE_TTL =
-      durationBuilder(Name.DORA_UFS_FILE_STATUS_CACHE_TTL)
           .setDefaultValue("48h")
->>>>>>> ba9508bcccc62648258330e216ddb479da7fd9b2
           .setDescription("The TTL of the cache of UFS file status")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
@@ -7348,37 +7338,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
 
-<<<<<<< HEAD
   public static final PropertyKey DORA_WORKER_LIST_STATUS_MEM_CACHE_TTL =
       durationBuilder(Name.DORA_WORKER_LIST_STATUS_MEM_CACHE_TTL)
-          .setDefaultValue("2min")
-||||||| 861df42529
-  public static final PropertyKey DORA_UFS_LIST_STATUS_CACHE_TTL =
-      durationBuilder(Name.DORA_UFS_LIST_STATUS_CACHE_TTL)
-          .setDefaultValue("2min")
-=======
-  public static final PropertyKey DORA_UFS_LIST_STATUS_CACHE_TTL =
-      durationBuilder(Name.DORA_UFS_LIST_STATUS_CACHE_TTL)
           .setDefaultValue("48h")
->>>>>>> ba9508bcccc62648258330e216ddb479da7fd9b2
           .setDescription("The TTL of the cache of UFS list status results")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.WORKER)
           .build();
 
-<<<<<<< HEAD
   public static final PropertyKey DORA_WORKER_LIST_STATUS_MEM_CACHE_SIZE =
       intBuilder(Name.DORA_WORKER_LIST_STATUS_MEM_CACHE_SIZE)
-          .setDefaultValue(1)
-||||||| 861df42529
-  public static final PropertyKey DORA_UFS_LIST_STATUS_CACHE_NR_DIRS =
-      intBuilder(Name.DORA_UFS_LIST_STATUS_CACHE_NR_DIRS)
-          .setDefaultValue(1)
-=======
-  public static final PropertyKey DORA_UFS_LIST_STATUS_CACHE_NR_DIRS =
-      intBuilder(Name.DORA_UFS_LIST_STATUS_CACHE_NR_DIRS)
           .setDefaultValue(50)
->>>>>>> ba9508bcccc62648258330e216ddb479da7fd9b2
           .setDescription("Number of the file/dir cache of UFS list status results")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.WORKER)
