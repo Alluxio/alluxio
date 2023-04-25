@@ -46,7 +46,9 @@ class LoadResultExecutor implements Closeable {
     mExecutor.submit(() -> {
       beforeProcessing.run();
       try {
-        onComplete.accept(mSyncProcess.performSync(result, mSyncPathCache));
+        onComplete.accept(
+            mSyncProcess.performSync(result, mSyncPathCache)
+        );
       } catch (MetadataSyncer.MountPointNotFoundRuntimeException e) {
         result.getTaskInfo().getStats().reportSyncFailReason(
             result.getLoadRequest(), result,

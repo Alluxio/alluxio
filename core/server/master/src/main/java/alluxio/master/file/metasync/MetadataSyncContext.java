@@ -13,7 +13,6 @@ package alluxio.master.file.metasync;
 
 import alluxio.AlluxioURI;
 import alluxio.collections.ConcurrentHashSet;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
@@ -76,33 +75,6 @@ public class MetadataSyncContext implements Closeable {
     mStartAfter = startAfter;
     mTaskInfo = loadResult.getTaskInfo();
     mLoadResult = loadResult;
-  }
-
-  /**
-   * Validates the start after string.
-   *
-   * @param syncRoot the sync root
-   */
-  public void validateStartAfter(AlluxioURI syncRoot) throws InvalidPathException {
-    if (mStartAfter == null || !mStartAfter.startsWith(AlluxioURI.SEPARATOR)) {
-      return;
-    }
-    // this path starts from the root, so we must remove the prefix
-    String startAfterCheck = mStartAfter.substring(0,
-        Math.min(syncRoot.getPath().length(), mStartAfter.length()));
-    if (!syncRoot.getPath().startsWith(startAfterCheck)) {
-      throw new InvalidPathException(
-          ExceptionMessage.START_AFTER_DOES_NOT_MATCH_PATH
-              .getMessage(mStartAfter, syncRoot.getPath()));
-    }
-    mStartAfter = mStartAfter.substring(
-        Math.min(mStartAfter.length(), syncRoot.getPath().length()));
-    if (mStartAfter.startsWith("/")) {
-      mStartAfter = mStartAfter.substring(1);
-    }
-    if (mStartAfter.equals("")) {
-      mStartAfter = null;
-    }
   }
 
   /**

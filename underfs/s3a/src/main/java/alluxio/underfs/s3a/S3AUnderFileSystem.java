@@ -738,7 +738,6 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       String path, @Nullable String continuationToken, @Nullable String startAfter,
       DescendantType descendantType,
       Consumer<UfsLoadResult> onComplete, Consumer<Throwable> onError) {
-
     // if descendant type is NONE then we only want to return the directory itself
     int maxKeys = descendantType == DescendantType.NONE ? 1 : getListingChunkLength(mUfsConf);
     path = stripPrefixIfPresent(path);
@@ -746,10 +745,17 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     path = PathUtils.normalizePath(path, PATH_SEPARATOR);
     // In case key is root (empty string) do not normalize prefix.
     path = path.equals(PATH_SEPARATOR) ? "" : path;
+    String s3StartAfter = null;
+    if (path.equals("")) {
+      s3StartAfter = startAfter;
+    } else if (startAfter != null) {
+      s3StartAfter = PathUtils.concatPath(path, startAfter);
+    }
     software.amazon.awssdk.services.s3.model.ListObjectsV2Request.Builder request =
         software.amazon.awssdk.services.s3.model.ListObjectsV2Request
             .builder().bucket(mBucketName).prefix(path).continuationToken(continuationToken)
-            .startAfter(startAfter).delimiter(delimiter).maxKeys(maxKeys);
+            .startAfter(startAfter == null ? null : s3StartAfter)
+            .delimiter(delimiter).maxKeys(maxKeys);
     String finalPath = path;
     mAsyncClient.listObjectsV2(request.build())
         .whenCompleteAsync((result, err) -> {

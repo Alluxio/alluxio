@@ -214,37 +214,34 @@ public class PathLoaderTask {
     mTaskInfo.getMdSync().onFailed(mTaskInfo.getId(), t);
   }
 
-  void onLoadRequestError(long id, Throwable t) {
+  synchronized void onLoadRequestError(long id, Throwable t) {
     LOAD_FAIL_COUNT.inc();
     mTaskInfo.getStats().gotLoadError();
-    synchronized (this) {
-      if (mCompleted) {
-        LOG.debug("Received a load error for task {} wit id {} after the task was completed",
-            mTaskInfo, id);
-        return;
-      }
-      LoadRequest load = mRunningLoads.get(id);
-      if (load == null) {
-        LOG.debug("Received a load error for task {} for a load that was already"
-                + "removed with id {}",
-            mTaskInfo, id);
-        return;
-      }
-      if (load.attempt()) {
-        LOG.debug("Rescheduling retry of load on path {}, with id {}, with continuation token {}"
-                + "after error {}",
-            mTaskInfo, load.getLoadRequestId(), load.getContinuationToken(), t);
-        addLoadRequest(load, false);
-        return;
-      } else {
-        LOG.warn("Path loader task failed of load on path {},"
-                + "with id {} with continuation token {} after error {}",
-            mTaskInfo, load.getLoadRequestId(), load.getContinuationToken(), t);
-        mCompleted = true;
-      }
+    if (mCompleted) {
+      LOG.debug("Received a load error for task {} wit id {} after the task was completed",
+          mTaskInfo, id);
+      return;
     }
-    mTaskInfo.getStats().setLoadFailed();
-    mTaskInfo.getMdSync().onFailed(mTaskInfo.getId(), t);
+    LoadRequest load = mRunningLoads.get(id);
+    if (load == null) {
+      LOG.debug("Received a load error for task {} for a load that was already"
+              + "removed with id {}",
+          mTaskInfo, id);
+      return;
+    }
+    if (load.attempt()) {
+      LOG.debug("Rescheduling retry of load on path {}, with id {}, with continuation token {}"
+              + "after error {}",
+          mTaskInfo, load.getLoadRequestId(), load.getContinuationToken(), t);
+      addLoadRequest(load, false);
+    } else {
+      LOG.warn("Path loader task failed of load on path {},"
+              + "with id {} with continuation token {} after error {}",
+          mTaskInfo, load.getLoadRequestId(), load.getContinuationToken(), t);
+      mCompleted = true;
+      mTaskInfo.getStats().setLoadFailed();
+      mTaskInfo.getMdSync().onFailed(mTaskInfo.getId(), t);
+    }
   }
 
   synchronized void cancel() {

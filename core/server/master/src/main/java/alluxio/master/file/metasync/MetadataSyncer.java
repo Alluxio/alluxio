@@ -18,6 +18,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
@@ -204,6 +205,12 @@ public class MetadataSyncer implements SyncProcess {
       AlluxioURI alluxioPath, DescendantType descendantType, DirectoryLoadType directoryLoadType,
       long syncInterval, @Nullable String startAfter, boolean isAsyncMetadataLoading)
       throws InvalidPathException {
+    startAfter = stripPrefixIfPresent(alluxioPath, startAfter);
+    if (startAfter != null && descendantType == DescendantType.ALL
+        && directoryLoadType != DirectoryLoadType.SINGLE_LISTING) {
+      throw new InvalidPathException(
+          "StartAfter param does not work with BFS/DFS directory load type");
+    }
     MountTable.Resolution resolution = mMountTable.resolve(alluxioPath);
     Stream<BaseTask> tasks = Stream.empty();
     long groupId = mTaskGroupIds.getAndIncrement();
@@ -299,7 +306,6 @@ public class MetadataSyncer implements SyncProcess {
           MetadataSyncContext.Builder.builder(
               mFsMaster.createNonMergingJournalRpcContext(
                   new InternalOperationContext()), loadResult).build()) {
-
       MountTable.ReverseResolution reverseResolution
           = reverseResolve(loadResult.getBaseLoadPath());
       try (CloseableResource<UnderFileSystem> ufsResource =
@@ -331,7 +337,6 @@ public class MetadataSyncer implements SyncProcess {
         LOG.debug("Syncing from {}, load batch id {}, load id {}", syncStart,
             loadResult.getLoadRequest().getBatchSetId(),
             loadResult.getLoadRequest().getLoadRequestId());
-
         Stream<UfsItem> stream = loadResult.getUfsLoadResult().getItems().map(status -> {
           UfsItem item = new UfsItem(status, ufsMountPath, alluxioMountPath);
           try {
@@ -496,6 +501,7 @@ public class MetadataSyncer implements SyncProcess {
     //    4. unlock /foo
     //    5. move two pointers
     while (currentInode != null || currentUfsStatus != null) {
+      //       String s = (currentUfsStatus == null ? "null" : currentUfsStatus.mAlluxioPath);
       SingleInodeSyncResult result = performSyncOne(syncState, currentUfsStatus, currentInode);
       if (result.mSkipChildren) {
         syncState.mInodeIterator.skipChildrenOfTheCurrent();
@@ -951,5 +957,29 @@ public class MetadataSyncer implements SyncProcess {
       mMoveInode = moveInode;
       mSkipChildren = skipChildren;
     }
+  }
+
+  private String stripPrefixIfPresent(AlluxioURI syncRoot, @Nullable String startAfter)
+      throws InvalidPathException {
+    if (startAfter == null || !startAfter.startsWith(AlluxioURI.SEPARATOR)) {
+      return startAfter;
+    }
+    // this path starts from the root, so we must remove the prefix
+    String startAfterCheck = startAfter.substring(0,
+        Math.min(syncRoot.getPath().length(), startAfter.length()));
+    if (!syncRoot.getPath().startsWith(startAfterCheck)) {
+      throw new InvalidPathException(
+          ExceptionMessage.START_AFTER_DOES_NOT_MATCH_PATH
+              .getMessage(startAfter, syncRoot.getPath()));
+    }
+    startAfter = startAfter.substring(
+        Math.min(startAfter.length(), syncRoot.getPath().length()));
+    if (startAfter.startsWith("/")) {
+      startAfter = startAfter.substring(1);
+    }
+    if (startAfter.equals("")) {
+      startAfter = null;
+    }
+    return startAfter;
   }
 }

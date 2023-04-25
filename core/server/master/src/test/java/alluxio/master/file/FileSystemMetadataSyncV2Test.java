@@ -19,6 +19,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.concurrent.jsr.CompletableFuture;
+import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
 import alluxio.file.options.DirectoryLoadType;
 import alluxio.grpc.DeletePOptions;
@@ -27,6 +28,7 @@ import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.MountContext;
+import alluxio.master.file.metasync.MetadataSyncer;
 import alluxio.master.file.metasync.SyncFailReason;
 import alluxio.master.file.metasync.SyncOperation;
 import alluxio.master.file.metasync.TestMetadataSyncer;
@@ -36,7 +38,6 @@ import alluxio.util.CommonUtils;
 import alluxio.wire.FileInfo;
 
 import com.google.common.collect.ImmutableMap;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -47,7 +48,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -886,8 +886,6 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
         new AlluxioURI("/non_existing_path"), 0));
   }
 
-  // This test might cause deadlock. Yimin to look into.
-  @Ignore
   @Test
   public void unmountDuringSync() throws Exception {
     TestMetadataSyncer syncer = (TestMetadataSyncer) mFileSystemMaster.getMetadataSyncer();
@@ -897,21 +895,11 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
       mS3Client.putObject(TEST_BUCKET, "file" + i, "");
     }
 
-    AtomicReference<BaseTask> baseTask = new AtomicReference<>();
-    CompletableFuture<Void> syncFuture = CompletableFuture.supplyAsync(() -> {
-      try {
-        baseTask.set(mFileSystemMaster.getMetadataSyncer().syncPath(
-            MOUNT_POINT, DescendantType.ONE, mDirectoryLoadType, 0).getBaseTask());
-        baseTask.get().waitComplete(TIMEOUT_MS);
-        return null;
-      } catch (RuntimeException e) {
-        throw e;
-      } catch (Throwable e) {
-        throw new RuntimeException(e);
-      }
-    });
+    BaseTask baseTask = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ONE, mDirectoryLoadType, 0).getBaseTask();
 
     AtomicBoolean unmount = new AtomicBoolean(false);
+    syncer.blockUntilNthSyncThenDo(50, () -> unmount.set(true));
     CompletableFuture<Void> unmountFuture = CompletableFuture.supplyAsync(() -> {
       try {
         while (!unmount.get()) {
@@ -924,15 +912,15 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
       }
     });
 
-    syncer.blockUntilNthSyncThenDo(50, () -> unmount.set(true));
     unmountFuture.get();
-    assertThrows(ExecutionException.class, syncFuture::get);
+    assertThrows(MetadataSyncer.MountPointNotFoundRuntimeException.class,
+        () -> baseTask.waitComplete(TIMEOUT_MS));
 
-    assertFalse(baseTask.get().succeeded());
+    assertFalse(baseTask.succeeded());
     assertFalse(mFileSystemMaster.exists(MOUNT_POINT, existsNoSync()));
 
     Map<Long, TaskStats.SyncFailure> syncFailures =
-        baseTask.get().getTaskInfo().getStats().getSyncFailReasons();
+        baseTask.getTaskInfo().getStats().getSyncFailReasons();
     Set<SyncFailReason>
         reasons = syncFailures.values().stream().map(TaskStats.SyncFailure::getSyncFailReason)
         .collect(Collectors.toSet());
@@ -1021,28 +1009,28 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     mS3Client.putObject(TEST_BUCKET, "f3", TEST_CONTENT);
 
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
-            MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0, "f3", false)
+            MOUNT_POINT, DescendantType.ONE, mDirectoryLoadType, 0, "f3", false)
         .getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertEquals(0, mFileSystemMaster.listStatus(MOUNT_POINT, listNoSync(false)).size());
 
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-            MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0, "f2", false)
+            MOUNT_POINT, DescendantType.ONE, mDirectoryLoadType, 0, "f2", false)
         .getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertEquals(1, mFileSystemMaster.listStatus(MOUNT_POINT, listNoSync(false)).size());
 
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-            MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0, "f1", false)
+            MOUNT_POINT, DescendantType.ONE, mDirectoryLoadType, 0, "f1", false)
         .getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
     assertEquals(2, mFileSystemMaster.listStatus(MOUNT_POINT, listNoSync(false)).size());
 
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
-            MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0, "f0", false)
+            MOUNT_POINT, DescendantType.ONE, mDirectoryLoadType, 0, "f0", false)
         .getBaseTask();
     result.waitComplete(TIMEOUT_MS);
     assertTrue(result.succeeded());
@@ -1056,51 +1044,48 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     assertEquals(3, mFileSystemMaster.listStatus(MOUNT_POINT, listNoSync(false)).size());
   }
 
-//
-//  @Test
-//  public void startAfterAbsolutePath() throws Exception {
-//    mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
-//    mS3Client.putObject(TEST_BUCKET, "root/f1", TEST_CONTENT);
-//    mS3Client.putObject(TEST_BUCKET, "root/f2", TEST_CONTENT);
-//    mS3Client.putObject(TEST_BUCKET, "root/f3", TEST_CONTENT);
-//    // The S3 mock server has a bug where 403 is returned if startAfter exceeds the last
-//    // object key.
-//    assertThrows(InvalidPathException.class, () -> {
-//      MetadataSyncContext context =
-//          MetadataSyncContext.Builder.builder(mFileSystemMaster.createRpcContext(),
-//                  DescendantType.ONE)
-//              .setStartAfter("/random/path").build();
-//      SyncResult result =
-//          mFileSystemMaster.syncMetadataInternal(MOUNT_POINT.join("root"), context);
-//    });
-//
-//    MetadataSyncContext context =
-//        MetadataSyncContext.Builder.builder(mFileSystemMaster.createRpcContext(),
-//                DescendantType.ONE)
-//            .setStartAfter("/s3_mount/root/f2").build();
-//    SyncResult result =
-//        mFileSystemMaster.syncMetadataInternal(MOUNT_POINT.join("root"), context);
-//    assertTrue(result.getSuccess());
-//    assertEquals(1, mFileSystemMaster.listStatus(MOUNT_POINT.join("root"),
-//        listNoSync(false)).size());
-//
-//    context =
-//        MetadataSyncContext.Builder.builder(mFileSystemMaster.createRpcContext(),
-//                DescendantType.ONE)
-//            .setStartAfter("/s3_mount/root").build();
-//    result =
-//        mFileSystemMaster.syncMetadataInternal(MOUNT_POINT.join("root"), context);
-//    assertTrue(result.getSuccess());
-//    assertEquals(3, mFileSystemMaster.listStatus(MOUNT_POINT.join("root"),
-//        listNoSync(false)).size());
-//    // TODO(elega) look into WARNING: xattr not supported on root/
-//  }
-//
+  @Test
+  public void startAfterAbsolutePath() throws Throwable {
+    mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
+    mS3Client.putObject(TEST_BUCKET, "root/f1", TEST_CONTENT);
+    mS3Client.putObject(TEST_BUCKET, "root/f2", TEST_CONTENT);
+    mS3Client.putObject(TEST_BUCKET, "root/f3", TEST_CONTENT);
+    // The S3 mock server has a bug where 403 is returned if startAfter exceeds the last
+    // object key.
+    assertThrows(InvalidPathException.class, () -> {
+      BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
+              MOUNT_POINT.join("root"), DescendantType.ONE, mDirectoryLoadType,
+              0, "/random/path", false)
+          .getBaseTask();
+      result.waitComplete(TIMEOUT_MS);
+    });
 
-  // This test still has issues. Yimin to fix
-  @Ignore
+    BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
+            MOUNT_POINT.join("root"), DescendantType.ONE, mDirectoryLoadType, 0,
+            "/s3_mount/root/f2", false)
+        .getBaseTask();
+    result.waitComplete(TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    assertEquals(1, mFileSystemMaster.listStatus(MOUNT_POINT.join("root"),
+        listNoSync(false)).size());
+
+    result = mFileSystemMaster.getMetadataSyncer().syncPath(
+            MOUNT_POINT.join("root"), DescendantType.ONE, mDirectoryLoadType, 0,
+            "/s3_mount/root", false)
+        .getBaseTask();
+    result.waitComplete(TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    assertEquals(3, mFileSystemMaster.listStatus(MOUNT_POINT.join("root"),
+        listNoSync(false)).size());
+  }
+
   @Test
   public void startAfterRecursive() throws Throwable {
+    if (mDirectoryLoadType != DirectoryLoadType.SINGLE_LISTING) {
+      // NOT SUPPORTED
+      return;
+    }
+
     mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
     mS3Client.putObject(TEST_BUCKET, "root/d1/d1/f1", TEST_CONTENT);
     mS3Client.putObject(TEST_BUCKET, "root/d1/d1/f2", TEST_CONTENT);
