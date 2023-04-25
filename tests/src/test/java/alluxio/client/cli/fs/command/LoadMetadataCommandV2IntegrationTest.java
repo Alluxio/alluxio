@@ -184,8 +184,9 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
   }
 
   // The main idea of this test is start an async loadMetadata task and cancel it when it's running
+  // I think this is difficult to fix...
   @Test
-  public void loadMetadataTestV2cancel() throws IOException, InterruptedException, AlluxioException {
+  public void loadMetadataTestV2cancel() {
     for (int i = 0; i < 100; i++) {
       mS3Client.putObject(TEST_BUCKET, TEST_FILE + i, TEST_CONTENT);
     }
@@ -211,7 +212,6 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
     assertTrue(mOutput.toString().contains(String.format("Task %s not found or has already been canceled", id)));
   }
 
-  // I think here each Param should have a Test
   @Test
   public void loadMetadataTestV2R() throws IOException, AlluxioException {
     // dir number
@@ -230,20 +230,18 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
     mOutput.reset();
     mFsShell.run("loadMetadata", "-v2", "-R", "-a", uriDir.toString());
     assertTrue(mOutput.toString().contains(String.format("Success op count={[CREATE:%d]}", dirCount * fileCount)));
-
-
   }
 
   @Test
   public void loadMetadataTestV2HeavyLoad() throws IOException, AlluxioException {
-    for (int i = 0; i < 1000000; i++) {
+    int fileCount = 10000;
+    for (int i = 0; i < fileCount; i++) {
       mS3Client.putObject(TEST_BUCKET, TEST_FILE + i, TEST_CONTENT);
     }
+    mOutput.reset();
+    AlluxioURI uriDir = new AlluxioURI("/" );
+    mFsShell.run("loadMetadata", "-v2", "-R", "-a", uriDir.toString());
+    assertTrue(mOutput.toString().contains("State: SUCCEEDED"));
+    assertTrue(mOutput.toString().contains(String.format("Success op count={[CREATE:%d]}", fileCount)));
   }
-
-  // heavy load success
-  // cancel
-  // -R
-  // get..?
-  // id
 }
