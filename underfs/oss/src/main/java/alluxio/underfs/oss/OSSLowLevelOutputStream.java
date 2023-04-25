@@ -125,11 +125,6 @@ public class OSSLowLevelOutputStream extends ObjectLowLevelOutputStream {
   }
 
   @Override
-  protected boolean isMultiPartUploadInitialized() {
-    return mUploadId != null;
-  }
-
-  @Override
   protected void createEmptyObject(String key) throws IOException {
     try {
       ObjectMetadata objMeta = new ObjectMetadata();
