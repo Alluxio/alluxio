@@ -28,10 +28,15 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.BackupStatusPRequest;
+import alluxio.grpc.BuildVersion;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.MasterHeartbeatPOptions;
 import alluxio.grpc.MetaCommand;
+import alluxio.grpc.NetAddress;
+import alluxio.grpc.ProxyHeartbeatPOptions;
+import alluxio.grpc.ProxyHeartbeatPRequest;
+import alluxio.grpc.ProxyStatus;
 import alluxio.grpc.RegisterMasterPOptions;
 import alluxio.grpc.Scope;
 import alluxio.grpc.ServiceType;
@@ -78,12 +83,14 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.text.MessageFormat;
 import java.time.Clock;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -123,6 +130,11 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   /** Keeps track of standby masters which are no longer in communication with the leader master. */
   private final IndexedSet<MasterInfo> mLostMasters =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
+
+  /** Keeps track of proxies which are in communication with the primary master. */
+  private final Map<NetAddress, ProxyInfo> mProxies = new ConcurrentHashMap<>();
+  /** Keeps track of proxies which are no longer in communication with the primary master. */
+  private final Map<NetAddress, ProxyInfo> mLostProxies = new ConcurrentHashMap<>();
 
   /** The connect address for the rpc server. */
   private final InetSocketAddress mRpcConnectAddress
@@ -272,6 +284,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         new GrpcService(ServerInterceptors.intercept(
             new MetaMasterMasterServiceHandler(this),
             new ClientContextServerInjector())));
+    services.put(ServiceType.META_MASTER_PROXY_SERVICE,
+            new GrpcService(new MetaMasterProxyServiceHandler(this)));
     // Add backup role services.
     services.putAll(mBackupRole.getRoleServices());
     services.putAll(mJournalSystem.getJournalServices());
@@ -316,6 +330,12 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
               new LogConfigReportHeartbeatExecutor(),
               () -> new FixedIntervalSupplier(
                   Configuration.getMs(PropertyKey.MASTER_LOG_CONFIG_REPORT_HEARTBEAT_INTERVAL)),
+              Configuration.global(), mMasterContext.getUserState()));
+      getExecutorService().submit(new HeartbeatThread(
+              HeartbeatContext.MASTER_LOST_PROXY_DETECTION,
+              new LostProxyDetectionHeartbeatExecutor(),
+              () -> new FixedIntervalSupplier(
+                  Configuration.getMs(PropertyKey.MASTER_PROXY_CHECK_HEARTBEAT_INTERVAL)),
               Configuration.global(), mMasterContext.getUserState()));
 
       if (Configuration.getBoolean(PropertyKey.MASTER_DAILY_BACKUP_ENABLED)) {
@@ -649,6 +669,29 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
+  public void proxyHeartbeat(ProxyHeartbeatPRequest request) {
+    LOG.debug("Received proxy heartbeat {}", request);
+    ProxyHeartbeatPOptions options = request.getOptions();
+    NetAddress address = options.getProxyAddress();
+    mProxies.compute(address, (key, proxyInfo) -> {
+      if (proxyInfo == null) {
+        ProxyInfo info = new ProxyInfo(address);
+        info.setStartTimeMs(options.getStartTime());
+        info.setVersion(options.getVersion().getVersion());
+        info.setRevision(options.getVersion().getRevision());
+        info.updateLastHeartbeatTimeMs();
+        return info;
+      } else {
+        proxyInfo.setVersion(options.getVersion().getVersion());
+        proxyInfo.setRevision(options.getVersion().getRevision());
+        proxyInfo.updateLastHeartbeatTimeMs();
+        return proxyInfo;
+      }
+    });
+    mLostProxies.remove(address);
+  }
+
+  @Override
   public CheckpointName getCheckpointName() {
     return CheckpointName.META_MASTER;
   }
@@ -707,6 +750,30 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     return result;
   }
 
+  @Override
+  public List<ProxyStatus> listProxyStatus() {
+    List<ProxyStatus> result = new ArrayList<>();
+    for (Map.Entry<NetAddress, ProxyInfo> entry : mProxies.entrySet()) {
+      ProxyInfo info = entry.getValue();
+      result.add(ProxyStatus.newBuilder().setAddress(entry.getKey())
+          .setState("ACTIVE")
+          .setVersion(BuildVersion.newBuilder()
+              .setVersion(info.getVersion()).setRevision(info.getRevision()).build())
+          .setStartTime(info.getStartTimeMs())
+          .setLastHeartbeatTime(info.getLastHeartbeatTimeMs()).build());
+    }
+    for (Map.Entry<NetAddress, ProxyInfo> entry : mLostProxies.entrySet()) {
+      ProxyInfo info = entry.getValue();
+      result.add(ProxyStatus.newBuilder().setAddress(entry.getKey())
+          .setState("LOST")
+          .setVersion(BuildVersion.newBuilder()
+              .setVersion(info.getVersion()).setRevision(info.getRevision()).build())
+          .setStartTime(info.getStartTimeMs())
+          .setLastHeartbeatTime(info.getLastHeartbeatTimeMs()).build());
+    }
+    return result;
+  }
+
   /**
    * Lost master periodic check.
    */
@@ -733,6 +800,50 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           }
         }
       }
+    }
+
+    @Override
+    public void close() {
+      // Nothing to clean up
+    }
+  }
+
+  /**
+   * Lost proxy periodic check.
+   */
+  private final class LostProxyDetectionHeartbeatExecutor implements HeartbeatExecutor {
+
+    /**
+     * Constructs a new {@link LostProxyDetectionHeartbeatExecutor}.
+     */
+    public LostProxyDetectionHeartbeatExecutor() {
+    }
+
+    @Override
+    public void heartbeat(long timeLimitMs) {
+      long proxyTimeoutMs = Configuration.getMs(PropertyKey.MASTER_PROXY_TIMEOUT_MS);
+      long masterProxyDeleteTimeoutMs =
+              Configuration.getMs(PropertyKey.MASTER_LOST_PROXY_DELETION_TIMEOUT_MS);
+      LOG.debug("LostProxyDetection checking proxies at {}", mProxies.keySet());
+      mProxies.entrySet().removeIf(entry -> {
+        final long lastUpdate = mClock.millis() - entry.getValue().getLastHeartbeatTimeMs();
+        if (lastUpdate > proxyTimeoutMs) {
+          LOG.warn("Proxy {} last heartbeat time {} was more than {}ms ago",
+              entry.getKey(), entry.getValue().getLastHeartbeatTimeMs(), proxyTimeoutMs);
+          mLostProxies.put(entry.getKey(), entry.getValue());
+          return true;
+        }
+        return false;
+      });
+      mLostProxies.entrySet().removeIf(entry -> {
+        final long lastUpdate = mClock.millis() - entry.getValue().getLastHeartbeatTimeMs();
+        if (lastUpdate > masterProxyDeleteTimeoutMs) {
+          LOG.warn("Proxy {} has been LOST for more than {}ms. "
+              + "Master will forget about this Proxy", entry.getKey(), masterProxyDeleteTimeoutMs);
+          return true;
+        }
+        return false;
+      });
     }
 
     @Override

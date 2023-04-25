@@ -147,3 +147,10 @@ enum ErrorType {
   Internal = 1;
   External = 2;
 }
+
+message BuildVersion {
+  /** the project version */
+  optional string version = 1;
+  /** the git revision at the time of building */
+  optional string revision = 2;
+}

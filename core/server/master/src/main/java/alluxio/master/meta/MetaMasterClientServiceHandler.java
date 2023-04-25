@@ -24,6 +24,8 @@ import alluxio.grpc.GetConfigReportPOptions;
 import alluxio.grpc.GetConfigReportPResponse;
 import alluxio.grpc.GetMasterInfoPOptions;
 import alluxio.grpc.GetMasterInfoPResponse;
+import alluxio.grpc.ListProxyStatusPRequest;
+import alluxio.grpc.ListProxyStatusPResponse;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MasterVersion;
@@ -185,5 +187,14 @@ public final class MetaMasterClientServiceHandler
     RpcUtils.call(LOG,
         () -> CheckpointPResponse.newBuilder().setMasterHostname(mMetaMaster.checkpoint()).build(),
         "checkpoint", "options=%s", responseObserver, options);
+  }
+
+  @Override
+  public void listProxyStatus(ListProxyStatusPRequest request,
+                              StreamObserver<ListProxyStatusPResponse> responseObserver) {
+    RpcUtils.call(LOG,
+        () -> ListProxyStatusPResponse.newBuilder()
+            .addAllProxyStatuses(mMetaMaster.listProxyStatus()).build(),
+            "listProxyStatus", "options=%s", responseObserver, request.getOptions());
   }
 }
