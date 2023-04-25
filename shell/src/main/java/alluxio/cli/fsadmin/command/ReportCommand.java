@@ -17,6 +17,7 @@ import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
 import alluxio.cli.fsadmin.report.CapacityCommand;
 import alluxio.cli.fsadmin.report.JobServiceMetricsCommand;
 import alluxio.cli.fsadmin.report.MetricsCommand;
+import alluxio.cli.fsadmin.report.ProxyCommand;
 import alluxio.cli.fsadmin.report.SummaryCommand;
 import alluxio.cli.fsadmin.report.UfsCommand;
 import alluxio.conf.AlluxioConfiguration;
@@ -73,7 +74,8 @@ public final class ReportCommand extends AbstractFsAdminCommand {
     METRICS, // Report metrics information
     SUMMARY, // Report cluster summary
     UFS, // Report under filesystem information
-    JOBSERVICE // Report job service metrics information
+    JOBSERVICE, // Report job service metrics information
+    PROXY // Report proxy information in the cluster
   }
 
   private AlluxioConfiguration mConf;
@@ -125,6 +127,9 @@ public final class ReportCommand extends AbstractFsAdminCommand {
         case "jobservice":
           command = Command.JOBSERVICE;
           break;
+        case "proxy":
+          command = Command.PROXY;
+          break;
         default:
           System.out.println(getUsage());
           System.out.println(getDescription());
@@ -164,6 +169,10 @@ public final class ReportCommand extends AbstractFsAdminCommand {
         JobServiceMetricsCommand jobmetricsCommand = new JobServiceMetricsCommand(
             mJobMasterClient, mPrintStream, mConf.getString(PropertyKey.USER_DATE_FORMAT_PATTERN));
         jobmetricsCommand.run();
+        break;
+      case PROXY:
+        ProxyCommand proxyCommand = new ProxyCommand(mMetaClient, mPrintStream);
+        proxyCommand.run();
         break;
       default:
         break;

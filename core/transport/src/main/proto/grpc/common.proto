@@ -134,3 +134,20 @@ message BlockStoreLocationProto {
 message RetryInfo {
   optional bool isRetryable = 1;
 }
+
+message ErrorInfo {
+  optional ErrorType errorType = 1;
+}
+
+enum ErrorType {
+  User = 0;
+  Internal = 1;
+  External = 2;
+}
+
+message BuildVersion {
+  /** the project version */
+  optional string version = 1;
+  /** the git revision at the time of building */
+  optional string revision = 2;
+}
