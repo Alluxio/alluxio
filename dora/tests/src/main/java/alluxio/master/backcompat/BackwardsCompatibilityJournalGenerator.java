@@ -28,8 +28,8 @@ import alluxio.master.backcompat.ops.Rename;
 import alluxio.master.backcompat.ops.SetAcl;
 import alluxio.master.backcompat.ops.UpdateUfsMode;
 import alluxio.master.journal.JournalType;
-import alluxio.dora.process.MultiProcessCluster;
-import alluxio.dora.process.PortCoordination;
+import alluxio.process.MultiProcessCluster;
+import alluxio.process.PortCoordination;
 import alluxio.user.ServerUserState;
 
 import com.beust.jcommander.JCommander;

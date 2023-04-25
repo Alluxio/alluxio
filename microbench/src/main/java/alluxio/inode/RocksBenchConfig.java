@@ -18,7 +18,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.master.metastore.rocks.DataBlockIndexType;
 import alluxio.master.metastore.rocks.IndexType;
-import alluxio.dora.master.metastore.rocks.RocksInodeStore;
+import alluxio.master.metastore.rocks.RocksInodeStore;
 
 import java.io.File;
 import java.io.IOException;

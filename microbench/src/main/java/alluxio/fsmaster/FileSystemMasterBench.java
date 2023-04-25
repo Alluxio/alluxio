@@ -13,7 +13,7 @@ package alluxio.fsmaster;
 
 import alluxio.BaseFileStructure;
 import alluxio.BaseThreadState;
-import alluxio.dora.master.file.FileSystemMaster;
+import alluxio.master.file.FileSystemMaster;
 import alluxio.security.authentication.AuthenticatedClientUser;
 
 import org.openjdk.jmh.annotations.Benchmark;

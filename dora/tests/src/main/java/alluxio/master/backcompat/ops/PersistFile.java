@@ -19,7 +19,7 @@ import alluxio.dora.client.file.FileSystem;
 import alluxio.conf.Configuration;
 import alluxio.master.backcompat.TestOp;
 import alluxio.master.backcompat.Utils;
-import alluxio.dora.process.Clients;
+import alluxio.process.Clients;
 import alluxio.util.CommonUtils;
 import alluxio.dora.util.FileSystemOptionsUtils;
 import alluxio.util.WaitForOptions;

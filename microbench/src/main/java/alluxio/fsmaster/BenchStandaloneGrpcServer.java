@@ -37,7 +37,7 @@ import alluxio.grpc.ServiceType;
 import alluxio.grpc.ServiceVersionClientServiceGrpc;
 import alluxio.grpc.TtlAction;
 import alluxio.master.AlluxioExecutorService;
-import alluxio.dora.master.meta.PathProperties;
+import alluxio.master.meta.PathProperties;
 import alluxio.security.authentication.AuthType;
 import alluxio.wire.ConfigHash;
 

@@ -27,7 +27,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
-import alluxio.util.ConcurrencyUtils;
+import alluxio.test.util.ConcurrencyUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.dora.worker.block.annotator.BlockIterator;

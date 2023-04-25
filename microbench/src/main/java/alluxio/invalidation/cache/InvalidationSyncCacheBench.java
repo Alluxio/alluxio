@@ -17,7 +17,7 @@ import alluxio.BaseThreadState;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.file.options.DescendantType;
-import alluxio.dora.master.file.meta.UfsSyncPathCache;
+import alluxio.master.file.meta.UfsSyncPathCache;
 
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;

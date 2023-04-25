@@ -19,7 +19,7 @@ import static alluxio.inode.RocksBenchBase.genInode;
 
 import alluxio.BaseFileStructure;
 import alluxio.BaseThreadState;
-import alluxio.dora.master.file.meta.MutableInode;
+import alluxio.master.file.meta.MutableInode;
 
 import com.google.common.base.Preconditions;
 import org.junit.Assert;

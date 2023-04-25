@@ -54,7 +54,7 @@ public final class MostAvailableFirstPolicyTest {
 
   @Test
   public void equalsTest() {
-    CommonUtils.testEquals(MostAvailableFirstPolicy.class,
+    alluxio.test.util.CommonUtils.testEquals(MostAvailableFirstPolicy.class,
         new Class[]{AlluxioConfiguration.class},
         new Object[]{Configuration.global()});
   }

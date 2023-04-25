@@ -1,9 +1,0 @@
-alluxio.dora.job.plan.batch.BatchedJobDefinition
-alluxio.dora.job.plan.load.LoadDefinition
-alluxio.dora.job.plan.migrate.MigrateDefinition
-alluxio.dora.job.plan.persist.PersistDefinition
-alluxio.dora.job.plan.replicate.MoveDefinition
-alluxio.dora.job.plan.replicate.SetReplicaDefinition
-alluxio.dora.job.plan.stress.StressBenchDefinition
-alluxio.dora.job.plan.transform.CompactDefinition
-alluxio.dora.job.plan.NoopPlanDefinition

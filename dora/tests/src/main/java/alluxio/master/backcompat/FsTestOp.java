@@ -12,7 +12,7 @@
 package alluxio.master.backcompat;
 
 import alluxio.dora.client.file.FileSystem;
-import alluxio.dora.process.Clients;
+import alluxio.process.Clients;
 
 /**
  * A test operation which only needs the FileSystem client.

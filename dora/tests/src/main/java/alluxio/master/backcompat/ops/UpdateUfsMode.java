@@ -18,7 +18,7 @@ import alluxio.dora.client.file.FileSystemMasterClient;
 import alluxio.grpc.UfsPMode;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.master.backcompat.TestOp;
-import alluxio.dora.process.Clients;
+import alluxio.process.Clients;
 
 /**
  * Test for updating UFS modes.

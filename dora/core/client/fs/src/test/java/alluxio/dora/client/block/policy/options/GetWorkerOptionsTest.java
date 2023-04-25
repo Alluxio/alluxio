@@ -78,6 +78,6 @@ public final class GetWorkerOptionsTest {
 
   @Test
   public void equalTest() throws Exception {
-    CommonUtils.testEquals(GetWorkerOptions.class);
+    alluxio.test.util.CommonUtils.testEquals(GetWorkerOptions.class);
   }
 }

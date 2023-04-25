@@ -11,7 +11,7 @@
 
 package alluxio.master.backcompat;
 
-import alluxio.dora.process.Clients;
+import alluxio.process.Clients;
 
 /**
  * A test operation for use by the backwards compatibility test.
