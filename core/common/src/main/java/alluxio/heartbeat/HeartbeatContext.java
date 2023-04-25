@@ -29,6 +29,8 @@ public final class HeartbeatContext {
 
   // Names of different heartbeat executors.
   public static final String JOB_MASTER_LOST_WORKER_DETECTION = "Job Master Lost Worker Detection";
+  public static final String JOB_MASTER_LOST_MASTER_DETECTION = "Job Master Lost Master Detection";
+  public static final String JOB_MASTER_SYNC = "Job Master Sync";
   public static final String JOB_WORKER_COMMAND_HANDLING =
       "Job Worker Command Handling";
   public static final String MASTER_ACTIVE_UFS_SYNC = "Master Active UFS Sync";
@@ -69,6 +71,8 @@ public final class HeartbeatContext {
   static {
     sTimerClasses = new HashMap<>();
     sTimerClasses.put(JOB_MASTER_LOST_WORKER_DETECTION, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(JOB_MASTER_LOST_MASTER_DETECTION, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(JOB_MASTER_SYNC, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(JOB_WORKER_COMMAND_HANDLING, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_ACTIVE_UFS_SYNC, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_BLOCK_INTEGRITY_CHECK, SLEEPING_TIMER_CLASS);
