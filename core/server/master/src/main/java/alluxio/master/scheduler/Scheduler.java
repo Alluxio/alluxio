@@ -25,6 +25,7 @@ import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.grpc.JobProgressReportFormat;
 import alluxio.job.JobDescription;
+import alluxio.master.job.DoraLoadJob;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.CloseableResource;
@@ -226,16 +227,13 @@ public final class Scheduler {
   private void retrieveJobs() {
     for (Job<?> job : mJobMetaStore.getJobs()) {
       mExistingJobs.put(job.getDescription(), job);
+      if (job.isDone()) {
+        mRunningTasks.remove(job);
+      }
+      else {
+        mRunningTasks.put(job, new HashSet<>());
+      }
     }
-//    for (Job<?> job : mJobMetaStore.getJobs()) {
-//      mExistingJobs.put(job.getDescription(), job);
-//      if (job.isDone()) {
-//        mRunningTasks.remove(job);
-//      }
-//      else {
-//        mRunningTasks.put(job, new HashSet<>());
-//      }
-//    }
   }
 
   /**
@@ -267,16 +265,16 @@ public final class Scheduler {
       return false;
     }
 
-    int totalActiveTasks = mWorkerInfoHub.getWorkerToTaskQ()
-        .values().stream().mapToInt(q -> q.size()).sum();
-    if (totalActiveTasks > CAPACITY) {
-//    if (mRunningTasks.size() >= CAPACITY) {
+//    int totalActiveTasks = mWorkerInfoHub.getWorkerToTaskQ()
+//        .values().stream().mapToInt(q -> q.size()).sum();
+//    if (totalActiveTasks > CAPACITY) {
+    if (mRunningTasks.size() >= CAPACITY) {
       throw new ResourceExhaustedRuntimeException(
           "Too many jobs running, please submit later.", true);
     }
     mJobMetaStore.updateJob(job);
     mExistingJobs.put(job.getDescription(), job);
-//    mRunningTasks.put(job, new HashSet<>());
+    mRunningTasks.put(job, new HashSet<>());
     LOG.info(format("start job: %s", job));
     return true;
   }
@@ -287,7 +285,7 @@ public final class Scheduler {
     LOG.debug(format("updated existing job: %s from %s", existingJob, newJob));
     if (existingJob.getJobState() == JobState.STOPPED) {
       existingJob.setJobState(JobState.RUNNING);
-//      mRunningTasks.put(existingJob, new HashSet<>());
+      mRunningTasks.put(existingJob, new HashSet<>());
       LOG.debug(format("restart existing job: %s", existingJob));
     }
   }
@@ -368,11 +366,15 @@ public final class Scheduler {
     if (Thread.currentThread().isInterrupted()) {
       return;
     }
-//    mRunningTasks.forEach(this::processJob);
-    mExistingJobs.forEach((jobDescription, job) -> job.continueJob());
+    mRunningTasks.forEach(this::processJob);
+//    mExistingJobs.forEach((jobDescription, job) -> job.continueJob());
   }
 
   private void processJob(Job<?> job, Set<WorkerInfo> runningWorkers) {
+    // TO REMOVE IN FUTURE
+    if (job instanceof DoraLoadJob) {
+      return;
+    }
     try {
       if (!job.isRunning()) {
         try {

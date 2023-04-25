@@ -199,6 +199,11 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     return mVerificationEnabled && mProcessedFileCount.get() > 0;
   }
 
+  @Override
+  public void continueJob() {
+    // NOOP
+  }
+
   /**
    * Enable verification.
    * @param enableVerification whether to enable verification
