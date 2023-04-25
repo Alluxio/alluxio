@@ -4180,7 +4180,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     */
     TaskGroup task = mMetadataSyncer.syncPath(path,
         GrpcUtils.fromProto(context.getOptions().getLoadDescendantType()),
-        GrpcUtils.fromProto(context.getOptions().getDirectoryLoadType()), 0, true);
+        GrpcUtils.fromProto(context.getOptions().getDirectoryLoadType()), 0, null, true);
     try {
       task.waitAllComplete(0);
     } catch (Throwable t) {
@@ -4195,7 +4195,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       throws InvalidPathException, IOException {
     TaskGroup result = mMetadataSyncer.syncPath(path,
         GrpcUtils.fromProto(context.getOptions().getLoadDescendantType()),
-        GrpcUtils.fromProto(context.getOptions().getDirectoryLoadType()), 0, true);
+        GrpcUtils.fromProto(context.getOptions().getDirectoryLoadType()), 0, null, true);
     return SyncMetadataAsyncPResponse.newBuilder()
         .setSubmitted(true).setTaskId(result.getGroupId()).build();
   }

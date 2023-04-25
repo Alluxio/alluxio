@@ -16,6 +16,7 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import alluxio.Constants;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.runtime.InternalRuntimeException;
+import alluxio.master.file.metasync.MetadataSyncer;
 import alluxio.master.file.metasync.SyncFailReason;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -39,6 +40,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
+import javax.annotation.Nullable;
 
 class LoadRequestExecutor implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(LoadRequestExecutor.class);
@@ -100,8 +102,13 @@ class LoadRequestExecutor implements Closeable {
   private void onLoadError(LoadRequest request, Throwable t) {
     // TODO(elega) this might result in load request that is retried successfully being
     // added incorrectly
-    request.getTaskInfo().getStats().reportSyncFailReason(
-        request, null, SyncFailReason.LOADING_UFS_IO_FAILURE, t);
+    if (t instanceof MetadataSyncer.MountPointNotFoundRuntimeException) {
+      request.getTaskInfo().getStats().reportSyncFailReason(
+          request, null, SyncFailReason.LOADING_MOUNT_POINT_DOES_NOT_EXIST, t);
+    } else {
+      request.getTaskInfo().getStats().reportSyncFailReason(
+          request, null, SyncFailReason.LOADING_UFS_IO_FAILURE, t);
+    }
     releaseRunning();
     request.onError(t);
   }
@@ -198,8 +205,12 @@ class LoadRequestExecutor implements Closeable {
 
   private void runTask(PathLoaderTask task, LoadRequest loadRequest) {
     try (CloseableResource<UfsClient> client = task.getClient()) {
+      @Nullable String startAfter = null;
+      if (loadRequest.isFirstLoad()) {
+        startAfter = loadRequest.getTaskInfo().getStartAfter();
+      }
       client.get().performListingAsync(loadRequest.getLoadPath().getPath(),
-          loadRequest.getContinuationToken(), loadRequest.getTaskInfo().getStartAfter(),
+          loadRequest.getContinuationToken(), startAfter,
           loadRequest.getDescendantType(), loadRequest.isFirstLoad(),
           ufsLoadResult -> processLoadResult(loadRequest, ufsLoadResult),
           t -> onLoadError(loadRequest, t));

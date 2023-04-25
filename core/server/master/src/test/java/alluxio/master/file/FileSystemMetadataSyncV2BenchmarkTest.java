@@ -63,14 +63,14 @@ public final class FileSystemMetadataSyncV2BenchmarkTest extends FileSystemMaste
     // First pass
     BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
         MOUNT_POINT, DescendantType.ALL, DirectoryLoadType.BFS, 0
-    );
+    ).getBaseTask();
     result.waitComplete(0);
     System.out.println(result.getTaskInfo().getStats());
 
     System.out.println("--------Second pass----------");
     result = mFileSystemMaster.getMetadataSyncer().syncPath(
         MOUNT_POINT, DescendantType.ALL, DirectoryLoadType.BFS, 0
-    );
+    ).getBaseTask();
     result.waitComplete(0);
     System.out.println(result.getTaskInfo().getStats());
   }

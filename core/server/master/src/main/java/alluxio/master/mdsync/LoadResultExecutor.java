@@ -12,6 +12,7 @@
 package alluxio.master.mdsync;
 
 import alluxio.master.file.meta.UfsSyncPathCache;
+import alluxio.master.file.metasync.MetadataSyncer;
 import alluxio.master.file.metasync.SyncFailReason;
 import alluxio.util.ThreadFactoryUtils;
 
@@ -46,6 +47,11 @@ class LoadResultExecutor implements Closeable {
       beforeProcessing.run();
       try {
         onComplete.accept(mSyncProcess.performSync(result, mSyncPathCache));
+      } catch (MetadataSyncer.MountPointNotFoundRuntimeException e) {
+        result.getTaskInfo().getStats().reportSyncFailReason(
+            result.getLoadRequest(), result,
+            SyncFailReason.PROCESSING_MOUNT_POINT_DOES_NOT_EXIST, e);
+        onError.accept(e);
       } catch (Throwable t) {
         result.getTaskInfo().getStats().reportSyncFailReason(
             result.getLoadRequest(), result, SyncFailReason.PROCESSING_UNKNOWN, t);

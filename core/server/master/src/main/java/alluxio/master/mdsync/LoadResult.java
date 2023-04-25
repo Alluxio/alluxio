@@ -108,4 +108,18 @@ public class LoadResult implements Comparable<LoadResult> {
     }
     return mLoadRequest.compareTo(o.mLoadRequest);
   }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof LoadResult) {
+      return compareTo((LoadResult) obj) == 0;
+    }
+    return false;
+  }
+
+  @Override
+  public int hashCode() {
+    // fix find bugs
+    return super.hashCode();
+  }
 }

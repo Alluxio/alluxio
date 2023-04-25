@@ -52,7 +52,7 @@ public class BaseTaskTest {
   public void PathIsCoveredNone() {
     BaseTask path = BaseTask.create(new TaskInfo(mMdSync, new AlluxioURI("/path"),
         new AlluxioURI("/path"), null,
-        NONE, 0, DirectoryLoadType.SINGLE_LISTING, 0), mClock.millis(), mClientSupplier);
+        NONE, 0, DirectoryLoadType.SINGLE_LISTING, 0, 0, true), mClock.millis(), mClientSupplier);
     assertTrue(path.pathIsCovered(new AlluxioURI("/path"), NONE));
     assertFalse(path.pathIsCovered(new AlluxioURI("/"), NONE));
     assertFalse(path.pathIsCovered(new AlluxioURI("/p"), NONE));
@@ -76,7 +76,7 @@ public class BaseTaskTest {
   public void PathIsCoveredOne() {
     BaseTask path = BaseTask.create(new TaskInfo(mMdSync, new AlluxioURI("/path"),
         new AlluxioURI("/path"), null,
-        ONE, 0, DirectoryLoadType.SINGLE_LISTING, 0), mClock.millis(), mClientSupplier);
+        ONE, 0, DirectoryLoadType.SINGLE_LISTING, 0, 0, true), mClock.millis(), mClientSupplier);
     assertTrue(path.pathIsCovered(new AlluxioURI("/path"), NONE));
     assertFalse(path.pathIsCovered(new AlluxioURI("/"), NONE));
     assertFalse(path.pathIsCovered(new AlluxioURI("/p"), NONE));
@@ -103,7 +103,7 @@ public class BaseTaskTest {
   public void PathIsCoveredAll() {
     BaseTask path = BaseTask.create(new TaskInfo(mMdSync, new AlluxioURI("/path"),
         new AlluxioURI("/path"), null,
-        ALL, 0, DirectoryLoadType.SINGLE_LISTING, 0), mClock.millis(), mClientSupplier);
+        ALL, 0, DirectoryLoadType.SINGLE_LISTING, 0, 0, true), mClock.millis(), mClientSupplier);
     assertTrue(path.pathIsCovered(new AlluxioURI("/path"), NONE));
     assertFalse(path.pathIsCovered(new AlluxioURI("/"), NONE));
     assertFalse(path.pathIsCovered(new AlluxioURI("/p"), NONE));
