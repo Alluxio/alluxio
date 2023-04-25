@@ -90,7 +90,7 @@ public final class MountCommand extends AbstractFileSystemCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    if (args.length == 0 || cl.hasOption(EXCLUDE_UFS_OPTION.getLongOpt())) {
+    if (args.length == 0) {
       Map<String, MountPointInfo> mountTable =
           mFileSystem.getMountTable(!cl.hasOption(EXCLUDE_UFS_OPTION.getLongOpt()));
       UfsCommand.printMountInfo(mountTable);
@@ -117,7 +117,7 @@ public final class MountCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "mount [--exclude-ufs/--readonly] [--shared] [--option <key=val>] "
+    return "mount [--exclude-ufs] | [--readonly] [--shared] [--option <key=val>] "
         + "<alluxioPath> <ufsURI>";
   }
 
