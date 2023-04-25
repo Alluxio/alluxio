@@ -467,10 +467,10 @@ public final class PathUtils {
    * @return a list of paths
    */
   public static List<String> getPossibleMountPoints(String path) throws InvalidPathException {
-    String basePath = cleanPath(path);
+    path = cleanPath(path);
+    String basePath = path;
     List<String> paths = new ArrayList<>();
     if ((basePath != null) && !basePath.equals(AlluxioURI.SEPARATOR)) {
-      basePath = cleanPath(path);
       paths.add(basePath);
       String parent = getParentCleaned(path);
       while (!parent.equals(AlluxioURI.SEPARATOR)) {

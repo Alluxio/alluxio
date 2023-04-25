@@ -292,7 +292,7 @@ public final class PermissionCheckTest {
         Configuration.global()).toResource()) {
       CreateFileContext context = CreateFileContext
           .mergeFrom(
-              CreateFilePOptions.newBuilder().setRecursive(recursive))
+              CreateFilePOptions.newBuilder().setRecursive(recursive), Configuration.global())
           .setOwner(SecurityUtils.getOwnerFromGrpcClient(Configuration.global()))
           .setGroup(SecurityUtils.getGroupFromGrpcClient(Configuration.global()))
           .setWriteType(WriteType.CACHE_THROUGH);
@@ -348,7 +348,8 @@ public final class PermissionCheckTest {
     try (Closeable r = new AuthenticatedUserRule(user.getUser(),
         Configuration.global()).toResource()) {
       CreateDirectoryContext context = CreateDirectoryContext
-          .mergeFrom(CreateDirectoryPOptions.newBuilder().setRecursive(recursive))
+          .mergeFrom(
+              CreateDirectoryPOptions.newBuilder().setRecursive(recursive), Configuration.global())
           .setOwner(SecurityUtils.getOwnerFromGrpcClient(Configuration.global()))
           .setGroup(SecurityUtils.getGroupFromGrpcClient(Configuration.global()));
       mFileSystemMaster.createDirectory(new AlluxioURI(path), context);

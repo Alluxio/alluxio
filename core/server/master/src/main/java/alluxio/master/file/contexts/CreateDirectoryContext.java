@@ -11,6 +11,7 @@
 
 package alluxio.master.file.contexts;
 
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.security.authorization.AclEntry;
@@ -64,6 +65,22 @@ public class CreateDirectoryContext
   public static CreateDirectoryContext mergeFrom(CreateDirectoryPOptions.Builder optionsBuilder) {
     CreateDirectoryPOptions.Builder mergedOptionsBuilder =
         CREATE_DIRECTORY_DEFAULTS.toBuilder().mergeFrom(optionsBuilder.build());
+    return create(mergedOptionsBuilder);
+  }
+
+  /**
+   * Merges and embeds the given {@link CreateDirectoryPOptions} with the corresponding
+   * using the configuration.
+   *
+   * @param optionsBuilder Builder for proto {@link CreateDirectoryPOptions} to merge with defaults
+   * @param configuration the configuration to use
+   * @return the instance of {@link CreateDirectoryContext} with default values for master
+   */
+  public static CreateDirectoryContext mergeFrom(
+      CreateDirectoryPOptions.Builder optionsBuilder, AlluxioConfiguration configuration) {
+    CreateDirectoryPOptions.Builder mergedOptionsBuilder =
+        FileSystemOptionsUtils.createDirectoryDefaults(configuration, false)
+            .toBuilder().mergeFrom(optionsBuilder.build());
     return create(mergedOptionsBuilder);
   }
 

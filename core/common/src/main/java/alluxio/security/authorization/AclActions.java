@@ -57,7 +57,7 @@ public final class AclActions implements Serializable {
    */
   public AclActions(Set<AclAction> actions) {
     for (AclAction action : actions) {
-      mActions = mActions.and(action.toBit());
+      mActions = mActions.or(action.toBit());
     }
   }
 

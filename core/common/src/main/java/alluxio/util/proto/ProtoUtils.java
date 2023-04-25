@@ -112,6 +112,10 @@ public final class ProtoUtils {
       DefaultAccessControlList defaultAcl = (DefaultAccessControlList) acl;
       builder.setIsDefault(true);
       builder.setIsEmpty(defaultAcl.isEmpty());
+    }  else {
+      builder.setIsDefault(false);
+      // non default acl is always not empty
+      builder.setIsEmpty(false);
     }
     return builder.build();
   }
