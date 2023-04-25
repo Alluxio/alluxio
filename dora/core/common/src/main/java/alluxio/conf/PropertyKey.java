@@ -7333,6 +7333,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(100000)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey JOB_MASTER_MASTER_HEARTBEAT_INTERVAL =
+      durationBuilder(Name.JOB_MASTER_MASTER_HEARTBEAT_INTERVAL)
+          .setDescription("The amount of time that a standby Alluxio Job Master should wait "
+              + "in between heartbeats to the primary Job Master.")
+          .setDefaultValue("1sec")
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey JOB_MASTER_MASTER_TIMEOUT =
+      durationBuilder(Name.JOB_MASTER_MASTER_TIMEOUT)
+          .setDescription("The time period after which the primary Job Master will mark a standby "
+              + "as lost without a subsequent heartbeat.")
+          .setDefaultValue("60sec")
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey JOB_MASTER_WORKER_HEARTBEAT_INTERVAL =
       durationBuilder(Name.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL)
           .setDescription("The amount of time that the Alluxio job worker should wait in between "
@@ -7358,6 +7372,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The hostname of the Alluxio job master.")
           .setDefaultValue(format("${%s}", Name.MASTER_HOSTNAME))
           .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey JOB_MASTER_LOST_MASTER_INTERVAL =
+      durationBuilder(Name.JOB_MASTER_LOST_MASTER_INTERVAL)
+          .setDescription("The time interval the job master waits between checks for "
+              + "lost job masters.")
+          .setDefaultValue("10sec")
+          .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey JOB_MASTER_LOST_WORKER_INTERVAL =
       durationBuilder(Name.JOB_MASTER_LOST_WORKER_INTERVAL)
@@ -9284,6 +9305,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String JOB_MASTER_FINISHED_JOB_RETENTION_TIME =
         "alluxio.job.master.finished.job.retention.time";
     public static final String JOB_MASTER_JOB_CAPACITY = "alluxio.job.master.job.capacity";
+    public static final String JOB_MASTER_MASTER_HEARTBEAT_INTERVAL =
+        "alluxio.job.master.master.heartbeat.interval";
+    public static final String JOB_MASTER_MASTER_TIMEOUT =
+        "alluxio.job.master.master.timeout";
     public static final String JOB_MASTER_WORKER_HEARTBEAT_INTERVAL =
         "alluxio.job.master.worker.heartbeat.interval";
     public static final String JOB_MASTER_WORKER_TIMEOUT =
@@ -9291,6 +9316,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     public static final String JOB_MASTER_BIND_HOST = "alluxio.job.master.bind.host";
     public static final String JOB_MASTER_HOSTNAME = "alluxio.job.master.hostname";
+    public static final String JOB_MASTER_LOST_MASTER_INTERVAL =
+            "alluxio.job.master.lost.master.interval";
     public static final String JOB_MASTER_LOST_WORKER_INTERVAL =
         "alluxio.job.master.lost.worker.interval";
     public static final String JOB_MASTER_RPC_PORT = "alluxio.job.master.rpc.port";
