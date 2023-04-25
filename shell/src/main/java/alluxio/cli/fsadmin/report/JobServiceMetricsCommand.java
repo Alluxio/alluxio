@@ -67,47 +67,30 @@ public class JobServiceMetricsCommand {
    */
   public int run() throws IOException {
     List<JobMasterStatus> allMasterStatus = mJobMasterClient.getAllMasterStatus();
-    // TODO(jiacheng): further improve format here
     String masterFormat = getMasterInfoFormat(allMasterStatus);
     mPrintStream.printf(masterFormat, "Master Address", "State", "Start Time", "Version", "Revision");
     for (JobMasterStatus masterStatus : allMasterStatus) {
       NetAddress address = masterStatus.getMasterAddress();
       mPrintStream.printf(masterFormat,
-              address.getHost() + ":" + address.getRpcPort(),
-              masterStatus.getState(),
-              DATETIME_FORMAT.format(Instant.ofEpochMilli(masterStatus.getStartTime())),
-              masterStatus.getVersion(),
-              masterStatus.getRevision());
-//      mPrintStream.printf("Master Address (RPC port): %-32s  %n", address.getHost() + ":" + address.getRpcPort());
-//      mPrintStream.printf("Master State: %-10s  %n", masterStatus.getState());
-//      mPrintStream.printf("Master Start Time: %-16s  %n", DATETIME_FORMAT.format(Instant.ofEpochMilli(masterStatus.getStartTime())));
-//      mPrintStream.printf("Master Version: %-16s  %n", masterStatus.getVersion());
-//      mPrintStream.printf("Master Revision: %-16s  %n", masterStatus.getRevision());
+          address.getHost() + ":" + address.getRpcPort(),
+          masterStatus.getState(),
+          DATETIME_FORMAT.format(Instant.ofEpochMilli(masterStatus.getStartTime())),
+          masterStatus.getVersion().getVersion(),
+          masterStatus.getVersion().getRevision());
     }
     mPrintStream.println();
 
     List<JobWorkerHealth> allWorkerHealth = mJobMasterClient.getAllWorkerHealth();
-    // TODO(jiacheng): further improve format here
     String workerFormat = getWorkerInfoFormat(allWorkerHealth);
     mPrintStream.printf(workerFormat, "Job Worker", "Version", "Revision", "Task Pool Size", "Unfinished Tasks", "Active Tasks", "Load Avg");
 
     for (JobWorkerHealth workerHealth : allWorkerHealth) {
       mPrintStream.printf(workerFormat,
-          workerHealth.getHostname(), workerHealth.getVersion(), workerHealth.getRevision(),
+          workerHealth.getHostname(), workerHealth.getVersion().getVersion(),
+          workerHealth.getVersion().getRevision(),
           workerHealth.getTaskPoolSize(), workerHealth.getUnfinishedTasks(),
           workerHealth.getNumActiveTasks(),
           StringUtils.join(workerHealth.getLoadAverage(), ", "));
-//
-//      mPrintStream.printf("Worker: %-10s  ", workerHealth.getHostname());
-//      mPrintStream.printf("Worker Version: %-16s  ", workerHealth.getVersion());
-//      mPrintStream.printf("Worker Revision: %-16s  ", workerHealth.getRevision());
-//      mPrintStream.printf("Task Pool Size: %-7s", workerHealth.getTaskPoolSize());
-//      mPrintStream.printf("Unfinished Tasks: %-7s",
-//          workerHealth.getUnfinishedTasks());
-//      mPrintStream.print(String.format("Active Tasks: %-7s",
-//          workerHealth.getNumActiveTasks()));
-//      mPrintStream.println(String.format("Load Avg: %s",
-//          StringUtils.join(workerHealth.getLoadAverage(), ", ")));
     }
     mPrintStream.println();
 

@@ -11,6 +11,8 @@
 
 package alluxio.master.meta;
 
+import alluxio.RuntimeConstants;
+import alluxio.grpc.BuildVersion;
 import alluxio.grpc.NetAddress;
 import alluxio.wire.Address;
 
@@ -35,9 +37,7 @@ public final class JobMasterInfo {
   /** Master's last lose primacy time in ms. */
   private long mLosePrimacyTimeMs = 0;
   /** Master's version. */
-  private String mVersion = "";
-  /** Master's revision. */
-  private String mRevision = "";
+  private BuildVersion mVersion = RuntimeConstants.UNKNOWN_VERSION_INFO;
 
   /**
    * Creates a new instance of {@link MasterInfo}.
@@ -89,23 +89,17 @@ public final class JobMasterInfo {
   /**
    * @return the version of the master
    */
-  public String getVersion() {
+  public BuildVersion getVersion() {
     return mVersion;
-  }
-
-  /**
-   * @return the revision of the master
-   */
-  public String getRevision() {
-    return mRevision;
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("id", mId).add("address", mAddress)
-            .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).add("startTimeMs", mStartTimeMs)
-            .add("losePrimacyTimeMs", mLosePrimacyTimeMs)
-            .add("version", mVersion).add("revision", mRevision).toString();
+        .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).add("startTimeMs", mStartTimeMs)
+        .add("losePrimacyTimeMs", mLosePrimacyTimeMs)
+        .add("version", mVersion.getVersion())
+        .add("revision", mVersion.getRevision()).toString();
   }
 
   /**
@@ -125,15 +119,8 @@ public final class JobMasterInfo {
   /**
    * @param version the version of the master
    */
-  public void setVersion(String version) {
+  public void setVersion(BuildVersion version) {
     mVersion = version;
-  }
-
-  /**
-   * @param revision the revision of the master
-   */
-  public void setRevision(String revision) {
-    mRevision = revision;
   }
 
   /**

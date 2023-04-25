@@ -4743,12 +4743,7 @@
               {
                 "id": 8,
                 "name": "version",
-                "type": "string"
-              },
-              {
-                "id": 9,
-                "name": "revision",
-                "type": "string"
+                "type": "grpc.BuildVersion"
               }
             ]
           },
@@ -5051,12 +5046,7 @@
               {
                 "id": 4,
                 "name": "version",
-                "type": "string"
-              },
-              {
-                "id": 5,
-                "name": "revision",
-                "type": "string"
+                "type": "grpc.BuildVersion"
               }
             ]
           },
@@ -5268,12 +5258,7 @@
               {
                 "id": 3,
                 "name": "version",
-                "type": "string"
-              },
-              {
-                "id": 4,
-                "name": "revision",
-                "type": "string"
+                "type": "grpc.BuildVersion"
               }
             ]
           },
@@ -5331,12 +5316,7 @@
               {
                 "id": 4,
                 "name": "version",
-                "type": "string"
-              },
-              {
-                "id": 5,
-                "name": "revision",
-                "type": "string"
+                "type": "grpc.BuildVersion"
               }
             ]
           },

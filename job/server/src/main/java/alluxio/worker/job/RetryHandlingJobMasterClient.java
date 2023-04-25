@@ -14,6 +14,7 @@ package alluxio.worker.job;
 import alluxio.AbstractJobMasterClient;
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
+import alluxio.grpc.BuildVersion;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.JobCommand;
 import alluxio.grpc.JobHeartbeatPRequest;
@@ -75,7 +76,7 @@ public final class RetryHandlingJobMasterClient extends AbstractJobMasterClient
   public long registerWorker(final WorkerNetAddress address) throws IOException {
     return retryRPC(() -> mClient.registerJobWorker(RegisterJobWorkerPRequest.newBuilder()
             .setWorkerNetAddress(GrpcUtils.toProto(address))
-            .setVersion(RuntimeConstants.VERSION).setRevision(RuntimeConstants.REVISION_SHORT)
+            .setVersion(RuntimeConstants.CURRENT_VERSION_INFO)
             .build()).getId(),
         RPC_LOG, "RegisterWorker", "address=%s", address);
   }

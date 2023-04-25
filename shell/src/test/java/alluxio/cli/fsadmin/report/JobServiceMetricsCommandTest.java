@@ -17,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
 import alluxio.client.job.JobMasterClient;
+import alluxio.grpc.BuildVersion;
 import alluxio.grpc.JobMasterStatus;
 import alluxio.grpc.NetAddress;
 import alluxio.job.wire.JobInfo;
@@ -67,18 +68,22 @@ public class JobServiceMetricsCommandTest {
     String startTimeStr = JobServiceMetricsCommand.DATETIME_FORMAT.format(Instant.ofEpochMilli(now));
     JobMasterStatus primaryMaster = JobMasterStatus.newBuilder()
         .setMasterAddress(NetAddress.newBuilder().setHost("master-node-1").setRpcPort(19998).build())
-        .setState("PRIMARY").setStartTime(now).setVersion("alluxio-version-2.9").setRevision("abcdef").build();
+        .setState("PRIMARY").setStartTime(now).setVersion(
+            BuildVersion.newBuilder().setVersion("alluxio-version-2.9").setRevision("abcdef").build()).build();
     JobMasterStatus standbyMaster1 = JobMasterStatus.newBuilder()
         .setMasterAddress(NetAddress.newBuilder().setHost("master-node-0").setRpcPort(19998).build())
-        .setState("STANDBY").setStartTime(now).setVersion("alluxio-version-2.10").setRevision("abcdef").build();
+        .setState("STANDBY").setStartTime(now).setVersion(
+            BuildVersion.newBuilder().setVersion("alluxio-version-2.10").setRevision("abcdef").build()).build();
     JobMasterStatus standbyMaster2 = JobMasterStatus.newBuilder()
         .setMasterAddress(NetAddress.newBuilder().setHost("master-node-2").setRpcPort(19998).build())
-        .setState("STANDBY").setStartTime(now).setVersion("alluxio-version-2.10").setRevision("bcdefg").build();
+        .setState("STANDBY").setStartTime(now).setVersion(
+            BuildVersion.newBuilder().setVersion("alluxio-version-2.10").setRevision("bcdefg").build()).build();
     Mockito.when(mJobMasterClient.getAllMasterStatus())
         .thenReturn(Lists.newArrayList(primaryMaster, standbyMaster1, standbyMaster2));
 
     JobWorkerHealth jobWorkerHealth = new JobWorkerHealth(
-        1, Lists.newArrayList(1.2, 0.9, 0.7), 10, 2, 2, "testHost", RuntimeConstants.VERSION, RuntimeConstants.REVISION_SHORT);
+        1, Lists.newArrayList(1.2, 0.9, 0.7), 10, 2, 2, "testHost",
+            BuildVersion.newBuilder().setVersion("2.10.0-SNAPSHOT").setRevision("ac6a0616").build());
     Mockito.when(mJobMasterClient.getAllWorkerHealth())
         .thenReturn(Lists.newArrayList(jobWorkerHealth));
 

@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.ProjectConstants;
 import alluxio.RuntimeConstants;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.BuildVersion;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetJobMasterIdPRequest;
 import alluxio.grpc.GetMasterIdPRequest;
@@ -128,7 +129,8 @@ public final class RetryHandlingJobMasterMasterClient extends AbstractJobMasterC
           throws IOException {
     final Map<String, Gauge> gauges = MetricsSystem.METRIC_REGISTRY.getGauges();
     RegisterJobMasterPOptions.Builder optionsBuilder = RegisterJobMasterPOptions.newBuilder()
-        .setVersion(RuntimeConstants.VERSION).setRevision(RuntimeConstants.REVISION_SHORT);
+        .setVersion(BuildVersion.newBuilder().setVersion(RuntimeConstants.VERSION)
+            .setRevision(RuntimeConstants.REVISION_SHORT).build());
     Gauge startTimeGauge = gauges.get(MetricKey.MASTER_START_TIME.getName());
     if (startTimeGauge != null) {
       optionsBuilder.setStartTimeMs((long) startTimeGauge.getValue());

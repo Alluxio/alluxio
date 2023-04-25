@@ -26,6 +26,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.grpc.BuildVersion;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.JobCommand;
 import alluxio.grpc.JobMasterHeartbeatPOptions;
@@ -620,8 +621,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
               .setMasterAddress(mJobMasterAddress.toProto())
               .setState("PRIMARY")
               .setStartTime((long) startTimeGauge.getValue())
-              .setVersion(RuntimeConstants.VERSION)
-              .setRevision(RuntimeConstants.REVISION_SHORT).build();
+              .setVersion(RuntimeConstants.CURRENT_VERSION_INFO).build();
       result.add(primaryStatus);
 
       for (JobMasterInfo standbyJobMaster : mJobMasters) {
@@ -630,7 +630,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
             .setState("STANDBY")
             .setStartTime(standbyJobMaster.getStartTimeMs())
             .setVersion(standbyJobMaster.getVersion())
-            .setRevision(standbyJobMaster.getRevision()).build();
+            .build();
         result.add(status);
       }
       for (JobMasterInfo standbyJobMaster : mLostJobMasters) {
@@ -639,7 +639,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
             .setState("LOST")
             .setStartTime(standbyJobMaster.getStartTimeMs())
             .setVersion(standbyJobMaster.getVersion())
-            .setRevision(standbyJobMaster.getRevision()).build();
+            .build();
         result.add(status);
       }
       auditContext.setSucceeded(true);
@@ -653,7 +653,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
    * @param workerNetAddress the worker {@link WorkerNetAddress}
    * @return the worker id for this worker
    */
-  public long registerWorker(WorkerNetAddress workerNetAddress, String version, String revision) {
+  public long registerWorker(WorkerNetAddress workerNetAddress, BuildVersion version) {
     // Run under exclusive lock for mWorkers
     try (LockResource workersLockExclusive = new LockResource(mWorkerRWLock.writeLock())) {
       // Check if worker has already been registered with this job master
@@ -673,9 +673,9 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
       }
       // Generate a new worker id.
       long workerId = mNextWorkerId.getAndIncrement();
-      mWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress, version, revision));
+      mWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress, version));
       LOG.info("registerWorker(): WorkerNetAddress: {} id: {} version-revision: {}-{}",
-          workerNetAddress, workerId, version, revision);
+          workerNetAddress, workerId, version.getVersion(), version.getRevision());
       return workerId;
     }
   }
@@ -780,9 +780,8 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     }
     if (options.hasVersion()) {
       master.setVersion(options.getVersion());
-    }
-    if (options.hasRevision()) {
-      master.setRevision(options.getRevision());
+    } else {
+      master.setVersion(RuntimeConstants.UNKNOWN_VERSION_INFO);
     }
     LOG.info("registerMaster(): master: {}", master);
   }

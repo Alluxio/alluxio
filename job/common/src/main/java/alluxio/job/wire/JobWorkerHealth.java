@@ -12,6 +12,7 @@
 package alluxio.job.wire;
 
 import alluxio.RuntimeConstants;
+import alluxio.grpc.BuildVersion;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.MoreObjects;
@@ -24,10 +25,8 @@ import java.util.List;
  * The job worker health information.
  */
 public class JobWorkerHealth {
-
   private final long mWorkerId;
-  private String mVersion = "UNKNOWN";
-  private String mRevision = "UNKNOWN";
+  private BuildVersion mVersion = RuntimeConstants.UNKNOWN_VERSION_INFO;
   private final List<Double> mLoadAverage;
   private final int mUnfinishedTasks;
   private final long mLastUpdated;
@@ -48,7 +47,7 @@ public class JobWorkerHealth {
   public JobWorkerHealth(long workerId, List<Double> loadAverage, int taskPoolSize,
       int numActiveTasks, int unfinishedTasks, String hostname) {
     this(workerId, loadAverage, taskPoolSize, numActiveTasks, unfinishedTasks, hostname,
-        RuntimeConstants.VERSION, RuntimeConstants.REVISION_SHORT);
+        RuntimeConstants.CURRENT_VERSION_INFO);
   }
 
   /**
@@ -63,7 +62,7 @@ public class JobWorkerHealth {
    */
   public JobWorkerHealth(long workerId, List<Double> loadAverage, int taskPoolSize,
                          int numActiveTasks, int unfinishedTasks, String hostname,
-                         String version, String revision) {
+                         BuildVersion version) {
     mWorkerId = workerId;
     mLoadAverage = loadAverage;
     mUnfinishedTasks = unfinishedTasks;
@@ -72,7 +71,6 @@ public class JobWorkerHealth {
     mNumActiveTasks = numActiveTasks;
     mHostname = hostname;
     mVersion = version;
-    mRevision = revision;
   }
 
   /**
@@ -90,9 +88,6 @@ public class JobWorkerHealth {
     mHostname = jobWorkerHealth.getHostname();
     if (jobWorkerHealth.hasVersion()) {
       mVersion = jobWorkerHealth.getVersion();
-    }
-    if (jobWorkerHealth.hasRevision()) {
-      mRevision = jobWorkerHealth.getRevision();
     }
   }
 
@@ -142,12 +137,11 @@ public class JobWorkerHealth {
     return mHostname;
   }
 
-  public String getVersion() {
+  /**
+   * @return the worker version info
+   */
+  public BuildVersion getVersion() {
     return mVersion;
-  }
-
-  public String getRevision() {
-    return mRevision;
   }
 
   /**
@@ -157,7 +151,7 @@ public class JobWorkerHealth {
     alluxio.grpc.JobWorkerHealth.Builder builder = alluxio.grpc.JobWorkerHealth.newBuilder()
         .setWorkerId(mWorkerId).addAllLoadAverage(mLoadAverage).setUnfinishedTasks(mUnfinishedTasks)
         .setTaskPoolSize(mTaskPoolSize).setNumActiveTasks(mNumActiveTasks)
-        .setLastUpdated(mLastUpdated).setHostname(mHostname).setVersion(mVersion).setRevision(mRevision);
+        .setLastUpdated(mLastUpdated).setHostname(mHostname).setVersion(mVersion);
 
     return builder.build();
   }
@@ -186,8 +180,7 @@ public class JobWorkerHealth {
         && Objects.equal(mHostname, that.mHostname)
         && Objects.equal(mTaskPoolSize, that.mTaskPoolSize)
         && Objects.equal(mNumActiveTasks, that.mNumActiveTasks)
-        && Objects.equal(mVersion, that.mVersion)
-        && Objects.equal(mRevision, that.mRevision);
+        && Objects.equal(mVersion, that.mVersion);
   }
 
   @Override
@@ -199,8 +192,8 @@ public class JobWorkerHealth {
         .add("hostname", mHostname)
         .add("taskPoolSize", mTaskPoolSize)
         .add("numActiveTasks", mNumActiveTasks)
-        .add("version", mVersion)
-        .add("revision", mRevision)
+        .add("version", mVersion.getVersion())
+        .add("revision", mVersion.getRevision())
         .toString();
   }
 }

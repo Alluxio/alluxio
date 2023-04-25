@@ -107,8 +107,7 @@ message JobWorkerHealth {
   optional int32 taskPoolSize = 5;
   optional int32 numActiveTasks = 6;
   optional int32 unfinishedTasks = 7;
-  optional string version = 8;
-  optional string revision = 9;
+  optional grpc.BuildVersion version = 8;
 }
 
 message JobCommand {
@@ -203,8 +202,7 @@ message JobMasterStatus {
   optional string state = 1;
   optional grpc.NetAddress masterAddress = 2;
   optional int64 startTime = 3;
-  optional string version = 4;
-  optional string revision = 5;
+  optional grpc.BuildVersion version = 4;
 }
 
 message GetAllMasterStatusPOptions {}
@@ -328,8 +326,7 @@ message RegisterJobWorkerPOptions {}
 message RegisterJobWorkerPRequest {
   optional grpc.WorkerNetAddress workerNetAddress = 1;
   optional RegisterJobWorkerPOptions options = 2;
-  optional string version = 3;
-  optional string revision = 4;
+  optional grpc.BuildVersion version = 3;
 }
 message RegisterJobWorkerPResponse {
  optional int64 id = 1;
@@ -369,8 +366,7 @@ enum JobMasterMetaCommand {
 message RegisterJobMasterPOptions {
   optional int64 startTimeMs = 2;
   optional int64 losePrimacyTimeMs = 3;
-  optional string version = 4;
-  optional string revision = 5;
+  optional grpc.BuildVersion version = 4;
 }
 
 message RegisterJobMasterPRequest {
