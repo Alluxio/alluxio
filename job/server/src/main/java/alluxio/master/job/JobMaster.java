@@ -258,14 +258,13 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
               () -> new FixedIntervalSupplier(
                   Configuration.getMs(PropertyKey.JOB_MASTER_LOST_MASTER_INTERVAL)),
               Configuration.global(), mMasterContext.getUserState()));
-      LOG.info("Created heartbeater to detect lost standby job masters");
       if (Configuration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
         mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("JOB_MASTER_AUDIT_LOG");
         mAsyncAuditLogWriter.start();
         MetricsSystem.registerGaugeIfAbsent(
             MetricKey.MASTER_AUDIT_LOG_ENTRIES_SIZE.getName(),
             () -> mAsyncAuditLogWriter != null
-                    ? mAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
+                ? mAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
       }
     } else {
       LOG.info("Starting job master as standby");
@@ -643,8 +642,6 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
             .setRevision(standbyJobMaster.getRevision()).build();
         result.add(status);
       }
-      LOG.info("Generated status for all masters {}", result);
-
       auditContext.setSucceeded(true);
       return result;
     }

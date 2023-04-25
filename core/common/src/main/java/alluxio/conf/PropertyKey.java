@@ -7294,7 +7294,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey JOB_MASTER_MASTER_TIMEOUT =
       durationBuilder(Name.JOB_MASTER_MASTER_TIMEOUT)
-          .setDescription("The time period after which the primary Job Master will mark a worker "
+          .setDescription("The time period after which the primary Job Master will mark a standby "
               + "as lost without a subsequent heartbeat.")
           .setDefaultValue("60sec")
           .setScope(Scope.MASTER)
@@ -7327,8 +7327,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey JOB_MASTER_LOST_MASTER_INTERVAL =
       durationBuilder(Name.JOB_MASTER_LOST_MASTER_INTERVAL)
-          .setDescription("The time interval the job master waits between checks for " +
-              "lost job masters.")
+          .setDescription("The time interval the job master waits between checks for "
+              + "lost job masters.")
           .setDefaultValue("10sec")
           .setScope(Scope.MASTER)
           .build();

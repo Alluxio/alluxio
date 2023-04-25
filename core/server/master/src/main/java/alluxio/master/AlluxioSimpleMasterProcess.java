@@ -80,7 +80,10 @@ public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
     mLeaderSelector.start(getRpcAddress());
 
     while (!Thread.interrupted()) {
+      // Start the master components in standby mode
+      // Eg. for job master they are the JobMaster and JournalMaster
       startMasterComponents(false);
+      LOG.info("Standby started");
       // We are in standby mode. Nothing to do until we become the primary.
       mLeaderSelector.waitForState(NodeState.PRIMARY);
       LOG.info("Transitioning from standby to primary");
@@ -97,8 +100,6 @@ public abstract class AlluxioSimpleMasterProcess extends MasterProcess {
       stopMasterComponents();
       mJournalSystem.losePrimacy();
       LOG.info("Primary stopped");
-      startMasterComponents(false);
-      LOG.info("Standby started");
     }
   }
 

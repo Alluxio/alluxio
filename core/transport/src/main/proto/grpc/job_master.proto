@@ -293,6 +293,9 @@ service JobMasterClientService {
    */
   rpc GetAllWorkerHealth(GetAllWorkerHealthPRequest) returns (GetAllWorkerHealthPResponse);
 
+  /**
+   * Lists all job master status.
+   */
   rpc GetAllMasterStatus(GetAllMasterStatusPRequest) returns (GetAllMasterStatusPResponse);
 
   /**
