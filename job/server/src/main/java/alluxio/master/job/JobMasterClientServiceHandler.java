@@ -15,6 +15,8 @@ import alluxio.RpcUtils;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.CancelPRequest;
 import alluxio.grpc.CancelPResponse;
+import alluxio.grpc.GetAllMasterStatusPRequest;
+import alluxio.grpc.GetAllMasterStatusPResponse;
 import alluxio.grpc.GetAllWorkerHealthPRequest;
 import alluxio.grpc.GetAllWorkerHealthPResponse;
 import alluxio.grpc.GetCmdStatusDetailedRequest;
@@ -28,6 +30,7 @@ import alluxio.grpc.GetJobStatusDetailedPResponse;
 import alluxio.grpc.GetJobStatusPRequest;
 import alluxio.grpc.GetJobStatusPResponse;
 import alluxio.grpc.JobMasterClientServiceGrpc;
+import alluxio.grpc.JobMasterStatus;
 import alluxio.grpc.ListAllPRequest;
 import alluxio.grpc.ListAllPResponse;
 import alluxio.grpc.RunPRequest;
@@ -141,6 +144,22 @@ public class JobMasterClientServiceHandler
 
       return builder.build();
     }, "getAllWorkerHealth", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void getAllMasterStatus(GetAllMasterStatusPRequest request,
+                                 StreamObserver<GetAllMasterStatusPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      GetAllMasterStatusPResponse.Builder builder = GetAllMasterStatusPResponse.newBuilder();
+
+      List<JobMasterStatus> masterStatuses = mJobMaster.getAllJobMasterStatus();
+
+      for (JobMasterStatus masterStatus : masterStatuses) {
+        builder.addJobMasterStatus(masterStatus);
+      }
+
+      return builder.build();
+    }, "getAllMasterStatus", "request=%s", responseObserver, request);
   }
 
   @Override
