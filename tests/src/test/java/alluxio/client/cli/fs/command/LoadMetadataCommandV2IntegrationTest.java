@@ -234,7 +234,7 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
 
   @Test
   public void loadMetadataTestV2HeavyLoad() throws IOException, AlluxioException {
-    int fileCount = 10000;
+    int fileCount = 1000000;
     for (int i = 0; i < fileCount; i++) {
       mS3Client.putObject(TEST_BUCKET, TEST_FILE + i, TEST_CONTENT);
     }
