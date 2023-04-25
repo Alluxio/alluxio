@@ -281,7 +281,9 @@ abstract class RefCountedNioByteBuf extends AbstractReferenceCountedByteBuf {
   @Override
   public ByteBuf setBytes(int index, ByteBuf src, int srcIndex, int length) {
     ensureIndexInBounds(srcIndex, src.capacity(), index, capacity(), length);
-    src.getBytes(srcIndex, this, index, length);
+    ByteBuffer dup = mDelegate.duplicate();
+    dup.position(index).limit(index + length);
+    src.getBytes(srcIndex, dup);
     return this;
   }
 
