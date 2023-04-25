@@ -14,7 +14,6 @@ package alluxio.worker.job;
 import alluxio.AbstractJobMasterClient;
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
-import alluxio.grpc.BuildVersion;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.JobCommand;
 import alluxio.grpc.JobHeartbeatPRequest;

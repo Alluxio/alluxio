@@ -13,7 +13,6 @@ package alluxio.master.meta;
 
 import alluxio.RuntimeConstants;
 import alluxio.grpc.BuildVersion;
-import alluxio.grpc.NetAddress;
 import alluxio.wire.Address;
 
 import com.google.common.base.MoreObjects;

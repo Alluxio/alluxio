@@ -14,8 +14,6 @@ package alluxio.cli.fsadmin.report;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.Constants;
-import alluxio.RuntimeConstants;
 import alluxio.client.job.JobMasterClient;
 import alluxio.grpc.BuildVersion;
 import alluxio.grpc.JobMasterStatus;
@@ -65,25 +63,33 @@ public class JobServiceMetricsCommandTest {
   @Test
   public void testBasic() throws IOException, ParseException {
     long now = Instant.now().toEpochMilli();
-    String startTimeStr = JobServiceMetricsCommand.DATETIME_FORMAT.format(Instant.ofEpochMilli(now));
+    String startTimeStr = JobServiceMetricsCommand.DATETIME_FORMAT
+        .format(Instant.ofEpochMilli(now));
     JobMasterStatus primaryMaster = JobMasterStatus.newBuilder()
-        .setMasterAddress(NetAddress.newBuilder().setHost("master-node-1").setRpcPort(19998).build())
-        .setState("PRIMARY").setStartTime(now).setVersion(
-            BuildVersion.newBuilder().setVersion("alluxio-version-2.9").setRevision("abcdef").build()).build();
+        .setMasterAddress(NetAddress.newBuilder()
+            .setHost("master-node-1").setRpcPort(19998).build())
+        .setState("PRIMARY").setStartTime(now).setVersion(BuildVersion.newBuilder()
+            .setVersion("alluxio-version-2.9").setRevision("abcdef").build()).build();
     JobMasterStatus standbyMaster1 = JobMasterStatus.newBuilder()
-        .setMasterAddress(NetAddress.newBuilder().setHost("master-node-0").setRpcPort(19998).build())
+        .setMasterAddress(NetAddress.newBuilder()
+            .setHost("master-node-0").setRpcPort(19998).build())
         .setState("STANDBY").setStartTime(now).setVersion(
-            BuildVersion.newBuilder().setVersion("alluxio-version-2.10").setRevision("abcdef").build()).build();
+            BuildVersion.newBuilder().setVersion("alluxio-version-2.10")
+                .setRevision("abcdef").build()).build();
     JobMasterStatus standbyMaster2 = JobMasterStatus.newBuilder()
-        .setMasterAddress(NetAddress.newBuilder().setHost("master-node-2").setRpcPort(19998).build())
+        .setMasterAddress(NetAddress.newBuilder()
+            .setHost("master-node-2").setRpcPort(19998).build())
         .setState("STANDBY").setStartTime(now).setVersion(
-            BuildVersion.newBuilder().setVersion("alluxio-version-2.10").setRevision("bcdefg").build()).build();
+            BuildVersion.newBuilder().setVersion("alluxio-version-2.10")
+                .setRevision("bcdefg").build()).build();
     Mockito.when(mJobMasterClient.getAllMasterStatus())
         .thenReturn(Lists.newArrayList(primaryMaster, standbyMaster1, standbyMaster2));
 
     JobWorkerHealth jobWorkerHealth = new JobWorkerHealth(
-        1, Lists.newArrayList(1.2, 0.9, 0.7), 10, 2, 2, "testHost",
-            BuildVersion.newBuilder().setVersion("2.10.0-SNAPSHOT").setRevision("ac6a0616").build());
+        1, Lists.newArrayList(1.2, 0.9, 0.7),
+            10, 2, 2, "testHost",
+            BuildVersion.newBuilder()
+                .setVersion("2.10.0-SNAPSHOT").setRevision("ac6a0616").build());
     Mockito.when(mJobMasterClient.getAllWorkerHealth())
         .thenReturn(Lists.newArrayList(jobWorkerHealth));
 
@@ -102,7 +108,8 @@ public class JobServiceMetricsCommandTest {
     String[] lineByLine = output.split("\n");
 
     // Master Status Section
-    assertTrue(lineByLine[0].contains("Master Address      State    Start Time       Version                          Revision"));
+    assertTrue(lineByLine[0].contains("Master Address      State    Start Time       "
+        + "Version                          Revision"));
     assertTrue(lineByLine[1].contains("master-node-1:19998 PRIMARY"));
     assertTrue(lineByLine[1].contains(startTimeStr));
     assertTrue(lineByLine[1].contains("alluxio-version-2.9              abcdef"));
@@ -114,10 +121,12 @@ public class JobServiceMetricsCommandTest {
     assertTrue(lineByLine[3].contains("alluxio-version-2.10             bcdefg"));
 
     // Worker Health Section
-    assertTrue(lineByLine[5].contains("Job Worker       Version                          Revision "
-        + "Task Pool Size Unfinished Tasks Active Tasks Load Avg"));
-    assertTrue(lineByLine[6].contains("testHost         2.10.0-SNAPSHOT                  ac6a0616"));
-    assertTrue(lineByLine[6].contains("10             2                2            1.2, 0.9, 0.7"));
+    assertTrue(lineByLine[5].contains("Job Worker       Version                          "
+        + "Revision Task Pool Size Unfinished Tasks Active Tasks Load Avg"));
+    assertTrue(lineByLine[6].contains("testHost         2.10.0-SNAPSHOT                  "
+        + "ac6a0616"));
+    assertTrue(lineByLine[6].contains("10             2                2            "
+        + "1.2, 0.9, 0.7"));
 
     // Group By Status
     lineByLine = ArrayUtils.subarray(lineByLine, 8, lineByLine.length);
@@ -159,7 +168,6 @@ public class JobServiceMetricsCommandTest {
       throws ParseException {
     long timeMillis = new SimpleDateFormat("yyyy-mm-dd HH:mm:ss").parse(datetime).getTime();
     PlanInfo jobInfo = new PlanInfo(id, name, status, timeMillis, null);
-
     return jobInfo;
   }
 }

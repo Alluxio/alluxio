@@ -13,7 +13,6 @@ package alluxio.client.job;
 
 import alluxio.AbstractJobMasterClient;
 import alluxio.Constants;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.CancelPRequest;
 import alluxio.grpc.GetAllMasterStatusPRequest;
 import alluxio.grpc.GetAllWorkerHealthPRequest;

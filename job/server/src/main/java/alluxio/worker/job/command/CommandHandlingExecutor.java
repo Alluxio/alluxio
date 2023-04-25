@@ -11,7 +11,6 @@
 
 package alluxio.worker.job.command;
 
-import alluxio.RuntimeConstants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;

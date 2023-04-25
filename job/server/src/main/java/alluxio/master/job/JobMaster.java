@@ -83,8 +83,8 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.Address;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
-
 import alluxio.worker.job.JobMasterClientContext;
+
 import com.codahale.metrics.Gauge;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -611,6 +611,11 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     }
   }
 
+  /**
+   * Lists the status of all job masters in the cluster.
+   *
+   * @return the list
+   */
   public List<JobMasterStatus> getAllJobMasterStatus() {
     try (JobMasterAuditContext auditContext =
                  createAuditContext("getAllMasterStatus")) {
@@ -651,6 +656,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
    * Returns a worker id for the given worker.
    *
    * @param workerNetAddress the worker {@link WorkerNetAddress}
+   * @param version the version info of the job worker
    * @return the worker id for this worker
    */
   public long registerWorker(WorkerNetAddress workerNetAddress, BuildVersion version) {
@@ -751,7 +757,15 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     return mCommandManager.pollAllPendingCommands(workerId);
   }
 
-  public JobMasterMetaCommand jobMasterHeartbeat(long masterId, JobMasterHeartbeatPOptions options) {
+  /**
+   * Handles a heartbeat from a standby job master.
+   *
+   * @param masterId the job master id allocated by the primary job master
+   * @param options extra options
+   * @return the command to the standby job master
+   */
+  public JobMasterMetaCommand jobMasterHeartbeat(
+      long masterId, JobMasterHeartbeatPOptions options) {
     JobMasterInfo master = mJobMasters.getFirstByField(ID_INDEX, masterId);
     if (master == null) {
       LOG.warn("Could not find master id: {} for heartbeat. Instructed to register", masterId);
@@ -762,6 +776,12 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     return JobMasterMetaCommand.MetaCommand_Nothing;
   }
 
+  /**
+   * Handles the register request from a standby job master.
+   *
+   * @param masterId the job master id
+   * @param options extra options
+   */
   public void jobMasterRegister(long masterId, RegisterJobMasterPOptions options)
       throws NotFoundException {
     LOG.info("Job master {} attempts to register", masterId);
@@ -786,6 +806,12 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     LOG.info("registerMaster(): master: {}", master);
   }
 
+  /**
+   * Allocates an ID for the job master from the target address.
+   *
+   * @param address the address
+   * @return an allocated id
+   */
   public long getMasterId(Address address) {
     JobMasterInfo existingMaster = mJobMasters.getFirstByField(ADDRESS_INDEX, address);
     if (existingMaster != null) {
@@ -896,7 +922,6 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
       // Nothing to clean up
     }
   }
-
 
   /**
    * Lost worker periodic check.

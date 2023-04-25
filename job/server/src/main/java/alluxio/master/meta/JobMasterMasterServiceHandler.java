@@ -72,6 +72,6 @@ public final class JobMasterMasterServiceHandler
                               StreamObserver<JobMasterHeartbeatPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> JobMasterHeartbeatPResponse.newBuilder().setCommand(
         mJobMaster.jobMasterHeartbeat(request.getMasterId(), request.getOptions())).build(),
-"JobMasterHeartbeat", "request=%s", responseObserver, request);
+        "JobMasterHeartbeat", "request=%s", responseObserver, request);
   }
 }

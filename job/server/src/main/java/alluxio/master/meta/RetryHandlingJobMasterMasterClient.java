@@ -12,40 +12,28 @@
 package alluxio.master.meta;
 
 import alluxio.AbstractJobMasterClient;
-import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.ProjectConstants;
 import alluxio.RuntimeConstants;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.BuildVersion;
-import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetJobMasterIdPRequest;
-import alluxio.grpc.GetMasterIdPRequest;
 import alluxio.grpc.JobMasterHeartbeatPOptions;
 import alluxio.grpc.JobMasterHeartbeatPRequest;
 import alluxio.grpc.JobMasterMasterServiceGrpc;
 import alluxio.grpc.JobMasterMetaCommand;
-import alluxio.grpc.MasterHeartbeatPOptions;
-import alluxio.grpc.MasterHeartbeatPRequest;
-import alluxio.grpc.MetaCommand;
-import alluxio.grpc.MetaMasterMasterServiceGrpc;
 import alluxio.grpc.RegisterJobMasterPOptions;
 import alluxio.grpc.RegisterJobMasterPRequest;
-import alluxio.grpc.RegisterMasterPOptions;
-import alluxio.grpc.RegisterMasterPRequest;
 import alluxio.grpc.ServiceType;
-import alluxio.master.MasterClientContext;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.wire.Address;
-
 import alluxio.worker.job.JobMasterClientContext;
+
 import com.codahale.metrics.Gauge;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 

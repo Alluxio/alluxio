@@ -52,6 +52,13 @@ public final class MasterWorkerInfo {
     mVersion = RuntimeConstants.UNKNOWN_VERSION_INFO;
   }
 
+  /**
+   * Creates a new instance of {@link MasterWorkerInfo}.
+   *
+   * @param id the worker id to use
+   * @param address the worker address to use
+   * @param version the worker version info
+   */
   public MasterWorkerInfo(long id, WorkerNetAddress address, BuildVersion version) {
     mWorkerAddress = Preconditions.checkNotNull(address);
     mId = id;

@@ -68,7 +68,8 @@ public class JobServiceMetricsCommand {
   public int run() throws IOException {
     List<JobMasterStatus> allMasterStatus = mJobMasterClient.getAllMasterStatus();
     String masterFormat = getMasterInfoFormat(allMasterStatus);
-    mPrintStream.printf(masterFormat, "Master Address", "State", "Start Time", "Version", "Revision");
+    mPrintStream.printf(masterFormat, "Master Address", "State", "Start Time",
+        "Version", "Revision");
     for (JobMasterStatus masterStatus : allMasterStatus) {
       NetAddress address = masterStatus.getMasterAddress();
       mPrintStream.printf(masterFormat,
@@ -82,7 +83,8 @@ public class JobServiceMetricsCommand {
 
     List<JobWorkerHealth> allWorkerHealth = mJobMasterClient.getAllWorkerHealth();
     String workerFormat = getWorkerInfoFormat(allWorkerHealth);
-    mPrintStream.printf(workerFormat, "Job Worker", "Version", "Revision", "Task Pool Size", "Unfinished Tasks", "Active Tasks", "Load Avg");
+    mPrintStream.printf(workerFormat, "Job Worker", "Version", "Revision", "Task Pool Size",
+        "Unfinished Tasks", "Active Tasks", "Load Avg");
 
     for (JobWorkerHealth workerHealth : allWorkerHealth) {
       mPrintStream.printf(workerFormat,

@@ -59,6 +59,7 @@ public class JobWorkerHealth {
    * @param numActiveTasks number of active tasks in the worker
    * @param unfinishedTasks number of unfinished tasks that the worker has
    * @param hostname hostname of the worker
+   * @param version the worker's version info
    */
   public JobWorkerHealth(long workerId, List<Double> loadAverage, int taskPoolSize,
                          int numActiveTasks, int unfinishedTasks, String hostname,
