@@ -71,11 +71,11 @@ public class CapacityCommandTest {
           "    Used Percentage: 34%",
           "    Free Percentage: 66%",
           "",
-          "Worker Name      Last Heartbeat   Storage       Total            MEM           SSD           HDD           DOM           RAM           ",
-          "216.239.33.96    542              capacity      18.63GB          4768.37MB     4768.37MB     -             9.31GB        -             ",
-          "                                  used          953.67MB (5%)    190.73MB      286.10MB      -             476.84MB      -             ",
-          "64.68.90.1       3123             capacity      11.18GB          3814.70MB     -             1907.35MB     -             5.59GB        ",
-          "                                  used          9.31GB (83%)     2861.02MB     -             1907.35MB     -             4768.37MB     ");
+          "Worker Name      Last Heartbeat   Storage       Total            MEM           SSD           HDD           DOM           RAM            Version          Revision                                ",
+          "216.239.33.96    542              capacity      18.63GB          4768.37MB     4768.37MB     -             9.31GB        -              2.10.0-SNAPSHOT  0123456789abcdef0123456789abcdef01234567",
+          "                                  used          953.67MB (5%)    190.73MB      286.10MB      -             476.84MB      -                                                                       ",
+          "64.68.90.1       3123             capacity      11.18GB          3814.70MB     -             1907.35MB     -             5.59GB         2.9.3            0123456789012345678901234567890123456789",
+          "                                  used          9.31GB (83%)     2861.02MB     -             1907.35MB     -             4768.37MB                                                               ");
       // CHECKSTYLE.ON: LineLengthExceed
       List<String> testOutput = Arrays.asList(output.split("\n"));
       Assert.assertThat(testOutput,
@@ -95,6 +95,7 @@ public class CapacityCommandTest {
           printStream);
       capacityCommand.generateCapacityReport(GetWorkerReportOptions.defaults());
       String output = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
+      // CHECKSTYLE.OFF: LineLengthExceed - Much more readable
       List<String> expectedOutput = Arrays.asList("Capacity information for all workers: ",
           "    Total Capacity: 14.90GB",
           "        Tier: RAM  Size: 14.90GB",
@@ -103,11 +104,11 @@ public class CapacityCommandTest {
           "    Used Percentage: 34%",
           "    Free Percentage: 66%",
           "",
-          "Worker Name      Last Heartbeat   Storage       RAM",
-          "215.42.95.24     953              capacity      9.31GB",
-          "                                  used          476.84MB (5%)",
-          "29.53.5.124      6424122          capacity      5.59GB",
-          "                                  used          4768.37MB (83%)");
+          "Worker Name      Last Heartbeat   Storage       RAM              Version          Revision                                ",
+          "215.42.95.24     953              capacity      9.31GB           2.2.4            000111222333444555666777888999aaabbbcccd",
+          "                                  used          476.84MB (5%)                                                             ",
+          "29.53.5.124      6424122          capacity      5.59GB           2.2.3            00112233445566778899aabbccddeeff00112233",
+          "                                  used          4768.37MB (83%)                                                           ");
       List<String> testOutput = Arrays.asList(output.split("\n"));
       Assert.assertThat(testOutput,
           IsIterableContainingInOrder.contains(expectedOutput.toArray()));
@@ -140,11 +141,11 @@ public class CapacityCommandTest {
           "    Used Percentage: 34%",
           "    Free Percentage: 66%",
           "",
-          "Worker Name                 Last Heartbeat   Storage       Total            MEM           SSD           HDD           ",
-          "org.apache.hdp1             681              capacity      1907.35MB        572.20MB      572.20MB      -             ",
-          "                                             used          95.37MB (5%)     19.07MB       28.61MB       -             ",
-          "org.alluxio.long.host1      6211             capacity      1144.41MB        572.20MB      -             190.73MB      ",
-          "                                             used          953.67MB (83%)   286.10MB      -             190.73MB      ");
+          "Worker Name                 Last Heartbeat   Storage       Total            MEM           SSD           HDD            Version          Revision                                ",
+          "org.apache.hdp1             681              capacity      1907.35MB        572.20MB      572.20MB      -              2.10.0-rc1       abababababababababababababababababababab",
+          "                                             used          95.37MB (5%)     19.07MB       28.61MB       -                                                                       ",
+          "org.alluxio.long.host1      6211             capacity      1144.41MB        572.20MB      -             190.73MB       2.10.0-rc2       0101010101010101010101010101010101010101",
+          "                                             used          953.67MB (83%)   286.10MB      -             190.73MB                                                                ");
       // CHECKSTYLE.ON: LineLengthExceed
       List<String> testOutput = Arrays.asList(output.split("\n"));
 
@@ -175,7 +176,9 @@ public class CapacityCommandTest {
         .setStartTimeMs(1331231121212L)
         .setState("In Service")
         .setUsedBytes(10000000000L)
-        .setUsedBytesOnTiers(usedBytesOnTiersOne);
+        .setUsedBytesOnTiers(usedBytesOnTiersOne)
+        .setVersion("2.9.3")
+        .setRevision("0123456789012345678901234567890123456789");
 
     Map<String, Long> capacityBytesOnTiersSec = new HashMap<>();
     capacityBytesOnTiersSec.put(Constants.MEDIUM_MEM, 5000000000L);
@@ -194,7 +197,9 @@ public class CapacityCommandTest {
         .setStartTimeMs(1131231121212L)
         .setState("In Service")
         .setUsedBytes(1000000000L)
-        .setUsedBytesOnTiers(usedBytesOnTiersSec);
+        .setUsedBytesOnTiers(usedBytesOnTiersSec)
+        .setVersion("2.10.0-SNAPSHOT")
+        .setRevision("0123456789abcdef0123456789abcdef01234567");
 
     infoList.add(firstInfo);
     infoList.add(secondInfo);
@@ -219,7 +224,9 @@ public class CapacityCommandTest {
         .setStartTimeMs(19365332L)
         .setState("Out of Service")
         .setUsedBytes(5000000000L)
-        .setUsedBytesOnTiers(usedBytesOnTiersOne);
+        .setUsedBytesOnTiers(usedBytesOnTiersOne)
+        .setVersion("2.2.3")
+        .setRevision("00112233445566778899aabbccddeeff00112233");
 
     Map<String, Long> capacityBytesOnTiersSec = new HashMap<>();
     capacityBytesOnTiersSec.put("RAM", 10000000000L);
@@ -234,7 +241,9 @@ public class CapacityCommandTest {
         .setStartTimeMs(112495222L)
         .setState("In Service")
         .setUsedBytes(500000000L)
-        .setUsedBytesOnTiers(usedBytesOnTiersSec);
+        .setUsedBytesOnTiers(usedBytesOnTiersSec)
+        .setVersion("2.2.4")
+        .setRevision("000111222333444555666777888999aaabbbcccd");
 
     infoList.add(firstInfo);
     infoList.add(secondInfo);
@@ -261,7 +270,9 @@ public class CapacityCommandTest {
         .setStartTimeMs(1529222699127L)
         .setState("In Service")
         .setUsedBytes(1000000000L)
-        .setUsedBytesOnTiers(usedBytesOnTiersOne);
+        .setUsedBytesOnTiers(usedBytesOnTiersOne)
+        .setVersion("2.10.0-rc2")
+        .setRevision("0101010101010101010101010101010101010101");
 
     Map<String, Long> capacityBytesOnTiersSec = new HashMap<>();
     capacityBytesOnTiersSec.put(Constants.MEDIUM_MEM, 600000000L);
@@ -278,7 +289,9 @@ public class CapacityCommandTest {
         .setStartTimeMs(1529222699127L)
         .setState("In Service")
         .setUsedBytes(100000000L)
-        .setUsedBytesOnTiers(usedBytesOnTiersSec);
+        .setUsedBytesOnTiers(usedBytesOnTiersSec)
+        .setVersion("2.10.0-rc1")
+        .setRevision("abababababababababababababababababababab");
 
     infoList.add(firstInfo);
     infoList.add(secondInfo);
