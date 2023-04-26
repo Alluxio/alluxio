@@ -262,6 +262,29 @@ public class InodeStoreTest {
   }
 
   @Test
+  public void overfullCacheRemove() {
+    writeInode(mRoot);
+    List<Long> fileIds = new ArrayList<>();
+    List<String> fileNames = new ArrayList<>();
+    long numFiles = CACHE_SIZE * 2;
+    // Create double the cache size files
+    for (int i = 0; i < numFiles; i++) {
+      MutableInodeFile file = inodeFile(i + 1000, 0, "file" + i);
+      fileIds.add(file.getId());
+      fileNames.add(file.getName());
+      writeInode(file);
+      writeEdge(mRoot, file);
+    }
+    // delete all the files
+    for (int i = 0; i < numFiles; i++) {
+      mStore.remove(fileIds.get(i));
+      mStore.removeChild(mRoot.getId(), fileNames.get(i));
+      assertFalse(mStore.get(fileIds.get(i)).isPresent());
+      assertFalse(mStore.getChild(mRoot.getId(), fileNames.get(i)).isPresent());
+    }
+  }
+
+  @Test
   public void manyOperations() {
     writeInode(mRoot);
     MutableInodeDirectory curr = mRoot;
