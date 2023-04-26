@@ -11,7 +11,6 @@
 
 package alluxio.wire;
 
-import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.MoreObjects;
