@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.conf.Configuration;
+import alluxio.master.WorkerState;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -178,7 +179,7 @@ public class CapacityCommandTest {
         .setId(1)
         .setLastContactSec(3123)
         .setStartTimeMs(1331231121212L)
-        .setState("ACTIVE")
+        .setState(WorkerState.LIVE.toString())
         .setUsedBytes(10000000000L)
         .setUsedBytesOnTiers(usedBytesOnTiersOne)
         .setVersion("2.9.3")
@@ -199,7 +200,7 @@ public class CapacityCommandTest {
         .setId(2)
         .setLastContactSec(542)
         .setStartTimeMs(1131231121212L)
-        .setState("ACTIVE")
+        .setState(WorkerState.LIVE.toString())
         .setUsedBytes(1000000000L)
         .setUsedBytesOnTiers(usedBytesOnTiersSec)
         .setVersion("2.10.0-SNAPSHOT")
@@ -226,7 +227,7 @@ public class CapacityCommandTest {
         .setId(1)
         .setLastContactSec(6424122)
         .setStartTimeMs(19365332L)
-        .setState("LOST")
+        .setState(WorkerState.LOST.toString())
         .setUsedBytes(5000000000L)
         .setUsedBytesOnTiers(usedBytesOnTiersOne)
         .setVersion("2.2.3")
@@ -243,7 +244,7 @@ public class CapacityCommandTest {
         .setId(2)
         .setLastContactSec(953)
         .setStartTimeMs(112495222L)
-        .setState("ACTIVE")
+        .setState(WorkerState.LIVE.toString())
         .setUsedBytes(500000000L)
         .setUsedBytesOnTiers(usedBytesOnTiersSec)
         .setVersion("2.2.4")
@@ -272,7 +273,7 @@ public class CapacityCommandTest {
         .setId(1)
         .setLastContactSec(6211)
         .setStartTimeMs(1529222699127L)
-        .setState("ACTIVE")
+        .setState(WorkerState.LIVE.toString())
         .setUsedBytes(1000000000L)
         .setUsedBytesOnTiers(usedBytesOnTiersOne)
         .setVersion("2.10.0-rc2")
@@ -291,7 +292,7 @@ public class CapacityCommandTest {
         .setId(2)
         .setLastContactSec(681)
         .setStartTimeMs(1529222699127L)
-        .setState("ACTIVE")
+        .setState(WorkerState.LIVE.toString())
         .setUsedBytes(100000000L)
         .setUsedBytesOnTiers(usedBytesOnTiersSec)
         .setVersion("2.10.0-rc1")

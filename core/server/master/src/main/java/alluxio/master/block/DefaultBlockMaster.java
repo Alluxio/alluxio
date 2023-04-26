@@ -51,7 +51,7 @@ import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.block.meta.WorkerMetaLockSection;
-import alluxio.master.block.meta.WorkerState;
+import alluxio.master.WorkerState;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.SingleEntryJournaled;
 import alluxio.master.journal.checkpoint.CheckpointName;
