@@ -9,12 +9,13 @@ package alluxio.grpc.meta;
 import "grpc/common.proto";
 
 message JournalQueryRequest {
-  optional GetSnapshotInfoRequest snapshotInfoRequest = 1;
-  optional GetSnapshotRequest snapshotRequest = 2;
+  optional GetSnapshotInfoRequest snapshotInfoRequest = 1 [deprecated = true];
+  optional GetSnapshotRequest snapshotRequest = 2 [deprecated = true];
   optional AddQuorumServerRequest addQuorumServerRequest = 3;
 }
 
 message JournalQueryResponse {
+  option deprecated = true;
   optional GetSnapshotInfoResponse snapshotInfoResponse = 1;
 }
 
@@ -23,14 +24,17 @@ message AddQuorumServerRequest {
 }
 
 message GetSnapshotInfoRequest {
+  option deprecated = true;
   optional SnapshotMetadata snapshotInfo = 1;
 }
 
 message GetSnapshotInfoResponse {
+  option deprecated = true;
   optional SnapshotMetadata latest = 1;
 }
 
 message GetSnapshotRequest {
+  option deprecated = true;
 }
 
 message SnapshotMetadata {
@@ -43,23 +47,27 @@ message SnapshotData {
   optional int64 snapshotTerm = 1;
   optional int64 snapshotIndex = 2;
   optional bytes chunk = 3;
-  optional int64 offset = 4;
-  optional bool eof = 5;
+  optional int64 offset = 4 [deprecated = true];
+  optional bool eof = 5 [deprecated = true];
 }
 
 message UploadSnapshotPRequest {
+  option deprecated = true;
   optional SnapshotData data = 1;
 }
 
 message UploadSnapshotPResponse {
+  option deprecated = true;
   optional int64 offsetReceived = 1;
 }
 
 message DownloadSnapshotPRequest {
+  option deprecated = true;
   optional int64 offsetReceived = 1;
 }
 
 message DownloadSnapshotPResponse {
+  option deprecated = true;
   optional SnapshotData data = 1;
 }
 
@@ -71,16 +79,18 @@ message LatestSnapshotInfoPRequest {}
 service RaftJournalService {
 
   /**
-   * Deprecated.
    * Uploads a snapshot to primary master.
    */
-  rpc UploadSnapshot (stream UploadSnapshotPRequest) returns (stream UploadSnapshotPResponse);
+  rpc UploadSnapshot (stream UploadSnapshotPRequest) returns (stream UploadSnapshotPResponse) {
+    option deprecated = true;
+  };
 
   /**
-   * Deprecated.
    * Downloads a snapshot from primary master.
    */
-  rpc DownloadSnapshot (stream DownloadSnapshotPRequest) returns (stream DownloadSnapshotPResponse);
+  rpc DownloadSnapshot (stream DownloadSnapshotPRequest) returns (stream DownloadSnapshotPResponse) {
+    option deprecated = true;
+  };
 
   /**
    * Requests information about snapshots on a particular machine.
