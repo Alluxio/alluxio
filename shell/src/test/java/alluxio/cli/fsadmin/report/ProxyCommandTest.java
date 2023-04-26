@@ -93,8 +93,10 @@ public class ProxyCommandTest {
   private List<ProxyStatus> prepareInfoList() {
     List<ProxyStatus> infoList = new ArrayList<>();
 
-    long proxy0startTime = Instant.parse("2023-04-21T18:29:44").toEpochMilli();
-    long proxy0HeartbeatTime = Instant.parse("2023-04-21T18:30:05").toEpochMilli();
+    long proxy0startTime = Instant.from(ProxyCommand.DATETIME_FORMAT
+        .parse("20230421-182944")).toEpochMilli();
+    long proxy0HeartbeatTime = Instant.from(ProxyCommand.DATETIME_FORMAT
+        .parse("20230421-183005")).toEpochMilli();
     NetAddress address0 = NetAddress.newBuilder().setHost("proxy-0").setRpcPort(12345).build();
     BuildVersion version0 = BuildVersion.newBuilder().setVersion("1.0").setRevision("abc").build();
     ProxyStatus proxy0 = ProxyStatus.newBuilder()
@@ -104,8 +106,10 @@ public class ProxyCommandTest {
             .setVersion(version0).build();
     infoList.add(proxy0);
 
-    long proxy1startTime = Instant.parse("2023-04-21T18:27:07").toEpochMilli();
-    long proxy1HeartbeatTime = Instant.parse("2023-04-21T19:05:07").toEpochMilli();
+    long proxy1startTime = Instant.from(ProxyCommand.DATETIME_FORMAT
+        .parse("20230421-182707")).toEpochMilli();
+    long proxy1HeartbeatTime = Instant.from(ProxyCommand.DATETIME_FORMAT
+        .parse("20230421-190507")).toEpochMilli();
     NetAddress address1 = NetAddress.newBuilder().setHost("proxy-1").setRpcPort(23456).build();
     BuildVersion version1 = BuildVersion.newBuilder().setVersion("1.1").setRevision("abc").build();
     ProxyStatus proxy1 = ProxyStatus.newBuilder()
@@ -120,9 +124,10 @@ public class ProxyCommandTest {
 
   private List<ProxyStatus> prepareInfoListLongName() {
     List<ProxyStatus> infoList = new ArrayList<>();
-
-    long proxy0startTime = Instant.parse("2023-04-21T18:29:44").toEpochMilli();
-    long proxy0HeartbeatTime = Instant.parse("2023-04-21T18:30:05").toEpochMilli();
+    long proxy0startTime = Instant.from(ProxyCommand.DATETIME_FORMAT
+        .parse("20230421-182944")).toEpochMilli();
+    long proxy0HeartbeatTime = Instant.from(ProxyCommand.DATETIME_FORMAT
+        .parse("20230421-183005")).toEpochMilli();
     NetAddress address0 = NetAddress.newBuilder()
         .setHost("datacenter-namespace-department-proxy-0").setRpcPort(12345).build();
     BuildVersion version0 = BuildVersion.newBuilder().setVersion("1.0").setRevision("abc").build();
@@ -131,8 +136,10 @@ public class ProxyCommandTest {
         .setVersion(version0).build();
     infoList.add(proxy0);
 
-    long proxy1startTime = Instant.parse("2023-04-21T18:27:07").toEpochMilli();
-    long proxy1HeartbeatTime = Instant.parse("2023-04-21T19:05:07").toEpochMilli();
+    long proxy1startTime = Instant.from(ProxyCommand.DATETIME_FORMAT
+        .parse("20230421-182707")).toEpochMilli();
+    long proxy1HeartbeatTime = Instant.from(ProxyCommand.DATETIME_FORMAT
+        .parse("20230421-190507")).toEpochMilli();
     NetAddress address1 = NetAddress.newBuilder()
         .setHost("datacenter-namespace-department-proxy-1").setRpcPort(23456).build();
     BuildVersion version1 = BuildVersion.newBuilder().setVersion("1.1").setRevision("abc").build();
