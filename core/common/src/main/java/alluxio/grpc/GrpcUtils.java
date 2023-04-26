@@ -14,6 +14,8 @@ package alluxio.grpc;
 import static alluxio.util.StreamUtils.map;
 
 import alluxio.Constants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.file.options.DescendantType;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.proto.journal.File;
@@ -467,6 +469,9 @@ public final class GrpcUtils {
         .build();
   }
 
+  private static final boolean SUPPORT_DEPRECATED_CLIENT_PROTO =
+      Configuration.getBoolean(PropertyKey.MASTER_SUPPORT_DEPRECATED_CLIENT_PROTO);
+
   /**
    * Converts a wire type to a proto type.
    *
@@ -499,6 +504,9 @@ public final class GrpcUtils {
         .setReplicationMax(fileInfo.getReplicationMax())
         .setReplicationMin(fileInfo.getReplicationMin());
 
+    if (SUPPORT_DEPRECATED_CLIENT_PROTO) {
+      builder.setPersistenceState(fileInfo.getPersistenceState());
+    }
     if (!fileInfo.getAcl().equals(AccessControlList.EMPTY_ACL)) {
       builder.setAcl(toProto(fileInfo.getAcl()));
     }

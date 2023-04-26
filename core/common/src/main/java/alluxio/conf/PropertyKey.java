@@ -3364,6 +3364,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_SUPPORT_DEPRECATED_CLIENT_PROTO =
+      booleanBuilder(Name.MASTER_SUPPORT_DEPRECATED_CLIENT_PROTO)
+          .setDefaultValue(false)
+          .setDescription("Support older clients using deprecated protobuf fields. "
+              + "Using the deprecated fields will increase the network traffic "
+              + "as they use strings to represent values instead of enums. "
+              + "If this is not enabled, deprecated clients will not see "
+              + "the persistence state information of files.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
       stringBuilder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS)
           .setDefaultValue(Constants.MEDIUM_MEM)
@@ -8224,6 +8235,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.startup.block.integrity.check.enabled";
     public static final String MASTER_STATE_LOCK_ERROR_THRESHOLD =
         "alluxio.master.state.lock.error.threshold";
+    public static final String MASTER_SUPPORT_DEPRECATED_CLIENT_PROTO =
+        "alluxio.master.support.deprecated.client.proto";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
         "alluxio.master.tieredstore.global.level0.alias";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS =
