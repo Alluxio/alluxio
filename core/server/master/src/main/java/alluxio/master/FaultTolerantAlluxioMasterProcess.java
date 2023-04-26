@@ -60,6 +60,12 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   /** See {@link #isRunning()}. */
   private volatile boolean mRunning = false;
 
+  /** last time this process gain primacy in ms. */
+  private volatile long mLastGainPrimacyTime = 0;
+
+  /** last time this process lose primacy in ms. */
+  private volatile long mLastLosePrimacyTime = 0;
+
   /**
    * Creates a {@link FaultTolerantAlluxioMasterProcess}.
    */
@@ -72,6 +78,12 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
     }
     mLeaderSelector = Preconditions.checkNotNull(leaderSelector, "leaderSelector");
     LOG.info("New process created.");
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_LAST_GAIN_PRIMACY_TIME.getName(),
+        () -> mLastGainPrimacyTime);
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_LAST_LOSE_PRIMACY_TIME.getName(),
+        () -> mLastLosePrimacyTime);
   }
 
   @Override
@@ -110,6 +122,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
 
       LOG.info("Started in stand-by mode.");
       mLeaderSelector.waitForState(State.PRIMARY);
+      mLastGainPrimacyTime = CommonUtils.getCurrentMs();
       if (!mRunning) {
         break;
       }
@@ -124,6 +137,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
         throw t;
       }
       mLeaderSelector.waitForState(State.STANDBY);
+      mLastLosePrimacyTime = CommonUtils.getCurrentMs();
       if (ServerConfiguration.getBoolean(PropertyKey.MASTER_JOURNAL_EXIT_ON_DEMOTION)) {
         stop();
       } else {

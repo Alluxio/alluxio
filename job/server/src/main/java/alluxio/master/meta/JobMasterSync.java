@@ -56,7 +56,7 @@ public final class JobMasterSync implements HeartbeatExecutor {
    * Heartbeats to the leader master node.
    */
   @Override
-  public void heartbeat(long timeout) {
+  public void heartbeat() {
     JobMasterMetaCommand command = null;
     try {
       if (mMasterId.get() == UNINITIALIZED_MASTER_ID) {

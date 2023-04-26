@@ -13,6 +13,8 @@ package alluxio.master;
 
 import alluxio.master.PrimarySelector.State;
 import alluxio.master.journal.JournalSystem;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -35,6 +37,12 @@ final class FaultTolerantAlluxioJobMasterProcess extends AlluxioJobMasterProcess
   private PrimarySelector mLeaderSelector;
   private Thread mServingThread;
 
+  /** last time this process gain primacy in ms. */
+  private volatile long mLastGainPrimacyTime = 0;
+
+  /** last time this process lose primacy in ms. */
+  private volatile long mLastLosePrimacyTime = 0;
+
   /**
    * Creates a {@link FaultTolerantAlluxioJobMasterProcess}.
    */
@@ -48,6 +56,13 @@ final class FaultTolerantAlluxioJobMasterProcess extends AlluxioJobMasterProcess
     }
     mLeaderSelector = Preconditions.checkNotNull(leaderSelector, "leaderSelector");
     mServingThread = null;
+
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_LAST_GAIN_PRIMACY_TIME.getName(),
+        () -> mLastGainPrimacyTime);
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_LAST_LOSE_PRIMACY_TIME.getName(),
+        () -> mLastLosePrimacyTime);
   }
 
   @Override
@@ -66,6 +81,7 @@ final class FaultTolerantAlluxioJobMasterProcess extends AlluxioJobMasterProcess
         startMaster(false);
         LOG.info("Standby started");
         mLeaderSelector.waitForState(State.PRIMARY);
+        mLastGainPrimacyTime = CommonUtils.getCurrentMs();
         LOG.info("Transitioning from standby to primary");
         mJournalSystem.gainPrimacy();
         stopMaster();
@@ -78,6 +94,7 @@ final class FaultTolerantAlluxioJobMasterProcess extends AlluxioJobMasterProcess
       } else {
         // We are in primary mode. Nothing to do until we become the standby.
         mLeaderSelector.waitForState(State.STANDBY);
+        mLastLosePrimacyTime = CommonUtils.getCurrentMs();
         LOG.info("Transitioning from primary to standby");
         stopServing();
         mServingThread.join();

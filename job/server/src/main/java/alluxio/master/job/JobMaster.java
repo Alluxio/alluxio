@@ -69,8 +69,6 @@ import alluxio.master.meta.JobMasterSync;
 import alluxio.master.meta.RetryHandlingJobMasterMasterClient;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.master.job.workflow.WorkflowTracker;
-import alluxio.master.journal.NoopJournaled;
 import alluxio.resource.LockResource;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -137,9 +135,20 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
 
   // Job master metadata management.
   private static final IndexDefinition<JobMasterInfo, Long> ID_INDEX =
-      IndexDefinition.ofUnique(JobMasterInfo::getId);
+      new IndexDefinition<JobMasterInfo, Long>(true) {
+        @Override
+        public Long getFieldValue(JobMasterInfo o) {
+          return o.getId();
+        }
+      };
+
   private static final IndexDefinition<JobMasterInfo, Address> ADDRESS_INDEX =
-      IndexDefinition.ofUnique(JobMasterInfo::getAddress);
+      new IndexDefinition<JobMasterInfo, Address>(true) {
+        @Override
+        public Address getFieldValue(JobMasterInfo o) {
+          return o.getAddress();
+        }
+      };
 
   /** Keeps track of standby job masters which are in communication with the primary. */
   private final IndexedSet<JobMasterInfo> mJobMasters =
@@ -151,7 +160,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
   /** The connect address for the rpc server. */
   private final InetSocketAddress mRpcConnectAddress =
       NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.JOB_MASTER_RPC,
-          Configuration.global());
+          ServerConfiguration.global());
   private final int mPort;
   /** The address of this master. */
   private final Address mJobMasterAddress;
@@ -226,9 +235,10 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     mWorkflowTracker = new WorkflowTracker(this);
 
     mPort = NetworkAddressUtils.getPort(NetworkAddressUtils.ServiceType.JOB_MASTER_RPC,
-        Configuration.global());
+        ServerConfiguration.global());
     mJobMasterAddress = new Address().setHost(NetworkAddressUtils
-            .getConnectHost(NetworkAddressUtils.ServiceType.JOB_MASTER_RPC, Configuration.global()))
+            .getConnectHost(
+                NetworkAddressUtils.ServiceType.JOB_MASTER_RPC, ServerConfiguration.global()))
         .setRpcPort(mPort);
 
     mPlanTracker = new PlanTracker(
@@ -922,8 +932,8 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     }
 
     @Override
-    public void heartbeat(long timeout) {
-      long masterTimeoutMs = Configuration.getMs(PropertyKey.JOB_MASTER_MASTER_TIMEOUT);
+    public void heartbeat() {
+      long masterTimeoutMs = ServerConfiguration.getMs(PropertyKey.JOB_MASTER_MASTER_TIMEOUT);
       for (JobMasterInfo master : mJobMasters) {
         synchronized (master) {
           final long lastUpdate = mClock.millis() - master.getLastUpdatedTimeMs();

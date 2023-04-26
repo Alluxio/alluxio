@@ -7992,18 +7992,14 @@
                 "integer": 11
               },
               {
-<<<<<<< HEAD
-                "name": "FILE_SYSTEM_WORKER_WORKER_SERVICE",
-                "integer": 12
-              },
-              {
-||||||| parent of 8da5953920 (Fix JobServiceMetricsCommandTest)
-=======
                 "name": "JOB_MASTER_MASTER_SERVICE",
                 "integer": 19
               },
               {
->>>>>>> 8da5953920 (Fix JobServiceMetricsCommandTest)
+                "name": "FILE_SYSTEM_WORKER_WORKER_SERVICE",
+                "integer": 12
+              },
+              {
                 "name": "JOURNAL_MASTER_CLIENT_SERVICE",
                 "integer": 13
               },
