@@ -78,6 +78,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -161,7 +162,10 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     WorkerLocationPolicy mWorkerLocationPolicy = new WorkerLocationPolicy(2000);
 
     @Override
-    protected WorkerInfo pickAWorker(String object, Collection<WorkerInfo> workerInfos) {
+    protected WorkerInfo pickAWorker(String object, @Nullable Collection<WorkerInfo> workerInfos) {
+      if (workerInfos == null) {
+        return null;
+      }
       List<BlockWorkerInfo> candidates = workerInfos.stream()
           .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
           .collect(toList());

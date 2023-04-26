@@ -56,6 +56,7 @@ import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -116,7 +117,8 @@ public final class Scheduler {
      * @param kickStartTask kick start task
      * @return whether the task is enqueued successfully
      */
-    public boolean enqueueTaskForWorker(WorkerInfo workerInfo, Task task, boolean kickStartTask) {
+    public boolean enqueueTaskForWorker(@Nullable WorkerInfo workerInfo, Task task,
+                                        boolean kickStartTask) {
       if (workerInfo == null) {
         return false;
       }
