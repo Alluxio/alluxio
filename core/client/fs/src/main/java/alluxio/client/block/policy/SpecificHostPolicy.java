@@ -21,13 +21,8 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
-<<<<<<< HEAD
-||||||| parent of aee3c5cb96 (Support executing runTests on specific workers)
-import java.util.Optional;
-=======
 import java.util.Optional;
 import javax.annotation.Nullable;
->>>>>>> aee3c5cb96 (Support executing runTests on specific workers)
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -77,17 +72,9 @@ public final class SpecificHostPolicy implements BlockLocationPolicy {
   public WorkerNetAddress getWorker(GetWorkerOptions options) {
     // find the first worker matching the host name
     for (BlockWorkerInfo info : options.getBlockWorkerInfos()) {
-<<<<<<< HEAD
-      if (info.getNetAddress().getHost().equals(mHostname)) {
-        return info.getNetAddress();
-||||||| parent of aee3c5cb96 (Support executing runTests on specific workers)
-      if (info.getNetAddress().getHost().equals(mHostname)) {
-        return Optional.of(info.getNetAddress());
-=======
       if (info.getNetAddress().getHost().equals(mHostname)
           && (mRpcPort == null || info.getNetAddress().getRpcPort() == mRpcPort)) {
-        return Optional.of(info.getNetAddress());
->>>>>>> aee3c5cb96 (Support executing runTests on specific workers)
+        return info.getNetAddress();
       }
     }
     return null;

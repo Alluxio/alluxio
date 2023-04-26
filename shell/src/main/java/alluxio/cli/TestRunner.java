@@ -18,20 +18,11 @@ import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-<<<<<<< HEAD
 import alluxio.conf.InstancedConfiguration;
-||||||| parent of aee3c5cb96 (Support executing runTests on specific workers)
-=======
-import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
->>>>>>> aee3c5cb96 (Support executing runTests on specific workers)
 import alluxio.grpc.DeletePOptions;
-<<<<<<< HEAD
 import alluxio.util.ConfigurationUtils;
-||||||| parent of aee3c5cb96 (Support executing runTests on specific workers)
-=======
 import alluxio.grpc.WorkerNetAddress;
->>>>>>> aee3c5cb96 (Support executing runTests on specific workers)
 import alluxio.util.io.PathUtils;
 
 import com.beust.jcommander.IStringConverter;
@@ -116,7 +107,6 @@ public final class TestRunner {
     TestRunner runner = new TestRunner();
     JCommander jCommander = new JCommander(runner, args);
     jCommander.setProgramName("TestRunner");
-    jCommander.parse(args);
     if (runner.mHelp) {
       jCommander.usage();
       return;
@@ -132,15 +122,15 @@ public final class TestRunner {
    * @return the number of failed tests
    */
   private int runTests() throws Exception {
+    InstancedConfiguration conf = new InstancedConfiguration(ConfigurationUtils.defaults());
     if (mWorkerAddresses != null) {
-      Configuration.set(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED, false);
+      conf.set(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED, false);
     }
 
     mDirectory = PathUtils.concatPath(mDirectory, TEST_DIRECTORY_NAME);
 
     AlluxioURI testDir = new AlluxioURI(mDirectory);
-    FileSystemContext fsContext =
-        FileSystemContext.create(new InstancedConfiguration(ConfigurationUtils.defaults()));
+    FileSystemContext fsContext = FileSystemContext.create(conf);
     FileSystem fs =
         FileSystem.Factory.create(fsContext);
     if (fs.exists(testDir)) {

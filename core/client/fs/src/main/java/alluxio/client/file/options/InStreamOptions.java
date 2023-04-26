@@ -13,13 +13,7 @@ package alluxio.client.file.options;
 
 import alluxio.client.ReadType;
 import alluxio.client.block.policy.BlockLocationPolicy;
-<<<<<<< HEAD
-||||||| parent of aee3c5cb96 (Support executing runTests on specific workers)
-import alluxio.client.file.FileSystemContext;
-=======
 import alluxio.client.block.policy.SpecificHostPolicy;
-import alluxio.client.file.FileSystemContext;
->>>>>>> aee3c5cb96 (Support executing runTests on specific workers)
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -80,20 +74,14 @@ public final class InStreamOptions {
 
     mStatus = status;
     mProtoOptions = openOptions;
-<<<<<<< HEAD
-    mUfsReadLocationPolicy = BlockLocationPolicy.Factory.create(
-        alluxioConf.getClass(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY), alluxioConf);
-||||||| parent of aee3c5cb96 (Support executing runTests on specific workers)
-    mUfsReadLocationPolicy = context.getReadBlockLocationPolicy(alluxioConf);
-=======
     if (options.hasUfsReadWorkerLocation()) {
       int port = options.getUfsReadWorkerLocation().getRpcPort();
       mUfsReadLocationPolicy = new SpecificHostPolicy(
           options.getUfsReadWorkerLocation().getHost(), port == 0 ? null : port);
     } else {
-      mUfsReadLocationPolicy = context.getReadBlockLocationPolicy(alluxioConf);
+      mUfsReadLocationPolicy = BlockLocationPolicy.Factory.create(
+          alluxioConf.getClass(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY), alluxioConf);
     }
->>>>>>> aee3c5cb96 (Support executing runTests on specific workers)
     mPositionShort = false;
   }
 

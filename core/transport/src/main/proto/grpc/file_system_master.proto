@@ -142,16 +142,10 @@ message CreateFilePOptions {
   optional int64 persistenceWaitTime = 10;
   map<string, bytes> xattr = 11;
   optional XAttrPropagationStrategy xattrPropStrat = 12 [default = NEW_PATHS];
-<<<<<<< HEAD
-||||||| parent of aee3c5cb96 (Support executing runTests on specific workers)
-  optional bool overwrite = 13;
-  optional bool checkS3BucketPath = 14;
-=======
   optional bool overwrite = 13;
   optional bool checkS3BucketPath = 14;
   // If specified, the data will be written to the certain worker
   optional grpc.WorkerNetAddress workerLocation = 15;
->>>>>>> aee3c5cb96 (Support executing runTests on specific workers)
 }
 message CreateFilePRequest {
   /** the path of the file */
