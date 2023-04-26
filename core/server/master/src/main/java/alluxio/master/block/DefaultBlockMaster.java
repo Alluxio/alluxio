@@ -1127,26 +1127,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     worker.markAllBlocksToRemove();
     worker.updateUsage(mGlobalStorageTierAssoc, storageTiers,
         totalBytesOnTiers, usedBytesOnTiers);
-<<<<<<< HEAD
     processWorkerAddedBlocks(worker, currentBlocksOnLocation);
     processWorkerOrphanedBlocks(worker);
     worker.addLostStorage(lostStorage);
-    if (options.hasBuildVersion()) {
-      worker.setBuildVersion(options.getBuildVersion());
-    }
-||||||| parent of 952721773b (Fix stale buildVersion when downgrade workers)
-    processWorkerAddedBlocks(workerInfo, currentBlocksOnLocation);
-    processWorkerOrphanedBlocks(workerInfo);
-    workerInfo.addLostStorage(lostStorage);
-    if (options.hasBuildVersion()) {
-      workerInfo.setBuildVersion(options.getBuildVersion());
-    }
-=======
-    processWorkerAddedBlocks(workerInfo, currentBlocksOnLocation);
-    processWorkerOrphanedBlocks(workerInfo);
-    workerInfo.addLostStorage(lostStorage);
-    workerInfo.setBuildVersion(options.getBuildVersion());
->>>>>>> 952721773b (Fix stale buildVersion when downgrade workers)
+    worker.setBuildVersion(options.getBuildVersion());
 
     // TODO(jiacheng): This block can be moved to a non-locked section
     if (options.getConfigsCount() > 0) {

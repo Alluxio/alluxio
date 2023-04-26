@@ -16,17 +16,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
 import alluxio.clock.ManualClock;
-<<<<<<< HEAD
-||||||| parent of 952721773b (Fix stale buildVersion when downgrade workers)
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.status.NotFoundException;
-=======
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.BuildVersion;
->>>>>>> 952721773b (Fix stale buildVersion when downgrade workers)
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.RegisterWorkerPOptions;
