@@ -2071,6 +2071,11 @@
                     "value": "true"
                   }
                 ]
+              },
+              {
+                "id": 15,
+                "name": "ufsReadWorkerLocation",
+                "type": "grpc.WorkerNetAddress"
               }
             ]
           },
@@ -2216,6 +2221,21 @@
                     "value": "NEW_PATHS"
                   }
                 ]
+              },
+              {
+                "id": 13,
+                "name": "overwrite",
+                "type": "bool"
+              },
+              {
+                "id": 14,
+                "name": "checkS3BucketPath",
+                "type": "bool"
+              },
+              {
+                "id": 15,
+                "name": "workerLocation",
+                "type": "grpc.WorkerNetAddress"
               }
             ],
             "maps": [

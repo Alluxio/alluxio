@@ -17,6 +17,7 @@ import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.block.policy.BlockLocationPolicy;
+import alluxio.client.block.policy.SpecificHostPolicy;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
@@ -112,11 +113,17 @@ public final class OutStreamOptions {
     if (options.hasWriteType()) {
       mWriteType = WriteType.fromProto(options.getWriteType());
     }
-    try {
-      mLocationPolicy = BlockLocationPolicy.Factory.create(
-          alluxioConf.getClass(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY), alluxioConf);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
+    if (options.hasWorkerLocation()) {
+      int port = options.getWorkerLocation().getRpcPort();
+      mLocationPolicy = new SpecificHostPolicy(
+              options.getWorkerLocation().getHost(), port == 0 ? null : port);
+    } else {
+      try {
+        mLocationPolicy = BlockLocationPolicy.Factory.create(
+                alluxioConf.getClass(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY), alluxioConf);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
     }
   }
 
