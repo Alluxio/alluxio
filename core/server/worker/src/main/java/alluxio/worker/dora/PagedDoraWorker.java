@@ -280,55 +280,56 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   @Override
   public UfsStatus[] listStatus(String path, ListStatusPOptions options) throws IOException {
-    UfsStatus[] statuses;
-    ListOptions listOptions = ListOptions.defaults().setRecursive(
-        options.hasRecursive() ? options.getRecursive() : false);
-
-    long syncIntervalMs = options.hasCommonOptions()
+    final long syncIntervalMs = options.hasCommonOptions()
         ? (options.getCommonOptions().hasSyncIntervalMs()
         ? options.getCommonOptions().getSyncIntervalMs() : -1) :
         -1;
 
-    ListStatusResult result = mListStatusCache.getIfPresent(path);
-    if (syncIntervalMs >= 0 && result != null) {
-      // Check if the metadata is still valid.
-      if (System.nanoTime() - result.mTimeStamp > syncIntervalMs * Constants.MS_NANO) {
+    final UfsStatus[] cachedStatuses;
+    final ListStatusResult resultFromCache = mListStatusCache.getIfPresent(path);
+    if (resultFromCache == null) {
+      cachedStatuses = null;
+    } else {
+      // Metadata is cached. Check if it is expired.
+      if (syncIntervalMs >= 0
+          && System.nanoTime() - resultFromCache.mTimeStamp > syncIntervalMs * Constants.MS_NANO) {
         // The metadata is expired. Remove it from in-memory cache.
         mListStatusCache.invalidate(path);
-        result = null;
+        cachedStatuses = null;
+      } else {
+        // Cache is still valid. Use cached statuses.
+        cachedStatuses = resultFromCache.mUfsStatuses;
+      }
+    }
+    if (cachedStatuses != null) {
+      return cachedStatuses;
+    }
+
+    // Not found in cache. Query the Under File System.
+    ListOptions ufsListOptions = ListOptions.defaults().setRecursive(
+        options.hasRecursive() ? options.getRecursive() : false);
+    UfsStatus[] freshStatusesFromUfs = mUfs.listStatus(path, ufsListOptions);
+
+    if (freshStatusesFromUfs == null) {
+      // If empty, the request path might be a regular file/object. Let's retry getStatus().
+      try {
+        UfsStatus status = mUfs.getStatus(path);
+        // Success. Create an array with only one element.
+        status.setName(""); // listStatus() expects relative name to the @path.
+        freshStatusesFromUfs = new UfsStatus[1];
+        freshStatusesFromUfs[0] = status;
+      } catch (FileNotFoundException e) {
+        // Do nothing.
+        // The freshStatusesFromUfs is still null to indicate empty listStatus() result.
       }
     }
 
-    if (result != null) {
-      statuses = result.mUfsStatuses;
-    } else {
-      statuses = null;
+    // Add this into cache. Return value of listStatus() might be null if not found.
+    if (freshStatusesFromUfs != null) {
+      ListStatusResult newResult = new ListStatusResult(System.nanoTime(), freshStatusesFromUfs);
+      mListStatusCache.put(path, newResult);
     }
-
-    if (statuses == null) {
-      // Not found in cache. Query the Under File System.
-      statuses = mUfs.listStatus(path, listOptions);
-
-      if (statuses == null) {
-        // If empty, the request path might be a regular file/object. Let's retry getStatus().
-        try {
-          UfsStatus status = mUfs.getStatus(path);
-          // listStatus() expects relative name to the @path.
-          status.setName("");
-          statuses = new UfsStatus[1];
-          statuses[0] = status;
-        } catch (FileNotFoundException e) {
-          statuses = null;
-        }
-      }
-
-      // Add this into cache. Return value might be null if not found.
-      if (statuses != null) {
-        result = new ListStatusResult(System.nanoTime(), statuses);
-        mListStatusCache.put(path, result);
-      }
-    }
-    return statuses;
+    return freshStatusesFromUfs;
   }
 
   /**
