@@ -121,9 +121,14 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private final String mRootUFS;
   private final LoadingCache<String, DoraMeta.FileStatus> mUfsStatusCache;
 
-  private class ListStatusResult {
+  private static class ListStatusResult {
     public long mTimeStamp;
     public UfsStatus[] mUfsStatuses;
+
+    ListStatusResult(long timeStamp, UfsStatus[] ufsStatuses) {
+      mTimeStamp = timeStamp;
+      mUfsStatuses = ufsStatuses;
+    }
   }
 
   private final Cache<String, ListStatusResult> mListStatusCache;
@@ -275,6 +280,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   @Override
   public UfsStatus[] listStatus(String path, ListStatusPOptions options) throws IOException {
+    UfsStatus[] statuses;
     ListOptions listOptions = ListOptions.defaults().setRecursive(
         options.hasRecursive() ? options.getRecursive() : false);
 
@@ -293,35 +299,36 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       }
     }
 
-    if (result == null) {
-      result = new ListStatusResult();
-      result.mTimeStamp = System.nanoTime();
-      result.mUfsStatuses = null;
+    if (result != null) {
+      statuses = result.mUfsStatuses;
+    } else {
+      statuses = null;
     }
 
-    if (result.mUfsStatuses == null) {
+    if (statuses == null) {
       // Not found in cache. Query the Under File System.
-      result.mUfsStatuses = mUfs.listStatus(path, listOptions);
+      statuses = mUfs.listStatus(path, listOptions);
 
-      if (result.mUfsStatuses == null) {
+      if (statuses == null) {
         // If empty, the request path might be a regular file/object. Let's retry getStatus().
         try {
           UfsStatus status = mUfs.getStatus(path);
           // listStatus() expects relative name to the @path.
           status.setName("");
-          result.mUfsStatuses = new UfsStatus[1];
-          result.mUfsStatuses[0] = status;
+          statuses = new UfsStatus[1];
+          statuses[0] = status;
         } catch (FileNotFoundException e) {
-          result.mUfsStatuses = null;
+          statuses = null;
         }
       }
 
       // Add this into cache. Return value might be null if not found.
-      if (result.mUfsStatuses != null) {
+      if (statuses != null) {
+        result = new ListStatusResult(System.nanoTime(), statuses);
         mListStatusCache.put(path, result);
       }
     }
-    return result.mUfsStatuses;
+    return statuses;
   }
 
   /**
