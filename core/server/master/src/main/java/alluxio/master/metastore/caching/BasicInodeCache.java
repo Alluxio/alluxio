@@ -66,4 +66,9 @@ public class BasicInodeCache extends RocksInodeStore {
       return inode;
     });
   }
+
+  @Override
+  public boolean supportsBatchWrite() {
+    return false;
+  }
 }
