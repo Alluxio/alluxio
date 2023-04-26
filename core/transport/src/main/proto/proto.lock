@@ -6933,12 +6933,24 @@
               {
                 "id": 1,
                 "name": "snapshotInfoRequest",
-                "type": "GetSnapshotInfoRequest"
+                "type": "GetSnapshotInfoRequest",
+                "options": [
+                  {
+                    "name": "deprecated",
+                    "value": "true"
+                  }
+                ]
               },
               {
                 "id": 2,
                 "name": "snapshotRequest",
-                "type": "GetSnapshotRequest"
+                "type": "GetSnapshotRequest",
+                "options": [
+                  {
+                    "name": "deprecated",
+                    "value": "true"
+                  }
+                ]
               },
               {
                 "id": 3,
@@ -6954,6 +6966,12 @@
                 "id": 1,
                 "name": "snapshotInfoResponse",
                 "type": "GetSnapshotInfoResponse"
+              }
+            ],
+            "options": [
+              {
+                "name": "deprecated",
+                "value": "true"
               }
             ]
           },
@@ -6975,6 +6993,12 @@
                 "name": "snapshotInfo",
                 "type": "SnapshotMetadata"
               }
+            ],
+            "options": [
+              {
+                "name": "deprecated",
+                "value": "true"
+              }
             ]
           },
           {
@@ -6985,10 +7009,22 @@
                 "name": "latest",
                 "type": "SnapshotMetadata"
               }
+            ],
+            "options": [
+              {
+                "name": "deprecated",
+                "value": "true"
+              }
             ]
           },
           {
-            "name": "GetSnapshotRequest"
+            "name": "GetSnapshotRequest",
+            "options": [
+              {
+                "name": "deprecated",
+                "value": "true"
+              }
+            ]
           },
           {
             "name": "SnapshotMetadata",
@@ -7031,12 +7067,24 @@
               {
                 "id": 4,
                 "name": "offset",
-                "type": "int64"
+                "type": "int64",
+                "options": [
+                  {
+                    "name": "deprecated",
+                    "value": "true"
+                  }
+                ]
               },
               {
                 "id": 5,
                 "name": "eof",
-                "type": "bool"
+                "type": "bool",
+                "options": [
+                  {
+                    "name": "deprecated",
+                    "value": "true"
+                  }
+                ]
               }
             ]
           },
@@ -7048,6 +7096,12 @@
                 "name": "data",
                 "type": "SnapshotData"
               }
+            ],
+            "options": [
+              {
+                "name": "deprecated",
+                "value": "true"
+              }
             ]
           },
           {
@@ -7057,6 +7111,12 @@
                 "id": 1,
                 "name": "offsetReceived",
                 "type": "int64"
+              }
+            ],
+            "options": [
+              {
+                "name": "deprecated",
+                "value": "true"
               }
             ]
           },
@@ -7068,6 +7128,12 @@
                 "name": "offsetReceived",
                 "type": "int64"
               }
+            ],
+            "options": [
+              {
+                "name": "deprecated",
+                "value": "true"
+              }
             ]
           },
           {
@@ -7077,6 +7143,12 @@
                 "id": 1,
                 "name": "data",
                 "type": "SnapshotData"
+              }
+            ],
+            "options": [
+              {
+                "name": "deprecated",
+                "value": "true"
               }
             ]
           },
@@ -7093,14 +7165,26 @@
                 "in_type": "UploadSnapshotPRequest",
                 "out_type": "UploadSnapshotPResponse",
                 "in_streamed": true,
-                "out_streamed": true
+                "out_streamed": true,
+                "options": [
+                  {
+                    "name": "deprecated",
+                    "value": "true"
+                  }
+                ]
               },
               {
                 "name": "DownloadSnapshot",
                 "in_type": "DownloadSnapshotPRequest",
                 "out_type": "DownloadSnapshotPResponse",
                 "in_streamed": true,
-                "out_streamed": true
+                "out_streamed": true,
+                "options": [
+                  {
+                    "name": "deprecated",
+                    "value": "true"
+                  }
+                ]
               },
               {
                 "name": "RequestLatestSnapshotInfo",
