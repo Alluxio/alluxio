@@ -197,9 +197,9 @@ public class SummaryCommandTest {
     expectedOutput.addAll(HAPattern);
     expectedOutput.addAll(new ArrayList<>(Arrays.asList(
         "    Master Address                   State    Version                         ",
-        "    hostname1:10000                  Primary  2.10.0-SNAPSHOT                 ",
-        "    hostname2:10001                  Standby  2.10.0-SNAPSHOT                 ",
-        "    hostname3:10002                  Standby  2.10.0-SNAPSHOT                 ",
+        "    hostname1:10000                  Primary  " + RuntimeConstants.VERSION + "                  ",
+        "    hostname2:10001                  Standby  " + RuntimeConstants.VERSION + "                  ",
+        "    hostname3:10002                  Standby  " + RuntimeConstants.VERSION + "                  ",
         "    Live Workers: 12",
         "    Lost Workers: 4",
         "    Total Capacity: 1309.92KB",
