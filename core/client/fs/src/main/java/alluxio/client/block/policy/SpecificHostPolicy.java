@@ -21,7 +21,6 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
-import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
