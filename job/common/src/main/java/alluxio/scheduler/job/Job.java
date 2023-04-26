@@ -61,6 +61,9 @@ public interface Job<T extends Task<?>> {
    */
   String getJobId();
 
+  /**
+   * Request the job to continue.
+   */
   void continueJob();
 
   /**

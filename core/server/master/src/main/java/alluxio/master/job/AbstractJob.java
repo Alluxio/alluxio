@@ -22,11 +22,8 @@ import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Abstract class for job. It provides basic job information and state management.
@@ -36,7 +33,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
   private static final Logger LOG = LoggerFactory.getLogger(LoadJob.class);
   protected final String mJobId;
-  protected JobState mState; // TODO make it thread safe state update
+  protected JobState mState; // TODO(lucy) make it thread safe state update
   protected OptionalLong mEndTime = OptionalLong.empty();
   protected final long mStartTime;
   protected final Optional<String> mUser;
@@ -57,10 +54,18 @@ public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
     mStartTime = System.currentTimeMillis();
   }
 
+  /**
+   * Sets the scheduler.
+   * @param scheduler the scheduler
+   */
   public void setMyScheduler(Scheduler scheduler) {
     mMyScheduler = scheduler;
   }
 
+  /**
+   * Sets the worker assign policy.
+   * @param assignPolicy the assign policy
+   */
   public void setWorkerAssignPolicy(WorkerAssignPolicy assignPolicy) {
     mWorkerAssignPolicy = assignPolicy;
   }

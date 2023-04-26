@@ -144,7 +144,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     properties.set(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED, false);
     AlluxioConfiguration config = new InstancedConfiguration(properties);
     mFileSystem = FileSystem.Factory.create(fsContext, FileSystemOptions.create(config));
-    assert(mFileSystem instanceof BaseFileSystem);
+    assert (mFileSystem instanceof BaseFileSystem);
   }
 
   @Override

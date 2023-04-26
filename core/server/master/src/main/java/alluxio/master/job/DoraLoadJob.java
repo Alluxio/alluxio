@@ -1,5 +1,3 @@
-package alluxio.master.job;
-
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
  * (the "License"). You may not use this work except in compliance with the License, which is
@@ -10,6 +8,8 @@ package alluxio.master.job;
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
+
+package alluxio.master.job;
 
 import static alluxio.client.file.DoraCacheFileSystem.DUMMY_MOUNT_ID;
 import static java.lang.String.format;
@@ -31,7 +31,10 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
-import alluxio.grpc.*;
+import alluxio.grpc.JobProgressReportFormat;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.ReadRequest;
 import alluxio.job.JobDescription;
 import alluxio.master.scheduler.Scheduler;
 import alluxio.metrics.MetricKey;
@@ -41,10 +44,7 @@ import alluxio.proto.journal.Journal;
 import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobState;
 import alluxio.scheduler.job.Task;
-import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.FormatUtils;
-import alluxio.wire.BlockInfo;
-import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerInfo;
 
 import com.codahale.metrics.Counter;
@@ -59,20 +59,25 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterators;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.SettableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.OptionalLong;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -90,7 +95,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   private static final double RETRY_THRESHOLD = 0.8 * RETRY_BLOCK_CAPACITY;
   private static final int BATCH_SIZE = Configuration.getInt(PropertyKey.JOB_BATCH_SIZE);
 
-  // TODO add logic to detect loaded files
+  // TODO(lucy) add logic to detect loaded files
 //  public static final Predicate<FileInfo> QUALIFIED_FILE_FILTER =
 //      (fileInfo) -> !fileInfo.isFolder() && fileInfo.isCompleted() && fileInfo.isPersisted()
 //          && fileInfo.getInAlluxioPercentage() != 100;
@@ -111,7 +116,8 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   private final AtomicLong mLoadedByteCount = new AtomicLong();
   private final AtomicLong mTotalByteCount = new AtomicLong();
   private final AtomicLong mProcessingFileCount = new AtomicLong();
-  private final AtomicLong mTotalFailureCount = new AtomicLong(); //including retry, do accurate stats later.
+  //including retry, do accurate stats later.
+  private final AtomicLong mTotalFailureCount = new AtomicLong();
   private Optional<AlluxioRuntimeException> mFailedReason = Optional.empty();
   private Optional<Iterator<URIStatus>> mFileIterator = Optional.empty();
   private final FileSystem mFs;
@@ -125,6 +131,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
    * @param bandwidth           bandwidth
    * @param usePartialListing   whether to use partial listing
    * @param verificationEnabled whether to verify the job after loaded
+   * @param scheduler           the scheduler
    */
   public DoraLoadJob(
       String path,
@@ -143,22 +150,23 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     mUsePartialListing = usePartialListing;
     mVerificationEnabled = verificationEnabled;
     FileSystem fs = FileSystem.Factory.create(scheduler.getFileSystemContext());
-    ListStatusPOptions mListOptions = ListStatusPOptions
+    ListStatusPOptions listOptions = ListStatusPOptions
         .newBuilder()
         .setRecursive(true).build();
     mFs = fs;
-    mFileIterator = Optional.of(new FileListFetcher(fs, mPath, mListOptions));
+    mFileIterator = Optional.of(new FileListFetcher(fs, mPath, listOptions));
   }
 
   private static class HashBasedWorkerAssignPolicy extends WorkerAssignPolicy {
-    WorkerLocationPolicy workerLocationPolicy = new WorkerLocationPolicy(2000);
+    WorkerLocationPolicy mWorkerLocationPolicy = new WorkerLocationPolicy(2000);
 
     @Override
     protected WorkerInfo pickAWorker(String object, Collection<WorkerInfo> workerInfos) {
       List<BlockWorkerInfo> candidates = workerInfos.stream()
           .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
           .collect(toList());
-      List<BlockWorkerInfo> blockWorkerInfo = workerLocationPolicy.getPreferredWorkers(candidates, object, 1);
+      List<BlockWorkerInfo> blockWorkerInfo = mWorkerLocationPolicy
+          .getPreferredWorkers(candidates, object, 1);
       if (blockWorkerInfo.isEmpty()) {
         return null;
       }
@@ -170,12 +178,12 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   }
 
   private static class FileListFetcher implements Iterator<URIStatus> {
+    public static final int PREFETCH_SIZE = 1000;
     private final FileSystem mFs;
     private String mPath;
     ListStatusPOptions mListOption;
-    public static int PREFETCH_SIZE = 1000;
     public LinkedBlockingQueue<URIStatus> mFiles = new LinkedBlockingQueue<>();
-    private Optional<String> nextMarker = Optional.empty();
+    private Optional<String> mNextMarker = Optional.empty();
     // any info on load percentage in dora?
 //    public static final Predicate<FileInfo> QUALIFIED_FILE_FILTER =
 //        (fileInfo) -> !fileInfo.isFolder() && fileInfo.isCompleted() && fileInfo.isPersisted()
@@ -185,21 +193,22 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       mPath = path;
       mListOption = listOption;
       mFs = fs;
-      nextMarker = Optional.of("");
+      mNextMarker = Optional.of("");
     }
 
     private int advance() {
       try {
-        if (!nextMarker.isPresent())
+        if (!mNextMarker.isPresent()) {
           return 0;
-        // TODO paginate list a PREFETCH_SIZE here.
+        }
+        // TODO(lucy) paginate list a PREFETCH_SIZE here.
         List<URIStatus> uriStatuses = mFs.listStatus(new AlluxioURI(mPath), mListOption);
         if (uriStatuses == null) {
-          nextMarker = Optional.empty();
+          mNextMarker = Optional.empty();
           return 0;
         }
         uriStatuses.forEach(uriStatus -> mFiles.offer(uriStatus));
-        nextMarker = Optional.empty();
+        mNextMarker = Optional.empty();
         // if paginated listing
         // nextMarker = uriStatuses.get(uriStatuses.size()-1);
         return uriStatuses.size();
@@ -226,23 +235,33 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
         }
       }
       URIStatus uriStatus = mFiles.poll();
-      if (uriStatus == null)
+      if (uriStatus == null) {
         throw new NoSuchElementException();
+      }
       return uriStatus;
     }
   }
 
   private AtomicBoolean mTaskScheduling = new AtomicBoolean(false);
+
+  /**
+   * @return true if need continuation, false otherwise
+   */
   public boolean needContinuation() {
     if (isCurrentPassDone()) {
       setJobSuccess();
       mMyScheduler.removeJob(this);
     }
-    if ( !isHealthy() || mTaskList.size() >= MAX_RUNNING_TASKS || mMyScheduler.getActiveWorkers().isEmpty()) {
+    if (!isHealthy() || mTaskList.size() >= MAX_RUNNING_TASKS
+        || mMyScheduler.getActiveWorkers().isEmpty()) {
       return false;
     }
     return true;
   }
+
+  /**
+   * Continues the job.
+   */
   public void continueJob() {
     LOG.info("continuejob, job:{}", this);
     if (!needContinuation() || !mTaskScheduling.compareAndSet(false, true)) {
@@ -262,9 +281,10 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
         URIStatus uriStatus = mFs.getStatus(new AlluxioURI(path));
         batchBuilder.add(uriStatus);
         ++filesToLoad;
-      } catch ( AlluxioException | IOException ex) {
-        if (!(ex instanceof FileDoesNotExistException))
+      } catch (AlluxioException | IOException ex) {
+        if (!(ex instanceof FileDoesNotExistException)) {
           mRetryFiles.offer(path);
+        }
       }
     }
     while (filesToLoad < BATCH_SIZE && mFileIterator.get().hasNext()) {
@@ -283,7 +303,8 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 
     Map<WorkerInfo, List<Task>> workerToTaskMap = new HashMap<>();
     for (URIStatus uriStatus : batchBuilder.build()) {
-      // (?) active workers may not reflect all workers at start up, but hashbased policy will deterministiclly
+      // (?) active workers may not reflect all workers at start up,
+      // but hashbased policy will deterministiclly
       // choose among current
       WorkerInfo pickedWorker = mWorkerAssignPolicy.pickAWorker(uriStatus.getPath(),
           mMyScheduler.getActiveWorkers().keySet());
@@ -296,7 +317,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       mTaskList.offer(task);
       mTotalByteCount.addAndGet(uriStatus.getLength());
       mProcessingFileCount.addAndGet(1);
-      // TODO limit the num of tasks added to one worker
+      // TODO(lucy) limit the num of tasks added to one worker
     }
     mTaskScheduling.compareAndSet(true, false);
   }
@@ -356,6 +377,11 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     mLoadedByteCount.addAndGet(bytes);
   }
 
+  /**
+   * Add files to retry.
+   * @param path the file path
+   * @return true
+   */
   @VisibleForTesting
   public boolean addFilesToRetry(String path) {
     LOG.debug("Retry file {}", path);
@@ -369,7 +395,6 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   public String getProgress(JobProgressReportFormat format, boolean verbose) {
     return (new LoadProgressReport(this, verbose)).getReport(format);
   }
-
 
   @Override
   public boolean equals(Object o) {
@@ -461,6 +486,11 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     return (mEndTime.orElse(System.currentTimeMillis()) - mStartTime) / 1000;
   }
 
+  /**
+   * Needs retry.
+   * @param ex the throwable
+   * @return true
+   */
   public boolean needsRetry(Throwable ex) {
     // differentiate retryable/non-retryable exception from worker
     return true;
@@ -472,7 +502,8 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     // call continuejob at the end
     boolean needRetryCheck = false;
     try {
-      boolean success = (Boolean)doraLoadTask.getResponseFuture().get(); // what if timeout ? job needs to proactively check or task needs to be aware
+      // what if timeout ? job needs to proactively check or task needs to be aware
+      boolean success = (Boolean) doraLoadTask.getResponseFuture().get();
       if (!success) {
         needRetryCheck = true;
       } else {
@@ -490,7 +521,8 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       mProcessedFileCount.addAndGet(1);
     } else {
       // check if we need to retry this task, add this file to job todo list for retry for now
-      // provide the filepath, always check the existence/eligibility to load at time of creating task
+      // provide the filepath, always check the existence/eligibility
+      // to load at time of creating task
       addFilesToRetry(doraLoadTask.mFileToLoad.getPath());
     }
     mMyScheduler.getWorkerInfoHub().removeTaskFromWorkerQ(doraLoadTask);
@@ -518,14 +550,22 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     return false;
   }
 
+  /**
+   * Dora load task.
+   */
   public class DoraLoadTask extends Task<Object> {
 
     public URIStatus mFileToLoad;
 
+    /**
+     * Constructor.
+     * @param fileToLoad the file to load
+     */
     public DoraLoadTask(URIStatus fileToLoad) {
       mFileToLoad = fileToLoad;
     }
-    public Map<URIStatus, ListenableFuture<Object>> fileResponses = new HashMap<>();
+
+    public Map<URIStatus, ListenableFuture<Object>> mFileResponses = new HashMap<>();
 
     @Override
     protected ListenableFuture<Object> run(BlockWorkerClient workerClient) {
@@ -546,13 +586,14 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
           .setOpenUfsBlockOptions(openUfsBlockOptions)
           .setChunkSize(mMyScheduler.getFileSystemContext().getClusterConf().getBytes(
               PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES));
-      ListenableFuture<Object> listenableFuture = workerClient.readBlockNoDataBack(readReqBuilder.build());
+      ListenableFuture<Object> listenableFuture = workerClient
+          .readBlockNoDataBack(readReqBuilder.build());
       return listenableFuture;
     }
 
     @Override
     public void onComplete(Executor executor) {
-      this.getResponseFuture().addListener(() -> mMyJob.processResponse(this), executor);
+      getResponseFuture().addListener(() -> mMyJob.processResponse(this), executor);
     }
   }
 
@@ -570,6 +611,11 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     private final long mFailedFileCount;
     private final Map<String, String> mFailedFilesWithReasons;
 
+    /**
+     * Constructor.
+     * @param job the job
+     * @param verbose verbose
+     */
     public LoadProgressReport(DoraLoadJob job, boolean verbose)
     {
       mVerbose = verbose;

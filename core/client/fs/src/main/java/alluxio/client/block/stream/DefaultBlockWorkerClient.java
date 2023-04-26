@@ -57,7 +57,6 @@ import com.google.common.io.Closer;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import io.grpc.StatusRuntimeException;
-import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import io.netty.util.ResourceLeakDetector;
 import io.netty.util.ResourceLeakTracker;
@@ -69,7 +68,6 @@ import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.GuardedBy;
 
 /**
  * Default implementation of {@link BlockWorkerClient}.
@@ -190,7 +188,11 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     }
   }
 
-  public static class noDataReadStreamObserver implements StreamObserver<alluxio.grpc.ReadResponse> {
+  /**
+   * No data read stream observer.
+   */
+  public static class NoDataReadStreamObserver
+      implements StreamObserver<alluxio.grpc.ReadResponse> {
 
     SettableFuture<Object> mFuture = SettableFuture.create();
     ReentrantLock mLock = new ReentrantLock();
@@ -216,13 +218,17 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
       }
     }
 
+    /**
+     * @return future
+     */
     public ListenableFuture<Object> getFuture() {
       return mFuture;
     }
   }
 
+  @Override
   public ListenableFuture<Object> readBlockNoDataBack(ReadRequest request) {
-    noDataReadStreamObserver responseStreamObserver = new noDataReadStreamObserver();
+    NoDataReadStreamObserver responseStreamObserver = new NoDataReadStreamObserver();
     StreamObserver<ReadRequest> requestStreamObserver = mStreamingAsyncStub
         .readBlock(responseStreamObserver);
     requestStreamObserver.onNext(request);

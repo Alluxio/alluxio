@@ -292,8 +292,6 @@ public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
     }
     return Optional.of(new LoadTask(blocks));
   }
-  
-
 
   /**
    * Get next batch of blocks.

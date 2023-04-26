@@ -48,7 +48,14 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -80,22 +87,44 @@ public final class Scheduler {
   private volatile boolean mRunning = false;
 
   private final WorkerInfoHub mWorkerInfoHub;
+
+  /**
+   * Worker infomation hub.
+   */
   public static class WorkerInfoHub {
     private Scheduler mScheduler;
     public Map<WorkerInfo, CloseableResource<BlockWorkerClient>> mActiveWorkers = ImmutableMap.of();
     private final WorkerProvider mWorkerProvider;
+
+    /**
+     * Constructor.
+     * @param scheduler scheduler
+     * @param workerProvider worker provider
+     */
     public WorkerInfoHub(Scheduler scheduler, WorkerProvider workerProvider) {
       mScheduler = scheduler;
       mWorkerProvider = workerProvider;
     }
-    private final Map<WorkerInfo, PriorityBlockingQueue<Task>> mWorkerToTaskQ = new ConcurrentHashMap<>();
+
+    private final Map<WorkerInfo, PriorityBlockingQueue<Task>> mWorkerToTaskQ
+        = new ConcurrentHashMap<>();
+
+    /**
+     * Enqueue task for worker.
+     * @param workerInfo the worker
+     * @param task the task
+     * @param kickStartTask kick start task
+     * @return whether the task is enqueued successfully
+     */
     public boolean enqueueTaskForWorker(WorkerInfo workerInfo, Task task, boolean kickStartTask) {
-      if (workerInfo == null)
+      if (workerInfo == null) {
         return false;
+      }
       PriorityBlockingQueue workerTaskQ = mWorkerToTaskQ
           .computeIfAbsent(workerInfo, k -> new PriorityBlockingQueue<>());
-      if (!workerTaskQ.offer(task))
+      if (!workerTaskQ.offer(task)) {
         return false;
+      }
       mScheduler.getWorkingExecutor().submit(() -> {
         task.execute(mActiveWorkers.get(workerInfo).get(), workerInfo);
         task.onComplete(mScheduler.getWorkingExecutor());
@@ -103,14 +132,23 @@ public final class Scheduler {
       return true;
     }
 
+    /**
+     * Removes task from worker queue.
+     * @param task the task
+     * @return true if task exists and is removed, false otherwise
+     */
     public boolean removeTaskFromWorkerQ(Task task) {
       WorkerInfo workerInfo = task.getMyRunningWorker();
-      if (mWorkerToTaskQ.containsKey(workerInfo))
+      if (mWorkerToTaskQ.containsKey(workerInfo)) {
         return false;
+      }
       PriorityBlockingQueue<Task> pq = mWorkerToTaskQ.get(workerInfo);
       return pq.remove(task);
     }
 
+    /**
+     * @return the worker to task queue
+     */
     public Map<WorkerInfo, PriorityBlockingQueue<Task>> getWorkerToTaskQ() {
       return mWorkerToTaskQ;
     }
@@ -172,17 +210,19 @@ public final class Scheduler {
         LOG.error("Unexpected exception thrown in updateWorkers.", e);
       }
     }
-
   }
+
   private final FileSystemContext mFileSystemContext;
 
   /**
    * Constructor.
    *
+   * @param fsCtx file system context
    * @param workerProvider   workerProvider
    * @param jobMetaStore     jobMetaStore
    */
-  public Scheduler(FileSystemContext fsCtx, WorkerProvider workerProvider, JobMetaStore jobMetaStore) {
+  public Scheduler(FileSystemContext fsCtx, WorkerProvider workerProvider,
+      JobMetaStore jobMetaStore) {
     mFileSystemContext = fsCtx;
     mJobMetaStore = jobMetaStore;
     MetricsSystem.registerCachedGaugeIfAbsent(
@@ -197,28 +237,39 @@ public final class Scheduler {
     if (!mRunning) {
       retrieveJobs();
       mWorkingExecutor = new ThreadPoolExecutor(4, 4, 0, TimeUnit.SECONDS,
-        new ArrayBlockingQueue<>(16 * 1024), ThreadFactoryUtils.build("SCHEDULER-WORKER-", true));
+          new ArrayBlockingQueue<>(16 * 1024), ThreadFactoryUtils.build("SCHEDULER-WORKER-", true));
       mSchedulerExecutor = Executors.newSingleThreadScheduledExecutor(
           ThreadFactoryUtils.build("scheduler", false));
-      mSchedulerExecutor.scheduleAtFixedRate(mWorkerInfoHub::updateWorkers, 0, WORKER_UPDATE_INTERVAL,
-          TimeUnit.MILLISECONDS);
+      mSchedulerExecutor.scheduleAtFixedRate(mWorkerInfoHub::updateWorkers, 0,
+          WORKER_UPDATE_INTERVAL, TimeUnit.MILLISECONDS);
       mSchedulerExecutor.scheduleWithFixedDelay(this::processJobs, 0, 100, TimeUnit.MILLISECONDS);
       mSchedulerExecutor.scheduleWithFixedDelay(this::cleanupStaleJob, 1, 1, TimeUnit.HOURS);
       mRunning = true;
     }
   }
 
+  /**
+   * Update workers.
+   */
   public void updateWorkers() {
     mWorkerInfoHub.updateWorkers();
   }
 
+  /**
+   * @return the working executor
+   */
   public ExecutorService getWorkingExecutor() {
     return mWorkingExecutor;
   }
 
   /*
-   TODO in future we should remove job automatically, but keep all history jobs in db to help
+   TODO(lucy) in future we should remove job automatically, but keep all history jobs in db to help
    user retrieve all submitted jobs status.
+   */
+
+  /**
+   * Removes the job.
+   * @param job the job
    */
   public void removeJob(Job job) {
     mExistingJobs.remove(job.getDescription());
@@ -326,6 +377,9 @@ public final class Scheduler {
     return job.getProgress(format, verbose);
   }
 
+  /**
+   * @return the file system context
+   */
   public FileSystemContext getFileSystemContext() {
     return mFileSystemContext;
   }
@@ -457,7 +511,8 @@ public final class Scheduler {
         // Schedule next batch for healthy job
         if (job.isHealthy()) {
           if (mWorkerInfoHub.mActiveWorkers.containsKey(workerInfo)) {
-            if (!scheduleTask(job, workerInfo, livingWorkers, mWorkerInfoHub.mActiveWorkers.get(workerInfo))) {
+            if (!scheduleTask(job, workerInfo, livingWorkers,
+                mWorkerInfoHub.mActiveWorkers.get(workerInfo))) {
               livingWorkers.remove(workerInfo);
             }
           }
@@ -476,6 +531,9 @@ public final class Scheduler {
     return true;
   }
 
+  /**
+   * @return worker info hub
+   */
   public WorkerInfoHub getWorkerInfoHub() {
     return mWorkerInfoHub;
   }

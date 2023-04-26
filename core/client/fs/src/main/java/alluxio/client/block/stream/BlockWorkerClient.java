@@ -98,6 +98,12 @@ public interface BlockWorkerClient extends Closeable {
    */
   StreamObserver<ReadRequest> readBlock(StreamObserver<ReadResponse> responseObserver);
 
+  /**
+   * Reads a block with getting actual data.
+   *
+   * @param request the read request
+   * @return the stream observer for the client request
+   */
   ListenableFuture<Object> readBlockNoDataBack(ReadRequest request);
 
   /**

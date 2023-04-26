@@ -637,5 +637,8 @@ public interface FileSystemMaster extends Master {
    */
   void needsSync(AlluxioURI path) throws InvalidPathException;
 
+  /**
+   * @return the scheduler
+   */
   Scheduler getScheduler();
 }

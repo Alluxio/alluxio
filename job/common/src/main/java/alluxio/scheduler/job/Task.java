@@ -12,14 +12,13 @@
 package alluxio.scheduler.job;
 
 import alluxio.client.block.stream.BlockWorkerClient;
-
 import alluxio.wire.WorkerInfo;
+
 import com.google.common.base.Stopwatch;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 
 /**
  * A task that can be executed on a worker. Belongs to a {@link Job}.
@@ -28,31 +27,46 @@ import java.util.function.Function;
  */
 public abstract class Task<V> implements Comparable<Task> {
 
+  /**
+   * State of a task.
+   */
   public static class TaskStat {
     private final Stopwatch mStopwatch = Stopwatch.createStarted();
     private long mTimeInQ = -1L;
     private long mTotalTimeToComplete = -1L;
 
+    /**
+     * Record time when task is inside the queue.
+     */
     public void recordTimeInQ() {
       mTimeInQ = mStopwatch.elapsed(TimeUnit.MILLISECONDS);
     }
 
+    /**
+     * Record time taken to complete the task.
+     */
     public void recordTimeToComplete() {
       mTotalTimeToComplete = mStopwatch.elapsed(TimeUnit.MILLISECONDS);
     }
 
+    /**
+     * @return task state
+     */
     public String dumpStats() {
       StringBuilder sb = new StringBuilder();
       sb.append(String.format("TimeInQ:%s\n", mTimeInQ == -1 ? "N/A" : mTimeInQ))
-          .append(String.format("TotalTimeToComplete:%s\n", mTotalTimeToComplete == -1 ? "N/A" : mTimeInQ));
+          .append(String.format("TotalTimeToComplete:%s\n",
+              mTotalTimeToComplete == -1 ? "N/A" : mTimeInQ));
       return sb.toString();
     }
   }
 
-  public Task () {
+  /**
+   * Constructor.
+   */
+  public Task() {
     mTaskStat = new TaskStat();
   }
-
 
   /**
    * run the task.
@@ -65,6 +79,9 @@ public abstract class Task<V> implements Comparable<Task> {
   private WorkerInfo mRunsOnWorker;
   protected Job mMyJob;
 
+  /**
+   * @return my running worker
+   */
   public WorkerInfo getMyRunningWorker() {
     return mRunsOnWorker;
   }
@@ -79,21 +96,32 @@ public abstract class Task<V> implements Comparable<Task> {
   /**
    * run the task and set the response future.
    * @param client worker client
+   * @param workerInfo the worker information
    */
   public void execute(BlockWorkerClient client, WorkerInfo workerInfo) {
     mRunsOnWorker = workerInfo;
     mResponseFuture = run(client);
   }
 
+  /**
+   * @param job the job
+   * @return the task
+   */
   public Task withJob(Job job) {
     mMyJob = job;
     return this;
   }
 
+  /**
+   * @return task stat
+   */
   public TaskStat getTaskStat() {
     return mTaskStat;
   }
 
+  /**
+   * @return priority
+   */
   public int getPriority() {
     return mPriority;
   }
@@ -103,5 +131,8 @@ public abstract class Task<V> implements Comparable<Task> {
     return mPriority - anotherTask.getPriority();
   }
 
+  /**
+   * @param executor the executor
+   */
   public void onComplete(Executor executor) {}
 }
