@@ -53,7 +53,7 @@ public class BasicInodeCache extends RocksInodeStore {
 
   @Override
   public void remove(Long inodeId) {
-    mCache.asMap().computeIfPresent(inodeId, (id, inode) -> {
+    mCache.asMap().compute(inodeId, (id, inode) -> {
       BasicInodeCache.super.remove(inodeId);
       return null;
     });
