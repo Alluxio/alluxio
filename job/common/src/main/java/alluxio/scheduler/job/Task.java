@@ -17,6 +17,7 @@ import alluxio.wire.WorkerInfo;
 import com.google.common.base.Stopwatch;
 import com.google.common.util.concurrent.ListenableFuture;
 
+import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
@@ -54,8 +55,8 @@ public abstract class Task<V> implements Comparable<Task> {
      */
     public String dumpStats() {
       StringBuilder sb = new StringBuilder();
-      sb.append(String.format("TimeInQ:%s\n", mTimeInQ == -1 ? "N/A" : mTimeInQ))
-          .append(String.format("TotalTimeToComplete:%s\n",
+      sb.append(String.format("TimeInQ:%s%n", mTimeInQ == -1 ? "N/A" : mTimeInQ))
+          .append(String.format("TotalTimeToComplete:%s%n",
               mTotalTimeToComplete == -1 ? "N/A" : mTimeInQ));
       return sb.toString();
     }
@@ -127,8 +128,31 @@ public abstract class Task<V> implements Comparable<Task> {
   }
 
   @Override
-  public int compareTo(Task anotherTask) {
-    return mPriority - anotherTask.getPriority();
+  public boolean equals(Object obj) {
+    if (obj == null || getClass() != obj.getClass()) {
+      return false;
+    }
+    Task<?> other = (Task<?>) obj;
+    return getPriority() == other.getPriority()
+        && getTaskStat() == other.getTaskStat()
+        && Objects.equals(mRunsOnWorker, other.mRunsOnWorker)
+        && Objects.equals(mMyJob, other.mMyJob)
+        && Objects.equals(mResponseFuture, other.mResponseFuture);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(mPriority, mTaskStat, mRunsOnWorker, mMyJob, mResponseFuture);
+  }
+
+  @Override
+  public int compareTo(Task o) {
+    if (this == o) {
+      return 0;
+    } else if (o == null) {
+      return 1;
+    }
+    return getPriority() - o.getPriority();
   }
 
   /**
