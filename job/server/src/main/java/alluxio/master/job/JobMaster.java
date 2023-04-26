@@ -61,18 +61,12 @@ import alluxio.master.job.command.CommandManager;
 import alluxio.master.job.plan.PlanCoordinator;
 import alluxio.master.job.plan.PlanTracker;
 import alluxio.master.job.tracker.CmdJobTracker;
-<<<<<<< HEAD
-||||||| parent of 8da5953920 (Fix JobServiceMetricsCommandTest)
-import alluxio.master.job.workflow.WorkflowTracker;
-import alluxio.master.journal.NoopJournaled;
-=======
 import alluxio.master.job.workflow.WorkflowTracker;
 import alluxio.master.journal.NoopJournaled;
 import alluxio.master.meta.JobMasterInfo;
 import alluxio.master.meta.JobMasterMasterServiceHandler;
 import alluxio.master.meta.JobMasterSync;
 import alluxio.master.meta.RetryHandlingJobMasterMasterClient;
->>>>>>> 8da5953920 (Fix JobServiceMetricsCommandTest)
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.master.job.workflow.WorkflowTracker;
@@ -281,27 +275,14 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
       getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.JOB_MASTER_LOST_WORKER_DETECTION,
               new LostWorkerDetectionHeartbeatExecutor(),
-<<<<<<< HEAD
               (int) ServerConfiguration.getMs(PropertyKey.JOB_MASTER_LOST_WORKER_INTERVAL),
               ServerConfiguration.global(), mMasterContext.getUserState()));
-      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
-||||||| parent of 8da5953920 (Fix JobServiceMetricsCommandTest)
-              () -> new FixedIntervalSupplier(
-                  Configuration.getMs(PropertyKey.JOB_MASTER_LOST_WORKER_INTERVAL)),
-              Configuration.global(), mMasterContext.getUserState()));
-      if (Configuration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
-=======
-              () -> new FixedIntervalSupplier(
-                  Configuration.getMs(PropertyKey.JOB_MASTER_LOST_WORKER_INTERVAL)),
-              Configuration.global(), mMasterContext.getUserState()));
       getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.JOB_MASTER_LOST_MASTER_DETECTION,
               new LostMasterDetectionHeartbeatExecutor(),
-              () -> new FixedIntervalSupplier(
-                  Configuration.getMs(PropertyKey.JOB_MASTER_LOST_MASTER_INTERVAL)),
-              Configuration.global(), mMasterContext.getUserState()));
-      if (Configuration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
->>>>>>> 8da5953920 (Fix JobServiceMetricsCommandTest)
+              (int) ServerConfiguration.getMs(PropertyKey.JOB_MASTER_LOST_MASTER_INTERVAL),
+              ServerConfiguration.global(), mMasterContext.getUserState()));
+      if (ServerConfiguration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
         mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("JOB_MASTER_AUDIT_LOG");
         mAsyncAuditLogWriter.start();
         MetricsSystem.registerGaugeIfAbsent(
@@ -311,16 +292,15 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
       }
     } else {
       LOG.info("Starting job master as standby");
-      if (ConfigurationUtils.isHaMode(Configuration.global())) {
+      if (ConfigurationUtils.isHaMode(ServerConfiguration.global())) {
         // Standby master should setup MetaMasterSync to communicate with the leader master
         RetryHandlingJobMasterMasterClient jobMasterClient =
                 new RetryHandlingJobMasterMasterClient(JobMasterClientContext
-                        .newBuilder(ClientContext.create(Configuration.global())).build());
+                        .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
         getExecutorService().submit(new HeartbeatThread(HeartbeatContext.JOB_MASTER_SYNC,
             new JobMasterSync(mJobMasterAddress, jobMasterClient),
-            () -> new FixedIntervalSupplier(
-                Configuration.getMs(PropertyKey.JOB_MASTER_MASTER_HEARTBEAT_INTERVAL)),
-            Configuration.global(), mMasterContext.getUserState()));
+                (int) ServerConfiguration.getMs(PropertyKey.JOB_MASTER_MASTER_HEARTBEAT_INTERVAL),
+                ServerConfiguration.global(), mMasterContext.getUserState()));
         LOG.info("Standby job master with address {} starts sending heartbeat to the primary.",
             mJobMasterAddress);
       }

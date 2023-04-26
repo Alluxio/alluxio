@@ -74,20 +74,6 @@ public final class JobMasterWorkerServiceHandler
   @Override
   public void registerJobWorker(RegisterJobWorkerPRequest request,
       StreamObserver<RegisterJobWorkerPResponse> responseObserver) {
-<<<<<<< HEAD
-
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<RegisterJobWorkerPResponse>) () -> {
-          return RegisterJobWorkerPResponse.newBuilder()
-              .setId(mJobMaster.registerWorker(GrpcUtils.fromProto(request.getWorkerNetAddress())))
-              .build();
-        }, "registerJobWorker", "request=%s", responseObserver, request);
-||||||| parent of 8da5953920 (Fix JobServiceMetricsCommandTest)
-
-    RpcUtils.call(LOG, () -> RegisterJobWorkerPResponse.newBuilder()
-        .setId(mJobMaster.registerWorker(GrpcUtils.fromProto(request.getWorkerNetAddress())))
-        .build(), "registerJobWorker", "request=%s", responseObserver, request);
-=======
     LOG.info("Received job worker {}", request);
     BuildVersion version = request.hasVersion() ? request.getVersion()
         : RuntimeConstants.UNKNOWN_VERSION_INFO;
@@ -95,6 +81,5 @@ public final class JobMasterWorkerServiceHandler
         .setId(mJobMaster.registerWorker(
             GrpcUtils.fromProto(request.getWorkerNetAddress()), version))
         .build(), "registerJobWorker", "request=%s", responseObserver, request);
->>>>>>> 8da5953920 (Fix JobServiceMetricsCommandTest)
   }
 }

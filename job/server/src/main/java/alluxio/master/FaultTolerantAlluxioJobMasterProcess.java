@@ -63,6 +63,8 @@ final class FaultTolerantAlluxioJobMasterProcess extends AlluxioJobMasterProcess
     while (!Thread.interrupted()) {
       if (mServingThread == null) {
         // We are in standby mode. Nothing to do until we become the primary.
+        startMaster(false);
+        LOG.info("Standby started");
         mLeaderSelector.waitForState(State.PRIMARY);
         LOG.info("Transitioning from standby to primary");
         mJournalSystem.gainPrimacy();
