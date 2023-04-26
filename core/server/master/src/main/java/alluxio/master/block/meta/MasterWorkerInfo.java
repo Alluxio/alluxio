@@ -13,6 +13,7 @@ package alluxio.master.block.meta;
 
 import alluxio.Constants;
 import alluxio.StorageTierAssoc;
+import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
 import alluxio.grpc.BuildVersion;
 import alluxio.grpc.StorageList;
@@ -149,6 +150,12 @@ public final class MasterWorkerInfo {
 
   /** Stores the mapping from WorkerMetaLockSection to the lock. */
   private final Map<WorkerMetaLockSection, ReadWriteLock> mLockTypeToLock;
+
+  private static final EnumSet<WorkerInfoField> USAGE_INFO_FIELDS =
+      EnumSet.of(WorkerInfoField.WORKER_CAPACITY_BYTES,
+          WorkerInfoField.WORKER_CAPACITY_BYTES_ON_TIERS,
+          WorkerInfoField.WORKER_USED_BYTES,
+          WorkerInfoField.WORKER_USED_BYTES_ON_TIERS);
 
   /**
    * Creates a new instance of {@link MasterWorkerInfo}.
@@ -715,29 +722,6 @@ public final class MasterWorkerInfo {
   public void markAllBlocksToRemove() {
     mToRemoveBlocks.addAll(mBlocks);
   }
-<<<<<<< HEAD
-||||||| parent of 7d8ad9b12a (Display build version of workers in WebUI and capacity command)
-
-  /**
-   * Finds the read locks necessary for required worker information.
-   * Locks the corresponding read locks for the specified worker information fields.
-   * This is a wrapper of {@link MasterWorkerInfo#lockWorkerMeta(EnumSet, boolean)}
-   *
-   * @param fieldRange a set of {@link WorkerInfoField}
-   * @return a {@link LockResource} of the {@link WorkerMetaLock}
-   */
-  public LockResource lockWorkerMetaForInfo(
-      Set<GetWorkerReportOptions.WorkerInfoField> fieldRange) {
-    EnumSet<WorkerMetaLockSection> lockTypes = EnumSet.noneOf(WorkerMetaLockSection.class);
-    if (fieldRange.contains(GetWorkerReportOptions.WorkerInfoField.BLOCK_COUNT)) {
-      lockTypes.add(WorkerMetaLockSection.BLOCKS);
-    }
-    if (fieldRange.stream().anyMatch(USAGE_INFO_FIELDS::contains)) {
-      lockTypes.add(WorkerMetaLockSection.USAGE);
-    }
-    return lockWorkerMeta(lockTypes, true);
-  }
-=======
 
   /**
    * Finds the read locks necessary for required worker information.
@@ -778,5 +762,4 @@ public final class MasterWorkerInfo {
   public BuildVersion getBuildVersion() {
     return mBuildVersion.get();
   }
->>>>>>> 7d8ad9b12a (Display build version of workers in WebUI and capacity command)
 }

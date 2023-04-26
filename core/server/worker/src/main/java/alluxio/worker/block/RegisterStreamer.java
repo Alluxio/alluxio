@@ -11,13 +11,7 @@
 
 package alluxio.worker.block;
 
-<<<<<<< HEAD
-||||||| parent of 7d8ad9b12a (Display build version of workers in WebUI and capacity command)
-import alluxio.conf.Configuration;
-=======
 import alluxio.ProjectConstants;
-import alluxio.conf.Configuration;
->>>>>>> 7d8ad9b12a (Display build version of workers in WebUI and capacity command)
 import alluxio.conf.PropertyKey;
 import alluxio.conf.ServerConfiguration;
 import alluxio.exception.status.CancelledException;
