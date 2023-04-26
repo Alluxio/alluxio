@@ -30,7 +30,6 @@ import com.google.common.base.Preconditions;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Set;
-import javax.annotation.Nullable;
 
 /**
  * The context for the metadata sync.
@@ -44,8 +43,6 @@ public class MetadataSyncContext implements Closeable {
   private final Set<AlluxioURI> mDirectoriesToUpdateAbsentCache = new ConcurrentHashSet<>();
   private final TaskInfo mTaskInfo;
   private final LoadResult mLoadResult;
-  @Nullable
-  private String mStartAfter;
 
   /**
    * Creates a metadata sync context.
@@ -54,12 +51,10 @@ public class MetadataSyncContext implements Closeable {
    * @param baseRpcContext the base rpc context
    * @param rpcContext    the metadata sync rpc context
    * @param commonOptions the common options for TTL configurations
-   * @param startAfter    indicates where the sync starts (exclusive), used on retries
    */
   private MetadataSyncContext(
       LoadResult loadResult, RpcContext baseRpcContext, MetadataSyncRpcContext rpcContext,
       FileSystemMasterCommonPOptions commonOptions,
-      @Nullable String startAfter,
       boolean allowConcurrentModification
   ) {
     mDescendantType = loadResult.getLoadRequest().getDescendantType();
@@ -67,7 +62,6 @@ public class MetadataSyncContext implements Closeable {
     mBaseRpcContext = baseRpcContext;
     mCommonOptions = commonOptions;
     mAllowConcurrentModification = allowConcurrentModification;
-    mStartAfter = startAfter;
     mTaskInfo = loadResult.getTaskInfo();
     mLoadResult = loadResult;
   }
@@ -119,14 +113,6 @@ public class MetadataSyncContext implements Closeable {
    */
   public FileSystemMasterCommonPOptions getCommonOptions() {
     return mCommonOptions;
-  }
-
-  /**
-   * @return null if the listing starts from the beginning, otherwise the start after path inclusive
-   */
-  @Nullable
-  public String getStartAfter() {
-    return mStartAfter;
   }
 
   /**
@@ -220,7 +206,6 @@ public class MetadataSyncContext implements Closeable {
     private MetadataSyncRpcContext mRpcContext;
     private RpcContext mBaseRpcContext;
     private FileSystemMasterCommonPOptions mCommonOptions = MetadataSyncer.NO_TTL_OPTION;
-    private String mStartAfter = null;
     private boolean mAllowConcurrentModification = true;
 
     /**
@@ -270,15 +255,6 @@ public class MetadataSyncContext implements Closeable {
     }
 
     /**
-     * @param startAfter the start after
-     * @return the builder
-     */
-    public Builder setStartAfter(String startAfter) {
-      mStartAfter = startAfter;
-      return this;
-    }
-
-    /**
      * @param allowModification the current modification is allowed
      * @return the builder
      */
@@ -293,7 +269,7 @@ public class MetadataSyncContext implements Closeable {
     public MetadataSyncContext build() {
       return new MetadataSyncContext(
           mLoadResult, mBaseRpcContext, mRpcContext, mCommonOptions,
-          mStartAfter, mAllowConcurrentModification);
+          mAllowConcurrentModification);
     }
   }
 }
