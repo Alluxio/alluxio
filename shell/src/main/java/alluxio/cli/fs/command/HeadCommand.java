@@ -73,6 +73,7 @@ public final class HeadCommand extends AbstractFileSystemCommand {
     }
     try (FileInStream is = mFileSystem.openFile(plainPath)) {
       final long bytesToRead = Math.min(status.getLength(), mNumOfBytes);
+      // ByteStreams.copy uses an internal buffer size of 8 KiB
       ByteStreams.copy(ByteStreams.limit(is, bytesToRead), System.out);
     }
   }
