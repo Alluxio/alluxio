@@ -212,7 +212,7 @@ function run_local() {
   init_env
 
   if [[ ${TIER_ALIAS} != "MEM" ]]; then
-    # the top tier is not MEM, skip
+    echo 'The top tier is not MEM, skip'
     exit 1
   fi
 
