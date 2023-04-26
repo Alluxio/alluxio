@@ -36,7 +36,6 @@ import alluxio.grpc.ReadResponseMarshaller;
 import alluxio.grpc.RouteFailure;
 import alluxio.grpc.TaskStatus;
 import alluxio.underfs.UfsStatus;
-import alluxio.underfs.options.ListOptions;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.dora.DoraWorker;
 import alluxio.worker.dora.PagedDoraWorker;
@@ -176,9 +175,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
     LOG.debug("listStatus is called for {}", request.getPath());
 
     try {
-      ListOptions options = ListOptions.defaults().setRecursive(
-          request.getOptions().hasRecursive() ? request.getOptions().getRecursive() : false);
-      UfsStatus[] statuses = mWorker.listStatus(request.getPath(), options);
+      UfsStatus[] statuses = mWorker.listStatus(request.getPath(), request.getOptions());
       if (statuses == null) {
         responseObserver.onError(
             new NotFoundRuntimeException(String.format("%s Not Found", request.getPath()))
