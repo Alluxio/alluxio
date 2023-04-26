@@ -796,16 +796,16 @@ public interface FileSystem extends Closeable {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * @param taskId the task id
+   * @param taskGroupId the task group id
    * @return the sync progress
    */
-  GetSyncProgressPResponse getSyncProgress(long taskId)
+  GetSyncProgressPResponse getSyncProgress(long taskGroupId)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
-   * @param taskId the task id
+   * @param taskGroupId the task group id
    * @return the sync progress
    */
-  CancelSyncMetadataPResponse cancelSyncMetadata(long taskId)
+  CancelSyncMetadataPResponse cancelSyncMetadata(long taskGroupId)
       throws IOException, AlluxioException;
 }

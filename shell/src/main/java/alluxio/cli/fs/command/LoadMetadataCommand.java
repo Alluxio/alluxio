@@ -218,9 +218,9 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
     }
   }
 
-  private void cancel(long taskId) throws IOException, AlluxioException {
-    mFileSystem.cancelSyncMetadata(taskId);
-    System.out.println("Task group " + taskId + " cancelled");
+  private void cancel(long taskGroupId) throws IOException, AlluxioException {
+    mFileSystem.cancelSyncMetadata(taskGroupId);
+    System.out.println("Task group " + taskGroupId + " cancelled");
   }
 
   private void loadMetadataV2(
@@ -246,21 +246,22 @@ public class LoadMetadataCommand extends AbstractFileSystemCommand {
     try {
       System.out.println("Submitting metadata sync task...");
       SyncMetadataAsyncPResponse response = mFileSystem.syncMetadataAsync(path, options);
-      long taskId = response.getTaskId();
-      System.out.println("Task group " + taskId + " has been submitted successfully.");
+      long taskGroupId = response.getTaskGroupId();
+      System.out.println("Task group " + taskGroupId + " has been submitted successfully.");
+      System.out.println("Task ids: " + Arrays.toString(response.getTaskIdsList().toArray()));
       System.out.println("Polling sync progress every " + pollingIntervalMs + "ms");
       System.out.println("You can also poll the sync progress in another terminal using:");
-      System.out.println("\t$bin/alluxio fs loadMetadata -o get -id " + taskId);
+      System.out.println("\t$bin/alluxio fs loadMetadata -o get -id " + taskGroupId);
       System.out.println("Sync is being executed asynchronously. Ctrl+C or closing the terminal "
           + "does not stop the task group. To cancel the task, you can use: ");
-      System.out.println("\t$bin/alluxio fs loadMetadata -o cancel -id " + taskId);
+      System.out.println("\t$bin/alluxio fs loadMetadata -o cancel -id " + taskGroupId);
       while (true) {
         System.out.println("------------------------------------------------------");
-        GetSyncProgressPResponse syncProgress = mFileSystem.getSyncProgress(taskId);
+        GetSyncProgressPResponse syncProgress = mFileSystem.getSyncProgress(taskGroupId);
         List<SyncMetadataTask> tasks = syncProgress.getTaskList().stream()
             .sorted(Comparator.comparingLong(SyncMetadataTask::getId)).collect(Collectors.toList());
         boolean allComplete = true;
-        System.out.println("Task group id: " + taskId);
+        System.out.println("Task group id: " + taskGroupId);
         for (SyncMetadataTask task : tasks) {
           printTask(task);
           if (task.getState() == SyncMetadataState.RUNNING) {

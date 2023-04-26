@@ -400,14 +400,14 @@ public interface FileSystemMasterClient extends Client {
       throws AlluxioStatusException;
 
   /**
-   * @param taskId the task id
+   * @param taskGroupId the task id
    * @return the sync progress
    */
-  GetSyncProgressPResponse getSyncProgress(long taskId) throws AlluxioStatusException;
+  GetSyncProgressPResponse getSyncProgress(long taskGroupId) throws AlluxioStatusException;
 
   /**
-   * @param taskId the task id
+   * @param taskGroupId the task id
    * @return the sync progress
    */
-  CancelSyncMetadataPResponse cancelSyncMetadata(long taskId) throws AlluxioStatusException;
+  CancelSyncMetadataPResponse cancelSyncMetadata(long taskGroupId) throws AlluxioStatusException;
 }

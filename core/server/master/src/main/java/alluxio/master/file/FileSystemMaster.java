@@ -663,15 +663,15 @@ public interface FileSystemMaster extends Master {
 
   /**
    * Gets a metadata sync task progress.
-   * @param taskId the task id
+   * @param taskGroupId the task group id
    * @return the sync progress
    */
-  GetSyncProgressPResponse getSyncProgress(long taskId);
+  GetSyncProgressPResponse getSyncProgress(long taskGroupId);
 
   /**
    * Cancels an ongoing metadata sync.
-   * @param taskId the task id
+   * @param taskGroupId the task group id
    * @return the cancel sync metadata response
    */
-  CancelSyncMetadataPResponse cancelSyncMetadata(long taskId) throws NotFoundException;
+  CancelSyncMetadataPResponse cancelSyncMetadata(long taskGroupId) throws NotFoundException;
 }

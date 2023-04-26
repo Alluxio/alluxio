@@ -194,6 +194,56 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
   }
 
   @Test
+  public void testUpdateDirectChildrenLoaded() throws Throwable {
+    mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
+    mS3Client.putObject(TEST_BUCKET, "d1/foo", TEST_CONTENT);
+    mS3Client.putObject(TEST_BUCKET, "d2/foo", TEST_CONTENT);
+    mS3Client.putObject(TEST_BUCKET, "d3/d4/foo", TEST_CONTENT);
+
+    BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT.join("d3"), DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
+    result.waitComplete(TIMEOUT_MS);
+    assertTrue(result.succeeded());
+
+    assertFalse(mFileSystemMaster.getInodeStore()
+        .get(mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync()).getFileId())
+        .get().asDirectory().isDirectChildrenLoaded());
+
+    assertTrue(mFileSystemMaster.getInodeStore()
+        .get(mFileSystemMaster.getFileInfo(MOUNT_POINT.join("d3"), getNoSync()).getFileId())
+        .get().asDirectory().isDirectChildrenLoaded());
+
+    assertTrue(mFileSystemMaster.getInodeStore()
+        .get(mFileSystemMaster.getFileInfo(MOUNT_POINT.join("d3/d4"), getNoSync()).getFileId())
+        .get().asDirectory().isDirectChildrenLoaded());
+
+    result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ONE, mDirectoryLoadType, 0).getBaseTask();
+    result.waitComplete(TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    assertTrue(mFileSystemMaster.getInodeStore()
+        .get(mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync()).getFileId())
+        .get().asDirectory().isDirectChildrenLoaded());
+    assertFalse(mFileSystemMaster.getInodeStore()
+        .get(mFileSystemMaster.getFileInfo(MOUNT_POINT.join("d1"), getNoSync()).getFileId())
+        .get().asDirectory().isDirectChildrenLoaded());
+    assertFalse(mFileSystemMaster.getInodeStore()
+        .get(mFileSystemMaster.getFileInfo(MOUNT_POINT.join("d2"), getNoSync()).getFileId())
+        .get().asDirectory().isDirectChildrenLoaded());
+
+    result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
+    result.waitComplete(TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    assertTrue(mFileSystemMaster.getInodeStore()
+        .get(mFileSystemMaster.getFileInfo(MOUNT_POINT.join("d1"), getNoSync()).getFileId())
+        .get().asDirectory().isDirectChildrenLoaded());
+    assertTrue(mFileSystemMaster.getInodeStore()
+        .get(mFileSystemMaster.getFileInfo(MOUNT_POINT.join("d2"), getNoSync()).getFileId())
+        .get().asDirectory().isDirectChildrenLoaded());
+  }
+
+  @Test
   public void basicSyncNestedMount() throws Throwable {
     mS3Client.putObject(TEST_BUCKET,
         TEST_DIRECTORY + "/", "");
@@ -624,6 +674,10 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
       result.waitComplete(TIMEOUT_MS);
     });
     assertSyncFailureReason(result.getTaskInfo(), SyncFailReason.LOADING_UFS_IO_FAILURE);
+
+    assertFalse(mFileSystemMaster.getInodeStore()
+        .get(mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync()).getFileId())
+        .get().asDirectory().isDirectChildrenLoaded());
 
     startS3Server();
   }

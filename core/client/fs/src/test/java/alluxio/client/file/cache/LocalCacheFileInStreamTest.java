@@ -933,13 +933,13 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public GetSyncProgressPResponse getSyncProgress(long taskId)
+    public GetSyncProgressPResponse getSyncProgress(long taskGroupId)
         throws FileDoesNotExistException, IOException, AlluxioException {
       return null;
     }
 
     @Override
-    public CancelSyncMetadataPResponse cancelSyncMetadata(long taskId)
+    public CancelSyncMetadataPResponse cancelSyncMetadata(long taskGroupId)
         throws IOException, AlluxioException {
       return null;
     }

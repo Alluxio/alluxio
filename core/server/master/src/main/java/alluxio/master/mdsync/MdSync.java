@@ -12,7 +12,11 @@
 package alluxio.master.mdsync;
 
 import alluxio.AlluxioURI;
+import alluxio.master.file.DefaultFileSystemMaster;
+import alluxio.master.file.meta.InodeTree;
 import alluxio.underfs.UfsLoadResult;
+
+import com.google.common.annotations.VisibleForTesting;
 
 import java.util.Optional;
 
@@ -23,14 +27,21 @@ import java.util.Optional;
  */
 public class MdSync {
 
-  TaskTracker mTaskTracker;
+  private final TaskTracker mTaskTracker;
+  @VisibleForTesting
+  final DefaultFileSystemMaster mFsMaster;
+  private final InodeTree mInodeTree;
 
   /**
    * Creates a metadata sync kernel.
    * @param taskTracker the task tracker
+   * @param fsMaster the file system master
+   * @param inodeTree the inode tree
    */
-  public MdSync(TaskTracker taskTracker) {
+  public MdSync(TaskTracker taskTracker, DefaultFileSystemMaster fsMaster, InodeTree inodeTree) {
     mTaskTracker = taskTracker;
+    mFsMaster = fsMaster;
+    mInodeTree = inodeTree;
   }
 
   void onLoadRequestError(long taskId, long loadId, Throwable t) {
@@ -62,7 +73,8 @@ public class MdSync {
   }
 
   void onPathLoadComplete(long taskId, boolean isFile) {
-    mTaskTracker.getActiveTask(taskId).ifPresent(task -> task.onComplete(isFile));
+    mTaskTracker.getActiveTask(taskId).ifPresent(
+        task -> task.onComplete(isFile, mFsMaster, mInodeTree));
   }
 
   /**

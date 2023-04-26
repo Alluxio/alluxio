@@ -516,23 +516,24 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public GetSyncProgressPResponse getSyncProgress(long taskId) throws AlluxioStatusException {
+  public GetSyncProgressPResponse getSyncProgress(long taskGroupId) throws AlluxioStatusException {
     return retryRPC(() -> {
       GetSyncProgressPRequest request = GetSyncProgressPRequest.newBuilder()
-          .setTaskId(taskId)
+          .setTaskGroupId(taskGroupId)
           .build();
       return mClient.getSyncProgress(request);
-    }, RPC_LOG, "GetSyncProgress", "taskId=%s", taskId);
+    }, RPC_LOG, "GetSyncProgress", "taskId=%s", taskGroupId);
   }
 
   @Override
-  public CancelSyncMetadataPResponse cancelSyncMetadata(long taskId) throws AlluxioStatusException {
+  public CancelSyncMetadataPResponse cancelSyncMetadata(long taskGroupId)
+      throws AlluxioStatusException {
     return retryRPC(() -> {
       CancelSyncMetadataPRequest request = CancelSyncMetadataPRequest.newBuilder()
-          .setTaskId(taskId)
+          .setTaskGroupId(taskGroupId)
           .build();
       return mClient.cancelSyncMetadata(request);
-    }, RPC_LOG, "CancelSyncMetadata", "taskId=%s", taskId);
+    }, RPC_LOG, "CancelSyncMetadata", "taskId=%s", taskGroupId);
   }
 
   /**

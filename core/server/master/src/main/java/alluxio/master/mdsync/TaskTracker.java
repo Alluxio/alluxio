@@ -17,6 +17,7 @@ import alluxio.conf.path.TrieNode;
 import alluxio.exception.status.NotFoundException;
 import alluxio.file.options.DescendantType;
 import alluxio.file.options.DirectoryLoadType;
+import alluxio.grpc.SyncMetadataTask;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.metrics.MetricKey;
@@ -50,7 +51,7 @@ public class TaskTracker implements Closeable {
   private final TrieNode<BaseTask> mActiveStatusTasks;
   private final HashMap<Long, BaseTask> mActiveTaskMap = new HashMap<>();
   // TODO(elega) make this a configurable property
-  private final Cache<Long, BaseTask> mFinishedTaskMap =
+  private final Cache<Long, SyncMetadataTask> mFinishedTaskMap =
       CacheBuilder.newBuilder().maximumSize(1000).build();
   private final LoadRequestExecutor mLoadRequestExecutor;
   private final UfsSyncPathCache mSyncPathCache;
@@ -120,10 +121,10 @@ public class TaskTracker implements Closeable {
    * @param taskId the task id
    * @return the task
    */
-  public synchronized Optional<BaseTask> getTask(long taskId) {
+  public synchronized Optional<SyncMetadataTask> getTaskProto(long taskId) {
     BaseTask task = mActiveTaskMap.get(taskId);
     if (task != null) {
-      return Optional.of(task);
+      return Optional.of(task.toProtoTask());
     }
     return Optional.ofNullable(mFinishedTaskMap.getIfPresent(taskId));
   }
@@ -139,7 +140,7 @@ public class TaskTracker implements Closeable {
       BaseTask baseTask = mActiveTaskMap.get(taskId);
       if (baseTask != null) {
         if (!baseTask.removeOnComplete()) {
-          mFinishedTaskMap.put(taskId, baseTask);
+          mFinishedTaskMap.put(taskId, baseTask.toProtoTask());
         }
         COMPLETED_TASK_COUNT.inc();
         mActiveTaskMap.remove(taskId);
@@ -176,7 +177,7 @@ public class TaskTracker implements Closeable {
                 baseTask.getTaskInfo().getBasePath().toString(), a -> true),
             "task missing").setValue(null);
         if (!baseTask.removeOnComplete()) {
-          mFinishedTaskMap.put(taskId, baseTask);
+          mFinishedTaskMap.put(taskId, baseTask.toProtoTask());
         }
       } else {
         LOG.debug("Task with id {} failed with error, but was already removed", taskId, t);
@@ -207,7 +208,7 @@ public class TaskTracker implements Closeable {
       return;
     }
     if (!baseTask.removeOnComplete()) {
-      mFinishedTaskMap.put(taskId, baseTask);
+      mFinishedTaskMap.put(taskId, baseTask.toProtoTask());
     }
     CANCELLED_TASK_COUNT.inc();
     mActiveTaskMap.remove(taskId);

@@ -4165,19 +4165,6 @@ public class DefaultFileSystemMaster extends CoreMaster
   @Override
   public SyncMetadataPResponse syncMetadata(AlluxioURI path, SyncMetadataContext context)
       throws InvalidPathException {
-    // The followings are test code to test UFS partial listing
-    /*
-    int count = 0;
-    long start = CommonUtils.getCurrentMs();
-    MountTable.Resolution reso = mMountTable.resolve(path);
-    UnderFileSystem ufs = reso.acquireUfsResource().get();
-    ListOptions options = ListOptions.defaults();
-    options.setRecursive(true);
-    UfsStatus[] status = ufs.listStatus(reso.getUri().toString(), options);
-    System.out.println(status.length);
-    System.out.println(CommonUtils.getCurrentMs() - start);
-    return SyncMetadataPResponse.getDefaultInstance();
-    */
     TaskGroup task = mMetadataSyncer.syncPath(path,
         GrpcUtils.fromProto(context.getOptions().getLoadDescendantType()),
         GrpcUtils.fromProto(context.getOptions().getDirectoryLoadType()), 0, null, true);
@@ -4197,14 +4184,18 @@ public class DefaultFileSystemMaster extends CoreMaster
         GrpcUtils.fromProto(context.getOptions().getLoadDescendantType()),
         GrpcUtils.fromProto(context.getOptions().getDirectoryLoadType()), 0, null, true);
     return SyncMetadataAsyncPResponse.newBuilder()
-        .setSubmitted(true).setTaskId(result.getGroupId()).build();
+        .setSubmitted(true)
+        .setTaskGroupId(result.getGroupId())
+        .addAllTaskIds(result.getTasks().map(it -> it.getTaskInfo().getId())
+            .collect(Collectors.toSet()))
+        .build();
   }
 
   @Override
-  public GetSyncProgressPResponse getSyncProgress(long groupId) {
-    Optional<TaskGroup> task = mMetadataSyncer.getTaskGroup(groupId);
+  public GetSyncProgressPResponse getSyncProgress(long taskGroupId) {
+    Optional<TaskGroup> task = mMetadataSyncer.getTaskGroup(taskGroupId);
     if (!task.isPresent()) {
-      throw new NotFoundRuntimeException("Task group id " + groupId + " not found");
+      throw new NotFoundRuntimeException("Task group id " + taskGroupId + " not found");
     }
     GetSyncProgressPResponse.Builder responseBuilder = GetSyncProgressPResponse.newBuilder();
     responseBuilder.addAllTask(task.get().toProtoTasks().collect(Collectors.toList()));
@@ -4213,10 +4204,10 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   @Override
-  public CancelSyncMetadataPResponse cancelSyncMetadata(long groupId) throws NotFoundException {
-    Optional<TaskGroup> group = mMetadataSyncer.getTaskGroup(groupId);
+  public CancelSyncMetadataPResponse cancelSyncMetadata(long taskGroupId) throws NotFoundException {
+    Optional<TaskGroup> group = mMetadataSyncer.getTaskGroup(taskGroupId);
     if (!group.isPresent()) {
-      throw new NotFoundRuntimeException("Task group id " + groupId + " not found");
+      throw new NotFoundRuntimeException("Task group id " + taskGroupId + " not found");
     }
     Optional<NotFoundException> ex = group.get().getTasks().map(baseTask -> {
       try {

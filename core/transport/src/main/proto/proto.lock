@@ -4112,8 +4112,14 @@
               },
               {
                 "id": 2,
-                "name": "taskId",
+                "name": "taskGroupId",
                 "type": "int64"
+              },
+              {
+                "id": 3,
+                "name": "taskIds",
+                "type": "int64",
+                "is_repeated": true
               }
             ]
           },
@@ -4122,7 +4128,7 @@
             "fields": [
               {
                 "id": 1,
-                "name": "taskId",
+                "name": "taskGroupId",
                 "type": "int64"
               }
             ]
@@ -4148,7 +4154,7 @@
             "fields": [
               {
                 "id": 1,
-                "name": "taskId",
+                "name": "taskGroupId",
                 "type": "int64"
               }
             ]

@@ -12,9 +12,11 @@
 package alluxio.master.mdsync;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.path.TrieNode;
 import alluxio.file.options.DescendantType;
 import alluxio.file.options.DirectoryLoadType;
 
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 
 /**
@@ -32,6 +34,8 @@ public class TaskInfo {
   private final TaskStats mStats;
   private final long mMountId;
   private final boolean mCheckNestedMount;
+
+  private final TrieNode<AlluxioURI> mPathsToUpdateDirectChildrenLoaded = new TrieNode<>();
 
   TaskInfo(
       MdSync mdSync,
@@ -145,5 +149,19 @@ public class TaskInfo {
         "TaskInfo{UFS path: %s, AlluxioPath: %s, Descendant Type: %s,"
             + " Directory Load Type: %s, Id: %d}", mBasePath, mAlluxioPath,
         mDescendantType, mLoadByDirectory, mId);
+  }
+
+  /**
+   * @return the paths need to update direct children loaded
+   */
+  public Stream<AlluxioURI> getPathsToUpdateDirectChildrenLoaded() {
+    return mPathsToUpdateDirectChildrenLoaded.getLeafChildren("/").map(TrieNode::getValue);
+  }
+
+  /**
+   * @param uri to update direct children loaded
+   */
+  public void addPathToUpdateDirectChildrenLoaded(AlluxioURI uri) {
+    mPathsToUpdateDirectChildrenLoaded.insert(uri.getPath()).setValue(uri);
   }
 }

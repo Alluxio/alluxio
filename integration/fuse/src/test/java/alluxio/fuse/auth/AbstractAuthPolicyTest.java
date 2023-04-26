@@ -334,13 +334,13 @@ public abstract class AbstractAuthPolicyTest {
     }
 
     @Override
-    public GetSyncProgressPResponse getSyncProgress(long taskId)
+    public GetSyncProgressPResponse getSyncProgress(long taskGroupId)
         throws FileDoesNotExistException, IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }
 
     @Override
-    public CancelSyncMetadataPResponse cancelSyncMetadata(long taskId)
+    public CancelSyncMetadataPResponse cancelSyncMetadata(long taskGroupId)
         throws IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }

@@ -13,16 +13,12 @@ package alluxio.master.file.metasync;
 
 import alluxio.AlluxioURI;
 import alluxio.collections.ConcurrentHashSet;
-import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.master.file.BlockDeletionContext;
 import alluxio.master.file.FileSystemJournalEntryMerger;
 import alluxio.master.file.RpcContext;
 import alluxio.master.file.contexts.OperationContext;
-import alluxio.master.file.meta.InodeTree;
-import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.journal.FileSystemMergeJournalContext;
 import alluxio.master.journal.MetadataSyncMergeJournalContext;
@@ -45,7 +41,6 @@ public class MetadataSyncContext implements Closeable {
   private final RpcContext mBaseRpcContext;
   private final boolean mAllowConcurrentModification;
   private final FileSystemMasterCommonPOptions mCommonOptions;
-  private final Set<AlluxioURI> mDirectoriesToUpdateIsLoaded = new ConcurrentHashSet<>();
   private final Set<AlluxioURI> mDirectoriesToUpdateAbsentCache = new ConcurrentHashSet<>();
   private final TaskInfo mTaskInfo;
   private final LoadResult mLoadResult;
@@ -140,7 +135,7 @@ public class MetadataSyncContext implements Closeable {
    * @param path the path
    */
   public void addDirectoriesToUpdateIsChildrenLoaded(AlluxioURI path) {
-    mDirectoriesToUpdateIsLoaded.add(path);
+    mTaskInfo.addPathToUpdateDirectChildrenLoaded(path);
   }
 
   /**
@@ -149,28 +144,6 @@ public class MetadataSyncContext implements Closeable {
    */
   public void addDirectoriesToUpdateAbsentCache(AlluxioURI path) {
     mDirectoriesToUpdateAbsentCache.add(path);
-  }
-
-  /**
-   * updates the direct children loaded flag for directories in a recursive sync.
-   *
-   * @param inodeTree the inode tree
-   */
-  public void updateDirectChildrenLoaded(InodeTree inodeTree) throws InvalidPathException {
-    for (AlluxioURI uri : mDirectoriesToUpdateIsLoaded) {
-      try (LockedInodePath lockedInodePath =
-               inodeTree.lockInodePath(
-                   uri, InodeTree.LockPattern.WRITE_INODE, getRpcContext().getJournalContext())) {
-        if (lockedInodePath.fullPathExists() && lockedInodePath.getInode().isDirectory()
-            && !lockedInodePath.getInode().asDirectory().isDirectChildrenLoaded()) {
-          inodeTree.setDirectChildrenLoaded(
-              () -> getRpcContext().getJournalContext(),
-              lockedInodePath.getInode().asDirectory());
-        }
-      } catch (FileDoesNotExistException e) {
-        throw new RuntimeException(e);
-      }
-    }
   }
 
   /**

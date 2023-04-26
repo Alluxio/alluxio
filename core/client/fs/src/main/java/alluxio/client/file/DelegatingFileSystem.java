@@ -279,15 +279,15 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
-  public GetSyncProgressPResponse getSyncProgress(long taskId)
+  public GetSyncProgressPResponse getSyncProgress(long taskGroupId)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    return mDelegatedFileSystem.getSyncProgress(taskId);
+    return mDelegatedFileSystem.getSyncProgress(taskGroupId);
   }
 
   @Override
-  public CancelSyncMetadataPResponse cancelSyncMetadata(long taskId)
+  public CancelSyncMetadataPResponse cancelSyncMetadata(long taskGroupId)
       throws IOException, AlluxioException {
-    return mDelegatedFileSystem.cancelSyncMetadata(taskId);
+    return mDelegatedFileSystem.cancelSyncMetadata(taskGroupId);
   }
 
   @Override

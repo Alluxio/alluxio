@@ -155,7 +155,7 @@ public class MetadataSyncer implements SyncProcess {
         Configuration.getBoolean(PropertyKey.MASTER_METADATA_SYNC_UFS_CONCURRENT_GET_STATUS),
         Configuration.getBoolean(PropertyKey.MASTER_METADATA_SYNC_UFS_CONCURRENT_LISTING),
         syncPathCache, absentPathCache, this, this::getUfsClient);
-    mMdSync = new MdSync(mTaskTracker);
+    mMdSync = new MdSync(mTaskTracker, fsMaster, inodeTree);
     mUfsAbsentCache = absentPathCache;
   }
 
@@ -440,7 +440,6 @@ public class MetadataSyncer implements SyncProcess {
             context.addDirectoriesToUpdateIsChildrenLoaded(lockedInodePath.getUri());
           }
         }
-        context.updateDirectChildrenLoaded(mInodeTree);
         context.updateAbsentCache(mUfsAbsentCache);
         AlluxioURI syncEnd = lastUfsStatus == null ? syncStart
             : lastUfsStatus.mAlluxioUri;

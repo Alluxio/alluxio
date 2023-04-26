@@ -71,7 +71,7 @@ public class UfsLoadsTest {
     mTaskTracker = new TaskTracker(
         1, 1, false, false,
         mUfsSyncPathCache, mAbsentPathCache, mSyncProcess, this::getClient);
-    mMdSync = new MdSync(mTaskTracker);
+    mMdSync = new MdSync(mTaskTracker, null, null);
   }
 
   @After

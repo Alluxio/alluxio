@@ -623,7 +623,7 @@ public final class FileSystemMasterClientServiceHandler
       StreamObserver<GetSyncProgressPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
       return mFileSystemMaster.getSyncProgress(
-          request.getTaskId());
+          request.getTaskGroupId());
     }, "syncMetadataAsync", "request=%s", responseObserver, request);
   }
 
@@ -633,7 +633,7 @@ public final class FileSystemMasterClientServiceHandler
       StreamObserver<CancelSyncMetadataPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
       return mFileSystemMaster.cancelSyncMetadata(
-          request.getTaskId());
+          request.getTaskGroupId());
     }, "cancelSyncMetadata", "request=%s", responseObserver, request);
   }
 }

@@ -22,7 +22,10 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 
 import alluxio.AlluxioURI;
+import alluxio.exception.status.UnavailableException;
 import alluxio.file.options.DirectoryLoadType;
+import alluxio.master.file.DefaultFileSystemMaster;
+import alluxio.master.journal.NoopJournalContext;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsClient;
 
@@ -57,9 +60,13 @@ public class BatchPathWaiterTest {
       };
 
   @Before
-  public void before() {
+  public void before() throws UnavailableException {
     mThreadPool = Executors.newCachedThreadPool();
-    mMdSync = Mockito.spy(new MdSync(Mockito.mock(TaskTracker.class)));
+    DefaultFileSystemMaster defaultFileSystemMaster = Mockito.mock(DefaultFileSystemMaster.class);
+    Mockito.when(defaultFileSystemMaster.createJournalContext())
+        .thenReturn(NoopJournalContext.INSTANCE);
+    mMdSync = Mockito.spy(new MdSync(Mockito.mock(TaskTracker.class),
+        defaultFileSystemMaster, null));
   }
 
   @After
@@ -75,7 +82,7 @@ public class BatchPathWaiterTest {
         NONE, 0, DirectoryLoadType.SINGLE_LISTING, 0, 0, true);
     BaseTask path = BaseTask.create(ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
-      path.onComplete(ans.getArgument(1));
+      path.onComplete(ans.getArgument(1), mMdSync.mFsMaster, null);
       return null;
     }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
 
@@ -105,7 +112,7 @@ public class BatchPathWaiterTest {
         ONE, 0, DirectoryLoadType.SINGLE_LISTING, 0, 0, true);
     BaseTask path = BaseTask.create(ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
-      path.onComplete(ans.getArgument(1));
+      path.onComplete(ans.getArgument(1), mMdSync.mFsMaster, null);
       return null;
     }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
 
@@ -138,7 +145,7 @@ public class BatchPathWaiterTest {
         ONE, 0, DirectoryLoadType.SINGLE_LISTING, 0, 0, true);
     BaseTask path = BaseTask.create(ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
-      path.onComplete(ans.getArgument(1));
+      path.onComplete(ans.getArgument(1), mMdSync.mFsMaster, null);
       return null;
     }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
 
@@ -177,7 +184,7 @@ public class BatchPathWaiterTest {
         NONE, 0, DirectoryLoadType.SINGLE_LISTING, 0, 0, true);
     BaseTask path = BaseTask.create(ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
-      path.onComplete(ans.getArgument(1));
+      path.onComplete(ans.getArgument(1), mMdSync.mFsMaster, null);
       return null;
     }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
 
@@ -199,7 +206,7 @@ public class BatchPathWaiterTest {
     BatchPathWaiter root = (BatchPathWaiter) BaseTask.create(
         ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
-      root.onComplete(ans.getArgument(1));
+      root.onComplete(ans.getArgument(1), mMdSync.mFsMaster, null);
       return null;
     }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
     assertFalse(root.isCompleted().isPresent());
@@ -252,7 +259,7 @@ public class BatchPathWaiterTest {
         ONE, 0, DirectoryLoadType.SINGLE_LISTING, 0, 0, true);
     BatchPathWaiter root = (BatchPathWaiter) BaseTask.create(ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
-      root.onComplete(ans.getArgument(1));
+      root.onComplete(ans.getArgument(1), mMdSync.mFsMaster, null);
       return null;
     }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
     assertFalse(root.isCompleted().isPresent());

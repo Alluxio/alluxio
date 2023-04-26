@@ -239,12 +239,13 @@ class MockFuseFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
-  public GetSyncProgressPResponse getSyncProgress(long taskId) throws AlluxioStatusException {
+  public GetSyncProgressPResponse getSyncProgress(long taskGroupId) throws AlluxioStatusException {
     return null;
   }
 
   @Override
-  public CancelSyncMetadataPResponse cancelSyncMetadata(long taskId) throws AlluxioStatusException {
+  public CancelSyncMetadataPResponse cancelSyncMetadata(long taskGroupId)
+      throws AlluxioStatusException {
     return null;
   }
 

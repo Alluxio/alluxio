@@ -13,14 +13,20 @@ package alluxio.master.mdsync;
 
 import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.runtime.DeadlineExceededRuntimeException;
 import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.exception.status.CancelledException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.file.options.DescendantType;
 import alluxio.file.options.DirectoryLoadType;
 import alluxio.grpc.SyncMetadataState;
 import alluxio.grpc.SyncMetadataTask;
+import alluxio.master.file.DefaultFileSystemMaster;
+import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.LockedInodePath;
+import alluxio.master.journal.JournalContext;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsClient;
 import alluxio.util.CommonUtils;
@@ -164,11 +170,13 @@ public abstract class BaseTask implements PathWaiter {
     return mPathLoadTask;
   }
 
-  synchronized void onComplete(boolean isFile) {
-    mFinishTime = CommonUtils.getCurrentMs();
+  synchronized void onComplete(
+      boolean isFile, DefaultFileSystemMaster fileSystemMaster, InodeTree inodeTree) {
     if (mIsCompleted != null) {
       return;
     }
+    updateDirectChildrenLoaded(fileSystemMaster, inodeTree);
+    mFinishTime = CommonUtils.getCurrentMs();
     mIsCompleted = new BaseTaskResult(null);
     mTaskInfo.getMdSync().onTaskComplete(mTaskInfo.getId(), isFile);
     notifyAll();
@@ -178,6 +186,7 @@ public abstract class BaseTask implements PathWaiter {
    * Blocking waits until the task completes.
    * If the task fails, the exception causing the failure is thrown.
    * If the wait times-out a {@link DeadlineExceededRuntimeException} is thrown.
+   *
    * @param timeoutMs the timeout in ms, 0 for an endless wait
    */
   public synchronized void waitComplete(long timeoutMs) throws Throwable {
@@ -263,14 +272,43 @@ public abstract class BaseTask implements PathWaiter {
     }
     if (t != null && getState() != State.CANCELED) {
       builder.setException(SyncMetadataTask.Exception.newBuilder()
-              .setExceptionType(t.getClass().getTypeName())
-              .setExceptionMessage(t.getMessage())
-              .setStacktrace(ExceptionUtils.asPlainText(t)));
+          .setExceptionType(t.getClass().getTypeName())
+          .setExceptionMessage(t.getMessage())
+          .setStacktrace(ExceptionUtils.asPlainText(t)));
     }
     builder.setTaskInfoString(getTaskInfo().toString());
     Pair<Long, String> statReport = getTaskInfo().getStats().toReportString();
     builder.setSuccessOpCount(statReport.getFirst());
     builder.setTaskStatString(statReport.getSecond());
     return builder.build();
+  }
+
+  /**
+   * Updates direct children loaded for directories affected by the metadata sync.
+   * @param fileSystemMaster the file system master
+   * @param inodeTree the inode tree
+   */
+  public void updateDirectChildrenLoaded(
+      DefaultFileSystemMaster fileSystemMaster, InodeTree inodeTree) {
+    try (JournalContext journalContext = fileSystemMaster.createJournalContext()) {
+      getTaskInfo().getPathsToUpdateDirectChildrenLoaded().forEach(
+          uri -> {
+            try (LockedInodePath lockedInodePath =
+                     inodeTree.lockInodePath(
+                         uri, InodeTree.LockPattern.WRITE_INODE,
+                         journalContext)) {
+              if (lockedInodePath.fullPathExists() && lockedInodePath.getInode().isDirectory()
+                  && !lockedInodePath.getInode().asDirectory().isDirectChildrenLoaded()) {
+                inodeTree.setDirectChildrenLoaded(
+                    () -> journalContext,
+                    lockedInodePath.getInode().asDirectory());
+              }
+            } catch (FileDoesNotExistException | InvalidPathException e) {
+              throw new RuntimeException(e);
+            }
+          });
+    } catch (UnavailableException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

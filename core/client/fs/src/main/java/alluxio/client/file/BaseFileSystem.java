@@ -573,20 +573,20 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  public GetSyncProgressPResponse getSyncProgress(long taskId)
+  public GetSyncProgressPResponse getSyncProgress(long taskGroupId)
       throws FileDoesNotExistException, IOException, AlluxioException {
     try (CloseableResource<FileSystemMasterClient> client =
              mFsContext.acquireMasterClientResource()) {
-      return client.get().getSyncProgress(taskId);
+      return client.get().getSyncProgress(taskGroupId);
     }
   }
 
   @Override
-  public CancelSyncMetadataPResponse cancelSyncMetadata(long taskId)
+  public CancelSyncMetadataPResponse cancelSyncMetadata(long taskGroupId)
       throws IOException, AlluxioException {
     try (CloseableResource<FileSystemMasterClient> client =
              mFsContext.acquireMasterClientResource()) {
-      return client.get().cancelSyncMetadata(taskId);
+      return client.get().cancelSyncMetadata(taskGroupId);
     }
   }
 

@@ -125,7 +125,7 @@ public class S3Test {
           public void closeResource() {
           }
         });
-    mMdSync = new MdSync(mTaskTracker);
+    mMdSync = new MdSync(mTaskTracker, null, null);
   }
 
   @Test

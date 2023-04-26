@@ -1189,16 +1189,17 @@ Options:
 * `-R` option recursively loads metadata in subdirectories
 * `-a/--async` If specified, the metadata loading states are pulled and printed every couple of seconds until the sync job is finished. Otherwise, the command line is blocked until the sync job is finished. Note that regardless this option is specified or not, the metadata sync task is processed asynchronously by alluxio master and this option only changes the behavior of display. Hence closing the terminal or CTRL+C do not cancel the sync job.  
 
-If `-a` is used, the console will print the task id when the task is submitted. One can use the task id to get the metadata load progress or cancel the load.
+If `-a` is used, the console will print the task group id when the task is submitted. A task will be created for each mount point in the sync root.
+One can use the task group id to get the metadata load progress or cancel the load.
 
-To get the status a task, use
+To get the status a task group, use
 ```console
-$ ./bin/alluxio fs loadMetadata -v2 -o get -id <id>
+$ ./bin/alluxio fs loadMetadata -v2 -o get -id <task_group_id>
 ```
 
-To cancel the task, use
+To cancel the task group, use
 ```console
-$ ./bin/alluxio fs loadMetadata -v2 -o get -id <id>
+$ ./bin/alluxio fs loadMetadata -v2 -o get -id <task_group_id>
 ```
 
 

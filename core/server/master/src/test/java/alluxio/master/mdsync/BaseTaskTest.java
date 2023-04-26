@@ -45,7 +45,7 @@ public class BaseTaskTest {
 
   @Before
   public void before() {
-    mMdSync = new MdSync(Mockito.mock(TaskTracker.class));
+    mMdSync = new MdSync(Mockito.mock(TaskTracker.class), null, null);
   }
 
   @Test
