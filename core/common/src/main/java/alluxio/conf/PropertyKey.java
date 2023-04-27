@@ -7637,6 +7637,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey HADOOP_CHECKSUM_COMBINE_MODE =
+      booleanBuilder(Name.HADOOP_CHECKSUM_COMBINE_MODE)
+          .setDescription("File Checksum combine mode.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   /**
    * @deprecated This key is used for testing. It is always deprecated.
    */
@@ -9185,6 +9191,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     public static final String HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL =
         "alluxio.hadoop.kerberos.keytab.login.autorenewal";
+    public static final String HADOOP_CHECKSUM_COMBINE_MODE =
+        "alluxio.hadoop.checksum.combine.mode";
 
     private Name() {} // prevent instantiation
   }
