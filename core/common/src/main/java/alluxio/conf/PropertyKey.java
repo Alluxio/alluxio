@@ -7359,6 +7359,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .build();
 
+  public static final PropertyKey HADOOP_CHECKSUM_COMBINE_MODE =
+      booleanBuilder(Name.HADOOP_CHECKSUM_COMBINE_MODE)
+          .setDescription("File Checksum combine mode.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+
   public static final PropertyKey USER_NETTY_DATA_TRANSMISSION_ENABLED =
       booleanBuilder(Name.USER_NETTY_DATA_TRANSMISSION_ENABLED)
           .setDefaultValue(false)
@@ -9001,6 +9008,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     public static final String HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL =
         "alluxio.hadoop.kerberos.keytab.login.autorenewal";
+    public static final String HADOOP_CHECKSUM_COMBINE_MODE =
+        "alluxio.hadoop.checksum.combine.mode";
 
     public static final String USER_NETTY_DATA_TRANSMISSION_ENABLED =
         "alluxio.user.netty.data.transmission.enabled";
