@@ -526,6 +526,33 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   }
 
   @Override
+  public alluxio.wire.MasterInfo[] getStandbyMasterInfos() {
+    return toWire(mMasters);
+  }
+
+  @Override
+  public alluxio.wire.MasterInfo[] getLostMasterInfos() {
+    return toWire(mLostMasters);
+  }
+
+  private static alluxio.wire.MasterInfo[] toWire(final IndexedSet<MasterInfo> masters) {
+    alluxio.wire.MasterInfo[] masterInfos = new alluxio.wire.MasterInfo[masters.size()];
+    int indexNum = 0;
+    for (MasterInfo master : masters) {
+      masterInfos[indexNum] = new alluxio.wire.MasterInfo(master.getId(), master.getAddress())
+          .setLastUpdatedTimeMs(master.getLastUpdatedTimeMs())
+          .setStartTimeMs(master.getStartTimeMs())
+          .setLosePrimacyTimeMs(master.getLosePrimacyTimeMs())
+          .setLastCheckpointTimeMs(master.getLastCheckpointTimeMs())
+          .setJournalEntriesSinceCheckpoint(master.getJournalEntriesSinceCheckpoint())
+          .setVersion(master.getVersion())
+          .setRevision(master.getRevision());
+      indexNum++;
+    }
+    return masterInfos;
+  }
+
+  @Override
   public long getMasterId(Address address) {
     MasterInfo existingMaster = mMasters.getFirstByField(ADDRESS_INDEX, address);
     if (existingMaster != null) {

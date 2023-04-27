@@ -21,6 +21,7 @@ import alluxio.grpc.GrpcServer;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
 import alluxio.master.journal.JournalSystem;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.RejectingServer;
 import alluxio.util.CommonUtils;
@@ -59,7 +60,7 @@ public abstract class MasterProcess implements Process {
   final InetSocketAddress mWebBindAddress;
 
   /** The start time for when the master started. */
-  final long mStartTimeMs = System.currentTimeMillis();
+  final long mStartTimeMs;
 
   /**
    * Rejecting servers for used by backup masters to reserve ports but reject connection requests.
@@ -85,6 +86,8 @@ public abstract class MasterProcess implements Process {
     mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
     mRpcBindAddress = configureAddress(rpcService);
     mWebBindAddress = configureAddress(webService);
+    mStartTimeMs = System.currentTimeMillis();
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_START_TIME.getName(), () -> mStartTimeMs);
   }
 
   private static InetSocketAddress configureAddress(ServiceType service) {

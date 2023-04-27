@@ -11,6 +11,8 @@
 
 package alluxio.master.meta;
 
+import alluxio.RuntimeConstants;
+import alluxio.grpc.BuildVersion;
 import alluxio.wire.Address;
 
 import com.google.common.base.MoreObjects;
@@ -19,10 +21,10 @@ import com.google.common.base.Preconditions;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Master information.
+ * Job master information.
  */
 @NotThreadSafe
-public final class MasterInfo {
+public final class JobMasterInfo {
   /** Master's address. */
   private final Address mAddress;
   /** The id of the master. */
@@ -34,13 +36,7 @@ public final class MasterInfo {
   /** Master's last lose primacy time in ms. */
   private long mLosePrimacyTimeMs = 0;
   /** Master's version. */
-  private String mVersion = "";
-  /** Master's revision. */
-  private String mRevision = "";
-  /** Master's last checkpoint time in ms. */
-  private long mLastCheckpointTimeMs = 0;
-  /** Number of journal entries since last checkpoint. */
-  private long mJournalEntriesSinceCheckpoint = 0;
+  private BuildVersion mVersion = RuntimeConstants.UNKNOWN_VERSION_INFO;
 
   /**
    * Creates a new instance of {@link MasterInfo}.
@@ -48,7 +44,7 @@ public final class MasterInfo {
    * @param id the master id to use
    * @param address the master address to use
    */
-  public MasterInfo(long id, Address address) {
+  public JobMasterInfo(long id, Address address) {
     mAddress = Preconditions.checkNotNull(address, "address");
     mId = id;
     mLastUpdatedTimeMs = System.currentTimeMillis();
@@ -92,37 +88,17 @@ public final class MasterInfo {
   /**
    * @return the version of the master
    */
-  public String getVersion() {
+  public BuildVersion getVersion() {
     return mVersion;
-  }
-
-  /**
-   * @return the revision of the master
-   */
-  public String getRevision() {
-    return mRevision;
-  }
-
-  /**
-   * @return the time of last checkpoint
-   */
-  public long getLastCheckpointTimeMs() {
-    return mLastCheckpointTimeMs;
-  }
-
-  /**
-   * @return number of journal entries since last checkpoint
-   */
-  public long getJournalEntriesSinceCheckpoint() {
-    return mJournalEntriesSinceCheckpoint;
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this).add("id", mId).add("address", mAddress)
-            .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).add("startTimeMs", mStartTimeMs)
-            .add("losePrimacyTimeMs", mLosePrimacyTimeMs)
-            .add("version", mVersion).add("revision", mRevision).toString();
+        .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).add("startTimeMs", mStartTimeMs)
+        .add("losePrimacyTimeMs", mLosePrimacyTimeMs)
+        .add("version", mVersion.getVersion())
+        .add("revision", mVersion.getRevision()).toString();
   }
 
   /**
@@ -142,15 +118,8 @@ public final class MasterInfo {
   /**
    * @param version the version of the master
    */
-  public void setVersion(String version) {
+  public void setVersion(BuildVersion version) {
     mVersion = version;
-  }
-
-  /**
-   * @param revision the revision of the master
-   */
-  public void setRevision(String revision) {
-    mRevision = revision;
   }
 
   /**
@@ -159,18 +128,5 @@ public final class MasterInfo {
   public void updateLastUpdatedTimeMs() {
     mLastUpdatedTimeMs = System.currentTimeMillis();
   }
-
-  /**
-   * @param lastCheckpointTimeMs the time of last checkpoint
-   */
-  public void setLastCheckpointTimeMs(long lastCheckpointTimeMs) {
-    mLastCheckpointTimeMs = lastCheckpointTimeMs;
-  }
-
-  /**
-   * @param journalEntriesSinceCheckpoint number of journal entries since last checkpoint
-   */
-  public void setJournalEntriesSinceCheckpoint(long journalEntriesSinceCheckpoint) {
-    mJournalEntriesSinceCheckpoint = journalEntriesSinceCheckpoint;
-  }
 }
+
