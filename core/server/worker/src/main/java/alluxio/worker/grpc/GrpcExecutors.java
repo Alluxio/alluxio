@@ -12,19 +12,16 @@
 package alluxio.worker.grpc;
 
 import alluxio.Constants;
-import alluxio.client.metrics.ClientMasterSync;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
-import alluxio.util.SleepUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.UniqueBlockingQueue;
-import alluxio.util.logging.SamplingLogger;
 import alluxio.worker.block.DefaultBlockWorker;
-import com.codahale.metrics.Counter;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,16 +29,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.ThreadSafe;
-import javax.validation.constraints.NotNull;
 
 /**
  * Executors for gRPC block server.
@@ -49,9 +43,6 @@ import javax.validation.constraints.NotNull;
 @ThreadSafe
 public final class GrpcExecutors {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcExecutors.class);
-  private static final Logger SAMPLING_LOG =
-          new SamplingLogger(LoggerFactory.getLogger(GrpcExecutors.class),
-                  100L);
   private static final long THREAD_STOP_MS = Constants.SECOND_MS * 10;
   private static final int THREADS_MIN = 4;
 

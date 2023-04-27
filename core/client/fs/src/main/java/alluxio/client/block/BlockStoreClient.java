@@ -148,7 +148,6 @@ public final class BlockStoreClient {
     Pair<WorkerNetAddress, BlockInStreamSource> dataSourceAndType = getDataSourceAndType(info,
         options.getStatus(), options.getUfsReadLocationPolicy(), failedWorkers);
     WorkerNetAddress dataSource = dataSourceAndType.getFirst();
-    System.out.println("Target worker to read is " + dataSource.getWebPort());
     BlockInStreamSource dataSourceType = dataSourceAndType.getSecond();
     try {
       return BlockInStream.create(mContext, info, dataSource, dataSourceType, options);

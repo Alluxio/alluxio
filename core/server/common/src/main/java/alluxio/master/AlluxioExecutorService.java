@@ -12,6 +12,7 @@
 package alluxio.master;
 
 import alluxio.concurrent.jsr.ForkJoinPool;
+
 import com.codahale.metrics.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,12 +20,10 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Forwarder over ExecutorService interface for exposing internal queue length.
@@ -45,6 +44,12 @@ public class AlluxioExecutorService implements ExecutorService {
     mRpcTracker = null;
   }
 
+  /**
+   * Creates Alluxio ExecutorService wrapper.
+   *
+   * @param executor underlying executor
+   * @param counter the counter to track active operations
+   */
   public AlluxioExecutorService(ExecutorService executor, Counter counter) {
     mExecutor = executor;
     mRpcTracker = counter;

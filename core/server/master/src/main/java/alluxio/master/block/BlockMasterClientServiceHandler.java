@@ -33,9 +33,9 @@ import alluxio.grpc.GetWorkerLostStoragePOptions;
 import alluxio.grpc.GetWorkerLostStoragePResponse;
 import alluxio.grpc.GetWorkerReportPOptions;
 import alluxio.grpc.GrpcUtils;
-
 import alluxio.grpc.RemoveDisabledWorkerPOptions;
 import alluxio.grpc.RemoveDisabledWorkerPResponse;
+
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;

@@ -178,9 +178,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockMaster.class);
 
-  private static final String WORKER_DISABLED = "Worker with address %s is manually decommissioned and "
-          + "marked not able to join the cluster again. If you want this worker to register "
-          + "to the cluster again, use `bin/alluxio fsadmin enableWorker -h <workerHost>` command.";
+  private static final String WORKER_DISABLED =
+      "Worker with address %s is manually decommissioned and marked not able to join "
+          + "the cluster again. If you want this worker to register to the cluster again, "
+          + "use `bin/alluxio fsadmin enableWorker -h <workerHost>` command.";
 
   /**
    * Concurrency and locking in the BlockMaster
@@ -798,7 +799,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     }
     for (MasterWorkerInfo worker : selectedDecommissionedWorkers) {
       // extractWorkerInfo handles the locking internally
-      workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), WorkerState.LOST));
+      workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(),
+          WorkerState.DECOMMISSIONED));
     }
     return workerInfoList;
   }
@@ -896,7 +898,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     boolean canRegisterAgain = requestOptions.getCanRegisterAgain();
     LOG.info("Decommissioning worker {}:{}", requestOptions.getWorkerHostname(),
         requestOptions.getWorkerWebPort());
-    System.out.println("received req to decom worker " + requestOptions);
     for (MasterWorkerInfo workerInfo : mWorkers) {
       WorkerNetAddress address = workerInfo.getWorkerAddress();
       if (workerHostName.equals(address.getHost()) && workerWebPort == address.getWebPort()) {
@@ -905,7 +906,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
           processDecommissionedWorker(workerInfo, canRegisterAgain);
         }
-        System.out.println("Worker decommissioned");
         LOG.info("Worker {}@{}:{} has been added to the decommissionedWorkers set.",
             workerInfo.getId(), workerHostName, workerWebPort);
         return;
@@ -1090,9 +1090,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       if (worker == null) {
         throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
       } else {
-        // TODO(jiacheng): remove this line before merging
-        System.out.println("Committing blocks from a decommissioned worker");
-        LOG.info("Committing blocks from a decommissioned worker");
+        WorkerNetAddress addr = worker.getWorkerAddress();
+        LOG.info("Committing blocks from a decommissioned worker {}",
+            addr.getHost() + ":" + addr.getRpcPort());
         /*
          * Even though the worker is now decommissioned, the master still accepts the block
          * and updates the BlockLocation normally.

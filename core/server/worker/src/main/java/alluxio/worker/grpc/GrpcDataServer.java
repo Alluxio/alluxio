@@ -28,8 +28,8 @@ import alluxio.network.ChannelType;
 import alluxio.util.network.NettyUtils;
 import alluxio.worker.DataServer;
 import alluxio.worker.WorkerProcess;
-
 import alluxio.worker.block.DefaultBlockWorker;
+
 import com.codahale.metrics.Counter;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;

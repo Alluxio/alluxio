@@ -105,6 +105,19 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
             .setRevision(ProjectConstants.REVISION).build());
   }
 
+  /**
+   * Constructor.
+   *
+   * @param asyncClient the grpc client
+   * @param workerId the worker ID
+   * @param storageTierAliases storage/tier setup from the configuration
+   * @param totalBytesOnTiers the capacity of each tier
+   * @param usedBytesOnTiers the current usage of each tier
+   * @param currentBlocksOnLocation the blocks in each tier/dir
+   * @param lostStorage the lost storage paths
+   * @param configList the configuration properties
+   * @param version the version info
+   */
   @VisibleForTesting
   public RegisterStreamer(
           final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub asyncClient,

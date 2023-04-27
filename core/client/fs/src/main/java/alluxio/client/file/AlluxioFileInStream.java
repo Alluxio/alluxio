@@ -390,6 +390,7 @@ public class AlluxioFileInStream extends FileInStream {
       throw new IOException("No BlockInfo for block(id=" + blockId + ") of file"
           + "(id=" + mStatus.getFileId() + ", path=" + mStatus.getPath() + ")");
     }
+
     // Create stream
     boolean isBlockInfoOutdated = true;
     // blockInfo is "outdated" when all the locations in that blockInfo are failed workers,
@@ -398,7 +399,6 @@ public class AlluxioFileInStream extends FileInStream {
       isBlockInfoOutdated = false;
     } else {
       List<BlockLocation> locs = blockInfo.getLocations();
-      System.out.println("In AlluxioFileInStream the target block locations are " + locs);
       for (BlockLocation location : locs) {
         if (!mFailedWorkers.containsKey(location.getWorkerAddress())) {
           isBlockInfoOutdated = false;
@@ -406,7 +406,6 @@ public class AlluxioFileInStream extends FileInStream {
         }
       }
     }
-    System.out.println("isBlockInfoOutdated=" + isBlockInfoOutdated);
     if (isBlockInfoOutdated) {
       mBlockInStream = mBlockStore.getInStream(blockId, mOptions, mFailedWorkers);
     } else {

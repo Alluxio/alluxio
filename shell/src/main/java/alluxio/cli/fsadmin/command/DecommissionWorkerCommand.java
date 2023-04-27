@@ -20,10 +20,10 @@ import alluxio.grpc.DecommissionWorkerPOptions;
 import alluxio.metrics.MetricKey;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
-import alluxio.util.SleepUtils;
-import alluxio.wire.WorkerNetAddress;
 import alluxio.util.FormatUtils;
+import alluxio.util.SleepUtils;
 import alluxio.util.network.HttpUtils;
+import alluxio.wire.WorkerNetAddress;
 import alluxio.wire.WorkerWebUIOperations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -188,10 +188,12 @@ public final class DecommissionWorkerCommand extends AbstractFsAdminCommand {
       }
       if (mLostWorkers.size() > 0) {
         System.out.format("%s workers finished all their operations successfully:%n%s%n",
-            mFinishedWorkers.size(), WorkerAddressUtils.workerAddressListToString(mFinishedWorkers));
+            mFinishedWorkers.size(),
+            WorkerAddressUtils.workerAddressListToString(mFinishedWorkers));
         System.out.format("%s workers became inaccessible and we assume there are no operations, "
             + "but we still recommend the admin to double check:%n%s%n",
-            mLostWorkers.size(), WorkerAddressUtils.workerAddressListToString(mLostWorkers));
+            mLostWorkers.size(),
+            WorkerAddressUtils.workerAddressListToString(mLostWorkers));
       }
       return mWaitingWorkers.size() > 0 ? ReturnCode.WORKERS_NOT_IDLE.getCode()
               : ReturnCode.LOST_SOME_WORKERS.getCode();
@@ -207,9 +209,11 @@ public final class DecommissionWorkerCommand extends AbstractFsAdminCommand {
     if (workerAddressesStr.isEmpty()) {
       throw new IllegalArgumentException("Worker addresses must be specified");
     }
-    List<WorkerNetAddress> addresses = WorkerAddressUtils.parseWorkerAddresses(workerAddressesStr, mConf);
+    List<WorkerNetAddress> addresses =
+        WorkerAddressUtils.parseWorkerAddresses(workerAddressesStr, mConf);
     for (WorkerNetAddress a : addresses) {
-      System.out.format("Decommissioning worker %s%n", WorkerAddressUtils.convertAddressToStringWebPort(a));
+      System.out.format("Decommissioning worker %s%n",
+          WorkerAddressUtils.convertAddressToStringWebPort(a));
 
       BlockWorkerInfo worker = findMatchingWorkerAddress(a, availableWorkers);
       WorkerNetAddress workerAddress = worker.getNetAddress();
@@ -345,7 +349,8 @@ public final class DecommissionWorkerCommand extends AbstractFsAdminCommand {
   }
 
   @VisibleForTesting
-  public static WorkerWebUIOperations pollWorkerStatus(WorkerNetAddress worker) throws IOException {
+  private static WorkerWebUIOperations pollWorkerStatus(WorkerNetAddress worker)
+      throws IOException {
     URIBuilder uriBuilder = new URIBuilder();
     uriBuilder.setScheme("http");
     uriBuilder.setHost(worker.getHost());
@@ -366,10 +371,11 @@ public final class DecommissionWorkerCommand extends AbstractFsAdminCommand {
     return workerState.get();
   }
 
-  public static boolean canWorkerBeStopped(WorkerWebUIOperations workerStatus) {
-    // TODO(jiacheng): Now the idleness check only considers RPCs. This means it does NOT consider
-    //  short circuit r/w operations. So when the admin believes the worker is idle and
-    //  kill/restart the worker, ongoing r/w operations may fail.
+  private static boolean canWorkerBeStopped(WorkerWebUIOperations workerStatus) {
+    // Now the idleness check only considers RPCs. This means it does NOT consider
+    // short circuit r/w operations. So when the admin believes the worker is idle and
+    // kill/restart the worker, ongoing r/w operations may fail.
+    // https://github.com/Alluxio/alluxio/issues/17343
     /*
      * The operation count consists of ongoing operations in worker thread pools:
      * 1. RPC pool
@@ -435,6 +441,10 @@ public final class DecommissionWorkerCommand extends AbstractFsAdminCommand {
     return sb.toString();
   }
 
+  /**
+   * A set of return codes.
+   * Each code embeds an exit code (like 0 or 1) and a message for the admin.
+   */
   public enum ReturnCode {
     OK(0, "All workers are successfully decommissioned and now idle. Safe to kill or "
         + "restart this batch of workers now."),
@@ -456,14 +466,29 @@ public final class DecommissionWorkerCommand extends AbstractFsAdminCommand {
     private final int mCode;
     private final String mMessage;
 
+    /**
+     * Constructor.
+     *
+     * @param code the code to exit with
+     * @param message the message to display
+     */
     ReturnCode(int code, String message) {
       mCode = code;
       mMessage = message;
     }
 
+    /**
+     * Gets the code.
+     * @return the code
+     */
     public int getCode() {
       return mCode;
     }
+
+    /**
+     * Gets the message.
+     * @return the message
+     */
     public String getMessage() {
       return mMessage;
     }
@@ -477,44 +502,44 @@ public final class DecommissionWorkerCommand extends AbstractFsAdminCommand {
     public static final int WORKER_QUIET_THRESHOLD = 20;
     public static final int WORKER_ERROR_THRESHOLD = 5;
 
-    public final LongAdder mConsecutiveQuietCount;
-    public final LongAdder mConsecutiveFailureCount;
-    public final AtomicReference<WorkerWebUIOperations> mWorkerStatus;
+    private final LongAdder mConsecutiveQuietCount;
+    private final LongAdder mConsecutiveFailureCount;
+    private final AtomicReference<WorkerWebUIOperations> mWorkerStatus;
 
-    public WorkerStatus() {
+    WorkerStatus() {
       mConsecutiveQuietCount = new LongAdder();
       mConsecutiveFailureCount = new LongAdder();
       mWorkerStatus = new AtomicReference<>(null);
     }
 
-    public void countWorkerIsQuiet() {
+    void countWorkerIsQuiet() {
       mConsecutiveFailureCount.reset();
       mConsecutiveQuietCount.increment();
     }
 
-    public void countWorkerNotQuiet() {
+    void countWorkerNotQuiet() {
       mConsecutiveFailureCount.reset();
       mConsecutiveQuietCount.reset();
     }
 
-    public void countError() {
+    void countError() {
       mConsecutiveQuietCount.reset();
       mConsecutiveFailureCount.increment();
     }
 
-    public boolean isWorkerQuiet() {
+    boolean isWorkerQuiet() {
       return mConsecutiveQuietCount.sum() >= WORKER_QUIET_THRESHOLD;
     }
 
-    public boolean isWorkerInaccessible() {
+    boolean isWorkerInaccessible() {
       return mConsecutiveFailureCount.sum() >= WORKER_ERROR_THRESHOLD;
     }
 
-    public void recordWorkerStatus(WorkerWebUIOperations status) {
+    void recordWorkerStatus(WorkerWebUIOperations status) {
       mWorkerStatus.set(status);
     }
 
-    public WorkerWebUIOperations getWorkerTrackedStatus() {
+    WorkerWebUIOperations getWorkerTrackedStatus() {
       return mWorkerStatus.get();
     }
   }

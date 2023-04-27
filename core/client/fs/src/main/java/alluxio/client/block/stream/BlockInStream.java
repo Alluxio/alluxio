@@ -129,7 +129,6 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     if (sourceIsLocal && shortCircuit && (shortCircuitPreferred || !sourceSupportsDomainSocket)) {
       LOG.debug("Creating short circuit input stream for block {} @ {}", blockId, dataSource);
       try {
-        System.out.println("Short circuit read");
         return createLocalBlockInStream(context, dataSource, blockId, blockSize, options);
       } catch (NotFoundException e) {
         // Failed to do short circuit read because the block is not available in Alluxio.
@@ -488,7 +487,6 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   private void readChunk() throws IOException {
     if (mDataReader == null) {
       mDataReader = mDataReaderFactory.create(mPos, mLength - mPos);
-      System.out.println("DateReader is " + DataReader.class);
     }
 
     if (mCurrentChunk != null && mCurrentChunk.readableBytes() == 0) {

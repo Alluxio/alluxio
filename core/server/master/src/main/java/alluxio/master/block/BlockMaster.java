@@ -125,6 +125,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   List<WorkerLostStorageInfo> getWorkerLostStorage();
 
   /**
+   * @param address worker address to check
    * @return true if the worker is excluded, otherwise false
    */
   boolean isRejected(WorkerNetAddress address);
@@ -132,6 +133,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   /**
    * Decommission a worker.
    *
+   * @param requestOptions the request
    */
   void decommissionWorker(DecommissionWorkerPOptions requestOptions) throws NotFoundException;
 
@@ -393,6 +395,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
 
   /**
    * Revert disabling a worker, enabling it to register to the cluster.
+   * @param requestOptions the request
    */
   void removeDisabledWorker(RemoveDisabledWorkerPOptions requestOptions) throws NotFoundException;
 

@@ -32,19 +32,37 @@ public final class WorkerWebUIOperations implements Serializable {
   public WorkerWebUIOperations() {
   }
 
+  /**
+   * Gets the operation count.
+   * @return the number of operations
+   */
   public long getOperationCount() {
     return mOperationCount;
   }
 
+  /**
+   * Gets the current RPC queue length.
+   * @return the RPC queue length
+   */
   public long getRpcQueueLength() {
     return mRpcQueueLength;
   }
 
+  /**
+   * Sets the operation count.
+   * @param operationCount the operation count
+   * @return the current obj
+   */
   public WorkerWebUIOperations setOperationCount(long operationCount) {
     mOperationCount = operationCount;
     return this;
   }
 
+  /**
+   * Sets the RPC queue length.
+   * @param rpcQueueLength queue length
+   * @return the current obj
+   */
   public WorkerWebUIOperations setRpcQueueLength(long rpcQueueLength) {
     mRpcQueueLength = rpcQueueLength;
     return this;
@@ -53,8 +71,8 @@ public final class WorkerWebUIOperations implements Serializable {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-            .add("operationCount", mOperationCount)
-            .add("rpcQueueLength", mRpcQueueLength)
-            .toString();
+        .add("operationCount", mOperationCount)
+        .add("rpcQueueLength", mRpcQueueLength)
+        .toString();
   }
 }

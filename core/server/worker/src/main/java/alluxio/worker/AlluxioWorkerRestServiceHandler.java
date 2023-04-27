@@ -172,6 +172,11 @@ public final class AlluxioWorkerRestServiceHandler {
     }, Configuration.global());
   }
 
+  /**
+   * Gets the current active operations count in the worker.
+   *
+   * @return the response
+   */
   @GET
   @Path(GET_OPERATIONS)
   public Response getActiveOperations() {
@@ -188,7 +193,8 @@ public final class AlluxioWorkerRestServiceHandler {
        * In other to know the total accepted but not finished request, we need to consider the
        * thread pool task queues.
        */
-      long operations = MetricsSystem.counter(MetricKey.WORKER_ACTIVE_OPERATIONS.getName()).getCount();
+      long operations = MetricsSystem.counter(
+          MetricKey.WORKER_ACTIVE_OPERATIONS.getName()).getCount();
       /*
        * Only the RPC thread pool can have a meaningful length. The other block reader/writer
        * thread pools all have 0/1 queue length and create threads immediately when there is

@@ -15,6 +15,7 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.wire.WorkerNetAddress;
+
 import com.google.common.base.Preconditions;
 
 import java.util.ArrayList;
@@ -23,8 +24,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * A util class for worker address -> string conversion.
+ */
 public class WorkerAddressUtils {
-
+  /**
+   * Parses a string to worker addresses.
+   *
+   * @param workerAddressesStr the string input
+   * @param alluxioConf the conf to rely on
+   * @return a list of worker addresses
+   */
   public static List<WorkerNetAddress> parseWorkerAddresses(
       String workerAddressesStr, AlluxioConfiguration alluxioConf) {
     List<WorkerNetAddress> result = new ArrayList<>();
@@ -46,12 +56,23 @@ public class WorkerAddressUtils {
     return result;
   }
 
+  /**
+   * Convert a list of worker addresses to string.
+   *
+   * @param workers input worker list
+   * @return the string format
+   */
   public static String workerAddressListToString(Collection<WorkerNetAddress> workers) {
     return workers.stream().map(WorkerAddressUtils::convertAddressToStringWebPort)
-            .collect(Collectors.toList()).toString();
+        .collect(Collectors.toList()).toString();
   }
 
-
+  /**
+   * Converts a set of worker metadata to string.
+   *
+   * @param worker a set of workers
+   * @return the converted string format
+   */
   public static String workerListToString(Set<BlockWorkerInfo> worker) {
     if (worker.isEmpty()) {
       return "[]";
@@ -61,7 +82,13 @@ public class WorkerAddressUtils {
         .collect(Collectors.toList());
   }
 
-  // To stay consistent with the command, we print the web port of each worker
+  /**
+   * Converts a worker address to string.
+   * To stay consistent with the command, we print the web port of the worker.
+   *
+   * @param address the worker address
+   * @return the string format
+   */
   public static String convertAddressToStringWebPort(WorkerNetAddress address) {
     return address.getHost() + ":" + address.getWebPort();
   }
