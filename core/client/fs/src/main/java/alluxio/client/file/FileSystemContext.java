@@ -719,11 +719,9 @@ public class FileSystemContext implements Closeable {
    */
   private List<WorkerNetAddress> getWorkerAddresses() throws IOException {
     List<WorkerInfo> infos;
-    BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
-    try {
-      infos = blockMasterClient.getWorkerInfoList();
-    } finally {
-      mBlockMasterClientPool.release(blockMasterClient);
+    try (CloseableResource<BlockMasterClient> masterClientResource =
+        acquireBlockMasterClientResource()) {
+      infos = masterClientResource.get().getWorkerInfoList();
     }
     if (infos.isEmpty()) {
       throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
