@@ -13,21 +13,26 @@ package alluxio.master;
 
 import alluxio.concurrent.jsr.ForkJoinPool;
 
+import com.codahale.metrics.Counter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Forwarder over ExecutorService interface for exposing internal queue length.
  */
 public class AlluxioExecutorService implements ExecutorService {
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioExecutorService.class);
+
   private ExecutorService mExecutor;
+  private final Counter mRpcTracker;
 
   /**
    * Creates Alluxio ExecutorService wrapper.
@@ -36,12 +41,24 @@ public class AlluxioExecutorService implements ExecutorService {
    */
   public AlluxioExecutorService(ExecutorService executor) {
     mExecutor = executor;
+    mRpcTracker = null;
+  }
+
+  /**
+   * Creates Alluxio ExecutorService wrapper.
+   *
+   * @param executor underlying executor
+   * @param counter the counter to track active operations
+   */
+  public AlluxioExecutorService(ExecutorService executor, Counter counter) {
+    mExecutor = executor;
+    mRpcTracker = counter;
   }
 
   /**
    * @return the current RPC queue size
    */
-  public long getRpcQueueLength() {
+  public int getRpcQueueLength() {
     if (mExecutor instanceof ThreadPoolExecutor) {
       return ((ThreadPoolExecutor) mExecutor).getQueue().size();
     } else if (mExecutor instanceof ForkJoinPool) {
@@ -55,7 +72,7 @@ public class AlluxioExecutorService implements ExecutorService {
   /**
    * @return the current RPC active thread count
    */
-  public long getActiveCount() {
+  public int getActiveCount() {
     if (mExecutor instanceof ThreadPoolExecutor) {
       return ((ThreadPoolExecutor) mExecutor).getActiveCount();
     } else if (mExecutor instanceof ForkJoinPool) {
@@ -69,7 +86,7 @@ public class AlluxioExecutorService implements ExecutorService {
   /**
    * @return the current RPC thread pool size
    */
-  public long getPoolSize() {
+  public int getPoolSize() {
     if (mExecutor instanceof ThreadPoolExecutor) {
       return ((ThreadPoolExecutor) mExecutor).getPoolSize();
     } else if (mExecutor instanceof ForkJoinPool) {
@@ -82,11 +99,23 @@ public class AlluxioExecutorService implements ExecutorService {
 
   @Override
   public void shutdown() {
+    if (mRpcTracker != null) {
+      long activeRpcCount = mRpcTracker.getCount();
+      if (activeRpcCount > 0) {
+        LOG.warn("{} operations have not completed", activeRpcCount);
+      }
+    }
     mExecutor.shutdown();
   }
 
   @Override
   public List<Runnable> shutdownNow() {
+    if (mRpcTracker != null) {
+      long activeRpcCount = mRpcTracker.getCount();
+      if (activeRpcCount > 0) {
+        LOG.warn("{} operations have not completed", activeRpcCount);
+      }
+    }
     return mExecutor.shutdownNow();
   }
 
@@ -107,45 +136,106 @@ public class AlluxioExecutorService implements ExecutorService {
 
   @Override
   public <T> Future<T> submit(Callable<T> task) {
-    return mExecutor.submit(task);
+    if (mRpcTracker != null) {
+      mRpcTracker.inc();
+      LOG.trace("Inc from rpc server in submit(Callable)");
+    }
+    try {
+      return mExecutor.submit(task);
+    } finally {
+      if (mRpcTracker != null) {
+        mRpcTracker.dec();
+      }
+    }
   }
 
   @Override
   public <T> Future<T> submit(Runnable task, T result) {
-    return mExecutor.submit(task, result);
+    if (mRpcTracker != null) {
+      mRpcTracker.inc();
+      LOG.trace("Inc from rpc server in submit(Runnable,T)");
+    }
+    try {
+      return mExecutor.submit(task, result);
+    } finally {
+      if (mRpcTracker != null) {
+        mRpcTracker.dec();
+      }
+    }
   }
 
   @Override
   public Future<?> submit(Runnable task) {
-    return mExecutor.submit(task);
+    if (mRpcTracker != null) {
+      mRpcTracker.inc();
+      LOG.trace("Inc from rpc server in submit(Runnable)");
+    }
+    try {
+      return mExecutor.submit(task);
+    } finally {
+      if (mRpcTracker != null) {
+        mRpcTracker.dec();
+      }
+    }
   }
 
   @Override
   public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks)
       throws InterruptedException {
-    return mExecutor.invokeAll(tasks);
+    if (mRpcTracker != null) {
+      mRpcTracker.inc();
+      LOG.trace("Inc from rpc server in invokeAll(Collection)");
+    }
+    try {
+      return mExecutor.invokeAll(tasks);
+    } finally {
+      if (mRpcTracker != null) {
+        mRpcTracker.dec();
+      }
+    }
   }
 
   @Override
   public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout,
       TimeUnit unit) throws InterruptedException {
-    return mExecutor.invokeAll(tasks, timeout, unit);
+    if (mRpcTracker != null) {
+      mRpcTracker.inc();
+      LOG.trace("Inc from rpc server in invokeAll(Collection,long,TimeUnit)");
+    }
+    try {
+      return mExecutor.invokeAll(tasks, timeout, unit);
+    } finally {
+      if (mRpcTracker != null) {
+        mRpcTracker.dec();
+      }
+    }
   }
 
   @Override
-  public <T> T invokeAny(Collection<? extends Callable<T>> tasks)
-      throws InterruptedException, ExecutionException {
-    return null;
+  public <T> T invokeAny(Collection<? extends Callable<T>> tasks) {
+    // Not used. Also the active counter is hard, so we do not support it.
+    throw new UnsupportedOperationException("invokeAny(Collection) is not supported");
   }
 
   @Override
-  public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
-      throws InterruptedException, ExecutionException, TimeoutException {
-    return mExecutor.invokeAny(tasks, timeout, unit);
+  public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) {
+    // Not used. Also the active counter is hard, so we do not support it.
+    throw new UnsupportedOperationException(
+        "invokeAny(Collection,long,TimeUnit) is not supported");
   }
 
   @Override
   public void execute(Runnable command) {
-    mExecutor.execute(command);
+    if (mRpcTracker != null) {
+      mRpcTracker.inc();
+      LOG.trace("Inc from rpc server in execute(Runnable)");
+    }
+    try {
+      mExecutor.execute(command);
+    } finally {
+      if (mRpcTracker != null) {
+        mRpcTracker.dec();
+      }
+    }
   }
 }

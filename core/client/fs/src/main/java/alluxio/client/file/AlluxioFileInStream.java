@@ -48,6 +48,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -389,6 +390,7 @@ public class AlluxioFileInStream extends FileInStream {
       throw new IOException("No BlockInfo for block(id=" + blockId + ") of file"
           + "(id=" + mStatus.getFileId() + ", path=" + mStatus.getPath() + ")");
     }
+
     // Create stream
     boolean isBlockInfoOutdated = true;
     // blockInfo is "outdated" when all the locations in that blockInfo are failed workers,
@@ -396,7 +398,8 @@ public class AlluxioFileInStream extends FileInStream {
     if (mFailedWorkers.isEmpty() || mFailedWorkers.size() < blockInfo.getLocations().size()) {
       isBlockInfoOutdated = false;
     } else {
-      for (BlockLocation location : blockInfo.getLocations()) {
+      List<BlockLocation> locs = blockInfo.getLocations();
+      for (BlockLocation location : locs) {
         if (!mFailedWorkers.containsKey(location.getWorkerAddress())) {
           isBlockInfoOutdated = false;
           break;
