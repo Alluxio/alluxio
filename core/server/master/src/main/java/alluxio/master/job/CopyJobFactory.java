@@ -11,6 +11,7 @@
 
 package alluxio.master.job;
 
+import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -49,6 +50,8 @@ public class CopyJobFactory implements JobFactory {
   public Job<?> create() {
     CopyJobPOptions options = mRequest.getOptions();
     String src = mRequest.getSrc();
+    String srcRoot = new AlluxioURI(src).getRootPath();
+    String dstRoot = new AlluxioURI(mRequest.getDst()).getRootPath();
     OptionalLong bandwidth =
         options.hasBandwidth() ? OptionalLong.of(options.getBandwidth()) : OptionalLong.empty();
     boolean partialListing = options.hasPartialListing() && options.getPartialListing();
@@ -58,12 +61,12 @@ public class CopyJobFactory implements JobFactory {
         Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     Iterable<FileInfo> fileIterator = new UfsFileIterable(mFs, src, Optional
         .ofNullable(AuthenticatedClientUser.getOrNull())
-        .map(User::getName), partialListing, FileInfo::isCompleted, mRequest.getSrcUfsAddress());
+        .map(User::getName), partialListing, FileInfo::isCompleted, srcRoot);
     Optional<String> user = Optional
         .ofNullable(AuthenticatedClientUser.getOrNull())
         .map(User::getName);
-    return new CopyJob(src, mRequest.getDst(), mRequest.getSrcUfsAddress(),
-        mRequest.getDstUfsAddress(), overwrite, writeType, user, UUID.randomUUID().toString(),
+    return new CopyJob(src, mRequest.getDst(), srcRoot,
+        dstRoot, overwrite, writeType, user, UUID.randomUUID().toString(),
         bandwidth, partialListing, verificationEnabled, fileIterator);
   }
 }

@@ -40,6 +40,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -613,6 +614,48 @@ public interface UnderFileSystem extends Closeable {
    */
   @Nullable
   UfsStatus[] listStatus(String path, ListOptions options) throws IOException;
+
+  /**
+   * Returns an array of statuses of the files and directories in the directory denoted by this
+   * abstract pathname, with options.
+   *
+   * <p>
+   * If this abstract pathname does not denote a directory, meaning it's a file, then this method
+   * would try to call getStatus on the path.
+   * Otherwise an array of statuses is returned, one for each file or directory. Names denoting the
+   * directory itself and the directory's parent directory are not included in the result. Each
+   * string is a path relative to the given directory.
+   *
+   * <p>
+   * There is no guarantee that the name strings in the resulting array will appear in any specific
+   * order; they are not, in particular, guaranteed to appear in alphabetical order.
+   *
+   * @param path the abstract pathname to list
+   * @param options for list directory
+   * @return An array of statuses naming the files and directories in the directory denoted by this
+   *         abstract pathname. The array will be empty if the directory is empty. Returns
+   *         {@code Optional.empty()} if this abstract pathname does not denote a directory.
+   */
+  default Optional<UfsStatus[]> listStatuses(String path, ListOptions options) throws IOException {
+    UfsStatus[] statuses;
+    statuses = listStatus(path, options);
+    if (statuses == null) {
+      // If empty, the request path might be a regular file/object. Let's retry getStatus().
+      try {
+        UfsStatus status = getStatus(path);
+        // listStatus() expects relative name to the @path.
+        status.setName("");
+        statuses = new UfsStatus[1];
+        statuses[0] = status;
+      } catch (FileNotFoundException e) {
+        // statuses already bull
+      }
+    }
+    if (statuses == null) {
+      return Optional.empty();
+    }
+    return Optional.of(statuses);
+  }
 
   /**
    * Creates the directory named by this abstract pathname. If the folder already exists, the method
