@@ -14,6 +14,7 @@ package alluxio.master.scheduler;
 import static java.lang.String.format;
 
 import alluxio.Constants;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.Configuration;
@@ -90,8 +91,10 @@ public final class Scheduler {
   private final WorkerInfoHub mWorkerInfoHub;
 
   /**
-   * Worker infomation hub.
+   * Worker information hub.
    */
+  @SuppressFBWarnings(value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE",
+      justification = "Will be fixed later")
   public static class WorkerInfoHub {
     private Scheduler mScheduler;
     public Map<WorkerInfo, CloseableResource<BlockWorkerClient>> mActiveWorkers = ImmutableMap.of();
@@ -118,7 +121,7 @@ public final class Scheduler {
      * @return whether the task is enqueued successfully
      */
     public boolean enqueueTaskForWorker(@Nullable WorkerInfo workerInfo, Task task,
-                                        boolean kickStartTask) {
+        boolean kickStartTask) {
       if (workerInfo == null) {
         return false;
       }
