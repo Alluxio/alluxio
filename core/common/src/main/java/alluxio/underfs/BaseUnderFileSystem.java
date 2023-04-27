@@ -32,6 +32,7 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
+import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,12 +83,22 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem, UfsClient 
   protected BaseUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf) {
     mUri = Preconditions.checkNotNull(uri, "uri");
     mUfsConf = Preconditions.checkNotNull(ufsConf, "ufsConf");
-    // TODO(tcrain) close this executor
     mAsyncIOExecutor = Executors.newCachedThreadPool(
         ThreadFactoryUtils.build(uri.getPath() + "IOThread", true));
     long rateLimit = mUfsConf.isSet(PropertyKey.MASTER_METADATA_SYNC_UFS_RATE_LIMIT)
         ? mUfsConf.getLong(PropertyKey.MASTER_METADATA_SYNC_UFS_RATE_LIMIT) : 0;
     mRateLimiter = RateLimiter.createRateLimiter(rateLimit);
+  }
+
+  @Override
+  public void close() throws IOException {
+    try (Closer closer = Closer.create()) {
+      closer.register(() -> {
+        if (mAsyncIOExecutor != null) {
+          mAsyncIOExecutor.shutdown();
+        }
+      });
+    }
   }
 
   @Override

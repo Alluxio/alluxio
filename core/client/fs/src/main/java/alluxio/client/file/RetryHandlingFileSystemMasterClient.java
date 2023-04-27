@@ -522,7 +522,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
           .setTaskGroupId(taskGroupId)
           .build();
       return mClient.getSyncProgress(request);
-    }, RPC_LOG, "GetSyncProgress", "taskId=%s", taskGroupId);
+    }, RPC_LOG, "GetSyncProgress", "taskGroupId=%s", taskGroupId);
   }
 
   @Override
@@ -533,7 +533,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
           .setTaskGroupId(taskGroupId)
           .build();
       return mClient.cancelSyncMetadata(request);
-    }, RPC_LOG, "CancelSyncMetadata", "taskId=%s", taskGroupId);
+    }, RPC_LOG, "CancelSyncMetadata", "taskGroupId=%s", taskGroupId);
   }
 
   /**

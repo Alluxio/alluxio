@@ -37,7 +37,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
- * Unit tests for {@link FileSystemMaster}.
+ * This class is to test the load metadata performance against a local UFS.
+ * use {@link FileSystemMetadataSyncV2BenchmarkTest#generateTestFiles()} to generate test files
+ * first, then run the v1 or v2 sync respectively.
+ * This class is for debugging and should not be run as a unit test.
  */
 @Ignore
 public final class FileSystemMetadataSyncV2BenchmarkTest extends FileSystemMasterTestBase {

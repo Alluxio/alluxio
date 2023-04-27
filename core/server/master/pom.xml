@@ -155,7 +155,7 @@
           <groupId>org.alluxio</groupId>
           <artifactId>alluxio-underfs-s3a</artifactId>
           <version>${project.version}</version>
-          <scope>compile</scope>
+          <scope>test</scope>
       </dependency>
   </dependencies>
 

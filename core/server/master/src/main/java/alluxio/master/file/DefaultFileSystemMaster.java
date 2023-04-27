@@ -99,6 +99,8 @@ import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.contexts.SyncMetadataContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
+import alluxio.master.file.mdsync.DefaultSyncProcess;
+import alluxio.master.file.mdsync.TaskGroup;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
@@ -118,7 +120,6 @@ import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsBlockLocationCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.options.MountInfo;
-import alluxio.master.file.mdsync.DefaultSyncProcess;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.FileSystemMergeJournalContext;
 import alluxio.master.journal.JournalContext;
@@ -127,7 +128,6 @@ import alluxio.master.journal.JournaledGroup;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.journal.ufs.UfsJournalSystem;
-import alluxio.master.file.mdsync.TaskGroup;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
@@ -532,8 +532,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     FileSystemContext schedulerFsContext = FileSystemContext.create();
     JournaledJobMetaStore jobMetaStore = new JournaledJobMetaStore(this);
     mScheduler = new Scheduler(new DefaultWorkerProvider(this, schedulerFsContext), jobMetaStore);
-    // This is a test metadata sync that supports some delay & error injection
-    mDefaultSyncProcess =  createMetadataSyncer(
+    mDefaultSyncProcess =  createSyncProcess(
         mInodeStore, mMountTable, mInodeTree, getSyncPathCache());
 
     // The mount table should come after the inode tree because restoring the mount table requires
@@ -1714,7 +1713,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   /**
-   * Creates a completed a file for metadata sync.
+   * Creates a completed file for metadata sync.
    * This method is more efficient than a combination of individual
    * createFile() and completeFile() methods, with less journal entries generated and
    * less frequent metadata store updates.
@@ -5630,7 +5629,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   @VisibleForTesting
-  protected DefaultSyncProcess createMetadataSyncer(
+  protected DefaultSyncProcess createSyncProcess(
       ReadOnlyInodeStore inodeStore, MountTable mountTable,
       InodeTree inodeTree, UfsSyncPathCache syncPathCache) {
     return new DefaultSyncProcess(

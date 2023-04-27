@@ -31,12 +31,12 @@ import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.MountContext;
+import alluxio.master.file.mdsync.BaseTask;
 import alluxio.master.file.mdsync.DefaultSyncProcess;
 import alluxio.master.file.mdsync.SyncFailReason;
 import alluxio.master.file.mdsync.SyncOperation;
-import alluxio.master.file.mdsync.TestSyncProcessor;
-import alluxio.master.file.mdsync.BaseTask;
 import alluxio.master.file.mdsync.TaskStats;
+import alluxio.master.file.mdsync.TestSyncProcessor;
 import alluxio.util.CommonUtils;
 import alluxio.wire.FileInfo;
 

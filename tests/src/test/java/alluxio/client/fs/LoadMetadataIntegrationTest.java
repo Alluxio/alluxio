@@ -608,6 +608,4 @@ public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
         .getMasterProcess().getMaster(FileSystemMaster.class);
     return Whitebox.getInternalState(master, "mUfsAbsentPathCache");
   }
-
-  // TODO(yimin.wei) test v2
 }

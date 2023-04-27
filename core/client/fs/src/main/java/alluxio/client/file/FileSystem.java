@@ -778,7 +778,7 @@ public interface FileSystem extends Closeable {
   /**
    * Syncs metadata for a given alluxio path.
    *
-   * @param path    the path to sync metadata on
+   * @param path the path to sync metadata on
    * @param options options to associate with this operation
    * @return the sync metadata response
    */
@@ -788,7 +788,7 @@ public interface FileSystem extends Closeable {
   /**
    * Syncs metadata asynchronously for a given alluxio path.
    *
-   * @param path    the path to sync metadata on
+   * @param path the path to sync metadata on
    * @param options options to associate with this operation
    * @return the sync metadata async response
    */
@@ -796,6 +796,8 @@ public interface FileSystem extends Closeable {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
+   * Gets the sync progress.
+   *
    * @param taskGroupId the task group id
    * @return the sync progress
    */
@@ -803,8 +805,10 @@ public interface FileSystem extends Closeable {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
+   * Cancels an ongoing metadata sync.
+   *
    * @param taskGroupId the task group id
-   * @return the sync progress
+   * @return the cancellation result
    */
   CancelSyncMetadataPResponse cancelSyncMetadata(long taskGroupId)
       throws IOException, AlluxioException;

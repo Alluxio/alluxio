@@ -209,8 +209,9 @@ public class RecursiveInodeIterator implements SkippableInodeIterator {
     return mStartAfterPathComponents.get(mNameComponents.size() + 1);
   }
 
-  private <T> T tryOnIterator(CloseableIterator<? extends Inode> iterator,
-                              Function<CloseableIterator<? extends Inode>, T> supplier) {
+  private <T> T tryOnIterator(
+      CloseableIterator<? extends Inode> iterator,
+      Function<CloseableIterator<? extends Inode>, T> supplier) {
     try {
       return supplier.apply(iterator);
     } catch (Exception e) {

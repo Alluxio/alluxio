@@ -24,8 +24,8 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.DeleteContext;
-import alluxio.master.file.mdsync.SyncOperation;
 import alluxio.master.file.mdsync.BaseTask;
+import alluxio.master.file.mdsync.SyncOperation;
 import alluxio.security.authorization.Mode;
 
 import com.google.common.collect.ImmutableMap;

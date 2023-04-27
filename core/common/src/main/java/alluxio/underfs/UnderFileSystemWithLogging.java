@@ -38,6 +38,7 @@ import alluxio.util.SecurityUtils;
 
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterators;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -827,13 +828,14 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     return call(new UfsCallable<Iterator<UfsStatus>>() {
       @Override
       public Iterator<UfsStatus> call() throws IOException {
-        // TODO(elega) filter invalid path
-        return mUnderFileSystem.listStatusIterable(path, options, startAfter, batchSize);
+        Iterator<UfsStatus> result =
+            mUnderFileSystem.listStatusIterable(path, options, startAfter, batchSize);
+        return filterInvalidPaths(result, path);
       }
 
       @Override
       public String methodName() {
-        return "ListStatusPartial";
+        return "ListStatusIterable";
       }
 
       @Override
@@ -841,6 +843,14 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
         return String.format("path=%s, options=%s", path, options);
       }
     });
+  }
+
+  @Nullable
+  Iterator<UfsStatus> filterInvalidPaths(Iterator<UfsStatus> statuses, String listedPath) {
+    if (statuses == null) {
+      return null;
+    }
+    return Iterators.filter(statuses, (it) -> !it.getName().contains("?"));
   }
 
   @Nullable

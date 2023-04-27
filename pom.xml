@@ -125,6 +125,7 @@
     <argLine></argLine>
     <apache.curator.version>4.2.0</apache.curator.version>
     <aws.amazonaws.version>1.11.815</aws.amazonaws.version>
+    <awssdk.version>2.20.32</awssdk.version>
     <build.path>build</build.path>
     <catalyst.version>1.2.1</catalyst.version>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
@@ -195,13 +196,6 @@
   <dependencyManagement>
     <dependencies>
       <!-- Compile scope -->
-      <dependency>
-        <groupId>software.amazon.awssdk</groupId>
-        <artifactId>bom</artifactId>
-        <version>2.20.32</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
       <dependency>
         <groupId>com.aliyun.oss</groupId>
         <artifactId>aliyun-sdk-oss</artifactId>
@@ -712,6 +706,13 @@
         <groupId>org.apache.kerby</groupId>
         <artifactId>kerby-util</artifactId>
         <version>${kerby.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>bom</artifactId>
+        <version>${awssdk.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>it.unimi.dsi</groupId>

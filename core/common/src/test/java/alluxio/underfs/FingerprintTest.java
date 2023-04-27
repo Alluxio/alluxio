@@ -144,4 +144,14 @@ public final class FingerprintTest {
         Fingerprint.parse(expected).getTag(Fingerprint.Tag.ACL));
     assertEquals(expected, Fingerprint.parse(expected).serialize());
   }
+
+  @Test
+  public void sanitizeString() {
+    Fingerprint dummy = Fingerprint.INVALID_FINGERPRINT;
+    assertEquals("foobar", dummy.sanitizeString("foobar"));
+    assertEquals("foo_bar", dummy.sanitizeString("foo bar"));
+    assertEquals("foo_bar", dummy.sanitizeString("foo|bar"));
+    assertEquals("foo_bar_baz", dummy.sanitizeString("foo bar|baz"));
+    assertEquals("foo_bar_baz_qux", dummy.sanitizeString("foo bar baz qux"));
+  }
 }

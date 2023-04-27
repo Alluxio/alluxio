@@ -196,8 +196,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
     /**
      * Gets if there is more chunks to fetch WITHOUT actually fetching the next chunk.
-     * Used in metadata sync partial listing.
-     * @return true if there is, no if there isn't, NULL if it cannot be told
+     * @return true if there is, no if there isn't, NULL if it cannot tell
      */
     default @Nullable Boolean hasNextChunk() {
       return null;
@@ -958,17 +957,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    *
    * @param key pseudo-directory key excluding header and bucket
    * @param recursive whether to request immediate children only, or all descendants
-   * @return chunked object listing, or null if key is not found
-   */
-  @Nullable
-  protected abstract ObjectListingChunk getObjectListingChunk(String key, boolean recursive)
-      throws IOException;
-
-  /**
-   * Gets a (partial) object listing result for the given key.
-   *
-   * @param key pseudo-directory key excluding header and bucket
-   * @param recursive whether to request immediate children only, or all descendants
    * @param startAfter indicates where the listing starts
    * @param batchSize the batch size of each chunk
    * @return chunked object listing, or null if key is not found
@@ -976,8 +964,24 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   @Nullable
   protected ObjectListingChunk getObjectListingChunk(
       String key, boolean recursive, String startAfter, int batchSize) throws IOException {
+    // Some UFS haven't implemented getObjectListingChunk(dir, recursive, startAfter, batchSize)
+    // so falling back to the one with less param if startAfter and batchSize is unset.
+    if (startAfter == null && batchSize == 0) {
+      return getObjectListingChunk(key, recursive);
+    }
     throw new UnsupportedOperationException("Operation not supported");
   }
+
+  /**
+   * Gets a (partial) object listing result for the given key.
+   *
+   * @param key pseudo-directory key excluding header and bucket
+   * @param recursive whether to request immediate children only, or all descendants
+   * @return chunked object listing, or null if key is not found
+   */
+  @Nullable
+  protected abstract ObjectListingChunk getObjectListingChunk(String key, boolean recursive)
+      throws IOException;
 
   protected ObjectListingChunk getObjectListingChunkForPath(String path, boolean recursive)
       throws IOException {
@@ -996,14 +1000,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       String path, boolean recursive, String startAfter, int batchSize) throws IOException {
     // Check if anything begins with <folder_path>/
     String dir = stripPrefixIfPresent(path);
-    final ObjectListingChunk objs;
-    if (startAfter == null && batchSize == 0) {
-      // Some UFS haven't implemented getObjectListingChunk(dir, recursive, startAfter, batchSize)
-      // so falling back to the one with less param if startAfter and batchSize is unset.
-      objs = getObjectListingChunk(dir, recursive);
-    } else {
-      objs = getObjectListingChunk(dir, recursive, startAfter, batchSize);
-    }
+    ObjectListingChunk objs = getObjectListingChunk(dir, recursive, startAfter, batchSize);
     // If there are, this is a folder and we can create the necessary metadata
     if (objs != null
         && ((objs.getObjectStatuses() != null && objs.getObjectStatuses().length > 0)

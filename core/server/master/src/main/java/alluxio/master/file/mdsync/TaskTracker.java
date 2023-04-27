@@ -71,11 +71,11 @@ public class TaskTracker implements Closeable {
    * Create a new TaskTracker.
    * @param executorThreads the number of threads to run the metadata sync processing
    * @param maxUfsRequests the maximum number of concurrently running
-   *                       (or completed but not yet processed) Ufs requests
+   *  (or completed but not yet processed) Ufs requests
    * @param allowConcurrentNonRecursiveList if true, non-recursive lists tasks will
-   *                                        run concurrently with recursive list tasks
+   *  run concurrently with recursive list tasks
    * @param allowConcurrentGetStatus if true, getStatus tasks will run concurrently
-   *                                 with recursive list tasks
+   *  with recursive list tasks
    * @param syncPathCache the sync path cache
    * @param absentPathCache the absent cache
    * @param syncProcess the sync process

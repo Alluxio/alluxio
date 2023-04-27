@@ -271,7 +271,7 @@ public class InodeSyncStream {
   private final boolean mDedupConcurrentSync = Configuration.getBoolean(
       PropertyKey.MASTER_METADATA_CONCURRENT_SYNC_DEDUP
   );
-  public static final MetadataSyncLockManager SYNC_METADATA_LOCK_MANAGER =
+  private static final MetadataSyncLockManager SYNC_METADATA_LOCK_MANAGER =
       new MetadataSyncLockManager();
 
   /** Whether to only read+create metadata from the UFS, or to update metadata as well. */

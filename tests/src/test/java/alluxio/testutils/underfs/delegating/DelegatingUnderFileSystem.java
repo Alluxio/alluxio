@@ -261,8 +261,8 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
 
   @javax.annotation.Nullable
   @Override
-  public Iterator<UfsStatus> listStatusIterable(String path, ListOptions options, String startAfter,
-                                                int batchSize) throws IOException {
+  public Iterator<UfsStatus> listStatusIterable(
+      String path, ListOptions options, String startAfter, int batchSize) throws IOException {
     return mUfs.listStatusIterable(path, options, startAfter, batchSize);
   }
 

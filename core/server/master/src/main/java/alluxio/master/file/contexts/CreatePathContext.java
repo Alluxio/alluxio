@@ -279,8 +279,8 @@ public abstract class CreatePathContext<T extends GeneratedMessageV3.Builder<?>,
    * @param metadataLoad the flag value to use; if true, the created path is a result of a metadata
    *        load
    * @param persistNonExistingParentDirectories if true any non-existing parent directories
-   *                                            will also be created on the UFS (this can only be
-   *                                            set to false if metadataLoad is set to true)
+   *  will also be created on the UFS (this can only be
+   *  set to false if metadataLoad is set to true)
    * @return the updated context
    */
   public K setMetadataLoad(

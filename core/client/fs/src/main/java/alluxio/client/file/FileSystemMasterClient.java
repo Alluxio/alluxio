@@ -392,7 +392,7 @@ public interface FileSystemMasterClient extends Client {
   /**
    * Syncs metadata for a given alluxio path asynchronously.
    *
-   * @param path    the path to sync metadata on
+   * @param path the path to sync metadata on
    * @param options options to associate with this operation
    * @return the sync metadata response
    */
@@ -400,14 +400,16 @@ public interface FileSystemMasterClient extends Client {
       throws AlluxioStatusException;
 
   /**
-   * @param taskGroupId the task id
+   * Gets the sync progress.
+   * @param taskGroupId the task group id
    * @return the sync progress
    */
   GetSyncProgressPResponse getSyncProgress(long taskGroupId) throws AlluxioStatusException;
 
   /**
-   * @param taskGroupId the task id
-   * @return the sync progress
+   * Cancels an ongoing metadata sync.
+   * @param taskGroupId the task group id
+   * @return the cancellation result
    */
   CancelSyncMetadataPResponse cancelSyncMetadata(long taskGroupId) throws AlluxioStatusException;
 }

@@ -43,12 +43,12 @@ import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
+import alluxio.master.file.mdsync.DefaultSyncProcess;
+import alluxio.master.file.mdsync.TestSyncProcessor;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.meta.UfsSyncPathCache;
-import alluxio.master.file.mdsync.DefaultSyncProcess;
-import alluxio.master.file.mdsync.TestSyncProcessor;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.journal.JournalType;
@@ -369,7 +369,7 @@ public class FileSystemMasterTestBase {
     mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster, masterContext,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService), mClock) {
       @Override
-      protected DefaultSyncProcess createMetadataSyncer(
+      protected DefaultSyncProcess createSyncProcess(
           ReadOnlyInodeStore inodeStore, MountTable mountTable, InodeTree inodeTree,
           UfsSyncPathCache syncPathCache) {
         return new TestSyncProcessor(

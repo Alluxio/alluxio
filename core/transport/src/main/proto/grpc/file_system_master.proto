@@ -666,12 +666,6 @@ message GetJobProgressPResponse {
 message SyncMetadataPOptions {
   optional fscommon.LoadDescendantPType loadDescendantType = 1;
   optional fscommon.DirectoryLoadPType directoryLoadType = 2;
-  // TODO: add the followings:
-  // the when to sync options (NEVER/ONCE/Time based/Invalidation based/ALWAYS)
-  // currently it is always ALWAYS
-  //
-  // Q: do we need to support loading metadata only for a direcotry inode itself?
-  // if yes descendant type (ONE/ALL/NONE) might be a better option
 }
 
 message SyncMetadataPRequest {
