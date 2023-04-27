@@ -11,7 +11,6 @@
 
 package alluxio.master.job;
 
-import alluxio.client.WriteType;
 import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobFactory;
 import alluxio.scheduler.job.JobState;
@@ -47,7 +46,7 @@ public class JournalCopyJobFactory implements JobFactory {
         mJobEntry.hasUser() ? Optional.of(mJobEntry.getUser()) : Optional.empty();
     Iterable<FileInfo> fileIterator =
         new UfsFileIterable(mFs, mJobEntry.getSrc(), user, mJobEntry.getPartialListing(),
-            FileInfo::isCompleted, mJobEntry.getSrcUfsAddress());
+            FileInfo::isCompleted);
     AbstractJob<?> job = getCopyJob(user, fileIterator);
     job.setJobState(JobState.fromProto(mJobEntry.getState()));
     if (mJobEntry.hasEndTime()) {
@@ -57,12 +56,12 @@ public class JournalCopyJobFactory implements JobFactory {
   }
 
   private CopyJob getCopyJob(Optional<String> user, Iterable<FileInfo> fileIterator) {
-    CopyJob job = new CopyJob(mJobEntry.getSrc(), mJobEntry.getDst(),
-        mJobEntry.getSrcUfsAddress(), mJobEntry.getDstUfsAddress(),
-        mJobEntry.getOverwrite(), WriteType.fromProto(mJobEntry.getWriteType()), user,
-        mJobEntry.getJobId(),
-        mJobEntry.hasBandwidth() ? OptionalLong.of(mJobEntry.getBandwidth()) : OptionalLong.empty(),
-        mJobEntry.getPartialListing(), mJobEntry.getVerify(), fileIterator);
+    CopyJob job =
+        new CopyJob(mJobEntry.getSrc(), mJobEntry.getDst(), mJobEntry.getOverwrite(), user,
+            mJobEntry.getJobId(),
+            mJobEntry.hasBandwidth() ? OptionalLong.of(mJobEntry.getBandwidth()) :
+                OptionalLong.empty(), mJobEntry.getPartialListing(), mJobEntry.getVerify(),
+            fileIterator);
     return job;
   }
 }

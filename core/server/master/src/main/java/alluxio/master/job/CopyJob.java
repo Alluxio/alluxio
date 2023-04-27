@@ -14,7 +14,6 @@ package alluxio.master.job;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
-import alluxio.client.WriteType;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -90,10 +89,6 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
   private final String mSrc;
   private final String mDst;
   private final boolean mOverwrite;
-  private final WriteType mWriteType;
-  private final String mSrcUfsAddress;
-  private final String mDstUfsAddress;
-
   private OptionalLong mBandwidth;
   private boolean mUsePartialListing;
   private boolean mVerificationEnabled;
@@ -117,10 +112,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
    *
    * @param src                 file source
    * @param dst                 file destination
-   * @param srcUfsAddress       source ufs address
-   * @param dstUfsAddress       destination ufs address
    * @param overwrite           whether to overwrite the file
-   * @param writeType           write type
    * @param user                user for authentication
    * @param jobId               job identifier
    * @param bandwidth           bandwidth
@@ -128,8 +120,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
    * @param verificationEnabled whether to verify the job after loaded
    * @param fileIterable        file iterable
    */
-  public CopyJob(String src, String dst, String srcUfsAddress, String dstUfsAddress,
-      boolean overwrite, WriteType writeType, Optional<String> user, String jobId,
+  public CopyJob(String src, String dst, boolean overwrite, Optional<String> user, String jobId,
       OptionalLong bandwidth, boolean usePartialListing, boolean verificationEnabled,
       Iterable<FileInfo> fileIterable) {
     super(user, jobId);
@@ -145,9 +136,6 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     mState = JobState.RUNNING;
     mFileIterable = fileIterable;
     mOverwrite = overwrite;
-    mWriteType = writeType;
-    mSrcUfsAddress = srcUfsAddress;
-    mDstUfsAddress = dstUfsAddress;
   }
 
   /**
@@ -264,8 +252,8 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
   public boolean isHealthy() {
     long currentFailureCount = mCurrentFailureCount.get();
     return mState != JobState.FAILED
-        && currentFailureCount <= FAILURE_COUNT_THRESHOLD
-        || (double) currentFailureCount / mProcessedFileCount.get() <= FAILURE_RATIO_THRESHOLD;
+        && (currentFailureCount <= FAILURE_COUNT_THRESHOLD
+        || (double) currentFailureCount / mProcessedFileCount.get() <= FAILURE_RATIO_THRESHOLD);
   }
 
   @Override
@@ -379,8 +367,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     }
     String dst = PathUtils.concatPath(mDst, relativePath);
     return Route.newBuilder().setSrc(sourceFile.getPath())
-                .setDst(dst).setSrcUfsAddress(mSrcUfsAddress)
-                .setDstUfsAddress(mDstUfsAddress).setLength(sourceFile.getLength()).build();
+                .setDst(dst).setLength(sourceFile.getLength()).build();
   }
 
   @Override
@@ -388,8 +375,6 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     return MoreObjects.toStringHelper(this)
         .add("Src", mSrc)
         .add("Dst", mDst)
-        .add("SrcUfsAddress", mSrcUfsAddress)
-        .add("DstUfsAddress", mDstUfsAddress)
         .add("User", mUser)
         .add("Bandwidth", mBandwidth)
         .add("UsePartialListing", mUsePartialListing)
@@ -412,8 +397,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
   @Override
   public Journal.JournalEntry toJournalEntry() {
     alluxio.proto.journal.Job.CopyJobEntry.Builder jobEntry = alluxio.proto.journal.Job.CopyJobEntry
-        .newBuilder().setSrc(mSrc).setDst(mDst).setSrcUfsAddress(mSrcUfsAddress)
-                 .setDstUfsAddress(mDstUfsAddress).setState(JobState.toProto(mState))
+        .newBuilder().setSrc(mSrc).setDst(mDst).setState(JobState.toProto(mState))
         .setPartialListing(mUsePartialListing)
         .setVerify(mVerificationEnabled)
         .setJobId(mJobId);
@@ -537,7 +521,6 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
       WriteOptions writeOptions = WriteOptions
           .newBuilder()
           .setOverwrite(mOverwrite)
-          .setWriteType(mWriteType.toProto())
           .build();
       return workerClient.copy(request
           .setUfsReadOptions(ufsReadOptions.build())

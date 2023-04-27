@@ -21,7 +21,6 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import alluxio.Constants;
-import alluxio.client.WriteType;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
@@ -55,7 +54,7 @@ public class CopyJobTest {
     Optional<String> user = Optional.of("user");
     FileIterable files =
         new FileIterable(fileSystemMaster, srcPath, user, false, CopyJob.QUALIFIED_FILE_FILTER);
-    CopyJob copy = new CopyJob(srcPath, dstPath, "/", "/", false, WriteType.NONE, user, "1",
+    CopyJob copy = new CopyJob(srcPath, dstPath, false, user, "1",
         OptionalLong.empty(), false, false, files);
     Optional<CopyJob.CopyTask> nextTask = copy.getNextTask(null);
     Assert.assertEquals(5, nextTask.get().getRoutes().size());
@@ -72,7 +71,7 @@ public class CopyJobTest {
     Optional<String> user = Optional.of("user");
     FileIterable files =
         new FileIterable(fileSystemMaster, srcPath, user, false, CopyJob.QUALIFIED_FILE_FILTER);
-    CopyJob copy = new CopyJob(srcPath, dstPath, "/", "/", false, WriteType.NONE, user, "1",
+    CopyJob copy = new CopyJob(srcPath, dstPath, false, user, "1",
         OptionalLong.empty(), false, false, files);
     List<Route> routes = copy.getNextRoutes(100);
     assertTrue(copy.isHealthy());
@@ -94,7 +93,7 @@ public class CopyJobTest {
     Optional<String> user = Optional.of("user");
     FileIterable files =
         new FileIterable(fileSystemMaster, srcPath, user, false, CopyJob.QUALIFIED_FILE_FILTER);
-    CopyJob job = spy(new CopyJob(srcPath, dstPath, "/", "/", false, WriteType.NONE, user, "1",
+    CopyJob job = spy(new CopyJob(srcPath, dstPath, false, user, "1",
         OptionalLong.empty(), false, false, files));
     when(job.getDurationInSec()).thenReturn(0L);
     job.setJobState(JobState.RUNNING);

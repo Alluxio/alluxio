@@ -11,9 +11,7 @@
 
 package alluxio.master.job;
 
-import alluxio.exception.runtime.AlluxioRuntimeException;
-import alluxio.exception.status.NotFoundException;
-import alluxio.exception.status.UnavailableException;
+import alluxio.conf.Configuration;
 import alluxio.job.CopyJobRequest;
 import alluxio.job.JobRequest;
 import alluxio.job.LoadJobRequest;
@@ -22,9 +20,7 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.proto.journal.Journal;
 import alluxio.scheduler.job.JobFactory;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.wire.MountPointInfo;
-
-import java.util.Map;
+import alluxio.underfs.UnderFileSystemConfiguration;
 
 /**
  * Producer for {@link JobFactory}.
@@ -44,18 +40,9 @@ public class JobFactoryProducer {
     }
     if (request instanceof CopyJobRequest) {
       CopyJobRequest copyRequest = (CopyJobRequest) request;
-      Map<String, MountPointInfo> mountPointInfoSummary =
-          fsMaster.getMountPointInfoSummary(false);
-      UnderFileSystem ufsClient;
-      // no need to close under file system cause most close methods are noop
-      try {
-        ufsClient = fsMaster.getUfsManager()
-            .get(mountPointInfoSummary.get(copyRequest.getSrcUfsAddress()).getMountId())
-            .acquireUfsResource().get();
-      } catch (NotFoundException | UnavailableException e) {
-        throw AlluxioRuntimeException.from(e);
-      }
-      return new CopyJobFactory((CopyJobRequest) request, ufsClient);
+      UnderFileSystem ufs = UnderFileSystem.Factory.create(copyRequest.getSrc(),
+          UnderFileSystemConfiguration.defaults(Configuration.global()));
+      return new CopyJobFactory((CopyJobRequest) request, ufs);
     }
     throw new IllegalArgumentException("Unknown job type: " + request.getType());
   }

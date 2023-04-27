@@ -257,8 +257,8 @@ public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
   public boolean isHealthy() {
     long currentFailureCount = mCurrentFailureCount.get();
     return mState != JobState.FAILED
-        && currentFailureCount <= FAILURE_COUNT_THRESHOLD
-        || (double) currentFailureCount / mCurrentBlockCount.get() <= FAILURE_RATIO_THRESHOLD;
+        && (currentFailureCount <= FAILURE_COUNT_THRESHOLD
+        || (double) currentFailureCount / mCurrentBlockCount.get() <= FAILURE_RATIO_THRESHOLD);
   }
 
   @Override

@@ -243,8 +243,6 @@ message Route {
   required string src = 1;
   required string dst = 2;
   optional int64 length = 3;
-  optional string src_ufs_address = 4;
-  optional string dst_ufs_address = 5;
 }
 
 message CopyResponse {

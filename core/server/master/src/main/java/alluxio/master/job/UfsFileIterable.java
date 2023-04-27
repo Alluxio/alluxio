@@ -20,6 +20,7 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.ListOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
@@ -42,7 +43,6 @@ public class UfsFileIterable implements Iterable<FileInfo> {
   private final boolean mUsePartialListing;
   private final Predicate<FileInfo> mFilter;
   private final UnderFileSystem mFs;
-  private final String mRoot;
 
   /**
    * Creates a new instance of {@link FileIterable}.
@@ -52,16 +52,14 @@ public class UfsFileIterable implements Iterable<FileInfo> {
    * @param user              user to list as
    * @param usePartialListing whether to use partial listing
    * @param filter            filter to apply to the file infos
-   * @param root              ufs root path
    */
   public UfsFileIterable(UnderFileSystem fs, String path, Optional<String> user,
-      boolean usePartialListing, Predicate<FileInfo> filter, String root) {
+      boolean usePartialListing, Predicate<FileInfo> filter) {
     mFs = requireNonNull(fs, "fileSystem is null");
     mPath = requireNonNull(path, "path is null");
     mUser = requireNonNull(user, "user is null");
     mUsePartialListing = usePartialListing;
     mFilter = filter;
-    mRoot = root;
   }
 
   /**
@@ -121,13 +119,13 @@ public class UfsFileIterable implements Iterable<FileInfo> {
     private void listFileInfos() {
       try {
         AuthenticatedClientUser.set(mUser.orElse(null));
-        UfsStatus[] ufsStatuses = mFs.listStatus(mPath);
-        if (ufsStatuses == null || ufsStatuses.length == 0) {
+        Optional<UfsStatus[]> ufsStatuses = mFs.listStatuses(mPath, ListOptions.defaults());
+        if (!ufsStatuses.isPresent() || ufsStatuses.get().length == 0) {
           mFiles = Collections.emptyList();
           mFileInfoIterator = Collections.emptyIterator();
         }
         else {
-          mFiles = Arrays.stream(ufsStatuses).map(this::transformUfsStatus).filter(mFilter)
+          mFiles = Arrays.stream(ufsStatuses.get()).map(this::transformUfsStatus).filter(mFilter)
                          .collect(Collectors.toList());
           mFileInfoIterator = mFiles.iterator();
         }
@@ -139,10 +137,10 @@ public class UfsFileIterable implements Iterable<FileInfo> {
     }
 
     private FileInfo transformUfsStatus(UfsStatus ufsStatus) {
-      AlluxioURI ufsUri = new AlluxioURI(PathUtils.concatPath(mRoot,
-          CommonUtils.stripPrefixIfPresent(ufsStatus.getName(), mRoot)));
-      FileInfo info = new FileInfo().setName(ufsUri.getName()).setPath(ufsStatus.getName())
-                                    .setUfsPath(ufsUri.toString())
+      AlluxioURI ufsUri = new AlluxioURI(PathUtils.concatPath(mPath,
+          CommonUtils.stripPrefixIfPresent(ufsStatus.getName(), mPath)));
+      FileInfo info = new FileInfo().setName(ufsUri.getName()).setPath(ufsUri.getPath())
+                                    .setUfsPath(ufsUri.getPath())
                                     .setFolder(ufsStatus.isDirectory())
                                     .setOwner(ufsStatus.getOwner()).setGroup(ufsStatus.getGroup())
                                     .setMode(ufsStatus.getMode()).setCompleted(true);
