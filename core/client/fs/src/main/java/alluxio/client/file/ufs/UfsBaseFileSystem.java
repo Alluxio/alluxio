@@ -47,12 +47,14 @@ import alluxio.job.JobRequest;
 import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.Mode;
+import alluxio.underfs.Fingerprint;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
+import alluxio.underfs.options.GetFileStatusOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
@@ -220,9 +222,21 @@ public class UfsBaseFileSystem implements FileSystem {
   @Override
   public URIStatus getStatus(AlluxioURI path, final GetStatusPOptions options) {
     return callWithReturn(() -> {
+<<<<<<< HEAD
       UfsStatus ufsStatus = mUfs.get().getStatus(path.toString());
 
       return transformStatus(ufsStatus, path.toString());
+||||||| parent of 32f923e8a3... Support getting real content hash from hdfs when using getFileStatus
+      String ufsPath = path.getPath();
+      return transformStatus(mUfs.get().isFile(ufsPath)
+          ? mUfs.get().getFileStatus(ufsPath) : mUfs.get().getDirectoryStatus(ufsPath));
+=======
+      String ufsPath = path.getPath();
+      return transformStatus(mUfs.get().isFile(ufsPath) ? mUfs.get().getFileStatus(ufsPath,
+          GetFileStatusOptions.defaults()
+                              .setIncludeRealContentHash(options.getIncludeRealContentHash())) :
+          mUfs.get().getDirectoryStatus(ufsPath));
+>>>>>>> 32f923e8a3... Support getting real content hash from hdfs when using getFileStatus
     });
   }
 
@@ -468,7 +482,11 @@ public class UfsBaseFileSystem implements FileSystem {
       UfsFileStatus fileStatus = (UfsFileStatus) ufsStatus;
       info.setLength(fileStatus.getContentLength());
       info.setBlockSizeBytes(fileStatus.getBlockSize());
-    } else {
+      info.setUfsFingerprint(
+          Fingerprint.create(mUfs.get().getUnderFSType(), ufsStatus, fileStatus.getContentHash())
+                     .serialize());
+    }
+    else {
       info.setLength(0);
     }
     return new URIStatus(info);
