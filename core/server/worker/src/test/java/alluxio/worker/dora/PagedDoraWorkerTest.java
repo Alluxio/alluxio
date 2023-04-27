@@ -31,7 +31,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -111,9 +110,8 @@ public class PagedDoraWorkerTest {
     byte[] buffer = BufferUtils.getIncreasingByteArray(length);
     BufferUtils.writeBufferToFile(a.getAbsolutePath(), buffer);
     Route route =
-        Route.newBuilder().setDst("/b").setSrc("/a").setDstUfsAddress(dstRoot.getAbsolutePath())
-             .setSrcUfsAddress(srcRoot.getAbsolutePath()).setLength(length).build();
-
+        Route.newBuilder().setDst(b.getAbsolutePath()).setSrc(a.getAbsolutePath()).setLength(length)
+             .build();
     WriteOptions writeOptions = WriteOptions.newBuilder().setOverwrite(false).build();
     UfsReadOptions read =
         UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build();
@@ -142,8 +140,8 @@ public class PagedDoraWorkerTest {
     byte[] buffer = BufferUtils.getIncreasingByteArray(length);
     BufferUtils.writeBufferToFile(a.getAbsolutePath(), buffer);
     Route route =
-        Route.newBuilder().setDst("/b").setSrc("/a").setDstUfsAddress(dstRoot.getAbsolutePath())
-             .setSrcUfsAddress(srcRoot.getAbsolutePath()).setLength(length).build();
+        Route.newBuilder().setDst(b.getAbsolutePath()).setSrc(a.getAbsolutePath()).setLength(length)
+             .build();
 
     WriteOptions writeOptions = WriteOptions.newBuilder().setOverwrite(false).build();
     ListenableFuture<List<RouteFailure>> copy =
@@ -162,8 +160,7 @@ public class PagedDoraWorkerTest {
     a.mkdirs();
     File b = new File(dstRoot, "b");
     Route route =
-        Route.newBuilder().setDst("/b").setSrc("/a").setDstUfsAddress(dstRoot.getAbsolutePath())
-             .setSrcUfsAddress(srcRoot.getAbsolutePath()).build();
+        Route.newBuilder().setDst(b.getAbsolutePath()).setSrc(a.getAbsolutePath()).build();
     WriteOptions writeOptions = WriteOptions.newBuilder().setOverwrite(false).build();
     UfsReadOptions read =
         UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build();
@@ -176,7 +173,6 @@ public class PagedDoraWorkerTest {
   }
 
   @Test
-  @Ignore
   public void testFolderWithFileCopy()
       throws IOException, ExecutionException, InterruptedException {
     File srcRoot = mTestFolder.newFolder("src");
@@ -189,19 +185,18 @@ public class PagedDoraWorkerTest {
     File d = new File(a, "d");
     d.mkdirs();
     File b = new File(dstRoot, "b");
+    File dstC = new File(b, "c");
+    File dstD = new File(b, "d");
     int length = 10;
     byte[] buffer = BufferUtils.getIncreasingByteArray(length);
     BufferUtils.writeBufferToFile(c.getAbsolutePath(), buffer);
     List<Route> routes = new ArrayList<>();
-    Route route =
-        Route.newBuilder().setDst("/b/c").setSrc("/a/c").setDstUfsAddress(dstRoot.getAbsolutePath())
-             .setSrcUfsAddress(srcRoot.getAbsolutePath()).setLength(length).build();
+    Route route = Route.newBuilder().setDst(dstC.getAbsolutePath()).setSrc(c.getAbsolutePath())
+                       .setLength(length).build();
     Route route2 =
-        Route.newBuilder().setDst("/b").setSrc("/a").setDstUfsAddress(dstRoot.getAbsolutePath())
-             .setSrcUfsAddress(srcRoot.getAbsolutePath()).build();
+        Route.newBuilder().setDst(b.getAbsolutePath()).setSrc(a.getAbsolutePath()).build();
     Route route3 =
-        Route.newBuilder().setDst("/b/d").setSrc("/a/d").setDstUfsAddress(dstRoot.getAbsolutePath())
-             .setSrcUfsAddress(srcRoot.getAbsolutePath()).build();
+        Route.newBuilder().setDst(dstD.getAbsolutePath()).setSrc(d.getAbsolutePath()).build();
     routes.add(route);
     routes.add(route2);
     routes.add(route3);
@@ -212,12 +207,12 @@ public class PagedDoraWorkerTest {
     List<RouteFailure> failures = copy.get();
 
     Assert.assertEquals(0, failures.size());
-    Assert.assertTrue(new File(b, "c").exists());
+    Assert.assertTrue(dstC.exists());
     Assert.assertTrue(b.exists());
     Assert.assertTrue(b.isDirectory());
-    Assert.assertTrue(new File(b, "d").exists());
-    Assert.assertTrue(new File(b, "d").isDirectory());
-    try (InputStream in = Files.newInputStream(new File(b, "c").toPath())) {
+    Assert.assertTrue(dstD.exists());
+    Assert.assertTrue(dstD.isDirectory());
+    try (InputStream in = Files.newInputStream(dstC.toPath())) {
       byte[] readBuffer = new byte[length];
       while (in.read(readBuffer) != -1) {
       }

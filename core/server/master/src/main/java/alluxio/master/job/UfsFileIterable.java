@@ -43,7 +43,6 @@ public class UfsFileIterable implements Iterable<FileInfo> {
   private final boolean mUsePartialListing;
   private final Predicate<FileInfo> mFilter;
   private final UnderFileSystem mFs;
-  private final String mRoot;
 
   /**
    * Creates a new instance of {@link FileIterable}.
@@ -53,16 +52,14 @@ public class UfsFileIterable implements Iterable<FileInfo> {
    * @param user              user to list as
    * @param usePartialListing whether to use partial listing
    * @param filter            filter to apply to the file infos
-   * @param root              ufs root path
    */
   public UfsFileIterable(UnderFileSystem fs, String path, Optional<String> user,
-      boolean usePartialListing, Predicate<FileInfo> filter, String root) {
+      boolean usePartialListing, Predicate<FileInfo> filter) {
     mFs = requireNonNull(fs, "fileSystem is null");
     mPath = requireNonNull(path, "path is null");
     mUser = requireNonNull(user, "user is null");
     mUsePartialListing = usePartialListing;
     mFilter = filter;
-    mRoot = root;
   }
 
   /**

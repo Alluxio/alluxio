@@ -61,12 +61,11 @@ public class CopyJobFactory implements JobFactory {
         Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     Iterable<FileInfo> fileIterator = new UfsFileIterable(mFs, src, Optional
         .ofNullable(AuthenticatedClientUser.getOrNull())
-        .map(User::getName), partialListing, FileInfo::isCompleted, srcRoot);
+        .map(User::getName), partialListing, FileInfo::isCompleted);
     Optional<String> user = Optional
         .ofNullable(AuthenticatedClientUser.getOrNull())
         .map(User::getName);
-    return new CopyJob(src, mRequest.getDst(), srcRoot,
-        dstRoot, overwrite, writeType, user, UUID.randomUUID().toString(),
+    return new CopyJob(src, mRequest.getDst(), overwrite, user, UUID.randomUUID().toString(),
         bandwidth, partialListing, verificationEnabled, fileIterator);
   }
 }

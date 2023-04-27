@@ -573,10 +573,10 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     for (Route route : routes) {
       FileSystem srcFs = FileSystem.Factory.create(fsContext,
           FileSystemOptions.create(Configuration.global(),
-              Optional.of(new UfsFileSystemOptions(route.getSrcUfsAddress()))));
+              Optional.of(new UfsFileSystemOptions(new AlluxioURI(route.getSrc()).getRootPath()))));
       FileSystem dstFs = FileSystem.Factory.create(fsContext,
           FileSystemOptions.create(Configuration.global(),
-              Optional.of(new UfsFileSystemOptions(route.getDstUfsAddress()))));
+              Optional.of(new UfsFileSystemOptions(new AlluxioURI(route.getDst()).getRootPath()))));
 
       ListenableFuture<Void> future = Futures.submit(() -> {
         try {

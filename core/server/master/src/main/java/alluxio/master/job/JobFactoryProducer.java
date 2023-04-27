@@ -12,9 +12,6 @@
 package alluxio.master.job;
 
 import alluxio.conf.Configuration;
-import alluxio.exception.runtime.AlluxioRuntimeException;
-import alluxio.exception.status.NotFoundException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.job.CopyJobRequest;
 import alluxio.job.JobRequest;
 import alluxio.job.LoadJobRequest;
@@ -24,9 +21,6 @@ import alluxio.proto.journal.Journal;
 import alluxio.scheduler.job.JobFactory;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.wire.MountPointInfo;
-
-import java.util.Map;
 
 /**
  * Producer for {@link JobFactory}.

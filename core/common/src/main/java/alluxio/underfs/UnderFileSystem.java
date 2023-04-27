@@ -620,9 +620,9 @@ public interface UnderFileSystem extends Closeable {
    * abstract pathname, with options.
    *
    * <p>
-   * If this abstract pathname does not denote a directory, meaning it's a file, then this method
-   * would try to call getStatus on the path.
-   * Otherwise an array of statuses is returned, one for each file or directory. Names denoting the
+   * If this abstract pathname does not denote a directory, meaning it might be a file,
+   * then this method would try to call getStatus on the path.
+   * An array of statuses is returned, one for each file or directory. Names denoting the
    * directory itself and the directory's parent directory are not included in the result. Each
    * string is a path relative to the given directory.
    *
@@ -633,8 +633,10 @@ public interface UnderFileSystem extends Closeable {
    * @param path the abstract pathname to list
    * @param options for list directory
    * @return An array of statuses naming the files and directories in the directory denoted by this
-   *         abstract pathname. The array will be empty if the directory is empty. Returns
-   *         {@code Optional.empty()} if this abstract pathname does not denote a directory.
+   *         abstract pathname. The array will be empty if the directory is empty.
+   *         Or And array of single file if given path is a file.
+   *         Returns {@code Optional.empty()} if this abstract pathname does not denote a valid
+   *         directory or file not found.
    */
   default Optional<UfsStatus[]> listStatuses(String path, ListOptions options) throws IOException {
     UfsStatus[] statuses;
@@ -643,12 +645,11 @@ public interface UnderFileSystem extends Closeable {
       // If empty, the request path might be a regular file/object. Let's retry getStatus().
       try {
         UfsStatus status = getStatus(path);
-        // listStatus() expects relative name to the @path.
         status.setName("");
         statuses = new UfsStatus[1];
         statuses[0] = status;
       } catch (FileNotFoundException e) {
-        // statuses already bull
+        // statuses already null
       }
     }
     if (statuses == null) {

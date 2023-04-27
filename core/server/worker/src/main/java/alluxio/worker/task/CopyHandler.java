@@ -31,7 +31,6 @@ import alluxio.grpc.Route;
 import alluxio.grpc.WriteOptions;
 import alluxio.grpc.WritePType;
 import alluxio.underfs.Fingerprint;
-import alluxio.util.io.PathUtils;
 
 import io.grpc.Status;
 import org.apache.commons.io.IOUtils;
@@ -61,8 +60,8 @@ public final class CopyHandler {
   public static void copy(Route route, WriteOptions writeOptions,
       FileSystem srcFs, FileSystem dstFs) {
 
-    AlluxioURI src = new AlluxioURI(PathUtils.concatPath(route.getSrcUfsAddress(), route.getSrc()));
-    AlluxioURI dst = new AlluxioURI(PathUtils.concatPath(route.getDstUfsAddress(), route.getDst()));
+    AlluxioURI src = new AlluxioURI(route.getSrc());
+    AlluxioURI dst = new AlluxioURI(route.getDst());
     URIStatus dstStatus = null;
     URIStatus sourceStatus;
     try {
