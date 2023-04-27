@@ -36,6 +36,7 @@ import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.File;
 import alluxio.grpc.FileFailure;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
@@ -553,6 +554,10 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     String fileId = new AlluxioURI(ufsPath).hash();
     ByteBuf buf = PooledDirectNioByteBuf.allocate((int) (4 * mPageSize));
     try (BlockReader fileReader = createFileReader(fileId, 0, false, options)) {
+      // cache file metadata
+      getFileInfo(ufsPath, GetStatusPOptions.newBuilder().setCommonOptions(
+          FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build()).build());
+      // cache file data
       while (fileReader.transferTo(buf) != -1) {
         buf.clear();
       }
