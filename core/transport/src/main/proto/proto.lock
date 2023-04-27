@@ -352,6 +352,41 @@
             ]
           },
           {
+<<<<<<< HEAD
+||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
+            "name": "RemoveDecommissionedWorkerPOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "workerName",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "RemoveDecommissionedWorkerPResponse"
+          },
+          {
+=======
+            "name": "RemoveDisabledWorkerPOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "workerHostname",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "workerWebPort",
+                "type": "int64"
+              }
+            ]
+          },
+          {
+            "name": "RemoveDisabledWorkerPResponse"
+          },
+          {
+>>>>>>> 141ee0e567 (Support gracefully shutdown worker)
             "name": "GetWorkerLostStoragePOptions"
           },
           {
@@ -366,6 +401,46 @@
             ]
           },
           {
+<<<<<<< HEAD
+||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
+            "name": "DecommissionWorkerPResponse"
+          },
+          {
+            "name": "DecommissionWorkerPOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "workerName",
+                "type": "string"
+              }
+            ]
+          },
+          {
+=======
+            "name": "DecommissionWorkerPResponse"
+          },
+          {
+            "name": "DecommissionWorkerPOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "workerHostname",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "workerWebPort",
+                "type": "int64"
+              },
+              {
+                "id": 3,
+                "name": "canRegisterAgain",
+                "type": "bool"
+              }
+            ]
+          },
+          {
+>>>>>>> 141ee0e567 (Support gracefully shutdown worker)
             "name": "TierList",
             "fields": [
               {
@@ -751,6 +826,20 @@
                 "out_type": "GetWorkerInfoListPResponse"
               },
               {
+<<<<<<< HEAD
+||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
+                "name": "RemoveDecommissionedWorker",
+                "in_type": "RemoveDecommissionedWorkerPOptions",
+                "out_type": "RemoveDecommissionedWorkerPResponse"
+              },
+              {
+=======
+                "name": "RemoveDisabledWorker",
+                "in_type": "RemoveDisabledWorkerPOptions",
+                "out_type": "RemoveDisabledWorkerPResponse"
+              },
+              {
+>>>>>>> 141ee0e567 (Support gracefully shutdown worker)
                 "name": "GetWorkerReport",
                 "in_type": "GetWorkerReportPOptions",
                 "out_type": "GetWorkerInfoListPResponse"
@@ -1363,6 +1452,14 @@
               {
                 "name": "Persist",
                 "integer": 5
+              },
+              {
+                "name": "Decommissioned",
+                "integer": 6
+              },
+              {
+                "name": "Disabled",
+                "integer": 7
               }
             ]
           },

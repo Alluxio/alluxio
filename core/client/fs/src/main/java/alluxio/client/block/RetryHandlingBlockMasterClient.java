@@ -22,6 +22,12 @@ import alluxio.grpc.GetUsedBytesPOptions;
 import alluxio.grpc.GetWorkerInfoListPOptions;
 import alluxio.grpc.GetWorkerLostStoragePOptions;
 import alluxio.grpc.GrpcUtils;
+<<<<<<< HEAD
+||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
+import alluxio.grpc.RemoveDecommissionedWorkerPOptions;
+=======
+import alluxio.grpc.RemoveDisabledWorkerPOptions;
+>>>>>>> 141ee0e567 (Support gracefully shutdown worker)
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.master.MasterClientContext;
@@ -92,6 +98,23 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   }
 
   @Override
+<<<<<<< HEAD
+||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
+  public void removeDecommissionedWorker(String workerName) throws IOException {
+    retryRPC(() -> mClient.removeDecommissionedWorker(RemoveDecommissionedWorkerPOptions
+                    .newBuilder().setWorkerName(workerName).build()),
+            RPC_LOG, "RemoveDecommissionedWorker", "");
+  }
+
+  @Override
+=======
+  public void removeDisabledWorker(RemoveDisabledWorkerPOptions options) throws IOException {
+    retryRPC(() -> mClient.removeDisabledWorker(options),
+            RPC_LOG, "RemoveDisabledWorker", "");
+  }
+
+  @Override
+>>>>>>> 141ee0e567 (Support gracefully shutdown worker)
   public List<WorkerInfo> getWorkerReport(final GetWorkerReportOptions options)
       throws IOException {
     return retryRPC(() -> {
@@ -159,4 +182,22 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
         () -> mClient.getUsedBytes(GetUsedBytesPOptions.getDefaultInstance()).getBytes(),
         RPC_LOG, "GetUsedBytes", "");
   }
+<<<<<<< HEAD
+||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
+
+  @Override
+  public void decommissionWorker(DecommissionWorkerPOptions options) throws IOException {
+    retryRPC(() -> mClient.decommissionWorker(options),
+        RPC_LOG, "DecommissionWorker", "workerName=%s,options=%s",
+        options.getWorkerName(), options);
+  }
+=======
+
+  @Override
+  public void decommissionWorker(DecommissionWorkerPOptions options) throws IOException {
+    retryRPC(() -> mClient.decommissionWorker(options),
+        RPC_LOG, "DecommissionWorker", "workerHostName=%s,workerWebPort=%s,options=%s",
+        options.getWorkerHostname(), options.getWorkerWebPort(), options);
+  }
+>>>>>>> 141ee0e567 (Support gracefully shutdown worker)
 }

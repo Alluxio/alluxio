@@ -106,12 +106,41 @@ message WorkerLostStorageInfo {
   /** a map from tier alias to the lost storage paths */
   map<string, StorageList> lostStorage = 2;
 }
+<<<<<<< HEAD
+||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
+message RemoveDecommissionedWorkerPOptions {
+  optional string workerName = 1;
+}
+message RemoveDecommissionedWorkerPResponse {}
+=======
+message RemoveDisabledWorkerPOptions {
+  required string workerHostname = 1;
+  optional int64 workerWebPort = 2;
+}
+message RemoveDisabledWorkerPResponse {}
+>>>>>>> 141ee0e567 (Support gracefully shutdown worker)
 
 message GetWorkerLostStoragePOptions {}
 message GetWorkerLostStoragePResponse {
   repeated WorkerLostStorageInfo workerLostStorageInfo = 1;
 }
 
+<<<<<<< HEAD
+||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
+message DecommissionWorkerPResponse {}
+message DecommissionWorkerPOptions {
+  required string workerName = 1;
+}
+
+=======
+message DecommissionWorkerPResponse {}
+message DecommissionWorkerPOptions {
+  required string workerHostname = 1;
+  optional int64 workerWebPort = 2;
+  optional bool canRegisterAgain = 3;
+}
+
+>>>>>>> 141ee0e567 (Support gracefully shutdown worker)
 /**
  * This interface contains block master service endpoints for Alluxio clients.
  */
@@ -143,6 +172,24 @@ service BlockMasterClientService {
   rpc GetWorkerInfoList(GetWorkerInfoListPOptions) returns (GetWorkerInfoListPResponse);
 
   /**
+<<<<<<< HEAD
+||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
+   * If target worker is in the decommissioned worker set,
+   * return true, remove target worker from decommissioned worker set; else, return false.
+   */
+  rpc RemoveDecommissionedWorker(RemoveDecommissionedWorkerPOptions)
+      returns (RemoveDecommissionedWorkerPResponse);
+
+  /**
+=======
+   * If target worker is in the decommissioned worker set,
+   * return true, remove target worker from decommissioned worker set; else, return false.
+   */
+  rpc RemoveDisabledWorker(RemoveDisabledWorkerPOptions)
+      returns (RemoveDisabledWorkerPResponse);
+
+  /**
+>>>>>>> 141ee0e567 (Support gracefully shutdown worker)
    * Returns a list of workers information for report CLI.
    */
   rpc GetWorkerReport(GetWorkerReportPOptions) returns (GetWorkerInfoListPResponse);
