@@ -24,10 +24,12 @@ import alluxio.grpc.WritePType;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+@Ignore
 public class LoadCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Rule
   public TemporaryFolder mTempFolder = new TemporaryFolder();

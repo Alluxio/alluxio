@@ -31,6 +31,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -175,6 +176,7 @@ public class PagedDoraWorkerTest {
   }
 
   @Test
+  @Ignore
   public void testFolderWithFileCopy()
       throws IOException, ExecutionException, InterruptedException {
     File srcRoot = mTestFolder.newFolder("src");

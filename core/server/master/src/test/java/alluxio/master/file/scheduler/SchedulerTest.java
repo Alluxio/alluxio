@@ -91,8 +91,8 @@ public final class SchedulerTest {
     CloseableResource<BlockWorkerClient> blockWorkerClient = mock(CloseableResource.class);
     DefaultWorkerProvider workerProvider =
         new DefaultWorkerProvider(fsMaster, fileSystemContext);
-    Scheduler scheduler = new Scheduler(workerProvider, new JournaledJobMetaStore(fsMaster,
-        mock(UfsManager.class)));
+    Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider,
+        new JournaledJobMetaStore(fsMaster, mock(UfsManager.class)));
     when(fsMaster.getWorkerInfoList())
         .thenReturn(ImmutableList.of(
             new WorkerInfo().setId(1).setAddress(
@@ -134,8 +134,8 @@ public final class SchedulerTest {
     when(fsMaster.createJournalContext()).thenReturn(journalContext);
     DefaultWorkerProvider workerProvider =
         new DefaultWorkerProvider(fsMaster, fileSystemContext);
-    Scheduler scheduler = new Scheduler(workerProvider, new JournaledJobMetaStore(fsMaster,
-        mock(UfsManager.class)));
+    Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider,
+        new JournaledJobMetaStore(fsMaster, mock(UfsManager.class)));
     FileIterable files =
         new FileIterable(fsMaster, validLoadPath, Optional.of("user"), false,
             LoadJob.QUALIFIED_FILE_FILTER);
@@ -179,8 +179,8 @@ public final class SchedulerTest {
     when(fsMaster.createJournalContext()).thenReturn(journalContext);
     DefaultWorkerProvider workerProvider =
         new DefaultWorkerProvider(fsMaster, fileSystemContext);
-    Scheduler scheduler = new Scheduler(workerProvider, new JournaledJobMetaStore(fsMaster,
-        mock(UfsManager.class)));
+    Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider,
+        new JournaledJobMetaStore(fsMaster, mock(UfsManager.class)));
     FileIterable files =
         new FileIterable(fsMaster, validLoadPath, Optional.of("user"), false,
             LoadJob.QUALIFIED_FILE_FILTER);
@@ -220,8 +220,8 @@ public final class SchedulerTest {
     when(fsMaster.createJournalContext()).thenReturn(journalContext);
     DefaultWorkerProvider workerProvider =
         new DefaultWorkerProvider(fsMaster, fileSystemContext);
-    Scheduler scheduler = new Scheduler(workerProvider, new JournaledJobMetaStore(fsMaster,
-        mock(UfsManager.class)));
+    Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider,
+        new JournaledJobMetaStore(fsMaster, mock(UfsManager.class)));
     IntStream.range(0, 100).forEach(
         i -> {
           String path = String.format("/path/to/load/%d", i);
@@ -291,8 +291,8 @@ public final class SchedulerTest {
     });
     DefaultWorkerProvider workerProvider =
         new DefaultWorkerProvider(fsMaster, fileSystemContext);
-    Scheduler scheduler = new Scheduler(workerProvider, new JournaledJobMetaStore(fsMaster,
-        mock(UfsManager.class)));
+    Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider,
+        new JournaledJobMetaStore(fsMaster, mock(UfsManager.class)));
     String path = "test";
     FileIterable files = new FileIterable(fsMaster, path, Optional.of("user"), false,
         LoadJob.QUALIFIED_FILE_FILTER);
@@ -396,8 +396,8 @@ public final class SchedulerTest {
             LoadJob.QUALIFIED_FILE_FILTER);
     DefaultWorkerProvider workerProvider =
         new DefaultWorkerProvider(fsMaster, fileSystemContext);
-    Scheduler scheduler = new Scheduler(workerProvider, new JournaledJobMetaStore(fsMaster,
-        mock(UfsManager.class)));
+    Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider,
+        new JournaledJobMetaStore(fsMaster, mock(UfsManager.class)));
     for (int i = 0; i < 100; i++) {
       LoadJob loadJob = new LoadJob("test" + i, "user", OptionalLong.of(1000), files);
       scheduler.submitJob(loadJob);
@@ -438,8 +438,8 @@ public final class SchedulerTest {
         .thenReturn(fileInfos);
     DefaultWorkerProvider workerProvider =
         new DefaultWorkerProvider(fsMaster, fileSystemContext);
-    Scheduler scheduler = new Scheduler(workerProvider, new JournaledJobMetaStore(fsMaster,
-        mock(UfsManager.class)));
+    Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider,
+        new JournaledJobMetaStore(fsMaster, mock(UfsManager.class)));
     scheduler.start();
     FileIterable files =
         new FileIterable(fsMaster, "test", Optional.of("user"), false,
@@ -476,8 +476,8 @@ public final class SchedulerTest {
     when(fsMaster.createJournalContext()).thenReturn(journalContext);
     DefaultWorkerProvider workerProvider =
         new DefaultWorkerProvider(fsMaster, fileSystemContext);
-    Scheduler scheduler = new Scheduler(workerProvider, new JournaledJobMetaStore(fsMaster,
-        mock(UfsManager.class)));
+    Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider,
+        new JournaledJobMetaStore(fsMaster, mock(UfsManager.class)));
     scheduler.start();
     IntStream
         .range(0, 5)

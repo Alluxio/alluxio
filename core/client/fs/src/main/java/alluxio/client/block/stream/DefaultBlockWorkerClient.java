@@ -48,12 +48,14 @@ import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
 import alluxio.resource.AlluxioResourceLeakDetectorFactory;
+import alluxio.resource.LockResource;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.UserState;
 
 import com.google.common.io.Closer;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import io.netty.util.ResourceLeakDetector;
@@ -64,6 +66,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.Nullable;
 
 /**
@@ -183,6 +186,54 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     } else {
       return mStreamingAsyncStub.writeBlock(responseObserver);
     }
+  }
+
+  /**
+   * No data read stream observer.
+   */
+  public static class NoDataReadStreamObserver
+      implements StreamObserver<alluxio.grpc.ReadResponse> {
+
+    SettableFuture<Object> mFuture = SettableFuture.create();
+    ReentrantLock mLock = new ReentrantLock();
+
+    @Override
+    public void onNext(ReadResponse response) {
+      // I don't care
+    }
+
+    @Override
+    public void onError(Throwable t) {
+      try (LockResource ignored = new LockResource(mLock)) {
+        LOG.warn("onError : {}", t);
+        mFuture.setException(t);
+      }
+    }
+
+    @Override
+    public void onCompleted() {
+      try (LockResource ignored = new LockResource(mLock)) {
+        LOG.info("onComplete.");
+        mFuture.set(true);
+      }
+    }
+
+    /**
+     * @return future
+     */
+    public ListenableFuture<Object> getFuture() {
+      return mFuture;
+    }
+  }
+
+  @Override
+  public ListenableFuture<Object> readBlockNoDataBack(ReadRequest request) {
+    NoDataReadStreamObserver responseStreamObserver = new NoDataReadStreamObserver();
+    StreamObserver<ReadRequest> requestStreamObserver = mStreamingAsyncStub
+        .readBlock(responseStreamObserver);
+    requestStreamObserver.onNext(request);
+    requestStreamObserver.onCompleted();
+    return responseStreamObserver.getFuture();
   }
 
   @Override

@@ -236,9 +236,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   public void iterateStatus(AlluxioURI path, ListStatusPOptions options,
       Consumer<? super URIStatus> action)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
-
-    mDelegatedFileSystem.iterateStatus(ufsFullPath, options, action);
+    listStatus(path, options).forEach(action);
   }
 
   @Override

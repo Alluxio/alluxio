@@ -18,11 +18,16 @@ import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockWorkerClient;
+import alluxio.client.file.BaseFileSystem;
+import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.FileSystemOptions;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.AlluxioProperties;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
@@ -135,6 +140,11 @@ public final class LoadCommand extends AbstractFileSystemCommand {
    */
   public LoadCommand(FileSystemContext fsContext) {
     super(fsContext);
+    AlluxioProperties properties = fsContext.getClusterConf().copyProperties();
+    properties.set(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED, false);
+    AlluxioConfiguration config = new InstancedConfiguration(properties);
+    mFileSystem = FileSystem.Factory.create(fsContext, FileSystemOptions.create(config));
+    assert (mFileSystem instanceof BaseFileSystem);
   }
 
   @Override

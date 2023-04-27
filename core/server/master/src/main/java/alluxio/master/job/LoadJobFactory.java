@@ -57,10 +57,10 @@ public class LoadJobFactory implements JobFactory {
     Optional<String> user = Optional
         .ofNullable(AuthenticatedClientUser.getOrNull())
         .map(User::getName);
-    return new LoadJob(path, user, UUID.randomUUID().toString(),
+    return new DoraLoadJob(path, user, UUID.randomUUID().toString(),
         bandwidth,
         partialListing,
-        verificationEnabled, fileIterator);
+        verificationEnabled, mFsMaster.getScheduler());
   }
 }
 

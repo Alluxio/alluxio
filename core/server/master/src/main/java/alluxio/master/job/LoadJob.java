@@ -517,6 +517,11 @@ public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
     return mVerificationEnabled && mCurrentBlockCount.get() > 0;
   }
 
+  @Override
+  public void continueJob() {
+    // nothing to do
+  }
+
   /**
    * Loads blocks in a UFS through an Alluxio worker.
    */

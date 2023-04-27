@@ -47,9 +47,9 @@ public class JournalLoadJobFactory implements JobFactory {
     Iterable<FileInfo> fileIterator =
         new FileIterable(mFsMaster, mJobEntry.getLoadPath(), user, mJobEntry.getPartialListing(),
             LoadJob.QUALIFIED_FILE_FILTER);
-    LoadJob job = new LoadJob(mJobEntry.getLoadPath(), user, mJobEntry.getJobId(),
+    DoraLoadJob job = new DoraLoadJob(mJobEntry.getLoadPath(), user, mJobEntry.getJobId(),
         mJobEntry.hasBandwidth() ? OptionalLong.of(mJobEntry.getBandwidth()) : OptionalLong.empty(),
-        mJobEntry.getPartialListing(), mJobEntry.getVerify(), fileIterator);
+        mJobEntry.getPartialListing(), mJobEntry.getVerify(), mFsMaster.getScheduler());
     job.setJobState(JobState.fromProto(mJobEntry.getState()));
     if (mJobEntry.hasEndTime()) {
       job.setEndTime(mJobEntry.getEndTime());
