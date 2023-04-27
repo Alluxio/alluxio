@@ -47,6 +47,8 @@ import org.junit.rules.ExpectedException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -128,11 +130,7 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
 
     mLocalAlluxioClusterResource.start();
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
-    // mLocalAlluxioJobCluster = new LocalAlluxioJobCluster();
-    // mLocalAlluxioJobCluster.start();
     mFileSystem = mLocalAlluxioCluster.getClient();
-    // mJobMaster = mLocalAlluxioJobCluster.getMaster().getJobMaster();
-    // mJobShell = new alluxio.cli.job.JobShell(Configuration.global());
     mFsShell = new FileSystemShell(Configuration.global());
   }
 
@@ -271,5 +269,29 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
     mFsShell.run("loadMetadata", "-v2", "-R", "-a", uriDir.toString());
     assertTrue(mOutput.toString().contains("State: SUCCEEDED"));
     assertTrue(mOutput.toString().contains(String.format("Success op count={[CREATE:%d]}", fileCount)));
+  }
+
+  @Test
+  public void loadMetadataTestV2NestMounted() throws IOException, AlluxioException {
+    int mntCount = 10;
+    mFsShell.run("mkdir", "/mnt");
+    for (int i = 0; i < mntCount; i++) {
+      mS3Client.createBucket("test" + i);
+      mFsShell.run("mount", "/mnt/test" + i, "s3://test" + i);
+    }
+    AlluxioURI uriDir = new AlluxioURI("/");
+    mOutput.reset();
+    mFsShell.run("loadMetadata", "-v2", "-R", "-a", uriDir.toString());
+    int taskCount = 0;
+    Set<Integer> idRecord = new HashSet<Integer>();
+    Pattern pattern = Pattern.compile("Task id: (\\d+)");
+    Matcher matcher = pattern.matcher(mOutput.toString());
+    while(matcher.find()) {
+      idRecord.add(Integer.valueOf(matcher.group(1)));
+    }
+    // mntCount + 1 because root mount point doesn't count in mntCount
+    assertEquals(mntCount + 1, idRecord.size());
+    // assertTrue(mOutput.toString().contains("State: SUCCEEDED"));
+    // assertTrue(mOutput.toString().contains(String.format("Success op count={[CREATE:%d]}", fileCount)));
   }
 }
