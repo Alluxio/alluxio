@@ -23,7 +23,7 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
-import alluxio.master.mdsync.BaseTask;
+import alluxio.master.file.mdsync.BaseTask;
 import alluxio.util.CommonUtils;
 
 import org.apache.commons.io.FileUtils;

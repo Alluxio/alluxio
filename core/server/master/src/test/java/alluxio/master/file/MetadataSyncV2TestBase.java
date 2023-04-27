@@ -27,11 +27,11 @@ import alluxio.grpc.LoadMetadataPType;
 import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
-import alluxio.master.file.metasync.SyncFailReason;
-import alluxio.master.file.metasync.SyncOperation;
-import alluxio.master.mdsync.TaskGroup;
-import alluxio.master.mdsync.TaskInfo;
-import alluxio.master.mdsync.TaskStats;
+import alluxio.master.file.mdsync.SyncFailReason;
+import alluxio.master.file.mdsync.SyncOperation;
+import alluxio.master.file.mdsync.TaskGroup;
+import alluxio.master.file.mdsync.TaskInfo;
+import alluxio.master.file.mdsync.TaskStats;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 

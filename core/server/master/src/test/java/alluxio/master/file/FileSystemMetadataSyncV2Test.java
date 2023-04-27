@@ -31,12 +31,12 @@ import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.MountContext;
-import alluxio.master.file.metasync.MetadataSyncer;
-import alluxio.master.file.metasync.SyncFailReason;
-import alluxio.master.file.metasync.SyncOperation;
-import alluxio.master.file.metasync.TestMetadataSyncer;
-import alluxio.master.mdsync.BaseTask;
-import alluxio.master.mdsync.TaskStats;
+import alluxio.master.file.mdsync.DefaultSyncProcess;
+import alluxio.master.file.mdsync.SyncFailReason;
+import alluxio.master.file.mdsync.SyncOperation;
+import alluxio.master.file.mdsync.TestSyncProcessor;
+import alluxio.master.file.mdsync.BaseTask;
+import alluxio.master.file.mdsync.TaskStats;
 import alluxio.util.CommonUtils;
 import alluxio.wire.FileInfo;
 
@@ -833,7 +833,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
       throws Throwable {
     mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
     mS3Client.putObject(TEST_BUCKET, TEST_FILE, TEST_CONTENT);
-    TestMetadataSyncer syncer = (TestMetadataSyncer) mFileSystemMaster.getMetadataSyncer();
+    TestSyncProcessor syncer = (TestSyncProcessor) mFileSystemMaster.getMetadataSyncer();
     syncer.beforePerformSyncOne((ignored) -> {
       throw new Exception("fail");
     });
@@ -1090,7 +1090,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
 
   @Test
   public void unmountDuringSync() throws Exception {
-    TestMetadataSyncer syncer = (TestMetadataSyncer) mFileSystemMaster.getMetadataSyncer();
+    TestSyncProcessor syncer = (TestSyncProcessor) mFileSystemMaster.getMetadataSyncer();
 
     mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
     for (int i = 0; i < 100; ++i) {
@@ -1115,7 +1115,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     });
 
     unmountFuture.get();
-    assertThrows(MetadataSyncer.MountPointNotFoundRuntimeException.class,
+    assertThrows(DefaultSyncProcess.MountPointNotFoundRuntimeException.class,
         () -> baseTask.waitComplete(TIMEOUT_MS));
 
     assertFalse(baseTask.succeeded());
@@ -1132,7 +1132,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
 
   @Test
   public void concurrentDelete() throws Exception {
-    TestMetadataSyncer syncer = (TestMetadataSyncer) mFileSystemMaster.getMetadataSyncer();
+    TestSyncProcessor syncer = (TestSyncProcessor) mFileSystemMaster.getMetadataSyncer();
 
     mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
     // Create a directory not on s3 ufs
@@ -1171,7 +1171,7 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
 
   @Test
   public void concurrentCreate() throws Exception {
-    TestMetadataSyncer syncer = (TestMetadataSyncer) mFileSystemMaster.getMetadataSyncer();
+    TestSyncProcessor syncer = (TestSyncProcessor) mFileSystemMaster.getMetadataSyncer();
 
     mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
     // Create the test file into s3

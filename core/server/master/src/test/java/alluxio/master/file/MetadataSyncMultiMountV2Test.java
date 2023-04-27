@@ -20,8 +20,8 @@ import alluxio.file.options.DescendantType;
 import alluxio.file.options.DirectoryLoadType;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.MountContext;
-import alluxio.master.file.metasync.SyncOperation;
-import alluxio.master.mdsync.TaskGroup;
+import alluxio.master.file.mdsync.SyncOperation;
+import alluxio.master.file.mdsync.TaskGroup;
 import alluxio.wire.FileInfo;
 
 import com.google.common.collect.ImmutableMap;

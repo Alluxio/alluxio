@@ -118,7 +118,7 @@ import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsBlockLocationCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.options.MountInfo;
-import alluxio.master.file.metasync.MetadataSyncer;
+import alluxio.master.file.mdsync.DefaultSyncProcess;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.FileSystemMergeJournalContext;
 import alluxio.master.journal.JournalContext;
@@ -127,7 +127,7 @@ import alluxio.master.journal.JournaledGroup;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.journal.ufs.UfsJournalSystem;
-import alluxio.master.mdsync.TaskGroup;
+import alluxio.master.file.mdsync.TaskGroup;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
@@ -458,7 +458,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       ThreadFactoryUtils.build("alluxio-ufs-active-sync-%d", false));
   private HeartbeatThread mReplicationCheckHeartbeatThread;
 
-  private final MetadataSyncer mMetadataSyncer;
+  private final DefaultSyncProcess mDefaultSyncProcess;
 
   /**
    * Creates a new instance of {@link DefaultFileSystemMaster}.
@@ -533,7 +533,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     JournaledJobMetaStore jobMetaStore = new JournaledJobMetaStore(this);
     mScheduler = new Scheduler(new DefaultWorkerProvider(this, schedulerFsContext), jobMetaStore);
     // This is a test metadata sync that supports some delay & error injection
-    mMetadataSyncer =  createMetadataSyncer(
+    mDefaultSyncProcess =  createMetadataSyncer(
         mInodeStore, mMountTable, mInodeTree, getSyncPathCache());
 
     // The mount table should come after the inode tree because restoring the mount table requires
@@ -4189,7 +4189,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   @Override
   public SyncMetadataPResponse syncMetadata(AlluxioURI path, SyncMetadataContext context)
       throws InvalidPathException {
-    TaskGroup task = mMetadataSyncer.syncPath(path,
+    TaskGroup task = mDefaultSyncProcess.syncPath(path,
         GrpcUtils.fromProto(context.getOptions().getLoadDescendantType()),
         GrpcUtils.fromProto(context.getOptions().getDirectoryLoadType()), 0, null, true);
     try {
@@ -4204,7 +4204,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   @Override
   public SyncMetadataAsyncPResponse syncMetadataAsync(AlluxioURI path, SyncMetadataContext context)
       throws InvalidPathException, IOException {
-    TaskGroup result = mMetadataSyncer.syncPath(path,
+    TaskGroup result = mDefaultSyncProcess.syncPath(path,
         GrpcUtils.fromProto(context.getOptions().getLoadDescendantType()),
         GrpcUtils.fromProto(context.getOptions().getDirectoryLoadType()), 0, null, true);
     return SyncMetadataAsyncPResponse.newBuilder()
@@ -4217,7 +4217,7 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   @Override
   public GetSyncProgressPResponse getSyncProgress(long taskGroupId) {
-    Optional<TaskGroup> task = mMetadataSyncer.getTaskGroup(taskGroupId);
+    Optional<TaskGroup> task = mDefaultSyncProcess.getTaskGroup(taskGroupId);
     if (!task.isPresent()) {
       throw new NotFoundRuntimeException("Task group id " + taskGroupId + " not found");
     }
@@ -4229,13 +4229,13 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   @Override
   public CancelSyncMetadataPResponse cancelSyncMetadata(long taskGroupId) throws NotFoundException {
-    Optional<TaskGroup> group = mMetadataSyncer.getTaskGroup(taskGroupId);
+    Optional<TaskGroup> group = mDefaultSyncProcess.getTaskGroup(taskGroupId);
     if (!group.isPresent()) {
       throw new NotFoundRuntimeException("Task group id " + taskGroupId + " not found");
     }
     Optional<NotFoundException> ex = group.get().getTasks().map(baseTask -> {
       try {
-        mMetadataSyncer.getTaskTracker().cancelTaskById(baseTask.getTaskInfo().getId());
+        mDefaultSyncProcess.getTaskTracker().cancelTaskById(baseTask.getTaskInfo().getId());
         return null;
       } catch (NotFoundException e) {
         return e;
@@ -5630,16 +5630,16 @@ public class DefaultFileSystemMaster extends CoreMaster
   }
 
   @VisibleForTesting
-  protected MetadataSyncer createMetadataSyncer(
+  protected DefaultSyncProcess createMetadataSyncer(
       ReadOnlyInodeStore inodeStore, MountTable mountTable,
       InodeTree inodeTree, UfsSyncPathCache syncPathCache) {
-    return new MetadataSyncer(
+    return new DefaultSyncProcess(
         this, inodeStore, mountTable, inodeTree, syncPathCache, mUfsAbsentPathCache);
   }
 
   @VisibleForTesting
-  MetadataSyncer getMetadataSyncer() {
-    return mMetadataSyncer;
+  DefaultSyncProcess getMetadataSyncer() {
+    return mDefaultSyncProcess;
   }
 
   /**

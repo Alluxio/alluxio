@@ -18,8 +18,8 @@ import alluxio.AlluxioURI;
 import alluxio.file.options.DescendantType;
 import alluxio.file.options.DirectoryLoadType;
 import alluxio.master.file.contexts.MountContext;
-import alluxio.master.file.metasync.SyncOperation;
-import alluxio.master.mdsync.BaseTask;
+import alluxio.master.file.mdsync.SyncOperation;
+import alluxio.master.file.mdsync.BaseTask;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
