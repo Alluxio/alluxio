@@ -16,7 +16,7 @@
   <parent>
     <artifactId>alluxio-integration-tools</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>294-SNAPSHOT</version>
+    <version>294</version>
   </parent>
 
   <artifactId>alluxio-integration-tools-hms</artifactId>
