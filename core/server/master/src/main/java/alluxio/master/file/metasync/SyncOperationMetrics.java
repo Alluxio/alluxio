@@ -35,4 +35,6 @@ public class SyncOperationMetrics {
       = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_FILES_SKIPPED_MOUNT_POINT.getName());
   public static final Counter NOOP_COUNT
       = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_FILES_NOOP.getName());
+  public static final Counter SKIPPED_NON_PERSISTED_COUNT
+      = MetricsSystem.counter(MetricKey.MASTER_METADATA_SYNC_FILES_SKIPPED_NON_PERSISTED.getName());
 }

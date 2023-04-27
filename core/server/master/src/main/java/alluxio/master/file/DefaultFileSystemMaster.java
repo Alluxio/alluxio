@@ -2271,10 +2271,11 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param inodePath the file {@link LockedInodePath}
    * @param deleteContext the method optitions
    * @param bypassPermCheck whether the permission check has been done before entering this call
-   * @return the number of inodes deleted
+   * @return the number of inodes deleted, and the number of inodes skipped that were unable
+   * to be deleted
    */
   @VisibleForTesting
-  public int deleteInternal(RpcContext rpcContext, LockedInodePath inodePath,
+  public Pair<Integer, Integer> deleteInternal(RpcContext rpcContext, LockedInodePath inodePath,
       DeleteContext deleteContext, boolean bypassPermCheck) throws FileDoesNotExistException,
       IOException, DirectoryNotEmptyException, InvalidPathException {
     Preconditions.checkState(inodePath.getLockPattern() == LockPattern.WRITE_EDGE);
@@ -2282,14 +2283,21 @@ public class DefaultFileSystemMaster extends CoreMaster
     // TODO(jiri): A crash after any UFS object is deleted and before the delete operation is
     // journaled will result in an inconsistency between Alluxio and UFS.
     if (!inodePath.fullPathExists()) {
-      return 0;
+      return new Pair<>(0, 0);
     }
     long opTimeMs = mClock.millis();
     Inode inode = inodePath.getInode();
     if (inode == null) {
-      return 0;
+      return new Pair<>(0, 0);
     }
 
+    if (deleteContext.isSkipNotPersisted() && inode.isFile()) {
+      InodeFile inodeFile = inode.asFile();
+      // skip deleting a non persisted file
+      if (!inodeFile.isPersisted() || !inodeFile.isCompleted()) {
+        return new Pair<>(0, 1);
+      }
+    }
     boolean recursive = deleteContext.getOptions().getRecursive();
     if (inode.isDirectory() && !recursive && mInodeStore.hasChildren(inode.asDirectory())) {
       // inode is nonempty, and we don't want to delete a nonempty directory unless recursive is
@@ -2320,12 +2328,22 @@ public class DefaultFileSystemMaster extends CoreMaster
     Set<Long> unsafeParentInodes = new HashSet<>();
     // Alluxio URIs (and the reason for failure) which could not be deleted
     List<Pair<String, String>> failedUris = new ArrayList<>();
+    int inodeToDeleteUnsafeCount = 0;
 
     try (LockedInodePathList descendants = mInodeTree.getDescendants(inodePath)) {
       // This walks the tree in a DFS flavor, first all the children in a subtree,
       // then the sibling trees one by one.
       // Therefore, we first see a parent, then all its children.
       for (LockedInodePath childPath : descendants) {
+        // Check if we should skip non-persisted files
+        if (deleteContext.isSkipNotPersisted() && childPath.getInode().isFile()) {
+          InodeFile childInode = childPath.getInode().asFile();
+          if (!childInode.isCompleted() || !childInode.isPersisted()) {
+            unsafeInodes.add(childInode.getId());
+            unsafeParentInodes.add(childInode.getParentId());
+            continue;
+          }
+        }
         if (bypassPermCheck) {
           inodesToDelete.add(new Pair<>(mInodeTree.getPath(childPath.getInode()), childPath));
         } else {
@@ -2410,6 +2428,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           // Something went wrong with this path so it cannot be removed normally
           // Remove the path from further processing
           inodesToDelete.set(i, null);
+          inodeToDeleteUnsafeCount++;
         }
       }
 
@@ -2440,12 +2459,17 @@ public class DefaultFileSystemMaster extends CoreMaster
         }
       }
 
-      if (!failedUris.isEmpty()) {
+      if (!failedUris.isEmpty() && !deleteContext.isSkipNotPersisted()) {
         throw new FailedPreconditionException(buildDeleteFailureMessage(failedUris));
       }
     }
     Metrics.PATHS_DELETED.inc(inodesToDelete.size());
-    return inodesToDelete.size();
+    int inodeSkipped = unsafeInodes.size();
+    if (!unsafeInodes.isEmpty()) {
+      // remove 1 because we added the parent of the path being deleted
+      inodeSkipped--;
+    }
+    return new Pair<>(inodesToDelete.size() - inodeToDeleteUnsafeCount, inodeSkipped);
   }
 
   private String buildDeleteFailureMessage(List<Pair<String, String>> failedUris) {

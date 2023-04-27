@@ -810,6 +810,13 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey MASTER_METADATA_SYNC_FILES_SKIPPED_NON_PERSISTED =
+      new Builder("Master.MetadataSyncV2FilesSkippedNonPersisted")
+          .setDescription("The number of files skipped because the "
+              + "inode is not persisted during processing during metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
 
   // Metadata sync metrics
   public static final MetricKey MASTER_METADATA_SYNC_UFS_MOUNT =

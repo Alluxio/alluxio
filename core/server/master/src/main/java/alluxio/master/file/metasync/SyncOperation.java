@@ -26,7 +26,8 @@ public enum SyncOperation {
   // Metadata updated
   UPDATE(4, SyncOperationMetrics.UPDATE_COUNT),
   SKIPPED_DUE_TO_CONCURRENT_MODIFICATION(5, SyncOperationMetrics.SKIP_CONCURRENT_UPDATE_COUNT),
-  SKIPPED_ON_MOUNT_POINT(6, SyncOperationMetrics.SKIP_MOUNT_POINT_COUNT);
+  SKIPPED_ON_MOUNT_POINT(6, SyncOperationMetrics.SKIP_MOUNT_POINT_COUNT),
+  SKIPPED_NON_PERSISTED(7, SyncOperationMetrics.SKIPPED_NON_PERSISTED_COUNT);
 
   private final int mValue;
   private final Counter mCounter;
@@ -56,6 +57,8 @@ public enum SyncOperation {
         return SKIPPED_DUE_TO_CONCURRENT_MODIFICATION;
       case 6:
         return SKIPPED_ON_MOUNT_POINT;
+      case 7:
+        return SKIPPED_NON_PERSISTED;
       default:
         throw new IllegalArgumentException("Invalid SyncOperation value: " + value);
     }

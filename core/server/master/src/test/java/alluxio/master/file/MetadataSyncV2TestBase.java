@@ -133,15 +133,6 @@ public class MetadataSyncV2TestBase extends FileSystemMasterTestBase {
 
   @Override
   public void after() throws Exception {
-    /*
-    mClient.listObjectsV2Paginator(ListObjectsV2Request.builder().bucket(TEST_BUCKET).build())
-        .forEach(resp -> resp.contents().forEach(s3Object ->
-            mClient.deleteObject(DeleteObjectRequest.builder()
-                .bucket(TEST_BUCKET).key(s3Object.key()).build())));
-    mClient.deleteBucket(DeleteBucketRequest.builder().bucket(TEST_BUCKET).build());
-
-     */
-
     mS3Client.shutdown();
     mClient.close();
     try {

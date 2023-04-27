@@ -13,6 +13,7 @@ package alluxio.master.file.metasync;
 
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
+import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
@@ -22,6 +23,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.file.options.DescendantType;
@@ -38,6 +40,7 @@ import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.InternalOperationContext;
 import alluxio.master.file.contexts.SetAttributeContext;
 import alluxio.master.file.meta.Inode;
+import alluxio.master.file.meta.InodeFile;
 import alluxio.master.file.meta.InodeIterationResult;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
@@ -592,6 +595,7 @@ public class MetadataSyncer implements SyncProcess {
         return new SingleInodeSyncResult(false, true, false);
       }
       // (Case 3) - in this case the inode is not in the UFS, so we must delete it
+      // unless the file is being persisted, or is not complete
       try {
         LockedInodePath path = currentInode.getLockedPath();
         path.traverse();
@@ -605,8 +609,15 @@ public class MetadataSyncer implements SyncProcess {
           // descendant type is ALL.
           return new SingleInodeSyncResult(false, true, true);
         }
-        syncState.mContext.reportSyncOperationSuccess(SyncOperation.DELETE,
-            deletePath(syncState.mContext, path));
+        Pair<Integer, Integer> deletedInodes = deletePath(syncState.mContext, path, true);
+        if (deletedInodes.getFirst() > 0) {
+          syncState.mContext.reportSyncOperationSuccess(SyncOperation.DELETE,
+              deletedInodes.getFirst());
+        }
+        if (deletedInodes.getSecond() > 0) {
+          syncState.mContext.reportSyncOperationSuccess(SyncOperation.SKIPPED_NON_PERSISTED,
+              deletedInodes.getSecond());
+        }
       } catch (FileDoesNotExistException e) {
         handleConcurrentModification(
             syncState.mContext, currentInode.getLockedPath().getUri().getPath(), false, e);
@@ -621,6 +632,14 @@ public class MetadataSyncer implements SyncProcess {
     if (mMountTable.isMountPoint(currentInode.getLockedPath().getUri())) {
       syncState.mContext.reportSyncOperationSuccess(SyncOperation.SKIPPED_ON_MOUNT_POINT, 1);
       return new SingleInodeSyncResult(true, true, true);
+    }
+    // skip if the file is not complete or not persisted
+    if (lockedInodePath.getInode().isFile()) {
+      InodeFile inodeFile = lockedInodePath.getInodeFile();
+      if (!inodeFile.isCompleted() || !inodeFile.isPersisted()) {
+        syncState.mContext.reportSyncOperationSuccess(SyncOperation.SKIPPED_NON_PERSISTED, 1);
+        return new SingleInodeSyncResult(true, true, false);
+      }
     }
     // HDFS also fetches ACL list, which is ignored for now
     String ufsType = syncState.mUfs.getUnderFSType();
@@ -664,10 +683,11 @@ public class MetadataSyncer implements SyncProcess {
           }
         } else if (syncPlan.toDelete() && syncPlan.toLoadMetadata()) {
           if (lockedInodePath.getInode().isDirectory()) {
-            LOG.warn("Deleting directory {} in metadata sync due to metadata change",
-                lockedInodePath.getUri());
+            throw new InternalRuntimeException(
+                String.format("Deleting directory %s in metadata sync due to metadata change",
+                    lockedInodePath.getUri()));
           }
-          deletePath(syncState.mContext, lockedInodePath);
+          deletePath(syncState.mContext, lockedInodePath, false);
           lockedInodePath.removeLastInode();
           try (LockedInodePath newLockedInodePath = mInodeTree.lockInodePath(
               lockedInodePath.getUri(), InodeTree.LockPattern.WRITE_EDGE,
@@ -715,7 +735,8 @@ public class MetadataSyncer implements SyncProcess {
     }
   }
 
-  private int deletePath(MetadataSyncContext context, LockedInodePath lockedInodePath)
+  private Pair<Integer, Integer> deletePath(
+      MetadataSyncContext context, LockedInodePath lockedInodePath, boolean skipNonPersisted)
       throws FileDoesNotExistException, DirectoryNotEmptyException, IOException,
       InvalidPathException {
     DeleteContext syncDeleteContext = DeleteContext.mergeFrom(
@@ -723,10 +744,11 @@ public class MetadataSyncer implements SyncProcess {
                 .setRecursive(true)
                 .setAlluxioOnly(true)
                 .setUnchecked(true))
+        .skipNotPersisted(skipNonPersisted)
         .setMetadataLoad(true);
-    int deletedInodes = mFsMaster.deleteInternal(context.getRpcContext(),
+    Pair<Integer, Integer> deletedInodes = mFsMaster.deleteInternal(context.getRpcContext(),
         lockedInodePath, syncDeleteContext, true);
-    if (deletedInodes == 0) {
+    if (deletedInodes.getFirst() == 0 && deletedInodes.getSecond() == 0) {
       throw new FileDoesNotExistException(lockedInodePath + " does not exist.");
     }
     return deletedInodes;

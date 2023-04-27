@@ -154,14 +154,16 @@ public class TaskInfo {
   /**
    * @return the paths need to update direct children loaded
    */
-  public Stream<AlluxioURI> getPathsToUpdateDirectChildrenLoaded() {
+  public synchronized Stream<AlluxioURI> getPathsToUpdateDirectChildrenLoaded() {
     return mPathsToUpdateDirectChildrenLoaded.getLeafChildren("/").map(TrieNode::getValue);
   }
 
   /**
+   * Add path to set direct children loaded. This call must be synchronized
+   * as it will be called by different threads while processing tasks.
    * @param uri to update direct children loaded
    */
-  public void addPathToUpdateDirectChildrenLoaded(AlluxioURI uri) {
+  public synchronized void addPathToUpdateDirectChildrenLoaded(AlluxioURI uri) {
     mPathsToUpdateDirectChildrenLoaded.insert(uri.getPath()).setValue(uri);
   }
 }

@@ -22,11 +22,14 @@ import alluxio.concurrent.jsr.CompletableFuture;
 import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
 import alluxio.file.options.DirectoryLoadType;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
+import alluxio.master.file.contexts.ExistsContext;
 import alluxio.master.file.contexts.MountContext;
 import alluxio.master.file.metasync.MetadataSyncer;
 import alluxio.master.file.metasync.SyncFailReason;
@@ -115,6 +118,149 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     long mountPointInodeId = mFileSystemMaster.getFileInfo(MOUNT_POINT, getNoSync()).getFileId();
     assertFalse(mFileSystemMaster.getInodeStore()
         .get(mountPointInodeId).get().asDirectory().isDirectChildrenLoaded());
+  }
+
+  @Test
+  public void syncNonPersistedNested() throws Throwable {
+    mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
+    mS3Client.putObject(TEST_BUCKET, TEST_DIRECTORY + "/" + TEST_FILE, TEST_CONTENT);
+
+    BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
+    result.waitComplete(TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+        SyncOperation.CREATE, 2L
+    ));
+
+    // make a non persisted file in the nested path
+    AlluxioURI nestedPath = MOUNT_POINT.join(TEST_DIRECTORY);
+    for (int i = 0; i < 3; i++) {
+      nestedPath = nestedPath.join(TEST_DIRECTORY);
+      mFileSystemMaster.createDirectory(nestedPath, CreateDirectoryContext.defaults());
+    }
+    mFileSystemMaster.createFile(nestedPath.join("file1"),
+        CreateFileContext.defaults().setWriteType(WriteType.MUST_CACHE));
+    mFileSystemMaster.completeFile(nestedPath.join("file1"),
+        CompleteFileContext.defaults());
+
+    result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
+    result.waitComplete(TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+        SyncOperation.NOOP,
+        mDirectoryLoadType == DirectoryLoadType.SINGLE_LISTING ? 1L : 2L,
+        SyncOperation.SKIPPED_NON_PERSISTED, 4L // the nested file and its parents
+    ));
+    assertTrue(mFileSystemMaster.exists(nestedPath.join("file1"), ExistsContext.defaults()));
+
+    // delete the object and sync again
+    mS3Client.deleteObject(TEST_BUCKET, TEST_DIRECTORY + "/" + TEST_FILE);
+    result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
+    result.waitComplete(TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+        SyncOperation.DELETE, 1L,
+        SyncOperation.SKIPPED_NON_PERSISTED, 5L // the nested file and its parents
+    ));
+    assertTrue(mFileSystemMaster.exists(nestedPath.join("file1"), ExistsContext.defaults()));
+  }
+
+  @Test
+  public void syncNonPersistedExists() throws Throwable {
+    mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
+    mS3Client.putObject(TEST_BUCKET, TEST_FILE, TEST_CONTENT);
+
+    // Sync the file
+    BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
+    result.waitComplete(TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+        SyncOperation.CREATE, 1L
+    ));
+
+    AlluxioURI filePath = MOUNT_POINT.join(TEST_FILE);
+    // recreate the file, but put it in alluxio only
+    mFileSystemMaster.delete(filePath, DeleteContext.mergeFrom(
+        DeletePOptions.newBuilder().setAlluxioOnly(true)));
+    mFileSystemMaster.createFile(filePath,
+        CreateFileContext.defaults().setWriteType(WriteType.MUST_CACHE));
+    mFileSystemMaster.completeFile(filePath, CompleteFileContext.defaults());
+
+    result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
+    result.waitComplete(TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+        SyncOperation.SKIPPED_NON_PERSISTED, 1L
+    ));
+  }
+
+  @Test
+  public void syncNonPersisted() throws Throwable {
+    mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
+    for (int i = 0; i < 10; i++) {
+      mS3Client.putObject(TEST_BUCKET, TEST_DIRECTORY + "/" + TEST_FILE + i, TEST_CONTENT);
+    }
+    BaseTask result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
+    result.waitComplete(TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+        SyncOperation.CREATE, 11L
+    ));
+
+    // make a non-complete file in the mount path
+    mFileSystemMaster.createFile(MOUNT_POINT.join("file1"),
+        CreateFileContext.defaults());
+    // make a non persisted file in the nested path
+    mFileSystemMaster.createFile(MOUNT_POINT.join(TEST_DIRECTORY).join("file1"),
+        CreateFileContext.defaults().setWriteType(WriteType.MUST_CACHE));
+    mFileSystemMaster.completeFile(MOUNT_POINT.join(TEST_DIRECTORY).join("file1"),
+        CompleteFileContext.defaults());
+    result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ONE, mDirectoryLoadType, 0).getBaseTask();
+    result.waitComplete(TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+        SyncOperation.SKIPPED_NON_PERSISTED, 1L,
+        SyncOperation.NOOP, 1L
+    ));
+
+    assertTrue(mFileSystemMaster.exists(MOUNT_POINT.join("file1"), ExistsContext.defaults()));
+    assertTrue(mFileSystemMaster.exists(MOUNT_POINT.join(TEST_DIRECTORY)
+        .join("file1"), ExistsContext.defaults()));
+
+    // delete all objects on the UFS
+    for (int i = 0; i < 10; i++) {
+      mS3Client.deleteObject(TEST_BUCKET, TEST_DIRECTORY + "/" + TEST_FILE + i);
+    }
+    result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
+    result.waitComplete(TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+        SyncOperation.DELETE, 10L,
+        SyncOperation.SKIPPED_NON_PERSISTED, 3L // includes the skipped directory
+    ));
+
+    assertTrue(mFileSystemMaster.exists(MOUNT_POINT.join("file1"), ExistsContext.defaults()));
+    assertTrue(mFileSystemMaster.exists(MOUNT_POINT.join(TEST_DIRECTORY)
+            .join("file1"), ExistsContext.defaults()));
+
+    result = mFileSystemMaster.getMetadataSyncer().syncPath(
+        MOUNT_POINT, DescendantType.ALL, mDirectoryLoadType, 0).getBaseTask();
+    result.waitComplete(TIMEOUT_MS);
+    assertTrue(result.succeeded());
+    assertSyncOperations(result.getTaskInfo(), ImmutableMap.of(
+        SyncOperation.SKIPPED_NON_PERSISTED, 3L // includes the skipped directory
+    ));
+    assertTrue(mFileSystemMaster.exists(MOUNT_POINT.join("file1"), ExistsContext.defaults()));
+    assertTrue(mFileSystemMaster.exists(MOUNT_POINT.join(TEST_DIRECTORY)
+        .join("file1"), ExistsContext.defaults()));
   }
 
   @Test
@@ -723,8 +869,10 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
     mS3Client.putObject(TEST_BUCKET, "file3", TEST_CONTENT);
 
     // To recreate -> content hashes are different
-    mFileSystemMaster.createFile(MOUNT_POINT.join("file1"), CreateFileContext.defaults());
+    mFileSystemMaster.createFile(MOUNT_POINT.join("file1"), CreateFileContext.mergeFrom(
+        CreateFilePOptions.newBuilder().setWriteType(WritePType.THROUGH)));
     mFileSystemMaster.completeFile(MOUNT_POINT.join("file1"), CompleteFileContext.defaults());
+    mS3Client.putObject(TEST_BUCKET, "file1", TEST_CONTENT + "diff");
 
     // To delete -> doesn't exist in UFS
     mFileSystemMaster.createDirectory(MOUNT_POINT.join("directory1"),
