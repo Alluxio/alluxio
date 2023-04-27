@@ -127,8 +127,14 @@ public final class Scheduler {
       if (!workerTaskQ.offer(task)) {
         return false;
       }
+      CloseableResource<BlockWorkerClient> blkWorkerClientResource = mActiveWorkers.get(workerInfo);
+      if (blkWorkerClientResource == null) {
+        LOG.warn("Didn't find corresponding BlockWorkerClient for workerInfo:{}",
+            workerInfo);
+        return false;
+      }
       mScheduler.getWorkingExecutor().submit(() -> {
-        task.execute(mActiveWorkers.get(workerInfo).get(), workerInfo);
+        task.execute(blkWorkerClientResource.get(), workerInfo);
         task.onComplete(mScheduler.getWorkingExecutor());
       });
       return true;
@@ -181,16 +187,11 @@ public final class Scheduler {
         ImmutableMap.Builder<WorkerInfo, CloseableResource<BlockWorkerClient>> updatedWorkers =
             ImmutableMap.builder();
         for (WorkerInfo workerInfo : workerInfos) {
-          if (mActiveWorkers.containsKey(workerInfo)) {
-            updatedWorkers.put(workerInfo, mActiveWorkers.get(workerInfo));
-          }
-          else {
-            try {
-              updatedWorkers.put(workerInfo,
-                  mWorkerProvider.getWorkerClient(workerInfo.getAddress()));
-            } catch (AlluxioRuntimeException e) {
-              // skip the worker if we cannot obtain a client
-            }
+          try {
+            updatedWorkers.put(workerInfo, mActiveWorkers.getOrDefault(workerInfo,
+                mWorkerProvider.getWorkerClient(workerInfo.getAddress())));
+          } catch (AlluxioRuntimeException e) {
+            // skip the worker if we cannot obtain a client
           }
         }
         // Close clients connecting to lost workers
