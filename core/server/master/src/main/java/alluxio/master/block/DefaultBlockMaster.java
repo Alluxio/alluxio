@@ -49,9 +49,9 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
+import alluxio.master.WorkerState;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.block.meta.WorkerMetaLockSection;
-import alluxio.master.WorkerState;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.SingleEntryJournaled;
 import alluxio.master.journal.checkpoint.CheckpointName;
@@ -794,7 +794,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     for (MasterWorkerInfo worker : selectedLiveWorkers) {
       // extractWorkerInfo handles the locking internally
       if (mRejectWorkers.contains(worker.getWorkerAddress())) {
-        workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), WorkerState.DISABLED));
+        workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(),
+            WorkerState.DISABLED));
       } else {
         workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), WorkerState.LIVE));
       }
@@ -802,7 +803,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     for (MasterWorkerInfo worker : selectedLostWorkers) {
       // extractWorkerInfo handles the locking internally
       if (mRejectWorkers.contains(worker.getWorkerAddress())) {
-        workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), WorkerState.DISABLED));
+        workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(),
+            WorkerState.DISABLED));
       } else {
         workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), WorkerState.LOST));
       }
