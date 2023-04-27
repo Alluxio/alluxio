@@ -310,7 +310,8 @@ public class CapacityCommand {
     String tiersInfo = String.format(Strings.repeat("%-14s", tiers.size()), tiers.toArray());
     String longInfoFormat = getInfoFormat(workerInfoList, false);
     print(String.format("%n" + longInfoFormat,
-        "Worker Name", "State", "Last Heartbeat", "Storage", "Total", tiersInfo, "Version", "Revision"));
+        "Worker Name", "State", "Last Heartbeat", "Storage", "Total", tiersInfo,
+        "Version", "Revision"));
 
     for (WorkerInfo info : workerInfoList) {
       String workerName = info.getAddress().getHost();
