@@ -291,7 +291,5 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
     }
     // mntCount + 1 because root mount point doesn't count in mntCount
     assertEquals(mntCount + 1, idRecord.size());
-    // assertTrue(mOutput.toString().contains("State: SUCCEEDED"));
-    // assertTrue(mOutput.toString().contains(String.format("Success op count={[CREATE:%d]}", fileCount)));
   }
 }
