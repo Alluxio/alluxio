@@ -23,7 +23,7 @@ import alluxio.grpc.GetUsedBytesPOptions;
 import alluxio.grpc.GetWorkerInfoListPOptions;
 import alluxio.grpc.GetWorkerLostStoragePOptions;
 import alluxio.grpc.GrpcUtils;
-import alluxio.grpc.RemoveDecommissionedWorkerPOptions;
+import alluxio.grpc.RemoveDisabledWorkerPOptions;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.master.MasterClientContext;
@@ -121,10 +121,9 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public void removeDecommissionedWorker(String workerName) throws IOException {
-    retryRPC(() -> mClient.removeDecommissionedWorker(RemoveDecommissionedWorkerPOptions
-                    .newBuilder().setWorkerName(workerName).build()),
-            RPC_LOG, "RemoveDecommissionedWorker", "");
+  public void removeDisabledWorker(RemoveDisabledWorkerPOptions options) throws IOException {
+    retryRPC(() -> mClient.removeDisabledWorker(options),
+            RPC_LOG, "RemoveDisabledWorker", "");
   }
 
   @Override
@@ -182,7 +181,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   @Override
   public void decommissionWorker(DecommissionWorkerPOptions options) throws IOException {
     retryRPC(() -> mClient.decommissionWorker(options),
-        RPC_LOG, "DecommissionWorker", "workerName=%s,options=%s",
-        options.getWorkerName(), options);
+        RPC_LOG, "DecommissionWorker", "workerHostName=%s,workerWebPort=%s,options=%s",
+        options.getWorkerHostname(), options.getWorkerWebPort(), options);
   }
 }

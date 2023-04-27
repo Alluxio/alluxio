@@ -28,8 +28,10 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.network.ChannelType;
 import alluxio.util.network.NettyUtils;
 import alluxio.worker.DataServer;
+import alluxio.worker.block.DefaultBlockWorker;
 
 import io.grpc.MethodDescriptor;
+import com.codahale.metrics.Counter;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -135,8 +137,9 @@ public class GrpcDataServer implements DataServer {
   protected GrpcServerBuilder createServerBuilder(String hostName,
       SocketAddress bindAddress, ChannelType type) {
     // Create an executor for Worker RPC server.
+    final Counter clientCounter = DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS;
     mRPCExecutor = ExecutorServiceBuilder.buildExecutorService(
-            ExecutorServiceBuilder.RpcExecutorHost.WORKER);
+            ExecutorServiceBuilder.RpcExecutorHost.WORKER, clientCounter);
     MetricsSystem.registerGaugeIfAbsent(MetricKey.WORKER_RPC_QUEUE_LENGTH.getName(),
             mRPCExecutor::getRpcQueueLength);
     MetricsSystem.registerGaugeIfAbsent(MetricKey.WORKER_RPC_THREAD_ACTIVE_COUNT.getName(),

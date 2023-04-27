@@ -48,6 +48,7 @@ import alluxio.wire.WorkerWebUIConfiguration;
 import alluxio.wire.WorkerWebUIInit;
 import alluxio.wire.WorkerWebUILogs;
 import alluxio.wire.WorkerWebUIMetrics;
+import alluxio.wire.WorkerWebUIOperations;
 import alluxio.wire.WorkerWebUIOverview;
 import alluxio.worker.block.BlockStoreMeta;
 import alluxio.worker.block.BlockWorker;
@@ -107,6 +108,7 @@ public final class AlluxioWorkerRestServiceHandler {
 
   // endpoints
   public static final String GET_INFO = "info";
+  public static final String GET_OPERATIONS = "operations";
 
   // webui endpoints // TODO(william): DRY up these enpoints
   public static final String WEBUI_INIT = "webui_init";
@@ -168,6 +170,56 @@ public final class AlluxioWorkerRestServiceHandler {
           .setVersion(RuntimeConstants.VERSION)
           .setRevision(ProjectConstants.REVISION);
     }, Configuration.global());
+  }
+
+  /**
+   * Gets the current active operations count in the worker.
+   *
+   * @return the response
+   */
+  @GET
+  @Path(GET_OPERATIONS)
+  public Response getActiveOperations() {
+    return RestUtils.call(() -> {
+      WorkerWebUIOperations response = new WorkerWebUIOperations();
+      /*
+       * This contains running operations in:
+       * 1. Worker RPC thread pool, for ongoing RPCs
+       * 2. GrpcExecutors.BLOCK_READER_EXECUTOR, for block readers
+       * 3. GrpcExecutors.BLOCK_READER_SERIALIZED_RUNNER_EXECUTOR, for replying to the client
+       * 4. GrpcExecutors.BLOCK_WRITER_EXECUTOR, for block writers
+       *
+       * So this is the number of operations actively running in the thread pools.
+       * In other to know the total accepted but not finished request, we need to consider the
+       * thread pool task queues.
+       */
+      long operations = MetricsSystem.counter(
+          MetricKey.WORKER_ACTIVE_OPERATIONS.getName()).getCount();
+      /*
+       * Only the RPC thread pool can have a meaningful length. The other block reader/writer
+       * thread pools all have 0/1 queue length and create threads immediately when there is
+       * a request. So we only need to consider the RPC pool queue length for idleness.
+       */
+      String workerRpcPoolSizeGaugeName = MetricKey.WORKER_RPC_QUEUE_LENGTH.getName();
+      long rpcQueueSize = getGaugeValue(workerRpcPoolSizeGaugeName);
+      response.setOperationCount(operations)
+          .setRpcQueueLength(rpcQueueSize);
+      LOG.debug("Checking worker activity: {}", response);
+      return response;
+    }, Configuration.global());
+  }
+
+  // Cast to long to safely handle all gauges
+  private static long getGaugeValue(String gaugeName) {
+    try {
+      Gauge gauge = MetricsSystem.METRIC_REGISTRY.gauge(gaugeName, null);
+      // Carefully cast here because Integer cannot be cast to Long directly
+      return ((Number) gauge.getValue()).longValue();
+    } catch (Exception e) {
+      LOG.error("Incorrect gauge name {}. Available names are: {}",
+          gaugeName, MetricsSystem.METRIC_REGISTRY.getGauges().keySet(), e);
+      return 0;
+    }
   }
 
   /**
