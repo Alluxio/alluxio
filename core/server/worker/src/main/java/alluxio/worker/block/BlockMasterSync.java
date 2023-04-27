@@ -23,15 +23,11 @@ import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.Scope;
 import alluxio.heartbeat.HeartbeatExecutor;
-<<<<<<< HEAD
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.ConfigurationUtils;
-||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
-=======
 import alluxio.util.logging.SamplingLogger;
->>>>>>> 141ee0e567 (Support gracefully shutdown worker)
 import alluxio.wire.WorkerNetAddress;
 
 import org.slf4j.Logger;
@@ -60,19 +56,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class BlockMasterSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterSync.class);
-<<<<<<< HEAD
-||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
-  private static final long ACQUIRE_LEASE_WAIT_MAX_DURATION =
-      Configuration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_MAX_DURATION);
-  private static final int HEARTBEAT_TIMEOUT_MS =
-      (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
-=======
   private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 30L * Constants.SECOND);
   private static final long ACQUIRE_LEASE_WAIT_MAX_DURATION =
-      Configuration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_MAX_DURATION);
+      ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_MAX_DURATION);
   private static final int HEARTBEAT_TIMEOUT_MS =
-      (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
->>>>>>> 141ee0e567 (Support gracefully shutdown worker)
+      (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
 
   /** The block worker responsible for interacting with Alluxio and UFS storage. */
   private final BlockWorker mBlockWorker;
@@ -106,8 +94,6 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_SLEEP_MIN);
   private static final long ACQUIRE_LEASE_WAIT_MAX_SLEEP_MS =
       ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_SLEEP_MAX);
-  private static final long ACQUIRE_LEASE_WAIT_MAX_DURATION =
-      ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_MAX_DURATION);
 
   /**
    * Creates a new instance of {@link BlockMasterSync}.

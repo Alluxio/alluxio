@@ -13,15 +13,9 @@ package alluxio.client.block;
 
 import alluxio.Client;
 import alluxio.client.block.options.GetWorkerReportOptions;
-<<<<<<< HEAD
-||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
-import alluxio.exception.status.AlluxioStatusException;
-import alluxio.grpc.DecommissionWorkerPOptions;
-=======
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.DecommissionWorkerPOptions;
 import alluxio.grpc.RemoveDisabledWorkerPOptions;
->>>>>>> 141ee0e567 (Support gracefully shutdown worker)
 import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.master.MasterClientContext;
 import alluxio.wire.BlockInfo;
@@ -66,16 +60,6 @@ public interface BlockMasterClient extends Client {
   List<WorkerInfo> getWorkerInfoList() throws IOException;
 
   /**
-<<<<<<< HEAD
-||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
-   * Remove the metadata of a decommissioned worker.
-   *
-   * @param workerName contains a string, representing the workerName
-   */
-  void removeDecommissionedWorker(String workerName) throws IOException;
-
-  /**
-=======
    * Revert disabling a worker, enabling it to register to the cluster.
    *
    * @param options contains the info used to find the target worker(s)
@@ -83,7 +67,6 @@ public interface BlockMasterClient extends Client {
   void removeDisabledWorker(RemoveDisabledWorkerPOptions options) throws IOException;
 
   /**
->>>>>>> 141ee0e567 (Support gracefully shutdown worker)
    * Gets the worker information of selected workers and selected fields for report CLI.
    *
    * @param options the client defined worker and field ranges
@@ -124,4 +107,11 @@ public interface BlockMasterClient extends Client {
    * @return amount of used space in bytes
    */
   long getUsedBytes() throws IOException;
+
+  /**
+   * Decommission a worker.
+   * @param options method options
+   * @throws AlluxioStatusException if something goes wrong
+   */
+  void decommissionWorker(DecommissionWorkerPOptions options) throws IOException;
 }

@@ -46,36 +46,15 @@ public final class GrpcExecutors {
   private static final long THREAD_STOP_MS = Constants.SECOND_MS * 10;
   private static final int THREADS_MIN = 4;
 
-<<<<<<< HEAD
-||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
   private static final ThreadPoolExecutor CACHE_MANAGER_THREAD_POOL_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN,
-          Configuration.getInt(PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX),
+          ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX),
           THREAD_STOP_MS, TimeUnit.MILLISECONDS, new UniqueBlockingQueue<>(
-          Configuration.getInt(PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX)),
-          ThreadFactoryUtils.build("CacheManagerExecutor-%d", true));
-=======
-  private static final ThreadPoolExecutor CACHE_MANAGER_THREAD_POOL_EXECUTOR =
-      new ThreadPoolExecutor(THREADS_MIN,
-          Configuration.getInt(PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX),
-          THREAD_STOP_MS, TimeUnit.MILLISECONDS, new UniqueBlockingQueue<>(
-          Configuration.getInt(PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX)),
+          ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX)),
           ThreadFactoryUtils.build("CacheManagerExecutor-%d", true));
   // Async caching is an optimization internal to Alluxio, which can be aborted any time
->>>>>>> 141ee0e567 (Support gracefully shutdown worker)
   public static final ExecutorService CACHE_MANAGER_EXECUTOR =
-<<<<<<< HEAD
-      new ImpersonateThreadPoolExecutor(new ThreadPoolExecutor(THREADS_MIN,
-          ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_THREADS_MAX),
-          THREAD_STOP_MS, TimeUnit.MILLISECONDS,
-          new UniqueBlockingQueue<>(ServerConfiguration.getInt(
-              PropertyKey.WORKER_NETWORK_ASYNC_CACHE_MANAGER_QUEUE_MAX)),
-          ThreadFactoryUtils.build("CacheManagerExecutor-%d", true)));
-||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
-      new ImpersonateThreadPoolExecutor(CACHE_MANAGER_THREAD_POOL_EXECUTOR);
-=======
       new ImpersonateThreadPoolExecutor(CACHE_MANAGER_THREAD_POOL_EXECUTOR, false);
->>>>>>> 141ee0e567 (Support gracefully shutdown worker)
 
   // Used by BlockWorkerClientServiceHandler.readBlock() by DataReader threads,
   // where each DataReader reads a block content for reply.
@@ -88,34 +67,17 @@ public final class GrpcExecutors {
   public static final ExecutorService BLOCK_READER_EXECUTOR =
       new ImpersonateThreadPoolExecutor(BLOCK_READER_THREAD_POOL_EXECUTOR, true);
 
-<<<<<<< HEAD
-  public static final ExecutorService BLOCK_READER_SERIALIZED_RUNNER_EXECUTOR =
-      new ImpersonateThreadPoolExecutor(new ThreadPoolExecutor(THREADS_MIN,
-          ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_READER_THREADS_MAX),
-||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
-  private static final ThreadPoolExecutor BLOCK_SERIALIZED_THREAD_POOL_EXECUTOR =
-      new ThreadPoolExecutor(THREADS_MIN,
-          Configuration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_READER_THREADS_MAX),
-=======
+
   // Used for replying data to the client in BlockReadHandler.
   // The thread pool has a small queue of a constant size.
   private static final ThreadPoolExecutor BLOCK_SERIALIZED_THREAD_POOL_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN,
-          Configuration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_READER_THREADS_MAX),
->>>>>>> 141ee0e567 (Support gracefully shutdown worker)
+          ServerConfiguration.getInt(PropertyKey.WORKER_NETWORK_BLOCK_READER_THREADS_MAX),
           THREAD_STOP_MS, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(32),
           ThreadFactoryUtils.build("BlockDataReaderSerializedExecutor-%d", true),
-<<<<<<< HEAD
-          new ThreadPoolExecutor.CallerRunsPolicy()));
-||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
-          new ThreadPoolExecutor.CallerRunsPolicy());
-  public static final ExecutorService BLOCK_READER_SERIALIZED_RUNNER_EXECUTOR =
-      new ImpersonateThreadPoolExecutor(BLOCK_SERIALIZED_THREAD_POOL_EXECUTOR);
-=======
           new ThreadPoolExecutor.CallerRunsPolicy());
   public static final ExecutorService BLOCK_READER_SERIALIZED_RUNNER_EXECUTOR =
       new ImpersonateThreadPoolExecutor(BLOCK_SERIALIZED_THREAD_POOL_EXECUTOR, true);
->>>>>>> 141ee0e567 (Support gracefully shutdown worker)
 
   // Used for writing blocks. The queue is always empty.
   private static final ThreadPoolExecutor BLOCK_WRITE_THREAD_POOL_EXECUTOR =

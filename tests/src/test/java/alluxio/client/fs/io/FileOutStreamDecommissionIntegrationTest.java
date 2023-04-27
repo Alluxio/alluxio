@@ -23,8 +23,8 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
-import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CreateFilePOptions;
@@ -34,7 +34,6 @@ import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.grpc.WritePType;
-import alluxio.security.user.TestUserState;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.SleepUtils;
 import alluxio.util.ThreadFactoryUtils;
@@ -137,9 +136,7 @@ public class FileOutStreamDecommissionIntegrationTest {
   public void writeUfsFromUndecommissionedWorker() throws Exception {
     AlluxioURI uri = new AlluxioURI(mCacheThroughFilePath);
 
-    FileSystemContext context = FileSystemContext
-            .create(new TestUserState("test", Configuration.global()).getSubject(),
-                    Configuration.global());
+    FileSystemContext context = FileSystemContext.create(ServerConfiguration.global());
     List<WorkerInfo> availableWorkers = context.acquireBlockMasterClientResource()
             .get().getWorkerInfoList();
     assertEquals(2, availableWorkers.size());
@@ -206,9 +203,7 @@ public class FileOutStreamDecommissionIntegrationTest {
    */
   public void cannotWriteFromDecommissionedWorker() throws Exception {
     AlluxioURI uri = new AlluxioURI(mCacheThroughFilePath);
-    FileSystemContext context = FileSystemContext
-            .create(new TestUserState("test", Configuration.global()).getSubject(),
-                    Configuration.global());
+    FileSystemContext context = FileSystemContext.create(ServerConfiguration.global());
     List<WorkerInfo> availableWorkers = context.acquireBlockMasterClientResource()
             .get().getWorkerInfoList();
     assertEquals(2, availableWorkers.size());
@@ -244,9 +239,7 @@ public class FileOutStreamDecommissionIntegrationTest {
    */
   public void decommissionWhileWriting() throws Exception {
     AlluxioURI uri = new AlluxioURI(mCacheThroughFilePath);
-    FileSystemContext context = FileSystemContext
-            .create(new TestUserState("test", Configuration.global()).getSubject(),
-                    Configuration.global());
+    FileSystemContext context = FileSystemContext.create(ServerConfiguration.global());
     List<WorkerInfo> availableWorkers = context.acquireBlockMasterClientResource()
             .get().getWorkerInfoList();
     assertEquals(2, availableWorkers.size());
@@ -336,9 +329,7 @@ public class FileOutStreamDecommissionIntegrationTest {
   public void halfCacheThroughStreamDecommission() throws Exception {
     AlluxioURI uri = new AlluxioURI(mCacheThroughFilePath);
 
-    FileSystemContext context = FileSystemContext
-            .create(new TestUserState("test", Configuration.global()).getSubject(),
-                    Configuration.global());
+    FileSystemContext context = FileSystemContext.create(ServerConfiguration.global());
     List<WorkerInfo> clusterWorkers = context.acquireBlockMasterClientResource()
             .get().getWorkerInfoList();
     assertEquals(2, clusterWorkers.size());
@@ -428,9 +419,7 @@ public class FileOutStreamDecommissionIntegrationTest {
   public void halfStreamMustCacheDecommission() throws Exception {
     AlluxioURI uri = new AlluxioURI(mMustCacheFilePath);
 
-    FileSystemContext context = FileSystemContext
-            .create(new TestUserState("test", Configuration.global()).getSubject(),
-                    Configuration.global());
+    FileSystemContext context = FileSystemContext.create(ServerConfiguration.global());
     List<WorkerInfo> clusterWorkers = context.acquireBlockMasterClientResource()
             .get().getWorkerInfoList();
     assertEquals(2, clusterWorkers.size());

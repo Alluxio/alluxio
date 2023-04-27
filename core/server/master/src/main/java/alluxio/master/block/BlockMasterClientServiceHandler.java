@@ -16,6 +16,8 @@ import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.grpc.BlockMasterClientServiceGrpc;
 import alluxio.grpc.BlockMasterInfo;
 import alluxio.grpc.BlockMasterInfoField;
+import alluxio.grpc.DecommissionWorkerPOptions;
+import alluxio.grpc.DecommissionWorkerPResponse;
 import alluxio.grpc.GetBlockInfoPOptions;
 import alluxio.grpc.GetBlockInfoPRequest;
 import alluxio.grpc.GetBlockInfoPResponse;
@@ -31,17 +33,8 @@ import alluxio.grpc.GetWorkerLostStoragePOptions;
 import alluxio.grpc.GetWorkerLostStoragePResponse;
 import alluxio.grpc.GetWorkerReportPOptions;
 import alluxio.grpc.GrpcUtils;
-<<<<<<< HEAD
-||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
-import alluxio.grpc.RemoveDecommissionedWorkerPOptions;
-import alluxio.grpc.RemoveDecommissionedWorkerPResponse;
-import alluxio.grpc.WorkerInfoField;
-import alluxio.grpc.WorkerRange;
-import alluxio.wire.WorkerInfo;
-=======
 import alluxio.grpc.RemoveDisabledWorkerPOptions;
 import alluxio.grpc.RemoveDisabledWorkerPResponse;
->>>>>>> 141ee0e567 (Support gracefully shutdown worker)
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
@@ -147,30 +140,6 @@ public final class BlockMasterClientServiceHandler
   }
 
   @Override
-<<<<<<< HEAD
-||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
-  public void removeDecommissionedWorker(RemoveDecommissionedWorkerPOptions options,
-      StreamObserver<RemoveDecommissionedWorkerPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
-      List<WorkerInfo> decommissionedWorkers = mBlockMaster.getWorkerReport(
-              new GetWorkerReportOptions(GetWorkerReportPOptions.newBuilder()
-                      .setWorkerRange(WorkerRange.DECOMMISSIONED)
-                      .addFieldRanges(WorkerInfoField.ADDRESS)
-                      .addFieldRanges(WorkerInfoField.ID)
-                      .build()));
-      for (WorkerInfo worker : decommissionedWorkers) {
-        if (worker.getAddress().getHost().equals(options.getWorkerName()))  {
-          mBlockMaster.removeDecommissionedWorker(worker.getId());
-          return RemoveDecommissionedWorkerPResponse.getDefaultInstance();
-        }
-      }
-      // Exception info has been added in FreeWorkerCommand.
-      throw new NotFoundException(options.getWorkerName());
-    }, "RemoveDecommissionedWorker", "options=%s", responseObserver, options);
-  }
-
-  @Override
-=======
   public void removeDisabledWorker(RemoveDisabledWorkerPOptions options,
        StreamObserver<RemoveDisabledWorkerPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
@@ -181,7 +150,6 @@ public final class BlockMasterClientServiceHandler
   }
 
   @Override
->>>>>>> 141ee0e567 (Support gracefully shutdown worker)
   public void getWorkerReport(GetWorkerReportPOptions options,
       StreamObserver<GetWorkerInfoListPResponse> responseObserver) {
     RpcUtils.call(LOG,
@@ -199,18 +167,6 @@ public final class BlockMasterClientServiceHandler
             .addAllWorkerLostStorageInfo(mBlockMaster.getWorkerLostStorage()).build(),
         "GetWorkerLostStorage", "options=%s", responseObserver, options);
   }
-<<<<<<< HEAD
-||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
-
-  @Override
-  public void decommissionWorker(DecommissionWorkerPOptions request,
-      StreamObserver<DecommissionWorkerPResponse> responseObserver) {
-    RpcUtils.call(LOG, () -> {
-      mBlockMaster.decommissionWorker(request.getWorkerName());
-      return DecommissionWorkerPResponse.getDefaultInstance();
-    }, "DecommissionWorker", "request=%s", responseObserver, request);
-  }
-=======
 
   @Override
   public void decommissionWorker(DecommissionWorkerPOptions options,
@@ -220,5 +176,4 @@ public final class BlockMasterClientServiceHandler
       return DecommissionWorkerPResponse.getDefaultInstance();
     }, "DecommissionWorker", "request=%s", responseObserver, options);
   }
->>>>>>> 141ee0e567 (Support gracefully shutdown worker)
 }

@@ -352,22 +352,6 @@
             ]
           },
           {
-<<<<<<< HEAD
-||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
-            "name": "RemoveDecommissionedWorkerPOptions",
-            "fields": [
-              {
-                "id": 1,
-                "name": "workerName",
-                "type": "string"
-              }
-            ]
-          },
-          {
-            "name": "RemoveDecommissionedWorkerPResponse"
-          },
-          {
-=======
             "name": "RemoveDisabledWorkerPOptions",
             "fields": [
               {
@@ -386,7 +370,6 @@
             "name": "RemoveDisabledWorkerPResponse"
           },
           {
->>>>>>> 141ee0e567 (Support gracefully shutdown worker)
             "name": "GetWorkerLostStoragePOptions"
           },
           {
@@ -401,22 +384,6 @@
             ]
           },
           {
-<<<<<<< HEAD
-||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
-            "name": "DecommissionWorkerPResponse"
-          },
-          {
-            "name": "DecommissionWorkerPOptions",
-            "fields": [
-              {
-                "id": 1,
-                "name": "workerName",
-                "type": "string"
-              }
-            ]
-          },
-          {
-=======
             "name": "DecommissionWorkerPResponse"
           },
           {
@@ -440,7 +407,6 @@
             ]
           },
           {
->>>>>>> 141ee0e567 (Support gracefully shutdown worker)
             "name": "TierList",
             "fields": [
               {
@@ -826,20 +792,11 @@
                 "out_type": "GetWorkerInfoListPResponse"
               },
               {
-<<<<<<< HEAD
-||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
-                "name": "RemoveDecommissionedWorker",
-                "in_type": "RemoveDecommissionedWorkerPOptions",
-                "out_type": "RemoveDecommissionedWorkerPResponse"
-              },
-              {
-=======
                 "name": "RemoveDisabledWorker",
                 "in_type": "RemoveDisabledWorkerPOptions",
                 "out_type": "RemoveDisabledWorkerPResponse"
               },
               {
->>>>>>> 141ee0e567 (Support gracefully shutdown worker)
                 "name": "GetWorkerReport",
                 "in_type": "GetWorkerReportPOptions",
                 "out_type": "GetWorkerInfoListPResponse"
@@ -848,6 +805,11 @@
                 "name": "GetWorkerLostStorage",
                 "in_type": "GetWorkerLostStoragePOptions",
                 "out_type": "GetWorkerLostStoragePResponse"
+              },
+              {
+                "name": "DecommissionWorker",
+                "in_type": "DecommissionWorkerPOptions",
+                "out_type": "DecommissionWorkerPResponse"
               }
             ]
           },

@@ -319,10 +319,10 @@ public final class MasterWorkerInfo {
    * A shared lock is required.
    *
    * @param fieldRange the client selected fields
-   * @param isLiveWorker the worker is live or not
+   * @param workerState the worker state
    * @return generated worker information
    */
-  public WorkerInfo generateWorkerInfo(Set<WorkerInfoField> fieldRange, boolean isLiveWorker) {
+  public WorkerInfo generateWorkerInfo(Set<WorkerInfoField> fieldRange, WorkerState workerState) {
     WorkerInfo info = new WorkerInfo();
     Set<WorkerInfoField> checkedFieldRange = fieldRange != null ? fieldRange :
         new HashSet<>(Arrays.asList(WorkerInfoField.values()));
@@ -351,11 +351,7 @@ public final class MasterWorkerInfo {
           info.setStartTimeMs(mMeta.mStartTimeMs);
           break;
         case STATE:
-          if (isLiveWorker) {
-            info.setState(LIVE_WORKER_STATE);
-          } else {
-            info.setState(LOST_WORKER_STATE);
-          }
+          info.setState(workerState.toString());
           break;
         case WORKER_USED_BYTES:
           info.setUsedBytes(mUsage.mUsedBytes);

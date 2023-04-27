@@ -205,7 +205,7 @@ public final class AlluxioWorkerRestServiceHandler {
           .setRpcQueueLength(rpcQueueSize);
       LOG.debug("Checking worker activity: {}", response);
       return response;
-    }, Configuration.global());
+    }, ServerConfiguration.global());
   }
 
   // Cast to long to safely handle all gauges

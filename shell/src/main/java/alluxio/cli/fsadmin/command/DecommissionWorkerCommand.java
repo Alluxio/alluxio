@@ -138,7 +138,7 @@ public final class DecommissionWorkerCommand extends AbstractFsAdminCommand {
   @Override
   public int run(CommandLine cl) {
     long waitTimeMs = parseWaitTimeMs(cl);
-    FileSystemContext context = FileSystemContext.create();
+    FileSystemContext context = FileSystemContext.create(mConf);
     List<BlockWorkerInfo> availableWorkers;
     try {
       availableWorkers = context.getCachedWorkers();

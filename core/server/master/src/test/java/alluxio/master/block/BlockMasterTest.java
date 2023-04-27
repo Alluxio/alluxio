@@ -13,30 +13,15 @@ package alluxio.master.block;
 
 import static alluxio.stress.rpc.TierAlias.MEM;
 import static org.junit.Assert.assertEquals;
-<<<<<<< HEAD
-||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
-import static org.junit.Assert.assertThrows;
-=======
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
->>>>>>> 141ee0e567 (Support gracefully shutdown worker)
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.clock.ManualClock;
-<<<<<<< HEAD
-||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.status.NotFoundException;
-=======
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.status.NotFoundException;
->>>>>>> 141ee0e567 (Support gracefully shutdown worker)
 import alluxio.grpc.BuildVersion;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
@@ -87,14 +72,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-<<<<<<< HEAD
-||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
-import java.util.concurrent.CyclicBarrier;
-=======
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CyclicBarrier;
->>>>>>> 141ee0e567 (Support gracefully shutdown worker)
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -255,59 +234,6 @@ public class BlockMasterTest {
   }
 
   @Test
-<<<<<<< HEAD
-||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
-  public void decommissionWorker() throws Exception {
-    // Register a worker.
-    long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);
-    mBlockMaster.workerRegister(worker1,
-        ImmutableList.of(Constants.MEDIUM_MEM),
-        ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
-        ImmutableMap.of(Constants.MEDIUM_MEM, 10L),
-        NO_BLOCKS_ON_LOCATION,
-        NO_LOST_STORAGE,
-        RegisterWorkerPOptions.getDefaultInstance());
-
-    // Decommission worker
-    mBlockMaster.decommissionWorker(NET_ADDRESS_1.getHost());
-
-    // Make sure the worker is decommissioned.
-    int decommissionedCount = mBlockMaster.getDecommissionedWorkerCount();
-    int liveCount  = mBlockMaster.getWorkerCount();
-    assertEquals(1, decommissionedCount);
-    assertEquals(0, liveCount);
-  }
-
-  @Test
-  public void autoDeleteTimeoutWorker() throws Exception {
-
-    // In default configuration the lost worker will never be deleted. So set a short timeout
-    Configuration.set(PropertyKey.MASTER_LOST_WORKER_DELETION_TIMEOUT_MS, 1000);
-    // Register a worker.
-    long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);
-    mBlockMaster.workerRegister(worker1,
-        ImmutableList.of(Constants.MEDIUM_MEM),
-        ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
-        ImmutableMap.of(Constants.MEDIUM_MEM, 10L),
-        NO_BLOCKS_ON_LOCATION,
-        NO_LOST_STORAGE,
-        RegisterWorkerPOptions.getDefaultInstance());
-
-    // Advance the block master's clock by an hour so that worker can be deleted.
-    mClock.setTimeMs(System.currentTimeMillis() + Constants.HOUR_MS);
-
-    // Run the lost worker detector.
-    HeartbeatScheduler.execute(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
-
-    // Make sure the worker has been deleted.
-    List<WorkerInfo> info = mBlockMaster.getLostWorkersInfoList();
-    assertEquals(0, mBlockMaster.getLostWorkersInfoList().size());
-    assertThrows(NotFoundException.class, () -> mBlockMaster.getWorker(worker1));
-    assertEquals(0, mBlockMaster.getWorkerCount());
-  }
-
-  @Test
-=======
   public void decommissionWorker() throws Exception {
     // Register a worker.
     long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);
@@ -866,35 +792,6 @@ public class BlockMasterTest {
   }
 
   @Test
-  public void autoDeleteTimeoutWorker() throws Exception {
-
-    // In default configuration the lost worker will never be deleted. So set a short timeout
-    Configuration.set(PropertyKey.MASTER_LOST_WORKER_DELETION_TIMEOUT_MS, 1000);
-    // Register a worker.
-    long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);
-    mBlockMaster.workerRegister(worker1,
-        ImmutableList.of(Constants.MEDIUM_MEM),
-        ImmutableMap.of(Constants.MEDIUM_MEM, 100L),
-        ImmutableMap.of(Constants.MEDIUM_MEM, 10L),
-        NO_BLOCKS_ON_LOCATION,
-        NO_LOST_STORAGE,
-        RegisterWorkerPOptions.getDefaultInstance());
-
-    // Advance the block master's clock by an hour so that worker can be deleted.
-    mClock.setTimeMs(System.currentTimeMillis() + Constants.HOUR_MS);
-
-    // Run the lost worker detector.
-    HeartbeatScheduler.execute(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
-
-    // Make sure the worker has been deleted.
-    List<WorkerInfo> info = mBlockMaster.getLostWorkersInfoList();
-    assertEquals(0, mBlockMaster.getLostWorkersInfoList().size());
-    assertThrows(NotFoundException.class, () -> mBlockMaster.getWorker(worker1));
-    assertEquals(0, mBlockMaster.getWorkerCount());
-  }
-
-  @Test
->>>>>>> 141ee0e567 (Support gracefully shutdown worker)
   public void workerReregisterRemembersLostWorker() throws Exception {
     // Register a worker.
     long worker1 = mBlockMaster.getWorkerId(NET_ADDRESS_1);

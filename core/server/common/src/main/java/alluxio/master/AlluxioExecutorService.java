@@ -69,37 +69,6 @@ public class AlluxioExecutorService implements ExecutorService {
     }
   }
 
-<<<<<<< HEAD
-||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
-  /**
-   * @return the current RPC active thread count
-   */
-  public long getActiveCount() {
-    if (mExecutor instanceof ThreadPoolExecutor) {
-      return ((ThreadPoolExecutor) mExecutor).getActiveCount();
-    } else if (mExecutor instanceof ForkJoinPool) {
-      return ((ForkJoinPool) mExecutor).getActiveThreadCount();
-    } else {
-      throw new IllegalArgumentException(
-          String.format("Not supported internal executor: %s", mExecutor.getClass().getName()));
-    }
-  }
-
-  /**
-   * @return the current RPC thread pool size
-   */
-  public long getPoolSize() {
-    if (mExecutor instanceof ThreadPoolExecutor) {
-      return ((ThreadPoolExecutor) mExecutor).getPoolSize();
-    } else if (mExecutor instanceof ForkJoinPool) {
-      return ((ForkJoinPool) mExecutor).getPoolSize();
-    } else {
-      throw new IllegalArgumentException(
-          String.format("Not supported internal executor: %s", mExecutor.getClass().getName()));
-    }
-  }
-
-=======
   /**
    * @return the current RPC active thread count
    */
@@ -128,7 +97,6 @@ public class AlluxioExecutorService implements ExecutorService {
     }
   }
 
->>>>>>> 141ee0e567 (Support gracefully shutdown worker)
   @Override
   public void shutdown() {
     if (mRpcTracker != null) {

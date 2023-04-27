@@ -60,6 +60,11 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   int getWorkerCount();
 
   /**
+   * @return the number of decommissioned workers
+   */
+  int getDecommissionedWorkerCount();
+
+  /**
    * @return the number of lost workers
    */
   int getLostWorkerCount();
@@ -119,22 +124,6 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   List<WorkerLostStorageInfo> getWorkerLostStorage();
 
   /**
-<<<<<<< HEAD
-||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
-   * @param workerId the worker id
-   * @return true if the worker is excluded, otherwise false
-   */
-  boolean isNotServing(long workerId);
-
-  /**
-   * Decommission a worker.
-   *
-   * @param workerName the worker hostname of worker to be decommissioned
-   */
-  void decommissionWorker(String workerName) throws NotFoundException;
-
-  /**
-=======
    * @param address worker address to check
    * @return true if the worker is excluded, otherwise false
    */
@@ -148,7 +137,6 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   void decommissionWorker(DecommissionWorkerPOptions requestOptions) throws NotFoundException;
 
   /**
->>>>>>> 141ee0e567 (Support gracefully shutdown worker)
    * Removes blocks from workers.
    *
    * @param blockIds a list of block ids to remove from Alluxio space
@@ -375,52 +363,10 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @return the current clock
    */
   Clock getClock();
-<<<<<<< HEAD
-||||||| parent of 141ee0e567 (Support gracefully shutdown worker)
-
-  /**
-   * Returns the internal JournaledNextContainerId.
-   *
-   * @return JournaledNextContainerId
-   */
-  @VisibleForTesting
-  long getJournaledNextContainerId();
-
-  /**
-   * Removes all associated metadata about the decommissioned worker from block master.
-   *
-   * The worker to free must have been decommissioned.
-   * @param workerId the workerId of target worker
-   */
-  void removeDecommissionedWorker(long workerId) throws NotFoundException;
-
-  /**
-   * Notify the worker id to a master.
-   * @param workerId the worker id
-   * @param workerNetAddress the worker address
-   */
-  void notifyWorkerId(long workerId, WorkerNetAddress workerNetAddress);
-=======
-
-  /**
-   * Returns the internal JournaledNextContainerId.
-   *
-   * @return JournaledNextContainerId
-   */
-  @VisibleForTesting
-  long getJournaledNextContainerId();
 
   /**
    * Revert disabling a worker, enabling it to register to the cluster.
    * @param requestOptions the request
    */
   void removeDisabledWorker(RemoveDisabledWorkerPOptions requestOptions) throws NotFoundException;
-
-  /**
-   * Notify the worker id to a master.
-   * @param workerId the worker id
-   * @param workerNetAddress the worker address
-   */
-  void notifyWorkerId(long workerId, WorkerNetAddress workerNetAddress);
->>>>>>> 141ee0e567 (Support gracefully shutdown worker)
 }
