@@ -176,18 +176,8 @@
 
   <modules>
     <module>assembly</module>
-    <module>core</module>
-    <module>examples</module>
-    <module>integration</module>
-    <module>microbench</module>
-    <module>minicluster</module>
-    <module>job</module>
-    <module>shaded</module>
-    <module>shell</module>
-    <module>stress</module>
-    <module>table</module>
-    <module>tests</module>
-    <module>underfs</module>
+    <module>common</module>
+    <module>dora</module>
     <module>webui</module>
   </modules>
 
