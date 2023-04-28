@@ -737,7 +737,6 @@ public class DefaultSyncProcess implements SyncProcess {
     SetAttributeContext ctx = SetAttributeContext.mergeFrom(builder)
         .setUfsFingerprint(fingerprint.serialize())
         .setMetadataLoad(true);
-    // Why previously clock is used?
     mFsMaster.setAttributeSingleFile(context.getRpcContext(), lockedInodePath, false,
         CommonUtils.getCurrentMs(), ctx);
   }

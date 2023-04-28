@@ -98,8 +98,10 @@ class LoadRequestExecutor implements Closeable {
   }
 
   private void onLoadError(LoadRequest request, Throwable t) {
-    // TODO(elega) this might result in load request that is retried successfully being
-    // added incorrectly
+    // Errors are reported on an attempt basis. A reported load error does not
+    // lead to the sync failure because we retry on UFS load failure. The sync
+    // can still proceed if the following try succeeds.
+    // Please refer to BaseTask::getState to get the sync task state.
     if (t instanceof DefaultSyncProcess.MountPointNotFoundRuntimeException) {
       request.getTaskInfo().getStats().reportSyncFailReason(
           request, null, SyncFailReason.LOADING_MOUNT_POINT_DOES_NOT_EXIST, t);

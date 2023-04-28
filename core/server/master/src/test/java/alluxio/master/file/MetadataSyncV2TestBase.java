@@ -112,7 +112,7 @@ public class MetadataSyncV2TestBase extends FileSystemMasterTestBase {
       Configuration.set(PropertyKey.S3A_SECRET_KEY, mS3Proxy.getSecretKey());
       mClient = S3Client.builder().credentialsProvider(StaticCredentialsProvider.create(
               AwsBasicCredentials.create(mS3Proxy.getAccessKey(), mS3Proxy.getSecretKey())))
-          .endpointOverride(mS3Proxy.getUri()).region(Region.US_WEST_2).forcePathStyle(true)
+          .endpointOverride(mS3Proxy.getUri()).region(Region.US_WEST_2)
           .build();
 
       mS3Client = AmazonS3ClientBuilder

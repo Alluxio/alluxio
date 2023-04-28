@@ -212,7 +212,10 @@ public class TaskStats {
   }
 
   /**
-   * @return the sync fail reason
+   * @return the sync fail reason map
+   * The key is the load request id and the value is the failure.
+   * A reported error does not necessarily fail the sync as we retry. This map only records all
+   * failures we even encountered. Please refer to BaseTask::getState to get the sync task state.
    */
   public Map<Long, SyncFailure> getSyncFailReasons() {
     return mSyncFailReasons;
