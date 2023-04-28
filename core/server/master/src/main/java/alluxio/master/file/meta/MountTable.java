@@ -85,6 +85,11 @@ public final class MountTable implements DelegatingJournaled {
   /** The manager of all ufs. */
   private final UfsManager mUfsManager;
 
+  /** The number of mount points. **/
+  private volatile int mMountPointNum = 0;
+  /** The threshold to switch getMountPoint algorithm. **/
+  private static final int ALGORITHM_SWITCH_THRESHOLD = 5;
+
   /**
    * Creates a new instance of {@link MountTable}.
    *
@@ -129,6 +134,7 @@ public final class MountTable implements DelegatingJournaled {
       // validate the Mount operation first, error will be thrown if the operation is invalid
       validateMountPoint(alluxioUri, ufsUri, mountId, options);
       addValidated(journalContext, alluxioUri, ufsUri, mountId, options);
+      mMountPointNum = mState.getMountTable().size();
     }
   }
 
@@ -272,6 +278,7 @@ public final class MountTable implements DelegatingJournaled {
         mUfsManager.removeMount(info.getMountId());
         mState.applyAndJournal(journalContext,
             DeleteMountPointEntry.newBuilder().setAlluxioPath(path).build());
+        mMountPointNum = mState.getMountTable().size();
         return true;
       }
       LOG.warn("Mount point {} does not exist.", path);
@@ -323,18 +330,36 @@ public final class MountTable implements DelegatingJournaled {
   public String getMountPoint(AlluxioURI uri) throws InvalidPathException {
     String path = uri.getPath();
     String lastMount = ROOT;
-    List<String> possibleMounts = PathUtils.getPossibleMountPoints(path);
-    try (LockResource r = new LockResource(mReadLock)) {
-      Map<String, MountInfo> mountTable = mState.getMountTable();
-      for (String mount: possibleMounts) {
-        if (mountTable.containsKey(mount)) {
-          // results in `possibleMounts` are from shortest to longest, so it will get the
-          // longest matching below
-          lastMount = mount;
+    // If there are very limited mount points, then the
+    // first algorithm may have better performance.
+    // If there are a lot of mount points, generally the
+    // second algorithm will have better performance.
+    if (mMountPointNum <= ALGORITHM_SWITCH_THRESHOLD) {
+      try (LockResource r = new LockResource(mReadLock)) {
+        for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
+          String mount = entry.getKey();
+          // we choose a new candidate path if the previous candidate path is a prefix
+          // of the current alluxioPath and the alluxioPath is a prefix of the path
+          if (!mount.equals(ROOT) && PathUtils.hasPrefix(path, mount)
+              && lastMount.length() < mount.length()) {
+            lastMount = mount;
+          }
         }
       }
-      return lastMount;
+    } else {
+      List<String> possibleMounts = PathUtils.getPossibleMountPoints(path);
+      try (LockResource r = new LockResource(mReadLock)) {
+        Map<String, MountInfo> mountTable = mState.getMountTable();
+        for (String mount: possibleMounts) {
+          if (mountTable.containsKey(mount)) {
+            // results in `possibleMounts` are from shortest to longest, so it will get the
+            // longest matching below
+            lastMount = mount;
+          }
+        }
+      }
     }
+    return lastMount;
   }
 
   /**
