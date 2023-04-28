@@ -39,7 +39,8 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
     Assert.assertEquals("    Free Percentage: 100%", lines[6]);
     Assert.assertEquals("", lines[7]);
     Assert.assertTrue(lines[8].matches(
-        "Worker Name {6,}Last Heartbeat {3}Storage {7}MEM {14}Version {10}Revision *"));
+        "Worker Name {6,}State {11,}Last Heartbeat {3}Storage {7}MEM {14}Version {10}Revision *"));
+    Assert.assertTrue(lines[9].contains("ACTIVE"));
     Assert.assertTrue(lines[9].contains("capacity      " + size));
     Assert.assertTrue(lines[10].contains("used          0B (0%)"));
   }
@@ -68,7 +69,8 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
     Assert.assertEquals("    Free Percentage: 100%", lines[6]);
     Assert.assertEquals("", lines[7]);
     Assert.assertTrue(lines[8].matches(
-        "Worker Name {6,}Last Heartbeat {3}Storage {7}MEM {14}Version {10}Revision *"));
+        "Worker Name {6,}State {11,}Last Heartbeat {3}Storage {7}MEM {14}Version {10}Revision *"));
+    Assert.assertTrue(lines[9].contains("ACTIVE"));
     Assert.assertTrue(lines[9].contains("capacity      " + size));
     Assert.assertTrue(lines[10].contains("used          0B (0%)"));
   }

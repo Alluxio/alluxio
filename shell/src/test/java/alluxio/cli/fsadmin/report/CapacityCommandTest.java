@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.conf.Configuration;
+import alluxio.master.WorkerState;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -73,11 +74,11 @@ public class CapacityCommandTest {
           "    Used Percentage: 34%",
           "    Free Percentage: 66%",
           "",
-          "Worker Name      Last Heartbeat   Storage       Total            MEM           SSD           HDD           DOM           RAM            Version          Revision                                ",
-          "216.239.33.96    542              capacity      18.63GB          4768.37MB     4768.37MB     -             9.31GB        -              2.10.0-SNAPSHOT  0123456789abcdef0123456789abcdef01234567",
-          "                                  used          953.67MB (5%)    190.73MB      286.10MB      -             476.84MB      -                                                                       ",
-          "64.68.90.1       3123             capacity      11.18GB          3814.70MB     -             1907.35MB     -             5.59GB         2.9.3            0123456789012345678901234567890123456789",
-          "                                  used          9.31GB (83%)     2861.02MB     -             1907.35MB     -             4768.37MB                                                               ");
+          "Worker Name      State           Last Heartbeat   Storage       Total            MEM           SSD           HDD           DOM           RAM            Version          Revision                                ",
+          "216.239.33.96    ACTIVE          542              capacity      18.63GB          4768.37MB     4768.37MB     -             9.31GB        -              2.10.0-SNAPSHOT  0123456789abcdef0123456789abcdef01234567",
+          "                                                  used          953.67MB (5%)    190.73MB      286.10MB      -             476.84MB      -                                                                       ",
+          "64.68.90.1       ACTIVE          3123             capacity      11.18GB          3814.70MB     -             1907.35MB     -             5.59GB         2.9.3            0123456789012345678901234567890123456789",
+          "                                                  used          9.31GB (83%)     2861.02MB     -             1907.35MB     -             4768.37MB                                                               ");
       // CHECKSTYLE.ON: LineLengthExceed
       List<String> testOutput = Arrays.asList(output.split("\n"));
       Assert.assertThat(testOutput,
@@ -107,11 +108,11 @@ public class CapacityCommandTest {
           "    Used Percentage: 34%",
           "    Free Percentage: 66%",
           "",
-          "Worker Name      Last Heartbeat   Storage       RAM              Version          Revision                                ",
-          "215.42.95.24     953              capacity      9.31GB           2.2.4            000111222333444555666777888999aaabbbcccd",
-          "                                  used          476.84MB (5%)                                                             ",
-          "29.53.5.124      6424122          capacity      5.59GB           2.2.3            00112233445566778899aabbccddeeff00112233",
-          "                                  used          4768.37MB (83%)                                                           ");
+          "Worker Name      State           Last Heartbeat   Storage       RAM              Version          Revision                                ",
+          "215.42.95.24     ACTIVE          953              capacity      9.31GB           2.2.4            000111222333444555666777888999aaabbbcccd",
+          "                                                  used          476.84MB (5%)                                                             ",
+          "29.53.5.124      LOST            6424122          capacity      5.59GB           2.2.3            00112233445566778899aabbccddeeff00112233",
+          "                                                  used          4768.37MB (83%)                                                           ");
       List<String> testOutput = Arrays.asList(output.split("\n"));
       Assert.assertThat(testOutput,
           IsIterableContainingInOrder.contains(expectedOutput.toArray()));
@@ -145,11 +146,11 @@ public class CapacityCommandTest {
           "    Used Percentage: 34%",
           "    Free Percentage: 66%",
           "",
-          "Worker Name                 Last Heartbeat   Storage       Total            MEM           SSD           HDD            Version          Revision                                ",
-          "org.apache.hdp1             681              capacity      1907.35MB        572.20MB      572.20MB      -              2.10.0-rc1       abababababababababababababababababababab",
-          "                                             used          95.37MB (5%)     19.07MB       28.61MB       -                                                                       ",
-          "org.alluxio.long.host1      6211             capacity      1144.41MB        572.20MB      -             190.73MB       2.10.0-rc2       0101010101010101010101010101010101010101",
-          "                                             used          953.67MB (83%)   286.10MB      -             190.73MB                                                                ");
+          "Worker Name                 State           Last Heartbeat   Storage       Total            MEM           SSD           HDD            Version          Revision                                ",
+          "org.apache.hdp1             ACTIVE          681              capacity      1907.35MB        572.20MB      572.20MB      -              2.10.0-rc1       abababababababababababababababababababab",
+          "                                                             used          95.37MB (5%)     19.07MB       28.61MB       -                                                                       ",
+          "org.alluxio.long.host1      ACTIVE          6211             capacity      1144.41MB        572.20MB      -             190.73MB       2.10.0-rc2       0101010101010101010101010101010101010101",
+          "                                                             used          953.67MB (83%)   286.10MB      -             190.73MB                                                                ");
       // CHECKSTYLE.ON: LineLengthExceed
       List<String> testOutput = Arrays.asList(output.split("\n"));
 
@@ -178,7 +179,7 @@ public class CapacityCommandTest {
         .setId(1)
         .setLastContactSec(3123)
         .setStartTimeMs(1331231121212L)
-        .setState("In Service")
+        .setState(WorkerState.LIVE.toString())
         .setUsedBytes(10000000000L)
         .setUsedBytesOnTiers(usedBytesOnTiersOne)
         .setVersion("2.9.3")
@@ -199,7 +200,7 @@ public class CapacityCommandTest {
         .setId(2)
         .setLastContactSec(542)
         .setStartTimeMs(1131231121212L)
-        .setState("In Service")
+        .setState(WorkerState.LIVE.toString())
         .setUsedBytes(1000000000L)
         .setUsedBytesOnTiers(usedBytesOnTiersSec)
         .setVersion("2.10.0-SNAPSHOT")
@@ -226,7 +227,7 @@ public class CapacityCommandTest {
         .setId(1)
         .setLastContactSec(6424122)
         .setStartTimeMs(19365332L)
-        .setState("Out of Service")
+        .setState(WorkerState.LOST.toString())
         .setUsedBytes(5000000000L)
         .setUsedBytesOnTiers(usedBytesOnTiersOne)
         .setVersion("2.2.3")
@@ -243,7 +244,7 @@ public class CapacityCommandTest {
         .setId(2)
         .setLastContactSec(953)
         .setStartTimeMs(112495222L)
-        .setState("In Service")
+        .setState(WorkerState.LIVE.toString())
         .setUsedBytes(500000000L)
         .setUsedBytesOnTiers(usedBytesOnTiersSec)
         .setVersion("2.2.4")
@@ -272,7 +273,7 @@ public class CapacityCommandTest {
         .setId(1)
         .setLastContactSec(6211)
         .setStartTimeMs(1529222699127L)
-        .setState("In Service")
+        .setState(WorkerState.LIVE.toString())
         .setUsedBytes(1000000000L)
         .setUsedBytesOnTiers(usedBytesOnTiersOne)
         .setVersion("2.10.0-rc2")
@@ -291,7 +292,7 @@ public class CapacityCommandTest {
         .setId(2)
         .setLastContactSec(681)
         .setStartTimeMs(1529222699127L)
-        .setState("In Service")
+        .setState(WorkerState.LIVE.toString())
         .setUsedBytes(100000000L)
         .setUsedBytesOnTiers(usedBytesOnTiersSec)
         .setVersion("2.10.0-rc1")
