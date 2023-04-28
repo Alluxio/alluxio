@@ -31,7 +31,7 @@
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
          properly from sub-project directories -->
-    <build.path>${project.parent.basedir}/build</build.path>
+    <build.path>${project.parent.parent.basedir}/build</build.path>
     <license.dir>license</license.dir>
   </properties>
 </project>
