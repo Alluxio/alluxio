@@ -28,7 +28,8 @@ public interface UfsClient {
    * item from the UFS root (not including the bucket name for object stores).
    * It differs from a traditional listing in that if the input variable
    * checkStatus is true, the {@link UfsStatus} for the base path should
-   * be included at the start of the results.
+   * be included at the start of the results. The function should return
+   * immediately, and perform the operation asynchronously.
    * @param path the path in ufs
    * @param continuationToken the continuation token
    * @param startAfter the start after string where the loading starts from

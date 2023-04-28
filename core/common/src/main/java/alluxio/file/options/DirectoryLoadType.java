@@ -23,18 +23,25 @@ public enum DirectoryLoadType {
    * less load on the UFS than {@link DirectoryLoadType#BFS} and {@link DirectoryLoadType#DFS}
    * but will be more impacted by latency between Alluxio and the UFS as there
    * is only a single listing running.
+   * This should only be used with S3 UFS types as currently only this UFS
+   * type uses batch listing, otherwise all items will be loaded into memory
+   * before processing.
    */
   SINGLE_LISTING,
   /**
    * Load the path recursively by loading each nested directory in a separate
    * load command in a breadth first manner. Each directory will be listed in batches
    * if supported by the UFS. Listings of different directories will run concurrently.
+   * Note that this is only an approximate BFS, as batches are processed and loaded
+   * concurrently and may be loaded in different orders.
    */
   BFS,
   /**
    * Load the path recursively by loading each nested directory in a separate
-   * load command in a breadth first manner. Each directory will be listed in batches
+   * load command in a depth first manner. Each directory will be listed in batches
    * if supported by the UFS. Listings of different directories will run concurrently.
+   * Note that this is only an approximate DFS, as batches are processed and loaded
+   * concurrently and may be loaded in different orders.
    */
   DFS
 }

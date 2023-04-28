@@ -62,7 +62,7 @@ public class TaskTrackerTest {
 
   ExecutorService mThreadPool;
   TaskTracker mTaskTracker;
-  MdSync mMdSync;
+  MetadataSyncHandler mMetadataSyncHandler;
   MockUfsClient mUfsClient;
   UfsSyncPathCache mUfsSyncPathCache;
   UfsAbsentPathCache mAbsentCache;
@@ -93,7 +93,7 @@ public class TaskTrackerTest {
     DefaultFileSystemMaster defaultFileSystemMaster = Mockito.mock(DefaultFileSystemMaster.class);
     Mockito.when(defaultFileSystemMaster.createJournalContext())
         .thenReturn(NoopJournalContext.INSTANCE);
-    mMdSync = new MdSync(mTaskTracker, defaultFileSystemMaster, null);
+    mMetadataSyncHandler = new MetadataSyncHandler(mTaskTracker, defaultFileSystemMaster, null);
   }
 
   @After
@@ -155,7 +155,8 @@ public class TaskTrackerTest {
     mTaskTracker = new TaskTracker(
         concurrentProcessing, concurrentUfsLoads, false, false,
         mUfsSyncPathCache, mAbsentCache, mSyncProcess, this::getClient);
-    mMdSync = new MdSync(mTaskTracker, mMdSync.mFsMaster, null);
+    mMetadataSyncHandler = new MetadataSyncHandler(
+        mTaskTracker, mMetadataSyncHandler.mFsMaster, null);
     mUfsClient.setListingResultFunc(path -> {
       int nxtItem = remainingLoadCount.decrementAndGet();
       boolean truncated = nxtItem > 0;
@@ -174,7 +175,8 @@ public class TaskTrackerTest {
       rateLimiterBlocker.acquire();
 
       Future<Pair<Boolean, BaseTask>> task = mThreadPool.submit(() ->
-          mTaskTracker.checkTask(mMdSync, new AlluxioURI("/"), new AlluxioURI("/"), null,
+          mTaskTracker.checkTask(mMetadataSyncHandler, new AlluxioURI("/"),
+              new AlluxioURI("/"), null,
               DescendantType.ALL, 0, DirectoryLoadType.SINGLE_LISTING));
 
       for (int j = 0; j < totalBatches; j++) {
@@ -207,7 +209,8 @@ public class TaskTrackerTest {
     mTaskTracker = new TaskTracker(
         concurrentProcessing, concurrentUfsLoads, false, false,
         mUfsSyncPathCache, mAbsentCache, mSyncProcess, this::getClient);
-    mMdSync = new MdSync(mTaskTracker, mMdSync.mFsMaster, null);
+    mMetadataSyncHandler = new MetadataSyncHandler(
+        mTaskTracker, mMetadataSyncHandler.mFsMaster, null);
     AtomicInteger remainingLoadCount = new AtomicInteger(totalBatches);
     AtomicInteger processingCount = new AtomicInteger(0);
     mUfsClient.setListingResultFunc(path -> {
@@ -229,7 +232,8 @@ public class TaskTrackerTest {
         return ans.callRealMethod();
       }).when(mSyncProcess).performSync(any(), any());
       Future<Pair<Boolean, BaseTask>> task = mThreadPool.submit(() ->
-          mTaskTracker.checkTask(mMdSync, new AlluxioURI("/"), new AlluxioURI("/"), null,
+          mTaskTracker.checkTask(mMetadataSyncHandler, new AlluxioURI("/"),
+              new AlluxioURI("/"), null,
               DescendantType.ALL, 0, DirectoryLoadType.SINGLE_LISTING));
       CommonUtils.waitForResult("Concurrent load", remainingLoadCount::get,
           v -> v == totalBatches - concurrentUfsLoads - concurrentProcessing,
@@ -269,7 +273,7 @@ public class TaskTrackerTest {
     Mockito.doReturn(SyncCheck.shouldSyncWithTime(0))
         .when(mUfsSyncPathCache).shouldSyncPath(any(), anyLong(), any());
 
-    mMdSync = new MdSync(mTaskTracker, null, null);
+    mMetadataSyncHandler = new MetadataSyncHandler(mTaskTracker, null, null);
     for (int i = 0; i < 100; i++) {
       for (DirectoryLoadType loadType
           : ImmutableList.of(DirectoryLoadType.DFS, DirectoryLoadType.BFS)) {
@@ -282,7 +286,8 @@ public class TaskTrackerTest {
         });
 
         Future<Pair<Boolean, BaseTask>> task = mThreadPool.submit(() ->
-            mTaskTracker.checkTask(mMdSync, new AlluxioURI("/"), new AlluxioURI("/"), null,
+            mTaskTracker.checkTask(mMetadataSyncHandler, new AlluxioURI("/"),
+                new AlluxioURI("/"), null,
                 DescendantType.ALL, 0, loadType));
         Pair<Boolean, BaseTask> result = task.get();
         assertThrows(IOException.class, () -> result.getSecond().waitComplete(WAIT_TIMEOUT));
@@ -316,13 +321,14 @@ public class TaskTrackerTest {
       }
     });
 
-    mMdSync = new MdSync(mTaskTracker, null, null);
+    mMetadataSyncHandler = new MetadataSyncHandler(mTaskTracker, null, null);
     for (int i = 0; i < 100; i++) {
       for (DirectoryLoadType loadType
           : ImmutableList.of(DirectoryLoadType.DFS, DirectoryLoadType.BFS)) {
         remainingLoadCount.set(totalBatches);
         Future<Pair<Boolean, BaseTask>> task = mThreadPool.submit(() ->
-            mTaskTracker.checkTask(mMdSync, new AlluxioURI("/"), new AlluxioURI("/"), null,
+            mTaskTracker.checkTask(mMetadataSyncHandler, new AlluxioURI("/"),
+                new AlluxioURI("/"), null,
                 DescendantType.ALL, 0, loadType));
         Pair<Boolean, BaseTask> result = task.get();
         assertFalse(result.getFirst());
@@ -343,7 +349,8 @@ public class TaskTrackerTest {
     mTaskTracker = new TaskTracker(
         concurrentProcessing, concurrentUfsLoads, false, false,
         mUfsSyncPathCache, mAbsentCache, mSyncProcess, this::getClient);
-    mMdSync = new MdSync(mTaskTracker, mMdSync.mFsMaster, null);
+    mMetadataSyncHandler = new MetadataSyncHandler(
+        mTaskTracker, mMetadataSyncHandler.mFsMaster, null);
     Mockito.doReturn(SyncCheck.shouldSyncWithTime(0))
         .when(mUfsSyncPathCache).shouldSyncPath(any(), anyLong(), any());
     AtomicInteger remainingLoadCount = new AtomicInteger(totalBatches);
@@ -363,7 +370,8 @@ public class TaskTrackerTest {
         remainingLoadCount.set(totalBatches);
 
         Future<Pair<Boolean, BaseTask>> task = mThreadPool.submit(() ->
-            mTaskTracker.checkTask(mMdSync, new AlluxioURI("/"), new AlluxioURI("/"), null,
+            mTaskTracker.checkTask(mMetadataSyncHandler, new AlluxioURI("/"),
+                new AlluxioURI("/"), null,
                 DescendantType.ALL, 0, loadType));
         Pair<Boolean, BaseTask> result = task.get();
         assertTrue(result.getFirst());
@@ -385,7 +393,7 @@ public class TaskTrackerTest {
     mTaskTracker = new TaskTracker(
         concurrentProcessing, concurrentUfsLoads, false, false,
         mUfsSyncPathCache, mAbsentCache, mSyncProcess, this::getClient);
-    mMdSync = new MdSync(mTaskTracker, null, null);
+    mMetadataSyncHandler = new MetadataSyncHandler(mTaskTracker, null, null);
     AtomicInteger remainingLoadCount = new AtomicInteger(totalBatches);
     AtomicInteger processingCount = new AtomicInteger(0);
     mUfsClient.setListingResultFunc(path -> {
@@ -406,7 +414,8 @@ public class TaskTrackerTest {
       remainingLoadCount.set(totalBatches);
       processingCount.set(0);
       Future<Pair<Boolean, BaseTask>> task = mThreadPool.submit(() ->
-          mTaskTracker.checkTask(mMdSync, new AlluxioURI("/"), new AlluxioURI("/"), null,
+          mTaskTracker.checkTask(mMetadataSyncHandler, new AlluxioURI("/"),
+              new AlluxioURI("/"), null,
               DescendantType.ALL, 0, DirectoryLoadType.SINGLE_LISTING));
       Pair<Boolean, BaseTask> result = task.get();
       assertFalse(result.getFirst());
@@ -427,7 +436,7 @@ public class TaskTrackerTest {
     mTaskTracker = new TaskTracker(
         concurrentProcessing, concurrentUfsLoads, false, false,
         mUfsSyncPathCache, mAbsentCache, mSyncProcess, this::getClient);
-    mMdSync = new MdSync(mTaskTracker, null, null);
+    mMetadataSyncHandler = new MetadataSyncHandler(mTaskTracker, null, null);
     AtomicInteger remainingLoadCount = new AtomicInteger(totalBatches);
     mUfsClient.setListingResultFunc(path -> {
       int nxtItem = remainingLoadCount.decrementAndGet();
@@ -442,7 +451,8 @@ public class TaskTrackerTest {
     for (int i = 0; i < 100; i++) {
       remainingLoadCount.set(totalBatches);
       Future<Pair<Boolean, BaseTask>> task = mThreadPool.submit(() ->
-          mTaskTracker.checkTask(mMdSync, new AlluxioURI("/"), new AlluxioURI("/"), null,
+          mTaskTracker.checkTask(mMetadataSyncHandler, new AlluxioURI("/"),
+              new AlluxioURI("/"), null,
               DescendantType.ALL, 0, DirectoryLoadType.SINGLE_LISTING));
       Pair<Boolean, BaseTask> result = task.get();
       assertFalse(result.getFirst());
@@ -461,7 +471,8 @@ public class TaskTrackerTest {
     mTaskTracker = new TaskTracker(
         1, concurrentUfsLoads, false, false,
         mUfsSyncPathCache, mAbsentCache, mSyncProcess, this::getClient);
-    mMdSync = new MdSync(mTaskTracker, mMdSync.mFsMaster, null);
+    mMetadataSyncHandler = new MetadataSyncHandler(mTaskTracker,
+        mMetadataSyncHandler.mFsMaster, null);
     AtomicInteger count = new AtomicInteger(totalBatches);
     mUfsClient.setListingResultFunc(path -> {
       int nxtItem = count.decrementAndGet();
@@ -481,7 +492,8 @@ public class TaskTrackerTest {
       }).when(mSyncProcess).performSync(any(), any());
 
       Future<Pair<Boolean, BaseTask>> task = mThreadPool.submit(() ->
-          mTaskTracker.checkTask(mMdSync, new AlluxioURI("/"), new AlluxioURI("/"), null,
+          mTaskTracker.checkTask(mMetadataSyncHandler, new AlluxioURI("/"),
+              new AlluxioURI("/"), null,
               DescendantType.ALL, 0, DirectoryLoadType.SINGLE_LISTING));
       CommonUtils.waitForResult("Concurrent load", count::get,
           v -> v == totalBatches - concurrentUfsLoads - 1,
@@ -514,8 +526,8 @@ public class TaskTrackerTest {
       // Use load type BFS, there should be a load task for both / and /dir
       Mockito.doReturn(SyncCheck.shouldSyncWithTime(0))
           .when(mUfsSyncPathCache).shouldSyncPath(any(), anyLong(), any());
-      Pair<Boolean, BaseTask> result = mTaskTracker.checkTask(mMdSync, new AlluxioURI("/"),
-          new AlluxioURI("/"), null,
+      Pair<Boolean, BaseTask> result = mTaskTracker.checkTask(mMetadataSyncHandler,
+          new AlluxioURI("/"), new AlluxioURI("/"), null,
           DescendantType.ALL, 0, DirectoryLoadType.BFS);
       assertTrue(result.getFirst());
       result.getSecond().waitComplete(WAIT_TIMEOUT);
@@ -525,7 +537,8 @@ public class TaskTrackerTest {
       // run the same request, except have the sync for the nested directory not be needed
       Mockito.doReturn(SyncCheck.shouldNotSyncWithTime(0))
           .when(mUfsSyncPathCache).shouldSyncPath(any(), anyLong(), any());
-      result = mTaskTracker.checkTask(mMdSync, new AlluxioURI("/"), new AlluxioURI("/"), null,
+      result = mTaskTracker.checkTask(mMetadataSyncHandler, new AlluxioURI("/"),
+          new AlluxioURI("/"), null,
           DescendantType.ALL, 0, DirectoryLoadType.BFS);
       assertTrue(result.getFirst());
       result.getSecond().waitComplete(WAIT_TIMEOUT);
@@ -538,8 +551,8 @@ public class TaskTrackerTest {
   public void basicSyncTest() throws Throwable {
     for (int i = 0; i < 100; i++) {
       mUfsClient.setResult(Collections.singletonList(Stream.of(mFileStatus)).iterator());
-      Pair<Boolean, BaseTask> result = mTaskTracker.checkTask(mMdSync, new AlluxioURI("/"),
-          new AlluxioURI("/"), null,
+      Pair<Boolean, BaseTask> result = mTaskTracker.checkTask(mMetadataSyncHandler,
+          new AlluxioURI("/"), new AlluxioURI("/"), null,
           DescendantType.ONE, 0, DirectoryLoadType.SINGLE_LISTING);
       assertTrue(result.getFirst());
       result.getSecond().waitComplete(WAIT_TIMEOUT);
@@ -554,8 +567,8 @@ public class TaskTrackerTest {
     for (int i = 0; i < 100; i++) {
       mUfsClient.setResult(ImmutableList.of(Stream.of(mFileStatus),
           Stream.of(mFileStatus)).iterator());
-      Pair<Boolean, BaseTask> result = mTaskTracker.checkTask(mMdSync, new AlluxioURI("/"),
-          new AlluxioURI("/"), null,
+      Pair<Boolean, BaseTask> result = mTaskTracker.checkTask(mMetadataSyncHandler,
+          new AlluxioURI("/"), new AlluxioURI("/"), null,
           DescendantType.ONE, 0, DirectoryLoadType.SINGLE_LISTING);
       assertTrue(result.getFirst());
       result.getSecond().waitComplete(WAIT_TIMEOUT);
@@ -569,8 +582,8 @@ public class TaskTrackerTest {
     // Ufs loads return errors until failure
     for (int i = 0; i < 100; i++) {
       mUfsClient.setError(new Throwable());
-      Pair<Boolean, BaseTask> result = mTaskTracker.checkTask(mMdSync, new AlluxioURI("/"),
-          new AlluxioURI("/"), null,
+      Pair<Boolean, BaseTask> result = mTaskTracker.checkTask(mMetadataSyncHandler,
+          new AlluxioURI("/"), new AlluxioURI("/"), null,
           DescendantType.ONE, 0, DirectoryLoadType.SINGLE_LISTING);
       assertFalse(result.getFirst());
       assertThrows(Throwable.class, () -> result.getSecond().waitComplete(WAIT_TIMEOUT));
@@ -594,7 +607,7 @@ public class TaskTrackerTest {
     });
     for (int i = 0; i < 100; i++) {
       count.set(totalBatches);
-      Pair<Boolean, BaseTask> result = mTaskTracker.checkTask(mMdSync,
+      Pair<Boolean, BaseTask> result = mTaskTracker.checkTask(mMetadataSyncHandler,
           new AlluxioURI("/"), new AlluxioURI("/"), null, DescendantType.ONE, 0,
           DirectoryLoadType.SINGLE_LISTING);
       assertTrue(result.getFirst());
@@ -612,8 +625,8 @@ public class TaskTrackerTest {
       mUfsClient.setResult(ImmutableList.of(Stream.of(mFileStatus),
           Stream.of(mFileStatus)).iterator());
       Mockito.doThrow(new IOException()).when(mSyncProcess).performSync(any(), any());
-      Pair<Boolean, BaseTask> result = mTaskTracker.checkTask(mMdSync, new AlluxioURI("/"),
-          new AlluxioURI("/"), null,
+      Pair<Boolean, BaseTask> result = mTaskTracker.checkTask(mMetadataSyncHandler,
+          new AlluxioURI("/"), new AlluxioURI("/"), null,
           DescendantType.ONE, 0, DirectoryLoadType.SINGLE_LISTING);
       assertFalse(result.getFirst());
       assertThrows(IOException.class, () -> result.getSecond().waitComplete(WAIT_TIMEOUT));
@@ -636,11 +649,13 @@ public class TaskTrackerTest {
       }).when(mSyncProcess).performSync(any(), any());
       // Submit two concurrent tasks on the same path
       Future<Pair<Boolean, BaseTask>> task1 = mThreadPool.submit(() ->
-          mTaskTracker.checkTask(mMdSync, new AlluxioURI("/"), new AlluxioURI("/"), null,
+          mTaskTracker.checkTask(mMetadataSyncHandler, new AlluxioURI("/"),
+              new AlluxioURI("/"), null,
               DescendantType.ONE, 0, DirectoryLoadType.SINGLE_LISTING));
       assertThrows(TimeoutException.class, () -> task1.get(1, TimeUnit.SECONDS));
       Future<Pair<Boolean, BaseTask>> task2 = mThreadPool.submit(() ->
-          mTaskTracker.checkTask(mMdSync, new AlluxioURI("/"), new AlluxioURI("/"), null,
+          mTaskTracker.checkTask(mMetadataSyncHandler, new AlluxioURI("/"),
+              new AlluxioURI("/"), null,
               DescendantType.ONE, 0, DirectoryLoadType.SINGLE_LISTING));
       assertThrows(TimeoutException.class, () -> task2.get(1, TimeUnit.SECONDS));
       // Let one task be processed

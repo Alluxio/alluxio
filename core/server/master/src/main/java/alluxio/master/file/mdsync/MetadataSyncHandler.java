@@ -25,7 +25,7 @@ import java.util.Optional;
  * standard interface in order to allow changes in the future, for example calling
  * separate components over the network.
  */
-public class MdSync {
+public class MetadataSyncHandler {
 
   private final TaskTracker mTaskTracker;
   @VisibleForTesting
@@ -38,7 +38,8 @@ public class MdSync {
    * @param fsMaster the file system master
    * @param inodeTree the inode tree
    */
-  public MdSync(TaskTracker taskTracker, DefaultFileSystemMaster fsMaster, InodeTree inodeTree) {
+  public MetadataSyncHandler(
+      TaskTracker taskTracker, DefaultFileSystemMaster fsMaster, InodeTree inodeTree) {
     mTaskTracker = taskTracker;
     mFsMaster = fsMaster;
     mInodeTree = inodeTree;

@@ -1184,8 +1184,8 @@ $ ./bin/alluxio fs loadMetadata -v2 -R -d <type> -a <path>
 Options:
 * `-d <type>` option that determines how alluxio will load metadata of subdirectories, if a recursive loading is required. Possible values:
   * SINGLE_LISTING (default): Loads the file infos from UFS using a single listing. Use this mode if the directory does not contain or only contains few subdirectories. This mode gives you better reliability. This mode is only allowed on some object storage where single listing is allowed (e.g. ListObjectsV2 in s3).
-  * BFS: Loads the file infos on a directory basis; Creates a new job to load the subdirectory; Use this mode if your UFS directory contains many subdirectories. This mode loads the metadata for each subdirectory concurrently and gives you the best performance.  
-  * DFS: Loads the file infos directory by directory, in a DFS way.  
+  * BFS: Loads the file infos on a directory basis; Creates a new job to load the subdirectory; Use this mode if your UFS directory contains many subdirectories. This mode loads the metadata for each subdirectory concurrently and gives you the best performance. Note that this is only an approximate BFS, as batches are processed and loaded concurrently and may be loaded in different orders.
+  * DFS: Loads the file infos directory by directory, in a DFS way.  Note that this is only an approximate DFS, as batches are processed and loaded concurrently and may be loaded in different orders.  
 * `-R` option recursively loads metadata in subdirectories
 * `-a/--async` If specified, the metadata loading states are pulled and printed every couple of seconds until the sync job is finished. Otherwise, the command line is blocked until the sync job is finished. Note that regardless this option is specified or not, the metadata sync task is processed asynchronously by alluxio master and this option only changes the behavior of display. Hence closing the terminal or CTRL+C do not cancel the sync job.  
 

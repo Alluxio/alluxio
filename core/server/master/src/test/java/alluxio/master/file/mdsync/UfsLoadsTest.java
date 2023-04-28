@@ -36,7 +36,7 @@ import java.util.concurrent.Executors;
 public class UfsLoadsTest {
   ExecutorService mThreadPool;
   TaskTracker mTaskTracker;
-  MdSync mMdSync;
+  MetadataSyncHandler mMetadataSyncHandler;
   MockUfsClient mUfsClient;
   UfsSyncPathCache mUfsSyncPathCache;
   UfsAbsentPathCache mAbsentPathCache;
@@ -71,7 +71,7 @@ public class UfsLoadsTest {
     mTaskTracker = new TaskTracker(
         1, 1, false, false,
         mUfsSyncPathCache, mAbsentPathCache, mSyncProcess, this::getClient);
-    mMdSync = new MdSync(mTaskTracker, null, null);
+    mMetadataSyncHandler = new MetadataSyncHandler(mTaskTracker, null, null);
   }
 
   @After

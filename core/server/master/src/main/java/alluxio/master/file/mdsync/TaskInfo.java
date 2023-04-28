@@ -30,7 +30,7 @@ public class TaskInfo {
   private final long mId;
   private final DirectoryLoadType mLoadByDirectory;
   private final long mSyncInterval;
-  private final MdSync mMdSync;
+  private final MetadataSyncHandler mMetadataSyncHandler;
   private final TaskStats mStats;
   private final long mMountId;
   private final boolean mCheckNestedMount;
@@ -38,7 +38,7 @@ public class TaskInfo {
   private final TrieNode<AlluxioURI> mPathsToUpdateDirectChildrenLoaded = new TrieNode<>();
 
   TaskInfo(
-      MdSync mdSync,
+      MetadataSyncHandler metadataSyncHandler,
       AlluxioURI ufsPath, // basePath should be without the header/bucket, e.g. no s3://
       AlluxioURI alluxioPath,
       @Nullable String startAfter,
@@ -55,7 +55,7 @@ public class TaskInfo {
     mLoadByDirectory = loadByDirectory;
     mId = id;
     mStartAfter = startAfter;
-    mMdSync = mdSync;
+    mMetadataSyncHandler = metadataSyncHandler;
     mStats = new TaskStats();
     mMountId = mountId;
     mCheckNestedMount = checkNestedMount;
@@ -97,8 +97,8 @@ public class TaskInfo {
   /**
    * @return the metadata sync kernel
    */
-  public MdSync getMdSync() {
-    return mMdSync;
+  public MetadataSyncHandler getMdSync() {
+    return mMetadataSyncHandler;
   }
 
   /**

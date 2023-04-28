@@ -31,7 +31,7 @@ import java.util.function.Function;
 
 public class BaseTaskTest {
 
-  private MdSync mMdSync;
+  private MetadataSyncHandler mMetadataSyncHandler;
 
   private final Clock mClock = Clock.systemUTC();
 
@@ -45,12 +45,12 @@ public class BaseTaskTest {
 
   @Before
   public void before() {
-    mMdSync = new MdSync(Mockito.mock(TaskTracker.class), null, null);
+    mMetadataSyncHandler = new MetadataSyncHandler(Mockito.mock(TaskTracker.class), null, null);
   }
 
   @Test
   public void PathIsCoveredNone() {
-    BaseTask path = BaseTask.create(new TaskInfo(mMdSync, new AlluxioURI("/path"),
+    BaseTask path = BaseTask.create(new TaskInfo(mMetadataSyncHandler, new AlluxioURI("/path"),
         new AlluxioURI("/path"), null,
         NONE, 0, DirectoryLoadType.SINGLE_LISTING, 0, 0, true), mClock.millis(), mClientSupplier);
     assertTrue(path.pathIsCovered(new AlluxioURI("/path"), NONE));
@@ -74,7 +74,7 @@ public class BaseTaskTest {
 
   @Test
   public void PathIsCoveredOne() {
-    BaseTask path = BaseTask.create(new TaskInfo(mMdSync, new AlluxioURI("/path"),
+    BaseTask path = BaseTask.create(new TaskInfo(mMetadataSyncHandler, new AlluxioURI("/path"),
         new AlluxioURI("/path"), null,
         ONE, 0, DirectoryLoadType.SINGLE_LISTING, 0, 0, true), mClock.millis(), mClientSupplier);
     assertTrue(path.pathIsCovered(new AlluxioURI("/path"), NONE));
@@ -101,7 +101,7 @@ public class BaseTaskTest {
 
   @Test
   public void PathIsCoveredAll() {
-    BaseTask path = BaseTask.create(new TaskInfo(mMdSync, new AlluxioURI("/path"),
+    BaseTask path = BaseTask.create(new TaskInfo(mMetadataSyncHandler, new AlluxioURI("/path"),
         new AlluxioURI("/path"), null,
         ALL, 0, DirectoryLoadType.SINGLE_LISTING, 0, 0, true), mClock.millis(), mClientSupplier);
     assertTrue(path.pathIsCovered(new AlluxioURI("/path"), NONE));

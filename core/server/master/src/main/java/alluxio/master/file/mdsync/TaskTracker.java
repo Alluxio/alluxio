@@ -234,7 +234,7 @@ public class TaskTracker implements Closeable {
   /**
    * Launches a metadata sync task asynchronously with the given parameters.
    * This function should be used when manually launching metadata sync tasks.
-   * @param mdSync the MdSync object
+   * @param metadataSyncHandler the MdSync object
    * @param ufsPath the ufsPath to sync
    * @param alluxioPath the alluxio path matching the mounted ufsPath
    * @param mountId the mount id; each task is only for one mount point
@@ -247,7 +247,7 @@ public class TaskTracker implements Closeable {
    * @return the running task object
    */
   public BaseTask launchTaskAsync(
-      MdSync mdSync,
+      MetadataSyncHandler metadataSyncHandler,
       AlluxioURI ufsPath, AlluxioURI alluxioPath,
       long mountId,
       @Nullable String startAfter,
@@ -265,7 +265,7 @@ public class TaskTracker implements Closeable {
             Preconditions.checkState(newNode.getValue() == null);
             final long id = mNxtId++;
             BaseTask newTask = BaseTask.create(
-                new TaskInfo(mdSync, ufsPath, alluxioPath, startAfter,
+                new TaskInfo(metadataSyncHandler, ufsPath, alluxioPath, startAfter,
                     depth, syncInterval, loadByDirectory, id, mountId, checkNestedMount),
                 mSyncPathCache.recordStartSync(),
                 mClientSupplier,
@@ -293,7 +293,7 @@ public class TaskTracker implements Closeable {
    * completed entirely. As the directory is traversed, this function should
    * be called on each subsequent path until the sync is complete.
    * TODO(tcrain) integrate this in the filesystem operations traversal
-   * @param mdSync the MdSync object
+   * @param metadataSyncHandler the MdSync object
    * @param ufsPath the ufsPath to sync
    * @param alluxioPath the alluxio path matching the mounted ufsPath
    * @param startAfter if the sync should start after a given internal path
@@ -304,13 +304,13 @@ public class TaskTracker implements Closeable {
    */
   @VisibleForTesting
   public Pair<Boolean, BaseTask> checkTask(
-      MdSync mdSync,
+      MetadataSyncHandler metadataSyncHandler,
       AlluxioURI ufsPath, AlluxioURI alluxioPath,
       @Nullable String startAfter,
       DescendantType depth, long syncInterval,
       DirectoryLoadType loadByDirectory) {
     // TODO(elega/tcrain) This method needs to be updated to support nested sync
-    BaseTask task = launchTaskAsync(mdSync, ufsPath, alluxioPath, 0, startAfter,
+    BaseTask task = launchTaskAsync(metadataSyncHandler, ufsPath, alluxioPath, 0, startAfter,
         depth, syncInterval, loadByDirectory, true, true);
     return new Pair<>(task.waitForSync(ufsPath), task);
   }

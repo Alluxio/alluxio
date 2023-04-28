@@ -37,9 +37,16 @@ import alluxio.master.file.mdsync.SyncFailReason;
 import alluxio.master.file.mdsync.SyncOperation;
 import alluxio.master.file.mdsync.TaskStats;
 import alluxio.master.file.mdsync.TestSyncProcessor;
+import alluxio.master.file.meta.MountTable;
+import alluxio.resource.CloseableResource;
+import alluxio.underfs.UfsClient;
+import alluxio.underfs.UfsLoadResult;
+import alluxio.underfs.UfsStatus;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.wire.FileInfo;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,7 +57,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -72,6 +81,54 @@ public class FileSystemMetadataSyncV2Test extends MetadataSyncV2TestBase {
 
   public FileSystemMetadataSyncV2Test(DirectoryLoadType directoryLoadType) {
     mDirectoryLoadType = directoryLoadType;
+  }
+
+  @Test
+  public void asyncListingOperations() throws Exception {
+    mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
+    mS3Client.putObject(TEST_BUCKET, TEST_DIRECTORY + "/" + TEST_FILE, TEST_CONTENT);
+    mS3Client.putObject(TEST_BUCKET,
+        TEST_DIRECTORY + "/" + TEST_DIRECTORY + "/" + TEST_FILE, TEST_CONTENT);
+
+    // with depth none only include the path itself
+    assertEquals(ImmutableList.of(TEST_DIRECTORY + "/"),
+        listAsync(MOUNT_POINT.join(TEST_DIRECTORY), DescendantType.NONE)
+            .getItems().map(UfsStatus::getName).collect(Collectors.toList()));
+    // depth one will have the file and nested directory
+    assertEquals(ImmutableList.of(TEST_DIRECTORY + "/" + TEST_DIRECTORY + "/",
+            TEST_DIRECTORY + "/" + TEST_FILE),
+        listAsync(MOUNT_POINT.join(TEST_DIRECTORY), DescendantType.ONE)
+            .getItems().map(UfsStatus::getName).collect(Collectors.toList()));
+    // depth all will only have the files
+    assertEquals(ImmutableList.of(TEST_DIRECTORY + "/" + TEST_DIRECTORY + "/" + TEST_FILE,
+            TEST_DIRECTORY + "/" + TEST_FILE),
+        listAsync(MOUNT_POINT.join(TEST_DIRECTORY), DescendantType.ALL)
+            .getItems().map(UfsStatus::getName).collect(Collectors.toList()));
+  }
+
+  UfsLoadResult listAsync(AlluxioURI alluxioPath, DescendantType descendantType) throws Exception {
+    MountTable.Resolution resolution = mFileSystemMaster.getMountTable().resolve(alluxioPath);
+    try (CloseableResource<UnderFileSystem> ufsClient =
+             Objects.requireNonNull(mFileSystemMaster.getMountTable()
+                 .getUfsClient(resolution.getMountId())).acquireUfsResource()) {
+      UfsClient cli = ufsClient.get();
+      SynchronousQueue<Object> result = new SynchronousQueue<>();
+      cli.performListingAsync(resolution.getUri().getPath(), null, null, descendantType, true,
+          ufsResult -> {
+            try {
+              result.put(ufsResult);
+            } catch (InterruptedException e) {
+              throw new RuntimeException(e);
+            }
+          }, t -> {
+            try {
+              result.put(t);
+            } catch (InterruptedException e) {
+              throw new RuntimeException(e);
+            }
+          });
+      return (UfsLoadResult) result.take();
+    }
   }
 
   @Test

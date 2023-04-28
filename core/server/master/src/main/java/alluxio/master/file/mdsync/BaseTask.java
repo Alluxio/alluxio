@@ -273,7 +273,7 @@ public abstract class BaseTask implements PathWaiter {
     if (t != null && getState() != State.CANCELED) {
       builder.setException(SyncMetadataTask.Exception.newBuilder()
           .setExceptionType(t.getClass().getTypeName())
-          .setExceptionMessage(t.getMessage())
+          .setExceptionMessage(t.getMessage() == null ? "" : t.getMessage())
           .setStacktrace(ExceptionUtils.asPlainText(t)));
     }
     builder.setTaskInfoString(getTaskInfo().toString());

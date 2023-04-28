@@ -71,7 +71,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import org.apache.commons.collections4.iterators.PeekingIterator;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.PeekingIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,7 +114,7 @@ public class DefaultSyncProcess implements SyncProcess {
   private final InodeTree mInodeTree;
 
   private final TaskTracker mTaskTracker;
-  private final MdSync mMdSync;
+  private final MetadataSyncHandler mMetadataSyncHandler;
   private final boolean mIgnoreTTL =
       Configuration.getBoolean(PropertyKey.MASTER_METADATA_SYNC_IGNORE_TTL);
   private final CreateFilePOptions mCreateFilePOptions =
@@ -149,7 +150,7 @@ public class DefaultSyncProcess implements SyncProcess {
         Configuration.getBoolean(PropertyKey.MASTER_METADATA_SYNC_UFS_CONCURRENT_GET_STATUS),
         Configuration.getBoolean(PropertyKey.MASTER_METADATA_SYNC_UFS_CONCURRENT_LISTING),
         syncPathCache, absentPathCache, this, this::getUfsClient);
-    mMdSync = new MdSync(mTaskTracker, fsMaster, inodeTree);
+    mMetadataSyncHandler = new MetadataSyncHandler(mTaskTracker, fsMaster, inodeTree);
     mUfsAbsentCache = absentPathCache;
   }
 
@@ -226,7 +227,7 @@ public class DefaultSyncProcess implements SyncProcess {
           boolean containNestedMount =
               mMountTable.findChildrenMountPoints(
                   mountInfo.getAlluxioUri(), false).size() > 0;
-          return mTaskTracker.launchTaskAsync(mMdSync, mountInfo.getUfsUri(),
+          return mTaskTracker.launchTaskAsync(mMetadataSyncHandler, mountInfo.getUfsUri(),
               mountInfo.getAlluxioUri(), mountInfo.getMountId(), null, descendantType,
               syncInterval, directoryLoadType, !isAsyncMetadataLoading,
               containNestedMount);
@@ -237,7 +238,8 @@ public class DefaultSyncProcess implements SyncProcess {
     }
     AlluxioURI ufsPath = resolution.getUri();
     TaskGroup group = new TaskGroup(groupId,
-        Stream.concat(Stream.of(mTaskTracker.launchTaskAsync(mMdSync, ufsPath, alluxioPath,
+        Stream.concat(Stream.of(mTaskTracker.launchTaskAsync(
+            mMetadataSyncHandler, ufsPath, alluxioPath,
             resolution.getMountId(), startAfter, descendantType, syncInterval, directoryLoadType,
                 !isAsyncMetadataLoading, syncRootContainNestedMount)), tasks)
             .toArray(BaseTask[]::new));
@@ -355,9 +357,9 @@ public class DefaultSyncProcess implements SyncProcess {
           return item;
         });
 
-        PeekingIterator<UfsItem> ufsIterator = new PeekingIterator<>(stream.iterator());
+        PeekingIterator<UfsItem> ufsIterator = Iterators.peekingIterator(stream.iterator());
         // Check if the root of the path being synced is a file
-        UfsItem firstItem = ufsIterator.peek();
+        UfsItem firstItem = ufsIterator.hasNext() ? ufsIterator.peek() : null;
         boolean baseSyncPathIsFile = firstItem != null && firstItem.mUfsItem.isFile()
             && PathUtils.normalizePathStart(firstItem.mUfsItem.getName(), AlluxioURI.SEPARATOR)
             .equals(loadResult.getBaseLoadPath().getPath());
@@ -494,7 +496,6 @@ public class DefaultSyncProcess implements SyncProcess {
     //    4. unlock /foo
     //    5. move two pointers
     while (currentInode != null || currentUfsStatus != null) {
-      //       String s = (currentUfsStatus == null ? "null" : currentUfsStatus.mAlluxioPath);
       SingleInodeSyncResult result = performSyncOne(syncState, currentUfsStatus, currentInode);
       if (result.mSkipChildren) {
         syncState.mInodeIterator.skipChildrenOfTheCurrent();
@@ -642,36 +643,9 @@ public class DefaultSyncProcess implements SyncProcess {
     if (syncPlan.toUpdateMetaData() || syncPlan.toDelete() || syncPlan.toLoadMetadata()) {
       try {
         if (syncPlan.toUpdateMetaData()) {
-          /*
-            Inode obtained from the iterator might be stale, especially if the inode is persisted
-            in the rocksDB. This in generally should not cause issues. But if the sync plan is to
-            update the inode, the inode reference might not be the inode we want to update, and we
-            might do wrong updates in an incorrect inode.
-            e.g. considering the following steps:
-              1. create a file /file in alluxio, the file is persisted in UFS
-              2. change the MODE of /file, without applying this change in UFS
-              3. do a metadata sync on /file, as the fingerprints are different,
-                 /file is expected to be updated using the metadata from UFS
-              4. during the metadata sync, the file /file is deleted from alluxio, a DIRECTORY
-                 with the same name /file is created
-              5. the metadata of /file in UFS will be used to update the directory /file, which
-                 is incorrect.
-              To prevent this from happening, we re-fetch the inode from the locked inode path
-              and makes sure the reference is the same, before we update the inode.
-           */
-          Inode inode = lockedInodePath.getInode();
-          if (inode.getId() != currentInode.getInode().getId()
-              || !currentInode.getInode().getUfsFingerprint().equals(inode.getUfsFingerprint())) {
-            handleConcurrentModification(
-                syncState.mContext, lockedInodePath.getUri().getPath(),
-                false,
-                new FileAlreadyExistsException(
-                    "Inode has been concurrently modified during metadata sync."));
-          } else {
-            updateInodeMetadata(syncState.mContext, lockedInodePath, currentUfsStatus.mUfsItem,
-                ufsFingerprint);
-            syncState.mContext.reportSyncOperationSuccess(SyncOperation.UPDATE);
-          }
+          updateInodeMetadata(syncState.mContext, lockedInodePath, currentUfsStatus.mUfsItem,
+              ufsFingerprint);
+          syncState.mContext.reportSyncOperationSuccess(SyncOperation.UPDATE);
         } else if (syncPlan.toDelete() && syncPlan.toLoadMetadata()) {
           if (lockedInodePath.getInode().isDirectory()) {
             throw new InternalRuntimeException(

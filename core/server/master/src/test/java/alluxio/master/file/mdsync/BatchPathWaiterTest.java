@@ -49,7 +49,7 @@ public class BatchPathWaiterTest {
   ExecutorService mThreadPool;
 
   private final Clock mClock = Clock.systemUTC();
-  private MdSync mMdSync;
+  private MetadataSyncHandler mMetadataSyncHandler;
 
   private final MockUfsClient mUfsClient = new MockUfsClient();
 
@@ -65,7 +65,7 @@ public class BatchPathWaiterTest {
     DefaultFileSystemMaster defaultFileSystemMaster = Mockito.mock(DefaultFileSystemMaster.class);
     Mockito.when(defaultFileSystemMaster.createJournalContext())
         .thenReturn(NoopJournalContext.INSTANCE);
-    mMdSync = Mockito.spy(new MdSync(Mockito.mock(TaskTracker.class),
+    mMetadataSyncHandler = Mockito.spy(new MetadataSyncHandler(Mockito.mock(TaskTracker.class),
         defaultFileSystemMaster, null));
   }
 
@@ -77,14 +77,14 @@ public class BatchPathWaiterTest {
   @Test
   public void TestWaiter() throws Exception {
     long nxtLoadID = 0;
-    TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/path"),
+    TaskInfo ti = new TaskInfo(mMetadataSyncHandler, new AlluxioURI("/path"),
         new AlluxioURI("/path"), null,
         NONE, 0, DirectoryLoadType.SINGLE_LISTING, 0, 0, true);
     BaseTask path = BaseTask.create(ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
-      path.onComplete(ans.getArgument(1), mMdSync.mFsMaster, null);
+      path.onComplete(ans.getArgument(1), mMetadataSyncHandler.mFsMaster, null);
       return null;
-    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
+    }).when(mMetadataSyncHandler).onPathLoadComplete(anyLong(), anyBoolean());
 
     Future<Boolean> waiter = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path")));
     assertThrows(TimeoutException.class, () -> waiter.get(1, TimeUnit.SECONDS));
@@ -107,14 +107,14 @@ public class BatchPathWaiterTest {
   @Test
   public void TestMultiWaiter() throws Exception {
     long nxtLoadID = 0;
-    TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/path"),
+    TaskInfo ti = new TaskInfo(mMetadataSyncHandler, new AlluxioURI("/path"),
         new AlluxioURI("/path"), null,
         ONE, 0, DirectoryLoadType.SINGLE_LISTING, 0, 0, true);
     BaseTask path = BaseTask.create(ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
-      path.onComplete(ans.getArgument(1), mMdSync.mFsMaster, null);
+      path.onComplete(ans.getArgument(1), mMetadataSyncHandler.mFsMaster, null);
       return null;
-    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
+    }).when(mMetadataSyncHandler).onPathLoadComplete(anyLong(), anyBoolean());
 
     Future<Boolean> waiter1 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/1")));
     Future<Boolean> waiter2 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/2")));
@@ -140,14 +140,14 @@ public class BatchPathWaiterTest {
   @Test
   public void TestWaiterOutOfOrder() throws Exception {
     long nxtLoadID = 0;
-    TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/path"),
+    TaskInfo ti = new TaskInfo(mMetadataSyncHandler, new AlluxioURI("/path"),
         new AlluxioURI("/path"), null,
         ONE, 0, DirectoryLoadType.SINGLE_LISTING, 0, 0, true);
     BaseTask path = BaseTask.create(ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
-      path.onComplete(ans.getArgument(1), mMdSync.mFsMaster, null);
+      path.onComplete(ans.getArgument(1), mMetadataSyncHandler.mFsMaster, null);
       return null;
-    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
+    }).when(mMetadataSyncHandler).onPathLoadComplete(anyLong(), anyBoolean());
 
     Future<Boolean> waiter1 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/1")));
     Future<Boolean> waiter2 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/2")));
@@ -179,14 +179,14 @@ public class BatchPathWaiterTest {
   @Test
   public void TestBaseTackSinglePath() {
     long nxtLoadID = 0;
-    TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/path"),
+    TaskInfo ti = new TaskInfo(mMetadataSyncHandler, new AlluxioURI("/path"),
         new AlluxioURI("/path"), null,
         NONE, 0, DirectoryLoadType.SINGLE_LISTING, 0, 0, true);
     BaseTask path = BaseTask.create(ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
-      path.onComplete(ans.getArgument(1), mMdSync.mFsMaster, null);
+      path.onComplete(ans.getArgument(1), mMetadataSyncHandler.mFsMaster, null);
       return null;
-    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
+    }).when(mMetadataSyncHandler).onPathLoadComplete(anyLong(), anyBoolean());
 
     assertFalse(path.isCompleted().isPresent());
     SyncProcessResult result = new SyncProcessResult(ti, ti.getBasePath(),
@@ -200,15 +200,15 @@ public class BatchPathWaiterTest {
   @Test
   public void TestBaseTaskInOrder() {
     long nxtLoadID = 0;
-    TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/"),
+    TaskInfo ti = new TaskInfo(mMetadataSyncHandler, new AlluxioURI("/"),
         new AlluxioURI("/"), null,
         ALL, 0, DirectoryLoadType.SINGLE_LISTING, 0, 0, true);
     BatchPathWaiter root = (BatchPathWaiter) BaseTask.create(
         ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
-      root.onComplete(ans.getArgument(1), mMdSync.mFsMaster, null);
+      root.onComplete(ans.getArgument(1), mMetadataSyncHandler.mFsMaster, null);
       return null;
-    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
+    }).when(mMetadataSyncHandler).onPathLoadComplete(anyLong(), anyBoolean());
     assertFalse(root.isCompleted().isPresent());
 
     // complete </, /ad>, should have |<,/ad>|
@@ -254,14 +254,14 @@ public class BatchPathWaiterTest {
   @Test
   public void TestBaseTaskOutOfOrder() {
     long nxtLoadID = 0;
-    TaskInfo ti = new TaskInfo(mMdSync, new AlluxioURI("/"),
+    TaskInfo ti = new TaskInfo(mMetadataSyncHandler, new AlluxioURI("/"),
         new AlluxioURI("/"), null,
         ONE, 0, DirectoryLoadType.SINGLE_LISTING, 0, 0, true);
     BatchPathWaiter root = (BatchPathWaiter) BaseTask.create(ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
-      root.onComplete(ans.getArgument(1), mMdSync.mFsMaster, null);
+      root.onComplete(ans.getArgument(1), mMetadataSyncHandler.mFsMaster, null);
       return null;
-    }).when(mMdSync).onPathLoadComplete(anyLong(), anyBoolean());
+    }).when(mMetadataSyncHandler).onPathLoadComplete(anyLong(), anyBoolean());
     assertFalse(root.isCompleted().isPresent());
 
     // complete </, /a>, should have |<,a>|
