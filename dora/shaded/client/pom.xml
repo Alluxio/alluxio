@@ -323,11 +323,11 @@
                 </transformer>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
                   <resource>META-INF/LICENSE</resource>
-                  <file>${basedir}/../../LICENSE</file>
+                  <file>${basedir}/../../../LICENSE</file>
                 </transformer>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
                   <resource>META-INF/NOTICE</resource>
-                  <file>${basedir}/../../NOTICE</file>
+                  <file>${basedir}/../../../NOTICE</file>
                 </transformer>
               </transformers>
             </configuration>
@@ -346,7 +346,7 @@
             </goals>
             <configuration>
               <sourceFile>target/alluxio-shaded-client-295-SNAPSHOT.jar</sourceFile>
-              <destinationFile>../../../client/alluxio-295-SNAPSHOT-client.jar</destinationFile>
+              <destinationFile>../../../../client/alluxio-295-SNAPSHOT-client.jar</destinationFile>
             </configuration>
           </execution>
         </executions>

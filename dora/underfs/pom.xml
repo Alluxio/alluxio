@@ -124,7 +124,7 @@
               </goals>
               <configuration>
                 <sourceFile>${basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar</sourceFile>
-                <destinationFile>${project.parent.parent.basedir}/lib/${lib.jar.name}</destinationFile>
+                <destinationFile>${project.parent.parent.parent.basedir}/lib/${lib.jar.name}</destinationFile>
               </configuration>
             </execution>
           </executions>
@@ -134,7 +134,7 @@
           <configuration>
             <filesets>
               <fileset>
-                <directory>${basedir}/../../lib</directory>
+                <directory>${basedir}/../../../lib</directory>
                 <includes>
                   <include>**/${project.artifactId}-*.jar</include>
                 </includes>

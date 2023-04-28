@@ -124,7 +124,7 @@
                       </goals>
                       <configuration>
                           <sourceFile>target/alluxio-table-server-underdb-glue-295-SNAPSHOT-jar-with-dependencies.jar</sourceFile>
-                          <destinationFile>../../../../../lib/alluxio-table-server-underdb-glue-295-SNAPSHOT.jar</destinationFile>
+                          <destinationFile>../../../../../../lib/alluxio-table-server-underdb-glue-295-SNAPSHOT.jar</destinationFile>
                       </configuration>
                   </execution>
               </executions>

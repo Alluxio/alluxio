@@ -141,7 +141,7 @@
             </goals>
             <configuration>
               <sourceFile>target/alluxio-integration-tools-hms-295-SNAPSHOT-jar-with-dependencies.jar</sourceFile>
-              <destinationFile>../../../../lib/alluxio-integration-tools-hms-295-SNAPSHOT.jar</destinationFile>
+              <destinationFile>../../../../../lib/alluxio-integration-tools-hms-295-SNAPSHOT.jar</destinationFile>
             </configuration>
           </execution>
         </executions>
@@ -151,7 +151,7 @@
         <configuration>
           <filesets>
             <fileset>
-              <directory>${basedir}/../../../lib</directory>
+              <directory>${basedir}/../../../../lib</directory>
               <includes>
                 <include>**/${project.artifactId}-*.jar</include>
               </includes>
