@@ -15,7 +15,6 @@ import alluxio.cli.fsadmin.report.CapacityCommand;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 import alluxio.util.FormatUtils;
 
-import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Test;
 
