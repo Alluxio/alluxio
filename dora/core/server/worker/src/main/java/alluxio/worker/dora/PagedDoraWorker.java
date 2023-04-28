@@ -23,8 +23,8 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheUsage;
 import alluxio.client.file.cache.PageId;
-import alluxio.client.file.options.FileSystemOptions;
 import alluxio.client.file.options.UfsFileSystemOptions;
+import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -122,6 +122,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private final BlockMasterClientPool mBlockMasterClientPool;
   private final String mRootUFS;
   private final LoadingCache<String, DoraMeta.FileStatus> mUfsStatusCache;
+  private FileSystemContext mFsContext;
 
   private static class ListStatusResult {
     public long mTimeStamp;
@@ -155,6 +156,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     mConf = conf;
     mRootUFS = Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
     mUfsManager = mResourceCloser.register(new DoraUfsManager());
+    mFsContext = mResourceCloser.register(FileSystemContext.create(mConf));
     mUfsStreamCache = new UfsInputStreamCache();
     mUfs = UnderFileSystem.Factory.create(
         mRootUFS,
@@ -590,32 +592,40 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       WriteOptions writeOptions) {
     List<ListenableFuture<Void>> futures = new ArrayList<>();
     List<RouteFailure> errors = Collections.synchronizedList(new ArrayList<>());
-    FileSystemContext fsContext = FileSystemContext.create(Configuration.global());
-    for (Route route : routes) {
-      FileSystem srcFs = FileSystem.Factory.create(fsContext,
-          FileSystemOptions.create(Configuration.global(),
-              Optional.of(new UfsFileSystemOptions(new AlluxioURI(route.getSrc()).getRootPath()))));
-      FileSystem dstFs = FileSystem.Factory.create(fsContext,
-          FileSystemOptions.create(Configuration.global(),
-              Optional.of(new UfsFileSystemOptions(new AlluxioURI(route.getDst()).getRootPath()))));
 
-      ListenableFuture<Void> future = Futures.submit(() -> {
-        try {
-          if (readOptions.hasUser()) {
-            AuthenticatedClientUser.set(readOptions.getUser());
+    for (Route route : routes) {
+      UnderFileSystem srcUfs = mUfsManager.getOrAdd(new AlluxioURI(route.getSrc()),
+          UnderFileSystemConfiguration.defaults(mConf));
+      String srcRoot = new AlluxioURI(route.getSrc()).getRootPath();
+      String dstRoot = new AlluxioURI(route.getDst()).getRootPath();
+      UnderFileSystem dstUfs = mUfsManager.getOrAdd(new AlluxioURI(route.getSrc()),
+          UnderFileSystemConfiguration.defaults(mConf));
+      try (FileSystem srcFs = new UfsBaseFileSystem(mFsContext, new UfsFileSystemOptions(srcRoot),
+          new UfsManager.UfsClient(() -> srcUfs, new AlluxioURI(srcRoot)));
+
+          FileSystem dstFs = new UfsBaseFileSystem(mFsContext, new UfsFileSystemOptions(dstRoot),
+              new UfsManager.UfsClient(() -> dstUfs, new AlluxioURI(dstRoot)));) {
+
+        ListenableFuture<Void> future = Futures.submit(() -> {
+          try {
+            if (readOptions.hasUser()) {
+              AuthenticatedClientUser.set(readOptions.getUser());
+            }
+            CopyHandler.copy(route, writeOptions, srcFs, dstFs);
+          } catch (Exception t) {
+            AlluxioRuntimeException e = AlluxioRuntimeException.from(t);
+            RouteFailure.Builder builder =
+                RouteFailure.newBuilder().setRoute(route).setCode(e.getStatus().getCode().value());
+            if (e.getMessage() != null) {
+              builder.setMessage(e.getMessage());
+            }
+            errors.add(builder.build());
           }
-          CopyHandler.copy(route, writeOptions, srcFs, dstFs);
-        } catch (Exception t) {
-          AlluxioRuntimeException e = AlluxioRuntimeException.from(t);
-          RouteFailure.Builder builder =
-              RouteFailure.newBuilder().setRoute(route).setCode(e.getStatus().getCode().value());
-          if (e.getMessage() != null) {
-            builder.setMessage(e.getMessage());
-          }
-          errors.add(builder.build());
-        }
-      }, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
-      futures.add(future);
+        }, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+        futures.add(future);
+      } catch (IOException e) {
+        // ignore close error
+      }
     }
     return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
   }

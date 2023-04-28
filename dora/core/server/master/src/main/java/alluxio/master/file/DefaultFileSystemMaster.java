@@ -517,8 +517,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     mSyncMetadataExecutor.allowCoreThreadTimeOut(true);
     mActiveSyncMetadataExecutor.allowCoreThreadTimeOut(true);
     FileSystemContext schedulerFsContext = FileSystemContext.create();
-    JournaledJobMetaStore jobMetaStore = new JournaledJobMetaStore(this, masterContext
-        .getUfsManager());
+    JournaledJobMetaStore jobMetaStore = new JournaledJobMetaStore(this);
     mScheduler = new Scheduler(schedulerFsContext,
         new DefaultWorkerProvider(this, schedulerFsContext), jobMetaStore);
 
