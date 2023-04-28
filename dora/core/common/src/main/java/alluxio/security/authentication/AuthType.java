@@ -43,5 +43,15 @@ public enum AuthType {
    * authentication is not supported.
    */
   KERBEROS,
+
+  /**
+   *
+   */
+  OIDC,
+
+  /**
+   * Security service token is generated and used internally
+   */
+  SECURITYSERVICETOKEN,
   ;
 }

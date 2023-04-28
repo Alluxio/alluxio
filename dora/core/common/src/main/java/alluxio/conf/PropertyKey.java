@@ -237,8 +237,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     private boolean mIsDynamic = true;
     private Function<Object, Boolean> mValueValidationFunction;
     private final PropertyType mType;
-    private final Optional<Class<? extends Enum>> mEnumType;
-    private final Optional<String> mDelimiter;
+    private Optional<Class<? extends Enum>> mEnumType;
+    private Optional<String> mDelimiter;
 
     /**
      * @param name name of the property
@@ -370,6 +370,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      */
     public Builder setAlias(String... aliases) {
       mAlias = Arrays.copyOf(aliases, aliases.length);
+      return this;
+    }
+
+    /**
+     * @param enumType the enum type
+     * @return the updated builder instance
+     */
+    public Builder setEnumType(Class<? extends Enum> enumType) {
+      mEnumType = Optional.of(enumType);
+      return this;
+    }
+    /**
+     * @param delimiter the delimiter
+     * @return the updated builder instance
+     */
+    public Builder setDelimiter(String delimiter) {
+      mDelimiter = Optional.of(delimiter);
       return this;
     }
 
@@ -9008,11 +9025,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         PropertyType.STRING),
     MASTER_JOURNAL_UFS_OPTION_PROPERTY("alluxio.master.journal.ufs.option.%s",
         "alluxio\\.master\\.journal\\.ufs\\.option\\.(?<nested>(\\w+\\.)*+\\w+)",
-        PropertyCreators.NESTED_JOURNAL_PROPERTY_CREATOR),
+        PropertyKey.PropertyCreators.NESTED_JOURNAL_PROPERTY_CREATOR),
     MASTER_EMBEDDED_JOURNAL_RATIS_CONFIG_PROPERTY(
         "alluxio.master.embedded.journal.ratis.config.%s",
         "alluxio\\.master\\.embedded\\.journal\\.ratis\\.config\\.(?<nested>(\\w+\\.)*+\\w+)",
-        PropertyCreators.NESTED_JOURNAL_PROPERTY_CREATOR),
+        PropertyKey.PropertyCreators.NESTED_JOURNAL_PROPERTY_CREATOR),
     MASTER_LOGICAL_NAMESERVICES("alluxio.master.nameservices.%s",
         String.format("alluxio\\.master\\.nameservices\\.%s",
             NAMESERVICE_PATTERN_STRING)),
@@ -9032,7 +9049,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.option"),
     MASTER_MOUNT_TABLE_OPTION_PROPERTY("alluxio.master.mount.table.%s.option.%s",
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.option\\.(?<nested>(\\w+\\.)*+\\w+)",
-        PropertyCreators.NESTED_UFS_PROPERTY_CREATOR),
+        PropertyKey.PropertyCreators.NESTED_UFS_PROPERTY_CREATOR),
     MASTER_MOUNT_TABLE_READONLY("alluxio.master.mount.table.%s.readonly",
         "alluxio\\.master\\.mount\\.table\\.(\\w+)\\.readonly",
         PropertyType.BOOLEAN),
@@ -9048,12 +9065,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     UNDERFS_ABFS_ACCOUNT_KEY(
         "fs.azure.account.key.%s.dfs.core.windows.net",
         "fs\\.azure\\.account\\.key\\.(\\w+)\\.dfs\\.core\\.window\\.net",
-        PropertyCreators.fromBuilder(stringBuilder("fs.azure.account.key.%s.dfs.core.windows.net")
+        PropertyKey.PropertyCreators.fromBuilder(stringBuilder("fs.azure.account.key.%s.dfs.core.windows.net")
             .setDisplayType(DisplayType.CREDENTIALS))),
     UNDERFS_AZURE_ACCOUNT_KEY(
         "fs.azure.account.key.%s.blob.core.windows.net",
         "fs\\.azure\\.account\\.key\\.(\\w+)\\.blob\\.core\\.windows\\.net",
-        PropertyCreators.fromBuilder(stringBuilder("fs.azure.account.key.%s.blob.core.windows.net")
+        PropertyKey.PropertyCreators.fromBuilder(stringBuilder("fs.azure.account.key.%s.blob.core.windows.net")
             .setDisplayType(DisplayType.CREDENTIALS))),
     UNDERFS_AZURE_CLIENT_ID(
         "fs.adl.account.%s.oauth2.client.id",
@@ -9062,7 +9079,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     UNDERFS_AZURE_CLIENT_SECRET(
         "fs.adl.account.%s.oauth2.credential",
         "fs\\.adl\\.account\\.(\\w+)\\.oauth2\\.credential",
-        PropertyCreators.fromBuilder(stringBuilder("fs.adl.account.%s.oauth2.credential")
+        PropertyKey.PropertyCreators.fromBuilder(stringBuilder("fs.adl.account.%s.oauth2.credential")
                 .setDisplayType(DisplayType.CREDENTIALS))),
     UNDERFS_AZURE_REFRESH_URL(
         "fs.adl.account.%s.oauth2.refresh.url",
@@ -9148,35 +9165,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio\\.test\\.(\\w+)\\.format\\.deprecated\\.template"),
     ;
 
-    // puts property creators in a nested class to avoid NPE in enum static initialization
-    private static class PropertyCreators {
-      private static final BiFunction<String, PropertyKey, PropertyKey>
-          NESTED_UFS_PROPERTY_CREATOR =
-          createNestedPropertyCreator(Scope.SERVER, ConsistencyCheckLevel.ENFORCE);
-      private static final BiFunction<String, PropertyKey, PropertyKey>
-          NESTED_JOURNAL_PROPERTY_CREATOR =
-          createNestedPropertyCreator(Scope.MASTER, ConsistencyCheckLevel.ENFORCE);
-
-      private static BiFunction<String, PropertyKey, PropertyKey> fromBuilder(Builder builder) {
-        return (name, baseProperty) -> builder.setName(name).buildUnregistered();
-      }
-
-      private static BiFunction<String, PropertyKey, PropertyKey> createNestedPropertyCreator(
-          Scope scope, ConsistencyCheckLevel consistencyCheckLevel) {
-        return (name, baseProperty) -> {
-          PropertyType type = baseProperty == null ? PropertyType.STRING : baseProperty.mType;
-          Builder builder = new Builder(name, type)
-              .setScope(scope)
-              .setConsistencyCheckLevel(consistencyCheckLevel);
-          if (baseProperty != null) {
-            builder.setDisplayType(baseProperty.getDisplayType());
-            builder.setDefaultSupplier(baseProperty.getDefaultSupplier());
-          }
-          return builder.buildUnregistered();
-        };
-      }
-    }
-
     private static final String NESTED_GROUP = "nested";
     private final String mFormat;
     private final Pattern mPattern;
@@ -9195,12 +9183,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     Template(String format, String re, PropertyType type, Optional<String> delimiter) {
       this(format, re, type, Optional.empty(), delimiter,
-          PropertyCreators.fromBuilder(new Builder("", type)));
+          PropertyKey.PropertyCreators.fromBuilder(new Builder("", type)));
     }
 
     Template(String format, String re, Class<? extends Enum> enumType) {
       this(format, re, PropertyType.ENUM, Optional.of(enumType), Optional.empty(),
-          PropertyCreators.fromBuilder(enumBuilder("", enumType)));
+          PropertyKey.PropertyCreators.fromBuilder(enumBuilder("", enumType)));
     }
 
     Template(String format, String re,
@@ -9897,5 +9885,34 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static String getRemovalMessage(String key) {
     String msg = RemovedKey.getMessage(key);
     return msg == null ? "" : msg;
+  }
+
+  // puts property creators in a nested class to avoid NPE in enum static initialization
+  public static class PropertyCreators {
+    private static final BiFunction<String, PropertyKey, PropertyKey>
+        NESTED_UFS_PROPERTY_CREATOR =
+        createNestedPropertyCreator(Scope.SERVER, ConsistencyCheckLevel.ENFORCE);
+    private static final BiFunction<String, PropertyKey, PropertyKey>
+        NESTED_JOURNAL_PROPERTY_CREATOR =
+        createNestedPropertyCreator(Scope.MASTER, ConsistencyCheckLevel.ENFORCE);
+
+    public static BiFunction<String, PropertyKey, PropertyKey> fromBuilder(Builder builder) {
+      return (name, baseProperty) -> builder.setName(name).buildUnregistered();
+    }
+
+    private static BiFunction<String, PropertyKey, PropertyKey> createNestedPropertyCreator(
+        Scope scope, ConsistencyCheckLevel consistencyCheckLevel) {
+      return (name, baseProperty) -> {
+        PropertyType type = baseProperty == null ? PropertyType.STRING : baseProperty.mType;
+        Builder builder = new Builder(name, type)
+            .setScope(scope)
+            .setConsistencyCheckLevel(consistencyCheckLevel);
+        if (baseProperty != null) {
+          builder.setDisplayType(baseProperty.getDisplayType());
+          builder.setDefaultSupplier(baseProperty.getDefaultSupplier());
+        }
+        return builder.buildUnregistered();
+      };
+    }
   }
 }
