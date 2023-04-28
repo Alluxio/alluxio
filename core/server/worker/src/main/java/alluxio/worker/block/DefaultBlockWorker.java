@@ -546,19 +546,18 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
      *
      * @param blockWorker the block worker handle
      */
-    public static void registerGauges(final BlockWorker blockWorker) {
+    public static void registerGauges(AtomicReference<metrictable> metrictable) {
       MetricsSystem.registerGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.WORKER_CAPACITY_TOTAL.getName()),
-          () -> blockWorker.getStoreMeta().getCapacityBytes());
+          () -> metrictable.get().getCapacityBytes());
 
       MetricsSystem.registerGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.WORKER_CAPACITY_USED.getName()),
-          () -> blockWorker.getStoreMeta().getUsedBytes());
+          () -> metrictable.get().getUsedBytes());
 
       MetricsSystem.registerGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.WORKER_CAPACITY_FREE.getName()),
-          () -> blockWorker.getStoreMeta().getCapacityBytes() - blockWorker.getStoreMeta()
-                      .getUsedBytes());
+          () -> metrictable.get().getCapacityFree());
 
       for (int i = 0; i < WORKER_STORAGE_TIER_ASSOC.size(); i++) {
         String tier = WORKER_STORAGE_TIER_ASSOC.getAlias(i);

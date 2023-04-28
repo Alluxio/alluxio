@@ -1,0 +1,490 @@
+{
+  "version" : "4.0.0",
+  "gauges" : {
+    "PS-MarkSweep.count" : {
+      "value" : 2
+    },
+    "PS-MarkSweep.time" : {
+      "value" : 97
+    },
+    "PS-Scavenge.count" : {
+      "value" : 9
+    },
+    "PS-Scavenge.time" : {
+      "value" : 1172
+    },
+    "Worker.BlockReaderCompleteTaskCount.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.BlockReaderThreadActiveCount.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.BlockReaderThreadCurrentCount.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.BlockReaderThreadMaxCount.dengxinyudembp" : {
+      "value" : 2048
+    },
+    "Worker.BlockRemoverRemovingBlocksSize" : {
+      "value" : 0
+    },
+    "Worker.BlockRemoverTryRemoveBlocksSize" : {
+      "value" : 0
+    },
+    "Worker.BlockSerializedCompleteTaskCount.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.BlockSerializedThreadActiveCount.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.BlockSerializedThreadCurrentCount.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.BlockSerializedThreadMaxCount.dengxinyudembp" : {
+      "value" : 2048
+    },
+    "Worker.BlockWriterCompleteTaskCount.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.BlockWriterThreadActiveCount.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.BlockWriterThreadCurrentCount.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.BlockWriterThreadMaxCount.dengxinyudembp" : {
+      "value" : 1024
+    },
+    "Worker.BlocksCached.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.CacheManagerCompleteTaskCount.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.CacheManagerThreadActiveCount.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.CacheManagerThreadCurrentCount.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.CacheManagerThreadMaxCount.dengxinyudembp" : {
+      "value" : 16
+    },
+    "Worker.CacheManagerThreadQueueWaitingTaskCount.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.CapacityFree.dengxinyudembp" : {
+      "value" : 3221225472
+    },
+    "Worker.CapacityFreeTierMEM.dengxinyudembp" : {
+      "value" : 3221225472
+    },
+    "Worker.CapacityTotal.dengxinyudembp" : {
+      "value" : 3221225472
+    },
+    "Worker.CapacityTotalTierMEM.dengxinyudembp" : {
+      "value" : 3221225472
+    },
+    "Worker.CapacityUsed.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.CapacityUsedTierMEM.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.Process.pool.direct.mem.used.dengxinyudembp" : {
+      "value" : 1
+    },
+    "Worker.RpcQueueLength" : {
+      "value" : 0
+    },
+    "Worker.RpcThreadActiveCount" : {
+      "value" : 0
+    },
+    "Worker.RpcThreadCurrentCount" : {
+      "value" : 4
+    },
+    "Worker.Server.JvmPauseMonitorInfoTimeExceeded.dengxinyudembp" : {
+      "value" : 0
+    },
+    "Worker.Server.JvmPauseMonitorTotalExtraTime.dengxinyudembp" : {
+      "value" : 13306
+    },
+    "Worker.Server.JvmPauseMonitorWarnTimeExceeded.dengxinyudembp" : {
+      "value" : 0
+    },
+    "blocked.count" : {
+      "value" : 0
+    },
+    "count" : {
+      "value" : 59
+    },
+    "daemon.count" : {
+      "value" : 52
+    },
+    "deadlock.count" : {
+      "value" : 0
+    },
+    "deadlocks" : {
+      "value" : [ ]
+    },
+    "heap.committed" : {
+      "value" : 189792256
+    },
+    "heap.init" : {
+      "value" : 134217728
+    },
+    "heap.max" : {
+      "value" : 1908932608
+    },
+    "heap.usage" : {
+      "value" : 0.04944812802946263
+    },
+    "heap.used" : {
+      "value" : 95361408
+    },
+    "loaded" : {
+      "value" : 7389
+    },
+    "name" : {
+      "value" : "3080@dengxinyudeMBP"
+    },
+    "new.count" : {
+      "value" : 0
+    },
+    "non-heap.committed" : {
+      "value" : 66076672
+    },
+    "non-heap.init" : {
+      "value" : 2555904
+    },
+    "non-heap.max" : {
+      "value" : -1
+    },
+    "non-heap.usage" : {
+      "value" : -6.351936E7
+    },
+    "non-heap.used" : {
+      "value" : 63519424
+    },
+    "os.cpuLoad" : {
+      "value" : 0.0
+    },
+    "os.freePhysicalMemory" : {
+      "value" : 129085440
+    },
+    "os.maxFileCount" : {
+      "value" : 10240
+    },
+    "os.openFileCount" : {
+      "value" : 145
+    },
+    "os.totalPhysicalMemory" : {
+      "value" : 8589934592
+    },
+    "peak.count" : {
+      "value" : 169
+    },
+    "pools.Code-Cache.committed" : {
+      "value" : 16187392
+    },
+    "pools.Code-Cache.init" : {
+      "value" : 2555904
+    },
+    "pools.Code-Cache.max" : {
+      "value" : 251658240
+    },
+    "pools.Code-Cache.usage" : {
+      "value" : 0.06222076416015625
+    },
+    "pools.Code-Cache.used" : {
+      "value" : 15658368
+    },
+    "pools.Compressed-Class-Space.committed" : {
+      "value" : 5677056
+    },
+    "pools.Compressed-Class-Space.init" : {
+      "value" : 0
+    },
+    "pools.Compressed-Class-Space.max" : {
+      "value" : 1073741824
+    },
+    "pools.Compressed-Class-Space.usage" : {
+      "value" : 0.004909835755825043
+    },
+    "pools.Compressed-Class-Space.used" : {
+      "value" : 5271896
+    },
+    "pools.Metaspace.committed" : {
+      "value" : 44474368
+    },
+    "pools.Metaspace.init" : {
+      "value" : 0
+    },
+    "pools.Metaspace.max" : {
+      "value" : -1
+    },
+    "pools.Metaspace.usage" : {
+      "value" : 0.9584571499700681
+    },
+    "pools.Metaspace.used" : {
+      "value" : 42626776
+    },
+    "pools.PS-Eden-Space.committed" : {
+      "value" : 124780544
+    },
+    "pools.PS-Eden-Space.init" : {
+      "value" : 34078720
+    },
+    "pools.PS-Eden-Space.max" : {
+      "value" : 695205888
+    },
+    "pools.PS-Eden-Space.usage" : {
+      "value" : 0.11167089539955105
+    },
+    "pools.PS-Eden-Space.used" : {
+      "value" : 77634264
+    },
+    "pools.PS-Eden-Space.used-after-gc" : {
+      "value" : 0
+    },
+    "pools.PS-Old-Gen.committed" : {
+      "value" : 54525952
+    },
+    "pools.PS-Old-Gen.init" : {
+      "value" : 89653248
+    },
+    "pools.PS-Old-Gen.max" : {
+      "value" : 1431830528
+    },
+    "pools.PS-Old-Gen.usage" : {
+      "value" : 0.007474772880383788
+    },
+    "pools.PS-Old-Gen.used" : {
+      "value" : 10702608
+    },
+    "pools.PS-Old-Gen.used-after-gc" : {
+      "value" : 10692128
+    },
+    "pools.PS-Survivor-Space.committed" : {
+      "value" : 10485760
+    },
+    "pools.PS-Survivor-Space.init" : {
+      "value" : 5242880
+    },
+    "pools.PS-Survivor-Space.max" : {
+      "value" : 10485760
+    },
+    "pools.PS-Survivor-Space.usage" : {
+      "value" : 0.6840812683105468
+    },
+    "pools.PS-Survivor-Space.used" : {
+      "value" : 7173112
+    },
+    "pools.PS-Survivor-Space.used-after-gc" : {
+      "value" : 7173112
+    },
+    "runnable.count" : {
+      "value" : 29
+    },
+    "terminated.count" : {
+      "value" : 0
+    },
+    "timed_waiting.count" : {
+      "value" : 15
+    },
+    "total.committed" : {
+      "value" : 256131072
+    },
+    "total.init" : {
+      "value" : 136773632
+    },
+    "total.max" : {
+      "value" : 1908932607
+    },
+    "total.used" : {
+      "value" : 159074408
+    },
+    "total_started.count" : {
+      "value" : 355
+    },
+    "unloaded" : {
+      "value" : 0
+    },
+    "uptime" : {
+      "value" : 4784012
+    },
+    "vendor" : {
+      "value" : "AdoptOpenJDK OpenJDK 64-Bit Server VM 25.292-b10 (1.8)"
+    },
+    "waiting.count" : {
+      "value" : 15
+    }
+  },
+  "counters" : {
+    "Worker.ActiveClients.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.BlockRemoverBlocksRemovedCount.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.BlockRemoverTryRemoveCount.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.BlocksAccessed.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.BlocksCancelled.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.BlocksDeleted.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.BlocksEvicted.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.BlocksLost.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.BlocksPromoted.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.CacheBlocksSize.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.CacheFailedBlocks.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.CacheRemoteBlocks.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.CacheRequests.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.CacheRequestsAsync.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.CacheRequestsSync.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.CacheSucceededBlocks.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.CacheUfsBlocks.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.Client.BlockMasterClientCount.dengxinyudembp" : {
+      "count" : 0
+    },
+    "Worker.Client.FileSystemMasterClientCount.dengxinyudembp" : {
+      "count" : 0
+    }
+  },
+  "histograms" : { },
+  "meters" : {
+    "Worker.BlocksEvictionRate.dengxinyudembp" : {
+      "count" : 0,
+      "m15_rate" : 0.0,
+      "m1_rate" : 0.0,
+      "m5_rate" : 0.0,
+      "mean_rate" : 0.0,
+      "units" : "events/second"
+    }
+  },
+  "timers" : {
+    "Worker.GetConfigHash.User:dengxinyu.dengxinyudembp" : {
+      "count" : 240,
+      "max" : 505.33489399999996,
+      "mean" : 38.17969179165483,
+      "min" : 1.079445,
+      "p50" : 19.128553999999998,
+      "p75" : 47.729102,
+      "p95" : 106.685091,
+      "p98" : 106.685091,
+      "p99" : 106.685091,
+      "p999" : 106.685091,
+      "stddev" : 37.05465939884122,
+      "m15_rate" : 0.05372707165773025,
+      "m1_rate" : 0.06421313040743575,
+      "m5_rate" : 0.0528157644708994,
+      "mean_rate" : 0.050435064891572345,
+      "duration_units" : "milliseconds",
+      "rate_units" : "calls/second"
+    },
+    "Worker.GetId.User:dengxinyu.dengxinyudembp" : {
+      "count" : 1,
+      "max" : 83.44136999999999,
+      "mean" : 83.44136999999999,
+      "min" : 83.44136999999999,
+      "p50" : 83.44136999999999,
+      "p75" : 83.44136999999999,
+      "p95" : 83.44136999999999,
+      "p98" : 83.44136999999999,
+      "p99" : 83.44136999999999,
+      "p999" : 83.44136999999999,
+      "stddev" : 0.0,
+      "m15_rate" : 0.0010207519777588236,
+      "m1_rate" : 8.305839060153901E-36,
+      "m5_rate" : 2.658892009365033E-8,
+      "mean_rate" : 2.1017411354758657E-4,
+      "duration_units" : "milliseconds",
+      "rate_units" : "calls/second"
+    },
+    "Worker.GetPinList.User:dengxinyu.dengxinyudembp" : {
+      "count" : 4741,
+      "max" : 163.037543,
+      "mean" : 14.536715878537729,
+      "min" : 1.178631,
+      "p50" : 8.315405,
+      "p75" : 17.941907999999998,
+      "p95" : 55.613265999999996,
+      "p98" : 67.380181,
+      "p99" : 67.46412099999999,
+      "p999" : 100.318603,
+      "stddev" : 15.314287528847816,
+      "m15_rate" : 0.9972219975558388,
+      "m1_rate" : 0.9997485769713601,
+      "m5_rate" : 0.9980816043501747,
+      "mean_rate" : 0.9963500912272968,
+      "duration_units" : "milliseconds",
+      "rate_units" : "calls/second"
+    },
+    "Worker.Heartbeat.User:dengxinyu.dengxinyudembp" : {
+      "count" : 4741,
+      "max" : 458.179875,
+      "mean" : 24.86807279531591,
+      "min" : 1.410405,
+      "p50" : 14.611746,
+      "p75" : 31.36835,
+      "p95" : 86.409161,
+      "p98" : 93.821303,
+      "p99" : 113.111448,
+      "p999" : 113.111448,
+      "stddev" : 26.545824865376773,
+      "m15_rate" : 0.996648057139787,
+      "m1_rate" : 0.9910111323174065,
+      "m5_rate" : 0.9962016128525734,
+      "mean_rate" : 0.996242557618717,
+      "duration_units" : "milliseconds",
+      "rate_units" : "calls/second"
+    },
+    "Worker.Register.User:dengxinyu.dengxinyudembp" : {
+      "count" : 1,
+      "max" : 110.644984,
+      "mean" : 110.644984,
+      "min" : 110.644984,
+      "p50" : 110.644984,
+      "p75" : 110.644984,
+      "p95" : 110.644984,
+      "p98" : 110.644984,
+      "p99" : 110.644984,
+      "p999" : 110.644984,
+      "stddev" : 0.0,
+      "m15_rate" : 0.0010207519777588236,
+      "m1_rate" : 8.305839060153901E-36,
+      "m5_rate" : 2.658892009365033E-8,
+      "mean_rate" : 2.101264515568153E-4,
+      "duration_units" : "milliseconds",
+      "rate_units" : "calls/second"
+    }
+  }
+}
