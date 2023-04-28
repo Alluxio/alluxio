@@ -18,13 +18,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.StorageTierAssoc;
-<<<<<<< HEAD
-||||||| parent of 26257e6f35 (Make capacity command show worker state)
-import alluxio.client.block.options.GetWorkerReportOptions;
-=======
-import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.master.WorkerState;
->>>>>>> 26257e6f35 (Make capacity command show worker state)
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 

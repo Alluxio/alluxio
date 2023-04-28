@@ -14,13 +14,7 @@ package alluxio.cli.fsadmin.report;
 import alluxio.Constants;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.options.GetWorkerReportOptions;
-<<<<<<< HEAD
-||||||| parent of 26257e6f35 (Make capacity command show worker state)
-import alluxio.conf.Configuration;
-=======
-import alluxio.conf.Configuration;
 import alluxio.master.WorkerState;
->>>>>>> 26257e6f35 (Make capacity command show worker state)
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
