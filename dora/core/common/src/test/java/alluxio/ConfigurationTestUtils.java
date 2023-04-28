@@ -109,7 +109,7 @@ public final class ConfigurationTestUtils {
 
     conf.put(PropertyKey.WEB_THREADS, 1);
     conf.put(PropertyKey.WEB_RESOURCES,
-        PathUtils.concatPath(System.getProperty("user.dir"), "../webui"));
+        PathUtils.concatPath(System.getProperty("user.dir"), "../../webui"));
     conf.put(PropertyKey.WORKER_RAMDISK_SIZE, "100MB");
     conf.put(PropertyKey.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL, "15ms");
     conf.put(PropertyKey.MASTER_LOST_WORKER_DETECTION_INTERVAL, "15ms");
