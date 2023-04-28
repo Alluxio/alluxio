@@ -19,6 +19,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.ListStatusPOptionsOrBuilder;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
@@ -79,11 +81,9 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
       .build();
 
 
-  // Var for Shell Test
   public LocalAlluxioCluster mLocalAlluxioCluster;
   public FileSystem mFileSystem;
   public FileSystemShell mFsShell;
-  protected JobMaster mJobMaster;
   protected LocalAlluxioJobCluster mLocalAlluxioJobCluster;
   protected JobShell mJobShell;
 
@@ -111,8 +111,6 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
               .setListStatusWithOptionsMs(SLEEP_MS)));
 
   private AmazonS3 mS3Client = null;
-
-
 
   @Before
   public void before() throws Exception {
@@ -152,14 +150,11 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
   // Totally three status were tested, RUNNING, CANCELED, SUCCESSES
   @Test
   public void loadMetadataTestV2get() throws IOException, AlluxioException {
-    // the cancel dir should be big enough
     for (int i = 0; i < 1; i++) {
       mS3Client.putObject(TEST_BUCKET, TEST_FILE + i, TEST_CONTENT);
     }
     mOutput.reset();
     AlluxioURI uriDir = new AlluxioURI("/" );
-    // To avoid the loadMetadata blocked until finish
-    // -a/--async param will disable loadMetadata tell anything include task group id, so can't obtain group id from output here
     CompletableFuture<Void> future = CompletableFuture.supplyAsync(() -> {
       mFsShell.run("loadMetadata", "-v2", "-R", "-a", uriDir.toString());
       return null;
@@ -187,7 +182,8 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
   // I think this is difficult to fix...
   @Test
   public void loadMetadataTestV2cancel() {
-    for (int i = 0; i < 1; i++) {
+    int fileCount = 10;
+    for (int i = 0; i < fileCount; i++) {
       mS3Client.putObject(TEST_BUCKET, TEST_FILE + i, TEST_CONTENT);
     }
     mOutput.reset();
@@ -228,9 +224,7 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
 
   @Test
   public void loadMetadataTestV2R() throws IOException, AlluxioException {
-    // dir number
     int dirCount = 3;
-    // Child number for one dir
     int fileCount = 10;
     for (int dirIndex = 0; dirIndex < dirCount; dirIndex++) {
       for (int fileIndex = 0; fileIndex < fileCount; fileIndex++) {
@@ -268,11 +262,14 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
     AlluxioURI uriDir = new AlluxioURI("/" );
     mFsShell.run("loadMetadata", "-v2", "-R", "-a", uriDir.toString());
     assertTrue(mOutput.toString().contains("State: SUCCEEDED"));
-    assertTrue(mOutput.toString().contains(String.format("Success op count={[CREATE:%d]}", fileCount)));
+    GetStatusPOptions getStatusPOptions =
+        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).build();
+    URIStatus statusAfter = mFileSystem.getStatus(new AlluxioURI("/"), getStatusPOptions);
+    assertEquals(fileCount, statusAfter.getFileInfo().getLength());
   }
 
   @Test
-  public void loadMetadataTestV2NestMounted() throws IOException, AlluxioException {
+  public void loadMetadataTestV2NestMounted() {
     int mntCount = 10;
     mFsShell.run("mkdir", "/mnt");
     for (int i = 0; i < mntCount; i++) {
@@ -282,8 +279,7 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
     AlluxioURI uriDir = new AlluxioURI("/");
     mOutput.reset();
     mFsShell.run("loadMetadata", "-v2", "-R", "-a", uriDir.toString());
-    int taskCount = 0;
-    Set<Integer> idRecord = new HashSet<Integer>();
+    Set<Integer> idRecord = new HashSet<>();
     Pattern pattern = Pattern.compile("Task id: (\\d+)");
     Matcher matcher = pattern.matcher(mOutput.toString());
     while(matcher.find()) {
@@ -291,5 +287,52 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
     }
     // mntCount + 1 because root mount point doesn't count in mntCount
     assertEquals(mntCount + 1, idRecord.size());
+  }
+
+  @Test
+  public void loadMetadataTestV2NestMountedCancel() {
+    int mntCount = 10;
+    mFsShell.run("mkdir", "/mnt");
+    // mount to /mnt/test0.../mnt/test<mntCount>
+    for (int i = 0; i < mntCount; i++) {
+      mS3Client.createBucket("test" + i);
+      mFsShell.run("mount", "/mnt/test" + i, "s3://test" + i);
+    }
+    AlluxioURI uriDir = new AlluxioURI("/");
+    mOutput.reset();
+    CompletableFuture<Void> future = CompletableFuture.supplyAsync(() -> {
+      mFsShell.run("loadMetadata", "-v2", "-R", "-a", uriDir.toString());
+      return null;
+    });
+
+    String id;
+    Pattern groupIdPattern = Pattern.compile("Task group (\\d+)");
+    Matcher groupIdMatcher = groupIdPattern.matcher(mOutput.toString());
+    while(!groupIdMatcher.find()) {
+      groupIdMatcher = groupIdPattern.matcher(mOutput.toString());
+    }
+    id = groupIdMatcher.group(1);
+
+    FileSystemShell anotherFsShell = new FileSystemShell(Configuration.global());
+    anotherFsShell.run("loadMetadata", "-v2", "-o", "cancel", "-id", id);
+    mOutput.reset();
+    anotherFsShell.run("loadMetadata", "-v2", "-o", "get", "-id", id);
+
+    Set<Integer> idRecord = new HashSet<>();
+    int cancelRecord = 0;
+    Pattern idPattern = Pattern.compile("Task id: (\\d+)");
+    Pattern cancelPattern = Pattern.compile("State: CANCELED");
+    Matcher idMatcher = idPattern.matcher(mOutput.toString());
+    Matcher cancelMatcher = cancelPattern.matcher(mOutput.toString());
+    while(idMatcher.find()) {
+      idRecord.add(Integer.valueOf(idMatcher.group(1)));
+    }
+    while(cancelMatcher.find()) {
+      cancelRecord += 1;
+    }
+
+    // mntCount + 1 because root mount point doesn't count in mntCount
+    assertEquals(mntCount + 1, idRecord.size());
+    assertEquals(mntCount + 1, cancelRecord);
   }
 }
