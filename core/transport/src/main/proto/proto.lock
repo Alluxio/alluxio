@@ -6965,7 +6965,13 @@
               {
                 "id": 1,
                 "name": "snapshotInfoResponse",
-                "type": "GetSnapshotInfoResponse"
+                "type": "GetSnapshotInfoResponse",
+                "options": [
+                  {
+                    "name": "deprecated",
+                    "value": "true"
+                  }
+                ]
               }
             ],
             "options": [
@@ -6991,7 +6997,13 @@
               {
                 "id": 1,
                 "name": "snapshotInfo",
-                "type": "SnapshotMetadata"
+                "type": "SnapshotMetadata",
+                "options": [
+                  {
+                    "name": "deprecated",
+                    "value": "true"
+                  }
+                ]
               }
             ],
             "options": [
@@ -7007,7 +7019,13 @@
               {
                 "id": 1,
                 "name": "latest",
-                "type": "SnapshotMetadata"
+                "type": "SnapshotMetadata",
+                "options": [
+                  {
+                    "name": "deprecated",
+                    "value": "true"
+                  }
+                ]
               }
             ],
             "options": [
@@ -7094,7 +7112,13 @@
               {
                 "id": 1,
                 "name": "data",
-                "type": "SnapshotData"
+                "type": "SnapshotData",
+                "options": [
+                  {
+                    "name": "deprecated",
+                    "value": "true"
+                  }
+                ]
               }
             ],
             "options": [
@@ -7110,7 +7134,13 @@
               {
                 "id": 1,
                 "name": "offsetReceived",
-                "type": "int64"
+                "type": "int64",
+                "options": [
+                  {
+                    "name": "deprecated",
+                    "value": "true"
+                  }
+                ]
               }
             ],
             "options": [
@@ -7126,7 +7156,13 @@
               {
                 "id": 1,
                 "name": "offsetReceived",
-                "type": "int64"
+                "type": "int64",
+                "options": [
+                  {
+                    "name": "deprecated",
+                    "value": "true"
+                  }
+                ]
               }
             ],
             "options": [
@@ -7142,7 +7178,13 @@
               {
                 "id": 1,
                 "name": "data",
-                "type": "SnapshotData"
+                "type": "SnapshotData",
+                "options": [
+                  {
+                    "name": "deprecated",
+                    "value": "true"
+                  }
+                ]
               }
             ],
             "options": [

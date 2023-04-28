@@ -16,7 +16,7 @@ message JournalQueryRequest {
 
 message JournalQueryResponse {
   option deprecated = true;
-  optional GetSnapshotInfoResponse snapshotInfoResponse = 1;
+  optional GetSnapshotInfoResponse snapshotInfoResponse = 1 [deprecated = true];
 }
 
 message AddQuorumServerRequest {
@@ -25,12 +25,12 @@ message AddQuorumServerRequest {
 
 message GetSnapshotInfoRequest {
   option deprecated = true;
-  optional SnapshotMetadata snapshotInfo = 1;
+  optional SnapshotMetadata snapshotInfo = 1 [deprecated = true];
 }
 
 message GetSnapshotInfoResponse {
   option deprecated = true;
-  optional SnapshotMetadata latest = 1;
+  optional SnapshotMetadata latest = 1 [deprecated = true];
 }
 
 message GetSnapshotRequest {
@@ -53,22 +53,22 @@ message SnapshotData {
 
 message UploadSnapshotPRequest {
   option deprecated = true;
-  optional SnapshotData data = 1;
+  optional SnapshotData data = 1 [deprecated = true];
 }
 
 message UploadSnapshotPResponse {
   option deprecated = true;
-  optional int64 offsetReceived = 1;
+  optional int64 offsetReceived = 1 [deprecated = true];
 }
 
 message DownloadSnapshotPRequest {
   option deprecated = true;
-  optional int64 offsetReceived = 1;
+  optional int64 offsetReceived = 1 [deprecated = true];
 }
 
 message DownloadSnapshotPResponse {
   option deprecated = true;
-  optional SnapshotData data = 1;
+  optional SnapshotData data = 1 [deprecated = true];
 }
 
 message LatestSnapshotInfoPRequest {}
