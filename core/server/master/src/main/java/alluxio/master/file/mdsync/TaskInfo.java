@@ -32,8 +32,6 @@ public class TaskInfo {
   private final long mSyncInterval;
   private final MetadataSyncHandler mMetadataSyncHandler;
   private final TaskStats mStats;
-  private final long mMountId;
-  private final boolean mCheckNestedMount;
 
   private final TrieNode<AlluxioURI> mPathsToUpdateDirectChildrenLoaded = new TrieNode<>();
 
@@ -45,9 +43,7 @@ public class TaskInfo {
       DescendantType descendantType,
       long syncInterval,
       DirectoryLoadType loadByDirectory,
-      long id,
-      long mountId,
-      boolean checkNestedMount) {
+      long id) {
     mBasePath = ufsPath;
     mAlluxioPath = alluxioPath;
     mSyncInterval = syncInterval;
@@ -57,8 +53,6 @@ public class TaskInfo {
     mStartAfter = startAfter;
     mMetadataSyncHandler = metadataSyncHandler;
     mStats = new TaskStats();
-    mMountId = mountId;
-    mCheckNestedMount = checkNestedMount;
   }
 
   /**
@@ -127,20 +121,6 @@ public class TaskInfo {
    */
   public DescendantType getDescendantType() {
     return mDescendantType;
-  }
-
-  /**
-   * @return the mount id
-   */
-  long getMountId() {
-    return mMountId;
-  }
-
-  /**
-   * @return true if nested mount should be checked during sync processing
-   */
-  boolean checkNestedMount() {
-    return mCheckNestedMount;
   }
 
   @Override

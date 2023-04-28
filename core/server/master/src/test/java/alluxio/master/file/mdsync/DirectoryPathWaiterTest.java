@@ -86,13 +86,12 @@ public class DirectoryPathWaiterTest {
   public void TestWaiter() throws Exception {
     TaskInfo ti = new TaskInfo(mMetadataSyncHandler, new AlluxioURI("/path"),
         new AlluxioURI("/path"), null,
-        ALL, 0, mDirLoadType, 0, 0, true);
+        ALL, 0, mDirLoadType, 0);
     BaseTask path = BaseTask.create(ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
       path.onComplete(ans.getArgument(1), mMetadataSyncHandler.mFsMaster, null);
       return null;
     }).when(mMetadataSyncHandler).onPathLoadComplete(anyLong(), anyBoolean());
-    // completeFirstLoadRequestEmpty(path);
 
     Future<Boolean> waiter = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path")));
     assertThrows(TimeoutException.class, () -> waiter.get(1, TimeUnit.SECONDS));
@@ -106,13 +105,12 @@ public class DirectoryPathWaiterTest {
   public void TestMultiWaiter() throws Exception {
     TaskInfo ti = new TaskInfo(mMetadataSyncHandler, new AlluxioURI("/path"),
         new AlluxioURI("/path"), null,
-        ALL, 0, mDirLoadType, 0, 0, true);
+        ALL, 0, mDirLoadType, 0);
     BaseTask path = BaseTask.create(ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
       path.onComplete(ans.getArgument(1), mMetadataSyncHandler.mFsMaster, null);
       return null;
     }).when(mMetadataSyncHandler).onPathLoadComplete(anyLong(), anyBoolean());
-    // completeFirstLoadRequestEmpty(path);
 
     Future<Boolean> waiter1 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/1")));
     Future<Boolean> waiter2 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/2")));
@@ -136,13 +134,12 @@ public class DirectoryPathWaiterTest {
   public void TestNestedWaiter() throws Exception {
     TaskInfo ti = new TaskInfo(mMetadataSyncHandler, new AlluxioURI("/path"),
         new AlluxioURI("/path"), null,
-        ALL, 0, mDirLoadType, 0, 0, true);
+        ALL, 0, mDirLoadType, 0);
     BaseTask path = BaseTask.create(ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
       path.onComplete(ans.getArgument(1), mMetadataSyncHandler.mFsMaster, null);
       return null;
     }).when(mMetadataSyncHandler).onPathLoadComplete(anyLong(), anyBoolean());
-    // completeFirstLoadRequestEmpty(path);
 
     Future<Boolean> waiter1 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/1")));
     Future<Boolean> waiter2 = mThreadPool.submit(() -> path.waitForSync(new AlluxioURI("/path/2")));
@@ -165,14 +162,12 @@ public class DirectoryPathWaiterTest {
     long loadRequestID = 0;
     TaskInfo ti = new TaskInfo(mMetadataSyncHandler, new AlluxioURI("/"),
         new AlluxioURI("/path"), null,
-        ALL, 0, mDirLoadType, 0, 0, true);
+        ALL, 0, mDirLoadType, 0);
     BaseTask path = BaseTask.create(ti, mClock.millis(), mClientSupplier);
     Mockito.doAnswer(ans -> {
       path.onComplete(ans.getArgument(1), mMetadataSyncHandler.mFsMaster, null);
       return null;
     }).when(mMetadataSyncHandler).onPathLoadComplete(anyLong(), anyBoolean());
-    // completeFirstLoadRequestEmpty(path);
-    // loadRequestID++;
 
     Future<Boolean> waiter1 = mThreadPool.submit(() ->
         path.waitForSync(new AlluxioURI("/path/nested/1")));

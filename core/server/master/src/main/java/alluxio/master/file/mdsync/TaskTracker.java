@@ -237,24 +237,20 @@ public class TaskTracker implements Closeable {
    * @param metadataSyncHandler the MdSync object
    * @param ufsPath the ufsPath to sync
    * @param alluxioPath the alluxio path matching the mounted ufsPath
-   * @param mountId the mount id; each task is only for one mount point
    * @param startAfter if the sync should start after a given internal path
    * @param depth the depth of descendents to load
    * @param syncInterval the sync interval
    * @param loadByDirectory the load by directory type
    * @param removeOnComplete if the task should be removed on complete
-   * @param checkNestedMount if the task might contain nested mount
    * @return the running task object
    */
   public BaseTask launchTaskAsync(
       MetadataSyncHandler metadataSyncHandler,
       AlluxioURI ufsPath, AlluxioURI alluxioPath,
-      long mountId,
       @Nullable String startAfter,
       DescendantType depth, long syncInterval,
       DirectoryLoadType loadByDirectory,
-      boolean removeOnComplete,
-      boolean checkNestedMount) {
+      boolean removeOnComplete) {
     BaseTask task;
     synchronized (this) {
       TrieNode<BaseTask> activeTasks = getActiveTasksForDescendantType(depth);
@@ -266,7 +262,7 @@ public class TaskTracker implements Closeable {
             final long id = mNxtId++;
             BaseTask newTask = BaseTask.create(
                 new TaskInfo(metadataSyncHandler, ufsPath, alluxioPath, startAfter,
-                    depth, syncInterval, loadByDirectory, id, mountId, checkNestedMount),
+                    depth, syncInterval, loadByDirectory, id),
                 mSyncPathCache.recordStartSync(),
                 mClientSupplier,
                 removeOnComplete);
@@ -310,8 +306,8 @@ public class TaskTracker implements Closeable {
       DescendantType depth, long syncInterval,
       DirectoryLoadType loadByDirectory) {
     // TODO(elega/tcrain) This method needs to be updated to support nested sync
-    BaseTask task = launchTaskAsync(metadataSyncHandler, ufsPath, alluxioPath, 0, startAfter,
-        depth, syncInterval, loadByDirectory, true, true);
+    BaseTask task = launchTaskAsync(metadataSyncHandler, ufsPath, alluxioPath, startAfter,
+        depth, syncInterval, loadByDirectory, true);
     return new Pair<>(task.waitForSync(ufsPath), task);
   }
 
