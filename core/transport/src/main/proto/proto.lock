@@ -352,6 +352,24 @@
             ]
           },
           {
+            "name": "RemoveDisabledWorkerPOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "workerHostname",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "workerWebPort",
+                "type": "int64"
+              }
+            ]
+          },
+          {
+            "name": "RemoveDisabledWorkerPResponse"
+          },
+          {
             "name": "GetWorkerLostStoragePOptions"
           },
           {
@@ -362,6 +380,29 @@
                 "name": "workerLostStorageInfo",
                 "type": "WorkerLostStorageInfo",
                 "is_repeated": true
+              }
+            ]
+          },
+          {
+            "name": "DecommissionWorkerPResponse"
+          },
+          {
+            "name": "DecommissionWorkerPOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "workerHostname",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "workerWebPort",
+                "type": "int64"
+              },
+              {
+                "id": 3,
+                "name": "canRegisterAgain",
+                "type": "bool"
               }
             ]
           },
@@ -751,6 +792,11 @@
                 "out_type": "GetWorkerInfoListPResponse"
               },
               {
+                "name": "RemoveDisabledWorker",
+                "in_type": "RemoveDisabledWorkerPOptions",
+                "out_type": "RemoveDisabledWorkerPResponse"
+              },
+              {
                 "name": "GetWorkerReport",
                 "in_type": "GetWorkerReportPOptions",
                 "out_type": "GetWorkerInfoListPResponse"
@@ -759,6 +805,11 @@
                 "name": "GetWorkerLostStorage",
                 "in_type": "GetWorkerLostStoragePOptions",
                 "out_type": "GetWorkerLostStoragePResponse"
+              },
+              {
+                "name": "DecommissionWorker",
+                "in_type": "DecommissionWorkerPOptions",
+                "out_type": "DecommissionWorkerPResponse"
               }
             ]
           },
@@ -1363,6 +1414,14 @@
               {
                 "name": "Persist",
                 "integer": 5
+              },
+              {
+                "name": "Decommissioned",
+                "integer": 6
+              },
+              {
+                "name": "Disabled",
+                "integer": 7
               }
             ]
           },

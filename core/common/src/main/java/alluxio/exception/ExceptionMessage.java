@@ -176,6 +176,11 @@ public enum ExceptionMessage {
       "Worker fileId {0,number,#} is invalid. The worker may have crashed or cleaned up "
           + "the client state due to a timeout."),
 
+  // worker
+  WORKER_NOT_FOUND("Worker {0} not found"),
+  WORKER_DECOMMISSIONED_BEFORE_REGISTER("Attempting to decommission an unregistered worker {0}. "
+      + "Please wait until this worker is registered."),
+
   // cli
   INVALID_ARGS_GENERIC("Invalid args for command {0}"),
   INVALID_ARGS_NULL("Null args for command {0}"),

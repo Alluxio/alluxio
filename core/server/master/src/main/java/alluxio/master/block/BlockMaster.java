@@ -19,9 +19,11 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.DecommissionWorkerPOptions;
 import alluxio.grpc.GetRegisterLeasePRequest;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
+import alluxio.grpc.RemoveDisabledWorkerPOptions;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.master.Master;
@@ -56,6 +58,11 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @return the number of live workers
    */
   int getWorkerCount();
+
+  /**
+   * @return the number of decommissioned workers
+   */
+  int getDecommissionedWorkerCount();
 
   /**
    * @return the number of lost workers
@@ -115,6 +122,19 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @return a list of worker lost storage information
    */
   List<WorkerLostStorageInfo> getWorkerLostStorage();
+
+  /**
+   * @param address worker address to check
+   * @return true if the worker is excluded, otherwise false
+   */
+  boolean isRejected(WorkerNetAddress address);
+
+  /**
+   * Decommission a worker.
+   *
+   * @param requestOptions the request
+   */
+  void decommissionWorker(DecommissionWorkerPOptions requestOptions) throws NotFoundException;
 
   /**
    * Removes blocks from workers.
@@ -343,4 +363,10 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @return the current clock
    */
   Clock getClock();
+
+  /**
+   * Revert disabling a worker, enabling it to register to the cluster.
+   * @param requestOptions the request
+   */
+  void removeDisabledWorker(RemoveDisabledWorkerPOptions requestOptions) throws NotFoundException;
 }

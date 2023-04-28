@@ -107,9 +107,22 @@ message WorkerLostStorageInfo {
   map<string, StorageList> lostStorage = 2;
 }
 
+message RemoveDisabledWorkerPOptions {
+  required string workerHostname = 1;
+  optional int64 workerWebPort = 2;
+}
+message RemoveDisabledWorkerPResponse {}
+
 message GetWorkerLostStoragePOptions {}
 message GetWorkerLostStoragePResponse {
   repeated WorkerLostStorageInfo workerLostStorageInfo = 1;
+}
+
+message DecommissionWorkerPResponse {}
+message DecommissionWorkerPOptions {
+  required string workerHostname = 1;
+  optional int64 workerWebPort = 2;
+  optional bool canRegisterAgain = 3;
 }
 
 /**
@@ -143,6 +156,13 @@ service BlockMasterClientService {
   rpc GetWorkerInfoList(GetWorkerInfoListPOptions) returns (GetWorkerInfoListPResponse);
 
   /**
+   * If target worker is in the decommissioned worker set,
+   * return true, remove target worker from decommissioned worker set; else, return false.
+   */
+  rpc RemoveDisabledWorker(RemoveDisabledWorkerPOptions)
+      returns (RemoveDisabledWorkerPResponse);
+
+  /**
    * Returns a list of workers information for report CLI.
    */
   rpc GetWorkerReport(GetWorkerReportPOptions) returns (GetWorkerInfoListPResponse);
@@ -151,6 +171,11 @@ service BlockMasterClientService {
    * Returns a list of worker lost storage information
    */
   rpc GetWorkerLostStorage(GetWorkerLostStoragePOptions) returns (GetWorkerLostStoragePResponse);
+
+  /**
+   *  Decommission the specific worker from Alluxio.
+   */
+  rpc DecommissionWorker(DecommissionWorkerPOptions) returns (DecommissionWorkerPResponse);
 }
 
 message TierList {

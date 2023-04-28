@@ -137,7 +137,7 @@ public final class MasterWorkerInfoTest {
    */
   @Test
   public void workerInfoGeneration() {
-    WorkerInfo workerInfo = mInfo.generateWorkerInfo(null, true);
+    WorkerInfo workerInfo = mInfo.generateWorkerInfo(null, WorkerState.LIVE);
     assertEquals(mInfo.getId(), workerInfo.getId());
     assertEquals(mInfo.getWorkerAddress(), workerInfo.getAddress());
     assertEquals("In Service", workerInfo.getState());

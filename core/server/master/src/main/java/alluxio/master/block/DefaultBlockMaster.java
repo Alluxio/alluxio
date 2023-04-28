@@ -32,11 +32,13 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.DecommissionWorkerPOptions;
 import alluxio.grpc.GetRegisterLeasePRequest;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
+import alluxio.grpc.RemoveDisabledWorkerPOptions;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
@@ -47,6 +49,7 @@ import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.block.meta.WorkerMetaLockSection;
+import alluxio.master.block.meta.WorkerState;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.BlockStore;
@@ -108,6 +111,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.function.BiConsumer;
@@ -153,6 +157,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           return o.getWorkerAddress();
         }
       };
+
+  private static final String WORKER_DISABLED =
+      "Worker with address %s is manually decommissioned and marked not able to join "
+          + "the cluster again. If you want this worker to register to the cluster again, "
+          + "use `bin/alluxio fsadmin enableWorker -h <workerHost>` command.";
 
   /**
    * Concurrency and locking in the BlockMaster
@@ -228,6 +237,14 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
   /** Worker is not visualable until registration completes. */
   private final IndexedSet<MasterWorkerInfo> mTempWorkers =
+      new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
+
+  private final Set<WorkerNetAddress> mRejectWorkers = new ConcurrentHashSet<>();
+  /**
+   * Keeps track of workers which have been decommissioned.
+   * For we need to distinguish the lost worker accidentally and the decommissioned worker manually.
+   */
+  private final IndexedSet<MasterWorkerInfo> mDecommissionedWorkers =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
 
   /**
@@ -506,6 +523,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
+  public int getDecommissionedWorkerCount() {
+    return mDecommissionedWorkers.size();
+  }
+
+  @Override
   public long getCapacityBytes() {
     long ret = 0;
     for (MasterWorkerInfo worker : mWorkers) {
@@ -564,7 +586,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     List<WorkerInfo> workerInfoList = new ArrayList<>(mWorkers.size());
     for (MasterWorkerInfo worker : mWorkers) {
       // extractWorkerInfo handles the locking internally
-      workerInfoList.add(extractWorkerInfo(worker, null, true));
+      workerInfoList.add(extractWorkerInfo(worker, null, WorkerState.LIVE));
     }
     return workerInfoList;
   }
@@ -577,10 +599,32 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     List<WorkerInfo> workerInfoList = new ArrayList<>(mLostWorkers.size());
     for (MasterWorkerInfo worker : mLostWorkers) {
       // extractWorkerInfo handles the locking internally
-      workerInfoList.add(extractWorkerInfo(worker, null, false));
+      workerInfoList.add(extractWorkerInfo(worker, null, WorkerState.LOST));
     }
     Collections.sort(workerInfoList, new WorkerInfo.LastContactSecComparator());
     return workerInfoList;
+  }
+
+  @Override
+  public void removeDisabledWorker(RemoveDisabledWorkerPOptions requestOptions)
+          throws NotFoundException {
+    String workerHostName = requestOptions.getWorkerHostname();
+    long workerWebPort = requestOptions.getWorkerWebPort();
+    AtomicBoolean found = new AtomicBoolean(false);
+    mRejectWorkers.removeIf(entry -> {
+      if (entry.getHost().equals(workerHostName) && entry.getWebPort() == workerWebPort) {
+        LOG.info("Received admin command to re-accept worker {}. The worker should be "
+            + "accepted to the cluster when it registers again.", entry);
+        found.set(true);
+        return true;
+      }
+      return false;
+    });
+    if (!found.get()) {
+      LOG.info("Received admin command to re-accept worker {} but the worker is "
+          + "not decommissioned. The worker will be able to register to the cluster normally. "
+          + "No further action is required.", workerHostName);
+    }
   }
 
   @Override
@@ -605,17 +649,22 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     Set<MasterWorkerInfo> selectedLiveWorkers = new HashSet<>();
     Set<MasterWorkerInfo> selectedLostWorkers = new HashSet<>();
+    Set<MasterWorkerInfo> selectedDecommissionedWorkers = new HashSet<>();
     WorkerRange workerRange = options.getWorkerRange();
     switch (workerRange) {
       case ALL:
         selectedLiveWorkers.addAll(mWorkers);
         selectedLostWorkers.addAll(mLostWorkers);
+        selectedDecommissionedWorkers.addAll(mDecommissionedWorkers);
         break;
       case LIVE:
         selectedLiveWorkers.addAll(mWorkers);
         break;
       case LOST:
         selectedLostWorkers.addAll(mLostWorkers);
+        break;
+      case DECOMMISSIONED:
+        selectedDecommissionedWorkers.addAll(mDecommissionedWorkers);
         break;
       case SPECIFIED:
         Set<String> addresses = options.getAddresses();
@@ -639,11 +688,16 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         selectedLiveWorkers.size() + selectedLostWorkers.size());
     for (MasterWorkerInfo worker : selectedLiveWorkers) {
       // extractWorkerInfo handles the locking internally
-      workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), true));
+      workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), WorkerState.LIVE));
     }
     for (MasterWorkerInfo worker : selectedLostWorkers) {
       // extractWorkerInfo handles the locking internally
-      workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), false));
+      workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), WorkerState.LOST));
+    }
+    for (MasterWorkerInfo worker : selectedDecommissionedWorkers) {
+      // extractWorkerInfo handles the locking internally
+      workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(),
+          WorkerState.DECOMMISSIONED));
     }
     return workerInfoList;
   }
@@ -652,10 +706,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * Locks the {@link MasterWorkerInfo} properly and convert it to a {@link WorkerInfo}.
    */
   private WorkerInfo extractWorkerInfo(MasterWorkerInfo worker,
-      Set<GetWorkerReportOptions.WorkerInfoField> fieldRange, boolean isLiveWorker) {
+      Set<GetWorkerReportOptions.WorkerInfoField> fieldRange, WorkerState state) {
     try (LockResource r = worker.lockWorkerMeta(
         EnumSet.of(WorkerMetaLockSection.USAGE), true)) {
-      return worker.generateWorkerInfo(fieldRange, isLiveWorker);
+      return worker.generateWorkerInfo(fieldRange, state);
     }
   }
 
@@ -714,6 +768,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         //  with the block), the block will not be freed ever. The locking logic in
         //  workerRegister should be changed to address this race condition.
         for (long workerId : workerIds) {
+          // No need to update if the worker is lost or decommissioned
+          // When that lost/decommissioned worker registers again, those removed blocks
+          // will not be recognized, and the master will instruct the worker to remove them anyway
           MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
           if (worker != null) {
             try (LockResource r = worker.lockWorkerMeta(
@@ -724,6 +781,71 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         }
       }
     }
+  }
+
+  @Override
+  public boolean isRejected(WorkerNetAddress address) {
+    return mRejectWorkers.contains(address);
+  }
+
+  @Override
+  public void decommissionWorker(DecommissionWorkerPOptions requestOptions)
+      throws NotFoundException {
+    String workerHostName = requestOptions.getWorkerHostname();
+    long workerWebPort = requestOptions.getWorkerWebPort();
+    boolean canRegisterAgain = requestOptions.getCanRegisterAgain();
+    LOG.info("Decommissioning worker {}:{}", requestOptions.getWorkerHostname(),
+        requestOptions.getWorkerWebPort());
+    for (MasterWorkerInfo workerInfo : mWorkers) {
+      WorkerNetAddress address = workerInfo.getWorkerAddress();
+      if (workerHostName.equals(address.getHost()) && workerWebPort == address.getWebPort()) {
+        LOG.info("Found worker to decommission {}", workerInfo.getWorkerAddress());
+        try (LockResource r = workerInfo.lockWorkerMeta(
+            EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
+          processDecommissionedWorker(workerInfo, canRegisterAgain);
+        }
+        LOG.info("Worker {}@{}:{} has been added to the decommissionedWorkers set.",
+            workerInfo.getId(), workerHostName, workerWebPort);
+        return;
+      }
+    }
+    // The worker is not active, but it has been decommissioned from a previous call
+    for (MasterWorkerInfo workerInfo : mDecommissionedWorkers) {
+      WorkerNetAddress address = workerInfo.getWorkerAddress();
+      if (workerHostName.equals(address.getHost()) && workerWebPort == address.getWebPort()) {
+        LOG.info("Worker {}@{}:{} has been decommissioned already",
+            workerInfo.getId(), workerHostName, workerWebPort);
+        return;
+      }
+    }
+    // If the worker is about to register, it may register back even if we decommission it
+    // here. So we let the admin wait until the worker is registered, to reduce the number of
+    // states to manage.
+    for (MasterWorkerInfo workerInfo : mTempWorkers) {
+      WorkerNetAddress address = workerInfo.getWorkerAddress();
+      if (workerHostName.equals(address.getHost()) && workerWebPort == address.getWebPort()) {
+        throw new NotFoundException(ExceptionMessage.WORKER_DECOMMISSIONED_BEFORE_REGISTER
+            .getMessage(workerHostName + ":" + workerWebPort));
+      }
+    }
+    // If the worker is lost, we guess it is more likely that the worker will not come back
+    // immediately
+    for (MasterWorkerInfo workerInfo : mLostWorkers) {
+      WorkerNetAddress address = workerInfo.getWorkerAddress();
+      if (workerHostName.equals(address.getHost()) && workerWebPort == address.getWebPort()) {
+        LOG.info("Found worker to decommission {} from lost workers",
+            workerInfo.getWorkerAddress());
+        try (LockResource r = workerInfo.lockWorkerMeta(
+            EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
+          processDecommissionedWorker(workerInfo, canRegisterAgain);
+        }
+        LOG.info("A lost worker {}@{}:{} has been added to the decommissionedWorkers set.",
+            workerInfo.getId(), workerHostName, workerWebPort);
+        return;
+      }
+    }
+    throw new NotFoundException(ExceptionMessage.WORKER_NOT_FOUND
+        .getMessage(workerHostName + ":" + workerWebPort));
   }
 
   @Override
@@ -812,7 +934,33 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     // TODO(peis): Check lost workers as well.
     if (worker == null) {
-      throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
+      /*
+       * If the worker is not recognized:
+       * 1. [Probably] The worker has been decommissioned and removed from the active worker list
+       * 2. [Possible] The worker has not finished its register process. Maybe the master has
+       *    failed over and the worker has not registered to this new primary.
+       * 3. [Unlikely] The worker does not belong to this cluster and has never registered.
+       *    This is unlikely because the worker has an ID and it must be from some master.
+       * 4. [Unlikely] The worker is lost to the master. This is unlikely because the CommitBlock
+       *    call is from the worker. This is more possibly the master is busy and did not
+       *    handle the worker's heartbeat message for too long.
+       */
+      worker = mDecommissionedWorkers.getFirstByField(ID_INDEX, workerId);
+      if (worker == null) {
+        throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
+      } else {
+        WorkerNetAddress addr = worker.getWorkerAddress();
+        LOG.info("Committing blocks from a decommissioned worker {}",
+            addr.getHost() + ":" + addr.getRpcPort());
+        /*
+         * Even though the worker is now decommissioned, the master still accepts the block
+         * and updates the BlockLocation normally.
+         * Updating the BlockLocation is not strictly necessary, because when the worker
+         * registers again after restart, all locations will be rebuilt.
+         * But for simplicity, the location is still updated.
+         * A disabled worker is allowed to commit block, so ongoing operations will succeed.
+         */
+      }
     }
 
     try (JournalContext journalContext = createJournalContext()) {
@@ -939,7 +1087,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   @Nullable
   private MasterWorkerInfo findUnregisteredWorker(long workerId) {
-    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers)) {
+    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers,
+        mDecommissionedWorkers)) {
       MasterWorkerInfo worker = workers.getFirstByField(ID_INDEX, workerId);
       if (worker != null) {
         return worker;
@@ -957,7 +1106,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   @Nullable
   private MasterWorkerInfo recordWorkerRegistration(long workerId) {
-    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers)) {
+    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers,
+        mDecommissionedWorkers)) {
       MasterWorkerInfo worker = workers.getFirstByField(ID_INDEX, workerId);
       if (worker == null) {
         continue;
@@ -982,6 +1132,12 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public long getWorkerId(WorkerNetAddress workerNetAddress) {
+    if (isRejected(workerNetAddress)) {
+      String msg = String.format(WORKER_DISABLED, workerNetAddress);
+      LOG.warn("{}", msg);
+      throw new RuntimeException(msg);
+    }
+    LOG.info("Worker {} requesting for an ID", workerNetAddress);
     MasterWorkerInfo existingWorker = mWorkers.getFirstByField(ADDRESS_INDEX, workerNetAddress);
     if (existingWorker != null) {
       // This worker address is already mapped to a worker id.
@@ -1026,7 +1182,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       Map<BlockLocation, List<Long>> currentBlocksOnLocation,
       Map<String, StorageList> lostStorage, RegisterWorkerPOptions options)
       throws NotFoundException {
-
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
 
     if (worker == null) {
@@ -1035,6 +1190,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     if (worker == null) {
       throw new NotFoundException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
+    }
+    if (isRejected(worker.getWorkerAddress())) {
+      throw new NotFoundException(String.format(WORKER_DISABLED,
+          worker.getWorkerAddress()));
     }
 
     worker.setBuildVersion(options.getBuildVersion());
@@ -1093,6 +1252,49 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     return worker;
   }
 
+  private MasterWorkerInfo getLiveOrDecommissionedWorker(long workerId) {
+    MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
+    if (worker != null) {
+      return worker;
+    }
+    // If not found in the decommissioned worker, this returns null
+    return mDecommissionedWorkers.getFirstByField(ID_INDEX, workerId);
+  }
+
+  private void processDecommissionedWorkerBlocks(MasterWorkerInfo workerInfo) {
+    processWorkerRemovedBlocks(workerInfo, workerInfo.getBlocks(), false);
+  }
+
+  /**
+   * Updates the metadata for the specified decommissioned worker.
+   * @param worker the master worker info
+   */
+  private void processDecommissionedWorker(MasterWorkerInfo worker, boolean canRegisterAgain) {
+    WorkerNetAddress address = worker.getWorkerAddress();
+    if (canRegisterAgain) {
+      LOG.info("Worker with address {} is decommissioned but will be accepted when it "
+          + "registers again.", address);
+    } else {
+      LOG.info("Worker with address {} will be rejected on register/heartbeat", address);
+      mRejectWorkers.add(address);
+    }
+
+    mDecommissionedWorkers.add(worker);
+    // Remove worker from all other possible states
+    mWorkers.remove(worker);
+    mTempWorkers.remove(worker);
+    mLostWorkers.remove(worker);
+    // Invalidate cache to trigger new build of worker info list
+    mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
+
+    WorkerNetAddress workerNetAddress = worker.getWorkerAddress();
+    // TODO(bzheng888): Maybe need a new listener such as WorkerDecommissionListener.
+    for (Consumer<Address> function : mWorkerLostListeners) {
+      function.accept(new Address(workerNetAddress.getHost(), workerNetAddress.getRpcPort()));
+    }
+    processDecommissionedWorkerBlocks(worker);
+  }
+
   @Override
   public void workerRegisterStream(WorkerRegisterContext context,
                                   RegisterWorkerPRequest chunk, boolean isFirstMsg) {
@@ -1105,6 +1307,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   protected void workerRegisterStart(WorkerRegisterContext context,
       RegisterWorkerPRequest chunk) {
+    MasterWorkerInfo workerInfo = context.mWorker;
+    Preconditions.checkState(workerInfo != null,
+        "No workerInfo metadata found in the WorkerRegisterContext!");
+    if (isRejected(workerInfo.getWorkerAddress())) {
+      throw new RuntimeException(String.format(WORKER_DISABLED,
+          workerInfo.getWorkerAddress()));
+    }
     final List<String> storageTiers = chunk.getStorageTiersList();
     final Map<String, Long> totalBytesOnTiers = chunk.getTotalBytesOnTiersMap();
     final Map<String, Long> usedBytesOnTiers = chunk.getUsedBytesOnTiersMap();
@@ -1148,10 +1357,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
                 chunk.getCurrentBlocksList(), context.getWorkerId());
     MasterWorkerInfo worker = context.mWorker;
     Preconditions.checkState(worker != null,
-        "No worker metadata found in the WorkerRegisterContext!");
-
-    // Even if we add the BlockLocation before the worker is fully registered,
-    // it should be fine because the block can be read on this worker.
+        "No workerInfo metadata found in the WorkerRegisterContext!");
+    if (isRejected(worker.getWorkerAddress())) {
+      throw new RuntimeException(String.format(WORKER_DISABLED,
+              worker.getWorkerAddress()));
+    }
+    // Even if we add the BlockLocation before the workerInfo is fully registered,
+    // it should be fine because the block can be read on this workerInfo.
     // If the stream fails in the middle, the blocks recorded on the MasterWorkerInfo
     // will be removed by processLostWorker()
     processWorkerAddedBlocks(worker, currentBlocksOnLocation);
@@ -1166,9 +1378,12 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public void workerRegisterFinish(WorkerRegisterContext context) {
     MasterWorkerInfo worker = context.mWorker;
     Preconditions.checkState(worker != null,
-        "No worker metadata found in the WorkerRegisterContext!");
-
-    // Detect any lost blocks on this worker.
+        "No workerInfo metadata found in the WorkerRegisterContext!");
+    if (isRejected(worker.getWorkerAddress())) {
+      throw new RuntimeException(String.format(WORKER_DISABLED,
+              worker.getWorkerAddress()));
+    }
+    // Detect any lost blocks on this workerInfo.
     Set<Long> removedBlocks;
     if (worker.mIsRegistered) {
       // This is a re-register of an existing worker. Assume the new block ownership data is more
@@ -1206,8 +1421,29 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       List<Metric> metrics) {
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     if (worker == null) {
+      /*
+       * If the worker is not recognized:
+       * 1. The worker never registered to the cluster, or the master has restarted/failover
+       * 2. The worker has been decommissioned and removed from the active worker list
+       */
+      worker = mDecommissionedWorkers.getFirstByField(ID_INDEX, workerId);
+      if (worker != null) {
+        WorkerNetAddress workerAddr = worker.getWorkerAddress();
+        if (isRejected(worker.getWorkerAddress())) {
+          LOG.info("Received heartbeat from a disabled worker {}",
+              workerAddr.getHost() + ":" + workerAddr.getRpcPort());
+          return Command.newBuilder().setCommandType(CommandType.Disabled).build();
+        }
+        LOG.info("Received heartbeat from a decommissioned worker {}",
+            workerAddr.getHost() + ":" + workerAddr.getRpcPort());
+        return Command.newBuilder().setCommandType(CommandType.Decommissioned).build();
+      }
       LOG.warn("Could not find worker id: {} for heartbeat.", workerId);
       return Command.newBuilder().setCommandType(CommandType.Register).build();
+    }
+    if (isRejected(worker.getWorkerAddress())) {
+      throw new RuntimeException(String.format(WORKER_DISABLED,
+          worker.getWorkerAddress()));
     }
 
     // Update the TS before the heartbeat so even if the worker heartbeat processing
@@ -1420,6 +1656,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
     List<alluxio.wire.BlockLocation> locations = new ArrayList<>(blockLocations.size());
     for (BlockLocation location : blockLocations) {
+      // Decommissioned workers are not included in the available locations
+      // Note that this may introduce a short unavailability on the block, before
+      // this worker registers again (and wipes out the decommissioned state).
       MasterWorkerInfo workerInfo =
           mWorkers.getFirstByField(ID_INDEX, location.getWorkerId());
       if (workerInfo != null) {
@@ -1503,6 +1742,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   private void processLostWorker(MasterWorkerInfo worker) {
     mLostWorkers.add(worker);
     mWorkers.remove(worker);
+    // Invalidate cache to trigger new build of worker info list
+    mWorkerInfoCache.invalidate(WORKER_INFO_CACHE_KEY);
+    // If a worker is gone before registering, avoid it getting stuck in mTempWorker forever
+    mTempWorkers.remove(worker);
     WorkerNetAddress workerAddress = worker.getWorkerAddress();
     for (Consumer<Address> function : mWorkerLostListeners) {
       function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()));
@@ -1511,6 +1754,14 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     // mark these blocks to-remove from the worker.
     // So if the worker comes back again the blocks are kept.
     processWorkerRemovedBlocks(worker, worker.getBlocks(), false);
+  }
+
+  private void deleteWorkerMetadata(MasterWorkerInfo worker) {
+    mWorkers.remove(worker);
+    mLostWorkers.remove(worker);
+    // If a worker is gone before registering, avoid it getting stuck in mTempWorker forever
+    mTempWorkers.remove(worker);
+    mDecommissionedWorkers.remove(worker);
   }
 
   LockResource lockBlock(long blockId) {
