@@ -77,6 +77,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
@@ -125,6 +128,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   private final FuseManager mFuseManager;
 
   protected WorkerNetAddress mAddress;
+  private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+  AtomicReference<metrictable> mMetricTable;
 
   /**
    * Constructs a default block worker.
@@ -160,6 +165,9 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         GrpcExecutors.CACHE_MANAGER_EXECUTOR, this, fsContext);
     mFuseManager = mResourceCloser.register(new FuseManager(fsContext));
     mWhitelist = new PrefixList(Configuration.getList(PropertyKey.WORKER_WHITELIST));
+
+    mMetricTable = new AtomicReference<>(new metrictable());
+    executor.scheduleAtFixedRate(this::MaintainMetricTable, 0, 1, TimeUnit.SECONDS);
 
     Metrics.registerGauges(this);
   }
@@ -349,6 +357,18 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   @Override
   public BlockStoreMeta getStoreMeta() {
     return mBlockStore.getBlockStoreMeta();
+  }
+
+  public void MaintainMetricTable() {
+    BlockStoreMeta meta = mBlockStore.getBlockStoreMeta();
+    metrictable metrictable = mMetricTable.get();
+    metrictable.capacityBytes = meta.getCapacityBytes();
+    metrictable.usedBytes = meta.getUsedBytes();
+    metrictable.capacityFree = metrictable.capacityBytes - metrictable.usedBytes;
+  }
+
+  public AtomicReference<metrictable> getMetricTable() {
+    return mMetricTable;
   }
 
   @Override
@@ -562,6 +582,28 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     }
 
     private Metrics() {} // prevent instantiation
+  }
+
+  /**
+   * {@link }
+   * MaintainMetricTable
+   */
+  public class metrictable {
+    long capacityBytes;
+    long usedBytes;
+    long capacityFree;
+
+    public long getCapacityBytes() {
+      return capacityBytes;
+    }
+
+    public long getUsedBytes() {
+      return usedBytes;
+    }
+
+    public long getCapacityFree() {
+      return capacityFree;
+    }
   }
 
   /**
