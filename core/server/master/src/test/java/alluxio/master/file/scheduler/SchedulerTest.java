@@ -40,6 +40,7 @@ import alluxio.grpc.LoadRequest;
 import alluxio.grpc.LoadResponse;
 import alluxio.grpc.TaskStatus;
 import alluxio.job.JobDescription;
+import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.job.FileIterable;
 import alluxio.master.job.LoadJob;
@@ -51,7 +52,6 @@ import alluxio.proto.journal.Job;
 import alluxio.resource.CloseableResource;
 import alluxio.scheduler.job.JobState;
 import alluxio.security.authentication.AuthenticatedClientUser;
-import alluxio.underfs.UfsManager;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -86,13 +86,13 @@ public final class SchedulerTest {
 
   @Test
   public void testGetActiveWorkers() throws IOException {
-    FileSystemMaster fsMaster = mock(FileSystemMaster.class);
+    DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     CloseableResource<BlockWorkerClient> blockWorkerClient = mock(CloseableResource.class);
     DefaultWorkerProvider workerProvider =
         new DefaultWorkerProvider(fsMaster, fileSystemContext);
     Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider,
-        new JournaledJobMetaStore(fsMaster, mock(UfsManager.class)));
+        new JournaledJobMetaStore(fsMaster));
     when(fsMaster.getWorkerInfoList())
         .thenReturn(ImmutableList.of(
             new WorkerInfo().setId(1).setAddress(
@@ -128,14 +128,14 @@ public final class SchedulerTest {
   @Test
   public void testSubmit() throws Exception {
     String validLoadPath = "/path/to/load";
-    FileSystemMaster fsMaster = mock(FileSystemMaster.class);
+    DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     JournalContext journalContext = mock(JournalContext.class);
     when(fsMaster.createJournalContext()).thenReturn(journalContext);
     DefaultWorkerProvider workerProvider =
         new DefaultWorkerProvider(fsMaster, fileSystemContext);
     Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider,
-        new JournaledJobMetaStore(fsMaster, mock(UfsManager.class)));
+        new JournaledJobMetaStore(fsMaster));
     FileIterable files =
         new FileIterable(fsMaster, validLoadPath, Optional.of("user"), false,
             LoadJob.QUALIFIED_FILE_FILTER);
@@ -173,14 +173,14 @@ public final class SchedulerTest {
   @Test
   public void testStop() throws Exception {
     String validLoadPath = "/path/to/load";
-    FileSystemMaster fsMaster = mock(FileSystemMaster.class);
+    DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     JournalContext journalContext = mock(JournalContext.class);
     when(fsMaster.createJournalContext()).thenReturn(journalContext);
     DefaultWorkerProvider workerProvider =
         new DefaultWorkerProvider(fsMaster, fileSystemContext);
     Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider,
-        new JournaledJobMetaStore(fsMaster, mock(UfsManager.class)));
+        new JournaledJobMetaStore(fsMaster));
     FileIterable files =
         new FileIterable(fsMaster, validLoadPath, Optional.of("user"), false,
             LoadJob.QUALIFIED_FILE_FILTER);
@@ -214,14 +214,14 @@ public final class SchedulerTest {
 
   @Test
   public void testSubmitExceedsCapacity() throws Exception {
-    FileSystemMaster fsMaster = mock(FileSystemMaster.class);
+    DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     JournalContext journalContext = mock(JournalContext.class);
     when(fsMaster.createJournalContext()).thenReturn(journalContext);
     DefaultWorkerProvider workerProvider =
         new DefaultWorkerProvider(fsMaster, fileSystemContext);
     Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider,
-        new JournaledJobMetaStore(fsMaster, mock(UfsManager.class)));
+        new JournaledJobMetaStore(fsMaster));
     IntStream.range(0, 100).forEach(
         i -> {
           String path = String.format("/path/to/load/%d", i);
@@ -241,7 +241,7 @@ public final class SchedulerTest {
 
   @Test
   public void testScheduling() throws Exception {
-    FileSystemMaster fsMaster = mock(FileSystemMaster.class);
+    DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     JournalContext journalContext = mock(JournalContext.class);
     when(fsMaster.createJournalContext()).thenReturn(journalContext);
@@ -292,7 +292,7 @@ public final class SchedulerTest {
     DefaultWorkerProvider workerProvider =
         new DefaultWorkerProvider(fsMaster, fileSystemContext);
     Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider,
-        new JournaledJobMetaStore(fsMaster, mock(UfsManager.class)));
+        new JournaledJobMetaStore(fsMaster));
     String path = "test";
     FileIterable files = new FileIterable(fsMaster, path, Optional.of("user"), false,
         LoadJob.QUALIFIED_FILE_FILTER);
@@ -366,7 +366,7 @@ public final class SchedulerTest {
 
   @Test
   public void testSchedulingFullCapacity() throws Exception {
-    FileSystemMaster fsMaster = mock(FileSystemMaster.class);
+    DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     JournalContext journalContext = mock(JournalContext.class);
     when(fsMaster.createJournalContext()).thenReturn(journalContext);
@@ -397,7 +397,7 @@ public final class SchedulerTest {
     DefaultWorkerProvider workerProvider =
         new DefaultWorkerProvider(fsMaster, fileSystemContext);
     Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider,
-        new JournaledJobMetaStore(fsMaster, mock(UfsManager.class)));
+        new JournaledJobMetaStore(fsMaster));
     for (int i = 0; i < 100; i++) {
       LoadJob loadJob = new LoadJob("test" + i, "user", OptionalLong.of(1000), files);
       scheduler.submitJob(loadJob);
@@ -415,7 +415,7 @@ public final class SchedulerTest {
 
   @Test
   public void testSchedulingWithException() throws Exception {
-    FileSystemMaster fsMaster = mock(FileSystemMaster.class);
+    DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     JournalContext journalContext = mock(JournalContext.class);
     when(fsMaster.createJournalContext()).thenReturn(journalContext);
@@ -439,7 +439,7 @@ public final class SchedulerTest {
     DefaultWorkerProvider workerProvider =
         new DefaultWorkerProvider(fsMaster, fileSystemContext);
     Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider,
-        new JournaledJobMetaStore(fsMaster, mock(UfsManager.class)));
+        new JournaledJobMetaStore(fsMaster));
     scheduler.start();
     FileIterable files =
         new FileIterable(fsMaster, "test", Optional.of("user"), false,
@@ -470,14 +470,14 @@ public final class SchedulerTest {
   @Test
   public void testJobRetention() throws Exception {
     Configuration.modifiableGlobal().set(PropertyKey.JOB_RETENTION_TIME, "0ms", Source.RUNTIME);
-    FileSystemMaster fsMaster = mock(FileSystemMaster.class);
+    DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
     JournalContext journalContext = mock(JournalContext.class);
     when(fsMaster.createJournalContext()).thenReturn(journalContext);
     DefaultWorkerProvider workerProvider =
         new DefaultWorkerProvider(fsMaster, fileSystemContext);
     Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider,
-        new JournaledJobMetaStore(fsMaster, mock(UfsManager.class)));
+        new JournaledJobMetaStore(fsMaster));
     scheduler.start();
     IntStream
         .range(0, 5)

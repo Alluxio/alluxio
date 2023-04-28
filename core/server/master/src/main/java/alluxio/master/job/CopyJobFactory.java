@@ -17,11 +17,13 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.CopyJobPOptions;
 import alluxio.job.CopyJobRequest;
+import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobFactory;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.wire.FileInfo;
 
 import java.util.Optional;
@@ -33,16 +35,16 @@ import java.util.UUID;
  */
 public class CopyJobFactory implements JobFactory {
 
-  private final UnderFileSystem mFs;
+  private final DefaultFileSystemMaster mFs;
   private final CopyJobRequest mRequest;
 
   /**
    * Create factory.
    * @param request load job request
-   * @param underFileSystem file system master
+   * @param fsMaster file system master
    */
-  public CopyJobFactory(CopyJobRequest request, UnderFileSystem underFileSystem) {
-    mFs = underFileSystem;
+  public CopyJobFactory(CopyJobRequest request, DefaultFileSystemMaster fsMaster) {
+    mFs = fsMaster;
     mRequest = request;
   }
 
@@ -50,16 +52,14 @@ public class CopyJobFactory implements JobFactory {
   public Job<?> create() {
     CopyJobPOptions options = mRequest.getOptions();
     String src = mRequest.getSrc();
-    String srcRoot = new AlluxioURI(src).getRootPath();
-    String dstRoot = new AlluxioURI(mRequest.getDst()).getRootPath();
     OptionalLong bandwidth =
         options.hasBandwidth() ? OptionalLong.of(options.getBandwidth()) : OptionalLong.empty();
     boolean partialListing = options.hasPartialListing() && options.getPartialListing();
     boolean verificationEnabled = options.hasVerify() && options.getVerify();
     boolean overwrite = options.hasOverwrite() && options.getOverwrite();
-    WriteType writeType = options.hasWriteType() ? WriteType.fromProto(options.getWriteType()) :
-        Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
-    Iterable<FileInfo> fileIterator = new UfsFileIterable(mFs, src, Optional
+    UnderFileSystem ufs = mFs.getUfsManager().getOrAdd(new AlluxioURI(src),
+        UnderFileSystemConfiguration.defaults(Configuration.global()));
+    Iterable<FileInfo> fileIterator = new UfsFileIterable(ufs, src, Optional
         .ofNullable(AuthenticatedClientUser.getOrNull())
         .map(User::getName), partialListing, FileInfo::isCompleted);
     Optional<String> user = Optional

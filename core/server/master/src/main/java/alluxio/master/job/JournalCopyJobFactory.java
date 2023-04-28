@@ -11,10 +11,14 @@
 
 package alluxio.master.job;
 
+import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
+import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobFactory;
 import alluxio.scheduler.job.JobState;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.wire.FileInfo;
 
 import java.util.Optional;
@@ -25,7 +29,7 @@ import java.util.OptionalLong;
  */
 public class JournalCopyJobFactory implements JobFactory {
 
-  private final UnderFileSystem mFs;
+  private final DefaultFileSystemMaster mFs;
 
   private final alluxio.proto.journal.Job.CopyJobEntry mJobEntry;
 
@@ -35,7 +39,7 @@ public class JournalCopyJobFactory implements JobFactory {
    * @param fs file system master
    */
   public JournalCopyJobFactory(alluxio.proto.journal.Job.CopyJobEntry journalEntry,
-       UnderFileSystem fs) {
+       DefaultFileSystemMaster fs) {
     mFs = fs;
     mJobEntry = journalEntry;
   }
@@ -44,8 +48,10 @@ public class JournalCopyJobFactory implements JobFactory {
   public Job<?> create() {
     Optional<String> user =
         mJobEntry.hasUser() ? Optional.of(mJobEntry.getUser()) : Optional.empty();
+    UnderFileSystem ufs = mFs.getUfsManager().getOrAdd(new AlluxioURI(mJobEntry.getSrc()),
+        UnderFileSystemConfiguration.defaults(Configuration.global()));
     Iterable<FileInfo> fileIterator =
-        new UfsFileIterable(mFs, mJobEntry.getSrc(), user, mJobEntry.getPartialListing(),
+        new UfsFileIterable(ufs, mJobEntry.getSrc(), user, mJobEntry.getPartialListing(),
             FileInfo::isCompleted);
     AbstractJob<?> job = getCopyJob(user, fileIterator);
     job.setJobState(JobState.fromProto(mJobEntry.getState()));

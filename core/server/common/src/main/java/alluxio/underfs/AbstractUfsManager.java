@@ -114,11 +114,11 @@ public abstract class AbstractUfsManager implements UfsManager {
    * Return a UFS instance if it already exists in the cache, otherwise, creates a new instance and
    * return it.
    *
-   * @param ufsUri the UFS path
+   * @param ufsUri  the UFS path
    * @param ufsConf the UFS configuration
    * @return the UFS instance
    */
-  private UnderFileSystem getOrAdd(AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf) {
+  public UnderFileSystem getOrAdd(AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf) {
     return getOrAddWithRecorder(ufsUri, ufsConf, Recorder.noopRecorder());
   }
 

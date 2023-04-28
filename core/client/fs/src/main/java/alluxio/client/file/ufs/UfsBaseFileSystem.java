@@ -117,6 +117,27 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   /**
+   * Constructs a wrapper file system based on given UnderFileSystem.
+   *
+   * @param fsContext file system context
+   * @param ufs the under file system
+   */
+  public UfsBaseFileSystem(FileSystemContext fsContext, UfsFileSystemOptions options, UnderFileSystem ufs) {
+    Preconditions.checkNotNull(fsContext);
+    Preconditions.checkNotNull(options);
+    mFsContext = fsContext;
+    String ufsAddress = options.getUfsAddress();
+    Preconditions.checkArgument(!ufsAddress.isEmpty(), "ufs address should not be empty");
+    mRootUFS = new AlluxioURI(ufsAddress);
+    UfsManager.UfsClient ufsClient = new UfsManager.UfsClient(
+        () -> ufs, new AlluxioURI(ufsAddress));
+    mUfs = ufsClient.acquireUfsResource();
+    mCloser.register(mFsContext);
+    mCloser.register(mUfs);
+    LOG.debug("Creating file system connecting to ufs address {}", ufsAddress);
+  }
+
+  /**
    * Shuts down the FileSystem. Closes all thread pools and resources used to perform operations. If
    * any operations are called after closing the context the behavior is undefined.
    */
