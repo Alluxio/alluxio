@@ -18,7 +18,6 @@ import alluxio.StorageTierAssoc;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerRange;
-import alluxio.client.block.util.BlockLocationUtils;
 import alluxio.clock.SystemClock;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.IndexDefinition;
@@ -656,6 +655,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       case ALL:
         selectedLiveWorkers.addAll(mWorkers);
         selectedLostWorkers.addAll(mLostWorkers);
+        selectedDecommissionedWorkers.addAll(mDecommissionedWorkers);
         break;
       case LIVE:
         selectedLiveWorkers.addAll(mWorkers);
@@ -1087,7 +1087,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   @Nullable
   private MasterWorkerInfo findUnregisteredWorker(long workerId) {
-    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers)) {
+    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers,
+        mDecommissionedWorkers)) {
       MasterWorkerInfo worker = workers.getFirstByField(ID_INDEX, workerId);
       if (worker != null) {
         return worker;
@@ -1105,7 +1106,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    */
   @Nullable
   private MasterWorkerInfo recordWorkerRegistration(long workerId) {
-    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers)) {
+    for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers, mLostWorkers,
+        mDecommissionedWorkers)) {
       MasterWorkerInfo worker = workers.getFirstByField(ID_INDEX, workerId);
       if (worker == null) {
         continue;
@@ -1695,7 +1697,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     @Override
     public void heartbeat() {
       long masterWorkerTimeoutMs = ServerConfiguration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS);
-      long masterWorkerDeleteTimeoutMs = 8 * masterWorkerTimeoutMs;
       for (MasterWorkerInfo worker : mWorkers) {
         try (LockResource r = worker.lockWorkerMeta(
             EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
@@ -1705,30 +1706,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             LOG.error("The worker {}({}) timed out after {}ms without a heartbeat!", worker.getId(),
                 worker.getWorkerAddress(), lastUpdate);
             processLostWorker(worker);
-          }
-        }
-      }
-      for (MasterWorkerInfo worker : mLostWorkers) {
-        try (LockResource r = worker.lockWorkerMeta(
-            EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
-          final long lastUpdate = mClock.millis() - worker.getLastUpdatedTimeMs();
-          if ((lastUpdate - masterWorkerTimeoutMs) > masterWorkerDeleteTimeoutMs) {
-            LOG.error("The lost worker {}({}) timed out after {}ms without a heartbeat! "
-                + "Master will forget about this worker.", worker.getId(),
-                worker.getWorkerAddress(), lastUpdate);
-            deleteWorkerMetadata(worker);
-          }
-        }
-      }
-      for (MasterWorkerInfo worker : mDecommissionedWorkers) {
-        try (LockResource r = worker.lockWorkerMeta(
-            EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
-          final long lastUpdate = mClock.millis() - worker.getLastUpdatedTimeMs();
-          if ((lastUpdate - masterWorkerTimeoutMs) > masterWorkerDeleteTimeoutMs) {
-            LOG.error("The decommissioned worker {}({}) timed out after {}ms without a heartbeat! "
-                + "Master will forget about this worker.", worker.getId(),
-                worker.getWorkerAddress(), lastUpdate);
-            deleteWorkerMetadata(worker);
           }
         }
       }

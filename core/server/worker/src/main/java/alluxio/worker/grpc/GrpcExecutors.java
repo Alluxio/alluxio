@@ -67,7 +67,6 @@ public final class GrpcExecutors {
   public static final ExecutorService BLOCK_READER_EXECUTOR =
       new ImpersonateThreadPoolExecutor(BLOCK_READER_THREAD_POOL_EXECUTOR, true);
 
-
   // Used for replying data to the client in BlockReadHandler.
   // The thread pool has a small queue of a constant size.
   private static final ThreadPoolExecutor BLOCK_SERIALIZED_THREAD_POOL_EXECUTOR =
