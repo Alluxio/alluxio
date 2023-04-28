@@ -169,9 +169,9 @@
               <location>alluxio.worker.AlluxioJobWorkerRestServiceHandler</location>
               <location>alluxio.master.job.JobMasterClientRestServiceHandler</location>
             </locations>
-            <templatePath>${project.parent.parent.basedir}/templates/strapdown.html.hbs</templatePath>
-            <outputPath>${project.parent.parent.basedir}/generated/job/index.html</outputPath>
-            <swaggerDirectory>${project.parent.parent.basedir}/generated/job/swagger-ui</swaggerDirectory>
+            <templatePath>${project.parent.parent.parent.basedir}/templates/strapdown.html.hbs</templatePath>
+            <outputPath>${project.parent.parent.parent.basedir}/generated/job/index.html</outputPath>
+            <swaggerDirectory>${project.parent.parent.parent.basedir}/generated/job/swagger-ui</swaggerDirectory>
           </apiSource>
         </apiSources>
       </configuration>
