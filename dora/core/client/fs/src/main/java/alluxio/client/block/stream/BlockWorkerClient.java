@@ -181,6 +181,13 @@ public interface BlockWorkerClient extends Closeable {
   ListenableFuture<LoadResponse> load(LoadRequest request);
 
   /**
+   * load
+   * @param request
+   * @return
+   */
+  ListenableFuture<LoadFileResponse> loadFile(LoadFileRequest request);
+
+  /**
    * get file status.
    *
    * @param request

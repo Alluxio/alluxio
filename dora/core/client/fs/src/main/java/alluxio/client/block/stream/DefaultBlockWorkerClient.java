@@ -323,6 +323,11 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   }
 
   @Override
+  public ListenableFuture<LoadFileResponse> loadFile(LoadFileRequest request) {
+    return mRpcFutureStub.loadFile(request);
+  }
+
+  @Override
   public GetStatusPResponse getStatus(GetStatusPRequest request) {
     return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
         .getStatus(request);

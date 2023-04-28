@@ -14,6 +14,7 @@ package alluxio.scheduler.job;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.wire.WorkerInfo;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Stopwatch;
 import com.google.common.util.concurrent.ListenableFuture;
 
@@ -29,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 public abstract class Task<V> implements Comparable<Task> {
 
   /**
-   * State of a task.
+   * Metrics and stats to track current task.
    */
   public static class TaskStat {
     private final Stopwatch mStopwatch = Stopwatch.createStarted();
@@ -65,7 +66,9 @@ public abstract class Task<V> implements Comparable<Task> {
   /**
    * Constructor.
    */
-  public Task() {
+  public Task(Job job, int taskId) {
+    setJob(job);
+    mTaskId = taskId;
     mTaskStat = new TaskStat();
   }
 
@@ -77,14 +80,19 @@ public abstract class Task<V> implements Comparable<Task> {
   private ListenableFuture<V> mResponseFuture;
   private TaskStat mTaskStat;
   private int mPriority = 1;
-  private WorkerInfo mRunsOnWorker;
+  private int mTaskId;
+  private WorkerInfo mMyWorker;
   protected Job mMyJob;
 
   /**
    * @return my running worker
    */
   public WorkerInfo getMyRunningWorker() {
-    return mRunsOnWorker;
+    return mMyWorker;
+  }
+
+  public void setMyRunningWorker(WorkerInfo workerInfo) {
+    mMyWorker = workerInfo;
   }
 
   /**
@@ -100,17 +108,15 @@ public abstract class Task<V> implements Comparable<Task> {
    * @param workerInfo the worker information
    */
   public void execute(BlockWorkerClient client, WorkerInfo workerInfo) {
-    mRunsOnWorker = workerInfo;
+    mMyWorker = workerInfo;
     mResponseFuture = run(client);
   }
 
   /**
    * @param job the job
-   * @return the task
    */
-  public Task withJob(Job job) {
+  public void setJob(Job job) {
     mMyJob = job;
-    return this;
   }
 
   /**
@@ -134,15 +140,13 @@ public abstract class Task<V> implements Comparable<Task> {
     }
     Task<?> other = (Task<?>) obj;
     return getPriority() == other.getPriority()
-        && getTaskStat() == other.getTaskStat()
-        && Objects.equals(mRunsOnWorker, other.mRunsOnWorker)
-        && Objects.equals(mMyJob, other.mMyJob)
-        && Objects.equals(mResponseFuture, other.mResponseFuture);
+        && Objects.equals(mMyWorker, other.mMyWorker)
+        && Objects.equals(mMyJob, other.mMyJob);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(mPriority, mTaskStat, mRunsOnWorker, mMyJob, mResponseFuture);
+    return Objects.hash(mPriority, mMyWorker, mMyJob);
   }
 
   @Override
@@ -159,4 +163,13 @@ public abstract class Task<V> implements Comparable<Task> {
    * @param executor the executor
    */
   public void onComplete(Executor executor) {}
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("netAddress", mNetAddress)
+        .add("capacityBytes", mCapacityBytes)
+        .add("usedBytes", mUsedBytes)
+        .toString();
+  }
 }

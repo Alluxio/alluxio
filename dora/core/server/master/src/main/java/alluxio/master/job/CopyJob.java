@@ -13,15 +13,18 @@ package alluxio.master.job;
 
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toList;
 
 import alluxio.AlluxioURI;
 import alluxio.client.block.stream.BlockWorkerClient;
+import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
+import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.grpc.CopyRequest;
 import alluxio.grpc.CopyResponse;
 import alluxio.grpc.JobProgressReportFormat;
@@ -31,6 +34,7 @@ import alluxio.grpc.TaskStatus;
 import alluxio.grpc.UfsReadOptions;
 import alluxio.grpc.WriteOptions;
 import alluxio.job.JobDescription;
+import alluxio.master.scheduler.Scheduler;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal;
@@ -55,19 +59,14 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
+import io.netty.util.internal.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.OptionalLong;
+import java.util.*;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -127,6 +126,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
       OptionalLong bandwidth, boolean usePartialListing, boolean verificationEnabled,
       boolean checkContent, Iterable<FileInfo> fileIterable) {
     super(user, jobId);
+    super.setWorkerAssignPolicy(new CopyJob.RoundRobinWorkerAssignPolicy());
     mSrc = requireNonNull(src, "src is null");
     mDst = requireNonNull(dst, "dst is null");
     Preconditions.checkArgument(
@@ -140,6 +140,19 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     mFileIterable = fileIterable;
     mOverwrite = overwrite;
     mCheckContent = checkContent;
+  }
+
+  private static class RoundRobinWorkerAssignPolicy extends WorkerAssignPolicy {
+    private AtomicInteger mCounter;
+    @Override
+    protected WorkerInfo pickAWorker(String object, Collection<WorkerInfo> workerInfos) {
+      if (workerInfos.isEmpty()) {
+        return null;
+      }
+      int nextWorkerIdx = Math.floorMod(mCounter.incrementAndGet(), workerInfos.size());
+      WorkerInfo pickedWorker = workerInfos.toArray(new WorkerInfo[workerInfos.size()])[nextWorkerIdx];
+      return pickedWorker;
+    }
   }
 
   /**
@@ -279,15 +292,18 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
   /**
    * get next load task.
    *
-   * @param worker blocker to worker
+   * @param workers workerInfos
    * @return the next task to run. If there is no task to run, return empty
    */
-  public Optional<CopyTask> getNextTask(WorkerInfo worker) {
+  public Optional<CopyTask> getNextTask(Collection<WorkerInfo> workers) {
     List<Route> routes = getNextRoutes(BATCH_SIZE);
     if (routes.isEmpty()) {
       return Optional.empty();
     }
-    return Optional.of(new CopyTask(routes));
+    WorkerInfo workerInfo = mWorkerAssignPolicy.pickAWorker(StringUtil.EMPTY_STRING, workers);
+    CopyTask copyTask = new CopyTask(routes);
+    copyTask.setMyRunningWorker(workerInfo);
+    return Optional.of(copyTask);
   }
 
   /**
@@ -515,6 +531,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
      * @param routes pair of source and destination files
      */
     public CopyTask(List<Route> routes) {
+      super(CopyJob.this, CopyJob.this.mTaskIdGenerator.incrementAndGet());
       mRoutes = routes;
     }
 
@@ -541,6 +558,11 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
           .setUfsReadOptions(ufsReadOptions.build())
           .setWriteOptions(writeOptions)
           .build());
+    }
+
+    @Override
+    public int compareTo(Task o) {
+      return 0;
     }
   }
 

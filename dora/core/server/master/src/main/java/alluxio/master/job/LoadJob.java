@@ -15,6 +15,7 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
 import alluxio.client.block.stream.BlockWorkerClient;
+import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
@@ -285,12 +286,12 @@ public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
    * @return the next task to run. If there is no task to run, return empty
    */
   @Override
-  public Optional<LoadTask> getNextTask(WorkerInfo worker) {
+  public Pair<Optional<LoadTask>, WorkerInfo> getNextTask(WorkerInfo worker) {
     List<Block> blocks = getNextBatchBlocks(BATCH_SIZE);
     if (blocks.isEmpty()) {
-      return Optional.empty();
+      return new Pair(Optional.empty(), null);
     }
-    return Optional.of(new LoadTask(blocks));
+    return new Pair(Optional.of(new LoadTask(blocks)), null);
   }
 
   /**

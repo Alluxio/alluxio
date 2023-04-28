@@ -11,12 +11,14 @@
 
 package alluxio.scheduler.job;
 
+import alluxio.collections.Pair;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.JobProgressReportFormat;
 import alluxio.job.JobDescription;
 import alluxio.proto.journal.Journal;
 import alluxio.wire.WorkerInfo;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.OptionalLong;
 
@@ -117,11 +119,11 @@ public interface Job<T extends Task<?>> {
   void initiateVerification();
 
   /**
-   * @param worker blocker to worker
+   * @param workers blocker to worker
    * @return the next task to run. If there is no more task to run, return empty
    * @throws AlluxioRuntimeException if any error occurs when getting next task
    */
-  Optional<T> getNextTask(WorkerInfo worker);
+  Optional<T> getNextTask(Collection<WorkerInfo> workers);
 
   /**
    * @return job journal entry

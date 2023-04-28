@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
+import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
@@ -426,35 +427,32 @@ public final class Scheduler {
     if (Thread.currentThread().isInterrupted()) {
       return;
     }
-    mRunningTasks.forEach(this::processJob);
-//    mExistingJobs.forEach((jobDescription, job) -> job.continueJob());
+    mExistingJobs.forEach(this::processJob);
   }
 
-  private void processJob(Job<?> job, Set<WorkerInfo> runningWorkers) {
-    // TO REMOVE IN FUTURE
-    if (job instanceof DoraLoadJob) {
-      job.setJobSuccess();
+  private void processJob(JobDescription jobDescription, Job<?> job) {
+    if (!job.isRunning()) {
+      try {
+        mJobMetaStore.updateJob(job);
+      }
+      catch (UnavailableRuntimeException e) {
+        // This should not happen because the scheduler should not be started while master is
+        // still processing journal entries. However, if it does happen, we don't want to throw
+        // exception in a task running on scheduler thead. So just ignore it and hopefully later
+        // retry will work.
+        LOG.error("error writing to journal when processing job", e);
+      }
+      mRunningTasks.remove(job);
+      return;
+    }
+    if (!job.isHealthy()) {
+      job.failJob(new InternalRuntimeException("Job failed because it's not healthy."));
       return;
     }
     try {
-      if (!job.isRunning()) {
-        try {
-          mJobMetaStore.updateJob(job);
-        }
-        catch (UnavailableRuntimeException e) {
-          // This should not happen because the scheduler should not be started while master is
-          // still processing journal entries. However, if it does happen, we don't want to throw
-          // exception in a task running on scheduler thead. So just ignore it and hopefully later
-          // retry will work.
-          LOG.error("error writing to journal when processing job", e);
-        }
-        mRunningTasks.remove(job);
-        return;
-      }
-      if (!job.isHealthy()) {
-        job.failJob(new InternalRuntimeException("Job failed because it's not healthy."));
-        return;
-      }
+      Optional<Task<?>> task;
+      task = (Optional<Task<?>>) job.getNextTask(mWorkerInfoHub.mActiveWorkers.keySet());
+
 
       // If there are new workers, schedule job onto new workers
       mWorkerInfoHub.mActiveWorkers.forEach((workerInfo, workerClient) -> {
