@@ -49,9 +49,9 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
+import alluxio.master.WorkerState;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.block.meta.WorkerMetaLockSection;
-import alluxio.master.block.meta.WorkerState;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.SingleEntryJournaled;
 import alluxio.master.journal.checkpoint.CheckpointName;
@@ -677,6 +677,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   private List<WorkerInfo> constructWorkerInfoList() {
+    // TODO(jiacheng): investigate why this cache is refreshed so many times by the
+    //  alluxio.master.scheduler.Scheduler L239
     List<WorkerInfo> workerInfoList = new ArrayList<>(mWorkers.size());
     for (MasterWorkerInfo worker : mWorkers) {
       // extractWorkerInfo handles the locking internally
@@ -791,16 +793,31 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             + selectedDecommissionedWorkers.size());
     for (MasterWorkerInfo worker : selectedLiveWorkers) {
       // extractWorkerInfo handles the locking internally
-      workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), WorkerState.LIVE));
+      if (mRejectWorkers.contains(worker.getWorkerAddress())) {
+        workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(),
+            WorkerState.DISABLED));
+      } else {
+        workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), WorkerState.LIVE));
+      }
     }
     for (MasterWorkerInfo worker : selectedLostWorkers) {
       // extractWorkerInfo handles the locking internally
-      workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), WorkerState.LOST));
+      if (mRejectWorkers.contains(worker.getWorkerAddress())) {
+        workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(),
+            WorkerState.DISABLED));
+      } else {
+        workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(), WorkerState.LOST));
+      }
     }
     for (MasterWorkerInfo worker : selectedDecommissionedWorkers) {
       // extractWorkerInfo handles the locking internally
-      workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(),
-          WorkerState.DECOMMISSIONED));
+      if (mRejectWorkers.contains(worker.getWorkerAddress())) {
+        workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(),
+            WorkerState.DISABLED));
+      } else {
+        workerInfoList.add(extractWorkerInfo(worker, options.getFieldRange(),
+            WorkerState.DECOMMISSIONED));
+      }
     }
     return workerInfoList;
   }

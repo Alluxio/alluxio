@@ -9,15 +9,16 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.block.meta;
+package alluxio.master;
 
 /***
  * The worker state maintained by master.
  */
 public enum WorkerState {
-  LIVE("In Service"),
-  LOST("Out of Service"),
-  DECOMMISSIONED("Decommissioned");
+  LIVE("ACTIVE"),
+  LOST("LOST"),
+  DECOMMISSIONED("Decommissioned"),
+  DISABLED("Disabled");
   private final String mState;
 
   WorkerState(String s) {
