@@ -346,7 +346,7 @@
             </goals>
             <configuration>
               <sourceFile>target/alluxio-shaded-client-295-SNAPSHOT.jar</sourceFile>
-              <destinationFile>../../../../client/alluxio-295-SNAPSHOT-client.jar</destinationFile>
+              <destinationFile>../../../client/alluxio-295-SNAPSHOT-client.jar</destinationFile>
             </configuration>
           </execution>
         </executions>
