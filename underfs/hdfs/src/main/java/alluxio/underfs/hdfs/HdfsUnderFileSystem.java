@@ -481,6 +481,29 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   @Override
+  public UfsStatus getStatus(String path, GetFileStatusOptions options) throws IOException {
+    Path tPath = new Path(path);
+    FileSystem hdfs = getFs();
+    FileStatus fs = hdfs.getFileStatus(tPath);
+    if (!fs.isDir()) {
+      // Return file status.
+      String contentHash;
+      if (options.isIncludeRealContentHash()) {
+        contentHash = Base64.encodeBase64String(hdfs.getFileChecksum(tPath).getBytes());
+      }
+      else {
+        contentHash =
+            UnderFileSystemUtils.approximateContentHash(fs.getLen(), fs.getModificationTime());
+      }
+      return new UfsFileStatus(path, contentHash, fs.getLen(), fs.getModificationTime(),
+          fs.getOwner(), fs.getGroup(), fs.getPermission().toShort(), fs.getBlockSize());
+    }
+    // Return directory status.
+    return new UfsDirectoryStatus(path, fs.getOwner(), fs.getGroup(), fs.getPermission().toShort(),
+        fs.getModificationTime());
+  }
+
+  @Override
   public UfsStatus getStatus(String path) throws IOException {
     Path tPath = new Path(path);
     FileSystem hdfs = getFs();

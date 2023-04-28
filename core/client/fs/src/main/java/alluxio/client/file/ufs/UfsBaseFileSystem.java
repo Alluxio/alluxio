@@ -222,21 +222,9 @@ public class UfsBaseFileSystem implements FileSystem {
   @Override
   public URIStatus getStatus(AlluxioURI path, final GetStatusPOptions options) {
     return callWithReturn(() -> {
-<<<<<<< HEAD
-      UfsStatus ufsStatus = mUfs.get().getStatus(path.toString());
-
+      UfsStatus ufsStatus = mUfs.get().getStatus(path.toString(), GetFileStatusOptions.defaults()
+                              .setIncludeRealContentHash(options.getIncludeRealContentHash()));
       return transformStatus(ufsStatus, path.toString());
-||||||| parent of 32f923e8a3... Support getting real content hash from hdfs when using getFileStatus
-      String ufsPath = path.getPath();
-      return transformStatus(mUfs.get().isFile(ufsPath)
-          ? mUfs.get().getFileStatus(ufsPath) : mUfs.get().getDirectoryStatus(ufsPath));
-=======
-      String ufsPath = path.getPath();
-      return transformStatus(mUfs.get().isFile(ufsPath) ? mUfs.get().getFileStatus(ufsPath,
-          GetFileStatusOptions.defaults()
-                              .setIncludeRealContentHash(options.getIncludeRealContentHash())) :
-          mUfs.get().getDirectoryStatus(ufsPath));
->>>>>>> 32f923e8a3... Support getting real content hash from hdfs when using getFileStatus
     });
   }
 

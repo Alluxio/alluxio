@@ -524,6 +524,19 @@ public interface UnderFileSystem extends Closeable {
   UfsStatus getStatus(String path) throws IOException;
 
   /**
+   * Gets the file or directory status. The caller does not need to know if the path is a file or
+   * directory. This method will determine the path type, and will return the appropriate status.
+   *
+   * @param path the path to get the status
+   * @param options method options
+   * @return the file or directory status
+   * @throws FileNotFoundException when the path does not exist
+   */
+  default UfsStatus getStatus(String path, GetFileStatusOptions options) throws IOException {
+    return getStatus(path);
+  }
+
+  /**
    * Gets the file or directory status.
    *
    * Similar to {@link #getStatus(String)} but
