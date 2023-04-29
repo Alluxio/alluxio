@@ -715,6 +715,25 @@ public final class MetricKey implements Comparable<MetricKey> {
                   .setMetricType(MetricType.TIMER)
                   .build();
 
+  public static final MetricKey PROXY_S3_REQ_WAITINQ_LATENCY =
+          new Builder("Proxy.s3httpRequestWaitInQLatency")
+                  .setDescription("Time of http req wait in async processing q.")
+                  .setMetricType(MetricType.TIMER)
+                  .build();
+
+  public static final MetricKey PROXY_S3_REQ_PROCESS_LATENCY =
+      new Builder("Proxy.s3httpRequestProcessLatency")
+          .setDescription("Time of http req process time, excluding wait-in-q time.")
+          .setMetricType(MetricType.TIMER)
+          .build();
+
+  public static final MetricKey PROXY_S3_CONCURRENT_REQ_COUNT =
+      new Builder("Proxy.s3concurentRequestCount")
+          .setDescription("Current count of concurrent s3 request being handled by"
+              + " this proxy.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+
   // Metadata sync metrics
   public static final MetricKey MASTER_METADATA_SYNC_UFS_MOUNT =
       new Builder("Master.MetadataSyncUfsMount.")
