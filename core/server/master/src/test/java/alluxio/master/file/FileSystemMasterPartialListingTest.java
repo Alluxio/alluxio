@@ -60,6 +60,18 @@ public class FileSystemMasterPartialListingTest extends FileSystemMasterTestBase
                 .setRecursive(recursive)));
   }
 
+  private ListStatusContext genListStatusStartAfterEndAt(
+      String startAfter, String endAt, boolean recursive) {
+    return ListStatusContext.mergeFrom(
+        ListStatusPartialPOptions.newBuilder()
+            .setStartAfter(startAfter)
+            .setEndAt(endAt)
+            .setOptions(
+            ListStatusPOptions.newBuilder()
+                .setLoadMetadataType(LoadMetadataPType.NEVER)
+                .setRecursive(recursive)));
+  }
+
   private ListStatusContext genListStatusPrefixStartAfter(
       String prefix, String startAfter, boolean recursive) {
     return ListStatusContext.mergeFrom(
@@ -193,14 +205,23 @@ public class FileSystemMasterPartialListingTest extends FileSystemMasterTestBase
   }
 
   @Test
-  public void listStatusStartAfter() throws Exception {
+  public void listStatusStartAfterEndAt() throws Exception {
     List<FileInfo> infos;
 
-    createFileWithSingleBlock(ROOT_FILE_URI);
+  /* Files:
+     /afile
+     /file
+     /nested/test/dir
+     /nested/test/file
+     /nested/test/file2
+     /nested/test_file/dir
+  */
+
     createFileWithSingleBlock(ROOT_AFILE_URI);
+    createFileWithSingleBlock(ROOT_FILE_URI);
+    createFileWithSingleBlock(NESTED_DIR_URI);
     createFileWithSingleBlock(NESTED_FILE_URI);
     createFileWithSingleBlock(NESTED_FILE2_URI);
-    createFileWithSingleBlock(NESTED_DIR_URI);
     createFileWithSingleBlock(NESTED_TEST_FILE_URI);
 
     // list without recursion, and start after "/file",
@@ -225,6 +246,42 @@ public class FileSystemMasterPartialListingTest extends FileSystemMasterTestBase
     assertEquals(NESTED_FILE_URI.toString(), infos.get(3).getPath());
     assertEquals(NESTED_FILE2_URI.toString(), infos.get(4).getPath());
     assertEquals(NESTED_TEST_FILE_URI.toString(), infos.get(5).getPath());
+    assertEquals(-1, context.getTotalListings());
+    assertFalse(context.isTruncated());
+
+    // list with recursion, start after "/file" and end at "/nested/test/file2",
+    // the results should be sorted by name
+    context = genListStatusStartAfterEndAt(
+        ROOT_FILE_URI.getPath(), NESTED_FILE2_URI.getPath(), true);
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
+    assertEquals(5, infos.size());
+    assertEquals(NESTED_BASE_URI.toString(), infos.get(0).getPath());
+    assertEquals(NESTED_URI.toString(), infos.get(1).getPath());
+    assertEquals(NESTED_DIR_URI.toString(), infos.get(2).getPath());
+    assertEquals(NESTED_FILE_URI.toString(), infos.get(3).getPath());
+    assertEquals(NESTED_FILE2_URI.toString(), infos.get(4).getPath());
+    assertEquals(-1, context.getTotalListings());
+    assertFalse(context.isTruncated());
+
+    // list with recursion, start after "/file" and end at "/nested/test/file1",
+    // the results should be sorted by name
+    context = genListStatusStartAfterEndAt(
+        ROOT_FILE_URI.getPath(), "/nested/test/file1", true);
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
+    assertEquals(4, infos.size());
+    assertEquals(NESTED_BASE_URI.toString(), infos.get(0).getPath());
+    assertEquals(NESTED_URI.toString(), infos.get(1).getPath());
+    assertEquals(NESTED_DIR_URI.toString(), infos.get(2).getPath());
+    assertEquals(NESTED_FILE_URI.toString(), infos.get(3).getPath());
+    assertEquals(-1, context.getTotalListings());
+    assertFalse(context.isTruncated());
+
+    // list with recursion, start after "/file" and end at "/a",
+    // there should be no result
+    context = genListStatusStartAfterEndAt(
+        ROOT_FILE_URI.getPath(), "/a", true);
+    infos = mFileSystemMaster.listStatus(ROOT_URI, context);
+    assertEquals(0, infos.size());
     assertEquals(-1, context.getTotalListings());
     assertFalse(context.isTruncated());
 
@@ -257,6 +314,39 @@ public class FileSystemMasterPartialListingTest extends FileSystemMasterTestBase
     assertEquals(NESTED_FILE2_URI.toString(), infos.get(1).getPath());
     assertEquals(-1, context.getTotalListings());
     assertFalse(context.isTruncated());
+  }
+
+  @Test
+  public void listStatusRangeBasedListing() throws Exception {
+    createFileWithSingleBlock(new AlluxioURI("/a"));
+    createFileWithSingleBlock(new AlluxioURI("/aa"));
+    createFileWithSingleBlock(new AlluxioURI("/ab"));
+    createFileWithSingleBlock(new AlluxioURI("/b"));
+
+    ListStatusContext context = genListStatusStartAfterEndAt(
+        "", "/", false);
+    assertEquals(0, mFileSystemMaster.listStatus(ROOT_URI, context).size());
+
+    context =  genListStatusStartAfterEndAt("/", "/a", false);
+    assertEquals(1, mFileSystemMaster.listStatus(ROOT_URI, context).size());
+
+    context = genListStatusStartAfterEndAt("/", "/aa", false);
+    assertEquals(2, mFileSystemMaster.listStatus(ROOT_URI, context).size());
+
+    context = genListStatusStartAfterEndAt("/", "/ac", false);
+    assertEquals(3, mFileSystemMaster.listStatus(ROOT_URI, context).size());
+
+    context = genListStatusStartAfterEndAt("/aa", "/ab", false);
+    assertEquals(1, mFileSystemMaster.listStatus(ROOT_URI, context).size());
+
+    context = genListStatusStartAfterEndAt("aa", "ab", false);
+    assertEquals(1, mFileSystemMaster.listStatus(ROOT_URI, context).size());
+
+    context = genListStatusStartAfterEndAt("/", "/c", false);
+    assertEquals(4, mFileSystemMaster.listStatus(ROOT_URI, context).size());
+
+    context = genListStatusStartAfterEndAt("", "c", false);
+    assertEquals(4, mFileSystemMaster.listStatus(ROOT_URI, context).size());
   }
 
   @Test

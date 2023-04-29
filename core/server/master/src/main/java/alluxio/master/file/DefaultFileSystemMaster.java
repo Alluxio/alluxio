@@ -1203,6 +1203,8 @@ public class DefaultFileSystemMaster extends CoreMaster
             // Compute paths for a partial listing
             partialPathNames = ListStatusPartial.computePartialListingPaths(path,
                 context, partialPathNames, inodePath);
+            List<String> partialPathEndingAtNames =
+                ListStatusPartial.getPartialListingEndingPaths(path, context);
             List<String> prefixComponents = ListStatusPartial.checkPrefixListingPaths(
                 context, partialPathNames);
             if (inodePath.getInode().isDirectory()) {
@@ -1214,6 +1216,7 @@ public class DefaultFileSystemMaster extends CoreMaster
             } else {
               context.setTotalListings(1);
             }
+            context.setPartialListingEndingPath(partialPathEndingAtNames);
             // perform the listing
             listStatusInternal(context, rpcContext, inodePath, auditContext,
                 descendantTypeForListStatus, resultStream, 0, resolution == null ? null :
@@ -1286,7 +1289,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       // Furthermore, the item should not be added if there are still components to the prefix
       // at this depth.
       if ((depth != 0 || inode.isFile()) && prefixComponents.size() <= depth) {
-        if (context.listedItem()) {
+        if (context.listedItem(depth, inode.getName())) {
           resultStream.submit(getFileInfoInternal(currInodePath, counter,
               context.getOptions().getExcludeMountInfo()));
         }

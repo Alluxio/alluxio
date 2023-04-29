@@ -18,6 +18,8 @@ import alluxio.util.FileSystemOptionsUtils;
 
 import com.google.common.base.MoreObjects;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -32,6 +34,7 @@ public class ListStatusContext
   private boolean mDoneListing = false;
   private long mTotalListings;
   private final ListStatusPartialPOptions.Builder mPartialPOptions;
+  private List<String> mPartialListingEndingPath;
 
   /**
    *
@@ -49,6 +52,7 @@ public class ListStatusContext
   private ListStatusContext(ListStatusPOptions.Builder optionsBuilder) {
     super(optionsBuilder);
     mPartialPOptions = null;
+    mPartialListingEndingPath = Collections.emptyList();
   }
 
   /**
@@ -59,6 +63,7 @@ public class ListStatusContext
   private ListStatusContext(ListStatusPartialPOptions.Builder partialOptionsBuilder) {
     super(partialOptionsBuilder.getOptions().toBuilder());
     mPartialPOptions = partialOptionsBuilder;
+    mPartialListingEndingPath = Collections.emptyList();
   }
 
   /**
@@ -76,6 +81,13 @@ public class ListStatusContext
    */
   public long getTotalListings() {
     return mTotalListings;
+  }
+
+  /**
+   * @param partialListingEndingPath the partial listing ending path the listing stops at
+   */
+  public void setPartialListingEndingPath(List<String> partialListingEndingPath) {
+    mPartialListingEndingPath = partialListingEndingPath;
   }
 
   /**
@@ -131,9 +143,11 @@ public class ListStatusContext
 
   /**
    * Called each time an item is listed.
+   * @param depth the recursion depth
+   * @param inodeName the name of the inode
    * @return true if the item should be listed, false otherwise
    */
-  public boolean listedItem() {
+  public boolean listedItem(int depth, String inodeName) {
     if (mPartialPOptions != null) {
       mProcessedCount++;
       if (mPartialPOptions.getOffsetCount() >= mProcessedCount) {
@@ -143,6 +157,11 @@ public class ListStatusContext
       if (mPartialPOptions.hasBatchSize()
           && mPartialPOptions.getBatchSize() < mListedCount) {
         mTruncated = true;
+        mDoneListing = true;
+        return false;
+      }
+      if (depth > 0 && mPartialListingEndingPath.size() >= depth
+          && inodeName.compareTo(mPartialListingEndingPath.get(depth - 1)) > 0) {
         mDoneListing = true;
         return false;
       }
