@@ -6612,7 +6612,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_SHORT_CIRCUIT_ENABLED =
       booleanBuilder(Name.USER_SHORT_CIRCUIT_ENABLED)
-          .setDefaultValue(true)
+          .setDefaultValue(false)
           .setDescription("The short circuit read/write which allows the clients to "
               + "read/write data without going through Alluxio workers if the data is local "
               + "is enabled if set to true.")

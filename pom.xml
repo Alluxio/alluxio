@@ -142,7 +142,7 @@
     <log4j.version>2.17.1</log4j.version>
     <maven.version>3.3.9</maven.version>
     <metrics.version>4.1.11</metrics.version>
-    <mockito.version>3.4.4</mockito.version>
+    <mockito.version>3.12.4</mockito.version>
     <orc.version>1.6.3</orc.version>
     <oshi.version>5.3.5</oshi.version>
     <powermock.version>2.0.7</powermock.version>
