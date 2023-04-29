@@ -177,19 +177,21 @@ public final class MountTable implements DelegatingJournaled {
       throw new FileAlreadyExistsException(
           ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(alluxioPath));
     }
+    String ufsPath = ufsUri.getPath().isEmpty() ? "/" : ufsUri.getPath();
+    String cleanedUfsPath = PathUtils.cleanPath(ufsPath);
     // Make sure that the ufs path we're trying to mount is not a prefix
     // or suffix of any existing mount path.
     for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
       AlluxioURI mountedUfsUri = entry.getValue().getUfsUri();
       if ((ufsUri.getScheme() == null || ufsUri.getScheme().equals(mountedUfsUri.getScheme()))
           && (ufsUri.getAuthority().toString().equals(mountedUfsUri.getAuthority().toString()))) {
-        String ufsPath = ufsUri.getPath().isEmpty() ? "/" : ufsUri.getPath();
         String mountedUfsPath = mountedUfsUri.getPath().isEmpty() ? "/" : mountedUfsUri.getPath();
-        if (PathUtils.hasPrefix(ufsPath, mountedUfsPath)) {
+        String cleanedMountedUfsPath = PathUtils.cleanPath(mountedUfsPath);
+        if (PathUtils.hasPrefix(cleanedUfsPath, cleanedMountedUfsPath)) {
           throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
               .getMessage(mountedUfsUri.toString(), ufsUri.toString()));
         }
-        if (PathUtils.hasPrefix(mountedUfsPath, ufsPath)) {
+        if (PathUtils.hasPrefix(cleanedMountedUfsPath, cleanedUfsPath)) {
           throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
               .getMessage(ufsUri.toString(), mountedUfsUri.toString()));
         }
@@ -256,16 +258,18 @@ public final class MountTable implements DelegatingJournaled {
       if (mState.getMountTable().containsKey(path)) {
         // check if the path contains another nested mount point
         if (checkNestedMount) {
-          for (String mountPath : mState.getMountTable().keySet()) {
-            try {
-              if (PathUtils.hasPrefix(mountPath, path) && (!path.equals(mountPath))) {
-                LOG.warn("The path to unmount {} contains another nested mount point {}",
+          try {
+            String cleanedPath = PathUtils.cleanPath(path);
+            for (String mountPath : mState.getMountTable().keySet()) {
+              if (PathUtils.hasPrefix(mountPath, cleanedPath)
+                  && (!path.equals(mountPath))) {
+                LOG.warn("The path to unmount {} contains another nested mountpoint {}",
                     path, mountPath);
                 return false;
               }
-            } catch (InvalidPathException e) {
-              LOG.warn("Invalid path {} encountered when checking for nested mount point", path);
             }
+          } catch (InvalidPathException e) {
+            LOG.warn("Invalid path {} encountered when checking for nested mount point", path);
           }
         }
         MountInfo info = mState.getMountTable().get(path);
@@ -357,14 +361,14 @@ public final class MountTable implements DelegatingJournaled {
   public boolean containsMountPoint(AlluxioURI uri, boolean containsSelf)
       throws InvalidPathException {
     String path = uri.getPath();
-
+    String cleanedPath = PathUtils.cleanPath(path);
     try (LockResource r = new LockResource(mReadLock)) {
       for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
         String mountPath = entry.getKey();
         if (!containsSelf && mountPath.equals(path)) {
           continue;
         }
-        if (PathUtils.hasPrefix(mountPath, path)) {
+        if (PathUtils.hasPrefix(mountPath, cleanedPath)) {
           return true;
         }
       }
@@ -383,14 +387,14 @@ public final class MountTable implements DelegatingJournaled {
       throws InvalidPathException {
     String path = uri.getPath();
     List<MountInfo> childrenMountPoints = new ArrayList<>();
-
+    String cleanedPath = PathUtils.cleanPath(path);
     try (LockResource r = new LockResource(mReadLock)) {
       for (Map.Entry<String, MountInfo> entry : mState.getMountTable().entrySet()) {
         String mountPath = entry.getKey();
         if (!containsSelf && mountPath.equals(path)) {
           continue;
         }
-        if (PathUtils.hasPrefix(mountPath, path)) {
+        if (PathUtils.hasPrefix(mountPath, cleanedPath)) {
           childrenMountPoints.add(entry.getValue());
         }
       }

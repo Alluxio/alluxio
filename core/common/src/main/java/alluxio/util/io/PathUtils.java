@@ -342,13 +342,17 @@ public final class PathUtils {
    *
    * @param path a path
    * @param prefix a prefix
+   * @param needCleanPath true if the path need to be checked and normalized
    * @return whether the given path has the given prefix
    * @throws InvalidPathException when the path or prefix is invalid
    */
-  public static boolean hasPrefix(String path, String prefix) throws InvalidPathException {
-    // normalize path and prefix(e.g. "/a/b/../c" -> "/a/c", "/a/b/" --> "/a/b")
-    path = cleanPath(path);
-    prefix = cleanPath(prefix);
+  public static boolean hasPrefix(String path, String prefix, boolean needCleanPath)
+      throws InvalidPathException {
+    if (needCleanPath) {
+      // normalize path and prefix(e.g. "/a/b/../c" -> "/a/c", "/a/b/" --> "/a/b")
+      path = cleanPath(path);
+      prefix = cleanPath(prefix);
+    }
 
     if (prefix.equals("/")) {
       return true;
@@ -361,6 +365,17 @@ public final class PathUtils {
         || prefix.endsWith("/")
         // Exclude cases like `prefix=/a/b/c, path=/a/b/ccc`
         || path.charAt(prefix.length()) == '/';
+  }
+
+  /**
+   * Checks whether the given path contains the given prefix.
+   * @param path a path
+   * @param prefix a prefix
+   * @return whether the given path has the given prefix
+   * @throws InvalidPathException when the path or prefix is invalid
+   */
+  public static boolean hasPrefix(String path, String prefix) throws InvalidPathException {
+    return hasPrefix(path, prefix, false);
   }
 
   /**

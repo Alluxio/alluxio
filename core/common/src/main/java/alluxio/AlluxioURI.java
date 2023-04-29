@@ -458,7 +458,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
     }
 
     return PathUtils.hasPrefix(PathUtils.normalizePath(alluxioURI.getPath(), SEPARATOR),
-        PathUtils.normalizePath(getPath(), SEPARATOR));
+        PathUtils.normalizePath(getPath(), SEPARATOR), true);
   }
 
   /**
