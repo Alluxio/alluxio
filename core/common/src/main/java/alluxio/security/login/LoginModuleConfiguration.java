@@ -53,7 +53,7 @@ public final class LoginModuleConfiguration extends Configuration {
    * In the {@link AuthType#SIMPLE} mode, JAAS first tries to retrieve the user name set by the
    * application with {@link AppLoginModule}. Upon failure, it uses the OS specific login module to
    * fetch the OS user, and then uses {@link AlluxioLoginModule} to convert it to an Alluxio user
-   * represented by {@link User}. In {@link AuthType#CUSTOM} mode, we also use this configuration.
+   * represented by {@link User}.
    */
   private static final AppConfigurationEntry[] SIMPLE =
       new AppConfigurationEntry[] {APP_LOGIN, OS_SPECIFIC_LOGIN, ALLUXIO_LOGIN};
@@ -66,8 +66,7 @@ public final class LoginModuleConfiguration extends Configuration {
   @Override
   @Nullable
   public AppConfigurationEntry[] getAppConfigurationEntry(String appName) {
-    if (appName.equalsIgnoreCase(AuthType.SIMPLE.name())
-        || appName.equalsIgnoreCase(AuthType.CUSTOM.name())) {
+    if (appName.equalsIgnoreCase(AuthType.SIMPLE.name())) {
       return SIMPLE;
     } else if (appName.equalsIgnoreCase(AuthType.KERBEROS.name())) {
       throw new UnsupportedOperationException("Kerberos is not supported currently.");

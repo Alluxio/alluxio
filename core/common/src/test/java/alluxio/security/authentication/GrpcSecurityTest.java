@@ -36,14 +36,15 @@ import org.junit.rules.ExpectedException;
 import java.net.InetSocketAddress;
 import java.util.UUID;
 import javax.security.auth.Subject;
-import javax.security.sasl.AuthenticationException;
 
 /**
  * Unit test for {@link alluxio.grpc.GrpcChannelBuilder} and {@link alluxio.grpc.GrpcServerBuilder}.
  */
 public class GrpcSecurityTest {
 
-  /** Timeout waiting for a closed stream. */
+  /**
+   * Timeout waiting for a closed stream.
+   */
   private static final int S_AUTHENTICATION_PROPOGATE_TIMEOUT = 30000;
 
   /**
@@ -89,41 +90,6 @@ public class GrpcSecurityTest {
       GrpcChannelBuilder channelBuilder =
           GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
       channelBuilder.build();
-    } finally {
-      server.shutdown();
-    }
-  }
-
-  @Test
-  public void testCustomAuthentication() throws Exception {
-
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM);
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
-        ExactlyMatchAuthenticationProvider.class.getName());
-    GrpcServer server = createServer(AuthType.CUSTOM);
-    try {
-      server.start();
-      GrpcChannelBuilder channelBuilder =
-          GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
-      channelBuilder.setSubject(createSubject(ExactlyMatchAuthenticationProvider.USERNAME,
-          ExactlyMatchAuthenticationProvider.PASSWORD)).build();
-    } finally {
-      server.shutdown();
-    }
-  }
-
-  @Test
-  public void testCustomAuthenticationFails() throws Exception {
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM);
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
-        ExactlyMatchAuthenticationProvider.class.getName());
-    GrpcServer server = createServer(AuthType.CUSTOM);
-    try {
-      server.start();
-      GrpcChannelBuilder channelBuilder =
-          GrpcChannelBuilder.newBuilder(getServerConnectAddress(server), mConfiguration);
-      mThrown.expect(UnauthenticatedException.class);
-      channelBuilder.setSubject(createSubject("fail", "fail")).build();
     } finally {
       server.shutdown();
     }
@@ -237,21 +203,5 @@ public class GrpcSecurityTest {
     subject.getPrincipals().add(new User(username));
     subject.getPrivateCredentials().add(password);
     return subject;
-  }
-
-  /**
-   * This customized authentication provider is used in CUSTOM mode. It authenticates the user by
-   * verifying the specific username:password pair.
-   */
-  public static class ExactlyMatchAuthenticationProvider implements AuthenticationProvider {
-    static final String USERNAME = "alluxio";
-    static final String PASSWORD = "correct-password";
-
-    @Override
-    public void authenticate(String user, String password) throws AuthenticationException {
-      if (!user.equals(USERNAME) || !password.equals(PASSWORD)) {
-        throw new AuthenticationException("User authentication fails");
-      }
-    }
   }
 }

@@ -181,7 +181,6 @@ public class DefaultAuthenticationServer
     switch (authType) {
       case NOSASL:
       case SIMPLE:
-      case CUSTOM:
         return;
       default:
         throw new RuntimeException("Authentication type not supported:" + authType.name());

@@ -93,53 +93,6 @@ public final class UserStateTest {
     assertEquals(System.getProperty("user.name"), loginUser.getName());
   }
 
-  /**
-   * Tests whether we can get login user with conf in CUSTOM mode.
-   */
-  @Test
-  public void getCustomLoginUser() throws Exception {
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM);
-
-    UserState s = UserState.Factory.create(mConfiguration);
-    User loginUser = s.getUser();
-
-    assertNotNull(loginUser);
-    assertEquals(System.getProperty("user.name"), loginUser.getName());
-  }
-
-  /**
-   * Tests whether we can get login user with conf in CUSTOM mode, when user name is provided by
-   * the application through configuration.
-   */
-  @Test
-  public void getCustomLoginUserProvidedByApp() throws Exception {
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM);
-    mConfiguration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "alluxio-user");
-
-    UserState s = UserState.Factory.create(mConfiguration);
-    User loginUser = s.getUser();
-
-    assertNotNull(loginUser);
-    assertEquals("alluxio-user", loginUser.getName());
-  }
-
-  /**
-   * Tests whether we can get login user with conf in CUSTOM mode, when user name is set to an
-   * empty string in the application configuration. In this case, login should return the OS user
-   * instead of empty string.
-   */
-  @Test
-  public void getCustomLoginUserWhenNotProvidedByApp() throws Exception {
-    mConfiguration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM);
-    mConfiguration.unset(PropertyKey.SECURITY_LOGIN_USERNAME);
-
-    UserState s = UserState.Factory.create(mConfiguration);
-    User loginUser = s.getUser();
-
-    assertNotNull(loginUser);
-    assertEquals(System.getProperty("user.name"), loginUser.getName());
-  }
-
   // TODO(dong): getKerberosLoginUserTest()
 
   @Test

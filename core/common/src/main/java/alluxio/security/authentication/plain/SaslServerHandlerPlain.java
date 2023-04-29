@@ -12,11 +12,8 @@
 package alluxio.security.authentication.plain;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.security.authentication.AbstractSaslServerHandler;
-import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedUserInfo;
-import alluxio.security.authentication.AuthenticationProvider;
 import alluxio.security.authentication.ImpersonationAuthenticator;
 import alluxio.security.authentication.SaslServerHandler;
 
@@ -39,7 +36,7 @@ public class SaslServerHandlerPlain extends AbstractSaslServerHandler {
   }
 
   /**
-   * Creates {@link SaslServerHandler} for Plain/Custom.
+   * Creates {@link SaslServerHandler} for Plain.
    *
    * @param serverName server name
    * @param conf Alluxio configuration
@@ -48,11 +45,8 @@ public class SaslServerHandlerPlain extends AbstractSaslServerHandler {
    */
   public SaslServerHandlerPlain(String serverName, AlluxioConfiguration conf,
       ImpersonationAuthenticator authenticator) throws SaslException {
-    AuthType authType =
-        conf.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
-    AuthenticationProvider provider = AuthenticationProvider.Factory.create(authType, conf);
     mSaslServer = Sasl.createSaslServer(PlainSaslServerProvider.MECHANISM, null, serverName,
-        new HashMap<String, String>(), new PlainSaslServerCallbackHandler(provider, authenticator));
+        new HashMap<String, String>(), new PlainSaslServerCallbackHandler(authenticator, null));
   }
 
   @Override
