@@ -26,14 +26,12 @@ import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.file.options.DescendantType;
-import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.LoadDescendantPType;
 import alluxio.grpc.LoadMetadataPOptions;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
 import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
@@ -1247,14 +1245,8 @@ public class InodeSyncStream {
           ? rpcContext
           : new RpcContext(
               rpcContext.getBlockDeletionContext(), merger, rpcContext.getOperationContext());
-      fsMaster.createFileInternal(wrapRpcContext, writeLockedPath, createFileContext);
-      CompleteFileContext completeContext =
-          CompleteFileContext.mergeFrom(CompleteFilePOptions.newBuilder().setUfsLength(ufsLength))
-              .setUfsStatus(context.getUfsStatus()).setMetadataLoad(true);
-      if (ufsLastModified != null) {
-        completeContext.setOperationTimeMs(ufsLastModified);
-      }
-      fsMaster.completeFileInternal(wrapRpcContext, writeLockedPath, completeContext);
+      fsMaster.createCompleteFileInternalForMetadataSync(
+          wrapRpcContext, writeLockedPath, createFileContext, ufsLength, context.getUfsStatus());
     } catch (FileAlreadyExistsException e) {
       // This may occur if a thread created or loaded the file before we got the write lock.
       // The file already exists, so nothing needs to be loaded.
