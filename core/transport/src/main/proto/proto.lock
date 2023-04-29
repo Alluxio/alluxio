@@ -2141,6 +2141,30 @@
                 "integer": 2
               }
             ]
+          },
+          {
+            "name": "SyncMetadataState",
+            "enum_fields": [
+              {
+                "name": "UNKNOWN"
+              },
+              {
+                "name": "RUNNING",
+                "integer": 1
+              },
+              {
+                "name": "SUCCEEDED",
+                "integer": 2
+              },
+              {
+                "name": "FAILED",
+                "integer": 3
+              },
+              {
+                "name": "CANCELED",
+                "integer": 4
+              }
+            ]
           }
         ],
         "messages": [
@@ -3999,6 +4023,175 @@
             ]
           },
           {
+            "name": "SyncMetadataPOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "loadDescendantType",
+                "type": "fscommon.LoadDescendantPType"
+              },
+              {
+                "id": 2,
+                "name": "directoryLoadType",
+                "type": "fscommon.DirectoryLoadPType"
+              }
+            ]
+          },
+          {
+            "name": "SyncMetadataPRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "path",
+                "type": "string"
+              },
+              {
+                "id": 2,
+                "name": "options",
+                "type": "SyncMetadataPOptions"
+              }
+            ]
+          },
+          {
+            "name": "SyncMetadataTask",
+            "fields": [
+              {
+                "id": 1,
+                "name": "id",
+                "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "state",
+                "type": "SyncMetadataState"
+              },
+              {
+                "id": 3,
+                "name": "syncDurationMs",
+                "type": "int64"
+              },
+              {
+                "id": 4,
+                "name": "exception",
+                "type": "Exception"
+              },
+              {
+                "id": 5,
+                "name": "successOpCount",
+                "type": "int64"
+              },
+              {
+                "id": 100,
+                "name": "taskInfoString",
+                "type": "string"
+              },
+              {
+                "id": 101,
+                "name": "taskStatString",
+                "type": "string"
+              }
+            ],
+            "messages": [
+              {
+                "name": "Exception",
+                "fields": [
+                  {
+                    "id": 1,
+                    "name": "exceptionType",
+                    "type": "string"
+                  },
+                  {
+                    "id": 2,
+                    "name": "exceptionMessage",
+                    "type": "string"
+                  },
+                  {
+                    "id": 3,
+                    "name": "stacktrace",
+                    "type": "string"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "SyncMetadataPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "task",
+                "type": "SyncMetadataTask",
+                "is_repeated": true
+              },
+              {
+                "id": 1000,
+                "name": "debugInfo",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "SyncMetadataAsyncPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "submitted",
+                "type": "bool"
+              },
+              {
+                "id": 2,
+                "name": "taskId",
+                "type": "int64"
+              }
+            ]
+          },
+          {
+            "name": "GetSyncProgressPRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "taskId",
+                "type": "int64"
+              }
+            ]
+          },
+          {
+            "name": "GetSyncProgressPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "task",
+                "type": "SyncMetadataTask",
+                "is_repeated": true
+              },
+              {
+                "id": 1000,
+                "name": "debugInfo",
+                "type": "string"
+              }
+            ]
+          },
+          {
+            "name": "CancelSyncMetadataPRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "taskId",
+                "type": "int64"
+              }
+            ]
+          },
+          {
+            "name": "CancelSyncMetadataPResponse",
+            "fields": [
+              {
+                "id": 1,
+                "name": "success",
+                "type": "bool"
+              }
+            ]
+          },
+          {
             "name": "FileSystemHeartbeatPResponse",
             "fields": [
               {
@@ -4280,6 +4473,26 @@
                 "name": "GetJobProgress",
                 "in_type": "GetJobProgressPRequest",
                 "out_type": "GetJobProgressPResponse"
+              },
+              {
+                "name": "SyncMetadata",
+                "in_type": "SyncMetadataPRequest",
+                "out_type": "SyncMetadataPResponse"
+              },
+              {
+                "name": "SyncMetadataAsync",
+                "in_type": "SyncMetadataPRequest",
+                "out_type": "SyncMetadataAsyncPResponse"
+              },
+              {
+                "name": "GetSyncProgress",
+                "in_type": "GetSyncProgressPRequest",
+                "out_type": "GetSyncProgressPResponse"
+              },
+              {
+                "name": "CancelSyncMetadata",
+                "in_type": "CancelSyncMetadataPRequest",
+                "out_type": "CancelSyncMetadataPResponse"
               }
             ]
           },
@@ -4370,6 +4583,22 @@
               },
               {
                 "name": "ALL",
+                "integer": 2
+              }
+            ]
+          },
+          {
+            "name": "DirectoryLoadPType",
+            "enum_fields": [
+              {
+                "name": "SINGLE_LISTING"
+              },
+              {
+                "name": "BFS",
+                "integer": 1
+              },
+              {
+                "name": "DFS",
                 "integer": 2
               }
             ]

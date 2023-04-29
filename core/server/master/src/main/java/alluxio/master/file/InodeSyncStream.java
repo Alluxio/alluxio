@@ -271,7 +271,7 @@ public class InodeSyncStream {
   private final boolean mDedupConcurrentSync = Configuration.getBoolean(
       PropertyKey.MASTER_METADATA_CONCURRENT_SYNC_DEDUP
   );
-  private static final MetadataSyncLockManager SYNC_METADATA_LOCK_MANAGER =
+  public static final MetadataSyncLockManager SYNC_METADATA_LOCK_MANAGER =
       new MetadataSyncLockManager();
 
   /** Whether to only read+create metadata from the UFS, or to update metadata as well. */
@@ -1212,7 +1212,7 @@ public class InodeSyncStream {
             .setTtl(context.getOptions().getCommonOptions().getTtl())
             .setTtlAction(context.getOptions().getCommonOptions().getTtlAction()));
     createFileContext.setWriteType(WriteType.THROUGH); // set as through since already in UFS
-    createFileContext.setMetadataLoad(true);
+    createFileContext.setMetadataLoad(true, true);
     createFileContext.setOwner(context.getUfsStatus().getOwner());
     createFileContext.setGroup(context.getUfsStatus().getGroup());
     createFileContext.setXAttr(context.getUfsStatus().getXAttr());
@@ -1247,7 +1247,7 @@ public class InodeSyncStream {
           ? rpcContext
           : new RpcContext(
               rpcContext.getBlockDeletionContext(), merger, rpcContext.getOperationContext());
-      fsMaster.createFileInternal(wrapRpcContext, writeLockedPath, createFileContext);
+      fsMaster.createFileInternal(wrapRpcContext, writeLockedPath, createFileContext, true);
       CompleteFileContext completeContext =
           CompleteFileContext.mergeFrom(CompleteFilePOptions.newBuilder().setUfsLength(ufsLength))
               .setUfsStatus(context.getUfsStatus()).setMetadataLoad(true);
@@ -1322,7 +1322,7 @@ public class InodeSyncStream {
             .setTtl(context.getOptions().getCommonOptions().getTtl())
             .setTtlAction(context.getOptions().getCommonOptions().getTtlAction()));
     createDirectoryContext.setMountPoint(isMountPoint);
-    createDirectoryContext.setMetadataLoad(true);
+    createDirectoryContext.setMetadataLoad(true, true);
     createDirectoryContext.setWriteType(WriteType.THROUGH);
 
     AccessControlList acl = null;

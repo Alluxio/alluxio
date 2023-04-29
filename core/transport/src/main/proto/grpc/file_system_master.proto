@@ -279,7 +279,7 @@ message ListStatusPartialPOptions {
     // the ListStatusPartialPRequest is a prefix of startAfter (e.g. if listing "/dir",
     // then startAfter could be "/dir/next"). Otherwise if start after does not start with "/",
     // then startAfter is appended to the path given in the ListStatusPartialPRequest
-    // (e.g. if the listing path is "/dir" and startAfter is "/after" then files that
+    // (e.g. if the listing path is "/dir" and startAfter is "after" then files that
     // start after "/dir/after" in lexicographic order will be listed).
     // The full path itself does not need to exist.
     // This offset type is recommended to use if POSIX compatible listings are needed.
@@ -664,6 +664,77 @@ message GetJobProgressPResponse {
   optional JobProgressReportFormat format = 2;
 }
 
+message SyncMetadataPOptions {
+  optional fscommon.LoadDescendantPType loadDescendantType = 1;
+  optional fscommon.DirectoryLoadPType directoryLoadType = 2;
+  // TODO: add the followings:
+  // the when to sync options (NEVER/ONCE/Time based/Invalidation based/ALWAYS)
+  // currently it is always ALWAYS
+  //
+  // Q: do we need to support loading metadata only for a direcotry inode itself?
+  // if yes descendant type (ONE/ALL/NONE) might be a better option
+}
+
+message SyncMetadataPRequest {
+  required string path = 1;
+  optional SyncMetadataPOptions options = 2;
+}
+
+enum SyncMetadataState {
+  UNKNOWN = 0;
+  RUNNING = 1;
+  SUCCEEDED = 2;
+  FAILED = 3;
+  CANCELED = 4;
+}
+
+message SyncMetadataTask {
+  message Exception {
+    optional string exceptionType = 1;
+    optional string exceptionMessage = 2;
+    optional string stacktrace = 3;
+  }
+
+  optional int64 id = 1;
+  optional SyncMetadataState state = 2;
+  optional int64 syncDurationMs = 3;
+  optional Exception exception = 4;
+  optional int64 successOpCount = 5;
+
+  optional string taskInfoString = 100;
+  optional string taskStatString = 101;
+
+}
+
+message SyncMetadataPResponse {
+  repeated SyncMetadataTask task = 1;
+
+  optional string debugInfo = 1000;
+}
+
+message SyncMetadataAsyncPResponse {
+  optional bool submitted = 1;
+  optional int64 taskId = 2;
+}
+
+message GetSyncProgressPRequest {
+  optional int64 taskId = 1;
+}
+
+message GetSyncProgressPResponse {
+  repeated SyncMetadataTask task = 1;
+
+  optional string debugInfo = 1000;
+}
+
+message CancelSyncMetadataPRequest {
+  optional int64 taskId = 1;
+}
+
+message CancelSyncMetadataPResponse {
+  optional bool success = 1;
+}
+
 /**
  * This interface contains file system master service endpoints for Alluxio clients.
  */
@@ -818,6 +889,16 @@ service FileSystemMasterClientService {
   rpc StopJob(StopJobPRequest) returns (StopJobPResponse);
 
   rpc GetJobProgress(GetJobProgressPRequest) returns (GetJobProgressPResponse);
+
+  /**
+   * Load metadata into Alluxio.
+   */
+  // This endpoint should use job service instead of returning the
+  // result synchronously. A metadata sync job could take long to finish.
+  rpc SyncMetadata(SyncMetadataPRequest) returns (SyncMetadataPResponse);
+  rpc SyncMetadataAsync(SyncMetadataPRequest) returns (SyncMetadataAsyncPResponse);
+  rpc GetSyncProgress(GetSyncProgressPRequest) returns (GetSyncProgressPResponse);
+  rpc CancelSyncMetadata(CancelSyncMetadataPRequest) returns (CancelSyncMetadataPResponse);
 }
 
 message FileSystemHeartbeatPResponse {

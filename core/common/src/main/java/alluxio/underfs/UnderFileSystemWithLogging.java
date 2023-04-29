@@ -17,7 +17,9 @@ import alluxio.SyncInfo;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.exception.status.UnimplementedException;
+import alluxio.file.options.DescendantType;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricsSystem;
@@ -32,6 +34,7 @@ import alluxio.underfs.options.GetFileStatusOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.util.RateLimiter;
 import alluxio.util.SecurityUtils;
 
 import com.codahale.metrics.Timer;
@@ -42,8 +45,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import javax.annotation.Nullable;
 
 /**
@@ -817,6 +822,29 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     });
   }
 
+  @Override
+  public Iterator<UfsStatus> listStatusIterable(
+      String path, ListOptions options, String startAfter,
+      int batchSize) throws IOException {
+    return call(new UfsCallable<Iterator<UfsStatus>>() {
+      @Override
+      public Iterator<UfsStatus> call() throws IOException {
+        // TODO(elega) filter invalid path
+        return mUnderFileSystem.listStatusIterable(path, options, startAfter, batchSize);
+      }
+
+      @Override
+      public String methodName() {
+        return "ListStatusPartial";
+      }
+
+      @Override
+      public String toString() {
+        return String.format("path=%s, options=%s", path, options);
+      }
+    });
+  }
+
   @Nullable
   private UfsStatus[] filterInvalidPaths(UfsStatus[] statuses, String listedPath) {
     // This is a temporary fix to prevent us from choking on paths containing '?'.
@@ -1224,6 +1252,42 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
    */
   public UnderFileSystem getUnderFileSystem() {
     return mUnderFileSystem;
+  }
+
+  @Override
+  public void performListingAsync(
+      String path, @Nullable String continuationToken, @Nullable String startAfter,
+      DescendantType descendantType, boolean checkStatus, Consumer<UfsLoadResult> onComplete,
+      Consumer<Throwable> onError) {
+    try {
+      call(new UfsCallable<Void>() {
+        @Override
+        public Void call() {
+          mUnderFileSystem.performListingAsync(path, continuationToken, startAfter,
+              descendantType, checkStatus, onComplete, onError);
+          return null;
+        }
+
+        @Override
+        public String methodName() {
+          return "PerformListingAsync";
+        }
+
+        @Override
+        public String toString() {
+          return String.format("path=%s, continuationToken=%s, startAfter=%s, descendantType=%s,"
+                  + " checkStatus=%s",
+              path, continuationToken, startAfter, descendantType, checkStatus);
+        }
+      });
+    } catch (IOException e) {
+      throw new InternalRuntimeException("should not reach");
+    }
+  }
+
+  @Override
+  public RateLimiter getRateLimiter() {
+    return mUnderFileSystem.getRateLimiter();
   }
 
   /**
