@@ -5383,20 +5383,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       booleanBuilder(Name.PROXY_S3_TAGGING_RESTRICTIONS_ENABLED)
           .setDefaultValue(true)
           .setDescription("Toggles whether or not the Alluxio S3 API will enforce "
-            + "AWS S3 tagging restrictions (10 tags, 128 character keys, 256 character "
-            + "values) See "
-            + "https://docs.aws.amazon.com/AmazonS3/latest/userguide/tagging-managing.html.")
+              + "AWS S3 tagging restrictions (10 tags, 128 character keys, 256 character "
+              + "values) See "
+              + "https://docs.aws.amazon.com/AmazonS3/latest/userguide/tagging-managing.html.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey PROXY_S3_V2_VERSION_ENABLED =
-          booleanBuilder(Name.PROXY_S3_V2_VERSION_ENABLED)
-                  .setDefaultValue(true)
-                  .setDescription("(Experimental) V2, an optimized version of "
-                          + "Alluxio s3 proxy service.")
-                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-                  .setScope(Scope.SERVER)
-                  .build();
+      booleanBuilder(Name.PROXY_S3_V2_VERSION_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("(Experimental) V2, an optimized version of "
+              + "Alluxio s3 proxy service.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey PROXY_S3_V2_ASYNC_PROCESSING_ENABLED =
           booleanBuilder(Name.PROXY_S3_V2_ASYNC_PROCESSING_ENABLED)
                   .setDefaultValue(false)

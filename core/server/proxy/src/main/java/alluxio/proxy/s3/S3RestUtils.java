@@ -28,6 +28,8 @@ import alluxio.exception.InvalidPathException;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.WritePType;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File;
 import alluxio.proxy.s3.auth.Authenticator;
 import alluxio.proxy.s3.auth.AwsAuthInfo;
@@ -93,49 +95,52 @@ public final class S3RestUtils {
    * @return the response object
    */
   public static <T> Response call(String resource, S3RestUtils.RestCallable<T> callable) {
-    try {
-      // TODO(cc): reconsider how to enable authentication
-      if (SecurityUtils.isSecurityEnabled(Configuration.global())
-              && AuthenticatedClientUser.get(Configuration.global()) == null) {
-        AuthenticatedClientUser.set(ServerUserState.global().getUser().getName());
-      }
-    } catch (IOException e) {
-      LOG.warn("Failed to set AuthenticatedClientUser in REST service handler: {}", e.toString());
-      return S3ErrorResponse.createErrorResponse(new S3Exception(
-          e, resource, S3ErrorCode.INTERNAL_ERROR), resource);
-    }
-
-    try {
-      T result = callable.call();
-      if (result == null) {
-        return Response.ok().build();
-      }
-      if (result instanceof Response) {
-        return (Response) result;
-      }
-      if (result instanceof Response.Status) {
-        switch ((Response.Status) result) {
-          case OK:
-            return Response.ok().build();
-          case ACCEPTED:
-            return Response.accepted().build();
-          case NO_CONTENT:
-            return Response.noContent().build();
-          default:
-            return S3ErrorResponse.createErrorResponse(new S3Exception(
-                "Response status is invalid", resource, S3ErrorCode.INTERNAL_ERROR), resource);
+    try (MetricsSystem.MultiTimerContext ctx = new MetricsSystem.MultiTimerContext(
+        MetricsSystem.timer(MetricKey.PROXY_TOTAL_REQUESTS.getName()))) {
+      try {
+        // TODO(cc): reconsider how to enable authentication
+        if (SecurityUtils.isSecurityEnabled(Configuration.global())
+            && AuthenticatedClientUser.get(Configuration.global()) == null) {
+          AuthenticatedClientUser.set(ServerUserState.global().getUser().getName());
         }
+      } catch (IOException e) {
+        LOG.warn("Failed to set AuthenticatedClientUser in REST service handler: {}", e.toString());
+        return S3ErrorResponse.createErrorResponse(new S3Exception(
+            e, resource, S3ErrorCode.INTERNAL_ERROR), resource);
       }
-      // Need to explicitly encode the string as XML because Jackson will not do it automatically.
-      XmlMapper mapper = new XmlMapper();
-      return Response.ok(mapper.writeValueAsString(result)).build();
-    } catch (Exception e) {
-      String errOutputMsg = e.getMessage();
-      if (StringUtils.isEmpty(errOutputMsg)) {
-        errOutputMsg = ThreadUtils.formatStackTrace(e);
+
+      try {
+        T result = callable.call();
+        if (result == null) {
+          return Response.ok().build();
+        }
+        if (result instanceof Response) {
+          return (Response) result;
+        }
+        if (result instanceof Response.Status) {
+          switch ((Response.Status) result) {
+            case OK:
+              return Response.ok().build();
+            case ACCEPTED:
+              return Response.accepted().build();
+            case NO_CONTENT:
+              return Response.noContent().build();
+            default:
+              return S3ErrorResponse.createErrorResponse(new S3Exception(
+                  "Response status is invalid", resource, S3ErrorCode.INTERNAL_ERROR), resource);
+          }
+        }
+        // Need to explicitly encode the string as XML because Jackson will not do it automatically.
+        XmlMapper mapper = new XmlMapper();
+        return Response.ok(mapper.writeValueAsString(result)).build();
+      } catch (Exception e) {
+        String errOutputMsg = e.getMessage();
+        if (StringUtils.isEmpty(errOutputMsg)) {
+          errOutputMsg = ThreadUtils.formatStackTrace(e);
+        }
+        LOG.warn("Error invoking REST endpoint for {}:\n{}", resource, errOutputMsg);
+        return S3ErrorResponse.createErrorResponse(e, resource);
       }
-      LOG.warn("Error invoking REST endpoint for {}:\n{}", resource, errOutputMsg);
-      return S3ErrorResponse.createErrorResponse(e, resource);
     }
   }
 

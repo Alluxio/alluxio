@@ -2612,6 +2612,76 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setIsClusterAggregated(false)
           .build();
 
+  // Proxy metrics
+  public static final MetricKey PROXY_TOTAL_REQUESTS =
+      new Builder("Proxy.TotalRequests")
+          .setDescription("Throughput of proxy requests.")
+          .setMetricType(MetricType.TIMER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey PROXY_REQUEST_ERRORS =
+      new Builder("Proxy.RequestErrors")
+          .setDescription("The number of failed user requests.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey PROXY_SERVER_WORK_THREAD_SIZE =
+      new Builder("Proxy.ServerWorkThreadSize")
+          .setDescription("The number of threads executing tasks in server thread pool.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey PROXY_SERVER_TASK_QUEUE_SIZE =
+      new Builder("Proxy.ServerTaskQueueSize")
+          .setDescription("The number of task queue in server thread pool.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+
+  public static final MetricKey PROXY_LIGHT_THREAD_POOL_ACTIVE_SIZE =
+      new Builder("Proxy.LightThreadPoolActiveSize")
+          .setDescription("The number of threads that are actively executing tasks"
+              + "in light thread pool.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey PROXY_LIGHT_THREAD_POOL_COMPLETED_TASK_COUNT =
+      new Builder("Proxy.LightThreadPoolCompletedTaskCount")
+          .setDescription("The number of tasks that have completed execution "
+              + "in light thread pool.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+
+  public static final MetricKey PROXY_LIGHT_THREAD_POOL_QUEUE_SIZE =
+      new Builder("Proxy.LightThreadPoolQueueSize")
+          .setDescription("The number of task queue in light thread pool.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+
+  public static final MetricKey PROXY_HEAVY_THREAD_POOL_ACTIVE_SIZE =
+      new Builder("Proxy.HeavyThreadPoolActiveSize")
+          .setDescription("The number of threads that are actively executing tasks"
+              + "in heavy thread pool.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey PROXY_HEAVY_THREAD_POOL_COMPLETED_TASK_COUNT =
+      new Builder("Proxy.HeavyThreadPoolCompletedTaskCount")
+          .setDescription("The number of tasks that have completed execution "
+              + "in heavy thread pool.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+
+  public static final MetricKey PROXY_HEAVY_THREAD_POOL_QUEUE_SIZE =
+      new Builder("Proxy.HeavyThreadPoolQueueSize")
+          .setDescription("The number of task queue in heavy thread pool.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+
   // Other system related metrics
   public static final MetricKey PROCESS_POOL_DIRECT_MEM_USED =
       new Builder("Process.pool.direct.mem.used")
