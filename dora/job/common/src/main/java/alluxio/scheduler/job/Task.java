@@ -110,6 +110,7 @@ public abstract class Task<V> implements Comparable<Task> {
   public void execute(BlockWorkerClient client, WorkerInfo workerInfo) {
     mMyWorker = workerInfo;
     mResponseFuture = run(client);
+    mMyJob.
   }
 
   /**
@@ -117,6 +118,10 @@ public abstract class Task<V> implements Comparable<Task> {
    */
   public void setJob(Job job) {
     mMyJob = job;
+  }
+
+  public Job getJob() {
+    return mMyJob;
   }
 
   /**
@@ -167,9 +172,9 @@ public abstract class Task<V> implements Comparable<Task> {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("netAddress", mNetAddress)
-        .add("capacityBytes", mCapacityBytes)
-        .add("usedBytes", mUsedBytes)
+        .add("taskJobType", mMyJob.getClass())
+        .add("taskJobId", mMyJob.getJobId())
+        .add("taskId", mTaskId)
         .toString();
   }
 }

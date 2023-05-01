@@ -66,6 +66,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
@@ -558,6 +559,34 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
           .setUfsReadOptions(ufsReadOptions.build())
           .setWriteOptions(writeOptions)
           .build());
+    }
+
+    @Override
+    public void onComplete(Executor executor) {
+      getResponseFuture().addListener(() -> {
+        try {
+          if (!mMyJob.processResponse(this)) {
+            livingWorkers.remove(workerInfo);
+          }
+          // Schedule next batch for healthy job
+          if (mMyJob.isHealthy()) {
+            if (mWorkerInfoHub.mActiveWorkers.containsKey(workerInfo)) {
+              if (!scheduleTask(job, workerInfo, livingWorkers,
+                  mWorkerInfoHub.mActiveWorkers.get(workerInfo))) {
+                livingWorkers.remove(workerInfo);
+              }
+            } else {
+              livingWorkers.remove(workerInfo);
+            }
+          }
+        } catch (Exception e) {
+          // Unknown exception. This should not happen, but if it happens we don't want to lose the
+          // scheduler thread, thus catching it here. Any exception surfaced here should be properly
+          // handled.
+          LOG.error("Unexpected exception thrown in response future listener.", e);
+          mMyJob.failJob(new InternalRuntimeException(e));
+        }
+      });
     }
 
     @Override

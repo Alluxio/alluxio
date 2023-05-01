@@ -63,11 +63,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -92,6 +91,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 //      (fileInfo) -> !fileInfo.isFolder() && fileInfo.isCompleted() && fileInfo.isPersisted()
 //          && fileInfo.getInAlluxioPercentage() != 100;
   public static final int MAX_RUNNING_TASKS = 10; // modify this
+  private static final int MAX_BLOCK_WAIT_NEXTTASKS_MS = 5000;
   // Job configurations
   private final String mPath;
 
@@ -109,9 +109,11 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   private final AtomicLong mProcessingFileCount = new AtomicLong();
   //including retry, do accurate stats later.
   private final AtomicLong mTotalFailureCount = new AtomicLong();
+  private final AtomicLong mCurrentFailureCount = new AtomicLong();
   private Optional<AlluxioRuntimeException> mFailedReason = Optional.empty();
   private Optional<Iterator<URIStatus>> mFileIterator = Optional.empty();
-  private ArrayDeque<DoraLoadTask> mPreparedTasks = new ArrayDeque<>();
+  private BlockingDeque<DoraLoadTask> mPreparedTasks = new LinkedBlockingDeque<>();
+  private AtomicBoolean mPreparingTask = new AtomicBoolean(false);
   private final FileSystem mFs;
 
   /**
@@ -254,9 +256,13 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 
 
   /**
-   * Continues the job.
+   * Prepare next set of tasks waiting to be kicked off.
    */
   public void prepareNextTasks() {
+    if (!mPreparingTask.compareAndSet(false, true)) {
+      return;
+    }
+    LOG.info("Preparing next set of tasks for jobId:{}", mJobId);
     ImmutableList.Builder<URIStatus> batchBuilder = ImmutableList.builder();
     int i = 0;
     int startRetryListSize = mRetryFiles.size();
@@ -400,6 +406,16 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     return true;
   }
 
+  @VisibleForTesting
+  public void addFileFailure(File failedFile, String message, int code) {
+    // When multiple blocks of the same file failed to load, from user's perspective,
+    // it's not hugely important what are the reasons for each specific failure,
+    // if they are different, so we will just keep the first one.
+    mFailedFiles.put(failedFile.getUfsPath(),
+        format("Status code: %s, message: %s", code, message));
+    JOB_LOAD_FILE_FAIL.inc();
+  }
+
   @Override
   public String getProgress(JobProgressReportFormat format, boolean verbose) {
     return (new LoadProgressReport(this, verbose)).getReport(format);
@@ -443,25 +459,16 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 
   @Override
   public Optional<DoraLoadTask> getNextTask(Collection<WorkerInfo> workers) {
-    if (mPreparedTasks.peek() != null) {
-      return Optional.of(mPreparedTasks.pollFirst());
+    if (mPreparedTasks.isEmpty()) {
+      prepareNextTasks();
     }
-
-    String path = mRetryFiles.poll();
-    URIStatus uriStatus;
+    DoraLoadTask task = null;
     try {
-      uriStatus = mFs.getStatus(new AlluxioURI(path));
-    } catch ( AlluxioException | IOException ex) {
-      if (!(ex instanceof FileDoesNotExistException))
-        mRetryFiles.offer(path);
-      return Optional.empty();
+       task = mPreparedTasks.poll(MAX_BLOCK_WAIT_NEXTTASKS_MS, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException ex) {
+      // IGNORE
     }
-    WorkerInfo pickedWorker = mWorkerAssignPolicy.pickAWorker(uriStatus.getPath(),
-        mMyScheduler.getActiveWorkers().keySet());
-    DoraLoadTask task = new DoraLoadTask(uriStatus);
-    task.setJob(this);
-    task.setMyRunningWorker(pickedWorker);
-    return Optional.of(task);
+    return task == null ? Optional.empty() : Optional.of(task);
   }
 
   @Override
@@ -525,12 +532,26 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 
   @Override
   public boolean processResponse(DoraLoadTask doraLoadTask) {
-    // process
-    // call continuejob at the end
     boolean needRetryCheck = false;
     try {
+      long totalBytes = doraLoadTask.getFilesToLoad().stream()
+          .map(URIStatus::getLength)
+          .reduce(Long::sum)
+          .orElse(0L);
       // what if timeout ? job needs to proactively check or task needs to be aware
-      boolean success = (Boolean) doraLoadTask.getResponseFuture().get();
+      LoadFileResponse response = doraLoadTask.getResponseFuture().get();
+      if (response.getStatus() != TaskStatus.SUCCESS) {
+        LOG.debug(format("Get failure from worker:%s, failed files:%s",
+            doraLoadTask.getMyRunningWorker(), response.getFilesList()));
+        for (FileFailure fileFailure : response.getFilesList()) {
+          totalBytes -= fileFailure.getFile().getLength();
+          if (!isHealthy() || !fileFailure.getRetryable() || !addFilesToRetry(
+              fileFailure.getFile().getUfsPath())) {
+            addFileFailure(fileFailure.getFile(), fileFailure.getMessage(), fileFailure.getCode());
+          }
+        }
+      }
+
       if (!success) {
         needRetryCheck = true;
       } else {
@@ -552,9 +573,9 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       // to load at time of creating task
       addFilesToRetry(doraLoadTask.mFileToLoad.getPath());
     }
-    mMyScheduler.getWorkerInfoHub().removeTaskFromWorkerQ(doraLoadTask);
-    mTaskList.remove(doraLoadTask);
-    continueJob(); // re-kick off job
+//    mMyScheduler.getWorkerInfoHub().removeTaskFromWorkerQ(doraLoadTask);
+//    mTaskList.remove(doraLoadTask);
+//    continueJob(); // re-kick off job
     return needRetryCheck;
   }
 
@@ -603,7 +624,9 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       mFilesToLoad = filesToLoad;
     }
 
-    public Map<URIStatus, ListenableFuture<Object>> mFileResponses = new HashMap<>();
+    public List<URIStatus> getFilesToLoad() {
+      return mFilesToLoad;
+    }
 
     @Override
     protected ListenableFuture<LoadFileResponse> run(BlockWorkerClient workerClient) {
