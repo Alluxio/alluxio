@@ -188,7 +188,7 @@ public class WebUnderFileSystem extends ConsistentUnderFileSystem {
 
   @Override
   public UfsStatus getStatus(String path) throws IOException {
-    return getStatus(path, null);
+    return getStatus(path, GetFileStatusOptions.defaults());
   }
 
   @Override
