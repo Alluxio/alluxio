@@ -239,7 +239,7 @@ $ kubectl create -f alluxio-config.yaml
 
 Check the status of Alluxio cluster by running:
 ```console
-$ kubectl get alluxiocluster <cluster-name>
+$ kubectl get alluxiocluster <alluxio-cluster-name>
 ```
 
 ### Uninstall Dataset + Alluxio
@@ -247,6 +247,7 @@ $ kubectl get alluxiocluster <cluster-name>
 Run the following command to uninstall Dataset and Alluxio cluster:
 ```console
 $ kubectl delete dataset <dataset-name>
+$ kubectl delete alluxiocluster <alluxio-cluster-name>
 ```
 
 ### Bonus - Load the data into Alluxio
