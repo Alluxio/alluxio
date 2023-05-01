@@ -651,5 +651,6 @@ public final class Configuration
     do {
       conf = SERVER_CONFIG_REFERENCE.get();
     } while (!SERVER_CONFIG_REFERENCE.compareAndSet(conf, newConf));
+    ReconfigurableRegistry.update();
   }
 }
