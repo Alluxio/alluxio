@@ -998,7 +998,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
-    public static final PropertyKey UNDERFS_CHECKSUM_TYPE =
+  public static final PropertyKey UNDERFS_CHECKSUM_TYPE =
       booleanBuilder(Name.UNDERFS_CHECKSUM_TYPE)
           .setDefaultValue(ChecksumType.MD5)
           .setDescription("UFS checksum type.")
@@ -7363,13 +7363,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Kerberos authentication keytab login auto renew.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
-          .build();
-
-  public static final PropertyKey HADOOP_CHECKSUM_COMBINE_MODE =
-      booleanBuilder(Name.HADOOP_CHECKSUM_COMBINE_MODE)
-          .setDescription("File Checksum combine mode.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
           .build();
 
   public static final PropertyKey USER_NETTY_DATA_TRANSMISSION_ENABLED =

@@ -24,6 +24,7 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.AtomicFileOutputStream;
 import alluxio.underfs.AtomicFileOutputStreamCallback;
+import alluxio.underfs.ChecksumType;
 import alluxio.underfs.ConsistentUnderFileSystem;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
@@ -182,9 +183,9 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         hdfsConf.setBoolean(KRB_KEYTAB_LOGIN_AUTO_RENEW,
                 mUfsConf.getBoolean(PropertyKey.HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL));
       }
-      if (mUfsConf.isSet(PropertyKey.HADOOP_CHECKSUM_COMBINE_MODE)) {
-        hdfsConf.set(CHECKSUM_COMBINE_MODE,
-            mUfsConf.getString(PropertyKey.HADOOP_CHECKSUM_COMBINE_MODE));
+      // HDFS default composite type is MD5 of a concatenation of chunk CRCs so no need to set
+      if (mUfsConf.get(PropertyKey.UNDERFS_CHECKSUM_TYPE).equals(ChecksumType.CRC32C)) {
+        hdfsConf.set(CHECKSUM_COMBINE_MODE, "COMPOSITE_CRC");
       }
 
       // Set Hadoop UGI configuration to ensure UGI can be initialized by the shaded classes for
