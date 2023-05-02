@@ -51,6 +51,7 @@ import alluxio.master.metastore.rocks.IndexType;
 import alluxio.network.ChannelType;
 import alluxio.network.netty.FileTransferType;
 import alluxio.security.authentication.AuthType;
+import alluxio.underfs.ChecksumType;
 import alluxio.util.FormatUtils;
 import alluxio.util.OSUtils;
 import alluxio.util.io.PathUtils;
@@ -996,6 +997,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "it is possible file or directory owners diverge between Alluxio and UFS.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
+          .build();
+    public static final PropertyKey UNDERFS_CHECKSUM_TYPE =
+      booleanBuilder(Name.UNDERFS_CHECKSUM_TYPE)
+          .setDefaultValue(ChecksumType.MD5)
+          .setDescription("UFS checksum type.")
           .build();
   public static final PropertyKey UNDERFS_CLEANUP_ENABLED =
       booleanBuilder(Name.UNDERFS_CLEANUP_ENABLED)
@@ -7604,6 +7610,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.strict.version.match.enabled";
     public static final String UNDERFS_ALLOW_SET_OWNER_FAILURE =
         "alluxio.underfs.allow.set.owner.failure";
+    public static final String UNDERFS_CHECKSUM_TYPE =
+        "alluxio.underfs.checksum.type";
     public static final String UNDERFS_CLEANUP_ENABLED = "alluxio.underfs.cleanup.enabled";
     public static final String UNDERFS_CLEANUP_INTERVAL = "alluxio.underfs.cleanup.interval";
     public static final String UNDERFS_EVENTUAL_CONSISTENCY_RETRY_BASE_SLEEP_MS =
