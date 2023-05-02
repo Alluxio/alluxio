@@ -12,8 +12,7 @@
 package alluxio.underfs;
 
 /**
- * Operation mode for under storage. During maintenance the operation mode may be changed to
- * NO_ACCESS or READ_ONLY.
+ * UFS checksum type.
  */
 public enum ChecksumType {
   CRC32C,

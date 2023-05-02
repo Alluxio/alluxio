@@ -317,7 +317,8 @@ public class GCSV2UnderFileSystem extends ObjectUnderFileSystem {
     Long time = blob.getUpdateTime() != null ? blob.getUpdateTime()
         : blob.getCreateTime() != null ? blob.getCreateTime() : null;
     String checkSum;
-    if (mUfsConf.get(PropertyKey.UNDERFS_CHECKSUM_TYPE).equals(ChecksumType.MD5)) {
+    if (mUfsConf.getEnum(PropertyKey.UNDERFS_CHECKSUM_TYPE, ChecksumType.class)
+                .equals(ChecksumType.MD5)) {
       checkSum = blob.getMd5() == null ? DIR_HASH : blob.getMd5();
     }
     else {
