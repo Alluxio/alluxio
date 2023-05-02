@@ -83,7 +83,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
     }
 
     @Override
-    protected void completeRequest(BlockReadRequestContext context) throws Exception {
+    public void completeRequest(BlockReadRequestContext context) throws Exception {
       BlockReader reader = context.getBlockReader();
       if (reader != null) {
         try {
@@ -96,7 +96,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
     }
 
     @Override
-    protected DataBuffer getDataBuffer(BlockReadRequestContext context, Channel channel,
+    public DataBuffer getDataBuffer(BlockReadRequestContext context, Channel channel,
                                        long offset, int len) throws Exception {
       openBlock(context, channel);
       BlockReader blockReader = context.getBlockReader();

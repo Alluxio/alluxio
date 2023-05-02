@@ -11,31 +11,22 @@
 
 package alluxio.worker.netty;
 
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InternalException;
-import alluxio.exception.status.InvalidArgumentException;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.resource.LockResource;
 
-import com.codahale.metrics.Counter;
-import com.google.common.base.Preconditions;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.locks.ReentrantLock;
-import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -65,21 +56,11 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
     extends ChannelInboundHandlerAdapter {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractReadHandler.class);
 
-  private static final long MAX_PACKETS_IN_FLIGHT =
-      Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS);
-
   /** The executor to run {@link PacketReader}. */
   private final ExecutorService mPacketReaderExecutor;
 
-  private final ReentrantLock mLock = new ReentrantLock();
-
-  /**
-   * This is only created in the netty I/O thread when a read request is received, reset when
-   * another request is received.
-   * Using "volatile" because we want any value change of this variable to be
-   * visible across both netty and I/O threads, meanwhile no atomicity of operation is assumed;
-   */
-  private volatile T mContext;
+  private final ConcurrentHashMap<String, PacketReadTask> mTasksMap =
+      new ConcurrentHashMap<>();
 
   /**
    * Creates an instance of {@link AbstractReadHandler}.
@@ -93,8 +74,10 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
   @Override
   public void channelUnregistered(ChannelHandlerContext ctx) {
     // The channel is closed so the client cannot receive this message.
-    setError(ctx.channel(),
-        new Error(new InternalException("Channel has been unregistered"), false));
+    // Notify the task
+    mTasksMap.values().stream().forEach(task -> task.notifyChannelException(
+        new Error(new InternalException("Channel has been unregistered"), false)));
+    mTasksMap.clear();
     ctx.fireChannelUnregistered();
   }
 
@@ -106,114 +89,32 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
     }
     Protocol.ReadRequest msg = ((RPCProtoMessage) object).getMessage().asReadRequest();
     if (msg.getCancel()) {
-      setCancel(ctx.channel());
+      mTasksMap.values().stream().forEach(task -> task.cancelTask());
+      mTasksMap.clear();
       return;
     }
 
-    // Expected state: context equals null as this handler is new for request, or the previous
-    // context is not active (done / cancel / abort). Otherwise, notify the client an illegal state.
-    // Note that, we reset the context before validation msg as validation may require to update
-    // error in context.
-    try (LockResource lr = new LockResource(mLock)) {
-      Preconditions.checkState(mContext == null || !mContext.isPacketReaderActive());
-      mContext = createRequestContext(msg);
-    }
-
-    //TODO(JiamingMai): dora client will send -1 as the block id
-    //validateReadRequest(msg);
-
-    try (LockResource lr = new LockResource(mLock)) {
-      mContext.setPosToQueue(mContext.getRequest().getStart());
-      mContext.setPosToWrite(mContext.getRequest().getStart());
-      mPacketReaderExecutor.submit(createPacketReader(mContext, ctx.channel()));
-      mContext.setPacketReaderActive(true);
-    }
+    // Create and submit a task for reading and sending packet
+    T requestContext = createRequestContext(msg);
+    requestContext.setPosToQueue(requestContext.getRequest().getStart());
+    requestContext.setPosToWrite(requestContext.getRequest().getStart());
+    PacketReader packetReader = createPacketReader(requestContext, ctx.channel());
+    String taskId = UUID.randomUUID().toString();
+    PacketReadTask packetReadTask =
+        new PacketReadTask(taskId, requestContext, ctx.channel(), packetReader);
+    mTasksMap.put(taskId, packetReadTask);
+    mPacketReaderExecutor.submit(packetReadTask);
+    LOG.info("taskMap.size(): " + mTasksMap.size());
+    // TODO(JiamingMai): we still need to remove task from the map
   }
 
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
     LOG.error("Exception caught in AbstractReadHandler for channel {}:", ctx.channel(), cause);
-    setError(ctx.channel(), new Error(AlluxioStatusException.fromThrowable(cause), true));
-  }
-
-  /**
-   * @return true if there are too many packets in-flight
-   */
-  @GuardedBy("mLock")
-  public boolean tooManyPendingPackets() {
-    return mContext.getPosToQueue() - mContext.getPosToWrite() >= MAX_PACKETS_IN_FLIGHT * mContext
-        .getRequest().getPacketSize();
-  }
-
-  /**
-   * Validates a read request.
-   *
-   * @param request the block read request
-   * @throws InvalidArgumentException if the request is invalid
-   */
-  private void validateReadRequest(Protocol.ReadRequest request) throws InvalidArgumentException {
-    if (request.getBlockId() < 0) {
-      throw new InvalidArgumentException(
-          String.format("Invalid blockId (%d) in read request.", request.getBlockId()));
-    }
-    if (!request.getCancel() && (request.getOffset() < 0 || request.getLength() <= 0)) {
-      throw new InvalidArgumentException(
-          String.format("Invalid read bounds in read request %s.", request.toString()));
-    }
-  }
-
-  /**
-   * @param channel the channel
-   * @param error the error
-   */
-  private void setError(Channel channel, Error error) {
-    Preconditions.checkNotNull(error, "error");
-    try (LockResource lr = new LockResource(mLock)) {
-      if (mContext == null || mContext.getError() != null || mContext.isDoneUnsafe()) {
-        // Note, we may reach here via channelUnregistered due to network errors bubbling up before
-        // mContext is initialized, or channel garbage collection after the request is finished.
-        return;
-      }
-      mContext.setError(error);
-      if (!mContext.isPacketReaderActive()) {
-        mContext.setPacketReaderActive(true);
-        mPacketReaderExecutor.submit(createPacketReader(mContext, channel));
-      }
-    }
-  }
-
-  /**
-   * @param channel the channel
-   */
-  private void setEof(Channel channel) {
-    try (LockResource lr = new LockResource(mLock)) {
-      if (mContext == null || mContext.getError() != null || mContext.isCancel()
-          || mContext.isEof()) {
-        return;
-      }
-      mContext.setEof(true);
-      if (!mContext.isPacketReaderActive()) {
-        mContext.setPacketReaderActive(true);
-        mPacketReaderExecutor.submit(createPacketReader(mContext, channel));
-      }
-    }
-  }
-
-  /**
-   * @param channel the channel
-   */
-  private void setCancel(Channel channel) {
-    try (LockResource lr = new LockResource(mLock)) {
-      if (mContext == null || mContext.getError() != null || mContext.isEof()
-          || mContext.isCancel()) {
-        return;
-      }
-      mContext.setCancel(true);
-      if (!mContext.isPacketReaderActive()) {
-        mContext.setPacketReaderActive(true);
-        mPacketReaderExecutor.submit(createPacketReader(mContext, channel));
-      }
-    }
+    // Notify the task that there is an error
+    mTasksMap.values().stream().forEach(task -> task.notifyChannelException(
+        new Error(AlluxioStatusException.fromThrowable(cause), true)));
+    mTasksMap.clear();
   }
 
   /**
@@ -246,67 +147,9 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
   protected abstract PacketReader createPacketReader(T context, Channel channel);
 
   /**
-   * @param bytesRead bytes read
-   */
-  private void incrementMetrics(long bytesRead) {
-    Counter counter = mContext.getCounter();
-    Preconditions.checkState(counter != null);
-    counter.inc(bytesRead);
-  }
-
-  /**
-   * The channel handler listener that runs after a packet write is flushed.
-   */
-  private final class WriteListener implements ChannelFutureListener {
-    private final long mPosToWriteUncommitted;
-
-    /**
-     * Creates an instance of the {@link WriteListener}.
-     *
-     * @param posToWriteUncommitted the position to commit (i.e. update mPosToWrite)
-     */
-    WriteListener(long posToWriteUncommitted) {
-      mPosToWriteUncommitted = posToWriteUncommitted;
-    }
-
-    @Override
-    public void operationComplete(ChannelFuture future) {
-      if (!future.isSuccess()) {
-        LOG.error("Failed to send packet.", future.cause());
-        setError(future.channel(),
-            new Error(AlluxioStatusException.fromThrowable(future.cause()), true));
-        return;
-      }
-
-      try (LockResource lr = new LockResource(mLock)) {
-        Preconditions.checkState(
-            mPosToWriteUncommitted - mContext.getPosToWrite() <= mContext.getRequest()
-                .getPacketSize(), "Some packet is not acked.");
-        incrementMetrics(mPosToWriteUncommitted - mContext.getPosToWrite());
-        mContext.setPosToWrite(mPosToWriteUncommitted);
-
-        if (shouldRestartPacketReader()) {
-          mPacketReaderExecutor.submit(createPacketReader(mContext, future.channel()));
-          mContext.setPacketReaderActive(true);
-        }
-      }
-    }
-
-    /**
-     * @return true if we should restart the packet reader
-     */
-    @GuardedBy("mLock")
-    private boolean shouldRestartPacketReader() {
-      return !mContext.isPacketReaderActive() && !tooManyPendingPackets()
-          && mContext.getPosToQueue() < mContext.getRequest().getEnd()
-          && mContext.getError() == null && !mContext.isCancel() && !mContext.isEof();
-    }
-  }
-
-  /**
    * A runnable that reads packets and writes them to the channel.
    */
-  protected abstract class PacketReader implements Runnable {
+  protected abstract class PacketReader {
     private final Channel mChannel;
     private final T mContext;
     private final ReadRequest mRequest;
@@ -323,101 +166,13 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
       mChannel = channel;
     }
 
-    @Override
-    public void run() {
-      try {
-        runInternal();
-      } catch (Throwable e) {
-        LOG.error("Failed to run PacketReader.", e);
-        throw e;
-      }
-    }
-
-    private void runInternal() {
-      boolean eof;  // End of file. Everything requested has been read.
-      boolean cancel;
-      Error error;  // error occured, abort requested.
-      while (true) {
-        final long start;
-        final int packetSize;
-        try (LockResource lr = new LockResource(mLock)) {
-          start = mContext.getPosToQueue();
-          eof = mContext.isEof();
-          cancel = mContext.isCancel();
-          error = mContext.getError();
-
-          if (eof || cancel || error != null || tooManyPendingPackets()) {
-            mContext.setPacketReaderActive(false);
-            break;
-          }
-          packetSize = (int) Math
-              .min(mRequest.getEnd() - mContext.getPosToQueue(), mRequest.getPacketSize());
-
-          // packetSize should always be > 0 here when reaches here.
-          Preconditions.checkState(packetSize > 0);
-        }
-
-        DataBuffer packet;
-        try {
-          packet = getDataBuffer(mContext, mChannel, start, packetSize);
-        } catch (Exception e) {
-          LOG.error("Failed to read data.", e);
-          setError(mChannel, new Error(AlluxioStatusException.fromThrowable(e), true));
-          continue;
-        }
-        if (packet != null) {
-          try (LockResource lr = new LockResource(mLock)) {
-            mContext.setPosToQueue(mContext.getPosToQueue() + packet.getLength());
-          }
-        }
-        if (packet == null || packet.getLength() < packetSize || start + packetSize == mRequest
-            .getEnd()) {
-          // This can happen if the requested read length is greater than the actual length of the
-          // block or file starting from the given offset.
-          setEof(mChannel);
-        }
-
-        if (packet != null) {
-          RPCProtoMessage response = RPCProtoMessage.createOkResponse(packet);
-          mChannel.writeAndFlush(response).addListener(new WriteListener(start + packetSize));
-        }
-      }
-
-      if (error != null) {
-        try {
-          // mRequest is null if an exception is thrown when initializing mRequest.
-          if (mRequest != null) {
-            completeRequest(mContext);
-          }
-        } catch (Exception e) {
-          LOG.error("Failed to close the request.", e);
-        }
-        if (error.isNotifyClient()) {
-          replyError(error.getCause());
-        }
-      } else if (eof || cancel) {
-        try {
-          completeRequest(mContext);
-        } catch (IOException e) {
-          setError(mChannel, new Error(AlluxioStatusException.fromIOException(e), true));
-        } catch (Exception e) {
-          setError(mChannel, new Error(AlluxioStatusException.fromThrowable(e), true));
-        }
-        if (eof) {
-          replyEof();
-        } else {
-          replyCancel();
-        }
-      }
-    }
-
     /**
      * Completes the read request. When the request is closed, we should clean up any temporary
      * state it may have accumulated.
      *
      * @param context context of the request to complete
      */
-    protected abstract void completeRequest(T context) throws Exception;
+    public abstract void completeRequest(T context) throws Exception;
 
     /**
      * Returns the appropriate {@link DataBuffer} representing the data to send, depending on the
@@ -428,35 +183,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
      * @param len The length, in bytes, of the data to read from the block
      * @return a {@link DataBuffer} representing the data
      */
-    protected abstract DataBuffer getDataBuffer(T context, Channel channel, long offset, int len)
+    public abstract DataBuffer getDataBuffer(T context, Channel channel, long offset, int len)
         throws Exception;
-
-    /**
-     * Writes an error read response to the channel and closes the channel after that.
-     */
-    private void replyError(AlluxioStatusException e) {
-      mChannel.writeAndFlush(RPCProtoMessage.createResponse(e))
-          .addListener(ChannelFutureListener.CLOSE);
-    }
-
-    /**
-     * Writes a success response.
-     */
-    private void replyEof() {
-      Preconditions.checkState(!mContext.isDoneUnsafe());
-      mContext.setDoneUnsafe(true);
-      mChannel.writeAndFlush(RPCProtoMessage.createOkResponse(null))
-          .addListeners(ChannelFutureListener.CLOSE_ON_FAILURE);
-    }
-
-    /**
-     * Writes a cancel response.
-     */
-    private void replyCancel() {
-      Preconditions.checkState(!mContext.isDoneUnsafe());
-      mContext.setDoneUnsafe(true);
-      mChannel.writeAndFlush(RPCProtoMessage.createCancelResponse())
-          .addListeners(ChannelFutureListener.CLOSE_ON_FAILURE);
-    }
   }
 }
