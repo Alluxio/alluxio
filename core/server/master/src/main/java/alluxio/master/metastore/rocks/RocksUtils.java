@@ -168,13 +168,6 @@ public final class RocksUtils {
       }
     };
 
-<<<<<<< HEAD:core/server/master/src/main/java/alluxio/master/metastore/rocks/RocksUtils.java
-    return CloseableIterator.create(iter, (whatever) -> {
-      rocksIterator.close();
-    });
-||||||| parent of 9f152c554b (Fix Rocksdb thread safety using refcount(no lock)):core/common/src/main/java/alluxio/master/metastore/rocks/RocksUtils.java
-    return CloseableIterator.create(iter, (whatever) -> rocksIterator.close());
-=======
     return CloseableIterator.create(iter, (whatever) -> {
       try {
         rocksIterator.close();
@@ -185,6 +178,5 @@ public final class RocksUtils {
         }
       }
     });
->>>>>>> 9f152c554b (Fix Rocksdb thread safety using refcount(no lock)):core/common/src/main/java/alluxio/master/metastore/rocks/RocksUtils.java
   }
 }

@@ -11,8 +11,6 @@
 
 package alluxio.master.metastore.rocks;
 
-import alluxio.exception.runtime.AlluxioRuntimeException;
-
 import java.util.concurrent.Callable;
 
 /**
@@ -42,7 +40,7 @@ public class RocksExclusiveLockHandle implements AutoCloseable {
       mCloseAction.call();
     } catch (Exception e) {
       // From the current usage in RocksStore, this is unreachable
-      throw AlluxioRuntimeException.from(e);
+      throw new RuntimeException(e);
     }
   }
 }

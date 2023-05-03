@@ -399,6 +399,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public CloseableIterator<JournalEntry> getJournalEntryIterator() {
+    // TODO(jiacheng): this is typically used for checkpoint/backup, however this is not taking
+    //  the checkpoint lock
     CloseableIterator<Block> blockStoreIterator = mBlockStore.getCloseableIterator();
     Iterator<JournalEntry> journalIterator = new Iterator<JournalEntry>() {
       @Override

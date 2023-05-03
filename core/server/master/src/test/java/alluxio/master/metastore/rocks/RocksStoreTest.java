@@ -17,10 +17,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.util.ThreadFactoryUtils;
 
@@ -34,6 +33,7 @@ import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.ColumnFamilyOptions;
 import org.rocksdb.CompressionType;
+import org.rocksdb.DBOptions;
 import org.rocksdb.HashLinkedListMemTableConfig;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksObject;
@@ -65,8 +65,8 @@ public class RocksStoreTest {
 
   @Before
   public void setup() throws Exception {
-    Configuration.set(PropertyKey.MASTER_METASTORE_ROCKS_EXCLUSIVE_LOCK_TIMEOUT, "500ms");
-    Configuration.set(PropertyKey.TEST_MODE, true);
+    ServerConfiguration.set(PropertyKey.MASTER_METASTORE_ROCKS_EXCLUSIVE_LOCK_TIMEOUT, "500ms");
+    ServerConfiguration.set(PropertyKey.TEST_MODE, true);
 
     mToClose = new ArrayList<>();
     ColumnFamilyOptions cfOpts = new ColumnFamilyOptions()
@@ -77,32 +77,11 @@ public class RocksStoreTest {
 
     mColumnDescriptors =
         Arrays.asList(new ColumnFamilyDescriptor("test".getBytes(), cfOpts));
-<<<<<<< HEAD
-    String dbDir = mFolder.newFolder("rocks").getAbsolutePath();
-    String backupsDir = mFolder.newFolder("rocks-backups").getAbsolutePath();
-    AtomicReference<ColumnFamilyHandle> testColumn = new AtomicReference<>();
-    RocksStore store =
-        new RocksStore("test", dbDir, backupsDir, columnDescriptors, Arrays.asList(testColumn));
-||||||| parent of 9f152c554b (Fix Rocksdb thread safety using refcount(no lock))
-    String dbDir = mFolder.newFolder("rocks").getAbsolutePath();
-    String backupsDir = mFolder.newFolder("rocks-backups").getAbsolutePath();
-    AtomicReference<ColumnFamilyHandle> testColumn = new AtomicReference<>();
-    DBOptions dbOpts = new DBOptions().setCreateIfMissing(true)
-        .setCreateMissingColumnFamilies(true)
-        .setAllowConcurrentMemtableWrite(false);
-    RocksStore store =
-        new RocksStore("test", dbDir, backupsDir, dbOpts, columnDescriptors,
-            Arrays.asList(testColumn));
-=======
     mDbDir = mFolder.newFolder("rocks").getAbsolutePath();
     mBackupsDir = mFolder.newFolder("rocks-backups").getAbsolutePath();
     mTestColumn = new AtomicReference<>();
-    DBOptions dbOpts = new DBOptions().setCreateIfMissing(true)
-        .setCreateMissingColumnFamilies(true)
-        .setAllowConcurrentMemtableWrite(false);
-    mToClose.add(dbOpts);
 
-    mStore = new RocksStore("test", mDbDir, mBackupsDir, dbOpts, mColumnDescriptors,
+    mStore = new RocksStore("test", mDbDir, mBackupsDir, mColumnDescriptors,
         Arrays.asList(mTestColumn));
 
     mThreadPool = Executors.newCachedThreadPool(
@@ -123,7 +102,6 @@ public class RocksStoreTest {
 
   @Test
   public void backupRestore() throws Exception {
->>>>>>> 9f152c554b (Fix Rocksdb thread safety using refcount(no lock))
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     RocksDB db;
     int count = 10;
@@ -140,45 +118,10 @@ public class RocksStoreTest {
     try (RocksExclusiveLockHandle lock = mStore.lockForClosing()) {
       mStore.close();
     }
-<<<<<<< HEAD
-    store.writeToCheckpoint(baos);
-||||||| parent of 9f152c554b (Fix Rocksdb thread safety using refcount(no lock))
-    store.writeToCheckpoint(baos);
-    store.close();
-=======
->>>>>>> 9f152c554b (Fix Rocksdb thread safety using refcount(no lock))
 
-<<<<<<< HEAD
-    String newBbDir = mFolder.newFolder("rocks-new").getAbsolutePath();
-    store =
-        new RocksStore("test-new", newBbDir, backupsDir, columnDescriptors,
-            Arrays.asList(testColumn));
-    store.restoreFromCheckpoint(
-        new CheckpointInputStream(new ByteArrayInputStream(baos.toByteArray())));
-    db = store.getDb();
-    for (int i = 0; i < count; i++) {
-      assertArrayEquals("b".getBytes(), db.get(testColumn.get(), ("a" + i).getBytes()));
-||||||| parent of 9f152c554b (Fix Rocksdb thread safety using refcount(no lock))
-    String newBbDir = mFolder.newFolder("rocks-new").getAbsolutePath();
-    dbOpts = new DBOptions().setCreateIfMissing(true)
-        .setCreateMissingColumnFamilies(true)
-        .setAllowConcurrentMemtableWrite(false);
-    store =
-        new RocksStore("test-new", newBbDir, backupsDir, dbOpts, columnDescriptors,
-            Arrays.asList(testColumn));
-    store.restoreFromCheckpoint(
-        new CheckpointInputStream(new ByteArrayInputStream(baos.toByteArray())));
-    db = store.getDb();
-    for (int i = 0; i < count; i++) {
-      assertArrayEquals("b".getBytes(), db.get(testColumn.get(), ("a" + i).getBytes()));
-=======
     String newDbDir = mFolder.newFolder("rocks-new").getAbsolutePath();
-    DBOptions dbOpts = new DBOptions().setCreateIfMissing(true)
-        .setCreateMissingColumnFamilies(true)
-        .setAllowConcurrentMemtableWrite(false);
-    mToClose.add(dbOpts);
     mStore =
-        new RocksStore("test-new", newDbDir, mBackupsDir, dbOpts, mColumnDescriptors,
+        new RocksStore("test-new", newDbDir, mBackupsDir, mColumnDescriptors,
             Arrays.asList(mTestColumn));
     try (RocksExclusiveLockHandle lock = mStore.lockForRewrite()) {
       mStore.restoreFromCheckpoint(
@@ -205,13 +148,7 @@ public class RocksStoreTest {
     for (int i = 0; i < 20; i++) {
       assertEquals(20 - i, mStore.getSharedLockCount());
       readLocks.get(i).close();
->>>>>>> 9f152c554b (Fix Rocksdb thread safety using refcount(no lock))
     }
-<<<<<<< HEAD
-||||||| parent of 9f152c554b (Fix Rocksdb thread safety using refcount(no lock))
-    store.close();
-    cfOpts.close();
-=======
     assertEquals(0, mStore.getSharedLockCount());
   }
 
@@ -219,11 +156,11 @@ public class RocksStoreTest {
   public void exclusiveLockOnClosing() {
     RocksExclusiveLockHandle exclusiveLock = mStore.lockForClosing();
 
-    Exception e = assertThrows(UnavailableRuntimeException.class, () -> {
+    Exception e = assertThrows(RuntimeException.class, () -> {
       mStore.checkAndAcquireSharedLock();
     });
     assertTrue(e.getMessage().contains(ExceptionMessage.ROCKS_DB_CLOSING.getMessage()));
-    Exception f = assertThrows(UnavailableRuntimeException.class, () -> {
+    Exception f = assertThrows(RuntimeException.class, () -> {
       mStore.shouldAbort(0);
     });
     assertTrue(f.getMessage().contains(ExceptionMessage.ROCKS_DB_CLOSING.getMessage()));
@@ -239,11 +176,11 @@ public class RocksStoreTest {
   public void exclusiveLockOnCheckpoint() {
     RocksExclusiveLockHandle exclusiveLock = mStore.lockForCheckpoint();
 
-    Exception e = assertThrows(UnavailableRuntimeException.class, () -> {
+    Exception e = assertThrows(RuntimeException.class, () -> {
       mStore.checkAndAcquireSharedLock();
     });
     assertTrue(e.getMessage().contains(ExceptionMessage.ROCKS_DB_CLOSING.getMessage()));
-    Exception f = assertThrows(UnavailableRuntimeException.class, () -> {
+    Exception f = assertThrows(RuntimeException.class, () -> {
       mStore.shouldAbort(0);
     });
     assertTrue(f.getMessage().contains(ExceptionMessage.ROCKS_DB_CLOSING.getMessage()));
@@ -259,11 +196,11 @@ public class RocksStoreTest {
   public void exclusiveLockOnRewrite() {
     RocksExclusiveLockHandle exclusiveLock = mStore.lockForRewrite();
 
-    Exception e = assertThrows(UnavailableRuntimeException.class, () -> {
+    Exception e = assertThrows(RuntimeException.class, () -> {
       mStore.checkAndAcquireSharedLock();
     });
     assertTrue(e.getMessage().contains(ExceptionMessage.ROCKS_DB_CLOSING.getMessage()));
-    Exception f = assertThrows(UnavailableRuntimeException.class, () -> {
+    Exception f = assertThrows(RuntimeException.class, () -> {
       mStore.shouldAbort(0);
     });
     assertTrue(f.getMessage().contains(ExceptionMessage.ROCKS_DB_CLOSING.getMessage()));
@@ -282,6 +219,7 @@ public class RocksStoreTest {
     CountDownLatch writerStartLatch = new CountDownLatch(1);
     Future<Void> f = mThreadPool.submit(() -> {
       RocksSharedLockHandle lockHandle = mStore.checkAndAcquireSharedLock();
+      // TODO(jiacheng): are these printouts removed in master branch?
       System.out.println("Read lock grabbed");
       writerStartLatch.countDown();
       assertEquals(1, mStore.getSharedLockCount());
@@ -303,7 +241,8 @@ public class RocksStoreTest {
     writerStartLatch.await();
     // Manually set this flag, otherwise an exception will be thrown when the exclusive lock
     // is forced.
-    Configuration.set(PropertyKey.TEST_MODE, false);
+    // TODO(jiacheng): double check if this takes effect
+    ServerConfiguration.set(PropertyKey.TEST_MODE, false);
     RocksExclusiveLockHandle exclusiveLock = mStore.lockForCheckpoint();
     // After some wait, the closer will force the lock and reset the ref count
     // And the ref count will be reset on that force
@@ -345,7 +284,7 @@ public class RocksStoreTest {
     writerStartLatch.await();
     // Manually set this flag, otherwise an exception will be thrown when the exclusive lock
     // is forced.
-    Configuration.set(PropertyKey.TEST_MODE, false);
+    ServerConfiguration.set(PropertyKey.TEST_MODE, false);
     RocksExclusiveLockHandle exclusiveLock = mStore.lockForCheckpoint();
     // After some wait, the closer will force the lock and reset the ref count
     // And the ref count will be reset on that force
@@ -429,7 +368,7 @@ public class RocksStoreTest {
     writerStartLatch.await();
     // Manually set this flag, otherwise an exception will be thrown when the exclusive lock
     // is forced.
-    Configuration.set(PropertyKey.TEST_MODE, false);
+    ServerConfiguration.set(PropertyKey.TEST_MODE, false);
     RocksExclusiveLockHandle exclusiveLock = mStore.lockForCheckpoint();
     // After some wait, the closer will force the lock and reset the ref count
     // And the ref count will be reset on that force
@@ -458,7 +397,7 @@ public class RocksStoreTest {
       }
       // While this reader is sleeping, one restore action is completed in the background
       // This check should throw an exception because the RocksDB contents have changed
-      Exception e = assertThrows(UnavailableRuntimeException.class, () -> {
+      Exception e = assertThrows(RuntimeException.class, () -> {
         mStore.shouldAbort(lockHandle.getLockVersion());
       });
       assertTrue(e.getMessage().contains(ExceptionMessage.ROCKS_DB_REWRITTEN.getMessage()));
@@ -476,7 +415,7 @@ public class RocksStoreTest {
     writerStartLatch.await();
     // Manually set this flag, otherwise an exception will be thrown when the exclusive lock
     // is forced.
-    Configuration.set(PropertyKey.TEST_MODE, false);
+    ServerConfiguration.set(PropertyKey.TEST_MODE, false);
     RocksExclusiveLockHandle exclusiveLock = mStore.lockForRewrite();
     // After some wait, the closer will force the lock and reset the ref count
     // And the ref count will be reset on that force
@@ -528,7 +467,7 @@ public class RocksStoreTest {
     assertTrue(mStore.isServiceStopping());
 
     // Closing takes higher priority and a checkpoint attempt will fail
-    Exception e = assertThrows(UnavailableRuntimeException.class, () -> {
+    Exception e = assertThrows(RuntimeException.class, () -> {
       RocksExclusiveLockHandle checkpointLock = mStore.lockForCheckpoint();
     });
     assertTrue(e.getMessage().contains(ExceptionMessage.ROCKS_DB_CLOSING.getMessage()));
@@ -545,7 +484,7 @@ public class RocksStoreTest {
     assertTrue(mStore.isServiceStopping());
 
     // Closing takes higher priority and a checkpoint attempt will fail
-    Exception e = assertThrows(UnavailableRuntimeException.class, () -> {
+    Exception e = assertThrows(RuntimeException.class, () -> {
       RocksExclusiveLockHandle rewriteLock = mStore.lockForRewrite();
     });
     assertTrue(e.getMessage().contains(ExceptionMessage.ROCKS_DB_CLOSING.getMessage()));
@@ -562,7 +501,7 @@ public class RocksStoreTest {
     assertTrue(mStore.isServiceStopping());
 
     // Rewrite/Checkpoint will yield to exclusive lock
-    Exception e = assertThrows(UnavailableRuntimeException.class, () -> {
+    Exception e = assertThrows(RuntimeException.class, () -> {
       RocksExclusiveLockHandle rewriteLock = mStore.lockForRewrite();
     });
     assertTrue(e.getMessage().contains(ExceptionMessage.ROCKS_DB_CLOSING.getMessage()));
@@ -570,6 +509,5 @@ public class RocksStoreTest {
     assertTrue(mStore.isServiceStopping());
 
     checkpointLock.close();
->>>>>>> 9f152c554b (Fix Rocksdb thread safety using refcount(no lock))
   }
 }

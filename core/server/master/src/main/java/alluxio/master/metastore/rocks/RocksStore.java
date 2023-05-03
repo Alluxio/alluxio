@@ -13,29 +13,16 @@ package alluxio.master.metastore.rocks;
 
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
-<<<<<<< HEAD
 import alluxio.conf.ServerConfiguration;
-||||||| parent of 9f152c554b (Fix Rocksdb thread safety using refcount(no lock))
-=======
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.runtime.UnavailableRuntimeException;
->>>>>>> 9f152c554b (Fix Rocksdb thread safety using refcount(no lock))
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointOutputStream;
 import alluxio.master.journal.checkpoint.CheckpointType;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.TimeoutRetry;
-<<<<<<< HEAD
 import alluxio.util.ParallelZipUtils;
 import alluxio.util.TarUtils;
-||||||| parent of 9f152c554b (Fix Rocksdb thread safety using refcount(no lock))
-import alluxio.util.compression.ParallelZipUtils;
-import alluxio.util.compression.TarUtils;
-=======
 import alluxio.util.SleepUtils;
-import alluxio.util.compression.ParallelZipUtils;
-import alluxio.util.compression.TarUtils;
->>>>>>> 9f152c554b (Fix Rocksdb thread safety using refcount(no lock))
 import alluxio.util.io.FileUtils;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -106,8 +93,8 @@ public final class RocksStore implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(RocksStore.class);
   public static final int ROCKS_OPEN_RETRY_TIMEOUT = 20 * Constants.SECOND_MS;
   public static final Duration ROCKS_CLOSE_WAIT_TIMEOUT =
-      Configuration.getDuration(PropertyKey.MASTER_METASTORE_ROCKS_EXCLUSIVE_LOCK_TIMEOUT);
-  private static final boolean TEST_MODE = Configuration.getBoolean(PropertyKey.TEST_MODE);
+      ServerConfiguration.getDuration(PropertyKey.MASTER_METASTORE_ROCKS_EXCLUSIVE_LOCK_TIMEOUT);
+  private static final boolean TEST_MODE = ServerConfiguration.getBoolean(PropertyKey.TEST_MODE);
 
   private final String mName;
   private final String mDbPath;
@@ -119,17 +106,6 @@ public final class RocksStore implements Closeable {
   private final boolean mParallelBackup = ServerConfiguration.getBoolean(
           PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP);
 
-<<<<<<< HEAD
-  private RocksDB mDb;
-  private Checkpoint mCheckpoint;
-  // When we create the database, we must set these handles.
-  private List<AtomicReference<ColumnFamilyHandle>> mColumnHandles;
-||||||| parent of 9f152c554b (Fix Rocksdb thread safety using refcount(no lock))
-  private RocksDB mDb;
-  private Checkpoint mCheckpoint;
-  // When we create the database, we must set these handles.
-  private final List<AtomicReference<ColumnFamilyHandle>> mColumnHandles;
-=======
   /*
    * Below 2 fields are created and managed by the external user class,
    * no need to close in this class.
@@ -143,7 +119,6 @@ public final class RocksStore implements Closeable {
   private volatile RocksDB mDb;
   private volatile Checkpoint mCheckpoint;
   private final List<AtomicReference<ColumnFamilyHandle>> mColumnHandles;
->>>>>>> 9f152c554b (Fix Rocksdb thread safety using refcount(no lock))
 
   /*
    * The state consists of two information.
@@ -401,143 +376,6 @@ public final class RocksStore implements Closeable {
     mDbOpts.close();
     LOG.info("Closed store at {}", mDbPath);
   }
-<<<<<<< HEAD
-||||||| parent of 9f152c554b (Fix Rocksdb thread safety using refcount(no lock))
-
-  // helper function to load RockDB configuration options based on property key configurations.
-  static Optional<BlockBasedTableConfig> checkSetTableConfig(
-      PropertyKey cacheSize, PropertyKey bloomFilter, PropertyKey indexType,
-      PropertyKey blockIndexType, List<RocksObject> toClose) {
-    // The following options are set by property keys as they are not able to be
-    // set using configuration files.
-    BlockBasedTableConfig blockConfig = new BlockBasedTableConfig();
-    boolean shoudSetConfig = false;
-    if (Configuration.isSet(cacheSize)) {
-      shoudSetConfig = true;
-      // Set the inodes column options
-      Cache inodeCache = new LRUCache(Configuration.getInt(cacheSize));
-      toClose.add(inodeCache);
-      blockConfig.setBlockCache(inodeCache);
-    }
-    if (Configuration.getBoolean(bloomFilter)) {
-      shoudSetConfig = true;
-      Filter filter = new BloomFilter();
-      toClose.add(filter);
-      blockConfig.setFilterPolicy(filter);
-    }
-    if (Configuration.isSet(indexType)) {
-      shoudSetConfig = true;
-      blockConfig.setIndexType(toRocksIndexType(Configuration.getEnum(
-          indexType, alluxio.master.metastore.rocks.IndexType.class)));
-    }
-    if (Configuration.isSet(blockIndexType)) {
-      shoudSetConfig = true;
-      blockConfig.setDataBlockIndexType(toRocksDataBlockIndexType(Configuration.getEnum(
-          blockIndexType, alluxio.master.metastore.rocks.DataBlockIndexType.class)));
-    }
-    if (shoudSetConfig) {
-      return Optional.of(blockConfig);
-    }
-    return Optional.empty();
-  }
-
-  // helper function to convert alluxio enum to rocksDb enum
-  private static DataBlockIndexType toRocksDataBlockIndexType(
-      alluxio.master.metastore.rocks.DataBlockIndexType index) {
-    switch (index) {
-      case kDataBlockBinarySearch:
-        return DataBlockIndexType.kDataBlockBinarySearch;
-      case kDataBlockBinaryAndHash:
-        return DataBlockIndexType.kDataBlockBinaryAndHash;
-      default:
-        throw new IllegalArgumentException(String.format("Unknown DataBlockIndexType %s", index));
-    }
-  }
-
-  // helper function to convert alluxio enum to rocksDb enum
-  private static IndexType toRocksIndexType(
-      alluxio.master.metastore.rocks.IndexType index) {
-    switch (index) {
-      case kBinarySearch:
-        return IndexType.kBinarySearch;
-      case kHashSearch:
-        return IndexType.kHashSearch;
-      case kBinarySearchWithFirstKey:
-        return IndexType.kBinarySearchWithFirstKey;
-      case kTwoLevelIndexSearch:
-        return IndexType.kTwoLevelIndexSearch;
-      default:
-        throw new IllegalArgumentException(String.format("Unknown IndexType %s", index));
-    }
-  }
-=======
-
-  // helper function to load RockDB configuration options based on property key configurations.
-  static Optional<BlockBasedTableConfig> checkSetTableConfig(
-      PropertyKey cacheSize, PropertyKey bloomFilter, PropertyKey indexType,
-      PropertyKey blockIndexType, List<RocksObject> toClose) {
-    // The following options are set by property keys as they are not able to be
-    // set using configuration files.
-    BlockBasedTableConfig blockConfig = new BlockBasedTableConfig();
-    boolean shoudSetConfig = false;
-    if (Configuration.isSet(cacheSize)) {
-      shoudSetConfig = true;
-      // Set the inodes column options
-      Cache inodeCache = new LRUCache(Configuration.getInt(cacheSize));
-      toClose.add(inodeCache);
-      blockConfig.setBlockCache(inodeCache);
-    }
-    if (Configuration.getBoolean(bloomFilter)) {
-      shoudSetConfig = true;
-      Filter filter = new BloomFilter();
-      toClose.add(filter);
-      blockConfig.setFilterPolicy(filter);
-    }
-    if (Configuration.isSet(indexType)) {
-      shoudSetConfig = true;
-      blockConfig.setIndexType(toRocksIndexType(Configuration.getEnum(
-          indexType, alluxio.master.metastore.rocks.IndexType.class)));
-    }
-    if (Configuration.isSet(blockIndexType)) {
-      shoudSetConfig = true;
-      blockConfig.setDataBlockIndexType(toRocksDataBlockIndexType(Configuration.getEnum(
-          blockIndexType, alluxio.master.metastore.rocks.DataBlockIndexType.class)));
-    }
-    if (shoudSetConfig) {
-      return Optional.of(blockConfig);
-    }
-    return Optional.empty();
-  }
-
-  // helper function to convert alluxio enum to rocksDb enum
-  private static DataBlockIndexType toRocksDataBlockIndexType(
-      alluxio.master.metastore.rocks.DataBlockIndexType index) {
-    switch (index) {
-      case kDataBlockBinarySearch:
-        return DataBlockIndexType.kDataBlockBinarySearch;
-      case kDataBlockBinaryAndHash:
-        return DataBlockIndexType.kDataBlockBinaryAndHash;
-      default:
-        throw new IllegalArgumentException(String.format("Unknown DataBlockIndexType %s", index));
-    }
-  }
-
-  // helper function to convert alluxio enum to rocksDb enum
-  private static IndexType toRocksIndexType(
-      alluxio.master.metastore.rocks.IndexType index) {
-    switch (index) {
-      case kBinarySearch:
-        return IndexType.kBinarySearch;
-      case kHashSearch:
-        return IndexType.kHashSearch;
-      case kBinarySearchWithFirstKey:
-        return IndexType.kBinarySearchWithFirstKey;
-      case kTwoLevelIndexSearch:
-        return IndexType.kTwoLevelIndexSearch;
-      default:
-        throw new IllegalArgumentException(String.format("Unknown IndexType %s", index));
-    }
-  }
 
   /**
    * This is the core logic of the shared lock mechanism.
@@ -558,7 +396,7 @@ public final class RocksStore implements Closeable {
    */
   public RocksSharedLockHandle checkAndAcquireSharedLock() {
     if (mRocksDbStopServing.getReference()) {
-      throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
+      throw new RuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
     }
     /*
      * The lock action is merely incrementing the lock so it is very fast
@@ -580,7 +418,7 @@ public final class RocksStore implements Closeable {
      */
     if (mRocksDbStopServing.getReference()) {
       mRefCount.decrement();
-      throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
+      throw new RuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
     }
 
     return new RocksSharedLockHandle(mRocksDbStopServing.getStamp(), mRefCount);
@@ -629,13 +467,13 @@ public final class RocksStore implements Closeable {
   private void setFlagAndBlockingWait(boolean yieldToAnotherCloser) {
     // Another known operation has acquired the exclusive lock
     if (yieldToAnotherCloser && mRocksDbStopServing.getReference()) {
-      throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
+      throw new RuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
     }
 
     int version = mRocksDbStopServing.getStamp();
     if (yieldToAnotherCloser) {
       if (!mRocksDbStopServing.compareAndSet(false, true, version, version)) {
-        throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
+        throw new RuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
       }
     } else {
       // Just set the state with no respect to concurrent actions
@@ -676,7 +514,7 @@ public final class RocksStore implements Closeable {
      */
     long unclosedOperations = mRefCount.sum();
     if (unclosedOperations != 0) {
-      if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
+      if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
         throw new RuntimeException(ExceptionMessage.ROCKS_DB_EXCLUSIVE_LOCK_FORCED
             .getMessage(unclosedOperations));
       }
@@ -796,9 +634,9 @@ public final class RocksStore implements Closeable {
    */
   public void shouldAbort(int lockedVersion) {
     if (mRocksDbStopServing.getReference()) {
-      throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
+      throw new RuntimeException(ExceptionMessage.ROCKS_DB_CLOSING.getMessage());
     } else if (lockedVersion < mRocksDbStopServing.getStamp()) {
-      throw new UnavailableRuntimeException(ExceptionMessage.ROCKS_DB_REWRITTEN.getMessage());
+      throw new RuntimeException(ExceptionMessage.ROCKS_DB_REWRITTEN.getMessage());
     }
   }
 
@@ -819,5 +657,4 @@ public final class RocksStore implements Closeable {
   public long getSharedLockCount() {
     return mRefCount.sum();
   }
->>>>>>> 9f152c554b (Fix Rocksdb thread safety using refcount(no lock))
 }
