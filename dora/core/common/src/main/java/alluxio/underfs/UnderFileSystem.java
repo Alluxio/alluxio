@@ -25,6 +25,7 @@ import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
+import alluxio.underfs.options.GetFileStatusOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
@@ -424,7 +425,20 @@ public interface UnderFileSystem extends Closeable {
    * @return the file status
    * @throws FileNotFoundException when the path does not exist
    */
-  UfsFileStatus getFileStatus(String path) throws IOException;
+  default UfsFileStatus getFileStatus(String path) throws IOException {
+    return getFileStatus(path, GetFileStatusOptions.defaults());
+  }
+
+  /**
+   * Gets the file status. The caller must already know the path is a file. This method will
+   * throw an exception if the path exists, but is a directory.
+   *
+   * @param path the path to the file
+   * @param options method options
+   * @return the file status
+   * @throws FileNotFoundException when the path does not exist
+   */
+  UfsFileStatus getFileStatus(String path, GetFileStatusOptions options) throws IOException;
 
   /**
    * Gets the file status.
@@ -463,9 +477,20 @@ public interface UnderFileSystem extends Closeable {
    * @param path the path to compute the fingerprint for
    * @return the string representing the fingerprint
    */
-  default Fingerprint getParsedFingerprint(String path) {
-    return Fingerprint.parse(getFingerprint(path));
-  }
+  Fingerprint getParsedFingerprint(String path);
+
+  /**
+   * Same as {@link #getParsedFingerprint(String)} except, will use the given content hash
+   * as the {@link alluxio.underfs.Fingerprint.Tag#CONTENT_HASH} field of the fingerprint
+   * if non-null. This is intended to be used when the file is already in Alluxio and
+   * a fingerprint is being created based on that file where the content hash has already
+   * been computed.
+   * @param path the path to compute the fingerprint for
+   * @param contentHash is used as the {@link alluxio.underfs.Fingerprint.Tag#CONTENT_HASH}
+   *                    field when creating the fingerprint.
+   * @return the string representing the fingerprint
+   */
+  Fingerprint getParsedFingerprint(String path, @Nullable String contentHash);
 
   /**
    * An {@link UnderFileSystem} may be composed of one or more "physical UFS"s. This method is used
@@ -508,6 +533,19 @@ public interface UnderFileSystem extends Closeable {
    * @throws FileNotFoundException when the path does not exist
    */
   UfsStatus getStatus(String path) throws IOException;
+
+  /**
+   * Gets the file or directory status. The caller does not need to know if the path is a file or
+   * directory. This method will determine the path type, and will return the appropriate status.
+   *
+   * @param path the path to get the status
+   * @param options method options
+   * @return the file or directory status
+   * @throws FileNotFoundException when the path does not exist
+   */
+  default UfsStatus getStatus(String path, GetFileStatusOptions options) throws IOException {
+    return getStatus(path);
+  }
 
   /**
    * Gets the file or directory status.

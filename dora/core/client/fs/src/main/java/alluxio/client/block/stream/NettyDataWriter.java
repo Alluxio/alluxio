@@ -43,6 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -189,6 +190,11 @@ public final class NettyDataWriter implements DataWriter {
     try (LockResource lr = new LockResource(mLock)) {
       return mPosToQueue;
     }
+  }
+
+  @Override
+  public Optional<String> getUfsContentHash() {
+    return Optional.empty();
   }
 
   @Override

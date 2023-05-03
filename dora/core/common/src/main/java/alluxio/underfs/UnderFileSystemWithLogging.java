@@ -30,6 +30,7 @@ import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
+import alluxio.underfs.options.GetFileStatusOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
@@ -522,7 +523,8 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public UfsFileStatus getFileStatus(final String path) throws IOException {
+  public UfsFileStatus getFileStatus(final String path, GetFileStatusOptions options)
+      throws IOException {
     return call(new UfsCallable<UfsFileStatus>() {
       @Override
       public UfsFileStatus call() throws IOException {
@@ -603,6 +605,31 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
         @Override
         public String toString() {
           return String.format("path=%s", path);
+        }
+      });
+    } catch (IOException e) {
+      // This is not possible.
+      return Fingerprint.INVALID_FINGERPRINT;
+    }
+  }
+
+  @Override
+  public Fingerprint getParsedFingerprint(String path, @Nullable String contentHash) {
+    try {
+      return call(new UfsCallable<Fingerprint>() {
+        @Override
+        public Fingerprint call() {
+          return mUnderFileSystem.getParsedFingerprint(path, contentHash);
+        }
+
+        @Override
+        public String methodName() {
+          return "GetParsedFingerprint";
+        }
+
+        @Override
+        public String toString() {
+          return String.format("path=%s, contentHash=%s", path, contentHash);
         }
       });
     } catch (IOException e) {

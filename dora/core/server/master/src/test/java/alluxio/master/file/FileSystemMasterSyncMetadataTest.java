@@ -26,10 +26,13 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
+import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.CoreMasterContext;
@@ -38,7 +41,9 @@ import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
+import alluxio.master.file.contexts.CompleteFileContext;
 import alluxio.master.file.contexts.CreateDirectoryContext;
+import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.DeleteContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
@@ -54,6 +59,7 @@ import alluxio.security.user.UserState;
 import alluxio.underfs.Fingerprint;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
+import alluxio.underfs.UfsMode;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.IdUtils;
@@ -124,6 +130,58 @@ public final class FileSystemMasterSyncMetadataTest {
   @After
   public void after() throws Exception {
     stopServices();
+  }
+
+  @Test
+  public void completeFileWithOutOfDateHash() throws Exception {
+    // In this test we want to simulate a concurrent write to the UFS
+    // while the file is being created in Alluxio.
+    // When creating the file in Alluxio, we will use the fingerprint
+    // of the created file, and not the one on the UFS.
+    // Thus, when performing a metadata sync there should be a fingerprint
+    // mismatch.
+    AlluxioURI ufsMount = setupMockUfsS3Mount();
+    String fname = "file";
+    AlluxioURI uri = new AlluxioURI("/mnt/local/" + fname);
+
+    // The fingerprint of the file created in Alluxio
+    String alluxioContentHash = "hashOnComplete";
+    // The fingerprint of the file in the UFS
+    String ufsContentHash = "ufsHash";
+
+    AlluxioURI filePath = ufsMount.join("file");
+    UfsFileStatus fileStatus = new UfsFileStatus(
+        "file", ufsContentHash, 0L, System.currentTimeMillis(),
+        "owner1", "owner1", (short) 777, null, 100L);
+    Mockito.doAnswer(invocation ->
+        Fingerprint.create("s3", fileStatus,
+            invocation.getArgument(1))).when(mUfs).getParsedFingerprint(
+                eq(filePath.toString()), anyString());
+    Mockito.doAnswer(invocation ->
+        Fingerprint.create("s3", fileStatus))
+        .when(mUfs).getParsedFingerprint(
+        eq(filePath.toString()));
+    Mockito.when(mUfs.exists(filePath.toString())).thenReturn(true);
+    Mockito.when(mUfs.isDirectory(filePath.toString())).thenReturn(false);
+    Mockito.when(mUfs.isFile(filePath.toString())).thenReturn(true);
+    Mockito.when(mUfs.getStatus(filePath.toString())).thenReturn(fileStatus);
+    Mockito.when(mUfs.getOperationMode(any())).thenReturn(UfsMode.READ_WRITE);
+
+    mFileSystemMaster.createFile(uri, CreateFileContext.mergeFrom(CreateFilePOptions
+        .newBuilder().setWriteType(WritePType.THROUGH)));
+    mFileSystemMaster.completeFile(uri, CompleteFileContext.mergeFrom(
+        CompleteFilePOptions.newBuilder().setContentHash(alluxioContentHash)));
+
+    FileInfo info = mFileSystemMaster.getFileInfo(uri, GetStatusContext.defaults());
+    assertEquals(alluxioContentHash, Fingerprint.parse(info.getUfsFingerprint())
+        .getTag(Fingerprint.Tag.CONTENT_HASH));
+
+    // After syncing we should have the new version of the file with the new fingerprint
+    info = mFileSystemMaster.getFileInfo(uri,
+        GetStatusContext.mergeFrom(GetStatusPOptions.newBuilder().setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build())));
+    assertEquals(ufsContentHash, Fingerprint.parse(info.getUfsFingerprint())
+        .getTag(Fingerprint.Tag.CONTENT_HASH));
   }
 
   @Test

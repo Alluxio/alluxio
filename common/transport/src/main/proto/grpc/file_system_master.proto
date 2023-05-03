@@ -82,6 +82,7 @@ message CompleteFilePOptions {
   optional int64 ufsLength = 1;
   optional ScheduleAsyncPersistencePOptions asyncPersistOptions = 2;
   optional FileSystemMasterCommonPOptions commonOptions = 3;
+  optional string contentHash = 4;
 }
 message CompleteFilePRequest {
   /** the path of the file */
@@ -195,6 +196,7 @@ message GetStatusPOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 2;
   optional Bits accessMode = 3;
   optional bool updateTimestamps = 4 [default = true];
+  optional bool includeRealContentHash = 5;
 }
 message GetStatusPRequest {
   /** the path of the file or directory */
