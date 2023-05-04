@@ -634,6 +634,18 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
     }
 
     master.updateLastUpdatedTimeMs();
+    if (options.hasStartTimeMs()) {
+      master.setStartTimeMs(options.getStartTimeMs());
+    }
+    if (options.hasLosePrimacyTimeMs()) {
+      master.setLosePrimacyTimeMs(options.getLosePrimacyTimeMs());
+    }
+    if (options.hasVersion()) {
+      master.setVersion(options.getVersion());
+    }
+    if (options.hasRevision()) {
+      master.setRevision(options.getRevision());
+    }
 
     mMasterConfigStore.registerNewConf(master.getAddress(), options.getConfigsList());
 
