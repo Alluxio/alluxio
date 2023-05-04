@@ -96,18 +96,7 @@ public final class RetryHandlingMetaMasterMasterClient extends AbstractMasterCli
    * @return whether this master should re-register
    */
   public MetaCommand heartbeat(final long masterId) throws IOException {
-    final Map<String, Gauge> gauges = MetricsSystem.METRIC_REGISTRY.getGauges();
-    Gauge lastCheckpointGauge = gauges
-            .get(MetricKey.MASTER_JOURNAL_LAST_CHECKPOINT_TIME.getName());
-    Gauge journalEntriesGauge = gauges
-            .get(MetricKey.MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT.getName());
     MasterHeartbeatPOptions.Builder optionsBuilder = MasterHeartbeatPOptions.newBuilder();
-    if (lastCheckpointGauge != null) {
-      optionsBuilder.setLastCheckpointTime((long) lastCheckpointGauge.getValue());
-    }
-    if (journalEntriesGauge != null) {
-      optionsBuilder.setJournalEntriesSinceCheckpoint((long) journalEntriesGauge.getValue());
-    }
     return retryRPC(() -> mClient
         .masterHeartbeat(MasterHeartbeatPRequest.newBuilder().setMasterId(masterId)
             .setOptions(optionsBuilder).build())
