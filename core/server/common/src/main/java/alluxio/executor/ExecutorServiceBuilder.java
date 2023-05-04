@@ -17,6 +17,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.master.AlluxioExecutorService;
 import alluxio.util.ThreadFactoryUtils;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 
 import java.util.concurrent.ArrayBlockingQueue;
@@ -26,6 +27,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
 
 /**
  * Used to create {@link ExecutorService} instances dynamically by configuration.
@@ -38,6 +40,18 @@ public class ExecutorServiceBuilder {
    * @return instance of {@link ExecutorService}
    */
   public static AlluxioExecutorService buildExecutorService(RpcExecutorHost executorHost) {
+    return buildExecutorService(executorHost, null);
+  }
+
+  /**
+   * Creates an {@link ExecutorService} for given Alluxio process dynamically by configuration.
+   *
+   * @param executorHost Where the executor is needed
+   * @param rpcCounter the counter to track ongoing RPC
+   * @return instance of {@link ExecutorService}
+   */
+  public static AlluxioExecutorService buildExecutorService(
+      RpcExecutorHost executorHost, @Nullable Counter rpcCounter) {
     // Get executor type for given host.
     RpcExecutorType executorType = Configuration.getEnum(
         PropertyKey.Template.RPC_EXECUTOR_TYPE.format(executorHost.toString()),
@@ -123,7 +137,7 @@ public class ExecutorServiceBuilder {
       // Post settings.
       ((ThreadPoolExecutor) executorService).allowCoreThreadTimeOut(allowCoreThreadsTimeout);
     }
-    return new AlluxioExecutorService(executorService);
+    return new AlluxioExecutorService(executorService, rpcCounter);
   }
 
   /**

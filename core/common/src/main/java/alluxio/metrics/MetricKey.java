@@ -1754,11 +1754,23 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
+  /*
+   * This metric is inaccurate because it is updated at so many places.
+   * Given time, it should be deprecated and replaced by WORKER_ACTIVE_OPERATIONS.
+   */
+  @Deprecated
   public static final MetricKey WORKER_ACTIVE_CLIENTS =
       new Builder("Worker.ActiveClients")
           .setDescription("The number of clients actively reading from or writing to this worker")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
+          .build();
+  public static final MetricKey WORKER_ACTIVE_OPERATIONS =
+      new Builder("Worker.ActiveOperations")
+          .setDescription("The number of active RPCs in the worker, including control RPCs "
+              + "and data I/O. Used to tell if the worker is idle or busy.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_BLOCKS_ACCESSED =
       new Builder("Worker.BlocksAccessed")

@@ -99,7 +99,35 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
       final Map<String, List<String>> lostStorage,
       final List<ConfigProperty> configList) {
     this(asyncClient, workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
-        lostStorage, configList, new BlockMapIterator(currentBlocksOnLocation));
+        lostStorage, configList, new BlockMapIterator(currentBlocksOnLocation),
+        BuildVersion.newBuilder()
+            .setVersion(ProjectConstants.VERSION)
+            .setRevision(ProjectConstants.REVISION).build());
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param asyncClient the grpc client
+   * @param workerId the worker ID
+   * @param storageTierAliases storage/tier setup from the configuration
+   * @param totalBytesOnTiers the capacity of each tier
+   * @param usedBytesOnTiers the current usage of each tier
+   * @param currentBlocksOnLocation the blocks in each tier/dir
+   * @param lostStorage the lost storage paths
+   * @param configList the configuration properties
+   * @param version the version info
+   */
+  @VisibleForTesting
+  public RegisterStreamer(
+          final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub asyncClient,
+          final long workerId, final List<String> storageTierAliases,
+          final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
+          final Map<BlockStoreLocation, List<Long>> currentBlocksOnLocation,
+          final Map<String, List<String>> lostStorage,
+          final List<ConfigProperty> configList, BuildVersion version) {
+    this(asyncClient, workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
+        lostStorage, configList, new BlockMapIterator(currentBlocksOnLocation), version);
   }
 
   /**
@@ -115,22 +143,45 @@ public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
    * @param blockListIterator an iterator used to iterate the blocks
    */
   public RegisterStreamer(
+          final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub asyncClient,
+          final long workerId, final List<String> storageTierAliases,
+          final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
+          final Map<String, List<String>> lostStorage,
+          final List<ConfigProperty> configList,
+          BlockMapIterator blockListIterator) {
+    this(asyncClient, workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
+            lostStorage, configList, blockListIterator,
+            BuildVersion.newBuilder()
+                .setVersion(ProjectConstants.VERSION)
+                .setRevision(ProjectConstants.REVISION).build());
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param asyncClient the grpc client
+   * @param workerId the worker ID
+   * @param storageTierAliases storage/tier setup from the configuration
+   * @param totalBytesOnTiers the capacity of each tier
+   * @param usedBytesOnTiers the current usage of each tier
+   * @param lostStorage the lost storage paths
+   * @param configList the configuration properties
+   * @param blockListIterator an iterator used to iterate the blocks
+   */
+  private RegisterStreamer(
       final BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub asyncClient,
       final long workerId, final List<String> storageTierAliases,
       final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
       final Map<String, List<String>> lostStorage,
       final List<ConfigProperty> configList,
-      BlockMapIterator blockListIterator) {
+      BlockMapIterator blockListIterator,
+      BuildVersion buildVersion) {
     mAsyncClient = asyncClient;
     mWorkerId = workerId;
     mStorageTierAliases = storageTierAliases;
     mTotalBytesOnTiers = totalBytesOnTiers;
     mUsedBytesOnTiers = usedBytesOnTiers;
 
-    final BuildVersion buildVersion = BuildVersion.newBuilder()
-        .setVersion(ProjectConstants.VERSION)
-        .setRevision(ProjectConstants.REVISION)
-        .build();
     mOptions = RegisterWorkerPOptions.newBuilder().addAllConfigs(configList)
         .setBuildVersion(buildVersion).build();
     mLostStorageMap = lostStorage.entrySet().stream()

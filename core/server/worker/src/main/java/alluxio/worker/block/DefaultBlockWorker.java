@@ -520,6 +520,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public static final class Metrics {
     public static final Counter WORKER_ACTIVE_CLIENTS =
         MetricsSystem.counter(MetricKey.WORKER_ACTIVE_CLIENTS.getName());
+    public static final Counter WORKER_ACTIVE_OPERATIONS =
+        MetricsSystem.counter(MetricKey.WORKER_ACTIVE_OPERATIONS.getName());
 
     /**
      * Registers metric gauges.
