@@ -1931,7 +1931,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
   @Test
   public void getNonExistingBucketTagging() throws Exception {
     final String bucketName = "bucket";
-    HttpURLConnection connection= new TestCase(mHostname, mPort, mBaseUri,
+    HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
         bucketName, ImmutableMap.of("tagging", ""), HttpMethod.GET,
         getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE)
     ).execute();
@@ -1950,10 +1950,10 @@ public final class S3ClientRestApiTest extends RestApiTest {
         "fu", "bar",
         "baz", ""
     );
-    TaggingData tagData=new TaggingData();
+    TaggingData tagData = new TaggingData();
     tagData.addTags(tagMap);
 
-    HttpURLConnection connection= new TestCase(mHostname, mPort, mBaseUri,
+    HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
         bucketName, ImmutableMap.of("tagging", ""), HttpMethod.PUT,
         getDefaultOptionsWithAuth()
             .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
@@ -1970,7 +1970,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
   @Test
   public void deleteNonExistingBucketTagging() throws Exception {
     final String bucketName = "bucket";
-    HttpURLConnection connection= new TestCase(mHostname, mPort, mBaseUri,
+    HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
         bucketName, ImmutableMap.of("tagging", ""), HttpMethod.DELETE,
         getDefaultOptionsWithAuth()).execute();
 

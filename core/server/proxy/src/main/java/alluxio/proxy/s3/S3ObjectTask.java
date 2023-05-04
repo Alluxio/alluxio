@@ -705,8 +705,6 @@ public class S3ObjectTask extends S3BaseTask {
 
         try (S3AuditContext auditContext =
                  mHandler.createAuditContext(mOPType.name(), user, bucket, object)) {
-          S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
-              mHandler.BUCKET_PATH_CACHE);
           String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
 
           if (objectPath.endsWith(AlluxioURI.SEPARATOR)) {
@@ -850,8 +848,6 @@ public class S3ObjectTask extends S3BaseTask {
         final String contentTypeHeader = mHandler.getHeader(S3Constants.S3_CONTENT_TYPE_HEADER);
         try (S3AuditContext auditContext = mHandler.createAuditContext(
             "initiateMultipartUpload", user, bucket, object)) {
-          S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
-              mHandler.BUCKET_PATH_CACHE);
           if (taggingHeader != null) { // Parse the tagging header if it exists
             try {
               tagData = S3RestUtils.deserializeTaggingHeader(
