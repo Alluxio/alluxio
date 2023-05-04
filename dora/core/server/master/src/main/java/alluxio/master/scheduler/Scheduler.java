@@ -167,7 +167,6 @@ public final class Scheduler {
               job.failJob(new InternalRuntimeException(e));
             }
           } ,mScheduler.getWorkingExecutor());
-
         });
       }
       return true;
@@ -479,36 +478,26 @@ public final class Scheduler {
       return;
     }
 
-    Optional<Task<?>> task;
     try {
-      task = job.getNextTask(mWorkerInfoHub.mActiveWorkers.keySet());
-    } catch (AlluxioRuntimeException e) {
-      LOG.warn(format("error getting next task for job %s", job), e);
-      if (!e.isRetryable()) {
-        job.failJob(e);
-      }
-      return;
-    }
-    if (!task.isPresent()) {
-      return;
-    }
-    Task<?> currentTask = task.get();
-    // enqueue the worker task q and kick it start
-    // TODO(lucy) add if worker q is too full tell job to save this task for retry kick-off
-    getWorkerInfoHub().enqueueTaskForWorker(currentTask.getMyRunningWorker(), currentTask, true);
-    mTaskList.offer(task);
-
-
-
-      // If there are new workers, schedule job onto new workers
-      mWorkerInfoHub.mActiveWorkers.forEach((workerInfo, workerClient) -> {
-        if (!runningWorkers.contains(workerInfo) && scheduleTask(job, workerInfo, runningWorkers,
-            workerClient)) {
-          runningWorkers.add(workerInfo);
+      Optional<Task<?>> task;
+      try {
+        Set<WorkerInfo> workers = mWorkerInfoHub.mActiveWorkers.keySet();
+        task = (Optional<Task<?>>) job.getNextTask(workers);
+      } catch (AlluxioRuntimeException e) {
+        LOG.warn(format("error getting next task for job %s", job), e);
+        if (!e.isRetryable()) {
+          job.failJob(e);
         }
-      });
-
-      if (runningWorkers.isEmpty() && job.isCurrentPassDone()) {
+        return;
+      }
+      if (!task.isPresent()) {
+        return;
+      }
+      Task<?> currentTask = task.get();
+      // enqueue the worker task q and kick it start
+      // TODO(lucy) add if worker q is too full tell job to save this task for retry kick-off
+      getWorkerInfoHub().enqueueTaskForWorker(currentTask.getMyRunningWorker(), currentTask, true);
+      if (mJobToRunningTasks.getOrDefault(job, new ConcurrentHashSet<>()).isEmpty() && job.isCurrentPassDone()) {
         if (job.needVerification()) {
           job.initiateVerification();
         }
@@ -596,5 +585,17 @@ public final class Scheduler {
    */
   public WorkerInfoHub getWorkerInfoHub() {
     return mWorkerInfoHub;
+  }
+
+  public String printJobsStatus() {
+    StringBuilder sb = new StringBuilder();
+    for (Job job : mJobToRunningTasks.keySet()) {
+      sb.append(String.format("Job:%s%n\tTasks:%n\t\t", job.getDescription()));
+      for (Task task : mJobToRunningTasks.get(job)) {
+        sb.append(String.format("Task:%s, TaskStats:%s",
+            task.getTaskId(), task.toString(), task.getTaskStat().dumpStats()));
+      }
+    }
+    return sb.toString();
   }
 }

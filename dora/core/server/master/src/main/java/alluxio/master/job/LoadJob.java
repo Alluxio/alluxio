@@ -15,7 +15,6 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
 import alluxio.client.block.stream.BlockWorkerClient;
-import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
@@ -56,6 +55,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -282,16 +282,16 @@ public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
   /**
    * get next load task.
    *
-   * @param worker blocker to worker
+   * @param workers list of available workers to schedule task on
    * @return the next task to run. If there is no task to run, return empty
    */
   @Override
-  public Pair<Optional<LoadTask>, WorkerInfo> getNextTask(WorkerInfo worker) {
+  public  Optional<LoadJob.LoadTask> getNextTask(Collection<WorkerInfo> workers) {
     List<Block> blocks = getNextBatchBlocks(BATCH_SIZE);
     if (blocks.isEmpty()) {
-      return new Pair(Optional.empty(), null);
+      return Optional.empty();
     }
-    return new Pair(Optional.of(new LoadTask(blocks)), null);
+    return Optional.of(new LoadTask(blocks));
   }
 
   /**
@@ -523,11 +523,6 @@ public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
     return mVerificationEnabled && mCurrentBlockCount.get() > 0;
   }
 
-  @Override
-  public void continueJob() {
-    // nothing to do
-  }
-
   /**
    * Loads blocks in a UFS through an Alluxio worker.
    */
@@ -548,6 +543,7 @@ public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
      * @param blocks blocks to load
      */
     public LoadTask(List<Block> blocks) {
+      super(LoadJob.this, LoadJob.this.mTaskIdGenerator.incrementAndGet());
       mBlocks = blocks;
     }
 

@@ -95,6 +95,10 @@ public abstract class Task<V> implements Comparable<Task> {
     mMyWorker = workerInfo;
   }
 
+  public int getTaskId() {
+    return mTaskId;
+  }
+
   /**
    * @return the response future
    */
@@ -110,7 +114,6 @@ public abstract class Task<V> implements Comparable<Task> {
   public void execute(BlockWorkerClient client, WorkerInfo workerInfo) {
     mMyWorker = workerInfo;
     mResponseFuture = run(client);
-    mMyJob.
   }
 
   /**
@@ -136,6 +139,14 @@ public abstract class Task<V> implements Comparable<Task> {
    */
   public int getPriority() {
     return mPriority;
+  }
+
+  /**
+   * Set priority.
+   * @param priority
+   */
+  public void setPriority(int priority) {
+    mPriority = priority;
   }
 
   @Override

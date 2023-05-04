@@ -205,11 +205,6 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     return mVerificationEnabled && mProcessedFileCount.get() > 0;
   }
 
-  @Override
-  public void continueJob() {
-    // NOOP
-  }
-
   /**
    * Enable verification.
    * @param enableVerification whether to enable verification
@@ -533,6 +528,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
      */
     public CopyTask(List<Route> routes) {
       super(CopyJob.this, CopyJob.this.mTaskIdGenerator.incrementAndGet());
+      super.setPriority(2);
       mRoutes = routes;
     }
 
@@ -559,34 +555,6 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
           .setUfsReadOptions(ufsReadOptions.build())
           .setWriteOptions(writeOptions)
           .build());
-    }
-
-    @Override
-    public void onComplete(Executor executor) {
-      getResponseFuture().addListener(() -> {
-        try {
-          if (!mMyJob.processResponse(this)) {
-            livingWorkers.remove(workerInfo);
-          }
-          // Schedule next batch for healthy job
-          if (mMyJob.isHealthy()) {
-            if (mWorkerInfoHub.mActiveWorkers.containsKey(workerInfo)) {
-              if (!scheduleTask(job, workerInfo, livingWorkers,
-                  mWorkerInfoHub.mActiveWorkers.get(workerInfo))) {
-                livingWorkers.remove(workerInfo);
-              }
-            } else {
-              livingWorkers.remove(workerInfo);
-            }
-          }
-        } catch (Exception e) {
-          // Unknown exception. This should not happen, but if it happens we don't want to lose the
-          // scheduler thread, thus catching it here. Any exception surfaced here should be properly
-          // handled.
-          LOG.error("Unexpected exception thrown in response future listener.", e);
-          mMyJob.failJob(new InternalRuntimeException(e));
-        }
-      });
     }
 
     @Override

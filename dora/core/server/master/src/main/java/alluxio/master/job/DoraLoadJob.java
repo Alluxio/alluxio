@@ -297,9 +297,8 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 
     Map<WorkerInfo, List<DoraLoadTask>> workerToTaskMap = new HashMap<>();
     for (URIStatus uriStatus : batchBuilder.build()) {
-      // (?) active workers may not reflect all workers at start up,
-      // but hashbased policy will deterministicly
-      // choose among current workers
+      // NOTE: active workers may not reflect all workers at start up,
+      // but hashbased policy will deterministicly only among current recognized active workers
       WorkerInfo pickedWorker = mWorkerAssignPolicy.pickAWorker(uriStatus.getPath(),
           mMyScheduler.getActiveWorkers().keySet());
       List<DoraLoadTask> tasks = workerToTaskMap.computeIfAbsent(pickedWorker, w -> new ArrayList<>());
@@ -312,12 +311,6 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
         tasks.add(task);
       }
       task.mFilesToLoad.add(uriStatus);
-      // enqueue the worker task q and kick it start
-//      if (!mMyScheduler.getWorkerInfoHub().enqueueTaskForWorker(pickedWorker, task, true)) {
-//        mRetryFiles.add(uriStatus.getPath());
-//        continue;
-//      }
-//      mTaskList.offer(task);
       mTotalByteCount.addAndGet(uriStatus.getLength());
       mProcessingFileCount.addAndGet(1);
     }
@@ -407,11 +400,11 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   }
 
   @VisibleForTesting
-  public void addFileFailure(File failedFile, String message, int code) {
+  public void addFileFailure(String fileAlluxioPath, String message, int code) {
     // When multiple blocks of the same file failed to load, from user's perspective,
     // it's not hugely important what are the reasons for each specific failure,
     // if they are different, so we will just keep the first one.
-    mFailedFiles.put(failedFile.getUfsPath(),
+    mFailedFiles.put(fileAlluxioPath,
         format("Status code: %s, message: %s", code, message));
     JOB_LOAD_FILE_FAIL.inc();
   }
@@ -546,37 +539,44 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
         for (FileFailure fileFailure : response.getFilesList()) {
           totalBytes -= fileFailure.getFile().getLength();
           if (!isHealthy() || !fileFailure.getRetryable() || !addFilesToRetry(
-              fileFailure.getFile().getUfsPath())) {
-            addFileFailure(fileFailure.getFile(), fileFailure.getMessage(), fileFailure.getCode());
+              fileFailure.getFile().getAlluxioPath())) {
+            addFileFailure(fileFailure.getFile().getAlluxioPath(), fileFailure.getMessage(),
+                fileFailure.getCode());
           }
         }
       }
-
-      if (!success) {
-        needRetryCheck = true;
-      } else {
-        addLoadedBytes(doraLoadTask.mFileToLoad.getLength());
-        JOB_LOAD_FILE_COUNT.inc(1);
-        JOB_LOAD_FILE_SIZE.inc(doraLoadTask.mFileToLoad.getLength());
-        JOB_LOAD_RATE.mark(doraLoadTask.mFileToLoad.getLength());
+      addLoadedBytes(totalBytes);
+      JOB_LOAD_FILE_COUNT.inc(1);
+      JOB_LOAD_FILE_SIZE.inc(doraLoadTask.getFilesToLoad().size() - response.getFilesList().size());
+      JOB_LOAD_RATE.mark(totalBytes);
+      JOB_LOAD_RATE.mark(totalBytes);
+      return response.getStatus() != TaskStatus.FAILURE;
+    }
+    catch (ExecutionException e) {
+      LOG.warn("exception when trying to get load response.", e.getCause());
+      for (URIStatus file : doraLoadTask.getFilesToLoad()) {
+        if (isHealthy()) {
+          addFilesToRetry(file.getPath());
+        }
+        else {
+          AlluxioRuntimeException exception = AlluxioRuntimeException.from(e.getCause());
+          addFileFailure(file.getPath(), exception.getMessage(), exception.getStatus().getCode()
+              .value());
+        }
       }
-    } catch (InterruptedException ex) {
-      needRetryCheck = true;
-    } catch (ExecutionException ex) {
-      needRetryCheck = needsRetry(ex.getCause());
+      return false;
     }
-    if (!needRetryCheck) {
-      mProcessedFileCount.addAndGet(1);
-    } else {
-      // check if we need to retry this task, add this file to job todo list for retry for now
-      // provide the filepath, always check the existence/eligibility
-      // to load at time of creating task
-      addFilesToRetry(doraLoadTask.mFileToLoad.getPath());
+    catch (CancellationException e) {
+      LOG.warn("Task get canceled and will retry.", e);
+      doraLoadTask.getFilesToLoad().forEach(f ->  addFilesToRetry(f.getPath()));
+      return true;
     }
-//    mMyScheduler.getWorkerInfoHub().removeTaskFromWorkerQ(doraLoadTask);
-//    mTaskList.remove(doraLoadTask);
-//    continueJob(); // re-kick off job
-    return needRetryCheck;
+    catch (InterruptedException e) {
+      doraLoadTask.getFilesToLoad().forEach(f ->  addFilesToRetry(f.getPath()));
+      Thread.currentThread().interrupt();
+      // We don't count InterruptedException as task failure
+      return true;
+    }
   }
 
   @Override
@@ -612,6 +612,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 
     public DoraLoadTask() {
       super(DoraLoadJob.this, DoraLoadJob.this.mTaskIdGenerator.incrementAndGet());
+      super.setPriority(1);
       mFilesToLoad = new ArrayList<>();
     }
 
@@ -621,6 +622,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
      */
     public DoraLoadTask(List<URIStatus> filesToLoad) {
       super(DoraLoadJob.this, DoraLoadJob.this.mTaskIdGenerator.incrementAndGet());
+      super.setPriority(1);
       mFilesToLoad = filesToLoad;
     }
 
@@ -644,6 +646,20 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     @Override
     public void onComplete(Executor executor) {
       getResponseFuture().addListener(() -> mMyJob.processResponse(this), executor);
+    }
+
+    @Override
+    public String toString() {
+      final StringBuilder filesBuilder = new StringBuilder();
+      getFilesToLoad().forEach(f -> {
+        filesBuilder.append(f.getPath() + ",");
+      });
+      return MoreObjects.toStringHelper(this)
+          .add("taskJobType", mMyJob.getClass())
+          .add("taskJobId", mMyJob.getJobId())
+          .add("taskId", getTaskId())
+          .add("taskFiles", filesBuilder.toString())
+          .toString();
     }
   }
 
