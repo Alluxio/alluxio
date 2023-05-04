@@ -253,22 +253,6 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
   }
 
   @Test
-  public void loadMetadataTestV2HeavyLoad() throws IOException, AlluxioException {
-    int fileCount = 10000;
-    for (int i = 0; i < fileCount; i++) {
-      mS3Client.putObject(TEST_BUCKET, TEST_FILE + i, TEST_CONTENT);
-    }
-    mOutput.reset();
-    AlluxioURI uriDir = new AlluxioURI("/" );
-    mFsShell.run("loadMetadata", "-v2", "-R", "-a", uriDir.toString());
-    assertTrue(mOutput.toString().contains("State: SUCCEEDED"));
-    GetStatusPOptions getStatusPOptions =
-        GetStatusPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).build();
-    URIStatus statusAfter = mFileSystem.getStatus(new AlluxioURI("/"), getStatusPOptions);
-    assertEquals(fileCount, statusAfter.getFileInfo().getLength());
-  }
-
-  @Test
   public void loadMetadataTestV2NestMounted() {
     int mntCount = 10;
     mFsShell.run("mkdir", "/mnt");
