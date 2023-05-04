@@ -237,7 +237,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     private boolean mIsDynamic = true;
     private Function<Object, Boolean> mValueValidationFunction;
     private final PropertyType mType;
-    private Optional<Class<? extends Enum>> mEnumType;
+    private final Optional<Class<? extends Enum>> mEnumType;
     private Optional<String> mDelimiter;
 
     /**
@@ -370,15 +370,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      */
     public Builder setAlias(String... aliases) {
       mAlias = Arrays.copyOf(aliases, aliases.length);
-      return this;
-    }
-
-    /**
-     * @param enumType the enum type
-     * @return the updated builder instance
-     */
-    public Builder setEnumType(Class<? extends Enum> enumType) {
-      mEnumType = Optional.of(enumType);
       return this;
     }
 
