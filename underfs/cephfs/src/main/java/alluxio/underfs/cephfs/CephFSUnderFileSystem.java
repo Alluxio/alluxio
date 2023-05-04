@@ -28,6 +28,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
+import alluxio.underfs.options.GetFileStatusOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.UnderFileSystemUtils;
@@ -381,17 +382,17 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
    * Ceph's support for these is a bit different.
    *
    * @param path The path to stat
+   * @param options method options
    * @return FileStatus object containing the stat information
    * @throws FileNotFoundException if the path could not be resolved
    */
   @Override
-  public UfsFileStatus getFileStatus(String path) throws IOException {
+  public UfsFileStatus getFileStatus(String path, GetFileStatusOptions options) throws IOException {
     path = stripPath(path);
     CephStat stat = new CephStat();
     lstat(path, stat);
     String contentHash =
         UnderFileSystemUtils.approximateContentHash(stat.size, stat.m_time);
-
     return new UfsFileStatus(path, contentHash, stat.size, stat.m_time,
         "", "", (short) stat.mode);
   }

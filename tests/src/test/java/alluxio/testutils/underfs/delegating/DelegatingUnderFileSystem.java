@@ -29,6 +29,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
+import alluxio.underfs.options.GetFileStatusOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
@@ -170,8 +171,8 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public UfsFileStatus getFileStatus(String path) throws IOException {
-    return mUfs.getFileStatus(path);
+  public UfsFileStatus getFileStatus(String path, GetFileStatusOptions options) throws IOException {
+    return mUfs.getFileStatus(path, options);
   }
 
   @Override

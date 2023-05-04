@@ -202,6 +202,7 @@ message GetStatusPOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 2;
   optional Bits accessMode = 3;
   optional bool updateTimestamps = 4 [default = true];
+  optional bool includeRealContentHash = 5;
 }
 message GetStatusPRequest {
   /** the path of the file or directory */

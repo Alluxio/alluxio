@@ -24,10 +24,12 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.Bits;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.PMode;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.S3SyntaxOptions;
@@ -40,6 +42,7 @@ import alluxio.util.ThreadUtils;
 import alluxio.web.ProxyWebServer;
 
 import com.codahale.metrics.Timer;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.io.BaseEncoding;
@@ -311,7 +314,7 @@ public class S3ObjectTask extends S3BaseTask {
             mOPType.name(), user, mHandler.getBucket(), mHandler.getObject())) {
           try {
             URIStatus status = userFs.getStatus(objectUri);
-            FileInStream is = userFs.openFile(objectUri);
+            FileInStream is = userFs.openFile(status, OpenFilePOptions.getDefaultInstance());
             S3RangeSpec s3Range = S3RangeSpec.Factory.create(range);
             RangeFileInStream ris = RangeFileInStream.Factory.create(
                 is, status.getLength(), s3Range);
@@ -1186,6 +1189,11 @@ public class S3ObjectTask extends S3BaseTask {
         Throwable cause = e.getCause();
         if (cause instanceof S3Exception) {
           throw S3RestUtils.toObjectS3Exception((S3Exception) cause, objectPath);
+        }
+        if (e instanceof JsonParseException) {
+          throw new S3Exception(
+              new InvalidArgumentException("Failed parsing CompleteMultipartUploadRequest."),
+              objectPath, S3ErrorCode.INVALID_ARGUMENT);
         }
         throw S3RestUtils.toObjectS3Exception(e, objectPath);
       }

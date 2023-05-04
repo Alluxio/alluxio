@@ -1728,6 +1728,24 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
+  public void completeMultipartUploadWithInvalidArgument() throws Exception {
+    final String bucketName = "bucket";
+    createBucketRestCall(bucketName);
+
+    final String objectName = "object";
+    String objectKey = bucketName + AlluxioURI.SEPARATOR + objectName;
+
+    // Initiate the multipart upload.
+    String result = initiateMultipartUploadRestCall(objectKey);
+    InitiateMultipartUploadResult multipartUploadResult =
+        XML_MAPPER.readValue(result, InitiateMultipartUploadResult.class);
+    final String uploadId = multipartUploadResult.getUploadId();
+    TestCase testCase = getCompleteMultipartUploadReadCallTestCase(objectKey, uploadId, null);
+    HttpURLConnection connection = testCase.execute();
+    Assert.assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), connection.getResponseCode());
+  }
+
+  @Test
   @Ignore
   public void completeMultipartUploadSpecifyParts() throws Exception {
     // This test requires the following property key change
