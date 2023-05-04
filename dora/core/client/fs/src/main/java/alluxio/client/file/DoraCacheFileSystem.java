@@ -190,7 +190,10 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     ufsFullPath = new AlluxioURI(PathUtils.normalizePath(ufsFullPath.toString(), "/"));
 
     try {
-      return mDoraClient.listStatus(ufsFullPath.toString(), options);
+      ListStatusPOptions mergedOptions = FileSystemOptionsUtils.listStatusDefaults(
+          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+
+      return mDoraClient.listStatus(ufsFullPath.toString(), mergedOptions);
     } catch (RuntimeException ex) {
       if (ex instanceof StatusRuntimeException) {
         if (((StatusRuntimeException) ex).getStatus().getCode() == Status.NOT_FOUND.getCode()) {
