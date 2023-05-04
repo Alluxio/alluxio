@@ -331,9 +331,23 @@ public class DefaultSyncProcess implements SyncProcess {
               if (syncPathCache.shouldSyncPath(item.mAlluxioUri,
                   loadResult.getTaskInfo().getSyncInterval(),
                   loadResult.getTaskInfo().getDescendantType()).isShouldSync()) {
-                loadResult.getTaskInfo().getMdSync()
-                    .loadNestedDirectory(loadResult.getTaskInfo().getId(),
-                        ufsMountBaseUri.join(status.getName()));
+                AlluxioURI childDirectoryPath = ufsMountBaseUri.join(status.getName());
+                MountTable.ReverseResolution childDirectoryReverseResolution =
+                    mMountTable.reverseResolve(childDirectoryPath);
+                Preconditions.checkNotNull(childDirectoryReverseResolution);
+                MountTable.Resolution childDirectoryResolution =
+                    mMountTable.resolve(childDirectoryReverseResolution.getUri());
+                if (childDirectoryReverseResolution.getMountInfo().getMountId()
+                    == childDirectoryResolution.getMountId()) {
+                  loadResult.getTaskInfo().getMdSync()
+                      .loadNestedDirectory(loadResult.getTaskInfo().getId(),
+                          ufsMountBaseUri.join(status.getName()));
+                } else {
+                  LOG.warn("Sync of path {} is skipped as the directory is a mount point. "
+                          + "Mount point {}, conflict mount point {}", reverseResolution.getUri(),
+                      childDirectoryReverseResolution.getMountInfo().getUfsUri(),
+                      childDirectoryResolution.getUfsMountPointUri());
+                }
               }
             }
           } catch (Exception e) {

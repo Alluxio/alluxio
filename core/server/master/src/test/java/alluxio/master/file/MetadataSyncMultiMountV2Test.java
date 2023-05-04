@@ -119,13 +119,16 @@ public class MetadataSyncMultiMountV2Test extends MetadataSyncV2TestBase {
         /s3_mount -> unchanged (mount point s3://test-bucket)
           /nested_s3_mount -> unchanged (mount point s3://test-bucket-2)
             /foo -> created
-          /nested_s3_mount -> SHADOWED (mount point s3://test-bucket-1)
+          /nested_s3_mount -> SHADOWED (mount point s3://test-bucket)
             /shadowed -> SHADOWED
+            /bar/baz -> SHADOWED
+        /not_shadowed -> created
      */
 
     mFileSystemMaster.mount(MOUNT_POINT, UFS_ROOT, MountContext.defaults());
     mFileSystemMaster.mount(NESTED_S3_MOUNT_POINT, UFS_ROOT2, MountContext.defaults());
     mS3Client.putObject(TEST_BUCKET, "nested_s3_mount/shadowed", TEST_CONTENT);
+    mS3Client.putObject(TEST_BUCKET, "nested_s3_mount/bar/baz", TEST_CONTENT);
     mS3Client.putObject(TEST_BUCKET, "not_shadowed", TEST_CONTENT);
     mS3Client.putObject(TEST_BUCKET2, "foo", TEST_CONTENT);
 
@@ -136,8 +139,8 @@ public class MetadataSyncMultiMountV2Test extends MetadataSyncV2TestBase {
         .forEach(it -> System.out.println(it.getTaskInfo().getStats().toReportString()));
     assertSyncOperations(result, ImmutableMap.of(
         SyncOperation.CREATE, 2L,
-        SyncOperation.SKIPPED_ON_MOUNT_POINT,
-        mDirectoryLoadType == DirectoryLoadType.SINGLE_LISTING ? 1L : 2L
+        SyncOperation.SKIPPED_ON_MOUNT_POINT, mDirectoryLoadType
+            == DirectoryLoadType.SINGLE_LISTING ? 2L : 1L
     ));
     assertTrue(result.allSucceeded());
     List<FileInfo> inodes = mFileSystemMaster.listStatus(new AlluxioURI("/"), listNoSync(true));
