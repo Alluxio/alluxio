@@ -462,25 +462,29 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
         }
         continue;
       }
-      try {
-        completeRequest(mContext);
-      } catch (Exception e) {
+      if (eof || cancel || error != null) {
+        try {
+          completeRequest(mContext);
+        } catch (Exception e) {
+          if (error != null) {
+            LOG.error("Failed to close the request.", e);
+          } else {
+            LogUtils.warnWithException(LOG, "Exception occurred while completing read request, "
+                            + "EOF/CANCEL sessionId: {}. {}", mContext.getRequest().getSessionId(),
+                    mContext.getRequest(), e);
+            error = new Error(AlluxioStatusException.fromThrowable(e), true);
+          }
+        }
         if (error != null) {
-          LOG.error("Failed to close the request.", e);
-        } else {
-          LogUtils.warnWithException(LOG, "Exception occurred while completing read request, "
-                          + "EOF/CANCEL sessionId: {}. {}", mContext.getRequest().getSessionId(),
-                  mContext.getRequest(), e);
-          error = new Error(AlluxioStatusException.fromThrowable(e), true);
+          replyError(error);
+        } else if (eof) {
+          replyEof();
+        } else if (cancel) {
+          replyCancel();
         }
       }
-      if (error != null) {
-        replyError(error);
-      } else if (eof) {
-        replyEof();
-      } else if (cancel) {
-        replyCancel();
-      }
+      // Leave `!mResponse.isReady() && tooManyPendingChunks()` unhandled
+      // since the reader is not finished in that case and needs more rounds
     }
 
     /**
