@@ -31,6 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class WorkerNetAddress implements Serializable {
   private static final long serialVersionUID = 0L;
+  private int mSecureRpcPort;
 
   private String mHost = "";
   private String mContainerHost = "";
@@ -46,6 +47,13 @@ public final class WorkerNetAddress implements Serializable {
    * Creates a new instance of {@link WorkerNetAddress}.
    */
   public WorkerNetAddress() {}
+
+  /**
+   * @return the secure rpc port
+   */
+  public int getSecureRpcPort() {
+    return mSecureRpcPort;
+  }
 
   /**
    * @return the host of the worker
@@ -172,6 +180,15 @@ public final class WorkerNetAddress implements Serializable {
   }
 
   /**
+   * @param secureRpcPort the secure rpc port port to use
+   * @return the worker net address
+   */
+  public WorkerNetAddress setSecureRpcPort(int secureRpcPort) {
+    mSecureRpcPort = secureRpcPort;
+    return this;
+  }
+
+  /**
    * @param domainSocketPath the domain socket path
    * @return the worker net address
    */
@@ -200,6 +217,7 @@ public final class WorkerNetAddress implements Serializable {
     WorkerNetAddress that = (WorkerNetAddress) o;
     return mHost.equals(that.mHost)
         && mContainerHost.equals(that.mContainerHost)
+        && mSecureRpcPort == that.mSecureRpcPort
         && mRpcPort == that.mRpcPort
         && mDataPort == that.mDataPort
         && mWebPort == that.mWebPort
@@ -209,7 +227,7 @@ public final class WorkerNetAddress implements Serializable {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mHost, mContainerHost, mDataPort, mRpcPort, mWebPort,
+    return Objects.hashCode(mSecureRpcPort, mHost, mContainerHost, mDataPort, mRpcPort, mWebPort,
         mDomainSocketPath, mTieredIdentity);
   }
 
@@ -239,6 +257,7 @@ public final class WorkerNetAddress implements Serializable {
         .add("webPort", mWebPort)
         .add("domainSocketPath", mDomainSocketPath)
         .add("tieredIdentity", mTieredIdentity)
+        .add("secureRpcPort", mSecureRpcPort)
         .toString();
   }
 }

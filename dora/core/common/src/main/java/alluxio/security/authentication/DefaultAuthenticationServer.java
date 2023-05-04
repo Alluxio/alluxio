@@ -83,6 +83,13 @@ public class DefaultAuthenticationServer
     mImpersonationAuthenticator = new ImpersonationAuthenticator(conf);
   }
 
+  /**
+   * @return the impersonation authenticator
+   */
+  protected ImpersonationAuthenticator getImpersonationAuthenticator() {
+    return mImpersonationAuthenticator;
+  }
+
   @Override
   public StreamObserver<SaslMessage> authenticate(StreamObserver<SaslMessage> responseObserver) {
     // Create and return server sasl driver that will coordinate authentication traffic.
