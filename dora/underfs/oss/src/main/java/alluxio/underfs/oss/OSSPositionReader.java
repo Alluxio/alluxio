@@ -35,7 +35,7 @@ public class OSSPositionReader implements PositionReader {
   private final String mPath;
   private final long mFileLength;
   /**
-   * Client for operations with cos.
+   * Client for operations with Aliyun OSS.
    */
   protected OSS mClient;
 
