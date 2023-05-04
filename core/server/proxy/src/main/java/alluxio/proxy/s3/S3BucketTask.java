@@ -167,8 +167,7 @@ public class S3BucketTask extends S3BaseTask {
 
         try (S3AuditContext auditContext = mHandler.createAuditContext(
                 mOPType.name(), user, mHandler.getBucket(), null)) {
-          S3RestUtils.checkPathIsAlluxioDirectory(userFs, path, auditContext,
-              mHandler.BUCKET_PATH_CACHE);
+
           AlluxioURI uri = new AlluxioURI(path);
           try {
             TaggingData tagData = S3RestUtils.deserializeTags(userFs.getStatus(uri).getXAttr());
@@ -335,8 +334,7 @@ public class S3BucketTask extends S3BaseTask {
         String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + mHandler.getBucket());
         try (S3AuditContext auditContext = mHandler.createAuditContext(
                 mOPType.name(), mHandler.getUser(), mHandler.getBucket(), null)) {
-          S3RestUtils.checkPathIsAlluxioDirectory(mHandler.getMetaFS(), bucketPath, auditContext,
-              mHandler.BUCKET_PATH_CACHE);
+
           try {
             TaggingData tagData = new XmlMapper().readerFor(TaggingData.class)
                     .readValue(mHandler.getInputStream());
@@ -539,8 +537,6 @@ public class S3BucketTask extends S3BaseTask {
         String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + mHandler.getBucket());
         try (S3AuditContext auditContext = mHandler.createAuditContext(
                 mOPType.name(), user, mHandler.getBucket(), null)) {
-          S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
-              mHandler.BUCKET_PATH_CACHE);
 
           LOG.debug("DeleteBucketTagging bucket={}", bucketPath);
           Map<String, ByteString> xattrMap = new HashMap<>();

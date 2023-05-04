@@ -1929,6 +1929,58 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
+  public void getNonExistingBucketTagging() throws Exception {
+    final String bucketName = "bucket";
+    HttpURLConnection connection= new TestCase(mHostname, mPort, mBaseUri,
+        bucketName, ImmutableMap.of("tagging", ""), HttpMethod.GET,
+        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE)
+    ).execute();
+
+    Assert.assertEquals(404, connection.getResponseCode());
+    S3Error response =
+        new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
+    Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_BUCKET, response.getCode());
+  }
+
+  @Test
+  public void putNonExistingBucketTagging() throws Exception {
+    final String bucketName = "bucket";
+    Map<String, String> tagMap = ImmutableMap.of(
+        "foo", "bar",
+        "fu", "bar",
+        "baz", ""
+    );
+    TaggingData tagData=new TaggingData();
+    tagData.addTags(tagMap);
+
+    HttpURLConnection connection= new TestCase(mHostname, mPort, mBaseUri,
+        bucketName, ImmutableMap.of("tagging", ""), HttpMethod.PUT,
+        getDefaultOptionsWithAuth()
+            .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
+            .setCharset(S3Constants.TAGGING_CHARSET)
+            .setBody(TaggingData.serialize(tagData).toByteArray()))
+        .execute();
+
+    Assert.assertEquals(404, connection.getResponseCode());
+    S3Error response =
+        new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
+    Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_BUCKET, response.getCode());
+  }
+
+  @Test
+  public void deleteNonExistingBucketTagging() throws Exception {
+    final String bucketName = "bucket";
+    HttpURLConnection connection= new TestCase(mHostname, mPort, mBaseUri,
+        bucketName, ImmutableMap.of("tagging", ""), HttpMethod.DELETE,
+        getDefaultOptionsWithAuth()).execute();
+
+    Assert.assertEquals(404, connection.getResponseCode());
+    S3Error response =
+        new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
+    Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_BUCKET, response.getCode());
+  }
+
+  @Test
   public void testObjectTagsHeader() throws Exception {
     final String bucketName = "bucket";
     createBucketRestCall(bucketName);
