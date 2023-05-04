@@ -223,7 +223,7 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
   }
 
   @Test
-  public void loadMetadataTestV2R() throws IOException, AlluxioException {
+  public void loadMetadataTestV2Recursive() throws IOException, AlluxioException {
     int dirCount = 3;
     int fileCount = 10;
     for (int dirIndex = 0; dirIndex < dirCount; dirIndex++) {
