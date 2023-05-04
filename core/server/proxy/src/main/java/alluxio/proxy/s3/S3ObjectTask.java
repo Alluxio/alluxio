@@ -1045,8 +1045,6 @@ public class S3ObjectTask extends S3BaseTask {
         mUserFs = S3RestUtils.createFileSystemForUser(user, mHandler.getMetaFS());
         try {
           String bucketPath = S3RestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
-          S3RestUtils.checkPathIsAlluxioDirectory(mUserFs, bucketPath, null,
-              mHandler.BUCKET_PATH_CACHE);
           objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
           // Check for existing multipart info files and dirs
           AlluxioURI multipartTemporaryDir = new AlluxioURI(
@@ -1152,7 +1150,8 @@ public class S3ObjectTask extends S3BaseTask {
           .putXattr(PropertyKey.Name.S3_UPLOADS_ID_XATTR_KEY,
               ByteString.copyFrom(mUploadId, StandardCharsets.UTF_8))
           .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
-          .setWriteType(S3RestUtils.getS3WriteType());
+          .setWriteType(S3RestUtils.getS3WriteType())
+          .setCheckS3BucketPath(true);
       // Copy Tagging xAttr if it exists
       if (metaStatus.getXAttr().containsKey(S3Constants.TAGGING_XATTR_KEY)) {
         optionsBuilder.putXattr(S3Constants.TAGGING_XATTR_KEY,
