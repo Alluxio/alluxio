@@ -11,26 +11,19 @@ import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.cli.job.JobShell;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.concurrent.jsr.CompletableFuture;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
-import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.ListStatusPOptionsOrBuilder;
 import alluxio.grpc.LoadMetadataPType;
-import alluxio.grpc.WritePType;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.LocalAlluxioJobCluster;
-import alluxio.master.job.JobMaster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemFactory;
 import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemOptions;
-import alluxio.util.io.PathUtils;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -38,8 +31,6 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.S3Object;
 import org.gaul.s3proxy.junit.S3ProxyRule;
 import org.junit.After;
 import org.junit.Before;
@@ -55,17 +46,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationTest {
-  private static String TEST_BUCKET = "test-bucket";
-  private static final String TEST_CONTENT = "TestContents";
-  private static final String TEST_FILE = "test_file";
-  private static final int USER_QUOTA_UNIT_BYTES = 1000;
+  private String mTestBucket = "test-bucket";
+  private final String mTestContent = "TestContents";
+  private final String mTestFile = "test_file";
+  private final int mUserQuotaUnitBytes = 1000;
   public ByteArrayOutputStream mOutput = new ByteArrayOutputStream();
   public ByteArrayOutputStream mErrOutput = new ByteArrayOutputStream();
   public ExpectedException mException = ExpectedException.none();
 
   @Rule
-  public SystemOutRule r = new SystemOutRule(mOutput);
-  // public SystemOutRule r = new SystemOutRule(System.out);
+  public SystemOutRule mOutputRule = new SystemOutRule(mOutput);
 
   @Rule
   public SystemErrRule mErrRule = new SystemErrRule(mErrOutput);
@@ -80,7 +70,6 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
       .withCredentials("_", "_")
       .build();
 
-
   public LocalAlluxioCluster mLocalAlluxioCluster;
   public FileSystem mFileSystem;
   public FileSystemShell mFsShell;
@@ -88,12 +77,13 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
   protected JobShell mJobShell;
 
   @Rule
-  public LocalAlluxioClusterResource mLocalAlluxioClusterResource = new LocalAlluxioClusterResource.Builder()
-            .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, USER_QUOTA_UNIT_BYTES)
+  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+      new LocalAlluxioClusterResource.Builder()
+            .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, mUserQuotaUnitBytes)
             .setProperty(PropertyKey.UNDERFS_S3_ENDPOINT, "localhost:8001")
             .setProperty(PropertyKey.UNDERFS_S3_ENDPOINT_REGION, "us-west-2")
             .setProperty(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS, true)
-            .setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, "s3://" + TEST_BUCKET)
+            .setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, "s3://" + mTestBucket)
             .setProperty(PropertyKey.S3A_ACCESS_KEY, mS3Proxy.getAccessKey())
             .setProperty(PropertyKey.S3A_SECRET_KEY, mS3Proxy.getSecretKey())
             .setStartCluster(false)
@@ -102,7 +92,7 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
   private static final long SLEEP_MS = Constants.SECOND_MS / 2;
 
   @Rule
-  public UnderFileSystemFactoryRegistryRule sUnderfilesystemfactoryregistry =
+  public UnderFileSystemFactoryRegistryRule mUnderfilesystemfactoryregistry =
       new UnderFileSystemFactoryRegistryRule(new SleepingUnderFileSystemFactory(
           new SleepingUnderFileSystemOptions()
               .setGetStatusMs(SLEEP_MS)
@@ -124,7 +114,7 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
             new AwsClientBuilder.EndpointConfiguration(mS3Proxy.getUri().toString(),
                 Regions.US_WEST_2.getName()))
         .build();
-    mS3Client.createBucket(TEST_BUCKET);
+    mS3Client.createBucket(mTestBucket);
 
     mLocalAlluxioClusterResource.start();
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
@@ -146,15 +136,13 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
     }
   }
 
-  // The main idea of this test is start an async loadMetadata task and get its status
-  // Totally three status were tested, RUNNING, CANCELED, SUCCESSES
   @Test
   public void loadMetadataTestV2get() throws IOException, AlluxioException {
     for (int i = 0; i < 1; i++) {
-      mS3Client.putObject(TEST_BUCKET, TEST_FILE + i, TEST_CONTENT);
+      mS3Client.putObject(mTestBucket, mTestFile + i, mTestContent);
     }
     mOutput.reset();
-    AlluxioURI uriDir = new AlluxioURI("/" );
+    AlluxioURI uriDir = new AlluxioURI("/");
     CompletableFuture<Void> future = CompletableFuture.supplyAsync(() -> {
       mFsShell.run("loadMetadata", "-v2", "-R", "-a", uriDir.toString());
       return null;
@@ -178,16 +166,14 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
     assertTrue(mOutput.toString().contains("State: SUCCEEDED"));
   }
 
-  // The main idea of this test is start an async loadMetadata task and cancel it when it's running
-  // I think this is difficult to fix...
   @Test
   public void loadMetadataTestV2cancel() {
     int fileCount = 10;
     for (int i = 0; i < fileCount; i++) {
-      mS3Client.putObject(TEST_BUCKET, TEST_FILE + i, TEST_CONTENT);
+      mS3Client.putObject(mTestBucket, mTestFile + i, mTestContent);
     }
     mOutput.reset();
-    AlluxioURI uriDir = new AlluxioURI("/" );
+    AlluxioURI uriDir = new AlluxioURI("/");
     CompletableFuture<Void> future = CompletableFuture.supplyAsync(() -> {
       mFsShell.run("loadMetadata", "-v2", "-R", "-a", uriDir.toString());
       return null;
@@ -195,7 +181,7 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
     String id;
     Pattern pattern = Pattern.compile("Task group (\\d+)");
     Matcher matcher = pattern.matcher(mOutput.toString());
-    while(!matcher.find()) {
+    while (!matcher.find()) {
       matcher = pattern.matcher(mOutput.toString());
     }
     id = matcher.group(1);
@@ -208,18 +194,20 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
     // Cancel a canceled task
     mOutput.reset();
     anotherFsShell.run("loadMetadata", "-v2", "-o", "cancel", "-id", id);
-    assertTrue(mOutput.toString().contains(String.format("Task %s not found or has already been canceled", id)));
+    assertTrue(mOutput.toString().contains(String.format("Task %s not found "
+        + "or has already been canceled", id)));
 
     // Trying to cancel completed task
     mOutput.reset();
     mFsShell.run("loadMetadata", "-v2", "-R", "-a", uriDir.toString());
     matcher = pattern.matcher(mOutput.toString());
-    while(!matcher.find()) {
+    while (!matcher.find()) {
       matcher = pattern.matcher(mOutput.toString());
     }
     id = matcher.group(1);
     mFsShell.run("loadMetadata", "-v2", "-o", "cancel", "-id", id);
-    assertTrue(mOutput.toString().contains(String.format("Task %s not found or has already been canceled", id)));
+    assertTrue(mOutput.toString().contains(String.format("Task %s not found or has"
+        + "already been canceled", id)));
   }
 
   @Test
@@ -228,10 +216,10 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
     int fileCount = 10;
     for (int dirIndex = 0; dirIndex < dirCount; dirIndex++) {
       for (int fileIndex = 0; fileIndex < fileCount; fileIndex++) {
-        mS3Client.putObject(TEST_BUCKET, "test" + dirIndex + "/" + fileIndex, TEST_CONTENT);
+        mS3Client.putObject(mTestBucket, "test" + dirIndex + "/" + fileIndex, mTestContent);
       }
     }
-    AlluxioURI uriDir = new AlluxioURI("/" );
+    AlluxioURI uriDir = new AlluxioURI("/");
 
     mFsShell.run("loadMetadata", "-v2", "-a", uriDir.toString());
     assertTrue(mOutput.toString().contains("State: SUCCEEDED"));
@@ -266,7 +254,7 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
     Set<Integer> idRecord = new HashSet<>();
     Pattern pattern = Pattern.compile("Task id: (\\d+)");
     Matcher matcher = pattern.matcher(mOutput.toString());
-    while(matcher.find()) {
+    while (matcher.find()) {
       idRecord.add(Integer.valueOf(matcher.group(1)));
     }
     // mntCount + 1 because root mount point doesn't count in mntCount
@@ -292,7 +280,7 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
     String id;
     Pattern groupIdPattern = Pattern.compile("Task group (\\d+)");
     Matcher groupIdMatcher = groupIdPattern.matcher(mOutput.toString());
-    while(!groupIdMatcher.find()) {
+    while (!groupIdMatcher.find()) {
       groupIdMatcher = groupIdPattern.matcher(mOutput.toString());
     }
     id = groupIdMatcher.group(1);
@@ -308,10 +296,10 @@ public final class LoadMetadataCommandV2IntegrationTest extends BaseIntegrationT
     Pattern cancelPattern = Pattern.compile("State: CANCELED");
     Matcher idMatcher = idPattern.matcher(mOutput.toString());
     Matcher cancelMatcher = cancelPattern.matcher(mOutput.toString());
-    while(idMatcher.find()) {
+    while (idMatcher.find()) {
       idRecord.add(Integer.valueOf(idMatcher.group(1)));
     }
-    while(cancelMatcher.find()) {
+    while (cancelMatcher.find()) {
       cancelRecord += 1;
     }
 
