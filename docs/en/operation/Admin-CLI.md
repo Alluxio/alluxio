@@ -437,6 +437,8 @@ The command will perform the following actions:
 4. Wait for the workers to become idle. This command will constantly check the idleness status on each worker.
 5. Either all workers have become idle, or the specified timeout expires, this command will return.
 
+See [Rolling Upgrade Workers]({{ '/en/administration/Upgrade.html#rolling-upgraderestart-workers' | relativize_url }}) for how this command is used.
+
 **Limitations**
 
 In some cases, the `decommissionWorker` command may return code 0 (success) but when a worker process is killed,
@@ -454,73 +456,6 @@ know the workers are decommissioned (should not be read/written) and stop using 
 The `decommissionWorker` command does NOT consider cache blocks on the target workers. That means if
 decommissioning some workers will bring ALL replicas of certain blocks offline, and those blocks only exist in cache,
 then clients CAN NOT read those blocks. The user has to restart the workload after those workers are restarted.
-
-**Example**
-
-A typical workflow of rolling upgrade workers looks as follows: 
-```shell
-# First check all worker nodes in the cluster
-$ ./bin/alluxio fsadmin report capacity
-...
-Worker Name        State            Last Heartbeat   Storage       MEM              Version          Revision
-data-worker-1      ACTIVE           1                capacity      10.67GB          2.9.0            abcde
-                                                     used          0B (0%)
-data-worker-0      ACTIVE           2                capacity      10.67GB          2.9.0            abcde
-                                                     used          0B (0%)
-data-worker-2      ACTIVE           0                capacity      10.67GB          2.9.0            abcde
-                                                     used          0B (0%)
-...
-
-# Pick a batch of workers to decommission, e.g. this batch is 2 workers
-$ ./bin/alluxio fsadmin decommissionWorker -a data-worker-0,data-worker-1 -w 5m
-Decommissioning worker data-worker-0:30000
-Set worker data-worker-0:30000 decommissioned on master
-Decommissioning worker data-worker-1:30000
-Set worker data-worker-1:30000 decommissioned on master
-Sent decommission messages to the master, 0 failed and 2 succeeded
-Failed ones: []
-Clients take alluxio.user.worker.list.refresh.interval=2min to be updated on the new worker list so this command will block for the same amount of time to ensure the update propagates to clients in the cluster.
-Verifying the decommission has taken effect by listing all available workers on the master
-Now on master the available workers are: [data-worker-2,data-worker-3,...]
-Polling status from worker data-worker-0:30000
-Polling status from worker data-worker-1:30000
-...
-There is no operation on worker data-worker-0:30000 for 20 times in a row. Worker is considered safe to stop.
-Polling status from worker data-worker-1:30000
-There is no operation on worker data-worker-1:30000 for 20 times in a row. Worker is considered safe to stop.
-Waited 3 minutes for workers to be idle
-All workers are successfully decommissioned and now idle. Safe to kill or restart this batch of workers now.
-
-# Now you will be able to observe those workers' state have changed from ACTIVE to DECOMMISSIONED.
-$ ./bin/alluxio fsadmin report capacity
-...
-Worker Name        State            Last Heartbeat   Storage       MEM              Version          Revision
-data-worker-1      DECOMMISSIONED   1                capacity      10.67GB          2.9.0            abcde
-                                                     used          0B (0%)
-data-worker-0      DECOMMISSIONED   2                capacity      10.67GB          2.9.0            abcde
-                                                     used          0B (0%)
-data-worker-2      ACTIVE           0                capacity      10.67GB          2.9.0            abcde
-                                                     used          0B (0%)
-
-# Then you can restart the decommissioned workers. The workers will start normally and join the cluster.
-$ ssh data-worker-0
-$ ./bin/alluxio-start.sh worker
-...
-
-# Now you will be able to observe those workers become ACTIVE again and have a higher version
-$ ./bin/alluxio fsadmin report capacity
-...
-Worker Name        State            Last Heartbeat   Storage       MEM              Version          Revision
-data-worker-1      ACTIVE           1                capacity      10.67GB          2.9.1            hijkl
-                                                     used          0B (0%)
-data-worker-0      ACTIVE           2                capacity      10.67GB          2.9.1            hijkl
-                                                     used          0B (0%)
-data-worker-2      ACTIVE           0                capacity      10.67GB          2.9.1            hijkl
-                                                     used          0B (0%)
-
-# You can run I/O tests against the upgraded workers to validate they are serving, before moving to upgrade the next batch
-$ bin/alluxio runTests --workers data-worker-0,data-worker-1
-```
 
 **Exit Codes**
 
