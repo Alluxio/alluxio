@@ -25,7 +25,8 @@ Usage: alluxio fsadmin [generic options]
 	 [statelock]
 	 [ufs [--mode <noAccess/readOnly/readWrite>] <ufsPath>]
 	 [updateConf key1=val1 [key2=val2 ...]]
-
+	 [decommissionWorker [--addresses worker0,worker1] [--wait 5m] [--disable]]
+	 [enableWorker [--addresses worker0,worker1]]
 ```
 
 ## Operations
@@ -271,6 +272,7 @@ Alluxio cluster summary:
 `report capacity` will report Alluxio cluster capacity information for different subsets of workers:
 * `-live` Live workers
 * `-lost` Lost workers
+* `-decommissioned` Decommissioned workers
 * `-workers <worker_names>` Specified workers, host names or ip addresses separated by `,`.
 
 ```shell
@@ -280,6 +282,22 @@ $ ./bin/alluxio fsadmin report capacity
 $ ./bin/alluxio fsadmin report capacity -live
 # Capacity information of specified workers
 $ ./bin/alluxio fsadmin report capacity -workers AlluxioWorker1,127.0.0.1
+```
+
+A typical output looks like below:
+```shell
+$ ./bin/alluxio fsadmin report capacity
+Capacity information for all workers:
+    Total Capacity: 10.67GB
+        Tier: MEM  Size: 10.67GB
+    Used Capacity: 0B
+        Tier: MEM  Size: 0B
+    Used Percentage: 0%
+    Free Percentage: 100%
+
+Worker Name        State            Last Heartbeat   Storage       MEM              Version          Revision
+data-worker-1      ACTIVE           166              capacity      10.67GB          2.9.0            ffcb706497bf47e43d5b2efc90f664c7a3e7014e
+                                                     used          0B (0%)
 ```
 
 `report metrics` will report the metrics stored in the leading master which includes
@@ -301,9 +319,15 @@ hdfs://localhost:9000/ on / (hdfs, capacity=-1B, used=-1B, not read-only, not sh
 
 ```shell
 $ bin/alluxio fsadmin report jobservice
-Worker: MigrationTest-workers-2  Task Pool Size: 10     Unfinished Tasks: 1303   Active Tasks: 10     Load Avg: 1.08, 0.64, 0.27
-Worker: MigrationTest-workers-3  Task Pool Size: 10     Unfinished Tasks: 1766   Active Tasks: 10     Load Avg: 1.02, 0.48, 0.21
-Worker: MigrationTest-workers-1  Task Pool Size: 10     Unfinished Tasks: 1808   Active Tasks: 10     Load Avg: 0.73, 0.5, 0.23
+Master Address                State    Start Time       Version                          Revision
+MigrationTest-master-1:20001  PRIMARY  20230425-110043  2.9.0                            ac6a0616
+MigrationTest-master-2:20001  STANDBY  20230425-110044  2.9.0                            ac6a0616
+MigrationTest-master-3:20001  STANDBY  20230425-110050  2.9.0                            ac6a0616
+
+Job Worker               Version       Revision Task Pool Size Unfinished Tasks Active Tasks Load Avg
+MigrationTest-workers-2  2.9.0         ac6a0616 10             1303             10           1.08, 0.64, 0.27
+MigrationTest-workers-3  2.9.0         ac6a0616 10             1766             10           1.02, 0.48, 0.21
+MigrationTest-workers-1  2.9.0         ac6a0616 10             1808             10           0.73, 0.5, 0.23
 
 Status: CREATED   Count: 4877
 Status: CANCELED  Count: 0
@@ -320,6 +344,16 @@ Timestamp: 10-28-2020 22:02:34:001       Id: 1603922371982       Name: Persist  
 Timestamp: 10-24-2019 17:15:22:946       Id: 1603922372008       Name: Persist             Status: FAILED
 
 10 Longest Running Jobs:
+```
+
+`report proxy` will report a summary of the proxy instances in the cluster.
+
+```shell
+$ ./bin/alluxio fsadmin report proxy
+1 Proxy instances in the cluster, 1 serving and 0 lost
+
+Address                          State    Start Time       Last Heartbeat Time  Version        Revision
+Alluxio-Proxy-Node-1:39997       ACTIVE   20230421-165608  20230421-170201      2.9.0          c697105199e29a480cf6251494d367cf325123a0
 ```
 
 ### statelock
@@ -361,4 +395,158 @@ alluxio.master.worker.timeout
 alluxio.master.audit.logging.enabled
 alluxio.master.ufs.managed.blocking.enabled
 alluxio.master.metastore.inode.inherit.owner.and.group
+```
+
+### decommissionWorker
+
+The `decommissionWorker` command can be used to take the target workers off-line from the cluster, 
+so Alluxio clients and proxy instances stop using those workers, and therefore they can be killed or restarted gracefully.
+Note that this command will NOT kill worker processes. This command will NOT remove the cache on the workers.
+This command can be typically used for the following use cases:
+1. Perform a graceful rolling restart of all workers in the cluster, where no user requests should fail.
+2. Scale down the cluster without interrupting user I/O workflow.
+
+```shell
+$ ./bin/alluxio fsadmin decommissionWorker --addresses data-worker-0,data-worker-1 [--wait 5m] [--disable]
+```
+The arguments are explained as follows:
+
+`--address/-a` is a required argument, followed by a list of comma-separated worker addresses. Each worker address is <host>:<web port>.
+Unlike many other commands which specify the RPC port, we use the web port here because the command will monitor the worker's workload
+exposed at the web port. If the port is not specified, the value in `alluxio.worker.web.port` will be used. Note that `alluxio.worker.web.port`
+will be resolved from the node where this command is run.
+
+`--wait/-w` is an optional argument. This argument defines how long this command waits for the workers to become idle.
+This command returns either when all workers are idle, or when this wait time is up. The default value is `5m`.
+
+`--disable/-d` is an optional argument. If this is specified, the decommissioned workers will not be able to
+register to the master. In other words, a disabled worker cannot join the cluster and will not be chosen for I/O requests.
+This is useful when the admin wants to remove the workers from the cluster. When those disabled workers register,
+the master will reject them but will not kill the worker processes. This is often used in pair with the `enableWorker` command.
+
+The command will perform the following actions:
+
+1. For each worker in the batch, send a decommission command to the primary Alluxio master so 
+   the master marks those workers as decommissioned and will not serve operations. The ongoing I/O on those workers
+   will NOT be interrupted.
+2. It takes a small interval for all other Alluxio components (like clients and Proxy instances)
+   to know those workers should not be used, so this command waits for the interval time defined by `alluxio.user.worker.list.refresh.interval`
+   on the node where this command is executed. Before a client/proxy realizes the workers are decommissioned,
+   they may submit more I/O requests to those workers, and those requests should execute normally.
+3. Get the active worker list from the master after waiting, and verify the target workers are not active anymore.
+4. Wait for the workers to become idle. This command will constantly check the idleness status on each worker.
+5. Either all workers have become idle, or the specified timeout expires, this command will return.
+
+**Limitations**
+
+In some cases, the `decommissionWorker` command may return code 0 (success) but when a worker process is killed,
+some user I/O may fail.
+
+When the `decommissionWorker` command waits for a worker to become idle, it only respects ongoing I/O requests on the worker.
+If the Alluxio client is reading/writing the worker with short circuit, the client directly reads/writes cache files
+in worker storage and maintains a gRPC stream with the worker simply for locking that block. An open(and idle) stream
+will NOT be respected by the `decommissionWorker` command so it may consider the worker is idle.
+However, when the admin kills the worker and deletes the cache storage, the client request will fail
+either because the cache blocks are gone or because the gRPC stream is broken. So if you are using short circuit,
+wait a few more minutes before killing the worker process and deleting cached blocks. The clients will
+know the workers are decommissioned (should not be read/written) and stop using those workers by short circuit.
+
+The `decommissionWorker` command does NOT consider cache blocks on the target workers. That means if
+decommissioning some workers will bring ALL replicas of certain blocks offline, and those blocks only exist in cache,
+then clients CAN NOT read those blocks. The user has to restart the workload after those workers are restarted.
+
+**Example**
+
+A typical workflow of rolling upgrade workers looks as follows: 
+```shell
+# First check all worker nodes in the cluster
+$ ./bin/alluxio fsadmin report capacity
+...
+Worker Name        State            Last Heartbeat   Storage       MEM              Version          Revision
+data-worker-1      ACTIVE           1                capacity      10.67GB          2.9.0            abcde
+                                                     used          0B (0%)
+data-worker-0      ACTIVE           2                capacity      10.67GB          2.9.0            abcde
+                                                     used          0B (0%)
+data-worker-2      ACTIVE           0                capacity      10.67GB          2.9.0            abcde
+                                                     used          0B (0%)
+...
+
+# Pick a batch of workers to decommission, e.g. this batch is 2 workers
+$ ./bin/alluxio fsadmin decommissionWorker -a data-worker-0,data-worker-1 -w 5m
+Decommissioning worker data-worker-0:30000
+Set worker data-worker-0:30000 decommissioned on master
+Decommissioning worker data-worker-1:30000
+Set worker data-worker-1:30000 decommissioned on master
+Sent decommission messages to the master, 0 failed and 2 succeeded
+Failed ones: []
+Clients take alluxio.user.worker.list.refresh.interval=2min to be updated on the new worker list so this command will block for the same amount of time to ensure the update propagates to clients in the cluster.
+Verifying the decommission has taken effect by listing all available workers on the master
+Now on master the available workers are: [data-worker-2,data-worker-3,...]
+Polling status from worker data-worker-0:30000
+Polling status from worker data-worker-1:30000
+...
+There is no operation on worker data-worker-0:30000 for 20 times in a row. Worker is considered safe to stop.
+Polling status from worker data-worker-1:30000
+There is no operation on worker data-worker-1:30000 for 20 times in a row. Worker is considered safe to stop.
+Waited 3 minutes for workers to be idle
+All workers are successfully decommissioned and now idle. Safe to kill or restart this batch of workers now.
+
+# Now you will be able to observe those workers' state have changed from ACTIVE to DECOMMISSIONED.
+$ ./bin/alluxio fsadmin report capacity
+...
+Worker Name        State            Last Heartbeat   Storage       MEM              Version          Revision
+data-worker-1      DECOMMISSIONED   1                capacity      10.67GB          2.9.0            abcde
+                                                     used          0B (0%)
+data-worker-0      DECOMMISSIONED   2                capacity      10.67GB          2.9.0            abcde
+                                                     used          0B (0%)
+data-worker-2      ACTIVE           0                capacity      10.67GB          2.9.0            abcde
+                                                     used          0B (0%)
+                                                     
+# Then you can restart the decommissioned workers. The workers will start normally and join the cluster.
+$ ssh data-worker-0
+$ ./bin/alluxio-start.sh worker
+...
+
+# Now you will be able to observe those workers become ACTIVE again and have a higher version
+$ ./bin/alluxio fsadmin report capacity
+...
+Worker Name        State            Last Heartbeat   Storage       MEM              Version          Revision
+data-worker-1      ACTIVE           1                capacity      10.67GB          2.9.1            hijkl
+                                                     used          0B (0%)
+data-worker-0      ACTIVE           2                capacity      10.67GB          2.9.1            hijkl
+                                                     used          0B (0%)
+data-worker-2      ACTIVE           0                capacity      10.67GB          2.9.1            hijkl
+                                                     used          0B (0%)
+
+# You can run I/O tests against the upgraded workers to validate they are serving, before moving to upgrade the next batch
+$ bin/alluxio runTests --workers data-worker-0,data-worker-1
+```
+
+**Exit Codes**
+
+This command is idempotent and can be retried, but the admin is advised to manually check if there's an error. 
+
+The return codes have different meanings:
+0(OK): All workers are successfully decommissioned and now idle. Safe to kill or restart this batch of workers now.
+1(DECOMMISSION_FAILED): Failed to decommission all workers. The admin should double check the worker addresses and the primary master status.
+2(LOST_MASTER_CONNECTION): Lost connection to the primary master while this command is running. This suggests the configured master address is wrong or the primary master failed over.
+3(WORKERS_NOT_IDLE): Some workers were still not idle after the wait. Either the wait time is too short or those workers failed to mark decommissioned. The admin should manually intervene and check those workers.
+10(LOST_SOME_WORKERS): Workers are decommissioned but some or all workers lost contact while this command is running. If a worker is not serving then it is safe to kill or restart. But the admin is advised to double check the status of those workers.
+
+### enableWorker
+
+The `enableWorker` command is the reverse operation of `decommissionWorker -d`.
+
+```shell
+# Decommission 2 workers and disable them from joining the cluster again even if they restart
+$ ./bin/alluxio fsadmin decommissionWorker --addresses data-worker-0,data-worker-1 --disable
+
+# data-worker-0 and data-worker-1 will not be able to register to the master after they restart
+$ ./bin/alluxio-start.sh workers
+
+# The admin regrets and wants to bring one of them back to the cluster
+$ ./bin/alluxio fsadmin enableWorker --addresses data-worker-1
+
+# If data-worker-1 is restarted, it is able to register to the cluster and serve normally again
+$ ./bin/alluxio-start.sh workers
 ```
