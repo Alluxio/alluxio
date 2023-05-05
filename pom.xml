@@ -140,7 +140,7 @@
     <jetty.version>9.4.46.v20220331</jetty.version>
     <junit.version>4.13.1</junit.version>
     <log4j.version>2.17.1</log4j.version>
-    <maven.version>3.3.9</maven.version>
+    <maven.version>3.8.6</maven.version>
     <metrics.version>4.1.11</metrics.version>
     <mockito.version>3.4.4</mockito.version>
     <orc.version>1.6.3</orc.version>
