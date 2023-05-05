@@ -98,7 +98,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
     T requestContext = createRequestContext(msg);
     requestContext.setPosToQueue(requestContext.getRequest().getStart());
     requestContext.setPosToWrite(requestContext.getRequest().getStart());
-    PacketReader packetReader = createPacketReader(requestContext, ctx.channel());
+    PacketReader packetReader = createPacketReader();
     String taskId = UUID.randomUUID().toString();
     PacketReadTask packetReadTask =
         new PacketReadTask(taskId, requestContext, ctx.channel(), packetReader);
@@ -139,32 +139,14 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
 
   /**
    * Creates a read reader.
-   *
-   * @param context read request context
-   * @param channel channel
    * @return the packet reader for this handler
    */
-  protected abstract PacketReader createPacketReader(T context, Channel channel);
+  protected abstract PacketReader createPacketReader();
 
   /**
    * A runnable that reads packets and writes them to the channel.
    */
   protected abstract class PacketReader {
-    private final Channel mChannel;
-    private final T mContext;
-    private final ReadRequest mRequest;
-
-    /**
-     * Creates an instance of the {@link PacketReader}.
-     *
-     * @param context context of the request to complete
-     * @param channel the channel
-     */
-    PacketReader(T context, Channel channel) {
-      mContext = context;
-      mRequest = context.getRequest();
-      mChannel = channel;
-    }
 
     /**
      * Completes the read request. When the request is closed, we should clean up any temporary

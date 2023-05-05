@@ -19,10 +19,10 @@ import java.io.IOException;
 public class PacketReadTaskStateMachineTest {
 
   @Test
-  public void testGenerateStateDiagram() throws IOException {
+  public void testGenerateStateDiagram() throws IOException  {
     ReadRequestContext context = new ReadRequestContext(null);
-    PacketReadTaskStateMachine machine = new PacketReadTaskStateMachine
-        (context, null, null);
-    machine.generateStateDiagram(new File("output.dot").toPath());
+    PacketReadTaskStateMachine stateMachine =
+        new PacketReadTaskStateMachine(context, null, null);
+    stateMachine.generateStateDiagram(new File("output.dot").toPath());
   }
 }

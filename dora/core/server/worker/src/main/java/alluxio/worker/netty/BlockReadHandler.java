@@ -77,8 +77,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
         PropertyKey.WORKER_TIERED_STORE_LEVELS,
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS);
 
-    BlockPacketReader(BlockReadRequestContext context, Channel channel, BlockWorker blockWorker) {
-      super(context, channel);
+    BlockPacketReader(BlockWorker blockWorker) {
       mWorker = blockWorker;
     }
 
@@ -191,7 +190,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
   }
 
   @Override
-  protected PacketReader createPacketReader(BlockReadRequestContext context, Channel channel) {
-    return new BlockPacketReader(context, channel, mWorker);
+  protected PacketReader createPacketReader() {
+    return new BlockPacketReader(mWorker);
   }
 }
