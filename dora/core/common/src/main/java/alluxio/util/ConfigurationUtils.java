@@ -141,7 +141,14 @@ public final class ConfigurationUtils {
     return overridePort(getEmbeddedJournalAddresses(conf, ServiceType.JOB_MASTER_RAFT), jobRpcPort);
   }
 
-  private static List<InetSocketAddress> overridePort(List<InetSocketAddress> addrs, int port) {
+  /**
+   * Overrides the port in addresses.
+   *
+   * @param addrs the addresses
+   * @param port the new port
+   * @return the updated addresses
+   */
+  public static List<InetSocketAddress> overridePort(List<InetSocketAddress> addrs, int port) {
     return StreamUtils.map(addr -> InetSocketAddress.createUnresolved(addr.getHostString(), port),
         addrs);
   }

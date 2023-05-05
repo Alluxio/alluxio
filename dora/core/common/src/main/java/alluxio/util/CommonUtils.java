@@ -646,6 +646,16 @@ public final class CommonUtils {
   }
 
   /**
+   * NOTE: This method is fragile and does not work with our testing infrastructure. Avoid using it
+   * if at all possible.
+   *
+   * @return whether the current process is an Alluxio server process
+   */
+  public static boolean isAlluxioServer() {
+    return !PROCESS_TYPE.get().equals(ProcessType.CLIENT);
+  }
+
+  /**
    * Similar to {@link CommonUtils#closeAndRethrow} but always return a RuntimeException.
    *
    * @param closer the Closer to close
@@ -675,6 +685,7 @@ public final class CommonUtils {
     MASTER,
     PLUGIN,
     PROXY,
+    SECURITY,
     WORKER;
   }
 
