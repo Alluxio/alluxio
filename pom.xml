@@ -14,7 +14,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.alluxio</groupId>
   <artifactId>alluxio-parent</artifactId>
-  <version>2.10.0-SNAPSHOT</version>
+  <version>295-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Alluxio Parent</name>
   <description>Parent POM of Alluxio project: a Memory-Speed Virtual Distributed Storage System</description>
@@ -122,7 +122,7 @@
   </repositories>
 
   <properties>
-    <argLine></argLine>
+    <argLine />
     <apache.curator.version>4.2.0</apache.curator.version>
     <aws.amazonaws.version>1.11.815</aws.amazonaws.version>
     <build.path>build</build.path>
@@ -134,13 +134,13 @@
     <rocksdb.version>7.0.3</rocksdb.version>
     <hadoop.version>3.3.1</hadoop.version>
     <jacoco.version>0.8.5</jacoco.version>
-    <java.version>1.8</java.version>
+    <java.version>1.11</java.version>
     <jaxb.version>2.3.3</jaxb.version>
     <jersey.version>2.34</jersey.version>
     <jetty.version>9.4.46.v20220331</jetty.version>
     <junit.version>4.13.1</junit.version>
     <log4j.version>2.17.1</log4j.version>
-    <maven.version>3.3.9</maven.version>
+    <maven.version>3.8.6</maven.version>
     <metrics.version>4.1.11</metrics.version>
     <mockito.version>3.4.4</mockito.version>
     <orc.version>1.6.3</orc.version>
@@ -176,18 +176,8 @@
 
   <modules>
     <module>assembly</module>
-    <module>core</module>
-    <module>examples</module>
-    <module>integration</module>
-    <module>microbench</module>
-    <module>minicluster</module>
-    <module>job</module>
-    <module>shaded</module>
-    <module>shell</module>
-    <module>stress</module>
-    <module>table</module>
-    <module>tests</module>
-    <module>underfs</module>
+    <module>common</module>
+    <module>dora</module>
     <module>webui</module>
   </modules>
 
@@ -1384,7 +1374,7 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
             <configuration>
-              <source>8</source>
+              <source>11</source>
             </configuration>
           </plugin>
           <plugin>
