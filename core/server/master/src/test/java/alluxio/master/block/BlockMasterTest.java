@@ -42,8 +42,8 @@ import alluxio.master.AlwaysPrimaryPrimarySelector;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
+import alluxio.master.WorkerState;
 import alluxio.master.block.meta.MasterWorkerInfo;
-import alluxio.master.block.meta.WorkerState;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.metrics.MetricsMaster;
@@ -113,7 +113,6 @@ public class BlockMasterTest {
   private MasterRegistry mRegistry;
   private ManualClock mClock;
   private ExecutorService mExecutorService;
-  private ExecutorService mClientExecutorService;
   private MetricsMaster mMetricsMaster;
   private List<Metric> mMetrics;
 
