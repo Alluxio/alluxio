@@ -35,6 +35,11 @@ public final class LightThreadSleeper implements Sleeper {
     mClock = Clock.systemUTC();
   } // Use ThreadSleeper.INSTANCE instead.
 
+  /**
+   * Creates a new instance of {@link LightThreadSleeper}.
+   * @param internalSleeper the internal sleeper
+   * @param clock for telling the current time
+   */
   @VisibleForTesting
   public LightThreadSleeper(Sleeper internalSleeper, Clock clock) {
     mInternalSleeper = internalSleeper;
