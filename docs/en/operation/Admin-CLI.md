@@ -411,7 +411,7 @@ $ ./bin/alluxio fsadmin decommissionWorker --addresses data-worker-0,data-worker
 ```
 The arguments are explained as follows:
 
-`--address/-a` is a required argument, followed by a list of comma-separated worker addresses. Each worker address is <host>:<web port>.
+`--address/-a` is a required argument, followed by a list of comma-separated worker addresses. Each worker address is `<host>:<web port>`.
 Unlike many other commands which specify the RPC port, we use the web port here because the command will monitor the worker's workload
 exposed at the web port. If the port is not specified, the value in `alluxio.worker.web.port` will be used. Note that `alluxio.worker.web.port`
 will be resolved from the node where this command is run.
@@ -501,7 +501,7 @@ data-worker-0      DECOMMISSIONED   2                capacity      10.67GB      
                                                      used          0B (0%)
 data-worker-2      ACTIVE           0                capacity      10.67GB          2.9.0            abcde
                                                      used          0B (0%)
-                                                     
+
 # Then you can restart the decommissioned workers. The workers will start normally and join the cluster.
 $ ssh data-worker-0
 $ ./bin/alluxio-start.sh worker
@@ -527,11 +527,12 @@ $ bin/alluxio runTests --workers data-worker-0,data-worker-1
 This command is idempotent and can be retried, but the admin is advised to manually check if there's an error. 
 
 The return codes have different meanings:
-0(OK): All workers are successfully decommissioned and now idle. Safe to kill or restart this batch of workers now.
-1(DECOMMISSION_FAILED): Failed to decommission all workers. The admin should double check the worker addresses and the primary master status.
-2(LOST_MASTER_CONNECTION): Lost connection to the primary master while this command is running. This suggests the configured master address is wrong or the primary master failed over.
-3(WORKERS_NOT_IDLE): Some workers were still not idle after the wait. Either the wait time is too short or those workers failed to mark decommissioned. The admin should manually intervene and check those workers.
-10(LOST_SOME_WORKERS): Workers are decommissioned but some or all workers lost contact while this command is running. If a worker is not serving then it is safe to kill or restart. But the admin is advised to double check the status of those workers.
+
+1. `0(OK)`: All workers are successfully decommissioned and now idle. Safe to kill or restart this batch of workers now.
+2. `1(DECOMMISSION_FAILED)`: Failed to decommission all workers. The admin should double check the worker addresses and the primary master status.
+3. `2(LOST_MASTER_CONNECTION)`: Lost connection to the primary master while this command is running. This suggests the configured master address is wrong or the primary master failed over.
+4. `3(WORKERS_NOT_IDLE)`: Some workers were still not idle after the wait. Either the wait time is too short or those workers failed to mark decommissioned. The admin should manually intervene and check those workers.
+5. `10(LOST_SOME_WORKERS)`: Workers are decommissioned but some or all workers lost contact while this command is running. If a worker is not serving then it is safe to kill or restart. But the admin is advised to double check the status of those workers.
 
 ### enableWorker
 
