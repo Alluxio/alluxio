@@ -12,6 +12,8 @@
 package alluxio.underfs.obs;
 
 import com.obs.services.ObsClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
@@ -19,6 +21,7 @@ import java.util.Map;
  * An extension of ObsClient to support config.
  */
 public class ObsClientExt extends ObsClient {
+  private static final Logger LOG = LoggerFactory.getLogger(ObsClientExt.class);
 
   /**
    * Construct obs client.
@@ -34,6 +37,7 @@ public class ObsClientExt extends ObsClient {
     for (Map.Entry<String, Object> entry : conf.entrySet()) {
       obsProperties.setProperty(entry.getKey(),
           entry.getValue() == null ? null : entry.getValue().toString());
+      LOG.debug("Set obs client conf: {}={}", entry.getKey(), entry.getValue());
     }
   }
 }
