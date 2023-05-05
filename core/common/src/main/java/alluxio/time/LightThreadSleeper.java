@@ -15,6 +15,7 @@ import alluxio.Constants;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import java.time.Clock;
 import java.time.Duration;
 import java.util.function.Supplier;
 
@@ -27,14 +28,17 @@ public final class LightThreadSleeper implements Sleeper {
   public static final LightThreadSleeper INSTANCE = new LightThreadSleeper();
 
   private final Sleeper mInternalSleeper;
+  private final Clock mClock;
 
   private LightThreadSleeper() {
     mInternalSleeper = ThreadSleeper.INSTANCE;
+    mClock = Clock.systemUTC();
   } // Use ThreadSleeper.INSTANCE instead.
 
   @VisibleForTesting
-  public LightThreadSleeper(Sleeper internalSleeper) {
+  public LightThreadSleeper(Sleeper internalSleeper, Clock clock) {
     mInternalSleeper = internalSleeper;
+    mClock = clock;
   }
 
   @Override
@@ -52,10 +56,10 @@ public final class LightThreadSleeper implements Sleeper {
       sleep(duration);
       return;
     }
-    long startSleepMs = System.currentTimeMillis();
+    long startSleepMs = mClock.millis();
     long sleepTo = startSleepMs + duration.toMillis();
     long timeNow;
-    while ((timeNow = System.currentTimeMillis()) < sleepTo) {
+    while ((timeNow = mClock.millis()) < sleepTo) {
       // TODO(baoloongmao): Make sure we need to config it.
       mInternalSleeper.sleep(Duration.ofMillis(sleepTo - timeNow > LIGHT_SLEEP_INTERVAL_MS
           ? LIGHT_SLEEP_INTERVAL_MS : sleepTo - timeNow));
