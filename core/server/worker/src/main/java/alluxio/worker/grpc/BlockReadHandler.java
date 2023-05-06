@@ -464,12 +464,20 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
         }
         continue;
       }
-      if (error != null) {
+      if (eof || cancel || error != null) {
         try {
           completeRequest(mContext, false);
         } catch (Exception e) {
-          LOG.error("Failed to close the request.", e);
+          if (error != null) {
+            LOG.error("Failed to close the request.", e);
+          } else {
+            LogUtils.warnWithException(LOG, "Exception occurred while completing read request, "
+                            + "EOF/CANCEL sessionId: {}. {}", mContext.getRequest().getSessionId(),
+                    mContext.getRequest(), e);
+            error = new Error(AlluxioStatusException.fromThrowable(e), true);
+          }
         }
+<<<<<<< HEAD
         replyError(error);
       } else if (eof || cancel) {
         try {
@@ -482,11 +490,30 @@ public class BlockReadHandler implements StreamObserver<alluxio.grpc.ReadRequest
           setError(new Error(AlluxioStatusException.fromThrowable(e), true));
         }
         if (eof) {
+||||||| parent of f575e4fab5 (Fix the active rpc metrics)
+        replyError(error);
+      } else if (eof || cancel) {
+        try {
+          completeRequest(mContext);
+        } catch (Exception e) {
+          LogUtils.warnWithException(LOG, "Exception occurred while completing read request, "
+                  + "EOF/CANCEL sessionId: {}. {}", mContext.getRequest().getSessionId(),
+              mContext.getRequest(), e);
+          setError(new Error(AlluxioStatusException.fromThrowable(e), true));
+        }
+        if (eof) {
+=======
+        if (error != null) {
+          replyError(error);
+        } else if (eof) {
+>>>>>>> f575e4fab5 (Fix the active rpc metrics)
           replyEof();
-        } else {
+        } else if (cancel) {
           replyCancel();
         }
       }
+      // Leave `!mResponse.isReady() && tooManyPendingChunks()` unhandled
+      // since the reader is not finished in that case and needs more rounds
     }
 
     /**
