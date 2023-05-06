@@ -73,6 +73,7 @@ public class BlockWorkerClientPool extends DynamicResourcePool<BlockWorkerClient
   protected UserState getUserState() {
     return mUserState;
   }
+
   protected GrpcServerAddress getAddress() {
     return mAddress;
   }
