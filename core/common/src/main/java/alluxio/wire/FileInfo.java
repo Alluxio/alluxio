@@ -703,7 +703,7 @@ public final class FileInfo implements Serializable {
         .add("defaultAcl", mDefaultAcl.toString())
         .add("xattr", "[" + (mXAttr == null ? null : mXAttr.entrySet().stream()
             .map(entry -> entry.getKey() + ":"
-                + new String(entry.getValue() == null ? null : entry.getValue()))
+                + (entry.getValue() == null ? null : new String(entry.getValue())))
             .collect(Collectors.joining(", "))) + "]")
         .toString();
   }
