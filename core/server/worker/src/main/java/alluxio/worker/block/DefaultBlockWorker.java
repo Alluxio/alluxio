@@ -48,6 +48,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.ServerUserState;
+import alluxio.util.CommonUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.FileUtils;
 import alluxio.wire.FileInfo;
@@ -128,7 +129,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   private final FuseManager mFuseManager;
 
   protected WorkerNetAddress mAddress;
-  private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
   AtomicReference<metrictable> mMetricTable;
 
   /**
@@ -167,7 +167,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mWhitelist = new PrefixList(Configuration.getList(PropertyKey.WORKER_WHITELIST));
 
     mMetricTable = new AtomicReference<>(new metrictable());
-    executor.scheduleAtFixedRate(this::MaintainMetricTable, 0, 1, TimeUnit.SECONDS);
 
     Metrics.registerGauges(this);
   }
@@ -354,21 +353,29 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     return mHeartbeatReporter.generateReportAndClear();
   }
 
-  @Override
-  public BlockStoreMeta getStoreMeta() {
-    return mBlockStore.getBlockStoreMeta();
-  }
-
   public void MaintainMetricTable() {
-    BlockStoreMeta meta = mBlockStore.getBlockStoreMeta();
+    BlockStoreMeta meta = mBlockStore.getBlockStoreMetaFull();
     metrictable metrictable = mMetricTable.get();
     metrictable.capacityBytes = meta.getCapacityBytes();
     metrictable.usedBytes = meta.getUsedBytes();
     metrictable.capacityFree = metrictable.capacityBytes - metrictable.usedBytes;
+    metrictable.mCapacityBytesOnTiers = meta.getCapacityBytesOnTiers();
+    metrictable.mUsedBytesOnTiers = meta.getCapacityBytesOnTiers();
+    for (int i = 0; i < WORKER_STORAGE_TIER_ASSOC.size(); i++) {
+      String tier = WORKER_STORAGE_TIER_ASSOC.getAlias(i);
+      metrictable.mFreeBytesOnTiers.replace(tier, metrictable.mCapacityBytesOnTiers.getOrDefault(tier, 0L) - metrictable.mUsedBytesOnTiers.getOrDefault(tier, 0L));
+    }
+    metrictable.mNumberOfBlocks = meta.getNumberOfBlocks();
   }
 
+  @Override
   public AtomicReference<metrictable> getMetricTable() {
     return mMetricTable;
+  }
+
+  @Override
+  public BlockStoreMeta getStoreMeta() {
+    return mBlockStore.getBlockStoreMeta();
   }
 
   @Override
@@ -541,68 +548,85 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     public static final Counter WORKER_ACTIVE_CLIENTS =
         MetricsSystem.counter(MetricKey.WORKER_ACTIVE_CLIENTS.getName());
 
+    volatile static long mLastMetricsUpdateMs = CommonUtils.getCurrentMs();
+
+    public static void maybeUpdateMetrics(Runnable func) {
+      long now = CommonUtils.getCurrentMs();
+      // This '1000' should be replaced by metric interval from conf
+      if (now - mLastMetricsUpdateMs > 1000) {
+        mLastMetricsUpdateMs = now;
+        func.run();
+      }
+    }
+
     /**
      * Registers metric gauges.
      *
      * @param blockWorker the block worker handle
      */
-    public static void registerGauges(AtomicReference<metrictable> metrictable) {
+    public static void registerGauges(BlockWorker blockWorker) {
+      AtomicReference<metrictable> m = blockWorker.getMetricTable();
       MetricsSystem.registerGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.WORKER_CAPACITY_TOTAL.getName()),
-          () -> metrictable.get().getCapacityBytes());
+          () -> {
+            maybeUpdateMetrics(() -> blockWorker.MaintainMetricTable());
+            m.get().getCapacityBytes();
+            return null;
+          });
 
       MetricsSystem.registerGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.WORKER_CAPACITY_USED.getName()),
-          () -> metrictable.get().getUsedBytes());
+          () -> {
+            maybeUpdateMetrics(() -> blockWorker.MaintainMetricTable());
+            m.get().getUsedBytes();
+            return null;
+          });
 
       MetricsSystem.registerGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.WORKER_CAPACITY_FREE.getName()),
-          () -> metrictable.get().getCapacityFree());
+          () -> {
+            maybeUpdateMetrics(() -> blockWorker.MaintainMetricTable());
+            m.get().getCapacityFree();
+            return null;
+          });
 
       for (int i = 0; i < WORKER_STORAGE_TIER_ASSOC.size(); i++) {
         String tier = WORKER_STORAGE_TIER_ASSOC.getAlias(i);
         // TODO(lu) Add template to dynamically generate MetricKey
         MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
             MetricKey.WORKER_CAPACITY_TOTAL.getName() + MetricInfo.TIER + tier),
-            () -> blockWorker.getStoreMeta().getCapacityBytesOnTiers().getOrDefault(tier, 0L));
+            () -> {
+              maybeUpdateMetrics(() -> blockWorker.MaintainMetricTable());
+              m.get().getCapacityBytesOnTiers().getOrDefault(tier, 0L);
+              return null;
+            });
 
         MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
             MetricKey.WORKER_CAPACITY_USED.getName() + MetricInfo.TIER + tier),
-            () -> blockWorker.getStoreMeta().getUsedBytesOnTiers().getOrDefault(tier, 0L));
+            () -> {
+              maybeUpdateMetrics(() -> blockWorker.MaintainMetricTable());
+              m.get().getUsedBytesOnTiers().getOrDefault(tier, 0L);
+              return null;
+            });
 
         MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
             MetricKey.WORKER_CAPACITY_FREE.getName() + MetricInfo.TIER + tier),
-            () -> blockWorker.getStoreMeta().getCapacityBytesOnTiers().getOrDefault(tier, 0L)
-                - blockWorker.getStoreMeta().getUsedBytesOnTiers().getOrDefault(tier, 0L));
+            () -> {
+              maybeUpdateMetrics(() -> blockWorker.MaintainMetricTable());
+              m.get().getFreeBytesOnTiers().getOrDefault(tier, 0L);
+              return null;
+            });
       }
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
           MetricKey.WORKER_BLOCKS_CACHED.getName()),
-          () -> blockWorker.getStoreMetaFull().getNumberOfBlocks());
+          () -> {
+            maybeUpdateMetrics(() -> blockWorker.MaintainMetricTable());
+            m.get().getNumberOfBlocks();
+            return null;
+          });
     }
 
     private Metrics() {} // prevent instantiation
-  }
-
-  /**
-   * {@link }
-   * MaintainMetricTable
-   */
-  public class metrictable {
-    long capacityBytes;
-    long usedBytes;
-    long capacityFree;
-
-    public long getCapacityBytes() {
-      return capacityBytes;
-    }
-
-    public long getUsedBytes() {
-      return usedBytes;
-    }
-
-    public long getCapacityFree() {
-      return capacityFree;
-    }
   }
 
   /**
