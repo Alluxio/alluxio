@@ -31,8 +31,7 @@ public class GrpcChannelBuilder {
   private GrpcNetworkGroup mNetworkGroup = GrpcNetworkGroup.RPC;
 
   private GrpcChannelBuilder(GrpcServerAddress address, AlluxioConfiguration conf) {
-    this(address, conf,
-      conf.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class));
+    this(address, conf, conf.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class));
   }
 
   private GrpcChannelBuilder(GrpcServerAddress address, AlluxioConfiguration conf,
