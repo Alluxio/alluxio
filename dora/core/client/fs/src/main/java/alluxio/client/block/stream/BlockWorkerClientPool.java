@@ -17,7 +17,6 @@ import alluxio.grpc.GrpcServerAddress;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.DynamicResourcePool;
-import alluxio.security.authentication.AuthType;
 import alluxio.security.user.UserState;
 import alluxio.util.ThreadFactoryUtils;
 
