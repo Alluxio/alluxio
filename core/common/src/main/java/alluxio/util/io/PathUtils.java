@@ -445,6 +445,18 @@ public final class PathUtils {
     return path.endsWith(separator) ? path : path + separator;
   }
 
+  /**
+   * Concatenates the in-Alluxio path to the base UFS URI to generate the in-UFS URI for the file.
+   *
+   * @param ufsBaseUri the base {@link AlluxioURI} in the ufs
+   * @param alluxioPath the path in Alluxio from the given base
+   * @return the UFS {@link AlluxioURI} representing the Alluxio path
+   */
+  public static AlluxioURI resolveUfsUri(AlluxioURI ufsBaseUri, String alluxioPath) {
+    return new AlluxioURI(ufsBaseUri, PathUtils.concatPath(ufsBaseUri.getPath(), alluxioPath),
+      false);
+  }
+
   private PathUtils() {} // prevent instantiation
 
   /**
