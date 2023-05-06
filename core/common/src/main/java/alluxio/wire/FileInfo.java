@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -700,6 +701,10 @@ public final class FileInfo implements Serializable {
         .add("ufsFingerprint", mUfsFingerprint)
         .add("acl", mAcl.toString())
         .add("defaultAcl", mDefaultAcl.toString())
+        .add("xattr", "[" + (mXAttr == null ? null : mXAttr.entrySet().stream()
+            .map(entry -> entry.getKey() + ":"
+                + new String(entry.getValue() == null ? null : entry.getValue()))
+            .collect(Collectors.joining(", "))) + "]")
         .toString();
   }
 }
