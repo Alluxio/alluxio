@@ -411,7 +411,7 @@ $ ./bin/alluxio fsadmin decommissionWorker --addresses data-worker-0,data-worker
 ```
 The arguments are explained as follows:
 
-`--address/-a` is a required argument, followed by a list of comma-separated worker addresses. Each worker address is `<host>:<web port>`.
+`--addresses/-a` is a required argument, followed by a list of comma-separated worker addresses. Each worker address is `<host>:<web port>`.
 Unlike many other commands which specify the RPC port, we use the web port here because the command will monitor the worker's workload
 exposed at the web port. If the port is not specified, the value in `alluxio.worker.web.port` will be used. Note that `alluxio.worker.web.port`
 will be resolved from the node where this command is run.
@@ -435,14 +435,26 @@ The command will perform the following actions:
    they may submit more I/O requests to those workers, and those requests should execute normally.
 3. Get the active worker list from the master after waiting, and verify the target workers are not active anymore.
 4. Wait for the workers to become idle. This command will constantly check the idleness status on each worker.
+   A worker is considered "idle" if it is not actively serving RPCs(including control RPCs and data I/O).
 5. Either all workers have become idle, or the specified timeout expires, this command will return.
+
+A worker is considered "idle" if it is not actively serving RPCs(including control RPCs and data I/O).
+The `decommissionWorker` command stops all clients from using those workers, and waits for all ongoing requests to complete.
+The command waits for those all clients to stop using those workers, and waits for those workers to become idle,
+so when this command returns success(exit code 0), it is safe for the admin to kill/restart those worker processes.
+The primary Alluxio master maintains a list of available Alluxio workers, and all Alluxio components(including Proxy, Job Master/Job Worker and Client)
+will regularly refresh this list with the primary master. The refresh interval is defined by `alluxio.user.worker.list.refresh.interval`.
+So after those workers are taken off the available list, after another refresh interval has elapsed,
+and after all ongoing requests have been served, those workers should not receive any more requests.
+Therefore, no matter when the admin restarts/kills those worker processes, that should not fail any requests.
+However, there are a few exceptions. See the next section for more details.
 
 See [Rolling Upgrade Workers]({{ '/en/administration/Upgrade.html#rolling-upgraderestart-workers' | relativize_url }}) for how this command is used.
 
 **Limitations**
-
-In some cases, the `decommissionWorker` command may return code 0 (success) but when a worker process is killed,
-some user I/O may fail.
+ 
+This has some limitations. In some cases, the `decommissionWorker` command may return code 0 (success)
+but when the worker process is killed, some user I/O requests may fail.
 
 When the `decommissionWorker` command waits for a worker to become idle, it only respects ongoing I/O requests on the worker.
 If the Alluxio client is reading/writing the worker with short circuit, the client directly reads/writes cache files
@@ -471,14 +483,16 @@ The return codes have different meanings:
 
 ### enableWorker
 
-The `enableWorker` command is the reverse operation of `decommissionWorker -d`.
+The `enableWorker` command is the reverse operation of `decommissionWorker -d`. The `decommissionWorker -d` command will
+decommission workers and not disable them from re-registering to the cluster. The `enableWorker` command will
+enable those workers to re-register to the cluster and serve again.
 
 ```shell
 # Decommission 2 workers and disable them from joining the cluster again even if they restart
 $ ./bin/alluxio fsadmin decommissionWorker --addresses data-worker-0,data-worker-1 --disable
 
 # data-worker-0 and data-worker-1 will not be able to register to the master after they restart
-$ ./bin/alluxio-start.sh workers
+$ ./bin/alluxio-start.sh workers # This should show an error status
 
 # The admin regrets and wants to bring one of them back to the cluster
 $ ./bin/alluxio fsadmin enableWorker --addresses data-worker-1
