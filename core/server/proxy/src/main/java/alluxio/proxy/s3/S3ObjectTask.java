@@ -667,11 +667,21 @@ public class S3ObjectTask extends S3BaseTask {
         throw new S3Exception("Copying an object to itself invalid.",
             targetPath, S3ErrorCode.INVALID_REQUEST);
       }
+      URIStatus status;
+      try {
+        status = userFs.getStatus(new AlluxioURI(sourcePath));
+      }  catch (Exception e) {
+        throw S3RestUtils.toObjectS3Exception(e, targetPath, auditContext);
+      }
+      final String range = mHandler.getHeaderOrDefault(S3Constants.S3_COPY_SOURCE_RANGE, null);
+      S3RangeSpec s3Range = S3RangeSpec.Factory.create(range);
       try (FileInStream in = userFs.openFile(new AlluxioURI(sourcePath));
+           RangeFileInStream ris = RangeFileInStream.Factory.create(in, status.getLength(),
+               s3Range);
            FileOutStream out = userFs.createFile(objectUri, copyFilePOption)) {
         MessageDigest md5 = MessageDigest.getInstance("MD5");
         try (DigestOutputStream digestOut = new DigestOutputStream(out, md5)) {
-          IOUtils.copyLarge(in, digestOut, new byte[8 * Constants.MB]);
+          IOUtils.copyLarge(ris, digestOut, new byte[8 * Constants.MB]);
           byte[] digest = md5.digest();
           String entityTag = Hex.encodeHexString(digest);
           // persist the ETag via xAttr
