@@ -31,12 +31,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class WorkerNetAddress implements Serializable {
   private static final long serialVersionUID = 0L;
-  private int mSecureRpcPort;
 
   private String mHost = "";
   private String mContainerHost = "";
   private int mRpcPort;
   private int mDataPort;
+  private int mSecureRpcPort;
 
   private int mNettyDataPort;
   private int mWebPort;
