@@ -407,7 +407,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    * @param base the String to look for
    * @return resolved String value
    */
-  private Object lookup(PropertyKey key, final String base) throws UnresolvablePropertyException {
+  protected Object lookup(PropertyKey key, final String base) throws UnresolvablePropertyException {
     return lookupRecursively(key, base, new HashSet<>());
   }
 
@@ -418,7 +418,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    * @param seen strings already seen during this lookup, used to prevent unbound recursion
    * @return the resolved string
    */
-  private Object lookupRecursively(PropertyKey originalKey, String base, Set<String> seen)
+  protected Object lookupRecursively(PropertyKey originalKey, String base, Set<String> seen)
       throws UnresolvablePropertyException {
     // check argument
     if (base == null) {
@@ -662,7 +662,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     }
   }
 
-  private class UnresolvablePropertyException extends Exception {
+  protected class UnresolvablePropertyException extends Exception {
 
     public UnresolvablePropertyException(String msg) {
       super(msg);
