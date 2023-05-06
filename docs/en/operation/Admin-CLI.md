@@ -442,6 +442,7 @@ A worker is considered "idle" if it is not actively serving RPCs(including contr
 The `decommissionWorker` command stops all clients from using those workers, and waits for all ongoing requests to complete.
 The command waits for those all clients to stop using those workers, and waits for those workers to become idle,
 so when this command returns success(exit code 0), it is safe for the admin to kill/restart those worker processes.
+
 The primary Alluxio master maintains a list of available Alluxio workers, and all Alluxio components(including Proxy, Job Master/Job Worker and Client)
 will regularly refresh this list with the primary master. The refresh interval is defined by `alluxio.user.worker.list.refresh.interval`.
 So after those workers are taken off the available list, after another refresh interval has elapsed,
