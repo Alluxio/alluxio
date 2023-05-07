@@ -66,6 +66,13 @@ public interface UserState {
   User relogin() throws UnauthenticatedException;
 
   /**
+   * Use a new user state to update the credentials in the current user state.
+   *
+   * @param otherUserState the new user state for credentials update
+   */
+  default void update(UserState otherUserState) throws java.io.IOException {}
+
+  /**
    * A factory for creating a UserState.
    */
   class Factory {

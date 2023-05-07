@@ -293,7 +293,7 @@ public class FileSystemContext implements Closeable {
    * @param conf Alluxio configuration
    * @param blockWorker block worker
    */
-  private FileSystemContext(AlluxioConfiguration conf, @Nullable BlockWorker blockWorker,
+  protected FileSystemContext(AlluxioConfiguration conf, @Nullable BlockWorker blockWorker,
                             @Nullable List<InetSocketAddress> masterAddresses) {
     mId = IdUtils.createFileSystemContextId();
     mBlockWorker = blockWorker;
@@ -310,7 +310,7 @@ public class FileSystemContext implements Closeable {
    *
    * @param masterInquireClient the client to use for determining the master
    */
-  private synchronized void init(ClientContext clientContext,
+  protected synchronized void init(ClientContext clientContext,
       MasterInquireClient masterInquireClient) {
     initContext(clientContext, masterInquireClient);
     mReinitializer = new FileSystemContextReinitializer(this);
@@ -746,13 +746,17 @@ public class FileSystemContext implements Closeable {
    *
    * @return the info of all block workers
    */
-  private List<BlockWorkerInfo> getAllWorkers() throws IOException {
+  protected List<BlockWorkerInfo> getAllWorkers() throws IOException {
     try (CloseableResource<BlockMasterClient> masterClientResource =
              acquireBlockMasterClientResource()) {
       return masterClientResource.get().getWorkerInfoList().stream()
           .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
           .collect(toList());
     }
+  }
+
+  protected ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool> getBlockWorkerClientPoolMap() {
+    return mBlockWorkerClientPoolMap;
   }
 
   private void initializeLocalWorker() throws IOException {
@@ -827,7 +831,7 @@ public class FileSystemContext implements Closeable {
    * Key for block worker client pools. This requires both the worker address and the username, so
    * that block workers are created for different users.
    */
-  private static final class ClientPoolKey {
+  protected static class ClientPoolKey {
     private final SocketAddress mSocketAddress;
     private final String mUsername;
 

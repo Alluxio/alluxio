@@ -22,7 +22,7 @@ import javax.security.auth.Subject;
  * A gRPC channel builder that authenticates with {@link GrpcServer} at the target during channel
  * building.
  */
-public final class GrpcChannelBuilder {
+public class GrpcChannelBuilder {
   private final GrpcServerAddress mAddress;
   private final AlluxioConfiguration mConfiguration;
 
@@ -31,10 +31,14 @@ public final class GrpcChannelBuilder {
   private GrpcNetworkGroup mNetworkGroup = GrpcNetworkGroup.RPC;
 
   private GrpcChannelBuilder(GrpcServerAddress address, AlluxioConfiguration conf) {
+    this(address, conf, conf.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class));
+  }
+
+  private GrpcChannelBuilder(GrpcServerAddress address, AlluxioConfiguration conf,
+      AuthType authType) {
     mAddress = address;
     mConfiguration = conf;
-    mAuthType =
-        conf.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+    mAuthType = authType;
   }
 
   /**
@@ -47,6 +51,19 @@ public final class GrpcChannelBuilder {
   public static GrpcChannelBuilder newBuilder(GrpcServerAddress address,
       AlluxioConfiguration conf) {
     return new GrpcChannelBuilder(address, conf);
+  }
+
+  /**
+   * Create a channel builder for given address using the given configuration.
+   *
+   * @param address the host address
+   * @param conf Alluxio configuration
+   * @param authType the auth type
+   * @return a new instance of {@link GrpcChannelBuilder}
+   */
+  public static GrpcChannelBuilder newBuilder(GrpcServerAddress address, AlluxioConfiguration conf,
+      AuthType authType) {
+    return new GrpcChannelBuilder(address, conf, authType);
   }
 
   /**
