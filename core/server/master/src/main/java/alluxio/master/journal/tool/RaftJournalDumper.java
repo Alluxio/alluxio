@@ -30,6 +30,7 @@ import org.apache.ratis.server.storage.StorageImplUtils;
 import org.apache.ratis.statemachine.SnapshotInfo;
 import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
 import org.apache.ratis.util.MD5FileUtil;
+import org.apache.ratis.util.SizeInBytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,8 +96,8 @@ public class RaftJournalDumper extends AbstractJournalDumper {
       List<LogSegmentPath> paths = LogSegmentPath.getLogSegmentPaths(storage);
       for (LogSegmentPath path : paths) {
         final int entryCount = LogSegment.readSegmentFile(path.getPath().toFile(),
-                path.getStartEnd(), RaftServerConfigKeys.Log.CorruptionPolicy.EXCEPTION,
-                null, (proto) -> {
+                path.getStartEnd(), SizeInBytes.valueOf(Integer.MAX_VALUE),
+                RaftServerConfigKeys.Log.CorruptionPolicy.EXCEPTION, null, (proto) -> {
               if (proto.hasStateMachineLogEntry()) {
                 try {
                   Journal.JournalEntry entry = Journal.JournalEntry.parseFrom(
