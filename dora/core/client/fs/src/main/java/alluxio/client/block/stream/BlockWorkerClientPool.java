@@ -36,7 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * when the thread is done using the client.
  */
 @ThreadSafe
-public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorkerClient> {
+public class BlockWorkerClientPool extends DynamicResourcePool<BlockWorkerClient> {
   private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerClientPool.class);
   private final UserState mUserState;
   private final GrpcServerAddress mAddress;
@@ -67,6 +67,14 @@ public final class BlockWorkerClientPool extends DynamicResourcePool<BlockWorker
     mAddress = address;
     Objects.requireNonNull(alluxioConf);
     mConf = alluxioConf;
+  }
+
+  protected UserState getUserState() {
+    return mUserState;
+  }
+
+  protected GrpcServerAddress getAddress() {
+    return mAddress;
   }
 
   @Override

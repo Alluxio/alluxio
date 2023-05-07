@@ -86,6 +86,10 @@ public class DoraCacheClient {
     return new PositionReadFileInStream(reader, status.getLength());
   }
 
+  protected long getChunkSize() {
+    return mChunkSize;
+  }
+
   /**
    * @param status
    * @param ufsOptions
@@ -101,7 +105,7 @@ public class DoraCacheClient {
     return new DoraCachePositionReader(reader, status.getLength(), externalPositionReader);
   }
 
-  private GrpcDataReader.Factory createGrpcDataReader(
+  protected GrpcDataReader.Factory createGrpcDataReader(
       WorkerNetAddress workerNetAddress,
       Protocol.OpenUfsBlockOptions ufsOptions) {
     ReadRequest.Builder builder = ReadRequest.newBuilder()
@@ -156,7 +160,7 @@ public class DoraCacheClient {
     return getStatusByGrpc(path, options);
   }
 
-  private URIStatus getStatusByGrpc(String path, GetStatusPOptions options) {
+  protected URIStatus getStatusByGrpc(String path, GetStatusPOptions options) {
     try (CloseableResource<BlockWorkerClient> client =
              mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
       GetStatusPRequest request = GetStatusPRequest.newBuilder()
