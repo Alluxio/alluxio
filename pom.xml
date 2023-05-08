@@ -285,12 +285,7 @@
         <artifactId>java-xmlbuilder</artifactId>
         <version>1.3</version>
       </dependency>
-      <dependency>
-        <groupId>com.salesforce.servicelibs</groupId>
-        <artifactId>proto-backwards-compatibility</artifactId>
-        <version>1.0.7</version>
-      </dependency>
-      <dependency>
+       <dependency>
         <groupId>com.sun.xml.bind</groupId>
         <artifactId>jaxb-impl</artifactId>
         <version>${jaxb.version}</version>
