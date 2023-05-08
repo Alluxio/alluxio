@@ -157,7 +157,7 @@ public interface UfsManager extends Closeable {
    * @param factory factory to be registered
    */
   void registerUfsServiceFactory(Class<? extends UfsService> serviceType,
-      UfsServiceFactory factory);
+      UfsServiceFactory factory) {}
 
   /**
    * Gets UFS service from the manager if this mount ID exists, or throws exception otherwise.
@@ -169,6 +169,7 @@ public interface UfsManager extends Closeable {
    * @throws NotFoundException if mount id is not found in mount table
    * @throws UnavailableException if master is not available to query for mount table
    */
-  <T extends UfsService> T getUfsService(long mountId, Class<T> serviceType);
-  // ALLUXIO CS END
+  <T extends UfsService> T getUfsService(long mountId, Class<T> serviceType) {
+    return null;
+  }
 }
