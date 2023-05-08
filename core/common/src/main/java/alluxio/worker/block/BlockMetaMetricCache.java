@@ -2,39 +2,68 @@ package alluxio.worker.block;
 
 import java.util.Map;
 
+/**
+ * The BlockMetaMetricCache cache the metric data of the BlockMeta from the BlockWorker.
+ *
+ * So the BlockWorker can pass this MetricCache to registerGauge instead of let registerGauge
+ * copy a whole BlockMeta everytime updating the metrics.
+ */
 public class BlockMetaMetricCache {
-    long mCapacityBytes;
-    long mUsedBytes;
-    long mCapacityFree;
+  long mCapacityBytes;
+  long mUsedBytes;
+  long mCapacityFree;
 
-    Map<String, Long> mCapacityBytesOnTiers;
-    Map<String, Long> mUsedBytesOnTiers;
-    Map<String, Long> mFreeBytesOnTiers;
-    int mNumberOfBlocks;
+  Map<String, Long> mCapacityBytesOnTiers;
+  Map<String, Long> mUsedBytesOnTiers;
+  Map<String, Long> mFreeBytesOnTiers;
+  int mNumberOfBlocks;
 
-    public long getCapacityBytes() {
-      return mCapacityBytes;
-    }
+  /**
+   * @return the capacityBytes
+   */
+  public long getCapacityBytes() {
+    return mCapacityBytes;
+  }
 
-    public long getUsedBytes() {
-      return mUsedBytes;
-    }
+  /**
+   * @return the usedBytes
+   */
+  public long getUsedBytes() {
+    return mUsedBytes;
+  }
 
-    public long getCapacityFree() {
-      return mCapacityFree;
-    }
-    public Map<String, Long> getCapacityBytesOnTiers() {
-      return mCapacityBytesOnTiers;
-    }
+  /**
+   * @return the freeCapacityBytes
+   */
+  public long getCapacityFree() {
+    return mCapacityFree;
+  }
 
-    public Map<String, Long> getUsedBytesOnTiers() {
-      return mUsedBytesOnTiers;
-    }
+  /**
+   * @return the tierCapacityBytes map
+   */
+  public Map<String, Long> getCapacityBytesOnTiers() {
+    return mCapacityBytesOnTiers;
+  }
 
-    public Map<String, Long> getFreeBytesOnTiers() {
-      return mFreeBytesOnTiers;
-    }
-    public int getNumberOfBlocks() {
-      return mNumberOfBlocks;
-    }
+  /**
+   * @return the tierUsedBytes map
+   */
+  public Map<String, Long> getUsedBytesOnTiers() {
+    return mUsedBytesOnTiers;
+  }
+
+  /**
+   * @return the tierFreeBytes map
+   */
+  public Map<String, Long> getFreeBytesOnTiers() {
+    return mFreeBytesOnTiers;
+  }
+
+  /**
+   * @return the numberOfBlocks
+   */
+  public int getNumberOfBlocks() {
+    return mNumberOfBlocks;
+  }
 }
