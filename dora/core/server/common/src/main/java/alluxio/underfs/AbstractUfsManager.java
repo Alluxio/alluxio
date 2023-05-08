@@ -50,7 +50,7 @@ public abstract class AbstractUfsManager implements UfsManager {
     private final String mAuthority;
     private final Map<String, Object> mProperties;
 
-    Key(AlluxioURI uri, Map<String, Object> properties) {
+    protected Key(AlluxioURI uri, Map<String, Object> properties) {
       mScheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase();
       mAuthority = uri.getAuthority().toString().toLowerCase();
       mProperties = (properties == null || properties.isEmpty()) ? null : properties;
@@ -124,6 +124,14 @@ public abstract class AbstractUfsManager implements UfsManager {
 
   protected Key generateKey(AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf) {
     return new Key(ufsUri, ufsConf.getMountSpecificConf());
+  }
+
+  protected UfsClient getRootUfsClient() {
+    return mRootUfsClient;
+  }
+
+  protected void setRootUfsClient(UfsClient ufsClient) {
+    mRootUfsClient = ufsClient;
   }
 
   /**
