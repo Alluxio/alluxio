@@ -126,14 +126,6 @@ public abstract class AbstractUfsManager implements UfsManager {
     return new Key(ufsUri, ufsConf.getMountSpecificConf());
   }
 
-  protected UfsClient getRootUfsClient() {
-    return mRootUfsClient;
-  }
-
-  protected void setRootUfsClient(UfsClient ufsClient) {
-    mRootUfsClient = ufsClient;
-  }
-
   /**
    * Return a UFS instance if it already exists in the cache, otherwise, creates a new instance and
    * return it and record the execution process.
