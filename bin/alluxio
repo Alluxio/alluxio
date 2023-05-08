@@ -28,6 +28,7 @@ function printUsage {
   echo -e "  runClass      \t Run the main method of an Alluxio class."
   echo -e "  runTest       \t Run an end-to-end test on an Alluxio cluster."
   echo -e "  runTests      \t Run all end-to-end tests on an Alluxio cluster."
+  echo -e "  runAlluxioTests\t Run all end-to-end tests on an Alluxio cluster."
   echo -e "  runHmsTests   \t Test the integration between Alluxio and the target hive metastore. Try 'alluxio runHmsTests -h' for more help."
   echo -e "                \t NOTE: This command requires valid hive metastore uris to run tests against."
   echo -e "  runHdfsMountTests\t Test the integration between Alluxio and the target HDFS path. "
@@ -319,6 +320,12 @@ function main {
   ;;
   "runTests")
     CLASS="alluxio.cli.TestRunner"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+    runJavaClass "$@"
+  ;;
+  "runAlluxioTests")
+    CLASS="alluxio.cli.AlluxioTests"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
