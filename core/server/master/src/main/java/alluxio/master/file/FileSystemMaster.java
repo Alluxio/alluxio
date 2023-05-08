@@ -24,8 +24,13 @@ import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.CancelSyncMetadataPResponse;
+import alluxio.grpc.GetSyncProgressPResponse;
 import alluxio.grpc.SetAclAction;
+import alluxio.grpc.SyncMetadataAsyncPResponse;
+import alluxio.grpc.SyncMetadataPResponse;
 import alluxio.master.Master;
 import alluxio.master.file.contexts.CheckAccessContext;
 import alluxio.master.file.contexts.CheckConsistencyContext;
@@ -42,6 +47,7 @@ import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
+import alluxio.master.file.contexts.SyncMetadataContext;
 import alluxio.master.file.contexts.WorkerHeartbeatContext;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
@@ -635,4 +641,37 @@ public interface FileSystemMaster extends Master {
    * @param path the path to invalidate
    */
   void needsSync(AlluxioURI path) throws InvalidPathException;
+
+  /**
+   * Syncs the metadata of a given path.
+   *
+   * @param path the path to sync
+   * @param context the method context
+   * @return the sync metadata response
+   */
+  SyncMetadataPResponse syncMetadata(AlluxioURI path, SyncMetadataContext context)
+      throws InvalidPathException, IOException;
+
+  /**
+   * Submits a metadata sync task and runs it async.
+   * @param path the path to sync
+   * @param context the method context
+   * @return the sync metadata async response
+   */
+  SyncMetadataAsyncPResponse syncMetadataAsync(AlluxioURI path, SyncMetadataContext context)
+      throws InvalidPathException, IOException;
+
+  /**
+   * Gets a metadata sync task progress.
+   * @param taskId the task id
+   * @return the sync progress
+   */
+  GetSyncProgressPResponse getSyncProgress(long taskId);
+
+  /**
+   * Cancels an ongoing metadata sync.
+   * @param taskId the task id
+   * @return the cancel sync metadata response
+   */
+  CancelSyncMetadataPResponse cancelSyncMetadata(long taskId) throws NotFoundException;
 }

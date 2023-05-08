@@ -2586,6 +2586,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_METASTORE_ACL_NEW =
+      booleanBuilder(Name.MASTER_METASTORE_ACL_NEW)
+          .setDefaultValue(true)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_METASTORE_DIR_INODE =
       stringBuilder(Name.MASTER_METASTORE_DIR_INODE)
           .setDefaultValue(String.format("${%s}", Name.MASTER_METASTORE_DIR))
@@ -2673,6 +2678,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "to total cache size. If this is 0.8 and the max size is 10 million, the low "
               + "water mark value is 8 million. When the cache reaches the high "
               + "water mark, the eviction process will evict down to the low water mark.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_METASTORE_INODE_CACHE_BASIC =
+      intBuilder(Name.MASTER_METASTORE_INODE_CACHE_BASIC)
+          .setDefaultValue(0)
+          .setDescription("If true will use a basic cache that only store inodes"
+              + "with all edges being stored on RocksDB")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
@@ -2981,22 +2994,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       intBuilder(Name.MASTER_LOCK_POOL_INITSIZE)
           .setDefaultValue(1000)
           .setDescription("Initial size of the lock pool for master inodes.")
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_LOCK_POOL_LOW_WATERMARK =
-      intBuilder(Name.MASTER_LOCK_POOL_LOW_WATERMARK)
-          .setDefaultValue(500000)
-          .setDescription("Low watermark of lock pool size. "
-              + "When the size grows over the high watermark, a background thread will try to "
-              + "evict unused locks until the size reaches the low watermark.")
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_LOCK_POOL_HIGH_WATERMARK =
-      intBuilder(Name.MASTER_LOCK_POOL_HIGH_WATERMARK)
-          .setDefaultValue(1000000)
-          .setDescription("High watermark of lock pool size. "
-              + "When the size grows over the high watermark, a background thread starts evicting "
-              + "unused locks from the pool.")
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_LOCK_POOL_CONCURRENCY_LEVEL =
@@ -3683,22 +3680,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Initial size of the lock pool for master metadata sync.")
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_METADATA_SYNC_LOCK_POOL_LOW_WATERMARK =
-      intBuilder(Name.MASTER_METADATA_SYNC_LOCK_POOL_LOW_WATERMARK)
-          .setDefaultValue(20_000)
-          .setDescription("Low watermark of metadata sync lock pool size. "
-              + "When the size grows over the high watermark, a background thread will try to "
-              + "evict unused locks until the size reaches the low watermark.")
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_METADATA_SYNC_LOCK_POOL_HIGH_WATERMARK =
-      intBuilder(Name.MASTER_METADATA_SYNC_LOCK_POOL_HIGH_WATERMARK)
-          .setDefaultValue(50_000)
-          .setDescription("High watermark of metadata sync lock pool size. "
-              + "When the size grows over the high watermark, a background thread starts evicting "
-              + "unused locks from the pool.")
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_METADATA_SYNC_LOCK_POOL_CONCURRENCY_LEVEL =
       intBuilder(Name.MASTER_METADATA_SYNC_LOCK_POOL_CONCURRENCY_LEVEL)
           .setDefaultValue(20)
@@ -3753,6 +3734,33 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_UFS_CONCURRENT_GET_STATUS =
+      booleanBuilder(Name.MASTER_METADATA_SYNC_UFS_CONCURRENT_GET_STATUS)
+          .setDefaultValue(true)
+          .setDescription("Allows metadata sync operations on single items (i.e. getStatus) "
+              + "operations to run concurrently with metadata sync operations on directories "
+              + "(i.e listings) on intersecting paths.")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_UFS_CONCURRENT_LISTING =
+      booleanBuilder(Name.MASTER_METADATA_SYNC_UFS_CONCURRENT_LISTING)
+          .setDefaultValue(true)
+          .setDescription("Allows non-recursive metadata sync operations directories "
+              + "to run concurrently with recursive metadata sync operations on "
+              + "intersecting paths.")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_UFS_CONCURRENT_LOADS =
+      intBuilder(Name.MASTER_METADATA_SYNC_UFS_CONCURRENT_LOADS)
+          .setDefaultValue(100)
+          .setDescription("The number of concurrently running UFS listing operations "
+              + "during metadata sync. This includes loads that have completed, but "
+              + "have not yet been processed.")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
   // In Java8 in container environment Runtime.availableProcessors() always returns 1,
   // which is not the actual number of cpus, so we set a safe default value 32.
   public static final PropertyKey MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
@@ -3789,6 +3797,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("100ms")
           .setDescription("The timeout for a metadata fetch operation from the UFSes. "
               + "Adjust this timeout according to the expected UFS worst-case response time.")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_UFS_RATE_LIMIT =
+      longBuilder(Name.MASTER_METADATA_SYNC_UFS_RATE_LIMIT)
+          .setDescription("The maximum number of operations per second to execute "
+              + "on an individual UFS during metadata sync operations. If 0 or unset "
+              + "then no rate limit is enforced.")
           .setScope(Scope.MASTER)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
@@ -8034,10 +8050,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_HOSTNAME = "alluxio.master.hostname";
     public static final String MASTER_LOCK_POOL_INITSIZE =
         "alluxio.master.lock.pool.initsize";
-    public static final String MASTER_LOCK_POOL_LOW_WATERMARK =
-        "alluxio.master.lock.pool.low.watermark";
-    public static final String MASTER_LOCK_POOL_HIGH_WATERMARK =
-        "alluxio.master.lock.pool.high.watermark";
     public static final String MASTER_LOCK_POOL_CONCURRENCY_LEVEL =
         "alluxio.master.lock.pool.concurrency.level";
     public static final String MASTER_LOST_PROXY_DELETION_TIMEOUT_MS =
@@ -8123,10 +8135,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_KEYTAB_KEY_FILE = "alluxio.master.keytab.file";
     public static final String MASTER_METADATA_SYNC_LOCK_POOL_INITSIZE =
         "alluxio.master.metadata.sync.lock.pool.initsize";
-    public static final String MASTER_METADATA_SYNC_LOCK_POOL_LOW_WATERMARK =
-        "alluxio.master.metadata.sync.lock.pool.low.watermark";
-    public static final String MASTER_METADATA_SYNC_LOCK_POOL_HIGH_WATERMARK =
-        "alluxio.master.metadata.sync.lock.pool.high.watermark";
     public static final String MASTER_METADATA_SYNC_LOCK_POOL_CONCURRENCY_LEVEL =
         "alluxio.master.metadata.sync.lock.pool.concurrency.level";
     public static final String MASTER_METADATA_CONCURRENT_SYNC_DEDUP =
@@ -8141,6 +8149,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metadata.sync.report.failure";
     public static final String MASTER_METADATA_SYNC_GET_DIRECTORY_STATUS_SKIP_LOADING_CHILDREN =
         "alluxio.master.metadata.sync.get.directory.status.skip.loading.children";
+    public static final String MASTER_METADATA_SYNC_UFS_CONCURRENT_LOADS =
+        "alluxio.master.metadata.sync.ufs.concurrent.loads";
+    public static final String MASTER_METADATA_SYNC_UFS_CONCURRENT_GET_STATUS =
+        "alluxio.master.metadata.sync.ufs.concurrent.get.status";
+    public static final String MASTER_METADATA_SYNC_UFS_CONCURRENT_LISTING =
+        "alluxio.master.metadata.sync.ufs.concurrent.listing";
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
         "alluxio.master.metadata.sync.ufs.prefetch.pool.size";
     public static final String MASTER_METADATA_SYNC_TRAVERSAL_ORDER =
@@ -8149,12 +8163,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metadata.sync.ufs.prefetch.status";
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_TIMEOUT =
         "alluxio.master.metadata.sync.ufs.prefetch.timeout";
+    public static final String MASTER_METADATA_SYNC_UFS_RATE_LIMIT =
+        "alluxio.master.metadata.sync.ufs.rate.limit";
     public static final String MASTER_METADATA_SYNC_IGNORE_TTL =
         "alluxio.master.metadata.sync.ignore.ttl";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";
     public static final String MASTER_METASTORE_INODE = "alluxio.master.metastore.inode";
     public static final String MASTER_METASTORE_BLOCK = "alluxio.master.metastore.block";
     public static final String MASTER_METASTORE_DIR = "alluxio.master.metastore.dir";
+    public static final String MASTER_METASTORE_ACL_NEW = "alluxio.metastore.acl.new";
     public static final String MASTER_METASTORE_DIR_INODE =
         "alluxio.master.metastore.dir.inode";
     public static final String MASTER_METASTORE_DIR_BLOCK =
@@ -8175,6 +8192,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.inode.cache.high.water.mark.ratio";
     public static final String MASTER_METASTORE_INODE_CACHE_LOW_WATER_MARK_RATIO =
         "alluxio.master.metastore.inode.cache.low.water.mark.ratio";
+    public static final String MASTER_METASTORE_INODE_CACHE_BASIC =
+        "alluxio.master.metastore.inode.cache.basic";
     public static final String MASTER_METASTORE_INODE_CACHE_MAX_SIZE =
         "alluxio.master.metastore.inode.cache.max.size";
     public static final String MASTER_METASTORE_INODE_ITERATION_CRAWLER_COUNT =

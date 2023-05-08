@@ -45,6 +45,7 @@ import alluxio.master.file.meta.InodeTree.LockPattern;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.metastore.InodeStore;
+import alluxio.master.metastore.caching.BasicInodeCache;
 import alluxio.master.metastore.caching.CachingInodeStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.master.metastore.rocks.RocksInodeStore;
@@ -125,6 +126,7 @@ public final class InodeTreeTest {
         () -> new CachingInodeStore(new RocksInodeStore(dir), new InodeLockManager()),
         () -> new CachingInodeStore(new HeapInodeStore(), new InodeLockManager()),
         HeapInodeStore::new,
+        () -> new BasicInodeCache(dir),
         () -> new RocksInodeStore(dir));
   }
 

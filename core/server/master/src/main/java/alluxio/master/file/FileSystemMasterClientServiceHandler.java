@@ -18,6 +18,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.CancelSyncMetadataPRequest;
+import alluxio.grpc.CancelSyncMetadataPResponse;
 import alluxio.grpc.CheckAccessPRequest;
 import alluxio.grpc.CheckAccessPResponse;
 import alluxio.grpc.CheckConsistencyPOptions;
@@ -53,6 +55,8 @@ import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GetSyncPathListPRequest;
 import alluxio.grpc.GetSyncPathListPResponse;
+import alluxio.grpc.GetSyncProgressPRequest;
+import alluxio.grpc.GetSyncProgressPResponse;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.ListStatusPRequest;
@@ -81,6 +85,9 @@ import alluxio.grpc.StopSyncPRequest;
 import alluxio.grpc.StopSyncPResponse;
 import alluxio.grpc.SubmitJobPRequest;
 import alluxio.grpc.SubmitJobPResponse;
+import alluxio.grpc.SyncMetadataAsyncPResponse;
+import alluxio.grpc.SyncMetadataPRequest;
+import alluxio.grpc.SyncMetadataPResponse;
 import alluxio.grpc.UnmountPRequest;
 import alluxio.grpc.UnmountPResponse;
 import alluxio.grpc.UpdateMountPRequest;
@@ -106,6 +113,7 @@ import alluxio.master.file.contexts.RenameContext;
 import alluxio.master.file.contexts.ScheduleAsyncPersistenceContext;
 import alluxio.master.file.contexts.SetAclContext;
 import alluxio.master.file.contexts.SetAttributeContext;
+import alluxio.master.file.contexts.SyncMetadataContext;
 import alluxio.master.job.JobFactoryProducer;
 import alluxio.master.scheduler.Scheduler;
 import alluxio.recorder.Recorder;
@@ -585,5 +593,47 @@ public final class FileSystemMasterClientServiceHandler
    */
   private AlluxioURI getAlluxioURI(String uriStr) {
     return new AlluxioURI(uriStr);
+  }
+
+  @Override
+  public void syncMetadata(
+      SyncMetadataPRequest request,
+      StreamObserver<SyncMetadataPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      return mFileSystemMaster.syncMetadata(
+          new AlluxioURI(request.getPath()),
+          SyncMetadataContext.create(request.getOptions().toBuilder()));
+    }, "syncMetadata", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void syncMetadataAsync(
+      SyncMetadataPRequest request,
+      StreamObserver<SyncMetadataAsyncPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      return mFileSystemMaster.syncMetadataAsync(
+          new AlluxioURI(request.getPath()),
+          SyncMetadataContext.create(request.getOptions().toBuilder()));
+    }, "syncMetadataAsync", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void getSyncProgress(
+      GetSyncProgressPRequest request,
+      StreamObserver<GetSyncProgressPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      return mFileSystemMaster.getSyncProgress(
+          request.getTaskId());
+    }, "syncMetadataAsync", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void cancelSyncMetadata(
+      CancelSyncMetadataPRequest request,
+      StreamObserver<CancelSyncMetadataPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      return mFileSystemMaster.cancelSyncMetadata(
+          request.getTaskId());
+    }, "cancelSyncMetadata", "request=%s", responseObserver, request);
   }
 }

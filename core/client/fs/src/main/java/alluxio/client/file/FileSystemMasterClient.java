@@ -16,6 +16,7 @@ import alluxio.Client;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.NotFoundException;
+import alluxio.grpc.CancelSyncMetadataPResponse;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.CompleteFilePOptions;
@@ -25,6 +26,7 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.GetSyncProgressPResponse;
 import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
@@ -34,6 +36,9 @@ import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.SyncMetadataAsyncPResponse;
+import alluxio.grpc.SyncMetadataPOptions;
+import alluxio.grpc.SyncMetadataPResponse;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
@@ -373,4 +378,36 @@ public interface FileSystemMasterClient extends Client {
    */
   String getJobProgress(JobDescription jobDescription,
       JobProgressReportFormat format, boolean verbose);
+
+  /**
+   * Syncs metadata for a given alluxio path.
+   *
+   * @param path    the path to sync metadata on
+   * @param options options to associate with this operation
+   * @return the sync metadata response
+   */
+  SyncMetadataPResponse syncMetadata(AlluxioURI path, SyncMetadataPOptions options)
+      throws AlluxioStatusException;
+
+  /**
+   * Syncs metadata for a given alluxio path asynchronously.
+   *
+   * @param path    the path to sync metadata on
+   * @param options options to associate with this operation
+   * @return the sync metadata response
+   */
+  SyncMetadataAsyncPResponse syncMetadataAsync(AlluxioURI path, SyncMetadataPOptions options)
+      throws AlluxioStatusException;
+
+  /**
+   * @param taskId the task id
+   * @return the sync progress
+   */
+  GetSyncProgressPResponse getSyncProgress(long taskId) throws AlluxioStatusException;
+
+  /**
+   * @param taskId the task id
+   * @return the sync progress
+   */
+  CancelSyncMetadataPResponse cancelSyncMetadata(long taskId) throws AlluxioStatusException;
 }

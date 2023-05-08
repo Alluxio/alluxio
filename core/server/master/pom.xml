@@ -31,6 +31,26 @@
   <dependencies>
     <!-- External dependencies -->
     <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>s3</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.github.ben-manes.caffeine</groupId>
+      <artifactId>caffeine</artifactId>
+      <version>3.1.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.cache2k</groupId>
+      <artifactId>cache2k-api</artifactId>
+      <version>2.6.1.Final</version>
+    </dependency>
+    <dependency>
+      <groupId>org.cache2k</groupId>
+      <artifactId>cache2k-core</artifactId>
+      <version>2.6.1.Final</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
     </dependency>
@@ -123,9 +143,15 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>io.findify</groupId>
-      <artifactId>s3mock_2.13</artifactId>
+      <groupId>org.gaul</groupId>
+      <artifactId>s3proxy</artifactId>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>ch.qos.logback</groupId>
+          <artifactId>logback-classic</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- Internal test dependencies -->
@@ -150,7 +176,7 @@
           <groupId>org.alluxio</groupId>
           <artifactId>alluxio-underfs-s3a</artifactId>
           <version>${project.version}</version>
-          <scope>test</scope>
+          <scope>compile</scope>
       </dependency>
   </dependencies>
 

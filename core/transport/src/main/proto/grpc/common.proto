@@ -6,6 +6,13 @@ option java_outer_classname = "CommonProto";
 
 package alluxio.grpc;
 
+enum PersistenceState {
+  NOT_PERSISTED = 0; // file not persisted in the under FS
+  TO_BE_PERSISTED = 1; // the file is to be persisted in the under FS
+  PERSISTED = 2; // the file is persisted in the under FS
+  LOST = 3; // the file is lost but not persisted in the under FS
+}
+
 enum Bits {
   NONE = 1;
   EXECUTE = 2;

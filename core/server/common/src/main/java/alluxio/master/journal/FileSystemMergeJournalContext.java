@@ -42,7 +42,7 @@ public class FileSystemMergeJournalContext implements JournalContext {
 
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemMergeJournalContext.class);
 
-  private final JournalContext mJournalContext;
+  protected final JournalContext mJournalContext;
   protected final JournalEntryMerger mJournalEntryMerger;
 
   /**
