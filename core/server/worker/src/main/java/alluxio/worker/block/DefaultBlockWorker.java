@@ -164,6 +164,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mWhitelist = new PrefixList(Configuration.getList(PropertyKey.WORKER_WHITELIST));
 
     mMetricCache = new AtomicReference<>(new BlockMetaMetricCache());
+    maintainMetricTable();
 
     Metrics.registerGauges(this);
   }
@@ -354,6 +355,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public void maintainMetricTable() {
     BlockStoreMeta meta = mBlockStore.getBlockStoreMetaFull();
     BlockMetaMetricCache metrictable = mMetricCache.get();
+    metrictable.mLastUpdateTimeStamp = CommonUtils.getCurrentMs();
     metrictable.mCapacityBytes = meta.getCapacityBytes();
     metrictable.mUsedBytes = meta.getUsedBytes();
     metrictable.mCapacityFree = metrictable.mCapacityBytes - metrictable.mUsedBytes;
@@ -548,18 +550,15 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     public static final Counter WORKER_ACTIVE_CLIENTS =
         MetricsSystem.counter(MetricKey.WORKER_ACTIVE_CLIENTS.getName());
 
-    static volatile long sLastMetricsUpdateMs = CommonUtils.getCurrentMs();
-
     /**
      * Update mMetricCache when find it exceed certain interval.
-     * @param func the function that actually do the maintain action
+     * @param blockWorker the BlockWorker
      */
-    public static void maybeUpdateMetrics(Runnable func) {
+    public static void maybeUpdateMetrics(BlockWorker blockWorker) {
       long now = CommonUtils.getCurrentMs();
       // This '1000' should be replaced by metric interval from conf
-      if (now - sLastMetricsUpdateMs > 1000) {
-        sLastMetricsUpdateMs = now;
-        func.run();
+      if (now - blockWorker.getBlockMetaMetricCache().get().getLastUpdateTimeStamp() > 1000) {
+        blockWorker.maintainMetricTable();
       }
     }
 
@@ -573,7 +572,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       MetricsSystem.registerGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.WORKER_CAPACITY_TOTAL.getName()),
           () -> {
-            maybeUpdateMetrics(() -> blockWorker.maintainMetricTable());
+            maybeUpdateMetrics(blockWorker);
             m.get().getCapacityBytes();
             return null;
           });
@@ -581,7 +580,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       MetricsSystem.registerGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.WORKER_CAPACITY_USED.getName()),
           () -> {
-            maybeUpdateMetrics(() -> blockWorker.maintainMetricTable());
+            maybeUpdateMetrics(blockWorker);
             m.get().getUsedBytes();
             return null;
           });
@@ -589,7 +588,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       MetricsSystem.registerGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.WORKER_CAPACITY_FREE.getName()),
           () -> {
-            maybeUpdateMetrics(() -> blockWorker.maintainMetricTable());
+            maybeUpdateMetrics(blockWorker);
             m.get().getCapacityFree();
             return null;
           });
@@ -600,7 +599,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
             MetricKey.WORKER_CAPACITY_TOTAL.getName() + MetricInfo.TIER + tier),
             () -> {
-              maybeUpdateMetrics(() -> blockWorker.maintainMetricTable());
+              maybeUpdateMetrics(blockWorker);
               m.get().getCapacityBytesOnTiers().getOrDefault(tier, 0L);
               return null;
             });
@@ -608,7 +607,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
             MetricKey.WORKER_CAPACITY_USED.getName() + MetricInfo.TIER + tier),
             () -> {
-              maybeUpdateMetrics(() -> blockWorker.maintainMetricTable());
+              maybeUpdateMetrics(blockWorker);
               m.get().getUsedBytesOnTiers().getOrDefault(tier, 0L);
               return null;
             });
@@ -616,7 +615,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
             MetricKey.WORKER_CAPACITY_FREE.getName() + MetricInfo.TIER + tier),
             () -> {
-              maybeUpdateMetrics(() -> blockWorker.maintainMetricTable());
+              maybeUpdateMetrics(blockWorker);
               m.get().getFreeBytesOnTiers().getOrDefault(tier, 0L);
               return null;
             });
@@ -624,7 +623,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
           MetricKey.WORKER_BLOCKS_CACHED.getName()),
           () -> {
-            maybeUpdateMetrics(() -> blockWorker.maintainMetricTable());
+            maybeUpdateMetrics(blockWorker);
             m.get().getNumberOfBlocks();
             return null;
           });

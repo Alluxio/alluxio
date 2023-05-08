@@ -9,6 +9,7 @@ import java.util.Map;
  * copy a whole BlockMeta everytime updating the metrics.
  */
 public class BlockMetaMetricCache {
+  long mLastUpdateTimeStamp;
   long mCapacityBytes;
   long mUsedBytes;
   long mCapacityFree;
@@ -17,6 +18,13 @@ public class BlockMetaMetricCache {
   Map<String, Long> mUsedBytesOnTiers;
   Map<String, Long> mFreeBytesOnTiers;
   int mNumberOfBlocks;
+
+  /**
+   * @return last update time
+   */
+  public long getLastUpdateTimeStamp() {
+    return mLastUpdateTimeStamp;
+  }
 
   /**
    * @return the capacityBytes
