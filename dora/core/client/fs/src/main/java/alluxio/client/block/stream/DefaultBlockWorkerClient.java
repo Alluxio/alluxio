@@ -140,6 +140,19 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     mTracker = DETECTOR.track(this);
   }
 
+  protected DefaultBlockWorkerClient(UserState userState, GrpcServerAddress address,
+      AlluxioConfiguration alluxioConf, GrpcChannel streamingChannel, GrpcChannel rpcChannel)
+      throws IOException {
+    mStreamingChannel = streamingChannel;
+    mRpcChannel = rpcChannel;
+    mStreamingAsyncStub = BlockWorkerGrpc.newStub(mStreamingChannel);
+    mRpcBlockingStub = BlockWorkerGrpc.newBlockingStub(mRpcChannel);
+    mRpcFutureStub = BlockWorkerGrpc.newFutureStub(mRpcChannel);
+    mAddress = address;
+    mRpcTimeoutMs = alluxioConf.getMs(PropertyKey.USER_RPC_RETRY_MAX_DURATION);
+    mTracker = DETECTOR.track(this);
+  }
+
   @Override
   public boolean isShutdown() {
     return mStreamingChannel.isShutdown() || mRpcChannel.isShutdown();
