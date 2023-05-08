@@ -164,7 +164,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mWhitelist = new PrefixList(Configuration.getList(PropertyKey.WORKER_WHITELIST));
 
     mMetricCache = new AtomicReference<>(new BlockMetaMetricCache());
-    maintainMetricTable();
+    maintainMetricCache();
 
     Metrics.registerGauges(this);
   }
@@ -352,7 +352,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-  public void maintainMetricTable() {
+  public void maintainMetricCache() {
     BlockStoreMeta meta = mBlockStore.getBlockStoreMetaFull();
     BlockMetaMetricCache metrictable = mMetricCache.get();
     metrictable.mLastUpdateTimeStamp = CommonUtils.getCurrentMs();
@@ -558,7 +558,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       long now = CommonUtils.getCurrentMs();
       // This '1000' should be replaced by metric interval from conf
       if (now - blockWorker.getBlockMetaMetricCache().get().getLastUpdateTimeStamp() > 1000) {
-        blockWorker.maintainMetricTable();
+        blockWorker.maintainMetricCache();
       }
     }
 

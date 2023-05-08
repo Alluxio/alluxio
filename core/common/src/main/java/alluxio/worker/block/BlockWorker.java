@@ -45,7 +45,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
   /**
    * update the block worker's metric cache.
    */
-  void maintainMetricTable();
+  void maintainMetricCache();
 
   /**
    * @return the worker id
