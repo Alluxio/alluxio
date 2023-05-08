@@ -31,7 +31,7 @@ public final class AclEntry implements Serializable {
   /**
    * Type of this entry.
    */
-  private AclEntryType mType;
+  private final AclEntryType mType;
 
   /**
    * Whether this entry applies to default ACL or not.
@@ -42,11 +42,11 @@ public final class AclEntry implements Serializable {
    * Name of owning user, owning group, named user, named group.
    * If the entry is of type MASK or OTHER, this is an empty string.
    */
-  private String mSubject;
+  private final String mSubject;
   /**
    * Permitted actions.
    */
-  private AclActions mActions;
+  private final AclActions mActions;
 
   private AclEntry(AclEntryType type, String subject, AclActions actions, boolean isDefault) {
     mType = type;
@@ -74,6 +74,13 @@ public final class AclEntry implements Serializable {
    */
   public AclActions getActions() {
     return new AclActions(mActions);
+  }
+
+  /**
+   * @return the mode bits for the actions
+   */
+  public Mode.Bits getModeBits() {
+    return mActions.toModeBits();
   }
 
   /**
@@ -348,7 +355,6 @@ public final class AclEntry implements Serializable {
      */
     public Builder() {
       mSubject = "";
-      mActions = new AclActions();
     }
 
     /**
@@ -383,9 +389,18 @@ public final class AclEntry implements Serializable {
      * @return the builder
      */
     public Builder setActions(AclActions actions) {
-      for (AclAction action : actions.getActions()) {
-        mActions.add(action);
-      }
+      mActions = new AclActions(actions);
+      return this;
+    }
+
+    /**
+     * Sets the ACL actions from the given mode bits.
+     *
+     * @param bits the mode bits
+     * @return the builder
+     */
+    public Builder setActions(Mode.Bits bits) {
+      mActions = new AclActions(bits);
       return this;
     }
 
@@ -396,6 +411,9 @@ public final class AclEntry implements Serializable {
      * @return the builder
      */
     public Builder addAction(AclAction action) {
+      if (mActions == null) {
+        mActions = new AclActions();
+      }
       mActions.add(action);
       return this;
     }
@@ -423,6 +441,9 @@ public final class AclEntry implements Serializable {
           || mType.equals(AclEntryType.NAMED_GROUP);
       if (subjectRequired && mSubject.isEmpty()) {
         throw new IllegalStateException("Subject for type " + mType + " cannot be empty");
+      }
+      if (mActions == null) {
+        mActions = new AclActions();
       }
       return new AclEntry(mType, mSubject, mActions, mIsDefault);
     }

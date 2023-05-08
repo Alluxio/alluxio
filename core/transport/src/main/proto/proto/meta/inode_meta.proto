@@ -11,7 +11,7 @@ import "proto/shared/acl.proto";
  * General inode metadata. This includes most inode metadata, but does not include the inode's
  * children or time of last modification.
  *
- * next available id: 31
+ * next available id: 34
  */
 message Inode {
     optional int64 id = 1;
@@ -24,9 +24,11 @@ message Inode {
     optional int64 last_modified_ms = 25;
     optional string name = 6;
     optional int64 parent_id = 7;
-    optional string persistence_state = 8;
+    // deprecated, replaced by persistence_state_enum = 31
+    optional string persistence_state = 8 [deprecated = true];
     optional bool is_pinned = 9;
-    optional alluxio.proto.shared.AccessControlList access_acl = 10;
+    // deprecated, replaced by new_access_acl = 32
+    optional alluxio.proto.shared.AccessControlList access_acl = 10 [deprecated = true];
     optional string ufs_fingerprint = 11;
     repeated string medium_type = 27;
     optional int64 last_accessed_ms = 30;
@@ -35,7 +37,8 @@ message Inode {
     optional bool is_mount_point = 12;
     optional bool has_direct_children_loaded = 13;
     optional int64 child_count = 26;
-    optional alluxio.proto.shared.AccessControlList default_acl = 14;
+    // deprecated, replaced by new_default_acl = 33
+    optional alluxio.proto.shared.AccessControlList default_acl = 14 [deprecated = true];
 
     // file only
     optional int64 block_size_bytes = 15;
@@ -55,4 +58,11 @@ message Inode {
     // Extended attributes, general purpose. Should be used with care as long string identifiers will use a
     // comparatively large amount of memory to other fields
     map<string, bytes> xAttr = 29;
+
+    // replaces deprecated field persistence_state = 8
+    optional grpc.PersistenceState persistence_state_enum = 31;
+    // replaces deprecated field access_acl = 10
+    optional alluxio.proto.shared.NewAccessControlList new_access_acl = 32;
+    // replaces deprecated field default_acl = 14
+    optional alluxio.proto.shared.NewAccessControlList new_default_acl = 33;
 }

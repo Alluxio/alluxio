@@ -13,6 +13,7 @@ package alluxio.wire;
 
 import alluxio.Constants;
 import alluxio.grpc.TtlAction;
+import alluxio.master.file.meta.PersistenceState;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.DefaultAccessControlList;
 
@@ -60,7 +61,7 @@ public final class FileInfo implements Serializable {
   private String mOwner = "";
   private String mGroup = "";
   private int mMode;
-  private String mPersistenceState = "";
+  private PersistenceState mPersistenceState = PersistenceState.NOT_PERSISTED;
   private boolean mMountPoint;
   private ArrayList<FileBlockInfo> mFileBlockInfoList = new ArrayList<>();
   /* Index of mFileBlockInfoList. */
@@ -237,6 +238,13 @@ public final class FileInfo implements Serializable {
    * @return the file persistence state
    */
   public String getPersistenceState() {
+    return mPersistenceState.toString();
+  }
+
+  /**
+   * @return the file persistence state
+   */
+  public PersistenceState getPersistenceStateEnum() {
     return mPersistenceState;
   }
 
@@ -543,9 +551,17 @@ public final class FileInfo implements Serializable {
    * @param persistenceState the file persistence state to use
    * @return the file information
    */
-  public FileInfo setPersistenceState(String persistenceState) {
-    Preconditions.checkNotNull(persistenceState, "persistenceState");
+  public FileInfo setPersistenceStateEnum(PersistenceState persistenceState) {
     mPersistenceState = persistenceState;
+    return this;
+  }
+
+  /**
+   * @param persistenceState the file persistence state to use
+   * @return the file information
+   */
+  public FileInfo setPersistenceState(String persistenceState) {
+    mPersistenceState = PersistenceState.valueOf(persistenceState);
     return this;
   }
 

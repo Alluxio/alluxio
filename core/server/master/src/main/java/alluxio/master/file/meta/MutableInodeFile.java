@@ -105,7 +105,7 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
     ret.setOwner(getOwner());
     ret.setGroup(getGroup());
     ret.setMode(getMode());
-    ret.setPersistenceState(getPersistenceState().toString());
+    ret.setPersistenceStateEnum(getPersistenceState());
     ret.setMountPoint(false);
     ret.setReplicationMax(getReplicationMax());
     ret.setReplicationMin(getReplicationMin());
@@ -402,7 +402,9 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setTtlAction((ProtobufUtils.fromProtobuf(entry.getTtlAction())))
         .setUfsFingerprint(entry.hasUfsFingerprint() ? entry.getUfsFingerprint() :
             Constants.INVALID_UFS_FINGERPRINT);
-    if (entry.hasAcl()) {
+    if (entry.hasNewAcl()) {
+      ret.mAcl = ProtoUtils.fromProto(entry.getNewAcl());
+    } else if (entry.hasAcl()) {
       ret.mAcl = ProtoUtils.fromProto(entry.getAcl());
     } else {
       // Backward compatibility.
@@ -488,8 +490,8 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setTempUfsPath(getTempUfsPath())
         .setTtl(getTtl())
         .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))
-        .setUfsFingerprint(getUfsFingerprint())
-        .setAcl(ProtoUtils.toProto(mAcl));
+        .setNewAcl(ProtoUtils.toProtoNew(mAcl))
+        .setUfsFingerprint(getUfsFingerprint());
     if (getXAttr() != null) {
       inodeFile.putAllXAttr(CommonUtils.convertToByteString(getXAttr()));
     }
@@ -531,9 +533,10 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setTtlAction(inode.getTtlAction())
         .setName(inode.getName())
         .setParentId(inode.getParentId())
-        .setPersistenceState(PersistenceState.valueOf(inode.getPersistenceState()))
+        .setPersistenceState(inode.hasPersistenceStateEnum()
+            ? PersistenceState.fromProto(inode.getPersistenceStateEnum())
+            : PersistenceState.valueOf(inode.getPersistenceState()))
         .setPinned(inode.getIsPinned())
-        .setInternalAcl(ProtoUtils.fromProto(inode.getAccessAcl()))
         .setUfsFingerprint(inode.getUfsFingerprint())
         .setBlockSizeBytes(inode.getBlockSizeBytes())
         .setBlockIds(inode.getBlocksList())
@@ -546,6 +549,11 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
         .setPersistJobId(inode.getPersistJobId())
         .setShouldPersistTime(inode.getShouldPersistTime())
         .setTempUfsPath(inode.getPersistJobTempUfsPath());
+    if (inode.hasNewAccessAcl()) {
+      f.setInternalAcl(ProtoUtils.fromProto(inode.getNewAccessAcl()));
+    } else {
+      f.setInternalAcl(ProtoUtils.fromProto(inode.getAccessAcl()));
+    }
     if (!inode.getMediumTypeList().isEmpty()) {
       f.setMediumTypes(ImmutableSet.copyOf(inode.getMediumTypeList()));
     }

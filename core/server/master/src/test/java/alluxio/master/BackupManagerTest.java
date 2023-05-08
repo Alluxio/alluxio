@@ -18,6 +18,7 @@ import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.clock.ManualClock;
+import alluxio.grpc.PersistenceState;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.file.DefaultFileSystemMaster;
@@ -28,7 +29,6 @@ import alluxio.master.file.meta.InodeDirectoryView;
 import alluxio.master.file.meta.InodeView;
 import alluxio.master.file.meta.MutableInodeDirectory;
 import alluxio.master.file.meta.MutableInodeFile;
-import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.metastore.BlockMetaStore;
 import alluxio.master.metastore.heap.HeapBlockMetaStore;
@@ -97,14 +97,14 @@ public class BackupManagerTest {
 
   private MutableInodeFile createNewFile(long fileId) {
     InodeMeta.InodeOrBuilder builder = InodeMeta.Inode.newBuilder()
-        .setId(fileId).setPersistenceState(PersistenceState.PERSISTED.toString());
+        .setId(fileId).setPersistenceStateEnum(PersistenceState.PERSISTED);
     return MutableInodeFile.fromProto(builder);
   }
 
   private MutableInodeDirectory createRootDir(long fileId) {
     InodeMeta.InodeOrBuilder builder = InodeMeta.Inode.newBuilder()
         .setId(fileId)
-        .setPersistenceState(PersistenceState.PERSISTED.toString())
+        .setPersistenceStateEnum(alluxio.grpc.PersistenceState.PERSISTED)
         .setIsDirectory(true)
         .setDefaultAcl(
             alluxio.proto.shared.Acl.AccessControlList.newBuilder().setIsDefault(true).build());

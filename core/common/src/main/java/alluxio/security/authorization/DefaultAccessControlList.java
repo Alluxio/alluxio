@@ -158,12 +158,27 @@ public class DefaultAccessControlList extends AccessControlList {
   }
 
   @Override
+  public void setMode(short mode) {
+    super.setMode(mode);
+    setEmpty(mode == 0);
+  }
+
+  @Override
   public void setEntry(AclEntry entry) {
     if (isEmpty() && mAccessAcl != null) {
       mMode = mAccessAcl.mMode;
     }
     super.setEntry(entry);
     setEmpty(false);
+  }
+
+  @Override
+  public ExtendedACLEntries getOrInitializeExtendedEntries() {
+    if (isEmpty() && mAccessAcl != null) {
+      mMode = mAccessAcl.mMode;
+    }
+    setEmpty(false);
+    return super.getOrInitializeExtendedEntries();
   }
 
   /**

@@ -32,6 +32,9 @@ public final class LockingScheme {
   private final LockPattern mDesiredLockPattern;
   private final SyncCheck mShouldSync;
 
+  private static final long USER_FILE_METADATA_SYNC_INTERVAL
+      = Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
+
   // CHECKSTYLE.OFF: LineLengthExceed - cannot break the method link
   /**
    * Constructs a {@link LockingScheme}.
@@ -70,7 +73,7 @@ public final class LockingScheme {
     // If client options didn't specify the interval, fallback to whatever the server has
     // configured to prevent unnecessary syncing due to the default value being 0
     long syncInterval = options.hasSyncIntervalMs() ? options.getSyncIntervalMs() :
-        Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
+        USER_FILE_METADATA_SYNC_INTERVAL;
     mShouldSync = pathCache.shouldSyncPath(path, syncInterval, descendantType);
   }
 

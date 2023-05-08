@@ -14,7 +14,10 @@ package alluxio.grpc;
 import static alluxio.util.StreamUtils.map;
 
 import alluxio.Constants;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.file.options.DescendantType;
+import alluxio.master.file.meta.PersistenceState;
 import alluxio.proto.journal.File;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclAction;
@@ -245,7 +248,10 @@ public final class GrpcUtils {
         .setLastAccessTimeMs(pInfo.getLastAccessTimeMs())
         .setTtlAction(pInfo.getTtlAction()).setOwner(pInfo.getOwner())
         .setGroup(pInfo.getGroup()).setMode(pInfo.getMode())
-        .setPersistenceState(pInfo.getPersistenceState()).setMountPoint(pInfo.getMountPoint())
+        .setPersistenceStateEnum(pInfo.hasPersistenceStateEnum()
+            ? PersistenceState.fromProto(pInfo.getPersistenceStateEnum())
+            : PersistenceState.valueOf(pInfo.getPersistenceState()))
+        .setMountPoint(pInfo.getMountPoint())
         .setFileBlockInfos(map(GrpcUtils::fromProto, pInfo.getFileBlockInfosList()))
         .setMountId(pInfo.getMountId()).setInAlluxioPercentage(pInfo.getInAlluxioPercentage())
         .setInMemoryPercentage(pInfo.getInMemoryPercentage())
@@ -463,6 +469,9 @@ public final class GrpcUtils {
         .build();
   }
 
+  private static final boolean SUPPORT_DEPRECATED_CLIENT_PROTO =
+      Configuration.getBoolean(PropertyKey.MASTER_SUPPORT_DEPRECATED_CLIENT_PROTO);
+
   /**
    * Converts a wire type to a proto type.
    *
@@ -485,7 +494,8 @@ public final class GrpcUtils {
         .setLastModificationTimeMs(fileInfo.getLastModificationTimeMs()).setTtl(fileInfo.getTtl())
         .setLastAccessTimeMs(fileInfo.getLastAccessTimeMs())
         .setOwner(fileInfo.getOwner()).setGroup(fileInfo.getGroup()).setMode(fileInfo.getMode())
-        .setPersistenceState(fileInfo.getPersistenceState()).setMountPoint(fileInfo.isMountPoint())
+        .setPersistenceStateEnum(fileInfo.getPersistenceStateEnum().toProto())
+        .setMountPoint(fileInfo.isMountPoint())
         .addAllFileBlockInfos(fileBlockInfos)
         .setTtlAction(fileInfo.getTtlAction()).setMountId(fileInfo.getMountId())
         .setInAlluxioPercentage(fileInfo.getInAlluxioPercentage())
@@ -494,6 +504,9 @@ public final class GrpcUtils {
         .setReplicationMax(fileInfo.getReplicationMax())
         .setReplicationMin(fileInfo.getReplicationMin());
 
+    if (SUPPORT_DEPRECATED_CLIENT_PROTO) {
+      builder.setPersistenceState(fileInfo.getPersistenceState());
+    }
     if (!fileInfo.getAcl().equals(AccessControlList.EMPTY_ACL)) {
       builder.setAcl(toProto(fileInfo.getAcl()));
     }

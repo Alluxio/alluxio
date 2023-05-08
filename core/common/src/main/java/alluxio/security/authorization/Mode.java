@@ -16,8 +16,8 @@ import alluxio.annotation.PublicApi;
 import alluxio.grpc.PMode;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 
-import java.util.HashSet;
 import java.util.Set;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
@@ -269,6 +269,19 @@ public final class Mode {
     ALL(Constants.MODE_BITS_ALL),
     ;
 
+    private static final ImmutableSet<AclAction> NONE_SET = ImmutableSet.of();
+    private static final ImmutableSet<AclAction> EXECUTE_SET = ImmutableSet.of(AclAction.EXECUTE);
+    private static final ImmutableSet<AclAction> WRITE_SET = ImmutableSet.of(AclAction.WRITE);
+    private static final ImmutableSet<AclAction> WRITE_EXECUTE_SET = ImmutableSet.of(
+        AclAction.WRITE, AclAction.EXECUTE);
+    private static final ImmutableSet<AclAction> READ_SET = ImmutableSet.of(AclAction.READ);
+    private static final ImmutableSet<AclAction> READ_EXECUTE_SET = ImmutableSet.of(AclAction.READ,
+        AclAction.EXECUTE);
+    private static final ImmutableSet<AclAction> READ_WRITE_SET = ImmutableSet.of(AclAction.READ,
+        AclAction.WRITE);
+    private static final ImmutableSet<AclAction> ALL_SET = ImmutableSet.of(AclAction.READ,
+        AclAction.WRITE, AclAction.EXECUTE);
+
     /** String representation of the bits. */
     private final String mString;
 
@@ -378,17 +391,24 @@ public final class Mode {
      * @return the set of {@link AclAction}s implied by this mode
      */
     public Set<AclAction> toAclActionSet() {
-      Set<AclAction> actions = new HashSet<>();
-      if (imply(READ)) {
-        actions.add(AclAction.READ);
+      switch (this) {
+        case NONE:
+          return NONE_SET;
+        case EXECUTE:
+          return EXECUTE_SET;
+        case WRITE:
+          return WRITE_SET;
+        case WRITE_EXECUTE:
+          return WRITE_EXECUTE_SET;
+        case READ:
+          return READ_SET;
+        case READ_EXECUTE:
+          return READ_EXECUTE_SET;
+        case READ_WRITE:
+          return READ_WRITE_SET;
+        default:
+          return ALL_SET;
       }
-      if (imply(WRITE)) {
-        actions.add(AclAction.WRITE);
-      }
-      if (imply(EXECUTE)) {
-        actions.add(AclAction.EXECUTE);
-      }
-      return actions;
     }
 
     /**

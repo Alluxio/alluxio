@@ -11,6 +11,7 @@
 
 package alluxio.master.file.contexts;
 
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.util.FileSystemOptionsUtils;
@@ -23,6 +24,9 @@ import com.google.common.base.MoreObjects;
  */
 public class CreateFileContext
     extends CreatePathContext<CreateFilePOptions.Builder, CreateFileContext> {
+
+  private static final CreateFilePOptions DEFAULT_CREATE_FILE_OPTIONS
+      = FileSystemOptionsUtils.createFileDefaults(Configuration.global(), false);
 
   private boolean mCacheable;
 
@@ -51,10 +55,24 @@ public class CreateFileContext
    * @return the instance of {@link CreateFileContext} with default values for master
    */
   public static CreateFileContext mergeFrom(CreateFilePOptions.Builder optionsBuilder) {
-    CreateFilePOptions masterOptions =
-        FileSystemOptionsUtils.createFileDefaults(Configuration.global(), false);
     CreateFilePOptions.Builder mergedOptionsBuilder =
-        masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
+        DEFAULT_CREATE_FILE_OPTIONS.toBuilder().mergeFrom(optionsBuilder.build());
+    return new CreateFileContext(mergedOptionsBuilder);
+  }
+
+  /**
+   * Merges and embeds the given {@link CreateFilePOptions} with the corresponding master options
+   * and the give configuration.
+   *
+   * @param optionsBuilder Builder for proto {@link CreateFilePOptions} to embed
+   * @param configuration the configuration to use
+   * @return the instance of {@link CreateFileContext} with default values for master
+   */
+  public static CreateFileContext mergeFrom(
+      CreateFilePOptions.Builder optionsBuilder, AlluxioConfiguration configuration) {
+    CreateFilePOptions.Builder mergedOptionsBuilder =
+        FileSystemOptionsUtils.createFileDefaults(configuration, false)
+            .toBuilder().mergeFrom(optionsBuilder.build());
     return new CreateFileContext(mergedOptionsBuilder);
   }
 

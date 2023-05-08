@@ -602,7 +602,9 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
    * @param entry the entry
    */
   public void updateFromEntry(UpdateInodeEntry entry) {
-    if (entry.hasAcl()) {
+    if (entry.hasNewAcl()) {
+      setInternalAcl(ProtoUtils.fromProto(entry.getNewAcl()));
+    } else if (entry.hasAcl()) {
       setInternalAcl(ProtoUtils.fromProto(entry.getAcl()));
     }
     if (entry.hasCreationTimeMs()) {
@@ -740,9 +742,9 @@ public abstract class MutableInode<T extends MutableInode> implements InodeView 
         .setLastAccessedMs(getLastAccessTimeMs())
         .setName(getName())
         .setParentId(getParentId())
-        .setPersistenceState(getPersistenceState().name())
+        .setPersistenceStateEnum(getPersistenceState().toProto())
         .setIsPinned(isPinned())
-        .setAccessAcl(ProtoUtils.toProto(getACL()))
+        .setNewAccessAcl(ProtoUtils.toProtoNew(getACL()))
         .setUfsFingerprint(getUfsFingerprint())
         .addAllMediumType(getMediumTypes());
     if (getXAttr() != null) {

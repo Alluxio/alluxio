@@ -137,7 +137,7 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
     ret.setOwner(getOwner());
     ret.setGroup(getGroup());
     ret.setMode(getMode());
-    ret.setPersistenceState(getPersistenceState().toString());
+    ret.setPersistenceStateEnum(getPersistenceState());
     ret.setMountPoint(isMountPoint());
     ret.setUfsFingerprint(Constants.INVALID_UFS_FINGERPRINT);
     ret.setAcl(mAcl);
@@ -153,6 +153,10 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
    * @param entry the entry
    */
   public void updateFromEntry(UpdateInodeDirectoryEntry entry) {
+    if (entry.hasNewDefaultAcl()) {
+      setDefaultACL(
+          (DefaultAccessControlList) ProtoUtils.fromProto(entry.getNewDefaultAcl()));
+    }
     if (entry.hasDefaultAcl()) {
       setDefaultACL(
           (DefaultAccessControlList) ProtoUtils.fromProto(entry.getDefaultAcl()));
@@ -193,7 +197,9 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setTtl(entry.getTtl())
         .setTtlAction(ProtobufUtils.fromProtobuf(entry.getTtlAction()))
         .setDirectChildrenLoaded(entry.getDirectChildrenLoaded());
-    if (entry.hasAcl()) {
+    if (entry.hasNewAcl()) {
+      ret.mAcl = ProtoUtils.fromProto(entry.getNewAcl());
+    } else if (entry.hasAcl()) {
       ret.mAcl = ProtoUtils.fromProto(entry.getAcl());
     } else {
       // Backward compatibility.
@@ -204,7 +210,9 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
       acl.setMode(mode);
       ret.mAcl = acl;
     }
-    if (entry.hasDefaultAcl()) {
+    if (entry.hasNewDefaultAcl()) {
+      ret.mDefaultAcl = (DefaultAccessControlList) ProtoUtils.fromProto(entry.getNewDefaultAcl());
+    } else if (entry.hasDefaultAcl()) {
       ret.mDefaultAcl = (DefaultAccessControlList) ProtoUtils.fromProto(entry.getDefaultAcl());
     } else {
       ret.mDefaultAcl = new DefaultAccessControlList();
@@ -260,9 +268,10 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setTtl(getTtl())
         .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))
         .setDirectChildrenLoaded(isDirectChildrenLoaded())
-        .setAcl(ProtoUtils.toProto(mAcl))
-        .setDefaultAcl(ProtoUtils.toProto(mDefaultAcl))
+        .setNewAcl(ProtoUtils.toProtoNew(mAcl))
+        .setNewDefaultAcl(ProtoUtils.toProtoNew(mDefaultAcl))
         .addAllMediumType(getMediumTypes());
+
     if (getXAttr() != null) {
       inodeDirectory.putAllXAttr(CommonUtils.convertToByteString(getXAttr()));
     }
@@ -280,9 +289,8 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
     return super.toProtoBuilder()
         .setIsMountPoint(isMountPoint())
         .setHasDirectChildrenLoaded(isDirectChildrenLoaded())
-        .setChildCount(getChildCount())
-        .setDefaultAcl(ProtoUtils.toProto(getDefaultACL()))
-        .build();
+        .setNewDefaultAcl(ProtoUtils.toProtoNew(getDefaultACL()))
+        .setChildCount(getChildCount()).build();
   }
 
   /**
@@ -298,14 +306,21 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setTtlAction(inode.getTtlAction())
         .setName(inode.getName())
         .setParentId(inode.getParentId())
-        .setPersistenceState(PersistenceState.valueOf(inode.getPersistenceState()))
+        .setPersistenceState(inode.hasPersistenceStateEnum()
+            ? PersistenceState.fromProto(inode.getPersistenceStateEnum())
+            : PersistenceState.valueOf(inode.getPersistenceState()))
         .setPinned(inode.getIsPinned())
-        .setInternalAcl(ProtoUtils.fromProto(inode.getAccessAcl()))
         .setUfsFingerprint(inode.getUfsFingerprint())
         .setMountPoint(inode.getIsMountPoint())
         .setDirectChildrenLoaded(inode.getHasDirectChildrenLoaded())
-        .setChildCount(inode.getChildCount())
-        .setDefaultACL((DefaultAccessControlList) ProtoUtils.fromProto(inode.getDefaultAcl()));
+        .setChildCount(inode.getChildCount());
+    if (inode.hasNewAccessAcl()) {
+      d.setInternalAcl(ProtoUtils.fromProto(inode.getNewAccessAcl()));
+      d.setDefaultACL((DefaultAccessControlList) ProtoUtils.fromProto(inode.getNewDefaultAcl()));
+    } else {
+      d.setInternalAcl(ProtoUtils.fromProto(inode.getAccessAcl()));
+      d.setDefaultACL((DefaultAccessControlList) ProtoUtils.fromProto(inode.getDefaultAcl()));
+    }
     if (!inode.getMediumTypeList().isEmpty()) {
       d.setMediumTypes(ImmutableSet.copyOf(inode.getMediumTypeList()));
     }

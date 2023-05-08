@@ -19,9 +19,14 @@ import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.BlockInfoException;
+import alluxio.proto.meta.InodeMeta;
+import alluxio.security.authorization.AclEntry;
+import alluxio.security.authorization.AclEntryType;
 import alluxio.security.authorization.Mode;
 import alluxio.util.ModeUtils;
+import alluxio.util.proto.ProtoUtils;
 
+import com.google.common.collect.ImmutableList;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -52,6 +57,33 @@ public final class MutableInodeFileTest extends AbstractInodeTest {
     assertEquals(inode1, inode2);
     MutableInodeFile inode3 = createInodeFile(3);
     assertFalse(inode1.equals(inode3));
+  }
+
+  @Test
+  public void testProto() {
+    MutableInodeFile inode = createInodeFile(1);
+    inode.setAcl(ImmutableList.of(new AclEntry.Builder().setType(AclEntryType.MASK)
+        .setActions(Mode.Bits.READ_EXECUTE).build(),
+        new AclEntry.Builder().setType(AclEntryType.NAMED_USER)
+            .setActions(Mode.Bits.ALL).setSubject("Subject").build(),
+        new AclEntry.Builder().setType(AclEntryType.NAMED_GROUP)
+            .setActions(Mode.Bits.READ).setSubject("Other").build()));
+    inode.setPersistenceState(PersistenceState.PERSISTED);
+    InodeMeta.Inode proto = inode.toProto();
+
+    MutableInodeFile newInode = MutableInodeFile.fromProto(proto);
+    assertEquals(inode, newInode);
+    assertEquals(inode.getACL(), newInode.getACL());
+
+    // use the deprecated proto fields
+    InodeMeta.Inode.Builder builder = proto.toBuilder();
+    builder.clearNewAccessAcl();
+    builder.setAccessAcl(ProtoUtils.toProto(inode.getACL()));
+    builder.clearPersistenceStateEnum();
+    builder.setPersistenceState(inode.getPersistenceState().toString());
+    newInode = MutableInodeFile.fromProto(builder.build());
+    assertEquals(inode, newInode);
+    assertEquals(inode.getACL(), newInode.getACL());
   }
 
   /**
