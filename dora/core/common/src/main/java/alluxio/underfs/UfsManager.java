@@ -149,26 +149,4 @@ public interface UfsManager extends Closeable {
    * @return whether the mountId has been occupied
    */
   boolean hasMount(long mountId);
-
-  /**
-   * Registers a factory for creating a specify type of UFS service.
-   *
-   * @param serviceType type of the UFS service to create
-   * @param factory factory to be registered
-   */
-  void registerUfsServiceFactory(Class<? extends UfsService> serviceType,
-      UfsServiceFactory factory);
-
-  /**
-   * Gets UFS service from the manager if this mount ID exists, or throws exception otherwise.
-   *
-   * @param mountId the mount id
-   * @param serviceType type of the UFS service
-   * @param <T> type of the service
-   * @return the UFS service, or null if the service is not provided for the UFS
-   * @throws NotFoundException if mount id is not found in mount table
-   * @throws UnavailableException if master is not available to query for mount table
-   */
-  <T extends UfsService> T getUfsService(long mountId, Class<T> serviceType);
-  // ALLUXIO CS END
 }
