@@ -29,7 +29,6 @@ import alluxio.worker.block.io.BlockWriter;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
@@ -38,46 +37,15 @@ import java.util.concurrent.atomic.AtomicReference;
  * A block worker in the Alluxio system.
  */
 public interface BlockWorker extends Worker, SessionCleanable {
-   class metrictable {
-    long capacityBytes;
-    long usedBytes;
-    long capacityFree;
+  /**
+   * @return the BlockMetaMetricCache
+   */
+  AtomicReference<BlockMetaMetricCache> getBlockMetaMetricCache();
 
-    Map<String, Long> mCapacityBytesOnTiers;
-    Map<String, Long> mUsedBytesOnTiers;
-    Map<String, Long> mFreeBytesOnTiers;
-    int mNumberOfBlocks;
-
-    public long getCapacityBytes() {
-      return capacityBytes;
-    }
-
-    public long getUsedBytes() {
-      return usedBytes;
-    }
-
-    public long getCapacityFree() {
-      return capacityFree;
-    }
-    public Map<String, Long> getCapacityBytesOnTiers() {
-      return mCapacityBytesOnTiers;
-    }
-
-    public Map<String, Long> getUsedBytesOnTiers() {
-      return mUsedBytesOnTiers;
-    }
-
-    public Map<String, Long> getFreeBytesOnTiers() {
-      return mFreeBytesOnTiers;
-    }
-    public int getNumberOfBlocks() {
-      return mNumberOfBlocks;
-    }
-  }
-
-  AtomicReference<metrictable> getMetricTable();
-
-  void MaintainMetricTable();
+  /**
+   * update the block worker's metric cache
+   */
+  void maintainMetricTable();
 
   /**
    * @return the worker id
