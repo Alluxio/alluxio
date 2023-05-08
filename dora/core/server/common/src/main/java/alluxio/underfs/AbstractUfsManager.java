@@ -50,7 +50,7 @@ public abstract class AbstractUfsManager implements UfsManager {
     private final String mAuthority;
     private final Map<String, Object> mProperties;
 
-    Key(AlluxioURI uri, Map<String, Object> properties) {
+    protected Key(AlluxioURI uri, Map<String, Object> properties) {
       mScheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase();
       mAuthority = uri.getAuthority().toString().toLowerCase();
       mProperties = (properties == null || properties.isEmpty()) ? null : properties;
@@ -122,6 +122,10 @@ public abstract class AbstractUfsManager implements UfsManager {
     return getOrAddWithRecorder(ufsUri, ufsConf, Recorder.noopRecorder());
   }
 
+  protected Key generateKey(AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf) {
+    return new Key(ufsUri, ufsConf.getMountSpecificConf());
+  }
+
   /**
    * Return a UFS instance if it already exists in the cache, otherwise, creates a new instance and
    * return it and record the execution process.
@@ -133,7 +137,7 @@ public abstract class AbstractUfsManager implements UfsManager {
    */
   private UnderFileSystem getOrAddWithRecorder(AlluxioURI ufsUri,
       UnderFileSystemConfiguration ufsConf, Recorder recorder) {
-    Key key = new Key(ufsUri, ufsConf.getMountSpecificConf());
+    Key key = generateKey(ufsUri, ufsConf);
     UnderFileSystem cachedFs = mUnderFileSystemMap.get(key);
     if (cachedFs != null) {
       recorder.record("Using cached instance of UFS {} identified by key {}",

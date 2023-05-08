@@ -132,7 +132,9 @@ public class ExecutorServiceBuilder {
   public enum RpcExecutorHost {
     MASTER(0),
     JOB_MASTER(1),
-    WORKER(2);
+    WORKER(2),
+    MASTER_SECURE(1000),
+    SECURITY_SERVICE(1001);
 
     private final int mValue;
 
@@ -149,6 +151,10 @@ public class ExecutorServiceBuilder {
           return "job.master";
         case 2:
           return "worker";
+        case 1000:
+          return "master.secure";
+        case 1001:
+          return "security_server";
         default:
           return "<unrecognized_rpc_host>";
       }
