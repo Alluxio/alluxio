@@ -971,6 +971,14 @@ public final class S3RestServiceHandler {
             throw new S3Exception("Copying an object to itself invalid.",
                 objectPath, S3ErrorCode.INVALID_REQUEST);
           }
+          // avoid the NPE of status
+          try {
+            if (status == null) {
+              status = userFs.getStatus(new AlluxioURI(copySource));
+            }
+          } catch (Exception e) {
+            throw S3RestUtils.toObjectS3Exception(e, objectPath, auditContext);
+          }
           try (FileInStream in = userFs.openFile(new AlluxioURI(copySource));
                RangeFileInStream ris = RangeFileInStream.Factory.create(in, status.getLength(),
                    s3Range);
