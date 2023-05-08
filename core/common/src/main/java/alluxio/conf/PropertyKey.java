@@ -2676,6 +2676,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_METASTORE_INODE_CACHE_BASIC =
+      booleanBuilder(Name.MASTER_METASTORE_INODE_CACHE_BASIC)
+          .setDefaultValue(false)
+          .setDescription("If true a basic cache is used that only caches inodes "
+              + "with edges being accessed from RocksDB directly. "
+              + "This cache is recommended when using a master with limited memory "
+              + "or when individual directories contain large numbers of files.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
   // 2k bytes per inode cache key and * 2 for the existence of edge cache and some leeway
   public static final PropertyKey MASTER_METASTORE_INODE_CACHE_MAX_SIZE =
       intBuilder(Name.MASTER_METASTORE_INODE_CACHE_MAX_SIZE)
@@ -8175,6 +8185,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.inode.cache.high.water.mark.ratio";
     public static final String MASTER_METASTORE_INODE_CACHE_LOW_WATER_MARK_RATIO =
         "alluxio.master.metastore.inode.cache.low.water.mark.ratio";
+    public static final String MASTER_METASTORE_INODE_CACHE_BASIC =
+        "alluxio.master.metastore.inode.cache.basic";
     public static final String MASTER_METASTORE_INODE_CACHE_MAX_SIZE =
         "alluxio.master.metastore.inode.cache.max.size";
     public static final String MASTER_METASTORE_INODE_ITERATION_CRAWLER_COUNT =

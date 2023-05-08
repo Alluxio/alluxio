@@ -33,6 +33,7 @@ import alluxio.master.file.meta.MutableInode;
 import alluxio.master.file.meta.MutableInodeDirectory;
 import alluxio.master.file.meta.MutableInodeFile;
 import alluxio.master.metastore.InodeStore.WriteBatch;
+import alluxio.master.metastore.caching.BasicInodeCache;
 import alluxio.master.metastore.caching.CachingInodeStore;
 import alluxio.master.metastore.heap.HeapInodeStore;
 import alluxio.master.metastore.rocks.RocksInodeStore;
@@ -75,6 +76,7 @@ public class InodeStoreTest {
     return Arrays.asList(
         lockManager -> new HeapInodeStore(),
         lockManager -> new RocksInodeStore(sDir),
+        lockManager -> new BasicInodeCache(sDir),
         lockManager -> new CachingInodeStore(new RocksInodeStore(sDir), lockManager));
   }
 
@@ -257,6 +259,29 @@ public class InodeStoreTest {
       removeParentEdge(dir);
     }
     assertEquals(1, CloseableIterator.size(mStore.getChildren(mRoot)));
+  }
+
+  @Test
+  public void overfullCacheRemove() {
+    writeInode(mRoot);
+    List<Long> fileIds = new ArrayList<>();
+    List<String> fileNames = new ArrayList<>();
+    long numFiles = CACHE_SIZE * 2;
+    // Create double the cache size files
+    for (int i = 0; i < numFiles; i++) {
+      MutableInodeFile file = inodeFile(i + 1000, 0, "file" + i);
+      fileIds.add(file.getId());
+      fileNames.add(file.getName());
+      writeInode(file);
+      writeEdge(mRoot, file);
+    }
+    // delete all the files
+    for (int i = 0; i < numFiles; i++) {
+      mStore.remove(fileIds.get(i));
+      mStore.removeChild(mRoot.getId(), fileNames.get(i));
+      assertFalse(mStore.get(fileIds.get(i)).isPresent());
+      assertFalse(mStore.getChild(mRoot.getId(), fileNames.get(i)).isPresent());
+    }
   }
 
   @Test
