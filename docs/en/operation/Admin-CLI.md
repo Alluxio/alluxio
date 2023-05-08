@@ -427,7 +427,7 @@ and after all ongoing requests have been served, those workers should not receiv
 Therefore, no matter when the admin restarts/kills those worker processes, that should not fail any requests.
 However, there are a few exceptions. See the next section for more details.
 
-See [Rolling Upgrade Workers]({{ '/en/administration/Upgrade.html#rolling-upgraderestart-workers' | relativize_url }}) for how this command is used.
+See [Rolling Upgrade Workers]({{ '/en/operation/Upgrade.html#rolling-upgraderestart-workers' | relativize_url }}) for how this command is used.
 
 **Limitations**
  
