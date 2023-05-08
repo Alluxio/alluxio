@@ -350,6 +350,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     return mHeartbeatReporter.generateReportAndClear();
   }
 
+  @Override
   public void maintainMetricTable() {
     BlockStoreMeta meta = mBlockStore.getBlockStoreMetaFull();
     BlockMetaMetricCache metrictable = mMetricCache.get();
@@ -360,7 +361,9 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     metrictable.mUsedBytesOnTiers = meta.getCapacityBytesOnTiers();
     for (int i = 0; i < WORKER_STORAGE_TIER_ASSOC.size(); i++) {
       String tier = WORKER_STORAGE_TIER_ASSOC.getAlias(i);
-      metrictable.mFreeBytesOnTiers.replace(tier, metrictable.mCapacityBytesOnTiers.getOrDefault(tier, 0L) - metrictable.mUsedBytesOnTiers.getOrDefault(tier, 0L));
+      metrictable.mFreeBytesOnTiers.replace(tier, metrictable.mCapacityBytesOnTiers
+          .getOrDefault(tier, 0L)
+          - metrictable.mUsedBytesOnTiers.getOrDefault(tier, 0L));
     }
     metrictable.mNumberOfBlocks = meta.getNumberOfBlocks();
   }
@@ -545,13 +548,17 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     public static final Counter WORKER_ACTIVE_CLIENTS =
         MetricsSystem.counter(MetricKey.WORKER_ACTIVE_CLIENTS.getName());
 
-    volatile static long mLastMetricsUpdateMs = CommonUtils.getCurrentMs();
+    static volatile long sLastMetricsUpdateMs = CommonUtils.getCurrentMs();
 
+    /**
+     * Update mMetricCache when find it exceed certain interval.
+     * @param func the function that actually do the maintain action
+     */
     public static void maybeUpdateMetrics(Runnable func) {
       long now = CommonUtils.getCurrentMs();
       // This '1000' should be replaced by metric interval from conf
-      if (now - mLastMetricsUpdateMs > 1000) {
-        mLastMetricsUpdateMs = now;
+      if (now - sLastMetricsUpdateMs > 1000) {
+        sLastMetricsUpdateMs = now;
         func.run();
       }
     }

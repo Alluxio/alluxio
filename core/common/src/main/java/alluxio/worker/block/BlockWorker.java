@@ -43,7 +43,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
   AtomicReference<BlockMetaMetricCache> getBlockMetaMetricCache();
 
   /**
-   * update the block worker's metric cache
+   * update the block worker's metric cache.
    */
   void maintainMetricTable();
 
