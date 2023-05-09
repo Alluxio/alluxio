@@ -665,6 +665,7 @@ public final class S3RestServiceHandler {
    * @param authorization header parameter authorization
    * @param contentMD5 the optional Base64 encoded 128-bit MD5 digest of the object
    * @param copySourceParam the URL-encoded source path to copy the new file from
+   * @param copySourceRange the http range header
    * @param decodedLength the length of the content when in aws-chunked encoding
    * @param contentLength the total length of the request body
    * @param contentTypeParam the content type of the request body
@@ -688,6 +689,8 @@ public final class S3RestServiceHandler {
                                            @HeaderParam("Content-MD5") final String contentMD5,
                                            @HeaderParam(S3Constants.S3_COPY_SOURCE_HEADER)
                                            final String copySourceParam,
+                                           @HeaderParam(S3Constants.S3_COPY_SOURCE_RANGE)
+                                             final String copySourceRange,
                                            @HeaderParam("x-amz-decoded-content-length")
                                            final String decodedLength,
                                            @HeaderParam(S3Constants.S3_METADATA_DIRECTIVE_HEADER)
@@ -895,6 +898,7 @@ public final class S3RestServiceHandler {
       } else { // CopyObject or UploadPartCopy
         String copySource = !copySourceParam.startsWith(AlluxioURI.SEPARATOR)
             ? AlluxioURI.SEPARATOR + copySourceParam : copySourceParam;
+        S3RangeSpec s3Range = S3RangeSpec.Factory.create(copySourceRange);
         try {
           copySource = URLDecoder.decode(copySource, "UTF-8");
         } catch (UnsupportedEncodingException ex) {
@@ -954,11 +958,21 @@ public final class S3RestServiceHandler {
         } catch (IOException | AlluxioException e) {
           throw S3RestUtils.toObjectS3Exception(e, objectUri.getPath());
         }
+        // avoid the NPE of status
+        try {
+          if (status == null) {
+            status = userFs.getStatus(new AlluxioURI(copySource));
+          }
+        } catch (Exception e) {
+          throw S3RestUtils.toObjectS3Exception(e, objectPath);
+        }
         try (FileInStream in = userFs.openFile(new AlluxioURI(copySource));
+             RangeFileInStream ris = RangeFileInStream.Factory.create(in, status.getLength(),
+                 s3Range);
              FileOutStream out = userFs.createFile(objectUri, copyFilePOptionsBuilder.build())) {
           MessageDigest md5 = MessageDigest.getInstance("MD5");
           try (DigestOutputStream digestOut = new DigestOutputStream(out, md5)) {
-            IOUtils.copyLarge(in, digestOut, new byte[8 * Constants.MB]);
+            IOUtils.copyLarge(ris, digestOut, new byte[8 * Constants.MB]);
             byte[] digest = md5.digest();
             String entityTag = Hex.encodeHexString(digest);
             // persist the ETag via xAttr
