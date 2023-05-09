@@ -137,6 +137,7 @@
       <plugin>
         <groupId>com.salesforce.servicelibs</groupId>
         <artifactId>proto-backwards-compatibility</artifactId>
+        <version>1.0.7</version>
         <configuration>
           <protoSourceRoot>${basedir}/src/main/proto</protoSourceRoot>
         </configuration>
