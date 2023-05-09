@@ -572,7 +572,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       while (fileReader.transferTo(buf) != -1) {
         buf.clear();
       }
-    } catch (IOException e) {
+    } catch (IOException | AccessControlException e) {
       throw AlluxioRuntimeException.from(e);
     }
     finally {
