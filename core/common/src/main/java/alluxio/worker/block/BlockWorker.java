@@ -38,16 +38,6 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public interface BlockWorker extends Worker, SessionCleanable {
   /**
-   * @return the BlockMetaMetricCache
-   */
-  AtomicReference<BlockMetaMetricCache> getBlockMetaMetricCache();
-
-  /**
-   * update the block worker's metric cache.
-   */
-  void maintainMetricCache();
-
-  /**
    * @return the worker id
    */
   AtomicReference<Long> getWorkerId();

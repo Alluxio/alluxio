@@ -163,10 +163,10 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mFuseManager = mResourceCloser.register(new FuseManager(fsContext));
     mWhitelist = new PrefixList(Configuration.getList(PropertyKey.WORKER_WHITELIST));
 
-    mMetricCache = new AtomicReference<>(new BlockMetaMetricCache());
-    maintainMetricCache();
+    mMetricCache = new AtomicReference<>(new BlockMetaMetricCache(this));
+    mMetricCache.get().update(WORKER_STORAGE_TIER_ASSOC);
 
-    Metrics.registerGauges(this);
+    Metrics.registerGauges(mMetricCache);
   }
 
   /**
@@ -352,30 +352,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-  public void maintainMetricCache() {
-    BlockStoreMeta meta = mBlockStore.getBlockStoreMetaFull();
-    BlockMetaMetricCache metrictable = mMetricCache.get();
-    metrictable.mLastUpdateTimeStamp = CommonUtils.getCurrentMs();
-    metrictable.mCapacityBytes = meta.getCapacityBytes();
-    metrictable.mUsedBytes = meta.getUsedBytes();
-    metrictable.mCapacityFree = metrictable.mCapacityBytes - metrictable.mUsedBytes;
-    metrictable.mCapacityBytesOnTiers = meta.getCapacityBytesOnTiers();
-    metrictable.mUsedBytesOnTiers = meta.getCapacityBytesOnTiers();
-    for (int i = 0; i < WORKER_STORAGE_TIER_ASSOC.size(); i++) {
-      String tier = WORKER_STORAGE_TIER_ASSOC.getAlias(i);
-      metrictable.mFreeBytesOnTiers.replace(tier, metrictable.mCapacityBytesOnTiers
-          .getOrDefault(tier, 0L)
-          - metrictable.mUsedBytesOnTiers.getOrDefault(tier, 0L));
-    }
-    metrictable.mNumberOfBlocks = meta.getNumberOfBlocks();
-  }
-
-  @Override
-  public AtomicReference<BlockMetaMetricCache> getBlockMetaMetricCache() {
-    return mMetricCache;
-  }
-
-  @Override
   public BlockStoreMeta getStoreMeta() {
     return mBlockStore.getBlockStoreMeta();
   }
@@ -552,44 +528,47 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
     /**
      * Update mMetricCache when find it exceed certain interval.
-     * @param blockWorker the BlockWorker
+     * @param cache the BlockMetaMetricCache
      */
-    public static void maybeUpdateMetrics(BlockWorker blockWorker) {
+    public static void maybeUpdateMetrics(BlockMetaMetricCache cache) {
       long now = CommonUtils.getCurrentMs();
       // This '1000' should be replaced by metric interval from conf
-      if (now - blockWorker.getBlockMetaMetricCache().get().getLastUpdateTimeStamp() > 1000) {
-        blockWorker.maintainMetricCache();
+      if (now - cache.getLastUpdateTimeStamp() > 1000) {
+        cache.update(WORKER_STORAGE_TIER_ASSOC);
       }
     }
 
     /**
      * Registers metric gauges.
      *
-     * @param blockWorker the block worker handle
+     * @param m the AtomicReference of BlockMetaMetricCache
      */
-    public static void registerGauges(BlockWorker blockWorker) {
-      AtomicReference<BlockMetaMetricCache> m = blockWorker.getBlockMetaMetricCache();
+    public static void registerGauges(AtomicReference<BlockMetaMetricCache> m) {
+      // AtomicReference<BlockMetaMetricCache> m = blockWorker.getBlockMetaMetricCache();
       MetricsSystem.registerGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.WORKER_CAPACITY_TOTAL.getName()),
           () -> {
-            maybeUpdateMetrics(blockWorker);
-            m.get().getCapacityBytes();
+            BlockMetaMetricCache cache = m.get();
+            maybeUpdateMetrics(cache);
+            cache.getCapacityBytes();
             return null;
           });
 
       MetricsSystem.registerGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.WORKER_CAPACITY_USED.getName()),
           () -> {
-            maybeUpdateMetrics(blockWorker);
-            m.get().getUsedBytes();
+            BlockMetaMetricCache cache = m.get();
+            maybeUpdateMetrics(cache);
+            cache.getUsedBytes();
             return null;
           });
 
       MetricsSystem.registerGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.WORKER_CAPACITY_FREE.getName()),
           () -> {
-            maybeUpdateMetrics(blockWorker);
-            m.get().getCapacityFree();
+            BlockMetaMetricCache cache = m.get();
+            maybeUpdateMetrics(cache);
+            cache.getCapacityFree();
             return null;
           });
 
@@ -599,32 +578,36 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
             MetricKey.WORKER_CAPACITY_TOTAL.getName() + MetricInfo.TIER + tier),
             () -> {
-              maybeUpdateMetrics(blockWorker);
-              m.get().getCapacityBytesOnTiers().getOrDefault(tier, 0L);
+              BlockMetaMetricCache cache = m.get();
+              maybeUpdateMetrics(cache);
+              cache.getCapacityBytesOnTiers().getOrDefault(tier, 0L);
               return null;
             });
 
         MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
             MetricKey.WORKER_CAPACITY_USED.getName() + MetricInfo.TIER + tier),
             () -> {
-              maybeUpdateMetrics(blockWorker);
-              m.get().getUsedBytesOnTiers().getOrDefault(tier, 0L);
+              BlockMetaMetricCache cache = m.get();
+              maybeUpdateMetrics(cache);
+              cache.getUsedBytesOnTiers().getOrDefault(tier, 0L);
               return null;
             });
 
         MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
             MetricKey.WORKER_CAPACITY_FREE.getName() + MetricInfo.TIER + tier),
             () -> {
-              maybeUpdateMetrics(blockWorker);
-              m.get().getFreeBytesOnTiers().getOrDefault(tier, 0L);
+              BlockMetaMetricCache cache = m.get();
+              maybeUpdateMetrics(cache);
+              cache.getFreeBytesOnTiers().getOrDefault(tier, 0L);
               return null;
             });
       }
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
           MetricKey.WORKER_BLOCKS_CACHED.getName()),
           () -> {
-            maybeUpdateMetrics(blockWorker);
-            m.get().getNumberOfBlocks();
+            BlockMetaMetricCache cache = m.get();
+            maybeUpdateMetrics(cache);
+            cache.getNumberOfBlocks();
             return null;
           });
     }

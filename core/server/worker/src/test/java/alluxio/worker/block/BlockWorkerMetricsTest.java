@@ -28,6 +28,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 /**
  * Unit tests for {@link DefaultBlockWorker.Metrics}.
  */
@@ -46,9 +48,10 @@ public final class BlockWorkerMetricsTest {
     MetricsSystem.clearAllMetrics();
     mBlockWorker = mock(BlockWorker.class);
     mBlockStoreMeta = mock(BlockStoreMeta.class);
+    AtomicReference<BlockMetaMetricCache> mMetricCache = new AtomicReference<>(new BlockMetaMetricCache(mBlockWorker));
     when(mBlockWorker.getStoreMeta()).thenReturn(mBlockStoreMeta);
     when(mBlockWorker.getStoreMetaFull()).thenReturn(mBlockStoreMeta);
-    Metrics.registerGauges(mBlockWorker);
+    Metrics.registerGauges(mMetricCache);
   }
 
   @Test
