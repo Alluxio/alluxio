@@ -28,7 +28,7 @@ final class TLRandom {
    */
   private static final long SEEDER_INCREMENT = 0xbb67ae8584caa73bL;
   // Unsafe mechanics
-  private static final sun.misc.Unsafe U = UnsafeAccess.unsafe;
+  private static final jdk.internal.misc.Unsafe U = UnsafeAccess.unsafe;
   private static final long THREADLOCALS;
 
   // Within-package utilities
@@ -184,7 +184,7 @@ final class TLRandom {
   }
 
   static final void setInheritedAccessControlContext(Thread thread, AccessControlContext acc) {
-    U.putOrderedObject(thread, INHERITEDACCESSCONTROLCONTEXT, acc);
+    U.putObjectVolatile(thread, INHERITEDACCESSCONTROLCONTEXT, acc);
   }
 
   static final void setContextClassLoader(Thread thread, ClassLoader ccl) {

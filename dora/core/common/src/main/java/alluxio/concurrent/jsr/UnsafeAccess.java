@@ -4,7 +4,7 @@
  */
 package alluxio.concurrent.jsr;
 
-import sun.misc.Unsafe;
+import jdk.internal.misc.Unsafe;
 
 import java.lang.reflect.Field;
 

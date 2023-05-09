@@ -210,7 +210,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
 
   /* ------------- Encoding and decoding outcomes -------------- */
   // Unsafe mechanics
-  private static final sun.misc.Unsafe U = UnsafeAccess.unsafe;
+  private static final jdk.internal.misc.Unsafe U = UnsafeAccess.unsafe;
   private static final long RESULT;
   private static final long STACK;
   private static final long NEXT;
@@ -327,11 +327,11 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
   }
 
   static void lazySetNext(Completion c, Completion next) {
-    U.putOrderedObject(c, NEXT, next);
+    U.putObjectVolatile(c, NEXT, next);
   }
 
   static boolean casNext(Completion c, Completion cmp, Completion val) {
-    return U.compareAndSwapObject(c, NEXT, cmp, val);
+    return U.compareAndSetObject(c, NEXT, cmp, val);
   }
 
   private static <U, T extends U> CompletableFuture<U> uniCopyStage(CompletableFuture<T> src) {
@@ -577,18 +577,18 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
   }
 
   final boolean internalComplete(Object r) { // CAS from null to r
-    return U.compareAndSwapObject(this, RESULT, null, r);
+    return U.compareAndSetObject(this, RESULT, null, r);
   }
 
   final boolean casStack(Completion cmp, Completion val) {
-    return U.compareAndSwapObject(this, STACK, cmp, val);
+    return U.compareAndSetObject(this, STACK, cmp, val);
   }
 
   /** Returns true if successfully pushed c onto stack. */
   final boolean tryPushStack(Completion c) {
     Completion h = stack;
     lazySetNext(c, h);
-    return U.compareAndSwapObject(this, STACK, h, c);
+    return U.compareAndSetObject(this, STACK, h, c);
   }
 
   /** Unconditionally pushes c onto stack, retrying if necessary. */
@@ -599,7 +599,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
 
   /** Completes with the null value, unless already completed. */
   final boolean completeNull() {
-    return U.compareAndSwapObject(this, RESULT, null, NIL);
+    return U.compareAndSetObject(this, RESULT, null, NIL);
   }
 
   /** Returns the encoding of the given non-exceptional value. */
@@ -609,12 +609,12 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
 
   /** Completes with a non-exceptional result, unless already completed. */
   final boolean completeValue(T t) {
-    return U.compareAndSwapObject(this, RESULT, null, (t == null) ? NIL : t);
+    return U.compareAndSetObject(this, RESULT, null, (t == null) ? NIL : t);
   }
 
   /** Completes with an exceptional result, unless already completed. */
   final boolean completeThrowable(Throwable x) {
-    return U.compareAndSwapObject(this, RESULT, null, encodeThrowable(x));
+    return U.compareAndSetObject(this, RESULT, null, encodeThrowable(x));
   }
 
   /**
@@ -624,7 +624,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
    * propagation of an existing CompletionException.
    */
   final boolean completeThrowable(Throwable x, Object r) {
-    return U.compareAndSwapObject(this, RESULT, null, encodeThrowable(x, r));
+    return U.compareAndSetObject(this, RESULT, null, encodeThrowable(x, r));
   }
 
   /**
@@ -640,7 +640,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
    * to a CompletionException.
    */
   final boolean completeRelay(Object r) {
-    return U.compareAndSwapObject(this, RESULT, null, encodeRelay(r));
+    return U.compareAndSetObject(this, RESULT, null, encodeRelay(r));
   }
 
   /**

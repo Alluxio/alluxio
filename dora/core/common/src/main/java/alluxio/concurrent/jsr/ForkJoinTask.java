@@ -202,7 +202,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
       new ReferenceQueue<>();
   private static final long serialVersionUID = -7721805057305804111L;
   // Unsafe mechanics
-  private static final sun.misc.Unsafe U = UnsafeAccess.unsafe;
+  private static final jdk.internal.misc.Unsafe U = UnsafeAccess.unsafe;
   private static final long STATUS;
 
   static {
@@ -585,7 +585,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
     for (int s;;) {
       if ((s = status) < 0)
         return s;
-      if (U.compareAndSwapInt(this, STATUS, s, s | completion)) {
+      if (U.compareAndSetInt(this, STATUS, s, s | completion)) {
         if ((s >>> 16) != 0)
           synchronized (this) {
             notifyAll();
@@ -625,7 +625,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
   final void internalWait(long timeout) {
     int s;
     if ((s = status) >= 0 && // force completer to issue notify
-        U.compareAndSwapInt(this, STATUS, s, s | SIGNAL)) {
+        U.compareAndSetInt(this, STATUS, s, s | SIGNAL)) {
       synchronized (this) {
         if (status >= 0)
           try {
@@ -650,7 +650,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
     if (s >= 0 && (s = status) >= 0) {
       boolean interrupted = false;
       do {
-        if (U.compareAndSwapInt(this, STATUS, s, s | SIGNAL)) {
+        if (U.compareAndSetInt(this, STATUS, s, s | SIGNAL)) {
           synchronized (this) {
             if (status >= 0) {
               try {
@@ -680,7 +680,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         ? ForkJoinPool.common.externalHelpComplete((CountedCompleter<?>) this, 0)
         : ForkJoinPool.common.tryExternalUnpush(this) ? doExec() : 0)) >= 0) {
       while ((s = status) >= 0) {
-        if (U.compareAndSwapInt(this, STATUS, s, s | SIGNAL)) {
+        if (U.compareAndSetInt(this, STATUS, s, s | SIGNAL)) {
           synchronized (this) {
             if (status >= 0)
               wait(0L);
@@ -1081,7 +1081,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
         long ns, ms; // measure in nanosecs, but wait in millisecs
         while ((s = status) >= 0 && (ns = deadline - System.nanoTime()) > 0L) {
           if ((ms = TimeUnit.NANOSECONDS.toMillis(ns)) > 0L
-              && U.compareAndSwapInt(this, STATUS, s, s | SIGNAL)) {
+              && U.compareAndSetInt(this, STATUS, s, s | SIGNAL)) {
             synchronized (this) {
               if (status >= 0)
                 wait(ms); // OK to throw InterruptedException
@@ -1208,7 +1208,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
    */
   public final short setForkJoinTaskTag(short newValue) {
     for (int s;;) {
-      if (U.compareAndSwapInt(this, STATUS, s = status, (s & ~SMASK) | (newValue & SMASK)))
+      if (U.compareAndSetInt(this, STATUS, s = status, (s & ~SMASK) | (newValue & SMASK)))
         return (short) s;
     }
   }
@@ -1229,7 +1229,7 @@ public abstract class ForkJoinTask<V> implements Future<V>, Serializable {
     for (int s;;) {
       if ((short) (s = status) != expect)
         return false;
-      if (U.compareAndSwapInt(this, STATUS, s, (s & ~SMASK) | (update & SMASK)))
+      if (U.compareAndSetInt(this, STATUS, s, (s & ~SMASK) | (update & SMASK)))
         return true;
     }
   }

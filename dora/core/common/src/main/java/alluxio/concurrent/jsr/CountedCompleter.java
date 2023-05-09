@@ -385,7 +385,7 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
 
   private static final long serialVersionUID = 5232453752276485070L;
   // Unsafe mechanics
-  private static final sun.misc.Unsafe U = UnsafeAccess.unsafe;
+  private static final jdk.internal.misc.Unsafe U = UnsafeAccess.unsafe;
   private static final long PENDING;
 
   static {
@@ -498,7 +498,7 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
   public final void addToPendingCount(int delta) {
     int c;
     do {
-    } while (!U.compareAndSwapInt(this, PENDING, c = pending, c + delta));
+    } while (!U.compareAndSetInt(this, PENDING, c = pending, c + delta));
   }
 
   /**
@@ -510,7 +510,7 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
    * @return {@code true} if successful
    */
   public final boolean compareAndSetPendingCount(int expected, int count) {
-    return U.compareAndSwapInt(this, PENDING, expected, count);
+    return U.compareAndSetInt(this, PENDING, expected, count);
   }
 
   /**
@@ -521,7 +521,7 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
   public final int decrementPendingCountUnlessZero() {
     int c;
     do {
-    } while ((c = pending) != 0 && !U.compareAndSwapInt(this, PENDING, c, c - 1));
+    } while ((c = pending) != 0 && !U.compareAndSetInt(this, PENDING, c, c - 1));
     return c;
   }
 
@@ -552,7 +552,7 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
           s.quietlyComplete();
           return;
         }
-      } else if (U.compareAndSwapInt(a, PENDING, c, c - 1))
+      } else if (U.compareAndSetInt(a, PENDING, c, c - 1))
         return;
     }
   }
@@ -572,7 +572,7 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
           s.quietlyComplete();
           return;
         }
-      } else if (U.compareAndSwapInt(a, PENDING, c, c - 1))
+      } else if (U.compareAndSetInt(a, PENDING, c, c - 1))
         return;
     }
   }
@@ -614,7 +614,7 @@ public abstract class CountedCompleter<T> extends ForkJoinTask<T> {
     for (int c;;) {
       if ((c = pending) == 0)
         return this;
-      else if (U.compareAndSwapInt(this, PENDING, c, c - 1))
+      else if (U.compareAndSetInt(this, PENDING, c, c - 1))
         return null;
     }
   }
