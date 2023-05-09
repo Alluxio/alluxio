@@ -38,6 +38,7 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.Bits;
+import alluxio.grpc.CancelSyncMetadataPResponse;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -45,6 +46,7 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.GetSyncProgressPResponse;
 import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
@@ -56,6 +58,9 @@ import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.SyncMetadataAsyncPResponse;
+import alluxio.grpc.SyncMetadataPOptions;
+import alluxio.grpc.SyncMetadataPResponse;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
@@ -546,6 +551,42 @@ public class BaseFileSystem implements FileSystem {
     try (CloseableResource<FileSystemMasterClient> client =
             mFsContext.acquireMasterClientResource()) {
       return client.get().getJobProgress(jobDescription, format, verbose);
+    }
+  }
+
+  @Override
+  public SyncMetadataPResponse syncMetadata(AlluxioURI path, SyncMetadataPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    try (CloseableResource<FileSystemMasterClient> client =
+             mFsContext.acquireMasterClientResource()) {
+      return client.get().syncMetadata(path, options);
+    }
+  }
+
+  @Override
+  public SyncMetadataAsyncPResponse syncMetadataAsync(AlluxioURI path, SyncMetadataPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    try (CloseableResource<FileSystemMasterClient> client =
+             mFsContext.acquireMasterClientResource()) {
+      return client.get().syncMetadataAsync(path, options);
+    }
+  }
+
+  @Override
+  public GetSyncProgressPResponse getSyncProgress(long taskGroupId)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    try (CloseableResource<FileSystemMasterClient> client =
+             mFsContext.acquireMasterClientResource()) {
+      return client.get().getSyncProgress(taskGroupId);
+    }
+  }
+
+  @Override
+  public CancelSyncMetadataPResponse cancelSyncMetadata(long taskGroupId)
+      throws IOException, AlluxioException {
+    try (CloseableResource<FileSystemMasterClient> client =
+             mFsContext.acquireMasterClientResource()) {
+      return client.get().cancelSyncMetadata(taskGroupId);
     }
   }
 

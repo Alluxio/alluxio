@@ -346,9 +346,27 @@ public final class PathUtils {
    * @throws InvalidPathException when the path or prefix is invalid
    */
   public static boolean hasPrefix(String path, String prefix) throws InvalidPathException {
+    return hasPrefix(path, prefix, true);
+  }
+
+  /**
+   * Checks whether the given path contains the given prefix. The comparison happens at a component
+   * granularity; for example, {@code hasPrefix(/dir/file, /dir)} should evaluate to true, while
+   * {@code hasPrefix(/dir/file, /d)} should evaluate to false.
+   *
+   * @param path a path
+   * @param prefix a prefix
+   * @param cleanPath if the paths should be cleaned
+   * @return whether the given path has the given prefix
+   * @throws InvalidPathException when the path or prefix is invalid
+   */
+  public static boolean hasPrefix(String path, String prefix, boolean cleanPath)
+      throws InvalidPathException {
     // normalize path and prefix(e.g. "/a/b/../c" -> "/a/c", "/a/b/" --> "/a/b")
-    path = cleanPath(path);
-    prefix = cleanPath(prefix);
+    if (cleanPath) {
+      path = cleanPath(path);
+      prefix = cleanPath(prefix);
+    }
 
     if (prefix.equals("/")) {
       return true;
@@ -443,6 +461,18 @@ public final class PathUtils {
    */
   public static String normalizePath(String path, String separator) {
     return path.endsWith(separator) ? path : path + separator;
+  }
+
+  /**
+   * Adds a starting separator if it does not exist in path.
+   *
+   * @param path the file name
+   * @param separator trailing separator to add
+   * @return updated path with trailing separator
+   */
+  public static String normalizePathStart(
+      String path, String separator) {
+    return path.startsWith(separator) ? path : separator + path;
   }
 
   private PathUtils() {} // prevent instantiation
