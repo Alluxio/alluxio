@@ -226,7 +226,8 @@ spec:
   <configurations>
 ```
 
-All configurable properties in the `spec` section can be found in `./samples/alluxio-config.yaml`.
+All configurable properties in the `spec` section can be found in `deploy/charts/alluxio/values.yaml`.
+You don't need to specify the `dataset` section.
 
 #### Step 3
 
@@ -272,4 +273,23 @@ $ kubectl create -f load.yaml
 To check the status of the load:
 ```console
 $ kubectl get load
+```
+
+### More bonus - an example alluxio cluster configuration for AI/ML use case
+```yaml
+apiVersion: k8s-operator.alluxio.com/v1alpha1
+kind: AlluxioCluster
+metadata:
+  name: my-alluxio-cluster
+spec:
+  image: alluxio/alluxio
+  imageTag: 294
+  worker:
+    count: 4
+  pagestore:
+    type: hostPath
+    quota: 512Gi
+    hostPath: /mnt/alluxio-nvme
+  csi:
+    enabled: true
 ```
