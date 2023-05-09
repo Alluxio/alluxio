@@ -194,6 +194,16 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   void commitBlockInUFS(long blockId, long length, JournalContext context);
 
   /**
+   * Marks a block as committed, but without a worker location. This means the block is only in ufs.
+   * Append any created journal entries to the included context.
+   * @param blockId the id of the block to commit
+   * @param length the length of the block
+   * @param context the journal context
+   * @param checkExists checks if the block exists
+   */
+  void commitBlockInUFS(long blockId, long length, JournalContext context, boolean checkExists);
+
+  /**
    * @param blockId the block id to get information for
    * @return the {@link BlockInfo} for the given block id
    * @throws BlockInfoException if the block info is not found

@@ -11,6 +11,7 @@
 
 package alluxio.underfs;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -19,8 +20,11 @@ import alluxio.ConfigurationRule;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.file.options.DescendantType;
+import alluxio.underfs.options.ListOptions;
 
 import com.google.common.collect.ImmutableMap;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -28,6 +32,7 @@ import org.mockito.Mockito;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.SocketException;
+import java.util.stream.Collectors;
 
 public class ObjectUnderFileSystemTest {
   private static final AlluxioConfiguration CONF = Configuration.global();
@@ -68,5 +73,48 @@ public class ObjectUnderFileSystemTest {
     } catch (IOException e) {
       fail();
     }
+  }
+
+  @Test
+  public void testListObjectStorageDescendantTypeNone() throws Throwable {
+    mObjectUFS = new MockObjectUnderFileSystem(new AlluxioURI("/"),
+        UnderFileSystemConfiguration.defaults(CONF)) {
+      final UfsStatus mF1Status = new UfsFileStatus("f1", "", 0L, 0L, "", "", (short) 0777, 0L);
+      final UfsStatus mF2Status = new UfsFileStatus("f2", "", 1L, 0L, "", "", (short) 0777, 0L);
+
+      @Override
+      public UfsStatus getStatus(String path) throws IOException {
+        if (path.equals("root/f1")) {
+          return mF1Status;
+        } else if (path.equals("root/f2")) {
+          return mF2Status;
+        }
+        throw new FileNotFoundException();
+      }
+
+      @Override
+      public UfsStatus[] listStatus(String path) throws IOException {
+        if (path.equals("root") || path.equals("root/")) {
+          return new UfsStatus[] {mF1Status, mF2Status};
+        }
+        return new UfsStatus[0];
+      }
+
+      @Override
+      public UfsStatus[] listStatus(String path, ListOptions options) throws IOException {
+        return listStatus(path);
+      }
+
+      @Override
+      protected ObjectPermissions getPermissions() {
+        return new ObjectPermissions("foo", "bar", (short) 0777);
+      }
+    };
+
+    UfsLoadResult result = UnderFileSystemTestUtil.performListingAsyncAndGetResult(
+        mObjectUFS, "root", DescendantType.NONE);
+    Assert.assertEquals(1, result.getItemsCount());
+    UfsStatus status = result.getItems().collect(Collectors.toList()).get(0);
+    assertEquals("root", status.getName());
   }
 }

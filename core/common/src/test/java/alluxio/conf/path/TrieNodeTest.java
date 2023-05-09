@@ -11,6 +11,8 @@
 
 package alluxio.conf.path;
 
+import static org.junit.Assert.assertEquals;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Streams;
 import org.junit.Assert;
@@ -74,16 +76,16 @@ public class TrieNodeTest {
     TrieNode<Object> d = node.insert("/c/d");
     TrieNode<Object> g = node.insert("/c/g");
     TrieNode<Object> h = node.insert("/u/h");
-    Assert.assertEquals(a, node.searchExact("/a").get());
-    Assert.assertEquals(b, node.searchExact("/a/b").get());
-    Assert.assertEquals(f, node.searchExact("/a/e/f").get());
-    Assert.assertEquals(d, node.searchExact("/c/d").get());
-    Assert.assertEquals(g, node.searchExact("/c/g").get());
-    Assert.assertEquals(h, node.searchExact("/u/h").get());
-    Assert.assertEquals(Optional.empty(), node.searchExact("/"));
-    Assert.assertEquals(Optional.empty(), node.searchExact("/ab"));
-    Assert.assertEquals(Optional.empty(), node.searchExact("/a/b/c"));
-    Assert.assertEquals(Optional.empty(), node.searchExact("/a/d"));
+    assertEquals(a, node.searchExact("/a").get());
+    assertEquals(b, node.searchExact("/a/b").get());
+    assertEquals(f, node.searchExact("/a/e/f").get());
+    assertEquals(d, node.searchExact("/c/d").get());
+    assertEquals(g, node.searchExact("/c/g").get());
+    assertEquals(h, node.searchExact("/u/h").get());
+    assertEquals(Optional.empty(), node.searchExact("/"));
+    assertEquals(Optional.empty(), node.searchExact("/ab"));
+    assertEquals(Optional.empty(), node.searchExact("/a/b/c"));
+    assertEquals(Optional.empty(), node.searchExact("/a/d"));
   }
 
   @Test
@@ -97,17 +99,17 @@ public class TrieNodeTest {
     TrieNode<Object> h = node.insert("/u/h");
     Assert.assertTrue(node.search("/a/b").contains(b));
     TrieNode<Object> b2 = node.deleteIf("/a/b", n -> {
-      Assert.assertEquals(b, n);
+      assertEquals(b, n);
       return true;
     });
-    Assert.assertEquals(b, b2);
+    assertEquals(b, b2);
     Assert.assertFalse(node.search("/a/b").contains(b));
     Assert.assertTrue(node.search("/a").contains(a));
     TrieNode<Object> a2 = node.deleteIf("/a", n -> {
-      Assert.assertEquals(a, n);
+      assertEquals(a, n);
       return true;
     });
-    Assert.assertEquals(a, a2);
+    assertEquals(a, a2);
     Assert.assertFalse(node.search("/a").contains(a));
     Assert.assertTrue(node.search("/a/e/f").contains(f));
     TrieNode<Object> c2 = node.deleteIf("/c", n -> true);
@@ -115,10 +117,10 @@ public class TrieNodeTest {
     Assert.assertTrue(node.search("/c/d").contains(d));
     Assert.assertTrue(node.search("/c/g").contains(g));
     TrieNode<Object> h2 = node.deleteIf("/u/h", n -> {
-      Assert.assertEquals(h, n);
+      assertEquals(h, n);
       return true;
     });
-    Assert.assertEquals(h, h2);
+    assertEquals(h, h2);
     TrieNode<Object> nil = node.deleteIf("/n", n -> {
       Assert.fail();
       return true;
@@ -147,10 +149,10 @@ public class TrieNodeTest {
 
     Assert.assertTrue(node.search("/a/b").contains(b));
     TrieNode<Object> b2 = node.deleteIf("/a/b", n -> {
-      Assert.assertEquals(b, n);
+      assertEquals(b, n);
       return true;
     });
-    Assert.assertEquals(b, b2);
+    assertEquals(b, b2);
     Assert.assertFalse(node.search("/a/b").contains(b));
     TrieNode<Object> b3 = node.insert("/a/b");
     Assert.assertTrue(node.search("/a/b").contains(b3));
@@ -158,10 +160,10 @@ public class TrieNodeTest {
     Assert.assertTrue(node.search("/a").contains(a));
     Assert.assertTrue(node.search("/a/b").contains(a));
     TrieNode<Object> a2 = node.deleteIf("/a", n -> {
-      Assert.assertEquals(a, n);
+      assertEquals(a, n);
       return true;
     });
-    Assert.assertEquals(a, a2);
+    assertEquals(a, a2);
     Assert.assertFalse(node.search("/a/b").contains(a));
     Assert.assertFalse(node.search("/a").contains(a));
     Assert.assertTrue(node.search("/a/b").contains(b3));
@@ -188,7 +190,7 @@ public class TrieNodeTest {
         node.getLeafChildren("/a/e/f").toArray(TrieNode[]::new));
     Assert.assertArrayEquals(new TrieNode[] {d},
         node.getLeafChildren("/c/d").toArray(TrieNode[]::new));
-    Assert.assertEquals(new HashSet(Arrays.asList(a, b, f, d, g, h)),
+    assertEquals(new HashSet(Arrays.asList(a, b, f, d, g, h)),
         node.getLeafChildren("/").collect(Collectors.toSet()));
   }
 
@@ -205,8 +207,20 @@ public class TrieNodeTest {
     node.clear();
     // after clearing, each node should only contain itself
     for (TrieNode<Object> nxt : ImmutableList.of(a, b, f, d, g, h)) {
-      Assert.assertEquals(Collections.singletonList(nxt),
+      assertEquals(Collections.singletonList(nxt),
           nxt.getLeafChildren("/").collect(Collectors.toList()));
     }
+  }
+
+  @Test
+  public void getLeafChildrenOnRoot() {
+    TrieNode<Object> node = new TrieNode<>();
+    TrieNode<Object> a = node.insert("/a");
+    TrieNode<Object> b = node.insert("/a/b");
+    TrieNode<Object> f = node.insert("/a/e/f");
+    TrieNode<Object> d = node.insert("/c/d");
+    TrieNode<Object> g = node.insert("/c/g");
+    TrieNode<Object> h = node.insert("/u/h");
+    assertEquals(6, node.getLeafChildren("/").toArray().length);
   }
 }

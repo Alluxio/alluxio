@@ -43,8 +43,12 @@ import alluxio.master.file.contexts.CreateFileContext;
 import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.contexts.MountContext;
+import alluxio.master.file.mdsync.DefaultSyncProcess;
+import alluxio.master.file.mdsync.TestSyncProcessor;
 import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.TtlIntervalRule;
+import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.journal.JournalType;
@@ -363,7 +367,15 @@ public class FileSystemMasterTestBase {
     mExecutorService = Executors
         .newFixedThreadPool(4, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
     mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster, masterContext,
-        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService), mClock);
+        ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService), mClock) {
+      @Override
+      protected DefaultSyncProcess createSyncProcess(
+          ReadOnlyInodeStore inodeStore, MountTable mountTable, InodeTree inodeTree,
+          UfsSyncPathCache syncPathCache) {
+        return new TestSyncProcessor(
+            this, inodeStore, mountTable, inodeTree, syncPathCache, getAbsentPathCache());
+      }
+    };
     mInodeStore = mFileSystemMaster.getInodeStore();
     mInodeTree = mFileSystemMaster.getInodeTree();
     mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
@@ -382,7 +394,7 @@ public class FileSystemMasterTestBase {
             Constants.MEDIUM_SSD, (long) Constants.KB), ImmutableMap.of(),
         new HashMap<String, StorageList>(), RegisterWorkerPOptions.getDefaultInstance());
     mWorkerId2 = mBlockMaster.getWorkerId(
-        new WorkerNetAddress().setHost("remote").setRpcPort(80).setDataPort(81).setWebPort(82));
+        new WorkerNetAddress().setHost("localhost").setRpcPort(83).setDataPort(84).setWebPort(85));
     mBlockMaster.workerRegister(mWorkerId2,
         Arrays.asList(Constants.MEDIUM_MEM, Constants.MEDIUM_SSD),
         ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.MB,
