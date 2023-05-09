@@ -11,6 +11,7 @@
 
 package alluxio.worker.dora;
 
+import alluxio.exception.AccessControlException;
 import alluxio.grpc.File;
 import alluxio.grpc.FileFailure;
 import alluxio.grpc.GetStatusPOptions;
@@ -43,7 +44,8 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    * @param options the options for the GetStatusPRequest
    * @return the file info
    */
-  FileInfo getFileInfo(String fileId, GetStatusPOptions options) throws IOException;
+  FileInfo getFileInfo(String fileId, GetStatusPOptions options)
+      throws IOException, AccessControlException;
 
   /**
    * List status from Under File System.
@@ -58,7 +60,8 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    * @throws IOException
    */
   @Nullable
-  UfsStatus[] listStatus(String path, ListStatusPOptions options) throws IOException;
+  UfsStatus[] listStatus(String path, ListStatusPOptions options)
+      throws IOException, AccessControlException;
 
   /**
    * Invalidate all cached pages of this file.
@@ -83,7 +86,7 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    */
   BlockReader createFileReader(String fileId, long offset,
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
-      throws IOException;
+      throws IOException, AccessControlException;
 
   /**
    * Loads files from UFS to Alluxio.

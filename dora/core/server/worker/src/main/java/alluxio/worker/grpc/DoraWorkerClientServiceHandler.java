@@ -17,6 +17,7 @@ import alluxio.RpcUtils;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.AccessControlException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.grpc.BlockWorkerGrpc;
@@ -156,14 +157,15 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   public void getStatus(GetStatusPRequest request,
       StreamObserver<GetStatusPResponse> responseObserver) {
     try {
-      alluxio.wire.FileInfo fileInfo = mWorker.getFileInfo(request.getPath(), request.getOptions());
+      alluxio.wire.FileInfo fileInfo = mWorker.getFileInfo(request.getPath(),
+          request.getOptions());
       GetStatusPResponse response =
           GetStatusPResponse.newBuilder()
               .setFileInfo(GrpcUtils.toProto(fileInfo))
               .build();
       responseObserver.onNext(response);
       responseObserver.onCompleted();
-    } catch (IOException e) {
+    } catch (IOException | AccessControlException e) {
       LOG.debug(String.format("Failed to get status of %s: ", request.getPath()), e);
       responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
     }
