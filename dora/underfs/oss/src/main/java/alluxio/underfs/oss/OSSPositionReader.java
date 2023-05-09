@@ -78,18 +78,11 @@ public class OSSPositionReader implements PositionReader {
               mPath, mBucketName, e.getMessage());
       throw new IOException(errorMessage, e);
     }
-    int totalRead = 0;
-    int currentRead = 0;
+    int totalRead;
     try (InputStream in = object.getObjectContent()) {
-      while (totalRead < bytesToRead) {
-        currentRead = buffer.readFromInputStream(in, bytesToRead - totalRead);
-        if (currentRead <= 0) {
-          break;
-        }
-        totalRead += currentRead;
-      }
+      totalRead = readDataInternal(in, buffer, bytesToRead);
     }
-    return totalRead == 0 ? currentRead : totalRead;
+    return totalRead;
   }
 }
 

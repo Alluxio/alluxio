@@ -79,17 +79,10 @@ public class S3APositionReader implements PositionReader {
       throw AlluxioS3Exception.from(String
           .format("Failed to get object: %s bucket: %s", mPath, mBucketName), e);
     }
-    int totalRead = 0;
-    int currentRead = 0;
+    int totalRead;
     try (S3ObjectInputStream in = object.getObjectContent()) {
-      while (totalRead < bytesToRead) {
-        currentRead = buffer.readFromInputStream(in, bytesToRead - totalRead);
-        if (currentRead <= 0) {
-          break;
-        }
-        totalRead += currentRead;
-      }
+      totalRead = readDataInternal(in, buffer, bytesToRead);
     }
-    return totalRead == 0 ? currentRead : totalRead;
+    return totalRead;
   }
 }
