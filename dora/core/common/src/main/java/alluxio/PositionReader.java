@@ -108,8 +108,12 @@ public interface PositionReader extends Closeable {
   /**
    * Extract from read internal of different ufs position reader.
    * read data from ufs
+   * @param in input stream
+   * @param buffer target byte buffer
+   * @param bytesToRead bytes to read
+   * @return bytes read, or -1 none of data is read
    */
-  default public int readDataInternal(InputStream in, ReadTargetBuffer buffer,
+  default int readDataInternal(InputStream in, ReadTargetBuffer buffer,
                                       int bytesToRead) throws IOException {
     int totalRead = 0;
     int currentRead = 0;
@@ -120,8 +124,7 @@ public interface PositionReader extends Closeable {
       }
       totalRead += currentRead;
     }
-
     return totalRead == 0 ? currentRead : totalRead;
   }
-
 }
+
