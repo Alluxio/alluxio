@@ -155,6 +155,13 @@ public final class PathProperties implements DelegatingJournaled {
   }
 
   /**
+   * @return the last update time of the properties
+   */
+  public long getLastUpdateTime() {
+    return mHash.getLastUpdateTime();
+  }
+
+  /**
    * Journaled state of path level properties.
    */
   @NotThreadSafe

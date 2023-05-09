@@ -439,7 +439,8 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
   @Override
   public ConfigHash getConfigHash() {
-    return new ConfigHash(Configuration.hash(), mPathProperties.hash());
+    return new ConfigHash(Configuration.hash(), mPathProperties.hash(),
+        Configuration.getLastUpdateTime(), mPathProperties.getLastUpdateTime());
   }
 
   @Override

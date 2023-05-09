@@ -28,10 +28,7 @@ public final class MasterWebUIConfiguration implements Serializable {
 
   private List<String> mWhitelist;
   private TreeSet<Triple<String, String, String>> mConfiguration;
-  private String mClusterConfigHash;
-  private String mPathConfigHash;
-  private String mClusterConfigLastUpdateTime;
-  private String mPathConfigLastUpdateTime;
+  private ConfigHash mConfigHash;
 
   /**
    * Creates a new instance of {@link MasterWebUIConfiguration}.
@@ -83,72 +80,17 @@ public final class MasterWebUIConfiguration implements Serializable {
   /**
    * @return cluster config hash
    */
-  public String getClusterConfigHash() {
-    return mClusterConfigHash;
+  public ConfigHash getConfigHash() {
+    return mConfigHash;
   }
 
   /**
-   * Sets cluster config hash.
-   * @param clusterConfigHash the cluster config hash
+   * Sets config hash.
+   * @param configHash the config hash
    * @return the configuration
    */
-  public MasterWebUIConfiguration setClusterConfigHash(String clusterConfigHash) {
-    mClusterConfigHash = clusterConfigHash;
-    return this;
-  }
-
-  /**
-   * @return path config hash
-   */
-  public String getPathConfigHash() {
-    return mPathConfigHash;
-  }
-
-  /**
-   * Sets path config hash.
-   *
-   * @param pathConfigHash the path config hash
-   * @return the configuration
-   */
-  public MasterWebUIConfiguration setPathConfigHash(String pathConfigHash) {
-    mPathConfigHash = pathConfigHash;
-    return this;
-  }
-
-  /**
-   * @return cluster config last update time
-   */
-  public String getClusterConfigLastUpdateTime() {
-    return mClusterConfigLastUpdateTime;
-  }
-
-  /**
-   * Sets cluster config last update time.
-   *
-   * @param clusterConfigLastUpdateTime the cluster config last update time
-   * @return the configuration
-   */
-  public MasterWebUIConfiguration setClusterConfigLastUpdateTime(
-      String clusterConfigLastUpdateTime) {
-    mClusterConfigLastUpdateTime = clusterConfigLastUpdateTime;
-    return this;
-  }
-
-  /**
-   * @return path config last update time
-   */
-  public String getPathConfigLastUpdateTime() {
-    return mPathConfigLastUpdateTime;
-  }
-
-  /**
-   * Sets the path config last update time.
-   * @param pathConfigLastUpdateTime path config last update time
-   * @return the configuration
-   */
-  public MasterWebUIConfiguration setPathConfigLastUpdateTime(
-      String pathConfigLastUpdateTime) {
-    mPathConfigLastUpdateTime = pathConfigLastUpdateTime;
+  public MasterWebUIConfiguration setConfigHash(ConfigHash configHash) {
+    mConfigHash = configHash;
     return this;
   }
 

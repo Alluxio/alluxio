@@ -62,6 +62,7 @@ import alluxio.wire.AlluxioMasterInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.Capacity;
 import alluxio.wire.ConfigCheckReport;
+import alluxio.wire.ConfigHash;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MasterInfo;
@@ -824,14 +825,8 @@ public final class AlluxioMasterRestServiceHandler {
       }
 
       response.setConfiguration(sortedProperties);
-      response.setClusterConfigHash(conf.getClusterConfHash());
-      response.setPathConfigHash(conf.getPathConfHash());
-      response.setClusterConfigLastUpdateTime(
-          CommonUtils.convertMsToDate(conf.getClusterConfLastUpdateTime(),
-              alluxio.conf.Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)));
-      response.setPathConfigLastUpdateTime(
-          CommonUtils.convertMsToDate(conf.getPathConfLastUpdateTime(),
-              alluxio.conf.Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)));
+      response.setConfigHash(new ConfigHash(conf.getClusterConfHash(), conf.getPathConfHash(),
+          conf.getClusterConfLastUpdateTime(), conf.getPathConfLastUpdateTime()));
       return response;
     }, Configuration.global());
   }
