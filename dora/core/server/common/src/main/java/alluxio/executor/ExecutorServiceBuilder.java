@@ -11,7 +11,6 @@
 
 package alluxio.executor;
 
-import alluxio.concurrent.jsr.ForkJoinPool;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.AlluxioExecutorService;
@@ -22,6 +21,7 @@ import com.google.common.base.Preconditions;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;

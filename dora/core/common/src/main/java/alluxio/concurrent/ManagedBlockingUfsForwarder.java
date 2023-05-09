@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.PositionReader;
 import alluxio.SyncInfo;
 import alluxio.collections.Pair;
-import alluxio.concurrent.jsr.ForkJoinPool;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.security.authorization.AccessControlList;
@@ -40,13 +39,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ForkJoinPool;
 import javax.annotation.Nullable;
 
 /**
  * Forwarder for {@link UnderFileSystem} objects that works through with ForkJoinPool's
  * managed blocking.
  *
- * If UFS calls are being done on a {@link alluxio.concurrent.jsr.ForkJoinWorkerThread}, then
+ * If UFS calls are being done on a {@link java.util.concurrent.ForkJoinWorkerThread}, then
  * this forwarder will make sure UFS operations are treated as blocking operations
  * for compensating the ForkJoinPool.
  *

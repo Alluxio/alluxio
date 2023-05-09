@@ -15,7 +15,6 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
-import alluxio.concurrent.jsr.CompletableFuture;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
@@ -32,6 +31,7 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 
