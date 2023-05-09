@@ -121,6 +121,12 @@ public interface Job<T extends Task<?>> {
   Optional<T> getNextTask(Collection<WorkerInfo> workers);
 
   /**
+   * Define how to process task that gets rejected when scheduler tried to kick off
+   * @param task
+   */
+  void onTaskSubmitFailure(Task<?> task);
+
+  /**
    * @return job journal entry
    */
   Journal.JournalEntry toJournalEntry();

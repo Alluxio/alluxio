@@ -112,8 +112,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   private final AtomicLong mCurrentFailureCount = new AtomicLong();
   private Optional<AlluxioRuntimeException> mFailedReason = Optional.empty();
   private Optional<Iterator<URIStatus>> mFileIterator = Optional.empty();
-  private BlockingDeque<DoraLoadTask> mPreparedTasks = new LinkedBlockingDeque<>();
-  private AtomicBoolean mPreparingTask = new AtomicBoolean(false);
+  private LinkedList<DoraLoadTask> mPreparedTasks = new LinkedList<>();
   private final FileSystem mFs;
 
   /**
@@ -259,9 +258,6 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
    * Prepare next set of tasks waiting to be kicked off.
    */
   public void prepareNextTasks() {
-    if (!mPreparingTask.compareAndSet(false, true)) {
-      return;
-    }
     LOG.info("Preparing next set of tasks for jobId:{}", mJobId);
     ImmutableList.Builder<URIStatus> batchBuilder = ImmutableList.builder();
     int i = 0;
@@ -301,12 +297,17 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       // but hashbased policy will deterministicly only among current recognized active workers
       WorkerInfo pickedWorker = mWorkerAssignPolicy.pickAWorker(uriStatus.getPath(),
           mMyScheduler.getActiveWorkers().keySet());
+      if (pickedWorker == null) {
+        mRetryFiles.offer(uriStatus.getPath());
+        continue;
+      }
       List<DoraLoadTask> tasks = workerToTaskMap.computeIfAbsent(pickedWorker, w -> new ArrayList<>());
       DoraLoadTask task;
-      if (tasks.get(tasks.size() - 1).mFilesToLoad.size() < MAX_FILES_PER_TASK) {
+      if (!tasks.isEmpty() && tasks.get(tasks.size() - 1).mFilesToLoad.size() < MAX_FILES_PER_TASK) {
         task = tasks.get(tasks.size() - 1);
       } else {
         task = new DoraLoadTask();
+        task.setMyRunningWorker(pickedWorker);
         task.setJob(this);
         tasks.add(task);
       }
@@ -452,16 +453,19 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 
   @Override
   public Optional<DoraLoadTask> getNextTask(Collection<WorkerInfo> workers) {
-    if (mPreparedTasks.isEmpty()) {
-      prepareNextTasks();
+    synchronized (mPreparedTasks) {
+      if (mPreparedTasks.isEmpty()) {
+        prepareNextTasks();
+      }
     }
-    DoraLoadTask task = null;
-    try {
-       task = mPreparedTasks.poll(MAX_BLOCK_WAIT_NEXTTASKS_MS, TimeUnit.MILLISECONDS);
-    } catch (InterruptedException ex) {
-      // IGNORE
-    }
+    DoraLoadTask task = mPreparedTasks.poll();
     return task == null ? Optional.empty() : Optional.of(task);
+  }
+
+  @Override
+  public void onTaskSubmitFailure(Task<?> task) {
+    Preconditions.checkState(task instanceof DoraLoadTask);
+    ((DoraLoadTask)task).mFilesToLoad.forEach(f -> addFilesToRetry(f.getPath()));
   }
 
   @Override
@@ -632,12 +636,18 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 
     @Override
     protected ListenableFuture<LoadFileResponse> run(BlockWorkerClient workerClient) {
+      LOG.info("Job:{} start running task:{} on worker:{}", this.mMyJob, toString(), getMyRunningWorker());
       LoadFileRequest.Builder loadFileReqBuilder = LoadFileRequest.newBuilder();
       for (URIStatus uriStatus : mFilesToLoad) {
         loadFileReqBuilder.addFiles(File.newBuilder()
             .setLength(uriStatus.getLength())
             .setUfsPath(uriStatus.getUfsPath()).build());
       }
+      UfsReadOptions.Builder ufsReadOptions = UfsReadOptions
+          .newBuilder()
+          .setTag(mJobId)
+          .setPositionShort(false);
+      loadFileReqBuilder.setOptions(ufsReadOptions);
       ListenableFuture<LoadFileResponse> listenableFuture =
           workerClient.loadFile(loadFileReqBuilder.build());
       return listenableFuture;

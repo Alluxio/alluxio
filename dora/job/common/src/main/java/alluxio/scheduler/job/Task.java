@@ -156,13 +156,12 @@ public abstract class Task<V> implements Comparable<Task> {
     }
     Task<?> other = (Task<?>) obj;
     return getPriority() == other.getPriority()
-        && Objects.equals(mMyWorker, other.mMyWorker)
         && Objects.equals(mMyJob, other.mMyJob);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(mPriority, mMyWorker, mMyJob);
+    return Objects.hash(mPriority, mMyJob);
   }
 
   @Override

@@ -303,6 +303,16 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
   }
 
   /**
+   * Define how to process task that gets rejected when scheduler tried to kick off.
+   * For CopyJob
+   * @param task
+   */
+  public void onTaskSubmitFailure(Task<?> task) {
+    Preconditions.checkState(task instanceof CopyTask);
+    ((CopyTask)task).mRoutes.forEach(this::addToRetry);
+  }
+
+  /**
    * Get next batch of blocks.
    * @param count number of blocks
    * @return list of blocks

@@ -294,6 +294,11 @@ public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
     return Optional.of(new LoadTask(blocks));
   }
 
+  @Override
+  public void onTaskSubmitFailure(Task<?> task) {
+    // NOOP
+  }
+
   /**
    * Get next batch of blocks.
    * @param count number of blocks

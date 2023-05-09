@@ -139,34 +139,38 @@ public final class Scheduler {
       }
       if (kickStartTask) {
         mScheduler.getWorkingExecutor().submit(() -> {
-          task.execute(blkWorkerClientResource.get(), workerInfo);
-          // track running tasks of a job
-          ConcurrentHashSet<Task<?>> tasks = mJobToRunningTasks.computeIfAbsent(task.getJob(),
-              j -> new ConcurrentHashSet<>());
-          tasks.add(task);
-          task.getResponseFuture().addListener(() -> {
-            Job job = task.getJob();
-            try {
-              job.processResponse(task); // retry onfailure logic inside
+          try {
+            task.execute(blkWorkerClientResource.get(), workerInfo);
+            // track running tasks of a job
+            ConcurrentHashSet<Task<?>> tasks = mJobToRunningTasks.computeIfAbsent(task.getJob(),
+                j -> new ConcurrentHashSet<>());
+            tasks.add(task);
+            task.getResponseFuture().addListener(() -> {
+              Job job = task.getJob();
+              try {
+                job.processResponse(task); // retry onfailure logic inside
               /* TODO(lucy) now whether task succeed or fail, remove it from q,
               it could be add numOfRetry logic to the task with added upgrade/degrade
               priority to add back to the q for retry. */
-              workerTaskQ.remove(task);
-              ConcurrentHashSet runningTaskSet = mJobToRunningTasks.getOrDefault(job, new ConcurrentHashSet<>());
-              runningTaskSet.remove(task);
-              // Schedule next batch for healthy job
-              if (job.isHealthy()) {
-                // continue job for next tasks.
-                mScheduler.processJob(job.getDescription(), job);
+                workerTaskQ.remove(task);
+                ConcurrentHashSet runningTaskSet = mJobToRunningTasks.getOrDefault(job, new ConcurrentHashSet<>());
+                runningTaskSet.remove(task);
+                // Schedule next batch for healthy job
+                if (job.isHealthy()) {
+                  // continue job for next tasks.
+                  mScheduler.processJob(job.getDescription(), job);
+                }
+              } catch (Exception e) {
+                // Unknown exception. This should not happen, but if it happens we don't want to lose the
+                // worker thread, thus catching it here. Any exception surfaced here should be properly
+                // handled.
+                LOG.error("Unexpected exception thrown in response future listener.", e);
+                job.failJob(new InternalRuntimeException(e));
               }
-            } catch (Exception e) {
-              // Unknown exception. This should not happen, but if it happens we don't want to lose the
-              // worker thread, thus catching it here. Any exception surfaced here should be properly
-              // handled.
-              LOG.error("Unexpected exception thrown in response future listener.", e);
-              job.failJob(new InternalRuntimeException(e));
-            }
-          } ,mScheduler.getWorkingExecutor());
+            }, mScheduler.getWorkingExecutor());
+          } catch (Exception e) {
+            LOG.error("Unexpected exception thrown in submitting task:{} of job:{}.", task, task.getJob(), e);
+          }
         });
       }
       return true;
@@ -272,7 +276,7 @@ public final class Scheduler {
     if (!mRunning) {
       retrieveJobs();
       mWorkingExecutor = new ThreadPoolExecutor(4, 4, 0, TimeUnit.SECONDS,
-          new ArrayBlockingQueue<>(16 * 1024), ThreadFactoryUtils.build("SCHEDULER-WORKER-", true));
+          new ArrayBlockingQueue<>(16 * 1024), ThreadFactoryUtils.build("SCHEDULER-WORKER-%d", true));
       mSchedulerExecutor = Executors.newSingleThreadScheduledExecutor(
           ThreadFactoryUtils.build("scheduler", false));
       mSchedulerExecutor.scheduleAtFixedRate(mWorkerInfoHub::updateWorkers, 0,
@@ -455,7 +459,8 @@ public final class Scheduler {
     if (Thread.currentThread().isInterrupted()) {
       return;
     }
-    mExistingJobs.forEach(this::processJob);
+    mRunningTasks.forEach((k,v) -> processJob(k.getDescription(), k));
+//    mExistingJobs.forEach(this::processJob);
   }
 
   private void processJob(JobDescription jobDescription, Job<?> job) {
@@ -496,7 +501,10 @@ public final class Scheduler {
       Task<?> currentTask = task.get();
       // enqueue the worker task q and kick it start
       // TODO(lucy) add if worker q is too full tell job to save this task for retry kick-off
-      getWorkerInfoHub().enqueueTaskForWorker(currentTask.getMyRunningWorker(), currentTask, true);
+      boolean taskEnqueued = getWorkerInfoHub().enqueueTaskForWorker(currentTask.getMyRunningWorker(), currentTask, true);
+      if (!taskEnqueued) {
+        job.onTaskSubmitFailure(currentTask);
+      }
       if (mJobToRunningTasks.getOrDefault(job, new ConcurrentHashSet<>()).isEmpty() && job.isCurrentPassDone()) {
         if (job.needVerification()) {
           job.initiateVerification();
