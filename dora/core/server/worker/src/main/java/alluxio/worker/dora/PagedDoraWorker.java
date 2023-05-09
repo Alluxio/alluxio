@@ -28,6 +28,7 @@ import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.AccessControlException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.status.InternalException;
 import alluxio.exception.status.NotFoundException;
@@ -279,7 +280,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   }
 
   @Override
-  public UfsStatus[] listStatus(String path, ListStatusPOptions options) throws IOException {
+  public UfsStatus[] listStatus(String path, ListStatusPOptions options)
+      throws IOException, AccessControlException {
     final long syncIntervalMs = options.hasCommonOptions()
         ? (options.getCommonOptions().hasSyncIntervalMs()
         ? options.getCommonOptions().getSyncIntervalMs() : -1) :
@@ -353,7 +355,18 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   }
 
   @Override
-  public FileInfo getFileInfo(String ufsFullPath, GetStatusPOptions options) throws IOException {
+  public FileInfo getFileInfo(String ufsFullPath, GetStatusPOptions options)
+      throws IOException, AccessControlException {
+    alluxio.grpc.FileInfo fi = getGrpcFileInfo(ufsFullPath, options);
+    int cachedPercentage = getCachedPercentage(fi, ufsFullPath);
+
+    return GrpcUtils.fromProto(fi)
+        .setInAlluxioPercentage(cachedPercentage)
+        .setInMemoryPercentage(cachedPercentage);
+  }
+
+  protected alluxio.grpc.FileInfo getGrpcFileInfo(String ufsFullPath, GetStatusPOptions options)
+      throws IOException {
     alluxio.grpc.FileInfo fi;
     boolean invalidated = false;
     long syncIntervalMs = options.hasCommonOptions()
@@ -424,6 +437,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     } else {
       fi = status.getFileInfo();
     }
+
+    return fi;
+  }
+
+  protected int getCachedPercentage(alluxio.grpc.FileInfo fi, String ufsFullPath) {
     // because cache manager uses hashed ufs path as file ID
     // TODO(bowen): we need a dedicated type for file IDs!
     String cacheManagerFileId = new AlluxioURI(ufsFullPath).hash();
@@ -438,9 +456,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     } else {
       cachedPercentage = 0;
     }
-    return GrpcUtils.fromProto(fi)
-        .setInAlluxioPercentage(cachedPercentage)
-        .setInMemoryPercentage(cachedPercentage);
+    return cachedPercentage;
   }
 
   /**
@@ -505,7 +521,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   @Override
   public BlockReader createFileReader(String fileId, long offset, boolean positionShort,
-      Protocol.OpenUfsBlockOptions options) throws IOException {
+      Protocol.OpenUfsBlockOptions options) throws IOException, AccessControlException {
     UfsManager.UfsClient ufsClient;
     try {
       ufsClient = mUfsManager.get(MOUNT_POINT);
