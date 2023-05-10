@@ -11,6 +11,7 @@
 
 package alluxio.executor;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.AlluxioExecutorService;
@@ -30,6 +31,11 @@ import java.util.concurrent.TimeUnit;
 /**
  * Used to create {@link ExecutorService} instances dynamically by configuration.
  */
+@SuppressFBWarnings(
+    value = "NP_NONNULL_PARAM_VIOLATION",
+    justification = "The ForkJoinPool constructor accepts null arguments for "
+        + "uncaught exception handler and saturate predicate"
+)
 public class ExecutorServiceBuilder {
   /**
    * Creates an {@link ExecutorService} for given Alluxio process dynamically by configuration.
