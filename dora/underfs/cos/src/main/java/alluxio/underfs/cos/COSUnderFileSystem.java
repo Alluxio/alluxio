@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PositionReader;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
@@ -103,7 +102,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
    * @param conf configuration for this UFS
    */
   protected COSUnderFileSystem(AlluxioURI uri, COSClient client, String bucketName, String appId,
-      UnderFileSystemConfiguration conf) {
+                               UnderFileSystemConfiguration conf) {
     super(uri, conf);
     mClient = client;
     mBucketName = bucketName;
@@ -261,7 +260,8 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   public PositionReader openPositionRead(String path, long fileLength) {
-    throw new UnimplementedRuntimeException("Position read is not implemented");
+    return new COSPositionReader(mClient, mBucketNameInternal,
+        stripPrefixIfPresent(path), fileLength);
   }
 
   @Override
@@ -295,7 +295,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
    * @return the COS {@link ClientConfig}
    */
   private static ClientConfig createCOSClientConfig(String regionName,
-      UnderFileSystemConfiguration conf) {
+                                                    UnderFileSystemConfiguration conf) {
     ClientConfig config = new ClientConfig(new Region(regionName));
     config.setConnectionTimeout((int) conf.getMs(PropertyKey.COS_CONNECTION_TIMEOUT));
     config.setSocketTimeout((int) conf.getMs(PropertyKey.COS_SOCKET_TIMEOUT));
@@ -305,7 +305,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected InputStream openObject(String key, OpenOptions options,
-      RetryPolicy retryPolicy) throws IOException {
+                                   RetryPolicy retryPolicy) throws IOException {
     try {
       return new COSInputStream(mBucketNameInternal, key, mClient, options.getOffset(), retryPolicy,
           mUfsConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE));

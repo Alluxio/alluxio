@@ -16,7 +16,6 @@ import alluxio.Constants;
 import alluxio.PositionReader;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
@@ -165,7 +164,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   public PositionReader openPositionRead(String path, long fileLength) {
-    throw new UnimplementedRuntimeException("Position read is not implemented");
+    return new OSSPositionReader(mClient, mBucketName, stripPrefixIfPresent(path), fileLength);
   }
 
   // No ACL integration currently, no-op

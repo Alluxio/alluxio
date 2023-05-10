@@ -9,53 +9,57 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.underfs.s3a;
+package alluxio.underfs.oss;
 
 import alluxio.PositionReader;
 import alluxio.file.ReadTargetBuffer;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import com.aliyun.oss.OSS;
+import com.aliyun.oss.OSSException;
+import com.aliyun.oss.model.GetObjectRequest;
+import com.aliyun.oss.model.OSSObject;
 
 import java.io.IOException;
+import java.io.InputStream;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Implementation of {@link PositionReader} that reads from S3A object store.
+ * Implementation of {@link PositionReader} that reads from OSS object store.
  */
 @ThreadSafe
-public class S3APositionReader implements PositionReader {
+public class OSSPositionReader implements PositionReader {
+  /**
+   * Name of the bucket the object resides in.
+   */
+  protected final String mBucketName;
   private final String mPath;
   private final long mFileLength;
-  /** Client for operations with s3. */
-  protected AmazonS3 mClient;
-  /** Name of the bucket the object resides in. */
-  protected final String mBucketName;
+  /**
+   * Client for operations with Aliyun OSS.
+   */
+  protected OSS mClient;
 
   /**
-   * @param client the amazon s3 client
+   * @param client the Aliyun OSS client
    * @param bucketName the bucket name
    * @param path the file path
    * @param fileLength the file length
    */
-  public S3APositionReader(AmazonS3 client, String bucketName, String path, long fileLength) {
+  public OSSPositionReader(OSS client, String bucketName, String path, long fileLength) {
     mClient = client;
     mBucketName = bucketName;
-    // TODO(lu) path needs to be transform to not include bucket
+    // TODO(lu) path needs to be transformed to not include bucket
     mPath = path;
     mFileLength = fileLength;
   }
 
   @Override
-  public int readInternal(long position, ReadTargetBuffer buffer, int length)
-      throws IOException {
-    if (position >= mFileLength) { // at end of file
+  public int readInternal(long position, ReadTargetBuffer buffer, int length) throws IOException {
+    // at end of file
+    if (position >= mFileLength) {
       return -1;
     }
-    S3Object object;
+    OSSObject object;
     int bytesToRead = (int) Math.min(mFileLength - position, length);
     try {
       // Range check approach: set range (inclusive start, inclusive end)
@@ -68,20 +72,14 @@ public class S3APositionReader implements PositionReader {
       GetObjectRequest getObjectRequest = new GetObjectRequest(mBucketName, mPath);
       getObjectRequest.setRange(position, position + bytesToRead - 1);
       object = mClient.getObject(getObjectRequest);
-    } catch (AmazonS3Exception e) {
-      if (e.getStatusCode() == 416) {
-        // InvalidRange exception when mPos >= file length
-        throw AlluxioS3Exception.from(String
-            .format("Underlying file may be changed. "
-                    + "Expected file length is %s but read %s bytes "
-                    + "from position %s is out of range",
-                mFileLength, bytesToRead, position), e);
-      }
-      throw AlluxioS3Exception.from(String
-          .format("Failed to get object: %s bucket: %s", mPath, mBucketName), e);
+    } catch (OSSException e) {
+      String errorMessage = String
+          .format("Failed to open key: %s bucket: %s error: %s",
+              mPath, mBucketName, e.getMessage());
+      throw new IOException(errorMessage, e);
     }
     int totalRead;
-    try (S3ObjectInputStream in = object.getObjectContent()) {
+    try (InputStream in = object.getObjectContent()) {
       totalRead = readDataInternal(in, buffer, bytesToRead);
     }
     return totalRead;
