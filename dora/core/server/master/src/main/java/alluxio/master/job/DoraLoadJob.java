@@ -11,20 +11,16 @@
 
 package alluxio.master.job;
 
-import static alluxio.client.file.DoraCacheFileSystem.DUMMY_MOUNT_ID;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
 import alluxio.AlluxioURI;
-import alluxio.client.ReadType;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.dora.DoraCacheClient;
 import alluxio.client.file.dora.WorkerLocationPolicy;
-import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -32,12 +28,18 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
-import alluxio.grpc.*;
+import alluxio.grpc.FileFailure;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadFileRequest;
+import alluxio.grpc.LoadFileResponse;
+import alluxio.grpc.TaskStatus;
+import alluxio.grpc.UfsReadOptions;
+import alluxio.grpc.JobProgressReportFormat;
+import alluxio.grpc.File;
 import alluxio.job.JobDescription;
 import alluxio.master.scheduler.Scheduler;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.journal.Journal;
 import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobState;
@@ -47,9 +49,7 @@ import alluxio.wire.WorkerInfo;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
@@ -77,7 +77,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
-  private static final Logger LOG = LoggerFactory.getLogger(LoadJob.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DoraLoadJob.class);
   public static final String TYPE = "load";
   private static final double FAILURE_RATIO_THRESHOLD = 0.05;
   private static final int FAILURE_COUNT_THRESHOLD = 100;
@@ -86,12 +86,8 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   private static final int BATCH_SIZE = Configuration.getInt(PropertyKey.JOB_BATCH_SIZE);
   private static final int MAX_FILES_PER_TASK = 20; // TODO(lucy) make it configurable
 
-  // TODO(lucy) add logic to detect loaded files
-//  public static final Predicate<FileInfo> QUALIFIED_FILE_FILTER =
-//      (fileInfo) -> !fileInfo.isFolder() && fileInfo.isCompleted() && fileInfo.isPersisted()
-//          && fileInfo.getInAlluxioPercentage() != 100;
-  public static final int MAX_RUNNING_TASKS = 10; // modify this
-  private static final int MAX_BLOCK_WAIT_NEXTTASKS_MS = 5000;
+  /* TODO(lucy) add logic to detect loaded files, as currently each file loaded status is on each dora
+  worker, so the decision to load or not delegates to worker on getting the load req. */
   // Job configurations
   private final String mPath;
 
@@ -147,7 +143,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
         .newBuilder()
         .setRecursive(true).build();
     mFs = fs;
-    mFileIterator = Optional.of(new FileListFetcher(fs, mPath, listOptions));
+    mFileIterator = Optional.of(new FileListFetcher(fs, mPath, listOptions, false));
   }
 
   private static class HashBasedWorkerAssignPolicy extends WorkerAssignPolicy {
@@ -180,33 +176,32 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     ListStatusPOptions mListOption;
     public LinkedBlockingQueue<URIStatus> mFiles = new LinkedBlockingQueue<>();
     private Optional<String> mNextMarker = Optional.empty();
-    // any info on load percentage in dora?
-//    public static final Predicate<FileInfo> QUALIFIED_FILE_FILTER =
-//        (fileInfo) -> !fileInfo.isFolder() && fileInfo.isCompleted() && fileInfo.isPersisted()
-//            && fileInfo.getInAlluxioPercentage() != 100;
+    private boolean mUsePartialListing = false;
+    private AtomicBoolean mIsDone = new AtomicBoolean(false);
 
-    public FileListFetcher(FileSystem fs, String path, ListStatusPOptions listOption) {
+    public FileListFetcher(FileSystem fs, String path, ListStatusPOptions listOption,
+                           boolean usePartialListing) {
       mPath = path;
       mListOption = listOption;
       mFs = fs;
-      mNextMarker = Optional.of("");
+      mUsePartialListing = false; // default to false now
     }
 
     private int advance() {
+      if (mIsDone.get()) {
+        return 0;
+      }
       try {
-        if (!mNextMarker.isPresent()) {
-          return 0;
-        }
         // TODO(lucy) paginate list a PREFETCH_SIZE here.
         List<URIStatus> uriStatuses = mFs.listStatus(new AlluxioURI(mPath), mListOption);
         if (uriStatuses == null) {
-          mNextMarker = Optional.empty();
+          mIsDone.compareAndSet(false, true);
           return 0;
         }
         uriStatuses.forEach(uriStatus -> mFiles.offer(uriStatus));
-        mNextMarker = Optional.empty();
-        // if paginated listing
-        // nextMarker = uriStatuses.get(uriStatuses.size()-1);
+        if (!mUsePartialListing) {
+          mIsDone.compareAndSet(false, true);
+        }
         return uriStatuses.size();
       } catch (IOException | AlluxioException e) {
         throw AlluxioRuntimeException.from(e);
@@ -215,7 +210,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 
     @Override
     public boolean hasNext() {
-      while (mFiles.size() < PREFETCH_SIZE * 0.2) {
+      while (!mIsDone.get() && mFiles.size() < PREFETCH_SIZE * 0.2) {
         if (advance() <= 0) {
           break;
         }
@@ -225,7 +220,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 
     @Override
     public URIStatus next() {
-      while (mFiles.size() < PREFETCH_SIZE * 0.2) {
+      while (!mIsDone.get() && mFiles.size() < PREFETCH_SIZE * 0.2) {
         if (advance() <= 0) {
           break;
         }
@@ -237,22 +232,6 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       return uriStatus;
     }
   }
-
-  /**
-   * @return true if need continuation, false otherwise
-   */
-  public boolean needContinuation() {
-    if (isCurrentPassDone()) {
-      setJobSuccess();
-      mMyScheduler.removeJob(this);
-    }
-    if (!isHealthy() || mTaskList.size() >= MAX_RUNNING_TASKS
-        || mMyScheduler.getActiveWorkers().isEmpty()) {
-      return false;
-    }
-    return true;
-  }
-
 
   /**
    * Prepare next set of tasks waiting to be kicked off.
@@ -464,13 +443,16 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 
   @Override
   public void onTaskSubmitFailure(Task<?> task) {
-    Preconditions.checkState(task instanceof DoraLoadTask);
+    if (!(task instanceof DoraLoadTask)) {
+      throw new IllegalArgumentException("Task is not a DoraLoadTask: " + task);
+    }
     ((DoraLoadTask)task).mFilesToLoad.forEach(f -> addFilesToRetry(f.getPath()));
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
+        .add("JobId", mJobId)
         .add("Path", mPath)
         .add("User", mUser)
         .add("Bandwidth", mBandwidth)
@@ -517,21 +499,10 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     return (mEndTime.orElse(System.currentTimeMillis()) - mStartTime) / 1000;
   }
 
-  /**
-   * Needs retry.
-   * @param ex the throwable
-   * @return true
-   */
-  public boolean needsRetry(Throwable ex) {
-    // differentiate retryable/non-retryable exception from worker
-    return true;
-  }
-
   @Override
   public boolean processResponse(DoraLoadTask doraLoadTask) {
-    boolean needRetryCheck = false;
     try {
-      long totalBytes = doraLoadTask.getFilesToLoad().stream()
+      long totalLoadedBytes = doraLoadTask.getFilesToLoad().stream()
           .map(URIStatus::getLength)
           .reduce(Long::sum)
           .orElse(0L);
@@ -541,7 +512,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
         LOG.debug(format("Get failure from worker:%s, failed files:%s",
             doraLoadTask.getMyRunningWorker(), response.getFilesList()));
         for (FileFailure fileFailure : response.getFilesList()) {
-          totalBytes -= fileFailure.getFile().getLength();
+          totalLoadedBytes -= fileFailure.getFile().getLength();
           if (!isHealthy() || !fileFailure.getRetryable() || !addFilesToRetry(
               fileFailure.getFile().getAlluxioPath())) {
             addFileFailure(fileFailure.getFile().getAlluxioPath(), fileFailure.getMessage(),
@@ -549,11 +520,13 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
           }
         }
       }
-      addLoadedBytes(totalBytes);
-      JOB_LOAD_FILE_COUNT.inc(1);
-      JOB_LOAD_FILE_SIZE.inc(doraLoadTask.getFilesToLoad().size() - response.getFilesList().size());
-      JOB_LOAD_RATE.mark(totalBytes);
-      JOB_LOAD_RATE.mark(totalBytes);
+      int totalLoadedFile = doraLoadTask.getFilesToLoad().size() - response.getFilesList().size();
+      addLoadedBytes(totalLoadedBytes);
+      mProcessedFileCount.addAndGet(totalLoadedFile);
+      JOB_LOAD_FILE_COUNT.inc(totalLoadedFile);
+      JOB_LOAD_FILE_SIZE.inc(totalLoadedBytes);
+      JOB_LOAD_RATE.mark(totalLoadedBytes);
+      JOB_LOAD_RATE.mark(totalLoadedBytes);
       return response.getStatus() != TaskStatus.FAILURE;
     }
     catch (ExecutionException e) {

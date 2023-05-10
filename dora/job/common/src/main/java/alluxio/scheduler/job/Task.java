@@ -33,9 +33,14 @@ public abstract class Task<V> implements Comparable<Task> {
    * Metrics and stats to track current task.
    */
   public static class TaskStat {
+    private int mTaskId;
     private final Stopwatch mStopwatch = Stopwatch.createStarted();
     private long mTimeInQ = -1L;
     private long mTotalTimeToComplete = -1L;
+
+    public TaskStat(int taskId) {
+      mTaskId = taskId;
+    }
 
     /**
      * Record time when task is inside the queue.
@@ -69,7 +74,7 @@ public abstract class Task<V> implements Comparable<Task> {
   public Task(Job job, int taskId) {
     setJob(job);
     mTaskId = taskId;
-    mTaskStat = new TaskStat();
+    mTaskStat = new TaskStat(mTaskId);
   }
 
   /**

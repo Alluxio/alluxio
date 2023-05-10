@@ -25,6 +25,7 @@ import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.exception.runtime.UnavailableRuntimeException;
+import alluxio.grpc.JobProgress;
 import alluxio.grpc.JobProgressReportFormat;
 import alluxio.job.JobDescription;
 import alluxio.metrics.MetricKey;
@@ -39,13 +40,17 @@ import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.ThreadUtils;
 import alluxio.wire.WorkerInfo;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -57,6 +62,7 @@ import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -78,17 +84,14 @@ public final class Scheduler {
   private static final long WORKER_UPDATE_INTERVAL = Configuration.getMs(
       PropertyKey.MASTER_WORKER_INFO_CACHE_REFRESH_TIME);
   private static final int EXECUTOR_SHUTDOWN_MS = 10 * Constants.SECOND_MS;
-  private final Map<JobDescription, Job<?>>
-      mExistingJobs = new ConcurrentHashMap<>();
-  // this will be kept in job itself
-  private final Map<Job<?>, Set<WorkerInfo>> mRunningTasks = new ConcurrentHashMap<>();
+  private final Map<JobDescription, Job<?>> mExistingJobs = new ConcurrentHashMap<>();
   private final Map<Job<?>, ConcurrentHashSet<Task<?>>> mJobToRunningTasks = new ConcurrentHashMap<>();
   private final JobMetaStore mJobMetaStore;
   // initial thread in start method since we would stop and start thread when gainPrimacy
   private ScheduledExecutorService mSchedulerExecutor;
   private ThreadPoolExecutor mWorkingExecutor;
   private volatile boolean mRunning = false;
-
+  private final FileSystemContext mFileSystemContext;
   private final WorkerInfoHub mWorkerInfoHub;
 
   /**
@@ -251,8 +254,6 @@ public final class Scheduler {
     }
   }
 
-  private final FileSystemContext mFileSystemContext;
-
   /**
    * Constructor.
    *
@@ -265,7 +266,7 @@ public final class Scheduler {
     mFileSystemContext = fsCtx;
     mJobMetaStore = jobMetaStore;
     MetricsSystem.registerCachedGaugeIfAbsent(
-        MetricKey.MASTER_JOB_SCHEDULER_RUNNING_COUNT.getName(), mRunningTasks::size);
+        MetricKey.MASTER_JOB_SCHEDULER_RUNNING_COUNT.getName(), mJobToRunningTasks::size);
     mWorkerInfoHub = new WorkerInfoHub(this, workerProvider);
   }
 
@@ -281,7 +282,7 @@ public final class Scheduler {
           ThreadFactoryUtils.build("scheduler", false));
       mSchedulerExecutor.scheduleAtFixedRate(mWorkerInfoHub::updateWorkers, 0,
           WORKER_UPDATE_INTERVAL, TimeUnit.MILLISECONDS);
-      mSchedulerExecutor.scheduleWithFixedDelay(this::processJobs, 0, 100, TimeUnit.MILLISECONDS);
+      mSchedulerExecutor.scheduleWithFixedDelay(this::processJobs, 10000, 2000, TimeUnit.MILLISECONDS);
       mSchedulerExecutor.scheduleWithFixedDelay(this::cleanupStaleJob, 1, 1, TimeUnit.HOURS);
       mRunning = true;
     }
@@ -318,10 +319,10 @@ public final class Scheduler {
     for (Job<?> job : mJobMetaStore.getJobs()) {
       mExistingJobs.put(job.getDescription(), job);
       if (job.isDone()) {
-        mRunningTasks.remove(job);
+        mJobToRunningTasks.remove(job);
       }
       else {
-        mRunningTasks.put(job, new HashSet<>());
+        mJobToRunningTasks.put(job, new ConcurrentHashSet<>());
       }
     }
   }
@@ -355,16 +356,13 @@ public final class Scheduler {
       return false;
     }
 
-//    int totalActiveTasks = mWorkerInfoHub.getWorkerToTaskQ()
-//        .values().stream().mapToInt(q -> q.size()).sum();
-//    if (totalActiveTasks > CAPACITY) {
-    if (mRunningTasks.size() >= CAPACITY) {
+    if (mJobToRunningTasks.size() >= CAPACITY) {
       throw new ResourceExhaustedRuntimeException(
           "Too many jobs running, please submit later.", true);
     }
     mJobMetaStore.updateJob(job);
     mExistingJobs.put(job.getDescription(), job);
-    mRunningTasks.put(job, new HashSet<>());
+    mJobToRunningTasks.putIfAbsent(job, new ConcurrentHashSet<>());
     LOG.info(format("start job: %s", job));
     return true;
   }
@@ -375,7 +373,7 @@ public final class Scheduler {
     LOG.debug(format("updated existing job: %s from %s", existingJob, newJob));
     if (existingJob.getJobState() == JobState.STOPPED) {
       existingJob.setJobState(JobState.RUNNING);
-      mRunningTasks.put(existingJob, new HashSet<>());
+      mJobToRunningTasks.compute(existingJob, (k,v) -> new ConcurrentHashSet<>());
       LOG.debug(format("restart existing job: %s", existingJob));
     }
   }
@@ -390,7 +388,7 @@ public final class Scheduler {
     if (existingJob != null && existingJob.isRunning()) {
       existingJob.setJobState(JobState.STOPPED);
       mJobMetaStore.updateJob(existingJob);
-      // leftover tasks in mRunningTasks would be removed by scheduling thread.
+      // leftover tasks in mJobToRunningTasks would be removed by scheduling thread.
       return true;
     }
     return false;
@@ -459,13 +457,16 @@ public final class Scheduler {
     if (Thread.currentThread().isInterrupted()) {
       return;
     }
-    mRunningTasks.forEach((k,v) -> processJob(k.getDescription(), k));
-//    mExistingJobs.forEach(this::processJob);
+    mJobToRunningTasks.forEach((k,v) -> processJob(k.getDescription(), k));
   }
 
   private void processJob(JobDescription jobDescription, Job<?> job) {
     if (!job.isRunning()) {
       try {
+        LOG.debug("Job:{}, not running, updating metastore...", MoreObjects.toStringHelper(job)
+            .add("JobId:", job.getJobId())
+            .add("JobState:", job.getJobState())
+            .add("JobDescription", job.getDescription()).toString());
         mJobMetaStore.updateJob(job);
       }
       catch (UnavailableRuntimeException e) {
@@ -475,7 +476,7 @@ public final class Scheduler {
         // retry will work.
         LOG.error("error writing to journal when processing job", e);
       }
-      mRunningTasks.remove(job);
+      mJobToRunningTasks.remove(job);
       return;
     }
     if (!job.isHealthy()) {
@@ -595,15 +596,20 @@ public final class Scheduler {
     return mWorkerInfoHub;
   }
 
-  public String printJobsStatus() {
-    StringBuilder sb = new StringBuilder();
-    for (Job job : mJobToRunningTasks.keySet()) {
-      sb.append(String.format("Job:%s%n\tTasks:%n\t\t", job.getDescription()));
-      for (Task task : mJobToRunningTasks.get(job)) {
-        sb.append(String.format("Task:%s, TaskStats:%s",
-            task.getTaskId(), task.toString(), task.getTaskStat().dumpStats()));
-      }
+  public static class SchedulerStats {
+    public Map<Job, Collection<Task.TaskStat>> runningJobToTaskStats = new HashMap<>();
+    public Map<Job, String> existingJobAndProgresses = new HashMap<>();
+  }
+  public SchedulerStats printJobsStatus() {
+    SchedulerStats schedulerStats = new SchedulerStats();
+    for (Map.Entry<Job<?>, ConcurrentHashSet<Task<?>>> entry : mJobToRunningTasks.entrySet()) {
+      schedulerStats.runningJobToTaskStats.put(entry.getKey(),  //entry.getKey().getDescription(),
+          entry.getValue().stream().map(t -> t.getTaskStat()).collect(Collectors.toList()));
     }
-    return sb.toString();
+    for (Map.Entry<JobDescription, Job<?>> entry : mExistingJobs.entrySet()) {
+      schedulerStats.existingJobAndProgresses.put(entry.getValue(),
+          entry.getValue().getProgress(JobProgressReportFormat.JSON, true));
+    }
+    return schedulerStats;
   }
 }
