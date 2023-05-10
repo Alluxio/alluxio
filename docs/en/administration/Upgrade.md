@@ -87,7 +87,7 @@ $ ./bin/alluxio-start.sh all
 ```
 5. If you have updated the Alluxio client jar for an application, restart that application to use the new Alluxio client jar.
 
-### Rolling upgrade/restart masters
+### Rolling upgrade/restart masters (experimental)
 
 When the cluster is running in high-availability mode (running multiple Alluxio masters), if the admin wants to restart all masters
 in the cluster, it should be done in a rolling restart fashion to minimize service unavailable time.
@@ -150,7 +150,7 @@ Similarly, if the HA is on UFS Journal (using ZooKeeper), the admin can restart 
 The only difference is there is no command to manually trigger a primary master failover. The admin can
 directly kill the primary master process, after a brief timeout, one standby master will realize and become the new primary.
 
-### Rolling upgrade/restart workers
+### Rolling upgrade/restart workers (experimental)
 
 If the admin wants to restart workers without interrupting ongoing service, there are now ways to rolling restart
 all workers without failing ongoing I/O requests. Typically, we want to restart workers to apply configuration changes,
@@ -226,7 +226,7 @@ $ bin/alluxio runTests --workers data-worker-0,data-worker-1
 See more details about the `decommissionWorker` command in
 [documentation]({{ '/en/operation/Admin-CLI.html' | relativize_url }}#decommissionworker).
 
-### Rolling restart/upgrade other components
+### Rolling restart/upgrade other components (experimental)
 
 Other components like the Job Master, Job Worker and Proxy do not support rolling upgrade at the moment.
 The admin can manually restart them in batches.
