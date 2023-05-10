@@ -53,7 +53,11 @@ public class DataServerFactory {
     mGRpcBindAddress = requireNonNull(gRpcBindAddress);
   }
 
-  protected DataServer createRemoteGrpcDataServer(DataWorker dataWorker) {
+  /**
+   * @param dataWorker the dora worker
+   * @return the remoteGrpcServer
+   */
+  public DataServer createRemoteGrpcDataServer(DataWorker dataWorker) {
     BlockWorkerGrpc.BlockWorkerImplBase blockWorkerService;
     if (dataWorker instanceof DoraWorker) {
       blockWorkerService =
@@ -70,7 +74,11 @@ public class DataServerFactory {
         mConnectAddress.getHostName(), mGRpcBindAddress, blockWorkerService);
   }
 
-  protected DataServer createDomainSocketDataServer(DataWorker worker) {
+  /**
+   * @param worker the dora worker
+   * @return the domain socket data server
+   */
+  public DataServer createDomainSocketDataServer(DataWorker worker) {
     String domainSocketPath =
         Configuration.getString(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
     if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
