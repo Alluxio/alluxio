@@ -118,6 +118,13 @@ $ helm delete dora
 
 ## Operator
 
+### Extra prerequisites for Operator
+You will need certain RBAC permission in the Kubernetes cluster to make Operator to work.
+1. Permission to create CRD (Custom Resource Definition);
+2. Permission to create ServiceAccount, ClusterRole, and ClusterRoleBinding for the operator pods;
+3. Permission to create namespace that the operator will be in.
+
+
 ### Deploy Alluxio Kubernetes Operator
 We use the Helm Chart for Alluxio K8s Operator for deploying.
 Following the steps below to deploy Alluxio Operator:
@@ -184,7 +191,7 @@ $ kubectl get dataset <dataset-name>
 
 Configure [Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) for:
 
-1. (Optional) Embedded journal. HostPath is also supported for worker storage.
+1. (Optional) Embedded journal. HostPath is also supported for embedded journal.
 2. (Optional) Worker page store. HostPath is also supported for worker storage.
 3. (Optional) Worker metastore. Only required if you use RocksDB for storing metadata on workers.
 
@@ -209,7 +216,7 @@ Note:
 - If using hostPath as volume for embedded journal, Alluxio will run an init container as root to grant RWX
 permission of the path for itself.
 - Each journal volume should have capacity at least requested by its corresponding persistentVolumeClaim,
-configurable through the configuration file which will be talked in step 3.
+configurable through the configuration file which will be talked in step 2.
 - If using local hostPath persistent volume, make sure user alluxio has RWX permission.
   - Alluxio containers run as user `alluxio` of group `alluxio` with UID 1000 and GID 1000 by default.
 
