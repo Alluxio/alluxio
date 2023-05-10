@@ -26,47 +26,45 @@ import java.util.concurrent.TimeUnit;
  * A set of counters for the os metric.
  */
 public class OperationSystemGaugeSet implements MetricSet {
-
-  private OperatingSystemMXBean mOsmxb;
-  private UnixOperatingSystemMXBean mUnixb;
-
   @Override
   public Map<String, Metric> getMetrics() {
     final Map<String, Metric> gauges = new HashMap<>();
+    final OperatingSystemMXBean osmxb;
+    final UnixOperatingSystemMXBean unixb;
     try {
-      mOsmxb = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
-      mUnixb = (UnixOperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+      osmxb = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+      unixb = (UnixOperatingSystemMXBean) osmxb;
     } catch (Throwable e) {
       return gauges;
     }
-    gauges.put("os.freePhysicalMemory", new CachedGauge(10, TimeUnit.MINUTES) {
+    gauges.put("os.freePhysicalMemory", new CachedGauge<>(10, TimeUnit.MINUTES) {
       @Override
       protected Long loadValue() {
-        return mOsmxb.getFreePhysicalMemorySize();
+        return osmxb.getFreePhysicalMemorySize();
       }
     });
     gauges.put("os.totalPhysicalMemory", new CachedGauge<Long>(10, TimeUnit.MINUTES) {
       @Override
       protected Long loadValue() {
-        return mOsmxb.getTotalPhysicalMemorySize();
+        return osmxb.getTotalPhysicalMemorySize();
       }
     });
     gauges.put("os.cpuLoad", new CachedGauge<Double>(10, TimeUnit.MINUTES) {
       @Override
       protected Double loadValue() {
-        return mOsmxb.getSystemCpuLoad();
+        return osmxb.getSystemCpuLoad();
       }
     });
     gauges.put("os.maxFileCount", new CachedGauge<Long>(10, TimeUnit.MINUTES) {
       @Override
       protected Long loadValue() {
-        return mUnixb.getMaxFileDescriptorCount();
+        return unixb.getMaxFileDescriptorCount();
       }
     });
     gauges.put("os.openFileCount", new CachedGauge<Long>(10, TimeUnit.MINUTES) {
       @Override
       protected Long loadValue() {
-        return mUnixb.getOpenFileDescriptorCount();
+        return unixb.getOpenFileDescriptorCount();
       }
     });
     return gauges;
