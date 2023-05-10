@@ -48,10 +48,9 @@ public final class BlockWorkerMetricsTest {
     MetricsSystem.clearAllMetrics();
     mBlockWorker = mock(BlockWorker.class);
     mBlockStoreMeta = mock(BlockStoreMeta.class);
-    AtomicReference<BlockMetaMetricCache> mMetricCache = new AtomicReference<>(new BlockMetaMetricCache(mBlockWorker));
     when(mBlockWorker.getStoreMeta()).thenReturn(mBlockStoreMeta);
     when(mBlockWorker.getStoreMetaFull()).thenReturn(mBlockStoreMeta);
-    Metrics.registerGauges(mMetricCache);
+    Metrics.registerGauges(mBlockWorker);
   }
 
   @Test

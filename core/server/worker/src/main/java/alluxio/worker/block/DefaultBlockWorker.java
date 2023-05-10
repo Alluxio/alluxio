@@ -61,6 +61,7 @@ import alluxio.worker.file.FileSystemMasterClient;
 import alluxio.worker.grpc.GrpcExecutors;
 import alluxio.worker.page.PagedBlockStore;
 
+import com.codahale.metrics.CachedGauge;
 import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -78,6 +79,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
@@ -126,7 +128,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   private final FuseManager mFuseManager;
 
   protected WorkerNetAddress mAddress;
-  AtomicReference<BlockMetaMetricCache> mMetricCache;
+  AtomicReference<BlockWorkerMetrics> mMetricCache;
 
   /**
    * Constructs a default block worker.
@@ -163,10 +165,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mFuseManager = mResourceCloser.register(new FuseManager(fsContext));
     mWhitelist = new PrefixList(Configuration.getList(PropertyKey.WORKER_WHITELIST));
 
-    mMetricCache = new AtomicReference<>(new BlockMetaMetricCache(this));
-    mMetricCache.get().update(WORKER_STORAGE_TIER_ASSOC);
-
-    Metrics.registerGauges(mMetricCache);
+    Metrics.registerGauges(this);
   }
 
   /**
@@ -530,7 +529,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
      * Update mMetricCache when find it exceed certain interval.
      * @param cache the BlockMetaMetricCache
      */
-    public static void maybeUpdateMetrics(BlockMetaMetricCache cache) {
+    public static void maybeUpdateMetrics(BlockWorkerMetrics cache) {
       long now = CommonUtils.getCurrentMs();
       // This '1000' should be replaced by metric interval from conf
       if (now - cache.getLastUpdateTimeStamp() > 1000) {
@@ -541,75 +540,48 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     /**
      * Registers metric gauges.
      *
-     * @param m the AtomicReference of BlockMetaMetricCache
+     * @param blockworker the BlockWorker
      */
-    public static void registerGauges(AtomicReference<BlockMetaMetricCache> m) {
+    public static void registerGauges(final BlockWorker blockworker) {
       // AtomicReference<BlockMetaMetricCache> m = blockWorker.getBlockMetaMetricCache();
-      MetricsSystem.registerGaugeIfAbsent(
+      CachedGauge<BlockWorkerMetrics> cache = new CachedGauge<BlockWorkerMetrics>(1000, TimeUnit.MILLISECONDS) {
+        @Override
+        protected BlockWorkerMetrics loadValue() {
+          BlockStoreMeta meta = blockworker.getStoreMetaFull();
+          BlockWorkerMetrics metrics = BlockWorkerMetrics.from(meta, WORKER_STORAGE_TIER_ASSOC);
+          return metrics;
+        }
+      };
+      MetricsSystem.registerCachedGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.WORKER_CAPACITY_TOTAL.getName()),
-          () -> {
-            BlockMetaMetricCache cache = m.get();
-            maybeUpdateMetrics(cache);
-            cache.getCapacityBytes();
-            return null;
-          });
+          () -> cache.getValue().getCapacityBytes());
 
       MetricsSystem.registerGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.WORKER_CAPACITY_USED.getName()),
-          () -> {
-            BlockMetaMetricCache cache = m.get();
-            maybeUpdateMetrics(cache);
-            cache.getUsedBytes();
-            return null;
-          });
+          () -> cache.getValue().getUsedBytes());
 
       MetricsSystem.registerGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.WORKER_CAPACITY_FREE.getName()),
-          () -> {
-            BlockMetaMetricCache cache = m.get();
-            maybeUpdateMetrics(cache);
-            cache.getCapacityFree();
-            return null;
-          });
+          () -> cache.getValue().getCapacityFree());
 
       for (int i = 0; i < WORKER_STORAGE_TIER_ASSOC.size(); i++) {
         String tier = WORKER_STORAGE_TIER_ASSOC.getAlias(i);
         // TODO(lu) Add template to dynamically generate MetricKey
         MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
             MetricKey.WORKER_CAPACITY_TOTAL.getName() + MetricInfo.TIER + tier),
-            () -> {
-              BlockMetaMetricCache cache = m.get();
-              maybeUpdateMetrics(cache);
-              cache.getCapacityBytesOnTiers().getOrDefault(tier, 0L);
-              return null;
-            });
+            () -> cache.getValue().getCapacityBytesOnTiers().getOrDefault(tier, 0L));
 
         MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
             MetricKey.WORKER_CAPACITY_USED.getName() + MetricInfo.TIER + tier),
-            () -> {
-              BlockMetaMetricCache cache = m.get();
-              maybeUpdateMetrics(cache);
-              cache.getUsedBytesOnTiers().getOrDefault(tier, 0L);
-              return null;
-            });
+            () -> cache.getValue().getUsedBytesOnTiers().getOrDefault(tier, 0L));
 
         MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
             MetricKey.WORKER_CAPACITY_FREE.getName() + MetricInfo.TIER + tier),
-            () -> {
-              BlockMetaMetricCache cache = m.get();
-              maybeUpdateMetrics(cache);
-              cache.getFreeBytesOnTiers().getOrDefault(tier, 0L);
-              return null;
-            });
+            () -> cache.getValue().getFreeBytesOnTiers().getOrDefault(tier, 0L));
       }
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
           MetricKey.WORKER_BLOCKS_CACHED.getName()),
-          () -> {
-            BlockMetaMetricCache cache = m.get();
-            maybeUpdateMetrics(cache);
-            cache.getNumberOfBlocks();
-            return null;
-          });
+          () -> cache.getValue().getNumberOfBlocks());
     }
 
     private Metrics() {} // prevent instantiation

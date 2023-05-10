@@ -2,6 +2,7 @@ package alluxio.worker.block;
 
 import alluxio.StorageTierAssoc;
 import alluxio.util.CommonUtils;
+import alluxio.worker.block.meta.BlockMeta;
 
 import java.util.Map;
 
@@ -11,7 +12,7 @@ import java.util.Map;
  * So the BlockWorker can pass this MetricCache to registerGauge instead of let registerGauge
  * copy a whole BlockMeta everytime updating the metrics.
  */
-public class BlockMetaMetricCache {
+public class BlockWorkerMetrics {
   BlockWorker mBlockWorker;
   long mLastUpdateTimeStamp;
   long mCapacityBytes;
@@ -23,8 +24,20 @@ public class BlockMetaMetricCache {
   Map<String, Long> mFreeBytesOnTiers;
   int mNumberOfBlocks;
 
-  public BlockMetaMetricCache(BlockWorker blockWorker) {
-    mBlockWorker = blockWorker;
+  public BlockWorkerMetrics(BlockStoreMeta meta, StorageTierAssoc s) {
+    mLastUpdateTimeStamp = CommonUtils.getCurrentMs();
+    mCapacityBytes = meta.getCapacityBytes();
+    mUsedBytes = meta.getUsedBytes();
+    mCapacityFree = mCapacityBytes - mUsedBytes;
+    mCapacityBytesOnTiers = meta.getCapacityBytesOnTiers();
+    mUsedBytesOnTiers = meta.getCapacityBytesOnTiers();
+    for (int i = 0; i < s.size(); i++) {
+      String tier = s.getAlias(i);
+      mFreeBytesOnTiers.replace(tier, mCapacityBytesOnTiers
+          .getOrDefault(tier, 0L)
+          - mUsedBytesOnTiers.getOrDefault(tier, 0L));
+    }
+    mNumberOfBlocks = meta.getNumberOfBlocks();
   }
 
   /**
@@ -98,5 +111,9 @@ public class BlockMetaMetricCache {
           - mUsedBytesOnTiers.getOrDefault(tier, 0L));
     }
     mNumberOfBlocks = meta.getNumberOfBlocks();
+  }
+
+  public static BlockWorkerMetrics from(BlockStoreMeta meta, StorageTierAssoc s) {
+    return new BlockWorkerMetrics(meta, s);
   }
 }
