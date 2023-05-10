@@ -45,7 +45,7 @@ public class DataServerFactory {
   private InetSocketAddress mGRpcBindAddress;
 
   @Inject
-  DataServerFactory(UfsManager ufsManager,
+  public DataServerFactory(UfsManager ufsManager,
                     @Named("GrpcConnectAddress") InetSocketAddress connectAddress,
                     @Named("GrpcBindAddress") InetSocketAddress gRpcBindAddress) {
     mUfsManager = requireNonNull(ufsManager);
@@ -53,7 +53,7 @@ public class DataServerFactory {
     mGRpcBindAddress = requireNonNull(gRpcBindAddress);
   }
 
-  DataServer createRemoteGrpcDataServer(DataWorker dataWorker) {
+  public DataServer createRemoteGrpcDataServer(DataWorker dataWorker) {
     BlockWorkerGrpc.BlockWorkerImplBase blockWorkerService;
     if (dataWorker instanceof DoraWorker) {
       blockWorkerService =
@@ -70,7 +70,7 @@ public class DataServerFactory {
         mConnectAddress.getHostName(), mGRpcBindAddress, blockWorkerService);
   }
 
-  DataServer createDomainSocketDataServer(DataWorker worker) {
+  public DataServer createDomainSocketDataServer(DataWorker worker) {
     String domainSocketPath =
         Configuration.getString(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
     if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
