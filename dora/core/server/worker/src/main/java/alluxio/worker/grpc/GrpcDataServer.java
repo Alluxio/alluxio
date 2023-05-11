@@ -51,7 +51,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Runs a gRPC data server that responds to block requests.
  */
 @NotThreadSafe
-public final class GrpcDataServer implements DataServer {
+public class GrpcDataServer implements DataServer {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcDataServer.class);
   private static final long SHUTDOWN_TIMEOUT =
       Configuration.getMs(PropertyKey.WORKER_NETWORK_SHUTDOWN_TIMEOUT);
@@ -132,7 +132,7 @@ public final class GrpcDataServer implements DataServer {
     LOG.info("Alluxio worker gRPC server started, listening on {}", bindAddress.toString());
   }
 
-  private GrpcServerBuilder createServerBuilder(String hostName,
+  protected GrpcServerBuilder createServerBuilder(String hostName,
       SocketAddress bindAddress, ChannelType type) {
     // Create an executor for Worker RPC server.
     mRPCExecutor = ExecutorServiceBuilder.buildExecutorService(
