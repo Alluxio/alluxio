@@ -18,7 +18,6 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
-import alluxio.exception.runtime.AlreadyExistsRuntimeException;
 import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
@@ -79,8 +78,10 @@ public final class CopyHandler {
       throw AlluxioRuntimeException.from(e);
     }
     if (dstStatus != null && !writeOptions.getOverwrite()) {
-      throw new AlreadyExistsRuntimeException("File " + route.getDst()
+      // skip the file if it already exists
+      LOG.debug("File " + route.getDst()
           + " is already persisted in UFS, to overwrite the file, please set the overwrite flag");
+      return;
     }
 
     if (dstStatus != null && (dstStatus.isFolder() != sourceStatus.isFolder())) {
