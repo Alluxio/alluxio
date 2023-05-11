@@ -176,7 +176,7 @@ public class LocalPageStoreTest {
     PageId id = new PageId("0", 0);
     store.put(id, msg.getBytes());
     byte[] buf = new byte[1024];
-    assertEquals(msg.getBytes().length, store.get(id, new ByteArrayTargetBuffer(buf, 0)));
+    assertEquals(msg.getBytes().length, store.get(id, new ByteArrayTargetBuffer(buf)));
     assertArrayEquals(msg.getBytes(), Arrays.copyOfRange(buf, 0, msg.getBytes().length));
   }
 }

@@ -89,7 +89,7 @@ public class NettyDataReaderTest {
         .andThen(new SendDataState("world".getBytes()))
         .andThen(new EofState());
     Future<Throwable> serverFault = mStateDriver.run(start);
-    int bytesRead = mReader.read(offset, byteArray, length);
+    int bytesRead = mReader.read(offset, byteArray);
 
     assertNull(serverFault.get());
     assertEquals(length, bytesRead);
@@ -107,7 +107,7 @@ public class NettyDataReaderTest {
         .andThen(new SendDataState("world".getBytes()))
         .andThen(new EofState());
     Future<Throwable> serverFault = mStateDriver.run(start);
-    int bytesRead = mReader.read(offset, byteArray, length);
+    int bytesRead = mReader.read(offset, byteArray);
 
     assertNull(serverFault.get());
     assertEquals(10, bytesRead);
@@ -132,7 +132,7 @@ public class NettyDataReaderTest {
         .andThen(new CancelState());
     Future<Throwable> serverFault = mStateDriver.run(start);
     PartialReadException exception = assertThrows(PartialReadException.class,
-        () -> mReader.read(offset, byteArray, length));
+        () -> mReader.read(offset, byteArray));
 
     assertNull(serverFault.get());
     assertEquals(5, exception.getBytesRead());
@@ -153,7 +153,7 @@ public class NettyDataReaderTest {
         .andThen(new DisconnectState());
     Future<Throwable> serverFault = mStateDriver.run(start);
     PartialReadException exception = assertThrows(PartialReadException.class,
-        () -> mReader.read(offset, byteArray, length));
+        () -> mReader.read(offset, byteArray));
 
     assertNull(serverFault.get());
     assertEquals(5, exception.getBytesRead());
@@ -185,7 +185,7 @@ public class NettyDataReaderTest {
     Future<Throwable> serverFault = mStateDriver.run(start);
 
     PartialReadException exception = assertThrows(PartialReadException.class,
-        () -> mReader.read(offset, byteArray, length));
+        () -> mReader.read(offset, byteArray));
     assertNull(serverFault.get());
     assertEquals(0, exception.getBytesRead());
     assertTrue(exception.getCause() instanceof TimeoutException);
@@ -215,7 +215,7 @@ public class NettyDataReaderTest {
         .andThen(new EofState());
     Future<Throwable> serverFault = mStateDriver.run(start);
 
-    int bytesRead = mReader.read(offset, byteArray, length);
+    int bytesRead = mReader.read(offset, byteArray);
     assertNull(serverFault.get());
     assertEquals(10, bytesRead);
     checkResult("helloworld".getBytes(), byteArray);
