@@ -12,7 +12,6 @@
 package alluxio.file;
 
 import alluxio.annotation.SuppressFBWarnings;
-import alluxio.file.ReadTargetBuffer;
 import alluxio.util.io.ChannelAdapters;
 
 import io.netty.buffer.ByteBuf;
@@ -50,7 +49,7 @@ public class ByteArrayTargetBuffer implements ReadTargetBuffer {
 
   @Override
   public ByteBuffer byteBuffer() {
-    return ByteBuffer.wrap(mTarget);
+    return ByteBuffer.wrap(mTarget, mOffset, mTarget.length - mOffset);
   }
 
   @Override
