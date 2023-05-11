@@ -48,7 +48,6 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.ServerUserState;
-import alluxio.util.CommonUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.FileUtils;
 import alluxio.wire.FileInfo;
