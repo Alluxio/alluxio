@@ -13,6 +13,7 @@ package alluxio.worker;
 
 import static java.util.Objects.requireNonNull;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.BlockWorkerGrpc;
