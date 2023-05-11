@@ -14,6 +14,7 @@ package alluxio.master.job;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
+import alluxio.AlluxioURI;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -89,6 +90,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
   private final String mSrc;
   private final String mDst;
   private final boolean mOverwrite;
+  private final boolean mCheckContent;
   private OptionalLong mBandwidth;
   private boolean mUsePartialListing;
   private boolean mVerificationEnabled;
@@ -118,11 +120,12 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
    * @param bandwidth           bandwidth
    * @param usePartialListing   whether to use partial listing
    * @param verificationEnabled whether to verify the job after loaded
+   * @param checkContent
    * @param fileIterable        file iterable
    */
   public CopyJob(String src, String dst, boolean overwrite, Optional<String> user, String jobId,
       OptionalLong bandwidth, boolean usePartialListing, boolean verificationEnabled,
-      Iterable<FileInfo> fileIterable) {
+      boolean checkContent, Iterable<FileInfo> fileIterable) {
     super(user, jobId);
     mSrc = requireNonNull(src, "src is null");
     mDst = requireNonNull(dst, "dst is null");
@@ -136,6 +139,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     mState = JobState.RUNNING;
     mFileIterable = fileIterable;
     mOverwrite = overwrite;
+    mCheckContent = checkContent;
   }
 
   /**
@@ -361,12 +365,12 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
   private Route buildRoute(FileInfo sourceFile) {
     String relativePath;
     try {
-      relativePath = PathUtils.subtractPaths(sourceFile.getPath(), mSrc);
+      relativePath = PathUtils.subtractPaths(sourceFile.getPath(), new AlluxioURI(mSrc).getPath());
     } catch (InvalidPathException e) {
       throw new InvalidArgumentRuntimeException("fail to parse source file path", e);
     }
     String dst = PathUtils.concatPath(mDst, relativePath);
-    return Route.newBuilder().setSrc(sourceFile.getPath())
+    return Route.newBuilder().setSrc(sourceFile.getUfsPath())
                 .setDst(dst).setLength(sourceFile.getLength()).build();
   }
 
@@ -379,6 +383,9 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
         .add("Bandwidth", mBandwidth)
         .add("UsePartialListing", mUsePartialListing)
         .add("VerificationEnabled", mVerificationEnabled)
+        .add("TotalByteCount", mTotalByteCount)
+        .add("CheckContent", mCheckContent)
+        .add("Overwrite", mOverwrite)
         .add("RetryRoutes", mRetryRoutes)
         .add("FailedFiles", mFailedFiles)
         .add("StartTime", mStartTime)
@@ -400,6 +407,8 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
         .newBuilder().setSrc(mSrc).setDst(mDst).setState(JobState.toProto(mState))
         .setPartialListing(mUsePartialListing)
         .setVerify(mVerificationEnabled)
+        .setOverwrite(mOverwrite)
+        .setCheckContent(mCheckContent)
         .setJobId(mJobId);
     mUser.ifPresent(jobEntry::setUser);
     mBandwidth.ifPresent(jobEntry::setBandwidth);
@@ -521,6 +530,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
       WriteOptions writeOptions = WriteOptions
           .newBuilder()
           .setOverwrite(mOverwrite)
+          .setCheckContent(mCheckContent)
           .build();
       return workerClient.copy(request
           .setUfsReadOptions(ufsReadOptions.build())

@@ -140,7 +140,7 @@ public class UfsFileIterable implements Iterable<FileInfo> {
       AlluxioURI ufsUri = new AlluxioURI(PathUtils.concatPath(mPath,
           CommonUtils.stripPrefixIfPresent(ufsStatus.getName(), mPath)));
       FileInfo info = new FileInfo().setName(ufsUri.getName()).setPath(ufsUri.getPath())
-                                    .setUfsPath(ufsUri.getPath())
+                                    .setUfsPath(ufsUri.toString())
                                     .setFolder(ufsStatus.isDirectory())
                                     .setOwner(ufsStatus.getOwner()).setGroup(ufsStatus.getGroup())
                                     .setMode(ufsStatus.getMode()).setCompleted(true);
