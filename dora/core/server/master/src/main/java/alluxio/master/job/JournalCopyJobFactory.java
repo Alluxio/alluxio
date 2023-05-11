@@ -61,7 +61,7 @@ public class JournalCopyJobFactory implements JobFactory {
             mJobEntry.getJobId(),
             mJobEntry.hasBandwidth() ? OptionalLong.of(mJobEntry.getBandwidth()) :
                 OptionalLong.empty(), mJobEntry.getPartialListing(), mJobEntry.getVerify(),
-            fileIterator);
+            mJobEntry.getCheckContent(), fileIterator);
     return job;
   }
 }

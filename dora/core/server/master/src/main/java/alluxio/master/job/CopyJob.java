@@ -120,7 +120,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
    * @param bandwidth           bandwidth
    * @param usePartialListing   whether to use partial listing
    * @param verificationEnabled whether to verify the job after loaded
-   * @param checkContent
+   * @param checkContent        whether to check content
    * @param fileIterable        file iterable
    */
   public CopyJob(String src, String dst, boolean overwrite, Optional<String> user, String jobId,

@@ -24,7 +24,7 @@ message LoadJobEntry {
   optional int64 end_time = 8;
 }
 
-// next available id: 11
+// next available id: 12
 message CopyJobEntry {
   required string src= 1;
   required string dst= 2;
@@ -36,4 +36,5 @@ message CopyJobEntry {
   required string job_id = 8;
   optional int64 end_time = 9;
   optional bool overwrite = 10;
+  optional bool check_content = 11;
 }
