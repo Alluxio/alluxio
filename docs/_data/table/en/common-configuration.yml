@@ -374,8 +374,20 @@ alluxio.underfs.web.parent.names:
   'The text of the http link for the parent directory.'
 alluxio.underfs.web.titles:
   'The title of the content for a http url.'
+alluxio.web.cors.allow.credential:
+  'Enable request include credential.'
+alluxio.web.cors.allow.headers:
+  'Which headers is allowed for cors. use * allow all any header.'
+alluxio.web.cors.allow.methods:
+  'Which methods is allowed for cors. use * allow all any method.'
+alluxio.web.cors.allow.origins:
+  'Which origins is allowed for cors. use * allow all any origin.'
 alluxio.web.cors.enabled:
-  'Set to true to enable Cross-Origin Resource Sharing for RESTful APIendpoints.'
+  'Set to true to enable Cross-Origin Resource Sharing for Web UI.'
+alluxio.web.cors.exposed.headers:
+  'Which headers are allowed to set in response when access cross-origin resource. use * allow all any header.'
+alluxio.web.cors.max.age:
+  'Maximum number of seconds the results can be cached for cors. "-1 means no cache.'
 alluxio.web.file.info.enabled:
   'Whether detailed file information are enabled for the web UI.'
 alluxio.web.refresh.interval:
