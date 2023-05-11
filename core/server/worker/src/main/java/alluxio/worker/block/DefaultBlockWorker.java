@@ -526,18 +526,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         MetricsSystem.counter(MetricKey.WORKER_ACTIVE_CLIENTS.getName());
 
     /**
-     * Update mMetricCache when find it exceed certain interval.
-     * @param cache the BlockMetaMetricCache
-     */
-    public static void maybeUpdateMetrics(BlockWorkerMetrics cache) {
-      long now = CommonUtils.getCurrentMs();
-      // This '1000' should be replaced by metric interval from conf
-      if (now - cache.getLastUpdateTimeStamp() > 1000) {
-        cache.update(WORKER_STORAGE_TIER_ASSOC);
-      }
-    }
-
-    /**
      * Registers metric gauges.
      *
      * @param blockworker the BlockWorker
