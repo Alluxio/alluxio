@@ -37,6 +37,7 @@ import javax.inject.Named;
 /**
  * Factory for data server.
  */
+@SuppressFBWarnings("BC_UNCONFIRMED_CAST")
 public class DataServerFactory {
   private static final Logger LOG = LoggerFactory.getLogger(DataServerFactory.class);
 
