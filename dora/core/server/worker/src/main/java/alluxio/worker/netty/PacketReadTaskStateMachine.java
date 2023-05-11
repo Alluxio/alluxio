@@ -37,8 +37,9 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
-import javax.annotation.concurrent.GuardedBy;
 
 /**
  *  State machine of Netty Server in Alluxio Worker.
@@ -58,6 +59,9 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
 
   private static final long MAX_PACKETS_IN_FLIGHT =
       Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS);
+
+  private final BlockingQueue<Object> mFlowControlQueue =
+      new ArrayBlockingQueue<>((int) MAX_PACKETS_IN_FLIGHT);
 
   private final TriggerEventsWithParam mTriggerEventsWithParam;
 
@@ -165,7 +169,8 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
         .onEntryFrom(TriggerEvent.OUTPUT_LENGTH_FULFILLED, this::onEof)
         .onEntryFrom(TriggerEvent.CANCELLED, this::onCancelled)
         .onEntry(this::onTerminatedNormally)
-        .permit(TriggerEvent.END, State.COMPLETED);
+        .permit(TriggerEvent.END, State.COMPLETED)
+        .permit(TriggerEvent.COMPLETE_REQUEST_ERROR, State.TERMINATED_EXCEPTIONALLY);
     config.configure(State.COMPLETED)
         .onEntry(this::onCompleted);
 
@@ -222,19 +227,11 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
 
   private void onReadingData() {
     long start = mContext.getPosToQueue();
-
-    if (tooManyPendingPackets()) {
-      fireNext(mTriggerEventsWithParam.mFailToReadEvent,
-          new Error(AlluxioStatusException.fromIOException(
-              new IOException("Too many in-fight packets")), true));
-      return;
-    }
-
     int packetSize = (int) Math
         .min(mRequest.getEnd() - mContext.getPosToQueue(), mRequest.getPacketSize());
 
-    // packetSize should always be > 0 here when reaches here.
-    Preconditions.checkState(packetSize > 0);
+    // packetSize should always be >= 0 here when reaches here.
+    Preconditions.checkState(packetSize >= 0);
 
     DataBuffer packet = null;
     try {
@@ -245,7 +242,14 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
           new Error(AlluxioStatusException.fromThrowable(e), true));
     }
 
-    fireNext(mTriggerEventsWithParam.mSendDataEvent, new SendDataEvent(start, packetSize, packet));
+    // Put an object into the flow control queue. If the queue is full, it indicates that there are
+    // too many  in-flight packets, and we need to wait some time.
+    LOG.debug("Putting an object into the flow control queue.");
+    SendDataEvent sendDataEvent = new SendDataEvent(start, packetSize, packet);
+    mFlowControlQueue.offer(sendDataEvent);
+    LOG.debug("An object has been put into the flow control queue successfully.");
+
+    fireNext(mTriggerEventsWithParam.mSendDataEvent, sendDataEvent);
   }
 
   private void onSendingData(SendDataEvent event, Transition<State, TriggerEvent> transition) {
@@ -278,6 +282,10 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
 
   private void onTerminatedNormally() {
     try {
+      while (!mFlowControlQueue.isEmpty()) {
+        // wait for finishing sending data
+        LOG.debug("mFlowControlQueue.size(): " + mFlowControlQueue.size());
+      }
       completeRequest(mContext);
       fireNext(TriggerEvent.END);
     } catch (IOException e) {
@@ -299,11 +307,6 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
 
   private void onTerminatedExceptionally(Error error, Transition<State, TriggerEvent> transition) {
     Preconditions.checkNotNull(error, "error");
-    if (mContext == null || mContext.getError() != null || mContext.isDoneUnsafe()) {
-      // Note, we may reach here via channelUnregistered due to network errors bubbling up before
-      // mContext is initialized, or channel garbage collection after the request is finished.
-      return;
-    }
     mContext.setError(error);
 
     try {
@@ -385,16 +388,6 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
   }
 
   /**
-   * @return true If there are too many packets in-flight. If it is true, it means
-   * there are many packets that have been read and they are still sending to the client.
-   */
-  @GuardedBy("mLock")
-  public boolean tooManyPendingPackets() {
-    return mContext.getPosToQueue() - mContext.getPosToWrite() >= MAX_PACKETS_IN_FLIGHT * mContext
-        .getRequest().getPacketSize();
-  }
-
-  /**
    * Helper method to allow firing triggers within state handler methods.
    * If the triggers are fired directly within state handler methods, they will likely make
    * recursive calls and blow up the stack.
@@ -471,9 +464,10 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
     }
 
     @Override
-    public void operationComplete(ChannelFuture future) {
+    public void operationComplete(ChannelFuture future) throws InterruptedException {
       if (!future.isSuccess()) {
         LOG.error("Failed to send packet.", future.cause());
+        mFlowControlQueue.take();
         fireNext(mTriggerEventsWithParam.mFailToSendDataEvent,
             new Error(AlluxioStatusException.fromThrowable(future.cause()), true));
         return;
@@ -485,16 +479,10 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
               .getPacketSize(), "Some packet is not acked.");
       incrementMetrics(mPosToWriteUncommitted - mContext.getPosToWrite());
       mContext.setPosToWrite(mPosToWriteUncommitted);
-    }
 
-    /**
-     * @return true if we should restart the packet reader
-     */
-    @GuardedBy("mLock")
-    private boolean shouldRestartPacketReader() {
-      return !mContext.isPacketReaderActive() && !tooManyPendingPackets()
-          && mContext.getPosToQueue() < mContext.getRequest().getEnd()
-          && mContext.getError() == null && !mContext.isCancel() && !mContext.isEof();
+      LOG.debug("Taking an object from the flow control queue successfully.");
+      mFlowControlQueue.take();
+      LOG.debug("An object has been taken from the flow control queue successfully.");
     }
   }
 }

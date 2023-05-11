@@ -73,8 +73,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
 
   @Override
   public void channelUnregistered(ChannelHandlerContext ctx) {
-    // The channel is closed so the client cannot receive this message.
-    // Notify the task
+    // Notify all the tasks
     mTasksMap.values().stream().forEach(task -> task.notifyChannelException(
         new Error(new InternalException("Channel has been unregistered"), false)));
     mTasksMap.clear();
