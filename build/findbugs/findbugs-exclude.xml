@@ -1,16 +1,4 @@
 <FindBugsFilter>
-
-  <Match>
-    <Or>
-      <Package name="alluxio.concurrent.jsr"/>
-    </Or>
-  </Match>
-
-  <Match>
-    <Class name="alluxio.yarn.ApplicationMaster"/>
-    <Bug code="VO"/>
-  </Match>
-
   <Match>
     <!--
 	DC: Possible double check of field

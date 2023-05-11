@@ -27,7 +27,6 @@ import (
 var (
 	customUfsModuleFlag string
 	skipUIFlag          bool
-	skipHelmFlag        bool
 )
 
 func Single(args []string) error {
@@ -43,7 +42,6 @@ func Single(args []string) error {
 			" e.g. hadoop-a.b|hdfs|-pl,underfs/hdfs,-Pufs-hadoop-A,-Dufs.hadoop.version=a.b.c%hadoop-x.y|hdfs|-pl,underfs/hdfs,-Pufs-hadoop-X,-Dufs.hadoop.version=x.y.z")
 	singleCmd.BoolVar(&skipUIFlag, "skip-ui", false, fmt.Sprintf("set this flag to skip building the webui. This will speed up the build times "+
 		"but the generated tarball will have no Alluxio WebUI although REST services will still be available."))
-	singleCmd.BoolVar(&skipHelmFlag, "skip-helm", true, fmt.Sprintf("set this flag to skip using Helm to generate YAML templates for K8s deployment scenarios"))
 	singleCmd.Parse(args[2:]) // error handling by flag.ExitOnError
 
 	if customUfsModuleFlag != "" {
@@ -78,9 +76,8 @@ func Single(args []string) error {
 		}
 	}
 	if err := generateTarball(&GenerateTarballOpts{
-		SkipUI:   skipUIFlag,
-		SkipHelm: skipHelmFlag,
-		Fuse:     false,
+		SkipUI: skipUIFlag,
+		Fuse:   false,
 	}); err != nil {
 		return err
 	}
@@ -212,12 +209,6 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 			"integration/docker/.dockerignore",
 			"integration/docker/conf/alluxio-env.sh.template",
 			"integration/docker/conf/alluxio-site.properties.template",
-			"integration/docker/csi/alluxio/controllerserver.go",
-			"integration/docker/csi/alluxio/driver.go",
-			"integration/docker/csi/alluxio/nodeserver.go",
-			"integration/docker/csi/go.mod",
-			"integration/docker/csi/go.sum",
-			"integration/docker/csi/main.go",
 			"integration/docker/Dockerfile",
 			"integration/docker/Dockerfile-dev",
 			"integration/docker/entrypoint.sh",
@@ -315,9 +306,6 @@ func generateTarball(opts *GenerateTarballOpts) error {
 	if opts.SkipUI {
 		versionString = versionString + "-noUI"
 	}
-	if opts.SkipHelm {
-		versionString = versionString + "-noHelm"
-	}
 	tarball := strings.Replace(targetFlag, versionMarker, versionString, 1)
 
 	dstDir := strings.TrimSuffix(filepath.Base(tarball), ".tar.gz")
@@ -328,7 +316,7 @@ func generateTarball(opts *GenerateTarballOpts) error {
 
 	toCreateDirs := []string{"logs", "lib", "bin"}
 	if !opts.Fuse {
-		toCreateDirs = append(toCreateDirs, "assembly", "client", "integration/fuse", "integration/kubernetes", "logs/user")
+		toCreateDirs = append(toCreateDirs, "assembly", "client", "integration/fuse", "logs/user")
 	}
 	for _, dir := range toCreateDirs {
 		mkdir(filepath.Join(dstPath, dir))
@@ -347,13 +335,6 @@ func generateTarball(opts *GenerateTarballOpts) error {
 		run("adding Alluxio client assembly jar", "mv", fmt.Sprintf("assembly/client/target/alluxio-assembly-client-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-client-%v.jar", version)))
 		run("adding Alluxio server assembly jar", "mv", fmt.Sprintf("assembly/server/target/alluxio-assembly-server-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-server-%v.jar", version)))
 		run("adding Alluxio FUSE jar", "mv", fmt.Sprintf("integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "fuse", fmt.Sprintf("alluxio-fuse-%v.jar", version)))
-		// Generate Helm templates in the dstPath
-		run("adding Helm chart", "cp", "-r", filepath.Join(srcPath, "integration/kubernetes/helm-chart"), filepath.Join(dstPath, "integration/kubernetes/helm-chart"))
-		if !opts.SkipHelm {
-			chdir(filepath.Join(dstPath, "integration/kubernetes/helm-chart/alluxio/"))
-			run("generate Helm templates", "bash", "helm-generate.sh", "all")
-			chdir(srcPath)
-		}
 
 		if !opts.SkipUI {
 			masterWebappDir := "webui/master"

@@ -25,11 +25,6 @@ const versionMarker = "${VERSION}"
 
 // hadoopDistributions maps hadoop distributions to versions
 var hadoopDistributions = map[string]version{
-	"hadoop-2.2":  parseVersion("2.2.0"),
-	"hadoop-2.3":  parseVersion("2.3.0"),
-	"hadoop-2.4":  parseVersion("2.4.1"),
-	"hadoop-2.5":  parseVersion("2.5.2"),
-	"hadoop-2.6":  parseVersion("2.6.5"),
 	"hadoop-2.7":  parseVersion("2.7.3"),
 	"hadoop-2.8":  parseVersion("2.8.5"),
 	"hadoop-2.9":  parseVersion("2.9.2"),
@@ -43,9 +38,8 @@ var hadoopDistributions = map[string]version{
 }
 
 type GenerateTarballOpts struct {
-	SkipUI   bool
-	SkipHelm bool
-	Fuse     bool
+	SkipUI bool
+	Fuse   bool
 }
 
 type module struct {
@@ -57,11 +51,6 @@ type module struct {
 
 // ufsModules is a map from ufs module to information for building the module.
 var ufsModules = map[string]module{
-	"ufs-hadoop-2.2":  {"hadoop-2.2", "hdfs", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.2.0"},
-	"ufs-hadoop-2.3":  {"hadoop-2.3", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.3.0"},
-	"ufs-hadoop-2.4":  {"hadoop-2.4", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.4.1"},
-	"ufs-hadoop-2.5":  {"hadoop-2.5", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.5.2"},
-	"ufs-hadoop-2.6":  {"hadoop-2.6", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.6.5 -PhdfsActiveSync"},
 	"ufs-hadoop-2.7":  {"hadoop-2.7", "hdfs", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.7.3 -PhdfsActiveSync"},
 	"ufs-hadoop-2.8":  {"hadoop-2.8", "hdfs", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.8.5 -PhdfsActiveSync"},
 	"ufs-hadoop-2.9":  {"hadoop-2.9", "hdfs", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.9.2 -PhdfsActiveSync"},

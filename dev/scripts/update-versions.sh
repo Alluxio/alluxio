@@ -76,7 +76,7 @@ function update_docs() {
     local current_branch="$(git rev-parse --abbrev-ref HEAD)"
     perl -pi -e "s/${1}/${2}/g" docs/_config.yml
 
-    if [[ "${current_branch}" != "master" ]]; then
+    if [[ "${current_branch}" != "main" ]]; then
         local major_version_regex="([0-9]+\.[0-9]+)\."
         # regex is unquoted on purpose
         if [[ "${2}" =~ ${major_version_regex} ]]; then
@@ -88,14 +88,6 @@ function update_docs() {
 
         fi
     fi
-}
-
-# Arguments:
-#  $1: old version
-#  $2: new version
-function update_k8s() {
-    perl -pi -e "s/${1}/${2}/g" \
-        integration/kubernetes/helm-chart/alluxio/values.yaml
 }
 
 function update_dockerfiles() {
@@ -138,7 +130,6 @@ function main() {
     update_libexec "$_old" "$_new"
     update_readme "$_old" "$_new"
     update_docs "$_old" "$_new"
-    update_k8s "$_old" "$_new"
     update_dockerfiles "$_old" "$_new"
 
     exit 0

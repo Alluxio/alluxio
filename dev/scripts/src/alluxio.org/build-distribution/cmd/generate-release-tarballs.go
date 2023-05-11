@@ -40,9 +40,8 @@ func generateTarballs() error {
 	fmt.Printf("Generating tarball %v\n", fmt.Sprintf("alluxio-%v-bin.tar.gz", versionMarker))
 	// Do not skip UI and Helm
 	if err := generateTarball(&GenerateTarballOpts{
-		SkipUI:   false,
-		SkipHelm: false,
-		Fuse:     false,
+		SkipUI: false,
+		Fuse:   false,
 	}); err != nil {
 		return err
 	}

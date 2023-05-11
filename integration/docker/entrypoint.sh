@@ -54,8 +54,6 @@ function printUsage {
   echo -e "                           \t Start Alluxio FUSE file system, option --fuse-opts expects a list of fuse options separated by commas"
   echo -e " mount ufs_address mount_point [options]"
   echo -e "                           \t Mounts an UFS address to a local mount point, example options include -o attr_timeout=700 -o s3a.accessKeyId=<S3 ACCESS KEY> -o s3a.secretKey=<S3 SECRET KEY>"
-  echo -e " logserver                 \t Start Alluxio log server"
-  echo -e " csiserver                 \t Start Alluxio CSI server, need option --nodeid={NODE_ID} --endpoint={CSI_ENDPOINT}"
 }
 
 function writeConf {
@@ -109,10 +107,6 @@ function mountAlluxioFSWithFuseOption {
 
 function mountFuseWithUFS {
   exec bin/alluxio-fuse mount "${@}" -f
-}
-
-function startCsiServer {
-  exec /usr/local/bin/alluxio-csi "${@:1}"
 }
 
 # Sends a signal to each of the running background processes
@@ -266,12 +260,6 @@ function main {
       ;;
     mount)
       mountFuseWithUFS "${@:2}"
-      ;;
-    logserver)
-      processes+=("logserver")
-      ;;
-    csiserver)
-      startCsiServer "${@:2}"
       ;;
     *)
       printUsage
