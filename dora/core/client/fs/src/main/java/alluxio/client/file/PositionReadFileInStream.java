@@ -120,7 +120,7 @@ public class PositionReadFileInStream extends FileInStream {
       }
       mCache.clear();
       try {
-        int bytesPrefetched = reader.read(pos, mCache, prefetchSize);
+        int bytesPrefetched = reader.read(pos, mCache.slice(0, prefetchSize).clear());
         if (bytesPrefetched > 0) {
           mCache.readerIndex(0).writerIndex(bytesPrefetched);
           mCacheStartPos = pos;
@@ -187,13 +187,12 @@ public class PositionReadFileInStream extends FileInStream {
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
     Objects.requireNonNull(b, "Read buffer cannot be null");
-    return read(ByteBuffer.wrap(b), off, len);
+    return read(ByteBuffer.wrap(b, off, len));
   }
 
   @Override
-  public int read(ByteBuffer byteBuffer, int off, int len) throws IOException {
-    byteBuffer.position(off).limit(off + len);
-    mCache.addTrace(mPos, len);
+  public int read(ByteBuffer byteBuffer) throws IOException {
+    mCache.addTrace(mPos, byteBuffer.remaining());
     int totalBytesRead = 0;
     int bytesReadFromCache = mCache.fillWithCache(mPos, byteBuffer);
     totalBytesRead += bytesReadFromCache;
@@ -214,7 +213,7 @@ public class PositionReadFileInStream extends FileInStream {
     if (!byteBuffer.hasRemaining()) {
       return totalBytesRead;
     }
-    int bytesRead = mPositionReader.read(mPos, byteBuffer, byteBuffer.remaining());
+    int bytesRead = mPositionReader.read(mPos, byteBuffer);
     if (bytesRead < 0) {
       if (totalBytesRead == 0) {
         return -1;
@@ -252,7 +251,7 @@ public class PositionReadFileInStream extends FileInStream {
     if (!byteBuffer.hasRemaining()) {
       return totalBytesRead;
     }
-    int bytesRead = mPositionReader.read(pos, byteBuffer, byteBuffer.remaining());
+    int bytesRead = mPositionReader.read(pos, byteBuffer);
     if (bytesRead < 0) {
       if (totalBytesRead == 0) {
         return -1;

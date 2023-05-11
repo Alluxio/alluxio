@@ -258,8 +258,8 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
    */
   default int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer, int offsetInBuffer,
       CacheContext cacheContext) {
-    return get(pageId, pageOffset, bytesToRead, new ByteArrayTargetBuffer(buffer, offsetInBuffer),
-        cacheContext);
+    return get(pageId, pageOffset, bytesToRead,
+        new ByteArrayTargetBuffer(buffer, offsetInBuffer, bytesToRead), cacheContext);
   }
 
   /**

@@ -13,8 +13,6 @@ package alluxio;
 
 import alluxio.file.ReadTargetBuffer;
 
-import com.google.common.base.Preconditions;
-
 import java.io.IOException;
 
 /**
@@ -33,16 +31,16 @@ public class ByteArrayPositionReader implements PositionReader {
   }
 
   @Override
-  public int readInternal(long position, ReadTargetBuffer buffer, int length) throws IOException {
-    Preconditions.checkArgument(length >= 0, "negative length: %s", length);
+  public int readInternal(long position, ReadTargetBuffer buffer) throws IOException {
     if (position > mData.length) {
       throw new ArrayIndexOutOfBoundsException("Index: " + position + ", length: " + mData.length);
     }
-    if (length == 0) {
-      return 0;
-    }
     if (position == mData.length) {
       return -1;
+    }
+    int length = Math.min(mData.length - (int) position, buffer.remaining());
+    if (length == 0) {
+      return 0;
     }
     buffer.writeBytes(mData, (int) position, length);
     return length;

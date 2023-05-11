@@ -144,11 +144,11 @@ public class HdfsPositionedUnderFileInputStream
   }
 
   @Override
-  public int readInternal(long position, ReadTargetBuffer buffer, int length)
+  public int readInternal(long position, ReadTargetBuffer buffer)
       throws IOException {
-    Preconditions.checkArgument(length >= 0, "length should be non-negative");
     Preconditions.checkArgument(position >= 0, "position should be non-negative");
     Preconditions.checkArgument(in instanceof PositionedReadable);
+    int length = buffer.remaining();
     if (length == 0) {
       return 0;
     }
@@ -169,7 +169,7 @@ public class HdfsPositionedUnderFileInputStream
       return currentRead;
     }
     if (targetIsByteArray) {
-      buffer.offset(arrayPosition);
+      buffer.offset(arrayPosition + totalRead);
     } else {
       buffer.writeBytes(byteArray, 0, totalRead);
     }
