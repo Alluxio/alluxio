@@ -12,39 +12,23 @@ import java.util.Map;
  * copy a whole BlockMeta everytime updating the metrics.
  */
 public class BlockWorkerMetrics {
-  final long mLastUpdateTimeStamp;
-  final long mCapacityBytes;
-  final long mUsedBytes;
-  final long mCapacityFree;
+  private final long mCapacityBytes;
+  private final long mUsedBytes;
+  private final long mCapacityFree;
 
-  final Map<String, Long> mCapacityBytesOnTiers;
-  final Map<String, Long> mUsedBytesOnTiers;
-  final Map<String, Long> mFreeBytesOnTiers;
-  final int mNumberOfBlocks;
+  private final Map<String, Long> mCapacityBytesOnTiers;
+  private final Map<String, Long> mUsedBytesOnTiers;
+  private final Map<String, Long> mFreeBytesOnTiers;
+  private final int mNumberOfBlocks;
 
-  public BlockWorkerMetrics(BlockStoreMeta meta, StorageTierAssoc s) {
-    mLastUpdateTimeStamp = CommonUtils.getCurrentMs();
-    mCapacityBytes = meta.getCapacityBytes();
-    mUsedBytes = meta.getUsedBytes();
-    mCapacityFree = mCapacityBytes - mUsedBytes;
-    mCapacityBytesOnTiers = meta.getCapacityBytesOnTiers();
-    mUsedBytesOnTiers = meta.getCapacityBytesOnTiers();
-    Map<String, Long> tmpMap = meta.getCapacityBytesOnTiers();
-    for (int i = 0; i < s.size(); i++) {
-      String tier = s.getAlias(i);
-      tmpMap.replace(tier, mCapacityBytesOnTiers
-          .getOrDefault(tier, 0L)
-          - mUsedBytesOnTiers.getOrDefault(tier, 0L));
-    }
-    mFreeBytesOnTiers = tmpMap;
-    mNumberOfBlocks = meta.getNumberOfBlocks();
-  }
-
-  /**
-   * @return last update time
-   */
-  public long getLastUpdateTimeStamp() {
-    return mLastUpdateTimeStamp;
+  public BlockWorkerMetrics(long capacityBytes, long usedBytes, long capacityFree, Map<String, Long> capacityBytesOnTiers, Map<String, Long> usedBytesOnTiers, Map<String, Long> freeBytesOnTiers, int numberOfBlocks) {
+    mCapacityBytes = capacityBytes;
+    mUsedBytes = usedBytes;
+    mCapacityFree = capacityFree;
+    mCapacityBytesOnTiers = capacityBytesOnTiers;
+    mUsedBytesOnTiers = usedBytesOnTiers;
+    mFreeBytesOnTiers = freeBytesOnTiers;
+    mNumberOfBlocks = numberOfBlocks;
   }
 
   /**
@@ -97,6 +81,19 @@ public class BlockWorkerMetrics {
   }
 
   public static BlockWorkerMetrics from(BlockStoreMeta meta, StorageTierAssoc s) {
-    return new BlockWorkerMetrics(meta, s);
+    long mCapacityBytes = meta.getCapacityBytes();
+    long mUsedBytes = meta.getUsedBytes();
+    long mCapacityFree = mCapacityBytes - mUsedBytes;
+    Map<String, Long> mCapacityBytesOnTiers = meta.getCapacityBytesOnTiers();
+    Map<String, Long> mUsedBytesOnTiers = meta.getCapacityBytesOnTiers();
+    Map<String, Long> mFreeBytesOnTiers = meta.getCapacityBytesOnTiers();
+    for (int i = 0; i < s.size(); i++) {
+      String tier = s.getAlias(i);
+      mFreeBytesOnTiers.replace(tier, mCapacityBytesOnTiers
+          .getOrDefault(tier, 0L)
+          - mUsedBytesOnTiers.getOrDefault(tier, 0L));
+    }
+    int mNumberOfBlocks = meta.getNumberOfBlocks();
+    return new BlockWorkerMetrics(mCapacityBytes, mUsedBytes, mCapacityFree, mCapacityBytesOnTiers, mUsedBytesOnTiers, mFreeBytesOnTiers, mNumberOfBlocks);
   }
 }

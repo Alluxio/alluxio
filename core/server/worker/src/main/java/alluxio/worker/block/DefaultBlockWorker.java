@@ -128,7 +128,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   private final FuseManager mFuseManager;
 
   protected WorkerNetAddress mAddress;
-  AtomicReference<BlockWorkerMetrics> mMetricCache;
 
   /**
    * Constructs a default block worker.
@@ -531,7 +530,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
      * @param blockworker the BlockWorker
      */
     public static void registerGauges(final BlockWorker blockworker) {
-      // AtomicReference<BlockMetaMetricCache> m = blockWorker.getBlockMetaMetricCache();
       CachedGauge<BlockWorkerMetrics> cache = new CachedGauge<BlockWorkerMetrics>(1000, TimeUnit.MILLISECONDS) {
         @Override
         protected BlockWorkerMetrics loadValue() {
@@ -544,11 +542,11 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
           MetricsSystem.getMetricName(MetricKey.WORKER_CAPACITY_TOTAL.getName()),
           () -> cache.getValue().getCapacityBytes());
 
-      MetricsSystem.registerGaugeIfAbsent(
+      MetricsSystem.registerCachedGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.WORKER_CAPACITY_USED.getName()),
           () -> cache.getValue().getUsedBytes());
 
-      MetricsSystem.registerGaugeIfAbsent(
+      MetricsSystem.registerCachedGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.WORKER_CAPACITY_FREE.getName()),
           () -> cache.getValue().getCapacityFree());
 
@@ -559,15 +557,15 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
             MetricKey.WORKER_CAPACITY_TOTAL.getName() + MetricInfo.TIER + tier),
             () -> cache.getValue().getCapacityBytesOnTiers().getOrDefault(tier, 0L));
 
-        MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
+        MetricsSystem.registerCachedGaugeIfAbsent(MetricsSystem.getMetricName(
             MetricKey.WORKER_CAPACITY_USED.getName() + MetricInfo.TIER + tier),
             () -> cache.getValue().getUsedBytesOnTiers().getOrDefault(tier, 0L));
 
-        MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
+        MetricsSystem.registerCachedGaugeIfAbsent(MetricsSystem.getMetricName(
             MetricKey.WORKER_CAPACITY_FREE.getName() + MetricInfo.TIER + tier),
             () -> cache.getValue().getFreeBytesOnTiers().getOrDefault(tier, 0L));
       }
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
+      MetricsSystem.registerCachedGaugeIfAbsent(MetricsSystem.getMetricName(
           MetricKey.WORKER_BLOCKS_CACHED.getName()),
           () -> cache.getValue().getNumberOfBlocks());
     }

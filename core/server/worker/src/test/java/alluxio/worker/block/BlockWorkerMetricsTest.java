@@ -28,8 +28,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.concurrent.atomic.AtomicReference;
-
 /**
  * Unit tests for {@link DefaultBlockWorker.Metrics}.
  */
