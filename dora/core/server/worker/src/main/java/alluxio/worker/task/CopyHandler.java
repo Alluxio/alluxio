@@ -25,6 +25,7 @@ import alluxio.grpc.Bits;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.ErrorType;
+import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.PMode;
 import alluxio.grpc.Route;
 import alluxio.grpc.WriteOptions;
@@ -47,6 +48,8 @@ import java.util.Objects;
  */
 public final class CopyHandler {
   private static final Logger LOG = LoggerFactory.getLogger(CopyHandler.class);
+  private static final GetStatusPOptions GET_STATUS_OPTIONS =
+      GetStatusPOptions.getDefaultInstance().toBuilder().setIncludeRealContentHash(true).build();
 
   /**
    * Copies a file from source to destination.
@@ -64,7 +67,7 @@ public final class CopyHandler {
     URIStatus dstStatus = null;
     URIStatus sourceStatus;
     try {
-      dstStatus = dstFs.getStatus(dst);
+      dstStatus = dstFs.getStatus(dst, GET_STATUS_OPTIONS);
     } catch (FileNotFoundException | NotFoundRuntimeException ignore) {
       // ignored
     } catch (FileDoesNotExistException ignore) {
@@ -73,7 +76,7 @@ public final class CopyHandler {
       throw new InternalRuntimeException(e);
     }
     try {
-      sourceStatus = srcFs.getStatus(src);
+      sourceStatus = srcFs.getStatus(src, GET_STATUS_OPTIONS);
     } catch (Exception e) {
       throw AlluxioRuntimeException.from(e);
     }
@@ -159,7 +162,7 @@ public final class CopyHandler {
       String srcContentHash = parseContentHash(sourceStatus);
       URIStatus dstStatus;
       try {
-        dstStatus = dstFs.getStatus(dst);
+        dstStatus = dstFs.getStatus(dst, GET_STATUS_OPTIONS);
       } catch (Exception e) {
         throw AlluxioRuntimeException.from(e);
       }
