@@ -25,7 +25,7 @@ import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
-import alluxio.underfs.options.GetFileStatusOptions;
+import alluxio.underfs.options.GetStatusOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
@@ -426,7 +426,7 @@ public interface UnderFileSystem extends Closeable {
    * @throws FileNotFoundException when the path does not exist
    */
   default UfsFileStatus getFileStatus(String path) throws IOException {
-    return getFileStatus(path, GetFileStatusOptions.defaults());
+    return getFileStatus(path, GetStatusOptions.defaults());
   }
 
   /**
@@ -438,7 +438,7 @@ public interface UnderFileSystem extends Closeable {
    * @return the file status
    * @throws FileNotFoundException when the path does not exist
    */
-  UfsFileStatus getFileStatus(String path, GetFileStatusOptions options) throws IOException;
+  UfsFileStatus getFileStatus(String path, GetStatusOptions options) throws IOException;
 
   /**
    * Gets the file status.
@@ -532,7 +532,9 @@ public interface UnderFileSystem extends Closeable {
    * @return the file or directory status
    * @throws FileNotFoundException when the path does not exist
    */
-  UfsStatus getStatus(String path) throws IOException;
+  default UfsStatus getStatus(String path) throws IOException {
+    return getStatus(path, GetStatusOptions.defaults());
+  }
 
   /**
    * Gets the file or directory status. The caller does not need to know if the path is a file or
@@ -543,9 +545,7 @@ public interface UnderFileSystem extends Closeable {
    * @return the file or directory status
    * @throws FileNotFoundException when the path does not exist
    */
-  default UfsStatus getStatus(String path, GetFileStatusOptions options) throws IOException {
-    return getStatus(path);
-  }
+  UfsStatus getStatus(String path, GetStatusOptions options) throws IOException;
 
   /**
    * Gets the file or directory status.

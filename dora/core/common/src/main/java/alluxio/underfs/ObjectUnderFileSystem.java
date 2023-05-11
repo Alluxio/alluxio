@@ -22,7 +22,7 @@ import alluxio.retry.RetryPolicy;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
-import alluxio.underfs.options.GetFileStatusOptions;
+import alluxio.underfs.options.GetStatusOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
@@ -512,7 +512,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public UfsFileStatus getFileStatus(String path, GetFileStatusOptions options) throws IOException {
+  public UfsFileStatus getFileStatus(String path, GetStatusOptions options) throws IOException {
     ObjectStatus details = getObjectStatus(stripPrefixIfPresent(path));
     if (details != null) {
       ObjectPermissions permissions = getPermissions();
@@ -531,7 +531,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  public UfsStatus getStatus(String path) throws IOException {
+  public UfsStatus getStatus(String path, GetStatusOptions options) throws IOException {
     if (isRoot(path)) {
       return getDirectoryStatus(path);
     }

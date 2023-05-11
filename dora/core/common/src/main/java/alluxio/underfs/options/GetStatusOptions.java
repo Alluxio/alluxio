@@ -14,7 +14,7 @@ package alluxio.underfs.options;
 /**
  * Method options for getting the status of a file in {@link alluxio.underfs.UnderFileSystem}.
  */
-public class GetFileStatusOptions {
+public class GetStatusOptions {
   private boolean mIncludeRealContentHash = false;
 
   /**
@@ -28,15 +28,15 @@ public class GetFileStatusOptions {
    * @param includeRealContentHash include real content hash flag value
    * @return the updated options object
    */
-  public GetFileStatusOptions setIncludeRealContentHash(boolean includeRealContentHash) {
+  public GetStatusOptions setIncludeRealContentHash(boolean includeRealContentHash) {
     mIncludeRealContentHash = includeRealContentHash;
     return this;
   }
 
   /**
-   * @return the default {@link GetFileStatusOptions}
+   * @return the default {@link GetStatusOptions}
    */
-  public static GetFileStatusOptions defaults() {
-    return new GetFileStatusOptions();
+  public static GetStatusOptions defaults() {
+    return new GetStatusOptions();
   }
 }

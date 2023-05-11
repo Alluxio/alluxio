@@ -20,6 +20,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.hdfs.HdfsUnderFileSystem;
 import alluxio.underfs.options.FileLocationOptions;
+import alluxio.underfs.options.GetStatusOptions;
 
 import com.google.common.base.MoreObjects;
 import org.apache.hadoop.conf.Configuration;
@@ -103,8 +104,8 @@ public class WasbUnderFileSystem extends HdfsUnderFileSystem {
   }
 
   @Override
-  public UfsStatus getStatus(String path) throws IOException {
-    UfsStatus status = super.getStatus(path);
+  public UfsStatus getStatus(String path, GetStatusOptions options) throws IOException {
+    UfsStatus status = super.getStatus(path, options);
     if (status instanceof UfsFileStatus) {
       // wasb is backed by an object store but always claims its block size to be 512MB.
       // reset the block size in UfsFileStatus according to getBlockSizeByte

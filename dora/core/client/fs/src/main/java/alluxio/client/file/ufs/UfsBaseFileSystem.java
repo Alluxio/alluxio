@@ -54,7 +54,7 @@ import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
-import alluxio.underfs.options.GetFileStatusOptions;
+import alluxio.underfs.options.GetStatusOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
@@ -222,8 +222,8 @@ public class UfsBaseFileSystem implements FileSystem {
   @Override
   public URIStatus getStatus(AlluxioURI path, final GetStatusPOptions options) {
     return callWithReturn(() -> {
-      UfsStatus ufsStatus = mUfs.get().getStatus(path.toString(), GetFileStatusOptions.defaults()
-                              .setIncludeRealContentHash(options.getIncludeRealContentHash()));
+      UfsStatus ufsStatus = mUfs.get().getStatus(path.toString(), GetStatusOptions.defaults()
+                            .setIncludeRealContentHash(options.getIncludeRealContentHash()));
       return transformStatus(ufsStatus, path.toString());
     });
   }
