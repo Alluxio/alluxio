@@ -147,7 +147,7 @@ public class FuseFileOutStream implements FuseFileStream {
     if (position != bytesWritten) {
       if (position + bytesToWrite > bytesWritten) {
         throw new UnimplementedRuntimeException(String.format("Only sequential write is supported. "
-                + "Cannot write bytes of size %s to offset %s when %s bytes have written to path %s",
+            + "Cannot write bytes of size %s to offset %s when %s bytes have written to path %s",
             bytesToWrite, position, bytesWritten, mURI));
       } else { // position + bytesToWrite <= bytesWritten
         LOG.warn("Skip writing to file {} offset={} size={} when {} bytes has written to file",
