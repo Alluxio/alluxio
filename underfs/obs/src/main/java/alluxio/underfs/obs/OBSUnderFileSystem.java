@@ -103,7 +103,8 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
     String endPoint = conf.getString(PropertyKey.OBS_ENDPOINT);
     String bucketType = conf.getString(PropertyKey.OBS_BUCKET_TYPE);
 
-    ObsClient obsClient = new ObsClient(accessKey, secretKey, endPoint);
+    ObsClient obsClient = new ObsClientExt(accessKey, secretKey, endPoint,
+        conf.getMountSpecificConf());
     String bucketName = UnderFileSystemUtils.getBucketName(uri);
     return new OBSUnderFileSystem(uri, obsClient, bucketName, bucketType, conf);
   }
