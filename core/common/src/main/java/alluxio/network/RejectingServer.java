@@ -12,7 +12,9 @@
 package alluxio.network;
 
 import alluxio.Constants;
+import alluxio.util.CommonUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,13 +33,24 @@ public final class RejectingServer extends Thread {
 
   private final InetSocketAddress mAddress;
   private ServerSocket mServerSocket;
+  private final long mSleepTime;
 
   /**
    * @param address the socket address to reject requests on
    */
   public RejectingServer(InetSocketAddress address) {
+    this(address, 0);
+  }
+
+  /**
+   * @param address the socket address to reject requests on
+   * @param sleepTime sleep time before close connection
+   */
+  @VisibleForTesting
+  public RejectingServer(InetSocketAddress address, long sleepTime) {
     super("RejectingServer-" + address);
     mAddress = address;
+    mSleepTime = sleepTime;
   }
 
   @Override
@@ -52,6 +65,9 @@ public final class RejectingServer extends Thread {
     while (!Thread.interrupted()) {
       try {
         Socket s = mServerSocket.accept();
+        if (mSleepTime > 0) {
+          CommonUtils.sleepMs(mSleepTime);
+        }
         s.close();
       } catch (SocketException e) {
         return;
