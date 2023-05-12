@@ -14,6 +14,7 @@ package alluxio.underfs.cos;
 import alluxio.PositionReader;
 import alluxio.file.ReadTargetBuffer;
 
+import alluxio.underfs.ObjectPositionReader;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.exception.CosServiceException;
 import com.qcloud.cos.model.COSObject;
@@ -21,19 +22,16 @@ import com.qcloud.cos.model.COSObjectInputStream;
 import com.qcloud.cos.model.GetObjectRequest;
 
 import java.io.IOException;
+import java.io.InputStream;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Implementation of {@link PositionReader} that reads from COS object store.
+ * Implementation of {@link ObjectPositionReader} that reads from COS object store.
  */
 @ThreadSafe
-public class COSPositionReader implements PositionReader {
-  private final String mPath;
-  private final long mFileLength;
-  /** Client for operations with COS. */
+public class COSPositionReader extends ObjectPositionReader {
+
   protected COSClient mClient;
-  /** Name of the bucket the object resides in. */
-  protected final String mBucketNameInternal;
 
   /**
    * @param client the Tencent COS client
@@ -43,44 +41,26 @@ public class COSPositionReader implements PositionReader {
    */
   public COSPositionReader(COSClient client, String bucketNameInternal,
                            String path, long fileLength) {
-    mClient = client;
-    mBucketNameInternal = bucketNameInternal;
     // TODO(lu) path needs to be transformed to not include bucket
-    mPath = path;
-    mFileLength = fileLength;
+    super(bucketNameInternal, path, fileLength);
+    mClient = client;
   }
 
   @Override
-  public int readInternal(long position, ReadTargetBuffer buffer, int length)
-      throws IOException {
-    // at end of file
-    if (position >= mFileLength) {
-      return -1;
-    }
+  protected InputStream getRequestInputStream(
+      long position, ReadTargetBuffer buffer,
+      int bytesToRead, String errorMessage) throws IOException{
     COSObject object;
-    int bytesToRead = (int) Math.min(mFileLength - position, length);
-    System.out.println("Be ready to read from COS");
     try {
-      // Range check approach: set range (inclusive start, inclusive end)
-      // start: should be < file length, error out otherwise
-      //    e.g. error out when start == 0 && fileLength == 0
-      //    start < 0, read all
-      // end: if start > end, read all
-      //    if start <= end < file length, read from start to end
-      //    if end >= file length, read from start to file length - 1
-      GetObjectRequest getObjectRequest = new GetObjectRequest(mBucketNameInternal, mPath);
+      GetObjectRequest getObjectRequest = new GetObjectRequest(mBucketName, mPath);
       getObjectRequest.setRange(position, position + bytesToRead - 1);
       object = mClient.getObject(getObjectRequest);
     } catch (CosServiceException e) {
-      String errorMessage = String
-          .format("Failed to open key: %s bucket: %s error: %s",
-              mPath, mBucketNameInternal, e.getMessage());
       throw new IOException(errorMessage, e);
     }
-    int totalRead;
-    try (COSObjectInputStream in = object.getObjectContent()) {
-      totalRead = readDataInternal(in, buffer, bytesToRead);
+    try(COSObjectInputStream in = object.getObjectContent()) {
+      return in;
     }
-    return totalRead;
   }
+
 }

@@ -14,6 +14,7 @@ package alluxio.underfs.oss;
 import alluxio.PositionReader;
 import alluxio.file.ReadTargetBuffer;
 
+import alluxio.underfs.ObjectPositionReader;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSException;
 import com.aliyun.oss.model.GetObjectRequest;
@@ -24,16 +25,11 @@ import java.io.InputStream;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Implementation of {@link PositionReader} that reads from OSS object store.
+ * Implementation of {@link ObjectPositionReader} that reads from OSS object store.
  */
 @ThreadSafe
-public class OSSPositionReader implements PositionReader {
-  /**
-   * Name of the bucket the object resides in.
-   */
-  protected final String mBucketName;
-  private final String mPath;
-  private final long mFileLength;
+public class OSSPositionReader extends ObjectPositionReader {
+
   /**
    * Client for operations with Aliyun OSS.
    */
@@ -46,42 +42,25 @@ public class OSSPositionReader implements PositionReader {
    * @param fileLength the file length
    */
   public OSSPositionReader(OSS client, String bucketName, String path, long fileLength) {
-    mClient = client;
-    mBucketName = bucketName;
     // TODO(lu) path needs to be transformed to not include bucket
-    mPath = path;
-    mFileLength = fileLength;
+    super(bucketName, path, fileLength);
+    mClient = client;
   }
 
-  @Override
-  public int readInternal(long position, ReadTargetBuffer buffer, int length) throws IOException {
-    // at end of file
-    if (position >= mFileLength) {
-      return -1;
-    }
+  protected InputStream getRequestInputStream(
+      long position, ReadTargetBuffer buffer,
+      int bytesToRead, String errorMessage) throws IOException{
     OSSObject object;
-    int bytesToRead = (int) Math.min(mFileLength - position, length);
     try {
-      // Range check approach: set range (inclusive start, inclusive end)
-      // start: should be < file length, error out otherwise
-      //        e.g. error out when start == 0 && fileLength == 0
-      //        start < 0, read all
-      // end: if start > end, read all
-      //      if start <= end < file length, read from start to end
-      //      if end >= file length, read from start to file length - 1
       GetObjectRequest getObjectRequest = new GetObjectRequest(mBucketName, mPath);
       getObjectRequest.setRange(position, position + bytesToRead - 1);
       object = mClient.getObject(getObjectRequest);
     } catch (OSSException e) {
-      String errorMessage = String
-          .format("Failed to open key: %s bucket: %s error: %s",
-              mPath, mBucketName, e.getMessage());
       throw new IOException(errorMessage, e);
     }
-    int totalRead;
-    try (InputStream in = object.getObjectContent()) {
-      totalRead = readDataInternal(in, buffer, bytesToRead);
+    try(InputStream in = object.getObjectContent()) {
+      return in;
     }
-    return totalRead;
   }
+
 }

@@ -21,7 +21,6 @@ import io.netty.buffer.ByteBuf;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -104,26 +103,4 @@ public interface PositionReader extends Closeable {
    * Closes the positon reader and do cleanup job if any.
    */
   default void close() throws IOException {}
-
-  /**
-   * Extract from read internal of different ufs position reader.
-   * read data from ufs
-   * @param in input stream
-   * @param buffer target byte buffer
-   * @param bytesToRead bytes to read
-   * @return bytes read, or -1 none of data is read
-   */
-  default int readDataInternal(InputStream in, ReadTargetBuffer buffer,
-                               int bytesToRead) throws IOException {
-    int totalRead = 0;
-    int currentRead = 0;
-    while (totalRead < bytesToRead) {
-      currentRead = buffer.readFromInputStream(in, bytesToRead - totalRead);
-      if (currentRead < 0) {
-        break;
-      }
-      totalRead += currentRead;
-    }
-    return totalRead == 0 ? currentRead : totalRead;
-  }
 }
