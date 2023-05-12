@@ -65,6 +65,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.UUID;
+import java.util.ArrayList;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
@@ -286,12 +287,15 @@ public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
    * @return the next task to run. If there is no task to run, return empty
    */
   @Override
-  public  Optional<LoadJob.LoadTask> getNextTask(Collection<WorkerInfo> workers) {
+  public  List<LoadJob.LoadTask> getNextTasks(Collection<WorkerInfo> workers) {
+    List<LoadTask> tasks = new ArrayList<>();
     List<Block> blocks = getNextBatchBlocks(BATCH_SIZE);
     if (blocks.isEmpty()) {
-      return Optional.empty();
+      return Collections.unmodifiableList(tasks);
     }
-    return Optional.of(new LoadTask(blocks));
+    LoadTask task = new LoadTask(blocks);
+    tasks.add(task);
+    return Collections.unmodifiableList(tasks);
   }
 
   @Override

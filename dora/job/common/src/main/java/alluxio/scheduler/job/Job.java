@@ -19,6 +19,7 @@ import alluxio.proto.journal.Journal;
 import alluxio.wire.WorkerInfo;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
 
@@ -118,7 +119,7 @@ public interface Job<T extends Task<?>> {
    * @return the next task to run. If there is no more task to run, return empty
    * @throws AlluxioRuntimeException if any error occurs when getting next task
    */
-  Optional<T> getNextTask(Collection<WorkerInfo> workers);
+  List<T> getNextTasks(Collection<WorkerInfo> workers);
 
   /**
    * Define how to process task that gets rejected when scheduler tried to kick off

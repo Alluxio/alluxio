@@ -291,15 +291,17 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
    * @param workers workerInfos
    * @return the next task to run. If there is no task to run, return empty
    */
-  public Optional<CopyTask> getNextTask(Collection<WorkerInfo> workers) {
+  public List<CopyTask> getNextTasks(Collection<WorkerInfo> workers) {
+    List<CopyTask> tasks = new ArrayList<>();
     List<Route> routes = getNextRoutes(BATCH_SIZE);
     if (routes.isEmpty()) {
-      return Optional.empty();
+      return Collections.unmodifiableList(tasks);
     }
     WorkerInfo workerInfo = mWorkerAssignPolicy.pickAWorker(StringUtil.EMPTY_STRING, workers);
     CopyTask copyTask = new CopyTask(routes);
     copyTask.setMyRunningWorker(workerInfo);
-    return Optional.of(copyTask);
+    tasks.add(copyTask);
+    return Collections.unmodifiableList(tasks);
   }
 
   /**

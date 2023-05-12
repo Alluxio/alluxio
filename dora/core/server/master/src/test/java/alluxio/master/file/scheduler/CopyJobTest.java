@@ -56,8 +56,8 @@ public class CopyJobTest {
         new FileIterable(fileSystemMaster, srcPath, user, false, CopyJob.QUALIFIED_FILE_FILTER);
     CopyJob copy = new CopyJob(srcPath, dstPath, false, user, "1",
         OptionalLong.empty(), false, false, false, files);
-    Optional<CopyJob.CopyTask> nextTask = copy.getNextTask(null);
-    Assert.assertEquals(5, nextTask.get().getRoutes().size());
+    List<CopyJob.CopyTask> nextTask = copy.getNextTasks(null);
+    Assert.assertEquals(5, nextTask.get(0).getRoutes().size());
   }
 
   @Test

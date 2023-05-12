@@ -51,8 +51,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -149,8 +149,10 @@ public final class Scheduler {
                 j -> new ConcurrentHashSet<>());
             tasks.add(task);
             task.getResponseFuture().addListener(() -> {
+
               Job job = task.getJob();
               try {
+                LOG.info("Task:{} completed, response{}:", task.toString(), task.getResponseFuture().get());
                 job.processResponse(task); // retry onfailure logic inside
               /* TODO(lucy) now whether task succeed or fail, remove it from q,
               it could be add numOfRetry logic to the task with added upgrade/degrade
@@ -205,7 +207,6 @@ public final class Scheduler {
      */
     @VisibleForTesting
     public void updateWorkers() {
-
       if (Thread.currentThread().isInterrupted()) {
         return;
       }
@@ -485,10 +486,10 @@ public final class Scheduler {
     }
 
     try {
-      Optional<Task<?>> task;
+      List<Task> tasks;
       try {
         Set<WorkerInfo> workers = mWorkerInfoHub.mActiveWorkers.keySet();
-        task = (Optional<Task<?>>) job.getNextTask(workers);
+        tasks = (List<Task>) job.getNextTasks(workers);
       } catch (AlluxioRuntimeException e) {
         LOG.warn(format("error getting next task for job %s", job), e);
         if (!e.isRetryable()) {
@@ -496,15 +497,16 @@ public final class Scheduler {
         }
         return;
       }
-      if (!task.isPresent()) {
+      if (tasks.isEmpty()) {
         return;
       }
-      Task<?> currentTask = task.get();
       // enqueue the worker task q and kick it start
       // TODO(lucy) add if worker q is too full tell job to save this task for retry kick-off
-      boolean taskEnqueued = getWorkerInfoHub().enqueueTaskForWorker(currentTask.getMyRunningWorker(), currentTask, true);
-      if (!taskEnqueued) {
-        job.onTaskSubmitFailure(currentTask);
+      for (Task task : tasks) {
+        boolean taskEnqueued = getWorkerInfoHub().enqueueTaskForWorker(task.getMyRunningWorker(), task, true);
+        if (!taskEnqueued) {
+          job.onTaskSubmitFailure(task);
+        }
       }
       if (mJobToRunningTasks.getOrDefault(job, new ConcurrentHashSet<>()).isEmpty() && job.isCurrentPassDone()) {
         if (job.needVerification()) {
@@ -536,64 +538,15 @@ public final class Scheduler {
     }
   }
 
-  private boolean scheduleTask(
-      @SuppressWarnings("rawtypes") Job job,
-      WorkerInfo workerInfo,
-      Set<WorkerInfo> livingWorkers,
-      CloseableResource<BlockWorkerClient> workerClient) {
-    if (!job.isRunning()) {
-      return false;
-    }
-    Optional<Task<?>> task;
-    try {
-      task = job.getNextTask(livingWorkers);
-    } catch (AlluxioRuntimeException e) {
-
-      if (!e.isRetryable()) {
-        job.failJob(e);
-        LOG.error(format("error getting next task for job %s", job), e);
-      }
-
-      return false;
-    }
-    if (!task.isPresent()) {
-      return false;
-    }
-    Task<?> currentTask = task.get();
-    currentTask.execute(workerClient.get(), workerInfo);
-    currentTask.getResponseFuture().addListener(() -> {
-      try {
-        if (!job.processResponse(currentTask)) {
-          livingWorkers.remove(workerInfo);
-        }
-        // Schedule next batch for healthy job
-        if (job.isHealthy()) {
-          if (mWorkerInfoHub.mActiveWorkers.containsKey(workerInfo)) {
-            if (!scheduleTask(job, workerInfo, livingWorkers,
-                mWorkerInfoHub.mActiveWorkers.get(workerInfo))) {
-              livingWorkers.remove(workerInfo);
-            }
-          }
-          else {
-            livingWorkers.remove(workerInfo);
-          }
-        }
-      } catch (Exception e) {
-        // Unknown exception. This should not happen, but if it happens we don't want to lose the
-        // scheduler thread, thus catching it here. Any exception surfaced here should be properly
-        // handled.
-        LOG.error("Unexpected exception thrown in response future listener.", e);
-        job.failJob(new InternalRuntimeException(e));
-      }
-    }, mSchedulerExecutor);
-    return true;
-  }
-
   /**
    * @return worker info hub
    */
   public WorkerInfoHub getWorkerInfoHub() {
     return mWorkerInfoHub;
+  }
+
+  public JobMetaStore getJobMetaStore() {
+    return mJobMetaStore;
   }
 
   public static class SchedulerStats {

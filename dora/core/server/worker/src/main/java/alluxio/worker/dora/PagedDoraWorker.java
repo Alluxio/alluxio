@@ -297,6 +297,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     final ListStatusResult resultFromCache = mListStatusCache.getIfPresent(path);
     if (resultFromCache == null) {
       cachedStatuses = null;
+    } else if (options.hasRecursive() && options.getRecursive()) {
+      // Only use the cached result when its not recursive listing
+      cachedStatuses = null;
     } else {
       // Metadata is cached. Check if it is expired.
       if (syncIntervalMs >= 0

@@ -15,6 +15,9 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobFactory;
 import alluxio.scheduler.job.JobState;
+import alluxio.security.User;
+import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.wire.FileInfo;
 
 import java.util.Optional;
@@ -38,15 +41,17 @@ public class JournalLoadJobFactory implements JobFactory {
        FileSystemMaster fsMaster) {
     mFsMaster = fsMaster;
     mJobEntry = journalEntry;
+
   }
 
   @Override
   public Job<?> create() {
     Optional<String> user =
         mJobEntry.hasUser() ? Optional.of(mJobEntry.getUser()) : Optional.empty();
-    Iterable<FileInfo> fileIterator =
-        new FileIterable(mFsMaster, mJobEntry.getLoadPath(), user, mJobEntry.getPartialListing(),
-            LoadJob.QUALIFIED_FILE_FILTER);
+    //TODO() use ufs iterator later
+//    Iterable<FileInfo> fileIterator =
+//        new FileIterable(mFsMaster, mJobEntry.getLoadPath(), user, mJobEntry.getPartialListing(),
+//            LoadJob.QUALIFIED_FILE_FILTER);
     DoraLoadJob job = new DoraLoadJob(mJobEntry.getLoadPath(), user, mJobEntry.getJobId(),
         mJobEntry.hasBandwidth() ? OptionalLong.of(mJobEntry.getBandwidth()) : OptionalLong.empty(),
         mJobEntry.getPartialListing(), mJobEntry.getVerify(), mFsMaster.getScheduler());

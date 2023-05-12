@@ -21,6 +21,7 @@ import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.dora.WorkerLocationPolicy;
+import alluxio.collections.UnmodifiableArrayList;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -66,7 +67,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -108,7 +109,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   private final AtomicLong mCurrentFailureCount = new AtomicLong();
   private Optional<AlluxioRuntimeException> mFailedReason = Optional.empty();
   private Optional<Iterator<URIStatus>> mFileIterator = Optional.empty();
-  private LinkedList<DoraLoadTask> mPreparedTasks = new LinkedList<>();
+  private AtomicBoolean mPreparingTasks = new AtomicBoolean(false);
   private final FileSystem mFs;
 
   /**
@@ -235,8 +236,9 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 
   /**
    * Prepare next set of tasks waiting to be kicked off.
+   * it is made sure only one thread should be calling this.
    */
-  public void prepareNextTasks() {
+  public List<DoraLoadTask> prepareNextTasks() {
     LOG.info("Preparing next set of tasks for jobId:{}", mJobId);
     ImmutableList.Builder<URIStatus> batchBuilder = ImmutableList.builder();
     int i = 0;
@@ -295,19 +297,12 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       mProcessingFileCount.addAndGet(1);
     }
     if (workerToTaskMap.isEmpty()) {
-      return;
+      return Collections.unmodifiableList(new ArrayList<>());
     }
     // Add to the already prepared tasks list, waiting to be pulled and kicked off.
-    List<Iterator<DoraLoadTask>> taskLists = workerToTaskMap.values().stream()
-        .map(l -> l.iterator()).collect(toList());
-    do {
-      Iterator<DoraLoadTask> taskIt = taskLists.remove(0);
-      if (taskIt.hasNext()) {
-        mPreparedTasks.offer(taskIt.next());
-        taskLists.add(taskIt);
-      }
-    } while(!taskLists.isEmpty());
-    LOG.debug("prepared tasks:{}", mPreparedTasks.stream().map(t -> t.toString()).collect(toList()));
+    List<DoraLoadTask> tasks = workerToTaskMap.values().stream().flatMap(List::stream).collect(Collectors.toList());
+    LOG.debug("prepared tasks:{}", tasks);
+    return tasks;
   }
 
   /**
@@ -431,14 +426,18 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   }
 
   @Override
-  public Optional<DoraLoadTask> getNextTask(Collection<WorkerInfo> workers) {
-    synchronized (mPreparedTasks) {
-      if (mPreparedTasks.isEmpty()) {
-        prepareNextTasks();
-      }
+  public List<DoraLoadTask> getNextTasks(Collection<WorkerInfo> workers) {
+    /* Both scheduler thread and worker thread will try to call getNextTasks,
+    only one of them needs to do the preparation of next set of tasks and whoever
+    wins will do the processjob and kick off those tasks.
+     */
+    List<DoraLoadTask> list = new ArrayList<>();
+    if (mPreparingTasks.compareAndSet(false, true)) {
+      list = prepareNextTasks();
+      mPreparingTasks.compareAndSet(true, false);
+      return Collections.unmodifiableList(list);
     }
-    DoraLoadTask task = mPreparedTasks.poll();
-    return task == null ? Optional.empty() : Optional.of(task);
+    return list;
   }
 
   @Override
@@ -609,7 +608,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 
     @Override
     protected ListenableFuture<LoadFileResponse> run(BlockWorkerClient workerClient) {
-      LOG.info("Job:{} start running task:{} on worker:{}", this.mMyJob, toString(), getMyRunningWorker());
+      LOG.info("Job:{} start running task:{} on worker:{}", mMyJob, toString(), getMyRunningWorker());
       LoadFileRequest.Builder loadFileReqBuilder = LoadFileRequest.newBuilder();
       for (URIStatus uriStatus : mFilesToLoad) {
         loadFileReqBuilder.addFiles(File.newBuilder()
