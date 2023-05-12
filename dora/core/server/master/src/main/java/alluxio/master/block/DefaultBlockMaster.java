@@ -15,7 +15,6 @@ import alluxio.Constants;
 import alluxio.DefaultStorageTierAssoc;
 import alluxio.Server;
 import alluxio.StorageTierAssoc;
-import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerRange;
 import alluxio.clock.SystemClock;
@@ -64,6 +63,7 @@ import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
 import alluxio.resource.CloseableIterator;
 import alluxio.resource.LockResource;
+import alluxio.security.authentication.ClientIpAddressInjector;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
@@ -83,6 +83,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.Striped;
+import io.grpc.ServerInterceptors;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -264,12 +265,6 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   /** Handle to the metrics master. */
   private final MetricsMaster mMetricsMaster;
 
-  /**
-   * The service that detects lost worker nodes, and tries to restart the failed workers.
-   * We store it here so that it can be accessed from tests.
-   */
-  @SuppressFBWarnings("URF_UNREAD_FIELD")
-
   /* The value of the 'next container id' last journaled. */
   @GuardedBy("mBlockContainerIdGenerator")
   private volatile long mJournaledNextContainerId = 0;
@@ -344,9 +339,13 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public Map<ServiceType, GrpcService> getServices() {
     Map<ServiceType, GrpcService> services = new HashMap<>();
     services.put(ServiceType.BLOCK_MASTER_CLIENT_SERVICE,
-        new GrpcService(new BlockMasterClientServiceHandler(this)));
+        new GrpcService(ServerInterceptors
+            .intercept(new BlockMasterClientServiceHandler(this),
+                new ClientIpAddressInjector())));
     services.put(ServiceType.BLOCK_MASTER_WORKER_SERVICE,
-        new GrpcService(new BlockMasterWorkerServiceHandler(this)));
+        new GrpcService(ServerInterceptors
+            .intercept(new BlockMasterWorkerServiceHandler(this),
+                new ClientIpAddressInjector())));
     return services;
   }
 

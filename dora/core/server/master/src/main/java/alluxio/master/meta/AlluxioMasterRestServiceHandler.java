@@ -16,6 +16,7 @@ import static alluxio.metrics.MetricInfo.UFS_OP_SAVED_PREFIX;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.ProjectConstants;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.StorageTierAssoc;
@@ -209,7 +210,8 @@ public final class AlluxioMasterRestServiceHandler {
           .setRpcAddress(mMasterProcess.getRpcAddress().toString())
           .setStartTimeMs(mMasterProcess.getStartTimeMs())
           .setTierCapacity(getTierCapacityInternal()).setUfsCapacity(getUfsCapacityInternal())
-          .setUptimeMs(mMasterProcess.getUptimeMs()).setVersion(RuntimeConstants.VERSION)
+          .setUptimeMs(mMasterProcess.getUptimeMs())
+          .setVersion(RuntimeConstants.VERSION).setRevision(ProjectConstants.REVISION)
           .setWorkers(mBlockMaster.getWorkerInfoList());
     }, Configuration.global());
   }
@@ -262,6 +264,7 @@ public final class AlluxioMasterRestServiceHandler {
           .setStartTime(CommonUtils.convertMsToDate(mMetaMaster.getStartTimeMs(),
               Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)))
           .setVersion(RuntimeConstants.VERSION)
+          .setRevision(ProjectConstants.REVISION)
           .setLiveWorkerNodes(Integer.toString(mBlockMaster.getWorkerCount()))
           .setCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getCapacityBytes()))
           .setClusterId(mMetaMaster.getClusterID())
