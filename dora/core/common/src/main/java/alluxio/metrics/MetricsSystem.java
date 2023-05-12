@@ -100,6 +100,7 @@ public final class MetricsSystem {
     SERVER("Server"),
     MASTER("Master"),
     WORKER("Worker"),
+    SECURITY("Security"),
     JOB_MASTER("JobMaster"),
     JOB_WORKER("JobWorker"),
     PLUGIN("Plugin"),
@@ -348,6 +349,8 @@ public final class MetricsSystem {
         return getJobWorkerMetricName(name);
       case PLUGIN:
         return getPluginMetricName(name);
+      case SECURITY:
+        return getSecurityMetricName(name);
       default:
         throw new IllegalStateException("Unknown process type");
     }
@@ -383,6 +386,15 @@ public final class MetricsSystem {
     }
     return CACHED_METRICS.computeIfAbsent(name,
         n -> getMetricNameWithUniqueId(InstanceType.WORKER, name));
+  }
+
+  private static String getSecurityMetricName(String name) {
+    String result = CACHED_METRICS.get(name);
+    if (result != null) {
+      return result;
+    }
+    return CACHED_METRICS.computeIfAbsent(name,
+        n -> getMetricNameWithUniqueId(InstanceType.SECURITY, name));
   }
 
   /**
