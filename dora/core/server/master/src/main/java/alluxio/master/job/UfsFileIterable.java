@@ -119,7 +119,8 @@ public class UfsFileIterable implements Iterable<FileInfo> {
     private void listFileInfos() {
       try {
         AuthenticatedClientUser.set(mUser.orElse(null));
-        Optional<UfsStatus[]> ufsStatuses = mFs.listStatuses(mPath, ListOptions.defaults());
+        Optional<UfsStatus[]> ufsStatuses =
+            mFs.listStatuses(mPath, ListOptions.defaults().setRecursive(true));
         if (!ufsStatuses.isPresent() || ufsStatuses.get().length == 0) {
           mFiles = Collections.emptyList();
           mFileInfoIterator = Collections.emptyIterator();
