@@ -11,7 +11,6 @@
 
 package alluxio.underfs.cos;
 
-import alluxio.PositionReader;
 import alluxio.file.ReadTargetBuffer;
 
 import alluxio.underfs.ObjectPositionReader;
@@ -22,7 +21,6 @@ import com.qcloud.cos.model.COSObjectInputStream;
 import com.qcloud.cos.model.GetObjectRequest;
 
 import java.io.IOException;
-import java.io.InputStream;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

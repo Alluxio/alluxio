@@ -14,10 +14,8 @@ package alluxio.underfs;
 
 import alluxio.PositionReader;
 import alluxio.file.ReadTargetBuffer;
-import org.apache.zookeeper.proto.GetACLRequest;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * A stream for reading data using position reader.

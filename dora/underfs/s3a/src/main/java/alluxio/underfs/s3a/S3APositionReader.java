@@ -11,7 +11,6 @@
 
 package alluxio.underfs.s3a;
 
-import alluxio.PositionReader;
 import alluxio.file.ReadTargetBuffer;
 
 import alluxio.underfs.ObjectPositionReader;
@@ -22,7 +21,6 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 
 import java.io.IOException;
-import java.io.InputStream;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

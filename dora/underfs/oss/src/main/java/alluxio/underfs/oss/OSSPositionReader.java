@@ -11,7 +11,6 @@
 
 package alluxio.underfs.oss;
 
-import alluxio.PositionReader;
 import alluxio.file.ReadTargetBuffer;
 
 import alluxio.underfs.ObjectPositionReader;
