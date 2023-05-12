@@ -139,7 +139,7 @@ public class BenchStandaloneGrpcServer {
         }
 
         private final GetConfigHashPResponse mGetConfigHashResponse =
-            new ConfigHash(Configuration.hash(), new PathProperties().hash()).toProto();
+            new ConfigHash(Configuration.hash(), new PathProperties().hash(), 0, 0).toProto();
 
         @Override
         public void getConfigHash(GetConfigHashPOptions request,

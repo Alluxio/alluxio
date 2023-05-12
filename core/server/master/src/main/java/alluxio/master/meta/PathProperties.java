@@ -66,7 +66,7 @@ public final class PathProperties implements DelegatingJournaled {
    */
   public PathPropertiesView snapshot() {
     try (LockResource r = new LockResource(mLock.readLock())) {
-      return new PathPropertiesView(get(), hash());
+      return new PathPropertiesView(get(), hash(), mHash.getLastUpdateTime());
     }
   }
 
@@ -152,6 +152,13 @@ public final class PathProperties implements DelegatingJournaled {
   @Override
   public Journaled getDelegate() {
     return mState;
+  }
+
+  /**
+   * @return the last update time of the properties
+   */
+  public long getLastUpdateTime() {
+    return mHash.getLastUpdateTime();
   }
 
   /**
