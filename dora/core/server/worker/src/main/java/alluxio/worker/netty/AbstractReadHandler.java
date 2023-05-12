@@ -104,7 +104,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
     mTasksMap.put(taskId, packetReadTask);
     mPacketReaderExecutor.submit(() -> {
       try {
-      packetReadTask.call();
+        packetReadTask.call();
       } finally {
         mTasksMap.remove(taskId);
       }

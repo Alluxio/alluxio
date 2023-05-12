@@ -19,6 +19,7 @@ import java.util.concurrent.Callable;
 
 /**
  * A packet read task represents a task for reading packet according to request from Netty Client.
+ * @param <T> type of read request {@link ReadRequestContext}
  */
 public class PacketReadTask<T extends ReadRequestContext<?>> implements Callable<Boolean> {
 
