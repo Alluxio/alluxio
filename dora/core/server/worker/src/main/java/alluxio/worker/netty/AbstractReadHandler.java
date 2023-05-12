@@ -59,7 +59,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
   /** The executor to run {@link PacketReader}. */
   private final ExecutorService mPacketReaderExecutor;
 
-  private final ConcurrentHashMap<String, PacketReadTask> mTasksMap =
+  private final ConcurrentHashMap<String, PacketReadTask<T>> mTasksMap =
       new ConcurrentHashMap<>();
 
   /**
@@ -74,7 +74,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
   @Override
   public void channelUnregistered(ChannelHandlerContext ctx) {
     // Notify all the tasks
-    mTasksMap.values().stream().forEach(task -> task.notifyChannelException(
+    mTasksMap.values().forEach(task -> task.notifyChannelException(
         new Error(new InternalException("Channel has been unregistered"), false)));
     mTasksMap.clear();
     ctx.fireChannelUnregistered();
@@ -88,7 +88,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
     }
     Protocol.ReadRequest msg = ((RPCProtoMessage) object).getMessage().asReadRequest();
     if (msg.getCancel()) {
-      mTasksMap.values().stream().forEach(task -> task.cancelTask());
+      mTasksMap.values().forEach(PacketReadTask::cancelTask);
       mTasksMap.clear();
       return;
     }
@@ -99,19 +99,24 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
     requestContext.setPosToWrite(requestContext.getRequest().getStart());
     PacketReader packetReader = createPacketReader();
     String taskId = UUID.randomUUID().toString();
-    PacketReadTask packetReadTask =
-        new PacketReadTask(taskId, requestContext, ctx.channel(), packetReader);
+    PacketReadTask<T> packetReadTask =
+        new PacketReadTask<>(taskId, requestContext, ctx.channel(), packetReader);
     mTasksMap.put(taskId, packetReadTask);
-    mPacketReaderExecutor.submit(packetReadTask);
-    LOG.info("taskMap.size(): " + mTasksMap.size());
-    // TODO(JiamingMai): we still need to remove task from the map
+    mPacketReaderExecutor.submit(() -> {
+      try {
+      packetReadTask.call();
+      } finally {
+        mTasksMap.remove(taskId);
+      }
+    });
+    LOG.debug("taskMap.size(): " + mTasksMap.size());
   }
 
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
     LOG.error("Exception caught in AbstractReadHandler for channel {}:", ctx.channel(), cause);
     // Notify the task that there is an error
-    mTasksMap.values().stream().forEach(task -> task.notifyChannelException(
+    mTasksMap.values().forEach(task -> task.notifyChannelException(
         new Error(AlluxioStatusException.fromThrowable(cause), true)));
     mTasksMap.clear();
   }
@@ -153,7 +158,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
      *
      * @param context context of the request to complete
      */
-    public abstract void completeRequest(T context) throws Exception;
+    protected abstract void completeRequest(T context) throws Exception;
 
     /**
      * Returns the appropriate {@link DataBuffer} representing the data to send, depending on the
@@ -164,7 +169,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
      * @param len The length, in bytes, of the data to read from the block
      * @return a {@link DataBuffer} representing the data
      */
-    public abstract DataBuffer getDataBuffer(T context, Channel channel, long offset, int len)
+    protected abstract DataBuffer getDataBuffer(T context, Channel channel, long offset, int len)
         throws Exception;
   }
 }

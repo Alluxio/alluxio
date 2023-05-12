@@ -39,6 +39,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -53,14 +55,15 @@ import java.util.concurrent.atomic.AtomicReference;
 public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
   private static final Logger LOG = LoggerFactory.getLogger(PacketReadTaskStateMachine.class);
   private final StateMachine<State, TriggerEvent> mStateMachine;
+
   private final AtomicReference<Runnable> mNextTriggerEvent = new AtomicReference<>();
 
-  private final AbstractReadHandler.PacketReader mPacketReader;
+  private final AbstractReadHandler<T>.PacketReader mPacketReader;
 
   private static final long MAX_PACKETS_IN_FLIGHT =
       Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS);
 
-  private final BlockingQueue<Object> mFlowControlQueue =
+  private final BlockingQueue<SendDataEvent> mFlowControlQueue =
       new ArrayBlockingQueue<>((int) MAX_PACKETS_IN_FLIGHT);
 
   private final TriggerEventsWithParam mTriggerEventsWithParam;
@@ -140,7 +143,7 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
    * @param packetReader the packet reader for reading packets
    */
   public PacketReadTaskStateMachine(
-      T context, Channel channel, AbstractReadHandler.PacketReader packetReader) {
+      T context, Channel channel, AbstractReadHandler<T>.PacketReader packetReader) {
     StateMachineConfig<State, TriggerEvent> config = new StateMachineConfig<>();
     mTriggerEventsWithParam = new TriggerEventsWithParam(config);
     config.configure(State.CREATED)
@@ -261,7 +264,7 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
       // Send data to client
       RPCProtoMessage response = RPCProtoMessage.createOkResponse(packet);
       mChannel.writeAndFlush(response).addListener(
-          new WriteListener(start + packetSize));
+          new WriteListener(packet, start + packetSize));
     }
 
     if (packet == null || packet.getLength() < packetSize || start + packetSize == mRequest
@@ -309,6 +312,20 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
     Preconditions.checkNotNull(error, "error");
     mContext.setError(error);
 
+    while (!mFlowControlQueue.isEmpty()) {
+      try {
+        SendDataEvent sendDataEvent = mFlowControlQueue.poll(200, TimeUnit.MILLISECONDS);
+        if (sendDataEvent != null) {
+          DataBuffer packet = sendDataEvent.getPacket();
+          if (packet != null) {
+            packet.release();
+          }
+        }
+      } catch (Exception e) {
+        LOG.warn("Failed to release packet.", e);
+      }
+    }
+
     try {
       completeRequest(mContext);
     } catch (Exception e) {
@@ -326,7 +343,7 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
    *
    * @param context context of the request to complete
    */
-  public void completeRequest(T context) throws Exception {
+  protected void completeRequest(T context) throws Exception {
     mPacketReader.completeRequest(context);
   }
 
@@ -339,7 +356,7 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
 
   /**
    * Notify the state machine that a channel exception occur.
-   * @param e
+   * @param e the encountered Error object
    */
   public void occurChannelException(Error e) {
     fireNext(mTriggerEventsWithParam.mChannelExceptionEvent, e);
@@ -394,7 +411,7 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
    *
    * @param triggerEvent the next trigger event to fire
    */
-  public void fireNext(TriggerEvent triggerEvent) {
+  private void fireNext(TriggerEvent triggerEvent) {
     mNextTriggerEvent.set(() -> mStateMachine.fire(triggerEvent));
   }
 
@@ -407,18 +424,18 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
    * @param arg0         the argument to be used
    * @param <Arg0T>      the type of the argument to be used
    */
-  public <Arg0T> void fireNext(
+  private <Arg0T> void fireNext(
       TriggerWithParameters1<Arg0T, TriggerEvent> triggerEvent, Arg0T arg0) {
     mNextTriggerEvent.set(() -> mStateMachine.fire(triggerEvent, arg0));
   }
 
   private static class SendDataEvent {
 
-    private long mStart;
+    private final long mStart;
 
-    private long mPacketSize;
+    private final long mPacketSize;
 
-    private DataBuffer mPacket;
+    private final DataBuffer mPacket;
 
     SendDataEvent(long start, long packetSize, DataBuffer packet) {
       mStart = start;
@@ -443,6 +460,8 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
    * The channel handler listener that runs after a packet write is flushed.
    */
   private final class WriteListener implements ChannelFutureListener {
+
+    private final DataBuffer mDataBuffer;
     private final long mPosToWriteUncommitted;
 
     /**
@@ -450,7 +469,8 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
      *
      * @param posToWriteUncommitted the position to commit (i.e. update mPosToWrite)
      */
-    WriteListener(long posToWriteUncommitted) {
+    WriteListener(DataBuffer dataBuffer, long posToWriteUncommitted) {
+      mDataBuffer = dataBuffer;
       mPosToWriteUncommitted = posToWriteUncommitted;
     }
 
@@ -468,6 +488,9 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
       if (!future.isSuccess()) {
         LOG.error("Failed to send packet.", future.cause());
         mFlowControlQueue.take();
+        if (mDataBuffer != null) {
+          mDataBuffer.release();
+        }
         fireNext(mTriggerEventsWithParam.mFailToSendDataEvent,
             new Error(AlluxioStatusException.fromThrowable(future.cause()), true));
         return;

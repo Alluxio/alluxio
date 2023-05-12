@@ -20,13 +20,13 @@ import java.util.concurrent.Callable;
 /**
  * A packet read task represents a task for reading packet according to request from Netty Client.
  */
-public class PacketReadTask implements Callable<Boolean> {
+public class PacketReadTask<T extends ReadRequestContext<?>> implements Callable<Boolean> {
 
   private static final Logger LOG = LoggerFactory.getLogger(PacketReadTask.class);
 
-  private String mTaskId;
+  private final String mTaskId;
 
-  private PacketReadTaskStateMachine mStateMachine;
+  private final PacketReadTaskStateMachine<?> mStateMachine;
 
   /**
    * Creates an instance of the {@link PacketReadTask}.
@@ -36,10 +36,10 @@ public class PacketReadTask implements Callable<Boolean> {
    * @param channel the channel
    * @param packetReader the packet reader for reading packet
    */
-  public PacketReadTask(String taskId, ReadRequestContext context, Channel channel,
-                        AbstractReadHandler.PacketReader packetReader) {
+  public PacketReadTask(String taskId, T context, Channel channel,
+                        AbstractReadHandler<T>.PacketReader packetReader) {
     mTaskId = taskId;
-    mStateMachine = new PacketReadTaskStateMachine(context, channel, packetReader);
+    mStateMachine = new PacketReadTaskStateMachine<>(context, channel, packetReader);
   }
 
   @Override
