@@ -383,7 +383,7 @@ public class LocalCacheFileInStreamTest {
 
     // cache miss
     byte[] cacheMiss = new byte[fileSize * 2];
-    Assert.assertEquals(fileSize - 1, stream.positionedRead(1, cacheMiss, 2, fileSize * 2));
+    Assert.assertEquals(fileSize - 1, stream.positionedRead(1, cacheMiss, 2, fileSize * 2 - 2));
     Assert.assertArrayEquals(
         Arrays.copyOfRange(testData, 1, fileSize - 1),
         Arrays.copyOfRange(cacheMiss, 2, fileSize));
@@ -392,7 +392,7 @@ public class LocalCacheFileInStreamTest {
 
     // cache hit
     byte[] cacheHit = new byte[fileSize * 2];
-    Assert.assertEquals(fileSize - 1, stream.positionedRead(1, cacheHit, 2, fileSize * 2));
+    Assert.assertEquals(fileSize - 1, stream.positionedRead(1, cacheHit, 2, fileSize * 2 - 2));
     Assert.assertArrayEquals(
         Arrays.copyOfRange(testData, 1, fileSize - 1),
         Arrays.copyOfRange(cacheHit, 2, fileSize));
