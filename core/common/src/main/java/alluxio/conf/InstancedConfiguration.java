@@ -490,8 +490,8 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   private void checkMasterTTLInterval() {
     long interval = getMs(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS);
     checkState(interval > 0, 
-        "invalid value of alluxio.master.ttl.checker.interval %s, "
-        + "it must be lager than 0", interval);
+        "invalid value of " + PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS + "=%s, "
+        + "it must be greater than 0", interval);
   }
 
   /**
