@@ -66,7 +66,6 @@ public final class SteppingThreadSleeper implements Sleeper {
     long sleepTo = startSleepMs + duration.toMillis();
     long timeNow;
     while ((timeNow = mClock.millis()) < sleepTo) {
-      // TODO(baoloongmao): Make sure we need to config it.
       mInternalSleeper.sleep(Duration.ofMillis(sleepTo - timeNow > SLEEP_STEP_MS
           ? SLEEP_STEP_MS : sleepTo - timeNow));
 

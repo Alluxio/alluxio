@@ -11,8 +11,8 @@
 
 package alluxio.heartbeat;
 
-import alluxio.time.SteppingThreadSleeper;
 import alluxio.time.Sleeper;
+import alluxio.time.SteppingThreadSleeper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

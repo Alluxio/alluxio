@@ -17,8 +17,8 @@ import static org.mockito.Mockito.mock;
 
 import alluxio.Constants;
 import alluxio.clock.ManualClock;
-import alluxio.time.SteppingThreadSleeper;
 import alluxio.time.Sleeper;
+import alluxio.time.SteppingThreadSleeper;
 
 import org.apache.logging.log4j.core.util.CronExpression;
 import org.junit.Assert;

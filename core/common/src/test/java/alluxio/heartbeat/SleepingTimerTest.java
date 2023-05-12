@@ -18,8 +18,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import alluxio.clock.ManualClock;
-import alluxio.time.SteppingThreadSleeper;
 import alluxio.time.Sleeper;
+import alluxio.time.SteppingThreadSleeper;
 
 import org.junit.Before;
 import org.junit.Test;
