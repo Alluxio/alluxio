@@ -23,7 +23,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.master.MasterInquireClient;
+import alluxio.coordinator.MasterInquireClient;
 import alluxio.security.User;
 import alluxio.uri.MultiMasterAuthority;
 import alluxio.uri.ZookeeperAuthority;

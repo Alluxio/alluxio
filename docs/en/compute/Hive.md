@@ -125,7 +125,7 @@ And you can see the query results from console:
 When Hive is already serving and managing the tables stored in HDFS,
 Alluxio can also serve them for Hive if HDFS is mounted as the under storage of Alluxio.
 In this example, we assume an HDFS cluster is mounted as the under storage of
-Alluxio root directory (i.e., property `alluxio.master.mount.table.root.ufs=hdfs://namenode:port/`
+Alluxio root directory (i.e., property `alluxio.coordinator.mount.table.root.ufs=hdfs://namenode:port/`
 is set in `conf/alluxio-site.properties`). Please refer to
 [unified namespace]({{ '/en/core-services/Unified-Namespace.html' | relativize_url }})
 for more details about Alluxio `mount` operation.
@@ -238,21 +238,22 @@ Alternatively, modify `conf/hive-site.xml` to have:
 ### Connect to Alluxio with HA
 
 If you are running Alluxio in HA mode with internal leader election,
-set the Alluxio property `alluxio.master.rpc.addresses` in `alluxio-site.properties`.
+set the Alluxio property `alluxio.coordinator.rpc.addresses` in `alluxio-site.properties`.
 Ensure that this file is on the classpath of Hive.
 
 ```properties
-alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
+alluxio.coordinator.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 ```
 
 Alternatively one can add the properties to the Hive `conf/hive-site.xml`:
 
 ```xml
+
 <configuration>
-  <property>
-    <name>alluxio.master.rpc.addresses</name>
-    <value>master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998</value>
-  </property>
+    <property>
+        <name>alluxio.coordinator.rpc.addresses</name>
+        <value>master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998</value>
+    </property>
 </configuration>
 ```
 

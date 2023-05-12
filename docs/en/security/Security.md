@@ -264,28 +264,28 @@ configurations (master and worker) are required.
 
 To enable a particular Alluxio client user to impersonate other users server (master and worker)
 configuration are required.
-Set the `alluxio.master.security.impersonation.<USERNAME>.users` property,
+Set the `alluxio.coordinator.security.impersonation.<USERNAME>.users` property,
 where `<USERNAME>` is the name of the Alluxio client user.
 
 The property value is a comma-separated list of users that `<USERNAME>` is allowed to impersonate.
 The wildcard value `*` can be used to indicate the user can impersonate any other user.
 Some examples:
 
-- `alluxio.master.security.impersonation.alluxio_user.users=user1,user2`
+- `alluxio.coordinator.security.impersonation.alluxio_user.users=user1,user2`
   - the Alluxio client user `alluxio_user` is allowed to impersonate `user1` and `user2`
-- `alluxio.master.security.impersonation.client.users=*`
+- `alluxio.coordinator.security.impersonation.client.users=*`
   - the Alluxio client user `client` is allowed to impersonate any user
 
 To enable a particular user to impersonate other groups, set the
-`alluxio.master.security.impersonation.<USERNAME>.groups` property, where again `<USERNAME>` is
+`alluxio.coordinator.security.impersonation.<USERNAME>.groups` property, where again `<USERNAME>` is
 the name of the Alluxio client user.
 Similar to above, the value is a comma-separated list of groups and the wildcard value `*`
 can be used to indicate all groups.
 Some examples:
 
-- `alluxio.master.security.impersonation.alluxio_user.groups=group1,group2`
+- `alluxio.coordinator.security.impersonation.alluxio_user.groups=group1,group2`
   - the Alluxio client user `alluxio_user` is allowed to impersonate any users from groups `group1` and `group2`
-- `alluxio.master.security.impersonation.client.groups=*`
+- `alluxio.coordinator.security.impersonation.client.groups=*`
   - the Alluxio client user `client` is allowed to impersonate users from any group
 
 In summary, to enable an Alluxio client user to impersonate other users, at least one of the two
@@ -370,7 +370,7 @@ This is similar to the format of
 [HDFS audit log](https://cwiki.apache.org/confluence/display/HADOOP2/HowToConfigure#HowToConfigure-AuditLogging).
 
 To enable Alluxio audit logging, set the JVM property
-`alluxio.master.audit.logging.enabled` to `true` in `alluxio-env.sh`.
+`alluxio.coordinator.audit.logging.enabled` to `true` in `alluxio-env.sh`.
 See [Configuration settings]({{ '/en/operation/Configuration.html' | relativize_url }}).
 
 ## Encryption

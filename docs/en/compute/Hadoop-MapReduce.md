@@ -150,11 +150,12 @@ To configure clients to communicate with an Alluxio cluster in HA mode using int
 election, the following section would need to be added to your Hadoop installation's `core-site.xml`
 
 ```xml
+
 <configuration>
-  <property>
-    <name>alluxio.master.rpc.addresses</name>
-    <value>master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998</value>
-  </property>
+    <property>
+        <name>alluxio.coordinator.rpc.addresses</name>
+        <value>master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998</value>
+    </property>
 </configuration>
 ```
 

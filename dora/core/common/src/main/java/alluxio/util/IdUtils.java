@@ -13,7 +13,7 @@ package alluxio.util;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.master.block.BlockId;
+import alluxio.coordinator.block.BlockId;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -22,11 +22,11 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.Configuration;
+import alluxio.coordinator.LocalAlluxioCluster;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.master.LocalAlluxioCluster;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.apache.commons.cli.CommandLine;

@@ -37,7 +37,7 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Benchmarks for {@link alluxio.master.file.FileSystemMaster}.
+ * Benchmarks for {@link alluxio.coordinator.file.FileSystemMaster}.
  */
 @Fork(value = 1, jvmArgsPrepend = "-server")
 @Warmup(iterations = 2, time = 3, timeUnit = TimeUnit.SECONDS)

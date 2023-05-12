@@ -12,10 +12,10 @@
 package alluxio.job.util;
 
 import alluxio.Constants;
+import alluxio.coordinator.job.JobMaster;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
-import alluxio.master.job.JobMaster;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 

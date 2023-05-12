@@ -36,7 +36,7 @@ you want to mount the whole bucket to Alluxio, or `oss://alluxio-bucket/alluxio/
 inside the oss bucket `alluxio-bucket` is mapped to Alluxio.
 
 ```
-alluxio.master.mount.table.root.ufs=oss://<OSS_BUCKET>/<OSS_DIRECTORY>
+alluxio.coordinator.mount.table.root.ufs=oss://<OSS_BUCKET>/<OSS_DIRECTORY>
 ``` 
 
 Specify the Aliyun credentials for OSS access. In `conf/alluxio-site.properties`, add:

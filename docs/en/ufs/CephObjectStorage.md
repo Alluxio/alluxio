@@ -40,12 +40,12 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 Modify `conf/alluxio-site.properties` to include:
 
 ```properties
-alluxio.master.mount.table.root.ufs=s3://<bucket>/<folder>
-alluxio.master.mount.table.root.option.s3a.accessKeyId=<access-key>
-alluxio.master.mount.table.root.option.s3a.secretKey=<secret-key>
-alluxio.master.mount.table.root.option.alluxio.underfs.s3.endpoint=http://<rgw-hostname>:<rgw-port>
-alluxio.master.mount.table.root.option.alluxio.underfs.s3.disable.dns.buckets=true
-alluxio.master.mount.table.root.option.alluxio.underfs.s3.inherit.acl=<inherit-acl>
+alluxio.coordinator.mount.table.root.ufs=s3://<bucket>/<folder>
+alluxio.coordinator.mount.table.root.option.s3a.accessKeyId=<access-key>
+alluxio.coordinator.mount.table.root.option.s3a.secretKey=<secret-key>
+alluxio.coordinator.mount.table.root.option.alluxio.underfs.s3.endpoint=http://<rgw-hostname>:<rgw-port>
+alluxio.coordinator.mount.table.root.option.alluxio.underfs.s3.disable.dns.buckets=true
+alluxio.coordinator.mount.table.root.option.alluxio.underfs.s3.inherit.acl=<inherit-acl>
 ```
 
 If using a Ceph release such as hammer (or older) specify `alluxio.underfs.s3.signer.algorithm=S3SignerType`
@@ -56,12 +56,12 @@ to use v2 S3 signatures. To use GET Bucket (List Objects) Version 1 specify
 Modify `conf/alluxio-site.properties` to include:
 
 ```properties
-alluxio.master.mount.table.root.ufs=swift://<bucket>/<folder>
-alluxio.master.mount.table.root.option.fs.swift.user=<swift-user>
-alluxio.master.mount.table.root.option.fs.swift.tenant=<swift-tenant>
-alluxio.master.mount.table.root.option.fs.swift.password=<swift-user-password>
-alluxio.master.mount.table.root.option.fs.swift.auth.url=<swift-auth-url>
-alluxio.master.mount.table.root.option.fs.swift.auth.method=<swift-auth-method>
+alluxio.coordinator.mount.table.root.ufs=swift://<bucket>/<folder>
+alluxio.coordinator.mount.table.root.option.fs.swift.user=<swift-user>
+alluxio.coordinator.mount.table.root.option.fs.swift.tenant=<swift-tenant>
+alluxio.coordinator.mount.table.root.option.fs.swift.password=<swift-user-password>
+alluxio.coordinator.mount.table.root.option.fs.swift.auth.url=<swift-auth-url>
+alluxio.coordinator.mount.table.root.option.fs.swift.auth.method=<swift-auth-method>
 ```
 Replace `<bucket>/<folder>` with an existing Swift container location. Possible values of `<swift-use-public>` are
 `true`, `false`. Specify `<swift-auth-model>` as `swiftauth` if using native Ceph RGW authentication and `<swift-auth-url>`

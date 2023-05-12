@@ -60,7 +60,7 @@ specify an **existing** GCS bucket and directory as the under storage system by 
 `conf/alluxio-site.properties` to include:
 
 ```
-alluxio.master.mount.table.root.ufs=gs://GCS_BUCKET/GCS_DIRECTORY
+alluxio.coordinator.mount.table.root.ufs=gs://GCS_BUCKET/GCS_DIRECTORY
 ```
 
 Choose your preferred GCS UFS version and provide the corresponding Google credentials.
@@ -70,7 +70,7 @@ Choose your preferred GCS UFS version and provide the corresponding Google crede
 
 In`conf/alluxio-site.properties`, add:
 ```properties
-alluxio.master.mount.table.root.option.fs.gcs.credential.path=/path/to/<google_application_credentials>.json
+alluxio.coordinator.mount.table.root.option.fs.gcs.credential.path=/path/to/<google_application_credentials>.json
 ```
 This property key provides the path to the Google application credentials json file. Note that the
 Google application credentials json file should be placed in all the Alluxio nodes in the same path.
@@ -83,9 +83,9 @@ but it is always recommended to set this property explicitly.
 
 In`conf/alluxio-site.properties`, add:
 ```properties
-alluxio.master.mount.table.root.option.alluxio.underfs.gcs.version=1
-alluxio.master.mount.table.root.option.fs.gcs.accessKeyId=<GCS_ACCESS_KEY_ID>
-alluxio.master.mount.table.root.option.fs.gcs.secretAccessKey=<GCS_SECRET_ACCESS_KEY>
+alluxio.coordinator.mount.table.root.option.alluxio.underfs.gcs.version=1
+alluxio.coordinator.mount.table.root.option.fs.gcs.accessKeyId=<GCS_ACCESS_KEY_ID>
+alluxio.coordinator.mount.table.root.option.fs.gcs.secretAccessKey=<GCS_SECRET_ACCESS_KEY>
 ```
 - The first property key tells Alluxio to load the Version 1 GCS UFS module which uses the [jets3t](http://www.jets3t.org/) library.
 - Replace `<GCS_ACCESS_KEY_ID>` and `<GCS_SECRET_ACCESS_KEY>` with actual
@@ -108,7 +108,7 @@ to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/op
 
 First, within `conf/alluxio-site.properties`, specify the master host:
 ```properties
-alluxio.master.hostname=localhost
+alluxio.coordinator.hostname=localhost
 ```
 
 Then, mount GCS:

@@ -47,7 +47,7 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 修改`conf/alluxio-site.properties`文件，将底层存储系统的地址设置为HDFS namenode的地址以及你想挂载到Alluxio根目录下的HDFS目录。例如，若你的HDFS namenode是在本地默认端口运行，并且HDFS的根目录已经被映射到Alluxio根目录，则该地址为`hdfs://localhost:9000`；若只有`/alluxio/data`这一个HDFS目录被映射到Alluxio根目录，则该地址为`hdfs://localhost:9000/alluxio/data`。
 
 ```
-alluxio.master.mount.table.root.ufs=hdfs://<NAMENODE>:<PORT>
+alluxio.coordinator.mount.table.root.ufs=hdfs://<NAMENODE>:<PORT>
 ```
 
 ### HDFS namenode HA模式
@@ -66,7 +66,7 @@ alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/core-site.xml:/path/to/hdf
 然后，如果你需要将HDFS的根目录映射到Alluxio，则将底层存储地址设为`hdfs://nameservice/`（`nameservice`是在`core-site.xml`文件中已配置的HDFS服务的名称），或者如果你仅仅需要把HDFS目录`/alluxio/data`映射到Alluxio，则将底层存储地址设置为`hdfs://nameservice/alluxio/data`。
 
 ```
-alluxio.master.mount.table.root.ufs=hdfs://nameservice/
+alluxio.coordinator.mount.table.root.ufs=hdfs://nameservice/
 ```
 
 ### 确保用户/权限映射
@@ -111,8 +111,8 @@ ALLUXIO_JAVA_OPTS+=" -Djava.security.krb5.realm=<YOUR_KERBEROS_REALM> -Djava.sec
 在`alluxio-site.properties`文件配置下面的Alluxio属性：
 
 ```properties
-alluxio.master.keytab.file=<YOUR_HDFS_KEYTAB_FILE_PATH>
-alluxio.master.principal=hdfs/<_HOST>@<REALM>
+alluxio.coordinator.keytab.file=<YOUR_HDFS_KEYTAB_FILE_PATH>
+alluxio.coordinator.principal=hdfs/<_HOST>@<REALM>
 alluxio.worker.keytab.file=<YOUR_HDFS_KEYTAB_FILE_PATH>
 alluxio.worker.principal=hdfs/<_HOST>@<REALM>
 ```
@@ -176,8 +176,8 @@ $ ./bin/alluxio fs mount \
 site属性文件(`conf/alluxio-site.properties`)
 
 ```
-alluxio.master.mount.table.root.ufs=hdfs://namenode1:8020
-alluxio.master.mount.table.root.option.alluxio.underfs.version=2.2
+alluxio.coordinator.mount.table.root.ufs=hdfs://namenode1:8020
+alluxio.coordinator.mount.table.root.option.alluxio.underfs.version=2.2
 ```
 
 #### 支持的HDFS版本

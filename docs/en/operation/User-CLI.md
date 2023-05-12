@@ -105,10 +105,10 @@ $ ./bin/alluxio formatWorker
 ### bootstrapConf
 
 The `bootstrapConf` command generates the bootstrap configuration file
-`${ALLUXIO_HOME}/conf/alluxio-site.properties` with `alluxio.master.hostname`
+`${ALLUXIO_HOME}/conf/alluxio-site.properties` with `alluxio.coordinator.hostname`
 set to the passed in value if the configuration file does not exist.
 
-<!-- Generated configuration file is empty except for "alluxio.master.hostname" -->
+<!-- Generated configuration file is empty except for "alluxio.coordinator.hostname" -->
 
 ```console
 $ ./bin/alluxio bootstrapConf <ALLUXIO_MASTER_HOSTNAME>
@@ -150,7 +150,7 @@ MS, S, M, H, D as units of time.
 $ ./bin/alluxio getConf
 
 # Displays the value of a property key
-$ ./bin/alluxio getConf alluxio.master.hostname
+$ ./bin/alluxio getConf alluxio.coordinator.hostname
 
 # Displays the configuration of the current running Alluxio leading master
 $ ./bin/alluxio getConf --master
@@ -160,7 +160,7 @@ $ ./bin/alluxio getConf --source
 
 # Displays the values in a given unit
 $ ./bin/alluxio getConf --unit KB alluxio.user.block.size.bytes.default
-$ ./bin/alluxio getConf --unit S alluxio.master.journal.flush.timeout
+$ ./bin/alluxio getConf --unit S alluxio.coordinator.journal.flush.timeout
 ```
 
 > Note: This command does not require the Alluxio cluster to be running.
@@ -226,7 +226,7 @@ on specific instances. Users are able to change Alluxio server-side log levels a
 
 The command follows the format `alluxio logLevel --logName=NAME [--target=<master|workers|job_master|job_workers|host:webPort[:role]>] [--level=LEVEL]`,
 where:
-* `--logName <arg>` indicates the logger's class (e.g. `alluxio.master.file.DefaultFileSystemMaster`)
+* `--logName <arg>` indicates the logger's class (e.g. `alluxio.coordinator.file.DefaultFileSystemMaster`)
 * `--target <arg>` lists the Alluxio master or workers to set.
 The target could be of the form `<master|workers|job_master|job_workers|host:webPort[:role]>` and multiple targets can be listed as comma-separated entries.
 `role` can be one of `master|worker|job_master|job_worker`. Using the `role` option is useful when an Alluxio process

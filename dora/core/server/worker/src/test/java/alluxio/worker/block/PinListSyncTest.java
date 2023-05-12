@@ -15,7 +15,7 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.ClientContext;
 import alluxio.conf.Configuration;
-import alluxio.master.MasterClientContext;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.google.common.collect.ImmutableSet;

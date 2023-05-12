@@ -29,7 +29,7 @@ Alluxio通过[统一命名空间](Unified-and-Transparent-Namespace.html)统一�
 若要在Alluxio中使用COSN作为底层文件系统，需修改`conf/alluxio-site.properties`和`conf/core-site.xml`配置文件。首先要指定一个已有的COS bucket和其中的目录作为底层文件系统，可以在`conf/alluxio-site.properties`中添加如下语句指定它：
 
 ```
-alluxio.master.mount.table.root.ufs=cosn://COSN_ALLUXIO_BUCKET/COSN_DATA/
+alluxio.coordinator.mount.table.root.ufs=cosn://COSN_ALLUXIO_BUCKET/COSN_DATA/
 ```
 
 接着，需要指定COS的配置信息以便访问COS，在`conf/core-site.xml`中添加：

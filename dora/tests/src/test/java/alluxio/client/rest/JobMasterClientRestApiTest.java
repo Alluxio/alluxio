@@ -13,14 +13,14 @@ package alluxio.client.rest;
 
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
+import alluxio.coordinator.LocalAlluxioJobCluster;
+import alluxio.coordinator.job.JobMaster;
+import alluxio.coordinator.job.JobMasterClientRestServiceHandler;
 import alluxio.grpc.ListAllPOptions;
 import alluxio.job.JobConfig;
 import alluxio.job.ServiceConstants;
 import alluxio.job.SleepJobConfig;
 import alluxio.job.wire.Status;
-import alluxio.master.LocalAlluxioJobCluster;
-import alluxio.master.job.JobMaster;
-import alluxio.master.job.JobMasterClientRestServiceHandler;
 import alluxio.security.authentication.AuthType;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;

@@ -19,7 +19,7 @@ The two major components to configure are:
 Alluxio properties mostly fall into three categories:
 
 - properties prefixed with `alluxio.user` affect Alluxio client operations (e.g. compute applications)
-- properties prefixed with `alluxio.master` affect the Alluxio master processes
+- properties prefixed with `alluxio.coordinator` affect the Alluxio master processes
 - properties prefixed with `alluxio.worker` affect the Alluxio worker processes
 
 ## Configure Applications

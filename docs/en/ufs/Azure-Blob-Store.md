@@ -43,14 +43,14 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 Specify the underfs address by modifying `conf/alluxio-site.properties` to include:
 
 ```
-alluxio.master.mount.table.root.ufs=wasbs://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.blob.core.windows.net/<AZURE_DIRECTORY>/
+alluxio.coordinator.mount.table.root.ufs=wasbs://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.blob.core.windows.net/<AZURE_DIRECTORY>/
 ```
 
 Specify credentials for the Azure account of the root mount point by adding the following
 properties in `conf/alluxio-site.properties`:
 
 ```
-alluxio.master.mount.table.root.option.fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<YOUR ACCESS KEY>
+alluxio.coordinator.mount.table.root.option.fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<YOUR ACCESS KEY>
 ```
 
 ### Nested Mount

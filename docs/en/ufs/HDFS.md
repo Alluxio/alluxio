@@ -77,13 +77,13 @@ To find out where HDFS is running, use `hdfs getconf -confKey fs.defaultFS` to g
 and port HDFS is listening on.
 
 ```
-alluxio.master.mount.table.root.ufs=hdfs://<NAMENODE>:<PORT>
+alluxio.coordinator.mount.table.root.ufs=hdfs://<NAMENODE>:<PORT>
 ```
 
 Additionally, you may need to specify the following property to be your HDFS version.
 See [mounting HDFS with specific versions]({{ '/en/ufs/HDFS.html' | relativize_url }}#mount-hdfs-with-specific-versions).
 ```
-alluxio.master.mount.table.root.option.alluxio.underfs.version=<HADOOP VERSION>
+alluxio.coordinator.mount.table.root.option.alluxio.underfs.version=<HADOOP VERSION>
 ```
 
 ## Example: Running Alluxio Locally with HDFS
@@ -146,12 +146,12 @@ There are two possible approaches:
 this is set up on all servers running Alluxio.
 
 - Alternatively, you can
-set the property `alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration` in
+set the property `alluxio.coordinator.mount.table.root.option.alluxio.underfs.hdfs.configuration` in
 `conf/alluxio-site.properties` to point to your `hdfs-site.xml` and `core-site.xml`.
 Make sure this configuration is set on all servers running Alluxio.
 
 ```
-alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/core-site.xml:/path/to/hdfs/conf/hdfs-site.xml
+alluxio.coordinator.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/core-site.xml:/path/to/hdfs/conf/hdfs-site.xml
 ```
 
 ### HDFS Namenode HA Mode
@@ -165,7 +165,7 @@ of the whole HDFS namespace, change the under storage address to something like
 `hdfs://nameservice/alluxio/data`.
 
 ```
-alluxio.master.mount.table.root.ufs=hdfs://nameservice/
+alluxio.coordinator.mount.table.root.ufs=hdfs://nameservice/
 ```
 
 ### User/Permission Mapping
@@ -199,8 +199,8 @@ In addition, security configuration is needed for Alluxio to be able to
 communicate with the HDFS cluster. Set the following Alluxio properties in `alluxio-site.properties`:
 
 ```properties
-alluxio.master.keytab.file=<YOUR_HDFS_KEYTAB_FILE_PATH>
-alluxio.master.principal=hdfs/<_HOST>@<REALM>
+alluxio.coordinator.keytab.file=<YOUR_HDFS_KEYTAB_FILE_PATH>
+alluxio.coordinator.principal=hdfs/<_HOST>@<REALM>
 alluxio.worker.keytab.file=<YOUR_HDFS_KEYTAB_FILE_PATH>
 alluxio.worker.principal=hdfs/<_HOST>@<REALM>
 ```
@@ -265,8 +265,8 @@ When mounting the under storage of Alluxio root directory with a specific HDFS v
 following line to the site properties file (`conf/alluxio-site.properties`)
 
 ```
-alluxio.master.mount.table.root.ufs=hdfs://namenode1:8020
-alluxio.master.mount.table.root.option.alluxio.underfs.version=2.2
+alluxio.coordinator.mount.table.root.ufs=hdfs://namenode1:8020
+alluxio.coordinator.mount.table.root.option.alluxio.underfs.version=2.2
 ```
 
 #### Supported HDFS Versions

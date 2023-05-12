@@ -15,7 +15,7 @@ import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.master.AlluxioMasterProcess;
+import alluxio.coordinator.AlluxioMasterProcess;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;

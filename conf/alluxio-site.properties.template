@@ -13,8 +13,8 @@
 # Details about all configuration properties https://docs.alluxio.io/os/user/stable/en/reference/Properties-List.html
 
 # Common properties
-# alluxio.master.hostname=localhost
-# alluxio.master.mount.table.root.ufs=${alluxio.work.dir}/underFSStorage
+# alluxio.coordinator.hostname=localhost
+# alluxio.coordinator.mount.table.root.ufs=${alluxio.work.dir}/underFSStorage
 
 # Security properties
 # alluxio.security.authorization.permission.enabled=true

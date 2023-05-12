@@ -15,11 +15,11 @@ import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.coordinator.MasterInquireClient;
+import alluxio.coordinator.PollingMasterInquireClient;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ServiceType;
-import alluxio.master.MasterInquireClient;
-import alluxio.master.PollingMasterInquireClient;
 import alluxio.resource.CloseableResource;
 import alluxio.retry.ExponentialBackoffRetry;
 

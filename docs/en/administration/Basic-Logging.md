@@ -139,10 +139,10 @@ $ ./bin/alluxio logLevel --logName=alluxio --level=DEBUG
 $ ./bin/alluxio logLevel --logName=alluxio --level=INFO
 ```
 
-Finally, if your Alluxio deployment uses custom web ports (e.g. `alluxio.master.web.port` is different from 19999, or
+Finally, if your Alluxio deployment uses custom web ports (e.g. `alluxio.coordinator.web.port` is different from 19999, or
 `alluxio.worker.web.port` is different from 30000), you can use the format `host:port:role` for your target.
 `role` can be one of `master` or `worker` or `job_master` or `job_worker`.
-For example, if your master running on `10.10.10.10` has `alluxio.master.web.port=2181` configured, you would use:
+For example, if your master running on `10.10.10.10` has `alluxio.coordinator.web.port=2181` configured, you would use:
 ```shell
 $ ./bin/alluxio logLevel --logName=alluxio --target=10.10.10.10:2181:master --level=DEBUG
 ```
@@ -230,7 +230,7 @@ creating/reading/writing/removing files, updating file attributions) using the `
 
 ```console
 $ ./bin/alluxio logLevel \
---logName=alluxio.master.file.FileSystemMasterClientServiceHandler \
+--logName=alluxio.coordinator.file.FileSystemMasterClientServiceHandler \
 --target master --level=DEBUG
 ```
 
@@ -239,7 +239,7 @@ blocks):
 
 ```console
 $ ./bin/alluxio logLevel \
---logName=alluxio.master.block.BlockMasterClientServiceHandler \
+--logName=alluxio.coordinator.block.BlockMasterClientServiceHandler \
 --target master --level=DEBUG
 ```
 
@@ -306,12 +306,12 @@ This can be useful for reasons including but not limited to:
 1. Use a separate logger to send logs to a remote endpoint like a socket.
 
 This can be achieved by adding a separate logger in the `conf/log4j.properties`.
-For example, the below example redirects debug logs of `alluxio.master.StateLockManager` to a separate set of files,
-so the `master.log` will not be full of DEBUG logs created by `alluxio.master.StateLockManager`.
+For example, the below example redirects debug logs of `alluxio.coordinator.StateLockManager` to a separate set of files,
+so the `master.log` will not be full of DEBUG logs created by `alluxio.coordinator.StateLockManager`.
 
 ```properties
-log4j.category.alluxio.master.StateLockManager=DEBUG, State_LOCK_LOGGER
-log4j.additivity.alluxio.master.StateLockManager=false
+log4j.category.alluxio.coordinator.StateLockManager=DEBUG, State_LOCK_LOGGER
+log4j.additivity.alluxio.coordinator.StateLockManager=false
 log4j.appender.State_LOCK_LOGGER=org.apache.log4j.RollingFileAppender
 log4j.appender.State_LOCK_LOGGER.File=<ALLUXIO_HOME>/logs/statelock.log
 log4j.appender.State_LOCK_LOGGER.MaxFileSize=10MB

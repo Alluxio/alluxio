@@ -43,7 +43,7 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 Specify the underfs address by modifying `conf/alluxio-site.properties` to include:
 
 ```properties
-alluxio.master.mount.table.root.ufs=adl://<AZURE_ACCOUNT>.azuredatalakestore.net/<AZURE_DIRECTORY>/
+alluxio.coordinator.mount.table.root.ufs=adl://<AZURE_ACCOUNT>.azuredatalakestore.net/<AZURE_DIRECTORY>/
 ```
 
 Specify the application ID, authentication key and tenant ID for the Azure AD application used for the Azure account of the root mount point by adding the following
@@ -52,9 +52,9 @@ properties in `conf/alluxio-site.properties`:
 - For instructions on how to retrieve the tenant ID, see [Get tenant ID](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal#get-tenant-and-app-id-values-for-signing-in).
 
 ```properties
-alluxio.master.mount.table.root.option.fs.adl.account.<AZURE_ACCOUNT>.oauth2.client.id=<APPLICATION_ID>
-alluxio.master.mount.table.root.option.fs.adl.account.<AZURE_ACCOUNT>.oauth2.credential=<AUTHENTICATION_KEY>
-alluxio.master.mount.table.root.option.fs.adl.account.<AZURE_ACCOUNT>.oauth2.refresh.url=https://login.microsoftonline.com/<TENANT_ID>/oauth2/token
+alluxio.coordinator.mount.table.root.option.fs.adl.account.<AZURE_ACCOUNT>.oauth2.client.id=<APPLICATION_ID>
+alluxio.coordinator.mount.table.root.option.fs.adl.account.<AZURE_ACCOUNT>.oauth2.credential=<AUTHENTICATION_KEY>
+alluxio.coordinator.mount.table.root.option.fs.adl.account.<AZURE_ACCOUNT>.oauth2.refresh.url=https://login.microsoftonline.com/<TENANT_ID>/oauth2/token
 ```
 
 ### Nested Mount

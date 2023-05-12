@@ -37,15 +37,15 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 将以下属性添加到 `conf/alluxio-site.properties` 文件:
 
 ```properties
-alluxio.master.hostname=<MASTER_HOSTNAME> # 仅在master节点上需要
-alluxio.master.mount.table.root.ufs=<STORAGE_URI>
-alluxio.master.embedded.journal.addresses=<EMBEDDED_JOURNAL_ADDRESS>
+alluxio.coordinator.hostname=<MASTER_HOSTNAME> # 仅在master节点上需要
+alluxio.coordinator.mount.table.root.ufs=<STORAGE_URI>
+alluxio.coordinator.embedded.journal.addresses=<EMBEDDED_JOURNAL_ADDRESS>
 ```
 
 说明:
-- 第一个属性`alluxio.master.hostname=<MASTER_HOSTNAME>` 每个master节点上必须是其自身外部可访问主机名。master quorum的每个单独组成部分都需要具有自己的地址集。在worker节点上，此参数将被忽略。示例包括 `alluxio.master.hostname=1.2.3.4`， `alluxio.master.hostname=node1.a.com`。
-- 第二个属性 `alluxio.master.mount.table.root.ufs=<STORAGE_URI>` 设置为挂载到Alluxio根目录的底层存储URI。 一定保证master节点和所有worker节点都可以访问此共享存储。 示例包括`alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`或`alluxio.master.mount.table.root.ufs=s3://bucket/dir/` 。
-- 第三个属性 `alluxio.master.embedded.journal.addresses` 设置参加Alluxio leading master选举的master节点集。默认的嵌入式日志端口是 `19200`。例如: `alluxio.master.embedded.journal.addresses=master_hostname_1:19200，master_hostname_2:19200，master_hostname_3:19200`
+- 第一个属性`alluxio.coordinator.hostname=<MASTER_HOSTNAME>` 每个master节点上必须是其自身外部可访问主机名。master quorum的每个单独组成部分都需要具有自己的地址集。在worker节点上，此参数将被忽略。示例包括 `alluxio.coordinator.hostname=1.2.3.4`， `alluxio.coordinator.hostname=node1.a.com`。
+- 第二个属性 `alluxio.coordinator.mount.table.root.ufs=<STORAGE_URI>` 设置为挂载到Alluxio根目录的底层存储URI。 一定保证master节点和所有worker节点都可以访问此共享存储。 示例包括`alluxio.coordinator.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`或`alluxio.coordinator.mount.table.root.ufs=s3://bucket/dir/` 。
+- 第三个属性 `alluxio.coordinator.embedded.journal.addresses` 设置参加Alluxio leading master选举的master节点集。默认的嵌入式日志端口是 `19200`。例如: `alluxio.coordinator.embedded.journal.addresses=master_hostname_1:19200，master_hostname_2:19200，master_hostname_3:19200`
 
 嵌入式日记特性依赖于 [Copycat](https://github.com/atomix/copycat) 内置leader选举功能。内置leader选举功能不能与Zookeeper一起使用，因为系统不能出现多种leader选举机制选出不同leader的情况。启用嵌入式日记就启用了Alluxio的内置leader election机制。请参阅[嵌入式日志配置文档]({{ '/en/operation/Journal.html' | relativize_url}}＃embedded-journal-configuration)，以了解更多详细信息以及使用内部leader选举配置HA集群的替代方案。
 
@@ -62,15 +62,15 @@ alluxio.master.embedded.journal.addresses=<EMBEDDED_JOURNAL_ADDRESS>
 ```
 alluxio.zookeeper.enabled=true
 alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>
-alluxio.master.journal.type=UFS
-alluxio.master.journal.folder=<JOURNAL_URI>
+alluxio.coordinator.journal.type=UFS
+alluxio.coordinator.journal.folder=<JOURNAL_URI>
 ```
 
 说明:
 - 属性 `alluxio.zookeeper.enabled=true masters`启用HA模式，并通知workers已启用HA模式。
 - 属性 `alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>` ，`alluxio.zookeeper.enabled` 启用时设置ZooKeeper地址 。 HA masters将使用ZooKeeper进行leader选举。可以使用逗号分隔来指定多个ZooKeeper地址。实例包括 `alluxio.zookeeper.address =1.2.3.4:2181`，`alluxio.zookeeper.address=ZK1:2181，ZK2:2181，ZK3:2181`
-- 属性 `alluxio.master.journal.type=UFS` 表示UFS被用来存放日志。注意，Zookeeper无法使用日志类型 EMBEDDED （使用masters中embedded日志）。
-- 属性 `alluxio.master.journal.folder=<JOURNAL_URI>` 设置共享日志位置的URI，以供Alluxio leading master写入日志，以及做为standby masters重播日志条目依据。所有主节点都必须可以访问此共享存储系统。示例包括 `alluxio.master.journal.folder=hdfs://1.2.3.4:9000/alluxio/journal/`
+- 属性 `alluxio.coordinator.journal.type=UFS` 表示UFS被用来存放日志。注意，Zookeeper无法使用日志类型 EMBEDDED （使用masters中embedded日志）。
+- 属性 `alluxio.coordinator.journal.folder=<JOURNAL_URI>` 设置共享日志位置的URI，以供Alluxio leading master写入日志，以及做为standby masters重播日志条目依据。所有主节点都必须可以访问此共享存储系统。示例包括 `alluxio.coordinator.journal.folder=hdfs://1.2.3.4:9000/alluxio/journal/`
 
 确保所有master nodes和所有worker nodes都已正确配置了各自相应的 `conf/alluxio-site.properties` 配置文件。
 
@@ -144,10 +144,10 @@ $ hadoop fs -ls alluxio:///directory
 
 根据实现HA的不同方法，需要设置不同的属性:
 
-- 使用嵌入式日志方法连接到Alluxio HA集群时，设置属性`alluxio.master.rpc.addresses`来确定要查询的节点地址。例如添加如下设置到应用配置中:
+- 使用嵌入式日志方法连接到Alluxio HA集群时，设置属性`alluxio.coordinator.rpc.addresses`来确定要查询的节点地址。例如添加如下设置到应用配置中:
 
 ```
-alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
+alluxio.coordinator.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 ```
 
 或者通过Java Option传输给应用程序。比如对于Spark应用，将如下参数传给`spark.executor.extraJavaOptions`和`spark.driver.extraJavaOptions`:
@@ -182,45 +182,45 @@ alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>
 
 如果你使用的是嵌入式日志，你需要配置以下的值并通过`alluxio://ebj@[logical-name]`（例如 `alluxio://ebj@my-alluxio-cluster` ）来连接到高可用 alluxio 节点。
 
-* alluxio.master.nameservices.[逻辑名称] 每个 alluxio master 节点的单独标识符
+* alluxio.coordinator.nameservices.[逻辑名称] 每个 alluxio master 节点的单独标识符
 
 用逗号分割的 alluxio master 节点的 ID，用来确定集群中所有的 alluxio master 节点。例如，你之前使用 `my-alluxio-cluster`作为逻辑域名，并且想使用 `master1,master2,master3` 作为每个 alluxio master 的单独 ID，你可以这么设置：
 
 ```
-alluxio.master.nameservices.my-alluxio-cluster=master1,master2,master3
+alluxio.coordinator.nameservices.my-alluxio-cluster=master1,master2,master3
 ```
 
-* alluxio.master.rpc.address.[逻辑名称].[master 节点 ID] 每个 alluxio master 节点对应的地址
+* alluxio.coordinator.rpc.address.[逻辑名称].[master 节点 ID] 每个 alluxio master 节点对应的地址
 
 对于之前配置的每个 alluxio master 节点，设置每个 alluxio master 节点的完整地址，例如
 
 ```
-alluxio.master.rpc.address.my-alluxio-cluster.master1=master1:19998
-alluxio.master.rpc.address.my-alluxio-cluster.master2=master2:19998
-alluxio.master.rpc.address.my-alluxio-cluster.master3=master3:19998
+alluxio.coordinator.rpc.address.my-alluxio-cluster.master1=master1:19998
+alluxio.coordinator.rpc.address.my-alluxio-cluster.master2=master2:19998
+alluxio.coordinator.rpc.address.my-alluxio-cluster.master3=master3:19998
 ```
 
 #### Zookeeper 逻辑域名
 
 如果你使用 zookeeper 做 leader 选举时，你需要配置以下的值并通过`alluxio://zk@[logical-name]`（例如 `alluxio://zk@my-alluxio-cluster` ）来连接到高可用 alluxio 节点。
 
-* alluxio.master.zookeeper.nameservices.[逻辑名称] 每个 Zookeeper 节点的单独标识符
+* alluxio.coordinator.zookeeper.nameservices.[逻辑名称] 每个 Zookeeper 节点的单独标识符
 
 用逗号分割的 Zookeeper 节点 ID，用来确定集群中所有的 Zookeeper 节点。例如，你之前使用 `my-alluxio-cluster`作为逻辑域名，并且想使用 `node1,node2,node3` 作为每个 Zookeeper 的单独 ID，你可以这么设置：
 
 ```
-alluxio.master.zookeeper.nameservices.my-alluxio-cluster=node1,node2,node3
+alluxio.coordinator.zookeeper.nameservices.my-alluxio-cluster=node1,node2,node3
 ```
 
-* alluxio.master.zookeeper.address.[逻辑域名].[Zookeeper 节点 ID] 每个 Zookeeper 节点对应的地址
+* alluxio.coordinator.zookeeper.address.[逻辑域名].[Zookeeper 节点 ID] 每个 Zookeeper 节点对应的地址
   
 
 对于之前配置的每个 Zookeeper 节点，设置每个 Zookeeper 节点的完整地址，例如
 
 ```
-alluxio.master.zookeeper.address.my-alluxio-cluster.node1=host1:2181
-alluxio.master.zookeeper.address.my-alluxio-cluster.node2=host2:2181
-alluxio.master.zookeeper.address.my-alluxio-cluster.node3=host3:2181
+alluxio.coordinator.zookeeper.address.my-alluxio-cluster.node1=host1:2181
+alluxio.coordinator.zookeeper.address.my-alluxio-cluster.node2=host2:2181
+alluxio.coordinator.zookeeper.address.my-alluxio-cluster.node3=host3:2181
 ```
 
 ## 常见操作

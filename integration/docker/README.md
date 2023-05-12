@@ -70,7 +70,7 @@ $ docker build -t alluxio/alluxio-dev:customizedUser -f Dockerfile-dev .
 ## Running docker image
 The generated image expects to be run with single argument of "master", "worker", "proxy", or "fuse".
 To set an Alluxio configuration property, convert it to an environment variable by uppercasing
-and replacing periods with underscores. For example, `alluxio.master.hostname` converts to
+and replacing periods with underscores. For example, `alluxio.coordinator.hostname` converts to
 `ALLUXIO_MASTER_HOSTNAME`. You can then set the environment variable on the image with
 `-e PROPERTY=value`. Alluxio configuration values will be copied to `conf/alluxio-site.properties`
 when the image starts.

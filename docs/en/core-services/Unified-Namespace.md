@@ -27,7 +27,7 @@ systems.
 ![unified]({{ '/img/screenshot_unified.png' | relativize_url }})
 
 The storage path specified by the URI of the master configuration property
-`alluxio.master.mount.table.root.ufs` is mounted to the root of the Alluxio namespace, `/`.
+`alluxio.coordinator.mount.table.root.ufs` is mounted to the root of the Alluxio namespace, `/`.
 This directory identifies the "primary storage" for Alluxio.
 In addition, users can use the `mount` and `unmount` Java APIs to add and remove data sources:
 
@@ -101,27 +101,27 @@ The following line is an example configuration where an HDFS path is mounted to 
 Alluxio namespace.
 
 ```
-alluxio.master.mount.table.root.ufs=hdfs://HDFS_HOSTNAME:8020
+alluxio.coordinator.mount.table.root.ufs=hdfs://HDFS_HOSTNAME:8020
 ```
 
 Mount options for the root mount point are configured using the configuration prefix:
 
-`alluxio.master.mount.table.root.option.<some alluxio property>`
+`alluxio.coordinator.mount.table.root.option.<some alluxio property>`
 
 For example, the following configuration adds AWS credentials for the root mount point.
 
 ```
-alluxio.master.mount.table.root.option.s3a.accessKeyId=<AWS_ACCESS_KEY_ID>
-alluxio.master.mount.table.root.option.s3a.secretKey=<AWS_SECRET_ACCESS_KEY>
+alluxio.coordinator.mount.table.root.option.s3a.accessKeyId=<AWS_ACCESS_KEY_ID>
+alluxio.coordinator.mount.table.root.option.s3a.secretKey=<AWS_SECRET_ACCESS_KEY>
 ```
 
 The following configuration shows how to set other parameters for the root mount point.
 
 ```
-alluxio.master.mount.table.root.option.alluxio.security.underfs.hdfs.kerberos.client.principal=client
-alluxio.master.mount.table.root.option.alluxio.security.underfs.hdfs.kerberos.client.keytab.file=keytab
-alluxio.master.mount.table.root.option.alluxio.security.underfs.hdfs.impersonation.enabled=true
-alluxio.master.mount.table.root.option.alluxio.underfs.version=2.7
+alluxio.coordinator.mount.table.root.option.alluxio.security.underfs.hdfs.kerberos.client.principal=client
+alluxio.coordinator.mount.table.root.option.alluxio.security.underfs.hdfs.kerberos.client.keytab.file=keytab
+alluxio.coordinator.mount.table.root.option.alluxio.security.underfs.hdfs.impersonation.enabled=true
+alluxio.coordinator.mount.table.root.option.alluxio.underfs.version=2.7
 ```
 
 ### Nested Mount Points
@@ -322,7 +322,7 @@ To enable active sync on a directory, issue the following Alluxio command.
 $ ./bin/alluxio fs startSync /syncdir
 ```
 
-You can control the active sync interval by changing the `alluxio.master.ufs.active.sync.interval` option, the default is 30 seconds.
+You can control the active sync interval by changing the `alluxio.coordinator.ufs.active.sync.interval` option, the default is 30 seconds.
 
 To disable active sync on a directory, issue the following Alluxio command.
 
@@ -346,11 +346,11 @@ Active sync also tries to avoid syncing when the target directory is heavily use
 It tries to look for a quiet period in UFS activity to start syncing between the UFS and the Alluxio space, to avoid overloading the UFS when it is busy.
 There are two configuration options that control this behavior.
 
-`alluxio.master.ufs.active.sync.max.activities` is the maximum number of activities in the UFS directory.
+`alluxio.coordinator.ufs.active.sync.max.activities` is the maximum number of activities in the UFS directory.
 Activity is a heuristic based on the exponential moving average of number of events in a directory.
 For example, if a directory had 100, 10, and 1 events in the past three intervals.
 Its activity would be `100/10*10 + 10/10 + 1 = 3`
-`alluxio.master.ufs.active.sync.max.age` is the maximum number of intervals Alluxio will wait before
+`alluxio.coordinator.ufs.active.sync.max.age` is the maximum number of intervals Alluxio will wait before
 synchronizing the UFS and the Alluxio space.
 
 The system guarantees that we will start syncing a directory if it is "quiet", or it has not been synced for a long period (period longer than the max age).
@@ -358,9 +358,9 @@ The system guarantees that we will start syncing a directory if it is "quiet", o
 For example, the following setting
 
 ```
-alluxio.master.ufs.active.sync.interval=30sec
-alluxio.master.ufs.active.sync.max.activities=100
-alluxio.master.ufs.active.sync.max.age=5
+alluxio.coordinator.ufs.active.sync.interval=30sec
+alluxio.coordinator.ufs.active.sync.max.activities=100
+alluxio.coordinator.ufs.active.sync.max.age=5
 ```
 
 means that every 30 seconds, the system will count the number of events in the directory and

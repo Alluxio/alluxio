@@ -13,7 +13,7 @@ package alluxio.rocks;
 
 import static org.junit.Assert.assertArrayEquals;
 
-import alluxio.master.journal.checkpoint.CheckpointInputStream;
+import alluxio.coordinator.journal.checkpoint.CheckpointInputStream;
 
 import com.google.common.primitives.Longs;
 import org.junit.Rule;

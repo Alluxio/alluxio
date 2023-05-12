@@ -12,12 +12,12 @@
 package alluxio.table.under.glue;
 
 import alluxio.AlluxioURI;
+import alluxio.coordinator.table.DatabaseInfo;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.Layout;
 import alluxio.grpc.table.layout.hive.PartitionInfo;
-import alluxio.master.table.DatabaseInfo;
 import alluxio.table.common.UdbPartition;
 import alluxio.table.common.layout.HiveLayout;
 import alluxio.table.common.udb.PathTranslator;

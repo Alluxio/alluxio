@@ -15,6 +15,8 @@ import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
+import alluxio.coordinator.AlluxioExecutorService;
+import alluxio.coordinator.meta.PathProperties;
 import alluxio.executor.ExecutorServiceBuilder;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.FileInfo;
@@ -36,8 +38,6 @@ import alluxio.grpc.PAcl;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.ServiceVersionClientServiceGrpc;
 import alluxio.grpc.TtlAction;
-import alluxio.master.AlluxioExecutorService;
-import alluxio.master.meta.PathProperties;
 import alluxio.security.authentication.AuthType;
 import alluxio.wire.ConfigHash;
 

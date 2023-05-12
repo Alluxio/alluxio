@@ -463,13 +463,13 @@ Limitations:
 Launch an Alluxio cluster with one master and multiple workers.
 Each worker should have its own unique worker hostname
 ```
-alluxio.master.hostname=<master_hostname>
+alluxio.coordinator.hostname=<master_hostname>
 alluxio.worker.hostname=<worker_hostname_id>
 ```
 
 Enable dora distributed cache:
 ```
-alluxio.master.worker.register.lease.enabled=false
+alluxio.coordinator.worker.register.lease.enabled=false
 alluxio.dora.client.read.location.policy.enabled=true
 alluxio.dora.client.ufs.root=<under_storage_dataset>
 alluxio.user.short.circuit.enabled=false

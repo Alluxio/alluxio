@@ -139,7 +139,7 @@ DO NOT share the collected tarball with anybody unless you have manually obfusca
 > NOTE: Roughly estimate how much log you are collecting before executing this command!
 
 ### Collect Alluxio metrics
-`collectMetrics` will collect Alluxio metrics served at `http://${alluxio.master.hostname}:${alluxio.master.web.port}/metrics/json/` by default.
+`collectMetrics` will collect Alluxio metrics served at `http://${alluxio.coordinator.hostname}:${alluxio.coordinator.web.port}/metrics/json/` by default.
 The metrics will be collected multiple times to see the progress.
 
 ### Collect JVM information
@@ -282,9 +282,9 @@ are
 ## Master Internal Monitoring
 
 Alluxio master periodically checks its resource usage, including CPU and memory usage, and several internal data structures 
-that are performance critical. This interval is configured by `alluxio.master.throttle.heartbeat.interval` (defaults to 3 seconds).
+that are performance critical. This interval is configured by `alluxio.coordinator.throttle.heartbeat.interval` (defaults to 3 seconds).
 On every sampling point in time (PIT), Alluxio master takes a snapshot of its resource usage. A continuous number of PIT snapshots
-(number configured by alluxio.master.throttle.observed.pit.number, defaults to 3) will be saved and used to generate the aggregated
+(number configured by alluxio.coordinator.throttle.observed.pit.number, defaults to 3) will be saved and used to generate the aggregated
 resource usage which is used to decide the system status.
 
 Each PIT includes the following metrics.
@@ -319,7 +319,7 @@ The possible statuses are:
 
 The system status is mainly decided by the JVM pause time and the free heap memory. Usually the status transition is 
 `IDLE` <---> `ACTIVE` <---> `STRESSED` <---> `OVERLOADED`
-1. If the JVM pause time is longer than `alluxio.master.throttle.overloaded.heap.gc.time`, the system status is directly set to `OVERLOADED`.
+1. If the JVM pause time is longer than `alluxio.coordinator.throttle.overloaded.heap.gc.time`, the system status is directly set to `OVERLOADED`.
 2. If the used heap memory is less than the low used heap memory boundary threshold, the system.status is deescalated.
 3. If the used heap memory is less than the upper used heap memory boundary threshold, the system.status is unchanged.
 4. If the aggregated used heap memory is greater than the upper used heap memory boundary threshold, the sytem.status is escalated.
@@ -328,12 +328,12 @@ The system status is mainly decided by the JVM pause time and the free heap memo
 The thresholds are
 ```properties
 // JVM paused time
-alluxio.master.throttle.overloaded.heap.gc.time
+alluxio.coordinator.throttle.overloaded.heap.gc.time
 
 // heap used thresholds
-alluxio.master.throttle.active.heap.used.ratio
-alluxio.master.throttle.stressed.heap.used.ratio
-alluxio.master.throttle.overloaded.heap.used.ratio
+alluxio.coordinator.throttle.active.heap.used.ratio
+alluxio.coordinator.throttle.stressed.heap.used.ratio
+alluxio.coordinator.throttle.overloaded.heap.used.ratio
 ```
 
 If the system status is `STRESSED` or `OVERLOADED`, `WARN` level log would be printed containing the following the filesystem indicators:
@@ -480,7 +480,7 @@ There are a few scenarios where the journal compatibility is not guaranteed and 
 
 If you are using UFS journal and see errors like "Failed to replace a bad datanode on the existing pipeline due to no more good datanodes being available to try",
 it is because Alluxio master failed to update journal files stored in a HDFS directory according to
-the property `alluxio.master.journal.folder` setting. There can be multiple reasons for this type of errors, typically because
+the property `alluxio.coordinator.journal.folder` setting. There can be multiple reasons for this type of errors, typically because
 some HDFS datanodes serving the journal files are under heavy load or running out of disk space. Please ensure the
 HDFS deployment is connected and healthy for Alluxio to store journals when the journal directory is set to be in HDFS.
 

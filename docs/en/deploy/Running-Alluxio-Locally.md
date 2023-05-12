@@ -22,10 +22,10 @@ installed.
 To run in standalone mode, do the following:
 
 * Create `conf/alluxio-site.properties` by copying `conf/alluxio-site.properties.template`
-* Set `alluxio.master.hostname` in `conf/alluxio-site.properties` to `localhost` (i.e.,
-`alluxio.master.hostname=localhost`).
-* Set `alluxio.master.mount.table.root.ufs` in `conf/alluxio-site.properties` to a tmp directory in
-  the local filesystem (e.g., `alluxio.master.mount.table.root.ufs=/tmp`).
+* Set `alluxio.coordinator.hostname` in `conf/alluxio-site.properties` to `localhost` (i.e.,
+`alluxio.coordinator.hostname=localhost`).
+* Set `alluxio.coordinator.mount.table.root.ufs` in `conf/alluxio-site.properties` to a tmp directory in
+  the local filesystem (e.g., `alluxio.coordinator.mount.table.root.ufs=/tmp`).
 * Turn on remote login service so that `ssh localhost` can succeed. To avoid the need to
 repeatedly input the password, you can add the public SSH key for the host into
 `~/.ssh/authorized_keys`. See [this tutorial](http://www.linuxproblem.org/art_9.html) for more

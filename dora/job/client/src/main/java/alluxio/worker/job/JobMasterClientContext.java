@@ -12,8 +12,8 @@
 package alluxio.worker.job;
 
 import alluxio.ClientContext;
-import alluxio.master.MasterClientContext;
-import alluxio.master.MasterInquireClient;
+import alluxio.coordinator.MasterClientContext;
+import alluxio.coordinator.MasterInquireClient;
 
 /**
  * Extension of MasterClientContext with defaults that make sense for job master clients.

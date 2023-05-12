@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.master.file.meta.PersistenceState;
+import alluxio.coordinator.file.meta.PersistenceState;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;

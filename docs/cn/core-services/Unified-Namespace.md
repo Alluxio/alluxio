@@ -22,7 +22,7 @@ Alluxio提供的主要好处之一是为应用程序提供统一命名空间。
 
 ![unified]({{ '/img/screenshot_unified.png' | relativize_url }})
 
-master配置属性`alluxio.master.mount.table.root.ufs`指定的目录挂载到Alluxio命名空间根目录，该目录代表Alluxio
+master配置属性`alluxio.coordinator.mount.table.root.ufs`指定的目录挂载到Alluxio命名空间根目录，该目录代表Alluxio
 的"primary storage"。在此基础上，用户可以通过挂载API添加和删除数据源。
 
 ```java
@@ -70,27 +70,27 @@ Alluxio命名空间的根挂载点是在masters上’conf/alluxio-site.propertie
 Alluxio命名空间根目录。
 
 ```
-alluxio.master.mount.table.root.ufs=hdfs://HDFS_HOSTNAME:8020
+alluxio.coordinator.mount.table.root.ufs=hdfs://HDFS_HOSTNAME:8020
 ```
 
 使用配置前缀来配置根挂载点的挂载选项：
 
-`alluxio.master.mount.table.root.option.<some alluxio property>`
+`alluxio.coordinator.mount.table.root.option.<some alluxio property>`
 
 例如，以下配置为根挂载点添加AWS凭证。
 
 ```
-alluxio.master.mount.table.root.option.s3a.accessKeyId=<AWS_ACCESS_KEY_ID>
-alluxio.master.mount.table.root.option.s3a.secretKey=<AWS_SECRET_ACCESS_KEY>
+alluxio.coordinator.mount.table.root.option.s3a.accessKeyId=<AWS_ACCESS_KEY_ID>
+alluxio.coordinator.mount.table.root.option.s3a.secretKey=<AWS_SECRET_ACCESS_KEY>
 ```
 
 以下配置显示了如何为根挂载点设置其他参数。
 
 ```
-alluxio.master.mount.table.root.option.alluxio.security.underfs.hdfs.kerberos.client.principal=client
-alluxio.master.mount.table.root.option.alluxio.security.underfs.hdfs.kerberos.client.keytab.file=keytab
-alluxio.master.mount.table.root.option.alluxio.security.underfs.hdfs.impersonation.enabled=true
-alluxio.master.mount.table.root.option.alluxio.underfs.version=2.7
+alluxio.coordinator.mount.table.root.option.alluxio.security.underfs.hdfs.kerberos.client.principal=client
+alluxio.coordinator.mount.table.root.option.alluxio.security.underfs.hdfs.kerberos.client.keytab.file=keytab
+alluxio.coordinator.mount.table.root.option.alluxio.security.underfs.hdfs.impersonation.enabled=true
+alluxio.coordinator.mount.table.root.option.alluxio.underfs.version=2.7
 ```
 
 ### 嵌套挂载点
@@ -276,7 +276,7 @@ hello
 $ ./bin/alluxio fs startSync /syncdir
 ```
 
-可以通过更改`alluxio.master.ufs.active.sync.interval`选项来控制主动同步间隔，默认值为30秒。
+可以通过更改`alluxio.coordinator.ufs.active.sync.interval`选项来控制主动同步间隔，默认值为30秒。
 
 要在一个目录上停止使用主动同步，运行以下Alluxio命令。
 
@@ -300,20 +300,20 @@ $ ./bin/alluxio fs getSyncPathList
 它会试图在UFS活动期寻找一个静默期，再开始UFS和Alluxio空间之间同步，以避免UFS繁忙时使其过载。
 有两个配置选项来控制此特性。
 
-`alluxio.master.ufs.active.sync.max.activities`是UFS目录中的最大活动数。
+`alluxio.coordinator.ufs.active.sync.max.activities`是UFS目录中的最大活动数。
 活动数的计算是基于目录中事件数的指数移动平均值的启发式方法。
 例如，如果目录在过去三个时间间隔中有100、10、1个事件。
 它的活动为`100/10 * 10 + 10/10 + 1 = 3`
-`alluxio.master.ufs.active.sync.max.age`是在同步UFS和Alluxio空间之前将等待的最大间隔数。
+`alluxio.coordinator.ufs.active.sync.max.age`是在同步UFS和Alluxio空间之前将等待的最大间隔数。
 
 系统保证如果目录"静默"或长时间未同步(超过最大期限)，我们将开始同步该目录。
 
 例如，以下设置
 
 ```
-alluxio.master.ufs.active.sync.interval=30sec
-alluxio.master.ufs.active.sync.max.activities=100
-alluxio.master.ufs.active.sync.max.age=5
+alluxio.coordinator.ufs.active.sync.interval=30sec
+alluxio.coordinator.ufs.active.sync.max.activities=100
+alluxio.coordinator.ufs.active.sync.max.age=5
 ```
 
 表示系统每隔30秒就会计算一次此目录的事件数，

@@ -34,10 +34,10 @@ the following environment variable assignment needs to be added to
 `conf/alluxio-site.properties`, and we actually support both http:// and https:// protocols.
 
 ```
-alluxio.master.hostname=localhost
-# alluxio.master.mount.table.root.ufs=[https|http]://<HOSTNAME>:<PORT>/DIRECTORY/
+alluxio.coordinator.hostname=localhost
+# alluxio.coordinator.mount.table.root.ufs=[https|http]://<HOSTNAME>:<PORT>/DIRECTORY/
 # A sample for this article
-alluxio.master.mount.table.root.ufs=https://downloads.alluxio.io/downloads/files/
+alluxio.coordinator.mount.table.root.ufs=https://downloads.alluxio.io/downloads/files/
 ```
 
 Specify the settings for parsing a WEB page(Optional):

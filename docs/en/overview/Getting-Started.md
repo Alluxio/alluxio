@@ -57,10 +57,10 @@ file by copying the template file.
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-Set `alluxio.master.hostname` in `conf/alluxio-site.properties` to `localhost`.
+Set `alluxio.coordinator.hostname` in `conf/alluxio-site.properties` to `localhost`.
 
 ```console
-$ echo "alluxio.master.hostname=localhost" >> conf/alluxio-site.properties
+$ echo "alluxio.coordinator.hostname=localhost" >> conf/alluxio-site.properties
 ```
 
 ### [Bonus] Configuration for AWS

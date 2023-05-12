@@ -29,10 +29,10 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 将以下的环境变量要添加到`conf/alluxio-site.properties`配置文件中，实际上，我们可以支持http://及https://协议.
 
 ```
-alluxio.master.hostname=localhost
-# alluxio.master.mount.table.root.ufs=[https|http]://<HOSTNAME>:<PORT>/DIRECTORY/
+alluxio.coordinator.hostname=localhost
+# alluxio.coordinator.mount.table.root.ufs=[https|http]://<HOSTNAME>:<PORT>/DIRECTORY/
 # 本文中的样例设置
-alluxio.master.mount.table.root.ufs=https://downloads.alluxio.io/downloads/files/
+alluxio.coordinator.mount.table.root.ufs=https://downloads.alluxio.io/downloads/files/
 ```
 
 本文例子设置为

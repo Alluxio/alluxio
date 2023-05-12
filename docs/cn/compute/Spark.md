@@ -24,7 +24,7 @@ Spark 1.1 或更高版本的 Spark 应用程序可以通过其与 HDFS 兼容的
 
 * 安装 Java 8 Update 60 或更高版本（8u60+）的 64 位 Java。
 * 已经安装并运行 Alluxio。
-  本指南假设底层持久存储为本地部署的 HDFS。例如，`${ALLUXIO_HOME}/conf/alluxio-site.properties`中包含`alluxio.master.mount.table.root.ufs=hdfs://localhost:9000/alluxio/`这一行。
+  本指南假设底层持久存储为本地部署的 HDFS。例如，`${ALLUXIO_HOME}/conf/alluxio-site.properties`中包含`alluxio.coordinator.mount.table.root.ufs=hdfs://localhost:9000/alluxio/`这一行。
   请注意，除了 HDFS，Alluxio 还支持许多其他底层存储系统。
   从任意数量的这些系统中访问数据与本指南的重点是垂直的，
   [统一命名空间文档]({{ '/cn/core-services/Unified-Namespace.html' | relativize_url }})介绍了相关内容。

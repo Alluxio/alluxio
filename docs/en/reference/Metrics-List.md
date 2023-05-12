@@ -38,7 +38,7 @@ Tags can be used to further filter or aggregate on various characteristics.
 ## Cluster Metrics
 
 Workers and clients send metrics data to the Alluxio master through heartbeats.
-The interval is defined by property `alluxio.master.worker.heartbeat.interval` and `alluxio.user.metrics.heartbeat.interval` respectively.
+The interval is defined by property `alluxio.coordinator.worker.heartbeat.interval` and `alluxio.user.metrics.heartbeat.interval` respectively.
 
 Bytes metrics are aggregated value from workers or clients. Bytes throughput metrics are calculated on the leading master.
 The values of bytes throughput metrics equal to bytes metrics counter value divided by the metrics record time and shown as bytes per minute.

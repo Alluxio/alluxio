@@ -36,7 +36,7 @@ The root of Alluxio namespace or its subdirectories are all available for the mo
 If you want to use Qiniu Kodo as its under storage system in Alluxio, `conf/alluxio-site.properties` must be modified.
 In the beginning, an existing Kodo bucket and its directory should be specified for storage by the following code:
 ```
-alluxio.master.mount.table.root.ufs=kodo://<KODO_BUCKET>/<KODO_DIRECTORY>/
+alluxio.coordinator.mount.table.root.ufs=kodo://<KODO_BUCKET>/<KODO_DIRECTORY>/
 ```
 Next, some settings must be added to `conf/alluxio-site.properties`:
 ```

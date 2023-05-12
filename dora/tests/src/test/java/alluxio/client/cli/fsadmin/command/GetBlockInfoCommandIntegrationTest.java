@@ -17,9 +17,9 @@ import alluxio.AlluxioURI;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.coordinator.block.BlockId;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.WritePType;
-import alluxio.master.block.BlockId;
 
 import org.junit.Assert;
 import org.junit.Test;

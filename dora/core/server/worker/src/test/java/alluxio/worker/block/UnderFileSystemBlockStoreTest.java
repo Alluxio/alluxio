@@ -17,9 +17,9 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
+import alluxio.coordinator.NoopUfsManager;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
-import alluxio.master.NoopUfsManager;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystemConfiguration;

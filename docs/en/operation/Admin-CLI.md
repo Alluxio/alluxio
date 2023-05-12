@@ -35,7 +35,7 @@ Usage: alluxio fsadmin [generic options]
 The `backup` command backs up all Alluxio metadata to the backup directory configured on the leader master.
 
 Back up to the default backup folder `/alluxio_backups` of the root under storage system. 
-This default backup directory can be configured by setting `alluxio.master.backup.directory`. 
+This default backup directory can be configured by setting `alluxio.coordinator.backup.directory`. 
 ```shell
 $ ./bin/alluxio fsadmin backup
 Backup Host        : masters-1                          
@@ -356,9 +356,9 @@ Updated 2 configs
 Till Alluxio 2.9.0, Alluxio supports updating the configurations on the running service as follows:
 
 ```
-alluxio.master.unsafe.direct.persist.object.enabled
-alluxio.master.worker.timeout
-alluxio.master.audit.logging.enabled
-alluxio.master.ufs.managed.blocking.enabled
-alluxio.master.metastore.inode.inherit.owner.and.group
+alluxio.coordinator.unsafe.direct.persist.object.enabled
+alluxio.coordinator.worker.timeout
+alluxio.coordinator.audit.logging.enabled
+alluxio.coordinator.ufs.managed.blocking.enabled
+alluxio.coordinator.metastore.inode.inherit.owner.and.group
 ```

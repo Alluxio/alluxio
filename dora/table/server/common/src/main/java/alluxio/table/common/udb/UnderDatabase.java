@@ -11,7 +11,7 @@
 
 package alluxio.table.common.udb;
 
-import alluxio.master.table.DatabaseInfo;
+import alluxio.coordinator.table.DatabaseInfo;
 
 import java.io.IOException;
 import java.util.List;

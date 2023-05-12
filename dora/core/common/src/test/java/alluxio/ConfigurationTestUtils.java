@@ -13,7 +13,7 @@ package alluxio;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.master.journal.JournalType;
+import alluxio.coordinator.journal.JournalType;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Joiner;

@@ -37,7 +37,7 @@ Successfully backed up journal to ${BACKUP_PATH}
 ```
 
 `${BACKUP_PATH}` will be determined by the date, and the configuration of your
-journal. By default, the backup file will be saved to the `alluxio.master.backup.directory` of your cluster root UFS. 
+journal. By default, the backup file will be saved to the `alluxio.coordinator.backup.directory` of your cluster root UFS. 
 One can also backup to the local filesystem of the current leading master node with `backup [local_address] --local` command.
 
 ## Upgrade and start from backup

@@ -18,7 +18,7 @@ Alluxio还支持其它身份验证模式，如`NOSASL`和`CUSTOM`。
 (默认情况下)，根据请求用户和要访问的文件或目录的POSIX权限模型，Alluxio文件系统将授予或拒绝用户访问。
 注意，身份验证不能是`NOSASL`，因为授权需要用户信息。
 1. [用户模拟](#impersonation)：Alluxio支持用户模拟，以便某一个用户可以代表其他用户访问Alluxio。这个机制在Alluxio客户端需要为多个用户提供数据访问的服务的一部分时相当有用。
-1. [审计](#auditing): 如果是 `alluxio.master.audit.logging.enabled=true`， Alluxio 文件系统
+1. [审计](#auditing): 如果是 `alluxio.coordinator.audit.logging.enabled=true`， Alluxio 文件系统
 维护用户访问文件元数据的审计日志(audit log)。
 
 参考[系统安全相关的配置参数列表]({{ '/cn/reference/Properties-List.html' | relativize_url }}#security-configuration)的信息以启用不同安全特性。
@@ -113,23 +113,23 @@ Alluxio支持用户模拟，以便用户代表另一个用户访问Alluxio。这
 为了让Alluxio支持用户模拟功能，需要在客户端和服务端进行配置。
 
 ### 服务端配置
-为了能够让特定的用户模拟其他用户，需要配置Alluxio服务端(master和worker)。服务端的配置属性包括：`alluxio.master.security.impersonation.<USERNAME>.users` 和 `alluxio.master.security.impersonation.<USERNAME>.groups`。
-对于`alluxio.master.security.impersonation.<USERNAME>.users`，你可以指定由逗号分隔的用户列表，这些用户可以被`<USERNAME>` 模拟。
+为了能够让特定的用户模拟其他用户，需要配置Alluxio服务端(master和worker)。服务端的配置属性包括：`alluxio.coordinator.security.impersonation.<USERNAME>.users` 和 `alluxio.coordinator.security.impersonation.<USERNAME>.groups`。
+对于`alluxio.coordinator.security.impersonation.<USERNAME>.users`，你可以指定由逗号分隔的用户列表，这些用户可以被`<USERNAME>` 模拟。
 通配符`*`表示任意的用户可以被`<USERNAME>` 模拟。以下是例子。
-- `alluxio.master.security.impersonation.alluxio_user.users=user1,user2`
+- `alluxio.coordinator.security.impersonation.alluxio_user.users=user1,user2`
     - Alluxio用户`alluxio_user`被允许模拟用户`user1`以及`user2`。
-- `alluxio.master.security.impersonation.client.users=*`
+- `alluxio.coordinator.security.impersonation.client.users=*`
     - Alluxio用户`client`被允许模拟任意的用户。
 
-对于`alluxio.master.security.impersonation.<USERNAME>.groups`，你可以指定由逗号分隔的用户组，这些用户组内的用户可以被`<USERNAME>`模拟。
+对于`alluxio.coordinator.security.impersonation.<USERNAME>.groups`，你可以指定由逗号分隔的用户组，这些用户组内的用户可以被`<USERNAME>`模拟。
 通配符`*`表示该用户可以模拟任意的用户。以下是一些例子。
-- `alluxio.master.security.impersonation.alluxio_user.groups=group1,group2`
+- `alluxio.coordinator.security.impersonation.alluxio_user.groups=group1,group2`
     - Alluxio用户`alluxio_user`可以模拟用户`group1`以及`group2`中的任意用户。
-- `alluxio.master.security.impersonation.client.groups=*`
+- `alluxio.coordinator.security.impersonation.client.groups=*`
     - Alluxio用户`client`可以模拟任意的用户。
 
-为了使得用户`alluxio_user`能够模拟其他用户，你至少需要设置`alluxio.master.security.impersonation.<USERNAME>.users`和
-`alluxio.master.security.impersonation.<USERNAME>.groups`的其中一个（将`<USERNAME>`替换为`alluxio_user`）。你可以将两个参数设置为同一个用户。
+为了使得用户`alluxio_user`能够模拟其他用户，你至少需要设置`alluxio.coordinator.security.impersonation.<USERNAME>.users`和
+`alluxio.coordinator.security.impersonation.<USERNAME>.groups`的其中一个（将`<USERNAME>`替换为`alluxio_user`）。你可以将两个参数设置为同一个用户。
 
 ### 客户端配置
 如果服务端配置为允许某些用户模拟其他的用户，client端也要进行相应的配置。使用`alluxio.security.login.impersonation.username`进行配置。
@@ -197,7 +197,7 @@ Alluxio审计日志格式如下表所示：
 
 它和HDFS审计日志的格式[wiki](https://wiki.apache.org/hadoop/HowToConfigure)很像。
 
-为了使用Alluxio的审计功能，你需要将JVM参数`alluxio.master.audit.logging.enabled`设置为true，具体可见[配置文档]({{ '/cn/operation/Configuration.html' | relativize_url }})。
+为了使用Alluxio的审计功能，你需要将JVM参数`alluxio.coordinator.audit.logging.enabled`设置为true，具体可见[配置文档]({{ '/cn/operation/Configuration.html' | relativize_url }})。
 
 ## 加密
 

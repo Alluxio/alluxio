@@ -12,7 +12,7 @@
 package alluxio.multi.process;
 
 import alluxio.Constants;
-import alluxio.master.AlluxioMaster;
+import alluxio.coordinator.AlluxioMaster;
 
 /**
  * Wrapper around AlluxioMaster which will exit after a limited amount of time.

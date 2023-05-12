@@ -117,7 +117,7 @@ tarball大小主要取决于您的集群大小以及您有多少子命令被执�
 > 注意：在执行此命令前请粗略评估命令将收集的日志量！
 
 ### 收集Alluxio指标
-`collectMetrics`将收集在`http://${alluxio.master.hostname}:${alluxio.master.web.port}/metrics/json/`提供的Alluxio指标。
+`collectMetrics`将收集在`http://${alluxio.coordinator.hostname}:${alluxio.coordinator.web.port}/metrics/json/`提供的Alluxio指标。
 此命令将会执行多次以记录以检查程序执行进度。
 
 ### 收集JVM信息
@@ -354,7 +354,7 @@ Alluxio通过配置`alluxio.security.authentication.type`来提供不同的[用�
 1. `ROCKS`和`HEAP`元存储的journal不兼容。
 
 当您看见类似"Failed to replace a bad datanode on the existing pipeline due to no more good datanodes being avilabe to try"。
-这是因为Alluxio master还没有根据`alluxio.master.journal.folder`属性来更新HDFS目录下的日志文件。有多种原因可以导致这种类型的错误，其中典型的原因是：
+这是因为Alluxio master还没有根据`alluxio.coordinator.journal.folder`属性来更新HDFS目录下的日志文件。有多种原因可以导致这种类型的错误，其中典型的原因是：
 一些用来管理日志文件的HDFS datanode处于高负载状态或者磁盘空间已经用完。当日志目录设置在HDFS中时，请确保HDFS部署处于连接状态并且能够让Alluxio正常存储日志文件。
 
 如果您在上面没有找到答案，请按照[这里](#发布问题)发表问题。

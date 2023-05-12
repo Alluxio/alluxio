@@ -23,7 +23,7 @@ This will enable the consistent hashing algorithm to distribute the load among D
 
 ```properties
 alluxio.user.short.circuit.enabled=false
-alluxio.master.worker.register.lease.enabled=false
+alluxio.coordinator.worker.register.lease.enabled=false
 ```
 
 These features are not supported in Dora and needs to be disabled for Dora to work.
@@ -35,7 +35,7 @@ alluxio.dora.client.ufs.root=<under_fs_uri>
 ```
 
 This property specifies the UFS clients will fall back to, in the same way as the
-`alluxio.master.mount.table.root.ufs` property specifies the UFS of the master root mount point.
+`alluxio.coordinator.mount.table.root.ufs` property specifies the UFS of the master root mount point.
 
 To configure additionally UFS specific configurations, simply put them in the `alluxio-site.properties` file. Make sure
 the configuration are the same across all Dora nodes.
@@ -43,7 +43,7 @@ the configuration are the same across all Dora nodes.
 For example, if the UFS is HDFS, and needs special configurations specified in `core-site.xml` and `hdfs-site.xml`,
 specify the Alluxio property `alluxio.underfs.hdfs.configuration` directly. The documentation on
 [configuring HDFS](https://github.com/Alluxio/alluxio/blob/dora/docs/en/ufs/HDFS.md#specify-hdfs-configuration-location) suggests using
-the Master mount point option starting with `alluxio.master.mount.table.root.option`. This is currently not supported
+the Master mount point option starting with `alluxio.coordinator.mount.table.root.option`. This is currently not supported
 by Dora nodes.
 
 ## Cache storage

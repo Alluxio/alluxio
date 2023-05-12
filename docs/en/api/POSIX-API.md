@@ -241,20 +241,20 @@ alluxio.user.update.file.accesstime.disabled=true
 # Alluxio passive cache which helps cache a new copy of data in local worker is not needed in this case
 alluxio.user.file.passive.cache.enabled=false
 # no need to check replication level if written only once
-alluxio.master.replication.check.interval=1hr
+alluxio.coordinator.replication.check.interval=1hr
 ```
 
 When using POSIX API with a large amount of small files, recommend setting the following extra properties:
 ```config
 # Use ROCKS metastore to store metadata on disk to support a large dataset (1 billion files)
-alluxio.master.metastore=ROCKS
+alluxio.coordinator.metastore=ROCKS
 
 # Cache hot metadata on heap to speed up metadata access
 # The suggested maximum metadata cache size can be calculated by
 # by Math.min(<Dataset_file_number>, <Master_max_memory_size>/3/2KB per inode)
 # For example, when the master has 120GB max memory size (-Xmx=120GB) and the dataset file number is around 60 million,
 # the maximum metadata cache size is suggested to be set up to 20 million
-alluxio.master.metastore.inode.cache.max.size=20000000
+alluxio.coordinator.metastore.inode.cache.max.size=20000000
 
 # Enlarge worker RPC clients to communicate to master
 alluxio.worker.block.master.client.pool.size=32

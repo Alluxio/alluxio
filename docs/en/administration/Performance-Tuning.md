@@ -86,7 +86,7 @@ Also check out the [metrics system][2] for better insight into how the Alluxio s
 
 ### JVM Monitoring
 
-To detect long GC pauses, Alluxio administrators can set `alluxio.master.jvm.monitor.enabled=true`
+To detect long GC pauses, Alluxio administrators can set `alluxio.coordinator.jvm.monitor.enabled=true`
 for masters or `alluxio.worker.jvm.monitor.enabled=true` for workers.
 They are enabled by default in Alluxio 2.4.0 and newer.
 This will trigger a monitoring thread that periodically measures the delay between two GC pauses.
@@ -162,12 +162,12 @@ If there is a drop in the hit ratio, consider boosting cache size or examine the
 <table class="table table-striped">
 <tr><th>Property</th><th>Default</th><th>Description</th></tr>
 <tr>
-  <td>alluxio.master.journal.flush.batch.time</td>
+  <td>alluxio.coordinator.journal.flush.batch.time</td>
   <td>5ms</td>
   <td>Time to wait for batching journal writes</td>
 </tr>
 <tr>
-  <td>alluxio.master.journal.flush.timeout</td>
+  <td>alluxio.coordinator.journal.flush.timeout</td>
   <td>5min</td>
   <td>The amount of time to retry journal writes before giving up and shutting down the master</td>
 </tr>
@@ -175,7 +175,7 @@ If there is a drop in the hit ratio, consider boosting cache size or examine the
 
 Increasing the batch time can improve master throughput for update/write RPCs, but may also
 increase the latency for those update/write RPCs.
-Setting a larger timeout value for `alluxio.master.journal.flush.timeout` helps keep the master
+Setting a larger timeout value for `alluxio.coordinator.journal.flush.timeout` helps keep the master
 alive if the journal writing location is unavailable for an extended duration.
 
 ### Embedded journal write performance
@@ -186,9 +186,9 @@ update operations in Alluxio may suffer. This may be the case if, for example, t
 [basic logging]({{ '/en/administration/Basic-Logging.html' | relativize_url }}) operations.
 
 For optimal performance it may be useful to dedicate a disk specifically to the journal.
-The location of the journal folder can be set by the property key `alluxio.master.journal.folder`.
+The location of the journal folder can be set by the property key `alluxio.coordinator.journal.folder`.
 
-Alternatively, by setting the property key `alluxio.master.embedded.journal.unsafe.flush.enabled`
+Alternatively, by setting the property key `alluxio.coordinator.embedded.journal.unsafe.flush.enabled`
 to true, operations will be committed without waiting for the flush to disk to complete.
 > Warning: enabling this property may lead to metadata loss on the Alluxio masters if half
 or more of the master nodes fail.
@@ -198,7 +198,7 @@ or more of the master nodes fail.
 <table class="table table-striped">
 <tr><th>Property</th><th>Default</th><th>Description</th></tr>
 <tr>
-  <td>alluxio.master.journal.checkpoint.period.entries</td>
+  <td>alluxio.coordinator.journal.checkpoint.period.entries</td>
   <td>2000000</td>
   <td>The number of journal entries to write before creating a new journal checkpoint</td>
 </tr>
@@ -214,7 +214,7 @@ The Alluxio client provides block locations, similar to the HDFS client.
 If a file block is not stored in Alluxio, Alluxio will consult the UFS for its block locations,
 requiring an additional RPC.
 This extra overhead can be avoided by caching the UFS block locations.
-The size of this cache is determined by the value of `alluxio.master.ufs.block.location.cache.capacity`.
+The size of this cache is determined by the value of `alluxio.coordinator.ufs.block.location.cache.capacity`.
 Caching is disabled if the value is set to `0`.
 
 Increasing the cache size will allow the Alluxio master to store more UFS block locations,
@@ -235,11 +235,11 @@ and thus prevent Alluxio from scanning for new files at all.
 
 The Alluxio master maintains a cache to keep track of which UFS paths have been previously loaded,
 to approximate the `ONCE` behavior.
-The parameter `alluxio.master.ufs.path.cache.capacity` controls the number of paths to store in the cache.
+The parameter `alluxio.coordinator.ufs.path.cache.capacity` controls the number of paths to store in the cache.
 A larger cache size will consume more memory, but will better approximate the `ONCE` behavior.
 The Alluxio master maintains the UFS path cache asynchronously.
 Alluxio uses a thread pool to process the paths asynchronously, whose size is controlled by
-`alluxio.master.ufs.path.cache.threads`.
+`alluxio.coordinator.ufs.path.cache.threads`.
 Increasing the number of threads can decrease the staleness of the UFS path cache,
 but may impact performance by increasing work on the Alluxio master, as well as consuming UFS bandwidth.
 If this is set to 0, the cache is disabled and the `ONCE` setting will behave like the `ALWAYS` setting.
@@ -251,10 +251,10 @@ The cost of metadata sync scales linearly with the number of files in the direct
 If metadata sync operation happens frequently on large directories, more threads may be allocated to speed up this process. 
 Two configurations are relevant here. 
 
-`alluxio.master.metadata.sync.concurrency.level` controls the concurrency that is used in a single sync operation.
+`alluxio.coordinator.metadata.sync.concurrency.level` controls the concurrency that is used in a single sync operation.
 Adjust this to 1x to 2x virtual core count on the master node to speed up the speed of metadata sync.
 
-`alluxio.master.metadata.sync.executor.pool.size` controls the number of threads performing sync operations.
+`alluxio.coordinator.metadata.sync.executor.pool.size` controls the number of threads performing sync operations.
 This defaults to the number of virtual cores in the system, but can be adjusted to 2x or 4x number of virtual cores if we expect many concurrent sync operations. 
 
 ## Worker Tuning
@@ -361,7 +361,7 @@ alluxio.user.file.persist.on.rename=true
 # a larger number to ensure fault tolerance in case of Alluxio worker failures
 alluxio.user.file.replication.durable=1
 # Blacklists persisting files which contain the string "_temporary" anywhere in their path
-alluxio.master.persistence.blacklist=_temporary
+alluxio.coordinator.persistence.blacklist=_temporary
 ```
 
 With this configuration, the protocol translates to the following:
@@ -386,7 +386,7 @@ persist.
 For example, if
 
 ```
-alluxio.master.persistence.blacklist=.staging,_temporary
+alluxio.coordinator.persistence.blacklist=.staging,_temporary
 ```
 
 Files such as `/data/_temporary/part-00001`, `/data/temporary.staging` will not be considered for
@@ -453,9 +453,9 @@ Possible reasons:
    * `alluxio.user.file.metadata.sync.interval` controls how often metadata is synced. Frequent syncing can lead to extra ufs calls and slow down the system performance.
    * Slowness in syncing can also be caused by not enough sync threads
 adjust
-`alluxio.master.metadata.sync.concurrency.level`
-`alluxio.master.metadata.sync.executor.pool.size`
-`alluxio.master.metadata.sync.ufs.prefetch.pool.size`
+`alluxio.coordinator.metadata.sync.concurrency.level`
+`alluxio.coordinator.metadata.sync.executor.pool.size`
+`alluxio.coordinator.metadata.sync.ufs.prefetch.pool.size`
 
 ### Slow distributedLoad / distCp / async persist (Job service jobs) 
 1. Using `jps` to ensure job master and job worker processes are running

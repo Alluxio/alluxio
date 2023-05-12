@@ -22,9 +22,9 @@ import alluxio.client.meta.MetaMasterConfigClient;
 import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.master.MasterClientContext;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import com.google.common.io.ByteStreams;

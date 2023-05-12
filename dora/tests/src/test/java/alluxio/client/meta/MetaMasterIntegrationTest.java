@@ -15,10 +15,10 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.ClientContext;
 import alluxio.conf.Configuration;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
-import alluxio.master.MasterClientContext;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.wire.Property;

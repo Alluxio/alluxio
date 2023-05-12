@@ -90,7 +90,7 @@ $ docker run -d \
 - `-u=0`表示以`root`身份运行
 - `--net=host`指定容器共享主机的network namespace
 - `-v $PWD/underStorage:/opt/alluxio/underFSStoragee`表示宿主机和Docker容器共享底层存储层文件夹
-- `-e ALLUXIO_JAVA_OPTS`中设置Alluxio的配置项，其中`alluxio.master.mount.table.root.ufs`设置了底层存储系统文件夹
+- `-e ALLUXIO_JAVA_OPTS`中设置Alluxio的配置项，其中`alluxio.coordinator.mount.table.root.ufs`设置了底层存储系统文件夹
 
 #### 启动Alluxio worker
 
@@ -349,7 +349,7 @@ properties:
     fs.oss.endpoint: <OSS_ENDPOINT>
     fs.oss.accessKeyId: <OSS_ACCESS_KEY_ID>
     fs.oss.accessKeySecret: <OSS_ACCESS_KEY_SECRET>
-    alluxio.master.mount.table.root.ufs: oss://<OSS_BUCKET>/<OSS_DIRECTORY>/
+    alluxio.coordinator.mount.table.root.ufs: oss://<OSS_BUCKET>/<OSS_DIRECTORY>/
 
 tieredstore:
   levels:
@@ -423,7 +423,7 @@ properties:
     alluxio.user.client.cache.dir: /alluxio/ram
     alluxio.user.client.cache.page.size: 8MB
     alluxio.user.client.cache.size: 1800MB
-    alluxio.master.journal.log.size.bytes.max: 500MB
+    alluxio.coordinator.journal.log.size.bytes.max: 500MB
     alluxio.user.update.file.accesstime.disabled: true
     alluxio.user.block.worker.client.pool.min: 512
     # It should be great than (120)*0.01 = 2GB
@@ -437,21 +437,21 @@ properties:
     fs.oss.endpoint: <OSS_ENDPOINT>
     fs.oss.accessKeyId: <OSS_ACCESS_KEY_ID>
     fs.oss.accessKeySecret: <OSS_ACCESS_KEY_SECRET>
-    alluxio.master.mount.table.root.ufs: oss://<OSS_BUCKET>/<OSS_DIRECTORY>/
+    alluxio.coordinator.mount.table.root.ufs: oss://<OSS_BUCKET>/<OSS_DIRECTORY>/
     alluxio.user.streaming.reader.chunk.size.bytes: 32MB
     alluxio.user.local.reader.chunk.size.bytes: 32MB
     alluxio.worker.network.reader.buffer.size: 32MB
     alluxio.worker.file.buffer.size: 320MB
     alluxio.job.worker.threadpool.size: 64
     alluxio.user.metrics.collection.enabled: false
-    alluxio.master.rpc.executor.max.pool.size: 10240
-    alluxio.master.rpc.executor.core.pool.size: 128
-    alluxio.master.mount.table.root.readonly: true
+    alluxio.coordinator.rpc.executor.max.pool.size: 10240
+    alluxio.coordinator.rpc.executor.core.pool.size: 128
+    alluxio.coordinator.mount.table.root.readonly: true
     alluxio.user.update.file.accesstime.disabled: true
     alluxio.user.file.passive.cache.enabled: false
     alluxio.user.block.avoid.eviction.policy.reserved.size.bytes: 2GB
-    alluxio.master.journal.folder: /journal
-    alluxio.master.journal.type: UFS
+    alluxio.coordinator.journal.folder: /journal
+    alluxio.coordinator.journal.type: UFS
     alluxio.user.block.master.client.pool.gc.threshold: 2day
     alluxio.user.file.master.client.threads: 1024
     alluxio.user.block.master.client.threads: 1024

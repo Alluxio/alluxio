@@ -81,7 +81,7 @@ Maven编译环境将自动获取依赖，编译源码，运行单元测试，并
 一旦Alluxio编译完成，你可以运行如下命令：
 
 ```console
-$ echo "alluxio.master.hostname=localhost" > conf/alluxio-site.properties
+$ echo "alluxio.coordinator.hostname=localhost" > conf/alluxio-site.properties
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
 ```

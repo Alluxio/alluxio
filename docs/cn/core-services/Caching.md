@@ -76,7 +76,7 @@ alluxio.worker.tieredstore.level0.dirs.mediumtype=MEM,SSD,SSD
 
 请注意，介质类型的顺序必须与路径的顺序相符。
 MEM和SSD是Alluxio中的两种预配置存储类型。
-`alluxio.master.tieredstore.global.mediumtype`是包含所有可用的介质类型的配置参数，默认情况下设置为`MEM，SSD，HDD`。 
+`alluxio.coordinator.tieredstore.global.mediumtype`是包含所有可用的介质类型的配置参数，默认情况下设置为`MEM，SSD，HDD`。 
 如果用户有额外存储介质类型可以通过修改这个配置来增加。
 
 提供的路径应指向挂载适当存储介质的本地文件系统中的路径。 
@@ -345,7 +345,7 @@ Alluxio具有与每个文件或目录关联的TTL属性。这些属性将保存�
 如将间隔设置为10分钟，在`alluxio-site.properties`添加以下配置：
 
 ```properties
-alluxio.master.ttl.checker.interval=10m
+alluxio.coordinator.ttl.checker.interval=10m
 ```
 
 请参考[配置页]({{ '/cn/operation/Configuration.html' | relativize_url }})
@@ -399,7 +399,7 @@ $ ./bin/alluxio runTests -Dalluxio.user.file.create.ttl=3m \
   -Dalluxio.user.file.create.ttl.action=DELETE
 ```
 
-对于这个例子，确保`alluxio.master.ttl.checker.interval`被设定为短
+对于这个例子，确保`alluxio.coordinator.ttl.checker.interval`被设定为短
 间隔，例如一分钟，以便master能快速识别过期文件。
 
 ## 在Alluxio中管理数据复制
@@ -503,6 +503,6 @@ $ ./bin/alluxio fs getUsedBytes
 $ ./bin/alluxio fs getCapacityBytes
 ```
 
-Alluxio master web界面为用户提供了集群的可视化总览包括已用多少存储空间。可以在`http:/{MASTER_IP}:${alluxio.master.web.port}/`中找到。
+Alluxio master web界面为用户提供了集群的可视化总览包括已用多少存储空间。可以在`http:/{MASTER_IP}:${alluxio.coordinator.web.port}/`中找到。
 有关Alluxio Web界面的更多详细信息可以在
 [相关文档]({{ '/en/operation/Web-Interface.html' | relativize_url }}) 中找到。

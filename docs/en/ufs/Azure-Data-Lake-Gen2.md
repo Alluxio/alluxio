@@ -41,13 +41,13 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 Specify the underfs address by modifying `conf/alluxio-site.properties` to include:
 
 ```properties
-alluxio.master.mount.table.root.ufs=abfs://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.dfs.core.windows.net/<AZURE_DIRECTORY>/
+alluxio.coordinator.mount.table.root.ufs=abfs://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.dfs.core.windows.net/<AZURE_DIRECTORY>/
 ```
 
 Specify the Shared Key by adding the following property in `conf/alluxio-site.properties`:
 
 ```properties
-alluxio.master.mount.table.root.option.fs.azure.account.key.<AZURE_ACCOUNT>.dfs.core.windows.net=<SHARED_KEY>
+alluxio.coordinator.mount.table.root.option.fs.azure.account.key.<AZURE_ACCOUNT>.dfs.core.windows.net=<SHARED_KEY>
 ```
 
 ### Nested Mount
@@ -79,16 +79,16 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 Specify the underfs address by modifying `conf/alluxio-site.properties` to include:
 
 ```properties
-alluxio.master.mount.table.root.ufs=abfs://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.dfs.core.windows.net/<AZURE_DIRECTORY>/
+alluxio.coordinator.mount.table.root.ufs=abfs://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.dfs.core.windows.net/<AZURE_DIRECTORY>/
 ```
 
 Specify the OAuth 2.0 Client Credentials by adding the following property in `conf/alluxio-site.properties`:
 (Please note that for URL Endpoint, use the V1 token endpoint)
 
 ```properties
-alluxio.master.mount.table.root.option.fs.azure.account.oauth2.client.endpoint=<OAUTH_ENDPOINT>
-alluxio.master.mount.table.root.option.fs.azure.account.oauth2.client.id=<CLIENT_ID>
-alluxio.master.mount.table.root.option.fs.azure.account.oauth2.client.secret=<CLIENT_SECRET>
+alluxio.coordinator.mount.table.root.option.fs.azure.account.oauth2.client.endpoint=<OAUTH_ENDPOINT>
+alluxio.coordinator.mount.table.root.option.fs.azure.account.oauth2.client.id=<CLIENT_ID>
+alluxio.coordinator.mount.table.root.option.fs.azure.account.oauth2.client.secret=<CLIENT_SECRET>
 ```
 
 ### Nested Mount
@@ -122,15 +122,15 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 Specify the underfs address by modifying `conf/alluxio-site.properties` to include:
 
 ```properties
-alluxio.master.mount.table.root.ufs=abfs://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.dfs.core.windows.net/<AZURE_DIRECTORY>/
+alluxio.coordinator.mount.table.root.ufs=abfs://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.dfs.core.windows.net/<AZURE_DIRECTORY>/
 ```
 
 Specify the Azure Managed Identities by adding the following property in `conf/alluxio-site.properties`:
 
 ```properties
-alluxio.master.mount.table.root.option.fs.azure.account.oauth2.msi.endpoint=<MSI_ENDPOINT>
-alluxio.master.mount.table.root.option.fs.azure.account.oauth2.client.id=<CLIENT_ID>
-alluxio.master.mount.table.root.option.fs.azure.account.oauth2.msi.tenant=<TENANT>
+alluxio.coordinator.mount.table.root.option.fs.azure.account.oauth2.msi.endpoint=<MSI_ENDPOINT>
+alluxio.coordinator.mount.table.root.option.fs.azure.account.oauth2.client.id=<CLIENT_ID>
+alluxio.coordinator.mount.table.root.option.fs.azure.account.oauth2.msi.tenant=<TENANT>
 ```
 
 ### Nested Mount

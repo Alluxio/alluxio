@@ -18,8 +18,8 @@ import alluxio.AlluxioURI;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.Configuration;
-import alluxio.master.LocalAlluxioJobCluster;
-import alluxio.master.MultiMasterLocalAlluxioCluster;
+import alluxio.coordinator.LocalAlluxioJobCluster;
+import alluxio.coordinator.MultiMasterLocalAlluxioCluster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.IntegrationTestUtils;
 

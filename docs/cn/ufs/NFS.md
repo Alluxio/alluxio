@@ -26,8 +26,8 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 假定所有NFS客户端与Alluxio部署在同样的节点上，且NFS挂载在`/mnt/nfs`，那以下的环境变量要添加到`conf/alluxio-site.properties`配置文件中：
 
 ```
-alluxio.master.hostname=localhost
-alluxio.master.mount.table.root.ufs=/mnt/nfs
+alluxio.coordinator.hostname=localhost
+alluxio.coordinator.mount.table.root.ufs=/mnt/nfs
 ```
 
 ## 使用NFS运行Alluxio

@@ -106,7 +106,7 @@ $ helm repo add alluxio-charts https://alluxio-charts.storage.googleapis.com/ope
 
 ```properties
 properties:
-  alluxio.master.mount.table.root.ufs: "<under_storage_address>"
+  alluxio.coordinator.mount.table.root.ufs: "<under_storage_address>"
 ```
 
  >注意:必须修改底层文件系统地址。任何凭证都必须修改。
@@ -126,9 +126,9 @@ To [mount S3]({{ '/en/ufs/S3.html' | relativize_url }}#root-mount-point)
 
 ```properties
 properties:
-  alluxio.master.mount.table.root.ufs: "s3a://<bucket>"
-  alluxio.master.mount.table.root.option.s3a.accessKeyId: "<accessKey>"
-  alluxio.master.mount.table.root.option.s3a.secretKey: "<secretKey>"
+  alluxio.coordinator.mount.table.root.ufs: "s3a://<bucket>"
+  alluxio.coordinator.mount.table.root.option.s3a.accessKeyId: "<accessKey>"
+  alluxio.coordinator.mount.table.root.option.s3a.secretKey: "<secretKey>"
 ```
 
 {% endcollapsible %}
@@ -199,8 +199,8 @@ journal:
   folder: "hdfs://{$hostname}:{$hostport}/journal"
  
 properties:
-  alluxio.master.mount.table.root.ufs: "hdfs://<ns>"
-  alluxio.master.journal.ufs.option.alluxio.underfs.hdfs.configuration: "/secrets/hdfsConfig/core-site.xml:/secrets/hdfsConfig/hdfs-site.xml"
+  alluxio.coordinator.mount.table.root.ufs: "hdfs://<ns>"
+  alluxio.coordinator.journal.ufs.option.alluxio.underfs.hdfs.configuration: "/secrets/hdfsConfig/core-site.xml:/secrets/hdfsConfig/hdfs-site.xml"
  
 secrets:
   master:
@@ -263,8 +263,8 @@ $ kubectl create secret generic alluxio-hdfs-config --from-file=${HADOOP_CONF_DI
 
 ```properties
 properties:
-  alluxio.master.mount.table.root.ufs: "hdfs://<ns>"
-  alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration: "/secrets/hdfsConfig/core-site.xml:/secrets/hdfsConfig/hdfs-site.xml"
+  alluxio.coordinator.mount.table.root.ufs: "hdfs://<ns>"
+  alluxio.coordinator.mount.table.root.option.alluxio.underfs.hdfs.configuration: "/secrets/hdfsConfig/core-site.xml:/secrets/hdfsConfig/hdfs-site.xml"
 secrets:
   master:
     alluxio-hdfs-config: hdfsConfig
@@ -280,8 +280,8 @@ secrets:
 
 ```properties
 properties:
-  alluxio.master.metastore: ROCKS
-  alluxio.master.metastore.dir: /metastore
+  alluxio.coordinator.metastore: ROCKS
+  alluxio.coordinator.metastore.dir: /metastore
 
 metastore:
   volumeType: persistentVolumeClaim # Options: "persistentVolumeClaim" or "emptyDir"
@@ -301,8 +301,8 @@ metastore:
 
 ```properties
 properties:
-  alluxio.master.metastore: ROCKS
-  alluxio.master.metastore.dir: /metastore
+  alluxio.coordinator.metastore: ROCKS
+  alluxio.coordinator.metastore.dir: /metastore
 
 metastore:
   volumeType: emptyDir # Options: "persistentVolumeClaim" or "emptyDir"
@@ -562,7 +562,7 @@ kubectl create secret generic alluxio-hdfs-config --from-file=${HADOOP_CONF_DIR}
  
 这两个配置文件在`alluxio-master-statefulset.yaml`和`alluxio-worker-daemonset.yaml`中会引用到。Alluxio进程需要HDFS配置文件才能连接，这些文件在容器中的位置由属性`alluxio.underfs.hdfs.configuration`控制。
 
-**步骤3:修改`alluxio-configmap.yaml.template`。现在Pods已经知道如何连接到HDFS服务，下面更新`alluxio.master.journal.folder`和`alluxio.master.mount.table .root.ufs`并指向要连接的目标HDFS服务。
+**步骤3:修改`alluxio-configmap.yaml.template`。现在Pods已经知道如何连接到HDFS服务，下面更新`alluxio.coordinator.journal.folder`和`alluxio.coordinator.mount.table .root.ufs`并指向要连接的目标HDFS服务。
  {% endcollapsible %}
 {% endaccordion %}
 

@@ -90,7 +90,7 @@ alluxio.worker.tieredstore.level0.dirs.mediumtype=MEM,SSD,SSD
 
 Note that the ordering of the medium types must match the ordering of the paths.
 Here, MEM and SSD are two preconfigured types in Alluxio.
-`alluxio.master.tieredstore.global.mediumtype` is a configuration parameter that has a list of
+`alluxio.coordinator.tieredstore.global.mediumtype` is a configuration parameter that has a list of
 all available medium types and by default it is set to `MEM, SSD, HDD`.
 This list can be modified if the user has additional storage media types.
 
@@ -512,7 +512,7 @@ next check interval an hour later.
 To set the interval to 10 minutes, add the following to `alluxio-site.properties`:
 
 ```properties
-alluxio.master.ttl.checker.interval=10m
+alluxio.coordinator.ttl.checker.interval=10m
 ```
 
 Refer to the [configuration page]({{ '/en/operation/Configuration.html' | relativize_url }})
@@ -571,7 +571,7 @@ $ ./bin/alluxio runTests -Dalluxio.user.file.create.ttl=3m \
   -Dalluxio.user.file.create.ttl.action=DELETE
 ```
 
-For this example, ensure the `alluxio.master.ttl.checker.interval` is set to a short
+For this example, ensure the `alluxio.coordinator.ttl.checker.interval` is set to a short
 duration, such as a minute, in order for the master to quickly identify the expired files.
 
 ## Managing Data Replication in Alluxio
@@ -684,6 +684,6 @@ $ ./bin/alluxio fs getCapacityBytes
 ```
 
 The Alluxio master web interface gives the user a visual overview of the cluster and how much
-storage space is used. It can be found at `http:/{MASTER_IP}:${alluxio.master.web.port}/`.
+storage space is used. It can be found at `http:/{MASTER_IP}:${alluxio.coordinator.web.port}/`.
 More detailed information about the Alluxio web interface can be
 [found in our documentation]({{ '/en/operation/Web-Interface.html' | relativize_url }}).

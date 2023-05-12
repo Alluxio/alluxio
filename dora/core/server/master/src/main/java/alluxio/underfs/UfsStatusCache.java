@@ -15,11 +15,11 @@ import alluxio.AlluxioURI;
 import alluxio.collections.UnmodifiableArrayList;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.coordinator.file.DefaultFileSystemMaster;
+import alluxio.coordinator.file.RpcContext;
+import alluxio.coordinator.file.meta.MountTable;
+import alluxio.coordinator.file.meta.UfsAbsentPathCache;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.file.DefaultFileSystemMaster;
-import alluxio.master.file.RpcContext;
-import alluxio.master.file.meta.MountTable;
-import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.resource.CloseableResource;
 import alluxio.util.LogUtils;
 

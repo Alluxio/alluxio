@@ -42,12 +42,12 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 在配置文件（`conf/alluxio-site.properties`）中按如下配置：
 
 ```
-alluxio.master.hostname=<MASTER_HOSTNAME>
-alluxio.master.mount.table.root.ufs=<STORAGE_URI>
+alluxio.coordinator.hostname=<MASTER_HOSTNAME>
+alluxio.coordinator.mount.table.root.ufs=<STORAGE_URI>
 ```
 
-- 第一个属性`alluxio.master.hostname`设置单个master节点的主机名。 示例包括`alluxio.master.hostname=1.2.3.4`或`alluxio.master.hostname=node1.a.com`。
-- 第二个属性`alluxio.master.mount.table.root.ufs`设置为挂载到Alluxio根目录的底层存储URI。 一定保证master节点和所有worker节点都可以访问此共享存储。 示例包括`alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`或`alluxio.master.mount.table.root.ufs=s3//bucket/dir/`。
+- 第一个属性`alluxio.coordinator.hostname`设置单个master节点的主机名。 示例包括`alluxio.coordinator.hostname=1.2.3.4`或`alluxio.coordinator.hostname=node1.a.com`。
+- 第二个属性`alluxio.coordinator.mount.table.root.ufs`设置为挂载到Alluxio根目录的底层存储URI。 一定保证master节点和所有worker节点都可以访问此共享存储。 示例包括`alluxio.coordinator.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`或`alluxio.coordinator.mount.table.root.ufs=s3//bucket/dir/`。
 
 接下来，将配置文件复制到所有其他Alluxio节点。 通过将所有work节点的IP地址或主机名添加到`conf/workers`文件中，操作员可以利用内置工具将配置文件复制到远程节点，如下所示。
 
@@ -177,7 +177,7 @@ $ ./bin/alluxio-start.sh worker SudoMount # 启动本地 worker
 $ ./bin/alluxio-stop.sh worker # 停止本地 worker
 ```
 
-一旦worker被停止，master将在预定的超时值（通过master参数`alluxio.master.worker.timeout`配置）后将此worker标记为缺失。 主机视worker为"丢失"，并且不再将其包括在集群中。
+一旦worker被停止，master将在预定的超时值（通过master参数`alluxio.coordinator.worker.timeout`配置）后将此worker标记为缺失。 主机视worker为"丢失"，并且不再将其包括在集群中。
 
 ### 更新master配置
 

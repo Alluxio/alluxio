@@ -15,7 +15,7 @@ Alluxio将为操作写一个日志条目对客户的成功回应。日记条目�
 
 # 配置
 
-要为日志设置的最重要的配置值是`alluxio.master.journal.folder`。这必须设置为所有主服务器都可以使用的共享文件系统。
+要为日志设置的最重要的配置值是`alluxio.coordinator.journal.folder`。这必须设置为所有主服务器都可以使用的共享文件系统。
 在单主节点模式下，直接使用本地文件系统路径是可行的。对于分布在不同机器上的多个主目录，共享文件夹应该位于支持flush的分布式系统中，
 比如HDFS或NFS。不建议将日志放在对象存储中。对于对象存储，对日志的每一次更新都需要创建一个新对象，
 这对于大多数紧急的用例来说是非常缓慢的。
@@ -23,11 +23,11 @@ Alluxio将为操作写一个日志条目对客户的成功回应。日记条目�
 **配置示例:**
 使用HDFS来存储日志：
 ```
-alluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/dir/alluxio_journal
+alluxio.coordinator.journal.folder=hdfs://[namenodeserver]:[namenodeport]/dir/alluxio_journal
 ```
 使用本地文件系统来存储日志：
 ```
-alluxio.master.journal.folder=/opt/alluxio/journal
+alluxio.coordinator.journal.folder=/opt/alluxio/journal
 ```
 
 # 格式化
@@ -50,10 +50,10 @@ $ ./bin/alluxio fsadmin backup
 ```
 
 默认情况下，这将编写一个名为`alluxio-journal-YYYY-MM-DD-timestamp.gz`的备份指向文件系统下根目录的"/alluxio_backups"目录，
-例如:hdfs://cluster/alluxio_backups。这个默认的备份目录可以通过设置`alluxio.master.backup.directory`来配置。
+例如:hdfs://cluster/alluxio_backups。这个默认的备份目录可以通过设置`alluxio.coordinator.backup.directory`来配置。
 
 ```
-alluxio.master.backup.directory=/alluxio/backups
+alluxio.coordinator.backup.directory=/alluxio/backups
 ```
 
 查看 [备份指令]({{ '/cn/operation/Admin-CLI.html' | relativize_url }}#backup) 获取写备份文件具体位置的额外配置。

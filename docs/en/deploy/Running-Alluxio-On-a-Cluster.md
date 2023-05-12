@@ -50,25 +50,25 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 Set the following properties in this configuration file (`conf/alluxio-site.properties`):
 
 ```
-alluxio.master.hostname=<MASTER_HOSTNAME>
-alluxio.master.mount.table.root.ufs=<STORAGE_URI>
+alluxio.coordinator.hostname=<MASTER_HOSTNAME>
+alluxio.coordinator.mount.table.root.ufs=<STORAGE_URI>
 ```
 
-- The first property `alluxio.master.hostname` sets the hostname of the single master node.
+- The first property `alluxio.coordinator.hostname` sets the hostname of the single master node.
   Please ensure this address is reachable by your worker nodes.
   Examples include
-  `alluxio.master.hostname=1.2.3.4` or `alluxio.master.hostname=node1.a.com`.
-- The second property `alluxio.master.mount.table.root.ufs` sets to the URI of the under store to
+  `alluxio.coordinator.hostname=1.2.3.4` or `alluxio.coordinator.hostname=node1.a.com`.
+- The second property `alluxio.coordinator.mount.table.root.ufs` sets to the URI of the under store to
   mount to the Alluxio root.
   This shared storage system must be accessible by the master node and all worker nodes.
   
   For example, when [HDFS]({{ '/en/ufs/HDFS.html#basic-setup' | relativize_url }})
   is used as the under storage system, the value of this property can be set to
-  `alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`
+  `alluxio.coordinator.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`
   
   When [Amazon S3]({{ '/en/ufs/S3.html#basic-setup' | relativize_url }})
   is used as the under storage system, the value can be set to
-  `alluxio.master.mount.table.root.ufs=s3://bucket/dir/`
+  `alluxio.coordinator.mount.table.root.ufs=s3://bucket/dir/`
 
 Append the hostname of each node into `conf/masters` and `conf/workers` accordingly.
 Append the hostname of each Alluxio master node to a new line into `conf/masters`,
@@ -231,7 +231,7 @@ $ ./bin/alluxio-stop.sh worker # stops the local worker
 ```
 
 Once the worker is stopped, the master will flag the worker as lost after a predetermined timeout 
-value (configured by master parameter `alluxio.master.worker.timeout`).
+value (configured by master parameter `alluxio.coordinator.worker.timeout`).
 The master will consider the worker as "lost", and no longer include it as part of the cluster.
 
 ### Update Master-side Configuration

@@ -35,12 +35,12 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 Modify `conf/alluxio-site.properties` to include:
 
 ```properties
-alluxio.master.mount.table.root.ufs=swift://<bucket>/<folder>
-alluxio.master.mount.table.root.option.fs.swift.user=<swift-user>
-alluxio.master.mount.table.root.option.fs.swift.tenant=<swift-tenant>
-alluxio.master.mount.table.root.option.fs.swift.password=<swift-user-password>
-alluxio.master.mount.table.root.option.fs.swift.auth.url=<swift-auth-url>
-alluxio.master.mount.table.root.option.fs.swift.auth.method=<swift-auth-model>
+alluxio.coordinator.mount.table.root.ufs=swift://<bucket>/<folder>
+alluxio.coordinator.mount.table.root.option.fs.swift.user=<swift-user>
+alluxio.coordinator.mount.table.root.option.fs.swift.tenant=<swift-tenant>
+alluxio.coordinator.mount.table.root.option.fs.swift.password=<swift-user-password>
+alluxio.coordinator.mount.table.root.option.fs.swift.auth.url=<swift-auth-url>
+alluxio.coordinator.mount.table.root.option.fs.swift.auth.method=<swift-auth-model>
 ```
 
 Replace `<bucket>/<folder>` with an existing Swift bucket location. Possible values of
@@ -50,7 +50,7 @@ Replace `<bucket>/<folder>` with an existing Swift bucket location. Possible val
 When using either keystone authentication, the following parameter can optionally be set:
 
 ```properties
-alluxio.master.mount.table.root.option.fs.swift.region=<swift-preferred-region>
+alluxio.coordinator.mount.table.root.option.fs.swift.region=<swift-preferred-region>
 ```
 
 On the successful authentication, Keystone will return two access URLs: public and private. If

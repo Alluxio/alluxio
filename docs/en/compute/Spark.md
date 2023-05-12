@@ -32,7 +32,7 @@ data-locality.
 * Java 8 Update 60 or higher (8u60+), 64-bit.
 * An Alluxio cluster is set up and is running.
 This guide assumes the persistent under storage is a local HDFS deployment.
-E.g., a line of `alluxio.master.mount.table.root.ufs=hdfs://localhost:9000/alluxio/`
+E.g., a line of `alluxio.coordinator.mount.table.root.ufs=hdfs://localhost:9000/alluxio/`
 is included in `${ALLUXIO_HOME}/conf/alluxio-site.properties`.
 Note that Alluxio supports many other under storage systems in addition to HDFS.
 To access data from any number of those systems is orthogonal to the focus of
@@ -123,7 +123,7 @@ system space.
 ### Configure Spark for Alluxio with HA
 
 When connecting to an HA-enabled Alluxio cluster using internal leader election,
-set the `alluxio.master.rpc.addresses` property via the Java options in
+set the `alluxio.coordinator.rpc.addresses` property via the Java options in
 `${SPARK_HOME}/conf/spark-defaults.conf` so Spark
 applications know which Alluxio masters to connect to and how to identify the
 leader. For example:
@@ -137,11 +137,12 @@ Alternatively, add the property to the Hadoop configuration file
 `${SPARK_HOME}/conf/core-site.xml`:
 
 ```xml
+
 <configuration>
-  <property>
-    <name>alluxio.master.rpc.addresses</name>
-    <value>master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998</value>
-  </property>
+    <property>
+        <name>alluxio.coordinator.rpc.addresses</name>
+        <value>master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998</value>
+    </property>
 </configuration>
 ```
 

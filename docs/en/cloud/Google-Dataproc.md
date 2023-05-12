@@ -67,7 +67,7 @@ $ gcloud dataproc clusters create <cluster_name> \
 --metadata \
 alluxio_root_ufs_uri="LOCAL",\
 alluxio_hdfs_version="2.9",\
-alluxio_site_properties="alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/etc/hadoop/conf/core-site.xml:/etc/hadoop/conf/hdfs-site.xml"
+alluxio_site_properties="alluxio.coordinator.mount.table.root.option.alluxio.underfs.hdfs.configuration=/etc/hadoop/conf/core-site.xml:/etc/hadoop/conf/hdfs-site.xml"
 ```
 
 ### Customization

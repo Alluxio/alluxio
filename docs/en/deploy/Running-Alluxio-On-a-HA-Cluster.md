@@ -63,20 +63,20 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 Add the following properties to the `conf/alluxio-site.properties` file:
 
 ```properties
-alluxio.master.hostname=<MASTER_HOSTNAME> # Only needed on master node
-alluxio.master.embedded.journal.addresses=<EMBEDDED_JOURNAL_ADDRESS>
+alluxio.coordinator.hostname=<MASTER_HOSTNAME> # Only needed on master node
+alluxio.coordinator.embedded.journal.addresses=<EMBEDDED_JOURNAL_ADDRESS>
 ```
 
 Explanation:
-- The first property `alluxio.master.hostname=<MASTER_HOSTNAME>` is required on each master node
+- The first property `alluxio.coordinator.hostname=<MASTER_HOSTNAME>` is required on each master node
   to be its own externally visible hostname.
   This is required on each individual component of the master quorum to have its own address set.
   On worker nodes, this parameter will be ignored.
-  Examples include `alluxio.master.hostname=1.2.3.4`, `alluxio.master.hostname=node1.a.com`.
-- The second property `alluxio.master.embedded.journal.addresses` sets the sets of masters to
+  Examples include `alluxio.coordinator.hostname=1.2.3.4`, `alluxio.coordinator.hostname=node1.a.com`.
+- The second property `alluxio.coordinator.embedded.journal.addresses` sets the sets of masters to
   participate Alluxio's internal leader election and determine the leading master.
   The default embedded journal port is `19200`.
-  An example: `alluxio.master.embedded.journal.addresses=master_hostname_1:19200,master_hostname_2:19200,master_hostname_3:19200`
+  An example: `alluxio.coordinator.embedded.journal.addresses=master_hostname_1:19200,master_hostname_2:19200,master_hostname_3:19200`
 
 Note that embedded journal feature relies on [Ratis](https://github.com/apache/incubator-ratis) which uses
 leader election based on the Raft protocol and has its own format for storing journal entries.
@@ -107,8 +107,8 @@ The minimal configuration parameters which must be set are:
 ```
 alluxio.zookeeper.enabled=true
 alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>
-alluxio.master.journal.type=UFS
-alluxio.master.journal.folder=<JOURNAL_URI>
+alluxio.coordinator.journal.type=UFS
+alluxio.coordinator.journal.folder=<JOURNAL_URI>
 ```
 
 Explanation:
@@ -121,15 +121,15 @@ workers that HA mode is enabled.
   Multiple ZooKeeper addresses can be specified by delimiting with commas.
   Examples include `alluxio.zookeeper.address=1.2.3.4:2181`, `alluxio.zookeeper.address=zk1:2181,
   zk2:2181,zk3:2181`
-- `alluxio.master.journal.type=UFS` indicates UFS is used as the journal place.
+- `alluxio.coordinator.journal.type=UFS` indicates UFS is used as the journal place.
   Note that Zookeeper cannot work with journal type `EMBEDDED` (use a journal embedded in the
   masters).
-- `alluxio.master.journal.folder=<JOURNAL_URI>` sets the URI of the shared journal location for the
+- `alluxio.coordinator.journal.folder=<JOURNAL_URI>` sets the URI of the shared journal location for the
   Alluxio leading master to write the journal to, and for standby masters to replay journal entries
   from.
   This shared shared storage system must be accessible by all master nodes.
-  Examples include `alluxio.master.journal.folder=hdfs://1.2.3.4:9000/alluxio/journal/` or
-  `alluxio.master.journal.folder=/mnt/nfs/journal/`.
+  Examples include `alluxio.coordinator.journal.folder=hdfs://1.2.3.4:9000/alluxio/journal/` or
+  `alluxio.coordinator.journal.folder=/mnt/nfs/journal/`.
 
 Make sure all master nodes and all worker nodes have configured their respective
 `conf/alluxio-site.properties` configuration file appropriately.
@@ -231,10 +231,10 @@ $ hadoop fs -ls alluxio:///directory
 
 Depending on the different approaches to achieve HA, different properties are required:
 
-If using embedded journal, set `alluxio.master.rpc.addresses`.
+If using embedded journal, set `alluxio.coordinator.rpc.addresses`.
 
 ```
-alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
+alluxio.coordinator.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 ```
 
 Or specify the properties in Java option. For example, for Spark applications, add the following to 
@@ -286,24 +286,24 @@ If you are using embedded journal, you need to configure the following configura
 to the highly available alluxio node via `alluxio://ebj@[logical-name]` , for example
 `alluxio://ebj@my-alluxio-cluster`.
 
-* alluxio.master.nameservices.[logical-name] unique identifier for each alluxio master node
+* alluxio.coordinator.nameservices.[logical-name] unique identifier for each alluxio master node
 
 A comma-separated ID of the alluxio master node that determine all the alluxio master nodes in the cluster.
 For example, if you previously used `my-alluxio-cluster` as the logical name and wanted to
 use `master1,master2,master3` as individual IDs for each alluxio master, you configure this as such:
 
 ```
-alluxio.master.nameservices.my-alluxio-cluster=master1,master2,master3
+alluxio.coordinator.nameservices.my-alluxio-cluster=master1,master2,master3
 ```
 
-* alluxio.master.rpc.address.[logical name]. [master node ID]  RPC Address for each alluxio master node
+* alluxio.coordinator.rpc.address.[logical name]. [master node ID]  RPC Address for each alluxio master node
 
 For each alluxio master node previously configured, set the full address of each alluxio master node, for example:
 
 ```
-alluxio.master.rpc.address.my-alluxio-cluster.master1=master1:19998
-alluxio.master.rpc.address.my-alluxio-cluster.master2=master2:19998
-alluxio.master.rpc.address.my-alluxio-cluster.master3=master3:19998
+alluxio.coordinator.rpc.address.my-alluxio-cluster.master1=master1:19998
+alluxio.coordinator.rpc.address.my-alluxio-cluster.master2=master2:19998
+alluxio.coordinator.rpc.address.my-alluxio-cluster.master3=master3:19998
 ```
 
 #### Use logical name when using Zookeeper
@@ -311,25 +311,25 @@ alluxio.master.rpc.address.my-alluxio-cluster.master3=master3:19998
 If you are using zookeeper for leader election, you need to configure the following values and connect to
 the highly available alluxio node via `alluxio://zk@[logical-name]` , for example `alluxio://zk@my-alluxio-cluster`.
 
-* alluxio.master.zookeeper.nameservices.[logical-name] unique identifier for each Zookeeper node
+* alluxio.coordinator.zookeeper.nameservices.[logical-name] unique identifier for each Zookeeper node
 
 A comma-separated zookeeper node ID that determine all the Zookeeper nodes in the cluster. For example,
 if you previously used `my-alluxio-cluster` as the logical name and wanted to use `node1,node2,node3` as individual
 IDs for each Zookeeper, you would configure this as such:
 
 ```
-alluxio.master.zookeeper.nameservices.my-alluxio-cluster=node1,node2,node3
+alluxio.coordinator.zookeeper.nameservices.my-alluxio-cluster=node1,node2,node3
 ```
 
-* alluxio.master.zookeeper.address.[logical-domain]. [Zookeeper node ID] Address foreach Zookeeper node
+* alluxio.coordinator.zookeeper.address.[logical-domain]. [Zookeeper node ID] Address foreach Zookeeper node
   
 
 For each Zookeeper node previously configured, set the full address of each Zookeeper node, for example:
 
 ```
-alluxio.master.zookeeper.address.my-alluxio-cluster.node1=host1:2181
-alluxio.master.zookeeper.address.my-alluxio-cluster.node2=host2:2181
-alluxio.master.zookeeper.address.my-alluxio-cluster.node3=host3:2181
+alluxio.coordinator.zookeeper.address.my-alluxio-cluster.node1=host1:2181
+alluxio.coordinator.zookeeper.address.my-alluxio-cluster.node2=host2:2181
+alluxio.coordinator.zookeeper.address.my-alluxio-cluster.node3=host3:2181
 ```
 
 ## Common Operations
@@ -407,7 +407,7 @@ $ ./bin/alluxio-stop.sh worker # stops the local worker
 ```
 
 Once the worker is stopped, and after
-a timeout on the master (configured by master parameter `alluxio.master.worker.timeout`), the master
+a timeout on the master (configured by master parameter `alluxio.coordinator.worker.timeout`), the master
 will consider the worker as "lost", and no longer consider it as part of the cluster.
 
 ### Add/Remove Masters

@@ -127,7 +127,7 @@ Once the helm repository is available, prepare the Alluxio configuration.
 The minimal configuration must contain the under storage address:
 ```properties
 properties:
-  alluxio.master.mount.table.root.ufs: "<under_storage_address>"
+  alluxio.coordinator.mount.table.root.ufs: "<under_storage_address>"
 ```
 > Note: The Alluxio under filesystem address MUST be modified. Any credentials MUST be modified.
 
@@ -145,9 +145,9 @@ namespace specify all required properties as a key-value pair under `properties`
 
 ```properties
 properties:
-  alluxio.master.mount.table.root.ufs: "s3a://<bucket>"
-  alluxio.master.mount.table.root.option.s3a.accessKeyId: "<accessKey>"
-  alluxio.master.mount.table.root.option.s3a.secretKey: "<secretKey>"
+  alluxio.coordinator.mount.table.root.ufs: "s3a://<bucket>"
+  alluxio.coordinator.mount.table.root.option.s3a.accessKeyId: "<accessKey>"
+  alluxio.coordinator.mount.table.root.option.s3a.secretKey: "<secretKey>"
 ```
   {% endcollapsible %}
 
@@ -264,8 +264,8 @@ journal:
   ufsType: "HDFS"
 
 properties:
-  alluxio.master.mount.table.root.ufs: "hdfs://{$hostname}:{$hostport}/alluxio"
-  alluxio.master.journal.ufs.option.alluxio.underfs.hdfs.configuration: "/secrets/hdfsConfig/core-site.xml:/secrets/hdfsConfig/hdfs-site.xml"
+  alluxio.coordinator.mount.table.root.ufs: "hdfs://{$hostname}:{$hostport}/alluxio"
+  alluxio.coordinator.journal.ufs.option.alluxio.underfs.hdfs.configuration: "/secrets/hdfsConfig/core-site.xml:/secrets/hdfsConfig/hdfs-site.xml"
 
 secrets:
   master:
@@ -344,8 +344,8 @@ $ kubectl create secret generic alluxio-hdfs-config --from-file=${HADOOP_CONF_DI
 
 ```properties
 properties:
-  alluxio.master.mount.table.root.ufs: "hdfs://<ns>"
-  alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration: "/secrets/hdfsConfig/core-site.xml:/secrets/hdfsConfig/hdfs-site.xml"
+  alluxio.coordinator.mount.table.root.ufs: "hdfs://<ns>"
+  alluxio.coordinator.mount.table.root.option.alluxio.underfs.hdfs.configuration: "/secrets/hdfsConfig/core-site.xml:/secrets/hdfsConfig/hdfs-site.xml"
 secrets:
   master:
     alluxio-hdfs-config: hdfsConfig
@@ -360,8 +360,8 @@ specified configuration and configures the Pod to use the volume for an on-disk 
 metastore.
 ```properties
 properties:
-  alluxio.master.metastore: ROCKS
-  alluxio.master.metastore.dir: /metastore
+  alluxio.coordinator.metastore: ROCKS
+  alluxio.coordinator.metastore.dir: /metastore
 
 metastore:
   volumeType: persistentVolumeClaim # Options: "persistentVolumeClaim" or "emptyDir"
@@ -381,8 +381,8 @@ metastore.
 
 ```properties
 properties:
-  alluxio.master.metastore: ROCKS
-  alluxio.master.metastore.dir: /metastore
+  alluxio.coordinator.metastore: ROCKS
+  alluxio.coordinator.metastore.dir: /metastore
 
 metastore:
   volumeType: emptyDir # Options: "persistentVolumeClaim" or "emptyDir"
@@ -699,7 +699,7 @@ Alluxio processes need the HDFS configuration files to connect, and the location
 the container is controlled by property `alluxio.underfs.hdfs.configuration`.
 
 **Step 3: Modify `alluxio-configmap.yaml.template`.** Now that your Pods know how to talk to your
-HDFS service, update `alluxio.master.journal.folder` and `alluxio.master.mount.table.root.ufs` to
+HDFS service, update `alluxio.coordinator.journal.folder` and `alluxio.coordinator.mount.table.root.ufs` to
 point to the desired HDFS destination.
   {% endcollapsible %}
 {% endaccordion %}

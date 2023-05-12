@@ -54,10 +54,10 @@ $ cd alluxio-{{site.ALLUXIO_VERSION_STRING}}
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-在`conf/alluxio-site.properties`文件中将 `alluxio.master.hostname`设置为 `localhost`。
+在`conf/alluxio-site.properties`文件中将 `alluxio.coordinator.hostname`设置为 `localhost`。
 
 ```console
-$ echo "alluxio.master.hostname=localhost" >> conf/alluxio-site.properties
+$ echo "alluxio.coordinator.hostname=localhost" >> conf/alluxio-site.properties
 ```
 
 ### [加分项] AWS 相关配置

@@ -83,7 +83,7 @@ Client connections to the master are typically short lived.
 Note that although the number of potential concurrent clients are high, it is
 unlikely for all clients to simultaneously hit the master. The steady state number of concurrent
 clients to the master is generally lower than the master-side thread pool size defined by
-`alluxio.master.rpc.executor.max.pool.size`.
+`alluxio.coordinator.rpc.executor.max.pool.size`.
 
 The number of concurrent clients to the master impacts the following
 * Number of cores required by the master - We recommend 8 clients per core, or to determine the
@@ -260,7 +260,7 @@ example, if Alluxio is run under user `alluxio`: `alluxio soft nofile 4096`.
 
 These limits are often set for the particular user that launches the Alluxio process.
 As a rule of thumb, `vm.max_map_count` should be at least twice the limit for master threads
-as set by `alluxio.master.rpc.executor.max.pool.size`.
+as set by `alluxio.coordinator.rpc.executor.max.pool.size`.
 
 ### Operating System Tuning
 
@@ -560,8 +560,8 @@ If rejected, the worker will back off exponentially and retry.
 
 ```properties
 # Below are the default values
-alluxio.master.worker.register.lease.enabled=true
-alluxio.master.worker.register.lease.count=20
+alluxio.coordinator.worker.register.lease.enabled=true
+alluxio.coordinator.worker.register.lease.count=20
 ```
 
 Now the master will only allow a certain number of workers to register at the same time.
@@ -575,7 +575,7 @@ estimate based on the worker storage and the average file/block size.
 
 This feature is enabled by default. Typically you only need to tweak the 2 properties above.
 But you may find all relevant properties in the [Properties List]({{ '/en/reference/Properties-List.html' | relativize_url }})
-starting with `alluxio.master.worker.register.lease` and `alluxio.worker.register.lease`.
+starting with `alluxio.coordinator.worker.register.lease` and `alluxio.worker.register.lease`.
 
 When the register lease feature is turned on, you will see a delay when
 the workers attempt to register to the master. This is expected.
@@ -605,7 +605,7 @@ Thus we recommend to keep this enabled despite your worker storage size.
 
 This feature is enabled by default. Typically you only need to tune the 3 properties above.
 But you may find all relevant properties in the [Properties List]({{ '/en/reference/Properties-List.html' | relativize_url }})
-starting with `alluxio.master.worker.register.stream` and `alluxio.worker.register.stream`.
+starting with `alluxio.coordinator.worker.register.stream` and `alluxio.worker.register.stream`.
 
 ### Master-Worker Heartbeat
 
@@ -614,9 +614,9 @@ to the master, and the master replies with commands to persist/remove blocks.
 
 #### Master-side
 The frequency with which the master checks for lost workers is set by the
-`alluxio.master.worker.heartbeat.interval` property, with a default value of `10s`.
+`alluxio.coordinator.worker.heartbeat.interval` property, with a default value of `10s`.
 If the master has not received a heartbeat from the worker for more than 
-`alluxio.master.worker.timeout`, the worker will be identified as lost. 
+`alluxio.coordinator.worker.timeout`, the worker will be identified as lost. 
 The master will then know the cached blocks that are served by this worker
 are no longer available, and instruct the clients to not read or write on that worker.
 
@@ -627,7 +627,7 @@ on the worker.
 On the master side, removing the worker from the locations of each block cache is an expensive operation. 
 Registering a worker which has many blocks later is also and expensive operation. 
 So it is ideal to avoid incorrectly identifying a worker as lost.
-You should set `alluxio.master.worker.timeout` to a value where you
+You should set `alluxio.coordinator.worker.timeout` to a value where you
 do not have false positives for this lost worker detection, 
 and still be able to tell a worker is lost with a reasonable delay.
 

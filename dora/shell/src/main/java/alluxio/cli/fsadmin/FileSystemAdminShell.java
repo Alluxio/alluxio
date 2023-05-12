@@ -28,7 +28,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
-import alluxio.master.MasterClientContext;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.util.ConfigurationUtils;
 import alluxio.worker.job.JobMasterClientContext;
 

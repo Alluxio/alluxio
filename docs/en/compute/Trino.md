@@ -157,18 +157,19 @@ set the Alluxio cluster property appropriately in the
 `alluxio-site.properties` file which is on the classpath.
 
 ```properties
-alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
+alluxio.coordinator.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 ```
 
 Alternatively you can add the property to the Hadoop `core-site.xml` configuration
 which is contained by `hive.config.resources`.
 
 ```xml
+
 <configuration>
-  <property>
-    <name>alluxio.master.rpc.addresses</name>
-    <value>master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998</value>
-  </property>
+    <property>
+        <name>alluxio.coordinator.rpc.addresses</name>
+        <value>master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998</value>
+    </property>
 </configuration>
 ```
 

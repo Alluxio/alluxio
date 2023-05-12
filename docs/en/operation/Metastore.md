@@ -31,14 +31,14 @@ You can explicitly configure Alluxio to use the ROCKS metastore by adding this s
 in `conf/alluxio-site.properties` for the master nodes.
 
 ```properties
-alluxio.master.metastore=ROCKS
+alluxio.coordinator.metastore=ROCKS
 ```
 
 ### Configuration Properties
 
-* `alluxio.master.metastore.dir`: A local directory for writing RocksDB data.
+* `alluxio.coordinator.metastore.dir`: A local directory for writing RocksDB data.
 Default: `{alluxio.work.dir}/metastore`, e.g. `/opt/alluxio/metastore`
-* `alluxio.master.metastore.inode.cache.max.size`: A hard limit on the number of entries in the on-heap inode cache.
+* `alluxio.coordinator.metastore.inode.cache.max.size`: A hard limit on the number of entries in the on-heap inode cache.
 Increase this to improve performance if you have spare master memory. 
 The default value for this configuration is dynamically set to be (JVM Heap size / 4KB).
 For example, when xmx setting is set to the default 8GB, Alluxio master will cache 2 million inodes.
@@ -47,11 +47,11 @@ For example, when xmx setting is set to the default 8GB, Alluxio master will cac
 
 These tuning parameters primarily affect the behavior of the cache.
 
-* `alluxio.master.metastore.inode.cache.evict.batch.size`: Batch size for flushing cache
+* `alluxio.coordinator.metastore.inode.cache.evict.batch.size`: Batch size for flushing cache
   modifications to RocksDB. Default: `1000`
-* `alluxio.master.metastore.inode.cache.high.water.mark.ratio`: Ratio of the maximum cache size
+* `alluxio.coordinator.metastore.inode.cache.high.water.mark.ratio`: Ratio of the maximum cache size
   where the cache begins evicting. Default: `0.85`
-* `alluxio.master.metastore.inode.cache.low.water.mark.ratio`: Ratio of the maximum cache size
+* `alluxio.coordinator.metastore.inode.cache.low.water.mark.ratio`: Ratio of the maximum cache size
   that eviction will evict down to. Default: `0.8`
 
 ### Metrics and memory usage
@@ -101,9 +101,9 @@ new ColumnFamilyOptions() // for each table (inode, edge, block metadata and blo
 
 [Not all](https://github.com/facebook/rocksdb/blob/7.2.fb/include/rocksdb/utilities/options_util.h#L22-L72)
 RocksDB configuration options are tunable via configuration files, these
-must be set using the property keys with the prefix `alluxio.master.metastore.rocks.inode`
-and `alluxio.master.metastore.rocks.edge` for the inode tables and `alluxio.master.metastore.rocks.block.meta`
-and `alluxio.master.metastore.rocks.block.location` for the block tables. For any property key
+must be set using the property keys with the prefix `alluxio.coordinator.metastore.rocks.inode`
+and `alluxio.coordinator.metastore.rocks.edge` for the inode tables and `alluxio.coordinator.metastore.rocks.block.meta`
+and `alluxio.coordinator.metastore.rocks.block.location` for the block tables. For any property key
 that is not set, the default RocksDB value will be used. The different options are
 described in the following section.
 
@@ -126,20 +126,20 @@ Point lookups are performed when traversing the inode tree, looking up inode met
 and looking up block metadata information,
 but not when listing directories, or listing the workers for a block id.
 Bloom filters can be enabled or disabled using the property keys
-`alluxio.master.metastore.rocks.*.bloom.filter`
+`alluxio.coordinator.metastore.rocks.*.bloom.filter`
 where `*` is one of `block.location`, `block.meta`, `inode`, or `edge`.
 
 Data blocks can also be configured to use a [hash index](https://github.com/facebook/rocksdb/wiki/Data-Block-Hash-Index)
 to improve the speed of point lookups at the cost of increase space usage.
 These can be enabled by setting the property key
-`alluxio.master.metastore.rocks.*.block.index` to `kDataBlockBinaryAndHash`
+`alluxio.coordinator.metastore.rocks.*.block.index` to `kDataBlockBinaryAndHash`
 where `*` is one of `block.location`, `block.meta`, `inode`, or `edge`.
 
 Alluxio uses a fixed length [prefix extractor](https://github.com/facebook/rocksdb/wiki/RocksDB-Tuning-Guide#prefix-databases)
 for each RocksDB column family. The prefix is either the inode ID or the block ID.
 To improve the speed of prefix lookups we can include a hash index in the table files
 at the cost of increased memory usage.
-This can be done by setting `alluxio.master.metastore.rocks.*.index` to
+This can be done by setting `alluxio.coordinator.metastore.rocks.*.index` to
 `kHashSearch` where `*` is one of `block.location`, `block.meta`, `inode`, or `edge`.
 Furthermore, Bloom filters can be added to the memtable to increase the speed
 of prefix lookups by setting the `memtable_prefix_bloom_size_ratio` to a value larger
@@ -160,7 +160,7 @@ of this cache may have unexpected impacts on total memory usage and IO
 as page cache is also used
 ([see memory usage in RocksDB](https://github.com/facebook/rocksdb/wiki/Memory-usage-in-RocksDB)).
 The size of the block cache can be changed using the property keys
-`alluxio.master.metastore.rocks.*.cache.size`
+`alluxio.coordinator.metastore.rocks.*.cache.size`
 where `*` is one of `block.location`, `block.meta`, `inode`, or `edge`.
 
 Alluxio has disabled compression in RockDB, this reduces CPU overhead
@@ -198,7 +198,7 @@ To configure Alluxio to use the on-heap metastore, set the following in
 `conf/alluxio-site.properties` for the master nodes:
 
 ```properties
-alluxio.master.metastore=HEAP
+alluxio.coordinator.metastore=HEAP
 ```
 
 ## Switching between RocksDB MetaStore and Heap MetaStore
@@ -225,7 +225,7 @@ Backup Entry Count : ${ENTRY_COUNT}
 By default, this will write a backup named
 `alluxio-backup-YYYY-MM-DD-timestamp.gz` to the `/alluxio_backups` directory of
 the root under storage system, e.g. `hdfs://cluster/alluxio_backups`. This default
-backup directory can be configured by setting `alluxio.master.backup.directory`
+backup directory can be configured by setting `alluxio.coordinator.backup.directory`
 
 Alternatively, you may use the `--local <DIRECTORY>` flag to
 specify a path to write the backup to on the local disk of the primary master.
@@ -245,7 +245,7 @@ $ ./bin/alluxio-stop.sh masters
 Update the metastore type in `conf/alluxio-site.properties` for the master nodes:
 
 ```properties
-alluxio.master.metastore=<new value>
+alluxio.coordinator.metastore=<new value>
 ```
 
 Format the masters with the following command:

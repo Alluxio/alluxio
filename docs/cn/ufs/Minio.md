@@ -41,7 +41,7 @@ MinIO是为云应用和DevOps构建的对象存储。 MinIO提供了一个开源
 此处列出了`conf/alluxio-site.properties`文件中所有要修改的字段:
 
 ```properties
-alluxio.master.mount.table.root.ufs=s3://<MINIO_BUCKET>/<MINIO_DIRECTORY>
+alluxio.coordinator.mount.table.root.ufs=s3://<MINIO_BUCKET>/<MINIO_DIRECTORY>
 alluxio.underfs.s3.endpoint=http://<MINIO_ENDPOINT>/
 alluxio.underfs.s3.disable.dns.buckets=true
 alluxio.underfs.s3.inherit.acl=false
@@ -79,7 +79,7 @@ $ ./bin/alluxio runTests
 ### 指定的存储桶不存在
 
 如果返回了类似这样的消息，则需要再次检查`alluxio-site.properties`文件中存储桶的名称，并确保该存储桶存在于MinIO中。
-存储桶名称的属性由[`alluxio.master.mount.table.root.ufs`]({{ '/en/reference/Properties-List.html' | relativize_url}}#alluxio.master.mount.table.root.ufs)控制。 
+存储桶名称的属性由[`alluxio.coordinator.mount.table.root.ufs`]({{ '/en/reference/Properties-List.html' | relativize_url}}#alluxio.coordinator.mount.table.root.ufs)控制。 
 
 ```
 Exception in thread "main" alluxio.exception.DirectoryNotEmptyException: Failed to delete /default_tests_files (com.amazonaws.services.s3.model.AmazonS3Exception: The specified bucket does not exist (Service: Amazon S3; Status Code: 404; Error Code: NoSuchBucke

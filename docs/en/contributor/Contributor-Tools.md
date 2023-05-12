@@ -58,7 +58,7 @@ action from the `Navigate > Search Everywhere` dialog.
 2. Restart IntelliJ IDEA
 3. Edit `conf/alluxio-site.properties` to contain these configurations
    ```properties
-   alluxio.master.hostname=localhost
+   alluxio.coordinator.hostname=localhost
    alluxio.job.master.hostname=localhost
    ```
 4. Edit `conf/log4j.properties` to print log in console
@@ -96,10 +96,10 @@ action from the `Navigate > Search Everywhere` dialog.
 3. Restart IntelliJ IDEA
 4. Edit `conf/alluxio-site.properties` to contain these configurations
     ```properties
-    alluxio.master.hostname=localhost
+    alluxio.coordinator.hostname=localhost
     alluxio.job.master.hostname=localhost
-    alluxio.master.embedded.journal.addresses=localhost:19200,localhost:19201,localhost:19202
-    alluxio.master.rpc.addresses=localhost:19998,localhost:19988,localhost:19978
+    alluxio.coordinator.embedded.journal.addresses=localhost:19200,localhost:19201,localhost:19202
+    alluxio.coordinator.rpc.addresses=localhost:19998,localhost:19988,localhost:19978
     ```
    The ports are defined in the run configurations.
 5. In Intellij, start the Alluxio master processes by selecting `Run > Run > 

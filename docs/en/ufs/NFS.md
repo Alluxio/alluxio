@@ -58,8 +58,8 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 Assume we have mounted NFS share at `/mnt/nfs` on all Alluxio masters and workers, the following lines should be exist within the `conf/alluxio-site.properties` file.
 
 ```
-alluxio.master.hostname=localhost
-alluxio.master.mount.table.root.ufs=/mnt/nfs
+alluxio.coordinator.hostname=localhost
+alluxio.coordinator.mount.table.root.ufs=/mnt/nfs
 ```
 
 ## Running Alluxio with NFS

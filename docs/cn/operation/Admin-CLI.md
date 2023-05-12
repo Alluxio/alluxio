@@ -40,7 +40,7 @@ Usage: alluxio fsadmin [generic options]
 
 `backup`命令创建Alluxio元数据的备份
 
-备份到默认备份文件夹（由`alluxio.master.backup.directory`）配置
+备份到默认备份文件夹（由`alluxio.coordinator.backup.directory`）配置
 ```
 ./bin/alluxio fsadmin backup
 Successfully backed up journal to hdfs://mycluster/opt/alluxio/backups/alluxio-backup-2018-5-29-1527644810.gz

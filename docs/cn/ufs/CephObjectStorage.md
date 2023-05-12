@@ -31,7 +31,7 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 向`conf/alluxio-site.properties`文件添加以下代码：
 
 ```
-alluxio.master.mount.table.root.ufs=s3://<bucket>/<folder>
+alluxio.coordinator.mount.table.root.ufs=s3://<bucket>/<folder>
 s3a.accessKeyId=<access-key>
 s3a.secretKey=<secret-key>
 alluxio.underfs.s3.endpoint=http://<rgw-hostname>:<rgw-port>
@@ -47,7 +47,7 @@ alluxio.underfs.s3.inherit.acl=<inherit-acl>
 向`conf/alluxio-env.sh`文件添加以下代码：
 
 ```
-alluxio.master.mount.table.root.ufs=swift://<swift-container>
+alluxio.coordinator.mount.table.root.ufs=swift://<swift-container>
 ```
 
 其中，`<swift-container>`是一个已经存在的Swift容器。

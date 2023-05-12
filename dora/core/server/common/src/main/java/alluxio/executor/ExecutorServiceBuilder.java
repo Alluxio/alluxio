@@ -14,7 +14,7 @@ package alluxio.executor;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.master.AlluxioExecutorService;
+import alluxio.coordinator.AlluxioExecutorService;
 import alluxio.util.ThreadFactoryUtils;
 
 import com.google.common.base.Preconditions;

@@ -26,7 +26,7 @@ based on a self-managed consensus protocol;
 whereas UFS journal stores edit logs in an external shared UFS storage,
 and relies on an external Zookeeper for coordination for HA mode.
 Starting from 2.2, the default journal type is `EMBEDDED`.
-This can be changed by setting the property "`alluxio.master.journal.type`" to "`UFS`"
+This can be changed by setting the property "`alluxio.coordinator.journal.type`" to "`UFS`"
 instead of "`EMBEDDED`".
 
 To choose between the default Embedded Journal and UFS journal,
@@ -59,30 +59,30 @@ such as HDFS or NFS. In contrast, S3 is not recommended for the UFS journal.
 The following configuration must be configured to a local path on the masters. The default
 value is local directory `${alluxio.work.dir}/journal`.
 ```
-alluxio.master.journal.folder=/local/path/to/store/journal/files/
+alluxio.coordinator.journal.folder=/local/path/to/store/journal/files/
 ```
 
 Set the addresses of all masters in the cluster. The default embedded journal port is `19200`.
 This must be set on all Alluxio servers, as well as Alluxio clients.
 
 ```
-alluxio.master.embedded.journal.addresses=master_hostname_1:19200,master_hostname_2:19200,master_hostname_3:19200
+alluxio.coordinator.embedded.journal.addresses=master_hostname_1:19200,master_hostname_2:19200,master_hostname_3:19200
 ```
 
 ### Optional configuration
 
-* `alluxio.master.embedded.journal.port`: The port masters use for embedded journal communication. Default: `19200`.
-* `alluxio.master.rpc.port`: The port masters use for RPCs. Default: `19998`.
-* `alluxio.master.rpc.addresses`: A list of comma-separated `host:port` RPC addresses where the client should look for masters
+* `alluxio.coordinator.embedded.journal.port`: The port masters use for embedded journal communication. Default: `19200`.
+* `alluxio.coordinator.rpc.port`: The port masters use for RPCs. Default: `19998`.
+* `alluxio.coordinator.rpc.addresses`: A list of comma-separated `host:port` RPC addresses where the client should look for masters
 when using multiple masters without Zookeeper. This property is not used when Zookeeper is enabled, since Zookeeper already stores the master addresses.
-If this is not set, clients will look for masters using the hostnames from `alluxio.master.embedded.journal.addresses`
+If this is not set, clients will look for masters using the hostnames from `alluxio.coordinator.embedded.journal.addresses`
 and the master rpc port (Default:`19998`).
 
 ### Advanced configuration
 
 <ul>
 {% for item in site.data.table.master-configuration %}
-    {% capture journal_properties %}{{ 'alluxio.master.embedded.journal.' }}{% endcapture %} 
+    {% capture journal_properties %}{{ 'alluxio.coordinator.embedded.journal.' }}{% endcapture %} 
     {% assign journal_prop_size = journal_properties | size %}
     {% assign result = item.propertyName | slice: 0, journal_prop_size %}
     
@@ -95,7 +95,7 @@ and the master rpc port (Default:`19998`).
 ### Configuring the Job service
 
 It is usually best not to set any of these - by default the job master will use the same hostnames as the Alluxio master,
-so it is enough to set only `alluxio.master.embedded.journal.addresses`. These properties only need to be set
+so it is enough to set only `alluxio.coordinator.embedded.journal.addresses`. These properties only need to be set
 when the job service runs independently of the rest of the system or using a non-standard port.
 
 * `alluxio.job.master.embedded.journal.port`: the port job masters use for embedded journal communications. Default: `20003`.
@@ -104,13 +104,13 @@ The format is `hostname1:port1,hostname2:port2,...`.
 * `alluxio.job.master.rpc.addresses`: A list of comma-separated host:port RPC addresses where the client should look for job masters
 when using multiple job masters without Zookeeper. This property is not used when Zookeeper is enabled,
 since Zookeeper already stores the job master addresses. If this property is not defined, clients will look for job masters using
-`[alluxio.master.rpc.addresses]:alluxio.job.master.rpc.port` addresses first, then for
+`[alluxio.coordinator.rpc.addresses]:alluxio.job.master.rpc.port` addresses first, then for
 `[alluxio.job.master.embedded.journal.addresses]:alluxio.job.master.rpc.port`.
 
 ## Configuring UFS Journal
 
 The most important configuration value to set for the journal is
-`alluxio.master.journal.folder`. This must be set to a filesystem folder that is
+`alluxio.coordinator.journal.folder`. This must be set to a filesystem folder that is
 available to all masters. In single-master mode, use a local filesystem path for simplicity. 
 With multiple masters distributed across different machines, the folder must
 be in a distributed system where all masters can access it. The journal folder
@@ -121,19 +121,19 @@ prohibitively slow for most serious use cases.
 
 UFS journal options can be configured using the configuration prefix:
 
-`alluxio.master.journal.ufs.option.<some alluxio property>`
+`alluxio.coordinator.journal.ufs.option.<some alluxio property>`
 
 **Configuration examples:**
 
 Use HDFS to store the journal:
 ```
-alluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/alluxio_journal
-alluxio.master.journal.ufs.option.alluxio.underfs.version=2.6
+alluxio.coordinator.journal.folder=hdfs://[namenodeserver]:[namenodeport]/alluxio_journal
+alluxio.coordinator.journal.ufs.option.alluxio.underfs.version=2.6
 ```
 
 Use the local file system to store the journal:
 ```
-alluxio.master.journal.folder=/opt/alluxio/journal
+alluxio.coordinator.journal.folder=/opt/alluxio/journal
 ```
 
 ## Formatting the journal
@@ -165,10 +165,10 @@ $ ./bin/alluxio fsadmin backup
 By default, this will write a backup named
 `alluxio-backup-YYYY-MM-DD-timestamp.gz` to the `/alluxio_backups` directory of
 the root under storage system, e.g. `hdfs://cluster/alluxio_backups`. This default
-backup directory can be configured by setting `alluxio.master.backup.directory`
+backup directory can be configured by setting `alluxio.coordinator.backup.directory`
 
 ```
-alluxio.master.backup.directory=/alluxio/backups
+alluxio.coordinator.backup.directory=/alluxio/backups
 ```
 
 See the [backup command documentation]({{ '/en/operation/Admin-CLI.html' | relativize_url }}#backup)
@@ -181,24 +181,24 @@ so that Alluxio metadata can be restored to at most one day before.
 This functionality is enabled by setting the following property in `${ALLUXIO_HOME}/conf/alluxio-site.properties`:
 
 ```
-alluxio.master.daily.backup.enabled=true
+alluxio.coordinator.daily.backup.enabled=true
 ```
 
-The time to take daily snapshots is defined by `alluxio.master.daily.backup.time`. For example, if
-a user specified `alluxio.master.daily.backup.time=05:30`, the Alluxio leading master will back up its metadata
-to the `alluxio.master.backup.directory` of the root UFS every day at 5:30am UTC.
+The time to take daily snapshots is defined by `alluxio.coordinator.daily.backup.time`. For example, if
+a user specified `alluxio.coordinator.daily.backup.time=05:30`, the Alluxio leading master will back up its metadata
+to the `alluxio.coordinator.backup.directory` of the root UFS every day at 5:30am UTC.
 We recommend setting the backup time to an off-peak time to avoid interfering with other users of the system.
 
 In the daily backup, the backup directory needs to be an absolute path within the root UFS.
-For example, if `alluxio.master.backup.directory=/alluxio_backups`
-and `alluxio.master.mount.table.root.ufs=hdfs://192.168.1.1:9000/alluxio/underfs`,
+For example, if `alluxio.coordinator.backup.directory=/alluxio_backups`
+and `alluxio.coordinator.mount.table.root.ufs=hdfs://192.168.1.1:9000/alluxio/underfs`,
 the default backup directory would be `hdfs://192.168.1.1:9000/alluxio_backups`.
 
-The files to retain in the backup directory is limited by `alluxio.master.daily.backup.files.retained`.
+The files to retain in the backup directory is limited by `alluxio.coordinator.daily.backup.files.retained`.
 Users can set this property to the number of backup files they want to keep in the backup directory.
 
 In addition, upon encountering journal corruption, the master will take a backup of its current state
-automatically. This can be disabled by setting `alluxio.master.journal.backup.when.corrupted=false`.
+automatically. This can be disabled by setting `alluxio.coordinator.journal.backup.when.corrupted=false`.
 
 ### Backup delegation on HA cluster
 
@@ -208,14 +208,14 @@ After configuring backup delegation, both manual and scheduled backups will run 
 From Alluxio 2.9, backup delegation is by default enabled.
 
 Backup delegation can be configured with the below properties:
-- `alluxio.master.backup.delegation.enabled`: Whether to delegate backups to standby masters. Default: `false`.
-- `alluxio.master.backup.heartbeat.interval`: Interval at which standby master that is taking the backup will update the leading master with current backup status. Default: `2sec`.
+- `alluxio.coordinator.backup.delegation.enabled`: Whether to delegate backups to standby masters. Default: `false`.
+- `alluxio.coordinator.backup.heartbeat.interval`: Interval at which standby master that is taking the backup will update the leading master with current backup status. Default: `2sec`.
 
 Some advanced properties control the communication between Alluxio masters for coordinating the backup:
-- `alluxio.master.backup.transport.timeout`: Communication timeout for messaging between masters for coordinating backup. Default: `30sec`.
-- `alluxio.master.backup.connect.interval.min`: Minimum delay between each connection attempt to backup-leader. Default: `1sec`.
-- `alluxio.master.backup.connect.interval.max`: Maximum delay between each connection attempt to backup-leader. Default: `30sec`.
-- `alluxio.master.backup.abandon.timeout`: Duration after which leader will abandon the backup if it has not received heartbeat from backup-worker. Default: `1min`.
+- `alluxio.coordinator.backup.transport.timeout`: Communication timeout for messaging between masters for coordinating backup. Default: `30sec`.
+- `alluxio.coordinator.backup.connect.interval.min`: Minimum delay between each connection attempt to backup-leader. Default: `1sec`.
+- `alluxio.coordinator.backup.connect.interval.max`: Maximum delay between each connection attempt to backup-leader. Default: `30sec`.
+- `alluxio.coordinator.backup.abandon.timeout`: Duration after which leader will abandon the backup if it has not received heartbeat from backup-worker. Default: `1min`.
 
 Since it is uncertain which host will take the backup, it is suggested to use shared paths for taking backups with backup delegation.
 
@@ -322,7 +322,7 @@ a success message. If the transfer is not successful, it will print a failure me
 
 To add a master to an HA Alluxio cluster, you can simply start a new Alluxio master process, with
 the appropriate configuration. The configuration for the new master should be the same as other masters,
-except that the parameter `alluxio.master.hostname=<MASTER_HOSTNAME>` should reflect the new hostname.
+except that the parameter `alluxio.coordinator.hostname=<MASTER_HOSTNAME>` should reflect the new hostname.
 Once the new master starts, it will start interacting with ZooKeeper to participate in leader election.
 
 Removing a master is as simple as stopping the master process. If the cluster is a single master cluster,
@@ -347,15 +347,15 @@ total entries. Then if a checkpoint is taken, the checkpoint will contain only t
 metadata for the 1 million remaining files, and the original 5 million entries will be deleted.
 
 By default, checkpoints are automatically taken every 2 million entries. This can be configured by
-setting `alluxio.master.journal.checkpoint.period.entries` on the masters. Setting
+setting `alluxio.coordinator.journal.checkpoint.period.entries` on the masters. Setting
 the value lower will reduce the amount of disk space needed by the journal at the
 cost of additional work for the standby masters.
 
 When the metadata are stored in RocksDB, Alluxio 2.9 added support to checkpointing with multiple threads.
-`alluxio.master.metastore.rocks.parallel.backup=true` will turn on multi-threaded checkpointing and
+`alluxio.coordinator.metastore.rocks.parallel.backup=true` will turn on multi-threaded checkpointing and
 make the checkpointing a few times faster(depending how many threads are used). 
-`alluxio.master.metastore.rocks.parallel.backup.threads` controls how many threads to use.
-`alluxio.master.metastore.rocks.parallel.backup.compression.level` specifies the compression level, 
+`alluxio.coordinator.metastore.rocks.parallel.backup.threads` controls how many threads to use.
+`alluxio.coordinator.metastore.rocks.parallel.backup.compression.level` specifies the compression level, 
 where smaller means bigger file and less CPU consumption, and larger means smaller file and more CPU consumption. 
 
 #### Checkpointing on secondary master
@@ -406,8 +406,8 @@ Then if something happens to the journal, you can recover from one of the backup
 
 By default, if a master encounters corruption when replaying a journal it will automatically
 take a backup of the state up to the corrupted entry in the configured backup directory. The master will notice the
-corruption when elected leader. The backup directory is configured by `alluxio.master.backup.directory`.
-This feature can be disabled by setting `alluxio.master.journal.backup.when.corrupted` to `false`.
+corruption when elected leader. The backup directory is configured by `alluxio.coordinator.backup.directory`.
+This feature can be disabled by setting `alluxio.coordinator.journal.backup.when.corrupted` to `false`.
 
 ### Get a human-readable journal
 
@@ -435,5 +435,5 @@ To configure this behavior for an Alluxio master, set the following configuratio
 `alluxio-site.properties`
 
 ```properties
-alluxio.master.journal.exit.on.demotion=true
+alluxio.coordinator.journal.exit.on.demotion=true
 ```
