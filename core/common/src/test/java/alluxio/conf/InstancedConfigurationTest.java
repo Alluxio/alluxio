@@ -675,6 +675,12 @@ public class InstancedConfigurationTest {
   public void shortMasterHeartBeatTimeout() {
     mConfiguration.set(PropertyKey.MASTER_STANDBY_HEARTBEAT_INTERVAL, "5min");
     mConfiguration.set(PropertyKey.MASTER_HEARTBEAT_TIMEOUT, "4min");
+    mThrown.expect(IllegalStateException.class);
+    mConfiguration.validate();
+  }
+  
+  @Test
+  public void setMasterTTLIntervalZero() {
     mConfiguration.set(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, "0");
     mThrown.expect(IllegalStateException.class);
     mConfiguration.validate();
