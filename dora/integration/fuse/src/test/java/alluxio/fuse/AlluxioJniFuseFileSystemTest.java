@@ -430,12 +430,11 @@ public class AlluxioJniFuseFileSystemTest {
 
     FileInStream fakeInStream = mock(FileInStream.class);
     mFileSystem.getStatus(expectedPath).getFileInfo().setLength(4);
+    final byte[] expected = new byte[] {0, 1, 2, 3};
     when(fakeInStream.read(any(ByteBuffer.class)))
         .then((Answer<Integer>) invocationOnMock -> {
           ByteBuffer myDest = (ByteBuffer) invocationOnMock.getArguments()[0];
-          for (byte i = 0; i < 4; i++) {
-            myDest.put(i, i);
-          }
+          myDest.put(expected);
           return 4;
         });
 
@@ -454,7 +453,6 @@ public class AlluxioJniFuseFileSystemTest {
     final byte[] dst = new byte[4];
     ptr.flip();
     ptr.get(dst, 0, 4);
-    final byte[] expected = new byte[] {0, 1, 2, 3};
 
     assertArrayEquals("Source and dst data should be equal", expected, dst);
   }
