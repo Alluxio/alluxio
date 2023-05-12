@@ -345,15 +345,8 @@
               <goal>copy</goal>
             </goals>
             <configuration>
-<<<<<<< HEAD:dora/shaded/client/pom.xml
-              <sourceFile>target/alluxio-shaded-client-295-SNAPSHOT.jar</sourceFile>
-              <destinationFile>../../../client/alluxio-295-SNAPSHOT-client.jar</destinationFile>
-||||||| parent of ca81323975 (Build and symlink to shaded client jar within client/build/):shaded/client/pom.xml
-              <sourceFile>${basedir}/target/${project.artifactId}-${project.version}.jar</sourceFile>
-              <destinationFile>${project.parent.parent.basedir}/client/alluxio-${project.version}-client.jar</destinationFile>
-=======
-              <sourceFile>${basedir}/target/${project.artifactId}-${project.version}.jar</sourceFile>
-              <destinationFile>${project.parent.parent.basedir}/client/build/alluxio-${project.version}-hadoop2-client.jar</destinationFile>
+              <sourceFile>target/alluxio-shaded-client-${project.version}.jar</sourceFile>
+              <destinationFile>../../../client/build/alluxio-${project.version}-hadoop2-client.jar</destinationFile>
             </configuration>
           </execution>
         </executions>
@@ -374,9 +367,8 @@
               <arguments>
                 <argument>-fnsv</argument>
                 <argument>build/alluxio-${project.version}-hadoop2-client.jar</argument>
-                <argument>${project.parent.parent.basedir}/client/alluxio-${project.version}-client.jar</argument>
+                <argument>${project.parent.parent.parent.basedir}/client/alluxio-${project.version}-client.jar</argument>
               </arguments>
->>>>>>> ca81323975 (Build and symlink to shaded client jar within client/build/):shaded/client/pom.xml
             </configuration>
           </execution>
         </executions>
