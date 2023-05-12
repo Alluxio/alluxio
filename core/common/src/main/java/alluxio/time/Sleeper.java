@@ -29,11 +29,11 @@ public interface Sleeper {
 
   /**
    * Sleeps for given duration but period wake-up by new interval supplier.
-   * @param newIntervalSupplier New sleep interval supplier
+   * @param durationSupplier New sleep interval supplier
    * @throws InterruptedException
    */
-  default void sleep(Supplier<Duration> newIntervalSupplier)
+  default void sleep(Supplier<Duration> durationSupplier)
       throws InterruptedException {
-    throw new UnsupportedOperationException();
+    sleep(durationSupplier.get());
   }
 }

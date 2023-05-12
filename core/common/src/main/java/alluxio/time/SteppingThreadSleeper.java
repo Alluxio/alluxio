@@ -20,28 +20,29 @@ import java.time.Duration;
 import java.util.function.Supplier;
 
 /**
- * A light sleeping utility which delegates to Thread.sleep().
- */
-public final class LightThreadSleeper implements Sleeper {
-  private static final long LIGHT_SLEEP_INTERVAL_MS = Constants.MINUTE;
+ * A progressive sleeper that wakes up multiple times during sleep to check if the requested sleep
+ * duration has changed, and adjust its sleep duration accordingly.
+ * */
+public final class SteppingThreadSleeper implements Sleeper {
+  private static final long SLEEP_STEP_MS = Constants.MINUTE;
 
-  public static final LightThreadSleeper INSTANCE = new LightThreadSleeper();
+  public static final SteppingThreadSleeper INSTANCE = new SteppingThreadSleeper();
 
   private final Sleeper mInternalSleeper;
   private final Clock mClock;
 
-  private LightThreadSleeper() {
+  private SteppingThreadSleeper() {
     mInternalSleeper = ThreadSleeper.INSTANCE;
     mClock = Clock.systemUTC();
   } // Use ThreadSleeper.INSTANCE instead.
 
   /**
-   * Creates a new instance of {@link LightThreadSleeper}.
+   * Creates a new instance of {@link SteppingThreadSleeper}.
    * @param internalSleeper the internal sleeper
    * @param clock for telling the current time
    */
   @VisibleForTesting
-  public LightThreadSleeper(Sleeper internalSleeper, Clock clock) {
+  public SteppingThreadSleeper(Sleeper internalSleeper, Clock clock) {
     mInternalSleeper = internalSleeper;
     mClock = clock;
   }
@@ -52,12 +53,12 @@ public final class LightThreadSleeper implements Sleeper {
   }
 
   @Override
-  public void sleep(Supplier<Duration> newIntervalSupplier) throws InterruptedException {
-    Duration duration = newIntervalSupplier.get();
+  public void sleep(Supplier<Duration> durationSupplier) throws InterruptedException {
+    Duration duration = durationSupplier.get();
     if (duration.toMillis() < 0) {
       return;
     }
-    if (duration.toMillis() < LIGHT_SLEEP_INTERVAL_MS) {
+    if (duration.toMillis() < SLEEP_STEP_MS) {
       sleep(duration);
       return;
     }
@@ -66,10 +67,10 @@ public final class LightThreadSleeper implements Sleeper {
     long timeNow;
     while ((timeNow = mClock.millis()) < sleepTo) {
       // TODO(baoloongmao): Make sure we need to config it.
-      mInternalSleeper.sleep(Duration.ofMillis(sleepTo - timeNow > LIGHT_SLEEP_INTERVAL_MS
-          ? LIGHT_SLEEP_INTERVAL_MS : sleepTo - timeNow));
+      mInternalSleeper.sleep(Duration.ofMillis(sleepTo - timeNow > SLEEP_STEP_MS
+          ? SLEEP_STEP_MS : sleepTo - timeNow));
 
-      long newInterval = newIntervalSupplier.get().toMillis();
+      long newInterval = durationSupplier.get().toMillis();
       if (newInterval >= 0) {
         sleepTo = startSleepMs + newInterval;
       }

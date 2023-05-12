@@ -11,7 +11,7 @@
 
 package alluxio.heartbeat;
 
-import alluxio.time.LightThreadSleeper;
+import alluxio.time.SteppingThreadSleeper;
 import alluxio.time.Sleeper;
 
 import org.slf4j.Logger;
@@ -45,7 +45,7 @@ public class SleepingTimer implements HeartbeatTimer {
   public SleepingTimer(String threadName, Clock clock,
       Supplier<SleepIntervalSupplier> intervalSupplierSupplier) {
     this(threadName, LoggerFactory.getLogger(SleepingTimer.class),
-        clock, LightThreadSleeper.INSTANCE, intervalSupplierSupplier);
+        clock, SteppingThreadSleeper.INSTANCE, intervalSupplierSupplier);
   }
 
   /**

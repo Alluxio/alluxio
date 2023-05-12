@@ -17,7 +17,7 @@ import static org.mockito.Mockito.mock;
 
 import alluxio.Constants;
 import alluxio.clock.ManualClock;
-import alluxio.time.LightThreadSleeper;
+import alluxio.time.SteppingThreadSleeper;
 import alluxio.time.Sleeper;
 
 import org.apache.logging.log4j.core.util.CronExpression;
@@ -65,7 +65,7 @@ public final class SleepingTimerForCronExpressionIntervalSupplierTest {
   public void maintainInterval() throws Exception {
     SleepingTimer timer =
         new SleepingTimer(THREAD_NAME, mMockLogger, mFakeClock,
-            new LightThreadSleeper(mMockSleeper, mFakeClock),
+            new SteppingThreadSleeper(mMockSleeper, mFakeClock),
             () -> {
               try {
                 return new CronExpressionIntervalSupplier(

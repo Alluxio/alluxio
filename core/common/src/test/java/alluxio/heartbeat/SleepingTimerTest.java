@@ -18,7 +18,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import alluxio.clock.ManualClock;
-import alluxio.time.LightThreadSleeper;
+import alluxio.time.SteppingThreadSleeper;
 import alluxio.time.Sleeper;
 
 import org.junit.Before;
@@ -49,7 +49,7 @@ public final class SleepingTimerTest {
   public void warnWhenExecutionTakesLongerThanInterval() throws Exception {
     SleepingTimer timer =
         new SleepingTimer(THREAD_NAME, mMockLogger, mFakeClock,
-            new LightThreadSleeper(mMockSleeper, mFakeClock),
+            new SteppingThreadSleeper(mMockSleeper, mFakeClock),
             () -> new FixedIntervalSupplier(INTERVAL_MS, mMockLogger));
 
     timer.tick();
@@ -64,7 +64,7 @@ public final class SleepingTimerTest {
   public void sleepForSpecifiedInterval() throws Exception {
     final SleepingTimer timer =
         new SleepingTimer(THREAD_NAME, mMockLogger, mFakeClock,
-            new LightThreadSleeper(mMockSleeper, mFakeClock),
+            new SteppingThreadSleeper(mMockSleeper, mFakeClock),
             () -> new FixedIntervalSupplier(INTERVAL_MS));
     timer.tick(); // first tick won't sleep
     verify(mMockSleeper, times(0)).sleep(any(Duration.class));
@@ -81,7 +81,7 @@ public final class SleepingTimerTest {
   public void maintainInterval() throws Exception {
     SleepingTimer stimer =
         new SleepingTimer(THREAD_NAME, mMockLogger, mFakeClock,
-            new LightThreadSleeper(mMockSleeper, mFakeClock),
+            new SteppingThreadSleeper(mMockSleeper, mFakeClock),
             () -> new FixedIntervalSupplier(INTERVAL_MS));
 
     stimer.tick();
