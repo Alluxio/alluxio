@@ -26,7 +26,7 @@ import alluxio.grpc.WritePType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
-import alluxio.master.file.FileSystemMaster;
+import alluxio.coordinator.file.FileSystemMaster;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;

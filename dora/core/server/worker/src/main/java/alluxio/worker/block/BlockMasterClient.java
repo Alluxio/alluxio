@@ -37,7 +37,7 @@ import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
-import alluxio.master.MasterClientContext;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.retry.RetryPolicy;
 import alluxio.wire.WorkerNetAddress;
 

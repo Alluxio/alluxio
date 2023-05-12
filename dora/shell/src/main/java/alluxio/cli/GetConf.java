@@ -19,7 +19,7 @@ import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
-import alluxio.master.MasterClientContext;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 

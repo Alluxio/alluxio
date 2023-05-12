@@ -23,7 +23,7 @@ import alluxio.grpc.MetricsHeartbeatPOptions;
 import alluxio.grpc.MetricsHeartbeatPRequest;
 import alluxio.grpc.MetricsMasterClientServiceGrpc;
 import alluxio.grpc.ServiceType;
-import alluxio.master.MasterClientContext;
+import alluxio.coordinator.MasterClientContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

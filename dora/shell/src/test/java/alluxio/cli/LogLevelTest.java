@@ -26,7 +26,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.job.wire.JobWorkerHealth;
-import alluxio.master.MasterInquireClient;
+import alluxio.coordinator.MasterInquireClient;
 import alluxio.uri.MultiMasterAuthority;
 import alluxio.uri.ZookeeperAuthority;
 import alluxio.wire.WorkerNetAddress;

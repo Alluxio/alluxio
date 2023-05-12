@@ -18,7 +18,7 @@ import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.master.NoopUfsManager;
+import alluxio.coordinator.NoopUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.worker.block.BlockLockManager;

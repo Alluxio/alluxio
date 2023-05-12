@@ -24,7 +24,7 @@ import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.master.MasterClientContext;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.resource.CloseableResource;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;

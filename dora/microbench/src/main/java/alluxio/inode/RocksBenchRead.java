@@ -19,7 +19,7 @@ import static alluxio.inode.RocksBenchBase.genInode;
 
 import alluxio.BaseFileStructure;
 import alluxio.BaseThreadState;
-import alluxio.master.file.meta.MutableInode;
+import alluxio.coordinator.file.meta.MutableInode;
 
 import org.junit.Assert;
 import org.openjdk.jmh.annotations.Benchmark;

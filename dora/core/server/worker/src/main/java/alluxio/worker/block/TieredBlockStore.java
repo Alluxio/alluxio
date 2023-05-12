@@ -21,7 +21,7 @@ import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
 import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.exception.status.DeadlineExceededException;
-import alluxio.master.block.BlockId;
+import alluxio.coordinator.block.BlockId;
 import alluxio.resource.LockResource;
 import alluxio.util.io.FileUtils;
 import alluxio.worker.block.allocator.Allocator;

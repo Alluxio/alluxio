@@ -22,7 +22,7 @@ import alluxio.grpc.RemovePathConfigurationPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.SetPathConfigurationPRequest;
 import alluxio.grpc.UpdateConfigurationPRequest;
-import alluxio.master.MasterClientContext;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.wire.ConfigHash;
 import alluxio.wire.Configuration;
 

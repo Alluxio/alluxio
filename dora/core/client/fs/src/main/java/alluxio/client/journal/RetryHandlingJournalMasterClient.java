@@ -24,7 +24,7 @@ import alluxio.grpc.RemoveQuorumServerPRequest;
 import alluxio.grpc.ResetPrioritiesPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.TransferLeadershipPRequest;
-import alluxio.master.MasterClientContext;
+import alluxio.coordinator.MasterClientContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

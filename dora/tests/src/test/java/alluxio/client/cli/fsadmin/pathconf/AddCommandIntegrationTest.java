@@ -26,7 +26,7 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.master.file.meta.PersistenceState;
+import alluxio.coordinator.file.meta.PersistenceState;
 
 import org.junit.Assert;
 import org.junit.Test;

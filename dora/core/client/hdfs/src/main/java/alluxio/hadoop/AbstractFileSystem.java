@@ -32,7 +32,7 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.master.MasterInquireClient.Factory;
+import alluxio.coordinator.MasterInquireClient.Factory;
 import alluxio.security.CurrentUser;
 import alluxio.security.authorization.Mode;
 import alluxio.wire.BlockLocationInfo;

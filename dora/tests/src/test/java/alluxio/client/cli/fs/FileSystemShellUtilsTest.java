@@ -26,7 +26,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.master.LocalAlluxioCluster;
+import alluxio.coordinator.LocalAlluxioCluster;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.apache.commons.cli.CommandLine;

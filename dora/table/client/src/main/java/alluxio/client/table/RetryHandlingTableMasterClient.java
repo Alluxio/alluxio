@@ -35,7 +35,7 @@ import alluxio.grpc.table.TableInfo;
 import alluxio.grpc.table.TableMasterClientServiceGrpc;
 import alluxio.grpc.table.TransformJobInfo;
 import alluxio.grpc.table.TransformTablePRequest;
-import alluxio.master.MasterClientContext;
+import alluxio.coordinator.MasterClientContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

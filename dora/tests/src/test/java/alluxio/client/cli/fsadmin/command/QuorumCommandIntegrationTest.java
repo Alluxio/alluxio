@@ -26,7 +26,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.JournalDomain;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.grpc.QuorumServerState;
-import alluxio.master.journal.JournalType;
+import alluxio.coordinator.journal.JournalType;
 import alluxio.multi.process.MasterNetAddress;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;

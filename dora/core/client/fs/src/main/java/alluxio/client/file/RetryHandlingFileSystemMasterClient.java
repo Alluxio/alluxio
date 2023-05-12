@@ -77,7 +77,7 @@ import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.UpdateUfsModePRequest;
 import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
-import alluxio.master.MasterClientContext;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.retry.CountingRetry;
 import alluxio.security.authorization.AclEntry;
 import alluxio.util.FileSystemOptionsUtils;

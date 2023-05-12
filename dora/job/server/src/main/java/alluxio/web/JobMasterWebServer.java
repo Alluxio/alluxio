@@ -12,7 +12,7 @@
 package alluxio.web;
 
 import alluxio.Constants;
-import alluxio.master.AlluxioJobMasterProcess;
+import alluxio.coordinator.AlluxioJobMasterProcess;
 import alluxio.util.io.PathUtils;
 
 import org.eclipse.jetty.servlet.ServletHolder;

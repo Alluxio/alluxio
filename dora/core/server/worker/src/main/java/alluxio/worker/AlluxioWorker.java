@@ -15,7 +15,7 @@ import alluxio.ProcessUtils;
 import alluxio.RuntimeConstants;
 import alluxio.conf.Configuration;
 import alluxio.grpc.Scope;
-import alluxio.master.MasterInquireClient;
+import alluxio.coordinator.MasterInquireClient;
 import alluxio.retry.RetryUtils;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.CommonUtils;

@@ -21,7 +21,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.ConfigStatus;
 import alluxio.grpc.Scope;
-import alluxio.master.journal.JournalType;
+import alluxio.coordinator.journal.JournalType;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.multi.process.PortCoordination;

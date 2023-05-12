@@ -17,7 +17,7 @@ import alluxio.client.file.FileSystemMasterClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnauthenticatedException;
-import alluxio.master.MasterClientContext;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticationProvider;
 import alluxio.security.group.GroupMappingService;

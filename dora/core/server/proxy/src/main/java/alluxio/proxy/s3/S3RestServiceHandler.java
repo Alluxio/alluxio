@@ -35,7 +35,7 @@ import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.PMode;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.XAttrPropagationStrategy;
-import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
+import alluxio.coordinator.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.proto.journal.File;
 import alluxio.util.CommonUtils;
 import alluxio.web.ProxyWebServer;

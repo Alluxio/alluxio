@@ -17,8 +17,8 @@ import alluxio.conf.Configuration;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.UfsInfo;
-import alluxio.master.MasterClientContext;
-import alluxio.master.file.FileSystemMasterClient;
+import alluxio.coordinator.MasterClientContext;
+import alluxio.coordinator.file.FileSystemMasterClient;
 import alluxio.resource.CloseableResource;
 import alluxio.util.network.NetworkAddressUtils;
 

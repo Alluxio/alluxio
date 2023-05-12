@@ -21,7 +21,7 @@ import alluxio.job.plan.NoopPlanConfig;
 import alluxio.job.plan.load.LoadConfig;
 import alluxio.job.plan.migrate.MigrateConfig;
 import alluxio.job.plan.persist.PersistConfig;
-import alluxio.master.job.metrics.DistributedCmdMetrics;
+import alluxio.coordinator.job.metrics.DistributedCmdMetrics;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.retry.CountingRetry;

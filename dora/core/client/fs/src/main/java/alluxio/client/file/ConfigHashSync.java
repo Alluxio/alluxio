@@ -14,7 +14,7 @@ package alluxio.client.file;
 import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatExecutor;
-import alluxio.master.MasterClientContext;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.wire.ConfigHash;
 
 import org.slf4j.Logger;

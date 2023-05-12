@@ -19,8 +19,8 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.master.MasterProcess;
-import alluxio.master.block.BlockMaster;
+import alluxio.coordinator.MasterProcess;
+import alluxio.coordinator.block.BlockMaster;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.PathUtils;
 

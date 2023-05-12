@@ -76,7 +76,7 @@ public final class Metric implements Serializable {
 
   /**
    * Add metric value delta to the existing value.
-   * This method should only be used by {@link alluxio.master.metrics.MetricsStore}
+   * This method should only be used by {@link alluxio.coordinator.metrics.MetricsStore}
    *
    * @param delta value to add
    */
@@ -86,7 +86,7 @@ public final class Metric implements Serializable {
 
   /**
    * Set the metric value.
-   * This method should only be used by {@link alluxio.master.metrics.MetricsStore}
+   * This method should only be used by {@link alluxio.coordinator.metrics.MetricsStore}
    *
    * @param value value to set
    */

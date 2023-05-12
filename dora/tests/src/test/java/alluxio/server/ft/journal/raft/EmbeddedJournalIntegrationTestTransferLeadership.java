@@ -15,7 +15,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.grpc.GetTransferLeaderMessagePResponse;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerState;
-import alluxio.master.journal.JournalType;
+import alluxio.coordinator.journal.JournalType;
 import alluxio.multi.process.MasterNetAddress;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;

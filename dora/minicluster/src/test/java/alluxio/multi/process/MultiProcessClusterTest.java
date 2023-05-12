@@ -21,7 +21,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
-import alluxio.master.journal.JournalType;
+import alluxio.coordinator.journal.JournalType;
 
 import org.junit.Rule;
 import org.junit.Test;

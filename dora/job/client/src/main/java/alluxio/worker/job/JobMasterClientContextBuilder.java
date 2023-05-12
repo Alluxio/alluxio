@@ -13,8 +13,8 @@ package alluxio.worker.job;
 
 import alluxio.ClientContext;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.master.MasterClientContextBuilder;
-import alluxio.master.MasterInquireClient;
+import alluxio.coordinator.MasterClientContextBuilder;
+import alluxio.coordinator.MasterInquireClient;
 
 /**
  * A builder for instances of {@link JobMasterClientContext}.

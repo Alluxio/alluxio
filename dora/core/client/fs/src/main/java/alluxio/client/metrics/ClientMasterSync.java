@@ -16,8 +16,8 @@ import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ClientMetrics;
-import alluxio.master.MasterClientContext;
-import alluxio.master.MasterInquireClient;
+import alluxio.coordinator.MasterClientContext;
+import alluxio.coordinator.MasterInquireClient;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.logging.SamplingLogger;
 

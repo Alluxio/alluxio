@@ -16,8 +16,8 @@ import static org.apache.commons.io.FileUtils.writeStringToFile;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.master.metastore.rocks.DataBlockIndexType;
-import alluxio.master.metastore.rocks.IndexType;
+import alluxio.coordinator.metastore.rocks.DataBlockIndexType;
+import alluxio.coordinator.metastore.rocks.IndexType;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,7 +30,7 @@ import java.nio.charset.Charset;
  *   of RocksDB configuration to use (if using heap then this option must
  *   be set to javaConfig). This can be one of the following:
  *     - javaConfig - this uses the configuration defined in the java code in
- *     {@link alluxio.master.metastore.rocks.RocksInodeStore} (i.e. no configuration
+ *     {@link alluxio.coordinator.metastore.rocks.RocksInodeStore} (i.e. no configuration
  *     file is used)
  *     - emptyConfig - this uses a configuration file with no configurations, i.e.
  *     it uses all RocksDB defaults.

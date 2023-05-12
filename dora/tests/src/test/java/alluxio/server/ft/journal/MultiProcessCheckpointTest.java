@@ -18,7 +18,7 @@ import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.metrics.MetricsMasterClient;
 import alluxio.conf.PropertyKey;
-import alluxio.master.journal.JournalType;
+import alluxio.coordinator.journal.JournalType;
 import alluxio.metrics.MetricKey;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;

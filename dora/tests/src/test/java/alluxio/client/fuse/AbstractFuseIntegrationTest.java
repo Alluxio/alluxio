@@ -31,7 +31,7 @@ import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.grpc.WritePType;
-import alluxio.master.LocalAlluxioCluster;
+import alluxio.coordinator.LocalAlluxioCluster;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;

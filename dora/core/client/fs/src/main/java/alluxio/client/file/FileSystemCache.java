@@ -35,7 +35,7 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
-import alluxio.master.MasterInquireClient;
+import alluxio.coordinator.MasterInquireClient;
 import alluxio.security.authorization.AclEntry;
 import alluxio.uri.Authority;
 import alluxio.wire.BlockLocationInfo;

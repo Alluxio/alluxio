@@ -19,8 +19,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.job.util.JobTestUtils;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
-import alluxio.master.LocalAlluxioJobCluster;
-import alluxio.master.job.JobMaster;
+import alluxio.coordinator.LocalAlluxioJobCluster;
+import alluxio.coordinator.job.JobMaster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 

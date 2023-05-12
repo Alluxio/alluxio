@@ -61,7 +61,7 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
-import alluxio.master.MasterInquireClient;
+import alluxio.coordinator.MasterInquireClient;
 import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.AclEntry;
 import alluxio.uri.Authority;

@@ -49,7 +49,7 @@ import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.UfsReadOptions;
-import alluxio.master.NoopUfsManager;
+import alluxio.coordinator.NoopUfsManager;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystemConfiguration;

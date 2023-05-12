@@ -14,7 +14,7 @@ package alluxio.client.cli.fsadmin;
 import alluxio.cli.fsadmin.FileSystemAdminShell;
 import alluxio.client.cli.fs.AbstractShellIntegrationTest;
 import alluxio.conf.Configuration;
-import alluxio.master.LocalAlluxioCluster;
+import alluxio.coordinator.LocalAlluxioCluster;
 
 import org.junit.After;
 import org.junit.Before;

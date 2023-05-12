@@ -12,8 +12,8 @@
 package alluxio;
 
 import alluxio.exception.status.UnavailableException;
-import alluxio.master.MasterClientContext;
-import alluxio.master.MasterInquireClient;
+import alluxio.coordinator.MasterClientContext;
+import alluxio.coordinator.MasterInquireClient;
 import alluxio.retry.RetryPolicy;
 
 import java.net.InetSocketAddress;

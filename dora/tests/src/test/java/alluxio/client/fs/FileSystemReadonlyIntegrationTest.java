@@ -19,7 +19,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
-import alluxio.master.file.FileSystemMaster;
+import alluxio.coordinator.file.FileSystemMaster;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.wire.MountPointInfo;
 

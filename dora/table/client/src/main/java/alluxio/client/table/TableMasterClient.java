@@ -20,7 +20,7 @@ import alluxio.grpc.table.Partition;
 import alluxio.grpc.table.SyncStatus;
 import alluxio.grpc.table.TableInfo;
 import alluxio.grpc.table.TransformJobInfo;
-import alluxio.master.MasterClientContext;
+import alluxio.coordinator.MasterClientContext;
 
 import java.util.List;
 import java.util.Map;

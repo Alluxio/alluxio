@@ -13,7 +13,7 @@ package alluxio.client.hadoop.contract;
 
 import alluxio.Constants;
 import alluxio.hadoop.FileSystem;
-import alluxio.master.LocalAlluxioCluster;
+import alluxio.coordinator.LocalAlluxioCluster;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;

@@ -14,9 +14,9 @@ package alluxio.rocks;
 import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.master.journal.checkpoint.CheckpointInputStream;
-import alluxio.master.journal.checkpoint.CheckpointOutputStream;
-import alluxio.master.journal.checkpoint.CheckpointType;
+import alluxio.coordinator.journal.checkpoint.CheckpointInputStream;
+import alluxio.coordinator.journal.checkpoint.CheckpointOutputStream;
+import alluxio.coordinator.journal.checkpoint.CheckpointType;
 import alluxio.retry.TimeoutRetry;
 import alluxio.util.ParallelZipUtils;
 import alluxio.util.TarUtils;
@@ -325,12 +325,12 @@ public final class RocksStore implements Closeable {
     if (Configuration.isSet(indexType)) {
       shoudSetConfig = true;
       blockConfig.setIndexType(toRocksIndexType(Configuration.getEnum(
-          indexType, alluxio.master.metastore.rocks.IndexType.class)));
+          indexType, alluxio.coordinator.metastore.rocks.IndexType.class)));
     }
     if (Configuration.isSet(blockIndexType)) {
       shoudSetConfig = true;
       blockConfig.setDataBlockIndexType(toRocksDataBlockIndexType(Configuration.getEnum(
-          blockIndexType, alluxio.master.metastore.rocks.DataBlockIndexType.class)));
+          blockIndexType, alluxio.coordinator.metastore.rocks.DataBlockIndexType.class)));
     }
     if (shoudSetConfig) {
       return Optional.of(blockConfig);
@@ -340,7 +340,7 @@ public final class RocksStore implements Closeable {
 
   // helper function to convert alluxio enum to rocksDb enum
   private static DataBlockIndexType toRocksDataBlockIndexType(
-      alluxio.master.metastore.rocks.DataBlockIndexType index) {
+      alluxio.coordinator.metastore.rocks.DataBlockIndexType index) {
     switch (index) {
       case kDataBlockBinarySearch:
         return DataBlockIndexType.kDataBlockBinarySearch;
@@ -353,7 +353,7 @@ public final class RocksStore implements Closeable {
 
   // helper function to convert alluxio enum to rocksDb enum
   private static IndexType toRocksIndexType(
-      alluxio.master.metastore.rocks.IndexType index) {
+      alluxio.coordinator.metastore.rocks.IndexType index) {
     switch (index) {
       case kBinarySearch:
         return IndexType.kBinarySearch;

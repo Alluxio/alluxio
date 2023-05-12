@@ -17,7 +17,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.master.MasterInquireClient;
+import alluxio.coordinator.MasterInquireClient;
 
 import org.apache.commons.cli.CommandLine;
 

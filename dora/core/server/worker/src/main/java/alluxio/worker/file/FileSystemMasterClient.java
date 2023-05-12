@@ -21,7 +21,7 @@ import alluxio.grpc.GetUfsInfoPRequest;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.UfsInfo;
-import alluxio.master.MasterClientContext;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.wire.FileInfo;
 
 import com.google.inject.Inject;

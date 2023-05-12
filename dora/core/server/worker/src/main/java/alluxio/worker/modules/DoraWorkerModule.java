@@ -18,7 +18,7 @@ import alluxio.client.file.cache.PageMetaStore;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.master.MasterClientContext;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.TieredIdentity;

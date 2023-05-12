@@ -13,12 +13,12 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="AlluxioMaster" type="Application" factoryName="Application" nameIsGenerated="true">
     <option name="INCLUDE_PROVIDED_SCOPE" value="true" />
-    <option name="MAIN_CLASS_NAME" value="alluxio.master.AlluxioMaster" />
+    <option name="MAIN_CLASS_NAME" value="alluxio.coordinator.AlluxioMaster" />
     <module name="alluxio-core-server-master" />
     <option name="VM_PARAMETERS" value="-Xbootclasspath/a:$PROJECT_DIR$/conf -Dalluxio.logger.type=Console -Dalluxio.home=$PROJECT_DIR$" />
     <extension name="coverage">
       <pattern>
-        <option name="PATTERN" value="alluxio.master.*" />
+        <option name="PATTERN" value="alluxio.coordinator.*" />
         <option name="ENABLED" value="true" />
       </pattern>
     </extension>

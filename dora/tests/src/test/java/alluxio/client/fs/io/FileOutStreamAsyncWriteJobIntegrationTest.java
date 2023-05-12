@@ -22,7 +22,7 @@ import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
-import alluxio.master.file.meta.PersistenceState;
+import alluxio.coordinator.file.meta.PersistenceState;
 import alluxio.security.authorization.Mode;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.PersistenceTestUtils;

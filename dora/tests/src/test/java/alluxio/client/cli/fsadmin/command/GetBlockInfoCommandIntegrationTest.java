@@ -19,7 +19,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.WritePType;
-import alluxio.master.block.BlockId;
+import alluxio.coordinator.block.BlockId;
 
 import org.junit.Assert;
 import org.junit.Test;

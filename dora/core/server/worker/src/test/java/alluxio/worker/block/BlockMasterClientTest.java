@@ -46,7 +46,7 @@ import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
-import alluxio.master.MasterClientContext;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.retry.CountingRetry;
 import alluxio.security.authentication.AuthType;
 import alluxio.wire.TieredIdentity;

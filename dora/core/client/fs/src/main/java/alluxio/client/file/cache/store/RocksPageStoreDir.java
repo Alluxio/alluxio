@@ -18,7 +18,7 @@ import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
 import alluxio.client.file.cache.evictor.CacheEvictor;
-import alluxio.master.metastore.rocks.RocksUtils;
+import alluxio.coordinator.metastore.rocks.RocksUtils;
 import alluxio.resource.CloseableIterator;
 
 import com.google.common.collect.Streams;

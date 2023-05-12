@@ -19,7 +19,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.master.file.meta.PersistenceState;
+import alluxio.coordinator.file.meta.PersistenceState;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;

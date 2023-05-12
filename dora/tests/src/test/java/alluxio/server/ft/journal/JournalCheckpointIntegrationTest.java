@@ -29,8 +29,8 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.UfsPMode;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.master.LocalAlluxioCluster;
-import alluxio.master.MasterClientContext;
+import alluxio.coordinator.LocalAlluxioCluster;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 

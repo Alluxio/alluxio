@@ -24,7 +24,7 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterWorkerServiceGrpc;
 import alluxio.grpc.GetPinnedFileIdsPRequest;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.master.MasterClientContext;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.resource.CloseableResource;
 import alluxio.stress.rpc.GetPinnedFileIdsParameters;
 import alluxio.stress.rpc.RpcTaskResult;

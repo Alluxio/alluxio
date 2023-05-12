@@ -18,7 +18,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.job.JobIntegrationTest;
-import alluxio.master.file.meta.PersistenceState;
+import alluxio.coordinator.file.meta.PersistenceState;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;

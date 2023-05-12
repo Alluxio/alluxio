@@ -12,7 +12,7 @@
 package alluxio.worker;
 
 import alluxio.exception.ConnectionFailedException;
-import alluxio.master.job.JobMaster;
+import alluxio.coordinator.job.JobMaster;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.job.JobMasterClient;
 
