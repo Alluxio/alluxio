@@ -77,13 +77,12 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
         PropertyKey.WORKER_TIERED_STORE_LEVELS,
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS);
 
-    BlockPacketReader(BlockReadRequestContext context, Channel channel, BlockWorker blockWorker) {
-      super(context, channel);
+    BlockPacketReader(BlockWorker blockWorker) {
       mWorker = blockWorker;
     }
 
     @Override
-    protected void completeRequest(BlockReadRequestContext context) throws Exception {
+    public void completeRequest(BlockReadRequestContext context) throws Exception {
       BlockReader reader = context.getBlockReader();
       if (reader != null) {
         try {
@@ -96,7 +95,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
     }
 
     @Override
-    protected DataBuffer getDataBuffer(BlockReadRequestContext context, Channel channel,
+    public DataBuffer getDataBuffer(BlockReadRequestContext context, Channel channel,
                                        long offset, int len) throws Exception {
       openBlock(context, channel);
       BlockReader blockReader = context.getBlockReader();
@@ -191,7 +190,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
   }
 
   @Override
-  protected PacketReader createPacketReader(BlockReadRequestContext context, Channel channel) {
-    return new BlockPacketReader(context, channel, mWorker);
+  protected PacketReader createPacketReader() {
+    return new BlockPacketReader(mWorker);
   }
 }
