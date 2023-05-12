@@ -47,7 +47,9 @@ public class OSSPositionReader extends ObjectPositionReader {
     mClient = client;
   }
 
-  protected InputStream getRequestInputStream(
+
+  @Override
+  protected int readInternalRequest(
       long position, ReadTargetBuffer buffer,
       int bytesToRead, String errorMessage) throws IOException{
     OSSObject object;
@@ -58,9 +60,28 @@ public class OSSPositionReader extends ObjectPositionReader {
     } catch (OSSException e) {
       throw new IOException(errorMessage, e);
     }
+
+    // Range check approach: set range (inclusive start, inclusive end)
+    // start: should be < file length, error out otherwise
+    //        e.g. error out when start == 0 && fileLength == 0
+    //        start < 0, read all
+    // end: if start > end, read all
+    //      if start <= end < file length, read from start to end
+    //      if end >= file length, read from start to file length - 1
+
+    int totalRead = 0;
+    int currentRead = 0;
+
     try(InputStream in = object.getObjectContent()) {
-      return in;
+      while (totalRead < bytesToRead) {
+        currentRead = buffer.readFromInputStream(in, bytesToRead - totalRead);
+        if (currentRead < 0) {
+          break;
+        }
+        totalRead += currentRead;
+      }
     }
+    return totalRead == 0 ? currentRead : totalRead;
   }
 
 }

@@ -14,6 +14,7 @@ package alluxio.underfs;
 
 import alluxio.PositionReader;
 import alluxio.file.ReadTargetBuffer;
+import org.apache.zookeeper.proto.GetACLRequest;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,29 +59,7 @@ abstract public class ObjectPositionReader implements PositionReader {
     int bytesToRead = (int) Math.min(mFileLength - position, length);
     String errorMessage = String
         .format("Failed to get object: %s bucket: %s", mPath, mBucketName);
-    // request to object service client and return getObjectContent().
-    try(InputStream in = getRequestInputStream(position, buffer, bytesToRead, errorMessage)){
-      // Range check approach: set range (inclusive start, inclusive end)
-      // start: should be < file length, error out otherwise
-      //        e.g. error out when start == 0 && fileLength == 0
-      //        start < 0, read all
-      // end: if start > end, read all
-      //      if start <= end < file length, read from start to end
-      //      if end >= file length, read from start to file length - 1
-      int totalRead = 0;
-      int currentRead = 0;
-      while (totalRead < bytesToRead) {
-        currentRead = buffer.readFromInputStream(in, bytesToRead - totalRead);
-        if (currentRead < 0) {
-          break;
-        }
-        totalRead += currentRead;
-      }
-      return totalRead == 0 ? currentRead : totalRead;
-    }
-    catch (IOException e) {
-      throw new IOException(errorMessage, e);
-    }
+    return readInternalRequest(position, buffer, bytesToRead, errorMessage);
   }
 
   /**
@@ -89,7 +68,7 @@ abstract public class ObjectPositionReader implements PositionReader {
    * @param bytesToRead bytes to read
    * @return bytes read, or -1 none of data is read
    */
-  abstract protected InputStream getRequestInputStream(
+  abstract protected int readInternalRequest(
       long position, ReadTargetBuffer buffer,
       int bytesToRead, String errorMessage) throws IOException;
 

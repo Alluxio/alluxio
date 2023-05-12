@@ -1,0 +1,412 @@
+diff --git a/dora/core/common/src/main/java/alluxio/PositionReader.java b/dora/core/common/src/main/java/alluxio/PositionReader.java
+index 2a1249c7cf..a440f32d95 100644
+--- a/dora/core/common/src/main/java/alluxio/PositionReader.java
++++ b/dora/core/common/src/main/java/alluxio/PositionReader.java
+@@ -21,7 +21,6 @@ import io.netty.buffer.ByteBuf;
+ 
+ import java.io.Closeable;
+ import java.io.IOException;
+-import java.io.InputStream;
+ import java.nio.ByteBuffer;
+ import javax.annotation.concurrent.ThreadSafe;
+ 
+@@ -104,26 +103,4 @@ public interface PositionReader extends Closeable {
+    * Closes the positon reader and do cleanup job if any.
+    */
+   default void close() throws IOException {}
+-
+-  /**
+-   * Extract from read internal of different ufs position reader.
+-   * read data from ufs
+-   * @param in input stream
+-   * @param buffer target byte buffer
+-   * @param bytesToRead bytes to read
+-   * @return bytes read, or -1 none of data is read
+-   */
+-  default int readDataInternal(InputStream in, ReadTargetBuffer buffer,
+-                               int bytesToRead) throws IOException {
+-    int totalRead = 0;
+-    int currentRead = 0;
+-    while (totalRead < bytesToRead) {
+-      currentRead = buffer.readFromInputStream(in, bytesToRead - totalRead);
+-      if (currentRead < 0) {
+-        break;
+-      }
+-      totalRead += currentRead;
+-    }
+-    return totalRead == 0 ? currentRead : totalRead;
+-  }
+-}
++}
+\ No newline at end of file
+diff --git a/dora/core/common/src/main/java/alluxio/underfs/ObjectPositionReader.java b/dora/core/common/src/main/java/alluxio/underfs/ObjectPositionReader.java
+new file mode 100644
+index 0000000000..a8e92169c7
+--- /dev/null
++++ b/dora/core/common/src/main/java/alluxio/underfs/ObjectPositionReader.java
+@@ -0,0 +1,96 @@
++/*
++ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
++ * (the "License"). You may not use this work except in compliance with the License, which is
++ * available at www.apache.org/licenses/LICENSE-2.0
++ *
++ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
++ * either express or implied, as more fully set forth in the License.
++ *
++ * See the NOTICE file distributed with this work for information regarding copyright ownership.
++ */
++
++
++package alluxio.underfs;
++
++import alluxio.PositionReader;
++import alluxio.file.ReadTargetBuffer;
++
++import java.io.IOException;
++import java.io.InputStream;
++
++/**
++ * A stream for reading data using position reader.
++ */
++
++abstract public class ObjectPositionReader implements PositionReader {
++  /** Path of the file when it is uploaded to object storage. */
++  protected final String mPath;
++
++  /** Length of the file. */
++  protected final long mFileLength;
++
++  /** Name of the bucket the object resides in. */
++  protected final String mBucketName;
++
++  /**
++   * @param bucketName the bucket name
++   * @param path path of the file when it is uploaded to object storage.
++   * @param fileLength the file length
++   */
++  public ObjectPositionReader(String bucketName, String path, long fileLength) {
++    mBucketName = bucketName;
++    mPath = path;
++    mFileLength = fileLength;
++  }
++
++  /**
++   * @param position position of the file to start reading data
++   * @param buffer target byte buffer
++   * @param length bytes to read
++   * @return bytes read, or -1 none of data is read
++   */
++  @Override
++  public int readInternal(long position, ReadTargetBuffer buffer, int length)
++      throws IOException {
++    if (position >= mFileLength) { // at end of file
++      return -1;
++    }
++    int bytesToRead = (int) Math.min(mFileLength - position, length);
++    String errorMessage = String
++        .format("Failed to get object: %s bucket: %s", mPath, mBucketName);
++    // request to object service client and return getObjectContent().
++    try(InputStream in = getRequestInputStream(position, buffer, bytesToRead, errorMessage)){
++      // Range check approach: set range (inclusive start, inclusive end)
++      // start: should be < file length, error out otherwise
++      //        e.g. error out when start == 0 && fileLength == 0
++      //        start < 0, read all
++      // end: if start > end, read all
++      //      if start <= end < file length, read from start to end
++      //      if end >= file length, read from start to file length - 1
++      int totalRead = 0;
++      int currentRead = 0;
++      while (totalRead < bytesToRead) {
++        currentRead = buffer.readFromInputStream(in, bytesToRead - totalRead);
++        if (currentRead < 0) {
++          break;
++        }
++        totalRead += currentRead;
++      }
++      return totalRead == 0 ? currentRead : totalRead;
++    }
++    catch (IOException e) {
++      throw new IOException(errorMessage, e);
++    }
++  }
++
++  /**
++   * @param position position of the file to start reading data
++   * @param buffer target byte buffer
++   * @param bytesToRead bytes to read
++   * @return bytes read, or -1 none of data is read
++   */
++  abstract protected InputStream getRequestInputStream(
++      long position, ReadTargetBuffer buffer,
++      int bytesToRead, String errorMessage) throws IOException;
++
++}
+diff --git a/dora/underfs/cos/src/main/java/alluxio/underfs/cos/COSPositionReader.java b/dora/underfs/cos/src/main/java/alluxio/underfs/cos/COSPositionReader.java
+index ba16687c15..da219a47d8 100644
+--- a/dora/underfs/cos/src/main/java/alluxio/underfs/cos/COSPositionReader.java
++++ b/dora/underfs/cos/src/main/java/alluxio/underfs/cos/COSPositionReader.java
+@@ -14,6 +14,7 @@ package alluxio.underfs.cos;
+ import alluxio.PositionReader;
+ import alluxio.file.ReadTargetBuffer;
+ 
++import alluxio.underfs.ObjectPositionReader;
+ import com.qcloud.cos.COSClient;
+ import com.qcloud.cos.exception.CosServiceException;
+ import com.qcloud.cos.model.COSObject;
+@@ -21,19 +22,16 @@ import com.qcloud.cos.model.COSObjectInputStream;
+ import com.qcloud.cos.model.GetObjectRequest;
+ 
+ import java.io.IOException;
++import java.io.InputStream;
+ import javax.annotation.concurrent.ThreadSafe;
+ 
+ /**
+- * Implementation of {@link PositionReader} that reads from COS object store.
++ * Implementation of {@link ObjectPositionReader} that reads from COS object store.
+  */
+ @ThreadSafe
+-public class COSPositionReader implements PositionReader {
+-  private final String mPath;
+-  private final long mFileLength;
+-  /** Client for operations with COS. */
++public class COSPositionReader extends ObjectPositionReader {
++
+   protected COSClient mClient;
+-  /** Name of the bucket the object resides in. */
+-  protected final String mBucketNameInternal;
+ 
+   /**
+    * @param client the Tencent COS client
+@@ -43,44 +41,26 @@ public class COSPositionReader implements PositionReader {
+    */
+   public COSPositionReader(COSClient client, String bucketNameInternal,
+                            String path, long fileLength) {
+-    mClient = client;
+-    mBucketNameInternal = bucketNameInternal;
+     // TODO(lu) path needs to be transformed to not include bucket
+-    mPath = path;
+-    mFileLength = fileLength;
++    super(bucketNameInternal, path, fileLength);
++    mClient = client;
+   }
+ 
+   @Override
+-  public int readInternal(long position, ReadTargetBuffer buffer, int length)
+-      throws IOException {
+-    // at end of file
+-    if (position >= mFileLength) {
+-      return -1;
+-    }
++  protected InputStream getRequestInputStream(
++      long position, ReadTargetBuffer buffer,
++      int bytesToRead, String errorMessage) throws IOException{
+     COSObject object;
+-    int bytesToRead = (int) Math.min(mFileLength - position, length);
+-    System.out.println("Be ready to read from COS");
+     try {
+-      // Range check approach: set range (inclusive start, inclusive end)
+-      // start: should be < file length, error out otherwise
+-      //    e.g. error out when start == 0 && fileLength == 0
+-      //    start < 0, read all
+-      // end: if start > end, read all
+-      //    if start <= end < file length, read from start to end
+-      //    if end >= file length, read from start to file length - 1
+-      GetObjectRequest getObjectRequest = new GetObjectRequest(mBucketNameInternal, mPath);
++      GetObjectRequest getObjectRequest = new GetObjectRequest(mBucketName, mPath);
+       getObjectRequest.setRange(position, position + bytesToRead - 1);
+       object = mClient.getObject(getObjectRequest);
+     } catch (CosServiceException e) {
+-      String errorMessage = String
+-          .format("Failed to open key: %s bucket: %s error: %s",
+-              mPath, mBucketNameInternal, e.getMessage());
+       throw new IOException(errorMessage, e);
+     }
+-    int totalRead;
+-    try (COSObjectInputStream in = object.getObjectContent()) {
+-      totalRead = readDataInternal(in, buffer, bytesToRead);
++    try(COSObjectInputStream in = object.getObjectContent()) {
++      return in;
+     }
+-    return totalRead;
+   }
++
+ }
+diff --git a/dora/underfs/oss/src/main/java/alluxio/underfs/oss/OSSPositionReader.java b/dora/underfs/oss/src/main/java/alluxio/underfs/oss/OSSPositionReader.java
+index 2522a10f6b..8d7ec31641 100644
+--- a/dora/underfs/oss/src/main/java/alluxio/underfs/oss/OSSPositionReader.java
++++ b/dora/underfs/oss/src/main/java/alluxio/underfs/oss/OSSPositionReader.java
+@@ -14,6 +14,7 @@ package alluxio.underfs.oss;
+ import alluxio.PositionReader;
+ import alluxio.file.ReadTargetBuffer;
+ 
++import alluxio.underfs.ObjectPositionReader;
+ import com.aliyun.oss.OSS;
+ import com.aliyun.oss.OSSException;
+ import com.aliyun.oss.model.GetObjectRequest;
+@@ -24,16 +25,11 @@ import java.io.InputStream;
+ import javax.annotation.concurrent.ThreadSafe;
+ 
+ /**
+- * Implementation of {@link PositionReader} that reads from OSS object store.
++ * Implementation of {@link ObjectPositionReader} that reads from OSS object store.
+  */
+ @ThreadSafe
+-public class OSSPositionReader implements PositionReader {
+-  /**
+-   * Name of the bucket the object resides in.
+-   */
+-  protected final String mBucketName;
+-  private final String mPath;
+-  private final long mFileLength;
++public class OSSPositionReader extends ObjectPositionReader {
++
+   /**
+    * Client for operations with Aliyun OSS.
+    */
+@@ -46,42 +42,25 @@ public class OSSPositionReader implements PositionReader {
+    * @param fileLength the file length
+    */
+   public OSSPositionReader(OSS client, String bucketName, String path, long fileLength) {
+-    mClient = client;
+-    mBucketName = bucketName;
+     // TODO(lu) path needs to be transformed to not include bucket
+-    mPath = path;
+-    mFileLength = fileLength;
++    super(bucketName, path, fileLength);
++    mClient = client;
+   }
+ 
+-  @Override
+-  public int readInternal(long position, ReadTargetBuffer buffer, int length) throws IOException {
+-    // at end of file
+-    if (position >= mFileLength) {
+-      return -1;
+-    }
++  protected InputStream getRequestInputStream(
++      long position, ReadTargetBuffer buffer,
++      int bytesToRead, String errorMessage) throws IOException{
+     OSSObject object;
+-    int bytesToRead = (int) Math.min(mFileLength - position, length);
+     try {
+-      // Range check approach: set range (inclusive start, inclusive end)
+-      // start: should be < file length, error out otherwise
+-      //        e.g. error out when start == 0 && fileLength == 0
+-      //        start < 0, read all
+-      // end: if start > end, read all
+-      //      if start <= end < file length, read from start to end
+-      //      if end >= file length, read from start to file length - 1
+       GetObjectRequest getObjectRequest = new GetObjectRequest(mBucketName, mPath);
+       getObjectRequest.setRange(position, position + bytesToRead - 1);
+       object = mClient.getObject(getObjectRequest);
+     } catch (OSSException e) {
+-      String errorMessage = String
+-          .format("Failed to open key: %s bucket: %s error: %s",
+-              mPath, mBucketName, e.getMessage());
+       throw new IOException(errorMessage, e);
+     }
+-    int totalRead;
+-    try (InputStream in = object.getObjectContent()) {
+-      totalRead = readDataInternal(in, buffer, bytesToRead);
++    try(InputStream in = object.getObjectContent()) {
++      return in;
+     }
+-    return totalRead;
+   }
++
+ }
+diff --git a/dora/underfs/s3a/src/main/java/alluxio/underfs/s3a/S3APositionReader.java b/dora/underfs/s3a/src/main/java/alluxio/underfs/s3a/S3APositionReader.java
+index bad48fbdaf..b26285ce6c 100644
+--- a/dora/underfs/s3a/src/main/java/alluxio/underfs/s3a/S3APositionReader.java
++++ b/dora/underfs/s3a/src/main/java/alluxio/underfs/s3a/S3APositionReader.java
+@@ -14,6 +14,7 @@ package alluxio.underfs.s3a;
+ import alluxio.PositionReader;
+ import alluxio.file.ReadTargetBuffer;
+ 
++import alluxio.underfs.ObjectPositionReader;
+ import com.amazonaws.services.s3.AmazonS3;
+ import com.amazonaws.services.s3.model.AmazonS3Exception;
+ import com.amazonaws.services.s3.model.GetObjectRequest;
+@@ -21,19 +22,17 @@ import com.amazonaws.services.s3.model.S3Object;
+ import com.amazonaws.services.s3.model.S3ObjectInputStream;
+ 
+ import java.io.IOException;
++import java.io.InputStream;
+ import javax.annotation.concurrent.ThreadSafe;
+ 
+ /**
+- * Implementation of {@link PositionReader} that reads from S3A object store.
++ * Implementation of {@link ObjectPositionReader} that reads from S3A object store.
+  */
+ @ThreadSafe
+-public class S3APositionReader implements PositionReader {
+-  private final String mPath;
+-  private final long mFileLength;
++public class S3APositionReader extends ObjectPositionReader{
++
+   /** Client for operations with s3. */
+   protected AmazonS3 mClient;
+-  /** Name of the bucket the object resides in. */
+-  protected final String mBucketName;
+ 
+   /**
+    * @param client the amazon s3 client
+@@ -42,48 +41,31 @@ public class S3APositionReader implements PositionReader {
+    * @param fileLength the file length
+    */
+   public S3APositionReader(AmazonS3 client, String bucketName, String path, long fileLength) {
+-    mClient = client;
+-    mBucketName = bucketName;
+     // TODO(lu) path needs to be transform to not include bucket
+-    mPath = path;
+-    mFileLength = fileLength;
++    super(bucketName, path, fileLength);
++    mClient = client;
+   }
+ 
+   @Override
+-  public int readInternal(long position, ReadTargetBuffer buffer, int length)
+-      throws IOException {
+-    if (position >= mFileLength) { // at end of file
+-      return -1;
+-    }
++  protected InputStream getRequestInputStream(
++      long position, ReadTargetBuffer buffer,
++      int bytesToRead, String errorMessage) throws IOException{
+     S3Object object;
+-    int bytesToRead = (int) Math.min(mFileLength - position, length);
+     try {
+-      // Range check approach: set range (inclusive start, inclusive end)
+-      // start: should be < file length, error out otherwise
+-      //        e.g. error out when start == 0 && fileLength == 0
+-      //        start < 0, read all
+-      // end: if start > end, read all
+-      //      if start <= end < file length, read from start to end
+-      //      if end >= file length, read from start to file length - 1
+       GetObjectRequest getObjectRequest = new GetObjectRequest(mBucketName, mPath);
+       getObjectRequest.setRange(position, position + bytesToRead - 1);
+       object = mClient.getObject(getObjectRequest);
+     } catch (AmazonS3Exception e) {
+       if (e.getStatusCode() == 416) {
+         // InvalidRange exception when mPos >= file length
+-        throw AlluxioS3Exception.from(String
+-            .format("Underlying file may be changed. "
+-                    + "Expected file length is %s but read %s bytes "
+-                    + "from position %s is out of range",
+-                mFileLength, bytesToRead, position), e);
++        throw AlluxioS3Exception.from(String.format("Underlying file may be changed. "
++            + "Expected file length is %s but read %s bytes "
++            + "from position %s is out of range", mFileLength, bytesToRead, position), e);
+       }
+-      throw AlluxioS3Exception.from(String
+-          .format("Failed to get object: %s bucket: %s", mPath, mBucketName), e);
++      throw AlluxioS3Exception.from(errorMessage, e);
+     }
+-    int totalRead;
+-    try (S3ObjectInputStream in = object.getObjectContent()) {
+-      totalRead = readDataInternal(in, buffer, bytesToRead);
++    try(S3ObjectInputStream in = object.getObjectContent()) {
++      return in;
+     }
+-    return totalRead;
+   }
+ }
