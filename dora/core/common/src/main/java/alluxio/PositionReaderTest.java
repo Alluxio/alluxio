@@ -127,12 +127,10 @@ public class PositionReaderTest {
       }
       buf.position(0).limit(length);
       while (buf.hasRemaining()) {
-        ByteBuffer slice = buf.slice();
-        int currentRead = mReader.read(position + buf.position(), slice);
+        int currentRead = mReader.read(position + buf.position(), buf);
         if (currentRead <= 0) {
           break;
         }
-        buf.position(buf.position() + currentRead);
       }
       buf.flip();
       if (buf.remaining() != length) {
@@ -158,12 +156,10 @@ public class PositionReaderTest {
         }
         buf.clear().capacity(length);
         while (buf.writableBytes() > 0) {
-          ByteBuf slice = buf.slice(buf.writerIndex(), buf.writableBytes());
-          int currentRead = mReader.read(position + buf.writerIndex(), slice);
+          int currentRead = mReader.read(position + buf.writerIndex(), buf);
           if (currentRead <= 0) {
             break;
           }
-          buf.writerIndex(buf.writerIndex() + currentRead);
         }
         if (buf.readableBytes() != length) {
           throw new IOException(String.format(
@@ -222,7 +218,7 @@ public class PositionReaderTest {
 
   private void byteBufZeroLength() throws IOException {
     ByteBuf buf = Unpooled.buffer(1);
-    buf.clear().writerIndex(1);
+    buf.clear().writerIndex(1).readerIndex(1);
     if (mReader.read(0, buf) != 0) {
       throw new IOException("read length 0 should return 0");
     }

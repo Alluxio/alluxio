@@ -118,9 +118,9 @@ public class PositionReadFileInStream extends FileInStream {
         mCache = PooledDirectNioByteBuf.allocate(prefetchSize);
         mCacheStartPos = 0;
       }
-      mCache.clear();
+      mCache.clear().capacity(prefetchSize);
       try {
-        int bytesPrefetched = reader.read(pos, mCache.slice(0, prefetchSize).clear());
+        int bytesPrefetched = reader.read(pos, mCache);
         if (bytesPrefetched > 0) {
           mCache.readerIndex(0).writerIndex(bytesPrefetched);
           mCacheStartPos = pos;
