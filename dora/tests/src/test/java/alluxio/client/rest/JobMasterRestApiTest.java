@@ -13,8 +13,8 @@ package alluxio.client.rest;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.master.AlluxioJobMasterRestServiceHandler;
-import alluxio.master.LocalAlluxioJobCluster;
+import alluxio.coordinator.AlluxioJobMasterRestServiceHandler;
+import alluxio.coordinator.LocalAlluxioJobCluster;
 import alluxio.security.authentication.AuthType;
 import alluxio.testutils.LocalAlluxioClusterResource;
 

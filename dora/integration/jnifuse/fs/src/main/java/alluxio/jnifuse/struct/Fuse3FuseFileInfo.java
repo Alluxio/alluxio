@@ -14,7 +14,6 @@ package alluxio.jnifuse.struct;
 import jnr.ffi.NativeType;
 
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 /**
  * Maps to struct fuse_file_info in /usr/include/fuse3/fuse_common.h

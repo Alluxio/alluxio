@@ -11,8 +11,8 @@
 
 package alluxio.proxy.s3;
 
-import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
-import alluxio.master.audit.AuditContext;
+import alluxio.coordinator.audit.AsyncUserAccessAuditLogWriter;
+import alluxio.coordinator.audit.AuditContext;
 
 /**
  * An audit context for s3 rest service.

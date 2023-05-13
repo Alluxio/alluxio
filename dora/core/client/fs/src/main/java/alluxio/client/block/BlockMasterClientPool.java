@@ -12,7 +12,7 @@
 package alluxio.client.block;
 
 import alluxio.conf.PropertyKey;
-import alluxio.master.MasterClientContext;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.resource.DynamicResourcePool;

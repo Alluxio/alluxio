@@ -15,10 +15,10 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.master.AlluxioMasterProcess;
-import alluxio.master.LocalAlluxioCluster;
-import alluxio.master.meta.DefaultMetaMaster;
-import alluxio.master.meta.MetaMaster;
+import alluxio.coordinator.AlluxioMasterProcess;
+import alluxio.coordinator.LocalAlluxioCluster;
+import alluxio.coordinator.meta.DefaultMetaMaster;
+import alluxio.coordinator.meta.MetaMaster;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.junit.Before;

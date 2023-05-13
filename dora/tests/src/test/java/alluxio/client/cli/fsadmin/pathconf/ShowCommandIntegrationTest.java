@@ -22,7 +22,7 @@ import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.master.MasterClientContext;
+import alluxio.coordinator.MasterClientContext;
 
 import org.junit.Assert;
 import org.junit.Test;

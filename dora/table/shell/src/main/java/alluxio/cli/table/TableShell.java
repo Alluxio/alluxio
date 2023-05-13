@@ -19,7 +19,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.table.TableMasterClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
-import alluxio.master.MasterClientContext;
+import alluxio.coordinator.MasterClientContext;
 
 import java.util.Map;
 

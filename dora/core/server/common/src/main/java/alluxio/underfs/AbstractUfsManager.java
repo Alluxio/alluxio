@@ -15,9 +15,9 @@ import alluxio.AlluxioURI;
 import alluxio.concurrent.ManagedBlockingUfsForwarder;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.coordinator.journal.ufs.UfsJournal;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.recorder.Recorder;
 import alluxio.util.IdUtils;
 

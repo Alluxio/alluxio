@@ -15,11 +15,11 @@ import alluxio.RuntimeConstants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.master.NoopMaster;
-import alluxio.master.NoopUfsManager;
-import alluxio.master.ServiceUtils;
-import alluxio.master.journal.JournalSystem;
-import alluxio.master.journal.JournalUtils;
+import alluxio.coordinator.NoopMaster;
+import alluxio.coordinator.NoopUfsManager;
+import alluxio.coordinator.ServiceUtils;
+import alluxio.coordinator.journal.JournalSystem;
+import alluxio.coordinator.journal.JournalUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
 

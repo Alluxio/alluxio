@@ -15,6 +15,7 @@ import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.grpc.GetConfigHashPOptions;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
@@ -22,7 +23,6 @@ import alluxio.grpc.RemovePathConfigurationPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.SetPathConfigurationPRequest;
 import alluxio.grpc.UpdateConfigurationPRequest;
-import alluxio.master.MasterClientContext;
 import alluxio.wire.ConfigHash;
 import alluxio.wire.Configuration;
 

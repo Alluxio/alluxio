@@ -13,8 +13,8 @@ package alluxio.client.job;
 
 import alluxio.ClientContext;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.coordinator.MasterInquireClient;
 import alluxio.exception.status.UnavailableException;
-import alluxio.master.MasterInquireClient;
 import alluxio.resource.CloseableResource;
 import alluxio.security.user.UserState;
 import alluxio.worker.job.JobMasterClientContext;

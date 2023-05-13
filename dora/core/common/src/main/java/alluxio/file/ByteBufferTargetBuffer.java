@@ -11,7 +11,6 @@
 
 package alluxio.file;
 
-import alluxio.file.ReadTargetBuffer;
 import alluxio.util.io.ChannelAdapters;
 
 import io.netty.buffer.ByteBuf;

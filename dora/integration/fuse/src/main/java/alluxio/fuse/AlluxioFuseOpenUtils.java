@@ -12,9 +12,6 @@
 package alluxio.fuse;
 
 import static jnr.constants.platform.OpenFlags.O_ACCMODE;
-import static jnr.constants.platform.OpenFlags.O_RDONLY;
-import static jnr.constants.platform.OpenFlags.O_RDWR;
-import static jnr.constants.platform.OpenFlags.O_WRONLY;
 
 import jnr.constants.platform.OpenFlags;
 

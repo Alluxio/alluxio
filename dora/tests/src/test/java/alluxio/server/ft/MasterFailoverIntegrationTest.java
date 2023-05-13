@@ -20,7 +20,7 @@ import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.master.MultiMasterLocalAlluxioCluster;
+import alluxio.coordinator.MultiMasterLocalAlluxioCluster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.underfs.delegating.DelegatingUnderFileSystem;

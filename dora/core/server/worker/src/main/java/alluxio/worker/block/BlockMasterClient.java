@@ -15,6 +15,7 @@ import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.ProjectConstants;
 import alluxio.conf.PropertyKey;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.exception.FailedToAcquireRegisterLeaseException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.BlockHeartbeatPOptions;
@@ -37,7 +38,6 @@ import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.StorageList;
-import alluxio.master.MasterClientContext;
 import alluxio.retry.RetryPolicy;
 import alluxio.wire.WorkerNetAddress;
 

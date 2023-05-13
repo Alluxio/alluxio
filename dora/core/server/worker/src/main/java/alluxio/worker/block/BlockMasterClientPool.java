@@ -14,7 +14,7 @@ package alluxio.worker.block;
 import alluxio.ClientContext;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.master.MasterClientContext;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.resource.ResourcePool;
 
 import com.google.common.io.Closer;

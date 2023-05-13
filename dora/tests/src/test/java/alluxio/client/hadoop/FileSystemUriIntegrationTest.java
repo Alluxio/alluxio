@@ -13,9 +13,9 @@ package alluxio.client.hadoop;
 
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
+import alluxio.coordinator.ZkMasterInquireClient.ZkMasterConnectDetails;
+import alluxio.coordinator.journal.JournalType;
 import alluxio.hadoop.FileSystem;
-import alluxio.master.ZkMasterInquireClient.ZkMasterConnectDetails;
-import alluxio.master.journal.JournalType;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
 import alluxio.testutils.BaseIntegrationTest;

@@ -11,7 +11,7 @@
 
 package alluxio.worker.block;
 
-import alluxio.master.block.BlockId;
+import alluxio.coordinator.block.BlockId;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDirEvictorView;
 import alluxio.worker.block.meta.StorageDirView;

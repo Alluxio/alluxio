@@ -13,8 +13,8 @@ package alluxio.util;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.master.journal.JournalType;
-import alluxio.master.metastore.MetastoreType;
+import alluxio.coordinator.journal.JournalType;
+import alluxio.coordinator.metastore.MetastoreType;
 import alluxio.worker.block.BlockStoreType;
 
 /**

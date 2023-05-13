@@ -18,6 +18,8 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
+import alluxio.coordinator.LocalAlluxioJobCluster;
+import alluxio.coordinator.job.JobMaster;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.SleepJobConfig;
 import alluxio.job.plan.PlanDefinitionRegistryRule;
@@ -27,8 +29,6 @@ import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.JobWorkerHealth;
 import alluxio.job.wire.Status;
 import alluxio.job.workflow.composite.CompositeConfig;
-import alluxio.master.LocalAlluxioJobCluster;
-import alluxio.master.job.JobMaster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;

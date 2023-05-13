@@ -11,9 +11,8 @@
 
 package alluxio.testutils;
 
-import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.PersistJob;
-import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.coordinator.file.FileSystemMaster;
+import alluxio.coordinator.file.PersistJob;
 import alluxio.time.ExponentialTimer;
 import alluxio.util.CommonUtils;
 

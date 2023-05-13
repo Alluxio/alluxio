@@ -20,8 +20,8 @@ import static org.mockito.Mockito.when;
 import alluxio.ClientContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
-import alluxio.master.MasterClientContext;
-import alluxio.master.MasterInquireClient;
+import alluxio.coordinator.MasterClientContext;
+import alluxio.coordinator.MasterInquireClient;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

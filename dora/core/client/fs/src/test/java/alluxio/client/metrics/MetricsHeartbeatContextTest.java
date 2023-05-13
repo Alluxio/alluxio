@@ -25,7 +25,7 @@ import alluxio.ClientContext;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.master.MasterInquireClient;
+import alluxio.coordinator.MasterInquireClient;
 
 import org.junit.Test;
 import org.mockito.Mockito;

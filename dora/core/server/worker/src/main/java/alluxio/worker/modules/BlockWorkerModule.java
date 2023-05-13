@@ -17,7 +17,7 @@ import alluxio.client.file.cache.CacheManagerOptions;
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.master.MasterClientContext;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.WorkerUfsManager;

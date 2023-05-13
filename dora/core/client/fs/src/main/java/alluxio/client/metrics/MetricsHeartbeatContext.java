@@ -14,7 +14,7 @@ package alluxio.client.metrics;
 import alluxio.ClientContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.master.MasterInquireClient;
+import alluxio.coordinator.MasterInquireClient;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 

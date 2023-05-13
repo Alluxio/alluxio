@@ -16,10 +16,10 @@ import static alluxio.stress.cli.RpcBenchPreparationUtils.LOST_STORAGE;
 import static alluxio.stress.cli.RpcBenchPreparationUtils.USED_MEM_EMPTY;
 
 import alluxio.ClientContext;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.grpc.Command;
 import alluxio.grpc.LocationBlockIdListEntry;
 import alluxio.grpc.Metric;
-import alluxio.master.MasterClientContext;
 import alluxio.stress.CachingBlockMasterClient;
 import alluxio.stress.rpc.BlockMasterBenchParameters;
 import alluxio.stress.rpc.RpcTaskResult;

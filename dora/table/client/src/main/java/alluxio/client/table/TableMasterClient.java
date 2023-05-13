@@ -12,6 +12,7 @@
 package alluxio.client.table;
 
 import alluxio.Client;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.Constraint;
@@ -20,7 +21,6 @@ import alluxio.grpc.table.Partition;
 import alluxio.grpc.table.SyncStatus;
 import alluxio.grpc.table.TableInfo;
 import alluxio.grpc.table.TransformJobInfo;
-import alluxio.master.MasterClientContext;
 
 import java.util.List;
 import java.util.Map;
