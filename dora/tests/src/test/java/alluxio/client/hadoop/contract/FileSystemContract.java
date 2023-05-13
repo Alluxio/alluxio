@@ -12,8 +12,8 @@
 package alluxio.client.hadoop.contract;
 
 import alluxio.Constants;
-import alluxio.hadoop.FileSystem;
 import alluxio.coordinator.LocalAlluxioCluster;
+import alluxio.hadoop.FileSystem;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;

@@ -13,10 +13,10 @@ package alluxio.coordinator.scheduler;
 
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
+import alluxio.coordinator.file.FileSystemMaster;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.coordinator.file.FileSystemMaster;
 import alluxio.resource.CloseableResource;
 import alluxio.scheduler.job.WorkerProvider;
 import alluxio.wire.WorkerInfo;

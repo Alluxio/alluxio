@@ -13,13 +13,13 @@ package alluxio.coordinator.scheduler;
 
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.conf.Configuration;
-import alluxio.exception.runtime.UnavailableRuntimeException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.coordinator.file.FileSystemMaster;
 import alluxio.coordinator.job.JobFactoryProducer;
 import alluxio.coordinator.journal.JournalContext;
 import alluxio.coordinator.journal.Journaled;
 import alluxio.coordinator.journal.checkpoint.CheckpointName;
+import alluxio.exception.runtime.UnavailableRuntimeException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.proto.journal.Journal;
 import alluxio.resource.CloseableIterator;
 import alluxio.scheduler.job.Job;

@@ -15,9 +15,9 @@ import static org.junit.Assert.assertFalse;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.coordinator.backcompat.TestOp;
 import alluxio.grpc.UfsPMode;
 import alluxio.grpc.UpdateUfsModePOptions;
-import alluxio.coordinator.backcompat.TestOp;
 import alluxio.multi.process.Clients;
 
 /**

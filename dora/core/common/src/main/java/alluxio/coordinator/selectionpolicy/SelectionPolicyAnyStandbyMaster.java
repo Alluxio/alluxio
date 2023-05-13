@@ -11,8 +11,8 @@
 
 package alluxio.coordinator.selectionpolicy;
 
-import alluxio.exception.status.UnavailableException;
 import alluxio.coordinator.MasterInquireClient;
+import alluxio.exception.status.UnavailableException;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;

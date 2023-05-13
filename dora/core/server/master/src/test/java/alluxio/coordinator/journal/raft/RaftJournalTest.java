@@ -13,12 +13,12 @@ package alluxio.coordinator.journal.raft;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.grpc.QuorumServerInfo;
 import alluxio.coordinator.NoopMaster;
 import alluxio.coordinator.StateLockManager;
 import alluxio.coordinator.journal.CatchupFuture;
 import alluxio.coordinator.journal.CountingNoopFileSystemMaster;
 import alluxio.coordinator.journal.JournalContext;
+import alluxio.grpc.QuorumServerInfo;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.Journal;
 import alluxio.util.CommonUtils;

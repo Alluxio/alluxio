@@ -11,13 +11,13 @@
 
 package alluxio.coordinator.file.meta;
 
-import alluxio.exception.status.UnavailableException;
 import alluxio.coordinator.block.BlockId;
 import alluxio.coordinator.block.ContainerIdGenerable;
 import alluxio.coordinator.file.state.DirectoryId;
 import alluxio.coordinator.journal.JournalContext;
 import alluxio.coordinator.journal.Journaled;
 import alluxio.coordinator.journal.checkpoint.CheckpointName;
+import alluxio.exception.status.UnavailableException;
 import alluxio.proto.journal.File.InodeDirectoryIdGeneratorEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.CloseableIterator;

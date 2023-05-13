@@ -11,9 +11,9 @@
 
 package alluxio.coordinator.job;
 
+import alluxio.coordinator.file.FileSystemMaster;
 import alluxio.grpc.LoadJobPOptions;
 import alluxio.job.LoadJobRequest;
-import alluxio.coordinator.file.FileSystemMaster;
 import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobFactory;
 import alluxio.security.User;

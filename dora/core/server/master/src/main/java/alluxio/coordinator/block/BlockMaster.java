@@ -13,6 +13,8 @@ package alluxio.coordinator.block;
 
 import alluxio.StorageTierAssoc;
 import alluxio.client.block.options.GetWorkerReportOptions;
+import alluxio.coordinator.Master;
+import alluxio.coordinator.block.meta.MasterWorkerInfo;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
@@ -24,8 +26,6 @@ import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.StorageList;
 import alluxio.grpc.WorkerLostStorageInfo;
-import alluxio.coordinator.Master;
-import alluxio.coordinator.block.meta.MasterWorkerInfo;
 import alluxio.metrics.Metric;
 import alluxio.proto.meta.Block;
 import alluxio.wire.Address;

@@ -11,9 +11,9 @@
 
 package alluxio.coordinator.job.common;
 
+import alluxio.coordinator.job.tracker.CmdRunAttempt;
 import alluxio.grpc.OperationType;
 import alluxio.job.wire.JobSource;
-import alluxio.coordinator.job.tracker.CmdRunAttempt;
 
 import com.google.common.base.MoreObjects;
 import org.apache.commons.compress.utils.Lists;

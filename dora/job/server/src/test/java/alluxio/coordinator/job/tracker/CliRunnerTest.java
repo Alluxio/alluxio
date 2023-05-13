@@ -25,14 +25,14 @@ import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.coordinator.job.JobMaster;
+import alluxio.coordinator.job.common.CmdInfo;
+import alluxio.coordinator.job.metrics.DistributedCmdMetrics;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.OperationType;
 import alluxio.job.plan.load.LoadConfig;
 import alluxio.job.plan.migrate.MigrateConfig;
 import alluxio.job.wire.JobSource;
-import alluxio.coordinator.job.JobMaster;
-import alluxio.coordinator.job.common.CmdInfo;
-import alluxio.coordinator.job.metrics.DistributedCmdMetrics;
 import alluxio.retry.CountingRetry;
 import alluxio.util.CommonUtils;
 

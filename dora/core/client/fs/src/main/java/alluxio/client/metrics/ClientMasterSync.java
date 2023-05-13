@@ -13,11 +13,11 @@ package alluxio.client.metrics;
 
 import alluxio.ClientContext;
 import alluxio.Constants;
+import alluxio.coordinator.MasterClientContext;
+import alluxio.coordinator.MasterInquireClient;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ClientMetrics;
-import alluxio.coordinator.MasterClientContext;
-import alluxio.coordinator.MasterInquireClient;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.logging.SamplingLogger;
 

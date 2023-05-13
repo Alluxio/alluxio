@@ -11,8 +11,8 @@
 
 package alluxio.coordinator.file.contexts;
 
-import alluxio.grpc.CompleteFilePOptions;
 import alluxio.coordinator.file.FileSystemMasterOptions;
+import alluxio.grpc.CompleteFilePOptions;
 import alluxio.underfs.UfsStatus;
 import alluxio.wire.OperationId;
 

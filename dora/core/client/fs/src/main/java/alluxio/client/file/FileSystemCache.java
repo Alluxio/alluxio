@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.coordinator.MasterInquireClient;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
@@ -35,7 +36,6 @@ import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UnmountPOptions;
-import alluxio.coordinator.MasterInquireClient;
 import alluxio.security.authorization.AclEntry;
 import alluxio.uri.Authority;
 import alluxio.wire.BlockLocationInfo;

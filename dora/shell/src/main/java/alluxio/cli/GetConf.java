@@ -17,9 +17,9 @@ import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.PropertyKey;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
-import alluxio.coordinator.MasterClientContext;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 

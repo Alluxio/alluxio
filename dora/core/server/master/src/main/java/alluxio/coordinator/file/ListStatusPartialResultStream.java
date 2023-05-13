@@ -11,10 +11,10 @@
 
 package alluxio.coordinator.file;
 
+import alluxio.coordinator.file.contexts.ListStatusContext;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.ListStatusPartialPResponse;
-import alluxio.coordinator.file.contexts.ListStatusContext;
 import alluxio.wire.FileInfo;
 
 import io.grpc.stub.StreamObserver;

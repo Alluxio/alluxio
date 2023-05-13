@@ -13,10 +13,10 @@ package alluxio.coordinator;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.grpc.JournalDomain;
-import alluxio.grpc.NodeState;
 import alluxio.coordinator.journal.JournalSystem;
 import alluxio.coordinator.service.SimpleService;
+import alluxio.grpc.JournalDomain;
+import alluxio.grpc.NodeState;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 

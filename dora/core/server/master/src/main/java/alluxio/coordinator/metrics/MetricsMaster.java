@@ -11,8 +11,8 @@
 
 package alluxio.coordinator.metrics;
 
-import alluxio.grpc.MetricValue;
 import alluxio.coordinator.Master;
+import alluxio.grpc.MetricValue;
 import alluxio.metrics.Metric;
 
 import java.util.List;

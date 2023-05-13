@@ -16,9 +16,9 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.grpc.DeletePOptions;
 import alluxio.coordinator.backcompat.FsTestOp;
 import alluxio.coordinator.backcompat.Utils;
+import alluxio.grpc.DeletePOptions;
 
 import java.util.Arrays;
 

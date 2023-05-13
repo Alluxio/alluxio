@@ -12,11 +12,11 @@
 package alluxio.coordinator.service.rpc;
 
 import alluxio.conf.Configuration;
-import alluxio.grpc.GrpcServerAddress;
-import alluxio.grpc.GrpcServerBuilder;
 import alluxio.coordinator.AlluxioMasterProcess;
 import alluxio.coordinator.MasterRegistry;
 import alluxio.coordinator.PortReservationRule;
+import alluxio.grpc.GrpcServerAddress;
+import alluxio.grpc.GrpcServerBuilder;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 

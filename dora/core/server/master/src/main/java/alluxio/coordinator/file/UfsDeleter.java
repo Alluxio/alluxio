@@ -12,8 +12,8 @@
 package alluxio.coordinator.file;
 
 import alluxio.AlluxioURI;
-import alluxio.exception.InvalidPathException;
 import alluxio.coordinator.file.meta.Inode;
+import alluxio.exception.InvalidPathException;
 
 import java.io.IOException;
 

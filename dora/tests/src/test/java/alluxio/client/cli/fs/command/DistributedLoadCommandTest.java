@@ -20,9 +20,9 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.coordinator.LocalAlluxioJobCluster;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.WritePType;
-import alluxio.coordinator.LocalAlluxioJobCluster;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.apache.commons.collections.CollectionUtils;

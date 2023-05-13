@@ -16,11 +16,11 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
+import alluxio.coordinator.backcompat.FsTestOp;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
-import alluxio.coordinator.backcompat.FsTestOp;
 import alluxio.security.authorization.Mode;
 import alluxio.security.authorization.ModeParser;
 

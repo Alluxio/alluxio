@@ -12,6 +12,7 @@
 package alluxio.coordinator.table;
 
 import alluxio.RpcUtils;
+import alluxio.coordinator.table.transform.TransformJobInfo;
 import alluxio.grpc.table.AttachDatabasePRequest;
 import alluxio.grpc.table.AttachDatabasePResponse;
 import alluxio.grpc.table.DetachDatabasePRequest;
@@ -38,7 +39,6 @@ import alluxio.grpc.table.SyncStatus;
 import alluxio.grpc.table.TableMasterClientServiceGrpc;
 import alluxio.grpc.table.TransformTablePRequest;
 import alluxio.grpc.table.TransformTablePResponse;
-import alluxio.coordinator.table.transform.TransformJobInfo;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;

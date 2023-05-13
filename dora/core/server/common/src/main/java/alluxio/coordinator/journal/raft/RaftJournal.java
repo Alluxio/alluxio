@@ -11,12 +11,12 @@
 
 package alluxio.coordinator.journal.raft;
 
-import alluxio.exception.status.UnavailableException;
 import alluxio.coordinator.journal.AsyncJournalWriter;
 import alluxio.coordinator.journal.Journal;
 import alluxio.coordinator.journal.JournalContext;
 import alluxio.coordinator.journal.Journaled;
 import alluxio.coordinator.journal.MasterJournalContext;
+import alluxio.exception.status.UnavailableException;
 
 import java.io.IOException;
 import java.net.URI;

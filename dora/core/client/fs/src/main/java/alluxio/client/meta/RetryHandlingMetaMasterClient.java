@@ -13,6 +13,7 @@ package alluxio.client.meta;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.BackupStatusPRequest;
 import alluxio.grpc.CheckpointPOptions;
@@ -22,7 +23,6 @@ import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
 import alluxio.grpc.ServiceType;
-import alluxio.coordinator.MasterClientContext;
 import alluxio.wire.BackupStatus;
 import alluxio.wire.ConfigCheckReport;
 

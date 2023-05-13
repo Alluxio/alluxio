@@ -16,7 +16,6 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.grpc.NodeState;
 import alluxio.coordinator.journal.JournalSystem;
 import alluxio.coordinator.journal.JournalType;
 import alluxio.coordinator.journal.JournalUtils;
@@ -24,6 +23,7 @@ import alluxio.coordinator.journal.ufs.UfsJournal;
 import alluxio.coordinator.journal.ufs.UfsJournalLogWriter;
 import alluxio.coordinator.journal.ufs.UfsJournalSingleMasterPrimarySelector;
 import alluxio.coordinator.journal.ufs.UfsJournalSystem;
+import alluxio.grpc.NodeState;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.Journal;
 import alluxio.util.CommonUtils;

@@ -14,6 +14,7 @@ package alluxio.worker.file;
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.grpc.FileSystemMasterWorkerServiceGrpc;
 import alluxio.grpc.GetFileInfoPRequest;
 import alluxio.grpc.GetPinnedFileIdsPRequest;
@@ -21,7 +22,6 @@ import alluxio.grpc.GetUfsInfoPRequest;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.UfsInfo;
-import alluxio.coordinator.MasterClientContext;
 import alluxio.wire.FileInfo;
 
 import com.google.inject.Inject;

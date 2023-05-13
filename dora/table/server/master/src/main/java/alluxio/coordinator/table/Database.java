@@ -13,14 +13,14 @@ package alluxio.coordinator.table;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.coordinator.journal.JournalContext;
+import alluxio.coordinator.journal.Journaled;
+import alluxio.coordinator.journal.checkpoint.CheckpointName;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.table.FileStatistics;
 import alluxio.grpc.table.Schema;
 import alluxio.grpc.table.SyncStatus;
-import alluxio.coordinator.journal.JournalContext;
-import alluxio.coordinator.journal.Journaled;
-import alluxio.coordinator.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.Journal;
 import alluxio.resource.CloseableIterator;
 import alluxio.table.common.udb.UdbContext;

@@ -13,13 +13,13 @@ package alluxio.coordinator.file;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.grpc.FileSystemMasterWorkerServiceGrpc;
 import alluxio.grpc.GetFileInfoPRequest;
 import alluxio.grpc.GetUfsInfoPRequest;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.UfsInfo;
-import alluxio.coordinator.MasterClientContext;
 import alluxio.wire.FileInfo;
 
 import org.slf4j.Logger;

@@ -19,11 +19,11 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-import alluxio.exception.status.UnavailableException;
 import alluxio.coordinator.file.contexts.CallTracker;
 import alluxio.coordinator.file.contexts.InternalOperationContext;
 import alluxio.coordinator.file.contexts.OperationContext;
 import alluxio.coordinator.journal.JournalContext;
+import alluxio.exception.status.UnavailableException;
 
 import org.junit.Before;
 import org.junit.Rule;

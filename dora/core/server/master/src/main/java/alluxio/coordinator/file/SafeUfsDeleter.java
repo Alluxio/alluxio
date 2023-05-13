@@ -13,13 +13,13 @@ package alluxio.coordinator.file;
 
 import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
-import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.InvalidPathException;
-import alluxio.grpc.DeletePOptions;
 import alluxio.coordinator.file.meta.Inode;
 import alluxio.coordinator.file.meta.LockedInodePath;
 import alluxio.coordinator.file.meta.MountTable;
 import alluxio.coordinator.metastore.ReadOnlyInodeStore;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
+import alluxio.grpc.DeletePOptions;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;

@@ -13,10 +13,10 @@ package alluxio.coordinator.block;
 
 import static java.util.Objects.requireNonNull;
 
-import alluxio.exception.status.NotFoundException;
-import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.coordinator.block.meta.MasterWorkerInfo;
 import alluxio.coordinator.block.meta.WorkerMetaLockSection;
+import alluxio.exception.status.NotFoundException;
+import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.resource.LockResource;
 
 import io.grpc.stub.StreamObserver;

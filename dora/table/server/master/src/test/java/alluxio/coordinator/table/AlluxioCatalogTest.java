@@ -19,6 +19,7 @@ import static org.mockito.Mockito.when;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.coordinator.journal.NoopJournalContext;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.table.ColumnStatisticsData;
@@ -27,7 +28,6 @@ import alluxio.grpc.table.FieldSchema;
 import alluxio.grpc.table.Schema;
 import alluxio.grpc.table.StringColumnStatsData;
 import alluxio.grpc.table.layout.hive.PartitionInfo;
-import alluxio.coordinator.journal.NoopJournalContext;
 import alluxio.table.common.Layout;
 import alluxio.table.common.UdbPartition;
 import alluxio.table.common.layout.HiveLayout;

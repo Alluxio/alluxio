@@ -13,10 +13,10 @@ package alluxio.coordinator.file.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
-import alluxio.grpc.MountPOptions;
 import alluxio.coordinator.file.contexts.MountContext;
 import alluxio.coordinator.file.meta.options.MountInfo;
 import alluxio.coordinator.journal.NoopJournalContext;
+import alluxio.grpc.MountPOptions;
 import alluxio.underfs.MasterUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;

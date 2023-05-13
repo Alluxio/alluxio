@@ -17,14 +17,14 @@ import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
+import alluxio.coordinator.file.contexts.MountContext;
+import alluxio.coordinator.file.meta.options.MountInfo;
+import alluxio.coordinator.journal.NoopJournalContext;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.MountPOptions;
-import alluxio.coordinator.file.contexts.MountContext;
-import alluxio.coordinator.file.meta.options.MountInfo;
-import alluxio.coordinator.journal.NoopJournalContext;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsManager.UfsClient;
 import alluxio.underfs.UnderFileSystem;

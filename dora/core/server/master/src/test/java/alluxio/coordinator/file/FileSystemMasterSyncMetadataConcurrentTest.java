@@ -17,12 +17,12 @@ import alluxio.AlluxioURI;
 import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.coordinator.file.meta.InodeTree;
+import alluxio.coordinator.file.meta.LockingScheme;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
-import alluxio.coordinator.file.meta.InodeTree;
-import alluxio.coordinator.file.meta.LockingScheme;
 import alluxio.underfs.UnderFileSystem;
 
 import com.google.common.math.IntMath;

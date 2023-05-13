@@ -11,11 +11,11 @@
 
 package alluxio;
 
-import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.GrpcServerAddress;
 import alluxio.coordinator.MasterClientContext;
 import alluxio.coordinator.MasterInquireClient;
 import alluxio.coordinator.selectionpolicy.MasterSelectionPolicy;
+import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.GrpcServerAddress;
 import alluxio.retry.RetryPolicy;
 
 import java.io.IOException;

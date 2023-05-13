@@ -13,6 +13,8 @@ package alluxio.coordinator.job.plan;
 
 import alluxio.client.file.FileSystem;
 import alluxio.collections.Pair;
+import alluxio.coordinator.job.command.CommandManager;
+import alluxio.coordinator.job.metrics.DistributedCmdMetrics;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.job.ErrorUtils;
 import alluxio.job.JobConfig;
@@ -24,8 +26,6 @@ import alluxio.job.plan.PlanDefinitionRegistry;
 import alluxio.job.plan.meta.PlanInfo;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
-import alluxio.coordinator.job.command.CommandManager;
-import alluxio.coordinator.job.metrics.DistributedCmdMetrics;
 import alluxio.retry.CountingRetry;
 import alluxio.wire.WorkerInfo;
 

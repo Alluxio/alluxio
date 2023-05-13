@@ -12,6 +12,7 @@
 package alluxio.coordinator.file;
 
 import alluxio.RpcUtils;
+import alluxio.coordinator.file.contexts.WorkerHeartbeatContext;
 import alluxio.grpc.FileSystemHeartbeatPOptions;
 import alluxio.grpc.FileSystemHeartbeatPRequest;
 import alluxio.grpc.FileSystemHeartbeatPResponse;
@@ -26,7 +27,6 @@ import alluxio.grpc.GetUfsInfoPOptions;
 import alluxio.grpc.GetUfsInfoPRequest;
 import alluxio.grpc.GetUfsInfoPResponse;
 import alluxio.grpc.GrpcUtils;
-import alluxio.coordinator.file.contexts.WorkerHeartbeatContext;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;

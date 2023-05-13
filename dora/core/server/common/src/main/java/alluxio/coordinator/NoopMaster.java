@@ -12,11 +12,11 @@
 package alluxio.coordinator;
 
 import alluxio.Server;
-import alluxio.grpc.GrpcService;
-import alluxio.grpc.ServiceType;
 import alluxio.coordinator.journal.JournalContext;
 import alluxio.coordinator.journal.NoopJournaled;
 import alluxio.coordinator.journal.noop.NoopJournalSystem;
+import alluxio.grpc.GrpcService;
+import alluxio.grpc.ServiceType;
 import alluxio.underfs.UfsManager;
 
 import java.util.Map;

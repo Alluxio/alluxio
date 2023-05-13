@@ -15,6 +15,8 @@ import alluxio.RpcUtils;
 import alluxio.RuntimeConstants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.coordinator.StateLockOptions;
+import alluxio.coordinator.journal.raft.RaftJournalSystem;
 import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.BackupPStatus;
 import alluxio.grpc.BackupStatusPRequest;
@@ -27,8 +29,6 @@ import alluxio.grpc.GetMasterInfoPResponse;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
-import alluxio.coordinator.StateLockOptions;
-import alluxio.coordinator.journal.raft.RaftJournalSystem;
 import alluxio.wire.Address;
 
 import io.grpc.stub.StreamObserver;

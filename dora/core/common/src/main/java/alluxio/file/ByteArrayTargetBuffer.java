@@ -12,7 +12,6 @@
 package alluxio.file;
 
 import alluxio.annotation.SuppressFBWarnings;
-import alluxio.file.ReadTargetBuffer;
 import alluxio.util.io.ChannelAdapters;
 
 import io.netty.buffer.ByteBuf;

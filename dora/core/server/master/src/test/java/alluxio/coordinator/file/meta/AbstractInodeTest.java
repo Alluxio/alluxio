@@ -12,11 +12,11 @@
 package alluxio.coordinator.file.meta;
 
 import alluxio.Constants;
-import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.grpc.CreateFilePOptions;
 import alluxio.coordinator.block.BlockId;
 import alluxio.coordinator.file.contexts.CreateDirectoryContext;
 import alluxio.coordinator.file.contexts.CreateFileContext;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.security.authorization.Mode;
 
 import org.junit.Rule;

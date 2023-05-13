@@ -11,12 +11,12 @@
 
 package alluxio.coordinator.file;
 
-import alluxio.exception.status.UnavailableException;
 import alluxio.coordinator.file.contexts.CallTracker;
 import alluxio.coordinator.file.contexts.InternalOperationContext;
 import alluxio.coordinator.file.contexts.OperationContext;
 import alluxio.coordinator.journal.JournalContext;
 import alluxio.coordinator.journal.NoopJournalContext;
+import alluxio.exception.status.UnavailableException;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.wire.OperationId;
 

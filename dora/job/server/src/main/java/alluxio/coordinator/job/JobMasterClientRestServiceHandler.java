@@ -14,12 +14,12 @@ package alluxio.coordinator.job;
 import alluxio.Constants;
 import alluxio.RestUtils;
 import alluxio.conf.Configuration;
+import alluxio.coordinator.AlluxioJobMasterProcess;
 import alluxio.grpc.ListAllPOptions;
 import alluxio.job.JobConfig;
 import alluxio.job.ServiceConstants;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
-import alluxio.coordinator.AlluxioJobMasterProcess;
 import alluxio.web.JobMasterWebServer;
 
 import com.fasterxml.jackson.databind.SerializationFeature;

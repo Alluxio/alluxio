@@ -12,10 +12,10 @@
 package alluxio.coordinator;
 
 import alluxio.Server;
-import alluxio.grpc.GrpcService;
-import alluxio.grpc.ServiceType;
 import alluxio.coordinator.journal.JournalContext;
 import alluxio.coordinator.journal.checkpoint.CheckpointName;
+import alluxio.grpc.GrpcService;
+import alluxio.grpc.ServiceType;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.CloseableIterator;

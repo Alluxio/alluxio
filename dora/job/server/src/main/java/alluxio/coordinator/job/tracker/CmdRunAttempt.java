@@ -11,11 +11,11 @@
 
 package alluxio.coordinator.job.tracker;
 
+import alluxio.coordinator.job.JobMaster;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.job.JobConfig;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
-import alluxio.coordinator.job.JobMaster;
 import alluxio.retry.RetryPolicy;
 
 import com.beust.jcommander.internal.Sets;

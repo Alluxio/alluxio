@@ -12,11 +12,11 @@
 package alluxio.coordinator.file.meta;
 
 import alluxio.Constants;
-import alluxio.exception.BlockInfoException;
-import alluxio.grpc.CreateFilePOptionsOrBuilder;
 import alluxio.coordinator.ProtobufUtils;
 import alluxio.coordinator.block.BlockId;
 import alluxio.coordinator.file.contexts.CreateFileContext;
+import alluxio.exception.BlockInfoException;
+import alluxio.grpc.CreateFilePOptionsOrBuilder;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.File.UpdateInodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;

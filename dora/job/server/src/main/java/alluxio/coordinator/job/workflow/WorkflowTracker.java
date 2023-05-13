@@ -12,6 +12,7 @@
 package alluxio.coordinator.job.workflow;
 
 import alluxio.collections.ConcurrentHashSet;
+import alluxio.coordinator.job.JobMaster;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.ErrorUtils;
@@ -23,7 +24,6 @@ import alluxio.job.wire.WorkflowInfo;
 import alluxio.job.workflow.WorkflowConfig;
 import alluxio.job.workflow.WorkflowExecution;
 import alluxio.job.workflow.WorkflowExecutionRegistry;
-import alluxio.coordinator.job.JobMaster;
 
 import org.apache.commons.compress.utils.Lists;
 import org.slf4j.Logger;

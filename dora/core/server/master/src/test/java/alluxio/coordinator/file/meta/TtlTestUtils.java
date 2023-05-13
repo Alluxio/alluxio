@@ -11,9 +11,9 @@
 
 package alluxio.coordinator.file.meta;
 
+import alluxio.coordinator.file.contexts.CreateFileContext;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
-import alluxio.coordinator.file.contexts.CreateFileContext;
 
 public class TtlTestUtils {
   public static Inode createFileWithIdAndTtl(long id, long ttl) {

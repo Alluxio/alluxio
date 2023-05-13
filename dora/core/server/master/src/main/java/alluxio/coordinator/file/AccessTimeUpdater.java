@@ -13,12 +13,12 @@ package alluxio.coordinator.file;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.status.UnavailableException;
 import alluxio.coordinator.file.meta.Inode;
 import alluxio.coordinator.file.meta.InodeTree;
 import alluxio.coordinator.journal.JournalContext;
 import alluxio.coordinator.journal.JournalSystem;
 import alluxio.coordinator.journal.sink.JournalSink;
+import alluxio.exception.status.UnavailableException;
 import alluxio.proto.journal.File.UpdateInodeEntry;
 import alluxio.proto.journal.Journal;
 import alluxio.resource.LockResource;

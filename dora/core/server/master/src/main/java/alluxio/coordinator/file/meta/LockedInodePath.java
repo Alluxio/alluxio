@@ -15,13 +15,13 @@ import alluxio.AlluxioURI;
 import alluxio.concurrent.LockMode;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.coordinator.file.meta.InodeTree.LockPattern;
+import alluxio.coordinator.journal.JournalContext;
+import alluxio.coordinator.metastore.ReadOnlyInodeStore;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.coordinator.file.meta.InodeTree.LockPattern;
-import alluxio.coordinator.journal.JournalContext;
-import alluxio.coordinator.metastore.ReadOnlyInodeStore;
 import alluxio.resource.AlluxioResourceLeakDetectorFactory;
 import alluxio.util.io.PathUtils;
 

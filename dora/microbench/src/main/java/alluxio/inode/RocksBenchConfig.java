@@ -15,9 +15,9 @@ import static org.apache.commons.io.FileUtils.writeStringToFile;
 
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.status.InvalidArgumentException;
 import alluxio.coordinator.metastore.rocks.DataBlockIndexType;
 import alluxio.coordinator.metastore.rocks.IndexType;
+import alluxio.exception.status.InvalidArgumentException;
 
 import java.io.File;
 import java.io.IOException;

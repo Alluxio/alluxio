@@ -17,16 +17,16 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.coordinator.file.contexts.DeleteContext;
+import alluxio.coordinator.file.contexts.ListStatusContext;
+import alluxio.coordinator.file.contexts.RenameContext;
+import alluxio.coordinator.metastore.InodeStore;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.LoadMetadataPType;
-import alluxio.coordinator.file.contexts.DeleteContext;
-import alluxio.coordinator.file.contexts.ListStatusContext;
-import alluxio.coordinator.file.contexts.RenameContext;
-import alluxio.coordinator.metastore.InodeStore;
 import alluxio.wire.FileInfo;
 
 import org.junit.Test;

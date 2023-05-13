@@ -18,8 +18,8 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
-import alluxio.grpc.DeletePOptions;
 import alluxio.coordinator.LocalAlluxioCluster;
+import alluxio.grpc.DeletePOptions;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 

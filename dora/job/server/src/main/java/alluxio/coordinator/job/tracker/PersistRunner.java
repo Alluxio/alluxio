@@ -13,12 +13,12 @@ package alluxio.coordinator.job.tracker;
 
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.grpc.OperationType;
-import alluxio.job.cmd.persist.PersistCmdConfig;
-import alluxio.job.wire.JobSource;
 import alluxio.coordinator.job.JobMaster;
 import alluxio.coordinator.job.common.CmdInfo;
 import alluxio.coordinator.job.metrics.DistributedCmdMetrics;
+import alluxio.grpc.OperationType;
+import alluxio.job.cmd.persist.PersistCmdConfig;
+import alluxio.job.wire.JobSource;
 import alluxio.retry.CountingRetry;
 
 import com.google.common.collect.Lists;

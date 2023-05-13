@@ -13,11 +13,11 @@ package alluxio.coordinator.file;
 
 import alluxio.AlluxioURI;
 import alluxio.annotation.SuppressFBWarnings;
-import alluxio.exception.InvalidPathException;
 import alluxio.coordinator.file.meta.Inode;
 import alluxio.coordinator.file.meta.InodeDirectory;
 import alluxio.coordinator.file.meta.MountTable;
 import alluxio.coordinator.metastore.ReadOnlyInodeStore;
+import alluxio.exception.InvalidPathException;
 import alluxio.resource.CloseableIterator;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsStatus;

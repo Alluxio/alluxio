@@ -13,6 +13,8 @@ package alluxio.coordinator.job.plan;
 
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
+import alluxio.coordinator.job.command.CommandManager;
+import alluxio.coordinator.job.workflow.WorkflowTracker;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.status.ResourceExhaustedException;
@@ -22,8 +24,6 @@ import alluxio.job.plan.PlanConfig;
 import alluxio.job.plan.meta.PlanInfo;
 import alluxio.job.plan.replicate.SetReplicaConfig;
 import alluxio.job.wire.Status;
-import alluxio.coordinator.job.command.CommandManager;
-import alluxio.coordinator.job.workflow.WorkflowTracker;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 

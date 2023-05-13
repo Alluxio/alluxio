@@ -14,10 +14,10 @@ package alluxio.coordinator.file.meta;
 import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.coordinator.file.meta.InodeTree.LockPattern;
 import alluxio.exception.InvalidPathException;
 import alluxio.file.options.DescendantType;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
-import alluxio.coordinator.file.meta.InodeTree.LockPattern;
 
 import com.google.common.base.MoreObjects;
 

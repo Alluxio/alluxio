@@ -20,14 +20,14 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
-import alluxio.file.options.DescendantType;
-import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.coordinator.file.contexts.ListStatusContext;
 import alluxio.coordinator.file.meta.InodeTree;
 import alluxio.coordinator.file.meta.LockingScheme;
 import alluxio.coordinator.file.meta.MountTable;
 import alluxio.coordinator.file.meta.NoopUfsAbsentPathCache;
 import alluxio.coordinator.file.meta.UfsAbsentPathCache;
+import alluxio.file.options.DescendantType;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.AuthenticatedClientUser;

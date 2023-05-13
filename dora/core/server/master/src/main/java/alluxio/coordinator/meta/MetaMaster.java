@@ -12,13 +12,13 @@
 package alluxio.coordinator.meta;
 
 import alluxio.conf.PropertyKey;
+import alluxio.coordinator.Master;
+import alluxio.coordinator.backup.BackupOps;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.MetaCommand;
 import alluxio.grpc.RegisterMasterPOptions;
-import alluxio.coordinator.Master;
-import alluxio.coordinator.backup.BackupOps;
 import alluxio.wire.Address;
 import alluxio.wire.ConfigCheckReport;
 import alluxio.wire.ConfigHash;

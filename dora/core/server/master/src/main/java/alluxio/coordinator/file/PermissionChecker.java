@@ -11,9 +11,9 @@
 
 package alluxio.coordinator.file;
 
+import alluxio.coordinator.file.meta.LockedInodePath;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.InvalidPathException;
-import alluxio.coordinator.file.meta.LockedInodePath;
 import alluxio.security.authorization.Mode;
 
 /**

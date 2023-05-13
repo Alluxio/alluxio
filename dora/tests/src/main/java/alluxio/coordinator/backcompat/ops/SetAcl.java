@@ -17,9 +17,9 @@ import static org.junit.Assert.assertThat;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.grpc.SetAclAction;
 import alluxio.coordinator.backcompat.FsTestOp;
 import alluxio.coordinator.backcompat.Version;
+import alluxio.grpc.SetAclAction;
 import alluxio.security.authorization.AclEntry;
 
 import java.util.Arrays;

@@ -12,11 +12,11 @@
 package alluxio.coordinator.file.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.coordinator.file.FileSystemMaster;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.coordinator.file.FileSystemMaster;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerInfo;

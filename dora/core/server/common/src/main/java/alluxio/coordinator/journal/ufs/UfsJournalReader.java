@@ -12,10 +12,10 @@
 package alluxio.coordinator.journal.ufs;
 
 import alluxio.ProcessUtils;
-import alluxio.exception.ExceptionMessage;
 import alluxio.coordinator.journal.JournalEntryStreamReader;
 import alluxio.coordinator.journal.JournalReader;
 import alluxio.coordinator.journal.checkpoint.CheckpointInputStream;
+import alluxio.exception.ExceptionMessage;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.underfs.UnderFileSystem;

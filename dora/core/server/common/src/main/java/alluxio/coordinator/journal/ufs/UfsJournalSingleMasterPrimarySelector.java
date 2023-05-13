@@ -11,8 +11,8 @@
 
 package alluxio.coordinator.journal.ufs;
 
-import alluxio.grpc.NodeState;
 import alluxio.coordinator.AbstractPrimarySelector;
+import alluxio.grpc.NodeState;
 
 import java.net.InetSocketAddress;
 

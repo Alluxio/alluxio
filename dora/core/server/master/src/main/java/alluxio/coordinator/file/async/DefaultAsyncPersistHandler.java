@@ -12,13 +12,13 @@
 package alluxio.coordinator.file.async;
 
 import alluxio.AlluxioURI;
+import alluxio.coordinator.file.FileSystemMaster;
+import alluxio.coordinator.file.meta.FileSystemMasterView;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.coordinator.file.FileSystemMaster;
-import alluxio.coordinator.file.meta.FileSystemMasterView;
 import alluxio.util.IdUtils;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;

@@ -18,6 +18,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.coordinator.job.common.CmdInfo;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.grpc.OperationType;
 import alluxio.job.cmd.load.LoadCliConfig;
@@ -26,7 +27,6 @@ import alluxio.job.wire.CmdStatusBlock;
 import alluxio.job.wire.JobSource;
 import alluxio.job.wire.SimpleJobStatusBlock;
 import alluxio.job.wire.Status;
-import alluxio.coordinator.job.common.CmdInfo;
 
 import com.beust.jcommander.internal.Lists;
 import org.junit.Assert;

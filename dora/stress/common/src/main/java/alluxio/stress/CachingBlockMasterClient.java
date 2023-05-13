@@ -12,9 +12,9 @@
 package alluxio.stress;
 
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.LocationBlockIdListEntry;
-import alluxio.coordinator.MasterClientContext;
 import alluxio.worker.block.BlockMapIterator;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockStoreLocation;

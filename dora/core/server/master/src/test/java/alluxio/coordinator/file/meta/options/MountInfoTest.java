@@ -12,9 +12,9 @@
 package alluxio.coordinator.file.meta.options;
 
 import alluxio.AlluxioURI;
+import alluxio.coordinator.file.contexts.MountContext;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.UfsInfo;
-import alluxio.coordinator.file.contexts.MountContext;
 
 import org.junit.Assert;
 import org.junit.Test;

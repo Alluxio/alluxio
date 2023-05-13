@@ -15,8 +15,8 @@ import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.exception.status.InvalidArgumentException;
 import alluxio.coordinator.block.BlockId;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.wire.BlockInfo;
 
 import org.apache.commons.cli.CommandLine;

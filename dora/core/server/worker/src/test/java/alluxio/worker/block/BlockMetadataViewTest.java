@@ -18,8 +18,8 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import alluxio.Constants;
-import alluxio.exception.ExceptionMessage;
 import alluxio.coordinator.block.BlockId;
+import alluxio.exception.ExceptionMessage;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.DefaultBlockMeta;
 import alluxio.worker.block.meta.StorageDir;

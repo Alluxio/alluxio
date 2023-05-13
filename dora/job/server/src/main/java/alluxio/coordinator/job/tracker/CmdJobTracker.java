@@ -13,6 +13,8 @@ package alluxio.coordinator.job.tracker;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystemContext;
+import alluxio.coordinator.job.JobMaster;
+import alluxio.coordinator.job.common.CmdInfo;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.job.CmdConfig;
@@ -22,8 +24,6 @@ import alluxio.job.cmd.persist.PersistCmdConfig;
 import alluxio.job.wire.CmdStatusBlock;
 import alluxio.job.wire.SimpleJobStatusBlock;
 import alluxio.job.wire.Status;
-import alluxio.coordinator.job.JobMaster;
-import alluxio.coordinator.job.common.CmdInfo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

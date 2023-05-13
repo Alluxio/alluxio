@@ -13,8 +13,8 @@ package alluxio.coordinator;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.grpc.NodeState;
 import alluxio.coordinator.journal.ufs.UfsJournalMultiMasterPrimarySelector;
+import alluxio.grpc.NodeState;
 import alluxio.util.interfaces.Scoped;
 
 import java.net.InetSocketAddress;

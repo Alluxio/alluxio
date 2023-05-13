@@ -21,15 +21,15 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import alluxio.Constants;
+import alluxio.coordinator.file.FileSystemMaster;
+import alluxio.coordinator.job.CopyJob;
+import alluxio.coordinator.job.FileIterable;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.Route;
-import alluxio.coordinator.file.FileSystemMaster;
-import alluxio.coordinator.job.CopyJob;
-import alluxio.coordinator.job.FileIterable;
 import alluxio.scheduler.job.JobState;
 import alluxio.wire.FileInfo;
 

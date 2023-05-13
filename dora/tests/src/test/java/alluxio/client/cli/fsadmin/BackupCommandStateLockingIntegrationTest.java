@@ -18,12 +18,12 @@ import static org.junit.Assert.assertTrue;
 import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.AlluxioException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.coordinator.MasterContext;
 import alluxio.coordinator.MasterProcess;
 import alluxio.coordinator.StateLockManager;
 import alluxio.coordinator.StateLockOptions;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
 import alluxio.resource.LockResource;
 import alluxio.testutils.LocalAlluxioClusterResource;
 

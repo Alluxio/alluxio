@@ -16,9 +16,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
-import alluxio.exception.FileDoesNotExistException;
 import alluxio.coordinator.file.FileSystemMaster;
 import alluxio.coordinator.file.meta.FileSystemMasterView;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;

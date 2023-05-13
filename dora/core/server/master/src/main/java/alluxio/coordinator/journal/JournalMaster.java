@@ -11,11 +11,11 @@
 
 package alluxio.coordinator.journal;
 
+import alluxio.coordinator.Master;
 import alluxio.grpc.GetNodeStatePResponse;
 import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.GetTransferLeaderMessagePResponse;
 import alluxio.grpc.NetAddress;
-import alluxio.coordinator.Master;
 
 import java.io.IOException;
 

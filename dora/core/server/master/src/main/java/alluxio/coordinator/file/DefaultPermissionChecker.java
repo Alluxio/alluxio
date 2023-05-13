@@ -13,13 +13,13 @@ package alluxio.coordinator.file;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.coordinator.file.meta.InodeTree;
+import alluxio.coordinator.file.meta.InodeView;
+import alluxio.coordinator.file.meta.LockedInodePath;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
-import alluxio.coordinator.file.meta.InodeTree;
-import alluxio.coordinator.file.meta.InodeView;
-import alluxio.coordinator.file.meta.LockedInodePath;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.AclAction;
 import alluxio.security.authorization.Mode;

@@ -13,6 +13,10 @@ package alluxio.coordinator.journal;
 
 import alluxio.Constants;
 import alluxio.clock.SystemClock;
+import alluxio.coordinator.AbstractMaster;
+import alluxio.coordinator.MasterContext;
+import alluxio.coordinator.PrimarySelector;
+import alluxio.coordinator.journal.raft.RaftJournalSystem;
 import alluxio.grpc.GetNodeStatePResponse;
 import alluxio.grpc.GetQuorumInfoPResponse;
 import alluxio.grpc.GetTransferLeaderMessagePResponse;
@@ -20,10 +24,6 @@ import alluxio.grpc.GrpcService;
 import alluxio.grpc.JournalDomain;
 import alluxio.grpc.NetAddress;
 import alluxio.grpc.ServiceType;
-import alluxio.coordinator.AbstractMaster;
-import alluxio.coordinator.MasterContext;
-import alluxio.coordinator.PrimarySelector;
-import alluxio.coordinator.journal.raft.RaftJournalSystem;
 import alluxio.security.authentication.ClientIpAddressInjector;
 import alluxio.util.executor.ExecutorServiceFactories;
 

@@ -11,14 +11,14 @@
 
 package alluxio.coordinator.table;
 
+import alluxio.coordinator.Master;
+import alluxio.coordinator.table.transform.TransformJobInfo;
 import alluxio.grpc.table.ColumnStatisticsInfo;
 import alluxio.grpc.table.ColumnStatisticsList;
 import alluxio.grpc.table.Constraint;
 import alluxio.grpc.table.Database;
 import alluxio.grpc.table.Partition;
 import alluxio.grpc.table.SyncStatus;
-import alluxio.coordinator.Master;
-import alluxio.coordinator.table.transform.TransformJobInfo;
 
 import java.io.IOException;
 import java.util.List;

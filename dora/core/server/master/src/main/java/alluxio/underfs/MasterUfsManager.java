@@ -13,11 +13,11 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
-import alluxio.exception.InvalidPathException;
 import alluxio.coordinator.journal.DelegatingJournaled;
 import alluxio.coordinator.journal.JournalContext;
 import alluxio.coordinator.journal.Journaled;
 import alluxio.coordinator.journal.checkpoint.CheckpointName;
+import alluxio.exception.InvalidPathException;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.UpdateUfsModeEntry;
 import alluxio.proto.journal.Journal.JournalEntry;

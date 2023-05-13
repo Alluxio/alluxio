@@ -21,11 +21,11 @@ import alluxio.AlluxioURI;
 import alluxio.TestLoggerRule;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.InvalidPathException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.coordinator.file.meta.InodeTree.LockPattern;
 import alluxio.coordinator.journal.JournalContext;
 import alluxio.coordinator.journal.NoopJournalContext;
+import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.UnavailableException;
 
 import org.junit.After;
 import org.junit.Assert;

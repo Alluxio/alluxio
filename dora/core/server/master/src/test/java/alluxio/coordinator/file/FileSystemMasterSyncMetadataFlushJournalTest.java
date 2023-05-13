@@ -16,11 +16,6 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
-import alluxio.exception.AccessControlException;
-import alluxio.exception.InvalidPathException;
-import alluxio.exception.status.UnavailableException;
-import alluxio.file.options.DescendantType;
-import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.coordinator.file.contexts.InternalOperationContext;
 import alluxio.coordinator.file.meta.InodeTree;
 import alluxio.coordinator.file.meta.LockingScheme;
@@ -29,6 +24,11 @@ import alluxio.coordinator.file.meta.UfsSyncPathCache;
 import alluxio.coordinator.journal.FileSystemMergeJournalContext;
 import alluxio.coordinator.journal.JournalContext;
 import alluxio.coordinator.journal.MetadataSyncMergeJournalContext;
+import alluxio.exception.AccessControlException;
+import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.UnavailableException;
+import alluxio.file.options.DescendantType;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.proto.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
 

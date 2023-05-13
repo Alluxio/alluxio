@@ -13,6 +13,7 @@ package alluxio.coordinator.meta;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetMasterIdPRequest;
 import alluxio.grpc.MasterHeartbeatPRequest;
@@ -21,7 +22,6 @@ import alluxio.grpc.MetaMasterMasterServiceGrpc;
 import alluxio.grpc.RegisterMasterPOptions;
 import alluxio.grpc.RegisterMasterPRequest;
 import alluxio.grpc.ServiceType;
-import alluxio.coordinator.MasterClientContext;
 import alluxio.wire.Address;
 
 import org.slf4j.Logger;

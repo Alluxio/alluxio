@@ -15,9 +15,9 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.grpc.NodeState;
 import alluxio.coordinator.AbstractPrimarySelector;
 import alluxio.coordinator.ZookeeperConnectionErrorPolicy;
+import alluxio.grpc.NodeState;
 
 import com.google.common.base.Preconditions;
 import org.apache.curator.framework.CuratorFramework;

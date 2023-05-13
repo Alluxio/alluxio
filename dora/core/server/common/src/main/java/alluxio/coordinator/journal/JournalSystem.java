@@ -13,13 +13,13 @@ package alluxio.coordinator.journal;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.grpc.GrpcService;
 import alluxio.coordinator.Master;
 import alluxio.coordinator.StateLockManager;
 import alluxio.coordinator.journal.noop.NoopJournalSystem;
 import alluxio.coordinator.journal.raft.RaftJournalSystem;
 import alluxio.coordinator.journal.sink.JournalSink;
 import alluxio.coordinator.journal.ufs.UfsJournalSystem;
+import alluxio.grpc.GrpcService;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;

@@ -16,14 +16,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 
+import alluxio.coordinator.file.FileSystemMaster;
+import alluxio.coordinator.job.FileIterable;
+import alluxio.coordinator.job.LoadJob;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.exception.runtime.UnauthenticatedRuntimeException;
-import alluxio.coordinator.file.FileSystemMaster;
-import alluxio.coordinator.job.FileIterable;
-import alluxio.coordinator.job.LoadJob;
 
 import org.junit.Test;
 

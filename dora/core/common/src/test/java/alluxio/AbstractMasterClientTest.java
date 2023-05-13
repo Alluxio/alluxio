@@ -12,11 +12,11 @@
 package alluxio;
 
 import alluxio.conf.Configuration;
-import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.ServiceType;
 import alluxio.coordinator.MasterClientContext;
 import alluxio.coordinator.MasterInquireClient;
 import alluxio.coordinator.selectionpolicy.MasterSelectionPolicy;
+import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.ServiceType;
 
 import org.junit.Assert;
 import org.junit.Before;

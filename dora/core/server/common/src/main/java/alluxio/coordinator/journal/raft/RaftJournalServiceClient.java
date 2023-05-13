@@ -13,13 +13,13 @@ package alluxio.coordinator.journal.raft;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.grpc.DownloadSnapshotPRequest;
 import alluxio.grpc.DownloadSnapshotPResponse;
 import alluxio.grpc.RaftJournalServiceGrpc;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.UploadSnapshotPRequest;
 import alluxio.grpc.UploadSnapshotPResponse;
-import alluxio.coordinator.MasterClientContext;
 
 import io.grpc.stub.StreamObserver;
 

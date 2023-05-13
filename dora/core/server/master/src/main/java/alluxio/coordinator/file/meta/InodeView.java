@@ -11,8 +11,8 @@
 
 package alluxio.coordinator.file.meta;
 
-import alluxio.grpc.TtlAction;
 import alluxio.coordinator.journal.JournalEntryRepresentable;
+import alluxio.grpc.TtlAction;
 import alluxio.proto.meta.InodeMeta;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclAction;

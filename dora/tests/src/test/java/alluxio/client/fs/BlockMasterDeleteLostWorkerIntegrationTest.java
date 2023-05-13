@@ -16,7 +16,6 @@ import static org.junit.Assert.assertEquals;
 import alluxio.clock.ManualClock;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.coordinator.CoreMasterContext;
 import alluxio.coordinator.MasterRegistry;
 import alluxio.coordinator.MasterTestUtils;
@@ -25,6 +24,7 @@ import alluxio.coordinator.block.DefaultBlockMaster;
 import alluxio.coordinator.block.meta.MasterWorkerInfo;
 import alluxio.coordinator.metrics.MetricsMaster;
 import alluxio.coordinator.metrics.MetricsMasterFactory;
+import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.wire.WorkerNetAddress;
 

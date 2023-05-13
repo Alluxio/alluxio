@@ -18,9 +18,9 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.coordinator.LocalAlluxioJobCluster;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.WritePType;
-import alluxio.coordinator.LocalAlluxioJobCluster;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.junit.Assert;

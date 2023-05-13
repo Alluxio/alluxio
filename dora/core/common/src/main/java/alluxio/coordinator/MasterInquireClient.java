@@ -13,9 +13,9 @@ package alluxio.coordinator;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.status.UnavailableException;
 import alluxio.coordinator.SingleMasterInquireClient.SingleMasterConnectDetails;
 import alluxio.coordinator.ZkMasterInquireClient.ZkMasterConnectDetails;
+import alluxio.exception.status.UnavailableException;
 import alluxio.security.user.UserState;
 import alluxio.uri.Authority;
 import alluxio.util.ConfigurationUtils;

@@ -13,10 +13,10 @@ package alluxio.coordinator;
 
 import alluxio.Constants;
 import alluxio.Server;
-import alluxio.exception.status.UnavailableException;
 import alluxio.coordinator.journal.Journal;
 import alluxio.coordinator.journal.JournalContext;
 import alluxio.coordinator.journal.StateChangeJournalContext;
+import alluxio.exception.status.UnavailableException;
 import alluxio.resource.LockResource;
 import alluxio.util.executor.ExecutorServiceFactory;
 

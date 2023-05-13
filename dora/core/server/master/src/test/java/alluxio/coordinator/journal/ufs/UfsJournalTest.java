@@ -14,9 +14,9 @@ package alluxio.coordinator.journal.ufs;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.exception.status.UnavailableException;
 import alluxio.coordinator.journal.CatchupFuture;
 import alluxio.coordinator.journal.CountingNoopFileSystemMaster;
+import alluxio.exception.status.UnavailableException;
 import alluxio.proto.journal.Journal;
 import alluxio.util.CommonUtils;
 import alluxio.util.URIUtils;

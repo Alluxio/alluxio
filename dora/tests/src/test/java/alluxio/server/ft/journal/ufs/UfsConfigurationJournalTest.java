@@ -16,9 +16,9 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.grpc.MountPOptions;
 import alluxio.coordinator.file.FileSystemMaster;
 import alluxio.coordinator.file.meta.MountTable;
+import alluxio.grpc.MountPOptions;
 import alluxio.resource.CloseableResource;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.underfs.UfsManager;

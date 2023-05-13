@@ -22,6 +22,8 @@ import alluxio.client.meta.MetaMasterClient;
 import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.coordinator.LocalAlluxioCluster;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.exception.AccessControlException;
 import alluxio.grpc.BackupPOptions;
 import alluxio.grpc.BackupPRequest;
@@ -29,8 +31,6 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.UfsPMode;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.grpc.WritePType;
-import alluxio.coordinator.LocalAlluxioCluster;
-import alluxio.coordinator.MasterClientContext;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 

@@ -13,8 +13,8 @@ package alluxio.coordinator.job.tracker;
 
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.job.wire.Status;
 import alluxio.coordinator.job.JobMaster;
+import alluxio.job.wire.Status;
 import alluxio.util.CommonUtils;
 
 import com.google.common.collect.Lists;

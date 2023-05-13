@@ -15,10 +15,10 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
+import alluxio.coordinator.file.meta.PersistenceState;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.job.JobIntegrationTest;
-import alluxio.coordinator.file.meta.PersistenceState;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;

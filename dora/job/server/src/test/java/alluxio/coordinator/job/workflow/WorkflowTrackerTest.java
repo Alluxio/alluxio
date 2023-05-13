@@ -22,6 +22,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import alluxio.coordinator.job.JobMaster;
+import alluxio.coordinator.job.command.CommandManager;
+import alluxio.coordinator.job.plan.PlanTracker;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
@@ -32,9 +35,6 @@ import alluxio.job.plan.meta.PlanInfo;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.WorkflowInfo;
 import alluxio.job.workflow.composite.CompositeConfig;
-import alluxio.coordinator.job.JobMaster;
-import alluxio.coordinator.job.command.CommandManager;
-import alluxio.coordinator.job.plan.PlanTracker;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.collect.Lists;

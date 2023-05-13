@@ -13,8 +13,8 @@ package alluxio.client.block;
 
 import alluxio.Client;
 import alluxio.client.block.options.GetWorkerReportOptions;
-import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.coordinator.MasterClientContext;
+import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;

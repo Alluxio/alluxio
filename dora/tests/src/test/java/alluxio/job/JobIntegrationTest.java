@@ -16,11 +16,11 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.coordinator.LocalAlluxioJobCluster;
+import alluxio.coordinator.job.JobMaster;
 import alluxio.job.util.JobTestUtils;
 import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
-import alluxio.coordinator.LocalAlluxioJobCluster;
-import alluxio.coordinator.job.JobMaster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 

@@ -12,11 +12,11 @@
 package alluxio.coordinator.job;
 
 import alluxio.conf.Configuration;
+import alluxio.coordinator.file.DefaultFileSystemMaster;
+import alluxio.coordinator.file.FileSystemMaster;
 import alluxio.job.CopyJobRequest;
 import alluxio.job.JobRequest;
 import alluxio.job.LoadJobRequest;
-import alluxio.coordinator.file.DefaultFileSystemMaster;
-import alluxio.coordinator.file.FileSystemMaster;
 import alluxio.proto.journal.Journal;
 import alluxio.scheduler.job.JobFactory;
 import alluxio.underfs.UnderFileSystem;

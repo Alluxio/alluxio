@@ -13,9 +13,9 @@ package alluxio.coordinator.backcompat.ops;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
-import alluxio.grpc.SetAttributePOptions;
 import alluxio.coordinator.backcompat.FsTestOp;
 import alluxio.coordinator.backcompat.Utils;
+import alluxio.grpc.SetAttributePOptions;
 
 import org.junit.Assert;
 

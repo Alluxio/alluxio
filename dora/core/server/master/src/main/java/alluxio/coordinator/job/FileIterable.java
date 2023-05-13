@@ -14,6 +14,9 @@ package alluxio.coordinator.job;
 import static java.util.Objects.requireNonNull;
 
 import alluxio.AlluxioURI;
+import alluxio.coordinator.file.FileSystemMaster;
+import alluxio.coordinator.file.contexts.CheckAccessContext;
+import alluxio.coordinator.file.contexts.ListStatusContext;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
@@ -22,9 +25,6 @@ import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.exception.runtime.UnauthenticatedRuntimeException;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
-import alluxio.coordinator.file.FileSystemMaster;
-import alluxio.coordinator.file.contexts.CheckAccessContext;
-import alluxio.coordinator.file.contexts.ListStatusContext;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.wire.FileInfo;
 

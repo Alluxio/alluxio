@@ -12,9 +12,9 @@
 package alluxio.coordinator;
 
 import alluxio.Server;
-import alluxio.exception.status.UnavailableException;
 import alluxio.coordinator.journal.JournalContext;
 import alluxio.coordinator.journal.Journaled;
+import alluxio.exception.status.UnavailableException;
 
 /**
  * This interface contains common operations for all masters.

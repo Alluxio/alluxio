@@ -12,6 +12,11 @@
 package alluxio.coordinator.file.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.coordinator.file.meta.options.MountInfo;
+import alluxio.coordinator.journal.DelegatingJournaled;
+import alluxio.coordinator.journal.JournalContext;
+import alluxio.coordinator.journal.Journaled;
+import alluxio.coordinator.journal.checkpoint.CheckpointName;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -20,11 +25,6 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.MountPOptions;
-import alluxio.coordinator.file.meta.options.MountInfo;
-import alluxio.coordinator.journal.DelegatingJournaled;
-import alluxio.coordinator.journal.JournalContext;
-import alluxio.coordinator.journal.Journaled;
-import alluxio.coordinator.journal.checkpoint.CheckpointName;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File;

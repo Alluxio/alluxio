@@ -12,11 +12,11 @@
 package alluxio.coordinator.journal;
 
 import alluxio.Constants;
-import alluxio.grpc.JournalDomain;
 import alluxio.coordinator.Master;
 import alluxio.coordinator.MasterContext;
 import alluxio.coordinator.MasterFactory;
 import alluxio.coordinator.MasterRegistry;
+import alluxio.grpc.JournalDomain;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

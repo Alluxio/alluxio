@@ -13,6 +13,7 @@ package alluxio.client.journal;
 
 import alluxio.AbstractJobMasterClient;
 import alluxio.Constants;
+import alluxio.coordinator.MasterClientContext;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.GetQuorumInfoPRequest;
 import alluxio.grpc.GetQuorumInfoPResponse;
@@ -24,7 +25,6 @@ import alluxio.grpc.RemoveQuorumServerPRequest;
 import alluxio.grpc.ResetPrioritiesPRequest;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.TransferLeadershipPRequest;
-import alluxio.coordinator.MasterClientContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

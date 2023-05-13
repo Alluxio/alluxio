@@ -13,11 +13,6 @@ package alluxio.coordinator.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.exception.FileDoesNotExistException;
-import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.FreePOptions;
-import alluxio.grpc.TtlAction;
-import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.coordinator.ProtobufUtils;
 import alluxio.coordinator.file.contexts.DeleteContext;
 import alluxio.coordinator.file.contexts.FreeContext;
@@ -29,6 +24,11 @@ import alluxio.coordinator.file.meta.TtlBucket;
 import alluxio.coordinator.file.meta.TtlBucketList;
 import alluxio.coordinator.journal.JournalContext;
 import alluxio.coordinator.journal.NoopJournalContext;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.FreePOptions;
+import alluxio.grpc.TtlAction;
+import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.proto.journal.File.UpdateInodeEntry;
 
 import org.slf4j.Logger;

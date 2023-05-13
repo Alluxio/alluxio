@@ -18,6 +18,7 @@ import alluxio.AlluxioMockUtil;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.collections.Pair;
+import alluxio.coordinator.job.command.CommandManager;
 import alluxio.grpc.JobCommand;
 import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
@@ -26,7 +27,6 @@ import alluxio.job.plan.PlanDefinition;
 import alluxio.job.plan.PlanDefinitionRegistry;
 import alluxio.job.wire.Status;
 import alluxio.job.wire.TaskInfo;
-import alluxio.coordinator.job.command.CommandManager;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.WorkerInfo;
 

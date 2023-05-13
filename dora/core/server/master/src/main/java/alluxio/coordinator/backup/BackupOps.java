@@ -11,10 +11,10 @@
 
 package alluxio.coordinator.backup;
 
+import alluxio.coordinator.StateLockOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.BackupStatusPRequest;
-import alluxio.coordinator.StateLockOptions;
 import alluxio.wire.BackupStatus;
 
 /**

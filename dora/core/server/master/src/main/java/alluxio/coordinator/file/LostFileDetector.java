@@ -11,9 +11,6 @@
 
 package alluxio.coordinator.file;
 
-import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.status.UnavailableException;
-import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.coordinator.block.BlockId;
 import alluxio.coordinator.block.BlockMaster;
 import alluxio.coordinator.file.meta.Inode;
@@ -23,6 +20,9 @@ import alluxio.coordinator.file.meta.LockedInodePath;
 import alluxio.coordinator.file.meta.PersistenceState;
 import alluxio.coordinator.journal.JournalContext;
 import alluxio.coordinator.journal.NoopJournalContext;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.status.UnavailableException;
+import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File.UpdateInodeEntry;
