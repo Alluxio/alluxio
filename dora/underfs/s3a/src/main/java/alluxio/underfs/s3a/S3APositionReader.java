@@ -40,7 +40,7 @@ public class S3APositionReader extends ObjectPositionReader {
   protected S3Object mObject;
 
   /**
-   * @param client     the amazon s3 client
+   * @param client     the amazon s3a client
    * @param bucketName the bucket name
    * @param path       the file path
    * @param fileLength the file length
