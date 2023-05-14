@@ -9,19 +9,19 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-
 package alluxio.underfs;
 
 import alluxio.PositionReader;
 import alluxio.file.ReadTargetBuffer;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * A stream for reading data using position reader.
  */
 
-abstract public class ObjectPositionReader implements PositionReader {
+public abstract class ObjectPositionReader implements PositionReader {
   /** Path of the file when it is uploaded to object storage. */
   protected final String mPath;
 
@@ -33,7 +33,7 @@ abstract public class ObjectPositionReader implements PositionReader {
 
   /**
    * @param bucketName the bucket name
-   * @param path path of the file when it is uploaded to object storage.
+   * @param path path of the file when it is uploaded to object storage
    * @param fileLength the file length
    */
   public ObjectPositionReader(String bucketName, String path, long fileLength) {
@@ -57,17 +57,35 @@ abstract public class ObjectPositionReader implements PositionReader {
     int bytesToRead = (int) Math.min(mFileLength - position, length);
     String errorMessage = String
         .format("Failed to get object: %s bucket: %s", mPath, mBucketName);
-    return readInternalRequest(position, buffer, bytesToRead, errorMessage);
+    try (InputStream in = getObjectInputStream(position, buffer, bytesToRead, errorMessage)) {
+      // Range check approach: set range (inclusive start, inclusive end)
+      // start: should be < file length, error out otherwise
+      //        e.g. error out when start == 0 && fileLength == 0
+      //        start < 0, read all
+      // end: if start > end, read all
+      //      if start <= end < file length, read from start to end
+      //      if end >= file length, read from start to file length - 1
+      int totalRead = 0;
+      int currentRead = 0;
+      while (totalRead < bytesToRead) {
+        currentRead = buffer.readFromInputStream(in, bytesToRead - totalRead);
+        if (currentRead < 0) {
+          break;
+        }
+        totalRead += currentRead;
+      }
+      return totalRead == 0 ? currentRead : totalRead;
+    }
   }
 
   /**
    * @param position position of the file to start reading data
    * @param buffer target byte buffer
    * @param bytesToRead bytes to read
-   * @return bytes read, or -1 none of data is read
+   * @param errorMessage error message to throw
+   * @return input stream of Object Storage's API
    */
-  abstract protected int readInternalRequest(
+  protected abstract InputStream getObjectInputStream(
       long position, ReadTargetBuffer buffer,
       int bytesToRead, String errorMessage) throws IOException;
-
 }

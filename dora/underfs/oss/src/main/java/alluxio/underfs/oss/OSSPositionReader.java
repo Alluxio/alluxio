@@ -12,8 +12,8 @@
 package alluxio.underfs.oss;
 
 import alluxio.file.ReadTargetBuffer;
-
 import alluxio.underfs.ObjectPositionReader;
+
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSException;
 import com.aliyun.oss.model.GetObjectRequest;
@@ -35,9 +35,14 @@ public class OSSPositionReader extends ObjectPositionReader {
   protected OSS mClient;
 
   /**
-   * @param client the Aliyun OSS client
+   * OSS object.
+   */
+  protected OSSObject mObject;
+
+  /**
+   * @param client     the Aliyun OSS client
    * @param bucketName the bucket name
-   * @param path the file path
+   * @param path       the file path
    * @param fileLength the file length
    */
   public OSSPositionReader(OSS client, String bucketName, String path, long fileLength) {
@@ -46,41 +51,17 @@ public class OSSPositionReader extends ObjectPositionReader {
     mClient = client;
   }
 
-
   @Override
-  protected int readInternalRequest(
+  protected InputStream getObjectInputStream(
       long position, ReadTargetBuffer buffer,
-      int bytesToRead, String errorMessage) throws IOException{
-    OSSObject object;
+      int bytesToRead, String errorMessage) throws IOException {
     try {
       GetObjectRequest getObjectRequest = new GetObjectRequest(mBucketName, mPath);
       getObjectRequest.setRange(position, position + bytesToRead - 1);
-      object = mClient.getObject(getObjectRequest);
+      mObject = mClient.getObject(getObjectRequest);
     } catch (OSSException e) {
       throw new IOException(errorMessage, e);
     }
-
-    // Range check approach: set range (inclusive start, inclusive end)
-    // start: should be < file length, error out otherwise
-    //        e.g. error out when start == 0 && fileLength == 0
-    //        start < 0, read all
-    // end: if start > end, read all
-    //      if start <= end < file length, read from start to end
-    //      if end >= file length, read from start to file length - 1
-
-    int totalRead = 0;
-    int currentRead = 0;
-
-    try(InputStream in = object.getObjectContent()) {
-      while (totalRead < bytesToRead) {
-        currentRead = buffer.readFromInputStream(in, bytesToRead - totalRead);
-        if (currentRead < 0) {
-          break;
-        }
-        totalRead += currentRead;
-      }
-    }
-    return totalRead == 0 ? currentRead : totalRead;
+    return mObject.getObjectContent();
   }
-
 }

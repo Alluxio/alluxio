@@ -12,15 +12,15 @@
 package alluxio.underfs.cos;
 
 import alluxio.file.ReadTargetBuffer;
-
 import alluxio.underfs.ObjectPositionReader;
+
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.exception.CosServiceException;
 import com.qcloud.cos.model.COSObject;
-import com.qcloud.cos.model.COSObjectInputStream;
 import com.qcloud.cos.model.GetObjectRequest;
 
 import java.io.IOException;
+import java.io.InputStream;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -29,14 +29,21 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class COSPositionReader extends ObjectPositionReader {
 
-  /** Client for operations with COS. */
+  /**
+   * Client for operations with COS.
+   */
   protected COSClient mClient;
 
   /**
-   * @param client the Tencent COS client
+   * COS object.
+   */
+  protected COSObject mObject;
+
+  /**
+   * @param client             the Tencent COS client
    * @param bucketNameInternal the bucket name
-   * @param path the file path
-   * @param fileLength the file length
+   * @param path               the file path
+   * @param fileLength         the file length
    */
   public COSPositionReader(COSClient client, String bucketNameInternal,
                            String path, long fileLength) {
@@ -46,39 +53,16 @@ public class COSPositionReader extends ObjectPositionReader {
   }
 
   @Override
-  protected int readInternalRequest(
+  protected InputStream getObjectInputStream(
       long position, ReadTargetBuffer buffer,
-      int bytesToRead, String errorMessage) throws IOException{
-    COSObject object;
+      int bytesToRead, String errorMessage) throws IOException {
     try {
       GetObjectRequest getObjectRequest = new GetObjectRequest(mBucketName, mPath);
       getObjectRequest.setRange(position, position + bytesToRead - 1);
-      object = mClient.getObject(getObjectRequest);
+      mObject = mClient.getObject(getObjectRequest);
     } catch (CosServiceException e) {
-        throw new IOException(errorMessage, e);
+      throw new IOException(errorMessage, e);
     }
-
-    // Range check approach: set range (inclusive start, inclusive end)
-    // start: should be < file length, error out otherwise
-    //        e.g. error out when start == 0 && fileLength == 0
-    //        start < 0, read all
-    // end: if start > end, read all
-    //      if start <= end < file length, read from start to end
-    //      if end >= file length, read from start to file length - 1
-
-    int totalRead = 0;
-    int currentRead = 0;
-
-    try(COSObjectInputStream in = object.getObjectContent()) {
-      while (totalRead < bytesToRead) {
-        currentRead = buffer.readFromInputStream(in, bytesToRead - totalRead);
-        if (currentRead < 0) {
-          break;
-        }
-        totalRead += currentRead;
-      }
-    }
-    return totalRead == 0 ? currentRead : totalRead;
+    return mObject.getObjectContent();
   }
-
 }
