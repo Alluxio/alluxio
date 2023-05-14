@@ -30,7 +30,7 @@ fi
 mvn_args=""
 if [ -n "${ALLUXIO_MVN_RUNTOEND}" ]
 then
-  mvn_args+=" -fn -DfailIfNoTests=false --fail-at-end"
+  mvn_args+=" -fn -DfailIfNoTests=false -Dsurefire.failIfNoSpecifiedTests=false --fail-at-end"
 fi
 
 mvn_project_list=""
