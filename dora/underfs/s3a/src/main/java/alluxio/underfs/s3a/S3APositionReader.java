@@ -35,7 +35,7 @@ public class S3APositionReader extends ObjectPositionReader {
   protected AmazonS3 mClient;
 
   /**
-   * S3 object.
+   * AWS S3 object.
    */
   protected S3Object mObject;
 
