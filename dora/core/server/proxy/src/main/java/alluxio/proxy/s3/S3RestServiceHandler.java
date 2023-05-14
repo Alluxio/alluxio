@@ -31,6 +31,7 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.PMode;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.XAttrPropagationStrategy;
@@ -1239,7 +1240,7 @@ public final class S3RestServiceHandler {
           createAuditContext("getObject", user, bucket, object)) {
         try {
           URIStatus status = userFs.getStatus(objectUri);
-          FileInStream is = userFs.openFile(objectUri);
+          FileInStream is = userFs.openFile(status, OpenFilePOptions.getDefaultInstance());
           S3RangeSpec s3Range = S3RangeSpec.Factory.create(range);
           RangeFileInStream ris = RangeFileInStream.Factory.create(is, status.getLength(), s3Range);
 

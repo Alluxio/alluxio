@@ -66,7 +66,7 @@ public final class ConcurrentFileSystemMasterLoadMetadataIntegrationTest {
 
     List<Throwable> errors = ConcurrentFileSystemMasterUtils
         .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.LIST_STATUS,
-            paths.toArray(new AlluxioURI[]{}), 60 * Constants.SECOND_MS);
+            paths.toArray(new AlluxioURI[0]), 60 * Constants.SECOND_MS);
     assertEquals(Collections.EMPTY_LIST, errors);
   }
 
@@ -82,7 +82,7 @@ public final class ConcurrentFileSystemMasterLoadMetadataIntegrationTest {
 
     List<Throwable> errors = ConcurrentFileSystemMasterUtils
         .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.LIST_STATUS,
-            paths.toArray(new AlluxioURI[]{}), 60 * Constants.SECOND_MS);
+            paths.toArray(new AlluxioURI[0]), 60 * Constants.SECOND_MS);
     assertEquals(Collections.EMPTY_LIST, errors);
   }
 }

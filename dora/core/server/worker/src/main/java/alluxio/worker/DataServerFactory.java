@@ -13,6 +13,7 @@ package alluxio.worker;
 
 import static java.util.Objects.requireNonNull;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.BlockWorkerGrpc;
@@ -37,6 +38,7 @@ import javax.inject.Named;
 /**
  * Factory for data server.
  */
+@SuppressFBWarnings("BC_UNCONFIRMED_CAST")
 public class DataServerFactory {
   private static final Logger LOG = LoggerFactory.getLogger(DataServerFactory.class);
 
@@ -45,7 +47,7 @@ public class DataServerFactory {
   private InetSocketAddress mGRpcBindAddress;
 
   @Inject
-  DataServerFactory(UfsManager ufsManager,
+  protected DataServerFactory(UfsManager ufsManager,
                     @Named("GrpcConnectAddress") InetSocketAddress connectAddress,
                     @Named("GrpcBindAddress") InetSocketAddress gRpcBindAddress) {
     mUfsManager = requireNonNull(ufsManager);
@@ -53,7 +55,11 @@ public class DataServerFactory {
     mGRpcBindAddress = requireNonNull(gRpcBindAddress);
   }
 
-  DataServer createRemoteGrpcDataServer(DataWorker dataWorker) {
+  /**
+   * @param dataWorker the dora worker
+   * @return the remoteGrpcServer
+   */
+  public DataServer createRemoteGrpcDataServer(DataWorker dataWorker) {
     BlockWorkerGrpc.BlockWorkerImplBase blockWorkerService;
     if (dataWorker instanceof DoraWorker) {
       blockWorkerService =
@@ -70,7 +76,11 @@ public class DataServerFactory {
         mConnectAddress.getHostName(), mGRpcBindAddress, blockWorkerService);
   }
 
-  DataServer createDomainSocketDataServer(DataWorker worker) {
+  /**
+   * @param worker the dora worker
+   * @return the domain socket data server
+   */
+  public DataServer createDomainSocketDataServer(DataWorker worker) {
     String domainSocketPath =
         Configuration.getString(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
     if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {

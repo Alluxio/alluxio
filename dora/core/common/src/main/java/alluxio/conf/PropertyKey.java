@@ -884,6 +884,50 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey WEB_CORS_ALLOW_CREDENTIAL =
+      booleanBuilder(Name.WEB_CORS_ALLOW_CREDENTIAL)
+          .setDefaultValue(false)
+          .setDescription("Enable request include credential.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey WEB_CORS_ALLOW_HEADERS =
+      stringBuilder(Name.WEB_CORS_ALLOW_HEADERS)
+          .setDefaultValue("*")
+          .setDescription("Which headers is allowed for cors. use * allow all any header.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey WEB_CORS_ALLOW_METHODS =
+      stringBuilder(Name.WEB_CORS_ALLOW_METHODS)
+          .setDefaultValue("*")
+          .setDescription("Which methods is allowed for cors. use * allow all any method.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey WEB_CORS_ALLOW_ORIGINS =
+      stringBuilder(Name.WEB_CORS_ALLOW_ORIGINS)
+          .setDefaultValue("*")
+          .setDescription("Which origins is allowed for cors. use * allow all any origin.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey WEB_CORS_EXPOSED_HEADERS =
+      stringBuilder(Name.WEB_CORS_EXPOSED_HEADERS)
+          .setDefaultValue("*")
+          .setDescription("Which headers are allowed to set in response when access "
+              + "cross-origin resource. use * allow all any header.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey WEB_CORS_MAX_AGE =
+      intBuilder(Name.WEB_CORS_MAX_AGE)
+          .setDefaultValue(-1)
+          .setDescription("Maximum number of seconds the results can be cached. "
+              + "-1 means no cache.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey WEB_REFRESH_INTERVAL =
       durationBuilder(Name.WEB_REFRESH_INTERVAL)
           .setDefaultValue("15s")
@@ -2546,19 +2590,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL =
+      intBuilder(Name.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL)
+          .setDefaultValue(-1)
+          .setDescription("The zip compression level of checkpointing rocksdb, the zip"
+                  + " format defines ten levels of compression, ranging from 0"
+                  + " (no compression, but very fast) to 9 (best compression, but slow)."
+                  + " Or -1 for the system default compression level.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_METASTORE_ROCKS_PARALLEL_BACKUP =
       booleanBuilder(Name.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP)
         .setDefaultValue(false)
-        .setDescription("Whether to backup rocksdb in parallel")
-        .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-        .setScope(Scope.MASTER)
-        .build();
-  public static final PropertyKey MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_COMPRESSION_LEVEL =
-      intBuilder(Name.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_COMPRESSION_LEVEL)
-        .setDefaultValue(6)
-        .setDescription("The zip compression level of backing up rocksdb in parallel, the zip"
-            + " format defines ten levels of compression, ranging from 0"
-            + " (no compression, but very fast) to 9 (best compression, but slow)")
+        .setDescription(format("Whether to checkpoint rocksdb in parallel using the number of"
+            + " threads set by %s.", Name.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS))
         .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
         .setScope(Scope.MASTER)
         .build();
@@ -4369,14 +4415,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   public static final PropertyKey WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =
       intBuilder(Name.WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS)
-          .setDefaultValue(16)
+          .setDefaultValue(128)
           .setDescription("The maximum number of parallel data packets when a client writes to a "
               + "worker.")
           .build();
 
   public static final PropertyKey WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
       intBuilder(Name.WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS)
-          .setDefaultValue(16)
+          .setDefaultValue(128)
           .setDescription("The maximum number of parallel data packets when a client reads from a "
               + "worker.")
           .build();
@@ -7590,6 +7636,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WEB_RESOURCES = "alluxio.web.resources";
     public static final String WEB_THREADS = "alluxio.web.threads";
     public static final String WEB_CORS_ENABLED = "alluxio.web.cors.enabled";
+    public static final String WEB_CORS_ALLOW_CREDENTIAL = "alluxio.web.cors.allow.credential";
+    public static final String WEB_CORS_ALLOW_HEADERS = "alluxio.web.cors.allow.headers";
+    public static final String WEB_CORS_ALLOW_METHODS = "alluxio.web.cors.allow.methods";
+    public static final String WEB_CORS_ALLOW_ORIGINS = "alluxio.web.cors.allow.origins";
+    public static final String WEB_CORS_EXPOSED_HEADERS = "alluxio.web.cors.exposed.headers";
+    public static final String WEB_CORS_MAX_AGE = "alluxio.web.cors.max.age";
     public static final String WEB_REFRESH_INTERVAL = "alluxio.web.refresh.interval";
     public static final String WEB_THREAD_DUMP_TO_LOG = "alluxio.web.threaddump.log.enabled";
     public static final String WEB_UI_ENABLED = "alluxio.web.ui.enabled";
@@ -7935,8 +7987,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.tailer.sleep.time";
     private static final String MASTER_JOURNAL_UFS_OPTION = "alluxio.master.journal.ufs.option";
     public static final String MASTER_RPC_ADDRESSES = "alluxio.master.rpc.addresses";
-    public static final String MASTER_EMBEDDED_JOURNAL_PROXY_HOST =
-        "alluxio.master.embedded.journal.bind.host";
     public static final String MASTER_EMBEDDED_JOURNAL_ADDRESSES =
         "alluxio.master.embedded.journal.addresses";
     public static final String MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT =
@@ -8010,10 +8060,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.dir.inode";
     public static final String MASTER_METASTORE_DIR_BLOCK =
         "alluxio.master.metastore.dir.block";
+    public static final String MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL =
+        "alluxio.master.metastore.rocks.checkpoint.compression.level";
     public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP =
         "alluxio.master.metastore.rocks.parallel.backup";
-    public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_COMPRESSION_LEVEL =
-        "alluxio.master.metastore.rocks.parallel.backup.compression.level";
     public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS =
         "alluxio.master.metastore.rocks.parallel.backup.threads";
     public static final String MASTER_METASTORE_INODE_CACHE_EVICT_BATCH_SIZE =
