@@ -678,9 +678,9 @@ public class InstancedConfigurationTest {
     mThrown.expect(IllegalStateException.class);
     mConfiguration.validate();
   }
-  
+
   @Test
-  public void setMasterTTLIntervalZero(){
+  public void setMasterTTLIntervalZero() {
     mConfiguration.set(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, "0");
     mThrown.expect(IllegalStateException.class);
     mConfiguration.validate();
