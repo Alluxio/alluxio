@@ -56,6 +56,7 @@ default:
       - integration/metrics/otel-collector-config.yaml
       - integration/metrics/prometheus.yaml
       - libexec/alluxio-config.sh
+      - libexec/version.sh
       - LICENSE
 fuse:
   mvnArgs: ""
@@ -75,6 +76,7 @@ fuse:
       - conf/metrics.properties.template
       - dora/integration/fuse/bin/alluxio-fuse
       - libexec/alluxio-config.sh
+      - libexec/version.sh
       - LICENSE
     symlinks:
       bin/alluxio-fuse: ../../dora/integration/fuse/bin/alluxio-fuse

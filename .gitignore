@@ -34,6 +34,7 @@
 /integration/docker/*.tar.gz
 /journal/
 /lib/*.jar
+/libexec/version.sh
 /logs/*.log*
 /logs/*.out*
 /logs/user/*

@@ -186,6 +186,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"conf/log4j.properties",
 		"conf/metrics.properties.template",
 		"libexec/alluxio-config.sh",
+		"libexec/version.sh",
 		"LICENSE",
 	}
 	if !fuse {
