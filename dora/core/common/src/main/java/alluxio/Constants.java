@@ -98,6 +98,7 @@ public final class Constants {
   public static final long METRICS_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long JOURNAL_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final long RAFT_JOURNAL_SERVICE_VERSION = 1;
+  public static final long SECURITY_SERVER_VERSION = 1;
   public static final long UNKNOWN_SERVICE_VERSION = -1;
 
   public static final String BLOCK_MASTER_NAME = "BlockMaster";
