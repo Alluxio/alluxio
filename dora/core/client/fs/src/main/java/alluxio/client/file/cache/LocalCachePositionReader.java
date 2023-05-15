@@ -24,6 +24,7 @@ import alluxio.file.FileId;
 import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.network.protocol.databuffer.DataFileChannel;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -136,6 +137,28 @@ public class LocalCachePositionReader implements PositionReader {
     }
     mClosed = true;
     mFallbackReader.close();
+  }
+
+  /**
+   * Get a {@link DataFileChannel} which wraps a {@link io.netty.channel.FileRegion}.
+   * @param position the start position to read
+   * @param length how many bytes to read
+   * @return an object of {@link DataFileChannel}
+   */
+  public DataFileChannel getDataFileChannel(long position, int length) {
+    long currentPage = position / mPageSize;
+    PageId pageId;
+    if (mCacheContext.getCacheIdentifier() != null) {
+      pageId = new PageId(mCacheContext.getCacheIdentifier(), currentPage);
+    } else {
+      pageId = new PageId(mFileId.toString(), currentPage);
+    }
+    int currentPageOffset = (int) (position % mPageSize);
+    int bytesLeftInPage = (int) (mPageSize - currentPageOffset);
+    int bytesToReadInPage = Math.min(bytesLeftInPage, length);
+    // TODO(JiamingMai): deal with the case that the page is not in Alluxio
+    return mCacheManager.getDataFileChannel(
+        pageId, currentPageOffset, bytesToReadInPage, mCacheContext);
   }
 
   private int localCachedRead(ReadTargetBuffer bytesBuffer, int length,

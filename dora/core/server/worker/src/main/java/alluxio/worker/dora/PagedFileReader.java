@@ -21,6 +21,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.file.FileId;
 import alluxio.file.NettyBufTargetBuffer;
 import alluxio.file.ReadTargetBuffer;
+import alluxio.network.protocol.databuffer.DataFileChannel;
+import alluxio.network.protocol.databuffer.MultipleDataFileChannel;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
@@ -34,6 +36,8 @@ import io.netty.buffer.Unpooled;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Paged file reader.
@@ -93,6 +97,35 @@ public class PagedFileReader extends BlockReader implements PositionReader {
     mPositionReader = Preconditions.checkNotNull(localCachePositionReader);
     mFileSize = fileSize;
     mPos = startPosition;
+  }
+
+  /**
+   * Get a {@link MultipleDataFileChannel} which has a list of {@link DataFileChannel}.
+   * @param length the bytes to read
+   * @return {@link MultipleDataFileChannel}
+   */
+  public MultipleDataFileChannel getMultipleDataFileChannel(long length) {
+    if (mFileSize <= mPos) {
+      // TODO(JiamingMai): consider throwing exception directly
+      return null;
+    }
+    List<DataFileChannel> dataFileChannels = new ArrayList<>();
+    long bytesToTransfer = Math.min(length, mFileSize - mPos);
+    long bytesToTransferLeft = bytesToTransfer;
+    while (bytesToTransferLeft > 0) {
+      DataFileChannel dataFileChannel =
+          mPositionReader.getDataFileChannel(mPos, (int) bytesToTransferLeft);
+      if (dataFileChannel == null) {
+        return null;
+      }
+      if (dataFileChannel.getLength() > 0) {
+        mPos += dataFileChannel.getLength();
+        bytesToTransferLeft -= dataFileChannel.getLength();
+      }
+      dataFileChannels.add(dataFileChannel);
+    }
+    MultipleDataFileChannel multipleDataFileChannel = new MultipleDataFileChannel(dataFileChannels);
+    return multipleDataFileChannel;
   }
 
   @Override

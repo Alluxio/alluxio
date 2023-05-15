@@ -12,6 +12,7 @@
 package alluxio.network.protocol;
 
 import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.network.protocol.databuffer.DataFileChannel;
 
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
@@ -68,9 +69,17 @@ public final class RPCMessageEncoder extends MessageToMessageEncoder<RPCMessage>
 
     if (payload != null && bodyBytes > 0) {
       Object output = payload.getNettyOutput();
-      Preconditions.checkArgument(output instanceof ByteBuf || output instanceof FileRegion,
-          "The payload must be a ByteBuf or a FileRegion.");
-      out.add(output);
+      Preconditions.checkArgument(output instanceof ByteBuf
+              || output instanceof FileRegion || output instanceof List,
+          "The payload must be a ByteBuf or a FileRegion or a List<DataFileChannel>.");
+      if (output instanceof List) {
+        List<DataFileChannel> dataFileChannels = (List<DataFileChannel>) output;
+        for (DataFileChannel dataFileChannel : dataFileChannels) {
+          out.add(dataFileChannel.getNettyOutput());
+        }
+      } else if (output instanceof ByteBuf || output instanceof FileRegion) {
+        out.add(output);
+      }
     }
   }
 }
