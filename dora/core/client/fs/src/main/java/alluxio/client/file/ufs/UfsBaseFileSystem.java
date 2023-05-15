@@ -34,7 +34,6 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
-import alluxio.grpc.LoadProgressReportFormat;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -78,13 +77,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-<<<<<<< HEAD:dora/core/client/fs/src/main/java/alluxio/client/file/ufs/UfsBaseFileSystem.java
 import java.util.Optional;
-||||||| parent of 45ec28e77e ([SMALLFIX] Import class type before code class):core/client/fs/src/main/java/alluxio/client/file/ufs/UfsBaseFileSystem.java
-=======
-import java.util.Optional;
-import java.util.OptionalLong;
->>>>>>> 45ec28e77e ([SMALLFIX] Import class type before code class):core/client/fs/src/main/java/alluxio/client/file/ufs/UfsBaseFileSystem.java
 import java.util.function.Consumer;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -430,15 +423,7 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   @Override
-<<<<<<< HEAD:dora/core/client/fs/src/main/java/alluxio/client/file/ufs/UfsBaseFileSystem.java
   public Optional<String> submitJob(JobRequest jobRequest) {
-||||||| parent of 45ec28e77e ([SMALLFIX] Import class type before code class):core/client/fs/src/main/java/alluxio/client/file/ufs/UfsBaseFileSystem.java
-  public boolean submitLoad(AlluxioURI path, java.util.OptionalLong bandwidth,
-      boolean usePartialListing, boolean verify) {
-=======
-  public boolean submitLoad(AlluxioURI path, OptionalLong bandwidth,
-      boolean usePartialListing, boolean verify) {
->>>>>>> 45ec28e77e ([SMALLFIX] Import class type before code class):core/client/fs/src/main/java/alluxio/client/file/ufs/UfsBaseFileSystem.java
     throw new UnsupportedOperationException();
   }
 
@@ -448,16 +433,8 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   @Override
-<<<<<<< HEAD:dora/core/client/fs/src/main/java/alluxio/client/file/ufs/UfsBaseFileSystem.java
   public String getJobProgress(JobDescription jobDescription,
       JobProgressReportFormat format, boolean verbose) {
-||||||| parent of 45ec28e77e ([SMALLFIX] Import class type before code class):core/client/fs/src/main/java/alluxio/client/file/ufs/UfsBaseFileSystem.java
-  public String getLoadProgress(AlluxioURI path,
-      java.util.Optional<alluxio.grpc.LoadProgressReportFormat> format, boolean verbose) {
-=======
-  public String getLoadProgress(AlluxioURI path,
-      Optional<LoadProgressReportFormat> format, boolean verbose) {
->>>>>>> 45ec28e77e ([SMALLFIX] Import class type before code class):core/client/fs/src/main/java/alluxio/client/file/ufs/UfsBaseFileSystem.java
     throw new UnsupportedOperationException();
   }
 

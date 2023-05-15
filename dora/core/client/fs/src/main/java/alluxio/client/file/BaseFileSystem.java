@@ -51,7 +51,6 @@ import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.LoadMetadataPType;
-import alluxio.grpc.LoadProgressReportFormat;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -550,16 +549,8 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-<<<<<<< HEAD:dora/core/client/fs/src/main/java/alluxio/client/file/BaseFileSystem.java
   public String getJobProgress(JobDescription jobDescription,
       JobProgressReportFormat format, boolean verbose) {
-||||||| parent of 45ec28e77e ([SMALLFIX] Import class type before code class):core/client/fs/src/main/java/alluxio/client/file/BaseFileSystem.java
-  public String getLoadProgress(AlluxioURI path,
-      java.util.Optional<alluxio.grpc.LoadProgressReportFormat> format, boolean verbose) {
-=======
-  public String getLoadProgress(AlluxioURI path,
-      Optional<LoadProgressReportFormat> format, boolean verbose) {
->>>>>>> 45ec28e77e ([SMALLFIX] Import class type before code class):core/client/fs/src/main/java/alluxio/client/file/BaseFileSystem.java
     try (CloseableResource<FileSystemMasterClient> client =
             mFsContext.acquireMasterClientResource()) {
       return client.get().getJobProgress(jobDescription, format, verbose);
