@@ -97,6 +97,9 @@ public final class ServiceVersionClientServiceHandler
       case RAFT_JOURNAL_SERVICE:
         serviceVersion = Constants.RAFT_JOURNAL_SERVICE_VERSION;
         break;
+      case SECURITY_SERVER_CLIENT_SERVICE:
+        serviceVersion = Constants.SECURITY_SERVER_VERSION;
+        break;
       default:
         serviceVersion = Constants.UNKNOWN_SERVICE_VERSION;
         break;
