@@ -96,7 +96,10 @@ public class MonoBlockStoreCommitBlockTest {
 
   @Test
   public void commitLocalandCommitMasterBothSuccess() throws Exception {
-    mTieredBlockStore = new TieredBlockStore(mBlockMetadataManager, mBlockLockManager);
+    mTieredBlockStore = new TieredBlockStore(mBlockMetadataManager, mBlockLockManager,
+        new TieredBlockReaderFactory(),
+        new TieredBlockWriterFactory(),
+        new TieredTempBlockMetaFactory());
 
     prepareBlockStore();
 
@@ -112,7 +115,10 @@ public class MonoBlockStoreCommitBlockTest {
       throw new AlluxioStatusException(Status.UNAVAILABLE);
     }).when(mMockedBlockMasterClient).commitBlock(anyLong(), anyLong(), anyString(),
             anyString(), anyLong(), anyLong());
-    mTieredBlockStore = new TieredBlockStore(mBlockMetadataManager, mBlockLockManager);
+    mTieredBlockStore = new TieredBlockStore(mBlockMetadataManager, mBlockLockManager,
+        new TieredBlockReaderFactory(),
+        new TieredBlockWriterFactory(),
+        new TieredTempBlockMetaFactory());
 
     prepareBlockStore();
 
@@ -126,7 +132,10 @@ public class MonoBlockStoreCommitBlockTest {
 
   @Test
   public void commitLocalFailandCommitMasterSuccess() throws Exception {
-    mTieredBlockStore = spy(new TieredBlockStore(mBlockMetadataManager, mBlockLockManager));
+    mTieredBlockStore = spy(new TieredBlockStore(mBlockMetadataManager, mBlockLockManager,
+        new TieredBlockReaderFactory(),
+        new TieredBlockWriterFactory(),
+        new TieredTempBlockMetaFactory()));
     doAnswer((i) -> {
       throw new RuntimeException();
     }).when(mTieredBlockStore).commitBlockInternal(anyLong(), anyLong(), anyBoolean());
