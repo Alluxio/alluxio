@@ -81,7 +81,7 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
                  mFsContext.acquireBlockMasterClientResource()) {
       blockMasterClient.get().removeDecommissionedWorker(workerName);
     } catch (NotFoundException notFoundException) {
-      System.out.println("Worker" + workerName + " is not found in decommissioned worker set.");
+      System.out.println("Worker " + workerName + " is not found in decommissioned worker set.");
       return -1;
     }
 

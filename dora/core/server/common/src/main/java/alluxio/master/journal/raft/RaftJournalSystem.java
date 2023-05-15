@@ -1192,6 +1192,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     return mServer;
   }
 
+  @VisibleForTesting
+  ConcurrentHashMap<String, RaftJournal> getJournals() {
+    return mJournals;
+  }
+
   /**
    * Updates raft group with the current values from raft server.
    */
