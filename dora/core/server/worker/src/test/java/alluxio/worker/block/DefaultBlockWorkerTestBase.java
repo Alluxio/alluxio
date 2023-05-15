@@ -130,11 +130,17 @@ public class DefaultBlockWorkerTestBase {
     mBlockMasterClientPool = spy(new BlockMasterClientPool());
     doReturn(mBlockMasterClient).when(mBlockMasterClientPool).createNewResource();
 
-    mTieredBlockStore = spy(new TieredBlockStore());
+    mTieredBlockStore = spy(new TieredBlockStore(
+        BlockMetadataManager.createBlockMetadataManager(),
+        new BlockLockManager(),
+        new TieredBlockReaderFactory(),
+        new TieredBlockWriterFactory(),
+        new TieredTempBlockMetaFactory()));
     UfsManager ufsManager = new NoopUfsManager();
     AtomicReference<Long> workerId = new AtomicReference<>(INVALID_WORKER_ID);
     mBlockStore =
         spy(new MonoBlockStore(mTieredBlockStore, mBlockMasterClientPool, ufsManager, workerId));
+    mBlockStore.initialize();
 
     mFileSystemMasterClient = createMockFileSystemMasterClient();
 
