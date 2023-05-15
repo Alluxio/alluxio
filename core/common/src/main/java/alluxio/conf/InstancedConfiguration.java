@@ -482,9 +482,9 @@ public class InstancedConfiguration implements AlluxioConfiguration {
           message, PropertyKey.WORKER_WEB_PORT);
     }
   }
-  
+
   /**
-   * Checks that master TTL checker interval
+   * Checks that master TTL checker interval.
    * @throws IllegalStateException if the TTL check interval <= 0
    */
   private void checkMasterTTLInterval() {
