@@ -1,7 +1,6 @@
 package alluxio.worker.block;
 
 import alluxio.StorageTierAssoc;
-import alluxio.util.CommonUtils;
 
 import java.util.Map;
 
@@ -21,7 +20,20 @@ public class BlockWorkerMetrics {
   private final Map<String, Long> mFreeBytesOnTiers;
   private final int mNumberOfBlocks;
 
-  public BlockWorkerMetrics(long capacityBytes, long usedBytes, long capacityFree, Map<String, Long> capacityBytesOnTiers, Map<String, Long> usedBytesOnTiers, Map<String, Long> freeBytesOnTiers, int numberOfBlocks) {
+  /**
+   * construct func of BlockWorkerMetrics.
+   * @param capacityBytes
+   * @param usedBytes
+   * @param capacityFree
+   * @param capacityBytesOnTiers
+   * @param usedBytesOnTiers
+   * @param freeBytesOnTiers
+   * @param numberOfBlocks
+   */
+  public BlockWorkerMetrics(long capacityBytes, long usedBytes, long capacityFree,
+                            Map<String, Long> capacityBytesOnTiers,
+                            Map<String, Long> usedBytesOnTiers,
+                            Map<String, Long> freeBytesOnTiers, int numberOfBlocks) {
     mCapacityBytes = capacityBytes;
     mUsedBytes = usedBytes;
     mCapacityFree = capacityFree;
@@ -80,20 +92,27 @@ public class BlockWorkerMetrics {
     return mNumberOfBlocks;
   }
 
+  /**
+   * return a new BlockWorkerMetrics form a new BlockStoreMeta.
+   * @param meta new BlockStoreMeta
+   * @param s the StorageTierAssoc, can't import here so pass it as param
+   * @return a new BlockWorkerMetrics
+   */
   public static BlockWorkerMetrics from(BlockStoreMeta meta, StorageTierAssoc s) {
-    long mCapacityBytes = meta.getCapacityBytes();
-    long mUsedBytes = meta.getUsedBytes();
-    long mCapacityFree = mCapacityBytes - mUsedBytes;
-    Map<String, Long> mCapacityBytesOnTiers = meta.getCapacityBytesOnTiers();
-    Map<String, Long> mUsedBytesOnTiers = meta.getCapacityBytesOnTiers();
-    Map<String, Long> mFreeBytesOnTiers = meta.getCapacityBytesOnTiers();
+    long capacityBytes = meta.getCapacityBytes();
+    long usedBytes = meta.getUsedBytes();
+    long capacityFree = capacityBytes - usedBytes;
+    Map<String, Long> capacityBytesOnTiers = meta.getCapacityBytesOnTiers();
+    Map<String, Long> usedBytesOnTiers = meta.getCapacityBytesOnTiers();
+    Map<String, Long> freeBytesOnTiers = meta.getCapacityBytesOnTiers();
     for (int i = 0; i < s.size(); i++) {
       String tier = s.getAlias(i);
-      mFreeBytesOnTiers.replace(tier, mCapacityBytesOnTiers
+      freeBytesOnTiers.replace(tier, capacityBytesOnTiers
           .getOrDefault(tier, 0L)
-          - mUsedBytesOnTiers.getOrDefault(tier, 0L));
+          - usedBytesOnTiers.getOrDefault(tier, 0L));
     }
-    int mNumberOfBlocks = meta.getNumberOfBlocks();
-    return new BlockWorkerMetrics(mCapacityBytes, mUsedBytes, mCapacityFree, mCapacityBytesOnTiers, mUsedBytesOnTiers, mFreeBytesOnTiers, mNumberOfBlocks);
+    int numberOfBlocks = meta.getNumberOfBlocks();
+    return new BlockWorkerMetrics(capacityBytes, usedBytes, capacityFree,
+        capacityBytesOnTiers, usedBytesOnTiers, freeBytesOnTiers, numberOfBlocks);
   }
 }
