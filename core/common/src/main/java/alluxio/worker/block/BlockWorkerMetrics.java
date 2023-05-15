@@ -2,6 +2,7 @@ package alluxio.worker.block;
 
 import alluxio.StorageTierAssoc;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -104,6 +105,7 @@ public class BlockWorkerMetrics {
     long capacityFree = capacityBytes - usedBytes;
     Map<String, Long> capacityBytesOnTiers = meta.getCapacityBytesOnTiers();
     Map<String, Long> usedBytesOnTiers = meta.getCapacityBytesOnTiers();
+    // freeBytesOnTiers is recalculated
     Map<String, Long> freeBytesOnTiers = meta.getCapacityBytesOnTiers();
     for (int i = 0; i < s.size(); i++) {
       String tier = s.getAlias(i);

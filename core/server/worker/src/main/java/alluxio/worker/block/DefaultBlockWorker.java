@@ -523,50 +523,52 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     public static final Counter WORKER_ACTIVE_CLIENTS =
         MetricsSystem.counter(MetricKey.WORKER_ACTIVE_CLIENTS.getName());
 
+    public static CachedGauge<BlockWorkerMetrics> sCache;
+
     /**
      * Registers metric gauges.
      *
-     * @param blockworker the BlockWorker
+     * @param blockWorker the BlockWorker
      */
-    public static void registerGauges(final BlockWorker blockworker) {
-      CachedGauge<BlockWorkerMetrics> cache = new CachedGauge<BlockWorkerMetrics>(1000, TimeUnit.MILLISECONDS) {
+    public static void registerGauges(final BlockWorker blockWorker) {
+      sCache = new CachedGauge<BlockWorkerMetrics>(5000, TimeUnit.MILLISECONDS) {
         @Override
         protected BlockWorkerMetrics loadValue() {
-          BlockStoreMeta meta = blockworker.getStoreMetaFull();
+          BlockStoreMeta meta = blockWorker.getStoreMetaFull();
           BlockWorkerMetrics metrics = BlockWorkerMetrics.from(meta, WORKER_STORAGE_TIER_ASSOC);
           return metrics;
         }
       };
       MetricsSystem.registerCachedGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.WORKER_CAPACITY_TOTAL.getName()),
-          () -> cache.getValue().getCapacityBytes());
+          () -> sCache.getValue().getCapacityBytes());
 
       MetricsSystem.registerCachedGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.WORKER_CAPACITY_USED.getName()),
-          () -> cache.getValue().getUsedBytes());
+          () -> sCache.getValue().getUsedBytes());
 
       MetricsSystem.registerCachedGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.WORKER_CAPACITY_FREE.getName()),
-          () -> cache.getValue().getCapacityFree());
+          () -> sCache.getValue().getCapacityFree());
 
       for (int i = 0; i < WORKER_STORAGE_TIER_ASSOC.size(); i++) {
         String tier = WORKER_STORAGE_TIER_ASSOC.getAlias(i);
         // TODO(lu) Add template to dynamically generate MetricKey
         MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
             MetricKey.WORKER_CAPACITY_TOTAL.getName() + MetricInfo.TIER + tier),
-            () -> cache.getValue().getCapacityBytesOnTiers().getOrDefault(tier, 0L));
+            () -> sCache.getValue().getCapacityBytesOnTiers().getOrDefault(tier, 0L));
 
         MetricsSystem.registerCachedGaugeIfAbsent(MetricsSystem.getMetricName(
             MetricKey.WORKER_CAPACITY_USED.getName() + MetricInfo.TIER + tier),
-            () -> cache.getValue().getUsedBytesOnTiers().getOrDefault(tier, 0L));
+            () -> sCache.getValue().getUsedBytesOnTiers().getOrDefault(tier, 0L));
 
         MetricsSystem.registerCachedGaugeIfAbsent(MetricsSystem.getMetricName(
             MetricKey.WORKER_CAPACITY_FREE.getName() + MetricInfo.TIER + tier),
-            () -> cache.getValue().getFreeBytesOnTiers().getOrDefault(tier, 0L));
+            () -> sCache.getValue().getFreeBytesOnTiers().getOrDefault(tier, 0L));
       }
       MetricsSystem.registerCachedGaugeIfAbsent(MetricsSystem.getMetricName(
           MetricKey.WORKER_BLOCKS_CACHED.getName()),
-          () -> cache.getValue().getNumberOfBlocks());
+          () -> sCache.getValue().getNumberOfBlocks());
     }
 
     private Metrics() {} // prevent instantiation
