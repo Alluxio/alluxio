@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-core-client</artifactId>
-    <version>2.10.0-SNAPSHOT</version>
+    <version>295-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-core-client-hdfs3</artifactId>
   <packaging>jar</packaging>
@@ -25,7 +25,7 @@
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
-    <build.path>${project.parent.parent.parent.basedir}/build</build.path>
+    <build.path>${project.parent.parent.parent.parent.basedir}/build</build.path>
     <failIfNoTests>false</failIfNoTests>
   </properties>
 
