@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.worker.block;
 
 import alluxio.StorageTierAssoc;
@@ -104,12 +115,12 @@ public class BlockWorkerMetrics {
     long usedBytes = meta.getUsedBytes();
     long capacityFree = capacityBytes - usedBytes;
     Map<String, Long> capacityBytesOnTiers = meta.getCapacityBytesOnTiers();
-    Map<String, Long> usedBytesOnTiers = meta.getCapacityBytesOnTiers();
+    Map<String, Long> usedBytesOnTiers = meta.getUsedBytesOnTiers();
     // freeBytesOnTiers is recalculated
-    Map<String, Long> freeBytesOnTiers = meta.getCapacityBytesOnTiers();
+    Map<String, Long> freeBytesOnTiers = new HashMap<>();
     for (int i = 0; i < s.size(); i++) {
       String tier = s.getAlias(i);
-      freeBytesOnTiers.replace(tier, capacityBytesOnTiers
+      freeBytesOnTiers.put(tier, capacityBytesOnTiers
           .getOrDefault(tier, 0L)
           - usedBytesOnTiers.getOrDefault(tier, 0L));
     }
