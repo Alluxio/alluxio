@@ -77,6 +77,7 @@ public class GrpcChannelBuilder {
    * @param address the host address
    * @param conf Alluxio configuration
    * @param authType the auth type
+   * @param alwaysEnableTLS whether to always enable the TLS
    * @return a new instance of {@link GrpcChannelBuilder}
    */
   public static GrpcChannelBuilder newBuilder(GrpcServerAddress address, AlluxioConfiguration conf,

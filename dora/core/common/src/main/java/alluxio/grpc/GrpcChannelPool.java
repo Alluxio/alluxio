@@ -85,6 +85,7 @@ public class GrpcChannelPool
    * @param networkGroup network group
    * @param serverAddress server address
    * @param conf the Alluxio configuration
+   * @param alwaysEnableTLS whether to always enable TLS
    * @return a {@link GrpcChannel}
    */
   public GrpcChannel acquireChannel(GrpcNetworkGroup networkGroup,
