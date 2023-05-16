@@ -79,8 +79,13 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
    * @param context
    */
   public DoraCacheFileSystem(FileSystem fs, FileSystemContext context) {
+    this(fs, context, new DoraCacheClient(context, new WorkerLocationPolicy(2000)));
+  }
+
+  protected DoraCacheFileSystem(FileSystem fs, FileSystemContext context,
+      DoraCacheClient doraCacheClient) {
     super(fs);
-    mDoraClient = new DoraCacheClient(context, new WorkerLocationPolicy(2000));
+    mDoraClient = doraCacheClient;
     mFsContext = context;
     mMetadataCacheEnabled = context.getClusterConf()
         .getBoolean(PropertyKey.DORA_CLIENT_METADATA_CACHE_ENABLED);
