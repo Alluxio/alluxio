@@ -179,11 +179,6 @@ public abstract class Task<V> implements Comparable<Task> {
     return getPriority() - o.getPriority();
   }
 
-  /**
-   * @param executor the executor
-   */
-  public void onComplete(Executor executor) {}
-
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)

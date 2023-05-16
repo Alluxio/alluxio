@@ -299,8 +299,8 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     if (workerToTaskMap.isEmpty()) {
       return Collections.unmodifiableList(new ArrayList<>());
     }
-    // Add to the already prepared tasks list, waiting to be pulled and kicked off.
-    List<DoraLoadTask> tasks = workerToTaskMap.values().stream().flatMap(List::stream).collect(Collectors.toList());
+    List<DoraLoadTask> tasks = workerToTaskMap.values().stream().flatMap(List::stream)
+        .collect(Collectors.toList());
     LOG.debug("prepared tasks:{}", tasks);
     return tasks;
   }
@@ -433,9 +433,12 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
      */
     List<DoraLoadTask> list = new ArrayList<>();
     if (mPreparingTasks.compareAndSet(false, true)) {
-      list = prepareNextTasks();
-      mPreparingTasks.compareAndSet(true, false);
-      return Collections.unmodifiableList(list);
+      try {
+        list = prepareNextTasks();
+        return Collections.unmodifiableList(list);
+      } finally {
+        mPreparingTasks.compareAndSet(true, false);
+      }
     }
     return list;
   }
@@ -608,7 +611,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 
     @Override
     protected ListenableFuture<LoadFileResponse> run(BlockWorkerClient workerClient) {
-      LOG.info("Job:{} start running task:{} on worker:{}", mMyJob, toString(), getMyRunningWorker());
+      LOG.info("Start running task:{} on worker:{}", toString(), getMyRunningWorker());
       LoadFileRequest.Builder loadFileReqBuilder = LoadFileRequest.newBuilder();
       for (URIStatus uriStatus : mFilesToLoad) {
         loadFileReqBuilder.addFiles(File.newBuilder()
@@ -623,11 +626,6 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       ListenableFuture<LoadFileResponse> listenableFuture =
           workerClient.loadFile(loadFileReqBuilder.build());
       return listenableFuture;
-    }
-
-    @Override
-    public void onComplete(Executor executor) {
-      getResponseFuture().addListener(() -> mMyJob.processResponse(this), executor);
     }
 
     @Override

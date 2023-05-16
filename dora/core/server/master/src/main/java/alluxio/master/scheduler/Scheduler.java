@@ -149,7 +149,6 @@ public final class Scheduler {
                 j -> new ConcurrentHashSet<>());
             tasks.add(task);
             task.getResponseFuture().addListener(() -> {
-
               Job job = task.getJob();
               try {
                 LOG.info("Task:{} completed, response{}:", task.toString(), task.getResponseFuture().get());
@@ -550,14 +549,14 @@ public final class Scheduler {
   }
 
   public static class SchedulerStats {
-    public Map<Job, Collection<Task.TaskStat>> runningJobToTaskStats = new HashMap<>();
+    public Map<Job, List<String>> runningJobToTasks = new HashMap<>();
     public Map<Job, String> existingJobAndProgresses = new HashMap<>();
   }
   public SchedulerStats printJobsStatus() {
     SchedulerStats schedulerStats = new SchedulerStats();
     for (Map.Entry<Job<?>, ConcurrentHashSet<Task<?>>> entry : mJobToRunningTasks.entrySet()) {
-      schedulerStats.runningJobToTaskStats.put(entry.getKey(),  //entry.getKey().getDescription(),
-          entry.getValue().stream().map(t -> t.getTaskStat()).collect(Collectors.toList()));
+      schedulerStats.runningJobToTasks.put(entry.getKey(),  //entry.getKey().getDescription(),
+          entry.getValue().stream().map(t -> t.toString()).collect(Collectors.toList()));
     }
     for (Map.Entry<JobDescription, Job<?>> entry : mExistingJobs.entrySet()) {
       schedulerStats.existingJobAndProgresses.put(entry.getValue(),
