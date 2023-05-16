@@ -32,13 +32,19 @@ public final class LockingScheme {
   private final LockPattern mDesiredLockPattern;
   private final SyncCheck mShouldSync;
 
+  // CHECKSTYLE.OFF: LineLengthExceed - cannot break the method link
   /**
    * Constructs a {@link LockingScheme}.
+   *
+   * Avoid using this constructor where shouldSync is set true, if possible.
+   * {@link #LockingScheme(AlluxioURI, LockPattern, FileSystemMasterCommonPOptions, UfsSyncPathCache, DescendantType)}
+   * is the preferred one in such case, to make the metadata sync dedup feature work.
    *
    * @param path the path to lock
    * @param desiredLockPattern the desired lock mode
    * @param shouldSync true if the path should be synced
    */
+  // CHECKSTYLE.ON: LineLengthExceed
   public LockingScheme(AlluxioURI path, LockPattern desiredLockPattern, boolean shouldSync) {
     mPath = path;
     mDesiredLockPattern = desiredLockPattern;

@@ -36,6 +36,10 @@ public final class RuntimeConstants {
     }
   }
 
+  public static final String REVISION_SHORT = ProjectConstants.REVISION.substring(0, 8);
+  public static final String VERSION_AND_REVISION_SHORT =
+      VERSION + "-" + REVISION_SHORT;
+
   /** The relative path to the Alluxio target jar. */
   public static final String ALLUXIO_JAR = "target/alluxio-" + VERSION
       + "-jar-with-dependencies.jar";

@@ -345,8 +345,30 @@
               <goal>copy</goal>
             </goals>
             <configuration>
-              <sourceFile>target/alluxio-shaded-client-295-SNAPSHOT.jar</sourceFile>
-              <destinationFile>../../../client/alluxio-295-SNAPSHOT-client.jar</destinationFile>
+              <sourceFile>target/alluxio-shaded-client-${project.version}.jar</sourceFile>
+              <destinationFile>../../../client/build/alluxio-${project.version}-hadoop2-client.jar</destinationFile>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <inherited>false</inherited>
+        <executions>
+          <execution>
+            <id>symlink-jar</id>
+            <phase>install</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>ln</executable>
+              <arguments>
+                <argument>-fnsv</argument>
+                <argument>build/alluxio-${project.version}-hadoop2-client.jar</argument>
+                <argument>${project.parent.parent.parent.basedir}/client/alluxio-${project.version}-client.jar</argument>
+              </arguments>
             </configuration>
           </execution>
         </executions>

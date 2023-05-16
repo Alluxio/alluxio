@@ -63,7 +63,7 @@ import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
 import alluxio.resource.CloseableIterator;
 import alluxio.resource.LockResource;
-import alluxio.security.authentication.ClientIpAddressInjector;
+import alluxio.security.authentication.ClientContextServerInjector;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
@@ -341,11 +341,11 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     services.put(ServiceType.BLOCK_MASTER_CLIENT_SERVICE,
         new GrpcService(ServerInterceptors
             .intercept(new BlockMasterClientServiceHandler(this),
-                new ClientIpAddressInjector())));
+                new ClientContextServerInjector())));
     services.put(ServiceType.BLOCK_MASTER_WORKER_SERVICE,
         new GrpcService(ServerInterceptors
             .intercept(new BlockMasterWorkerServiceHandler(this),
-                new ClientIpAddressInjector())));
+                new ClientContextServerInjector())));
     return services;
   }
 
@@ -362,6 +362,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       long length = blockInfoEntry.getLength();
       Optional<BlockMeta> block = mBlockMetaStore.getBlock(blockInfoEntry.getBlockId());
       if (block.isPresent()) {
+        // If we write multiple replicas, multiple streams will all write BlockInfoEntry
+        // when they CommitBlock. We rely on the idempotence to handle duplicate entries
+        // and only warning when there are inconsistencies.
         long oldLen = block.get().getLength();
         if (oldLen != Constants.UNKNOWN_SIZE) {
           LOG.warn("Attempting to update block length ({}) to a different length ({}).", oldLen,
@@ -494,6 +497,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public void stop() throws IOException {
+    LOG.info("Next container id before close: {}", mBlockContainerIdGenerator.peekNewContainerId());
     super.stop();
   }
 
@@ -943,10 +947,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   }
 
   @Override
-  public void commitBlockInUFS(long blockId, long length) throws UnavailableException {
+  public void commitBlockInUFS(long blockId, long length, JournalContext journalContext) {
     LOG.debug("Commit block in ufs. blockId: {}, length: {}", blockId, length);
-    try (JournalContext journalContext = createJournalContext();
-         LockResource r = lockBlock(blockId)) {
+    try (LockResource r = lockBlock(blockId)) {
       if (mBlockMetaStore.getBlock(blockId).isPresent()) {
         // Block metadata already exists, so do not need to create a new one.
         return;
@@ -1046,7 +1049,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
    * @param workerId the worker id to register
    */
   @Nullable
-  private MasterWorkerInfo recordWorkerRegistration(long workerId) {
+  protected MasterWorkerInfo recordWorkerRegistration(long workerId) {
     for (IndexedSet<MasterWorkerInfo> workers: Arrays.asList(mTempWorkers,
         mLostWorkers, mDecommissionedWorkers)) {
       MasterWorkerInfo worker = workers.getFirstByField(ID_INDEX, workerId);
@@ -1073,6 +1076,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public long getWorkerId(WorkerNetAddress workerNetAddress) {
+    LOG.info("Worker {} requesting for an ID", workerNetAddress);
     MasterWorkerInfo existingWorker = mWorkers.getFirstByField(ADDRESS_INDEX, workerNetAddress);
     if (existingWorker != null) {
       // This worker address is already mapped to a worker id.
@@ -1187,6 +1191,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   @Override
   public void workerRegisterStream(WorkerRegisterContext context,
                                   RegisterWorkerPRequest chunk, boolean isFirstMsg) {
+    // TODO(jiacheng): find a place to check the lease
     if (isFirstMsg) {
       workerRegisterStart(context, chunk);
     } else {
@@ -1196,19 +1201,18 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   protected void workerRegisterStart(WorkerRegisterContext context,
       RegisterWorkerPRequest chunk) {
+    MasterWorkerInfo workerInfo = context.getWorkerInfo();
+    Preconditions.checkState(workerInfo != null,
+        "No workerInfo metadata found in the WorkerRegisterContext!");
+
     final List<String> storageTiers = chunk.getStorageTiersList();
     final Map<String, Long> totalBytesOnTiers = chunk.getTotalBytesOnTiersMap();
     final Map<String, Long> usedBytesOnTiers = chunk.getUsedBytesOnTiersMap();
     final Map<String, StorageList> lostStorage = chunk.getLostStorageMap();
-
     final Map<alluxio.proto.meta.Block.BlockLocation, List<Long>> currentBlocksOnLocation =
         BlockMasterWorkerServiceHandler.reconstructBlocksOnLocationMap(
             chunk.getCurrentBlocksList(), context.getWorkerId());
     RegisterWorkerPOptions options = chunk.getOptions();
-
-    MasterWorkerInfo workerInfo = context.getWorkerInfo();
-    Preconditions.checkState(workerInfo != null,
-        "No workerInfo metadata found in the WorkerRegisterContext!");
     mActiveRegisterContexts.put(workerInfo.getId(), context);
 
     // The workerInfo is locked so we can operate on its blocks without race conditions
@@ -1565,7 +1569,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       }
       for (MasterWorkerInfo worker : mLostWorkers) {
         try (LockResource r = worker.lockWorkerMeta(
-                EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
+            EnumSet.of(WorkerMetaLockSection.BLOCKS), false)) {
           final long lastUpdate = mClock.millis() - worker.getLastUpdatedTimeMs();
           if ((lastUpdate - masterWorkerTimeoutMs) > masterWorkerDeleteTimeoutMs) {
             LOG.error("The worker {}({}) timed out after {}ms without a heartbeat! "
@@ -1608,6 +1612,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   private void processLostWorker(MasterWorkerInfo worker) {
     mLostWorkers.add(worker);
     mWorkers.remove(worker);
+    // If a worker is gone before registering, avoid it getting stuck in mTempWorker forever
+    mTempWorkers.remove(worker);
     WorkerNetAddress workerAddress = worker.getWorkerAddress();
     for (Consumer<Address> function : mWorkerLostListeners) {
       function.accept(new Address(workerAddress.getHost(), workerAddress.getRpcPort()));
@@ -1621,6 +1627,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   private void deleteWorkerMetadata(MasterWorkerInfo worker) {
     mWorkers.remove(worker);
     mLostWorkers.remove(worker);
+    // If a worker is gone before registering, avoid it getting stuck in mTempWorker forever
     mTempWorkers.remove(worker);
     WorkerNetAddress workerAddress = worker.getWorkerAddress();
     for (Consumer<Address> function : mWorkerDeleteListeners) {

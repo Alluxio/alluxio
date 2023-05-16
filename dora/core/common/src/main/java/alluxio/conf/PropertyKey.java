@@ -596,6 +596,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.SERVER)
           .setIsHidden(true)
           .build();
+  public static final PropertyKey GRPC_REFLECTION_ENABLED =
+      booleanBuilder(Name.GRPC_REFLECTION_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("If true, grpc reflection will be enabled on alluxio grpc servers, "
+              + "including masters, workers, job masters and job workers. "
+              + " This makes grpc tools such as grpcurl or grpcui can send grpc requests to "
+              + "the master server easier without knowing the protobufs. "
+              + "This is a debug option.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
+          .build();
   public static final PropertyKey HOME =
       stringBuilder(Name.HOME)
           .setDefaultValue("/opt/alluxio")
@@ -2592,7 +2603,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL =
       intBuilder(Name.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL)
-          .setDefaultValue(-1)
+          .setDefaultValue(1)
           .setDescription("The zip compression level of checkpointing rocksdb, the zip"
                   + " format defines ten levels of compression, ranging from 0"
                   + " (no compression, but very fast) to 9 (best compression, but slow)."
@@ -3094,7 +3105,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "UFS), EMBEDDED (use a journal embedded in the masters), and NOOP (do not use a "
               + "journal)")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.MASTER)
+          .setScope(Scope.ALL)
           .build();
   public static final PropertyKey MASTER_JOURNAL_LOG_SIZE_BYTES_MAX =
       dataSizeBuilder(Name.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX)
@@ -6022,6 +6033,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+
+  public static final PropertyKey USER_CLIENT_REPORT_VERSION_ENABLED =
+      booleanBuilder(Name.USER_CLIENT_REPORT_VERSION_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether the client reports version information to the server.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+
   public static final PropertyKey USER_FILE_WRITE_TYPE_DEFAULT =
       enumBuilder(Name.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
           .setDefaultValue(WriteType.ASYNC_THROUGH)
@@ -7133,7 +7153,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       intBuilder(Name.JOB_REQUEST_BATCH_SIZE)
           .setDescription("The batch size client uses to make requests to the "
               + "job master.")
-          .setDefaultValue(20)
+          .setDefaultValue(1)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey JOB_WORKER_BIND_HOST =
@@ -7321,7 +7341,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("(Experimental) Enables the table service.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
-          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_CATALOG_PATH =
       stringBuilder(Name.TABLE_CATALOG_PATH)
@@ -7329,7 +7348,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The Alluxio file path for the table catalog metadata.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
-          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_CATALOG_UDB_SYNC_TIMEOUT =
       durationBuilder(Name.TABLE_CATALOG_UDB_SYNC_TIMEOUT)
@@ -7338,7 +7356,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "takes longer than this timeout, the sync will be terminated.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
-          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE =
       intBuilder(Name.TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE)
@@ -7346,7 +7363,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The maximum table partitions number in a single journal entry.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
-          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL =
       durationBuilder(Name.TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL)
@@ -7357,7 +7373,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "locations after transformation.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
-          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME =
       durationBuilder(Name.TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME)
@@ -7366,7 +7381,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "about finished transformation jobs before they are discarded.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
-          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_UDB_HIVE_CLIENTPOOL_MIN =
       intBuilder(Name.TABLE_UDB_HIVE_CLIENTPOOL_MIN)
@@ -7374,7 +7388,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The minimum capacity of the hive client pool per hive metastore")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
-          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_UDB_HIVE_CLIENTPOOL_MAX =
       intBuilder(Name.TABLE_UDB_HIVE_CLIENTPOOL_MAX)
@@ -7382,7 +7395,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The maximum capacity of the hive client pool per hive metastore")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
-          .setIsHidden(true)
           .build();
   public static final PropertyKey TABLE_LOAD_DEFAULT_REPLICATION =
       intBuilder(Name.TABLE_LOAD_DEFAULT_REPLICATION)
@@ -7390,7 +7402,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The default replication number of files under the SDS table after "
                   + "load option.")
           .setScope(Scope.CLIENT)
-          .setIsHidden(true)
           .build();
   public static final PropertyKey HADOOP_SECURITY_AUTHENTICATION =
       stringBuilder(Name.HADOOP_SECURITY_AUTHENTICATION)
@@ -7589,6 +7600,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String CONF_VALIDATION_ENABLED = "alluxio.conf.validation.enabled";
     public static final String DEBUG = "alluxio.debug";
     public static final String EXTENSIONS_DIR = "alluxio.extensions.dir";
+    public static final String GRPC_REFLECTION_ENABLED =
+        "alluxio.grpc.reflection.enabled";
     public static final String HOME = "alluxio.home";
     public static final String LEAK_DETECTOR_LEVEL = "alluxio.leak.detector.level";
     public static final String LEAK_DETECTOR_EXIT_ON_LEAK = "alluxio.leak.detector.exit.on.leak";
@@ -8711,6 +8724,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.timeout.duration";
     public static final String USER_CLIENT_CACHE_TIMEOUT_THREADS =
         "alluxio.user.client.cache.timeout.threads";
+    public static final String USER_CLIENT_REPORT_VERSION_ENABLED =
+        "alluxio.user.client.report.version.enabled";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_CONF_SYNC_INTERVAL = "alluxio.user.conf.sync.interval";

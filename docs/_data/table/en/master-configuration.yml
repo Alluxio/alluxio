@@ -66,6 +66,8 @@ alluxio.master.embedded.journal.raft.client.request.interval:
   'Base interval for retrying Raft client calls. The retry policy is ExponentialBackoffRetry'
 alluxio.master.embedded.journal.raft.client.request.timeout:
   'Time after which calls made through the Raft client timeout.'
+alluxio.master.embedded.journal.ratis.config:
+  'Prefix for Apache Ratis internal configuration options. For example, setting alluxio.master.embedded.journal.ratis.config.raft.server.rpc.request.timeout will set ratis.config.raft.server.rpc.request.timeout on the Ratis service in the Alluxio master.'
 alluxio.master.embedded.journal.retry.cache.expiry.time:
   'The time for embedded journal server retry cache to expire. Setting a bigger value allows embedded journal server to cache the responses for a longer time in case of journal writer retries, but will take up more memory in master.'
 alluxio.master.embedded.journal.snapshot.replication.chunk.size:
@@ -74,6 +76,8 @@ alluxio.master.embedded.journal.transport.max.inbound.message.size:
   'The maximum size of a message that can be sent to the embedded journal server node.'
 alluxio.master.embedded.journal.transport.request.timeout.ms:
   'The duration after which embedded journal masters will timeout messages sent between each other. Lower values might cause leadership instability when the network is slow.'
+alluxio.master.embedded.journal.unsafe.flush.enabled:
+  'If true, embedded journal entries will be committed without waiting for the entry to be flushed to disk. This may improve performance of write operations on the Alluxio master if the journal is written to a slow or contested disk. WARNING: enabling this property may result in metadata loss if half or more of the master nodes fail. See Ratis property raft.server.log.unsafe-flush.enabled at https://github.com/apache/ratis/blob/master/ratis-docs/src/site/markdown/configuraions.md.'
 alluxio.master.embedded.journal.write.timeout:
   'Maximum time to wait for a write/flush on embedded journal.'
 alluxio.master.file.access.time.journal.flush.interval:
@@ -156,6 +160,8 @@ alluxio.master.lock.pool.low.watermark:
   'Low watermark of lock pool size. When the size grows over the high watermark, a background thread will try to evict unused locks until the size reaches the low watermark.'
 alluxio.master.log.config.report.heartbeat.interval:
   'The interval for periodically logging the configuration check report.'
+alluxio.master.lost.worker.deletion.timeout:
+  'If a worker has no heartbeat with the master for more than this timeout, the master will totally forget this worker.'
 alluxio.master.lost.worker.detection.interval:
   'The interval between Alluxio master detections to find lost workers based on updates from Alluxio workers.'
 alluxio.master.lost.worker.file.detection.interval:
@@ -168,6 +174,8 @@ alluxio.master.metadata.sync.concurrency.level:
   'The maximum number of concurrent sync tasks running for a given sync operation'
 alluxio.master.metadata.sync.executor.pool.size:
   'The number of threads used to execute all metadata syncoperations'
+alluxio.master.metadata.sync.ignore.ttl:
+  'Whether files created from metadata sync will ignore the TTL from the command/path conf and have no TTL.'
 alluxio.master.metadata.sync.instrument.executor:
   'If true the metadata sync thread pool executors will be instrumented with additional metrics.'
 alluxio.master.metadata.sync.lock.pool.concurrency.level:
@@ -192,6 +200,10 @@ alluxio.master.metastore.block:
   'The type of block metastore to use, either HEAP or ROCKS. By default this uses alluxio.master.metastore.'
 alluxio.master.metastore.dir:
   'The metastore work directory. Only some metastores need disk.'
+alluxio.master.metastore.dir.block:
+  'If the metastore is ROCKS, this property controls where the RocksDB stores block metadata. This property defaults to alluxio.master.metastore.dir. And it can be used to change block metadata storage path to a different disk to improve RocksDB performance.'
+alluxio.master.metastore.dir.inode:
+  'If the metastore is ROCKS, this property controls where the RocksDB stores inode metadata. This property defaults to alluxio.master.metastore.dir. And it can be used to change inode metadata storage path to a different disk to improve RocksDB performance.'
 alluxio.master.metastore.inode:
   'The type of inode metastore to use, either HEAP or ROCKS. By default this uses alluxio.master.metastore.'
 alluxio.master.metastore.inode.cache.evict.batch.size:
@@ -228,6 +240,8 @@ alluxio.master.metastore.rocks.block.meta.cache.size:
   'The capacity in bytes of the RocksDB block metadata table LRU  cache. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Block-Cache'
 alluxio.master.metastore.rocks.block.meta.index:
   'The index type to be used in the RocksDB block metadata table. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Index-Block-Format'
+alluxio.master.metastore.rocks.checkpoint.compression.level:
+  'The zip compression level of checkpointing rocksdb, the zip format defines ten levels of compression, ranging from 0 (no compression, but very fast) to 9 (best compression, but slow). Or -1 for the system default compression level.'
 alluxio.master.metastore.rocks.edge.block.index:
   'The block index type to be used in the RocksDB inode edge table. If unset, the RocksDB default will be used. See https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html'
 alluxio.master.metastore.rocks.edge.bloom.filter:
@@ -245,9 +259,7 @@ alluxio.master.metastore.rocks.inode.cache.size:
 alluxio.master.metastore.rocks.inode.index:
   'The index type to be used in the RocksDB Inode table. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Index-Block-Format'
 alluxio.master.metastore.rocks.parallel.backup:
-  'Whether to backup rocksdb in parallel'
-alluxio.master.metastore.rocks.parallel.backup.compression.level:
-  'The zip compression level of backing up rocksdb in parallel, the zip format defines ten levels of compression, ranging from 0 (no compression, but very fast) to 9 (best compression, but slow)'
+  'Whether to checkpoint rocksdb in parallel using the number of threads set by alluxio.master.metastore.rocks.parallel.backup.threads.'
 alluxio.master.metastore.rocks.parallel.backup.threads:
   'The number of threads used by backing up rocksdb in parallel.'
 alluxio.master.metrics.file.size.distribution.buckets:

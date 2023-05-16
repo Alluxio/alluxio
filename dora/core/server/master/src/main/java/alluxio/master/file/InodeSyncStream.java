@@ -48,6 +48,7 @@ import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.LockingScheme;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.MutableInodeFile;
+import alluxio.master.file.meta.SyncCheck;
 import alluxio.master.file.meta.SyncCheck.SyncResult;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
@@ -431,7 +432,7 @@ public class InodeSyncStream {
       DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SKIPPED.inc();
       return SyncStatus.NOT_NEEDED;
     }
-    if (mDedupConcurrentSync) {
+    if (mDedupConcurrentSync && mRootScheme.shouldSync() != SyncCheck.SHOULD_SYNC) {
       /*
        * If a concurrent sync on the same path is successful after this sync had already
        * been initialized and that sync is successful, then there is no need to sync again.
@@ -452,9 +453,10 @@ public class InodeSyncStream {
        * Note that this still applies if A is to sync recursively path /aaa while B is to
        * sync path /aaa/bbb as the sync scope of A covers B's.
        */
-      boolean shouldSync = mUfsSyncPathCache.shouldSyncPath(mRootScheme.getPath(), mSyncInterval,
+      boolean shouldSkipSync =
+          mUfsSyncPathCache.shouldSyncPath(mRootScheme.getPath(), mSyncInterval,
           mDescendantType).getLastSyncTime() > mRootScheme.shouldSync().getLastSyncTime();
-      if (shouldSync) {
+      if (shouldSkipSync) {
         DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SKIPPED.inc();
         LOG.debug("Skipped sync on {} due to successful concurrent sync", mRootScheme.getPath());
         return SyncStatus.NOT_NEEDED;

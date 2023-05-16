@@ -21,6 +21,7 @@ import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Level;
 import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
@@ -55,10 +56,22 @@ public class FileSystemMasterBench {
 
   @State(Scope.Benchmark)
   public static class FileSystem extends BaseFileStructure {
+    @Param({"10"})
+    public int mDepth;
+
+    @Param({"0"})
+    public int mWidth;
+
+    @Param({"1000"})
+    public int mFileCount;
+
+    @Param({"ZIPF"})
+    public Distribution mDistribution;
     FileSystemMasterBase mBase = new FileSystemMasterBase();
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
+      super.init(mDepth, mWidth, mFileCount, mDistribution);
       mBase.init();
       mBase.createPathDepths(mDepth);
       for (int d = 0; d < mDepth + 1; d++) {

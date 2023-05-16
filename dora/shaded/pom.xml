@@ -24,6 +24,7 @@
 
   <modules>
     <module>client</module>
+    <module>client-hadoop3</module>
     <module>hadoop</module>
   </modules>
 

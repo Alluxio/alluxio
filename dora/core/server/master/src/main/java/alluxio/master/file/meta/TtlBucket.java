@@ -89,18 +89,27 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    * Adds a inode to the bucket.
    *
    * @param inode the inode to be added
+   * @return true if a new inode was added to the bucket
    */
-  public void addInode(Inode inode) {
-    mInodes.put(inode.getId(), inode);
+  public boolean addInode(Inode inode) {
+    return mInodes.put(inode.getId(), inode) == null;
   }
 
   /**
    * Removes a inode from the bucket.
    *
    * @param inode the inode to be removed
+   * @return true if a inode was removed
    */
-  public void removeInode(InodeView inode) {
-    mInodes.remove(inode.getId());
+  public boolean removeInode(InodeView inode) {
+    return mInodes.remove(inode.getId()) != null;
+  }
+
+  /**
+   * @return the number of inodes in the bucket
+   */
+  public int size() {
+    return mInodes.size();
   }
 
   /**
