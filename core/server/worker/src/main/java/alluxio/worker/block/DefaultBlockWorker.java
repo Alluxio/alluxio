@@ -523,21 +523,21 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     public static final Counter WORKER_ACTIVE_CLIENTS =
         MetricsSystem.counter(MetricKey.WORKER_ACTIVE_CLIENTS.getName());
 
-
     /**
      * Registers metric gauges.
      *
      * @param blockWorker the BlockWorker
      */
     public static void registerGauges(final BlockWorker blockWorker) {
-      CachedGauge<BlockWorkerMetrics> cache = new CachedGauge<BlockWorkerMetrics>(5000, TimeUnit.MILLISECONDS) {
-        @Override
-        protected BlockWorkerMetrics loadValue() {
-          BlockStoreMeta meta = blockWorker.getStoreMetaFull();
-          BlockWorkerMetrics metrics = BlockWorkerMetrics.from(meta, WORKER_STORAGE_TIER_ASSOC);
-          return metrics;
-        }
-      };
+      CachedGauge<BlockWorkerMetrics> cache =
+          new CachedGauge<BlockWorkerMetrics>(5000, TimeUnit.MILLISECONDS) {
+            @Override
+            protected BlockWorkerMetrics loadValue() {
+              BlockStoreMeta meta = blockWorker.getStoreMetaFull();
+              BlockWorkerMetrics metrics = BlockWorkerMetrics.from(meta, WORKER_STORAGE_TIER_ASSOC);
+              return metrics;
+            }
+          };
       MetricsSystem.registerCachedGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.WORKER_CAPACITY_TOTAL.getName()),
           () -> cache.getValue().getCapacityBytes());
