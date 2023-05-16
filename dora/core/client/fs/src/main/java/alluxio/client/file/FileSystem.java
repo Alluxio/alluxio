@@ -172,7 +172,7 @@ public interface FileSystem extends Closeable {
           ? new UfsBaseFileSystem(context, options.getUfsFileSystemOptions().get())
           : new BaseFileSystem(context);
       if (options.isDoraCacheEnabled()) {
-        fs = new DoraCacheFileSystem(fs, context);
+        fs = DoraCacheFileSystem.sDoraCacheFileSystemFactory.createAnInstance(fs, context);
       }
       if (options.isMetadataCacheEnabled()) {
         fs = new MetadataCachingFileSystem(fs, context);

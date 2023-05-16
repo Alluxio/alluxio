@@ -14,6 +14,7 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.CloseableSupplier;
 import alluxio.PositionReader;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.ReadType;
 import alluxio.client.file.dora.DoraCacheClient;
 import alluxio.client.file.dora.WorkerLocationPolicy;
@@ -62,15 +63,39 @@ import java.util.function.Consumer;
 /**
  * Dora Cache file system implementation.
  */
+@SuppressFBWarnings("MS_SHOULD_BE_FINAL")
 public class DoraCacheFileSystem extends DelegatingFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(DoraCacheFileSystem.class);
   public static final int DUMMY_MOUNT_ID = 0;
   private static final Counter UFS_FALLBACK_COUNTER = MetricsSystem.counter(
       MetricKey.CLIENT_UFS_FALLBACK_COUNT.getName());
+
+  public static DoraCacheFileSystemFactory sDoraCacheFileSystemFactory
+      = new DoraCacheFileSystemFactory();
   private final DoraCacheClient mDoraClient;
   private final FileSystemContext mFsContext;
   private final boolean mMetadataCacheEnabled;
   private final long mDefaultVirtualBlockSize;
+
+  /**
+   * DoraCacheFileSystem Factory.
+   */
+  public static class DoraCacheFileSystemFactory {
+    /**
+     * Constructor.
+     */
+    public DoraCacheFileSystemFactory() {
+    }
+
+    /**
+     * @param fs the filesystem
+     * @param context the context
+     * @return a DoraCacheFileSystem instance
+     */
+    public DoraCacheFileSystem createAnInstance(FileSystem fs, FileSystemContext context) {
+      return new DoraCacheFileSystem(fs, context);
+    }
+  }
 
   /**
    * Wraps a file system instance to forward messages.
@@ -79,8 +104,13 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
    * @param context
    */
   public DoraCacheFileSystem(FileSystem fs, FileSystemContext context) {
+    this(fs, context, new DoraCacheClient(context, new WorkerLocationPolicy(2000)));
+  }
+
+  protected DoraCacheFileSystem(FileSystem fs, FileSystemContext context,
+      DoraCacheClient doraCacheClient) {
     super(fs);
-    mDoraClient = new DoraCacheClient(context, new WorkerLocationPolicy(2000));
+    mDoraClient = doraCacheClient;
     mFsContext = context;
     mMetadataCacheEnabled = context.getClusterConf()
         .getBoolean(PropertyKey.DORA_CLIENT_METADATA_CACHE_ENABLED);
