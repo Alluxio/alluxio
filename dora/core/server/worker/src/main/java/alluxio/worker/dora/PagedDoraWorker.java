@@ -222,7 +222,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC,
             mResourceCloser.register(new BlockMasterSync()),
-            (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+            () -> Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
             mConf, ServerUserState.global()));
   }
 
