@@ -102,7 +102,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
    * @param conf configuration for this UFS
    */
   protected COSUnderFileSystem(AlluxioURI uri, COSClient client, String bucketName, String appId,
-                               UnderFileSystemConfiguration conf) {
+      UnderFileSystemConfiguration conf) {
     super(uri, conf);
     mClient = client;
     mBucketName = bucketName;
@@ -305,7 +305,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected InputStream openObject(String key, OpenOptions options,
-                                   RetryPolicy retryPolicy) throws IOException {
+      RetryPolicy retryPolicy) throws IOException {
     try {
       return new COSInputStream(mBucketNameInternal, key, mClient, options.getOffset(), retryPolicy,
           mUfsConf.getBytes(PropertyKey.UNDERFS_OBJECT_STORE_MULTI_RANGE_CHUNK_SIZE));
