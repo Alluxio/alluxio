@@ -241,7 +241,8 @@ public class FileSystemContext implements Closeable {
     }
 
     /**
-     * @param clientContext the {@link alluxio.ClientContext} containing the subject and configuration
+     * @param clientContext the {@link alluxio.ClientContext} containing the subject
+     *  and configuration
      * @return the {@link alluxio.client.file.FileSystemContext}
      */
     public FileSystemContext create(ClientContext clientContext) {
@@ -285,7 +286,6 @@ public class FileSystemContext implements Closeable {
       return FileSystemContext.create(subject, masterInquireClient, alluxioConf);
     }
   }
-
 
   /**
    * Creates a {@link FileSystemContext} with an empty subject
