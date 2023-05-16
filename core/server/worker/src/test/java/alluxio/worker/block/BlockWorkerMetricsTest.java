@@ -68,7 +68,7 @@ public final class BlockWorkerMetricsTest {
     when(mBlockStoreMeta.getCapacityBytesOnTiers())
         .thenReturn(ImmutableMap.of(MEM, 1000L, HDD, 2000L));
     when(mBlockStoreMeta.getUsedBytesOnTiers()).thenReturn(ImmutableMap.of(MEM, 100L, HDD, 200L));
-    Thread.sleep(5000);
+    Thread.sleep(DefaultBlockWorker.CACHEGAUGE_UPDATE_INTERVAL);
     assertEquals(1000L,
         getGauge(MetricKey.WORKER_CAPACITY_TOTAL.getName() + MetricInfo.TIER + MEM));
     assertEquals(2000L,
