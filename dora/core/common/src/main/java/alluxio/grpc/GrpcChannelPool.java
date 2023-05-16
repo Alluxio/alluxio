@@ -88,7 +88,7 @@ public class GrpcChannelPool
    * @return a {@link GrpcChannel}
    */
   public GrpcChannel acquireChannel(GrpcNetworkGroup networkGroup,
-      GrpcServerAddress serverAddress, AlluxioConfiguration conf) {
+      GrpcServerAddress serverAddress, AlluxioConfiguration conf, boolean alwaysEnableTLS) {
     GrpcChannelKey channelKey = getChannelKey(networkGroup, serverAddress, conf);
     CountingReference<ManagedChannel> channelRef =
         mChannels.compute(channelKey, (key, ref) -> {
@@ -118,7 +118,7 @@ public class GrpcChannelPool
           // Create a new managed channel.
           LOG.debug("Creating a new managed channel. ConnectionKey: {}. Ref-count:{}", key,
               existingRefCount);
-          ManagedChannel managedChannel = createManagedChannel(channelKey, conf);
+          ManagedChannel managedChannel = createManagedChannel(channelKey, conf, alwaysEnableTLS);
           // Set map reference.
           return new CountingReference<>(managedChannel, existingRefCount).reference();
         });
@@ -164,7 +164,7 @@ public class GrpcChannelPool
    * Creates a {@link ManagedChannel} by given pool key.
    */
   private ManagedChannel createManagedChannel(GrpcChannelKey channelKey,
-      AlluxioConfiguration conf) {
+      AlluxioConfiguration conf, boolean alwaysEnableTLS) {
     // Create netty channel builder with the address from channel key.
     NettyChannelBuilder channelBuilder;
     SocketAddress address = channelKey.getServerAddress().getSocketAddress();
@@ -201,8 +201,9 @@ public class GrpcChannelPool
       // Use self-signed for SECRET network group.
       channelBuilder.sslContext(mSslContextProvider.getSelfSignedClientSslContext());
       channelBuilder.useTransportSecurity();
-    } else if (conf.getBoolean(alluxio.conf.PropertyKey.NETWORK_TLS_ENABLED)) {
+    } else if (conf.getBoolean(alluxio.conf.PropertyKey.NETWORK_TLS_ENABLED) || alwaysEnableTLS) {
       // Use shared TLS config for other network groups if enabled.
+      // Or this channel is enforced to enable TLS
       channelBuilder.sslContext(mSslContextProvider.getClientSslContext());
       channelBuilder.useTransportSecurity();
     }

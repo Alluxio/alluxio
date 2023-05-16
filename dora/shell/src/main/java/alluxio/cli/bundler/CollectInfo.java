@@ -558,7 +558,7 @@ public class CollectInfo extends AbstractShell {
     return CommandUtils.loadCommands(
             CollectInfo.class.getPackage().getName(),
             new Class[] {FileSystemContext.class},
-            new Object[] {FileSystemContext.create(mConfiguration)});
+            new Object[] {FileSystemContext.sFileSystemContextFactory.create(mConfiguration)});
   }
 
   @Override
