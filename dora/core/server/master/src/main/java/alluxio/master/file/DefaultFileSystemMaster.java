@@ -350,7 +350,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   private final BlockMaster mBlockMaster;
 
   /** This manages the file system inode structure. This must be journaled. */
-  private final InodeTree mInodeTree;
+  protected final InodeTree mInodeTree;
 
   /** Store for holding inodes. */
   private final ReadOnlyInodeStore mInodeStore;
@@ -400,7 +400,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   private final ActiveSyncManager mSyncManager;
 
   /** Log writer for user access audit log. */
-  private AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
+  protected AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
 
   /** Stores the time series for various metrics which are exposed in the UI. */
   private final TimeSeriesStore mTimeSeriesStore;
@@ -408,7 +408,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   private final AccessTimeUpdater mAccessTimeUpdater;
 
   /** Used to check pending/running backup from RPCs. */
-  private final CallTracker mStateLockCallTracker;
+  protected final CallTracker mStateLockCallTracker;
   private final Scheduler mScheduler;
 
   final Clock mClock;
@@ -967,8 +967,7 @@ public class DefaultFileSystemMaster extends CoreMaster
           Mode.Bits accessMode = Mode.Bits.fromProto(context.getOptions().getAccessMode());
           if (context.getOptions().getUpdateTimestamps() && context.getOptions().hasAccessMode()
               && (accessMode.imply(Mode.Bits.READ) || accessMode.imply(Mode.Bits.WRITE))) {
-            mAccessTimeUpdater.updateAccessTime(rpcContext.getJournalContext(),
-                inodePath.getInode(), opTimeMs);
+            updateAccessTime(rpcContext, inodePath.getInode(), opTimeMs);
           }
           auditContext.setSrcInode(inodePath.getInode()).setSucceeded(true);
           ret = fileInfo;
@@ -1029,7 +1028,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       mBlockMaster.removeBlocks(fileInfo.getBlockIds(), true);
       // Commit all the file blocks (without locations) so the metadata for the block exists.
       commitBlockInfosForFile(
-          fileInfo.getBlockIds(), fileInfo.getLength(), fileInfo.getBlockSizeBytes());
+          fileInfo.getBlockIds(), fileInfo.getLength(), fileInfo.getBlockSizeBytes(), null);
       // Reset file-block-info list with the new list.
       try {
         fileInfo.setFileBlockInfos(getFileBlockInfoListInternal(inodePath));
@@ -1279,8 +1278,7 @@ public class DefaultFileSystemMaster extends CoreMaster
         // in the remaining recursive calls, so we set partialPath to the empty list
         partialPath = Collections.emptyList();
       }
-      mAccessTimeUpdater.updateAccessTime(rpcContext.getJournalContext(), inode,
-          CommonUtils.getCurrentMs());
+      updateAccessTime(rpcContext, inode, CommonUtils.getCurrentMs());
       DescendantType nextDescendantType = (descendantType == DescendantType.ALL)
           ? DescendantType.ALL : DescendantType.NONE;
       try (CloseableIterator<? extends Inode> childrenIterator = getChildrenIterator(
@@ -1351,7 +1349,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     }
   }
 
-  private boolean areDescendantsLoaded(InodeDirectoryView inode) {
+  protected boolean areDescendantsLoaded(InodeDirectoryView inode) {
     if (!inode.isDirectChildrenLoaded()) {
       return false;
     }
@@ -1374,7 +1372,7 @@ public class DefaultFileSystemMaster extends CoreMaster
    *
    * @param inodePath the path to ensure
    */
-  private void ensureFullPathAndUpdateCache(LockedInodePath inodePath)
+  protected void ensureFullPathAndUpdateCache(LockedInodePath inodePath)
       throws InvalidPathException, FileDoesNotExistException {
     boolean exists = false;
     try {
@@ -1773,7 +1771,8 @@ public class DefaultFileSystemMaster extends CoreMaster
 
     if (inode.isPersisted()) {
       // Commit all the file blocks (without locations) so the metadata for the block exists.
-      commitBlockInfosForFile(entry.getSetBlocksList(), length, inode.getBlockSizeBytes());
+      commitBlockInfosForFile(entry.getSetBlocksList(), length, inode.getBlockSizeBytes(),
+          rpcContext.getJournalContext());
       // The path exists in UFS, so it is no longer absent
       mUfsAbsentPathCache.processExisting(inodePath.getUri());
     }
@@ -1819,13 +1818,18 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param blockIds the list of block ids
    * @param fileLength length of the file in bytes
    * @param blockSize the block size in bytes
+   * @param context the journal context, if null a new context will be created
    */
-  private void commitBlockInfosForFile(List<Long> blockIds, long fileLength, long blockSize)
-      throws UnavailableException {
+  private void commitBlockInfosForFile(List<Long> blockIds, long fileLength, long blockSize,
+      @Nullable JournalContext context) throws UnavailableException {
     long currLength = fileLength;
     for (long blockId : blockIds) {
       long currentBlockSize = Math.min(currLength, blockSize);
-      mBlockMaster.commitBlockInUFS(blockId, currentBlockSize);
+      if (context != null) {
+        mBlockMaster.commitBlockInUFS(blockId, currentBlockSize, context);
+      } else {
+        mBlockMaster.commitBlockInUFS(blockId, currentBlockSize);
+      }
       currLength -= currentBlockSize;
     }
   }
@@ -3280,7 +3284,7 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param path the path to load metadata for
    * @param context the {@link LoadMetadataContext}
    */
-  private void loadMetadataIfNotExist(RpcContext rpcContext, AlluxioURI path,
+  protected void loadMetadataIfNotExist(RpcContext rpcContext, AlluxioURI path,
       LoadMetadataContext context)
       throws InvalidPathException, AccessControlException {
     DescendantType syncDescendantType =
@@ -5158,6 +5162,12 @@ public class DefaultFileSystemMaster extends CoreMaster
           inodeTree::getPinnedSize);
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_FILES_TO_PERSIST.getName(),
           () -> inodeTree.getToBePersistedIds().size());
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_REPLICATION_LIMITED_FILES.getName(),
+          () -> inodeTree.getReplicationLimitedFileIds().size());
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_TTL_BUCKETS.getName(),
+          () -> inodeTree.getTtlBuckets().getNumBuckets());
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_TTL_INODES.getName(),
+          () -> inodeTree.getTtlBuckets().getNumInodes());
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_TOTAL_PATHS.getName(),
           inodeTree::getInodeCount);
       MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_FILE_SIZE.getName(),
@@ -5216,7 +5226,7 @@ public class DefaultFileSystemMaster extends CoreMaster
    * @param srcInode the source inode of this command
    * @return newly-created {@link FileSystemMasterAuditContext} instance
    */
-  private FileSystemMasterAuditContext createAuditContext(String command, AlluxioURI srcPath,
+  protected FileSystemMasterAuditContext createAuditContext(String command, AlluxioURI srcPath,
       @Nullable AlluxioURI dstPath, @Nullable Inode srcInode) {
     // Audit log may be enabled during runtime
     AsyncUserAccessAuditLogWriter auditLogWriter = null;
@@ -5255,7 +5265,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     return auditContext;
   }
 
-  private BlockDeletionContext createBlockDeletionContext() {
+  protected BlockDeletionContext createBlockDeletionContext() {
     return new DefaultBlockDeletionContext(this::removeBlocks,
         blocks -> blocks.forEach(mUfsBlockLocationCache::invalidate));
   }
@@ -5302,11 +5312,15 @@ public class DefaultFileSystemMaster extends CoreMaster
        getSyncPathCache(), DescendantType.NONE);
   }
 
-  private LockingScheme createSyncLockingScheme(AlluxioURI path,
+  protected LockingScheme createSyncLockingScheme(AlluxioURI path,
       FileSystemMasterCommonPOptions options, DescendantType descendantType)
       throws InvalidPathException {
     return new LockingScheme(path, LockPattern.READ, options,
         getSyncPathCache(), descendantType);
+  }
+
+  protected void updateAccessTime(RpcContext rpcContext, Inode inode, long opTimeMs) {
+    mAccessTimeUpdater.updateAccessTime(rpcContext.getJournalContext(), inode, opTimeMs);
   }
 
   boolean isAclEnabled() {
