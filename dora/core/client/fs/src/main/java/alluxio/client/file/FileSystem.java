@@ -84,6 +84,8 @@ import javax.security.auth.Subject;
  */
 @PublicApi
 public interface FileSystem extends Closeable {
+  DoraCacheFileSystem.DoraCacheFileSystemFactory DORA_CACHE_FILE_SYSTEM_FACTORY
+      = new DoraCacheFileSystem.DoraCacheFileSystemFactory();
 
   /**
    * Factory for {@link FileSystem}. Calling any of the {@link Factory#get()} methods in this class
@@ -172,7 +174,7 @@ public interface FileSystem extends Closeable {
           ? new UfsBaseFileSystem(context, options.getUfsFileSystemOptions().get())
           : new BaseFileSystem(context);
       if (options.isDoraCacheEnabled()) {
-        fs = new DoraCacheFileSystem(fs, context);
+        fs = DORA_CACHE_FILE_SYSTEM_FACTORY.createAnInstance(fs, context);
       }
       if (options.isMetadataCacheEnabled()) {
         fs = new MetadataCachingFileSystem(fs, context);

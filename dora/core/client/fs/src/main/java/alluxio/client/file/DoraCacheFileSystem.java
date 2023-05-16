@@ -73,6 +73,24 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   private final long mDefaultVirtualBlockSize;
 
   /**
+   * DoraCacheFileSystem Factory.
+   */
+  public static class DoraCacheFileSystemFactory {
+    /**
+     * Constructor.
+     */
+    public DoraCacheFileSystemFactory() {
+    }
+
+    /**
+     * @return a DoraCacheFileSystem instance
+     */
+    public DoraCacheFileSystem createAnInstance(FileSystem fs, FileSystemContext context) {
+      return new DoraCacheFileSystem(fs, context);
+    }
+  }
+
+  /**
    * Wraps a file system instance to forward messages.
    *
    * @param fs the underlying file system
