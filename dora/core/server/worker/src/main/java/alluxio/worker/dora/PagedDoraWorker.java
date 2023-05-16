@@ -293,11 +293,12 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         ? options.getCommonOptions().getSyncIntervalMs() : -1) :
         -1;
 
+    final boolean skipCache = options.hasRecursive() && options.getRecursive();
     final UfsStatus[] cachedStatuses;
     final ListStatusResult resultFromCache = mListStatusCache.getIfPresent(path);
     if (resultFromCache == null) {
       cachedStatuses = null;
-    } else if (options.hasRecursive() && options.getRecursive()) {
+    } else if (skipCache) {
       // Only use the cached result when its not recursive listing
       cachedStatuses = null;
     } else {
@@ -336,7 +337,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     }
 
     // Add this into cache. Return value of listStatus() might be null if not found.
-    if (freshStatusesFromUfs != null) {
+    if (freshStatusesFromUfs != null && !skipCache) {
       ListStatusResult newResult = new ListStatusResult(System.nanoTime(), freshStatusesFromUfs);
       mListStatusCache.put(path, newResult);
     }
