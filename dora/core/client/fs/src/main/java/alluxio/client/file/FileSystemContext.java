@@ -15,6 +15,7 @@ import static java.util.stream.Collectors.toList;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
 import alluxio.client.block.BlockWorkerInfo;
@@ -99,8 +100,12 @@ import javax.security.auth.Subject;
  * so, because thread A holds the lock on {@link FileSystemContext}.
  */
 @ThreadSafe
+@SuppressFBWarnings("MS_SHOULD_BE_FINAL")
 public class FileSystemContext implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemContext.class);
+
+  public static FileSystemContextFactory sFileSystemContextFactory
+      = new FileSystemContextFactory();
 
   /**
    * Unique ID for each FileSystemContext.
@@ -180,6 +185,107 @@ public class FileSystemContext implements Closeable {
   private final List<InetSocketAddress> mMasterAddresses;
 
   private final Map<Class, BlockLocationPolicy> mBlockLocationPolicyMap;
+
+  /**
+   * FileSystemContextFactory, it can be extended.
+   */
+  public static class FileSystemContextFactory {
+    /**
+     * Default constructor.
+     */
+    public FileSystemContextFactory() {}
+
+    /**
+     * Creates a {@link FileSystemContext} with an empty subject
+     * , a null local block worker, and the given master addresses.
+     *
+     * @param conf Alluxio configuration
+     * @param masterAddresses the master addresses to use, this addresses will be
+     *                      used across reinitialization
+     * @return an instance of file system context with no subject associated
+     */
+    public FileSystemContext create(
+        AlluxioConfiguration conf, List<InetSocketAddress> masterAddresses) {
+      return FileSystemContext.create(conf, masterAddresses);
+    }
+
+    /**
+     * Creates a {@link FileSystemContext} with an empty subject, default config
+     * and a null local block worker.
+     *
+     * @return an instance of file system context with no subject associated
+     */
+    public FileSystemContext create() {
+      return FileSystemContext.create();
+    }
+
+    /**
+     * Creates a {@link FileSystemContext} with an empty subject
+     * and a null local block worker.
+     *
+     * @param conf Alluxio configuration
+     * @return an instance of file system context with no subject associated
+     */
+    public FileSystemContext create(AlluxioConfiguration conf) {
+      return FileSystemContext.create(conf);
+    }
+
+    /**
+     * @param subject the parent subject
+     * @param conf Alluxio configuration
+     * @return a context
+     */
+    public FileSystemContext create(Subject subject,
+        AlluxioConfiguration conf) {
+      return FileSystemContext.create(subject, conf);
+    }
+
+    /**
+     * @param clientContext the {@link alluxio.ClientContext} containing the subject and configuration
+     * @return the {@link alluxio.client.file.FileSystemContext}
+     */
+    public FileSystemContext create(ClientContext clientContext) {
+      return FileSystemContext.create(clientContext);
+    }
+
+    /**
+     * @param ctx client context
+     * @param blockWorker block worker
+     * @return a context
+     */
+    public FileSystemContext create(ClientContext ctx,
+        @Nullable BlockWorker blockWorker) {
+      return FileSystemContext.create(ctx, blockWorker);
+    }
+
+    /**
+     * @param ctx client context
+     * @param blockWorker block worker
+     * @param masterAddresses is non-null then the addresses used to connect to the master
+     * @return a context
+     */
+    public FileSystemContext create(ClientContext ctx,
+        @Nullable BlockWorker blockWorker, @Nullable List<InetSocketAddress> masterAddresses) {
+      return FileSystemContext.create(ctx, blockWorker, masterAddresses);
+    }
+
+    /**
+     * This method is provided for testing, use the {@link FileSystemContext#create} methods. The
+     * returned context object will not be cached automatically.
+     *
+     * @param subject the parent subject
+     * @param masterInquireClient the client to use for determining the master; note that if the
+     *        context is reset, this client will be replaced with a new masterInquireClient based on
+     *        the original configuration.
+     * @param alluxioConf Alluxio configuration
+     * @return the context
+     */
+    public FileSystemContext create(Subject subject, MasterInquireClient masterInquireClient,
+        AlluxioConfiguration alluxioConf) {
+      return FileSystemContext.create(subject, masterInquireClient, alluxioConf);
+    }
+  }
+
 
   /**
    * Creates a {@link FileSystemContext} with an empty subject

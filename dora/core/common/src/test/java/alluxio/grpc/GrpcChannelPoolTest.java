@@ -51,9 +51,9 @@ public final class GrpcChannelPoolTest {
   public void testEqualKeys() throws Exception {
     try (CloseableTestServer server = createServer()) {
       GrpcChannel conn1 = GrpcChannelPool.INSTANCE.acquireChannel(
-          GrpcNetworkGroup.RPC, server.getConnectAddress(), sConf);
+          GrpcNetworkGroup.RPC, server.getConnectAddress(), sConf, false);
       GrpcChannel conn2 = GrpcChannelPool.INSTANCE.acquireChannel(
-          GrpcNetworkGroup.RPC, server.getConnectAddress(), sConf);
+          GrpcNetworkGroup.RPC, server.getConnectAddress(), sConf, false);
 
       assertEquals(conn1, conn2);
     }
@@ -67,9 +67,9 @@ public final class GrpcChannelPoolTest {
     GrpcServerAddress address = GrpcServerAddress.create(new InetSocketAddress("localhost", 1));
 
     GrpcChannel conn1 = GrpcChannelPool.INSTANCE.acquireChannel(
-        GrpcNetworkGroup.RPC, address, sConf);
+        GrpcNetworkGroup.RPC, address, sConf, false);
     GrpcChannel conn2 = GrpcChannelPool.INSTANCE.acquireChannel(
-        GrpcNetworkGroup.RPC, address, sConf);
+        GrpcNetworkGroup.RPC, address, sConf, false);
 
     assertNotEquals(conn1, conn2);
   }
@@ -79,9 +79,9 @@ public final class GrpcChannelPoolTest {
     try (CloseableTestServer server1 = createServer();
         CloseableTestServer server2 = createServer()) {
       GrpcChannel conn1 = GrpcChannelPool.INSTANCE.acquireChannel(
-          GrpcNetworkGroup.RPC, server1.getConnectAddress(), sConf);
+          GrpcNetworkGroup.RPC, server1.getConnectAddress(), sConf, false);
       GrpcChannel conn2 = GrpcChannelPool.INSTANCE.acquireChannel(
-          GrpcNetworkGroup.RPC, server2.getConnectAddress(), sConf);
+          GrpcNetworkGroup.RPC, server2.getConnectAddress(), sConf, false);
 
       assertNotEquals(conn1, conn2);
     }
@@ -102,7 +102,7 @@ public final class GrpcChannelPoolTest {
       List<GrpcChannel> connections =
           addresses.stream()
               .map(address -> GrpcChannelPool.INSTANCE.acquireChannel(
-                  GrpcNetworkGroup.STREAMING, address, sConf))
+                  GrpcNetworkGroup.STREAMING, address, sConf, false))
               .collect(Collectors.toList());
 
       // Validate all are different.
@@ -126,7 +126,7 @@ public final class GrpcChannelPoolTest {
       List<GrpcChannel> connections =
           addresses.stream()
               .map(address -> GrpcChannelPool.INSTANCE.acquireChannel(
-                  GrpcNetworkGroup.STREAMING, address, sConf))
+                  GrpcNetworkGroup.STREAMING, address, sConf, false))
               .collect(Collectors.toList());
 
       // Validate all are different.
