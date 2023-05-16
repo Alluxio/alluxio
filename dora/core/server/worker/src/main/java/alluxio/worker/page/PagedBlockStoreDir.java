@@ -14,12 +14,8 @@ package alluxio.worker.page;
 import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_MEDIUM;
 import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_TIER;
 
-<<<<<<< HEAD:dora/core/server/worker/src/main/java/alluxio/worker/page/PagedBlockStoreDir.java
 import alluxio.client.file.cache.CacheUsage;
-||||||| parent of 669f80e612 (Support remove blocks on worker for pagestore when free/delete file):core/server/worker/src/main/java/alluxio/worker/page/PagedBlockStoreDir.java
-=======
 import alluxio.client.file.cache.PageId;
->>>>>>> 669f80e612 (Support remove blocks on worker for pagestore when free/delete file):core/server/worker/src/main/java/alluxio/worker/page/PagedBlockStoreDir.java
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
 import alluxio.client.file.cache.store.PageStoreDir;
@@ -279,15 +275,12 @@ public class PagedBlockStoreDir implements PageStoreDir {
   public int getBlockCachedPages(long blockId) {
     return mBlockToPagesMap.get(blockId).size();
   }
-<<<<<<< HEAD:dora/core/server/worker/src/main/java/alluxio/worker/page/PagedBlockStoreDir.java
 
   @Override
   public Optional<CacheUsage> getUsage() {
     // TODO(bowen): implement partition by block
     return mDelegate.getUsage();
   }
-||||||| parent of 669f80e612 (Support remove blocks on worker for pagestore when free/delete file):core/server/worker/src/main/java/alluxio/worker/page/PagedBlockStoreDir.java
-=======
 
   /**
    * Gets pages in this block.
@@ -299,5 +292,4 @@ public class PagedBlockStoreDir implements PageStoreDir {
     return mBlockToPagesMap.get(blockId).stream().map(PageInfo::getPageId)
       .collect(Collectors.toSet());
   }
->>>>>>> 669f80e612 (Support remove blocks on worker for pagestore when free/delete file):core/server/worker/src/main/java/alluxio/worker/page/PagedBlockStoreDir.java
 }
