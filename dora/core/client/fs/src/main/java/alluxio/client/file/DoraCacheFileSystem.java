@@ -65,9 +65,6 @@ import java.util.function.Consumer;
  */
 @SuppressFBWarnings("MS_SHOULD_BE_FINAL")
 public class DoraCacheFileSystem extends DelegatingFileSystem {
-  @SuppressWarnings({"MS_SHOULD_BE_FINAL"})
-  public static DoraCacheFileSystemFactory sDoraCacheFileSystemFactory
-      = new DoraCacheFileSystemFactory();
   private static final Logger LOG = LoggerFactory.getLogger(DoraCacheFileSystem.class);
   public static final int DUMMY_MOUNT_ID = 0;
   private static final Counter UFS_FALLBACK_COUNTER = MetricsSystem.counter(
