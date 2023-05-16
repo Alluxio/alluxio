@@ -65,7 +65,7 @@ import java.util.function.Consumer;
  */
 @SuppressFBWarnings("MS_SHOULD_BE_FINAL")
 public class DoraCacheFileSystem extends DelegatingFileSystem {
-  public static DoraCacheFileSystemFactory DORA_CACHE_FILE_SYSTEM_FACTORY
+  public static DoraCacheFileSystemFactory sDoraCacheFileSystemFactory
       = new DoraCacheFileSystemFactory();
   private static final Logger LOG = LoggerFactory.getLogger(DoraCacheFileSystem.class);
   public static final int DUMMY_MOUNT_ID = 0;
