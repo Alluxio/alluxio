@@ -58,7 +58,7 @@ public final class BlockWorkerMetricsTest {
     when(mBlockStoreMeta.getUsedBytes()).thenReturn(200L);
     // sleep 5 seconds because the timeout of this registered is CacheGauge,
     // and it's update interval is 5 seconds
-    Thread.sleep(5000);
+    Thread.sleep(DefaultBlockWorker.CACHEGAUGE_UPDATE_INTERVAL);
     Assert.assertEquals(200L, getGauge(MetricKey.WORKER_CAPACITY_USED.getName()));
     Assert.assertEquals(800L, getGauge(MetricKey.WORKER_CAPACITY_FREE.getName()));
   }

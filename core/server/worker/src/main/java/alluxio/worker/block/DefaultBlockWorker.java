@@ -95,6 +95,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @NotThreadSafe
 public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockWorker.class);
+  public static final int CACHEGAUGE_UPDATE_INTERVAL = 5000;
 
   /** Used to close resources during stop. */
   protected final Closer mResourceCloser = Closer.create();
@@ -530,7 +531,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
      */
     public static void registerGauges(final BlockWorker blockWorker) {
       CachedGauge<BlockWorkerMetrics> cache =
-          new CachedGauge<BlockWorkerMetrics>(5000, TimeUnit.MILLISECONDS) {
+          new CachedGauge<BlockWorkerMetrics>(CACHEGAUGE_UPDATE_INTERVAL, TimeUnit.MILLISECONDS) {
             @Override
             protected BlockWorkerMetrics loadValue() {
               BlockStoreMeta meta = blockWorker.getStoreMetaFull();
