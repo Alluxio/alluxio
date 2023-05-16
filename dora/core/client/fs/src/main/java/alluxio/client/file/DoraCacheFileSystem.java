@@ -67,7 +67,8 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   public static final int DUMMY_MOUNT_ID = 0;
   private static final Counter UFS_FALLBACK_COUNTER = MetricsSystem.counter(
       MetricKey.CLIENT_UFS_FALLBACK_COUNT.getName());
-  @SuppressWarnings({"MS_SHOULD_BE_FINAL"})
+
+  @SuppressWarnings("MS_SHOULD_BE_FINAL")
   public static DoraCacheFileSystemFactory sDoraCacheFileSystemFactory
       = new DoraCacheFileSystemFactory();
   private final DoraCacheClient mDoraClient;
