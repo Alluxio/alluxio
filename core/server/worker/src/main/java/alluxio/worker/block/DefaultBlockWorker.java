@@ -523,7 +523,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     public static final Counter WORKER_ACTIVE_CLIENTS =
         MetricsSystem.counter(MetricKey.WORKER_ACTIVE_CLIENTS.getName());
 
-    public static CachedGauge<BlockWorkerMetrics> sCache;
+    protected static CachedGauge<BlockWorkerMetrics> sCache;
 
     /**
      * Registers metric gauges.
