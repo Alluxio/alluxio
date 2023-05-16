@@ -83,6 +83,8 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     }
 
     /**
+     * @param fs the filesystem
+     * @param context the context
      * @return a DoraCacheFileSystem instance
      */
     public DoraCacheFileSystem createAnInstance(FileSystem fs, FileSystemContext context) {
