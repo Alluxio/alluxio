@@ -84,6 +84,8 @@ import javax.security.auth.Subject;
  */
 @PublicApi
 public interface FileSystem extends Closeable {
+  DoraCacheFileSystem.DoraCacheFileSystemFactory DORA_CACHE_FILE_SYSTEM_FACTORY
+      = new DoraCacheFileSystem.DoraCacheFileSystemFactory();
 
   /**
    * Factory for {@link FileSystem}. Calling any of the {@link Factory#get()} methods in this class
