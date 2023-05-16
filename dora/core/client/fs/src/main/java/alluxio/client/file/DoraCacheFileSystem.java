@@ -63,13 +63,13 @@ import java.util.function.Consumer;
  * Dora Cache file system implementation.
  */
 public class DoraCacheFileSystem extends DelegatingFileSystem {
-  @SuppressWarnings({"MS_SHOULD_BE_FINAL"})
-  public static DoraCacheFileSystemFactory sDoraCacheFileSystemFactory
-      = new DoraCacheFileSystemFactory();
   private static final Logger LOG = LoggerFactory.getLogger(DoraCacheFileSystem.class);
   public static final int DUMMY_MOUNT_ID = 0;
   private static final Counter UFS_FALLBACK_COUNTER = MetricsSystem.counter(
       MetricKey.CLIENT_UFS_FALLBACK_COUNT.getName());
+  @SuppressWarnings({"MS_SHOULD_BE_FINAL"})
+  public static DoraCacheFileSystemFactory sDoraCacheFileSystemFactory
+      = new DoraCacheFileSystemFactory();
   private final DoraCacheClient mDoraClient;
   private final FileSystemContext mFsContext;
   private final boolean mMetadataCacheEnabled;
