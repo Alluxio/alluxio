@@ -63,6 +63,7 @@ import java.util.function.Consumer;
  * Dora Cache file system implementation.
  */
 public class DoraCacheFileSystem extends DelegatingFileSystem {
+  @SuppressWarnings({"MS_SHOULD_BE_FINAL"})
   public static DoraCacheFileSystemFactory sDoraCacheFileSystemFactory
       = new DoraCacheFileSystemFactory();
   private static final Logger LOG = LoggerFactory.getLogger(DoraCacheFileSystem.class);
