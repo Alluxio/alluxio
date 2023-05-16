@@ -295,7 +295,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
    * @return the COS {@link ClientConfig}
    */
   private static ClientConfig createCOSClientConfig(String regionName,
-                                                    UnderFileSystemConfiguration conf) {
+      UnderFileSystemConfiguration conf) {
     ClientConfig config = new ClientConfig(new Region(regionName));
     config.setConnectionTimeout((int) conf.getMs(PropertyKey.COS_CONNECTION_TIMEOUT));
     config.setSocketTimeout((int) conf.getMs(PropertyKey.COS_SOCKET_TIMEOUT));

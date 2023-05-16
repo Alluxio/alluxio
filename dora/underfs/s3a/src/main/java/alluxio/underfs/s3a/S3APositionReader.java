@@ -11,7 +11,6 @@
 
 package alluxio.underfs.s3a;
 
-import alluxio.file.ReadTargetBuffer;
 import alluxio.underfs.ObjectPositionReader;
 
 import com.amazonaws.services.s3.AmazonS3;
@@ -19,7 +18,6 @@ import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 
-import java.io.IOException;
 import java.io.InputStream;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -32,12 +30,7 @@ public class S3APositionReader extends ObjectPositionReader {
   /**
    * Client for operations with s3.
    */
-  protected AmazonS3 mClient;
-
-  /**
-   * AWS S3 object.
-   */
-  protected S3Object mObject;
+  protected final AmazonS3 mClient;
 
   /**
    * @param client     the amazon s3a client
@@ -52,13 +45,13 @@ public class S3APositionReader extends ObjectPositionReader {
   }
 
   @Override
-  protected InputStream getObjectInputStream(
-      long position, ReadTargetBuffer buffer,
-      int bytesToRead, String errorMessage) throws IOException {
+  protected InputStream openObjectInputStream(
+      long position, int bytesToRead) {
+    S3Object object;
     try {
       GetObjectRequest getObjectRequest = new GetObjectRequest(mBucketName, mPath);
       getObjectRequest.setRange(position, position + bytesToRead - 1);
-      mObject = mClient.getObject(getObjectRequest);
+      object = mClient.getObject(getObjectRequest);
     } catch (AmazonS3Exception e) {
       if (e.getStatusCode() == 416) {
         // InvalidRange exception when mPos >= file length
@@ -66,9 +59,11 @@ public class S3APositionReader extends ObjectPositionReader {
             + "Expected file length is %s but read %s bytes "
             + "from position %s is out of range", mFileLength, bytesToRead, position), e);
       }
+      String errorMessage = String
+          .format("Failed to get object: %s bucket: %s", mPath, mBucketName);
       throw AlluxioS3Exception.from(errorMessage, e);
     }
 
-    return mObject.getObjectContent();
+    return object.getObjectContent();
   }
 }

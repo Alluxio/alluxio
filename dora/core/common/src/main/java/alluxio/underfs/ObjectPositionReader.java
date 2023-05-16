@@ -55,16 +55,7 @@ public abstract class ObjectPositionReader implements PositionReader {
       return -1;
     }
     int bytesToRead = (int) Math.min(mFileLength - position, length);
-    String errorMessage = String
-        .format("Failed to get object: %s bucket: %s", mPath, mBucketName);
-    try (InputStream in = getObjectInputStream(position, buffer, bytesToRead, errorMessage)) {
-      // Range check approach: set range (inclusive start, inclusive end)
-      // start: should be < file length, error out otherwise
-      //        e.g. error out when start == 0 && fileLength == 0
-      //        start < 0, read all
-      // end: if start > end, read all
-      //      if start <= end < file length, read from start to end
-      //      if end >= file length, read from start to file length - 1
+    try (InputStream in = openObjectInputStream(position, bytesToRead)) {
       int totalRead = 0;
       int currentRead = 0;
       while (totalRead < bytesToRead) {
@@ -80,12 +71,9 @@ public abstract class ObjectPositionReader implements PositionReader {
 
   /**
    * @param position position of the file to start reading data
-   * @param buffer target byte buffer
    * @param bytesToRead bytes to read
-   * @param errorMessage error message to throw
    * @return input stream of Object Storage's API
    */
-  protected abstract InputStream getObjectInputStream(
-      long position, ReadTargetBuffer buffer,
-      int bytesToRead, String errorMessage) throws IOException;
+  protected abstract InputStream openObjectInputStream(
+      long position, int bytesToRead) throws IOException;
 }

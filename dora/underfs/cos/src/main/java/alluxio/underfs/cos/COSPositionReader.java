@@ -11,7 +11,6 @@
 
 package alluxio.underfs.cos;
 
-import alluxio.file.ReadTargetBuffer;
 import alluxio.underfs.ObjectPositionReader;
 
 import com.qcloud.cos.COSClient;
@@ -32,37 +31,34 @@ public class COSPositionReader extends ObjectPositionReader {
   /**
    * Client for operations with COS.
    */
-  protected COSClient mClient;
-
-  /**
-   * COS object.
-   */
-  protected COSObject mObject;
+  protected final COSClient mClient;
 
   /**
    * @param client             the Tencent COS client
-   * @param bucketNameInternal the bucket name
+   * @param bucketName         the bucket name
    * @param path               the file path
    * @param fileLength         the file length
    */
-  public COSPositionReader(COSClient client, String bucketNameInternal,
+  public COSPositionReader(COSClient client, String bucketName,
                            String path, long fileLength) {
     // TODO(lu) path needs to be transformed to not include bucket
-    super(bucketNameInternal, path, fileLength);
+    super(bucketName, path, fileLength);
     mClient = client;
   }
 
   @Override
-  protected InputStream getObjectInputStream(
-      long position, ReadTargetBuffer buffer,
-      int bytesToRead, String errorMessage) throws IOException {
+  protected InputStream openObjectInputStream(
+      long position, int bytesToRead) throws IOException {
+    COSObject object;
     try {
       GetObjectRequest getObjectRequest = new GetObjectRequest(mBucketName, mPath);
       getObjectRequest.setRange(position, position + bytesToRead - 1);
-      mObject = mClient.getObject(getObjectRequest);
+      object = mClient.getObject(getObjectRequest);
     } catch (CosServiceException e) {
+      String errorMessage = String
+          .format("Failed to get object: %s bucket: %s", mPath, mBucketName);
       throw new IOException(errorMessage, e);
     }
-    return mObject.getObjectContent();
+    return object.getObjectContent();
   }
 }

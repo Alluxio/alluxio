@@ -11,7 +11,6 @@
 
 package alluxio.underfs.oss;
 
-import alluxio.file.ReadTargetBuffer;
 import alluxio.underfs.ObjectPositionReader;
 
 import com.aliyun.oss.OSS;
@@ -32,12 +31,7 @@ public class OSSPositionReader extends ObjectPositionReader {
   /**
    * Client for operations with Aliyun OSS.
    */
-  protected OSS mClient;
-
-  /**
-   * OSS object.
-   */
-  protected OSSObject mObject;
+  protected final OSS mClient;
 
   /**
    * @param client     the Aliyun OSS client
@@ -52,16 +46,18 @@ public class OSSPositionReader extends ObjectPositionReader {
   }
 
   @Override
-  protected InputStream getObjectInputStream(
-      long position, ReadTargetBuffer buffer,
-      int bytesToRead, String errorMessage) throws IOException {
+  protected InputStream openObjectInputStream(
+      long position, int bytesToRead) throws IOException {
+    OSSObject object;
     try {
       GetObjectRequest getObjectRequest = new GetObjectRequest(mBucketName, mPath);
       getObjectRequest.setRange(position, position + bytesToRead - 1);
-      mObject = mClient.getObject(getObjectRequest);
+      object = mClient.getObject(getObjectRequest);
     } catch (OSSException e) {
+      String errorMessage = String
+          .format("Failed to get object: %s bucket: %s", mPath, mBucketName);
       throw new IOException(errorMessage, e);
     }
-    return mObject.getObjectContent();
+    return object.getObjectContent();
   }
 }
