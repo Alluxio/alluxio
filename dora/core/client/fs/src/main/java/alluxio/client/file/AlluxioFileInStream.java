@@ -55,6 +55,7 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -432,6 +433,9 @@ public class AlluxioFileInStream extends FileInStream {
       if (stream == mBlockInStream) { // if stream is instance variable, set to null
         mBlockInStream = null;
       }
+      if (stream == mCachedPositionedReadStream) {
+        mCachedPositionedReadStream = null;
+      }
       if (blockSource == BlockInStream.BlockInStreamSource.NODE_LOCAL
           || blockSource == BlockInStream.BlockInStreamSource.PROCESS_LOCAL) {
         return;
@@ -528,7 +532,13 @@ public class AlluxioFileInStream extends FileInStream {
         if (mPassiveCachingEnabled && mContext.hasNodeLocalWorker()) {
           // send request to local worker
           worker = mContext.getNodeLocalWorker();
-        } else { // send request to data source
+        } else {
+          if (blockInfo.getLocations().stream()
+              .anyMatch(it -> Objects.equals(it.getWorkerAddress(), dataSource))) {
+            mLastBlockIdCached = blockId;
+            return false;
+          }
+          // send request to data source
           worker = dataSource;
         }
         try (CloseableResource<BlockWorkerClient> blockWorker =
@@ -569,6 +579,16 @@ public class AlluxioFileInStream extends FileInStream {
     // TODO(lu) consider recovering failed workers
     if (!causedByClientOOM) {
       mFailedWorkers.put(workerAddress, System.currentTimeMillis());
+    }
+  }
+
+  @Override
+  public void unbuffer() {
+    if (mBlockInStream != null) {
+      mBlockInStream.unbuffer();
+    }
+    if (mCachedPositionedReadStream != null) {
+      mCachedPositionedReadStream.unbuffer();
     }
   }
 }

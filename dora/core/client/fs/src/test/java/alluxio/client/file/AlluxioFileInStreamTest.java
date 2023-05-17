@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
@@ -824,6 +825,109 @@ public final class AlluxioFileInStreamTest {
     mTestStream.read(new byte[(int) mFileSize], 0, (int) mFileSize);
     assertEquals(mFileSize, mTestStream.getPos());
     assertTrue(mTestStream.triggerAsyncCaching(mInStreams.get(mInStreams.size() - 1)));
+  }
+
+  @Test
+  public void unbufferAroundRead() throws Exception {
+    int bufferSize = (int) (mFileSize / 2);
+    byte[] buffer = new byte[bufferSize];
+    mTestStream.read(buffer);
+    assertArrayEquals(BufferUtils.getIncreasingByteArray(bufferSize), buffer);
+    unbuffer();
+    mTestStream.read(buffer);
+    assertArrayEquals(BufferUtils.getIncreasingByteArray(bufferSize, bufferSize), buffer);
+    unbuffer();
+  }
+
+  @Test
+  public void unbufferAroundPositionRead() throws Exception {
+    int bufferSize = (int) (mFileSize / 4);
+    byte[] buffer = new byte[bufferSize];
+    mTestStream.positionedRead(bufferSize, buffer, 0, bufferSize);
+    assertArrayEquals(BufferUtils.getIncreasingByteArray(bufferSize, bufferSize), buffer);
+    unbuffer();
+    mTestStream.positionedRead(bufferSize, buffer, 0, bufferSize);
+    assertArrayEquals(BufferUtils.getIncreasingByteArray(bufferSize, bufferSize), buffer);
+    unbuffer();
+  }
+
+  @Test
+  public void unbufferAroundSeek() throws Exception {
+    int bufferSize = (int) (mFileSize / 8);
+    int seekSize = (int) (mFileSize / 8);
+    byte[] buffer = new byte[bufferSize];
+    unbuffer();
+    mTestStream.seek(seekSize);
+    unbuffer();
+    mTestStream.read(buffer);
+    assertArrayEquals(BufferUtils.getIncreasingByteArray(seekSize, bufferSize), buffer);
+  }
+
+  @Test
+  public void unbufferAroundSkip() throws Exception {
+    int bufferSize = (int) (mFileSize / 8);
+    int skipSize = (int) (mFileSize / 8);
+    byte[] buffer = new byte[bufferSize];
+    unbuffer();
+    mTestStream.read(buffer);
+    unbuffer();
+    mTestStream.skip(skipSize);
+    unbuffer();
+    mTestStream.read(buffer);
+    assertArrayEquals(BufferUtils.getIncreasingByteArray(skipSize + bufferSize, bufferSize),
+        buffer);
+  }
+
+  @Test
+  public void unbufferOnClosedFile() throws Exception {
+    mTestStream.close();
+    unbuffer();
+  }
+
+  @Test
+  public void multipleUnbuffers() throws Exception {
+    byte[] buffer = new byte[(int) (mFileSize / 2)];
+    unbuffer();
+    unbuffer();
+    mTestStream.read(buffer);
+    assertArrayEquals(BufferUtils.getIncreasingByteArray((int) (mFileSize / 2)), buffer);
+    unbuffer();
+    unbuffer();
+  }
+
+  @Test
+  public void unbufferMultipleReads() throws IOException {
+    int bufferSize = (int) (mFileSize / 8);
+    byte[] buffer = new byte[bufferSize];
+    unbuffer();
+    mTestStream.read(buffer);
+    assertArrayEquals(BufferUtils.getIncreasingByteArray(bufferSize), buffer);
+    unbuffer();
+    mTestStream.read(buffer);
+    assertArrayEquals(
+        BufferUtils.getIncreasingByteArray(bufferSize, bufferSize), buffer);
+    mTestStream.read(buffer);
+    assertArrayEquals(
+        BufferUtils.getIncreasingByteArray(bufferSize * 2, bufferSize), buffer);
+    unbuffer();
+    mTestStream.read(buffer);
+    assertArrayEquals(
+        BufferUtils.getIncreasingByteArray(bufferSize * 3, bufferSize), buffer);
+    mTestStream.read(buffer);
+    assertArrayEquals(
+        BufferUtils.getIncreasingByteArray(bufferSize * 4, bufferSize), buffer);
+    mTestStream.read(buffer);
+    assertArrayEquals(
+        BufferUtils.getIncreasingByteArray(bufferSize * 5, bufferSize), buffer);
+    unbuffer();
+  }
+
+  private void unbuffer() {
+    mTestStream.unbuffer();
+    for (TestBlockInStream stream : mInStreams) {
+      assertNull(stream.getCurrentChunk());
+      assertNull(stream.getDataReader());
+    }
   }
 
   /**

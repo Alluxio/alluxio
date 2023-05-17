@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import alluxio.Seekable;
 import alluxio.client.BoundedStream;
+import alluxio.client.CanUnbuffer;
 import alluxio.client.PositionedReadable;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;
@@ -29,7 +30,7 @@ import java.nio.ByteBuffer;
  * into a given offset of the stream to read.
  */
 public abstract class FileInStream extends InputStream
-    implements BoundedStream, PositionedReadable, Seekable {
+    implements BoundedStream, PositionedReadable, Seekable, CanUnbuffer {
   private final byte[] mSingleByte = new byte[1];
 
   @Override
@@ -100,5 +101,9 @@ public abstract class FileInStream extends InputStream
       byteBuffer.put(dest, 0, nread);
     }
     return nread;
+  }
+
+  @Override
+  public void unbuffer() {
   }
 }

@@ -46,6 +46,7 @@ import com.google.common.io.BaseEncoding;
 import com.google.common.io.ByteStreams;
 import com.google.common.net.InetAddresses;
 import com.google.common.primitives.Longs;
+import com.google.common.util.concurrent.RateLimiter;
 import com.google.protobuf.ByteString;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
@@ -126,6 +127,8 @@ public final class S3RestServiceHandler {
   private final Pattern mBucketInvalidSuffixPattern;
   private final Pattern mBucketValidNamePattern;
 
+  private final RateLimiter mGlobalRateLimiter;
+
   /**
    * Constructs a new {@link S3RestServiceHandler}.
    *
@@ -168,6 +171,9 @@ public final class S3RestServiceHandler {
               .build()
       );
     }
+
+    mGlobalRateLimiter = (RateLimiter) context.getAttribute(
+        ProxyWebServer.GLOBAL_RATE_LIMITER_SERVLET_RESOURCE_KEY);
   }
 
   /**
@@ -287,7 +293,7 @@ public final class S3RestServiceHandler {
       if (policyStatus != null) {
         throw new S3Exception(bucket, new S3ErrorCode(
             S3ErrorCode.INTERNAL_ERROR.getCode(),
-            "GetBucketpolicyStatus is not currently supported.",
+            "GetBucketPolicyStatus is not currently supported.",
             S3ErrorCode.INTERNAL_ERROR.getStatus()));
       }
 
@@ -819,6 +825,7 @@ public final class S3RestServiceHandler {
                     .setOtherBits(Bits.NONE).build())
                 .setWriteType(S3RestUtils.getS3WriteType())
                 .putAllXattr(xattrMap).setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
+                .setOverwrite(true)
                 .build();
 
         // not copying from an existing file
@@ -837,11 +844,6 @@ public final class S3RestServiceHandler {
               readStream = new ChunkedEncodingInputStream(is);
             } else {
               toRead = Long.parseLong(contentLength);
-            }
-            try {
-              S3RestUtils.deleteExistObject(userFs, objectUri);
-            } catch (IOException | AlluxioException e) {
-              throw S3RestUtils.toObjectS3Exception(e, objectUri.getPath(), auditContext);
             }
             FileOutStream os = userFs.createFile(objectUri, filePOptions);
             try (DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5)) {
@@ -893,7 +895,8 @@ public final class S3RestServiceHandler {
               .setMode(PMode.newBuilder()
                   .setOwnerBits(Bits.ALL)
                   .setGroupBits(Bits.ALL)
-                  .setOtherBits(Bits.NONE).build());
+                  .setOtherBits(Bits.NONE).build())
+              .setOverwrite(true);
           // Handle metadata directive
           if (metadataDirective == S3Constants.Directive.REPLACE
               && filePOptions.getXattrMap().containsKey(S3Constants.CONTENT_TYPE_XATTR_KEY)) {
@@ -939,11 +942,6 @@ public final class S3RestServiceHandler {
             auditContext.setSucceeded(false);
             throw new S3Exception("Copying an object to itself invalid.",
                 objectPath, S3ErrorCode.INVALID_REQUEST);
-          }
-          try {
-            S3RestUtils.deleteExistObject(userFs, objectUri);
-          } catch (IOException | AlluxioException e) {
-            throw S3RestUtils.toObjectS3Exception(e, objectUri.getPath(), auditContext);
           }
           try (FileInStream in = userFs.openFile(new AlluxioURI(copySource));
                FileOutStream out = userFs.createFile(objectUri, copyFilePOptionsBuilder.build())) {
@@ -1244,7 +1242,18 @@ public final class S3RestServiceHandler {
           S3RangeSpec s3Range = S3RangeSpec.Factory.create(range);
           RangeFileInStream ris = RangeFileInStream.Factory.create(is, status.getLength(), s3Range);
 
-          Response.ResponseBuilder res = Response.ok(ris)
+          InputStream inputStream;
+          long rate =
+              (long) mSConf.getInt(PropertyKey.PROXY_S3_SINGLE_CONNECTION_READ_RATE_LIMIT_MB)
+                  * Constants.MB;
+          RateLimiter currentRateLimiter = S3RestUtils.createRateLimiter(rate).orElse(null);
+          if (currentRateLimiter == null && mGlobalRateLimiter == null) {
+            inputStream = ris;
+          } else {
+            inputStream = new RateLimitInputStream(ris, mGlobalRateLimiter, currentRateLimiter);
+          }
+
+          Response.ResponseBuilder res = Response.ok(inputStream)
               .lastModified(new Date(status.getLastModificationTimeMs()))
               .header(S3Constants.S3_CONTENT_LENGTH_HEADER, s3Range.getLength(status.getLength()));
 

@@ -156,6 +156,7 @@ message DeletePOptions {
   optional bool alluxioOnly = 2;
   optional bool unchecked = 3;
   optional FileSystemMasterCommonPOptions commonOptions = 4;
+  optional bool syncParentNextTime = 5;
   optional bool deleteMountPoint = 6;
 }
 message DeletePRequest {
@@ -242,6 +243,11 @@ message ListStatusPOptions {
   // being loaded. It is recommended to set this to true after the first call of a
   // recursive partial listing.
   optional bool disableAreDescendantsLoadedCheck = 6;
+  // Mount info will be excluded from the list status response if this field is set to true.
+  // Resolving a path and obtain the mount info is an expensive operation.
+  // For clients that do not need this information such as hadoop-compatible clients,
+  // excluding mount info improves the endpoint performance.
+  optional bool excludeMountInfo = 7;
 }
 message ListStatusPRequest {
   /** the path of the file or directory */
