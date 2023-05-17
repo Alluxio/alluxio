@@ -17,16 +17,21 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import alluxio.Constants;
 import alluxio.clock.ManualClock;
+import alluxio.clock.SystemClock;
 import alluxio.time.Sleeper;
 import alluxio.time.SteppingThreadSleeper;
+import alluxio.time.ThreadSleeper;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 
 import java.time.Duration;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Unit tests for {@link SleepingTimer}.
@@ -88,5 +93,38 @@ public final class SleepingTimerTest {
     mFakeClock.addTimeMs(INTERVAL_MS / 3);
     stimer.tick();
     verify(mMockSleeper).sleep(Duration.ofMillis(INTERVAL_MS - (INTERVAL_MS / 3)));
+  }
+
+  @Test
+  public void updateIntervalForSteppingTimer() throws Exception {
+    AtomicLong interval = new AtomicLong(10000L);
+    AtomicLong tickCount = new AtomicLong(0L);
+    SteppingThreadSleeper sts =
+        new SteppingThreadSleeper(ThreadSleeper.INSTANCE, SystemClock.systemUTC());
+    sts.setSleepStepMs(Constants.SECOND_MS);
+    SleepingTimer stimer =
+        new SleepingTimer(THREAD_NAME, mMockLogger, SystemClock.systemUTC(), sts,
+            () -> new FixedIntervalSupplier(interval.get()));
+    new Thread(() -> {
+      while (true) {
+        try {
+          stimer.tick();
+          tickCount.incrementAndGet();
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    }).start();
+    long oldInterval = interval.get();
+    Thread.sleep(oldInterval / 2);
+    long tickCountInit = tickCount.get();
+    // scale in the interval
+    interval.set(oldInterval / 5);
+    stimer.update();
+    Thread.sleep(oldInterval);
+    long newTickCount = tickCount.get();
+    Assert.assertTrue("current tickCount = "
+        + newTickCount + " is not >= 5 + " + tickCountInit, newTickCount >= tickCountInit + 5);
+
   }
 }

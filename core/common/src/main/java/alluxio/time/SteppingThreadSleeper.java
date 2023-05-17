@@ -24,7 +24,7 @@ import java.util.function.Supplier;
  * duration has changed, and adjust its sleep duration accordingly.
  * */
 public final class SteppingThreadSleeper implements Sleeper {
-  private static final long SLEEP_STEP_MS = Constants.MINUTE;
+  private long mSleepStepMs = Constants.MINUTE;
 
   public static final SteppingThreadSleeper INSTANCE = new SteppingThreadSleeper();
 
@@ -58,7 +58,7 @@ public final class SteppingThreadSleeper implements Sleeper {
     if (duration.toMillis() < 0) {
       return;
     }
-    if (duration.toMillis() < SLEEP_STEP_MS) {
+    if (duration.toMillis() < mSleepStepMs) {
       sleep(duration);
       return;
     }
@@ -66,13 +66,23 @@ public final class SteppingThreadSleeper implements Sleeper {
     long sleepTo = startSleepMs + duration.toMillis();
     long timeNow;
     while ((timeNow = mClock.millis()) < sleepTo) {
-      mInternalSleeper.sleep(Duration.ofMillis(sleepTo - timeNow > SLEEP_STEP_MS
-          ? SLEEP_STEP_MS : sleepTo - timeNow));
+      mInternalSleeper.sleep(Duration.ofMillis(sleepTo - timeNow > mSleepStepMs
+          ? mSleepStepMs : sleepTo - timeNow));
 
       long newInterval = durationSupplier.get().toMillis();
       if (newInterval >= 0) {
         sleepTo = startSleepMs + newInterval;
       }
     }
+  }
+
+  /**
+   * Sets the sleep step.
+   *
+   * @param sleepStepMs the sleep step
+   */
+  @VisibleForTesting
+  public void setSleepStepMs(long sleepStepMs) {
+    mSleepStepMs = sleepStepMs;
   }
 }

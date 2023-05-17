@@ -18,17 +18,17 @@ public interface SleepIntervalSupplier {
   /**
    * Gets the next interval for sleeping.
    *
-   * @param mPreviousTickedMs previous ticked time stamp in millisecond
+   * @param previousTickedMs previous ticked time stamp in millisecond
    * @param nowTimeStampMillis current time stamp in millisecond
    * @return the interval to sleep starting from now before next time the timer triggers
    */
-  long getNextInterval(long mPreviousTickedMs, long nowTimeStampMillis);
+  long getNextInterval(long previousTickedMs, long nowTimeStampMillis);
 
   /**
    * Gets the run limit from previous ticked.
    *
-   * @param mPreviousTickedMs previous ticked time stamp in millisecond
+   * @param previousTickedMs previous ticked time stamp in millisecond
    * @return the run limit
    */
-  long getRunLimit(long mPreviousTickedMs);
+  long getRunLimit(long previousTickedMs);
 }
