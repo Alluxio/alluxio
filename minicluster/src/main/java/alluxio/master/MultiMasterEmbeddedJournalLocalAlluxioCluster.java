@@ -79,7 +79,8 @@ public final class MultiMasterEmbeddedJournalLocalAlluxioCluster
     List<MasterNetAddress> addrs = new ArrayList<>();
     for (int i = 0; i < numMasters; i++) {
       addrs.add(new MasterNetAddress(
-          NetworkAddressUtils.getLocalHostName(timeout), getNewPort(), getNewPort(), getNewPort()));
+          NetworkAddressUtils.getLocalHostName(timeout), getNewPort(), getNewPort(), getNewPort(),
+          getNewPort()));
     }
     return addrs;
   }
@@ -265,6 +266,7 @@ public final class MultiMasterEmbeddedJournalLocalAlluxioCluster
       Configuration.set(PropertyKey.MASTER_HOSTNAME, address.getHostname());
       Configuration.set(PropertyKey.MASTER_RPC_PORT, address.getRpcPort());
       Configuration.set(PropertyKey.MASTER_WEB_PORT, address.getWebPort());
+      Configuration.set(PropertyKey.MASTER_SNAPSHOT_RPC_PORT, address.getSnapshotRpcPort());
       Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT,
           address.getEmbeddedJournalPort());
       Configuration.set(PropertyKey.MASTER_JOURNAL_FOLDER, mJournalFolders.get(k));

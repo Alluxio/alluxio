@@ -94,7 +94,7 @@ public abstract class MasterProcess implements Process {
     MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_START_TIME.getName(), () -> mStartTimeMs);
   }
 
-  private static InetSocketAddress configureAddress(ServiceType service) {
+  protected static InetSocketAddress configureAddress(ServiceType service) {
     AlluxioConfiguration conf = Configuration.global();
     int port = NetworkAddressUtils.getPort(service, conf);
     if (!ConfigurationUtils.isHaMode(conf) && port == 0) {

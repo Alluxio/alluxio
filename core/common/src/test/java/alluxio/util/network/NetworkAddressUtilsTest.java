@@ -257,6 +257,9 @@ public class NetworkAddressUtilsTest {
       case JOB_MASTER_RAFT:
         mConfiguration.set(PropertyKey.JOB_MASTER_EMBEDDED_JOURNAL_PORT, 20000);
         break;
+      case MASTER_SNAPSHOT_RPC:
+        mConfiguration.set(PropertyKey.MASTER_SNAPSHOT_RPC_PORT, 20000);
+        break;
       case MASTER_RAFT:
         mConfiguration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT, 20000);
         break;

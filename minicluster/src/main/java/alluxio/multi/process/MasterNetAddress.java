@@ -22,18 +22,22 @@ import javax.annotation.concurrent.ThreadSafe;
 public class MasterNetAddress {
   private final String mHostname;
   private final int mRpcPort;
+  private final int mSnapshotRpcPort;
   private final int mWebPort;
   private final int mEmbeddedJournalPort;
 
   /**
    * @param hostname master hostname
    * @param rpcPort master RPC port
+   * @param snapshotRpcPort snapshot rpc port
    * @param webPort master web port
    * @param embeddedJournalPort embedded journal port
    */
-  public MasterNetAddress(String hostname, int rpcPort, int webPort, int embeddedJournalPort) {
+  public MasterNetAddress(String hostname, int rpcPort, int webPort, int embeddedJournalPort,
+      int snapshotRpcPort) {
     mHostname = hostname;
     mRpcPort = rpcPort;
+    mSnapshotRpcPort = snapshotRpcPort;
     mWebPort = webPort;
     mEmbeddedJournalPort = embeddedJournalPort;
   }
@@ -50,6 +54,13 @@ public class MasterNetAddress {
    */
   public int getRpcPort() {
     return mRpcPort;
+  }
+
+  /**
+   * @return the master snapshot RPC port
+   */
+  public int getSnapshotRpcPort() {
+    return mSnapshotRpcPort;
   }
 
   /**
@@ -71,6 +82,7 @@ public class MasterNetAddress {
     return MoreObjects.toStringHelper(this)
         .add("hostname", mHostname)
         .add("rpcPort", mRpcPort)
+        .add("snapshotRpcPort", mSnapshotRpcPort)
         .add("webPort", mWebPort)
         .add("embeddedJournalPort", mEmbeddedJournalPort)
         .toString();

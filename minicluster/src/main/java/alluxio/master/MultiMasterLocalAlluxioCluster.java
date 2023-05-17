@@ -87,6 +87,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
       Configuration.set(entry.getKey(), entry.getValue());
     }
     Configuration.set(PropertyKey.MASTER_RPC_PORT, 0);
+    Configuration.set(PropertyKey.MASTER_SNAPSHOT_RPC_PORT, 0);
     Configuration.set(PropertyKey.TEST_MODE, true);
     Configuration.set(PropertyKey.JOB_WORKER_THROTTLING, false);
     Configuration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
@@ -241,6 +242,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
       // Each master should generate a new port for binding
       Configuration.set(PropertyKey.MASTER_RPC_PORT, 0);
       Configuration.set(PropertyKey.MASTER_WEB_PORT, 0);
+      Configuration.set(PropertyKey.MASTER_SNAPSHOT_RPC_PORT, 0);
     }
 
     // Create the UFS directory after LocalAlluxioMaster construction, because LocalAlluxioMaster

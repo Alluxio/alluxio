@@ -36,6 +36,7 @@ import alluxio.master.service.SimpleService;
 import alluxio.master.service.jvmmonitor.JvmMonitorService;
 import alluxio.master.service.metrics.MetricsService;
 import alluxio.master.service.rpc.RpcServerService;
+import alluxio.master.service.snapshotrpc.rpc.SnapshotRpcServerService;
 import alluxio.master.service.web.WebServerService;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -61,6 +62,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -97,6 +99,11 @@ public class AlluxioMasterProcess extends MasterProcess {
   /** See {@link #isStopped()}. */
   protected final AtomicBoolean mIsStopped = new AtomicBoolean(false);
 
+  /** Snapshot rpc server bind address. **/
+  final InetSocketAddress mSnapshotRpcBindAddress;
+  /** The connection address for the snapshot rpc service. */
+  final InetSocketAddress mSnapshotRpcConnectAddress;
+
   /** See {@link #isRunning()}. */
   private volatile boolean mRunning = false;
 
@@ -111,6 +118,9 @@ public class AlluxioMasterProcess extends MasterProcess {
    */
   AlluxioMasterProcess(JournalSystem journalSystem, PrimarySelector leaderSelector) {
     super(journalSystem, leaderSelector, ServiceType.MASTER_WEB, ServiceType.MASTER_RPC);
+    mSnapshotRpcBindAddress = configureAddress(ServiceType.MASTER_SNAPSHOT_RPC);
+    mSnapshotRpcConnectAddress = NetworkAddressUtils.getConnectAddress(
+        ServiceType.MASTER_SNAPSHOT_RPC, Configuration.global());
     if (!mJournalSystem.isFormatted()) {
       throw new RuntimeException(
           String.format("Journal %s has not been formatted!", mJournalSystem));
@@ -184,6 +194,50 @@ public class AlluxioMasterProcess extends MasterProcess {
     MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_RPC_THREAD_CURRENT_COUNT.getName(),
         executor::getPoolSize);
     return Optional.of(executor);
+  }
+
+  /**
+   * @return a fully configured rpc server except for the executor option (provided by the
+   * {@link #createSnapshotRpcExecutorService()}) and the snapshot rpc services
+   * (provided by {@link #mRegistry}
+   */
+  public GrpcServerBuilder createBaseSnapshotRpcServer() {
+    return GrpcServerBuilder
+        .forAddress(GrpcServerAddress.create(mSnapshotRpcBindAddress.getHostName(),
+                mSnapshotRpcBindAddress),
+            Configuration.global())
+        .flowControlWindow(
+            (int) Configuration.getBytes(PropertyKey.MASTER_NETWORK_FLOWCONTROL_WINDOW))
+        .keepAliveTime(
+            Configuration.getMs(PropertyKey.MASTER_NETWORK_KEEPALIVE_TIME_MS),
+            TimeUnit.MILLISECONDS)
+        .keepAliveTimeout(
+            Configuration.getMs(PropertyKey.MASTER_NETWORK_KEEPALIVE_TIMEOUT_MS),
+            TimeUnit.MILLISECONDS)
+        .permitKeepAlive(
+            Configuration.getMs(PropertyKey.MASTER_NETWORK_PERMIT_KEEPALIVE_TIME_MS),
+            TimeUnit.MILLISECONDS)
+        .maxInboundMessageSize((int) Configuration.getBytes(
+            PropertyKey.MASTER_NETWORK_MAX_INBOUND_MESSAGE_SIZE));
+  }
+
+  /**
+   * This method is decoupled from {@link #createBaseSnapshotRpcServer()} because the
+   * {@link AlluxioExecutorService} needs to be managed (i.e. started and stopped) independently
+   * of the rpc server that uses it
+   * @return a custom executor service to be used in the snapshot rpc server
+   */
+  public Optional<AlluxioExecutorService> createSnapshotRpcExecutorService() {
+    AlluxioExecutorService executor = ExecutorServiceBuilder.buildExecutorService(
+        ExecutorServiceBuilder.RpcExecutorHost.MASTER_SNAPSHOT);
+    return Optional.of(executor);
+  }
+
+  /**
+   * @return this master's rpc bind address
+   */
+  public final InetSocketAddress getSnapshotBindAddress() {
+    return mSnapshotRpcBindAddress;
   }
 
   @Override
@@ -495,6 +549,9 @@ public class AlluxioMasterProcess extends MasterProcess {
       AlluxioMasterProcess amp = new AlluxioMasterProcess(journalSystem, primarySelector);
       amp.registerService(
           RpcServerService.Factory.create(amp.getRpcBindAddress(), amp, amp.getRegistry()));
+      amp.registerService(
+          SnapshotRpcServerService.Factory.create(amp.getSnapshotBindAddress(), amp,
+              amp.getRegistry()));
       amp.registerService(WebServerService.Factory.create(amp.getWebBindAddress(), amp));
       amp.registerService(MetricsService.Factory.create());
       amp.registerService(JvmMonitorService.Factory.create());
