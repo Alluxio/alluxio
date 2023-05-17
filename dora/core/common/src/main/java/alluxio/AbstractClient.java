@@ -83,6 +83,8 @@ public abstract class AbstractClient implements Client {
   /* Used to query service version for the remote service type. */
   protected ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub mVersionService;
 
+  protected boolean mAlwaysEnableTLS = false;
+
   /** Is true if this client is currently connected. */
   protected boolean mConnected = false;
 
@@ -110,6 +112,11 @@ public abstract class AbstractClient implements Client {
    */
   protected AbstractClient(ClientContext context) {
     this(context, RetryUtils::defaultClientRetry);
+  }
+
+  protected AbstractClient(ClientContext context, boolean alwaysEnableTLS) {
+    this(context, RetryUtils::defaultClientRetry);
+    mAlwaysEnableTLS = alwaysEnableTLS;
   }
 
   /**
@@ -258,7 +265,7 @@ public abstract class AbstractClient implements Client {
         AlluxioConfiguration conf = mContext.getClusterConf();
         // set up rpc group channel
         mChannel = GrpcChannelBuilder
-            .newBuilder(mServerAddress, conf)
+            .newBuilder(mServerAddress, conf, mAlwaysEnableTLS)
             .setSubject(mContext.getSubject())
             .build();
         // Create stub for version service on host

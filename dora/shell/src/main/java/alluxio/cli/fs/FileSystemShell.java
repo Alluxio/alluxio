@@ -87,6 +87,6 @@ public final class FileSystemShell extends AbstractShell {
   protected Map<String, Command> loadCommands() {
     return FileSystemShellUtils
         .loadCommands(
-          mCloser.register(FileSystemContext.create(mConfiguration)));
+          mCloser.register(FileSystemContext.sFileSystemContextFactory.create(mConfiguration)));
   }
 }
