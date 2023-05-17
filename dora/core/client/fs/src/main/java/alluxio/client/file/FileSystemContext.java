@@ -100,7 +100,9 @@ import javax.security.auth.Subject;
  * so, because thread A holds the lock on {@link FileSystemContext}.
  */
 @ThreadSafe
-@SuppressFBWarnings("MS_SHOULD_BE_FINAL")
+@SuppressFBWarnings("MS_SHOULD_BE_FINAL",
+    justification = "Only applied to sFileSystemContextFactory, "
+        + "sFileSystemContextFactory is for extension")
 public class FileSystemContext implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(FileSystemContext.class);
 
