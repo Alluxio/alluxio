@@ -55,7 +55,7 @@ public class CopyJobTest {
     FileIterable files =
         new FileIterable(fileSystemMaster, srcPath, user, false, CopyJob.QUALIFIED_FILE_FILTER);
     CopyJob copy = new CopyJob(srcPath, dstPath, false, user, "1",
-        OptionalLong.empty(), false, false, files);
+        OptionalLong.empty(), false, false, false, files);
     Optional<CopyJob.CopyTask> nextTask = copy.getNextTask(null);
     Assert.assertEquals(5, nextTask.get().getRoutes().size());
   }
@@ -72,7 +72,7 @@ public class CopyJobTest {
     FileIterable files =
         new FileIterable(fileSystemMaster, srcPath, user, false, CopyJob.QUALIFIED_FILE_FILTER);
     CopyJob copy = new CopyJob(srcPath, dstPath, false, user, "1",
-        OptionalLong.empty(), false, false, files);
+        OptionalLong.empty(), false, false, false, files);
     List<Route> routes = copy.getNextRoutes(100);
     assertTrue(copy.isHealthy());
     routes.forEach(copy::addToRetry);
@@ -94,7 +94,7 @@ public class CopyJobTest {
     FileIterable files =
         new FileIterable(fileSystemMaster, srcPath, user, false, CopyJob.QUALIFIED_FILE_FILTER);
     CopyJob job = spy(new CopyJob(srcPath, dstPath, false, user, "1",
-        OptionalLong.empty(), false, false, files));
+        OptionalLong.empty(), false, false, false, files));
     when(job.getDurationInSec()).thenReturn(0L);
     job.setJobState(JobState.RUNNING);
     List<Route> nextRoutes = job.getNextRoutes(25);

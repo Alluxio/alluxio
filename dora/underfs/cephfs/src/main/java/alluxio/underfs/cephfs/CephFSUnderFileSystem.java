@@ -30,7 +30,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
-import alluxio.underfs.options.GetFileStatusOptions;
+import alluxio.underfs.options.GetStatusOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.UnderFileSystemUtils;
@@ -354,7 +354,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   @Override
-  public UfsStatus getStatus(String path) throws IOException {
+  public UfsStatus getStatus(String path, GetStatusOptions options) throws IOException {
     path = stripPath(path);
     CephStat stat = new CephStat();
     lstat(path, stat);
@@ -389,7 +389,7 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
    * @throws FileNotFoundException if the path could not be resolved
    */
   @Override
-  public UfsFileStatus getFileStatus(String path, GetFileStatusOptions options) throws IOException {
+  public UfsFileStatus getFileStatus(String path, GetStatusOptions options) throws IOException {
     path = stripPath(path);
     CephStat stat = new CephStat();
     lstat(path, stat);

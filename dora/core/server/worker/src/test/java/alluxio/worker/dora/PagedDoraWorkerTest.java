@@ -113,7 +113,8 @@ public class PagedDoraWorkerTest {
     Route route =
         Route.newBuilder().setDst(b.getAbsolutePath()).setSrc(a.getAbsolutePath()).setLength(length)
              .build();
-    WriteOptions writeOptions = WriteOptions.newBuilder().setOverwrite(false).build();
+    WriteOptions writeOptions =
+        WriteOptions.newBuilder().setOverwrite(false).setCheckContent(true).build();
     UfsReadOptions read =
         UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build();
     ListenableFuture<List<RouteFailure>> copy =
@@ -162,7 +163,8 @@ public class PagedDoraWorkerTest {
     File b = new File(dstRoot, "b");
     Route route =
         Route.newBuilder().setDst(b.getAbsolutePath()).setSrc(a.getAbsolutePath()).build();
-    WriteOptions writeOptions = WriteOptions.newBuilder().setOverwrite(false).build();
+    WriteOptions writeOptions =
+        WriteOptions.newBuilder().setOverwrite(false).setCheckContent(true).build();
     UfsReadOptions read =
         UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build();
     ListenableFuture<List<RouteFailure>> copy =
@@ -202,7 +204,8 @@ public class PagedDoraWorkerTest {
     routes.add(route);
     routes.add(route2);
     routes.add(route3);
-    WriteOptions writeOptions = WriteOptions.newBuilder().setOverwrite(false).build();
+    WriteOptions writeOptions =
+        WriteOptions.newBuilder().setOverwrite(false).setCheckContent(true).build();
     UfsReadOptions read =
         UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build();
     ListenableFuture<List<RouteFailure>> copy = mWorker.copy(routes, read, writeOptions);

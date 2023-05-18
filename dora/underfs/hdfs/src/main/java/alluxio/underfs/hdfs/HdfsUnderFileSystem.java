@@ -33,7 +33,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
-import alluxio.underfs.options.GetFileStatusOptions;
+import alluxio.underfs.options.GetStatusOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
@@ -437,7 +437,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   @Override
-  public UfsFileStatus getFileStatus(String path, GetFileStatusOptions options) throws IOException {
+  public UfsFileStatus getFileStatus(String path, GetStatusOptions options) throws IOException {
     Path tPath = new Path(path);
     FileSystem hdfs = getFs();
     FileStatus fs = hdfs.getFileStatus(tPath);
@@ -481,7 +481,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   @Override
-  public UfsStatus getStatus(String path, GetFileStatusOptions options) throws IOException {
+  public UfsStatus getStatus(String path, GetStatusOptions options) throws IOException {
     Path tPath = new Path(path);
     FileSystem hdfs = getFs();
     FileStatus fs = hdfs.getFileStatus(tPath);
@@ -495,23 +495,6 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         contentHash =
             UnderFileSystemUtils.approximateContentHash(fs.getLen(), fs.getModificationTime());
       }
-      return new UfsFileStatus(path, contentHash, fs.getLen(), fs.getModificationTime(),
-          fs.getOwner(), fs.getGroup(), fs.getPermission().toShort(), fs.getBlockSize());
-    }
-    // Return directory status.
-    return new UfsDirectoryStatus(path, fs.getOwner(), fs.getGroup(), fs.getPermission().toShort(),
-        fs.getModificationTime());
-  }
-
-  @Override
-  public UfsStatus getStatus(String path) throws IOException {
-    Path tPath = new Path(path);
-    FileSystem hdfs = getFs();
-    FileStatus fs = hdfs.getFileStatus(tPath);
-    if (!fs.isDir()) {
-      // Return file status.
-      String contentHash =
-          UnderFileSystemUtils.approximateContentHash(fs.getLen(), fs.getModificationTime());
       return new UfsFileStatus(path, contentHash, fs.getLen(), fs.getModificationTime(),
           fs.getOwner(), fs.getGroup(), fs.getPermission().toShort(), fs.getBlockSize());
     }

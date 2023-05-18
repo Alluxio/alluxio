@@ -626,7 +626,7 @@ message CopyJobPOptions {
   optional bool partialListing = 3;
   optional bool overwrite = 4;
   optional WritePType writeType = 5;
-  optional bool ufs_only = 6;
+  optional bool check_content = 6;
 }
 
 message StopJobPRequest {

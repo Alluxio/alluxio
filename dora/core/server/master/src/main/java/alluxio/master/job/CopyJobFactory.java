@@ -57,6 +57,7 @@ public class CopyJobFactory implements JobFactory {
     boolean partialListing = options.hasPartialListing() && options.getPartialListing();
     boolean verificationEnabled = options.hasVerify() && options.getVerify();
     boolean overwrite = options.hasOverwrite() && options.getOverwrite();
+    boolean checkContent = options.hasCheckContent() && options.getCheckContent();
     WriteType writeType = options.hasWriteType() ? WriteType.fromProto(options.getWriteType()) :
         Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     Iterable<FileInfo> fileIterator = new UfsFileIterable(mFs, src, Optional
@@ -66,7 +67,7 @@ public class CopyJobFactory implements JobFactory {
         .ofNullable(AuthenticatedClientUser.getOrNull())
         .map(User::getName);
     return new CopyJob(src, mRequest.getDst(), overwrite, user, UUID.randomUUID().toString(),
-        bandwidth, partialListing, verificationEnabled, fileIterator);
+        bandwidth, partialListing, verificationEnabled, checkContent, fileIterator);
   }
 }
 

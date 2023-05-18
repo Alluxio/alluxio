@@ -30,7 +30,7 @@ import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
-import alluxio.underfs.options.GetFileStatusOptions;
+import alluxio.underfs.options.GetStatusOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
@@ -523,12 +523,12 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public UfsFileStatus getFileStatus(final String path, GetFileStatusOptions options)
+  public UfsFileStatus getFileStatus(final String path, GetStatusOptions options)
       throws IOException {
     return call(new UfsCallable<UfsFileStatus>() {
       @Override
       public UfsFileStatus call() throws IOException {
-        return mUnderFileSystem.getFileStatus(path);
+        return mUnderFileSystem.getFileStatus(path, options);
       }
 
       @Override
@@ -664,11 +664,11 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public UfsStatus getStatus(String path) throws IOException {
+  public UfsStatus getStatus(String path, GetStatusOptions options) throws IOException {
     return call(new UfsCallable<UfsStatus>() {
       @Override
       public UfsStatus call() throws IOException {
-        return mUnderFileSystem.getStatus(path);
+        return mUnderFileSystem.getStatus(path, options);
       }
 
       @Override
