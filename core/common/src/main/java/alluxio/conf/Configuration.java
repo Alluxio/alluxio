@@ -643,6 +643,13 @@ public final class Configuration
   }
 
   /**
+   * @return the last update time
+   */
+  public static long getLastUpdateTime() {
+    return SERVER_CONFIG_REFERENCE.get().getLastUpdateTime();
+  }
+
+  /**
    * Update new configuration.
    * @param newConf the new configuration
    */

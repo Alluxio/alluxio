@@ -428,7 +428,9 @@ public final class S3RestUtils {
 
     final Subject subject = new Subject();
     subject.getPrincipals().add(new User(user));
-    return FileSystem.Factory.get(subject, fs.getConf());
+    // Use local conf to create filesystem rather than fs.getConf()
+    // due to fs conf will be changed by merged cluster conf.
+    return FileSystem.Factory.get(subject, Configuration.global());
   }
 
   /**

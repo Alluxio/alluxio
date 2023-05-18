@@ -377,7 +377,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
               + "If no JVM property is present, Alluxio will use default value '%s'.",
           key.getName(), key.getDefaultValue());
 
-      if (PropertyKey.isDeprecated(key) && getSource(key).compareTo(Source.DEFAULT) != 0) {
+      if (PropertyKey.isDeprecated(key) && isSetByUser(key)) {
         LOG.warn("{} is deprecated. Please avoid using this key in the future. {}", key.getName(),
             PropertyKey.getDeprecationMessage(key));
       }
@@ -692,6 +692,13 @@ public class InstancedConfiguration implements AlluxioConfiguration {
               getInt(PropertyKey.MASTER_THROTTLE_STRESSED_RPC_QUEUE_SIZE),
               getInt(PropertyKey.MASTER_THROTTLE_OVERLOADED_RPC_QUEUE_SIZE)));
     }
+  }
+
+  /**
+   * @return the last update time
+   */
+  public long getLastUpdateTime() {
+    return mProperties.getLastUpdateTime();
   }
 
   private class UnresolvablePropertyException extends Exception {

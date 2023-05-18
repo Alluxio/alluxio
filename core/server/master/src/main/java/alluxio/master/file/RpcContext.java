@@ -37,7 +37,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * guarantees about the order in which resources are closed.
  */
 @NotThreadSafe
-public final class RpcContext implements Closeable, Supplier<JournalContext> {
+public class RpcContext implements Closeable, Supplier<JournalContext> {
   public static final RpcContext NOOP = new RpcContext(NoopBlockDeletionContext.INSTANCE,
       NoopJournalContext.INSTANCE, new InternalOperationContext());
 

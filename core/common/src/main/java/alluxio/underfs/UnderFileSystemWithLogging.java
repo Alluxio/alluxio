@@ -17,7 +17,9 @@ import alluxio.SyncInfo;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.exception.status.UnimplementedException;
+import alluxio.file.options.DescendantType;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricsSystem;
@@ -28,21 +30,26 @@ import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
+import alluxio.underfs.options.GetFileStatusOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.util.RateLimiter;
 import alluxio.util.SecurityUtils;
 
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterators;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import javax.annotation.Nullable;
 
 /**
@@ -520,7 +527,8 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public UfsFileStatus getFileStatus(final String path) throws IOException {
+  public UfsFileStatus getFileStatus(final String path, GetFileStatusOptions options)
+      throws IOException {
     return call(new UfsCallable<UfsFileStatus>() {
       @Override
       public UfsFileStatus call() throws IOException {
@@ -813,6 +821,38 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
         return String.format("path=%s, options=%s", path, options);
       }
     });
+  }
+
+  @Override
+  public Iterator<UfsStatus> listStatusIterable(
+      String path, ListOptions options, String startAfter,
+      int batchSize) throws IOException {
+    return call(new UfsCallable<Iterator<UfsStatus>>() {
+      @Override
+      public Iterator<UfsStatus> call() throws IOException {
+        Iterator<UfsStatus> result =
+            mUnderFileSystem.listStatusIterable(path, options, startAfter, batchSize);
+        return filterInvalidPaths(result, path);
+      }
+
+      @Override
+      public String methodName() {
+        return "ListStatusIterable";
+      }
+
+      @Override
+      public String toString() {
+        return String.format("path=%s, options=%s", path, options);
+      }
+    });
+  }
+
+  @Nullable
+  Iterator<UfsStatus> filterInvalidPaths(Iterator<UfsStatus> statuses, String listedPath) {
+    if (statuses == null) {
+      return null;
+    }
+    return Iterators.filter(statuses, (it) -> !it.getName().contains("?"));
   }
 
   @Nullable
@@ -1222,6 +1262,42 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
    */
   public UnderFileSystem getUnderFileSystem() {
     return mUnderFileSystem;
+  }
+
+  @Override
+  public void performListingAsync(
+      String path, @Nullable String continuationToken, @Nullable String startAfter,
+      DescendantType descendantType, boolean checkStatus, Consumer<UfsLoadResult> onComplete,
+      Consumer<Throwable> onError) {
+    try {
+      call(new UfsCallable<Void>() {
+        @Override
+        public Void call() {
+          mUnderFileSystem.performListingAsync(path, continuationToken, startAfter,
+              descendantType, checkStatus, onComplete, onError);
+          return null;
+        }
+
+        @Override
+        public String methodName() {
+          return "PerformListingAsync";
+        }
+
+        @Override
+        public String toString() {
+          return String.format("path=%s, continuationToken=%s, startAfter=%s, descendantType=%s,"
+                  + " checkStatus=%s",
+              path, continuationToken, startAfter, descendantType, checkStatus);
+        }
+      });
+    } catch (IOException e) {
+      throw new InternalRuntimeException("should not reach");
+    }
+  }
+
+  @Override
+  public RateLimiter getRateLimiter() {
+    return mUnderFileSystem.getRateLimiter();
   }
 
   /**

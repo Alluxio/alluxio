@@ -40,6 +40,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -62,6 +63,7 @@ public class S3AUnderFileSystemTest {
 
   private S3AUnderFileSystem mS3UnderFileSystem;
   private AmazonS3Client mClient;
+  private S3AsyncClient mAsyncClient;
   private ListeningExecutorService mExecutor;
   private TransferManager mManager;
 
@@ -73,8 +75,10 @@ public class S3AUnderFileSystemTest {
     mClient = Mockito.mock(AmazonS3Client.class);
     mExecutor = Mockito.mock(ListeningExecutorService.class);
     mManager = Mockito.mock(TransferManager.class);
+    mAsyncClient = Mockito.mock(S3AsyncClient.class);
     mS3UnderFileSystem =
-        new S3AUnderFileSystem(new AlluxioURI("s3a://" + BUCKET_NAME), mClient, BUCKET_NAME,
+        new S3AUnderFileSystem(new AlluxioURI("s3a://" + BUCKET_NAME),
+            mClient, mAsyncClient, BUCKET_NAME,
             mExecutor, mManager, UnderFileSystemConfiguration.defaults(CONF), false);
   }
 
@@ -183,8 +187,9 @@ public class S3AUnderFileSystemTest {
     conf.put(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING, "111=altname");
     try (Closeable c = new ConfigurationRule(conf, CONF).toResource()) {
       S3AUnderFileSystem s3UnderFileSystem =
-              new S3AUnderFileSystem(new AlluxioURI("s3a://" + BUCKET_NAME), mClient, BUCKET_NAME,
-                      mExecutor, mManager, UnderFileSystemConfiguration.defaults(CONF), false);
+              new S3AUnderFileSystem(new AlluxioURI("s3a://" + BUCKET_NAME), mClient,
+                  mAsyncClient, BUCKET_NAME,
+                  mExecutor, mManager, UnderFileSystemConfiguration.defaults(CONF), false);
 
       Mockito.when(mClient.getS3AccountOwner()).thenReturn(new Owner("111", "test"));
       Mockito.when(mClient.getBucketAcl(Mockito.anyString())).thenReturn(new AccessControlList());
@@ -202,8 +207,9 @@ public class S3AUnderFileSystemTest {
     conf.put(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING, "111=userid");
     try (Closeable c = new ConfigurationRule(conf, CONF).toResource()) {
       S3AUnderFileSystem s3UnderFileSystem =
-              new S3AUnderFileSystem(new AlluxioURI("s3a://" + BUCKET_NAME), mClient, BUCKET_NAME,
-                      mExecutor, mManager, UnderFileSystemConfiguration.defaults(CONF), false);
+              new S3AUnderFileSystem(new AlluxioURI("s3a://" + BUCKET_NAME),
+                  mClient, mAsyncClient, BUCKET_NAME,
+                  mExecutor, mManager, UnderFileSystemConfiguration.defaults(CONF), false);
 
       Mockito.when(mClient.getS3AccountOwner()).thenReturn(new Owner("0", "test"));
       Mockito.when(mClient.getBucketAcl(Mockito.anyString())).thenReturn(new AccessControlList());

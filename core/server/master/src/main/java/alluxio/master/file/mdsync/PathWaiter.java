@@ -9,23 +9,22 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.block.meta;
+package alluxio.master.file.mdsync;
 
-/***
- * The worker state maintained by master.
- */
-public enum WorkerState {
-  LIVE("In Service"),
-  LOST("Out of Service"),
-  DECOMMISSIONED("Decommissioned");
-  private final String mState;
+import alluxio.AlluxioURI;
 
-  WorkerState(String s) {
-    mState = s;
-  }
+interface PathWaiter {
 
-  @Override
-  public String toString() {
-    return mState;
-  }
+  /**
+   * The calling thread will be blocked until the given path has been synced.
+   * @param path the path to sync
+   * @return true if the sync on the path was successful, false otherwise
+   */
+  boolean waitForSync(AlluxioURI path);
+
+  /**
+   * Called on each batch of results that has completed processing.
+   * @param completed the completed results
+   */
+  void nextCompleted(SyncProcessResult completed);
 }

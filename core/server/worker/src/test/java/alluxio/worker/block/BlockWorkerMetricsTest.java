@@ -52,19 +52,23 @@ public final class BlockWorkerMetricsTest {
   }
 
   @Test
-  public void testMetricsCapacity() {
+  public void testMetricsCapacity() throws InterruptedException {
     when(mBlockStoreMeta.getCapacityBytes()).thenReturn(1000L);
     Assert.assertEquals(1000L, getGauge(MetricKey.WORKER_CAPACITY_TOTAL.getName()));
     when(mBlockStoreMeta.getUsedBytes()).thenReturn(200L);
+    // sleep 5 seconds because the timeout of this registered is CacheGauge,
+    // and it's update interval is 5 seconds
+    Thread.sleep(DefaultBlockWorker.CACHEGAUGE_UPDATE_INTERVAL);
     Assert.assertEquals(200L, getGauge(MetricKey.WORKER_CAPACITY_USED.getName()));
     Assert.assertEquals(800L, getGauge(MetricKey.WORKER_CAPACITY_FREE.getName()));
   }
 
   @Test
-  public void testMetricsTierCapacity() {
+  public void testMetricsTierCapacity() throws InterruptedException {
     when(mBlockStoreMeta.getCapacityBytesOnTiers())
         .thenReturn(ImmutableMap.of(MEM, 1000L, HDD, 2000L));
     when(mBlockStoreMeta.getUsedBytesOnTiers()).thenReturn(ImmutableMap.of(MEM, 100L, HDD, 200L));
+    Thread.sleep(DefaultBlockWorker.CACHEGAUGE_UPDATE_INTERVAL);
     assertEquals(1000L,
         getGauge(MetricKey.WORKER_CAPACITY_TOTAL.getName() + MetricInfo.TIER + MEM));
     assertEquals(2000L,

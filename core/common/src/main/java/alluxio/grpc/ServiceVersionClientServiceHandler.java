@@ -97,6 +97,9 @@ public final class ServiceVersionClientServiceHandler
       case META_MASTER_MASTER_SERVICE:
         serviceVersion = Constants.META_MASTER_MASTER_SERVICE_VERSION;
         break;
+      case META_MASTER_PROXY_SERVICE:
+        serviceVersion = Constants.META_MASTER_PROXY_SERVICE_VERSION;
+        break;
       case METRICS_MASTER_CLIENT_SERVICE:
         serviceVersion = Constants.METRICS_MASTER_CLIENT_SERVICE_VERSION;
         break;
@@ -105,6 +108,9 @@ public final class ServiceVersionClientServiceHandler
         break;
       case JOB_MASTER_WORKER_SERVICE:
         serviceVersion = Constants.JOB_MASTER_WORKER_SERVICE_VERSION;
+        break;
+      case JOB_MASTER_MASTER_SERVICE:
+        serviceVersion = Constants.JOB_MASTER_MASTER_SERVICE_VERSION;
         break;
       case JOURNAL_MASTER_CLIENT_SERVICE:
         serviceVersion = Constants.JOURNAL_MASTER_CLIENT_SERVICE_VERSION;

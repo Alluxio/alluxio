@@ -715,6 +715,109 @@ public final class MetricKey implements Comparable<MetricKey> {
                   .setMetricType(MetricType.TIMER)
                   .build();
 
+  // Metadata sync v2 metrics
+  public static final MetricKey MASTER_METADATA_SYNC_QUEUED_LOADS =
+      new Builder("Master.MetadataSyncV2QueuedLoads")
+          .setDescription("Total number of load requests that are pending")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_RUNNING_LOADS =
+      new Builder("Master.MetadataSyncV2RunningLoads")
+          .setDescription("The number of load requests that are in progress or"
+              + " have completed, but not yet been processed")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_RUNNING_TASKS =
+      new Builder("Master.MetadataSyncV2RunningTasks")
+          .setDescription("The number of metadata sync tasks currently running")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_COMPLETED_TASKS =
+      new Builder("Master.MetadataSyncV2CompletedTasks")
+          .setDescription("The number of completed metadata sync tasks")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_FAILED_TASKS =
+      new Builder("Master.MetadataSyncV2FailedTasks")
+          .setDescription("The number of failed metadata sync tasks")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_CANCELLED_TASKS =
+      new Builder("Master.MetadataSyncV2CancelledTasks")
+          .setDescription("The number of cancelled metadata sync tasks")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_LOADS_FAILED =
+      new Builder("Master.MetadataSyncV2LoadsFailed")
+          .setDescription("The number of failed load requests during metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_PROCESSING_FAILED =
+      new Builder("Master.MetadataSyncV2ProcessingFailed")
+          .setDescription("The number loads failed during processing during metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_FILES_CREATED =
+      new Builder("Master.MetadataSyncV2FilesCreated")
+          .setDescription("The number of files created during processing during metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_FILES_DELETED =
+      new Builder("Master.MetadataSyncV2FilesDeleted")
+          .setDescription("The number of files deleted during processing during metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_FILES_RECREATED =
+      new Builder("Master.MetadataSyncV2FilesRecreated")
+          .setDescription("The number of files recreated during processing during metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_FILES_UPDATED =
+      new Builder("Master.MetadataSyncV2FilesUpdated")
+          .setDescription("The number of files updated during processing during metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_FILES_SKIPPED_CONCURRENT_UPDATE =
+      new Builder("Master.MetadataSyncV2FilesSkippedConcurrentUpdate")
+          .setDescription("The number of files skipped due to concurrent update "
+              + "during processing during metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_FILES_SKIPPED_MOUNT_POINT =
+      new Builder("Master.MetadataSyncV2FilesSkippedMountPoint")
+          .setDescription("The number of files skipped because the inode is a mount point "
+              + "during processing during metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_FILES_NOOP =
+      new Builder("Master.MetadataSyncV2FilesNoop")
+          .setDescription("The number of files at parity between alluxio and UFS "
+              + "during processing during metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_METADATA_SYNC_FILES_SKIPPED_NON_PERSISTED =
+      new Builder("Master.MetadataSyncV2FilesSkippedNonPersisted")
+          .setDescription("The number of files skipped because the "
+              + "inode is not persisted during processing during metadata sync")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
+
   // Metadata sync metrics
   public static final MetricKey MASTER_METADATA_SYNC_UFS_MOUNT =
       new Builder("Master.MetadataSyncUfsMount.")
@@ -1754,11 +1857,23 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
+  /*
+   * This metric is inaccurate because it is updated at so many places.
+   * Given time, it should be deprecated and replaced by WORKER_ACTIVE_OPERATIONS.
+   */
+  @Deprecated
   public static final MetricKey WORKER_ACTIVE_CLIENTS =
       new Builder("Worker.ActiveClients")
           .setDescription("The number of clients actively reading from or writing to this worker")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
+          .build();
+  public static final MetricKey WORKER_ACTIVE_OPERATIONS =
+      new Builder("Worker.ActiveOperations")
+          .setDescription("The number of active RPCs in the worker, including control RPCs "
+              + "and data I/O. Used to tell if the worker is idle or busy.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_BLOCKS_ACCESSED =
       new Builder("Worker.BlocksAccessed")

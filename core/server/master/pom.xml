@@ -31,6 +31,10 @@
   <dependencies>
     <!-- External dependencies -->
     <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>s3</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
     </dependency>
@@ -110,6 +114,11 @@
       <artifactId>alluxio-job-client</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-stress-shell</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <!-- External test dependencies -->
     <dependency>
@@ -118,9 +127,15 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>io.findify</groupId>
-      <artifactId>s3mock_2.13</artifactId>
+      <groupId>org.gaul</groupId>
+      <artifactId>s3proxy</artifactId>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>ch.qos.logback</groupId>
+          <artifactId>logback-classic</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- Internal test dependencies -->

@@ -21,7 +21,9 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.grpc.CancelSyncMetadataPResponse;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -30,6 +32,7 @@ import alluxio.grpc.ErrorType;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.GetSyncProgressPResponse;
 import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
@@ -40,18 +43,23 @@ import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.SyncMetadataAsyncPResponse;
+import alluxio.grpc.SyncMetadataPOptions;
+import alluxio.grpc.SyncMetadataPResponse;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
 import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.Mode;
+import alluxio.underfs.Fingerprint;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
+import alluxio.underfs.options.GetFileStatusOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
@@ -218,8 +226,10 @@ public class UfsBaseFileSystem implements FileSystem {
   public URIStatus getStatus(AlluxioURI path, final GetStatusPOptions options) {
     return callWithReturn(() -> {
       String ufsPath = path.getPath();
-      return transformStatus(mUfs.get().isFile(ufsPath)
-          ? mUfs.get().getFileStatus(ufsPath) : mUfs.get().getDirectoryStatus(ufsPath));
+      return transformStatus(mUfs.get().isFile(ufsPath) ? mUfs.get().getFileStatus(ufsPath,
+          GetFileStatusOptions.defaults()
+                              .setIncludeRealContentHash(options.getIncludeRealContentHash())) :
+          mUfs.get().getDirectoryStatus(ufsPath));
     });
   }
 
@@ -412,6 +422,30 @@ public class UfsBaseFileSystem implements FileSystem {
     throw new UnsupportedOperationException();
   }
 
+  @Override
+  public SyncMetadataPResponse syncMetadata(AlluxioURI path, SyncMetadataPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public SyncMetadataAsyncPResponse syncMetadataAsync(AlluxioURI path, SyncMetadataPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public GetSyncProgressPResponse getSyncProgress(long taskGroupId)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public CancelSyncMetadataPResponse cancelSyncMetadata(long taskGroupId)
+      throws IOException, AlluxioException {
+    throw new UnsupportedOperationException();
+  }
+
   /**
    * Transform UFS file/directory status to client-side status.
    *
@@ -439,7 +473,11 @@ public class UfsBaseFileSystem implements FileSystem {
       UfsFileStatus fileStatus = (UfsFileStatus) ufsStatus;
       info.setLength(fileStatus.getContentLength());
       info.setBlockSizeBytes(fileStatus.getBlockSize());
-    } else {
+      info.setUfsFingerprint(
+          Fingerprint.create(mUfs.get().getUnderFSType(), ufsStatus, fileStatus.getContentHash())
+                     .serialize());
+    }
+    else {
       info.setLength(0);
     }
     return new URIStatus(info);

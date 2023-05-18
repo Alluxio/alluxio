@@ -19,16 +19,20 @@ import java.util.Map;
 public final class PathPropertiesView {
   private final Map<String, Map<String, String>> mProperties;
   private final String mHash;
+  private final long mLastUpdateTime;
 
   /**
    * Constructs a read-only view of path level properties.
    *
    * @param properties map from path to properties
    * @param hash hash of all path level properties
+   * @param lastUpdateTime last update time
    */
-  public PathPropertiesView(Map<String, Map<String, String>> properties, String hash) {
+  public PathPropertiesView(Map<String, Map<String, String>> properties, String hash,
+      long lastUpdateTime) {
     mProperties = properties;
     mHash = hash;
+    mLastUpdateTime = lastUpdateTime;
   }
 
   /**
@@ -43,5 +47,12 @@ public final class PathPropertiesView {
    */
   public String getHash() {
     return mHash;
+  }
+
+  /**
+   * @return last update time
+   */
+  public long getLastUpdateTime() {
+    return mLastUpdateTime;
   }
 }

@@ -3319,6 +3319,32 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.MASTER)
       .build();
+  public static final PropertyKey MASTER_PROXY_TIMEOUT_MS =
+      durationBuilder(Name.MASTER_PROXY_TIMEOUT_MS)
+          .setAlias("alluxio.master.proxy.timeout.ms")
+          .setDefaultValue("5m")
+          .setDescription("An Alluxio Proxy instance will maintain heartbeat to the primary "
+              + "Alluxio Master. No heartbeat more than this timeout indicates a lost Proxy.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_PROXY_CHECK_HEARTBEAT_INTERVAL =
+      durationBuilder(Name.MASTER_PROXY_CHECK_HEARTBEAT_INTERVAL)
+          .setDefaultValue("1min")
+          .setDescription("The master will periodically check the last heartbeat time from all "
+              + "Proxy instances. This key specifies the frequency of the check.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_LOST_PROXY_DELETION_TIMEOUT_MS =
+      durationBuilder(Name.MASTER_LOST_PROXY_DELETION_TIMEOUT_MS)
+          .setAlias("alluxio.master.lost.proxy.deletion.timeout.ms")
+          .setDefaultValue("30min")
+          .setDescription("If an Alluxio Proxy has been lost for more than this timeout, "
+              + "the master will totally forget this worker.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_RPC_PORT =
       intBuilder(Name.MASTER_RPC_PORT)
           .setAlias("alluxio.master.port")
@@ -3727,6 +3753,33 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_UFS_CONCURRENT_GET_STATUS =
+      booleanBuilder(Name.MASTER_METADATA_SYNC_UFS_CONCURRENT_GET_STATUS)
+          .setDefaultValue(true)
+          .setDescription("Allows metadata sync operations on single items (i.e. getStatus) "
+              + "operations to run concurrently with metadata sync operations on directories "
+              + "(i.e listings) on intersecting paths.")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_UFS_CONCURRENT_LISTING =
+      booleanBuilder(Name.MASTER_METADATA_SYNC_UFS_CONCURRENT_LISTING)
+          .setDefaultValue(true)
+          .setDescription("Allows non-recursive metadata sync operations directories "
+              + "to run concurrently with recursive metadata sync operations on "
+              + "intersecting paths.")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_UFS_CONCURRENT_LOADS =
+      intBuilder(Name.MASTER_METADATA_SYNC_UFS_CONCURRENT_LOADS)
+          .setDefaultValue(100)
+          .setDescription("The number of concurrently running UFS listing operations "
+              + "during metadata sync. This includes loads that have completed, but "
+              + "have not yet been processed.")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
   // In Java8 in container environment Runtime.availableProcessors() always returns 1,
   // which is not the actual number of cpus, so we set a safe default value 32.
   public static final PropertyKey MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
@@ -3763,6 +3816,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("100ms")
           .setDescription("The timeout for a metadata fetch operation from the UFSes. "
               + "Adjust this timeout according to the expected UFS worst-case response time.")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_UFS_RATE_LIMIT =
+      longBuilder(Name.MASTER_METADATA_SYNC_UFS_RATE_LIMIT)
+          .setDescription("The maximum number of operations per second to execute "
+              + "on an individual UFS during metadata sync operations. If 0 or unset "
+              + "then no rate limit is enforced.")
           .setScope(Scope.MASTER)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
@@ -5233,6 +5294,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   // Proxy related properties
   //
+  public static final PropertyKey PROXY_MASTER_HEARTBEAT_INTERVAL =
+      durationBuilder(Name.PROXY_MASTER_HEARTBEAT_INTERVAL)
+          .setAlias("alluxio.proxy.master.heartbeat.interval.ms")
+          .setDefaultValue("10sec")
+          .setDescription("Proxy instances maintain a heartbeat with the primary master. "
+                + "This key specifies the heartbeat interval.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey PROXY_S3_WRITE_TYPE =
       enumBuilder(Name.PROXY_S3_WRITE_TYPE, WriteType.class)
           .setDefaultValue(WriteType.CACHE_THROUGH)
@@ -6261,6 +6331,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_MASTER_POLLING_CONCURRENT =
+      booleanBuilder(Name.USER_MASTER_POLLING_CONCURRENT)
+          .setDefaultValue(false)
+          .setDescription("Whether to concurrently polling the master.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_METADATA_CACHE_ENABLED =
       booleanBuilder(Name.USER_METADATA_CACHE_ENABLED)
           .setDefaultValue(false)
@@ -7250,6 +7327,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(100000)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey JOB_MASTER_MASTER_HEARTBEAT_INTERVAL =
+      durationBuilder(Name.JOB_MASTER_MASTER_HEARTBEAT_INTERVAL)
+          .setDescription("The amount of time that a standby Alluxio Job Master should wait "
+              + "in between heartbeats to the primary Job Master.")
+          .setDefaultValue("1sec")
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey JOB_MASTER_MASTER_TIMEOUT =
+      durationBuilder(Name.JOB_MASTER_MASTER_TIMEOUT)
+          .setDescription("The time period after which the primary Job Master will mark a standby "
+              + "as lost without a subsequent heartbeat.")
+          .setDefaultValue("60sec")
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey JOB_MASTER_WORKER_HEARTBEAT_INTERVAL =
       durationBuilder(Name.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL)
           .setDescription("The amount of time that the Alluxio job worker should wait in between "
@@ -7275,6 +7366,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The hostname of the Alluxio job master.")
           .setDefaultValue(format("${%s}", Name.MASTER_HOSTNAME))
           .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey JOB_MASTER_LOST_MASTER_INTERVAL =
+      durationBuilder(Name.JOB_MASTER_LOST_MASTER_INTERVAL)
+          .setDescription("The time interval the job master waits between checks for "
+              + "lost job masters.")
+          .setDefaultValue("10sec")
+          .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey JOB_MASTER_LOST_WORKER_INTERVAL =
       durationBuilder(Name.JOB_MASTER_LOST_WORKER_INTERVAL)
@@ -7580,6 +7678,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Kerberos authentication keytab login auto renew.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey HADOOP_CHECKSUM_COMBINE_MODE =
+      booleanBuilder(Name.HADOOP_CHECKSUM_COMBINE_MODE)
+          .setDescription("File Checksum combine mode.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
           .build();
   /**
    * @deprecated This key is used for testing. It is always deprecated.
@@ -7978,6 +8082,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.lock.pool.high.watermark";
     public static final String MASTER_LOCK_POOL_CONCURRENCY_LEVEL =
         "alluxio.master.lock.pool.concurrency.level";
+    public static final String MASTER_LOST_PROXY_DELETION_TIMEOUT_MS =
+        "alluxio.master.lost.proxy.deletion.timeout";
     public static final String MASTER_JOURNAL_CATCHUP_PROTECT_ENABLED =
         "alluxio.master.journal.catchup.protect.enabled";
     public static final String MASTER_JOURNAL_EXIT_ON_DEMOTION =
@@ -8077,6 +8183,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metadata.sync.report.failure";
     public static final String MASTER_METADATA_SYNC_GET_DIRECTORY_STATUS_SKIP_LOADING_CHILDREN =
         "alluxio.master.metadata.sync.get.directory.status.skip.loading.children";
+    public static final String MASTER_METADATA_SYNC_UFS_CONCURRENT_LOADS =
+        "alluxio.master.metadata.sync.ufs.concurrent.loads";
+    public static final String MASTER_METADATA_SYNC_UFS_CONCURRENT_GET_STATUS =
+        "alluxio.master.metadata.sync.ufs.concurrent.get.status";
+    public static final String MASTER_METADATA_SYNC_UFS_CONCURRENT_LISTING =
+        "alluxio.master.metadata.sync.ufs.concurrent.listing";
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
         "alluxio.master.metadata.sync.ufs.prefetch.pool.size";
     public static final String MASTER_METADATA_SYNC_TRAVERSAL_ORDER =
@@ -8085,6 +8197,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metadata.sync.ufs.prefetch.status";
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_TIMEOUT =
         "alluxio.master.metadata.sync.ufs.prefetch.timeout";
+    public static final String MASTER_METADATA_SYNC_UFS_RATE_LIMIT =
+        "alluxio.master.metadata.sync.ufs.rate.limit";
     public static final String MASTER_METADATA_SYNC_IGNORE_TTL =
         "alluxio.master.metadata.sync.ignore.ttl";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";
@@ -8196,6 +8310,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
         "alluxio.master.periodic.block.integrity.check.interval";
     public static final String MASTER_PRINCIPAL = "alluxio.master.principal";
+    public static final String MASTER_PROXY_TIMEOUT_MS = "alluxio.master.proxy.timeout";
+    public static final String MASTER_PROXY_CHECK_HEARTBEAT_INTERVAL =
+        "alluxio.master.proxy.check.heartbeat.timeout";
     public static final String MASTER_REPLICATION_CHECK_INTERVAL_MS =
         "alluxio.master.replication.check.interval";
     public static final String MASTER_RPC_PORT = "alluxio.master.rpc.port";
@@ -8586,6 +8703,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // Proxy related properties
     //
+    public static final String PROXY_MASTER_HEARTBEAT_INTERVAL =
+        "alluxio.proxy.master.heartbeat.interval";
     public static final String PROXY_S3_WRITE_TYPE = "alluxio.proxy.s3.writetype";
     public static final String PROXY_S3_DELETE_TYPE = "alluxio.proxy.s3.deletetype";
     public static final String PROXY_S3_MULTIPART_UPLOAD_CLEANER_ENABLED =
@@ -8824,6 +8943,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.local.writer.chunk.size.bytes";
     public static final String USER_LOGGING_THRESHOLD = "alluxio.user.logging.threshold";
     public static final String USER_MASTER_POLLING_TIMEOUT = "alluxio.user.master.polling.timeout";
+    public static final String USER_MASTER_POLLING_CONCURRENT =
+        "alluxio.user.master.polling.concurrent";
     public static final String USER_METADATA_CACHE_ENABLED =
         "alluxio.user.metadata.cache.enabled";
     public static final String USER_METADATA_CACHE_MAX_SIZE =
@@ -9031,6 +9152,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String JOB_MASTER_FINISHED_JOB_RETENTION_TIME =
         "alluxio.job.master.finished.job.retention.time";
     public static final String JOB_MASTER_JOB_CAPACITY = "alluxio.job.master.job.capacity";
+    public static final String JOB_MASTER_MASTER_HEARTBEAT_INTERVAL =
+        "alluxio.job.master.master.heartbeat.interval";
+    public static final String JOB_MASTER_MASTER_TIMEOUT =
+        "alluxio.job.master.master.timeout";
     public static final String JOB_MASTER_WORKER_HEARTBEAT_INTERVAL =
         "alluxio.job.master.worker.heartbeat.interval";
     public static final String JOB_MASTER_WORKER_TIMEOUT =
@@ -9038,6 +9163,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     public static final String JOB_MASTER_BIND_HOST = "alluxio.job.master.bind.host";
     public static final String JOB_MASTER_HOSTNAME = "alluxio.job.master.hostname";
+    public static final String JOB_MASTER_LOST_MASTER_INTERVAL =
+            "alluxio.job.master.lost.master.interval";
     public static final String JOB_MASTER_LOST_WORKER_INTERVAL =
         "alluxio.job.master.lost.worker.interval";
     public static final String JOB_MASTER_RPC_PORT = "alluxio.job.master.rpc.port";
@@ -9116,6 +9243,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     public static final String HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL =
         "alluxio.hadoop.kerberos.keytab.login.autorenewal";
+    public static final String HADOOP_CHECKSUM_COMBINE_MODE =
+        "alluxio.hadoop.checksum.combine.mode";
 
     private Name() {} // prevent instantiation
   }

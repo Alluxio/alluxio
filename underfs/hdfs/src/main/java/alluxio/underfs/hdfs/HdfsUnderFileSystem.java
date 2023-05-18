@@ -33,6 +33,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
+import alluxio.underfs.options.GetFileStatusOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
@@ -43,6 +44,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
@@ -108,6 +110,9 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
 
   private static final String KRB_KEYTAB_LOGIN_AUTO_RENEW =
           "hadoop.kerberos.keytab.login.autorenewal.enabled";
+
+  private static final String CHECKSUM_COMBINE_MODE =
+          "dfs.checksum.combine.mode";
 
   private final LoadingCache<String, FileSystem> mUserFs;
   private final HdfsAclProvider mHdfsAclProvider;
@@ -178,6 +183,11 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         hdfsConf.setBoolean(KRB_KEYTAB_LOGIN_AUTO_RENEW,
                 mUfsConf.getBoolean(PropertyKey.HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL));
       }
+      if (mUfsConf.isSet(PropertyKey.HADOOP_CHECKSUM_COMBINE_MODE)) {
+        hdfsConf.set(CHECKSUM_COMBINE_MODE,
+            mUfsConf.getString(PropertyKey.HADOOP_CHECKSUM_COMBINE_MODE));
+      }
+
       // Set Hadoop UGI configuration to ensure UGI can be initialized by the shaded classes for
       // group service.
       UserGroupInformation.setConfiguration(hdfsConf);
@@ -428,12 +438,19 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   @Override
-  public UfsFileStatus getFileStatus(String path) throws IOException {
+  public UfsFileStatus getFileStatus(String path, GetFileStatusOptions options) throws IOException {
     Path tPath = new Path(path);
     FileSystem hdfs = getFs();
     FileStatus fs = hdfs.getFileStatus(tPath);
-    String contentHash =
-        UnderFileSystemUtils.approximateContentHash(fs.getLen(), fs.getModificationTime());
+    String contentHash;
+    if (options.isIncludeRealContentHash()) {
+      contentHash = Base64.encodeBase64String(hdfs.getFileChecksum(tPath).getBytes());
+    }
+    else {
+      contentHash =
+          UnderFileSystemUtils.approximateContentHash(fs.getLen(), fs.getModificationTime());
+    }
+
     return new UfsFileStatus(path, contentHash, fs.getLen(), fs.getModificationTime(),
         fs.getOwner(), fs.getGroup(), fs.getPermission().toShort(), fs.getBlockSize());
   }

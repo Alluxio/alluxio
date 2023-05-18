@@ -15,10 +15,12 @@ import alluxio.Client;
 import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
+import alluxio.grpc.ProxyStatus;
 import alluxio.wire.BackupStatus;
 import alluxio.wire.ConfigCheckReport;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -71,4 +73,11 @@ public interface MetaMasterClient extends Client {
    * @return the hostname of the master that did the checkpoint
    */
   String checkpoint() throws IOException;
+
+  /**
+   * Lists information of all known proxy instances from the primary master.
+   *
+   * @return the list of proxy status
+   */
+  List<ProxyStatus> listProxyStatus() throws IOException;
 }

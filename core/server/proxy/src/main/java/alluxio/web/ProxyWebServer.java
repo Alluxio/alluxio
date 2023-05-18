@@ -44,7 +44,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -72,13 +71,12 @@ public final class ProxyWebServer extends WebServer {
   private final RateLimiter mGlobalRateLimiter;
   private final FileSystem mFileSystem;
   private AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
-  public static final String PROXY_S3_HANDLER_MAP = "Proxy S3 Handler Map";
-  public ConcurrentHashMap<Request, S3Handler> mS3HandlerMap = new ConcurrentHashMap<>();
+  public static final String S3_HANDLER_ATTRIBUTE = "Proxy S3 Handler Attribute";
 
   class ProxyListener implements HttpChannel.Listener {
     public void onComplete(Request request)
     {
-      S3Handler s3Hdlr = mS3HandlerMap.get(request);
+      S3Handler s3Hdlr = (S3Handler) request.getAttribute(S3_HANDLER_ATTRIBUTE);
       if (s3Hdlr != null) {
         ProxyWebServer.logAccess(s3Hdlr.getServletRequest(), s3Hdlr.getServletResponse(),
             s3Hdlr.getStopwatch(), s3Hdlr.getS3Task() != null
@@ -168,7 +166,6 @@ public final class ProxyWebServer extends WebServer {
                   mAsyncAuditLogWriter);
               getServletContext().setAttribute(PROXY_S3_V2_LIGHT_POOL, createLightThreadPool());
               getServletContext().setAttribute(PROXY_S3_V2_HEAVY_POOL, createHeavyThreadPool());
-              getServletContext().setAttribute(PROXY_S3_HANDLER_MAP, mS3HandlerMap);
             }
           });
       mServletContextHandler
