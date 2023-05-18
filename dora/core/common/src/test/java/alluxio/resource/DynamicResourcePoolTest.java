@@ -166,7 +166,8 @@ public final class DynamicResourcePoolTest {
    */
   @Test
   public void acquireFIFO() throws Exception {
-    TestPool pool = new TestPool(DynamicResourcePool.Options.defaultOptions().setFIFO(true));
+    TestPool pool = new TestPool(DynamicResourcePool.Options.defaultOptions().setSelectionPolicy(
+        DynamicResourcePool.SelectionPolicy.FIFO));
     List<Resource> resourceList = new ArrayList<>();
     for (int i = 0; i < 3; i++) {
       Resource resource = pool.acquire();

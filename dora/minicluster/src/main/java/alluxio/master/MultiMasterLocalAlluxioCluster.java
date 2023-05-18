@@ -24,6 +24,7 @@ import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
+import alluxio.worker.WorkerProcess;
 
 import com.google.common.base.Throwables;
 import org.apache.curator.test.TestingServer;
@@ -121,6 +122,14 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
       }
     }
     return mMasters.get(0);
+  }
+
+  /**
+   * @param index the worker index
+   * @return the worker process
+   */
+  public WorkerProcess getWorkerProcess(int index) {
+    return mWorkers.get(index);
   }
 
   /**

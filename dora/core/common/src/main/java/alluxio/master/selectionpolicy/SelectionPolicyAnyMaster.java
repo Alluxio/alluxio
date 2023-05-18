@@ -36,4 +36,9 @@ public class SelectionPolicyAnyMaster extends AbstractMasterSelectionPolicy {
     Collections.shuffle(masterAddresses);
     return masterAddresses.get(0);
   }
+
+  @Override
+  public Type getType() {
+    return Type.ANY_MASTER;
+  }
 }

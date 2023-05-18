@@ -15,6 +15,7 @@ import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_MEDIUM;
 import static alluxio.worker.page.PagedBlockStoreMeta.DEFAULT_TIER;
 
 import alluxio.client.file.cache.CacheUsage;
+import alluxio.client.file.cache.PageId;
 import alluxio.client.file.cache.PageInfo;
 import alluxio.client.file.cache.PageStore;
 import alluxio.client.file.cache.store.PageStoreDir;
@@ -279,5 +280,16 @@ public class PagedBlockStoreDir implements PageStoreDir {
   public Optional<CacheUsage> getUsage() {
     // TODO(bowen): implement partition by block
     return mDelegate.getUsage();
+  }
+
+  /**
+   * Gets pages in this block.
+   *
+   * @param blockId the block id
+   * @return pages in this block being cached
+   */
+  public Set<PageId> getBlockPages(long blockId) {
+    return mBlockToPagesMap.get(blockId).stream().map(PageInfo::getPageId)
+      .collect(Collectors.toSet());
   }
 }

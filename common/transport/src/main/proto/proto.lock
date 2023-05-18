@@ -1783,6 +1783,10 @@
               {
                 "name": "FREE",
                 "integer": 1
+              },
+              {
+                "name": "DELETE_ALLUXIO",
+                "integer": 2
               }
             ]
           },
@@ -2695,6 +2699,11 @@
                 "id": 4,
                 "name": "commonOptions",
                 "type": "FileSystemMasterCommonPOptions"
+              },
+              {
+                "id": 5,
+                "name": "syncParentNextTime",
+                "type": "bool"
               },
               {
                 "id": 6,
@@ -8482,6 +8491,11 @@
                 "id": 1,
                 "name": "serviceType",
                 "type": "ServiceType"
+              },
+              {
+                "id": 2,
+                "name": "allowedOnStandbyMasters",
+                "type": "bool"
               }
             ]
           },
@@ -9092,6 +9106,10 @@
               {
                 "name": "FREE",
                 "integer": 1
+              },
+              {
+                "name": "DELETE_ALLUXIO",
+                "integer": 2
               }
             ]
           },

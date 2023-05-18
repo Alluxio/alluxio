@@ -82,6 +82,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -112,6 +114,8 @@ public final class InodeTreeTest {
   private InodeTree mTree;
   private MasterRegistry mRegistry;
   private MetricsMaster mMetricsMaster;
+
+  private ExecutorService mThreadPool;
 
   @Parameters
   public static Iterable<Supplier<InodeStore>> parameters() throws Exception {
@@ -163,12 +167,14 @@ public final class InodeTreeTest {
     mRegistry.start(true);
 
     mTree.initializeRoot(TEST_OWNER, TEST_GROUP, TEST_DIR_MODE, NoopJournalContext.INSTANCE);
+    mThreadPool = Executors.newCachedThreadPool();
   }
 
   @After
   public void after() throws Exception {
     mRegistry.stop();
     mInodeStore.close();
+    mThreadPool.shutdown();
   }
 
   /**

@@ -18,19 +18,29 @@ import alluxio.grpc.UploadSnapshotPRequest;
 import alluxio.grpc.UploadSnapshotPResponse;
 
 import io.grpc.stub.StreamObserver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * RPC handler for raft journal service.
  */
 public class RaftJournalServiceHandler extends RaftJournalServiceGrpc.RaftJournalServiceImplBase {
-
+  private static final Logger LOG =
+      LoggerFactory.getLogger(RaftJournalServiceHandler.class);
   private final SnapshotReplicationManager mManager;
+  private final RaftJournalSystem mRaftJournalSystem;
 
   /**
    * @param manager the snapshot replication manager
+   * @param raftJournalSystem the raft journal system
    */
-  public RaftJournalServiceHandler(SnapshotReplicationManager manager) {
+  public RaftJournalServiceHandler(
+      SnapshotReplicationManager manager,
+      RaftJournalSystem raftJournalSystem) {
     mManager = manager;
+    mRaftJournalSystem = raftJournalSystem;
+    LOG.debug("RaftJournalServiceHandler initialized, journal system {}",
+        mRaftJournalSystem);
   }
 
   @Override

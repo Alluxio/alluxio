@@ -28,17 +28,21 @@ public class GrpcChannelBuilder {
 
   private Subject mParentSubject;
   private AuthType mAuthType;
+  // In some scenarios, the TLS is always enabled for special channel regarding the config
+  private boolean mAlwaysEnableTLS;
   private GrpcNetworkGroup mNetworkGroup = GrpcNetworkGroup.RPC;
 
   private GrpcChannelBuilder(GrpcServerAddress address, AlluxioConfiguration conf) {
-    this(address, conf, conf.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class));
+    this(address, conf, conf.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class),
+        false);
   }
 
-  private GrpcChannelBuilder(GrpcServerAddress address, AlluxioConfiguration conf,
-      AuthType authType) {
+  protected GrpcChannelBuilder(GrpcServerAddress address, AlluxioConfiguration conf,
+      AuthType authType, boolean alwaysEnableTLS) {
     mAddress = address;
     mConfiguration = conf;
     mAuthType = authType;
+    mAlwaysEnableTLS = alwaysEnableTLS;
   }
 
   /**
@@ -58,12 +62,27 @@ public class GrpcChannelBuilder {
    *
    * @param address the host address
    * @param conf Alluxio configuration
+   * @param alwaysEnableTLS whether to always enable TLS
+   * @return a new instance of {@link GrpcChannelBuilder}
+   */
+  public static GrpcChannelBuilder newBuilder(GrpcServerAddress address,
+      AlluxioConfiguration conf, boolean alwaysEnableTLS) {
+    return new GrpcChannelBuilder(address, conf,
+        conf.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class), alwaysEnableTLS);
+  }
+
+  /**
+   * Create a channel builder for given address using the given configuration.
+   *
+   * @param address the host address
+   * @param conf Alluxio configuration
    * @param authType the auth type
+   * @param alwaysEnableTLS whether to always enable the TLS
    * @return a new instance of {@link GrpcChannelBuilder}
    */
   public static GrpcChannelBuilder newBuilder(GrpcServerAddress address, AlluxioConfiguration conf,
-      AuthType authType) {
-    return new GrpcChannelBuilder(address, conf, authType);
+      AuthType authType, boolean alwaysEnableTLS) {
+    return new GrpcChannelBuilder(address, conf, authType, alwaysEnableTLS);
   }
 
   /**
@@ -98,6 +117,30 @@ public class GrpcChannelBuilder {
     return this;
   }
 
+  protected GrpcServerAddress getAddress() {
+    return mAddress;
+  }
+
+  protected GrpcNetworkGroup getNetworkGroup() {
+    return mNetworkGroup;
+  }
+
+  protected AlluxioConfiguration getConfiguration() {
+    return mConfiguration;
+  }
+
+  protected boolean getAlwaysEnableTLS() {
+    return mAlwaysEnableTLS;
+  }
+
+  protected AuthType getAuthType() {
+    return mAuthType;
+  }
+
+  protected Subject getParentSubject() {
+    return mParentSubject;
+  }
+
   /**
    * Creates an authenticated channel of type {@link GrpcChannel}.
    *
@@ -106,7 +149,8 @@ public class GrpcChannelBuilder {
   public GrpcChannel build() throws AlluxioStatusException {
     // Acquire a connection from the pool.
     GrpcChannel channel =
-        GrpcChannelPool.INSTANCE.acquireChannel(mNetworkGroup, mAddress, mConfiguration);
+        GrpcChannelPool.INSTANCE.acquireChannel(mNetworkGroup, mAddress,
+            mConfiguration, mAlwaysEnableTLS);
     try {
       channel.authenticate(mAuthType, mParentSubject, mConfiguration);
     } catch (Throwable t) {

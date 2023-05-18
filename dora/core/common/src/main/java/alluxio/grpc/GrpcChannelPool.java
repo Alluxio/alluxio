@@ -85,10 +85,11 @@ public class GrpcChannelPool
    * @param networkGroup network group
    * @param serverAddress server address
    * @param conf the Alluxio configuration
+   * @param alwaysEnableTLS whether to always enable TLS
    * @return a {@link GrpcChannel}
    */
   public GrpcChannel acquireChannel(GrpcNetworkGroup networkGroup,
-      GrpcServerAddress serverAddress, AlluxioConfiguration conf) {
+      GrpcServerAddress serverAddress, AlluxioConfiguration conf, boolean alwaysEnableTLS) {
     GrpcChannelKey channelKey = getChannelKey(networkGroup, serverAddress, conf);
     CountingReference<ManagedChannel> channelRef =
         mChannels.compute(channelKey, (key, ref) -> {
@@ -116,9 +117,10 @@ public class GrpcChannelPool
           }
 
           // Create a new managed channel.
-          LOG.debug("Creating a new managed channel. ConnectionKey: {}. Ref-count:{}", key,
-              existingRefCount);
-          ManagedChannel managedChannel = createManagedChannel(channelKey, conf);
+          LOG.debug("Creating a new managed channel. ConnectionKey: {}. Ref-count:{},"
+                  + " alwaysEnableTLS:{} config TLS:{}", key, existingRefCount, alwaysEnableTLS,
+              conf.getBoolean(alluxio.conf.PropertyKey.NETWORK_TLS_ENABLED));
+          ManagedChannel managedChannel = createManagedChannel(channelKey, conf, alwaysEnableTLS);
           // Set map reference.
           return new CountingReference<>(managedChannel, existingRefCount).reference();
         });
@@ -164,7 +166,7 @@ public class GrpcChannelPool
    * Creates a {@link ManagedChannel} by given pool key.
    */
   private ManagedChannel createManagedChannel(GrpcChannelKey channelKey,
-      AlluxioConfiguration conf) {
+      AlluxioConfiguration conf, boolean alwaysEnableTLS) {
     // Create netty channel builder with the address from channel key.
     NettyChannelBuilder channelBuilder;
     SocketAddress address = channelKey.getServerAddress().getSocketAddress();
@@ -203,7 +205,13 @@ public class GrpcChannelPool
       channelBuilder.useTransportSecurity();
     } else if (conf.getBoolean(alluxio.conf.PropertyKey.NETWORK_TLS_ENABLED)) {
       // Use shared TLS config for other network groups if enabled.
+      // Or this channel is enforced to enable TLS
       channelBuilder.sslContext(mSslContextProvider.getClientSslContext());
+      channelBuilder.useTransportSecurity();
+    } else if (alwaysEnableTLS) {
+      // If the NETWORK_TLS_ENABLED is false and alwaysEnableTLS is true, use the self
+      // signed ssl context
+      channelBuilder.sslContext(mSslContextProvider.getSelfSignedClientSslContext());
       channelBuilder.useTransportSecurity();
     }
     // Build netty managed channel.

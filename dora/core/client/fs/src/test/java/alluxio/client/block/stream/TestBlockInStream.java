@@ -11,7 +11,10 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.wire.WorkerNetAddress;
+
+import com.google.common.annotations.VisibleForTesting;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -54,6 +57,16 @@ public class TestBlockInStream extends BlockInStream {
 
   public boolean isClosed() {
     return mClosed;
+  }
+
+  @VisibleForTesting
+  public DataReader getDataReader() {
+    return mDataReader;
+  }
+
+  @VisibleForTesting
+  public DataBuffer getCurrentChunk() {
+    return mCurrentChunk;
   }
 
   @Override

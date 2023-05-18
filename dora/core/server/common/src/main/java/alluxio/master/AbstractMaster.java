@@ -47,7 +47,7 @@ public abstract class AbstractMaster implements Master {
   /** The executor used for running maintenance threads for the master. */
   private ExecutorService mExecutorService;
   /** A handler to the journal for this master. */
-  private final Journal mJournal;
+  protected final Journal mJournal;
   /** true if this master is in primary mode, and not standby mode. */
   private boolean mIsPrimary = false;
 
