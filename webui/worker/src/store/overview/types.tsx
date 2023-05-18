@@ -24,6 +24,7 @@ export interface IOverview {
   storageDirs: IStorageTierInfo[];
   blockCount: string;
   version: string;
+  revision: string;
 }
 
 export enum OverviewActionTypes {

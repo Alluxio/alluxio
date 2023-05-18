@@ -151,7 +151,7 @@
     <guava.version>31.0.1-jre</guava.version>
     <guice.version>5.1.0</guice.version>
     <parquet.version>1.11.0</parquet.version>
-    <protobuf.version>3.19.2</protobuf.version>
+    <protobuf.version>3.19.6</protobuf.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <slf4j.version>1.7.30</slf4j.version>
     <jackson.version>2.13.3</jackson.version>
@@ -372,6 +372,11 @@
             <artifactId>proto-google-common-protos</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>io.grpc</groupId>
+        <artifactId>grpc-services</artifactId>
+        <version>${grpc.version}</version>
       </dependency>
       <dependency>
         <groupId>io.grpc</groupId>
@@ -896,7 +901,7 @@
         <plugin>
           <groupId>com.mycila</groupId>
           <artifactId>license-maven-plugin</artifactId>
-          <version>4.0.rc1</version>
+          <version>4.2</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -1211,64 +1216,68 @@
         <groupId>com.mycila</groupId>
         <artifactId>license-maven-plugin</artifactId>
         <configuration>
-          <header>${build.path}/license/HEADER.txt</header>
-          <failIfMissing>true</failIfMissing>
           <aggregate>false</aggregate>
-          <excludes>
+          <failIfMissing>true</failIfMissing>
+          <licenseSets>
+            <licenseSet>
+              <header>${build.path}/license/HEADER.txt</header>
+              <excludes>
 
-            <!-- Code Exclusions -->
-            <exclude>**/src/main/resources/*</exclude>
-            <exclude>**/src/proto/**</exclude>
-            <exclude>**/src/deb/**/*</exclude>
-            <exclude>**/src/test/resources/**</exclude>
-            <exclude>**/\?/.java/**/*</exclude>
+                <!-- Code Exclusions -->
+                <exclude>**/src/main/resources/*</exclude>
+                <exclude>**/src/proto/**</exclude>
+                <exclude>**/src/deb/**/*</exclude>
+                <exclude>**/src/test/resources/**</exclude>
+                <exclude>**/\?/.java/**/*</exclude>
 
-            <!-- Build and Packaging Exclusions -->
-            <exclude>webui/node_modules/*</exclude>
-            <exclude>build/**/*</exclude>
-            <exclude>conf/alluxio-env.sh</exclude>
-            <exclude>conf/alluxio-site.properties</exclude>
-            <exclude>conf/masters</exclude>
-            <exclude>conf/tiered_identity.sh</exclude>
-            <exclude>conf/workers</exclude>
-            <exclude>dev/scripts/src/alluxio.org/go.mod</exclude>
-            <exclude>dev/scripts/src/alluxio.org/go.sum</exclude>
-            <exclude>dev/scripts/tarballs/**/*</exclude>
-            <exclude>dev/scripts/workdir/**/*</exclude>
-            <exclude>generated/**</exclude>
-            <exclude>**/.checkstyle</exclude>
-            <exclude>**/src/main/assembly/*</exclude>
-            <exclude>**/.idea/**</exclude>
-            <exclude>webui/**/.nvmrc</exclude>
-            <exclude>webui/**/*.svg</exclude>
-            <exclude>webui/**/.env*</exclude>
-            <exclude>webui/**/node/**</exclude>
-            <exclude>webui/**/node_modules/**</exclude>
-            <exclude>webui/**/src/**/*.css</exclude>
-            <exclude>webui/**/build/**</exclude>
+                <!-- Build and Packaging Exclusions -->
+                <exclude>webui/node_modules/*</exclude>
+                <exclude>build/**/*</exclude>
+                <exclude>conf/alluxio-env.sh</exclude>
+                <exclude>conf/alluxio-site.properties</exclude>
+                <exclude>conf/masters</exclude>
+                <exclude>conf/tiered_identity.sh</exclude>
+                <exclude>conf/workers</exclude>
+                <exclude>dev/scripts/src/alluxio.org/go.mod</exclude>
+                <exclude>dev/scripts/src/alluxio.org/go.sum</exclude>
+                <exclude>dev/scripts/tarballs/**/*</exclude>
+                <exclude>dev/scripts/workdir/**/*</exclude>
+                <exclude>generated/**</exclude>
+                <exclude>**/.checkstyle</exclude>
+                <exclude>**/src/main/assembly/*</exclude>
+                <exclude>**/.idea/**</exclude>
+                <exclude>webui/**/.nvmrc</exclude>
+                <exclude>webui/**/*.svg</exclude>
+                <exclude>webui/**/.env*</exclude>
+                <exclude>webui/**/node/**</exclude>
+                <exclude>webui/**/node_modules/**</exclude>
+                <exclude>webui/**/src/**/*.css</exclude>
+                <exclude>webui/**/build/**</exclude>
 
-            <!-- Documentation Exclusions -->
-            <exclude>docs/**/*</exclude>
-            <exclude>LICENSE</exclude>
-            <exclude>NOTICE</exclude>
-            <exclude>templates/*</exclude>
+                <!-- Documentation Exclusions -->
+                <exclude>docs/**/*</exclude>
+                <exclude>LICENSE</exclude>
+                <exclude>NOTICE</exclude>
+                <exclude>templates/*</exclude>
 
-            <!-- Default Local File System Exclusions -->
-            <exclude>logs/**/*</exclude>
-            <exclude>journal/**/*</exclude>
-            <exclude>metastore/**/*</exclude>
-            <exclude>underFSStorage/**/*</exclude>
-          </excludes>
+                <!-- Default Local File System Exclusions -->
+                <exclude>logs/**/*</exclude>
+                <exclude>journal/**/*</exclude>
+                <exclude>metastore/**/*</exclude>
+                <exclude>underFSStorage/**/*</exclude>
+              </excludes>
+            </licenseSet>
+          </licenseSets>
           <mapping>
             <alluxio>SCRIPT_STYLE</alluxio>
-            <go>SLASHSTAR_STYLE</go>
             <cc>SLASHSTAR_STYLE</cc>
+            <go>SLASHSTAR_STYLE</go>
             <h>SLASHSTAR_STYLE</h>
             <java>SLASHSTAR_STYLE</java>
-            <tsx>SLASHSTAR_STYLE</tsx>
-            <scss>SLASHSTAR_STYLE</scss>
             <properties.template>SCRIPT_STYLE</properties.template>
+            <scss>SLASHSTAR_STYLE</scss>
             <sh.template>SCRIPT_STYLE</sh.template>
+            <tsx>SLASHSTAR_STYLE</tsx>
             <workers>SCRIPT_STYLE</workers>
             <xml.template>XML_STYLE</xml.template>
           </mapping>

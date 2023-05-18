@@ -160,7 +160,7 @@ public final class UfsSyncChecker {
               childrenList.add(newStatus);
             }
           }
-          return trimIndirect(childrenList.toArray(new UfsStatus[childrenList.size()]));
+          return trimIndirect(childrenList.toArray(new UfsStatus[0]));
         }
         curUri = curUri.getParent();
       }
@@ -189,6 +189,6 @@ public final class UfsSyncChecker {
         childrenList.add(child);
       }
     }
-    return childrenList.toArray(new UfsStatus[childrenList.size()]);
+    return childrenList.toArray(new UfsStatus[0]);
   }
 }

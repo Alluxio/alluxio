@@ -30,11 +30,13 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MultiValueMetricsAggregator;
 import alluxio.metrics.aggregator.SingleTagValueAggregator;
+import alluxio.security.authentication.ClientContextServerInjector;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 
 import com.codahale.metrics.Gauge;
 import com.google.common.annotations.VisibleForTesting;
+import io.grpc.ServerInterceptors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -164,7 +166,9 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
   public Map<ServiceType, GrpcService> getServices() {
     Map<ServiceType, GrpcService> services = new HashMap<>();
     services.put(ServiceType.METRICS_MASTER_CLIENT_SERVICE,
-        new GrpcService(getMasterServiceHandler()));
+        new GrpcService(ServerInterceptors.intercept(
+            getMasterServiceHandler(),
+            new ClientContextServerInjector())));
     return services;
   }
 

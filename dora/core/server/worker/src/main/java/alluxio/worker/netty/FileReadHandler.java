@@ -74,9 +74,8 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequestContext
   }
 
   @Override
-  protected AbstractReadHandler<BlockReadRequestContext>.PacketReader createPacketReader(
-      BlockReadRequestContext context, Channel channel) {
-    return new BlockPacketReader(context, channel, mWorker);
+  protected AbstractReadHandler<BlockReadRequestContext>.PacketReader createPacketReader() {
+    return new BlockPacketReader(mWorker);
   }
 
   /**
@@ -89,13 +88,12 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequestContext
      */
     private final DoraWorker mWorker;
 
-    BlockPacketReader(BlockReadRequestContext context, Channel channel, DoraWorker worker) {
-      super(context, channel);
+    BlockPacketReader(DoraWorker worker) {
       mWorker = worker;
     }
 
     @Override
-    protected void completeRequest(BlockReadRequestContext context) throws Exception {
+    public void completeRequest(BlockReadRequestContext context) throws Exception {
       BlockReader reader = context.getBlockReader();
       if (reader != null) {
         try {
@@ -108,7 +106,7 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequestContext
     }
 
     @Override
-    protected DataBuffer getDataBuffer(BlockReadRequestContext context, Channel channel,
+    public DataBuffer getDataBuffer(BlockReadRequestContext context, Channel channel,
                                        long offset, int len) throws Exception {
       openBlock(context, channel);
       BlockReader blockReader = context.getBlockReader();

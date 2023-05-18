@@ -42,6 +42,13 @@ public final class BlockContainerIdGenerator implements ContainerIdGenerable {
   }
 
   /**
+   * @return the next container id
+   */
+  public long peekNewContainerId() {
+    return mNextContainerId.get();
+  }
+
+  /**
    * @param id the next container id to use
    */
   public void setNextContainerId(long id) {

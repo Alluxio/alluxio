@@ -29,7 +29,7 @@ import java.io.PrintStream;
 /**
  * Context for running an fsadmin command.
  */
-public final class Context implements Closeable {
+public class Context implements Closeable {
   private final FileSystemMasterClient mFsClient;
   private final BlockMasterClient mBlockClient;
   private final MetaMasterClient mMetaClient;
@@ -140,6 +140,10 @@ public final class Context implements Closeable {
    */
   public PrintStream getPrintStream() {
     return mPrintStream;
+  }
+
+  protected Closer getCloser() {
+    return mCloser;
   }
 
   @Override

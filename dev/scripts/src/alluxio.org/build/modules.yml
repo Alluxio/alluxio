@@ -1,0 +1,115 @@
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+libModules:
+  integration-tools-hms:
+    generatedJarPath: "lib/alluxio-integration-tools-hms-${VERSION}.jar"
+    bundleWith:
+      - default
+  integration-tools-validation:
+    generatedJarPath: "lib/alluxio-integration-tools-validation-${VERSION}.jar"
+    bundleWith:
+      - default
+  underfs-abfs:
+    generatedJarPath: "lib/alluxio-underfs-abfs-${VERSION}.jar"
+    bundleWith:
+      - default
+  underfs-adl:
+    generatedJarPath: "lib/alluxio-underfs-adl-${VERSION}.jar"
+    bundleWith:
+      - default
+  underfs-cos:
+    generatedJarPath: "lib/alluxio-underfs-cos-${VERSION}.jar"
+    bundleWith:
+      - default
+  underfs-cephfs:
+    generatedJarPath: "lib/alluxio-underfs-cephfs-${VERSION}.jar"
+    bundleWith:
+      - default
+  underfs-cephfs-hadoop:
+    generatedJarPath: "lib/alluxio-underfs-cephfs-hadoop-${VERSION}.jar"
+    bundleWith:
+      - default
+  underfs-gcs:
+    generatedJarPath: "lib/alluxio-underfs-gcs-${VERSION}.jar"
+    bundleWith:
+      - default
+  underfs-local:
+    generatedJarPath: "lib/alluxio-underfs-local-${VERSION}.jar"
+    bundleWith:
+      - default
+      - fuse
+  underfs-obs:
+    generatedJarPath: "lib/alluxio-underfs-obs-${VERSION}.jar"
+    bundleWith:
+      - default
+  underfs-oss:
+    generatedJarPath: "lib/alluxio-underfs-oss-${VERSION}.jar"
+    bundleWith:
+      - default
+  underfs-s3a:
+    generatedJarPath: "lib/alluxio-underfs-s3a-${VERSION}.jar"
+    bundleWith:
+      - default
+      - fuse
+  underfs-swift:
+    generatedJarPath: "lib/alluxio-underfs-swift-${VERSION}.jar"
+    bundleWith:
+      - default
+  underfs-wasb:
+    generatedJarPath: "lib/alluxio-underfs-wasb-${VERSION}.jar"
+    bundleWith:
+      - default
+  underfs-web:
+    generatedJarPath: "lib/alluxio-underfs-web-${VERSION}.jar"
+    bundleWith:
+      - default
+pluginModules:
+  ufs-hadoop-2.7:
+    moduleType: hdfs
+    enumName: hadoop-2.7
+    mavenArgs: "-pl dora/underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.7.3 -PhdfsActiveSync"
+    generatedJarPath: "lib/alluxio-underfs-hdfs-2.7.3-${VERSION}.jar"
+    tarballJarPath: "lib/alluxio-underfs-hadoop-2.7-${VERSION}.jar"
+    bundleWith:
+      - default
+      - fuse
+  ufs-hadoop-2.10:
+    moduleType: hdfs
+    enumName: hadoop-2.10
+    mavenArgs: "-pl dora/underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.10.1 -PhdfsActiveSync"
+    generatedJarPath: "lib/alluxio-underfs-hdfs-2.10.1-${VERSION}.jar"
+    tarballJarPath: "lib/alluxio-underfs-hadoop-2.10-${VERSION}.jar"
+    bundleWith:
+      - default
+  ufs-hadoop-3.3:
+    moduleType: hdfs
+    enumName: hadoop-3.3
+    mavenArgs: "-pl dora/underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.1 -PhdfsActiveSync"
+    generatedJarPath: "lib/alluxio-underfs-hdfs-3.3.1-${VERSION}.jar"
+    tarballJarPath: "lib/alluxio-underfs-hadoop-3.3-${VERSION}.jar"
+    bundleWith:
+      - default
+      - fuse
+  ufs-hadoop-ozone-1.2.1:
+    moduleType: ozone
+    mavenArgs: "-pl dora/underfs/ozone -Pufs-hadoop-3 -Dufs.ozone.version=1.2.1"
+    generatedJarPath: "lib/alluxio-underfs-ozone-${VERSION}.jar"
+    tarballJarPath: "lib/alluxio-underfs-hadoop-ozone-1.2.1-${VERSION}.jar"
+    bundleWith:
+      - default
+  ufs-hadoop-cosn-3.1.0-5.8.5:
+    moduleType: cosn
+    mavenArgs: "-pl dora/underfs/cosn -Dufs.cosn.version=3.1.0-5.8.5"
+    generatedJarPath: "lib/alluxio-underfs-cosn-${VERSION}.jar"
+    tarballJarPath: "lib/alluxio-underfs-hadoop-cosn-3.1.0-5.8.5-${VERSION}.jar"
+    bundleWith:
+      - default

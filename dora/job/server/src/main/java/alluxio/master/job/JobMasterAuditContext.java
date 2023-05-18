@@ -11,6 +11,8 @@
 
 package alluxio.master.job;
 
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.master.audit.AuditContext;
 import alluxio.security.authentication.AuthType;
@@ -33,6 +35,7 @@ public class JobMasterAuditContext implements AuditContext {
   private String mJobName;
   private long mCreationTimeNs;
   private long mExecutionTimeNs;
+  private String mClientVersion;
 
   @Override
   public JobMasterAuditContext setAllowed(boolean allowed) {
@@ -114,7 +117,7 @@ public class JobMasterAuditContext implements AuditContext {
   }
 
   /**
-   * Sets mCreationTimeNs field.
+   * Sets mJobName field.
    *
    * @param jobName the job name
    * @return this {@link AuditContext} instance
@@ -125,9 +128,20 @@ public class JobMasterAuditContext implements AuditContext {
   }
 
   /**
+   * Sets client version.
+   *
+   * @param clientVersion the client version
+   * @return this {@link AuditContext} instance
+   */
+  public JobMasterAuditContext setClientVersion(String clientVersion) {
+    mClientVersion = clientVersion;
+    return this;
+  }
+
+  /**
    * Constructor of {@link JobMasterAuditContext}.
    *
-   * @param asyncAuditLogWriter
+   * @param asyncAuditLogWriter async audit log writer
    */
   protected JobMasterAuditContext(AsyncUserAccessAuditLogWriter asyncAuditLogWriter) {
     mAsyncAuditLogWriter = asyncAuditLogWriter;
@@ -145,10 +159,15 @@ public class JobMasterAuditContext implements AuditContext {
 
   @Override
   public String toString() {
-    return String.format(
-        "succeeded=%b\tallowed=%b\tugi=%s (AUTH=%s)\tip=%s\tcmd=%s\tmJobId=%d\tmJobName=%s\t"
+    StringBuilder auditLog = new StringBuilder();
+    auditLog.append(String.format(
+        "succeeded=%b\tallowed=%b\tugi=%s (AUTH=%s)\tip=%s\tcmd=%s\tjobId=%d\tjobName=%s\t"
             + "perm=null\texecutionTimeUs=%d",
         mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mJobId, mJobName,
-        mExecutionTimeNs / 1000);
+        mExecutionTimeNs / 1000));
+    if (Configuration.global().getBoolean(PropertyKey.USER_CLIENT_REPORT_VERSION_ENABLED)) {
+      auditLog.append(String.format("\tclientVersion=%s\t", mClientVersion));
+    }
+    return auditLog.toString();
   }
 }
