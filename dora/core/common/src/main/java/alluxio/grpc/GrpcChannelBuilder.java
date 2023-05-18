@@ -15,9 +15,6 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.security.authentication.AuthType;
-import alluxio.security.authentication.SaslClientHandler;
-
-import org.apache.commons.lang3.NotImplementedException;
 
 import javax.security.auth.Subject;
 
