@@ -1275,6 +1275,7 @@
                 <exclude>dev/scripts/tarballs/**/*</exclude>
                 <exclude>dev/scripts/workdir/**/*</exclude>
                 <exclude>generated/**</exclude>
+                <exclude>libexec/version.sh</exclude>
                 <exclude>**/.checkstyle</exclude>
                 <exclude>**/src/main/assembly/*</exclude>
                 <exclude>**/.idea/**</exclude>
@@ -1340,6 +1341,26 @@
             </goals>
             <configuration>
               <executable>${build.path}/style/check_no_windows_line_endings.sh</executable>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Create libexec/version.sh -->
+      <plugin>
+        <artifactId>exec-maven-plugin</artifactId>
+        <groupId>org.codehaus.mojo</groupId>
+        <inherited>false</inherited>
+        <executions>
+          <execution>
+            <id>Write version string in generated packaged script</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${build.path}/version/write_version.sh</executable>
+              <arguments>${project.version}</arguments>
             </configuration>
           </execution>
         </executions>

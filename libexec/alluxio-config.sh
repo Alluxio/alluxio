@@ -25,9 +25,11 @@ script=$(basename "${this}")
 config_bin=$(cd "${config_bin}"; pwd)
 this="${config_bin}/${script}"
 
+# Set Alluxio version from generated script
+. ${config_bin}/version.sh
+
 # This will set the default installation for a tarball installation while os distributors can
 # set system installation locations.
-VERSION=295-SNAPSHOT
 ALLUXIO_HOME=$(dirname $(dirname "${this}"))
 ALLUXIO_ASSEMBLY_CLIENT_JAR="${ALLUXIO_HOME}/assembly/client/target/alluxio-assembly-client-${VERSION}-jar-with-dependencies.jar"
 ALLUXIO_ASSEMBLY_SERVER_JAR="${ALLUXIO_HOME}/assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar"
