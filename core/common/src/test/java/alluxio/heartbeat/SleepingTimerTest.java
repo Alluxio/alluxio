@@ -125,6 +125,5 @@ public final class SleepingTimerTest {
     long newTickCount = tickCount.get();
     Assert.assertTrue("current tickCount = "
         + newTickCount + " is not >= 5 + " + tickCountInit, newTickCount >= tickCountInit + 5);
-
   }
 }
