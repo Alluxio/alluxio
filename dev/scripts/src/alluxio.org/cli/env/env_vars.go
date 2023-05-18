@@ -33,8 +33,8 @@ const (
 	envVersion                  = "VERSION" // VERSION is specified by libexec/version.sh and should not be overridden by the user
 	envAlluxioAssemblyClientJar = "ALLUXIO_ASSEMBLY_CLIENT_JAR"
 	envAlluxioAssemblyServerJar = "ALLUXIO_ASSEMBLY_SERVER_JAR"
-	envAlluxioClientClasspath   = "ALLUXIO_CLIENT_CLASSPATH"
-	envAlluxioServerClasspath   = "ALLUXIO_SERVER_CLASSPATH"
+	EnvAlluxioClientClasspath   = "ALLUXIO_CLIENT_CLASSPATH"
+	EnvAlluxioServerClasspath   = "ALLUXIO_SERVER_CLASSPATH"
 )
 
 // environment variables that belong to the templatized alluxio-env.sh
@@ -43,7 +43,7 @@ var (
 	confJavaHome = RegisterTemplateEnvVar(&AlluxioConfigEnvVar{
 		EnvVar: "JAVA_HOME",
 	})
-	confJava = RegisterTemplateEnvVar(&AlluxioConfigEnvVar{
+	ConfJava = RegisterTemplateEnvVar(&AlluxioConfigEnvVar{
 		EnvVar: "JAVA",
 	})
 	ConfAlluxioJavaOpts = RegisterTemplateEnvVar(&AlluxioConfigEnvVar{
@@ -60,7 +60,7 @@ var (
 		configKey: "alluxio.home",
 		EnvVar:    "ALLUXIO_HOME",
 	})
-	confAlluxioLogsDir = RegisterTemplateEnvVar(&AlluxioConfigEnvVar{
+	ConfAlluxioLogsDir = RegisterTemplateEnvVar(&AlluxioConfigEnvVar{
 		configKey: "alluxio.logs.dir",
 		EnvVar:    "ALLUXIO_LOGS_DIR",
 	})

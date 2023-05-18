@@ -21,6 +21,7 @@ const requiredJavaVersion = 11
 
 // Env is a global instance of the Alluxio environment
 // It is assumed that InitAlluxioEnv() is run before access
+// The package level variable exists to allow access by cobra.Command.RunE functions
 var Env *AlluxioEnv
 
 type AlluxioEnv struct {
@@ -29,6 +30,14 @@ type AlluxioEnv struct {
 	EnvVar   *viper.Viper
 
 	Processes map[string]Process
+}
+
+func (env *AlluxioEnv) CommandF(format string, args ...interface{}) *command.BashBuilder {
+	ret := command.NewF(format, args...)
+	for _, k := range env.EnvVar.AllKeys() {
+		ret.Env(k, env.EnvVar.Get(k))
+	}
+	return ret
 }
 
 func InitAlluxioEnv(rootPath string) error {
@@ -62,7 +71,7 @@ func InitAlluxioEnv(rootPath string) error {
 	for k, v := range map[string]string{
 		confAlluxioHome.EnvVar:        rootPath,
 		confAlluxioConfDir.EnvVar:     filepath.Join(rootPath, "conf"),
-		confAlluxioLogsDir.EnvVar:     filepath.Join(rootPath, "logs"),
+		ConfAlluxioLogsDir.EnvVar:     filepath.Join(rootPath, "logs"),
 		confAlluxioUserLogsDir.EnvVar: filepath.Join(rootPath, "logs", "user"),
 		// TODO: add a go build flag to switch this to the finalized tarball path when building the tarball, ex. filepath.Join(rootPath, "assembly", fmt.Sprintf("alluxio-assembly-client-%v.jar", ver))
 		envAlluxioAssemblyClientJar: filepath.Join(rootPath, "assembly", "client", "target", fmt.Sprintf("alluxio-assembly-client-%v-jar-with-dependencies.jar", ver)),
@@ -96,30 +105,23 @@ func InitAlluxioEnv(rootPath string) error {
 	}
 
 	// set classpath variables which are dependent on user configurable values
-	envVar.Set(envAlluxioClientClasspath, strings.Join([]string{
+	envVar.Set(EnvAlluxioClientClasspath, strings.Join([]string{
 		envVar.GetString(confAlluxioConfDir.EnvVar) + "/",
 		envVar.GetString(confAlluxioClasspath.EnvVar),
 		envVar.GetString(envAlluxioAssemblyClientJar),
 		filepath.Join(envVar.GetString(confAlluxioHome.EnvVar), "lib", fmt.Sprintf("alluxio-integration-tools-validation-%v.jar", ver)),
 	}, ":"))
-	envVar.Set(envAlluxioServerClasspath, strings.Join([]string{
+	envVar.Set(EnvAlluxioServerClasspath, strings.Join([]string{
 		envVar.GetString(confAlluxioConfDir.EnvVar) + "/",
 		envVar.GetString(confAlluxioClasspath.EnvVar),
 		envVar.GetString(envAlluxioAssemblyServerJar),
 	}, ":"))
 
 	// check java executable and version
-	javaEnv, err := checkJava()
-	if err != nil {
+	if err := checkAndSetJava(envVar); err != nil {
 		return stacktrace.Propagate(err, "error finding installed java")
 	}
-	// also set for os to avoid explicitly setting JAVA for subsequent bash commands running java
-	envVar.Set(confJava.EnvVar, javaEnv)
-	// TODO: or write a command wrapper to inject all viper entries into command.env
-	if err := os.Setenv(confJava.EnvVar, javaEnv); err != nil {
-		return stacktrace.Propagate(err, "error setting environment variable %v=%v", confJava.EnvVar, javaEnv)
-	}
-	if err := checkJavaVersion(requiredJavaVersion); err != nil {
+	if err := checkJavaVersion(envVar.GetString(ConfJava.EnvVar), requiredJavaVersion); err != nil {
 		return stacktrace.Propagate(err, "error checking java version compatibility")
 	}
 
@@ -129,7 +131,7 @@ func InitAlluxioEnv(rootPath string) error {
 		// warn about setting configuration through java opts that should be set through environment variables instead
 		for _, c := range []*AlluxioConfigEnvVar{
 			confAlluxioConfDir,
-			confAlluxioLogsDir,
+			ConfAlluxioLogsDir,
 			confAlluxioUserLogsDir,
 		} {
 			if strings.Contains(alluxioJavaOpts, c.configKey) {
@@ -141,7 +143,7 @@ func InitAlluxioEnv(rootPath string) error {
 	for _, c := range []*AlluxioConfigEnvVar{
 		confAlluxioHome,
 		confAlluxioConfDir,
-		confAlluxioLogsDir,
+		ConfAlluxioLogsDir,
 		confAlluxioUserLogsDir,
 	} {
 		alluxioJavaOpts += c.ToJavaOpt(envVar, true) // mandatory java opts
@@ -156,7 +158,7 @@ func InitAlluxioEnv(rootPath string) error {
 		alluxioJavaOpts += c.ToJavaOpt(envVar, false) // optional user provided java opts
 	}
 
-	alluxioJavaOpts += fmt.Sprintf(JavaOptFormat, "log4j.configuration", filepath.Join(envVar.GetString(confAlluxioConfDir.EnvVar), "log4j.properties"))
+	alluxioJavaOpts += fmt.Sprintf(JavaOptFormat, "log4j.configuration", "file:"+filepath.Join(envVar.GetString(confAlluxioConfDir.EnvVar), "log4j.properties"))
 	alluxioJavaOpts += fmt.Sprintf(JavaOptFormat, "org.apache.jasper.compiler.disablejsr199", "true")
 	alluxioJavaOpts += fmt.Sprintf(JavaOptFormat, "java.net.preferIPv4Stack", "true")
 	alluxioJavaOpts += fmt.Sprintf(JavaOptFormat, "org.apache.ratis.thirdparty.io.netty.allocator.useCacheForAllThreads", "false")
@@ -164,7 +166,7 @@ func InitAlluxioEnv(rootPath string) error {
 	envVar.Set(ConfAlluxioJavaOpts.EnvVar, alluxioJavaOpts)
 
 	for _, p := range processRegistry {
-		p.Base().setJavaOpts(envVar)
+		p.SetEnvVars(envVar)
 	}
 
 	if log.Logger.IsLevelEnabled(logrus.DebugLevel) {
@@ -192,39 +194,40 @@ func InitAlluxioEnv(rootPath string) error {
 	return nil
 }
 
-func checkJava() (string, error) {
-	if viper.Get(confJava.EnvVar) != nil {
-		return viper.GetString(confJava.EnvVar), nil
+func checkAndSetJava(envVar *viper.Viper) error {
+	if envVar.Get(ConfJava.EnvVar) != nil {
+		return nil
 	}
 	// check JAVA_HOME
-	if javaHome := viper.Get(confJavaHome.EnvVar); javaHome != nil {
+	if javaHome := envVar.Get(confJavaHome.EnvVar); javaHome != nil {
 		javaHomeStr, ok := javaHome.(string)
 		if !ok {
-			return "", stacktrace.NewError("error casting %v to string", javaHome)
+			return stacktrace.NewError("error casting %v to string", javaHome)
 		}
 		javaHomeBinJava := filepath.Join(javaHomeStr, "bin", "java")
 		// check if JAVA_HOME exists with valid $JAVA_HOME/bin/java binary
 		if _, err := os.Stat(javaHomeBinJava); err == nil {
-			return javaHomeBinJava, nil
+			envVar.Set(ConfJava.EnvVar, javaHomeBinJava)
+			return nil
 		}
 	}
 	// check if java is available via `PATH` using `which`
 	whichJavaPath, err := command.Output("which java")
 	if err == nil {
-		return string(whichJavaPath), nil
+		envVar.Set(ConfJava.EnvVar, string(whichJavaPath))
 	}
 	// cannot find java
 	// - ${JAVA} is not set
 	// - ${JAVA_HOME}/bin/java is not a valid path
 	// - java is not found as part of ${PATH}
-	return "", stacktrace.NewError(`Error: Cannot find 'java' on path or under $JAVA_HOME/bin/. Please set %v in alluxio-env.sh or user bash profile.`, confJavaHome.EnvVar)
+	return stacktrace.NewError(`Error: Cannot find 'java' on path or under $JAVA_HOME/bin/. Please set %v in alluxio-env.sh or user bash profile.`, confJavaHome.EnvVar)
 }
 
 // matching the version string encapsulated by double quotes, ex. "11.0.19" where 11 is majorVer and 0 is minorVer
 var javaVersionRe = regexp.MustCompile(`.*"(?P<majorVer>\d+)\.(?P<minorVer>\d+)[\w.-]*".*`)
 
-func checkJavaVersion(requiredJavaVersion int) error {
-	javaVer, err := command.Output("${JAVA} -version 2>&1")
+func checkJavaVersion(javaPath string, requiredJavaVersion int) error {
+	javaVer, err := command.NewF("%v -version 2>&1", javaPath).Output()
 	if err != nil {
 		return stacktrace.Propagate(err, "error java version from `java -version`")
 	}

@@ -13,10 +13,14 @@ import (
 
 func Run() error {
 	rootCmd := &cobra.Command{}
+	const rootPathName = "rootPath"
 	var flagRootPath string
-	rootCmd.PersistentFlags().StringVar(&flagRootPath, "rootPath", "", "Path to root of Alluxio installation")
-	if err := rootCmd.MarkPersistentFlagRequired("rootPath"); err != nil {
-		return stacktrace.Propagate(err, "error marking rootPath flag required")
+	rootCmd.PersistentFlags().StringVar(&flagRootPath, rootPathName, "", "Path to root of Alluxio installation")
+	if err := rootCmd.MarkPersistentFlagRequired(rootPathName); err != nil {
+		return stacktrace.Propagate(err, "error marking %v flag required", rootPathName)
+	}
+	if err := rootCmd.PersistentFlags().MarkHidden(rootPathName); err != nil {
+		return stacktrace.Propagate(err, "error marking %v flag hidden", rootPathName)
 	}
 	var flagDebugLog bool
 	rootCmd.PersistentFlags().BoolVar(&flagDebugLog, "debug", false, "True to enable debug logging")
