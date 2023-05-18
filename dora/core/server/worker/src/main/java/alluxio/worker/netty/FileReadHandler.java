@@ -121,10 +121,7 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequestContext
         } else if (blockReader instanceof PagedFileReader) {
           PagedFileReader pagedFileReader = (PagedFileReader) blockReader;
           MultipleDataFileChannel multipleDataFileChannel =
-              pagedFileReader.getMultipleDataFileChannel(len);
-          if (multipleDataFileChannel == null) {
-            return getDataBufferByCopying(context, channel, len, blockReader);
-          }
+              pagedFileReader.getMultipleDataFileChannel(channel, len);
           return multipleDataFileChannel;
         }
       }

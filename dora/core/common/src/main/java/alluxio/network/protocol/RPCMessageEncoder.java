@@ -73,8 +73,8 @@ public final class RPCMessageEncoder extends MessageToMessageEncoder<RPCMessage>
               || output instanceof FileRegion || output instanceof List,
           "The payload must be a ByteBuf or a FileRegion or a List<DataFileChannel>.");
       if (output instanceof List) {
-        List<DataFileChannel> dataFileChannels = (List<DataFileChannel>) output;
-        for (DataFileChannel dataFileChannel : dataFileChannels) {
+        List<DataBuffer> dataFileChannels = (List<DataBuffer>) output;
+        for (DataBuffer dataFileChannel : dataFileChannels) {
           out.add(dataFileChannel.getNettyOutput());
         }
       } else if (output instanceof ByteBuf || output instanceof FileRegion) {

@@ -22,26 +22,26 @@ import java.util.List;
  */
 public final class MultipleDataFileChannel implements DataBuffer {
 
-  private final List<DataFileChannel> mDataFileChannels;
+  private final List<DataBuffer> mDataBufferList;
 
   /**
    * MultipleDataFileChannel wraps multiple {@link DataFileChannel}.
-   * @param dataFileChannels a list of {@link DataFileChannel}
+   * @param dataBufferList a list of {@link DataFileChannel}
    */
-  public MultipleDataFileChannel(List<DataFileChannel> dataFileChannels) {
-    mDataFileChannels = dataFileChannels;
+  public MultipleDataFileChannel(List<DataBuffer> dataBufferList) {
+    mDataBufferList = dataBufferList;
   }
 
   @Override
   public Object getNettyOutput() {
-    return mDataFileChannels;
+    return mDataBufferList;
   }
 
   @Override
   public long getLength() {
     long totalLength = 0L;
-    for (DataFileChannel dataFileChannel : mDataFileChannels) {
-      totalLength += dataFileChannel.getLength();
+    for (DataBuffer dataBuffer : mDataBufferList) {
+      totalLength += dataBuffer.getLength();
     }
     return totalLength;
   }

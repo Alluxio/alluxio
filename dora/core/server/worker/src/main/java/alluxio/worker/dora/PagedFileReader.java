@@ -21,17 +21,21 @@ import alluxio.conf.PropertyKey;
 import alluxio.file.FileId;
 import alluxio.file.NettyBufTargetBuffer;
 import alluxio.file.ReadTargetBuffer;
+import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.MultipleDataFileChannel;
+import alluxio.network.protocol.databuffer.NettyDataBuffer;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.worker.block.io.BlockReadableChannel;
 import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.netty.BlockReadRequestContext;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -63,8 +67,8 @@ public class PagedFileReader extends BlockReader implements PositionReader {
    * @return a new {@link PagedFileReader}
    */
   public static PagedFileReader create(AlluxioConfiguration conf, CacheManager cacheManager,
-      UfsManager.UfsClient ufsClient, String fileId,
-      String ufsPath, long fileSize, long startPosition) {
+                                       UfsManager.UfsClient ufsClient, String fileId,
+                                       String ufsPath, long fileSize, long startPosition) {
     FileId fileIdField = FileId.of(fileId);
     CloseableResource<UnderFileSystem> ufs = ufsClient.acquireUfsResource();
     try {
@@ -91,8 +95,8 @@ public class PagedFileReader extends BlockReader implements PositionReader {
    * @param startPosition
    */
   public PagedFileReader(CloseableResource<UnderFileSystem> ufs,
-      LocalCachePositionReader localCachePositionReader,
-      long fileSize, long startPosition) {
+                         LocalCachePositionReader localCachePositionReader,
+                         long fileSize, long startPosition) {
     mUfs = Preconditions.checkNotNull(ufs);
     mPositionReader = Preconditions.checkNotNull(localCachePositionReader);
     mFileSize = fileSize;
@@ -101,31 +105,47 @@ public class PagedFileReader extends BlockReader implements PositionReader {
 
   /**
    * Get a {@link MultipleDataFileChannel} which has a list of {@link DataFileChannel}.
+   *
    * @param length the bytes to read
    * @return {@link MultipleDataFileChannel}
    */
-  public MultipleDataFileChannel getMultipleDataFileChannel(long length) {
+  public MultipleDataFileChannel getMultipleDataFileChannel(Channel channel, long length)
+      throws IOException {
     if (mFileSize <= mPos) {
       // TODO(JiamingMai): consider throwing exception directly
       return null;
     }
-    List<DataFileChannel> dataFileChannels = new ArrayList<>();
+    List<DataBuffer> dataBufferList = new ArrayList<>();
     long bytesToTransfer = Math.min(length, mFileSize - mPos);
     long bytesToTransferLeft = bytesToTransfer;
     while (bytesToTransferLeft > 0) {
-      DataFileChannel dataFileChannel =
-          mPositionReader.getDataFileChannel(mPos, (int) bytesToTransferLeft);
-      if (dataFileChannel == null) {
-        return null;
+      DataBuffer dataBuffer = mPositionReader.getDataFileChannel(mPos, (int) bytesToTransferLeft);
+      if (dataBuffer == null) {
+        dataBuffer = getDataBufferByCopying(channel, (int) bytesToTransferLeft);
+      } else {
+        // update mPos
+        if (dataBuffer.getLength() > 0) {
+          mPos += dataBuffer.getLength();
+        }
       }
-      if (dataFileChannel.getLength() > 0) {
-        mPos += dataFileChannel.getLength();
-        bytesToTransferLeft -= dataFileChannel.getLength();
-      }
-      dataFileChannels.add(dataFileChannel);
+      // update bytesToTransferLeft
+      bytesToTransferLeft -= dataBuffer.getLength();
+      dataBufferList.add(dataBuffer);
     }
-    MultipleDataFileChannel multipleDataFileChannel = new MultipleDataFileChannel(dataFileChannels);
+    MultipleDataFileChannel multipleDataFileChannel = new MultipleDataFileChannel(dataBufferList);
     return multipleDataFileChannel;
+  }
+
+  private DataBuffer getDataBufferByCopying(Channel channel, int len) throws IOException {
+    ByteBuf buf = channel.alloc().buffer(len, len);
+    try {
+      while (buf.writableBytes() > 0 && transferTo(buf) != -1) {
+      }
+      return new NettyDataBuffer(buf);
+    } catch (Throwable e) {
+      buf.release();
+      throw e;
+    }
   }
 
   @Override
