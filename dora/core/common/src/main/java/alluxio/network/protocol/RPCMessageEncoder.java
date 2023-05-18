@@ -12,7 +12,6 @@
 package alluxio.network.protocol;
 
 import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.DataFileChannel;
 
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
