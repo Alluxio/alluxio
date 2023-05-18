@@ -340,7 +340,8 @@ public final class FileSystemMasterSyncMetadataTest {
     Mockito.when(mUfs.exists(dir1Path.toString())).thenReturn(true);
     Mockito.when(mUfs.isDirectory(dir1Path.toString())).thenReturn(true);
     Mockito.when(mUfs.isFile(dir1Path.toString())).thenReturn(false);
-    Mockito.when(mUfs.getStatus(dir1Path.toString())).thenReturn(dir1Status);
+    Mockito.when(mUfs.getStatus(eq(dir1Path.toString()), any(GetStatusOptions.class)))
+           .thenReturn(dir1Status);
     Mockito.when(mUfs.getDirectoryStatus(dir1Path.toString())).thenReturn(dir1Status);
 
     // Mock nested ufs path /dir1/dir2
@@ -353,7 +354,8 @@ public final class FileSystemMasterSyncMetadataTest {
     Mockito.when(mUfs.exists(nestedDirectoryPath.toString())).thenReturn(true);
     Mockito.when(mUfs.isDirectory(nestedDirectoryPath.toString())).thenReturn(true);
     Mockito.when(mUfs.isFile(nestedDirectoryPath.toString())).thenReturn(false);
-    Mockito.when(mUfs.getStatus(nestedDirectoryPath.toString())).thenReturn(nestedDirStatus);
+    Mockito.when(mUfs.getStatus(eq(nestedDirectoryPath.toString()), any(GetStatusOptions.class)))
+           .thenReturn(nestedDirStatus);
     Mockito.when(mUfs.getDirectoryStatus(nestedDirectoryPath.toString()))
         .thenReturn(nestedDirStatus);
 
@@ -375,7 +377,7 @@ public final class FileSystemMasterSyncMetadataTest {
     Mockito.verify(mUfs, Mockito.times(1))
         .listStatus(eq(nestedDirectoryPath.toString()));
     Mockito.verify(mUfs, Mockito.times(1))
-        .getStatus(eq(nestedDirectoryPath.toString()));
+        .getStatus(eq(nestedDirectoryPath.toString()), any(GetStatusOptions.class));
 
     // Get the file info of the directory /dir1
     // listStatus is called on UFS /dir1/dir2
@@ -388,7 +390,7 @@ public final class FileSystemMasterSyncMetadataTest {
     Mockito.verify(mUfs, Mockito.times(1))
         .listStatus(eq(nestedDirectoryPath.toString()));
     Mockito.verify(mUfs, Mockito.times(1))
-        .getStatus(eq(nestedDirectoryPath.toString()));
+        .getStatus(eq(nestedDirectoryPath.toString()), any(GetStatusOptions.class));
   }
 
   private static class SyncAwareFileSystemMaster extends DefaultFileSystemMaster {
