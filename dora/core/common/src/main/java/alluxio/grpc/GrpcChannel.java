@@ -93,23 +93,43 @@ public class GrpcChannel extends Channel
     return mChannel.get().authority();
   }
 
-  protected void authenticate(AuthType authType, Subject subject, AlluxioConfiguration config)
-      throws AlluxioStatusException {
-    SaslClientHandler clientHandler;
+  protected SaslClientHandler createSaslClientHandler(AuthType authType, Subject subject,
+      AlluxioConfiguration config) throws AlluxioStatusException {
     switch (authType) {
-      case NOSASL:
-        return;
       case SIMPLE:
       case CUSTOM:
-        clientHandler =
-            new alluxio.security.authentication.plain.SaslClientHandlerPlain(
+        return new alluxio.security.authentication.plain.SaslClientHandlerPlain(
                 subject, config);
-        break;
+      case NOSASL:
+        return null;
       default:
 
         throw new UnauthenticatedException(
             String.format("Channel authentication scheme not supported: %s", authType.name()));
     }
+  }
+
+  protected void authenticate(AuthType authType, Subject subject, AlluxioConfiguration config)
+      throws AlluxioStatusException {
+    SaslClientHandler clientHandler =
+        createSaslClientHandler(authType, subject, config);
+    authenticate(authType, subject, config, clientHandler);
+  }
+
+  /**
+   * @param authType the auth type
+   * @param subject the subject
+   * @param config the config
+   * @param clientHandler the sasl client handler
+   * @throws AlluxioStatusException
+   */
+  public void authenticate(AuthType authType, Subject subject, AlluxioConfiguration config,
+      SaslClientHandler clientHandler)
+      throws AlluxioStatusException {
+    if (clientHandler == null) {
+      return;
+    }
+
     AuthenticatedChannelClientDriver authDriver;
     try {
       // Create client-side driver for establishing authenticated channel with the target.
