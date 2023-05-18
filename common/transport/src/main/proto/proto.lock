@@ -2530,6 +2530,11 @@
                     "value": "NEW_PATHS"
                   }
                 ]
+              },
+              {
+                "id": 8,
+                "name": "checkS3BucketPath",
+                "type": "bool"
               }
             ],
             "maps": [
@@ -2947,6 +2952,11 @@
               {
                 "id": 6,
                 "name": "disableAreDescendantsLoadedCheck",
+                "type": "bool"
+              },
+              {
+                "id": 7,
+                "name": "excludeMountInfo",
                 "type": "bool"
               }
             ]
@@ -6405,6 +6415,26 @@
                 "name": "configs",
                 "type": "grpc.ConfigProperty",
                 "is_repeated": true
+              },
+              {
+                "id": 2,
+                "name": "startTimeMs",
+                "type": "int64"
+              },
+              {
+                "id": 3,
+                "name": "losePrimacyTimeMs",
+                "type": "int64"
+              },
+              {
+                "id": 4,
+                "name": "version",
+                "type": "string"
+              },
+              {
+                "id": 5,
+                "name": "revision",
+                "type": "string"
               }
             ]
           },
@@ -6427,7 +6457,19 @@
             "name": "RegisterMasterPResponse"
           },
           {
-            "name": "MasterHeartbeatPOptions"
+            "name": "MasterHeartbeatPOptions",
+            "fields": [
+              {
+                "id": 1,
+                "name": "lastCheckpointTime",
+                "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "journalEntriesSinceCheckpoint",
+                "type": "int64"
+              }
+            ]
           },
           {
             "name": "MasterHeartbeatPRequest",

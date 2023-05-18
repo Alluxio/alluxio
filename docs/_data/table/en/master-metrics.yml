@@ -71,9 +71,9 @@ Master.FilesFreed:
 Master.FilesPersisted:
   'Total number of successfully persisted files'
 Master.FilesPinned:
-  'Total number of currently pinned files'
+  'Total number of currently pinned files. Note that IDs for these files are stored in memory.'
 Master.FilesToBePersisted:
-  'Total number of currently to be persisted files'
+  'Total number of currently to be persisted files. Note that the IDs for these files are stored in memory.'
 Master.FreeFileOps:
   'Total number of FreeFile operations'
 Master.GetFileBlockInfoOps:
@@ -162,6 +162,10 @@ Master.LastBackupRestoreTimeMs:
   'The process time of the last restore from backup'
 Master.LastBackupTimeMs:
   'The process time of the last backup'
+Master.LastGainPrimacyTime:
+  'Last time the master gains primacy'
+Master.LastLosePrimacyTime:
+  'Last time the master loses primacy'
 Master.ListingCacheEvictions:
   'The total number of evictions in master listing cache'
 Master.ListingCacheHits:
@@ -246,6 +250,8 @@ Master.RenamePathOps:
   'Total number of Rename operations'
 Master.ReplicaMgmtActiveJobSize:
   'Number of active block replication/eviction jobs. These jobs are created by the master to maintain the block replica factor. The value is an estimate with lag. '
+Master.ReplicationLimitedFiles:
+  'Number of files that have a replication count set to a non-default value. Note that these files have IDs that are stored in memory.'
 Master.RocksBlockBackgroundErrors:
   'RocksDB block table. Accumulated number of background errors.'
 Master.RocksBlockBlockCacheCapacity:
@@ -352,6 +358,12 @@ Master.SetAclOps:
   'Total number of SetAcl operations'
 Master.SetAttributeOps:
   'Total number of SetAttribute operations'
+Master.StartTime:
+  'The start time of the master process'
+Master.TTLBuckets:
+  'The number of TTL buckets at the master. Note that these buckets are stored in memory.'
+Master.TTLInodes:
+  'The total number of inodes contained in TTL buckets at the mater. Note that these inodes are stored in memory.'
 Master.ToRemoveBlockCount:
   'Count of block replicas to be removed from the workers. If 1 block is to be removed from 2 workers, 2 will be counted here.'
 Master.TotalPaths:

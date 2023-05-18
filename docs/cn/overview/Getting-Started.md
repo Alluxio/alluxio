@@ -48,6 +48,18 @@ $ cd alluxio-{{site.ALLUXIO_VERSION_STRING}}
 
 ## 配置 Alluxio
 
+在`${ALLUXIO_HOME}/conf`目录下，根据模板文件创建`conf/alluxio-env.sh`配置文件。
+
+```console
+$ cp conf/alluxio-env.sh.template conf/alluxio-env.sh
+```
+
+在`conf/alluxio-env.sh`文件中为 `JAVA_HOME` 增加配置.例如:
+
+```console
+$ echo "JAVA_HOME=/path/to/java/home" >> conf/alluxio-env.sh
+```
+
 在`${ALLUXIO_HOME}/conf`目录下，根据模板文件创建`conf/alluxio-site.properties`配置文件。
 
 ```console

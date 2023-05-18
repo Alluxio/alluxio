@@ -118,11 +118,11 @@ total 0
 
 ### Run image recognition test
 
-Download the [image recognition script](https://github.com/ssz1997/AlluxioFuseTensorflowExample/blob/main/mnist_test.py)
+Download the [image recognition script](https://github.com/Alluxio/alluxio/tree/master/docs/resources/mnist_classification.py)
 and run it with the training data `/mnt/fuse/mnist.npz`.
 
 ```shell
-$ curl -o mnist_test.py -L https://github.com/ssz1997/AlluxioFuseTensorflowExample/blob/main/mnist_test.py?raw=true
+$ curl -o mnist_test.py -L https://github.com/Alluxio/alluxio/tree/master/docs/resources/mnist_classification.py?raw=true
 $ python3 mnist_test.py /mnt/fuse/mnist.npz
 ```
 
