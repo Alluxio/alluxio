@@ -293,22 +293,23 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   @Override
-  public int read(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
+  public int read(String path, long position, ByteBuffer buf, FuseFileInfo fi) {
     final long fd = fi.fh.get();
-    return AlluxioFuseUtils.call(LOG, () -> readInternal(path, buf, size, offset, fd),
-        FuseConstants.FUSE_READ, "path=%s,fd=%d,size=%d,offset=%d",
-        path, fd, size, offset);
+    final int size = buf.remaining();
+    return AlluxioFuseUtils.call(LOG, () -> readInternal(path, position, buf, fd),
+        FuseConstants.FUSE_READ, "path=%s,fd=%d,size=%d,position=%d",
+        path, fd, size, position);
   }
 
   private int readInternal(
-      String path, ByteBuffer buf, long size, long offset, long fd) {
+      String path, long position, ByteBuffer buf, long fd) {
     FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(ID_INDEX, fd);
     if (entry == null) {
       LOG.error("Failed to read {}: Cannot find fd {}", path, fd);
       return -ErrorCodes.EBADFD();
     }
     try {
-      return entry.getFileStream().read(buf, size, offset);
+      return entry.getFileStream().read(position, buf);
     } catch (NotFoundRuntimeException e) {
       LOG.error("Failed to read {}: File does not exist or is writing by other clients", path);
       LOG.debug("Failed to read {}", path, e);
@@ -317,22 +318,24 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   }
 
   @Override
-  public int write(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
+  public int write(String path, long position, ByteBuffer buf, FuseFileInfo fi) {
     final long fd = fi.fh.get();
-    return AlluxioFuseUtils.call(LOG, () -> writeInternal(path, buf, size, offset, fd),
-        FuseConstants.FUSE_WRITE, "path=%s,fd=%d,size=%d,offset=%d",
-        path, fd, size, offset);
+    final int size = buf.remaining();
+    return AlluxioFuseUtils.call(LOG, () -> writeInternal(path, position, buf, fd),
+        FuseConstants.FUSE_WRITE, "path=%s,fd=%d,size=%d,position=%d",
+        path, fd, size, position);
   }
 
   private int writeInternal(
-      String path, ByteBuffer buf, long size, long offset, long fd) {
+      String path, long position, ByteBuffer buf, long fd) {
+    final int bytesToWrite = buf.remaining();
     FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(ID_INDEX, fd);
     if (entry == null) {
       LOG.error("Failed to write {}: Cannot find fd {}", path, fd);
       return -ErrorCodes.EBADFD();
     }
     try {
-      entry.getFileStream().write(buf, size, offset);
+      entry.getFileStream().write(position, buf);
     } catch (AlreadyExistsRuntimeException e) {
       LOG.error("Failed to write {}: cannot overwrite existing file", path);
       return -ErrorCodes.EEXIST();
@@ -340,7 +343,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       LOG.error("Failed to write {}: not supported", path, e);
       return -ErrorCodes.EOPNOTSUPP();
     }
-    return (int) size;
+    return bytesToWrite;
   }
 
   @Override

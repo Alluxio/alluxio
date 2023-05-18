@@ -156,8 +156,9 @@ public class UfsFileInStreamTest extends AbstractUfsStreamTest {
     int len = CHUNK_SIZE / 2; // 75
     try (FileInStream inStream = getStream(ufsPath)) {
       ByteBuffer buffer = ByteBuffer.allocate(CHUNK_SIZE);
-      buffer.position(start);
-      assertEquals(CHUNK_SIZE / 2, inStream.read(buffer, start, len));
+      buffer.position(start).limit(start + len);
+      ByteBuffer slice = buffer.slice();
+      assertEquals(CHUNK_SIZE / 2, inStream.read(slice));
       for (int i = start; i < start + len; i++) {
         assertEquals(i - start, buffer.get(i));
       }
@@ -201,19 +202,6 @@ public class UfsFileInStreamTest extends AbstractUfsStreamTest {
   }
 
   @Test
-  public void readOverflowOffLenByteBuffer() throws IOException, AlluxioException {
-    // TODO(lu) the read(ByteBuffer, offset, length) API does not make sense
-    // reconsider the API before enabling this test for all in streams
-    Assume.assumeFalse(mConf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED));
-    AlluxioURI ufsPath = getUfsPath();
-    createFile(ufsPath, CHUNK_SIZE);
-    try (FileInStream inStream = getStream(ufsPath)) {
-      assertThrows(IllegalArgumentException.class,
-          () -> inStream.read(ByteBuffer.allocate(CHUNK_SIZE), 0, CHUNK_SIZE * 2));
-    }
-  }
-
-  @Test
   public void readNullArray() throws IOException, AlluxioException {
     AlluxioURI ufsPath = getUfsPath();
     createFile(ufsPath, CHUNK_SIZE);
@@ -229,7 +217,7 @@ public class UfsFileInStreamTest extends AbstractUfsStreamTest {
     createFile(ufsPath, CHUNK_SIZE);
     try (FileInStream inStream = getStream(ufsPath)) {
       assertThrows(NullPointerException.class,
-          () -> inStream.read((ByteBuffer) null, 0, CHUNK_SIZE));
+          () -> inStream.read((ByteBuffer) null));
     }
   }
 
@@ -249,7 +237,7 @@ public class UfsFileInStreamTest extends AbstractUfsStreamTest {
     createFile(ufsPath, CHUNK_SIZE);
     try (FileInStream inStream = getStream(ufsPath)) {
       assertThrows(NullPointerException.class,
-          () -> inStream.read((ByteBuffer) null, 0, CHUNK_SIZE));
+          () -> inStream.read((ByteBuffer) null));
     }
   }
 
@@ -444,7 +432,7 @@ public class UfsFileInStreamTest extends AbstractUfsStreamTest {
       assertEquals(len, inStream.read(new byte[len], 0, len));
       assertEquals(1 + len, inStream.getPos());
       len = CHUNK_SIZE / 4;
-      inStream.read(ByteBuffer.allocate(len), 0, len);
+      inStream.read(ByteBuffer.allocate(len));
       assertEquals(1 + CHUNK_SIZE / 4 * 3, inStream.getPos());
     }
   }
@@ -461,7 +449,7 @@ public class UfsFileInStreamTest extends AbstractUfsStreamTest {
       assertEquals(len, inStream.read(new byte[len], 0, len));
       assertEquals(CHUNK_SIZE - len - 1, inStream.remaining());
       len = CHUNK_SIZE / 4;
-      inStream.read(ByteBuffer.allocate(len), 0, len);
+      inStream.read(ByteBuffer.allocate(len));
       assertEquals(CHUNK_SIZE / 4 - 1, inStream.remaining());
     }
   }

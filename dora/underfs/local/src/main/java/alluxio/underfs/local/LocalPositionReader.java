@@ -36,12 +36,12 @@ public class LocalPositionReader implements PositionReader {
   }
 
   @Override
-  public int readInternal(long position, ReadTargetBuffer buffer, int length)
+  public int readInternal(long position, ReadTargetBuffer buffer)
       throws IOException {
     if (position >= mFileLength) { // at end of file
       return -1;
     }
-    long bytesToRead = Math.min(mFileLength - position, length);
+    long bytesToRead = Math.min(mFileLength - position, buffer.remaining());
     try (RandomAccessFile file = new RandomAccessFile(mPath, "r")) {
       file.seek(position);
       return buffer.readFromFile(file, (int) bytesToRead);

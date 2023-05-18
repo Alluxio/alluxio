@@ -55,7 +55,7 @@ public interface ReadTargetBuffer {
   /**
    * @return the remaining for this buffer
    */
-  long remaining();
+  int remaining();
 
   /**
    * @param srcArray

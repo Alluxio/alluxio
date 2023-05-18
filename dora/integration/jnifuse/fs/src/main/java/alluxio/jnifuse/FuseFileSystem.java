@@ -65,11 +65,11 @@ public interface FuseFileSystem {
     throw new UnsupportedOperationException("open");
   }
 
-  default int read(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
+  default int read(String path, long position, ByteBuffer buf, FuseFileInfo fi) {
     throw new UnsupportedOperationException("read");
   }
 
-  default int write(String path, ByteBuffer buf, long size, long offset, FuseFileInfo fi) {
+  default int write(String path, long position, ByteBuffer buf, FuseFileInfo fi) {
     throw new UnsupportedOperationException("write");
   }
 

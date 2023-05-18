@@ -50,11 +50,12 @@ public class S3APositionReader implements PositionReader {
   }
 
   @Override
-  public int readInternal(long position, ReadTargetBuffer buffer, int length)
+  public int readInternal(long position, ReadTargetBuffer buffer)
       throws IOException {
     if (position >= mFileLength) { // at end of file
       return -1;
     }
+    int length = buffer.remaining();
     S3Object object;
     int bytesToRead = (int) Math.min(mFileLength - position, length);
     try {

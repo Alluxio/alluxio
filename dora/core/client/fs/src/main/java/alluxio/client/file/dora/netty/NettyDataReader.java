@@ -44,9 +44,9 @@ public class NettyDataReader implements PositionReader {
   }
 
   @Override
-  public int readInternal(long position, ReadTargetBuffer buffer, int length) throws IOException {
+  public int readInternal(long position, ReadTargetBuffer buffer) throws IOException {
     Protocol.ReadRequest.Builder builder = mRequestBuilder.get()
-        .setLength(length)
+        .setLength(buffer.remaining())
         .setOffset(position)
         .clearCancel();
     NettyDataReaderStateMachine clientStateMachine =

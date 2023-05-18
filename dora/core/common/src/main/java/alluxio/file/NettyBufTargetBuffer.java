@@ -77,7 +77,7 @@ public class NettyBufTargetBuffer implements ReadTargetBuffer {
   }
 
   @Override
-  public long remaining() {
+  public int remaining() {
     return mTarget.writableBytes();
   }
 

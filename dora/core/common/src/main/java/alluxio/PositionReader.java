@@ -32,12 +32,11 @@ public interface PositionReader extends Closeable {
   /**
    * @param position position of the file to start reading data
    * @param buffer target byte array
-   * @param length bytes to read
    * @return bytes read, or -1 none of data is read
    */
-  default int read(long position, byte[] buffer, int length)
+  default int read(long position, byte[] buffer)
       throws IOException {
-    return read(position, new ByteArrayTargetBuffer(buffer, 0), length);
+    return read(position, new ByteArrayTargetBuffer(buffer));
   }
 
   /**
@@ -49,54 +48,47 @@ public interface PositionReader extends Closeable {
    */
   default int read(long position, byte[] buffer, int offset, int length)
       throws IOException {
-    return read(position, new ByteArrayTargetBuffer(buffer, offset), length);
+    return read(position, new ByteArrayTargetBuffer(buffer, offset, length));
   }
 
   /**
    * @param position position of the file to start reading data
    * @param buffer target byte buffer
-   * @param length bytes to read
    * @return bytes read, or -1 none of data is read
    */
-  default int read(long position, ByteBuffer buffer, int length) throws IOException {
-    return read(position, new ByteBufferTargetBuffer(buffer), length);
+  default int read(long position, ByteBuffer buffer) throws IOException {
+    return read(position, new ByteBufferTargetBuffer(buffer));
   }
 
   /**
    * @param position position of the file to start reading data
    * @param buffer target byte buf
-   * @param length bytes to read
    * @return bytes read, or -1 none of data is read
    */
-  default int read(long position, ByteBuf buffer, int length) throws IOException {
-    return read(position, new NettyBufTargetBuffer(buffer), length);
+  default int read(long position, ByteBuf buffer) throws IOException {
+    return read(position, new NettyBufTargetBuffer(buffer));
   }
 
   /**
    * @param position position of the file to start reading data
    * @param buffer target byte buffer
-   * @param length bytes to read
    * @return bytes read, or -1 none of data is read
    */
-  default int read(long position, ReadTargetBuffer buffer, int length)
+  default int read(long position, ReadTargetBuffer buffer)
       throws IOException {
-    Preconditions.checkArgument(length >= 0, "length should be non-negative");
     Preconditions.checkArgument(position >= 0, "position should be non-negative");
-    Preconditions.checkArgument(buffer.remaining() >= length,
-        "given buffer should have enough space to write given length");
-    if (length == 0) {
+    if (buffer.remaining() == 0) {
       return 0;
     }
-    return readInternal(position, buffer, length);
+    return readInternal(position, buffer);
   }
 
   /**
    * @param position position of the file to start reading data
    * @param buffer target byte buffer
-   * @param length bytes to read
    * @return bytes read, or -1 none of data is read
    */
-  int readInternal(long position, ReadTargetBuffer buffer, int length)
+  int readInternal(long position, ReadTargetBuffer buffer)
       throws IOException;
 
   /**

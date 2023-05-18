@@ -744,7 +744,7 @@ public final class AlluxioFileInStreamTest {
     when(mBlockStore
         .getInStream(any(BlockInfo.class), any(InStreamOptions.class), any()))
         .thenReturn(brokenStream).thenReturn(workingStream);
-    when(brokenStream.read(any(ByteBuffer.class), anyInt(), anyInt()))
+    when(brokenStream.read(any(ByteBuffer.class)))
         .thenThrow(new UnavailableException("test exception"));
     when(brokenStream.getPos()).thenReturn(BLOCK_LENGTH / 2);
 
@@ -752,9 +752,9 @@ public final class AlluxioFileInStreamTest {
     byte[] b = new byte[(int) BLOCK_LENGTH * 2];
     mTestStream.read(b, 0, b.length);
 
-    doReturn(0).when(brokenStream).read(any(ByteBuffer.class), anyInt(), anyInt());
+    doReturn(0).when(brokenStream).read(any(ByteBuffer.class));
     verify(brokenStream, times(1))
-        .read(any(ByteBuffer.class), anyInt(), anyInt());
+        .read(any(ByteBuffer.class));
     assertArrayEquals(BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH / 2, (int)
         BLOCK_LENGTH * 2), b);
   }

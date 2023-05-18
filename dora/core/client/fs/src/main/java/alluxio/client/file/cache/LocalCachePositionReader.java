@@ -100,8 +100,9 @@ public class LocalCachePositionReader implements PositionReader {
   }
 
   @Override
-  public int readInternal(long position, ReadTargetBuffer buffer, int length)
+  public int readInternal(long position, ReadTargetBuffer buffer)
       throws IOException {
+    int length = buffer.remaining();
     Preconditions.checkArgument(!mClosed, "position reader is closed");
     if (position >= mFileSize) { // at end of file
       return -1;

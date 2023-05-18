@@ -161,9 +161,11 @@ public class LocalCacheFileInStreamTest {
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
     LocalCacheFileInStream stream = setupWithSingleFile(fileData, manager);
 
-    byte[] readData = new byte[fileSize];
+    int bufferSize = fileSize + 1;
+    byte[] readData = new byte[bufferSize];
     ByteBuffer buffer = ByteBuffer.wrap(readData);
-    int totalBytesRead = stream.read(buffer, 0, fileSize + 1);
+    buffer.position(0).limit(bufferSize);
+    int totalBytesRead = stream.read(buffer);
     Assert.assertEquals(-1, totalBytesRead);
   }
 
@@ -174,9 +176,11 @@ public class LocalCacheFileInStreamTest {
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
     LocalCacheFileInStream stream = setupWithSingleFile(fileData, manager);
 
-    byte[] readData = new byte[fileSize];
+    int bufferSize = fileSize + 1;
+    byte[] readData = new byte[bufferSize];
     ByteBuffer buffer = ByteBuffer.wrap(readData);
-    int totalBytesRead = stream.read(buffer, 0, fileSize + 1);
+    buffer.position(0).limit(bufferSize);
+    int totalBytesRead = stream.read(buffer);
     Assert.assertEquals(fileSize, totalBytesRead);
   }
 
@@ -379,7 +383,7 @@ public class LocalCacheFileInStreamTest {
 
     // cache miss
     byte[] cacheMiss = new byte[fileSize * 2];
-    Assert.assertEquals(fileSize - 1, stream.positionedRead(1, cacheMiss, 2, fileSize * 2));
+    Assert.assertEquals(fileSize - 1, stream.positionedRead(1, cacheMiss, 2, fileSize * 2 - 2));
     Assert.assertArrayEquals(
         Arrays.copyOfRange(testData, 1, fileSize - 1),
         Arrays.copyOfRange(cacheMiss, 2, fileSize));
@@ -388,7 +392,7 @@ public class LocalCacheFileInStreamTest {
 
     // cache hit
     byte[] cacheHit = new byte[fileSize * 2];
-    Assert.assertEquals(fileSize - 1, stream.positionedRead(1, cacheHit, 2, fileSize * 2));
+    Assert.assertEquals(fileSize - 1, stream.positionedRead(1, cacheHit, 2, fileSize * 2 - 2));
     Assert.assertArrayEquals(
         Arrays.copyOfRange(testData, 1, fileSize - 1),
         Arrays.copyOfRange(cacheHit, 2, fileSize));
@@ -1084,9 +1088,9 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
-    public int read(ByteBuffer byteBuffer, int off, int len) throws IOException {
+    public int read(ByteBuffer byteBuffer) throws IOException {
       mTicker.advance(StepTicker.Type.CACHE_MISS);
-      return mDelegate.read(byteBuffer, off, len);
+      return mDelegate.read(byteBuffer);
     }
 
     @Override

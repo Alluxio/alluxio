@@ -52,7 +52,9 @@ public abstract class FileInStream extends InputStream
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
     Preconditions.checkNotNull(b, PreconditionMessage.ERR_READ_BUFFER_NULL);
-    return read(ByteBuffer.wrap(b), off, len);
+    Preconditions.checkArgument(len >= 0 && off >= 0 && len <= b.length - off,
+        PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
+    return read(ByteBuffer.wrap(b, off, len));
   }
 
   /**
@@ -68,39 +70,28 @@ public abstract class FileInStream extends InputStream
    * Implementations should treat 0-length requests as legitimate, and must not
    * signal an error upon their receipt.
    *
-   * @param buf the ByteBuffer to receive the results of the read operation
+   * @param byteBuffer the ByteBuffer to receive the results of the read operation
    * @return the number of bytes read, possibly zero, or -1 if reach end-of-stream
    */
-  public int read(ByteBuffer buf) throws IOException {
-    return read(buf, buf.position(), buf.remaining());
-  }
-
-  /**
-   * Reads up to len bytes of data from the input stream into the byte buffer.
-   *
-   * @param byteBuffer the buffer into which the data is read
-   * @param off the start offset in the buffer at which the data is written
-   * @param len the maximum number of bytes to read
-   * @return the total number of bytes read into the buffer, or -1 if there is no more
-   *         data because the end of the stream has been reached
-   */
-  public int read(ByteBuffer byteBuffer, int off, int len) throws IOException {
-    int nread = 0;
-    int rd = 0;
-    final int sz = len;
-    final byte[] dest = new byte[sz];
-    while (rd >= 0 && nread < sz) {
-      rd = read(dest, nread, sz - nread);
-      if (rd >= 0) {
-        nread += rd;
+  public int read(ByteBuffer byteBuffer) throws IOException {
+    final int bytesToRead = byteBuffer.remaining();
+    if (byteBuffer.hasArray()) {
+      byte[] array = byteBuffer.array();
+      int arrayOffset = byteBuffer.arrayOffset();
+      int bytesRead = read(array, arrayOffset, bytesToRead);
+      if (bytesRead > 0) {
+        byteBuffer.position(byteBuffer.position() + bytesRead);
       }
+      return bytesRead;
     }
-    if (nread == -1) { // EOF
-      nread = 0;
-    } else if (nread > 0) {
-      byteBuffer.put(dest, 0, nread);
+
+    byte[] array = new byte[bytesToRead];
+    int bytesRead = read(array, 0, bytesToRead);
+    if (bytesRead == -1) {
+      return -1;
     }
-    return nread;
+    byteBuffer.put(array, 0, bytesRead);
+    return bytesRead;
   }
 
   @Override

@@ -44,7 +44,7 @@ public class FuseDoraReadOnlyTest extends AbstractFuseFileSystemTest {
     Assert.assertEquals(0, mFuseFs.open(FILE, mFileInfo.get()));
     ByteBuffer buffer = ByteBuffer.allocate(DEFAULT_FILE_LEN);
     Assert.assertEquals(0,
-        mFuseFs.read(FILE, buffer, DEFAULT_FILE_LEN, 0, mFileInfo.get()));
+        mFuseFs.read(FILE, 0, buffer, mFileInfo.get()));
     Assert.assertEquals(0, mFuseFs.release(FILE, mFileInfo.get()));
   }
 
@@ -56,7 +56,8 @@ public class FuseDoraReadOnlyTest extends AbstractFuseFileSystemTest {
     Assert.assertEquals(0, mFuseFs.open(FILE, mFileInfo.get()));
     ByteBuffer buffer = ByteBuffer.allocate(DEFAULT_FILE_LEN);
     Assert.assertEquals(DEFAULT_FILE_LEN,
-        mFuseFs.read(FILE, buffer, DEFAULT_FILE_LEN, 0, mFileInfo.get()));
+        mFuseFs.read(FILE, 0, buffer, mFileInfo.get()));
+    buffer.flip();
     BufferUtils.equalIncreasingByteBuffer(0, DEFAULT_FILE_LEN, buffer);
     Assert.assertEquals(0, mFuseFs.release(FILE, mFileInfo.get()));
   }

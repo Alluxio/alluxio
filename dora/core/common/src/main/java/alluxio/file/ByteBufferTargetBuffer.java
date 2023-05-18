@@ -67,7 +67,7 @@ public class ByteBufferTargetBuffer implements ReadTargetBuffer {
   }
 
   @Override
-  public long remaining() {
+  public int remaining() {
     return mTarget.remaining();
   }
 

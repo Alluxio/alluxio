@@ -46,13 +46,13 @@ public class DoraCachePositionReader implements PositionReader {
   }
 
   @Override
-  public int readInternal(long position, ReadTargetBuffer buffer, int length)
+  public int readInternal(long position, ReadTargetBuffer buffer)
       throws IOException {
     if (position >= mFileLength) { // at end of file
       return -1;
     }
     try {
-      return mNettyReader.read(position, buffer, length);
+      return mNettyReader.read(position, buffer);
     } catch (PartialReadException e) {
       int bytesRead = e.getBytesRead();
       if (bytesRead == 0) {

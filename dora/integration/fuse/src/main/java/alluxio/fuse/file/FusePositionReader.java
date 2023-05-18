@@ -88,19 +88,19 @@ public class FusePositionReader implements FuseFileStream {
   }
 
   @Override
-  public int read(ByteBuffer buf, long size, long offset) {
+  public int read(long position, ByteBuffer buf) {
     if (mClosed) {
       throw new FailedPreconditionRuntimeException("Position reader is closed");
     }
     try {
-      return mPositionReader.read(offset, buf, (int) size);
+      return mPositionReader.read(position, buf);
     } catch (IOException e) {
       throw AlluxioRuntimeException.from(e);
     }
   }
 
   @Override
-  public void write(ByteBuffer buf, long size, long offset) {
+  public void write(long position, ByteBuffer buf) {
     throw new FailedPreconditionRuntimeException(String
         .format("Cannot write to reading file %s", mURI));
   }

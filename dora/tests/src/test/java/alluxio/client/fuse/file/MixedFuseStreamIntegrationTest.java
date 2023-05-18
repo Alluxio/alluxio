@@ -35,12 +35,13 @@ public class MixedFuseStreamIntegrationTest extends AbstractFuseFileStreamIntegr
     FuseFileStream outStream = mStreamFactory.create(
         alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE);
     ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
-    outStream.write(buffer, DEFAULT_FILE_LEN, 0);
+    outStream.write(0, buffer);
     Thread thread = new Thread(() -> {
       try (FuseFileStream inStream = mStreamFactory
           .create(alluxioURI, OpenFlags.O_RDONLY.intValue(), MODE)) {
         ByteBuffer readBuffer = ByteBuffer.allocate(DEFAULT_FILE_LEN);
-        Assert.assertEquals(DEFAULT_FILE_LEN, inStream.read(readBuffer, DEFAULT_FILE_LEN, 0));
+        Assert.assertEquals(DEFAULT_FILE_LEN, inStream.read(0, readBuffer));
+        readBuffer.flip();
         Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, DEFAULT_FILE_LEN, readBuffer));
       }
     });
@@ -58,12 +59,13 @@ public class MixedFuseStreamIntegrationTest extends AbstractFuseFileStreamIntegr
     FuseFileStream outStream = mStreamFactory.create(
         alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE);
     ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
-    outStream.write(buffer, DEFAULT_FILE_LEN, 0);
+    outStream.write(0, buffer);
     Thread thread = new Thread(() -> {
       try (FuseFileStream inOrOutStream = mStreamFactory
           .create(alluxioURI, OpenFlags.O_RDWR.intValue(), MODE)) {
         ByteBuffer readBuffer = ByteBuffer.allocate(DEFAULT_FILE_LEN);
-        Assert.assertEquals(DEFAULT_FILE_LEN, inOrOutStream.read(readBuffer, DEFAULT_FILE_LEN, 0));
+        Assert.assertEquals(DEFAULT_FILE_LEN, inOrOutStream.read(0, readBuffer));
+        readBuffer.flip();
         Assert.assertTrue(BufferUtils.equalIncreasingByteBuffer(0, DEFAULT_FILE_LEN, readBuffer));
       }
     });
@@ -81,14 +83,14 @@ public class MixedFuseStreamIntegrationTest extends AbstractFuseFileStreamIntegr
     FuseFileStream outStream = mStreamFactory.create(
         alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE);
     ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
-    outStream.write(buffer, DEFAULT_FILE_LEN, 0);
+    outStream.write(0, buffer);
     Thread thread = new Thread(() -> {
       try (FuseFileStream overwriteStream = mStreamFactory.create(alluxioURI,
           OpenFlags.O_WRONLY.intValue() | OpenFlags.O_TRUNC.intValue(), MODE)) {
         ByteBuffer newBuffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
-        overwriteStream.write(newBuffer, DEFAULT_FILE_LEN, 0);
+        overwriteStream.write(0, newBuffer);
         newBuffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN, DEFAULT_FILE_LEN);
-        overwriteStream.write(newBuffer, DEFAULT_FILE_LEN, DEFAULT_FILE_LEN);
+        overwriteStream.write(DEFAULT_FILE_LEN, newBuffer);
       }
     });
     // Fuse.release() is async. Out stream may be closed after the file is opened for overwrite
@@ -106,14 +108,14 @@ public class MixedFuseStreamIntegrationTest extends AbstractFuseFileStreamIntegr
     FuseFileStream outStream = mStreamFactory.create(
         alluxioURI, OpenFlags.O_WRONLY.intValue(), MODE);
     ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
-    outStream.write(buffer, DEFAULT_FILE_LEN, 0);
+    outStream.write(0, buffer);
     Thread thread = new Thread(() -> {
       try (FuseFileStream inOrOutStream = mStreamFactory.create(alluxioURI,
           OpenFlags.O_RDWR.intValue() | OpenFlags.O_TRUNC.intValue(), MODE)) {
         ByteBuffer newBuffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN);
-        inOrOutStream.write(newBuffer, DEFAULT_FILE_LEN, 0);
+        inOrOutStream.write(0, newBuffer);
         newBuffer = BufferUtils.getIncreasingByteBuffer(DEFAULT_FILE_LEN, DEFAULT_FILE_LEN);
-        inOrOutStream.write(newBuffer, DEFAULT_FILE_LEN, DEFAULT_FILE_LEN);
+        inOrOutStream.write(DEFAULT_FILE_LEN, newBuffer);
       }
     });
     thread.start();

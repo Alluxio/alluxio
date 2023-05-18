@@ -14,7 +14,6 @@ package alluxio.client.file;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -97,7 +96,7 @@ public class PositionReadFileInStreamTest {
           totalBytesRead - bytesRead, bytesRead, ByteBuffer.wrap(mBuffer, 0, bytesRead)));
       verify(spy, times(numUnbufferedCalls)
           .description("position: " + stream.getPos() + ", length: " + readLength))
-          .readInternal(anyLong(), any(ReadTargetBuffer.class), anyInt());
+          .readInternal(anyLong(), any(ReadTargetBuffer.class));
     }
   }
 
@@ -122,7 +121,7 @@ public class PositionReadFileInStreamTest {
           position, bytesRead, ByteBuffer.wrap(mBuffer, 0, bytesRead)));
       verify(spy, times(numUnbufferedCalls)
           .description("position: " + position + ", length: " + readLength))
-          .readInternal(anyLong(), any(ReadTargetBuffer.class), anyInt());
+          .readInternal(anyLong(), any(ReadTargetBuffer.class));
     }
   }
 

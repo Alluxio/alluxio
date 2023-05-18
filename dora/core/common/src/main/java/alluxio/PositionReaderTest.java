@@ -49,21 +49,15 @@ public class PositionReaderTest {
    */
   public void testAllCornerCases() throws IOException {
     byteArrayInvalidLength();
-    byteArrayInvalidLength2();
     byteArrayNegativeLength();
-    byteArrayNegativeLength2();
     byteArrayNegativePosition();
     byteArrayNegativePosition2();
     byteArrayZeroLength();
     byteArrayZeroLength2();
 
-    byteBufferInvalidLength();
-    byteBufferNegativeLength();
     byteBufferNegativePosition();
     byteBufferZeroLength();
 
-    byteBufInvalidLength();
-    byteBufNegativeLength();
     byteBufNegativePosition();
     byteBufZeroLength();
   }
@@ -131,21 +125,18 @@ public class PositionReaderTest {
       if (length == 0) {
         continue;
       }
-      buf.position(0);
-      buf.limit(length);
-      int totalRead = 0;
-      int currentRead;
-      while (totalRead < length) {
-        currentRead = mReader.read(position + totalRead, buf, length - totalRead);
+      buf.position(0).limit(length);
+      while (buf.hasRemaining()) {
+        int currentRead = mReader.read(position + buf.position(), buf);
         if (currentRead <= 0) {
           break;
         }
-        totalRead += currentRead;
       }
-      if (totalRead != length) {
+      buf.flip();
+      if (buf.remaining() != length) {
         throw new IOException(String.format(
             "Failed to read data from position %s of length %s from reader, only read %s",
-            position, length, totalRead));
+            position, length, buf.remaining()));
       }
       if (!BufferUtils.equalIncreasingByteBuffer(position, length, buf)) {
         throw new IOException("Data corrupted");
@@ -163,21 +154,17 @@ public class PositionReaderTest {
         if (length == 0) {
           continue;
         }
-        buf.clear();
-        buf.capacity(length);
-        int totalRead = 0;
-        int currentRead;
-        while (totalRead < length) {
-          currentRead = mReader.read(position + totalRead, buf, length - totalRead);
+        buf.clear().capacity(length);
+        while (buf.writableBytes() > 0) {
+          int currentRead = mReader.read(position + buf.writerIndex(), buf);
           if (currentRead <= 0) {
             break;
           }
-          totalRead += currentRead;
         }
-        if (totalRead != length) {
+        if (buf.readableBytes() != length) {
           throw new IOException(String.format(
               "Failed to read data from position %s of length %s from reader, only read %s",
-              position, length, totalRead));
+              position, length, buf.readableBytes()));
         }
         if (!BufferUtils.equalIncreasingByteBuf(position, length, buf)) {
           throw new IOException("Data corrupted");
@@ -200,7 +187,7 @@ public class PositionReaderTest {
       int totalRead = 0;
       int currentRead;
       while (totalRead < length) {
-        currentRead = mReader.read(position + totalRead, buf, length - totalRead);
+        currentRead = mReader.read(position + totalRead, buf, totalRead, length - totalRead);
         if (currentRead <= 0) {
           break;
         }
@@ -219,7 +206,8 @@ public class PositionReaderTest {
 
   private void byteBufferZeroLength() throws IOException {
     ByteBuffer buf = ByteBuffer.allocate(1);
-    if (mReader.read(0, buf, 0) != 0) {
+    buf.clear().limit(0);
+    if (mReader.read(0, buf) != 0) {
       throw new IOException("read length 0 should return 0");
     }
     buf.flip();
@@ -230,7 +218,8 @@ public class PositionReaderTest {
 
   private void byteBufZeroLength() throws IOException {
     ByteBuf buf = Unpooled.buffer(1);
-    if (mReader.read(0, buf, 0) != 0) {
+    buf.clear().writerIndex(1).readerIndex(1);
+    if (mReader.read(0, buf) != 0) {
       throw new IOException("read length 0 should return 0");
     }
     try {
@@ -242,8 +231,8 @@ public class PositionReaderTest {
   }
 
   private void byteArrayZeroLength() throws IOException {
-    byte[] byteArray = new byte[1];
-    if (mReader.read(0, byteArray, 0) != 0) {
+    byte[] byteArray = new byte[0];
+    if (mReader.read(0, byteArray) != 0) {
       throw new IOException("read length 0 should return 0");
     }
   }
@@ -255,37 +244,7 @@ public class PositionReaderTest {
     }
   }
 
-  private void byteBufferInvalidLength() throws IOException {
-    ByteBuffer buf = ByteBuffer.allocate(1);
-    try {
-      mReader.read(0, buf, 2);
-      throw new IOException("Read length should not be bigger than given buffer length");
-    } catch (IllegalArgumentException e) {
-      // expected
-    }
-  }
-
-  private void byteBufInvalidLength() throws IOException {
-    ByteBuf buf = Unpooled.buffer(1);
-    try {
-      mReader.read(0, buf, 2);
-      throw new IOException("Read length should not be bigger than given buffer length");
-    } catch (IllegalArgumentException e) {
-      // expected
-    }
-  }
-
   private void byteArrayInvalidLength() throws IOException {
-    byte[] byteArray = new byte[1];
-    try {
-      mReader.read(0, byteArray, 2);
-      throw new IOException("Read length should not be bigger than given byteArray length");
-    } catch (IllegalArgumentException e) {
-      // expected
-    }
-  }
-
-  private void byteArrayInvalidLength2() throws IOException {
     byte[] byteArray = new byte[1];
     try {
       mReader.read(0, byteArray, 0, 2);
@@ -295,39 +254,7 @@ public class PositionReaderTest {
     }
   }
 
-  private void byteBufferNegativeLength() throws IOException {
-    ByteBuffer buf = ByteBuffer.allocate(1);
-    try {
-      mReader.read(0, buf, -1);
-      throw new IOException("Read should error out when given length is negative");
-    } catch (IllegalArgumentException e) {
-      // expected
-    }
-  }
-
-  private void byteBufNegativeLength() throws IOException {
-    ByteBuf buf = Unpooled.buffer(1);
-    try {
-      mReader.read(0, buf, -1);
-      throw new IOException("Read should error out when given length is negative");
-    } catch (IllegalArgumentException e) {
-      // expected
-    } finally {
-      buf.release();
-    }
-  }
-
   private void byteArrayNegativeLength() throws IOException {
-    byte[] byteArray = new byte[1];
-    try {
-      mReader.read(0, byteArray, -1);
-      throw new IOException("Read should error out when given length is negative");
-    } catch (IllegalArgumentException e) {
-      // expected
-    }
-  }
-
-  private void byteArrayNegativeLength2() throws IOException {
     byte[] byteArray = new byte[1];
     try {
       mReader.read(0, byteArray, 0, -1);
@@ -343,7 +270,7 @@ public class PositionReaderTest {
     }
     ByteBuffer buf = ByteBuffer.allocate(1);
     try {
-      mReader.read(-1, buf, 1);
+      mReader.read(-1, buf);
       throw new IOException("Read should error out when given position is negative");
     } catch (IllegalArgumentException e) {
       // expected
@@ -356,7 +283,7 @@ public class PositionReaderTest {
     }
     ByteBuf buf = Unpooled.buffer(1);
     try {
-      mReader.read(-1, buf, 1);
+      mReader.read(-1, buf);
       throw new IOException("Read should error out when given position is negative");
     } catch (IllegalArgumentException e) {
       // expected
@@ -371,7 +298,7 @@ public class PositionReaderTest {
     }
     byte[] byteArray = new byte[1];
     try {
-      mReader.read(-1, byteArray, 1);
+      mReader.read(-1, byteArray);
       throw new IOException("Read should error out when given position is negative");
     } catch (IllegalArgumentException e) {
       // expected

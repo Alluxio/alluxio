@@ -89,7 +89,7 @@ public class FuseFileInOrOutStream implements FuseFileStream {
   }
 
   @Override
-  public synchronized int read(ByteBuffer buf, long size, long offset) {
+  public synchronized int read(long position, ByteBuffer buf) {
     if (mOutStream.isPresent()) {
       throw new UnimplementedRuntimeException(
           "Alluxio does not support reading while writing/truncating");
@@ -97,11 +97,11 @@ public class FuseFileInOrOutStream implements FuseFileStream {
     if (!mInStream.isPresent()) {
       mInStream = Optional.of(FuseFileInStream.create(mFileSystem, mLockManager, mUri));
     }
-    return mInStream.get().read(buf, size, offset);
+    return mInStream.get().read(position, buf);
   }
 
   @Override
-  public synchronized void write(ByteBuffer buf, long size, long offset) {
+  public synchronized void write(long position, ByteBuffer buf) {
     if (mInStream.isPresent()) {
       throw new UnimplementedRuntimeException(
           "Alluxio does not support reading while writing/truncating");
@@ -110,7 +110,7 @@ public class FuseFileInOrOutStream implements FuseFileStream {
       mOutStream = Optional.of(FuseFileOutStream.create(mFileSystem, mAuthPolicy,
           mLockManager, mUri, OpenFlags.O_WRONLY.intValue(), mMode));
     }
-    mOutStream.get().write(buf, size, offset);
+    mOutStream.get().write(position, buf);
   }
 
   @Override

@@ -67,16 +67,18 @@ public class RangeFileInStream extends InputStream {
   }
 
   /**
-   * Reads up to len bytes of data from the input stream into the byte buffer.
+   * Reads data from the input stream into the byte buffer.
+   * See the contract of reading into a byte buffer defined by
+   * {@link FileInStream#read(ByteBuffer)}.
+   *
    * @param byteBuffer the buffer into which the data is read
-   * @param off the start offset in the buffer at which the data is written
-   * @param len the maximum number of bytes to read
    * @return the total number of bytes read into the buffer, or -1 if there is no more
    *         data because the end of the stream has been reached
+   * @see FileInStream#read(ByteBuffer)
    * @throws IOException
    */
-  public int read(ByteBuffer byteBuffer, int off, int len) throws IOException {
-    return this.mUnderlyingStream.read(byteBuffer, off, len);
+  public int read(ByteBuffer byteBuffer) throws IOException {
+    return this.mUnderlyingStream.read(byteBuffer);
   }
 
   @Override

@@ -191,9 +191,8 @@ public class AlluxioFileInStream extends FileInStream {
   }
 
   @Override
-  public int read(ByteBuffer byteBuffer, int off, int len) throws IOException {
-    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= byteBuffer.capacity(),
-        PreconditionMessage.ERR_BUFFER_STATE.toString(), byteBuffer.capacity(), off, len);
+  public int read(ByteBuffer byteBuffer) throws IOException {
+    int len = byteBuffer.remaining();
     if (len == 0) {
       return 0;
     }
@@ -201,17 +200,17 @@ public class AlluxioFileInStream extends FileInStream {
       return -1;
     }
 
-    int bytesLeft = len;
-    int currentOffset = off;
+    // casting from long to int is safe since len never exceeds Integer.MAX_VALUE
+    final int bytesToRead = (int) Math.min((long) len, mLength - mPosition);
+    int totalBytesRead = 0;
     RetryPolicy retry = mRetryPolicySupplier.get();
     IOException lastException = null;
-    while (bytesLeft > 0 && mPosition != mLength && retry.attempt()) {
+    while (bytesToRead - totalBytesRead > 0 && retry.attempt()) {
       try {
         updateStream();
-        int bytesRead = mBlockInStream.read(byteBuffer, currentOffset, bytesLeft);
+        int bytesRead = mBlockInStream.read(byteBuffer);
         if (bytesRead > 0) {
-          bytesLeft -= bytesRead;
-          currentOffset += bytesRead;
+          totalBytesRead += bytesRead;
           mPosition += bytesRead;
         }
         retry = mRetryPolicySupplier.get();
@@ -233,7 +232,7 @@ public class AlluxioFileInStream extends FileInStream {
     if (lastException != null) {
       throw lastException;
     }
-    return len - bytesLeft;
+    return totalBytesRead;
   }
 
   // When Alluxio detects the underlying file length has changed,

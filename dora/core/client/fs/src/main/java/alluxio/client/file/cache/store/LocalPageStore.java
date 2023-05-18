@@ -105,7 +105,7 @@ public class LocalPageStore implements PageStore {
                 pageId, pagePath, pageOffset, bytesSkipped));
       }
       int bytesRead = 0;
-      int bytesLeft = Math.min((int) target.remaining(), bytesToRead);
+      int bytesLeft = Math.min(target.remaining(), bytesToRead);
       while (bytesLeft > 0) {
         int bytes = target.readFromFile(localFile, bytesLeft);
         if (bytes <= 0) {

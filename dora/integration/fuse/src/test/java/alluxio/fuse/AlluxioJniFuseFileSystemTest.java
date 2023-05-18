@@ -17,13 +17,13 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -70,6 +70,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Optional;
@@ -429,12 +430,11 @@ public class AlluxioJniFuseFileSystemTest {
 
     FileInStream fakeInStream = mock(FileInStream.class);
     mFileSystem.getStatus(expectedPath).getFileInfo().setLength(4);
-    when(fakeInStream.read(any(ByteBuffer.class),
-        anyInt(), anyInt())).then((Answer<Integer>) invocationOnMock -> {
+    final byte[] expected = new byte[] {0, 1, 2, 3};
+    when(fakeInStream.read(any(ByteBuffer.class)))
+        .then((Answer<Integer>) invocationOnMock -> {
           ByteBuffer myDest = (ByteBuffer) invocationOnMock.getArguments()[0];
-          for (byte i = 0; i < 4; i++) {
-            myDest.put(i, i);
-          }
+          myDest.put(expected);
           return 4;
         });
 
@@ -449,10 +449,10 @@ public class AlluxioJniFuseFileSystemTest {
     // actual test
     mFuseFs.open("/foo/bar", mFileInfo);
 
-    mFuseFs.read("/foo/bar", ptr, 4, 0, mFileInfo);
+    mFuseFs.read("/foo/bar", 0, ptr, mFileInfo);
     final byte[] dst = new byte[4];
+    ptr.flip();
     ptr.get(dst, 0, 4);
-    final byte[] expected = new byte[] {0, 1, 2, 3};
 
     assertArrayEquals("Source and dst data should be equal", expected, dst);
   }
@@ -512,7 +512,14 @@ public class AlluxioJniFuseFileSystemTest {
 
   @Test
   public void write() throws Exception {
-    FileOutStream fos = mock(FileOutStream.class);
+    FileOutStream fos = spy(new FileOutStream() {
+      @Override
+      public void write(int b) throws IOException {
+        // although b is int, the 24 higher bits are ignored
+        // we are effectively writing 1 byte
+        mBytesWritten += 1;
+      }
+    });
     AlluxioURI anyURI = any();
     CreateFilePOptions options = any();
     when(mFileSystem.createFile(anyURI, options)).thenReturn(fos);
@@ -530,11 +537,12 @@ public class AlluxioJniFuseFileSystemTest {
     ptr.put(expected, 0, 4);
     ptr.flip();
 
-    mFuseFs.write("/foo/bar", ptr, 4, 0, mFileInfo);
+    mFuseFs.write("/foo/bar", 0, ptr, mFileInfo);
     verify(fos).write(expected);
 
+    ptr.clear().limit(4);
     // the second write is no-op because the writes must be sequential and overwriting is supported
-    mFuseFs.write("/foo/bar", ptr, 4, 0, mFileInfo);
+    mFuseFs.write("/foo/bar", 0, ptr, mFileInfo);
     verify(fos, times(1)).write(expected);
   }
 
