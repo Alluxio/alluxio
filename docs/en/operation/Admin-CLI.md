@@ -379,9 +379,7 @@ alluxio.master.metastore.inode.inherit.owner.and.group
 The `decommissionWorker` command can be used to take the target workers off-line from the cluster, 
 so Alluxio clients and proxy instances stop using those workers, and therefore they can be killed or restarted gracefully.
 Note that this command will NOT kill worker processes. This command will NOT remove the cache on the workers.
-This command can be typically used for the following use cases:
-1. Perform a graceful rolling restart of all workers in the cluster, where no user requests should fail.
-2. Scale down the cluster without interrupting user I/O workflow.
+This command can be typically used to scale down the cluster without interrupting user I/O workflow.
 
 ```shell
 $ ./bin/alluxio fsadmin decommissionWorker --addresses data-worker-0,data-worker-1 [--wait 5m] [--disable]
@@ -426,8 +424,6 @@ So after those workers are taken off the available list, after another refresh i
 and after all ongoing requests have been served, those workers should not receive any more requests.
 Therefore, no matter when the admin restarts/kills those worker processes, that should not fail any requests.
 However, there are a few exceptions. See the next section for more details.
-
-See [Rolling Upgrade Workers]({{ '/en/operation/Upgrade.html#rolling-upgraderestart-workers' | relativize_url }}) for how this command is used.
 
 **Limitations**
  
