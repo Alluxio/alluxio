@@ -149,4 +149,5 @@ public interface Job<T extends Task<?>> {
    * @return whether the job has failed tasks
    */
   boolean hasFailure();
+  void initializeJob();
 }

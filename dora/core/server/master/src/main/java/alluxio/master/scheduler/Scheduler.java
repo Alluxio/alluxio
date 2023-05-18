@@ -151,7 +151,6 @@ public final class Scheduler {
             task.getResponseFuture().addListener(() -> {
               Job job = task.getJob();
               try {
-                LOG.info("Task:{} completed, response{}:", task.toString(), task.getResponseFuture().get());
                 job.processResponse(task); // retry onfailure logic inside
               /* TODO(lucy) now whether task succeed or fail, remove it from q,
               it could be add numOfRetry logic to the task with added upgrade/degrade
@@ -322,6 +321,7 @@ public final class Scheduler {
         mJobToRunningTasks.remove(job);
       }
       else {
+        job.initializeJob();
         mJobToRunningTasks.put(job, new ConcurrentHashSet<>());
       }
     }
