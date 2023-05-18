@@ -37,7 +37,7 @@ public class GrpcChannelBuilder {
         false);
   }
 
-  private GrpcChannelBuilder(GrpcServerAddress address, AlluxioConfiguration conf,
+  protected GrpcChannelBuilder(GrpcServerAddress address, AlluxioConfiguration conf,
       AuthType authType, boolean alwaysEnableTLS) {
     mAddress = address;
     mConfiguration = conf;
@@ -115,6 +115,30 @@ public class GrpcChannelBuilder {
   public GrpcChannelBuilder setNetworkGroup(GrpcNetworkGroup group) {
     mNetworkGroup = group;
     return this;
+  }
+
+  protected GrpcServerAddress getAddress() {
+    return mAddress;
+  }
+
+  protected GrpcNetworkGroup getNetworkGroup() {
+    return mNetworkGroup;
+  }
+
+  protected AlluxioConfiguration getConfiguration() {
+    return mConfiguration;
+  }
+
+  protected boolean getAlwaysEnableTLS() {
+    return mAlwaysEnableTLS;
+  }
+
+  protected AuthType getAuthType() {
+    return mAuthType;
+  }
+
+  protected Subject getParentSubject() {
+    return mParentSubject;
   }
 
   /**
