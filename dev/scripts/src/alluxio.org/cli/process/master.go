@@ -15,8 +15,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
-	"path/filepath"
 	"strings"
 
 	"github.com/palantir/stacktrace"
@@ -31,10 +29,11 @@ import (
 
 var Master = &MasterProcess{
 	BaseProcess: &env.BaseProcess{
-		Name:              "master",
-		JavaClassName:     "alluxio.master.AlluxioMaster",
-		JavaOptsEnvVarKey: confAlluxioMasterJavaOpts.EnvVar,
-		ProcessOutFile:    "master.out",
+		Name:                 "master",
+		JavaClassName:        "alluxio.master.AlluxioMaster",
+		JavaOptsEnvVarKey:    confAlluxioMasterJavaOpts.EnvVar,
+		ProcessOutFile:       "master.out",
+		MonitorJavaClassName: "alluxio.master.AlluxioMasterMonitor",
 	},
 }
 
@@ -75,24 +74,18 @@ func (p *MasterProcess) InitCommandTree(processCmd *cobra.Command) {
 	}
 	processCmd.AddCommand(masterCmd)
 
-	startCmd := &cobra.Command{
-		Use:   "start",
-		Short: "Start the process",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return p.Start()
-		},
-	}
+	startCmd := env.NewProcessStartCmd(p)
+	// TODO: docs mention this should be located on a URI path of the root mount; what happens in 3.x when there is no root mount
+	startCmd.Flags().StringVarP(&p.JournalBackupFile, "journalBackup", "i", "", "A journal backup to restore the master from")
 	// startCmd.Flags().BoolVar(&p.Format, "format", false, "Format master")
 	masterCmd.AddCommand(startCmd)
+
+	masterCmd.AddCommand(env.NewProcessStopCmd(p))
 }
 
 func (p *MasterProcess) SetEnvVars(envVar *viper.Viper) {
-	// ALLUXIO_MASTER_JAVA_OPTS = {default logger opts} ${ALLUXIO_JAVA_OPTS} {user provided opts} {default opts if missing}
-	loggerType := masterLoggerType
-	if p.EnableConsoleLogging {
-		loggerType = "Console," + loggerType
-	}
-	envVar.SetDefault(envAlluxioMasterLogger, loggerType)
+	// ALLUXIO_MASTER_JAVA_OPTS = {default logger opts} ${ALLUXIO_JAVA_OPTS} ${ALLUXIO_MASTER_JAVA_OPTS}
+	envVar.SetDefault(envAlluxioMasterLogger, masterLoggerType)
 	masterJavaOpts := fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, envVar.Get(envAlluxioMasterLogger))
 	envVar.SetDefault(envAlluxioAuditMasterLogger, masterAuditLoggerType)
 	masterJavaOpts += fmt.Sprintf(env.JavaOptFormat, confAlluxioMasterAuditLoggerType, envVar.Get(envAlluxioAuditMasterLogger))
@@ -100,19 +93,6 @@ func (p *MasterProcess) SetEnvVars(envVar *viper.Viper) {
 	masterJavaOpts += envVar.GetString(env.ConfAlluxioJavaOpts.EnvVar)
 	masterJavaOpts += envVar.GetString(p.JavaOptsEnvVarKey)
 
-	if p.JournalBackupFile != "" {
-		masterJavaOpts += fmt.Sprintf(env.JavaOptFormat, confAlluxioMasterJournalInitFromBackup, p.JournalBackupFile)
-	}
-	// specify a default of -Xmx8g if no memory setting is specified
-	const xmxOpt = "-Xmx"
-	if !strings.Contains(masterJavaOpts, xmxOpt) && !strings.Contains(masterJavaOpts, "MaxRAMPercentage") {
-		masterJavaOpts += fmt.Sprintf(" %v8g", xmxOpt)
-	}
-	// specify a default of -XX:MetaspaceSize=256M if not set
-	const metaspaceSizeOpt = "-XX:MetaspaceSize"
-	if !strings.Contains(masterJavaOpts, metaspaceSizeOpt) {
-		masterJavaOpts += fmt.Sprintf(" %v=256M", metaspaceSizeOpt)
-	}
 	envVar.Set(p.JavaOptsEnvVarKey, strings.TrimSpace(masterJavaOpts)) // leading spaces need to be trimmed as a exec.Command argument
 }
 
@@ -131,26 +111,28 @@ func (p *MasterProcess) Start() error {
 		args = append(args, strings.Split(attachOpts, " ")...)
 	}
 	args = append(args, "-cp", env.Env.EnvVar.GetString(env.EnvAlluxioServerClasspath))
-	args = append(args, strings.Split(env.Env.EnvVar.GetString(p.JavaOptsEnvVarKey), " ")...)
+
+	masterJavaOpts := env.Env.EnvVar.GetString(p.JavaOptsEnvVarKey)
+	args = append(args, strings.Split(masterJavaOpts, " ")...)
+
+	if p.JournalBackupFile != "" {
+		args = append(args, strings.TrimSpace(fmt.Sprintf(env.JavaOptFormat, confAlluxioMasterJournalInitFromBackup, p.JournalBackupFile)))
+	}
+	// specify a default of -Xmx8g if no memory setting is specified
+	const xmxOpt = "-Xmx"
+	if !strings.Contains(masterJavaOpts, xmxOpt) && !strings.Contains(masterJavaOpts, "MaxRAMPercentage") {
+		args = append(args, fmt.Sprintf("%v8g", xmxOpt))
+	}
+	// specify a default of -XX:MetaspaceSize=256M if not set
+	const metaspaceSizeOpt = "-XX:MetaspaceSize"
+	if !strings.Contains(masterJavaOpts, metaspaceSizeOpt) {
+		args = append(args, fmt.Sprintf("%v=256M", metaspaceSizeOpt))
+	}
+
 	args = append(args, p.JavaClassName)
 
-	startCmd := exec.Command("nohup", args...)
-	for _, k := range env.Env.EnvVar.AllKeys() {
-		startCmd.Env = append(startCmd.Env, fmt.Sprintf("%s=%v", k, env.Env.EnvVar.Get(k)))
-	}
-
-	outFile := filepath.Join(env.Env.EnvVar.GetString(env.ConfAlluxioLogsDir.EnvVar), p.ProcessOutFile)
-	f, err := os.OpenFile(outFile, os.O_WRONLY|os.O_CREATE, 0644)
-	if err != nil {
-		return stacktrace.Propagate(err, "error opening file at %v", outFile)
-	}
-	startCmd.Stdout = f
-	startCmd.Stderr = f
-
-	log.Logger.Info("Running master")
-	log.Logger.Debugf("%v > %v 2>&1 &", startCmd.String(), outFile)
-	if err := startCmd.Start(); err != nil {
-		return stacktrace.Propagate(err, "error starting master")
+	if err := p.Launch(args); err != nil {
+		return stacktrace.Propagate(err, "error launching process")
 	}
 	return nil
 }

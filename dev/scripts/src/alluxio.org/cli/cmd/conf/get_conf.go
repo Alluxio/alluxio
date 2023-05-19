@@ -42,12 +42,7 @@ func (c *GetConfCommand) InitCommandTree(rootCmd *cobra.Command) {
 	cmd := &cobra.Command{
 		Use:   GetConf.Name,
 		Short: "Look up a configuration key, or print all configuration.",
-		Long: `
-GetConf prints the configured value for the given key. If the key
-is invalid, the exit code will be nonzero. If the key is valid
-but isn't set, an empty string is printed. If no key is
-specified, all configuration is printed.`,
-		Args: cobra.MaximumNArgs(1),
+		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},
