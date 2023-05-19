@@ -149,5 +149,9 @@ public interface Job<T extends Task<?>> {
    * @return whether the job has failed tasks
    */
   boolean hasFailure();
+
+  /**
+   * Initialize the job before kick it running.
+   */
   void initializeJob();
 }

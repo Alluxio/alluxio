@@ -137,4 +137,9 @@ public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
   public boolean isDone() {
     return mState == JobState.SUCCEEDED || mState == JobState.FAILED;
   }
+
+  @Override
+  public void initializeJob() {
+    LOG.info("Job:{} initializing...", mJobId);
+  }
 }

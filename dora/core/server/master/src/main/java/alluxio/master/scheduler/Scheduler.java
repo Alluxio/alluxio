@@ -362,6 +362,7 @@ public final class Scheduler {
     }
     mJobMetaStore.updateJob(job);
     mExistingJobs.put(job.getDescription(), job);
+    job.initializeJob();
     mJobToRunningTasks.putIfAbsent(job, new ConcurrentHashSet<>());
     LOG.info(format("start job: %s", job));
     return true;
