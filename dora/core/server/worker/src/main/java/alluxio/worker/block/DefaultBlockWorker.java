@@ -166,24 +166,14 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   @VisibleForTesting
   @Inject
   public DefaultBlockWorker(BlockMasterClientPool blockMasterClientPool,
-<<<<<<< HEAD:dora/core/server/worker/src/main/java/alluxio/worker/block/DefaultBlockWorker.java
                             FileSystemMasterClient fileSystemMasterClient, Sessions sessions,
                             BlockStore blockStore,
                             @Named("workerId") AtomicReference<Long> workerId) {
-    super(ExecutorServiceFactories.fixedThreadPool("block-worker-executor", 5));
-||||||| parent of ebeac49c3c (Make workers register to all masters):core/server/worker/src/main/java/alluxio/worker/block/DefaultBlockWorker.java
-      FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore,
-      AtomicReference<Long> workerId) {
-    super(ExecutorServiceFactories.fixedThreadPool("block-worker-executor", 5));
-=======
-      FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore,
-      AtomicReference<Long> workerId) {
     super(
         Configuration.getBoolean(PropertyKey.WORKER_REGISTER_TO_ALL_MASTERS)
             ? ExecutorServiceFactories.cachedThreadPool("block-worker-executor")
             : ExecutorServiceFactories.fixedThreadPool("block-worker-executor", 5)
     );
->>>>>>> ebeac49c3c (Make workers register to all masters):core/server/worker/src/main/java/alluxio/worker/block/DefaultBlockWorker.java
     mBlockMasterClientPool = mResourceCloser.register(blockMasterClientPool);
     mFileSystemMasterClient = mResourceCloser.register(fileSystemMasterClient);
     mHeartbeatReporter = new BlockHeartbeatReporter();
@@ -229,7 +219,6 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-<<<<<<< HEAD:dora/core/server/worker/src/main/java/alluxio/worker/block/DefaultBlockWorker.java
   public BlockReader readBlockRemote(long sessionId, long blockId, long lockId)
       throws IOException, BlockDoesNotExistException, InvalidWorkerStateException {
     return mBlockStore.createBlockReader(sessionId, blockId, lockId);
@@ -332,14 +321,11 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
-||||||| parent of ebeac49c3c (Make workers register to all masters):core/server/worker/src/main/java/alluxio/worker/block/DefaultBlockWorker.java
-=======
   public WorkerNetAddress getWorkerAddress() {
     return mAddress;
   }
 
   @Override
->>>>>>> ebeac49c3c (Make workers register to all masters):core/server/worker/src/main/java/alluxio/worker/block/DefaultBlockWorker.java
   public Set<Class<? extends Server>> getDependencies() {
     return new HashSet<>();
   }

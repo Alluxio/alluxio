@@ -34,6 +34,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class BlockWorkerFactory implements WorkerFactory {
   private static final Logger LOG = LoggerFactory.getLogger(BlockWorkerFactory.class);
+  private final boolean mWorkerRegisterToAllMasters = Configuration.getBoolean(
+      PropertyKey.WORKER_REGISTER_TO_ALL_MASTERS);
 
   private final UfsManager mUfsManager;
 
@@ -66,8 +68,11 @@ public final class BlockWorkerFactory implements WorkerFactory {
   @Override
   public BlockWorker create() {
     mBlockStore.initialize();
-    return new DefaultBlockWorker(mBlockMasterClientPool,
-        mFileSystemMasterClient,
-        new Sessions(), mBlockStore, mWorkerId);
+    BlockWorker blockWorker = mWorkerRegisterToAllMasters
+            ? new AllMasterRegistrationBlockWorker(mBlockMasterClientPool,
+            mFileSystemMasterClient, new Sessions(), mBlockStore, mWorkerId)
+            : new DefaultBlockWorker(mBlockMasterClientPool,
+            mFileSystemMasterClient, new Sessions(), mBlockStore, mWorkerId);
+    return blockWorker;
   }
 }
