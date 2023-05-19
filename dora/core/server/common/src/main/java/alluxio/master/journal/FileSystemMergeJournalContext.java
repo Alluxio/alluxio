@@ -11,12 +11,10 @@
 
 package alluxio.master.journal;
 
-import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnavailableException;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.util.logging.SamplingLogger;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -42,8 +40,7 @@ public class FileSystemMergeJournalContext implements JournalContext {
       = Configuration.getInt(
           PropertyKey.MASTER_MERGE_JOURNAL_CONTEXT_NUM_ENTRIES_LOGGING_THRESHOLD);
 
-  private static final Logger SAMPLING_LOG = new SamplingLogger(
-      LoggerFactory.getLogger(FileSystemMergeJournalContext.class), 30L * Constants.SECOND_MS);
+  private static final Logger LOG = LoggerFactory.getLogger(FileSystemMergeJournalContext.class);
 
   private final JournalContext mJournalContext;
   protected final JournalEntryMerger mJournalEntryMerger;
@@ -77,8 +74,12 @@ public class FileSystemMergeJournalContext implements JournalContext {
     mJournalEntryMerger.add(entry);
     List<JournalEntry> journalEntries = mJournalEntryMerger.getMergedJournalEntries();
     if (journalEntries.size() >= MAX_LOGGING_ENTRIES) {
-      SAMPLING_LOG.warn("MergeJournalContext has " + journalEntries.size()
-          + " entries, over the limit of " + MAX_LOGGING_ENTRIES);
+      LOG.warn("MergeJournalContext has " + journalEntries.size()
+          + " entries, over the limit of " + MAX_LOGGING_ENTRIES
+          + ", forcefully merging journal entries and add them to the async journal writer"
+          + "\n Journal Entry: \n"
+          + entry, new Exception("MergeJournalContext Stacktrace:"));
+      appendMergedJournals();
     }
   }
 

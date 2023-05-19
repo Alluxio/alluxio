@@ -95,6 +95,11 @@ message OpenFilePOptions {
   optional int32 maxUfsReadConcurrency = 2;
   optional FileSystemMasterCommonPOptions commonOptions = 3;
   optional bool updateLastAccessTime = 4 [default = true];
+  // If specified and the blocks are not cached in any worker,
+  // the data will be read and cached to the certain worker.
+  // If the blocks have been cached in some alluxio workers,
+  // this field will be ignored.
+  optional grpc.WorkerNetAddress ufsReadWorkerLocation = 15;
 }
 
 // XAttrPropagationStrategy controls the behaviour for assigning xAttr

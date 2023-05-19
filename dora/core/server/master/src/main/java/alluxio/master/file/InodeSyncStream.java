@@ -405,6 +405,12 @@ public class InodeSyncStream {
    * @return SyncStatus object
    */
   public SyncStatus sync() throws AccessControlException, InvalidPathException {
+    LOG.debug("Running InodeSyncStream on path {}, with status {}, and force sync {}",
+        mRootScheme.getPath(), mRootScheme.shouldSync(), mForceSync);
+    if (!mRootScheme.shouldSync().isShouldSync() && !mForceSync) {
+      DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SKIPPED.inc();
+      return SyncStatus.NOT_NEEDED;
+    }
     if (!mDedupConcurrentSync) {
       return syncInternal();
     }
@@ -430,12 +436,6 @@ public class InodeSyncStream {
     int failedSyncPathCount = 0;
     int skippedSyncPathCount = 0;
     int stopNum = -1; // stop syncing when we've processed this many paths. -1 for infinite
-    LOG.debug("Running InodeSyncStream on path {}, with status {}, and force sync {}",
-        mRootScheme.getPath(), mRootScheme.shouldSync(), mForceSync);
-    if (!mRootScheme.shouldSync().isShouldSync() && !mForceSync) {
-      DefaultFileSystemMaster.Metrics.INODE_SYNC_STREAM_SKIPPED.inc();
-      return SyncStatus.NOT_NEEDED;
-    }
     if (mDedupConcurrentSync && mRootScheme.shouldSync() != SyncCheck.SHOULD_SYNC) {
       /*
        * If a concurrent sync on the same path is successful after this sync had already
@@ -1229,16 +1229,21 @@ public class InodeSyncStream {
     if (ufsLastModified != null) {
       createFileContext.setOperationTimeMs(ufsLastModified);
     }
-
+    // If the journal context is a MetadataSyncMergeJournalContext, then the
+    // journals will be taken care and merged by that context already and hence
+    // there's no need to create a new MergeJournalContext.
+    boolean shouldUseMetadataSyncMergeJournalContext =
+        mUseFileSystemMergeJournalContext
+            && rpcContext.getJournalContext() instanceof MetadataSyncMergeJournalContext;
     try (LockedInodePath writeLockedPath = inodePath.lockFinalEdgeWrite();
-         JournalContext merger = mUseFileSystemMergeJournalContext
+         JournalContext merger = shouldUseMetadataSyncMergeJournalContext
              ? NoopJournalContext.INSTANCE
              : new MergeJournalContext(rpcContext.getJournalContext(),
              writeLockedPath.getUri(),
              InodeSyncStream::mergeCreateComplete)
     ) {
       // We do not want to close this wrapRpcContext because it uses elements from another context
-      RpcContext wrapRpcContext = mUseFileSystemMergeJournalContext
+      RpcContext wrapRpcContext = shouldUseMetadataSyncMergeJournalContext
           ? rpcContext
           : new RpcContext(
               rpcContext.getBlockDeletionContext(), merger, rpcContext.getOperationContext());
@@ -1386,16 +1391,16 @@ public class InodeSyncStream {
 
   protected RpcContext getMetadataSyncRpcContext() {
     JournalContext journalContext = mRpcContext.getJournalContext();
-    if (!mUseFileSystemMergeJournalContext
-        || !(journalContext instanceof FileSystemMergeJournalContext)) {
-      return mRpcContext;
+    if (mUseFileSystemMergeJournalContext
+        && journalContext instanceof FileSystemMergeJournalContext) {
+      return new RpcContext(
+          mRpcContext.getBlockDeletionContext(),
+          new MetadataSyncMergeJournalContext(
+              ((FileSystemMergeJournalContext) journalContext).getUnderlyingJournalContext(),
+              new FileSystemJournalEntryMerger()),
+          mRpcContext.getOperationContext());
     }
-    return new RpcContext(
-        mRpcContext.getBlockDeletionContext(),
-        new MetadataSyncMergeJournalContext(
-            ((FileSystemMergeJournalContext) journalContext).getUnderlyingJournalContext(),
-            new FileSystemJournalEntryMerger()),
-        mRpcContext.getOperationContext());
+    return mRpcContext;
   }
 
   @Override

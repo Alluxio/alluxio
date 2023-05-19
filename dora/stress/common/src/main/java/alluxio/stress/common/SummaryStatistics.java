@@ -23,7 +23,7 @@ import java.util.Arrays;
  */
 public class SummaryStatistics {
   /** number of successes. */
-  public long mNumSuccess;
+  public long mNumSuccesses;
 
   /** response times for all percentiles from 0 -> 100 (101 values). */
   @SuppressFBWarnings(value = "EI_EXPOSE_REP2")
@@ -59,7 +59,7 @@ public class SummaryStatistics {
   public SummaryStatistics(long numSuccess, float[] timePercentileMs,
                                       float[] time99PercentileMs,
                                       float[] maxTimeMs) {
-    mNumSuccess = numSuccess;
+    mNumSuccesses = numSuccess;
     mTimePercentileMs = timePercentileMs;
     mTime99PercentileMs = time99PercentileMs;
     mMaxTimeMs = maxTimeMs;
@@ -71,7 +71,7 @@ public class SummaryStatistics {
   public LineGraph.Data computeTimeData() {
     LineGraph.Data data = new LineGraph.Data();
 
-    if (mNumSuccess == 0) {
+    if (mNumSuccesses == 0) {
       // Return empty data for empty results
       return data;
     }

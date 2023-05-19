@@ -176,15 +176,8 @@ public class StateLockManager {
       LOG.warn("Current thread is {}. All state lock holders are {}",
           threadName, mSharedLockHolders, e);
     }
-    try {
-      // Grab the lock interruptibly.
-      mStateLock.readLock().lockInterruptibly();
-    } catch (Error e) {
-      // An Error is thrown when the lock is acquired 65536 times, log the jstack before exiting
-      LOG.error("Logging all thread stacks before exiting", e);
-      ThreadUtils.logAllThreads();
-      throw e;
-    }
+    // Grab the lock interruptibly.
+    mStateLock.readLock().lockInterruptibly();
     // Return the resource.
     // Register an action to remove the thread from holders registry before releasing the lock.
     return new LockResource(mStateLock.readLock(), false, false, () -> {
