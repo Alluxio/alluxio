@@ -30,14 +30,22 @@ func RegisterTemplateEnvVar(v *AlluxioConfigEnvVar) *AlluxioConfigEnvVar {
 }
 
 const (
-	ConfAlluxioLoggerType = "alluxio.logger.type"
-
 	envVersion                  = "VERSION" // VERSION is specified by libexec/version.sh and should not be overridden by the user
 	envAlluxioAssemblyClientJar = "ALLUXIO_ASSEMBLY_CLIENT_JAR"
 	envAlluxioAssemblyServerJar = "ALLUXIO_ASSEMBLY_SERVER_JAR"
 	EnvAlluxioClientClasspath   = "ALLUXIO_CLIENT_CLASSPATH"
 	EnvAlluxioServerClasspath   = "ALLUXIO_SERVER_CLASSPATH"
-	EnvAlluxioUserJavaOpts      = "ALLUXIO_USER_JAVA_OPTS" // TODO: this is part of template
+)
+
+var (
+	confAlluxioConfDir = &AlluxioConfigEnvVar{
+		configKey: "alluxio.conf.dir",
+		EnvVar:    "ALLUXIO_CONF_DIR",
+	}
+	confAlluxioHome = &AlluxioConfigEnvVar{
+		configKey: "alluxio.home",
+		EnvVar:    "ALLUXIO_HOME",
+	}
 )
 
 // environment variables that belong to the templatized alluxio-env.sh
@@ -49,20 +57,6 @@ var (
 	ConfJava = RegisterTemplateEnvVar(&AlluxioConfigEnvVar{
 		EnvVar: "JAVA",
 	})
-	ConfAlluxioJavaOpts = RegisterTemplateEnvVar(&AlluxioConfigEnvVar{
-		EnvVar: "ALLUXIO_JAVA_OPTS",
-	})
-	confAlluxioClasspath = RegisterTemplateEnvVar(&AlluxioConfigEnvVar{
-		EnvVar: "ALLUXIO_CLASSPATH",
-	})
-	confAlluxioConfDir = RegisterTemplateEnvVar(&AlluxioConfigEnvVar{
-		configKey: "alluxio.conf.dir",
-		EnvVar:    "ALLUXIO_CONF_DIR",
-	})
-	confAlluxioHome = RegisterTemplateEnvVar(&AlluxioConfigEnvVar{
-		configKey: "alluxio.home",
-		EnvVar:    "ALLUXIO_HOME",
-	})
 	ConfAlluxioLogsDir = RegisterTemplateEnvVar(&AlluxioConfigEnvVar{
 		configKey: "alluxio.logs.dir",
 		EnvVar:    "ALLUXIO_LOGS_DIR",
@@ -70,6 +64,18 @@ var (
 	confAlluxioUserLogsDir = RegisterTemplateEnvVar(&AlluxioConfigEnvVar{
 		configKey: "alluxio.user.logs.dir",
 		EnvVar:    "ALLUXIO_USER_LOGS_DIR",
+	})
+	ConfAlluxioJavaOpts = RegisterTemplateEnvVar(&AlluxioConfigEnvVar{
+		EnvVar: "ALLUXIO_JAVA_OPTS",
+	})
+	confAlluxioClasspath = RegisterTemplateEnvVar(&AlluxioConfigEnvVar{
+		EnvVar: "ALLUXIO_CLASSPATH",
+	})
+	ConfAlluxioUserJavaOpts = RegisterTemplateEnvVar(&AlluxioConfigEnvVar{
+		EnvVar: "ALLUXIO_USER_JAVA_OPTS",
+	})
+	ConfAlluxioUserAttachOpts = RegisterTemplateEnvVar(&AlluxioConfigEnvVar{
+		EnvVar: "ALLUXIO_USER_ATTACH_OPTS",
 	})
 )
 

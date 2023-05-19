@@ -163,9 +163,9 @@ func InitAlluxioEnv(rootPath string) error {
 	}
 
 	alluxioJavaOpts += fmt.Sprintf(JavaOptFormat, "log4j.configuration", "file:"+filepath.Join(envVar.GetString(confAlluxioConfDir.EnvVar), "log4j.properties"))
-	alluxioJavaOpts += fmt.Sprintf(JavaOptFormat, "org.apache.jasper.compiler.disablejsr199", "true")
-	alluxioJavaOpts += fmt.Sprintf(JavaOptFormat, "java.net.preferIPv4Stack", "true")
-	alluxioJavaOpts += fmt.Sprintf(JavaOptFormat, "org.apache.ratis.thirdparty.io.netty.allocator.useCacheForAllThreads", "false")
+	alluxioJavaOpts += fmt.Sprintf(JavaOptFormat, "org.apache.jasper.compiler.disablejsr199", true)
+	alluxioJavaOpts += fmt.Sprintf(JavaOptFormat, "java.net.preferIPv4Stack", true)
+	alluxioJavaOpts += fmt.Sprintf(JavaOptFormat, "org.apache.ratis.thirdparty.io.netty.allocator.useCacheForAllThreads", false)
 
 	envVar.Set(ConfAlluxioJavaOpts.EnvVar, alluxioJavaOpts)
 
@@ -177,8 +177,8 @@ func InitAlluxioEnv(rootPath string) error {
 	// ALLUXIO_USER_JAVA_OPTS = {default logger opts} ${ALLUXIO_JAVA_OPTS} {user provided opts}
 	userJavaOpts := fmt.Sprintf(JavaOptFormat, ConfAlluxioLoggerType, userLoggerType)
 	userJavaOpts += envVar.GetString(ConfAlluxioJavaOpts.EnvVar)
-	userJavaOpts += envVar.GetString(EnvAlluxioUserJavaOpts)
-	envVar.Set(EnvAlluxioUserJavaOpts, strings.TrimSpace(userJavaOpts)) // leading spaces need to be trimmed as a exec.Command argument
+	userJavaOpts += envVar.GetString(ConfAlluxioUserJavaOpts.EnvVar)
+	envVar.Set(ConfAlluxioUserJavaOpts.EnvVar, strings.TrimSpace(userJavaOpts)) // leading spaces need to be trimmed as a exec.Command argument
 
 	if log.Logger.IsLevelEnabled(logrus.DebugLevel) {
 		log.Logger.Debugln("Processes:")

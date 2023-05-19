@@ -1,7 +1,6 @@
 package process
 
 import (
-	"alluxio.org/cli/cmd/conf"
 	"fmt"
 	"io"
 	"os"
@@ -13,34 +12,45 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	"alluxio.org/cli/cmd/conf"
+	"alluxio.org/cli/cmd/format"
 	"alluxio.org/cli/env"
 	"alluxio.org/log"
-)
-
-const (
-	confAlluxioMasterAuditLoggerType       = "alluxio.master.audit.logger.type"
-	confAlluxioMasterJournalInitFromBackup = "alluxio.master.journal.init.from.backup"
-
-	envAlluxioAuditMasterLogger = "ALLUXIO_AUDIT_MASTER_LOGGER"
-	envAlluxioMasterAttachOpts  = "ALLUXIO_MASTER_ATTACH_OPTS"
-	envAlluxioMasterLogger      = "ALLUXIO_MASTER_LOGGER"
-	masterAuditLoggerType       = "MASTER_AUDIT_LOGGER"
-	masterLoggerType            = "MASTER_LOGGER"
 )
 
 var Master = &MasterProcess{
 	BaseProcess: &env.BaseProcess{
 		Name:              "master",
 		JavaClassName:     "alluxio.master.AlluxioMaster",
-		JavaOptsEnvVarKey: "ALLUXIO_MASTER_JAVA_OPTS",
+		JavaOptsEnvVarKey: confAlluxioMasterJavaOpts.EnvVar,
 		ProcessOutFile:    "master.out",
 	},
 }
 
+const (
+	confAlluxioMasterAuditLoggerType       = "alluxio.master.audit.logger.type"
+	confAlluxioMasterJournalFolder         = "alluxio.master.journal.folder"
+	confAlluxioMasterJournalInitFromBackup = "alluxio.master.journal.init.from.backup"
+
+	envAlluxioAuditMasterLogger = "ALLUXIO_AUDIT_MASTER_LOGGER"
+	envAlluxioMasterLogger      = "ALLUXIO_MASTER_LOGGER"
+	masterAuditLoggerType       = "MASTER_AUDIT_LOGGER"
+	masterLoggerType            = "MASTER_LOGGER"
+)
+
+var (
+	confAlluxioMasterJavaOpts = env.RegisterTemplateEnvVar(&env.AlluxioConfigEnvVar{
+		EnvVar: "ALLUXIO_MASTER_JAVA_OPTS",
+	})
+	confAlluxioMasterAttachOpts = env.RegisterTemplateEnvVar(&env.AlluxioConfigEnvVar{
+		EnvVar: "ALLUXIO_MASTER_ATTACH_OPTS",
+	})
+)
+
 type MasterProcess struct {
 	*env.BaseProcess
 
-	Format            bool
+	// Format            bool
 	JournalBackupFile string
 }
 
@@ -61,7 +71,7 @@ func (p *MasterProcess) InitCommandTree(processCmd *cobra.Command) {
 			return p.Start()
 		},
 	}
-	startCmd.Flags().BoolVar(&p.Format, "format", false, "Format master")
+	// startCmd.Flags().BoolVar(&p.Format, "format", false, "Format master")
 	masterCmd.AddCommand(startCmd)
 }
 
@@ -96,17 +106,17 @@ func (p *MasterProcess) SetEnvVars(envVar *viper.Viper) {
 }
 
 func (p *MasterProcess) Start() error {
-	if p.Format {
-		log.Logger.Info("Running format")
-		// TODO: run format
-	} else {
-		if err := p.checkJournal(); err != nil {
-			return stacktrace.Propagate(err, "error validating journal")
-		}
+	//if p.Format {
+	//	log.Logger.Info("Running format")
+	//	// TODO: run format
+	//} else {
+	if err := p.checkJournal(); err != nil {
+		return stacktrace.Propagate(err, "error validating journal")
 	}
+	//}
 
 	args := []string{env.Env.EnvVar.GetString(env.ConfJava.EnvVar)}
-	if attachOpts := env.Env.EnvVar.GetString(envAlluxioMasterAttachOpts); attachOpts != "" {
+	if attachOpts := env.Env.EnvVar.GetString(confAlluxioMasterAttachOpts.EnvVar); attachOpts != "" {
 		args = append(args, strings.Split(attachOpts, " ")...)
 	}
 	args = append(args, "-cp", env.Env.EnvVar.GetString(env.EnvAlluxioServerClasspath))
@@ -135,10 +145,9 @@ func (p *MasterProcess) Start() error {
 }
 
 func (p *MasterProcess) checkJournal() error {
-	const masterJournalKey = "alluxio.master.journal.folder" // TODO: consolidate key constants
-	journalDir, err := conf.GetConf.FetchValue(masterJournalKey)
+	journalDir, err := conf.GetConf.FetchValue(confAlluxioMasterJournalFolder)
 	if err != nil {
-		return stacktrace.Propagate(err, "error fetching value for %v", masterJournalKey)
+		return stacktrace.Propagate(err, "error fetching value for %v", confAlluxioMasterJournalFolder)
 	}
 	stat, err := os.Stat(journalDir)
 	if os.IsNotExist(err) {
@@ -155,8 +164,10 @@ func (p *MasterProcess) checkJournal() error {
 		return stacktrace.Propagate(err, "error listing contents of %v", journalDir)
 	}
 	if !isEmpty {
-		log.Logger.Info("Running formatMaster")
-		// TODO: run formatMaster
+		log.Logger.Info("Running formatJournal")
+		if err := format.FormatJournal.Format(); err != nil {
+			return stacktrace.Propagate(err, "error formatting journal")
+		}
 	}
 	return nil
 }

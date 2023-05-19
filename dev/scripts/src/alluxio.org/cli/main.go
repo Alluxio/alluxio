@@ -1,10 +1,11 @@
 package main
 
 import (
-	"alluxio.org/cli/cmd/conf"
 	"fmt"
 	"os"
 
+	"alluxio.org/cli/cmd/conf"
+	"alluxio.org/cli/cmd/format"
 	"alluxio.org/cli/env"
 	"alluxio.org/cli/launch"
 	"alluxio.org/cli/process"
@@ -19,6 +20,7 @@ func main() {
 
 	for _, c := range []env.Command{
 		conf.GetConf,
+		format.FormatJournal,
 	} {
 		env.RegisterCommand(c)
 	}

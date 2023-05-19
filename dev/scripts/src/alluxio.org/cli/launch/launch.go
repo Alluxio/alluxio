@@ -1,13 +1,13 @@
 package launch
 
 import (
-	"alluxio.org/cli/env"
 	"path/filepath"
 
 	"github.com/palantir/stacktrace"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
+	"alluxio.org/cli/env"
 	"alluxio.org/log"
 )
 
@@ -23,7 +23,7 @@ func Run() error {
 		return stacktrace.Propagate(err, "error marking %v flag hidden", rootPathName)
 	}
 	var flagDebugLog bool
-	rootCmd.PersistentFlags().BoolVar(&flagDebugLog, "debug", false, "True to enable debug logging")
+	rootCmd.PersistentFlags().BoolVar(&flagDebugLog, "debugLog", false, "True to enable debug logging")
 	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
 		if flagDebugLog {
 			log.Logger.SetLevel(logrus.DebugLevel)

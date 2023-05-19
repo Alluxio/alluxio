@@ -1,21 +1,21 @@
 package conf
 
 import (
-	"alluxio.org/log"
+	"bytes"
 	"fmt"
+
 	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
-	"os"
-	"os/exec"
-	"strings"
 
 	"alluxio.org/cli/env"
+	"alluxio.org/log"
 )
 
 var GetConf = &GetConfCommand{
 	BaseCommand: &env.BaseCommand{
 		Name:          "getConf",
 		JavaClassName: "alluxio.cli.GetConf",
+		ShellJavaOpts: fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioConfValidationEnabled, false),
 	},
 }
 
@@ -31,62 +31,32 @@ func (c *GetConfCommand) InitCommandTree(rootCmd *cobra.Command) {
 	cmd := &cobra.Command{
 		Use:   GetConf.Name,
 		Short: "Look up a configuration key, or print all configuration.",
-		Args:  cobra.MaximumNArgs(1),
+		Long: `
+GetConf prints the configured value for the given key. If the key
+is invalid, the exit code will be nonzero. If the key is valid
+but isn't set, an empty string is printed. If no key is
+specified, all configuration is printed.`,
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},
 	}
 	cmd.Flags().BoolVar(&c.DebugMode, "attachDebug", false, "True to attach debug opts")
-	cmd.Flags().StringVar(&c.JavaOpts, "javaOpts", "", `Java options to apply (ex. "-Dkey=value"`)
+	cmd.Flags().StringVar(&c.InlineJavaOpts, "javaOpts", "", `Java options to apply, ex. "-Dkey=value"`)
+	// TODO: add optional args for --master, --source, --unit
 	rootCmd.AddCommand(cmd)
 }
 
-func (c *GetConfCommand) Run(args []string) error {
-	getConfCmd := exec.Command(env.Env.EnvVar.GetString(env.ConfJava.EnvVar), c.prepare(args)...)
-	for _, k := range env.Env.EnvVar.AllKeys() {
-		getConfCmd.Env = append(getConfCmd.Env, fmt.Sprintf("%s=%v", k, env.Env.EnvVar.Get(k)))
-	}
-	getConfCmd.Stdout = os.Stdout
-	getConfCmd.Stderr = os.Stderr
-
-	log.Logger.Debugln(getConfCmd.String())
-	if err := getConfCmd.Run(); err != nil {
-		return stacktrace.Propagate(err, "error running getConf")
-	}
-	return nil
-}
-
 func (c *GetConfCommand) FetchValue(key string) (string, error) {
-	getConfCmd := exec.Command(env.Env.EnvVar.GetString(env.ConfJava.EnvVar), c.prepare([]string{key})...)
-	for _, k := range env.Env.EnvVar.AllKeys() {
-		getConfCmd.Env = append(getConfCmd.Env, fmt.Sprintf("%s=%v", k, env.Env.EnvVar.Get(k)))
-	}
-	log.Logger.Debugln(getConfCmd.String())
-	// TODO: stream stderr to byte buffer?
-	out, err := getConfCmd.Output()
+	cmd := c.RunJavaClassCmd([]string{key})
+
+	errBuf := &bytes.Buffer{}
+	cmd.Stderr = errBuf
+
+	log.Logger.Debugln(cmd.String())
+	out, err := cmd.Output()
 	if err != nil {
-		return "", stacktrace.Propagate(err, "error getting conf for %v", key)
+		return "", stacktrace.Propagate(err, "error getting conf for %v\nstderr: %v", key, errBuf.String())
 	}
 	return string(out), nil
-}
-
-func (c *GetConfCommand) prepare(args []string) []string {
-	alluxioShellJavaOpts := "-Dalluxio.conf.validation.enabled=false" // TODO: refactor into BaseCommand and use constant for key
-
-	cmdArgs := []string{}
-	if c.DebugMode {
-		if opts := env.Env.EnvVar.GetString("ALLUXIO_USER_ATTACH_OPTS"); opts != "" { // TODO: use constant for env var key
-			cmdArgs = append(cmdArgs, strings.Split(opts, " ")...)
-		}
-	}
-	cmdArgs = append(cmdArgs, "-cp", env.Env.EnvVar.GetString(env.EnvAlluxioClientClasspath))
-	if opts := env.Env.EnvVar.GetString(env.EnvAlluxioUserJavaOpts); opts != "" {
-		cmdArgs = append(cmdArgs, strings.Split(opts, " ")...)
-	}
-	if opts := alluxioShellJavaOpts; opts != "" { // TODO: refer to argument value of shell java opts instead of hardcoded
-		cmdArgs = append(cmdArgs, strings.Split(opts, " ")...)
-	}
-	cmdArgs = append(cmdArgs, c.JavaClassName)
-	cmdArgs = append(cmdArgs, args...)
-	return cmdArgs
 }
