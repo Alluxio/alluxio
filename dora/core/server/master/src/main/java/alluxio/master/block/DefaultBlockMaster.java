@@ -1393,11 +1393,18 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     // by the LostWorkerDetectionHeartbeatExecutor
     worker.updateLastUpdatedTimeMs();
 
-    if (mWorkerRegisterToAllMasters && mPrimarySelector.getState() == NodeState.STANDBY) {
-      waitBlockIdPresent(
-          addedBlocks.values().stream().flatMap(Collection::stream)
-              .collect(Collectors.toList()), workerId);
-    }
+    /*
+     * In 2.x, a standby master needs to wait for the journal entry for those blocks to arrive
+     * before it can process a worker heartbeat.
+     * In 3.x since the block info are not written and propagated by journal to a standby master,
+     * this wait is unnecessary.
+     * The code is kept around just in case (until later we are sure about removing it).
+     */
+    // if (mWorkerRegisterToAllMasters && mPrimarySelector.getState() == NodeState.STANDBY) {
+    //   waitBlockIdPresent(
+    //       addedBlocks.values().stream().flatMap(Collection::stream)
+    //           .collect(Collectors.toList()), workerId);
+    // }
 
     // The address is final, no need for locking
     processWorkerMetrics(worker.getWorkerAddress().getHost(), metrics);

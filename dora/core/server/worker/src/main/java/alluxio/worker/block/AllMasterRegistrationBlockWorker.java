@@ -24,6 +24,7 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
+import javax.inject.Named;
 
 /**
  * The class is responsible for managing all top level components of BlockWorker.
@@ -49,7 +50,7 @@ public class AllMasterRegistrationBlockWorker extends DefaultBlockWorker {
   public AllMasterRegistrationBlockWorker(
       BlockMasterClientPool blockMasterClientPool,
       FileSystemMasterClient fileSystemMasterClient, Sessions sessions,
-      BlockStore blockStore, AtomicReference<Long> workerId) {
+      BlockStore blockStore, @Named("workerId") AtomicReference<Long> workerId) {
     super(blockMasterClientPool, fileSystemMasterClient, sessions, blockStore, workerId);
   }
 
