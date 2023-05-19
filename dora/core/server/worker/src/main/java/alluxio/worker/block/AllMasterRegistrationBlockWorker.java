@@ -15,6 +15,7 @@ import alluxio.Sessions;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.file.FileSystemMasterClient;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +23,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.inject.Inject;
 
 /**
  * The class is responsible for managing all top level components of BlockWorker.
@@ -42,6 +44,8 @@ public class AllMasterRegistrationBlockWorker extends DefaultBlockWorker {
    * @param blockStore an Alluxio block store
    * @param workerId worker id
    */
+  @VisibleForTesting
+  @Inject
   public AllMasterRegistrationBlockWorker(
       BlockMasterClientPool blockMasterClientPool,
       FileSystemMasterClient fileSystemMasterClient, Sessions sessions,
