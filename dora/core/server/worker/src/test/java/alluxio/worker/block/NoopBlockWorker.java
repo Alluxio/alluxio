@@ -167,6 +167,7 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
+<<<<<<< HEAD:dora/core/server/worker/src/test/java/alluxio/worker/block/NoopBlockWorker.java
   public BlockReader readBlockRemote(long sessionId, long blockId, long lockId)
       throws BlockDoesNotExistException, InvalidWorkerStateException, IOException {
     return null;
@@ -238,6 +239,14 @@ public class NoopBlockWorker implements BlockWorker {
   }
 
   @Override
+||||||| parent of ebeac49c3c (Make workers register to all masters):core/server/worker/src/test/java/alluxio/worker/block/NoopBlockWorker.java
+=======
+  public WorkerNetAddress getWorkerAddress() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+>>>>>>> ebeac49c3c (Make workers register to all masters):core/server/worker/src/test/java/alluxio/worker/block/NoopBlockWorker.java
   public Set<Class<? extends Server>> getDependencies() {
     return null;
   }

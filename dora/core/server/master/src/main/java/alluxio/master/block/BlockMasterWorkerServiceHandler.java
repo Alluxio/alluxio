@@ -28,6 +28,8 @@ import alluxio.grpc.GetWorkerIdPRequest;
 import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.LocationBlockIdListEntry;
+import alluxio.grpc.NotifyWorkerIdPRequest;
+import alluxio.grpc.NotifyWorkerIdPResponse;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
@@ -217,5 +219,16 @@ public final class BlockMasterWorkerServiceHandler extends
                 String.format("Duplicate locations found for worker %s "
                     + "with LocationBlockIdListEntry objects %s", workerId, entryReport));
             }));
+  }
+
+  @Override
+  public void notifyWorkerId(
+      NotifyWorkerIdPRequest request,
+      StreamObserver<NotifyWorkerIdPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      mBlockMaster.notifyWorkerId(request.getWorkerId(),
+          GrpcUtils.fromProto(request.getWorkerNetAddress()));
+      return alluxio.grpc.NotifyWorkerIdPResponse.getDefaultInstance();
+    }, "notifyWorkerId", "request=%s", responseObserver, request);
   }
 }
