@@ -11,6 +11,7 @@
 
 package alluxio.heartbeat;
 
+import com.google.common.base.Preconditions;
 import org.apache.logging.log4j.core.util.CronExpression;
 
 import java.time.Duration;
@@ -32,6 +33,7 @@ public class CronExpressionIntervalSupplier implements SleepIntervalSupplier {
    * @param fixedInterval the fixed interval
    */
   public CronExpressionIntervalSupplier(CronExpression cronExpression, long fixedInterval) {
+    Preconditions.checkNotNull(cronExpression, "CronExpression is null");
     mInterval = fixedInterval;
     mCron = cronExpression;
   }
