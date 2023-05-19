@@ -30,7 +30,6 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.worker.block.io.BlockReadableChannel;
 import alluxio.worker.block.io.BlockReader;
-import alluxio.worker.netty.BlockReadRequestContext;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
@@ -106,6 +105,7 @@ public class PagedFileReader extends BlockReader implements PositionReader {
   /**
    * Get a {@link MultipleDataFileChannel} which has a list of {@link DataFileChannel}.
    *
+   * @param channel the Channel object which is used for allocating ByteBuf
    * @param length the bytes to read
    * @return {@link MultipleDataFileChannel}
    */
