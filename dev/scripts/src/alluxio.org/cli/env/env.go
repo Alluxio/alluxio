@@ -17,7 +17,11 @@ import (
 	"alluxio.org/log"
 )
 
-const requiredJavaVersion = 11
+const (
+	requiredJavaVersion = 11
+
+	userLoggerType = "USER_LOGGER"
+)
 
 // Env is a global instance of the Alluxio environment
 // It is assumed that InitAlluxioEnv() is run before access
@@ -168,6 +172,13 @@ func InitAlluxioEnv(rootPath string) error {
 	for _, p := range processRegistry {
 		p.SetEnvVars(envVar)
 	}
+
+	// also set user environment variables, as they are not associated with a particular process
+	// ALLUXIO_USER_JAVA_OPTS = {default logger opts} ${ALLUXIO_JAVA_OPTS} {user provided opts}
+	userJavaOpts := fmt.Sprintf(JavaOptFormat, ConfAlluxioLoggerType, userLoggerType)
+	userJavaOpts += envVar.GetString(ConfAlluxioJavaOpts.EnvVar)
+	userJavaOpts += envVar.GetString(EnvAlluxioUserJavaOpts)
+	envVar.Set(EnvAlluxioUserJavaOpts, strings.TrimSpace(userJavaOpts)) // leading spaces need to be trimmed as a exec.Command argument
 
 	if log.Logger.IsLevelEnabled(logrus.DebugLevel) {
 		log.Logger.Debugln("Processes:")

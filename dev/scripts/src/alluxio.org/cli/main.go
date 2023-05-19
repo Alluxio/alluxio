@@ -1,11 +1,12 @@
 package main
 
 import (
-	"alluxio.org/cli/env"
+	"alluxio.org/cli/cmd/conf"
 	"fmt"
 	"os"
 
-	"alluxio.org/cli/cmd"
+	"alluxio.org/cli/env"
+	"alluxio.org/cli/launch"
 	"alluxio.org/cli/process"
 )
 
@@ -16,7 +17,13 @@ func main() {
 		env.RegisterProcess(p)
 	}
 
-	if err := cmd.Run(); err != nil {
+	for _, c := range []env.Command{
+		conf.GetConf,
+	} {
+		env.RegisterCommand(c)
+	}
+
+	if err := launch.Run(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}

@@ -30,11 +30,14 @@ func RegisterTemplateEnvVar(v *AlluxioConfigEnvVar) *AlluxioConfigEnvVar {
 }
 
 const (
+	ConfAlluxioLoggerType = "alluxio.logger.type"
+
 	envVersion                  = "VERSION" // VERSION is specified by libexec/version.sh and should not be overridden by the user
 	envAlluxioAssemblyClientJar = "ALLUXIO_ASSEMBLY_CLIENT_JAR"
 	envAlluxioAssemblyServerJar = "ALLUXIO_ASSEMBLY_SERVER_JAR"
 	EnvAlluxioClientClasspath   = "ALLUXIO_CLIENT_CLASSPATH"
 	EnvAlluxioServerClasspath   = "ALLUXIO_SERVER_CLASSPATH"
+	EnvAlluxioUserJavaOpts      = "ALLUXIO_USER_JAVA_OPTS" // TODO: this is part of template
 )
 
 // environment variables that belong to the templatized alluxio-env.sh

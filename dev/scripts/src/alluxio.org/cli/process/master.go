@@ -1,16 +1,31 @@
 package process
 
 import (
-	"alluxio.org/cli/env"
-	"alluxio.org/log"
+	"alluxio.org/cli/cmd/conf"
 	"fmt"
-	"github.com/palantir/stacktrace"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/palantir/stacktrace"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+
+	"alluxio.org/cli/env"
+	"alluxio.org/log"
+)
+
+const (
+	confAlluxioMasterAuditLoggerType       = "alluxio.master.audit.logger.type"
+	confAlluxioMasterJournalInitFromBackup = "alluxio.master.journal.init.from.backup"
+
+	envAlluxioAuditMasterLogger = "ALLUXIO_AUDIT_MASTER_LOGGER"
+	envAlluxioMasterAttachOpts  = "ALLUXIO_MASTER_ATTACH_OPTS"
+	envAlluxioMasterLogger      = "ALLUXIO_MASTER_LOGGER"
+	masterAuditLoggerType       = "MASTER_AUDIT_LOGGER"
+	masterLoggerType            = "MASTER_LOGGER"
 )
 
 var Master = &MasterProcess{
@@ -19,25 +34,22 @@ var Master = &MasterProcess{
 		JavaClassName:     "alluxio.master.AlluxioMaster",
 		JavaOptsEnvVarKey: "ALLUXIO_MASTER_JAVA_OPTS",
 		ProcessOutFile:    "master.out",
-
-		LoggerEnvVarKey:   "ALLUXIO_MASTER_LOGGER",
-		DefaultLoggerType: "MASTER_LOGGER",
-		AttachEnvVarKey:   "ALLUXIO_MASTER_ATTACH_OPTS",
 	},
 }
 
 type MasterProcess struct {
 	*env.BaseProcess
 
-	Format bool
+	Format            bool
+	JournalBackupFile string
 }
 
 func (p *MasterProcess) Base() *env.BaseProcess {
 	return p.BaseProcess
 }
-func (p *MasterProcess) InitCommands(processCmd *cobra.Command) {
+func (p *MasterProcess) InitCommandTree(processCmd *cobra.Command) {
 	masterCmd := &cobra.Command{
-		Use:   "master",
+		Use:   Master.Name,
 		Short: "Manages the Alluxio master process",
 	}
 	processCmd.AddCommand(masterCmd)
@@ -54,89 +66,47 @@ func (p *MasterProcess) InitCommands(processCmd *cobra.Command) {
 }
 
 func (p *MasterProcess) SetEnvVars(envVar *viper.Viper) {
-	const (
-		confAlluxioLoggerType      = "alluxio.logger.type"
-		confAlluxioAuditLoggerType = "alluxio.master.audit.logger.type"
-	)
-
-	// ${defaults} (${logger}) (${audit logger}) ${ALLUXIO_JAVA_OPTS} (${user java opts})
-	javaOpts := []string{p.DefaultJavaOpts}
-	if p.LoggerEnvVarKey != "" {
-		envVar.SetDefault(p.LoggerEnvVarKey, p.DefaultLoggerType)
-		javaOpts = append(javaOpts, fmt.Sprintf(env.JavaOptFormat, confAlluxioLoggerType, envVar.Get(p.LoggerEnvVarKey)))
+	// ALLUXIO_MASTER_JAVA_OPTS = {default logger opts} ${ALLUXIO_JAVA_OPTS} {user provided opts} {default opts if missing}
+	loggerType := masterLoggerType
+	if p.EnableConsoleLogging {
+		loggerType = "Console," + loggerType
 	}
-	//		AuditLoggerEnvVarKey:   "ALLUXIO_MASTER_AUDIT_LOGGER",
-	//		DefaultAuditLoggerType: "MASTER_AUDIT_LOGGER",
+	envVar.SetDefault(envAlluxioMasterLogger, loggerType)
+	masterJavaOpts := fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, envVar.Get(envAlluxioMasterLogger))
+	envVar.SetDefault(envAlluxioAuditMasterLogger, masterAuditLoggerType)
+	masterJavaOpts += fmt.Sprintf(env.JavaOptFormat, confAlluxioMasterAuditLoggerType, envVar.Get(envAlluxioAuditMasterLogger))
 
-	//if p.AuditLoggerEnvVarKey != "" {
-	//	envVar.SetDefault(p.AuditLoggerEnvVarKey, p.DefaultAuditLoggerType)
-	//	javaOpts = append(javaOpts, fmt.Sprintf(JavaOptFormat, confAlluxioAuditLoggerType, envVar.Get(p.AuditLoggerEnvVarKey)))
-	//}
-	javaOpts = append(javaOpts, envVar.GetString(env.ConfAlluxioJavaOpts.EnvVar))
-	if opts := envVar.GetString(p.JavaOptsEnvVarKey); opts != "" {
-		javaOpts = append(javaOpts, envVar.GetString(p.JavaOptsEnvVarKey))
+	masterJavaOpts += envVar.GetString(env.ConfAlluxioJavaOpts.EnvVar)
+	masterJavaOpts += envVar.GetString(p.JavaOptsEnvVarKey)
+
+	if p.JournalBackupFile != "" {
+		masterJavaOpts += fmt.Sprintf(env.JavaOptFormat, confAlluxioMasterJournalInitFromBackup, p.JournalBackupFile)
 	}
-	combinedJavaOpts := strings.Join(javaOpts, "")
-	envVar.Set(p.JavaOptsEnvVarKey, strings.TrimSpace(combinedJavaOpts))
+	// specify a default of -Xmx8g if no memory setting is specified
+	const xmxOpt = "-Xmx"
+	if !strings.Contains(masterJavaOpts, xmxOpt) && !strings.Contains(masterJavaOpts, "MaxRAMPercentage") {
+		masterJavaOpts += fmt.Sprintf(" %v8g", xmxOpt)
+	}
+	// specify a default of -XX:MetaspaceSize=256M if not set
+	const metaspaceSizeOpt = "-XX:MetaspaceSize"
+	if !strings.Contains(masterJavaOpts, metaspaceSizeOpt) {
+		masterJavaOpts += fmt.Sprintf(" %v=256M", metaspaceSizeOpt)
+	}
+	envVar.Set(p.JavaOptsEnvVarKey, strings.TrimSpace(masterJavaOpts)) // leading spaces need to be trimmed as a exec.Command argument
 }
 
 func (p *MasterProcess) Start() error {
 	if p.Format {
-		log.Logger.Info("Running format for master")
+		log.Logger.Info("Running format")
+		// TODO: run format
+	} else {
+		if err := p.checkJournal(); err != nil {
+			return stacktrace.Propagate(err, "error validating journal")
+		}
 	}
-	/*
-	  if [[ "$1" == "-f" ]]; then
-	    ${BIN}/alluxio format
-	  elif [[ `${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.master.journal.type` == "EMBEDDED" ]]; then
-	    JOURNAL_DIR=`${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.master.journal.folder`
-	    if [ -f "${JOURNAL_DIR}" ]; then
-	      echo "Journal location ${JOURNAL_DIR} is a file not a directory. Please remove the file before retrying."
-	    elif [ ! -e "${JOURNAL_DIR}" ]; then
-	      ${BIN}/alluxio formatMaster
-	    fi
-	  fi
-	*/
-
-	/*
-		echo "Starting master @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-		    (JOURNAL_BACKUP="${journal_backup}" nohup ${BIN}/launch-process master > ${ALLUXIO_LOGS_DIR}/master.out 2>&1) &
-	*/
-	/*
-	  if [[ "${console_logging_enabled}" == "true" ]]; then
-	    local tmp_val=${logger_var_value}
-	    logger_var_value="Console,"
-	    logger_var_value+="${tmp_val}"
-	  fi
-
-	  # Set the logging variable equal to the appropriate value
-	  eval ${logger_var_name}="${logger_var_value}"
-	*/
-	/*
-		if [[ -n ${JOURNAL_BACKUP} ]]; then
-		    ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.master.journal.init.from.backup=${JOURNAL_BACKUP}"
-		  fi
-
-		  # use a default Xmx value for the master
-		  local res="$(contains "${ALLUXIO_MASTER_JAVA_OPTS}" "Xmx")"
-		  if [[ "${res}" -eq "0" ]]; then
-		    ALLUXIO_MASTER_JAVA_OPTS+=" -Xmx8g "
-		  fi
-		  # use a default MetaspaceSize value for the master
-		  res="$(contains "${ALLUXIO_MASTER_JAVA_OPTS}" "XX:MetaspaceSize")"
-		  if [[ "${res}" -eq "0" ]]; then
-		    ALLUXIO_MASTER_JAVA_OPTS+=" -XX:MetaspaceSize=256M "
-		  fi
-
-		  launch_process "${ALLUXIO_MASTER_ATTACH_OPTS}" \
-		                 "${ALLUXIO_MASTER_JAVA_OPTS}" \
-		                 "alluxio.master.AlluxioMaster"
-	*/
-	/*
-		exec ${JAVA} ${attach_opts} -cp ${ALLUXIO_SERVER_CLASSPATH} ${java_opts} "${main_class}" ${@:4}
-	*/
 
 	args := []string{env.Env.EnvVar.GetString(env.ConfJava.EnvVar)}
-	if attachOpts := env.Env.EnvVar.GetString(p.AttachEnvVarKey); attachOpts != "" {
+	if attachOpts := env.Env.EnvVar.GetString(envAlluxioMasterAttachOpts); attachOpts != "" {
 		args = append(args, strings.Split(attachOpts, " ")...)
 	}
 	args = append(args, "-cp", env.Env.EnvVar.GetString(env.EnvAlluxioServerClasspath))
@@ -162,4 +132,44 @@ func (p *MasterProcess) Start() error {
 		return stacktrace.Propagate(err, "error starting master")
 	}
 	return nil
+}
+
+func (p *MasterProcess) checkJournal() error {
+	const masterJournalKey = "alluxio.master.journal.folder" // TODO: consolidate key constants
+	journalDir, err := conf.GetConf.FetchValue(masterJournalKey)
+	if err != nil {
+		return stacktrace.Propagate(err, "error fetching value for %v", masterJournalKey)
+	}
+	stat, err := os.Stat(journalDir)
+	if os.IsNotExist(err) {
+		return nil
+	}
+	if err != nil {
+		return stacktrace.Propagate(err, "error listing path at %v", journalDir)
+	}
+	if !stat.IsDir() {
+		return stacktrace.NewError("Journal location %v is not a directory. Please remove the file and retry.", journalDir)
+	}
+	isEmpty, err := DirIsEmpty(journalDir)
+	if err != nil {
+		return stacktrace.Propagate(err, "error listing contents of %v", journalDir)
+	}
+	if !isEmpty {
+		log.Logger.Info("Running formatMaster")
+		// TODO: run formatMaster
+	}
+	return nil
+}
+
+func DirIsEmpty(dir string) (bool, error) {
+	f, err := os.Open(dir)
+	if err != nil {
+		return false, stacktrace.Propagate(err, "error opening %v", dir)
+	}
+	defer f.Close()
+
+	if _, err := f.Readdirnames(1); err == io.EOF {
+		return true, nil
+	}
+	return false, stacktrace.Propagate(err, "error listing directory at %v", dir)
 }

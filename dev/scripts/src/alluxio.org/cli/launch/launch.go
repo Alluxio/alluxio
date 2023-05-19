@@ -1,4 +1,4 @@
-package cmd
+package launch
 
 import (
 	"alluxio.org/cli/env"
@@ -34,8 +34,8 @@ func Run() error {
 		return nil
 	}
 
-	env.InitProcessCommands(rootCmd)
-	// TODO: init CLI commands
+	env.InitProcessCommandTree(rootCmd)
+	env.InitCommandTree(rootCmd)
 
 	rootCmd.SilenceUsage = true
 	return rootCmd.Execute()
