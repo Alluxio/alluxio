@@ -74,6 +74,7 @@ import alluxio.util.WaitForOptions;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.proto.BlockLocationUtils;
 import alluxio.wire.Address;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.RegisterLease;
@@ -363,12 +364,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public Map<ServiceType, GrpcService> getStandbyServices() {
-    Map<ServiceType, GrpcService> services = new HashMap<>();
-    services.put(ServiceType.BLOCK_MASTER_WORKER_SERVICE,
-        new GrpcService(ServerInterceptors
-            .intercept(new BlockMasterWorkerServiceHandler(this),
-                new ClientContextServerInjector())));
-    return services;
+    return getServices();
   }
 
   @Override
@@ -410,11 +406,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
           return true;
         }
         // The master is running and the journal is from an existing worker
-        mBlockMetaStore.addLocation(blockInfoEntry.getBlockId(), BlockLocation.newBuilder()
-            .setWorkerId(workerId)
-            .setTier(blockLocation.getTierAlias())
-            .setMediumType(blockLocation.getMediumType())
-            .build());
+        mBlockMetaStore.addLocation(blockInfoEntry.getBlockId(), BlockLocationUtils.getCached(
+            workerId, blockLocation.getTierAlias(), blockLocation.getMediumType())
+        );
+
         worker.addBlock(blockInfoEntry.getBlockId());
         LOG.debug("Added BlockLocation for {} to worker {}", blockInfoEntry.getBlockId(), workerId);
       }
@@ -656,6 +651,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public void removeDecommissionedWorker(long workerId) throws NotFoundException {
+    if (mStandbyMasterRpcEnabled && mPrimarySelector.getStateUnsafe() == NodeState.STANDBY) {
+      throw new UnavailableRuntimeException(
+          "RemoveDecommissionedWorker operation is not supported on standby masters");
+    }
     MasterWorkerInfo worker = getWorker(workerId);
     Preconditions.checkNotNull(mDecommissionedWorkers
         .getFirstByField(ADDRESS_INDEX, worker.getWorkerAddress()));
@@ -1000,11 +999,8 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             }
           }
           // Update the block metadata with the new worker location.
-          mBlockMetaStore.addLocation(blockId, BlockLocation.newBuilder()
-              .setWorkerId(workerId)
-              .setTier(tierAlias)
-              .setMediumType(mediumType)
-              .build());
+          mBlockMetaStore.addLocation(blockId, BlockLocationUtils.getCached(
+              workerId, tierAlias, mediumType));
           // This worker has this block, so it is no longer lost.
           mLostBlocks.remove(blockId);
 
@@ -1150,7 +1146,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public long getWorkerId(WorkerNetAddress workerNetAddress) {
-    if (mStandbyMasterRpcEnabled && mPrimarySelector.getState() == NodeState.STANDBY) {
+    if (mStandbyMasterRpcEnabled && mPrimarySelector.getStateUnsafe() == NodeState.STANDBY) {
       throw new UnavailableRuntimeException(
           "GetWorkerId operation is not supported on standby masters");
     }
@@ -1472,7 +1468,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
       processWorkerRemovedBlocks(worker, removedBlockIds, false);
       processWorkerAddedBlocks(worker, addedBlocks);
       Set<Long> toRemoveBlocks = worker.getToRemoveBlocks();
-      if (toRemoveBlocks.isEmpty() || mPrimarySelector.getState() == NodeState.STANDBY) {
+      if (toRemoveBlocks.isEmpty() || mPrimarySelector.getStateUnsafe() == NodeState.STANDBY) {
         workerCommand = Command.newBuilder().setCommandType(CommandType.Nothing).build();
       } else {
         workerCommand = Command.newBuilder().setCommandType(CommandType.Free)
@@ -1597,7 +1593,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
             Preconditions.checkState(location.getWorkerId() == workerInfo.getId(),
                 "BlockLocation has a different workerId %s from the request sender's workerId %s",
                 location.getWorkerId(), workerInfo.getId());
-            mBlockMetaStore.addLocation(blockId, location);
+            mBlockMetaStore.addLocation(blockId, BlockLocationUtils.getCached(location));
             mLostBlocks.remove(blockId);
           } else {
             invalidBlockCount++;
@@ -1805,6 +1801,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     // mark these blocks to-remove from the worker.
     // So if the worker comes back again the blocks are kept.
     processWorkerRemovedBlocks(worker, worker.getBlocks(), false);
+    BlockLocationUtils.evictByWorkerId(worker.getId());
   }
 
   private void deleteWorkerMetadata(MasterWorkerInfo worker) {
@@ -1928,6 +1925,9 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
               master::getWorkerCount);
       MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_LOST_WORKERS.getName(),
               master::getLostWorkerCount);
+
+      MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_CACHED_BLOCK_LOCATIONS.getName(),
+          BlockLocationUtils::getCachedBlockLocationSize);
     }
 
     private Metrics() {} // prevent instantiation

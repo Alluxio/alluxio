@@ -410,6 +410,11 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of unique blocks in Alluxio")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_CACHED_BLOCK_LOCATIONS =
+      new Builder("Master.CachedBlockLocations")
+          .setDescription("Total number of cached block locations")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_TOTAL_RPCS =
       new Builder("Master.TotalRpcs")
           .setDescription("Throughput of master RPC calls. This metrics indicates how busy the"

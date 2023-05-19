@@ -181,7 +181,8 @@ public class RpcBenchPreparationUtils {
       for (int i = 0; i < dirConfigs.size(); i++) {
         int dirNumBlocks = dirConfigs.get(i);
         LOG.info("Found dir on tier {} with {} blocks", tierConfig.getKey(), dirNumBlocks);
-        BlockStoreLocation loc = new BlockStoreLocation(tierConfig.getKey().toString(), i);
+        BlockStoreLocation loc = new BlockStoreLocation(
+            tierConfig.getKey().toString(), i, tierConfig.getKey().toString());
         List<Long> blockIds = generateDecreasingNumbers(blockIdStart, dirNumBlocks);
         blockMap.put(loc, blockIds);
         blockIdStart -= dirNumBlocks;
