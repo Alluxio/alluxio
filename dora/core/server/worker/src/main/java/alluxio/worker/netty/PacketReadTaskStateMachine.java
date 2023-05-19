@@ -248,9 +248,10 @@ public class PacketReadTaskStateMachine<T extends ReadRequestContext<?>> {
     // too many  in-flight packets, and we need to wait some time.
     LOG.debug("Putting an object into the flow control queue.");
     SendDataEvent sendDataEvent = new SendDataEvent(start, packetSize, packet);
-    mFlowControlQueue.offer(sendDataEvent);
-    LOG.debug("An object has been put into the flow control queue successfully.");
-
+    if (packet != null) {
+      mFlowControlQueue.offer(sendDataEvent);
+      LOG.debug("An object has been put into the flow control queue successfully.");
+    }
     fireNext(mTriggerEventsWithParam.mSendDataEvent, sendDataEvent);
   }
 
