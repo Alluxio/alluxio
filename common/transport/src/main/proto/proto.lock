@@ -609,6 +609,32 @@
             "name": "CommitBlockInUfsPResponse"
           },
           {
+            "name": "NotifyWorkerIdPOptions"
+          },
+          {
+            "name": "NotifyWorkerIdPRequest",
+            "fields": [
+              {
+                "id": 1,
+                "name": "workerId",
+                "type": "int64"
+              },
+              {
+                "id": 2,
+                "name": "workerNetAddress",
+                "type": "grpc.WorkerNetAddress"
+              },
+              {
+                "id": 3,
+                "name": "options",
+                "type": "NotifyWorkerIdPOptions"
+              }
+            ]
+          },
+          {
+            "name": "NotifyWorkerIdPResponse"
+          },
+          {
             "name": "GetWorkerIdPOptions"
           },
           {
@@ -848,6 +874,11 @@
                 "name": "GetWorkerId",
                 "in_type": "GetWorkerIdPRequest",
                 "out_type": "GetWorkerIdPResponse"
+              },
+              {
+                "name": "NotifyWorkerId",
+                "in_type": "NotifyWorkerIdPRequest",
+                "out_type": "NotifyWorkerIdPResponse"
               },
               {
                 "name": "RegisterWorker",
@@ -9118,6 +9149,11 @@
                 "id": 2,
                 "name": "length",
                 "type": "int64"
+              },
+              {
+                "id": 3,
+                "name": "block_location",
+                "type": "grpc.BlockLocation"
               }
             ]
           },
@@ -9130,6 +9166,11 @@
                 "type": "int64"
               }
             ]
+          }
+        ],
+        "imports": [
+          {
+            "path": "grpc/common.proto"
           }
         ],
         "package": {

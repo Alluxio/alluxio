@@ -29,6 +29,7 @@ import alluxio.grpc.WorkerLostStorageInfo;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
+import alluxio.master.AlwaysPrimaryPrimarySelector;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
@@ -113,7 +114,9 @@ public class BlockMasterTest {
     mRegistry = new MasterRegistry();
     mMetrics = Lists.newArrayList();
     JournalSystem journalSystem = new NoopJournalSystem();
-    CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
+    CoreMasterContext masterContext = MasterTestUtils.testMasterContext(
+        new NoopJournalSystem(), null, new AlwaysPrimaryPrimarySelector()
+    );
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mClock = new ManualClock();
     mExecutorService =

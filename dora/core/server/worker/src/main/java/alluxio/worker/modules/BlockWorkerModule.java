@@ -23,6 +23,7 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.WorkerUfsManager;
 import alluxio.wire.TieredIdentity;
 import alluxio.worker.Worker;
+import alluxio.worker.block.AllMasterRegistrationBlockWorker;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockReaderFactory;
 import alluxio.worker.block.BlockStore;
@@ -99,6 +100,10 @@ public class BlockWorkerModule extends AbstractModule {
         throw new UnsupportedOperationException("Unsupported block store type.");
     }
 
-    bind(Worker.class).to(DefaultBlockWorker.class).in(Scopes.SINGLETON);
+    if (!Configuration.getBoolean(PropertyKey.WORKER_REGISTER_TO_ALL_MASTERS)) {
+      bind(Worker.class).to(DefaultBlockWorker.class).in(Scopes.SINGLETON);
+    } else {
+      bind(Worker.class).to(AllMasterRegistrationBlockWorker.class).in(Scopes.SINGLETON);
+    }
   }
 }
