@@ -103,17 +103,30 @@ public class UfsBaseFileSystem implements FileSystem {
    * @param options the ufs file system options
    */
   public UfsBaseFileSystem(FileSystemContext fsContext, UfsFileSystemOptions options) {
+    this(fsContext, options, new UfsManager.UfsClient(
+        () -> UnderFileSystem.Factory.create(options.getUfsAddress(), fsContext.getClusterConf()),
+        new AlluxioURI(options.getUfsAddress())));
+    mCloser.register(mFsContext);
+    LOG.debug("Creating file system connecting to ufs address {}", options.getUfsAddress());
+  }
+
+  /**
+   * Constructs a wrapper file system based on given UnderFileSystem. Caller should close the
+   * FileSystemContext.
+   *
+   * @param fsContext file system context
+   * @param options the ufs file system options
+   * @param ufs the under file system
+   */
+  public UfsBaseFileSystem(FileSystemContext fsContext, UfsFileSystemOptions options,
+      UfsManager.UfsClient ufs) {
     Preconditions.checkNotNull(fsContext);
     Preconditions.checkNotNull(options);
     mFsContext = fsContext;
     String ufsAddress = options.getUfsAddress();
     Preconditions.checkArgument(!ufsAddress.isEmpty(), "ufs address should not be empty");
     mRootUFS = new AlluxioURI(ufsAddress);
-    UfsManager.UfsClient ufsClient = new UfsManager.UfsClient(
-        () -> UnderFileSystem.Factory.create(ufsAddress, mFsContext.getClusterConf()),
-        new AlluxioURI(ufsAddress));
-    mUfs = ufsClient.acquireUfsResource();
-    mCloser.register(mFsContext);
+    mUfs = ufs.acquireUfsResource();
     mCloser.register(mUfs);
     LOG.debug("Creating file system connecting to ufs address {}", ufsAddress);
   }
