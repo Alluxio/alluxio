@@ -77,7 +77,7 @@ func (p *MasterProcess) InitCommandTree(processCmd *cobra.Command) {
 	startCmd := env.NewProcessStartCmd(p)
 	// TODO: docs mention this should be located on a URI path of the root mount; what happens in 3.x when there is no root mount
 	startCmd.Flags().StringVarP(&p.JournalBackupFile, "journalBackup", "i", "", "A journal backup to restore the master from")
-	// startCmd.Flags().BoolVar(&p.Format, "format", false, "Format master")
+	// startCmd.Flags().BoolVarP(&p.Format, "format", "f", false, "Format master")
 	masterCmd.AddCommand(startCmd)
 
 	masterCmd.AddCommand(env.NewProcessStopCmd(p))
@@ -106,32 +106,32 @@ func (p *MasterProcess) Start() error {
 	}
 	//}
 
-	args := []string{env.Env.EnvVar.GetString(env.ConfJava.EnvVar)}
+	cmdArgs := []string{env.Env.EnvVar.GetString(env.ConfJava.EnvVar)}
 	if attachOpts := env.Env.EnvVar.GetString(confAlluxioMasterAttachOpts.EnvVar); attachOpts != "" {
-		args = append(args, strings.Split(attachOpts, " ")...)
+		cmdArgs = append(cmdArgs, strings.Split(attachOpts, " ")...)
 	}
-	args = append(args, "-cp", env.Env.EnvVar.GetString(env.EnvAlluxioServerClasspath))
+	cmdArgs = append(cmdArgs, "-cp", env.Env.EnvVar.GetString(env.EnvAlluxioServerClasspath))
 
 	masterJavaOpts := env.Env.EnvVar.GetString(p.JavaOptsEnvVarKey)
-	args = append(args, strings.Split(masterJavaOpts, " ")...)
+	cmdArgs = append(cmdArgs, strings.Split(masterJavaOpts, " ")...)
 
 	if p.JournalBackupFile != "" {
-		args = append(args, strings.TrimSpace(fmt.Sprintf(env.JavaOptFormat, confAlluxioMasterJournalInitFromBackup, p.JournalBackupFile)))
+		cmdArgs = append(cmdArgs, strings.TrimSpace(fmt.Sprintf(env.JavaOptFormat, confAlluxioMasterJournalInitFromBackup, p.JournalBackupFile)))
 	}
 	// specify a default of -Xmx8g if no memory setting is specified
 	const xmxOpt = "-Xmx"
 	if !strings.Contains(masterJavaOpts, xmxOpt) && !strings.Contains(masterJavaOpts, "MaxRAMPercentage") {
-		args = append(args, fmt.Sprintf("%v8g", xmxOpt))
+		cmdArgs = append(cmdArgs, fmt.Sprintf("%v8g", xmxOpt))
 	}
 	// specify a default of -XX:MetaspaceSize=256M if not set
 	const metaspaceSizeOpt = "-XX:MetaspaceSize"
 	if !strings.Contains(masterJavaOpts, metaspaceSizeOpt) {
-		args = append(args, fmt.Sprintf("%v=256M", metaspaceSizeOpt))
+		cmdArgs = append(cmdArgs, fmt.Sprintf("%v=256M", metaspaceSizeOpt))
 	}
 
-	args = append(args, p.JavaClassName)
+	cmdArgs = append(cmdArgs, p.JavaClassName)
 
-	if err := p.Launch(args); err != nil {
+	if err := p.Launch(cmdArgs); err != nil {
 		return stacktrace.Propagate(err, "error launching process")
 	}
 	return nil
@@ -157,6 +157,7 @@ func (p *MasterProcess) checkJournal() error {
 		return stacktrace.Propagate(err, "error listing contents of %v", journalDir)
 	}
 	if !isEmpty {
+		// TODO: do we always format the journal on master startup for embedded journal?
 		log.Logger.Info("Running formatJournal")
 		if err := format.FormatJournal.Format(); err != nil {
 			return stacktrace.Propagate(err, "error formatting journal")

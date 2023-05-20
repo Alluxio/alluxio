@@ -98,6 +98,11 @@ func NewProcessStartCmd(p Process) *cobra.Command {
 }
 
 func (p *BaseProcess) Launch(args []string) error {
+	logsDir := Env.EnvVar.GetString(ConfAlluxioLogsDir.EnvVar)
+	if err := os.MkdirAll(logsDir, 0755); err != nil {
+		return stacktrace.Propagate(err, "error creating log directory at %v", logsDir)
+	}
+
 	startCmd := exec.Command("nohup", args...)
 	for _, k := range Env.EnvVar.AllKeys() {
 		startCmd.Env = append(startCmd.Env, fmt.Sprintf("%s=%v", k, Env.EnvVar.Get(k)))
