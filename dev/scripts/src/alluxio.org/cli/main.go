@@ -24,6 +24,7 @@ import (
 
 func main() {
 	for _, p := range []env.Process{
+		process.JobMaster,
 		process.Master,
 		process.Proxy,
 		process.Worker,
