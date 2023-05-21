@@ -72,6 +72,8 @@ public final class HeartbeatContext {
   public static final String MASTER_WORKER_REGISTER_SESSION_CLEANER =
       "Worker register stream session cleaner";
 
+  public static final String CONFIG_SYNC = "Alluxio Config Sync";
+
   /**
    * HeartBeat Enum Type.
    */
@@ -163,6 +165,7 @@ public final class HeartbeatContext {
     sTimerClasses.put(WORKER_STORAGE_HEALTH, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_WORKER_REGISTER_SESSION_CLEANER, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(FUSE_UPDATE_CHECK, SLEEPING_TIMER_CLASS);
+    sTimerClasses.put(CONFIG_SYNC, SLEEPING_TIMER_CLASS);
   }
 
   private HeartbeatContext() {} // to prevent initialization

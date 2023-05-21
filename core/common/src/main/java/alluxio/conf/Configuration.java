@@ -18,6 +18,8 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GetConfigHashPOptions;
+import alluxio.grpc.GetConfigHashPResponse;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GetConfigurationPResponse;
 import alluxio.grpc.GrpcChannel;
@@ -497,7 +499,8 @@ public final class Configuration
     AlluxioProperties props = conf.copyProperties();
     props.merge(clusterProps, Source.CLUSTER_DEFAULT);
     // Use the constructor to set cluster defaults as being loaded.
-    InstancedConfiguration updatedConf = new InstancedConfiguration(props, true);
+    InstancedConfiguration updatedConf = new InstancedConfiguration(props, true,
+        response.getClusterConfigHash());
     updatedConf.validate();
     LOG.debug("Alluxio {} has loaded cluster level configurations", scope);
     return updatedConf;
@@ -640,6 +643,56 @@ public final class Configuration
       return Optional.empty();
     }
     return Optional.of(properties);
+  }
+
+  private static GetConfigHashPResponse getConfigHash(InetSocketAddress address,
+      AlluxioConfiguration conf)
+      throws AlluxioStatusException {
+    GrpcChannel channel = null;
+    try {
+      LOG.debug("Alluxio client (version {}) is trying to get configHash from meta master {}",
+          RuntimeConstants.VERSION, address);
+      channel = GrpcChannelBuilder.newBuilder(GrpcServerAddress.create(address), conf)
+          .disableAuthentication().build();
+      MetaMasterConfigurationServiceGrpc.MetaMasterConfigurationServiceBlockingStub client =
+          MetaMasterConfigurationServiceGrpc.newBlockingStub(channel);
+      GetConfigHashPResponse response = client.getConfigHash(
+          GetConfigHashPOptions.newBuilder().build());
+      LOG.debug("Alluxio client has get configHash from meta master {}", address);
+      return response;
+    } catch (io.grpc.StatusRuntimeException e) {
+      throw new UnavailableException(String.format(
+          "Failed to handshake with master %s to get cluster configHash values: %s",
+          address, e.getMessage()), e);
+    } catch (UnauthenticatedException e) {
+      throw new RuntimeException(String.format(
+          "Received authentication exception during get configHash connect with host:%s", address),
+          e);
+    } finally {
+      if (channel != null) {
+        channel.shutdown();
+      }
+    }
+  }
+
+  /**
+   * Reload the cluster config if detected config hash changed.
+   * @param address the config server address
+   * @param scope the reload scope
+   */
+  public static void reLoadClusterConfIfConfigHashChanged(InetSocketAddress address, Scope scope)
+      throws AlluxioStatusException {
+    InstancedConfiguration conf = SERVER_CONFIG_REFERENCE.get();
+    InstancedConfiguration newConf;
+    if (!getConfigHash(address, conf).getClusterConfigHash().equals(
+        conf.getLastClusterConfigHash())) {
+      do {
+        conf = SERVER_CONFIG_REFERENCE.get();
+        GetConfigurationPResponse response = loadConfiguration(address, conf, false, true);
+        newConf = getClusterConf(response, conf, scope);
+      } while (!SERVER_CONFIG_REFERENCE.compareAndSet(conf, newConf));
+      ReconfigurableRegistry.update();
+    }
   }
 
   /**
