@@ -15,10 +15,6 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobFactory;
 import alluxio.scheduler.job.JobState;
-import alluxio.security.User;
-import alluxio.security.authentication.AuthenticatedClientUser;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.wire.FileInfo;
 
 import java.util.Optional;
 import java.util.OptionalLong;
@@ -41,7 +37,6 @@ public class JournalLoadJobFactory implements JobFactory {
        FileSystemMaster fsMaster) {
     mFsMaster = fsMaster;
     mJobEntry = journalEntry;
-
   }
 
   @Override
@@ -62,4 +57,3 @@ public class JournalLoadJobFactory implements JobFactory {
     return job;
   }
 }
-

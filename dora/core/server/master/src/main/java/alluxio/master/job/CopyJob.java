@@ -13,18 +13,15 @@ package alluxio.master.job;
 
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toList;
 
 import alluxio.AlluxioURI;
 import alluxio.client.block.stream.BlockWorkerClient;
-import alluxio.collections.Pair;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
-import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.grpc.CopyRequest;
 import alluxio.grpc.CopyResponse;
 import alluxio.grpc.JobProgressReportFormat;
@@ -34,7 +31,6 @@ import alluxio.grpc.TaskStatus;
 import alluxio.grpc.UfsReadOptions;
 import alluxio.grpc.WriteOptions;
 import alluxio.job.JobDescription;
-import alluxio.master.scheduler.Scheduler;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal;
@@ -63,10 +59,18 @@ import io.netty.util.internal.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
@@ -144,14 +148,16 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
   }
 
   private static class RoundRobinWorkerAssignPolicy extends WorkerAssignPolicy {
-    private AtomicInteger mCounter;
+    private AtomicInteger mCounter = new AtomicInteger(0);
+
     @Override
     protected WorkerInfo pickAWorker(String object, Collection<WorkerInfo> workerInfos) {
       if (workerInfos.isEmpty()) {
         return null;
       }
       int nextWorkerIdx = Math.floorMod(mCounter.incrementAndGet(), workerInfos.size());
-      WorkerInfo pickedWorker = workerInfos.toArray(new WorkerInfo[workerInfos.size()])[nextWorkerIdx];
+      WorkerInfo pickedWorker = workerInfos.toArray(new WorkerInfo[workerInfos.size()])
+          [nextWorkerIdx];
       return pickedWorker;
     }
   }
@@ -313,7 +319,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     if (!(task instanceof CopyTask)) {
       throw new IllegalArgumentException("Task is not a CopyTask: " + task);
     }
-    ((CopyTask)task).mRoutes.forEach(this::addToRetry);
+    ((CopyTask) task).mRoutes.forEach(this::addToRetry);
   }
 
   /**

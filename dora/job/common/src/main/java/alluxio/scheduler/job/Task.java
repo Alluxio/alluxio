@@ -19,7 +19,6 @@ import com.google.common.base.Stopwatch;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import java.util.Objects;
-import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -33,14 +32,9 @@ public abstract class Task<V> implements Comparable<Task> {
    * Metrics and stats to track current task.
    */
   public static class TaskStat {
-    private int mTaskId;
     private final Stopwatch mStopwatch = Stopwatch.createStarted();
     private long mTimeInQ = -1L;
     private long mTotalTimeToComplete = -1L;
-
-    public TaskStat(int taskId) {
-      mTaskId = taskId;
-    }
 
     /**
      * Record time when task is inside the queue.
@@ -69,12 +63,14 @@ public abstract class Task<V> implements Comparable<Task> {
   }
 
   /**
-   * Constructor.
+   * constructs Task.
+   * @param job
+   * @param taskId
    */
   public Task(Job job, int taskId) {
     setJob(job);
     mTaskId = taskId;
-    mTaskStat = new TaskStat(mTaskId);
+    mTaskStat = new TaskStat();
   }
 
   /**
@@ -90,16 +86,25 @@ public abstract class Task<V> implements Comparable<Task> {
   protected Job mMyJob;
 
   /**
+   * Get the worker info this task runs on.
    * @return my running worker
    */
   public WorkerInfo getMyRunningWorker() {
     return mMyWorker;
   }
 
+  /**
+   * Set the worker info this task runs on.
+   * @param workerInfo
+   */
   public void setMyRunningWorker(WorkerInfo workerInfo) {
     mMyWorker = workerInfo;
   }
 
+  /**
+   * Get task id.
+   * @return taskId
+   */
   public int getTaskId() {
     return mTaskId;
   }
@@ -122,12 +127,17 @@ public abstract class Task<V> implements Comparable<Task> {
   }
 
   /**
+   * Set the job.
    * @param job the job
    */
   public void setJob(Job job) {
     mMyJob = job;
   }
 
+  /**
+   * Get the job this task belongs to.
+   * @return Job
+   */
   public Job getJob() {
     return mMyJob;
   }

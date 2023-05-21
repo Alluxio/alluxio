@@ -21,7 +21,6 @@ import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.dora.WorkerLocationPolicy;
-import alluxio.collections.UnmodifiableArrayList;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -29,14 +28,14 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
+import alluxio.grpc.File;
 import alluxio.grpc.FileFailure;
+import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadFileRequest;
 import alluxio.grpc.LoadFileResponse;
 import alluxio.grpc.TaskStatus;
 import alluxio.grpc.UfsReadOptions;
-import alluxio.grpc.JobProgressReportFormat;
-import alluxio.grpc.File;
 import alluxio.job.JobDescription;
 import alluxio.master.scheduler.Scheduler;
 import alluxio.metrics.MetricKey;
@@ -50,7 +49,9 @@ import alluxio.wire.WorkerInfo;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Meter;
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
@@ -63,8 +64,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.OptionalLong;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -87,8 +100,9 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   private static final int BATCH_SIZE = Configuration.getInt(PropertyKey.JOB_BATCH_SIZE);
   private static final int MAX_FILES_PER_TASK = 20; // TODO(lucy) make it configurable
 
-  /* TODO(lucy) add logic to detect loaded files, as currently each file loaded status is on each dora
-  worker, so the decision to load or not delegates to worker on getting the load req. */
+  /* TODO(lucy) add logic to detect loaded files, as currently each file loaded
+     status is on each dora worker, so the decision to load or not delegates to
+     worker on getting the load req. */
   // Job configurations
   private final String mPath;
 
@@ -176,7 +190,6 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     private String mPath;
     ListStatusPOptions mListOption;
     public LinkedBlockingQueue<URIStatus> mFiles = new LinkedBlockingQueue<>();
-    private Optional<String> mNextMarker = Optional.empty();
     private boolean mUsePartialListing = false;
     private AtomicBoolean mIsDone = new AtomicBoolean(false);
 
@@ -237,9 +250,10 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   /**
    * Prepare next set of tasks waiting to be kicked off.
    * it is made sure only one thread should be calling this.
+   * @return list of DoraLoadTask
    */
   public List<DoraLoadTask> prepareNextTasks() {
-    LOG.info("Preparing next set of tasks for jobId:{}", mJobId);
+    LOG.debug("Preparing next set of tasks for jobId:{}", mJobId);
     ImmutableList.Builder<URIStatus> batchBuilder = ImmutableList.builder();
     int i = 0;
     int startRetryListSize = mRetryFiles.size();
@@ -282,9 +296,11 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
         mRetryFiles.offer(uriStatus.getPath());
         continue;
       }
-      List<DoraLoadTask> tasks = workerToTaskMap.computeIfAbsent(pickedWorker, w -> new ArrayList<>());
+      List<DoraLoadTask> tasks = workerToTaskMap.computeIfAbsent(pickedWorker,
+          w -> new ArrayList<>());
       DoraLoadTask task;
-      if (!tasks.isEmpty() && tasks.get(tasks.size() - 1).mFilesToLoad.size() < MAX_FILES_PER_TASK) {
+      if (!tasks.isEmpty()
+          && tasks.get(tasks.size() - 1).mFilesToLoad.size() < MAX_FILES_PER_TASK) {
         task = tasks.get(tasks.size() - 1);
       } else {
         task = new DoraLoadTask();
@@ -374,6 +390,12 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     return true;
   }
 
+  /**
+   * Add failed files.
+   * @param fileAlluxioPath
+   * @param message
+   * @param code
+   */
   @VisibleForTesting
   public void addFileFailure(String fileAlluxioPath, String message, int code) {
     // When multiple blocks of the same file failed to load, from user's perspective,
@@ -448,7 +470,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     if (!(task instanceof DoraLoadTask)) {
       throw new IllegalArgumentException("Task is not a DoraLoadTask: " + task);
     }
-    ((DoraLoadTask)task).mFilesToLoad.forEach(f -> addFilesToRetry(f.getPath()));
+    ((DoraLoadTask) task).mFilesToLoad.forEach(f -> addFilesToRetry(f.getPath()));
   }
 
   @Override
@@ -589,6 +611,9 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 
     protected List<URIStatus> mFilesToLoad;
 
+    /**
+     * Constructor.
+     */
     public DoraLoadTask() {
       super(DoraLoadJob.this, DoraLoadJob.this.mTaskIdGenerator.incrementAndGet());
       super.setPriority(1);
@@ -605,6 +630,10 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       mFilesToLoad = filesToLoad;
     }
 
+    /**
+     * Get files to load of this task.
+     * @return list of URIStatus
+     */
     public List<URIStatus> getFilesToLoad() {
       return mFilesToLoad;
     }

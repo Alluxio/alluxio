@@ -185,6 +185,11 @@ public final class AlluxioMasterRestServiceHandler {
         (FileSystem) context.getAttribute(MasterWebServer.ALLUXIO_FILESYSTEM_CLIENT_RESOURCE_KEY);
   }
 
+  /**
+   * @summary gateway to get scheduler info.
+   * @param jobId
+   * @return Response
+   */
   @GET
   @Path(SCHEDULER_INFO)
   public Response getSchedulerInfo(@QueryParam("jobid") final String jobId) {

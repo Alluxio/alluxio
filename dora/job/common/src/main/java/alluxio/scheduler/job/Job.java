@@ -11,7 +11,6 @@
 
 package alluxio.scheduler.job;
 
-import alluxio.collections.Pair;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.JobProgressReportFormat;
 import alluxio.job.JobDescription;
@@ -20,7 +19,6 @@ import alluxio.wire.WorkerInfo;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.OptionalLong;
 
 /**
@@ -122,7 +120,7 @@ public interface Job<T extends Task<?>> {
   List<T> getNextTasks(Collection<WorkerInfo> workers);
 
   /**
-   * Define how to process task that gets rejected when scheduler tried to kick off
+   * Define how to process task that gets rejected when scheduler tried to kick off.
    * @param task
    */
   void onTaskSubmitFailure(Task<?> task);
