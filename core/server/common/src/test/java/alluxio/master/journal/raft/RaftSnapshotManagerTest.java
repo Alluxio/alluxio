@@ -78,12 +78,12 @@ public class RaftSnapshotManagerTest {
     String rpcAddresses = mGrpcServers.stream()
         .map(server -> String.format("%s:%d", hostAddress, server.getBindPort()))
         .collect(Collectors.joining(","));
-    Configuration.set(PropertyKey.MASTER_RPC_ADDRESSES, rpcAddresses);
+    Configuration.set(PropertyKey.MASTER_SNAPSHOT_RPC_ADDRESSES, rpcAddresses);
     // create SnapshotDownloaders after the fact: this is because the downloaders cache their
     // grpc clients to reuse them efficiently. They create the clients based on the configured
     // rpc addresses, excluding their own.
     for (int i = 0; i < mGrpcServers.size(); i++) {
-      Configuration.set(PropertyKey.MASTER_RPC_PORT, mGrpcServers.get(i).getBindPort());
+      Configuration.set(PropertyKey.MASTER_SNAPSHOT_RPC_PORT, mGrpcServers.get(i).getBindPort());
       mManagers.add(new RaftSnapshotManager(mSmStorages.get(i),
           Executors.newSingleThreadExecutor()));
     }

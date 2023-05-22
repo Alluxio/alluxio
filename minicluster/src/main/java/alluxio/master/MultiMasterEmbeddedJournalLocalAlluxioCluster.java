@@ -107,16 +107,21 @@ public final class MultiMasterEmbeddedJournalLocalAlluxioCluster
 
     List<String> journalAddresses = new ArrayList<>();
     List<String> rpcAddresses = new ArrayList<>();
+    List<String> snapshotRpcAddresses = new ArrayList<>();
     for (MasterNetAddress address : mMasterAddresses) {
       journalAddresses
           .add(String.format("%s:%d", address.getHostname(), address.getEmbeddedJournalPort()));
       rpcAddresses.add(String.format("%s:%d", address.getHostname(), address.getRpcPort()));
+      snapshotRpcAddresses.add(String.format("%s:%d", address.getHostname(),
+          address.getSnapshotRpcPort()));
     }
     Configuration.set(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED);
     Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES,
         com.google.common.base.Joiner.on(",").join(journalAddresses));
     Configuration.set(PropertyKey.MASTER_RPC_ADDRESSES,
         com.google.common.base.Joiner.on(",").join(rpcAddresses));
+    Configuration.set(PropertyKey.MASTER_SNAPSHOT_RPC_ADDRESSES,
+        com.google.common.base.Joiner.on(",").join(snapshotRpcAddresses));
   }
 
   @Override
