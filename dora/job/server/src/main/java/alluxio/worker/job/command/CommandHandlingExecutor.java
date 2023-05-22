@@ -83,7 +83,7 @@ public class CommandHandlingExecutor implements HeartbeatExecutor {
   }
 
   @Override
-  public void heartbeat() {
+  public void heartbeat(long timeLimitMs) {
     JobWorkerHealthReporter.JobWorkerHealthReport jobWorkerHealthReport =
             mHealthReporter.getJobWorkerHealthReport();
 

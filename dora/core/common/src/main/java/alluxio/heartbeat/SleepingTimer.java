@@ -11,7 +11,6 @@
 
 package alluxio.heartbeat;
 
-import alluxio.clock.SystemClock;
 import alluxio.time.Sleeper;
 import alluxio.time.ThreadSleeper;
 
@@ -20,57 +19,52 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Clock;
 import java.time.Duration;
+import java.util.function.Supplier;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This class can be used for executing heartbeats periodically.
  */
 @NotThreadSafe
-public final class SleepingTimer implements HeartbeatTimer {
-  private long mIntervalMs;
-  private long mPreviousTickMs;
+public class SleepingTimer implements HeartbeatTimer {
+  protected long mPreviousTickedMs = -1;
   private final String mThreadName;
-  private final Logger mLogger;
-  private final Clock mClock;
-  private final Sleeper mSleeper;
+  protected final Logger mLogger;
+  protected final Clock mClock;
+  protected final Sleeper mSleeper;
+  protected final Supplier<SleepIntervalSupplier> mIntervalSupplierSupplier;
+  protected SleepIntervalSupplier mIntervalSupplier;
 
   /**
    * Creates a new instance of {@link SleepingTimer}.
    *
    * @param threadName the thread name
-   * @param intervalMs the heartbeat interval
+   * @param clock for telling the current time
+   * @param intervalSupplierSupplier Sleep time between different heartbeat supplier
    */
-  public SleepingTimer(String threadName, long intervalMs) {
-    this(threadName, intervalMs, LoggerFactory.getLogger(SleepingTimer.class),
-        new SystemClock(), ThreadSleeper.INSTANCE);
+  public SleepingTimer(String threadName, Clock clock,
+      Supplier<SleepIntervalSupplier> intervalSupplierSupplier) {
+    this(threadName, LoggerFactory.getLogger(SleepingTimer.class),
+        clock, ThreadSleeper.INSTANCE, intervalSupplierSupplier);
   }
 
   /**
    * Creates a new instance of {@link SleepingTimer}.
    *
    * @param threadName the thread name
-   * @param intervalMs the heartbeat interval
    * @param logger the logger to log to
    * @param clock for telling the current time
    * @param sleeper the utility to use for sleeping
+   * @param intervalSupplierSupplier Sleep time between different heartbeat supplier
    */
-  public SleepingTimer(String threadName, long intervalMs, Logger logger, Clock clock,
-      Sleeper sleeper) {
-    mIntervalMs = intervalMs;
+  public SleepingTimer(String threadName, Logger logger, Clock clock, Sleeper sleeper,
+      Supplier<SleepIntervalSupplier> intervalSupplierSupplier) {
     mThreadName = threadName;
     mLogger = logger;
     mClock = clock;
     mSleeper = sleeper;
-  }
-
-  @Override
-  public void setIntervalMs(long intervalMs) {
-    mIntervalMs = intervalMs;
-  }
-
-  @Override
-  public long getIntervalMs() {
-    return mIntervalMs;
+    mIntervalSupplierSupplier = intervalSupplierSupplier;
+    mIntervalSupplier = intervalSupplierSupplier.get();
   }
 
   /**
@@ -79,16 +73,18 @@ public final class SleepingTimer implements HeartbeatTimer {
    * @throws InterruptedException if the thread is interrupted while waiting
    */
   @Override
-  public void tick() throws InterruptedException {
-    if (mPreviousTickMs != 0) {
-      long executionTimeMs = mClock.millis() - mPreviousTickMs;
-      if (executionTimeMs > mIntervalMs) {
-        mLogger.warn("{} last execution took {} ms. Longer than the interval {}", mThreadName,
-            executionTimeMs, mIntervalMs);
-      } else {
-        mSleeper.sleep(Duration.ofMillis(mIntervalMs - executionTimeMs));
-      }
+  public long tick() throws InterruptedException {
+    long nextInterval = mIntervalSupplier.getNextInterval(mPreviousTickedMs, mClock.millis());
+    if (nextInterval > 0) {
+      mSleeper.sleep(Duration.ofMillis(nextInterval));
     }
-    mPreviousTickMs = mClock.millis();
+    mPreviousTickedMs = mClock.millis();
+    return mIntervalSupplier.getRunLimit(mPreviousTickedMs);
+  }
+
+  @Override
+  public void update() {
+    mIntervalSupplier = mIntervalSupplierSupplier.get();
+    mLogger.info("update {} interval supplier.", mThreadName);
   }
 }

@@ -48,6 +48,7 @@ import alluxio.grpc.Scope;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.UfsReadOptions;
 import alluxio.grpc.WriteOptions;
+import alluxio.heartbeat.FixedIntervalSupplier;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -225,7 +226,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC,
             mResourceCloser.register(new BlockMasterSync()),
-            () -> Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+            () -> new FixedIntervalSupplier(Configuration.getMs(
+                PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)),
             mConf, ServerUserState.global()));
   }
 
@@ -636,7 +638,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   private class BlockMasterSync implements HeartbeatExecutor {
     @Override
-    public void heartbeat() throws InterruptedException {
+    public void heartbeat(long timeLimitMs) throws InterruptedException {
       final Command cmdFromMaster;
       try (PooledResource<BlockMasterClient> bmc = mBlockMasterClientPool.acquireCloseable()) {
         cmdFromMaster = bmc.get().heartbeat(mWorkerId.get(),

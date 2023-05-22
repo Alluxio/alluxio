@@ -111,7 +111,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  *    and block removal/commit.
  * 2. In {@link alluxio.master.block.WorkerRegisterContext},
  *    to write locks are held throughout the lifecycle.
- * 3. In {@link DefaultBlockMaster.LostWorkerDetectionHeartbeatExecutor#heartbeat()}
+ * 3. In {@link DefaultBlockMaster.LostWorkerDetectionHeartbeatExecutor#heartbeat(long)}
  */
 @NotThreadSafe
 public final class MasterWorkerInfo {

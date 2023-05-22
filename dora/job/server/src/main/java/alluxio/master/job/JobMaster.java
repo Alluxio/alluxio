@@ -28,6 +28,7 @@ import alluxio.grpc.JobCommand;
 import alluxio.grpc.ListAllPOptions;
 import alluxio.grpc.RegisterCommand;
 import alluxio.grpc.ServiceType;
+import alluxio.heartbeat.FixedIntervalSupplier;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -199,7 +200,8 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
       getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.JOB_MASTER_LOST_WORKER_DETECTION,
               new LostWorkerDetectionHeartbeatExecutor(),
-              () -> Configuration.getMs(PropertyKey.JOB_MASTER_LOST_WORKER_INTERVAL),
+              () -> new FixedIntervalSupplier(
+                  Configuration.getMs(PropertyKey.JOB_MASTER_LOST_WORKER_INTERVAL)),
               Configuration.global(), mMasterContext.getUserState()));
       if (Configuration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
         mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("JOB_MASTER_AUDIT_LOG");
@@ -694,7 +696,7 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
     public LostWorkerDetectionHeartbeatExecutor() {}
 
     @Override
-    public void heartbeat() {
+    public void heartbeat(long timeLimitMs) {
       int masterWorkerTimeoutMs = (int) Configuration
           .getMs(PropertyKey.JOB_MASTER_WORKER_TIMEOUT);
       List<MasterWorkerInfo> lostWorkers = new ArrayList<>();

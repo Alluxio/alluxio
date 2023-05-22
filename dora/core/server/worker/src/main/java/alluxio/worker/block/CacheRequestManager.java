@@ -92,7 +92,7 @@ public class CacheRequestManager {
     long blockId = request.getBlockId();
     boolean async = request.getAsync();
     if (mActiveCacheRequests.putIfAbsent(blockId, request) != null) {
-      // This block is already planned and just just return.
+      // This block is already planned and just return.
       if (async) {
         LOG.debug("request already planned: {}", request);
       } else {

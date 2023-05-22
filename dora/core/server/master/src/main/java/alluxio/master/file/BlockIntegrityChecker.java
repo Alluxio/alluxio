@@ -39,7 +39,7 @@ public final class BlockIntegrityChecker implements HeartbeatExecutor {
   }
 
   @Override
-  public void heartbeat() {
+  public void heartbeat(long timeLimitMs) {
     try {
       mFileSystemMaster.validateInodeBlocks(mRepair);
     } catch (Exception e) {

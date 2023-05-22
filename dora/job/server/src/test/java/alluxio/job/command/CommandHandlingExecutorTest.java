@@ -86,7 +86,7 @@ public final class CommandHandlingExecutorTest {
     Mockito.when(mJobMasterClient.heartbeat(any(JobWorkerHealth.class), eq(Lists.newArrayList())))
         .thenReturn(Lists.newArrayList(command.build()));
 
-    mCommandHandlingExecutor.heartbeat();
+    mCommandHandlingExecutor.heartbeat(Long.MAX_VALUE);
     ExecutorService executorService = AlluxioMockUtil.getInternalState(
         mCommandHandlingExecutor, "mCommandHandlingService");
     executorService.shutdown();

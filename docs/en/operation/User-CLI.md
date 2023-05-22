@@ -1203,6 +1203,7 @@ By default, it loads metadata only at the first time at which a directory is lis
 * `-r` reverses the sorting order.
 * `--timestamp` display the timestamp of the given option. Possible values are creationTime, lastModificationTime, and lastAccessTime.
 The default option is lastModificationTime.
+* `-m` option excludes mount point related information.
 
 For example, `ls` can be used to browse the file system.
 

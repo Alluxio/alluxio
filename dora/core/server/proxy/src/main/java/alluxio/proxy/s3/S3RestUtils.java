@@ -37,6 +37,7 @@ import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.SecurityUtils;
+import alluxio.util.ThreadUtils;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.annotations.VisibleForTesting;
@@ -129,7 +130,11 @@ public final class S3RestUtils {
       XmlMapper mapper = new XmlMapper();
       return Response.ok(mapper.writeValueAsString(result)).build();
     } catch (Exception e) {
-      LOG.warn("Error invoking REST endpoint for {}:\n{}", resource, e.getMessage());
+      String errOutputMsg = e.getMessage();
+      if (StringUtils.isEmpty(errOutputMsg)) {
+        errOutputMsg = ThreadUtils.formatStackTrace(e);
+      }
+      LOG.warn("Error invoking REST endpoint for {}:\n{}", resource, errOutputMsg);
       return S3ErrorResponse.createErrorResponse(e, resource);
     }
   }
@@ -312,14 +317,13 @@ public final class S3RestUtils {
    */
   public static void checkPathIsAlluxioDirectory(FileSystem fs, String bucketPath,
                                                  @Nullable S3AuditContext auditContext,
-                                                 Cache<AlluxioURI, Boolean> bucketPathCache)
+                                                 Cache<String, Boolean> bucketPathCache)
       throws S3Exception {
-    AlluxioURI uri = new AlluxioURI(bucketPath);
-    if (Boolean.TRUE.equals(bucketPathCache.getIfPresent(uri))) {
+    if (Boolean.TRUE.equals(bucketPathCache.getIfPresent(bucketPath))) {
       return;
     }
     checkPathIsAlluxioDirectory(fs, bucketPath, auditContext);
-    bucketPathCache.put(uri, true);
+    bucketPathCache.put(bucketPath, true);
   }
 
   /**

@@ -63,24 +63,24 @@ public class SpecificMasterBlockSyncTest {
     assertFalse(sync.isRegistered());
 
     // heartbeat registers the worker if it has not been registered.
-    sync.heartbeat();
+    sync.heartbeat(Long.MAX_VALUE);
     assertTrue(sync.isRegistered());
 
     // heartbeat returning register command resets the worker state.
     Configuration.set(PropertyKey.WORKER_REGISTER_STREAM_ENABLED, true);
     TestBlockMasterClient.INSTANCE.setReturnRegisterCommand(true);
-    sync.heartbeat();
+    sync.heartbeat(Long.MAX_VALUE);
     TestBlockMasterClient.INSTANCE.setReturnRegisterCommand(false);
     assertFalse(sync.isRegistered());
 
     Configuration.set(PropertyKey.WORKER_REGISTER_STREAM_ENABLED, false);
     TestBlockMasterClient.INSTANCE.setReturnRegisterCommand(true);
-    sync.heartbeat();
+    sync.heartbeat(Long.MAX_VALUE);
     TestBlockMasterClient.INSTANCE.setReturnRegisterCommand(false);
     assertFalse(sync.isRegistered());
 
     // heartbeat registers the worker if it has not been registered.
-    sync.heartbeat();
+    sync.heartbeat(Long.MAX_VALUE);
     assertTrue(sync.isRegistered());
 
     // TestBlockHeartbeatReporter generates the report with one more removed block id each time.
@@ -88,7 +88,7 @@ public class SpecificMasterBlockSyncTest {
     // heartbeatReportCapacityThreshold is 3.
     TestBlockMasterClient.INSTANCE.mHeartbeatCallCount = 0;
     TestBlockMasterClient.INSTANCE.setHeartbeatError(true);
-    sync.heartbeat();
+    sync.heartbeat(Long.MAX_VALUE);
     assertFalse(sync.isRegistered());
     assertEquals(
         heartbeatReportCapacityThreshold, TestBlockMasterClient.INSTANCE.mHeartbeatCallCount);
@@ -96,7 +96,7 @@ public class SpecificMasterBlockSyncTest {
     // registration should happen on the next heartbeat and the reporter should be cleared,
     // except the newly generated ones.
     TestBlockMasterClient.INSTANCE.setHeartbeatError(false);
-    sync.heartbeat();
+    sync.heartbeat(Long.MAX_VALUE);
     assertTrue(sync.isRegistered());
     assertEquals(1, blockHeartbeatReporter.generateReportAndClear().getBlockChangeCount());
 
