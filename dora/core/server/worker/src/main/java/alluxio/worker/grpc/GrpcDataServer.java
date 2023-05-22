@@ -30,8 +30,8 @@ import alluxio.util.network.NettyUtils;
 import alluxio.worker.DataServer;
 import alluxio.worker.block.DefaultBlockWorker;
 
-import io.grpc.MethodDescriptor;
 import com.codahale.metrics.Counter;
+import io.grpc.MethodDescriptor;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
