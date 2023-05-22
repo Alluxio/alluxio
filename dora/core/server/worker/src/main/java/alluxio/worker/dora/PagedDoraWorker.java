@@ -615,6 +615,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             }
             CopyHandler.copy(route, writeOptions, srcFs, dstFs);
           } catch (Exception t) {
+            LOG.error("Failed to copy {} to {}", route.getSrc(), route.getDst(), t);
             AlluxioRuntimeException e = AlluxioRuntimeException.from(t);
             RouteFailure.Builder builder =
                 RouteFailure.newBuilder().setRoute(route).setCode(e.getStatus().getCode().value());
