@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
 # (the "License"). You may not use this work except in compliance with the License, which is
@@ -13,10 +13,10 @@
 set -eu
 
 SCRIPT_DIR=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
+ROOT_PATH="${SCRIPT_DIR}/../.."
+CLI_PATH="${SCRIPT_DIR}/src/alluxio.org/cli/bin/alluxioCli-$(uname)-$(uname -m)"
+if [[ ! -f "${CLI_PATH}" ]]; then
+  "${SCRIPT_DIR}/build-cli.sh"
+fi
 
-(cd "${SCRIPT_DIR}/src/alluxio.org/" && GO111MODULE=on go build -o alluxioCli "cli/main.go")
-
-REPO_ROOT="${SCRIPT_DIR}/../.."
-(cd "${SCRIPT_DIR}" && src/alluxio.org/alluxioCli --rootPath="${REPO_ROOT}" "$@")
-
-rm "${SCRIPT_DIR}/src/alluxio.org/alluxioCli"
+"${CLI_PATH}" --rootPath="${ROOT_PATH}" "$@"
