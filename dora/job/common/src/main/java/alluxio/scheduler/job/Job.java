@@ -140,4 +140,9 @@ public interface Job<T extends Task<?>> {
    * @param job the job to update from. Must be the same job type
    */
   void updateJob(Job<?> job);
+
+  /**
+   * @return whether the job has failed tasks
+   */
+  boolean hasFailure();
 }

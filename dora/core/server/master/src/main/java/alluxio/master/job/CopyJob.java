@@ -490,6 +490,11 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     setVerificationEnabled(targetJob.isVerificationEnabled());
   }
 
+  @Override
+  public boolean hasFailure() {
+    return !mFailedFiles.isEmpty();
+  }
+
   /**
    * Loads blocks in a UFS through an Alluxio worker.
    */

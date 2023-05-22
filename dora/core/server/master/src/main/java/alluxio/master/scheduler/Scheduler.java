@@ -470,11 +470,17 @@ public final class Scheduler {
         }
         else {
           if (job.isHealthy()) {
-            job.setJobSuccess();
+            if (job.hasFailure()) {
+              job.failJob(new InternalRuntimeException("Job partially failed."));
+            }
+            else {
+              job.setJobSuccess();
+            }
           }
           else {
             if (job.getJobState() != JobState.FAILED) {
-              job.failJob(new InternalRuntimeException("Job failed because it's not healthy."));
+              job.failJob(
+                  new InternalRuntimeException("Job failed because it exceed healthy threshold."));
             }
           }
         }
@@ -500,10 +506,12 @@ public final class Scheduler {
     try {
       task = job.getNextTask(workerInfo);
     } catch (AlluxioRuntimeException e) {
-      LOG.warn(format("error getting next task for job %s", job), e);
+
       if (!e.isRetryable()) {
         job.failJob(e);
+        LOG.error(format("error getting next task for job %s", job), e);
       }
+
       return false;
     }
     if (!task.isPresent()) {
