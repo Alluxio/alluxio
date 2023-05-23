@@ -50,15 +50,6 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
       Configuration.getMs(PropertyKey.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS);
 
   /**
-   * The Block Worker.
-   */
-  private final BlockWorker mWorker;
-  /**
-   * The transfer type used by the data server.
-   */
-  private final FileTransferType mTransferType;
-
-  /**
    * Creates an instance of {@link AbstractReadHandler}.
    *
    * @param executorService  the executor service to run {@link PacketReader}s
@@ -68,19 +59,13 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
    */
   public BlockReadHandler(ExecutorService executorService, BlockWorker blockWorker,
                           Channel channel, FileTransferType fileTransferType) {
-    super(executorService, channel, BlockReadRequest.class);
-    mWorker = blockWorker;
-    mTransferType = fileTransferType;
+    super(executorService, channel, BlockReadRequest.class,
+        new BlockPackerReaderFactory(blockWorker, fileTransferType));
   }
 
   @Override
   protected BlockReadRequest createReadRequest(Protocol.ReadRequest request) {
     return new BlockReadRequest(request);
-  }
-
-  @Override
-  protected PacketReader.Factory<BlockReadRequest, BlockPacketReader> createPacketReaderFactory() {
-    return new BlockPackerReaderFactory(mWorker, mTransferType);
   }
 
   /**

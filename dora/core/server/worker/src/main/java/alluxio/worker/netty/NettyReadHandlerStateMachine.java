@@ -155,7 +155,7 @@ public class NettyReadHandlerStateMachine<ReqT extends ReadRequest> {
     }
 
     public boolean isSuccess() {
-      return mFailure != null;
+      return mFailure == null;
     }
 
     public Throwable getCause() {
