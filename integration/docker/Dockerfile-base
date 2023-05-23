@@ -46,8 +46,9 @@ ARG ALLUXIO_GROUP=alluxio
 ARG ALLUXIO_UID=1000
 ARG ALLUXIO_GID=1000
 
-# For extended images to know the user
+# For extended images to know the user and group
 ENV ALLUXIO_UID=${ALLUXIO_UID}
+ENV ALLUXIO_GID=${ALLUXIO_GID}
 
 # Add Tini for Alluxio helm charts (https://github.com/Alluxio/alluxio/pull/12233)
 # - https://github.com/krallin/tini
@@ -83,8 +84,6 @@ COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} --from=go_installer /usr/local
 RUN echo "user_allow_other" >> /etc/fuse.conf
 
 USER ${ALLUXIO_UID}
-
-WORKDIR /opt/alluxio
 
 ENV PATH="/opt/alluxio/bin:/usr/local/go/bin:${PATH}"
 

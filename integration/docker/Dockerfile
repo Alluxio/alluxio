@@ -16,9 +16,9 @@
 #       - https://github.com/moby/moby/issues/6119
 # ADD with chown doesn't chown the files inside tarball
 #   See - https://github.com/moby/moby/issues/35525
-FROM alluxio/alluxio-base:latest
-
-ARG ALLUXIO_TARBALL=https://downloads.alluxio.io/downloads/files/294/alluxio-294-bin.tar.gz
+FROM alpine:3.10.2 AS alluxio-extractor
+# Note that downloads for *-SNAPSHOT tarballs are not available.
+ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/294/alluxio-294-bin.tar.gz
 
 ADD ${ALLUXIO_TARBALL} /opt/
 # Remote tarball needs to be untarred. Local tarball is untarred automatically.
@@ -26,3 +26,7 @@ ADD ${ALLUXIO_TARBALL} /opt/
 RUN cd /opt && \
     (if ls | grep -q ".tar.gz"; then tar -xzf *.tar.gz && rm *.tar.gz; fi) && \
     ln -s alluxio-* alluxio
+
+FROM alluxio/alluxio-base:latest AS final
+
+COPY --chown=${ALLUXIO_UID}:${ALLUXIO_GID} --from=alluxio-extractor /opt /opt/
