@@ -600,14 +600,12 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
           UnderFileSystemConfiguration.defaults(mConf));
       String srcRoot = new AlluxioURI(route.getSrc()).getRootPath();
       String dstRoot = new AlluxioURI(route.getDst()).getRootPath();
-      UnderFileSystem dstUfs = mUfsManager.getOrAdd(new AlluxioURI(route.getSrc()),
+      UnderFileSystem dstUfs = mUfsManager.getOrAdd(new AlluxioURI(route.getDst()),
           UnderFileSystemConfiguration.defaults(mConf));
       try (FileSystem srcFs = new UfsBaseFileSystem(mFsContext, new UfsFileSystemOptions(srcRoot),
           new UfsManager.UfsClient(() -> srcUfs, new AlluxioURI(srcRoot)));
-
           FileSystem dstFs = new UfsBaseFileSystem(mFsContext, new UfsFileSystemOptions(dstRoot),
-              new UfsManager.UfsClient(() -> dstUfs, new AlluxioURI(dstRoot)));) {
-
+              new UfsManager.UfsClient(() -> dstUfs, new AlluxioURI(dstRoot)))) {
         ListenableFuture<Void> future = Futures.submit(() -> {
           try {
             if (readOptions.hasUser()) {
