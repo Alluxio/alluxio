@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-integration-tools</artifactId>
-    <version>295</version>
+    <version>296-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-integration-tools-validation</artifactId>
   <packaging>jar</packaging>
@@ -89,8 +89,8 @@
               <goal>copy</goal>
             </goals>
             <configuration>
-              <sourceFile>target/alluxio-integration-tools-validation-295-SNAPSHOT.jar</sourceFile>
-              <destinationFile>../../../../lib/alluxio-integration-tools-validation-295-SNAPSHOT.jar</destinationFile>
+              <sourceFile>target/alluxio-integration-tools-validation-296-SNAPSHOT-SNAPSHOT.jar</sourceFile>
+              <destinationFile>../../../../lib/alluxio-integration-tools-validation-296-SNAPSHOT-SNAPSHOT.jar</destinationFile>
             </configuration>
           </execution>
         </executions>
