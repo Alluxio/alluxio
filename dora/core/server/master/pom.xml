@@ -83,6 +83,10 @@
       <groupId>it.unimi.dsi</groupId>
       <artifactId>fastutil-core</artifactId>
     </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>s3</artifactId>
+    </dependency>
 
     <!-- Internal dependencies -->
     <dependency>
@@ -111,6 +115,17 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.gaul</groupId>
+      <artifactId>s3proxy</artifactId>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>ch.qos.logback</groupId>
+          <artifactId>logback-classic</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-stress-shell</artifactId>
       <version>${project.version}</version>
@@ -134,6 +149,12 @@
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-local</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-s3a</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>

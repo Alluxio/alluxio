@@ -16,12 +16,14 @@ import alluxio.PositionReader;
 import alluxio.SyncInfo;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.file.options.DescendantType;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.Fingerprint;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
+import alluxio.underfs.UfsLoadResult;
 import alluxio.underfs.UfsMode;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
@@ -38,8 +40,10 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * UFS which delegates to another UFS. Extend this class to override method behavior.
@@ -256,6 +260,14 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
     return mUfs.listStatus(path, options);
   }
 
+  @Nullable
+  @Override
+  public Iterator<UfsStatus> listStatusIterable(
+      String path, ListOptions options, String startAfter,
+      int batchSize) throws IOException {
+    return mUfs.listStatusIterable(path, options, startAfter, batchSize);
+  }
+
   @Override
   public boolean mkdirs(String path) throws IOException {
     return mUfs.mkdirs(path);
@@ -364,5 +376,15 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   @Override
   public boolean stopActiveSyncPolling() throws IOException {
     return mUfs.stopActiveSyncPolling();
+  }
+
+  @Override
+  public void performListingAsync(
+      String path, @Nullable String continuationToken,
+      @Nullable String startAfter,
+      DescendantType descendantType, boolean checkStatus,
+      Consumer<UfsLoadResult> onComplete, Consumer<Throwable> onError) {
+    mUfs.performListingAsync(path, continuationToken,
+        startAfter, descendantType, checkStatus, onComplete, onError);
   }
 }
