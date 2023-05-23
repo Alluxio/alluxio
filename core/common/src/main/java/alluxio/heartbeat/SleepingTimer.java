@@ -11,6 +11,7 @@
 
 package alluxio.heartbeat;
 
+import alluxio.conf.PropertyKey;
 import alluxio.time.Sleeper;
 import alluxio.time.ThreadSleeper;
 
@@ -19,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Clock;
 import java.time.Duration;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -84,7 +86,7 @@ public class SleepingTimer implements HeartbeatTimer {
   }
 
   @Override
-  public void update() {
+  public void update(Map<PropertyKey, Object> changedProperties) {
     SleepIntervalSupplier newSupplier = mIntervalSupplierSupplier.get();
     if (!Objects.equals(mIntervalSupplier, newSupplier)) {
       mIntervalSupplier = newSupplier;

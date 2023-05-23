@@ -13,6 +13,7 @@ package alluxio.conf;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Registry of all reconfigurable listeners.
@@ -46,11 +47,17 @@ public class ReconfigurableRegistry {
    */
   public static synchronized boolean update() {
     for (Reconfigurable listener : new LinkedList<>(LISTENER_LIST)) {
-      listener.update();
+      listener.update(null);
     }
     return true;
   }
 
   // prevent instantiation
   private ReconfigurableRegistry() {}
+
+  public static void update(Map<PropertyKey, Object> changedProperty) {
+    for (Reconfigurable listener : new LinkedList<>(LISTENER_LIST)) {
+      listener.update(changedProperty);
+    }
+  }
 }

@@ -11,6 +11,8 @@
 
 package alluxio.conf;
 
+import java.util.Map;
+
 /**
  * Reconfigurable listener.
  */
@@ -18,6 +20,7 @@ public interface Reconfigurable {
 
   /**
    * When the property changed, this function will be invoked.
+   * @param changedProperties the changed properties
    */
-  void update();
+  void update(Map<PropertyKey, Object> changedProperties);
 }
