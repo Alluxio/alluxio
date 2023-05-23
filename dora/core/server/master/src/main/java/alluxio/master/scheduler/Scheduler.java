@@ -502,9 +502,6 @@ public final class Scheduler {
         }
         return;
       }
-      if (tasks.isEmpty()) {
-        return;
-      }
       // enqueue the worker task q and kick it start
       // TODO(lucy) add if worker q is too full tell job to save this task for retry kick-off
       for (Task task : tasks) {
