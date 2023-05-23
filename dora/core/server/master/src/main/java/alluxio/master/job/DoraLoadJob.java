@@ -544,6 +544,11 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     updateBandwidth(targetJob.getBandwidth());
   }
 
+  @Override
+  public boolean hasFailure() {
+    return !mFailedFiles.isEmpty();
+  }
+
   /**
    * Is verification enabled.
    *

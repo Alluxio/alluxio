@@ -507,6 +507,11 @@ public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
     setVerificationEnabled(targetJob.isVerificationEnabled());
   }
 
+  @Override
+  public boolean hasFailure() {
+    return !mFailedFiles.isEmpty();
+  }
+
   /**
    * Is verification enabled.
    *
