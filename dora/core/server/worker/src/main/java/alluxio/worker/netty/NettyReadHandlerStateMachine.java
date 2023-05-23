@@ -308,18 +308,22 @@ public class NettyReadHandlerStateMachine<ReqT extends ReadRequest> {
 
   enum TriggerEvent {
     UNEXPECTED_CLIENT_MESSAGE,
+    UNEXPECTED_CLIENT_MESSAGE_DURING_REQUEST,
     START,
     REQUEST_RECEIVED,
     PACKET_READER_CREATION_ERROR,
     CHANNEL_CLOSED,
+    CHANNEL_CLOSED_DURING_REQUEST,
     CANCELLED,
     INTERRUPTED,
+    INTERRUPTED_DURING_REQUEST,
     DATA_AVAILABLE,
     TOO_MANY_PENDING_CHUNKS,
     RESUME,
     OUTPUT_LENGTH_NOT_FULFILLED,
     OUTPUT_LENGTH_FULFILLED,
     CHANNEL_EXCEPTION,
+    CHANNEL_EXCEPTION_DURING_REQUEST,
     READ_DATA_ERROR,
     SEND_DATA_ERROR,
     REQUEST_COMPLETION_ERROR,
@@ -385,15 +389,15 @@ public class NettyReadHandlerStateMachine<ReqT extends ReadRequest> {
       mUnexpectedClientMessage =
           config.setTriggerParameters(TriggerEvent.UNEXPECTED_CLIENT_MESSAGE, ChannelEvent.class);
       mUnexpectedClientMessageDuringReq =
-          config.setTriggerParameters(TriggerEvent.UNEXPECTED_CLIENT_MESSAGE,
+          config.setTriggerParameters(TriggerEvent.UNEXPECTED_CLIENT_MESSAGE_DURING_REQUEST,
               RequestContext.class, ChannelEvent.class);
       mRequestReceived =
           config.setTriggerParameters(TriggerEvent.REQUEST_RECEIVED, requestType);
       mPacketReaderCreationError =
           config.setTriggerParameters(TriggerEvent.PACKET_READER_CREATION_ERROR,
               IOException.class);
-      mDataAvailable = config.setTriggerParameters(
-          TriggerEvent.DATA_AVAILABLE, RequestContext.class, DataBuffer.class);
+      mDataAvailable = config.setTriggerParameters(TriggerEvent.DATA_AVAILABLE,
+          RequestContext.class, DataBuffer.class);
       mOutputLengthFulfilled =
           config.setTriggerParameters(TriggerEvent.OUTPUT_LENGTH_FULFILLED, RequestContext.class);
       mOutputLengthNotFulfilled =
@@ -411,20 +415,21 @@ public class NettyReadHandlerStateMachine<ReqT extends ReadRequest> {
       mChannelException =
           config.setTriggerParameters(TriggerEvent.CHANNEL_EXCEPTION, Throwable.class);
       mChannelExceptionDuringReq =
-          config.setTriggerParameters(TriggerEvent.CHANNEL_EXCEPTION,
+          config.setTriggerParameters(TriggerEvent.CHANNEL_EXCEPTION_DURING_REQUEST,
               RequestContext.class, Throwable.class);
       mChannelClosedDuringReq =
-          config.setTriggerParameters(TriggerEvent.CHANNEL_CLOSED, RequestContext.class);
+          config.setTriggerParameters(TriggerEvent.CHANNEL_CLOSED_DURING_REQUEST,
+              RequestContext.class);
       mInterrupted =
           config.setTriggerParameters(TriggerEvent.INTERRUPTED, InterruptedException.class);
       mInterruptedDuringReq =
-          config.setTriggerParameters(TriggerEvent.INTERRUPTED,
+          config.setTriggerParameters(TriggerEvent.INTERRUPTED_DURING_REQUEST,
               RequestContext.class, InterruptedException.class);
       mSendDataError =
           config.setTriggerParameters(TriggerEvent.SEND_DATA_ERROR,
               RequestContext.class, Throwable.class);
       mReplyMessageError =
-          config.setTriggerParameters(TriggerEvent.SEND_DATA_ERROR, Throwable.class);
+          config.setTriggerParameters(TriggerEvent.REPLY_MESSAGE_ERROR, Throwable.class);
       mCompleteRequest =
           config.setTriggerParameters(TriggerEvent.COMPLETE_REQUEST, RequestContext.class);
       mRequestCompletionError =
@@ -466,16 +471,16 @@ public class NettyReadHandlerStateMachine<ReqT extends ReadRequest> {
         .permit(TriggerEvent.OUTPUT_LENGTH_FULFILLED, State.EOF)
         .permit(TriggerEvent.TOO_MANY_PENDING_CHUNKS, State.PAUSED)
         .permit(TriggerEvent.CANCELLED, State.CLIENT_CANCEL)
-        .permit(TriggerEvent.CHANNEL_EXCEPTION, State.ERROR_DURING_REQUEST)
+        .permit(TriggerEvent.CHANNEL_EXCEPTION_DURING_REQUEST, State.ERROR_DURING_REQUEST)
         .permit(TriggerEvent.SEND_DATA_ERROR, State.ERROR_DURING_REQUEST)
-        .permit(TriggerEvent.UNEXPECTED_CLIENT_MESSAGE, State.ERROR_DURING_REQUEST)
-        .permit(TriggerEvent.CHANNEL_CLOSED, State.COMPLETING_REQUEST);
+        .permit(TriggerEvent.UNEXPECTED_CLIENT_MESSAGE_DURING_REQUEST, State.ERROR_DURING_REQUEST)
+        .permit(TriggerEvent.CHANNEL_CLOSED_DURING_REQUEST, State.COMPLETING_REQUEST);
     config.configure(State.PAUSED)
         .onEntryFrom(mTriggerEventsWithParam.mTooManyPendingPackets, this::onPaused)
-        .permit(TriggerEvent.INTERRUPTED, State.ERROR_DURING_REQUEST)
-        .permit(TriggerEvent.UNEXPECTED_CLIENT_MESSAGE, State.ERROR_DURING_REQUEST)
-        .permit(TriggerEvent.CHANNEL_CLOSED, State.COMPLETING_REQUEST)
-        .permit(TriggerEvent.CHANNEL_EXCEPTION, State.ERROR_DURING_REQUEST)
+        .permit(TriggerEvent.INTERRUPTED_DURING_REQUEST, State.ERROR_DURING_REQUEST)
+        .permit(TriggerEvent.UNEXPECTED_CLIENT_MESSAGE_DURING_REQUEST, State.ERROR_DURING_REQUEST)
+        .permit(TriggerEvent.CHANNEL_CLOSED_DURING_REQUEST, State.COMPLETING_REQUEST)
+        .permit(TriggerEvent.CHANNEL_EXCEPTION_DURING_REQUEST, State.ERROR_DURING_REQUEST)
         .permit(TriggerEvent.SEND_DATA_ERROR, State.ERROR_DURING_REQUEST)
         .permit(TriggerEvent.RESUME, State.READING_DATA)
         .permit(TriggerEvent.CANCELLED, State.CLIENT_CANCEL);
@@ -511,6 +516,7 @@ public class NettyReadHandlerStateMachine<ReqT extends ReadRequest> {
         .permit(TriggerEvent.REQUEST_COMPLETED, State.CHANNEL_IDLE);
     config.configure(State.TERMINATED_EXCEPTIONALLY)
         .substateOf(State.TERMINATED)
+        .onEntryFrom(mTriggerEventsWithParam.mReplyMessageError, this::logError)
         .onEntryFrom(mTriggerEventsWithParam.mInterrupted, this::logError)
         .onEntryFrom(mTriggerEventsWithParam.mChannelException, this::logError)
         .onEntryFrom(mTriggerEventsWithParam.mRequestCompletionError, this::logError)
