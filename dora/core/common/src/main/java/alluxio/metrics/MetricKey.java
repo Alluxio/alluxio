@@ -2593,6 +2593,38 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.GAUGE)
           .build();
 
+  public static final MetricKey MASTER_JOB_MOVE_SUCCESS =
+          new Builder("Master.JobMoveSuccess")
+                  .setDescription("The number of successful Move commands")
+                  .setMetricType(MetricType.COUNTER)
+                  .build();
+  public static final MetricKey MASTER_JOB_MOVE_FAIL =
+          new Builder("Master.JobMoveFail")
+                  .setDescription("The number of failed Move commands")
+                  .setMetricType(MetricType.COUNTER)
+                  .build();
+  public static final MetricKey MASTER_JOB_MOVE_FILE_COUNT =
+          new Builder("Master.JobMoveFileCount")
+                  .setDescription("The number of files moves by move commands")
+                  .setMetricType(MetricType.COUNTER)
+                  .build();
+  public static final MetricKey MASTER_JOB_MOVE_FAIL_FILE_COUNT =
+          new Builder("Master.JobMoveFailFileCount")
+                  .setDescription("The number of files failed to be moved by move commands")
+                  .setMetricType(MetricType.COUNTER)
+                  .build();
+  public static final MetricKey MASTER_JOB_MOVE_SIZE =
+          new Builder("Master.JobMoveFileSize")
+                  .setDescription("The total block size moved by move commands")
+                  .setMetricType(MetricType.COUNTER)
+                  .build();
+  public static final MetricKey MASTER_JOB_MOVE_RATE =
+          new Builder("Master.JobMoveRate")
+                  .setDescription("The average move rate of move commands")
+                  .setMetricType(MetricType.METER)
+                  .setIsClusterAggregated(true)
+                  .build();
+
   /**
    * A nested class to hold named string constants for their corresponding metrics.
    */

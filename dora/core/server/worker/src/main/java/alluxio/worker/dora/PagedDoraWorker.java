@@ -77,6 +77,7 @@ import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.grpc.GrpcExecutors;
 import alluxio.worker.task.CopyHandler;
+import alluxio.worker.task.DeleteHandler;
 
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
@@ -619,6 +620,58 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
                 RouteFailure.newBuilder().setRoute(route).setCode(e.getStatus().getCode().value());
             if (e.getMessage() != null) {
               builder.setMessage(e.getMessage());
+            }
+            errors.add(builder.build());
+          }
+        }, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+        futures.add(future);
+      } catch (IOException e) {
+        // ignore close error
+      }
+    }
+    return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+  }
+
+  @Override
+  public ListenableFuture<List<RouteFailure>> move(List<Route> routes, UfsReadOptions readOptions,
+                                                   WriteOptions writeOptions) {
+    List<ListenableFuture<Void>> futures = new ArrayList<>();
+    List<RouteFailure> errors = Collections.synchronizedList(new ArrayList<>());
+    for (Route route : routes) {
+      UnderFileSystem srcUfs = mUfsManager.getOrAdd(new AlluxioURI(route.getSrc()),
+              UnderFileSystemConfiguration.defaults(mConf));
+      String srcRoot = new AlluxioURI(route.getSrc()).getRootPath();
+      String dstRoot = new AlluxioURI(route.getDst()).getRootPath();
+      UnderFileSystem dstUfs = mUfsManager.getOrAdd(new AlluxioURI(route.getDst()),
+              UnderFileSystemConfiguration.defaults(mConf));
+
+      try (FileSystem srcFs = new UfsBaseFileSystem(mFsContext, new UfsFileSystemOptions(srcRoot),
+              new UfsManager.UfsClient(() -> srcUfs, new AlluxioURI(srcRoot)));
+           FileSystem dstFs = new UfsBaseFileSystem(mFsContext, new UfsFileSystemOptions(dstRoot),
+                   new UfsManager.UfsClient(() -> dstUfs, new AlluxioURI(dstRoot)))) {
+        ListenableFuture<Void> future = Futures.submit(() -> {
+          Boolean deleteFailure = false;
+          try {
+            if (readOptions.hasUser()) {
+              AuthenticatedClientUser.set(readOptions.getUser());
+            }
+            CopyHandler.copy(route, writeOptions, srcFs, dstFs);
+            try {
+              DeleteHandler.delete(new AlluxioURI(route.getSrc()), srcFs);
+            } catch (Exception e) {
+              deleteFailure = true;
+              throw e;
+            }
+          } catch (Exception t) {
+            AlluxioRuntimeException e = AlluxioRuntimeException.from(t);
+            RouteFailure.Builder builder =
+                RouteFailure.newBuilder().setRoute(route).setCode(e.getStatus().getCode().value())
+                    .setRetryable(true);
+            if (e.getMessage() != null) {
+              builder.setMessage(e.getMessage());
+            }
+            if (deleteFailure) {
+              builder.setRetryable(false);
             }
             errors.add(builder.build());
           }

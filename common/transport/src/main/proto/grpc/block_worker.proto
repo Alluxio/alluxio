@@ -40,6 +40,8 @@ service BlockWorker {
   rpc RemoveBlock (RemoveBlockRequest) returns (RemoveBlockResponse);
   rpc MoveBlock (MoveBlockRequest) returns (MoveBlockResponse);
 
+  rpc Move(MoveRequest) returns (MoveResponse);
+
   // TODO(lu) Move to metrics worker
   rpc ClearMetrics (ClearMetricsRequest) returns (ClearMetricsResponse);
 
@@ -311,3 +313,14 @@ message MoveBlockResponse {}
 message ClearMetricsRequest {}
 
 message ClearMetricsResponse {}
+
+message MoveRequest {
+  repeated Route routes = 1;
+  optional UfsReadOptions ufs_read_options = 2;
+  required WriteOptions write_options= 3;
+}
+
+message MoveResponse {
+  required TaskStatus status = 1;
+  repeated RouteFailure failures = 2;
+}

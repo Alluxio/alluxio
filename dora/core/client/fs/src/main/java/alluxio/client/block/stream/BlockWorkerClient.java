@@ -28,6 +28,8 @@ import alluxio.grpc.LoadRequest;
 import alluxio.grpc.LoadResponse;
 import alluxio.grpc.MoveBlockRequest;
 import alluxio.grpc.MoveBlockResponse;
+import alluxio.grpc.MoveRequest;
+import alluxio.grpc.MoveResponse;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.grpc.ReadRequest;
@@ -201,4 +203,13 @@ public interface BlockWorkerClient extends Closeable {
    * @throws StatusRuntimeException if any error occurs
    */
   ListenableFuture<CopyResponse> copy(CopyRequest request);
+
+  /**
+   * move files from src to dst.
+   *
+   * @param request the move request
+   * @return listenable future of MoveResponse
+   * @throws StatusRuntimeException if any error occurs
+   */
+  ListenableFuture<MoveResponse> move(MoveRequest request);
 }
