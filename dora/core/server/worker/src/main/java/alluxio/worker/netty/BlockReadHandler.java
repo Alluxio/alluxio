@@ -11,31 +11,28 @@
 
 package alluxio.worker.netty;
 
-import alluxio.Constants;
 import alluxio.DefaultStorageTierAssoc;
 import alluxio.StorageTierAssoc;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.BlockDoesNotExistException;
-import alluxio.metrics.MetricsSystem;
+import alluxio.exception.status.NotFoundException;
 import alluxio.network.netty.FileTransferType;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.retry.RetryPolicy;
-import alluxio.retry.TimeoutRetry;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockReader;
 
-import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.ExecutorService;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -47,7 +44,7 @@ import javax.annotation.concurrent.NotThreadSafe;
     justification = "false positive with superclass generics, "
         + "see more description in https://sourceforge.net/p/findbugs/bugs/1242/")
 @NotThreadSafe
-public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequestContext> {
+public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest> {
   private static final Logger LOG = LoggerFactory.getLogger(BlockReadHandler.class);
   private static final long UFS_BLOCK_OPEN_TIMEOUT_MS =
       Configuration.getMs(PropertyKey.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS);
@@ -62,52 +59,56 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
   private final FileTransferType mTransferType;
 
   /**
+   * Creates an instance of {@link AbstractReadHandler}.
+   *
+   * @param executorService  the executor service to run {@link PacketReader}s
+   * @param blockWorker      the block worker
+   * @param channel          the channel this handler is attached to
+   * @param fileTransferType the file transfer type
+   */
+  public BlockReadHandler(ExecutorService executorService, BlockWorker blockWorker,
+                          Channel channel, FileTransferType fileTransferType) {
+    super(executorService, channel, BlockReadRequest.class);
+    mWorker = blockWorker;
+    mTransferType = fileTransferType;
+  }
+
+  @Override
+  protected BlockReadRequest createReadRequest(Protocol.ReadRequest request) {
+    return new BlockReadRequest(request);
+  }
+
+  @Override
+  protected PacketReader.Factory<BlockReadRequest, BlockPacketReader> createPacketReaderFactory() {
+    return new BlockPackerReaderFactory(mWorker, mTransferType);
+  }
+
+  /**
    * The packet reader to read from a local block worker.
    */
   @NotThreadSafe
-  public final class BlockPacketReader extends PacketReader {
-    /**
-     * The Block Worker.
-     */
-    private final BlockWorker mWorker;
-    /**
-     * An object storing the mapping of tier aliases to ordinals.
-     */
-    private final StorageTierAssoc mStorageTierAssoc = new DefaultStorageTierAssoc(
-        PropertyKey.WORKER_TIERED_STORE_LEVELS,
-        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS);
+  public static final class BlockPacketReader implements PacketReader<BlockReadRequest> {
+    private final BlockReader mBlockReader;
+    private final BlockReadRequest mReadRequest;
+    private final FileTransferType mTransferType;
 
-    BlockPacketReader(BlockWorker blockWorker) {
-      mWorker = blockWorker;
+    BlockPacketReader(BlockReader blockReader, BlockReadRequest blockReadRequest,
+        FileTransferType transferType) {
+      mBlockReader = blockReader;
+      mReadRequest = blockReadRequest;
+      mTransferType = transferType;
     }
 
     @Override
-    public void completeRequest(BlockReadRequestContext context) throws Exception {
-      BlockReader reader = context.getBlockReader();
-      if (reader != null) {
-        try {
-          reader.close();
-        } catch (Exception e) {
-          LOG.warn("Failed to close block reader for block {} with error {}.",
-              context.getRequest().getId(), e.getMessage());
-        }
-      }
-    }
-
-    @Override
-    public DataBuffer getDataBuffer(BlockReadRequestContext context, Channel channel,
-                                       long offset, int len) throws Exception {
-      openBlock(context, channel);
-      BlockReader blockReader = context.getBlockReader();
-      Preconditions.checkState(blockReader != null);
+    public DataBuffer getDataBuffer(Channel channel, long offset, int len) throws Exception {
       if (mTransferType == FileTransferType.TRANSFER
-          && (blockReader instanceof LocalFileBlockReader)) {
-        return new DataFileChannel(new File(((LocalFileBlockReader) blockReader).getFilePath()),
+          && (mBlockReader instanceof LocalFileBlockReader)) {
+        return new DataFileChannel(new File(((LocalFileBlockReader) mBlockReader).getFilePath()),
             offset, len);
       } else {
         ByteBuf buf = channel.alloc().buffer(len, len);
         try {
-          while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
+          while (buf.writableBytes() > 0 && mBlockReader.transferTo(buf) != -1) {
           }
           return new NettyDataBuffer(buf);
         } catch (Throwable e) {
@@ -117,21 +118,44 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
       }
     }
 
-    /**
-     * Opens the block if it is not open.
-     *
-     * @param channel the netty channel
-     * @throws Exception if it fails to open the block
-     */
-    private void openBlock(BlockReadRequestContext context, Channel channel) throws Exception {
-      if (context.getBlockReader() != null) {
-        return;
+    @Override
+    public void close() throws IOException {
+      try {
+        mBlockReader.close();
+      } catch (Exception e) {
+        LOG.warn("Failed to close block reader for block {} with error {}.",
+            mReadRequest.getId(), e.getMessage());
       }
-      BlockReadRequest request = context.getRequest();
-      int retryInterval = Constants.SECOND_MS;
-      RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, retryInterval);
+    }
+  }
 
-      // TODO(calvin): Update the locking logic so this can be done better
+  /**
+   * BlockPackerReaderFactory.
+   */
+  public static class BlockPackerReaderFactory
+      implements PacketReader.Factory<BlockReadRequest, BlockPacketReader> {
+    /**
+     * An object storing the mapping of tier aliases to ordinals.
+     */
+    private final StorageTierAssoc mStorageTierAssoc = new DefaultStorageTierAssoc(
+        PropertyKey.WORKER_TIERED_STORE_LEVELS,
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS);
+    private final BlockWorker mWorker;
+    private final FileTransferType mTransferType;
+
+    /**
+     * Constructor.
+     *
+     * @param blockWorker block worker
+     * @param transferType transfer type
+     */
+    public BlockPackerReaderFactory(BlockWorker blockWorker, FileTransferType transferType) {
+      mWorker = blockWorker;
+      mTransferType = transferType;
+    }
+
+    @Override
+    public BlockPacketReader create(BlockReadRequest request) throws IOException {
       if (request.isPromote()) {
         try {
           mWorker.moveBlock(request.getSessionId(), request.getId(), mStorageTierAssoc.getAlias(0));
@@ -142,55 +166,30 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
           LOG.warn("Failed to promote block {}: {}", request.getId(), e.getMessage());
         }
       }
+      BlockReader reader = mWorker.createBlockReader(request.getSessionId(), request.getId(),
+          request.getStart(), false, request.getOpenUfsBlockOptions());
+      // TODO(bowen): add metric
+      /*
+      String metricName = "BytesReadAlluxio";
+      context.setCounter(MetricsSystem.counter(metricName));
+      */
+      try {
+        mWorker.accessBlock(request.getSessionId(), request.getId());
+      } catch (BlockDoesNotExistException e) {
+        throw new NotFoundException(e);
+      }
+      if (reader.getChannel() instanceof FileChannel) {
+        ((FileChannel) reader.getChannel()).position(request.getStart());
+      }
+      return new BlockPacketReader(reader, request, mTransferType);
 
-      do {
-        try {
-          BlockReader reader = mWorker.createBlockReader(request.getSessionId(), request.getId(),
-              request.getStart(), false, request.getOpenUfsBlockOptions());
-          String metricName = "BytesReadAlluxio";
-          context.setBlockReader(reader);
-          context.setCounter(MetricsSystem.counter(metricName));
-          mWorker.accessBlock(request.getSessionId(), request.getId());
-          if (reader.getChannel() instanceof FileChannel) {
-            ((FileChannel) reader.getChannel()).position(request.getStart());
-          }
-          return;
-        } catch (Exception e) {
-          throw e;
-        }
-
-        /*
-        ProtoMessage heartbeat = new ProtoMessage(Protocol.ReadResponse.newBuilder()
-            .setType(Protocol.ReadResponse.Type.UFS_READ_HEARTBEAT).build());
-        // Sends an empty buffer to the client to make sure that the client does not timeout when
-        // the server is waiting for the UFS block access.
-        channel.writeAndFlush(new RPCProtoMessage(heartbeat));
-        */
-      } while (retryPolicy.attempt());
+      /*
+      ProtoMessage heartbeat = new ProtoMessage(Protocol.ReadResponse.newBuilder()
+          .setType(Protocol.ReadResponse.Type.UFS_READ_HEARTBEAT).build());
+      // Sends an empty buffer to the client to make sure that the client does not timeout when
+      // the server is waiting for the UFS block access.
+      channel.writeAndFlush(new RPCProtoMessage(heartbeat));
+      */
     }
-  }
-
-  /**
-   * Creates an instance of {@link AbstractReadHandler}.
-   *
-   * @param executorService  the executor service to run {@link PacketReader}s
-   * @param blockWorker      the block worker
-   * @param fileTransferType the file transfer type
-   */
-  public BlockReadHandler(ExecutorService executorService, BlockWorker blockWorker,
-                          FileTransferType fileTransferType) {
-    super(executorService);
-    mWorker = blockWorker;
-    mTransferType = fileTransferType;
-  }
-
-  @Override
-  protected BlockReadRequestContext createRequestContext(Protocol.ReadRequest request) {
-    return new BlockReadRequestContext(request);
-  }
-
-  @Override
-  protected PacketReader createPacketReader() {
-    return new BlockPacketReader(mWorker);
   }
 }

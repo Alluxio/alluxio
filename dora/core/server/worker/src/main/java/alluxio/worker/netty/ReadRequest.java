@@ -23,10 +23,10 @@ class ReadRequest {
   private final long mId;
   private final long mStart;
   private final long mEnd;
-  private final long mPacketSize;
+  private final int mPacketSize;
   private final long mSessionId;
 
-  ReadRequest(long id, long start, long end, long packetSize) {
+  ReadRequest(long id, long start, long end, int packetSize) {
     mId = id;
     mStart = start;
     mEnd = end;
@@ -65,7 +65,7 @@ class ReadRequest {
   /**
    * @return the packet size in bytes of this read request
    */
-  public long getPacketSize() {
+  public int getPacketSize() {
     return mPacketSize;
   }
 }
