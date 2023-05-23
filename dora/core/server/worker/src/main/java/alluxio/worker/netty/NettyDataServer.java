@@ -80,7 +80,9 @@ public class NettyDataServer implements DataServer {
   }
 
   /**
-   * Creates a new instance of {@link NettyDataServer}. This is for NettyDataServerEE constructor.
+   * Creates a new instance of {@link NettyDataServer}.
+   * This is for the constructor of the NettyDataServer subclass.
+   *
    * @param nettyBindAddress the server address
    * @param ufsManager       the UfsManager object
    */
@@ -122,7 +124,7 @@ public class NettyDataServer implements DataServer {
     }
   }
 
-  protected ServerBootstrap createBootstrap() {
+  private ServerBootstrap createBootstrap() {
     final ServerBootstrap boot = createBootstrapOfType(
         Configuration.getEnum(PropertyKey.WORKER_NETWORK_NETTY_CHANNEL, ChannelType.class));
 
