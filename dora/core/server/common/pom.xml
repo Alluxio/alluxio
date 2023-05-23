@@ -15,7 +15,7 @@
   <parent>
     <artifactId>alluxio-core-server</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>295-SNAPSHOT</version>
+    <version>295</version>
   </parent>
   <artifactId>alluxio-core-server-common</artifactId>
   <packaging>jar</packaging>

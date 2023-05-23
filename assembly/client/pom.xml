@@ -15,7 +15,7 @@
   <parent>
     <artifactId>alluxio-assembly</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>295-SNAPSHOT</version>
+    <version>295</version>
   </parent>
   <artifactId>alluxio-assembly-client</artifactId>
   <packaging>jar</packaging>
