@@ -12,11 +12,11 @@
 
 set -eu
 
-SCRIPT_DIR=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
-ROOT_PATH="${SCRIPT_DIR}/../.."
-CLI_PATH="${SCRIPT_DIR}/src/alluxio.org/cli/bin/alluxioCli-$(uname)-$(uname -m)"
+BIN_DIR=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
+ROOT_PATH="${BIN_DIR}/.."
+CLI_PATH="${BIN_DIR}/../cli/src/alluxio.org/cli/bin/alluxioCli-$(uname)-$(uname -m)"
 if [[ ! -f "${CLI_PATH}" ]]; then
-  "${SCRIPT_DIR}/build-cli.sh"
+  "${ROOT_PATH}/build/cli/build-cli.sh"
 fi
 
 "${CLI_PATH}" --rootPath="${ROOT_PATH}" "$@"

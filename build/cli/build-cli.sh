@@ -12,7 +12,7 @@
 
 set -eu
 
-SCRIPT_DIR=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
+CLI_DIR=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
 # mapping of GOOS/GOARCH value to uname value
 declare -A ALL_OS
@@ -41,10 +41,10 @@ main() {
     esac
   done
 
-  binDir="${SCRIPT_DIR}/src/alluxio.org/cli/bin"
+  binDir="${CLI_DIR}/../../cli/src/alluxio.org/cli/bin"
   mkdir -p "${binDir}"
 
-  cd "${SCRIPT_DIR}/src/alluxio.org/"
+  cd "${CLI_DIR}/../../cli/src/alluxio.org/"
 
   if [[ ${build_all} == "false" ]]; then
     GO111MODULE=on go build -o "${binDir}/alluxioCli-$(uname)-$(uname -m)" "${MAIN_PATH}"
