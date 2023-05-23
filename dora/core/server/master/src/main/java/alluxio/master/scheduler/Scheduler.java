@@ -285,7 +285,7 @@ public final class Scheduler {
           ThreadFactoryUtils.build("scheduler", false));
       mSchedulerExecutor.scheduleAtFixedRate(mWorkerInfoHub::updateWorkers, 0,
           WORKER_UPDATE_INTERVAL, TimeUnit.MILLISECONDS);
-      mSchedulerExecutor.scheduleWithFixedDelay(this::processJobs, 10000, 2000,
+      mSchedulerExecutor.scheduleWithFixedDelay(this::processJobs, 10 * 60 * 1000, 2000,
           TimeUnit.MILLISECONDS);
       mSchedulerExecutor.scheduleWithFixedDelay(this::cleanupStaleJob, 1, 1, TimeUnit.HOURS);
       mRunning = true;

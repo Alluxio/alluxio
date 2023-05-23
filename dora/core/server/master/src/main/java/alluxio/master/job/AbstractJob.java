@@ -50,10 +50,15 @@ public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
    * @param jobId the job id
    */
   public AbstractJob(Optional<String> user, String jobId) {
+    this(user, jobId, new HashBasedWorkerAssignPolicy());
+  }
+
+  public AbstractJob(Optional<String> user, String jobId, WorkerAssignPolicy workerAssignPolicy) {
     mUser = requireNonNull(user, "user is null");
     mJobId = requireNonNull(jobId, "jobId is null");
     mState = JobState.RUNNING;
     mStartTime = System.currentTimeMillis();
+    mWorkerAssignPolicy = workerAssignPolicy;
   }
 
   /**

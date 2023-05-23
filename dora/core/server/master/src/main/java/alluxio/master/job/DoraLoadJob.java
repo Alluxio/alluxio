@@ -143,9 +143,8 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       boolean usePartialListing,
       boolean verificationEnabled,
       Scheduler scheduler) {
-    super(user, jobId);
+    super(user, jobId, new HashBasedWorkerAssignPolicy());
     super.setMyScheduler(scheduler);
-    super.setWorkerAssignPolicy(new HashBasedWorkerAssignPolicy());
     mPath = requireNonNull(path, "path is null");
     Preconditions.checkArgument(
         !bandwidth.isPresent() || bandwidth.getAsLong() > 0,
@@ -159,29 +158,6 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
         .setRecursive(true).build();
     mFs = fs;
     mFileIterator = Optional.of(new FileListFetcher(fs, mPath, listOptions, false));
-  }
-
-  private static class HashBasedWorkerAssignPolicy extends WorkerAssignPolicy {
-    WorkerLocationPolicy mWorkerLocationPolicy = new WorkerLocationPolicy(2000);
-
-    @Override
-    protected WorkerInfo pickAWorker(String object, @Nullable Collection<WorkerInfo> workerInfos) {
-      if (workerInfos == null) {
-        return null;
-      }
-      List<BlockWorkerInfo> candidates = workerInfos.stream()
-          .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
-          .collect(toList());
-      List<BlockWorkerInfo> blockWorkerInfo = mWorkerLocationPolicy
-          .getPreferredWorkers(candidates, object, 1);
-      if (blockWorkerInfo.isEmpty()) {
-        return null;
-      }
-      WorkerInfo returnWorker = workerInfos.stream().filter(workerInfo ->
-              workerInfo.getAddress().equals(blockWorkerInfo.get(0).getNetAddress()))
-          .findFirst().get();
-      return returnWorker;
-    }
   }
 
   private static class FileListFetcher implements Iterator<URIStatus> {
@@ -644,6 +620,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       LoadFileRequest.Builder loadFileReqBuilder = LoadFileRequest.newBuilder();
       for (URIStatus uriStatus : mFilesToLoad) {
         loadFileReqBuilder.addFiles(File.newBuilder()
+            .setAlluxioPath(uriStatus.getPath())
             .setLength(uriStatus.getLength())
             .setUfsPath(uriStatus.getUfsPath()).build());
       }

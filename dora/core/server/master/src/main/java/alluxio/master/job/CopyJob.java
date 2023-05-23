@@ -130,8 +130,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
   public CopyJob(String src, String dst, boolean overwrite, Optional<String> user, String jobId,
       OptionalLong bandwidth, boolean usePartialListing, boolean verificationEnabled,
       boolean checkContent, Iterable<FileInfo> fileIterable) {
-    super(user, jobId);
-    super.setWorkerAssignPolicy(new CopyJob.RoundRobinWorkerAssignPolicy());
+    super(user, jobId, new RoundRobinWorkerAssignPolicy());
     mSrc = requireNonNull(src, "src is null");
     mDst = requireNonNull(dst, "dst is null");
     Preconditions.checkArgument(
@@ -145,21 +144,6 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     mFileIterable = fileIterable;
     mOverwrite = overwrite;
     mCheckContent = checkContent;
-  }
-
-  private static class RoundRobinWorkerAssignPolicy extends WorkerAssignPolicy {
-    private AtomicInteger mCounter = new AtomicInteger(0);
-
-    @Override
-    protected WorkerInfo pickAWorker(String object, Collection<WorkerInfo> workerInfos) {
-      if (workerInfos.isEmpty()) {
-        return null;
-      }
-      int nextWorkerIdx = Math.floorMod(mCounter.incrementAndGet(), workerInfos.size());
-      WorkerInfo pickedWorker = workerInfos.toArray(new WorkerInfo[workerInfos.size()])
-          [nextWorkerIdx];
-      return pickedWorker;
-    }
   }
 
   /**
