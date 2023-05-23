@@ -1,5 +1,6 @@
 **/.port_coordination
-**/alluxio-site.properties
+**/alluxio-site.properties*
+!**/alluxio-site.properties.template
 **/nb-configuration*.xml
 **/nbproject/
 *.iml
