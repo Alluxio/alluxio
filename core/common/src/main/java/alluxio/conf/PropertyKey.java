@@ -3928,6 +3928,114 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+
+  public static final PropertyKey MASTER_SNAPSHOT_RPC_ADDRESSES =
+      listBuilder(Name.MASTER_SNAPSHOT_RPC_ADDRESSES)
+          .setDescription("A list of comma-separated host:port RPC addresses where the client "
+              + "should look for snapshot masters when using multiple masters.")
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey MASTER_SNAPSHOT_RPC_EXECUTOR_TYPE =
+      enumBuilder(Name.MASTER_SNAPSHOT_RPC_EXECUTOR_TYPE, RpcExecutorType.class)
+          .setDefaultValue(RpcExecutorType.TPE)
+          .setDescription("Type of ExecutorService for Alluxio master gRPC server. "
+              + "Supported values are TPE (for ThreadPoolExecutor) and FJP (for ForkJoinPool).")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_SNAPSHOT_RPC_EXECUTOR_CORE_POOL_SIZE =
+      intBuilder(Name.MASTER_SNAPSHOT_RPC_EXECUTOR_CORE_POOL_SIZE)
+          .setDefaultValue(500)
+          .setDescription(
+              "The number of threads to keep in thread pool of master RPC ExecutorService.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_SNAPSHOT_RPC_EXECUTOR_MAX_POOL_SIZE =
+      intBuilder(Name.MASTER_SNAPSHOT_RPC_EXECUTOR_MAX_POOL_SIZE)
+          .setDefaultValue(500)
+          .setDescription("The maximum number of threads allowed for master RPC ExecutorService."
+              + " When the maximum is reached, attempts to replace blocked threads fail.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_SNAPSHOT_RPC_EXECUTOR_KEEPALIVE =
+      durationBuilder(Name.MASTER_SNAPSHOT_RPC_EXECUTOR_KEEPALIVE)
+          .setDefaultValue("60sec")
+          .setDescription("The keep alive time of a thread in master RPC ExecutorService"
+              + "last used before this thread is terminated (and replaced if necessary).")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_SNAPSHOT_RPC_EXECUTOR_TPE_QUEUE_TYPE =
+      enumBuilder(Name.MASTER_SNAPSHOT_RPC_EXECUTOR_TPE_QUEUE_TYPE,
+          ThreadPoolExecutorQueueType.class)
+          .setDefaultValue(ThreadPoolExecutorQueueType.LINKED_BLOCKING_QUEUE)
+          .setDescription(format(
+              "This property is effective when %s is set to TPE. "
+                  + "It specifies the internal task queue that's used by RPC ExecutorService. "
+                  + "Supported values are: LINKED_BLOCKING_QUEUE, LINKED_BLOCKING_QUEUE_WITH_CAP, "
+                  + "ARRAY_BLOCKING_QUEUE and SYNCHRONOUS_BLOCKING_QUEUE",
+              Name.MASTER_SNAPSHOT_RPC_EXECUTOR_TYPE))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_SNAPSHOT_RPC_EXECUTOR_TPE_ALLOW_CORE_THREADS_TIMEOUT =
+      booleanBuilder(Name.MASTER_SNAPSHOT_RPC_EXECUTOR_TPE_ALLOW_CORE_THREADS_TIMEOUT)
+          .setDefaultValue(true)
+          .setDescription(
+              format("This property is effective when %s is set to ThreadPoolExecutor. "
+                  + "It controls whether core threads can timeout and terminate "
+                  + "when there is no work.", Name.MASTER_SNAPSHOT_RPC_EXECUTOR_TYPE))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_SNAPSHOT_RPC_EXECUTOR_FJP_PARALLELISM =
+      intBuilder(Name.MASTER_SNAPSHOT_RPC_EXECUTOR_FJP_PARALLELISM)
+          .setAlias("alluxio.master.rpc.executor.parallelism")
+          .setDefaultSupplier(() -> Math.max(8, 2 * Runtime.getRuntime().availableProcessors()),
+              "2 * {CPU core count}")
+          .setDescription(
+              format("This property is effective when %s is set to ForkJoinPool. "
+                  + "It controls the parallelism level (internal queue count) "
+                  + "of master RPC ExecutorService.", Name.MASTER_SNAPSHOT_RPC_EXECUTOR_TYPE))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_SNAPSHOT_RPC_EXECUTOR_FJP_MIN_RUNNABLE =
+      intBuilder(Name.MASTER_SNAPSHOT_RPC_EXECUTOR_FJP_MIN_RUNNABLE)
+          .setAlias("alluxio.master.snapshot.rpc.executor.min.runnable")
+          .setDefaultValue(1)
+          .setDescription(
+              format(
+                  "This property is effective when %s is set to ForkJoinPool. "
+                      + "It controls the minimum allowed number of core threads not blocked. "
+                      + "A value of 1 ensures liveness. A larger value might improve "
+                      + "throughput but might also increase overhead.",
+                  Name.MASTER_SNAPSHOT_RPC_EXECUTOR_TYPE))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_SNAPSHOT_RPC_EXECUTOR_FJP_ASYNC =
+      booleanBuilder(Name.MASTER_SNAPSHOT_RPC_EXECUTOR_FJP_ASYNC)
+          .setDefaultValue(true)
+          .setDescription(format(
+              "This property is effective when %s is set to ForkJoinPool. "
+                  + "if true, it establishes local first-in-first-out scheduling mode for "
+                  + "forked tasks that are never joined. This mode may be more appropriate "
+                  + "than default locally stack-based mode in applications in which "
+                  + "worker threads only process event-style asynchronous tasks.",
+              Name.MASTER_SNAPSHOT_RPC_EXECUTOR_TYPE))
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_SNAPSHOT_RPC_PORT =
+      Builder.intBuilder(Name.MASTER_SNAPSHOT_RPC_PORT)
+          .setDefaultValue(19996)
+          .setDescription("The port for Alluxio master's snapshot RPC service.")
+          .setScope(Scope.ALL)
+          .build();
+
   public static final PropertyKey MASTER_WORKER_REGISTER_LEASE_ENABLED =
       booleanBuilder(Name.MASTER_WORKER_REGISTER_LEASE_ENABLED)
           .setDefaultValue(true)
@@ -3975,7 +4083,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey STANDBY_MASTER_GRPC_ENABLED =
       booleanBuilder(Name.STANDBY_MASTER_GRPC_ENABLED)
-          .setDefaultValue(true)
+          .setDefaultValue(false)
           .setIsHidden(true)
           .setDescription("Whether a standby master runs a grpc server. WARNING: disabling this "
               + "will prevent master snapshotting from working correctly.")
@@ -8333,6 +8441,27 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.rpc.executor.fjp.min.runnable";
     public static final String MASTER_RPC_EXECUTOR_FJP_ASYNC =
         "alluxio.master.rpc.executor.fjp.async";
+    public static final String MASTER_SNAPSHOT_RPC_ADDRESSES =
+        "alluxio.master.snapshot.rpc.addresses";
+    public static final String MASTER_SNAPSHOT_RPC_PORT = "alluxio.master.snapshot.rpc.port";
+    public static final String MASTER_SNAPSHOT_RPC_EXECUTOR_TYPE =
+        "alluxio.master.snapshot.rpc.executor.type";
+    public static final String MASTER_SNAPSHOT_RPC_EXECUTOR_CORE_POOL_SIZE =
+        "alluxio.master.snapshot.rpc.executor.core.pool.size";
+    public static final String MASTER_SNAPSHOT_RPC_EXECUTOR_MAX_POOL_SIZE =
+        "alluxio.master.snapshot.rpc.executor.max.pool.size";
+    public static final String MASTER_SNAPSHOT_RPC_EXECUTOR_KEEPALIVE =
+        "alluxio.master.snapshot.rpc.executor.keepalive";
+    public static final String MASTER_SNAPSHOT_RPC_EXECUTOR_TPE_QUEUE_TYPE =
+        "alluxio.master.snapshot.rpc.executor.tpe.queue.type";
+    public static final String MASTER_SNAPSHOT_RPC_EXECUTOR_TPE_ALLOW_CORE_THREADS_TIMEOUT =
+        "alluxio.master.snapshot.rpc.executor.tpe.allow.core.threads.timeout";
+    public static final String MASTER_SNAPSHOT_RPC_EXECUTOR_FJP_PARALLELISM =
+        "alluxio.master.snapshot.rpc.executor.fjp.parallelism";
+    public static final String MASTER_SNAPSHOT_RPC_EXECUTOR_FJP_MIN_RUNNABLE =
+        "alluxio.master.snapshot.rpc.executor.fjp.min.runnable";
+    public static final String MASTER_SNAPSHOT_RPC_EXECUTOR_FJP_ASYNC =
+        "alluxio.master.snapshot.rpc.executor.fjp.async";
     public static final String MASTER_SERVING_THREAD_TIMEOUT =
         "alluxio.master.serving.thread.timeout";
     public static final String MASTER_SKIP_ROOT_ACL_CHECK =

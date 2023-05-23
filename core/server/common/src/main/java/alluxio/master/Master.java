@@ -42,4 +42,12 @@ public interface Master extends Journaled, Server<Boolean> {
   default Map<ServiceType, GrpcService> getStandbyServices() {
     return Collections.emptyMap();
   }
+
+  /**
+   * @return a map from service names to gRPC services that serve RPCs for this master,
+   * if the master is a standby master.
+   */
+  default Map<ServiceType, GrpcService> getJournalServices() {
+    return Collections.emptyMap();
+  }
 }

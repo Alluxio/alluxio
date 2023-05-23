@@ -159,6 +159,12 @@ public final class NetworkAddressUtils {
         PropertyKey.MASTER_BIND_HOST, PropertyKey.MASTER_RPC_PORT),
 
     /**
+     * Master RPC service (gRPC).
+     */
+    MASTER_SNAPSHOT_RPC("Alluxio Master snapshot RPC service", PropertyKey.MASTER_HOSTNAME,
+        PropertyKey.MASTER_BIND_HOST, PropertyKey.MASTER_SNAPSHOT_RPC_PORT),
+
+    /**
      * Master web service (Jetty).
      */
     MASTER_WEB("Alluxio Master Web service", PropertyKey.MASTER_WEB_HOSTNAME,

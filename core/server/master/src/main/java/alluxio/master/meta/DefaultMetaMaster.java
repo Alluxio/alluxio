@@ -288,12 +288,11 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
             new GrpcService(new MetaMasterProxyServiceHandler(this)));
     // Add backup role services.
     services.putAll(mBackupRole.getRoleServices());
-    services.putAll(mJournalSystem.getJournalServices());
     return services;
   }
 
   @Override
-  public Map<ServiceType, GrpcService> getStandbyServices() {
+  public Map<ServiceType, GrpcService> getJournalServices() {
     // for snapshot propagation
     return new HashMap<>(mJournalSystem.getJournalServices());
   }

@@ -146,7 +146,9 @@ public class ExecutorServiceBuilder {
   public enum RpcExecutorHost {
     MASTER(0),
     JOB_MASTER(1),
-    WORKER(2);
+    WORKER(2),
+    MASTER_SNAPSHOT(3000),
+    ;
 
     private final int mValue;
 
@@ -163,6 +165,8 @@ public class ExecutorServiceBuilder {
           return "job.master";
         case 2:
           return "worker";
+        case 3000:
+          return "master.snapshot";
         default:
           return "<unrecognized_rpc_host>";
       }

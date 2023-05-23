@@ -83,8 +83,8 @@ public class RaftSnapshotManager implements AutoCloseable {
     mExecutor = executor;
 
     InetSocketAddress localAddress = NetworkAddressUtils.getConnectAddress(
-        NetworkAddressUtils.ServiceType.MASTER_RPC, Configuration.global());
-    mClients = ConfigurationUtils.getMasterRpcAddresses(Configuration.global()).stream()
+        NetworkAddressUtils.ServiceType.MASTER_SNAPSHOT_RPC, Configuration.global());
+    mClients = ConfigurationUtils.getMasterSnapshotRpcAddresses(Configuration.global()).stream()
         .filter(address -> !address.equals(localAddress))
         .collect(Collectors.toMap(Function.identity(), address -> {
           MasterSelectionPolicy selection = MasterSelectionPolicy.Factory.specifiedMaster(address);

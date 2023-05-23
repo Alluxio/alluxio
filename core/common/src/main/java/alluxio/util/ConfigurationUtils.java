@@ -116,6 +116,23 @@ public final class ConfigurationUtils {
   }
 
   /**
+   * Gets the snapshot RPC addresses of all masters based on the configuration.
+   *
+   * @param conf the configuration to use
+   * @return the master rpc addresses
+   */
+  public static List<InetSocketAddress> getMasterSnapshotRpcAddresses(AlluxioConfiguration conf) {
+    // First check whether rpc addresses are explicitly configured.
+    if (conf.isSet(PropertyKey.MASTER_SNAPSHOT_RPC_ADDRESSES)) {
+      return parseInetSocketAddresses(conf.getList(PropertyKey.MASTER_SNAPSHOT_RPC_ADDRESSES));
+    }
+
+    // Fall back on server-side journal configuration.
+    int snapshotRpcPort = NetworkAddressUtils.getPort(ServiceType.MASTER_SNAPSHOT_RPC, conf);
+    return overridePort(getMasterRpcAddresses(conf), snapshotRpcPort);
+  }
+
+  /**
    * Gets the RPC addresses of all job masters based on the configuration.
    *
    * @param conf the configuration to use

@@ -96,7 +96,7 @@ import javax.security.auth.Subject;
  */
 @ThreadSafe
 public final class MultiProcessCluster {
-  public static final int PORTS_PER_MASTER = 3;
+  public static final int PORTS_PER_MASTER = 4;
   public static final int PORTS_PER_WORKER = 3;
   private static final int MASTER_START_DELAY_MS = 500; // in ms
 
@@ -222,20 +222,26 @@ public final class MultiProcessCluster {
         mProperties.put(PropertyKey.MASTER_HOSTNAME, masterAddress.getHostname());
         mProperties.put(PropertyKey.MASTER_RPC_PORT, masterAddress.getRpcPort());
         mProperties.put(PropertyKey.MASTER_WEB_PORT, masterAddress.getWebPort());
+        mProperties.put(PropertyKey.MASTER_SNAPSHOT_RPC_PORT, masterAddress.getSnapshotRpcPort());
         break;
       case EMBEDDED:
         List<String> journalAddresses = new ArrayList<>();
         List<String> rpcAddresses = new ArrayList<>();
+        List<String> snapshotRpcAddresses = new ArrayList<>();
         for (MasterNetAddress address : mMasterAddresses) {
           journalAddresses
               .add(String.format("%s:%d", address.getHostname(), address.getEmbeddedJournalPort()));
           rpcAddresses.add(String.format("%s:%d", address.getHostname(), address.getRpcPort()));
+          snapshotRpcAddresses.add(String.format("%s:%d", address.getHostname(),
+              address.getSnapshotRpcPort()));
         }
         mProperties.put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED);
         mProperties.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES,
             com.google.common.base.Joiner.on(",").join(journalAddresses));
         mProperties.put(PropertyKey.MASTER_RPC_ADDRESSES,
             com.google.common.base.Joiner.on(",").join(rpcAddresses));
+        mProperties.put(PropertyKey.MASTER_SNAPSHOT_RPC_ADDRESSES,
+            com.google.common.base.Joiner.on(",").join(snapshotRpcAddresses));
         break;
       case ZOOKEEPER_HA:
         mCuratorServer = mCloser.register(
@@ -559,10 +565,15 @@ public final class MultiProcessCluster {
         String rpcAddresses = mMasterAddresses.stream()
             .map(addr -> String.format("%s:%d", addr.getHostname(), addr.getRpcPort()))
             .collect(Collectors.joining(","));
+        String snapshotRpcAddresses = mMasterAddresses.stream()
+            .map(addr -> String.format("%s:%d", addr.getHostname(), addr.getSnapshotRpcPort()))
+            .collect(Collectors.joining(","));
         mProperties.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES, journalAddresses);
         mProperties.put(PropertyKey.MASTER_RPC_ADDRESSES, rpcAddresses);
+        mProperties.put(PropertyKey.MASTER_SNAPSHOT_RPC_ADDRESSES, snapshotRpcAddresses);
         Configuration.set(PropertyKey.MASTER_EMBEDDED_JOURNAL_ADDRESSES, journalAddresses);
         Configuration.set(PropertyKey.MASTER_RPC_ADDRESSES, rpcAddresses);
+        Configuration.set(PropertyKey.MASTER_SNAPSHOT_RPC_ADDRESSES, snapshotRpcAddresses);
         break;
       case ZOOKEEPER_HA: // zk will take care of fault tolerance
         break;
@@ -686,6 +697,7 @@ public final class MultiProcessCluster {
     conf.put(PropertyKey.LOGS_DIR, logsDir.getAbsolutePath());
     conf.put(PropertyKey.MASTER_HOSTNAME, address.getHostname());
     conf.put(PropertyKey.MASTER_RPC_PORT, address.getRpcPort());
+    conf.put(PropertyKey.MASTER_SNAPSHOT_RPC_PORT, address.getSnapshotRpcPort());
     conf.put(PropertyKey.MASTER_WEB_PORT, address.getWebPort());
     conf.put(PropertyKey.MASTER_EMBEDDED_JOURNAL_PORT,
         address.getEmbeddedJournalPort());
@@ -839,7 +851,7 @@ public final class MultiProcessCluster {
       addrs.add(new MasterNetAddress(NetworkAddressUtils
           .getLocalHostName((int) Configuration
               .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)),
-          getNewPort(), getNewPort(), getNewPort()));
+          getNewPort(), getNewPort(), getNewPort(), getNewPort()));
     }
     return addrs;
   }
