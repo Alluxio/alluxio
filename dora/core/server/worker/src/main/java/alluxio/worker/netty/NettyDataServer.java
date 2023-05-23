@@ -44,7 +44,7 @@ import javax.inject.Named;
  * Runs a netty data server that responds to block requests.
  */
 @NotThreadSafe
-public final class NettyDataServer implements DataServer {
+public class NettyDataServer implements DataServer {
   private static final Logger LOG = LoggerFactory.getLogger(NettyDataServer.class);
 
   private ServerBootstrap mBootstrap;
@@ -79,6 +79,17 @@ public final class NettyDataServer implements DataServer {
     }
   }
 
+  /**
+   * Creates a new instance of {@link NettyDataServer}. This is for NettyDataServerEE constructor.
+   * @param nettyBindAddress the server address
+   * @param ufsManager       the UfsManager object
+   */
+  public NettyDataServer(@Named("NettyBindAddress") InetSocketAddress nettyBindAddress,
+                         UfsManager ufsManager) {
+    mSocketAddress = nettyBindAddress;
+    mUfsManager = ufsManager;
+  }
+
   @Override
   public void close() throws IOException {
     // The following steps are needed to shut down the data server:
@@ -111,7 +122,7 @@ public final class NettyDataServer implements DataServer {
     }
   }
 
-  private ServerBootstrap createBootstrap() {
+  protected ServerBootstrap createBootstrap() {
     final ServerBootstrap boot = createBootstrapOfType(
         Configuration.getEnum(PropertyKey.WORKER_NETWORK_NETTY_CHANNEL, ChannelType.class));
 

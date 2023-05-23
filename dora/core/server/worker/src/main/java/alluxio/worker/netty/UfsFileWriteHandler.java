@@ -57,7 +57,7 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
    * @param executorService the executor service to run {@link PacketWriter}s
    * @param ufsManager the file data manager
    */
-  UfsFileWriteHandler(ExecutorService executorService, UfsManager ufsManager) {
+  public UfsFileWriteHandler(ExecutorService executorService, UfsManager ufsManager) {
     super(executorService);
     mUfsManager = ufsManager;
   }
