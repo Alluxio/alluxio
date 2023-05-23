@@ -18,6 +18,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.util.LogUtils;
 import alluxio.web.JobWorkerWebServer;
 import alluxio.wire.AlluxioJobWorkerInfo;
+import alluxio.wire.HeartbeatThreadInfo;
+import alluxio.wire.WebUIHeartbeatThreads;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -57,14 +59,15 @@ public final class  AlluxioJobWorkerRestServiceHandler {
 
   // queries
   public static final String QUERY_RAW_CONFIGURATION = "raw_configuration";
+  public static final String WEBUI_HEARTBEAT_THREADS = "webui_heartbeat_threads";
 
-  private final JobWorkerProcess mJobWorker;
+  private final AlluxioJobWorkerProcess mJobWorker;
 
   /**
    * @param context context for the servlet
    */
   public AlluxioJobWorkerRestServiceHandler(@Context ServletContext context) {
-    mJobWorker = (JobWorkerProcess) context
+    mJobWorker = (AlluxioJobWorkerProcess) context
         .getAttribute(JobWorkerWebServer.ALLUXIO_JOB_WORKER_SERVLET_RESOURCE_KEY);
   }
 
@@ -110,6 +113,27 @@ public final class  AlluxioJobWorkerRestServiceHandler {
                            @QueryParam(LOG_ARGUMENT_LEVEL) final String level) {
     return RestUtils.call(() -> LogUtils.setLogLevel(logName, level),
             Configuration.global());
+  }
+
+  /**
+   * Gets Web UI heartbeat threads.
+   *
+   * @return the response object
+   */
+  @GET
+  @Path(WEBUI_HEARTBEAT_THREADS)
+  public Response getWebUIHeartbeatThreads() {
+    return RestUtils.call(() -> {
+      WebUIHeartbeatThreads response = new WebUIHeartbeatThreads();
+
+      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG));
+      Map<String, HeartbeatThreadInfo> heartbeatThreads =
+          mJobWorker.getJobWorker().getHeartbeatThreads();
+
+      response.setHeartbeatThreadInfos(heartbeatThreads);
+
+      return response;
+    }, Configuration.global());
   }
 
   private Map<String, Object> getConfigurationInternal(boolean raw) {

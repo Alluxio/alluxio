@@ -47,6 +47,7 @@ import alluxio.heartbeat.FixedIntervalSupplier;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.heartbeat.HeartbeatThreadManager;
 import alluxio.master.CoreMaster;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.WorkerState;
@@ -570,7 +571,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
   public void start(Boolean isLeader) throws IOException {
     super.start(isLeader);
     if (isLeader || mWorkerRegisterToAllMasters) {
-      getExecutorService().submit(new HeartbeatThread(
+      HeartbeatThreadManager.submit(getExecutorService(), new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_WORKER_DETECTION, new LostWorkerDetectionHeartbeatExecutor(),
           () -> new FixedIntervalSupplier(
               Configuration.getMs(PropertyKey.MASTER_LOST_WORKER_DETECTION_INTERVAL)),
@@ -578,7 +579,7 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
     }
 
     // This periodically scans all open register streams and closes hanging ones
-    getExecutorService().submit(new HeartbeatThread(
+    HeartbeatThreadManager.submit(getExecutorService(), new HeartbeatThread(
           HeartbeatContext.MASTER_WORKER_REGISTER_SESSION_CLEANER,
             new WorkerRegisterStreamGCExecutor(),
             () -> new FixedIntervalSupplier(Configuration.getMs(

@@ -44,6 +44,8 @@ import alluxio.util.webui.WebUtils;
 import alluxio.web.WorkerWebServer;
 import alluxio.wire.AlluxioWorkerInfo;
 import alluxio.wire.Capacity;
+import alluxio.wire.HeartbeatThreadInfo;
+import alluxio.wire.WebUIHeartbeatThreads;
 import alluxio.wire.WorkerWebUIBlockInfo;
 import alluxio.wire.WorkerWebUIConfiguration;
 import alluxio.wire.WorkerWebUIInit;
@@ -118,6 +120,7 @@ public final class AlluxioWorkerRestServiceHandler {
   public static final String WEBUI_BLOCKINFO = "webui_blockinfo";
   public static final String WEBUI_METRICS = "webui_metrics";
   public static final String WEBUI_CONFIG = "webui_config";
+  public static final String WEBUI_HEARTBEAT_THREADS = "webui_heartbeat_threads";
 
   // queries
   public static final String QUERY_RAW_CONFIGURATION = "raw_configuration";
@@ -615,6 +618,26 @@ public final class AlluxioWorkerRestServiceHandler {
       response.setPathConfigLastUpdateTime(
           CommonUtils.convertMsToDate(conf.getPathConfLastUpdateTime(),
               alluxio.conf.Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)));
+      return response;
+    }, Configuration.global());
+  }
+
+  /**
+   * Gets Web UI heartbeat threads.
+   *
+   * @return the response object
+   */
+  @GET
+  @Path(WEBUI_HEARTBEAT_THREADS)
+  public Response getWebUIHeartbeatThreads() {
+    return RestUtils.call(() -> {
+      WebUIHeartbeatThreads response = new WebUIHeartbeatThreads();
+
+      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG));
+      Map<String, HeartbeatThreadInfo> heartbeatThreads = mBlockWorker.getHeartbeatThreads();
+
+      response.setHeartbeatThreadInfos(heartbeatThreads);
+
       return response;
     }, Configuration.global());
   }

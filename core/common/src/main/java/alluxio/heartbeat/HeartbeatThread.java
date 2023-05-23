@@ -11,12 +11,16 @@
 
 package alluxio.heartbeat;
 
+import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.conf.ReconfigurableRegistry;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.UserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.SecurityUtils;
+import alluxio.wire.HeartbeatThreadInfo;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -25,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Clock;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -35,13 +40,19 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class HeartbeatThread implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(HeartbeatThread.class);
+  private static final String DATE_PATTERN =
+      Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN);
 
   private final String mThreadName;
   private final HeartbeatExecutor mExecutor;
   private final UserState mUserState;
   private HeartbeatTimer mTimer;
   private AlluxioConfiguration mConfiguration;
-  private Status mStatus;
+  private volatile Status mStatus;
+  private volatile String mPreviousReport;
+  private AtomicLong mCounter = new AtomicLong(0L);
+  private volatile long mStartTickTime;
+  private volatile long mStartHeartbeatTime;
 
   /**
    * @param executorName the executor name defined in {@link HeartbeatContext}
@@ -129,7 +140,6 @@ public final class HeartbeatThread implements Runnable {
 
   @Override
   public void run() {
-    long counter = 0L;
     try {
       if (SecurityUtils.isSecurityEnabled(mConfiguration)
           && AuthenticatedClientUser.get(mConfiguration) == null) {
@@ -146,10 +156,21 @@ public final class HeartbeatThread implements Runnable {
       while (!Thread.interrupted()) {
         // TODO(peis): Fix this. The current implementation consumes one thread even when ticking.
         mStatus = Status.WAITING;
+        mStartTickTime = System.currentTimeMillis();
         long limitTime = mTimer.tick();
         mStatus = Status.RUNNING;
-        LOG.debug("{} #{} will run limited in {}s", mThreadName, counter++, limitTime / 1000);
+        mStartHeartbeatTime = System.currentTimeMillis();
+        LOG.debug("{} #{} will run limited in {}s", mThreadName, mCounter.get(),
+            limitTime / Constants.SECOND_MS);
         mExecutor.heartbeat(limitTime);
+        long endHeartbeatTime = System.currentTimeMillis();
+        mPreviousReport = String.format("#%d [%s - %s - %s] ticked(s) %d, run(s) %d.", mCounter,
+            CommonUtils.convertMsToDate(mStartTickTime, DATE_PATTERN),
+            CommonUtils.convertMsToDate(mStartHeartbeatTime, DATE_PATTERN),
+            CommonUtils.convertMsToDate(endHeartbeatTime, DATE_PATTERN),
+            (mStartHeartbeatTime - mStartTickTime) / Constants.SECOND_MS,
+            (endHeartbeatTime - mStartHeartbeatTime) / Constants.SECOND_MS);
+        updateState();
       }
     } catch (InterruptedException e) {
       // Allow thread to exit.
@@ -162,11 +183,38 @@ public final class HeartbeatThread implements Runnable {
     }
   }
 
+  private synchronized void updateState() {
+    mCounter.incrementAndGet();
+    mStartTickTime = 0L;
+    mStartHeartbeatTime = 0L;
+  }
+
   /**
-   * @return the status of current heartbeat thread
+   * @return the thread name
    */
-  public Status getStatus() {
-    return mStatus;
+  public String getThreadName() {
+    return mThreadName;
+  }
+
+  /**
+   * @return the {@link HeartbeatThreadInfo} for the heartbeat thread
+   */
+  public synchronized HeartbeatThreadInfo toHeartbeatThreadInfo() {
+
+    HeartbeatThreadInfo heartbeatThreadInfo = new HeartbeatThreadInfo()
+        .setThreadName(mThreadName)
+        .setCount(mCounter.get())
+        .setStatus(mStatus)
+        .setPreviousReport(mPreviousReport);
+    if (mStartTickTime != 0) {
+      heartbeatThreadInfo.setStartTickTime(
+          CommonUtils.convertMsToDate(mStartTickTime, DATE_PATTERN));
+    }
+    if (mStartHeartbeatTime != 0) {
+      heartbeatThreadInfo.setStartHeartbeatTime(
+          CommonUtils.convertMsToDate(mStartHeartbeatTime, DATE_PATTERN));
+    }
+    return heartbeatThreadInfo;
   }
 
   /**

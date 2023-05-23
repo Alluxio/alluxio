@@ -13,6 +13,8 @@ package alluxio;
 
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
+import alluxio.heartbeat.HeartbeatThreadManager;
+import alluxio.wire.HeartbeatThreadInfo;
 
 import java.io.IOException;
 import java.util.Map;
@@ -57,4 +59,12 @@ public interface Server<T> {
    * Closes the server.
    */
   void close() throws IOException;
+
+  /**
+   * Gets heartbeat threads info.
+   * @return the heartbeat threads info
+   */
+  default Map<String, HeartbeatThreadInfo> getHeartbeatThreads() {
+    return HeartbeatThreadManager.getHeartbeatThreads();
+  }
 }
