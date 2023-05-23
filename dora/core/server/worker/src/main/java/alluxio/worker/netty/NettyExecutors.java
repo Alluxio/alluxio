@@ -27,7 +27,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Adds the block server's pipeline into the channel.
  */
 @ThreadSafe
-final class NettyExecutors {
+public final class NettyExecutors {
   private static final long THREAD_STOP_MS = Constants.SECOND_MS * 10;
   private static final int THREADS_MIN = 4;
 

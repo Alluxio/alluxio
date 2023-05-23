@@ -668,6 +668,10 @@ public class FileSystemContext implements Closeable {
     return mNettyChannelPools.get(address).acquire();
   }
 
+  protected ConcurrentHashMap<SocketAddress, NettyChannelPool> getNettyChannelPools() {
+    return mNettyChannelPools;
+  }
+
   /**
    * Releases a netty channel to the channel pools.
    *
