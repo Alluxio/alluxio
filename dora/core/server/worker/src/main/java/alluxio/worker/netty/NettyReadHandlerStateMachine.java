@@ -106,6 +106,17 @@ public class NettyReadHandlerStateMachine<ReqT extends ReadRequest> {
     }
   }
 
+  private boolean takeAndHandleChannelEvent(
+      RequestContext requestContext, ChannelEventVisitor<ReqT> visitor) {
+    try {
+      ChannelEvent channelEvent = mChannelEventQueue.take();
+      return handleChannelEvent(channelEvent, visitor);
+    } catch (InterruptedException interruptedException) {
+      fireNext(mTriggerEventsWithParam.mInterruptedDuringReq, requestContext, interruptedException);
+      return true;
+    }
+  }
+
   private boolean handleChannelEvent(ChannelEvent channelEvent, ChannelEventVisitor<ReqT> visitor) {
     if (channelEvent instanceof ReadRequestReceived) {
       @SuppressWarnings("unchecked")
@@ -789,7 +800,7 @@ public class NettyReadHandlerStateMachine<ReqT extends ReadRequest> {
         requestContext.positionStart(), requestContext.positionEnd(),
         requestContext.getRequest().getPacketSize());
     while (true) {
-      boolean returnNow = takeAndHandleChannelEvent(new ChannelEventVisitor<>() {
+      boolean returnNow = takeAndHandleChannelEvent(requestContext, new ChannelEventVisitor<>() {
         @Override
         public boolean visit(ReadRequestReceived<ReqT> channelEvent) {
           fireNext(mTriggerEventsWithParam.mUnexpectedClientMessageDuringReq,
