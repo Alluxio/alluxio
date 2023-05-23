@@ -67,6 +67,7 @@ public final class LogLevel {
   public static final String ROLE_JOB_MASTERS = "job_masters";
   public static final String ROLE_JOB_WORKER = "job_worker";
   public static final String ROLE_JOB_WORKERS = "job_workers";
+  public static final String ROLE_FUSE = "fuse";
   public static final String TARGET_SEPARATOR = ",";
   public static final String TARGET_OPTION_NAME = "target";
   private static final Option TARGET_OPTION =
@@ -305,6 +306,8 @@ public final class LogLevel {
       return ROLE_JOB_MASTER;
     } else if (port == NetworkAddressUtils.getPort(ServiceType.JOB_WORKER_WEB, conf)) {
       return ROLE_JOB_WORKER;
+    } else if (port == NetworkAddressUtils.getPort(ServiceType.FUSE_WEB, conf)) {
+      return ROLE_FUSE;
     } else {
       throw new IllegalArgumentException(String.format(
               "Unrecognized port in %s. Please make sure the port is in %s",
