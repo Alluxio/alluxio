@@ -53,6 +53,12 @@ public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
     this(user, jobId, new HashBasedWorkerAssignPolicy());
   }
 
+  /**
+   * Creates a new instance of {@link AbstractJob}.
+   * @param user
+   * @param jobId
+   * @param workerAssignPolicy
+   */
   public AbstractJob(Optional<String> user, String jobId, WorkerAssignPolicy workerAssignPolicy) {
     mUser = requireNonNull(user, "user is null");
     mJobId = requireNonNull(jobId, "jobId is null");

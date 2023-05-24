@@ -563,7 +563,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         } catch (Exception e) {
           AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
           errors.add(FileFailure.newBuilder().setFile(file).setCode(t.getStatus().getCode().value())
-                                .setMessage(t.getMessage()).build());
+              .setRetryable(t.isRetryable()).setMessage(t.getMessage()).build());
         }
       }, GrpcExecutors.BLOCK_READER_EXECUTOR);
       futures.add(loadFuture);

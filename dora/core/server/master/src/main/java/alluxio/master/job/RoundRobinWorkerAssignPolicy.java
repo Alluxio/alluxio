@@ -5,6 +5,9 @@ import alluxio.wire.WorkerInfo;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Policy which employs Round Robin around given workers to select worker.
+ */
 public class RoundRobinWorkerAssignPolicy extends WorkerAssignPolicy {
   private AtomicInteger mCounter = new AtomicInteger(0);
 
