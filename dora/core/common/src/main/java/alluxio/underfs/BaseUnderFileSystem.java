@@ -200,7 +200,6 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
     if (result == null) {
       return null;
     }
-    Arrays.sort(result, Comparator.comparing(UfsStatus::getName));
     return Iterators.forArray(result);
   }
 
