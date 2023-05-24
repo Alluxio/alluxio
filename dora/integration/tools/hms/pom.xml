@@ -141,7 +141,7 @@
             </goals>
             <configuration>
               <sourceFile>${basedir}/target/${project.artifactId}-${project.version}.jar</sourceFile>
-              <destinationFile>${project.parent.parent.parent.basedir}/lib/${lib.jar.name}</destinationFile>
+              <destinationFile>${project.parent.parent.parent.parent.basedir}/lib/${lib.jar.name}</destinationFile>
             </configuration>
           </execution>
         </executions>
