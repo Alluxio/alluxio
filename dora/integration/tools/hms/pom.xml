@@ -140,8 +140,8 @@
               <goal>copy</goal>
             </goals>
             <configuration>
-              <sourceFile>target/alluxio-integration-tools-hms-295-SNAPSHOT-jar-with-dependencies.jar</sourceFile>
-              <destinationFile>../../../../lib/alluxio-integration-tools-hms-295-SNAPSHOT.jar</destinationFile>
+              <sourceFile>${basedir}/target/${project.artifactId}-${project.version}.jar</sourceFile>
+              <destinationFile>${project.parent.parent.parent.basedir}/lib/${lib.jar.name}</destinationFile>
             </configuration>
           </execution>
         </executions>
