@@ -133,6 +133,11 @@ public enum ExceptionMessage {
   // file system master ufs
   FAILED_UFS_RENAME("Failed to rename {0} to {1} in the under file system"),
 
+  // worker
+  WORKER_NOT_FOUND("Worker {0} not found"),
+  WORKER_DECOMMISSIONED_BEFORE_REGISTER("Attempting to decommission an unregistered worker {0}. "
+      + "Please wait until this worker is registered."),
+
   // cli
   INVALID_ARGS_NULL("Null args for command {0}"),
   INVALID_ARGS_NUM("Command {0} takes {1} arguments, not {2}"),

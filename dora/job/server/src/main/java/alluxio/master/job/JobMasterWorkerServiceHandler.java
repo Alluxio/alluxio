@@ -12,6 +12,8 @@
 package alluxio.master.job;
 
 import alluxio.RpcUtils;
+import alluxio.RuntimeConstants;
+import alluxio.grpc.BuildVersion;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.JobHeartbeatPRequest;
 import alluxio.grpc.JobHeartbeatPResponse;
@@ -72,9 +74,12 @@ public final class JobMasterWorkerServiceHandler
   @Override
   public void registerJobWorker(RegisterJobWorkerPRequest request,
       StreamObserver<RegisterJobWorkerPResponse> responseObserver) {
-
+    LOG.info("Received job worker {}", request);
+    BuildVersion version = request.hasVersion() ? request.getVersion()
+        : RuntimeConstants.UNKNOWN_VERSION_INFO;
     RpcUtils.call(LOG, () -> RegisterJobWorkerPResponse.newBuilder()
-        .setId(mJobMaster.registerWorker(GrpcUtils.fromProto(request.getWorkerNetAddress())))
+        .setId(mJobMaster.registerWorker(
+            GrpcUtils.fromProto(request.getWorkerNetAddress()), version))
         .build(), "registerJobWorker", "request=%s", responseObserver, request);
   }
 }

@@ -11,6 +11,8 @@
 
 package alluxio.job.wire;
 
+import alluxio.RuntimeConstants;
+import alluxio.grpc.BuildVersion;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.MoreObjects;
@@ -23,8 +25,8 @@ import java.util.List;
  * The job worker health information.
  */
 public class JobWorkerHealth {
-
   private final long mWorkerId;
+  private BuildVersion mVersion = RuntimeConstants.UNKNOWN_VERSION_INFO;
   private final List<Double> mLoadAverage;
   private final int mUnfinishedTasks;
   private final long mLastUpdated;
@@ -44,6 +46,24 @@ public class JobWorkerHealth {
    */
   public JobWorkerHealth(long workerId, List<Double> loadAverage, int taskPoolSize,
       int numActiveTasks, int unfinishedTasks, String hostname) {
+    this(workerId, loadAverage, taskPoolSize, numActiveTasks, unfinishedTasks, hostname,
+        RuntimeConstants.CURRENT_VERSION_INFO);
+  }
+
+  /**
+   * Default constructor.
+   *
+   * @param workerId the worker id
+   * @param loadAverage output of CentralProcessor.getSystemLoadAverage on the worker
+   * @param taskPoolSize task pool size
+   * @param numActiveTasks number of active tasks in the worker
+   * @param unfinishedTasks number of unfinished tasks that the worker has
+   * @param hostname hostname of the worker
+   * @param version the worker's version info
+   */
+  public JobWorkerHealth(long workerId, List<Double> loadAverage, int taskPoolSize,
+                         int numActiveTasks, int unfinishedTasks, String hostname,
+                         BuildVersion version) {
     mWorkerId = workerId;
     mLoadAverage = loadAverage;
     mUnfinishedTasks = unfinishedTasks;
@@ -51,6 +71,7 @@ public class JobWorkerHealth {
     mTaskPoolSize = taskPoolSize;
     mNumActiveTasks = numActiveTasks;
     mHostname = hostname;
+    mVersion = version;
   }
 
   /**
@@ -66,6 +87,9 @@ public class JobWorkerHealth {
     mTaskPoolSize = jobWorkerHealth.getTaskPoolSize();
     mNumActiveTasks = jobWorkerHealth.getNumActiveTasks();
     mHostname = jobWorkerHealth.getHostname();
+    if (jobWorkerHealth.hasVersion()) {
+      mVersion = jobWorkerHealth.getVersion();
+    }
   }
 
   /**
@@ -115,13 +139,20 @@ public class JobWorkerHealth {
   }
 
   /**
+   * @return the worker version info
+   */
+  public BuildVersion getVersion() {
+    return mVersion;
+  }
+
+  /**
    * @return proto representation of JobWorkerInfo
    */
   public alluxio.grpc.JobWorkerHealth toProto() {
     alluxio.grpc.JobWorkerHealth.Builder builder = alluxio.grpc.JobWorkerHealth.newBuilder()
         .setWorkerId(mWorkerId).addAllLoadAverage(mLoadAverage).setUnfinishedTasks(mUnfinishedTasks)
         .setTaskPoolSize(mTaskPoolSize).setNumActiveTasks(mNumActiveTasks)
-        .setLastUpdated(mLastUpdated).setHostname(mHostname);
+        .setLastUpdated(mLastUpdated).setHostname(mHostname).setVersion(mVersion);
 
     return builder.build();
   }
@@ -149,7 +180,8 @@ public class JobWorkerHealth {
         && Objects.equal(mLastUpdated, that.mLastUpdated)
         && Objects.equal(mHostname, that.mHostname)
         && Objects.equal(mTaskPoolSize, that.mTaskPoolSize)
-        && Objects.equal(mNumActiveTasks, that.mNumActiveTasks);
+        && Objects.equal(mNumActiveTasks, that.mNumActiveTasks)
+        && Objects.equal(mVersion, that.mVersion);
   }
 
   @Override
@@ -161,6 +193,8 @@ public class JobWorkerHealth {
         .add("hostname", mHostname)
         .add("taskPoolSize", mTaskPoolSize)
         .add("numActiveTasks", mNumActiveTasks)
+        .add("version", mVersion.getVersion())
+        .add("revision", mVersion.getRevision())
         .toString();
   }
 }

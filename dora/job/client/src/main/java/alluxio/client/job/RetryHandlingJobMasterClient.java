@@ -14,6 +14,7 @@ package alluxio.client.job;
 import alluxio.AbstractJobMasterClient;
 import alluxio.Constants;
 import alluxio.grpc.CancelPRequest;
+import alluxio.grpc.GetAllMasterStatusPRequest;
 import alluxio.grpc.GetAllWorkerHealthPRequest;
 import alluxio.grpc.GetCmdStatusDetailedRequest;
 import alluxio.grpc.GetCmdStatusRequest;
@@ -21,6 +22,7 @@ import alluxio.grpc.GetJobServiceSummaryPRequest;
 import alluxio.grpc.GetJobStatusDetailedPRequest;
 import alluxio.grpc.GetJobStatusPRequest;
 import alluxio.grpc.JobMasterClientServiceGrpc;
+import alluxio.grpc.JobMasterStatus;
 import alluxio.grpc.ListAllPOptions;
 import alluxio.grpc.ListAllPRequest;
 import alluxio.grpc.RunPRequest;
@@ -162,6 +164,16 @@ public final class RetryHandlingJobMasterClient extends AbstractJobMasterClient
               .getWorkerHealthsList();
       return workerHealthsList.stream().map(JobWorkerHealth::new).collect(Collectors.toList());
     }, RPC_LOG, "GetAllWorkerHealth", "");
+  }
+
+  @Override
+  public List<JobMasterStatus> getAllMasterStatus() throws IOException {
+    return retryRPC(() -> {
+      List<alluxio.grpc.JobMasterStatus> masterStatusList =
+              mClient.getAllMasterStatus(GetAllMasterStatusPRequest.newBuilder().build())
+                      .getJobMasterStatusList();
+      return masterStatusList;
+    }, RPC_LOG, "GetAllMasterStatus", "");
   }
 
   @Override
