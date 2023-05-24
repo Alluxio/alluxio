@@ -23,6 +23,7 @@ import alluxio.client.file.PositionReadFileInStream;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.dora.netty.NettyDataReader;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.status.PermissionDeniedException;
 import alluxio.grpc.FileInfo;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GetStatusPRequest;
@@ -133,7 +134,7 @@ public class DoraCacheClient {
    * @throws RuntimeException
    */
   public List<URIStatus> listStatus(String path, ListStatusPOptions options)
-      throws RuntimeException {
+      throws PermissionDeniedException {
     try (CloseableResource<BlockWorkerClient> client =
              mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
       List<URIStatus> result = new ArrayList<>();
@@ -156,11 +157,13 @@ public class DoraCacheClient {
    * @param options
    * @return uri status
    */
-  public URIStatus getStatus(String path, GetStatusPOptions options) {
+  public URIStatus getStatus(String path, GetStatusPOptions options)
+      throws PermissionDeniedException {
     return getStatusByGrpc(path, options);
   }
 
-  protected URIStatus getStatusByGrpc(String path, GetStatusPOptions options) {
+  protected URIStatus getStatusByGrpc(String path, GetStatusPOptions options)
+      throws PermissionDeniedException {
     try (CloseableResource<BlockWorkerClient> client =
              mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
       GetStatusPRequest request = GetStatusPRequest.newBuilder()
