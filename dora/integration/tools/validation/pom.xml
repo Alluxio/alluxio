@@ -89,8 +89,8 @@
               <goal>copy</goal>
             </goals>
             <configuration>
-              <sourceFile>target/alluxio-integration-tools-validation-296-SNAPSHOT-SNAPSHOT.jar</sourceFile>
-              <destinationFile>../../../../lib/alluxio-integration-tools-validation-296-SNAPSHOT-SNAPSHOT.jar</destinationFile>
+              <sourceFile>${basedir}/target/${project.artifactId}-${project.version}.jar</sourceFile>
+              <destinationFile>${project.parent.parent.parent.basedir}/lib/${lib.jar.name}</destinationFile>
             </configuration>
           </execution>
         </executions>
