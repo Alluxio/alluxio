@@ -41,13 +41,7 @@ import org.apache.ratis.server.storage.RaftStorage;
 import org.apache.ratis.server.storage.StorageImplUtils;
 import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
 import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
-<<<<<<< HEAD:dora/tests/src/test/java/alluxio/server/ft/journal/raft/EmbeddedJournalIntegrationTestFaultTolerance.java
-import org.junit.Assert;
 import org.junit.Ignore;
-||||||| parent of 8cbcbcd6d3 (Enhance embedded journal checkpointing significantly):tests/src/test/java/alluxio/server/ft/journal/raft/EmbeddedJournalIntegrationTestFaultTolerance.java
-import org.junit.Assert;
-=======
->>>>>>> 8cbcbcd6d3 (Enhance embedded journal checkpointing significantly):tests/src/test/java/alluxio/server/ft/journal/raft/EmbeddedJournalIntegrationTestFaultTolerance.java
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;

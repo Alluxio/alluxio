@@ -13,7 +13,6 @@ package alluxio.snapshot;
 
 import alluxio.AlluxioURI;
 import alluxio.annotation.SuppressFBWarnings;
-import alluxio.concurrent.jsr.CompletableFuture;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.NodeState;
@@ -49,6 +48,7 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.concurrent.CompletableFuture;
 
 @SuppressFBWarnings("UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR")
 public class SnapshotBench {

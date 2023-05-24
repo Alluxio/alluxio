@@ -28,6 +28,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.meta.InodeMeta;
 import alluxio.resource.CloseableIterator;
+import alluxio.rocks.RocksCheckpointed;
 import alluxio.rocks.RocksStore;
 import alluxio.util.io.PathUtils;
 

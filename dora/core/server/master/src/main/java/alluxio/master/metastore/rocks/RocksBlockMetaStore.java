@@ -22,6 +22,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
 import alluxio.resource.CloseableIterator;
+import alluxio.rocks.RocksCheckpointed;
 import alluxio.rocks.RocksStore;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
