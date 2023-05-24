@@ -103,13 +103,9 @@ import javax.inject.Named;
 @NotThreadSafe
 public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockWorker.class);
-<<<<<<< HEAD:dora/core/server/worker/src/main/java/alluxio/worker/block/DefaultBlockWorker.java
   private static final long UFS_BLOCK_OPEN_TIMEOUT_MS =
       Configuration.getMs(PropertyKey.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS);
-||||||| parent of 69be372c8f (Cache block worker metrics):core/server/worker/src/main/java/alluxio/worker/block/DefaultBlockWorker.java
-=======
   public static final int CACHEGAUGE_UPDATE_INTERVAL = 5000;
->>>>>>> 69be372c8f (Cache block worker metrics):core/server/worker/src/main/java/alluxio/worker/block/DefaultBlockWorker.java
 
   /**
    * Used to close resources during stop.
@@ -702,74 +698,27 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
       MetricsSystem.registerCachedGaugeIfAbsent(
           MetricsSystem.getMetricName(MetricKey.WORKER_CAPACITY_FREE.getName()),
-<<<<<<< HEAD:dora/core/server/worker/src/main/java/alluxio/worker/block/DefaultBlockWorker.java
-          () -> blockWorker.getStoreMeta().getCapacityBytes() - blockWorker.getStoreMeta()
-              .getUsedBytes());
-||||||| parent of 69be372c8f (Cache block worker metrics):core/server/worker/src/main/java/alluxio/worker/block/DefaultBlockWorker.java
-          () -> blockWorker.getStoreMeta().getCapacityBytes() - blockWorker.getStoreMeta()
-                      .getUsedBytes());
-=======
           () -> cache.getValue().getCapacityFree());
->>>>>>> 69be372c8f (Cache block worker metrics):core/server/worker/src/main/java/alluxio/worker/block/DefaultBlockWorker.java
 
       for (int i = 0; i < WORKER_STORAGE_TIER_ASSOC.size(); i++) {
         String tier = WORKER_STORAGE_TIER_ASSOC.getAlias(i);
         // TODO(lu) Add template to dynamically generate MetricKey
         MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
-<<<<<<< HEAD:dora/core/server/worker/src/main/java/alluxio/worker/block/DefaultBlockWorker.java
-                MetricKey.WORKER_CAPACITY_TOTAL.getName() + MetricInfo.TIER + tier),
-            () -> blockWorker.getStoreMeta().getCapacityBytesOnTiers().getOrDefault(tier, 0L));
-||||||| parent of 69be372c8f (Cache block worker metrics):core/server/worker/src/main/java/alluxio/worker/block/DefaultBlockWorker.java
-            MetricKey.WORKER_CAPACITY_TOTAL.getName() + MetricInfo.TIER + tier),
-            () -> blockWorker.getStoreMeta().getCapacityBytesOnTiers().getOrDefault(tier, 0L));
-=======
             MetricKey.WORKER_CAPACITY_TOTAL.getName() + MetricInfo.TIER + tier),
             () -> cache.getValue().getCapacityBytesOnTiers().getOrDefault(tier, 0L));
->>>>>>> 69be372c8f (Cache block worker metrics):core/server/worker/src/main/java/alluxio/worker/block/DefaultBlockWorker.java
 
-<<<<<<< HEAD:dora/core/server/worker/src/main/java/alluxio/worker/block/DefaultBlockWorker.java
-        MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
-                MetricKey.WORKER_CAPACITY_USED.getName() + MetricInfo.TIER + tier),
-            () -> blockWorker.getStoreMeta().getUsedBytesOnTiers().getOrDefault(tier, 0L));
-||||||| parent of 69be372c8f (Cache block worker metrics):core/server/worker/src/main/java/alluxio/worker/block/DefaultBlockWorker.java
-        MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
-            MetricKey.WORKER_CAPACITY_USED.getName() + MetricInfo.TIER + tier),
-            () -> blockWorker.getStoreMeta().getUsedBytesOnTiers().getOrDefault(tier, 0L));
-=======
         MetricsSystem.registerCachedGaugeIfAbsent(MetricsSystem.getMetricName(
             MetricKey.WORKER_CAPACITY_USED.getName() + MetricInfo.TIER + tier),
             () -> cache.getValue().getUsedBytesOnTiers().getOrDefault(tier, 0L));
->>>>>>> 69be372c8f (Cache block worker metrics):core/server/worker/src/main/java/alluxio/worker/block/DefaultBlockWorker.java
 
-<<<<<<< HEAD:dora/core/server/worker/src/main/java/alluxio/worker/block/DefaultBlockWorker.java
-        MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
-                MetricKey.WORKER_CAPACITY_FREE.getName() + MetricInfo.TIER + tier),
-            () -> blockWorker.getStoreMeta().getCapacityBytesOnTiers().getOrDefault(tier, 0L)
-                - blockWorker.getStoreMeta().getUsedBytesOnTiers().getOrDefault(tier, 0L));
-||||||| parent of 69be372c8f (Cache block worker metrics):core/server/worker/src/main/java/alluxio/worker/block/DefaultBlockWorker.java
-        MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
-            MetricKey.WORKER_CAPACITY_FREE.getName() + MetricInfo.TIER + tier),
-            () -> blockWorker.getStoreMeta().getCapacityBytesOnTiers().getOrDefault(tier, 0L)
-                - blockWorker.getStoreMeta().getUsedBytesOnTiers().getOrDefault(tier, 0L));
-=======
         MetricsSystem.registerCachedGaugeIfAbsent(MetricsSystem.getMetricName(
             MetricKey.WORKER_CAPACITY_FREE.getName() + MetricInfo.TIER + tier),
             () -> cache.getValue().getFreeBytesOnTiers().getOrDefault(tier, 0L));
->>>>>>> 69be372c8f (Cache block worker metrics):core/server/worker/src/main/java/alluxio/worker/block/DefaultBlockWorker.java
       }
-<<<<<<< HEAD:dora/core/server/worker/src/main/java/alluxio/worker/block/DefaultBlockWorker.java
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
-              MetricKey.WORKER_BLOCKS_CACHED.getName()),
-          () -> blockWorker.getStoreMetaFull().getNumberOfBlocks());
-||||||| parent of 69be372c8f (Cache block worker metrics):core/server/worker/src/main/java/alluxio/worker/block/DefaultBlockWorker.java
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMetricName(
-          MetricKey.WORKER_BLOCKS_CACHED.getName()),
-          () -> blockWorker.getStoreMetaFull().getNumberOfBlocks());
-=======
+
       MetricsSystem.registerCachedGaugeIfAbsent(MetricsSystem.getMetricName(
           MetricKey.WORKER_BLOCKS_CACHED.getName()),
           () -> cache.getValue().getNumberOfBlocks());
->>>>>>> 69be372c8f (Cache block worker metrics):core/server/worker/src/main/java/alluxio/worker/block/DefaultBlockWorker.java
     }
 
     private Metrics() {
