@@ -154,11 +154,10 @@ public final class Scheduler {
                 ConcurrentHashSet runningTaskSet = mJobToRunningTasks.getOrDefault(
                     job, new ConcurrentHashSet<>());
                 runningTaskSet.remove(task);
-                // Schedule next batch for healthy job
-                if (job.isHealthy()) {
-                  // continue job for next tasks.
-                  mScheduler.processJob(job.getDescription(), job);
-                }
+                // TODO(lucy) currently processJob is only called in the single
+                // threaded scheduler thread context, in future once tasks are
+                // completed, they should be able to call processJob to resume
+                // their own job to schedule next set of tasks to run.
               } catch (Exception e) {
                 // Unknown exception. This should not happen, but if it happens we don't
                 // want to lose the worker thread, thus catching it here. Any exception
