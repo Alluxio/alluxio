@@ -19,6 +19,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.network.protocol.databuffer.DataFileChannel;
 
 import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
@@ -159,6 +160,12 @@ public class CacheManagerWithShadowCache implements CacheManager {
   @Override
   public Optional<CacheUsage> getUsage() {
     return mCacheManager.getUsage();
+  }
+
+  @Override
+  public DataFileChannel getDataFileChannel(PageId pageId, int pageOffset, int bytesToRead,
+                                            CacheContext cacheContext) {
+    return mCacheManager.getDataFileChannel(pageId, pageOffset, bytesToRead, cacheContext);
   }
 
   /**

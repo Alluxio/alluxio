@@ -55,6 +55,7 @@ import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.security.authorization.AclEntry;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
@@ -684,6 +685,12 @@ public class LocalCacheFileInStreamTest {
     @Override
     public Optional<CacheUsage> getUsage() {
       return Optional.of(new Usage());
+    }
+
+    @Override
+    public DataFileChannel getDataFileChannel(PageId pageId, int pageOffset, int bytesToRead,
+                                              CacheContext cacheContext) {
+      return null;
     }
 
     class Usage implements CacheUsage {

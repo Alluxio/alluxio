@@ -21,6 +21,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.file.ReadTargetBuffer;
+import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.Before;
@@ -283,6 +284,12 @@ public final class CacheManagerWithShadowCacheTest {
     @Override
     public Optional<CacheUsage> getUsage() {
       return Optional.empty();
+    }
+
+    @Override
+    public DataFileChannel getDataFileChannel(PageId pageId, int pageOffset, int bytesToRead,
+                                              CacheContext cacheContext) {
+      return null;
     }
 
     @Override
