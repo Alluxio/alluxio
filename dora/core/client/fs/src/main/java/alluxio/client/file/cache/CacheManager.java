@@ -343,8 +343,6 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
    * @param cacheContext the cache context
    * @return an object of {@link DataFileChannel}
    */
-  default DataFileChannel getDataFileChannel(
-      PageId pageId, int pageOffset, int bytesToRead, CacheContext cacheContext) {
-    throw new UnsupportedOperationException();
-  }
+  DataFileChannel getDataFileChannel(
+      PageId pageId, int pageOffset, int bytesToRead, CacheContext cacheContext);
 }
