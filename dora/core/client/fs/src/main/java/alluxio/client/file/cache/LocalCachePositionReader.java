@@ -156,7 +156,7 @@ public class LocalCachePositionReader implements PositionReader {
     int currentPageOffset = (int) (position % mPageSize);
     int bytesLeftInPage = (int) (mPageSize - currentPageOffset);
     int bytesToReadInPage = Math.min(bytesLeftInPage, length);
-    // TODO(JiamingMai): deal with the case that the page is not in Alluxio
+    // If the page is not in Alluxio, we will return null here
     return mCacheManager.getDataFileChannel(
         pageId, currentPageOffset, bytesToReadInPage, mCacheContext);
   }
