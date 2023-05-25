@@ -341,6 +341,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
           try {
             return operate(batch);
           } catch (IOException e) {
+            LOG.error("A batch operation failed. ", e);
             // Do not append to success list
             return Collections.emptyList();
           }
