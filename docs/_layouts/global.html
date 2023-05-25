@@ -46,58 +46,29 @@
       <div class="col-md-3" id="nav_elements">
         <div class="sticky-top">
         <ul class="nav nav-pills flex-column">
-          {% assign categories = site.categoryList %}
-          {% for groupName in categories %}
+          <!-- Generate the language selector at the top of the navigation bar -->
+          {% assign multiLanguagePages = site.pages | where:'name',page.name | sort:'languagePriority' %}
           <li class="nav-item">
             <div class="dropdown">
-              {% if page.group == groupName %}
-              <button class="btn dropdown-toggle active" type="button" id="{{groupName}}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                {% else %}
-                <button class="btn dropdown-toggle active" type="button" id="{{groupName}}" data-toggle="dropdown"
-                  aria-haspopup="true" aria-expanded="false">
-              {% endif %}
-
-                {{site.categoryInfo[groupName][page.lang]}}
+              <button class="btn dropdown-toggle active" type="button" id="LANGUAGE" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                {{page.languageName}}
               </button>
-              <div class="dropdown-menu" aria-labelledby="{{groupName}}">
-                {% assign currentGroup = site.pages | where:'group',groupName | where:'lang',page.lang %}
-                {% assign currentGroup = currentGroup | sort:'priority' %}
-                {% for node in currentGroup %}
-                {% if page.url == node.url %}
-                <a class="dropdown-item active">
-                  {% if node.nickname == null %}
-                  {{node.title}}
-                  {% else %}
-                  {{node.nickname}}
-                  {% endif %}
-                </a>
-                {% else %}
-                <a class="dropdown-item" href="{{site.baseurl}}{{node.url}}">
-                  {% if node.nickname == null %}
-                  {{node.title}}
-                  {% else %}
-                  {{node.nickname}}
-                  {% endif %}
-                </a>
-                {% endif %}
+              <div class="dropdown-menu" aria-labelledby="LANGUAGE">
+                {% for singleLanguage in multiLanguagePages %}
+                <a href="{{site.baseurl}}{{singleLanguage.url}}" class="dropdown-item">{{singleLanguage.languageName}}</a>
                 {% endfor %}
               </div>
             </div>
-            {% endfor %}
-            <!-- Generate the language selector at the top of the navigation bar -->
-            {% assign multiLanguagePages = site.pages | where:'name',page.name | sort:'languagePriority' %}
-            <li class="nav-item">
-              <div class="dropdown">
-                  <button class="btn dropdown-toggle active" type="button" id="LANGUAGE" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    {{page.languageName}}
-                  </button>
-                  <div class="dropdown-menu" aria-labelledby="LANGUAGE">
-                    {% for singleLanguage in multiLanguagePages %}
-                      <a href="{{site.baseurl}}{{singleLanguage.url}}" class="dropdown-item">{{singleLanguage.languageName}}</a>
-                    {% endfor %}
-                  </div>
-              </div>
-            </li>
+          </li>
+          {% case page.lang %}
+            {% when 'cn' %}
+          {% assign menuName = 'menu-cn' %}
+            {% else %}
+          {% assign menuName = 'menu-en' %}
+          {% endcase %}
+
+          {% assign maps = site.data[menuName] %}
+          {% include sitemap.html map= maps%}
         </ul>
       </div>
       </div>

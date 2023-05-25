@@ -1,0 +1,15 @@
+<ul>
+    {% for item in include.map %}
+    <div>
+    <button type="button", class ="btn btn-primary" data-toggle="collapse" data-target="#{{item.buttonTitle}}" style="background-color: white;border-color: white;color: black">
+        {{item.title}}
+    </button>
+    </div>
+    <div id="{{item.buttonTitle}}" class="collapse" >
+        {% for files in item.subfiles %}
+        <li><a href="{{ files.url }}">{{ files.title }}</a></li>
+        {% endfor %}
+        {% if item.subitems %}{% include sitemap.html map=item.subitems %}{% endif %}
+    </div>
+    {% endfor %}
+</ul>

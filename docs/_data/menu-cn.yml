@@ -1,0 +1,189 @@
+# These are the ordered category names
+- title: 用户指南
+  buttonTitle: Overview
+  subfiles:
+    - title: Alluxio概览
+      url: /cn/overview.html
+    - title: 快速上手指南
+      url: /cn/overview/Getting-Started.html
+    - title: 架构
+      url: /cn/overview/Architecture.html
+    - title: FAQ
+      url: /cn/overview/FAQ/FAQ.html
+    - title: 作业服务器
+      url: /cn/overview/JobService.html
+    - title: 应用场景
+      url: /cn/overview/Use-Cases.html
+
+
+- title: 核心功能
+  buttonTitle: Core_Services
+  subfiles:
+    - title: 缓存
+      url: /cn/core-services/Caching.html
+    - title: 统一命名空间
+      url: /cn/core-services/Unified-Namespace.html
+
+- title: 部署 Alluxio
+  buttonTitle: Install_Alluxio
+  subfiles:
+    - title: Kubernetes上的Alluxio
+      url: /cn/kubernetes/Running-Alluxio-On-Kubernetes.html
+    - title: 本地机器上运行Alluxio
+      url: /cn/deploy/Running-Alluxio-Locally.html
+    - title: 在集群上独立运行Alluxio
+      url: /cn/deploy/Running-Alluxio-On-a-Cluster.html
+    - title: 在Docker上运行Alluxio
+      url: /cn/deploy/Running-Alluxio-On-Docker.html
+    - title: 具有HA的群集
+      url: /cn/deploy/Running-Alluxio-On-a-HA-Cluster.html
+    - title: 在Docker上运行AlluxioFuse（试验)
+      url: /cn/deploy/Running-AlluxioFuse-On-Docker.html
+    - title: 基本要求
+      url: /cn/deploy/Requirements.html
+
+- title: Kubernetes
+  buttonTitle: Kubernetes
+
+- title: 云原生
+  buttonTitle: Cloud_Native
+  subfiles:
+    - title: Tencent EMR
+      url: /cn/cloud/Tencent-Cloud-EMR.html
+
+- title: 计算应用
+  buttonTitle: Compute_Integrations
+  subfiles:
+    - title: Apache Spark
+      url: /cn/compute/Spark.html
+    - title: Presto
+      url: /cn/compute/Presto.html
+    - title: Spark on Kubernetes
+      url: /cn/kubernetes/Spark-On-Kubernetes.html
+    - title: Apache Flink
+      url: /cn/compute/Flink.html
+    - title: Apache Hadoop MapReduce
+      url: /cn/compute/Hadoop-MapReduce.html
+    - title: Presto on Iceberg (Experimental)
+      url: /cn/compute/Presto-Iceberg.html
+    - title: Trino
+      url: /cn/compute/Trino.html
+    - title: Apache Hive
+      url: /cn/compute/Hive.html
+    - title: 深度学习框架
+      url: /cn/solutions/Deep-Learning.html
+    - title: Tensorflow
+      url: /cn/compute/Tensorflow.html
+
+- title: 底层存储系统
+  buttonTitle: Storage_Integrations
+  subfiles:
+    - title: Alluxio集成Amazon AWS S3作为底层存储
+      url: /cn/ufs/S3.html
+    - title: Alluxio集成GCS作为底层存储
+      url: /cn/ufs/GCS.html
+    - title: Alluxio集成Azure Blob Store作为底层存储
+      url: /cn/ufs/Azure-Blob-Store.html
+    - title: Azure 数据湖存储
+      url: /cn/ufs/Azure-Data-Lake.html
+    - title: Alluxio集成HDFS作为底层存储
+      url: /cn/ufs/HDFS.html
+    - title: Alluxio集成COS作为底层存储
+      url: /cn/ufs/COS.html
+    - title: Alluxio集成COSN作为底层存储
+      url: /cn/ufs/COSN.html
+    - title: Alluxio集成Ceph Object Storage作为底层存储
+      url: /cn/ufs/CephObjectStorage.html
+    - title: Alluxio集成NFS作为底层存储
+      url: /cn/ufs/NFS.html
+    - title: Alluxio集成OSS作为底层存储
+      url: /cn/ufs/OSS.html
+    - title: Alluxio集成Kodo作为底层存储
+      url: /cn/ufs/Qiniu-KODO.html
+    - title: Alluxio集成Swift作为底层存储
+      url: /cn/ufs/Swift.html
+    - title: Alluxio集成WEB作为底层存储
+      url: /cn/ufs/WEB.html
+    - title: Alluxio集成Minio作为底层存储
+      url: /cn/ufs/Minio.html
+    - title: Alluxio集成Ozone作为底层存储
+      url: /cn/ufs/Ozone.html
+    - title: Alluxio集成CephFS作为底层存储
+      url: /cn/ufs/CephFS.html
+
+- title: 安全设置
+  buttonTitle: Security
+  subfiles:
+    - title: 安全性
+      url: /cn/security/Security.html
+
+- title: 运维指南
+  buttonTitle: Operations
+  subfiles:
+    - title: 配置项设置
+      url: /cn/operation/Configuration.html
+    - title: 命令行接口
+      url: /cn/operation/User-CLI.html
+    - title: 管理员命令行接口
+      url: /cn/operation/Admin-CLI.html
+    - title:  Web界面
+      url: /cn/operation/Web-Interface.html
+    - title: 日志
+      url: /cn/operation/Journal.html
+    - title: 度量指标系统
+      url: /cn/operation/Metrics-System.html
+    - title: 远程记录日志
+      url: /cn/operation/Metastore.html
+
+- title: 管理
+  buttonTitle: Administration
+  subfiles:
+    - title: 升级
+      url: /cn/administration/Upgrade.html
+    - title: 异常诊断与调试
+      url: /cn/administration/Troubleshooting.html
+
+
+- title: 方案
+  buttonTitle: Solutions
+
+- title: APIs
+  buttonTitle: Client_APIs
+  subfiles:
+    - title: Filesystem API
+      url: /cn/api/FS-API.html
+    - title: S3 Client
+      url: /cn/api/S3-API.html
+    - title: POSIX API
+      url: /cn/api/POSIX-API.html
+    - title: REST API
+      url: /cn/api/Clients-Rest.html
+    - title: Python Client
+      url: /cn/api/Clients-Python.html
+    - title: 兼容Hadoop的Java
+      url: /cn/api/Clients-Hadoop.html
+    - title: Go 客户端
+      url: /cn/api/Clients-Go.html
+
+- title: 开发者资源
+  buttonTitle: Contributor_Resources
+  subfiles:
+    - title: 编译Alluxio源代码
+      url: /cn/contributor/Building-Alluxio-From-Source.html
+    - title: 开发指南
+      url: /cn/contributor/Contributor-Getting-Started.html
+    - title: 代码规范
+      url: /cn/contributor/Code-Conventions.html
+    - title: 如何开发单元测试
+      url: /cn/contributor/Unit-Testing.html
+    - title: 文档规范
+      url: /cn/contributor/Documentation-Conventions.html
+
+
+- title: 参考
+  buttonTitle: Reference
+  subfiles:
+    - title: 配置项列表
+      url: /cn/reference/Properties-List.html
+    - title: List of Metrics
+      url: /cn/reference/Metrics-List.html
