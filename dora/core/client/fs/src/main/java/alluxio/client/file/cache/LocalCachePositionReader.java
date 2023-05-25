@@ -210,6 +210,10 @@ public class LocalCachePositionReader implements PositionReader {
     return Stopwatch.createUnstarted(Ticker.systemTicker());
   }
 
+  public long getPageSize() {
+    return this.mPageSize;
+  }
+
   static {
     // Cache hit rate = Cache hits / (Cache hits + Cache misses).
     MetricsSystem.registerGaugeIfAbsent(

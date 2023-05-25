@@ -119,9 +119,10 @@ public class PagedFileReader extends BlockReader implements PositionReader {
     long bytesToTransfer = Math.min(length, mFileSize - mPos);
     long bytesToTransferLeft = bytesToTransfer;
     while (bytesToTransferLeft > 0) {
-      DataBuffer dataBuffer = mPositionReader.getDataFileChannel(mPos, (int) bytesToTransferLeft);
+      long lengthPerOp = Math.min(bytesToTransferLeft, mPositionReader.getPageSize());
+      DataBuffer dataBuffer = mPositionReader.getDataFileChannel(mPos, (int) lengthPerOp);
       if (dataBuffer == null) {
-        dataBuffer = getDataBufferByCopying(channel, (int) bytesToTransferLeft);
+        dataBuffer = getDataBufferByCopying(channel, (int) lengthPerOp);
       } else {
         // update mPos
         if (dataBuffer.getLength() > 0) {
