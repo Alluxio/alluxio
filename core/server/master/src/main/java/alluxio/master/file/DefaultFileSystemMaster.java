@@ -780,14 +780,12 @@ public class DefaultFileSystemMaster extends CoreMaster
               () -> new FixedIntervalSupplier(
                   Configuration.getMs(PropertyKey.MASTER_METRICS_TIME_SERIES_INTERVAL)),
               Configuration.global(), mMasterContext.getUserState()));
-      if (Configuration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
-        mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("AUDIT_LOG");
-        mAsyncAuditLogWriter.start();
-        MetricsSystem.registerGaugeIfAbsent(
-            MetricKey.MASTER_AUDIT_LOG_ENTRIES_SIZE.getName(),
-            () -> mAsyncAuditLogWriter != null
-                    ? mAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
-      }
+      mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("AUDIT_LOG");
+      mAsyncAuditLogWriter.start();
+      MetricsSystem.registerGaugeIfAbsent(
+          MetricKey.MASTER_AUDIT_LOG_ENTRIES_SIZE.getName(),
+          () -> mAsyncAuditLogWriter != null
+              ? mAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
       if (Configuration.getBoolean(PropertyKey.UNDERFS_CLEANUP_ENABLED)) {
         getExecutorService().submit(
             new HeartbeatThread(HeartbeatContext.MASTER_UFS_CLEANUP, new UfsCleaner(this),
