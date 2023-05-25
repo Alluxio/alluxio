@@ -18,10 +18,13 @@ import alluxio.PositionReader;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.GrpcDataReader;
+import alluxio.client.file.DoraFileOutStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.PositionReadFileInStream;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.dora.netty.NettyDataReader;
+import alluxio.client.file.dora.netty.NettyDataWriter;
+import alluxio.client.file.options.OutStreamOptions;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.FileInfo;
 import alluxio.grpc.GetStatusPOptions;
@@ -30,6 +33,7 @@ import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ReadRequest;
+import alluxio.grpc.RequestType;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.wire.WorkerNetAddress;
@@ -84,6 +88,22 @@ public class DoraCacheClient {
       throw new UnsupportedOperationException("Grpc dora reader not implemented");
     }
     return new PositionReadFileInStream(reader, status.getLength());
+  }
+
+  /**
+   * Get a stream to write the data to dora cache cluster.
+   *
+   * @param status
+   * @param outStreamOptions
+   * @return the output stream
+   */
+  public DoraFileOutStream getOutStream(FileSystemContext mFsContext,
+      URIStatus status, OutStreamOptions outStreamOptions) {
+    WorkerNetAddress workerNetAddress = getWorkerNetAddress(status.getPath());
+    NettyDataWriter writer = NettyDataWriter.create(
+        mFsContext, workerNetAddress, blockId, blockSize,
+        RequestType.ALLUXIO_BLOCK, outStreamOptions);
+    return new DoraFileOutStream(writer, status.getLength());
   }
 
   protected long getChunkSize() {

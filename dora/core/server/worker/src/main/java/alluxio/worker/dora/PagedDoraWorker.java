@@ -75,7 +75,9 @@ import alluxio.worker.AbstractWorker;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.grpc.GrpcExecutors;
+import alluxio.worker.page.PagedBlockWriter;
 import alluxio.worker.task.CopyHandler;
 
 import com.google.common.base.Preconditions;
@@ -542,6 +544,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     }
     return PagedFileReader.create(mConf, mCacheManager, ufsClient, fileId,
         options.getUfsPath(), options.getBlockSize(), offset);
+  }
+
+  @Override
+  public BlockWriter createFileWriter(String fileId) {
+    return new PagedFileWriter(mCacheManager, fileId, mPageSize);
   }
 
   @Override

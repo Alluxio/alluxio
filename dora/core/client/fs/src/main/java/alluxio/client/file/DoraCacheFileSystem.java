@@ -18,6 +18,7 @@ import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.ReadType;
 import alluxio.client.file.dora.DoraCacheClient;
 import alluxio.client.file.dora.WorkerLocationPolicy;
+import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -242,8 +243,28 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
-    LOG.warn("Dora Client does not support create/write. This is only for test.");
-    return mDelegatedFileSystem.createFile(ufsFullPath, options);
+    try {
+      CreateFilePOptions mergedOptions = FileSystemOptionsUtils.createFileDefaults(
+          mFsContext.getPathConf(ufsFullPath)).toBuilder().mergeFrom(options).build();
+      URIStatus status = mDoraClient.getStatus(ufsFullPath.toString(),
+          FileSystemOptionsUtils.getStatusDefaults(mFsContext.getPathConf(path)));
+      LOG.debug("Created file {}, options: {}", ufsFullPath.getPath(), mergedOptions);
+      OutStreamOptions outStreamOptions =
+          new OutStreamOptions(mergedOptions, mFsContext,
+              mFsContext.getPathConf(path));
+      outStreamOptions.setUfsPath(status.getUfsPath());
+      outStreamOptions.setMountId(status.getMountId());
+      outStreamOptions.setAcl(status.getAcl());
+      mDoraClient.getOutStream();
+
+
+
+      AlluxioFileOutStream outStream = new AlluxioFileOutStream(path, outStreamOptions, mFsContext);
+      return outStream;
+    } catch (Exception e) {
+      LOG.debug("Dora create file error. Fall back to UFS.", e);
+      return mDelegatedFileSystem.createFile(ufsFullPath, options);
+    }
   }
 
   @Override
@@ -251,7 +272,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
     LOG.warn("Dora Client does not support create/write. This is only for test.");
-
+    // TODO(JiamingMai): implement this method
     mDelegatedFileSystem.createDirectory(ufsFullPath, options);
   }
 
