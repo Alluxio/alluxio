@@ -39,6 +39,8 @@ import alluxio.grpc.LoadRequest;
 import alluxio.grpc.LoadResponse;
 import alluxio.grpc.MoveBlockRequest;
 import alluxio.grpc.MoveBlockResponse;
+import alluxio.grpc.MoveRequest;
+import alluxio.grpc.MoveResponse;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.grpc.ReadRequest;
@@ -335,5 +337,10 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   @Override
   public ListenableFuture<CopyResponse> copy(CopyRequest request) {
     return mRpcFutureStub.copy(request);
+  }
+
+  @Override
+  public ListenableFuture<MoveResponse> move(MoveRequest request) {
+    return mRpcFutureStub.move(request);
   }
 }

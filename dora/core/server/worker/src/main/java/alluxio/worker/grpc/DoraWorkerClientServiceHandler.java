@@ -31,6 +31,8 @@ import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
 import alluxio.grpc.LoadFileRequest;
 import alluxio.grpc.LoadFileResponse;
+import alluxio.grpc.MoveRequest;
+import alluxio.grpc.MoveResponse;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.grpc.ReadResponseMarshaller;
@@ -149,6 +151,28 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       RpcUtils.invoke(LOG, future, "loadFile", "request=%s", responseObserver, request);
     } catch (Exception e) {
       LOG.debug(String.format("Failed to load file %s: ", request.getRoutesList()), e);
+      responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
+    }
+  }
+
+  @Override
+  public void move(MoveRequest request, StreamObserver<MoveResponse> responseObserver) {
+    try {
+      ListenableFuture<List<RouteFailure>> failures =
+              mWorker.move(request.getRoutesList(), request.getUfsReadOptions(),
+                      request.getWriteOptions());
+      ListenableFuture<MoveResponse> future = Futures.transform(failures, fail -> {
+        int numFiles = request.getRoutesCount();
+        TaskStatus taskStatus = TaskStatus.SUCCESS;
+        if (fail.size() > 0) {
+          taskStatus = numFiles > fail.size() ? TaskStatus.PARTIAL_FAILURE : TaskStatus.FAILURE;
+        }
+        MoveResponse.Builder response = MoveResponse.newBuilder();
+        return response.addAllFailures(fail).setStatus(taskStatus).build();
+      }, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+      RpcUtils.invoke(LOG, future, "moveFile", "request=%s", responseObserver, request);
+    } catch (Exception e) {
+      LOG.debug(String.format("Failed to move file %s: ", request.getRoutesList()), e);
       responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
     }
   }
