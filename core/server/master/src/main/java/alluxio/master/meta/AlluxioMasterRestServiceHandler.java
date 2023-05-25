@@ -31,6 +31,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.executor.ThreadPoolManager;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.OpenFilePOptions;
@@ -78,6 +79,8 @@ import alluxio.wire.MasterWebUIMountTable;
 import alluxio.wire.MasterWebUIOverview;
 import alluxio.wire.MasterWebUIWorkers;
 import alluxio.wire.MountPointInfo;
+import alluxio.wire.ThreadPoolExecutorInfo;
+import alluxio.wire.WebUIThreadPoolExecutors;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -152,6 +155,8 @@ public final class AlluxioMasterRestServiceHandler {
   public static final String WEBUI_METRICS = "webui_metrics";
   public static final String WEBUI_MOUNTTABLE = "webui_mounttable";
   public static final String WEBUI_MASTERS = "webui_masters";
+
+  public static final String WEBUI_THREAD_POOL_EXECUTORS = "webui_thread_pool_executors";
 
   // queries
   public static final String QUERY_RAW_CONFIGURATION = "raw_configuration";
@@ -916,6 +921,23 @@ public final class AlluxioMasterRestServiceHandler {
 
       response.setMountPointInfos(mountPointInfo);
 
+      return response;
+    }, Configuration.global());
+  }
+
+  /**
+   * Gets Web UI mount table page data.
+   *
+   * @return the response object
+   */
+  @GET
+  @Path(WEBUI_THREAD_POOL_EXECUTORS)
+  public Response getWebUIThreadPoolExecutors() {
+    return RestUtils.call(() -> {
+      WebUIThreadPoolExecutors response = new WebUIThreadPoolExecutors();
+      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG));
+      response.setThreadPoolExecutorInfo(
+          ThreadPoolManager.toThreadPoolExecutorInfo().toArray(new ThreadPoolExecutorInfo[0]));
       return response;
     }, Configuration.global());
   }

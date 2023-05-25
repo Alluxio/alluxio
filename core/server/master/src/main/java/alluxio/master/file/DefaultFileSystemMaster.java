@@ -47,6 +47,7 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.PermissionDeniedException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.executor.ThreadPoolManager;
 import alluxio.file.options.DescendantType;
 import alluxio.grpc.CancelSyncMetadataPResponse;
 import alluxio.grpc.DeletePOptions;
@@ -431,9 +432,10 @@ public class DefaultFileSystemMaster extends CoreMaster
 
   public final int mRecursiveOperationForceFlushEntries = Configuration
       .getInt(PropertyKey.MASTER_RECURSIVE_OPERATION_JOURNAL_FORCE_FLUSH_MAX_ENTRIES);
-  private final ThreadPoolExecutor mSyncPrefetchExecutor = new ThreadPoolExecutor(
-      Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE),
-      Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE),
+  private final ThreadPoolExecutor mSyncPrefetchExecutor =
+      ThreadPoolManager.newThreadPool("MetadataSyncPrefetchExecutorV2",
+          () -> Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE),
+          () -> Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE),
       1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
       ThreadFactoryUtils.build("alluxio-ufs-sync-prefetch-%d", false));
   final ExecutorService mSyncPrefetchExecutorIns =
@@ -441,9 +443,10 @@ public class DefaultFileSystemMaster extends CoreMaster
           ? MetricsSystem.executorService(mSyncPrefetchExecutor,
           MetricKey.MASTER_METADATA_SYNC_PREFETCH_EXECUTOR.getName()) : mSyncPrefetchExecutor;
 
-  private final ThreadPoolExecutor mSyncMetadataExecutor = new ThreadPoolExecutor(
-      Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE),
-      Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE),
+  private final ThreadPoolExecutor mSyncMetadataExecutor =
+      ThreadPoolManager.newThreadPool("MetadataSyncExecutorV2",
+          () -> Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE),
+          () -> Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE),
       1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
       ThreadFactoryUtils.build("alluxio-ufs-sync-%d", false));
   final ExecutorService mSyncMetadataExecutorIns =
@@ -451,9 +454,10 @@ public class DefaultFileSystemMaster extends CoreMaster
           ? MetricsSystem.executorService(mSyncMetadataExecutor,
           MetricKey.MASTER_METADATA_SYNC_EXECUTOR.getName()) : mSyncMetadataExecutor;
 
-  final ThreadPoolExecutor mActiveSyncMetadataExecutor = new ThreadPoolExecutor(
-      Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE),
-      Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE),
+  final ThreadPoolExecutor mActiveSyncMetadataExecutor =
+      ThreadPoolManager.newThreadPool("UfsActiveSyncV2",
+          () -> Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE),
+          () -> Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE),
       1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
       ThreadFactoryUtils.build("alluxio-ufs-active-sync-%d", false));
   private HeartbeatThread mReplicationCheckHeartbeatThread;
@@ -826,6 +830,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     try {
       mSyncMetadataExecutor.shutdownNow();
       mSyncMetadataExecutor.awaitTermination(5, TimeUnit.SECONDS);
+      ThreadPoolManager.unregister(mSyncMetadataExecutor);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       LOG.warn("Failed to wait for metadata sync executor to shut down.");
@@ -834,6 +839,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     try {
       mSyncPrefetchExecutor.shutdownNow();
       mSyncPrefetchExecutor.awaitTermination(5, TimeUnit.SECONDS);
+      ThreadPoolManager.unregister(mSyncPrefetchExecutor);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       LOG.warn("Failed to wait for ufs prefetch executor to shut down.");
@@ -842,6 +848,7 @@ public class DefaultFileSystemMaster extends CoreMaster
     try {
       mActiveSyncMetadataExecutor.shutdownNow();
       mActiveSyncMetadataExecutor.awaitTermination(5, TimeUnit.SECONDS);
+      ThreadPoolManager.unregister(mActiveSyncMetadataExecutor);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       LOG.warn("Failed to wait for active sync executor to shut down.");
