@@ -210,6 +210,10 @@ public class LocalCachePositionReader implements PositionReader {
     return Stopwatch.createUnstarted(Ticker.systemTicker());
   }
 
+  /**
+   * Get the page size.
+   * @return the page size
+   */
   public long getPageSize() {
     return this.mPageSize;
   }
