@@ -58,13 +58,9 @@ public class HdfsUnderFileOutputStream extends OutputStream implements ContentHa
   @Override
   public void flush() throws IOException {
     // TODO(calvin): This functionality should be restricted to select output streams.
-    //#ifdef HADOOP1
-    mOut.sync();
-    //#else
     // Note that, hsync() flushes out the data in client's user buffer all the way to the disk
     // device which may result in much slower performance than sync().
     mOut.hsync();
-    //#endif
   }
 
   @Override
