@@ -233,7 +233,16 @@ public final class FileSystemRenameIntegrationTest extends BaseIntegrationTest {
     sTFS.mkdirs(dirA);
     FSDataOutputStream o = sTFS.create(fileA);
     o.writeBytes("Test Bytes");
+<<<<<<< HEAD:dora/tests/src/test/java/alluxio/client/hadoop/FileSystemRenameIntegrationTest.java
 
+||||||| parent of 9d2f9cfc3a (Cleanup HADOOP1 support):tests/src/test/java/alluxio/client/hadoop/FileSystemRenameIntegrationTest.java
+    // Due to Hadoop 1 support we stick with the deprecated version. If we drop support for it
+    // FSDataOutputStream.hflush will be the new one.
+    //#ifdef HADOOP1
+    o.sync();
+    //#else
+=======
+>>>>>>> 9d2f9cfc3a (Cleanup HADOOP1 support):tests/src/test/java/alluxio/client/hadoop/FileSystemRenameIntegrationTest.java
     o.hflush();
 
     Assert.assertTrue(sTFS.rename(dirA, dirB));

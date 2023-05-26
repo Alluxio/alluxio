@@ -58,6 +58,17 @@ public class HdfsUnderFileOutputStream extends OutputStream implements ContentHa
   @Override
   public void flush() throws IOException {
     // TODO(calvin): This functionality should be restricted to select output streams.
+<<<<<<< HEAD:dora/underfs/hdfs/src/main/java/alluxio/underfs/hdfs/HdfsUnderFileOutputStream.java
+||||||| parent of 9d2f9cfc3a (Cleanup HADOOP1 support):underfs/hdfs/src/main/java/alluxio/underfs/hdfs/HdfsUnderFileOutputStream.java
+    //#ifdef HADOOP1
+    mOut.sync();
+    //#else
+    // Note that, hsync() flushes out the data in client's user buffer all the way to the disk
+    // device which may result in much slower performance than sync().
+=======
+    // Note that, hsync() flushes out the data in client's user buffer all the way to the disk
+    // device which may result in much slower performance than sync().
+>>>>>>> 9d2f9cfc3a (Cleanup HADOOP1 support):underfs/hdfs/src/main/java/alluxio/underfs/hdfs/HdfsUnderFileOutputStream.java
     mOut.hsync();
   }
 
