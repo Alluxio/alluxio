@@ -142,6 +142,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private RocksDBDoraMetaStore mMetaStore;
   private final UnderFileSystem mUfs;
 
+  private final DoraOpenFileHandles mOpenFileHandles;
+
   /**
    * Constructor.
    * @param workerId
@@ -197,6 +199,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       mMetaStore = null;
     }
     mCacheManager = cacheManager;
+    mOpenFileHandles = new DoraOpenFileHandles();
+    mOpenFileHandles.start();
   }
 
   @Override
@@ -213,6 +217,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   public Map<ServiceType, GrpcService> getServices() {
     return Collections.emptyMap();
   }
+
+  public DoraOpenFileHandles getOpenFileHandles() { return mOpenFileHandles; }
 
   @Override
   public void start(WorkerNetAddress address) throws IOException {
@@ -261,6 +267,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   @Override
   public void stop() throws IOException {
+    mOpenFileHandles.shutdown();
     super.stop();
   }
 

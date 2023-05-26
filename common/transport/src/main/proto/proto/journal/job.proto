@@ -2,7 +2,6 @@ syntax = "proto2";
 
 package alluxio.proto.journal;
 
-import "grpc/file_system_master.proto";
 
 // Journal entry messages for the block master.
 enum PJobState {
