@@ -58,6 +58,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -191,11 +193,6 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
     return mVerificationEnabled && mProcessedFileCount.get() > 0;
   }
 
-  @Override
-  public void continueJob() {
-    // NOOP
-  }
-
   /**
    * Enable verification.
    * @param enableVerification whether to enable verification
@@ -279,15 +276,25 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
   /**
    * get next move task.
    *
-   * @param worker blocker to worker
+   * @param workers workers candidates
    * @return the next task to run. If there is no task to run, return empty
    */
-  public Optional<MoveTask> getNextTask(WorkerInfo worker) {
+  public List<MoveTask> getNextTasks(Collection<WorkerInfo> workers) {
+    List<MoveTask> tasks = new ArrayList<>();
     List<Route> routes = getNextRoutes(BATCH_SIZE);
     if (routes.isEmpty()) {
-      return Optional.empty();
+      return Collections.unmodifiableList(tasks);
     }
-    return Optional.of(new MoveTask(routes));
+    tasks.add(new MoveTask(routes));
+    return Collections.unmodifiableList(tasks);
+  }
+
+  @Override
+  public void onTaskSubmitFailure(Task<?> task) {
+    if (!(task instanceof MoveJob.MoveTask)) {
+      throw new IllegalArgumentException("Task is not a MoveTask: " + task);
+    }
+    ((MoveJob.MoveTask) task).mRoutes.forEach(this::addToRetry);
   }
 
   /**
@@ -518,6 +525,8 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
      * @param routes pair of source and destination files
      */
     public MoveTask(List<Route> routes) {
+      super(MoveJob.this, MoveJob.this.mTaskIdGenerator.incrementAndGet());
+      super.setPriority(2);
       mRoutes = routes;
     }
 

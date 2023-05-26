@@ -55,6 +55,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -281,16 +283,24 @@ public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
   /**
    * get next load task.
    *
-   * @param worker blocker to worker
+   * @param workers list of available workers to schedule task on
    * @return the next task to run. If there is no task to run, return empty
    */
   @Override
-  public Optional<LoadTask> getNextTask(WorkerInfo worker) {
+  public  List<LoadJob.LoadTask> getNextTasks(Collection<WorkerInfo> workers) {
+    List<LoadTask> tasks = new ArrayList<>();
     List<Block> blocks = getNextBatchBlocks(BATCH_SIZE);
     if (blocks.isEmpty()) {
-      return Optional.empty();
+      return Collections.unmodifiableList(tasks);
     }
-    return Optional.of(new LoadTask(blocks));
+    LoadTask task = new LoadTask(blocks);
+    tasks.add(task);
+    return Collections.unmodifiableList(tasks);
+  }
+
+  @Override
+  public void onTaskSubmitFailure(Task<?> task) {
+    // NOOP
   }
 
   /**
@@ -522,11 +532,6 @@ public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
     return mVerificationEnabled && mCurrentBlockCount.get() > 0;
   }
 
-  @Override
-  public void continueJob() {
-    // nothing to do
-  }
-
   /**
    * Loads blocks in a UFS through an Alluxio worker.
    */
@@ -547,6 +552,7 @@ public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
      * @param blocks blocks to load
      */
     public LoadTask(List<Block> blocks) {
+      super(LoadJob.this, LoadJob.this.mTaskIdGenerator.incrementAndGet());
       mBlocks = blocks;
     }
 

@@ -35,6 +35,8 @@ import alluxio.grpc.GrpcSerializationUtils;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
+import alluxio.grpc.LoadFileRequest;
+import alluxio.grpc.LoadFileResponse;
 import alluxio.grpc.LoadRequest;
 import alluxio.grpc.LoadResponse;
 import alluxio.grpc.MoveBlockRequest;
@@ -320,6 +322,11 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   @Override
   public ListenableFuture<LoadResponse> load(LoadRequest request) {
     return mRpcFutureStub.load(request);
+  }
+
+  @Override
+  public ListenableFuture<LoadFileResponse> loadFile(LoadFileRequest request) {
+    return mRpcFutureStub.loadFile(request);
   }
 
   @Override

@@ -32,7 +32,10 @@ import alluxio.master.job.FileIterable;
 import alluxio.master.job.MoveJob;
 import alluxio.scheduler.job.JobState;
 import alluxio.wire.FileInfo;
+import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.collect.ImmutableList;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -56,8 +59,13 @@ public class MoveJobTest {
         new FileIterable(fileSystemMaster, srcPath, user, false, MoveJob.QUALIFIED_FILE_FILTER);
     MoveJob move = new MoveJob(srcPath, dstPath, false, user, "1",
         OptionalLong.empty(), false, false, false, files);
-    Optional<MoveJob.MoveTask> nextTask = move.getNextTask(null);
-    Assert.assertEquals(5, nextTask.get().getRoutes().size());
+    List<WorkerInfo> workers = ImmutableList.of(
+        new WorkerInfo().setId(1).setAddress(
+            new WorkerNetAddress().setHost("worker1").setRpcPort(1234)),
+        new WorkerInfo().setId(2).setAddress(
+            new WorkerNetAddress().setHost("worker2").setRpcPort(1234)));
+    List<MoveJob.MoveTask> nextTasks = move.getNextTasks(workers);
+    Assert.assertEquals(5, nextTasks.get(0).getRoutes().size());
   }
 
   @Test

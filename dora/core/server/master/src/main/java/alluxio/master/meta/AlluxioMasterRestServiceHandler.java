@@ -139,6 +139,7 @@ public final class AlluxioMasterRestServiceHandler {
 
   // endpoints
   public static final String GET_INFO = "info";
+  public static final String SCHEDULER_INFO = "scheduler_info";
 
   // webui endpoints // TODO(william): DRY up these endpoints
   public static final String WEBUI_INIT = "webui_init";
@@ -182,6 +183,19 @@ public final class AlluxioMasterRestServiceHandler {
     mMetaMaster = mMasterProcess.getMaster(MetaMaster.class);
     mFsClient =
         (FileSystem) context.getAttribute(MasterWebServer.ALLUXIO_FILESYSTEM_CLIENT_RESOURCE_KEY);
+  }
+
+  /**
+   * @summary gateway to get scheduler info.
+   * @param jobId
+   * @return Response
+   */
+  @GET
+  @Path(SCHEDULER_INFO)
+  public Response getSchedulerInfo(@QueryParam("jobid") final String jobId) {
+    return RestUtils.call(() -> {
+      return mFileSystemMaster.getScheduler().printJobsStatus();
+    }, Configuration.global());
   }
 
   /**

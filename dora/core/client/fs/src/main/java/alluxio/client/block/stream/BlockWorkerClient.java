@@ -24,6 +24,8 @@ import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
+import alluxio.grpc.LoadFileRequest;
+import alluxio.grpc.LoadFileResponse;
 import alluxio.grpc.LoadRequest;
 import alluxio.grpc.LoadResponse;
 import alluxio.grpc.MoveBlockRequest;
@@ -179,6 +181,13 @@ public interface BlockWorkerClient extends Closeable {
    * @throws StatusRuntimeException if any error occurs
    */
   ListenableFuture<LoadResponse> load(LoadRequest request);
+
+  /**
+   * load files.
+   * @param request
+   * @return listenable future of LoadFileResponse
+   */
+  ListenableFuture<LoadFileResponse> loadFile(LoadFileRequest request);
 
   /**
    * get file status.

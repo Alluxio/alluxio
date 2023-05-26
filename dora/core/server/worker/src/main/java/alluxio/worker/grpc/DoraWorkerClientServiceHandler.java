@@ -114,7 +114,6 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   @Override
   public void loadFile(LoadFileRequest request, StreamObserver<LoadFileResponse> responseObserver) {
     try {
-
       ListenableFuture<List<FileFailure>> failures =
           mWorker.load(request.getFilesList(), request.getOptions());
       ListenableFuture<LoadFileResponse> future = Futures.transform(failures, fail -> {
