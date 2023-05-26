@@ -5483,13 +5483,14 @@ public class DefaultFileSystemMaster extends CoreMaster
       String ugi = "";
       try {
         user = AuthenticatedClientUser.getClientUser(Configuration.global());
+        ugi = AuthenticatedClientUser.getUgi(Configuration.global());
       } catch (AccessControlException e) {
         ugi = "N/A";
       }
       if (user != null) {
         try {
           String primaryGroup = CommonUtils.getPrimaryGroupName(user, Configuration.global());
-          ugi = user + "," + primaryGroup;
+          ugi += "," + primaryGroup;
         } catch (IOException e) {
           LOG.debug("Failed to get primary group for user {}.", user);
           ugi = user + ",N/A";

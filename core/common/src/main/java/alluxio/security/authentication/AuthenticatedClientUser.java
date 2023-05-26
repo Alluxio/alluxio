@@ -166,5 +166,22 @@ public final class AuthenticatedClientUser {
     sUserThreadLocal.remove();
   }
 
+  /**
+   * Gets the user group information.
+   *
+   * @param conf Alluxio configuration
+   * @return the user group information
+   * @throws AccessControlException if the authentication is not enabled
+   */
+  public static String getUgi(AlluxioConfiguration conf) throws AccessControlException {
+    StringBuilder sb = new StringBuilder(getClientUser(conf));
+    sb.append(" (auth:" + getAuthMethod(conf) + ")");
+    String realUser = getConnectionUser(conf);
+    if (realUser != null) {
+      sb.append(" via ").append(realUser);
+    }
+    return sb.toString();
+  }
+
   private AuthenticatedClientUser() {} // prevent instantiation
 }
