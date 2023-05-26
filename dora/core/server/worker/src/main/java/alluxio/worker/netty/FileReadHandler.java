@@ -19,7 +19,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.network.netty.FileTransferType;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
-import alluxio.network.protocol.databuffer.MultipleDataFileChannel;
+import alluxio.network.protocol.databuffer.CompositedDataBuffer;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryPolicy;
@@ -120,9 +120,9 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequestContext
               offset, len);
         } else if (blockReader instanceof PagedFileReader) {
           PagedFileReader pagedFileReader = (PagedFileReader) blockReader;
-          MultipleDataFileChannel multipleDataFileChannel =
+          CompositedDataBuffer compositedDataBuffer =
               pagedFileReader.getMultipleDataFileChannel(channel, len);
-          return multipleDataFileChannel;
+          return compositedDataBuffer;
         }
       }
       return getDataBufferByCopying(context, channel, len, blockReader);

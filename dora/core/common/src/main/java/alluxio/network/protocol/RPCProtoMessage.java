@@ -14,7 +14,7 @@ package alluxio.network.protocol;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
-import alluxio.network.protocol.databuffer.MultipleDataFileChannel;
+import alluxio.network.protocol.databuffer.CompositedDataBuffer;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
 import alluxio.proto.dataserver.Protocol.Response;
 import alluxio.util.proto.ProtoMessage;
@@ -60,9 +60,9 @@ public final class RPCProtoMessage extends RPCMessage {
     if (data != null) {
       Preconditions
           .checkArgument((data instanceof NettyDataBuffer)
-                  || (data instanceof DataFileChannel) || (data instanceof MultipleDataFileChannel),
+                  || (data instanceof DataFileChannel) || (data instanceof CompositedDataBuffer),
               "Only NettyDataBuffer, DataFileChannel"
-                  + " and MultipleDataFileChannel are allowed.");
+                  + " and CompositedDataBuffer are allowed.");
     }
     mMessage = message;
     mMessageEncoded = message.toByteArray();
@@ -95,9 +95,9 @@ public final class RPCProtoMessage extends RPCMessage {
   public RPCProtoMessage(byte[] serialized, ProtoMessage prototype, DataBuffer data) {
     Preconditions
         .checkArgument((data instanceof NettyDataBuffer)
-                || (data instanceof DataFileChannel) || (data instanceof MultipleDataFileChannel),
+                || (data instanceof DataFileChannel) || (data instanceof CompositedDataBuffer),
             "Only NettyDataBuffer, DataFileChannel"
-                + " and MultipleDataFileChannel are allowed.");
+                + " and CompositedDataBuffer are allowed.");
     mMessage = ProtoMessage.parseFrom(serialized, prototype);
     // TODO(JiamingMai): there is a copy operation here, check if we can remove this
     mMessageEncoded = Arrays.copyOf(serialized, serialized.length);

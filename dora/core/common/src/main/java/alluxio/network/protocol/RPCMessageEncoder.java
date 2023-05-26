@@ -12,8 +12,11 @@
 package alluxio.network.protocol;
 
 import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.network.protocol.databuffer.DataFileChannel;
+import alluxio.network.protocol.databuffer.CompositedDataBuffer;
+import alluxio.network.protocol.databuffer.NettyDataBuffer;
+import alluxio.network.protocol.databuffer.NioDataBuffer;
 
-import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
@@ -67,17 +70,20 @@ public final class RPCMessageEncoder extends MessageToMessageEncoder<RPCMessage>
     out.add(buffer);
 
     if (payload != null && bodyBytes > 0) {
-      Object output = payload.getNettyOutput();
-      Preconditions.checkArgument(output instanceof ByteBuf
-              || output instanceof FileRegion || output instanceof List,
-          "The payload must be a ByteBuf or a FileRegion or a List<DataFileChannel>.");
-      if (output instanceof List) {
-        List<DataBuffer> dataFileChannels = (List<DataBuffer>) output;
+      if (payload instanceof NettyDataBuffer || payload instanceof NioDataBuffer) {
+        ByteBuf buf = (ByteBuf) payload.getNettyOutput();
+        out.add(buf);
+      } else if (payload instanceof DataFileChannel) {
+        FileRegion fileRegion = (FileRegion) payload.getNettyOutput();
+        out.add(fileRegion);
+      } else if (payload instanceof CompositedDataBuffer) {
+        // add each channel to out
+        List<DataBuffer> dataFileChannels = (List<DataBuffer>) payload.getNettyOutput();
         for (DataBuffer dataFileChannel : dataFileChannels) {
           out.add(dataFileChannel.getNettyOutput());
         }
-      } else if (output instanceof ByteBuf || output instanceof FileRegion) {
-        out.add(output);
+      } else {
+        throw new IllegalArgumentException("Unexpected payload type");
       }
     }
   }

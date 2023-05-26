@@ -20,15 +20,15 @@ import java.util.List;
 /**
  * A DataBuffer with the underlying data being a {@link FileChannel}.
  */
-public final class MultipleDataFileChannel implements DataBuffer {
+public final class CompositedDataBuffer implements DataBuffer {
 
   private final List<DataBuffer> mDataBufferList;
 
   /**
-   * MultipleDataFileChannel wraps multiple {@link DataFileChannel}.
+   * CompositedDataBuffer wraps multiple {@link DataFileChannel}.
    * @param dataBufferList a list of {@link DataFileChannel}
    */
-  public MultipleDataFileChannel(List<DataBuffer> dataBufferList) {
+  public CompositedDataBuffer(List<DataBuffer> dataBufferList) {
     mDataBufferList = dataBufferList;
   }
 
@@ -69,11 +69,17 @@ public final class MultipleDataFileChannel implements DataBuffer {
 
   @Override
   public int readableBytes() {
-    throw new UnsupportedOperationException("DataFileChannel#readableBytes is not implemented.");
+    long totalReadableByres = 0L;
+    for (DataBuffer dataBuffer : mDataBufferList) {
+      totalReadableByres += dataBuffer.readableBytes();
+    }
+    return (int) totalReadableByres;
   }
 
   @Override
   public void release() {
-    // Nothing we need to release explicitly, let GC take care of all objects.
+    for (DataBuffer dataBuffer : mDataBufferList) {
+      dataBuffer.release();
+    }
   }
 }

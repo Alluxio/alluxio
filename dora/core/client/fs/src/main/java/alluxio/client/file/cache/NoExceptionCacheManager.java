@@ -141,14 +141,14 @@ public class NoExceptionCacheManager implements CacheManager {
   }
 
   @Override
-  public DataFileChannel getDataFileChannel(PageId pageId, int pageOffset, int bytesToRead,
-                                            CacheContext cacheContext) {
+  public Optional<DataFileChannel> getDataFileChannel(PageId pageId, int pageOffset,
+    int bytesToRead, CacheContext cacheContext) {
     try {
       return mCacheManager.getDataFileChannel(pageId, pageOffset, bytesToRead, cacheContext);
     } catch (Exception e) {
       LOG.error("Failed to getDataFileChannel of page {}", pageId, e);
       Metrics.GET_ERRORS.inc();
-      return null;
+      return Optional.empty();
     }
   }
 

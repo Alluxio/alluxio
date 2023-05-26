@@ -18,12 +18,13 @@ import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCachePositionReader;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.PageNotFoundException;
 import alluxio.file.FileId;
 import alluxio.file.NettyBufTargetBuffer;
 import alluxio.file.ReadTargetBuffer;
+import alluxio.network.protocol.databuffer.CompositedDataBuffer;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
-import alluxio.network.protocol.databuffer.MultipleDataFileChannel;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsManager;
@@ -41,6 +42,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Paged file reader.
@@ -103,13 +105,13 @@ public class PagedFileReader extends BlockReader implements PositionReader {
   }
 
   /**
-   * Get a {@link MultipleDataFileChannel} which has a list of {@link DataFileChannel}.
+   * Get a {@link CompositedDataBuffer} which has a list of {@link DataFileChannel}.
    *
    * @param channel the Channel object which is used for allocating ByteBuf
    * @param length the bytes to read
-   * @return {@link MultipleDataFileChannel}
+   * @return {@link CompositedDataBuffer}
    */
-  public MultipleDataFileChannel getMultipleDataFileChannel(Channel channel, long length)
+  public CompositedDataBuffer getMultipleDataFileChannel(Channel channel, long length)
       throws IOException {
     if (mFileSize <= mPos) {
       // TODO(JiamingMai): consider throwing exception directly
@@ -120,11 +122,14 @@ public class PagedFileReader extends BlockReader implements PositionReader {
     long bytesToTransferLeft = bytesToTransfer;
     while (bytesToTransferLeft > 0) {
       long lengthPerOp = Math.min(bytesToTransferLeft, mPositionReader.getPageSize());
-      DataBuffer dataBuffer = mPositionReader.getDataFileChannel(mPos, (int) lengthPerOp);
-      if (dataBuffer == null) {
+      DataBuffer dataBuffer;
+      Optional<DataFileChannel> dataFileChannel =
+          mPositionReader.getDataFileChannel(mPos, (int) lengthPerOp);
+      if (dataFileChannel.isEmpty()) {
         dataBuffer = getDataBufferByCopying(channel, (int) lengthPerOp);
       } else {
         // update mPos
+        dataBuffer = dataFileChannel.get();
         if (dataBuffer.getLength() > 0) {
           mPos += dataBuffer.getLength();
         }
@@ -133,8 +138,8 @@ public class PagedFileReader extends BlockReader implements PositionReader {
       bytesToTransferLeft -= dataBuffer.getLength();
       dataBufferList.add(dataBuffer);
     }
-    MultipleDataFileChannel multipleDataFileChannel = new MultipleDataFileChannel(dataBufferList);
-    return multipleDataFileChannel;
+    CompositedDataBuffer compositedDataBuffer = new CompositedDataBuffer(dataBufferList);
+    return compositedDataBuffer;
   }
 
   private DataBuffer getDataBufferByCopying(Channel channel, int len) throws IOException {

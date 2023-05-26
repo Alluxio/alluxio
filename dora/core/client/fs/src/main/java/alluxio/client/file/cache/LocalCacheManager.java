@@ -159,8 +159,9 @@ public class LocalCacheManager implements CacheManager {
   }
 
   @Override
-  public DataFileChannel getDataFileChannel(
-      PageId pageId, int pageOffset, int bytesToRead, CacheContext cacheContext) {
+  public Optional<DataFileChannel> getDataFileChannel(
+      PageId pageId, int pageOffset, int bytesToRead, CacheContext cacheContext)
+      throws PageNotFoundException {
     Preconditions.checkArgument(pageOffset <= mOptions.getPageSize(),
         "Read exceeds page boundary: offset=%s size=%s",
         pageOffset, mOptions.getPageSize());
@@ -168,7 +169,7 @@ public class LocalCacheManager implements CacheManager {
     if (mState.get() == NOT_IN_USE) {
       Metrics.GET_NOT_READY_ERRORS.inc();
       Metrics.GET_ERRORS.inc();
-      return null;
+      throw new PageNotFoundException(String.format("Page %s could not be found", pageId));
     }
     ReadWriteLock pageLock = getPageLock(pageId);
     long startTime = System.nanoTime();
@@ -179,7 +180,7 @@ public class LocalCacheManager implements CacheManager {
       } catch (PageNotFoundException e) {
         LOG.debug("getDataChannel({},pageOffset={}) fails due to page not found in metastore",
             pageId, pageOffset);
-        return null;
+        throw e;
       }
 
       try {
@@ -190,7 +191,7 @@ public class LocalCacheManager implements CacheManager {
         cacheContext.incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), BYTE,
             bytesToRead);
         LOG.debug("getDataChannel({},pageOffset={}) exits", pageId, pageOffset);
-        return dataFileChannel;
+        return Optional.of(dataFileChannel);
       } catch (PageNotFoundException e) {
         LOG.debug("getDataChannel({},pageOffset={}) fails due to page file not found",
             pageId, pageOffset);
@@ -199,11 +200,12 @@ public class LocalCacheManager implements CacheManager {
         // something is wrong to read this page, let's remove it from meta store
         try (LockResource r2 = new LockResource(mPageMetaStore.getLock().writeLock())) {
           mPageMetaStore.removePage(pageId);
+          throw e;
         } catch (PageNotFoundException ex) {
           // best effort to remove this page from meta store and ignore the exception
           Metrics.CLEANUP_GET_ERRORS.inc();
+          throw ex;
         }
-        return null;
       }
     } finally {
       cacheContext.incrementCounter(

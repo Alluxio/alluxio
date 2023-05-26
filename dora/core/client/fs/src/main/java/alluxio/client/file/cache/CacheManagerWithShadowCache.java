@@ -16,6 +16,7 @@ import static alluxio.client.file.CacheContext.StatsUnit.BYTE;
 import alluxio.client.file.CacheContext;
 import alluxio.client.quota.CacheScope;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.exception.PageNotFoundException;
 import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -163,8 +164,8 @@ public class CacheManagerWithShadowCache implements CacheManager {
   }
 
   @Override
-  public DataFileChannel getDataFileChannel(PageId pageId, int pageOffset, int bytesToRead,
-                                            CacheContext cacheContext) {
+  public Optional<DataFileChannel> getDataFileChannel(PageId pageId, int pageOffset,
+      int bytesToRead, CacheContext cacheContext) throws PageNotFoundException {
     return mCacheManager.getDataFileChannel(pageId, pageOffset, bytesToRead, cacheContext);
   }
 

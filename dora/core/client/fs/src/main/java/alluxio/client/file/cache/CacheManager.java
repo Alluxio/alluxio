@@ -14,6 +14,7 @@ package alluxio.client.file.cache;
 import alluxio.client.file.CacheContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.PageNotFoundException;
 import alluxio.file.ByteArrayTargetBuffer;
 import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
@@ -343,6 +344,7 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
    * @param cacheContext the cache context
    * @return an object of {@link DataFileChannel}
    */
-  DataFileChannel getDataFileChannel(
-      PageId pageId, int pageOffset, int bytesToRead, CacheContext cacheContext);
+  Optional<DataFileChannel> getDataFileChannel(
+      PageId pageId, int pageOffset, int bytesToRead, CacheContext cacheContext)
+      throws PageNotFoundException;
 }

@@ -287,9 +287,9 @@ public final class CacheManagerWithShadowCacheTest {
     }
 
     @Override
-    public DataFileChannel getDataFileChannel(PageId pageId, int pageOffset, int bytesToRead,
+    public Optional<DataFileChannel> getDataFileChannel(PageId pageId, int pageOffset, int bytesToRead,
                                               CacheContext cacheContext) {
-      return null;
+      return Optional.empty();
     }
 
     @Override
