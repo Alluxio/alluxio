@@ -714,8 +714,9 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     if (te != null) {
       LOG.error("{} failed attempts to open \"{}\" with last error:",
           retryPolicy.getAttemptCount(), path, te);
+      throw te;
     }
-    throw te;
+    throw new IllegalStateException("Exceeded the number of retry attempts with no exception");
   }
 
   @Override
