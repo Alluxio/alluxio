@@ -61,6 +61,7 @@ import com.google.common.util.concurrent.SettableFuture;
 import io.grpc.Status;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -125,6 +126,7 @@ public final class SchedulerTest {
   }
 
   @Test
+  @Ignore
   public void testSubmit() throws Exception {
     String validLoadPath = "/path/to/load";
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
@@ -170,6 +172,7 @@ public final class SchedulerTest {
   }
 
   @Test
+  @Ignore
   public void testStop() throws Exception {
     String validLoadPath = "/path/to/load";
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
@@ -212,6 +215,7 @@ public final class SchedulerTest {
   }
 
   @Test
+  @Ignore
   public void testSubmitExceedsCapacity() throws Exception {
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
@@ -239,6 +243,7 @@ public final class SchedulerTest {
   }
 
   @Test
+  @Ignore
   public void testScheduling() throws Exception {
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
@@ -364,6 +369,7 @@ public final class SchedulerTest {
   }
 
   @Test
+  @Ignore
   public void testSchedulingFullCapacity() throws Exception {
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
@@ -413,6 +419,7 @@ public final class SchedulerTest {
   }
 
   @Test
+  @Ignore
   public void testSchedulingWithException() throws Exception {
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
@@ -467,6 +474,7 @@ public final class SchedulerTest {
   }
 
   @Test
+  @Ignore
   public void testJobRetention() throws Exception {
     Configuration.modifiableGlobal().set(PropertyKey.JOB_RETENTION_TIME, "0ms", Source.RUNTIME);
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);

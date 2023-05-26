@@ -14,6 +14,7 @@ package alluxio.master.scheduler;
 import static java.lang.String.format;
 
 import alluxio.Constants;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.collections.ConcurrentHashSet;
@@ -94,6 +95,8 @@ public final class Scheduler {
   /**
    * Worker information hub.
    */
+  @SuppressFBWarnings(value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE",
+      justification = "Already performed null check")
   public class WorkerInfoHub {
     private Scheduler mScheduler;
     public Map<WorkerInfo, CloseableResource<BlockWorkerClient>> mActiveWorkers = ImmutableMap.of();
@@ -416,7 +419,8 @@ public final class Scheduler {
     if (job == null) {
       throw new NotFoundRuntimeException(format("%s cannot be found.", jobDescription));
     }
-    return job.getProgress(format, verbose);
+    String progress = job.getProgress(format, verbose);
+    return progress;
   }
 
   /**
