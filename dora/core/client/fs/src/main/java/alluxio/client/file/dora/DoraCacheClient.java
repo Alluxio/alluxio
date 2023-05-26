@@ -116,7 +116,7 @@ public class DoraCacheClient {
     return new GrpcDataReader.Factory(mContext, workerNetAddress, builder);
   }
 
-  private NettyDataReader createNettyDataReader(
+  protected NettyDataReader createNettyDataReader(
       WorkerNetAddress workerNetAddress,
       Protocol.OpenUfsBlockOptions ufsOptions) {
     Protocol.ReadRequest.Builder builder = Protocol.ReadRequest.newBuilder()

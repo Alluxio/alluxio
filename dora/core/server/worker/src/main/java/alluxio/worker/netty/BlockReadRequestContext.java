@@ -21,7 +21,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Context of {@link BlockReadRequest}.
  */
 @NotThreadSafe
-public final class BlockReadRequestContext extends ReadRequestContext<BlockReadRequest> {
+public class BlockReadRequestContext extends ReadRequestContext<BlockReadRequest> {
   private BlockReader mBlockReader;
 
   /**
