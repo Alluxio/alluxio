@@ -171,16 +171,28 @@ public class MonoBlockStore implements BlockStore {
     try {
       BlockReader reader = mUnderFileSystemBlockStore.createBlockReader(sessionId, blockId, offset,
           positionShort, options);
+<<<<<<< HEAD
       return new DelegatingBlockReader(reader, () -> closeUfsBlock(sessionId, blockId));
+||||||| parent of 812855fe50 (Fix a bug that creates 0 byte block file mistakenly)
+      BlockReader blockReader = new DelegatingBlockReader(reader,
+          () -> closeUfsBlock(sessionId, blockId));
+      Metrics.WORKER_ACTIVE_CLIENTS.inc();
+      return blockReader;
+=======
+      BlockReader blockReader = new DelegatingBlockReader(reader,
+          () -> closeUfsBlock(sessionId, blockId, true));
+      Metrics.WORKER_ACTIVE_CLIENTS.inc();
+      return blockReader;
+>>>>>>> 812855fe50 (Fix a bug that creates 0 byte block file mistakenly)
     } catch (Exception e) {
       try {
-        closeUfsBlock(sessionId, blockId);
+        closeUfsBlock(sessionId, blockId, false);
       } catch (Exception ee) {
         LOG.warn("Failed to close UFS block", ee);
       }
       String errorMessage = format("Failed to read from UFS, sessionId=%d, "
               + "blockId=%d, offset=%d, positionShort=%s, options=%s: %s",
-          sessionId, blockId, offset, positionShort, options, e);
+          sessionId, blockId, offset, positionShort, options, e.toString());
       if (e instanceof FileNotFoundException) {
         throw new NotFoundException(errorMessage, e);
       }
@@ -188,13 +200,17 @@ public class MonoBlockStore implements BlockStore {
     }
   }
 
-  private void closeUfsBlock(long sessionId, long blockId)
+  private void closeUfsBlock(long sessionId, long blockId, boolean successful)
       throws IOException {
     try {
       mUnderFileSystemBlockStore.closeBlock(sessionId, blockId);
       Optional<TempBlockMeta> tempBlockMeta = mLocalBlockStore.getTempBlockMeta(blockId);
       if (tempBlockMeta.isPresent() && tempBlockMeta.get().getSessionId() == sessionId) {
-        commitBlock(sessionId, blockId, false);
+        if (successful) {
+          commitBlock(sessionId, blockId, false);
+        } else {
+          abortBlock(sessionId, blockId);
+        }
       } else {
         // When getTempBlockMeta() return null, such as a block readType NO_CACHE writeType THROUGH.
         // Counter will not be decrement in the commitblock().
