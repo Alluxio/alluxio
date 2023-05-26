@@ -45,8 +45,10 @@ const (
 )
 
 type buildOpts struct {
+	artifactOutput      string
 	dryRun              bool
 	modulesFile         string
+	outputDir           string
 	profilesFile        string
 	skipRepoCopy        bool
 	suppressMavenOutput bool
@@ -58,11 +60,17 @@ type buildOpts struct {
 	tarball       TarballOpts
 }
 
-func parseTarballFlags(args []string) (*buildOpts, error) {
+func parseTarballFlags(cmd *flag.FlagSet, args []string) (*buildOpts, error) {
 	opts := &buildOpts{}
-	cmd := flag.NewFlagSet(Tarball, flag.ExitOnError)
+
+	repoRoot, err := findRepoRoot()
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "error finding repo root")
+	}
 
 	// common flags
+	cmd.StringVar(&opts.artifactOutput, "artifact", "", "If set, writes object representing the tarball to YAML output file")
+	cmd.StringVar(&opts.outputDir, "outputDir", repoRoot, "Set output dir for generated tarball")
 	cmd.BoolVar(&opts.dryRun, "dryRun", false, "If set, writes placeholder files instead of running maven commands to mock the final state of the build directory to be packaged as a tarball")
 	cmd.StringVar(&opts.modulesFile, "modulesFile", defaultModulesFilePath, "Path to modules.yml file")
 	cmd.StringVar(&opts.profilesFile, "profilesFile", defaultProfilesFilePath, "Path to profiles.yml file")
@@ -72,6 +80,7 @@ func parseTarballFlags(args []string) (*buildOpts, error) {
 	// profile specific flags
 	// all default values are set to empty strings to be able to check if the user provided any input, which would override the profile's corresponding predefined value
 	var flagProfile, flagTargetName, flagMvnArgs, flagLibModules, flagPluginModules string
+	var flagDisableTelemetry bool
 	cmd.StringVar(&flagProfile, "profile", defaultProfile, "Tarball profile to build; list available profiles with the profiles command")
 	cmd.StringVar(&flagMvnArgs, "mvnArgs", "", `Comma-separated list of additional Maven arguments to build with, e.g. -mvnArgs "-Pspark,-Dhadoop.version=2.2.0"`)
 	cmd.StringVar(&flagLibModules, "libModules", "",
@@ -79,6 +88,7 @@ func parseTarballFlags(args []string) (*buildOpts, error) {
 	cmd.StringVar(&flagPluginModules, "pluginModules", "",
 		fmt.Sprintf("Either a plugin modules bundle name or a comma-separated list of plugin modules to compile into the tarball; list available plugin modules and plugin module bundles with the plugins command"))
 	cmd.StringVar(&flagTargetName, "target", "", "Name for the generated tarball; use '${VERSION}' as a placeholder for the version string")
+	cmd.BoolVar(&flagDisableTelemetry, "disableTelemetry", false, "Set true to disable Telemetry")
 
 	// parse and set finalized values into buildOpts
 	if err := cmd.Parse(args); err != nil {
@@ -97,6 +107,12 @@ func parseTarballFlags(args []string) (*buildOpts, error) {
 		}
 		return nil, stacktrace.NewError("unknown profile value %v among possible profiles %v", flagProfile, names)
 	}
+	if flagDisableTelemetry {
+		if len(flagMvnArgs) > 0 {
+			flagMvnArgs += ","
+		}
+		flagMvnArgs += "-Dupdate.check.enabled=false"
+	}
 	prof.updateFromFlags(flagTargetName, flagMvnArgs, flagLibModules, flagPluginModules)
 
 	// process flag strings and store in opts
@@ -108,7 +124,11 @@ func parseTarballFlags(args []string) (*buildOpts, error) {
 }
 
 func (opts *buildOpts) processProfileValues(prof *Profile) error {
-	opts.targetName = prof.TargetName
+	alluxioVersion, err := alluxioVersionFromPom()
+	if err != nil {
+		return stacktrace.Propagate(err, "error parsing version string")
+	}
+	opts.targetName = strings.ReplaceAll(prof.TargetName, versionPlaceholder, alluxioVersion)
 	opts.mavenArgs = strings.Split(prof.MvnArgs, ",")
 	opts.tarball = prof.Tarball
 

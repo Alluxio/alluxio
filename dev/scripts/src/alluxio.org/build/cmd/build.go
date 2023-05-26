@@ -12,6 +12,8 @@
 package cmd
 
 import (
+	"alluxio.org/build/artifact"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -36,12 +38,36 @@ var webUiDirs = []string{
 }
 
 func TarballF(args []string) error {
+	cmd := flag.NewFlagSet(Tarball, flag.ExitOnError)
 	// parse flags
-	opts, err := parseTarballFlags(args)
+	opts, err := parseTarballFlags(cmd, args)
 	if err != nil {
 		return stacktrace.Propagate(err, "error parsing build flags")
 	}
+	alluxioVersion, err := alluxioVersionFromPom()
+	if err != nil {
+		return stacktrace.Propagate(err, "error parsing version string")
+	}
+	if opts.artifactOutput != "" {
+		artifact, err := artifact.NewArtifact(
+			artifact.TarballArtifact,
+			opts.outputDir,
+			strings.ReplaceAll(opts.targetName, versionPlaceholder, alluxioVersion),
+			alluxioVersion,
+			nil,
+		)
+		if err != nil {
+			return stacktrace.Propagate(err, "error adding artifact")
+		}
+		return artifact.WriteToFile(opts.artifactOutput)
+	}
+	if err := buildTarball(opts); err != nil {
+		return stacktrace.Propagate(err, "error building tarball")
+	}
+	return nil
+}
 
+func buildTarball(opts *buildOpts) error {
 	// prepare repository
 	repoRoot, err := findRepoRoot()
 	if err != nil {
@@ -60,7 +86,7 @@ func TarballF(args []string) error {
 		}
 		repoBuildDir = tempDir
 	}
-	alluxioVersion, err := alluxioVersionFromPom(repoBuildDir)
+	alluxioVersion, err := alluxioVersionFromPom()
 	if err != nil {
 		return stacktrace.Propagate(err, "error parsing version string")
 	}
@@ -138,7 +164,7 @@ func TarballF(args []string) error {
 	}
 
 	// prepare tarball contents in a destination directory
-	tarballPath := filepath.Join(repoRoot, strings.ReplaceAll(opts.targetName, versionPlaceholder, alluxioVersion))
+	tarballPath := filepath.Join(opts.outputDir, strings.ReplaceAll(opts.targetName, versionPlaceholder, alluxioVersion))
 	if err := os.RemoveAll(tarballPath); err != nil {
 		return stacktrace.Propagate(err, "error deleting %v", tarballPath)
 	}
@@ -158,8 +184,11 @@ func TarballF(args []string) error {
 	if err := os.RemoveAll(tarballPath); err != nil {
 		return stacktrace.Propagate(err, "error deleting path %v", tarballPath)
 	}
+	if err := os.MkdirAll(filepath.Dir(tarballPath), os.ModePerm); err != nil {
+		return stacktrace.Propagate(err, "error creating %v", filepath.Dir(tarballPath))
+	}
 	if err := command.NewF("tar -czvf %v %v", tarballPath, filepath.Base(dstDir)).
-		WithDir(repoRoot).
+		WithDir(filepath.Dir(dstDir)).
 		Env("COPYFILE_DISABLE", "1"). // mac-specific issue: https://superuser.com/questions/259703/get-mac-tar-to-stop-putting-filenames-in-tar-archives
 		Run(); err != nil {
 		return stacktrace.Propagate(err, "error creating tarball")
