@@ -41,6 +41,15 @@ public class NoExceptionCacheManager implements CacheManager {
   }
 
   @Override
+  public void commitFile(String fileId) {
+    try {
+      mCacheManager.commitFile(fileId);
+    } catch (Exception e) {
+      LOG.error("Failed to commit file {}", fileId);
+    }
+  }
+
+  @Override
   public boolean put(PageId pageId, byte[] page) {
     try {
       return mCacheManager.put(pageId, page);

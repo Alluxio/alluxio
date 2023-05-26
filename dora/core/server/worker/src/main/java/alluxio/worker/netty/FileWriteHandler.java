@@ -20,6 +20,8 @@ import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.io.BlockWriter;
+import alluxio.worker.dora.DoraWorker;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.concurrent.ExecutorService;
 import com.google.common.base.Preconditions;
@@ -43,22 +45,11 @@ public final class FileWriteHandler extends AbstractWriteHandler<BlockWriteReque
       PropertyKey.WORKER_FILE_BUFFER_SIZE);
 
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
-  private final BlockWorker mWorker;
+  private final DoraWorker mWorker;
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc = new DefaultStorageTierAssoc(
       PropertyKey.WORKER_TIERED_STORE_LEVELS,
       PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS);
-  private final UfsManager mUfsManager;
-
-  /**
-   * Creates an instance of {@link FileWriteHandler}.
-   *
-   * @param executorService the executor service to run {@link PacketWriter}s
-   * @param blockWorker the block worker
-   */
-  FileWriteHandler(ExecutorService executorService, BlockWorker blockWorker) {
-    this(executorService, blockWorker, null);
-  }
 
   /**
    * Creates an instance of {@link FileWriteHandler}.
@@ -67,11 +58,9 @@ public final class FileWriteHandler extends AbstractWriteHandler<BlockWriteReque
    * @param blockWorker the block worker
    * @param ufsManager the UFS manager
    */
-  FileWriteHandler(ExecutorService executorService, BlockWorker blockWorker,
-                   UfsManager ufsManager) {
+  FileWriteHandler(ExecutorService executorService, DoraWorker doraWorker) {
     super(executorService);
-    mWorker = blockWorker;
-    mUfsManager = ufsManager;
+    mWorker = doraWorker;
   }
 
   @Override
@@ -97,8 +86,9 @@ public final class FileWriteHandler extends AbstractWriteHandler<BlockWriteReque
   @Override
   protected void initRequestContext(BlockWriteRequestContext context) throws Exception {
     BlockWriteRequest request = context.getRequest();
-    mWorker.createBlockRemote(request.getSessionId(), request.getId(),
-        mStorageTierAssoc.getAlias(request.getTier()), FILE_BUFFER_SIZE);
+    // TODO(JiamingMai): not sure whether this is still necessary or not
+    //mWorker.createBlockRemote(request.getSessionId(), request.getId(),
+    //    mStorageTierAssoc.getAlias(request.getTier()), FILE_BUFFER_SIZE);
   }
 
   /**
@@ -106,7 +96,7 @@ public final class FileWriteHandler extends AbstractWriteHandler<BlockWriteReque
    */
   public class BlockPacketWriter extends PacketWriter {
     /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
-    private final BlockWorker mWorker;
+    private final DoraWorker mWorker;
 
     /**
      * @param context context of this packet writer
@@ -114,7 +104,7 @@ public final class FileWriteHandler extends AbstractWriteHandler<BlockWriteReque
      * @param worker local block worker
      */
     public BlockPacketWriter(
-        BlockWriteRequestContext context, Channel channel, BlockWorker worker) {
+        BlockWriteRequestContext context, Channel channel, DoraWorker worker) {
       super(context, channel);
       mWorker = worker;
     }
@@ -123,10 +113,12 @@ public final class FileWriteHandler extends AbstractWriteHandler<BlockWriteReque
     protected void completeRequest(BlockWriteRequestContext context, Channel channel)
         throws Exception {
       WriteRequest request = context.getRequest();
+      context.getBlockWriter().commitFile();
       if (context.getBlockWriter() != null) {
         context.getBlockWriter().close();
       }
-      mWorker.commitBlock(request.getSessionId(), request.getId(), false);
+      // TODO(JiamingMai): figure out whether we need to commit or not
+      // mWorker.commitBlock(request.getSessionId(), request.getId(), false);
     }
 
     @Override
@@ -135,7 +127,8 @@ public final class FileWriteHandler extends AbstractWriteHandler<BlockWriteReque
       if (context.getBlockWriter() != null) {
         context.getBlockWriter().close();
       }
-      mWorker.abortBlock(request.getSessionId(), request.getId());
+      // TODO(JiamingMai): figure out whether we need to call abort method or not
+      // mWorker.abortBlock(request.getSessionId(), request.getId());
     }
 
     @Override
@@ -153,13 +146,14 @@ public final class FileWriteHandler extends AbstractWriteHandler<BlockWriteReque
       if (bytesReserved < pos) {
         long bytesToReserve = Math.max(FILE_BUFFER_SIZE, pos - bytesReserved);
         // Allocate enough space in the existing temporary block for the write.
-        mWorker.requestSpace(request.getSessionId(), request.getId(), bytesToReserve);
+        //mWorker.requestSpace(request.getSessionId(), request.getId(), bytesToReserve);
+
         context.setBytesReserved(bytesReserved + bytesToReserve);
       }
       if (context.getBlockWriter() == null) {
         String metricName = "BytesWrittenAlluxio";
         context.setBlockWriter(
-            mWorker.getTempBlockWriterRemote(request.getSessionId(), request.getId()));
+            mWorker.createFileWriter(request.getFileId()));
         context.setCounter(MetricsSystem.counter(metricName));
       }
       Preconditions.checkState(context.getBlockWriter() != null);

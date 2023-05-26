@@ -240,27 +240,18 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   }
 
   @Override
-  public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options)
+  public FileOutStream createFile(AlluxioURI alluxioPath, CreateFilePOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
-    AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
+    AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(alluxioPath);
     try {
       CreateFilePOptions mergedOptions = FileSystemOptionsUtils.createFileDefaults(
           mFsContext.getPathConf(ufsFullPath)).toBuilder().mergeFrom(options).build();
-      URIStatus status = mDoraClient.getStatus(ufsFullPath.toString(),
-          FileSystemOptionsUtils.getStatusDefaults(mFsContext.getPathConf(path)));
       LOG.debug("Created file {}, options: {}", ufsFullPath.getPath(), mergedOptions);
       OutStreamOptions outStreamOptions =
           new OutStreamOptions(mergedOptions, mFsContext,
-              mFsContext.getPathConf(path));
-      outStreamOptions.setUfsPath(status.getUfsPath());
-      outStreamOptions.setMountId(status.getMountId());
-      outStreamOptions.setAcl(status.getAcl());
-      mDoraClient.getOutStream();
-
-
-
-      AlluxioFileOutStream outStream = new AlluxioFileOutStream(path, outStreamOptions, mFsContext);
-      return outStream;
+              mFsContext.getPathConf(alluxioPath));
+      outStreamOptions.setUfsPath(ufsFullPath.getPath());
+      return mDoraClient.getOutStream(alluxioPath, mFsContext, outStreamOptions);
     } catch (Exception e) {
       LOG.debug("Dora create file error. Fall back to UFS.", e);
       return mDelegatedFileSystem.createFile(ufsFullPath, options);

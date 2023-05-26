@@ -45,6 +45,11 @@ public class PagedFileWriter extends BlockWriter {
   }
 
   @Override
+  public void commitFile() {
+    mCacheManager.commitFile(mFileId);
+  }
+
+  @Override
   public long append(ByteBuffer inputBuf) {
     long bytesWritten = 0;
     while (inputBuf.hasRemaining()) {

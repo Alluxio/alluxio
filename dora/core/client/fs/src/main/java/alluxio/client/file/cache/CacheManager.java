@@ -333,4 +333,6 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
 
   @Override
   Optional<CacheUsage> getUsage();
+
+  void commitFile(String fileId);
 }

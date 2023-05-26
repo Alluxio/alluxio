@@ -277,7 +277,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     } catch (Exception e) {
       throw new IOException(e);
     } finally {
-      super.close();
+      super.close();         
     }
   }
 

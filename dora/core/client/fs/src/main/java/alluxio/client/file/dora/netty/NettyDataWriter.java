@@ -121,19 +121,18 @@ public final class NettyDataWriter implements DataWriter {
   /**
    * @param context the file system context
    * @param address the data server address
-   * @param id      the block or UFS ID
    * @param length  the length of the block or file to write, set to Long.MAX_VALUE if unknown
    * @param type    type of the write request
    * @param options the options of the output stream
    * @return an instance of {@link NettyDataWriter}
    */
   public static NettyDataWriter create(FileSystemContext context, WorkerNetAddress address,
-                                       long id, long length, RequestType type,
+                                       long length, RequestType type,
                                        OutStreamOptions options) throws IOException {
     long packetSize =
         Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES);
     Channel nettyChannel = context.acquireNettyChannel(address);
-    return new NettyDataWriter(context, address, id, length, packetSize, type, options,
+    return new NettyDataWriter(context, address, length, packetSize, type, options,
         nettyChannel);
   }
 
@@ -155,21 +154,20 @@ public final class NettyDataWriter implements DataWriter {
    *
    * @param context    the file system context
    * @param address    the data server address
-   * @param id         the block or UFS file Id
-   * @param length     the length of the block or file to write, set to Long.MAX_VALUE if unknown
+   * @param length     the length of the file to write, set to Long.MAX_VALUE if unknown
    * @param packetSize the packet size
    * @param type       type of the write request
    * @param options    details of the write request which are constant for all requests
    * @param channel    netty channel
    */
-  private NettyDataWriter(FileSystemContext context, final WorkerNetAddress address, long id,
+  private NettyDataWriter(FileSystemContext context, final WorkerNetAddress address,
                           long length, long packetSize, RequestType type, OutStreamOptions options,
                           Channel channel) {
     mContext = context;
     mAddress = address;
     mLength = length;
     Protocol.WriteRequest.Builder builder =
-        Protocol.WriteRequest.newBuilder().setId(id).setTier(options.getWriteTier())
+        Protocol.WriteRequest.newBuilder().setTier(options.getWriteTier())
             .setType(getRequestType(type));
     if (type == RequestType.UFS_FILE) {
       Protocol.CreateUfsFileOptions ufsFileOptions =
@@ -194,6 +192,13 @@ public final class NettyDataWriter implements DataWriter {
   @Override
   public Optional<String> getUfsContentHash() {
     return Optional.empty();
+  }
+
+  public void writeChunk(byte[] bytes, int off, int len) throws IOException {
+    // TODO(JiamingMai): maybe we can reduce copying here
+    ByteBuf byteBuf = mChannel.alloc().buffer(len);
+    byteBuf.writeBytes(bytes, off, len);
+    writeChunk(byteBuf);
   }
 
   @Override

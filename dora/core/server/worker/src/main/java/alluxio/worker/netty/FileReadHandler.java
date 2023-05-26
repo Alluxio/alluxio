@@ -84,7 +84,7 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequestContext
   @NotThreadSafe
   public final class BlockPacketReader extends PacketReader {
     /**
-     * The Block Worker.
+     * The Dora Worker.
      */
     private final DoraWorker mWorker;
 

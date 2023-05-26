@@ -13,6 +13,7 @@ package alluxio.client.file.dora;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import alluxio.AlluxioURI;
 import alluxio.CloseableSupplier;
 import alluxio.PositionReader;
 import alluxio.client.block.BlockWorkerInfo;
@@ -97,13 +98,12 @@ public class DoraCacheClient {
    * @param outStreamOptions
    * @return the output stream
    */
-  public DoraFileOutStream getOutStream(FileSystemContext mFsContext,
-      URIStatus status, OutStreamOptions outStreamOptions) {
-    WorkerNetAddress workerNetAddress = getWorkerNetAddress(status.getPath());
+  public DoraFileOutStream getOutStream(AlluxioURI alluxioPath, FileSystemContext fsContext,
+      OutStreamOptions outStreamOptions) throws IOException {
+    WorkerNetAddress workerNetAddress = getWorkerNetAddress(alluxioPath.getPath());
     NettyDataWriter writer = NettyDataWriter.create(
-        mFsContext, workerNetAddress, blockId, blockSize,
-        RequestType.ALLUXIO_BLOCK, outStreamOptions);
-    return new DoraFileOutStream(writer, status.getLength());
+        fsContext, workerNetAddress, Long.MAX_VALUE, RequestType.ALLUXIO_BLOCK, outStreamOptions);
+    return new DoraFileOutStream(writer, alluxioPath, outStreamOptions, fsContext);
   }
 
   protected long getChunkSize() {

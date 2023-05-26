@@ -40,6 +40,11 @@ class ByteArrayCacheManager implements CacheManager {
   }
 
   @Override
+  public void commitFile(String fileId) {
+    throw new UnsupportedOperationException("commitFile method is unsupported. ");
+  }
+
+  @Override
   public boolean put(PageId pageId, ByteBuffer page, CacheContext cacheContext) {
     byte[] data = new byte[page.remaining()];
     page.get(data);

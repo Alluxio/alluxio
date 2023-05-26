@@ -49,6 +49,8 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,12 +67,9 @@ public class DoraFileOutStream extends FileOutStream {
 
   /** Used to manage closeable resources. */
   private final Closer mCloser;
-  private final long mBlockSize;
   private final AlluxioStorageType mAlluxioStorageType;
   private final UnderStorageType mUnderStorageType;
   private final FileSystemContext mContext;
-  private final BlockStoreClient mBlockStore;
-
   private final NettyDataWriter mNettyDataWriter;
 
   /** Stream to the file in the under storage, null if not writing to the under storage. */
@@ -80,8 +79,6 @@ public class DoraFileOutStream extends FileOutStream {
   private boolean mCanceled;
   private boolean mClosed;
   private boolean mWriteToAlluxio;
-  private BlockOutStream mCurrentBlockOutStream;
-  private final List<BlockOutStream> mPreviousBlockOutStreams;
 
   protected final AlluxioURI mUri;
 
@@ -92,8 +89,10 @@ public class DoraFileOutStream extends FileOutStream {
    * @param options the client options
    * @param context the file system context
    */
-  public DoraFileOutStream(AlluxioURI path, OutStreamOptions options, FileSystemContext context)
+  public DoraFileOutStream(NettyDataWriter dataWriter, AlluxioURI path,
+                           OutStreamOptions options, FileSystemContext context)
       throws IOException {
+    mNettyDataWriter = dataWriter;
     mCloser = Closer.create();
     // Acquire a resource to block FileSystemContext reinitialization, this needs to be done before
     // using mContext.
@@ -102,12 +101,9 @@ public class DoraFileOutStream extends FileOutStream {
     mCloser.register(mContext.blockReinit());
     try {
       mUri = Preconditions.checkNotNull(path, "path");
-      mBlockSize = options.getBlockSizeBytes();
       mAlluxioStorageType = options.getAlluxioStorageType();
       mUnderStorageType = options.getUnderStorageType();
       mOptions = options;
-      mBlockStore = BlockStoreClient.create(mContext);
-      mPreviousBlockOutStreams = new ArrayList<>();
       mClosed = false;
       mCanceled = false;
       mWriteToAlluxio = mAlluxioStorageType.isStore();
@@ -159,9 +155,8 @@ public class DoraFileOutStream extends FileOutStream {
     }
     try (Timer.Context ctx = MetricsSystem
             .uniformTimer(MetricKey.CLOSE_ALLUXIO_OUTSTREAM_LATENCY.getName()).time()) {
-      if (mCurrentBlockOutStream != null) {
-        mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
-      }
+      mNettyDataWriter.flush();
+      mNettyDataWriter.close();
 
       CompleteFilePOptions.Builder optionsBuilder = CompleteFilePOptions.newBuilder();
       optionsBuilder.setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
@@ -179,19 +174,11 @@ public class DoraFileOutStream extends FileOutStream {
 
       if (mAlluxioStorageType.isStore()) {
         if (mCanceled) {
-          for (BlockOutStream bos : mPreviousBlockOutStreams) {
-            bos.cancel();
-          }
+          mNettyDataWriter.cancel();
         } else {
           // Note, this is a workaround to prevent commit(blockN-1) and write(blockN)
           // race, in worse case, this may result in commit(blockN-1) completes earlier than
           // write(blockN), and blockN evicts the committed blockN-1 and causing file lost.
-          if (mCurrentBlockOutStream != null) {
-            mCurrentBlockOutStream.close();
-          }
-          for (BlockOutStream bos : mPreviousBlockOutStreams) {
-            bos.close();
-          }
         }
       }
 
@@ -207,10 +194,7 @@ public class DoraFileOutStream extends FileOutStream {
 
       // Complete the file if it's ready to be completed.
       if (!mCanceled && (mUnderStorageType.isSyncPersist() || mAlluxioStorageType.isStore())) {
-        try (CloseableResource<FileSystemMasterClient> masterClient = mContext
-            .acquireMasterClientResource()) {
-          masterClient.get().completeFile(mUri, optionsBuilder.build());
-        }
+        // TODO(JiamingMai): record to metadata store
       }
     } catch (Throwable e) { // must catch Throwable
       throw mCloser.rethrow(e); // IOException will be thrown as-is.
@@ -246,14 +230,9 @@ public class DoraFileOutStream extends FileOutStream {
 
   private void writeInternal(int b) throws IOException {
     if (mWriteToAlluxio) {
-      try {
-        if (mCurrentBlockOutStream == null || mCurrentBlockOutStream.remaining() == 0) {
-          getNextBlock();
-        }
-        mCurrentBlockOutStream.write(b);
-      } catch (IOException e) {
-        handleCacheWriteException(e);
-      }
+      Integer intVal = b;
+      byte[] bytes = new byte[]{intVal.byteValue()};
+      mNettyDataWriter.writeChunk(bytes, 0, 1);
     }
 
     if (mUnderStorageType.isSyncPersist()) {
@@ -269,71 +248,13 @@ public class DoraFileOutStream extends FileOutStream {
         PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
 
     if (mWriteToAlluxio) {
-      try {
-        int tLen = len;
-        int tOff = off;
-        while (tLen > 0) {
-          mNettyDataWriter.writeChunk();
-
-
-          if (mCurrentBlockOutStream == null || mCurrentBlockOutStream.remaining() == 0) {
-            getNextBlock();
-          }
-          long currentBlockLeftBytes = mCurrentBlockOutStream.remaining();
-          if (currentBlockLeftBytes >= tLen) {
-            mCurrentBlockOutStream.write(b, tOff, tLen);
-            tLen = 0;
-          } else {
-            mCurrentBlockOutStream.write(b, tOff, (int) currentBlockLeftBytes);
-            tOff += currentBlockLeftBytes;
-            tLen -= currentBlockLeftBytes;
-          }
-        }
-      } catch (Exception e) {
-        handleCacheWriteException(e);
-      }
+      mNettyDataWriter.writeChunk(b, off, len);
     }
-
     if (mUnderStorageType.isSyncPersist()) {
       mUnderStorageOutputStream.write(b, off, len);
       Metrics.BYTES_WRITTEN_UFS.inc(len);
     }
     mBytesWritten += len;
-  }
-
-  private void getNextBlock() throws IOException {
-    if (mCurrentBlockOutStream != null) {
-      Preconditions.checkState(mCurrentBlockOutStream.remaining() <= 0,
-          "The current block still has space left, no need to get new block");
-      mCurrentBlockOutStream.flush();
-      mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
-    }
-
-    if (mAlluxioStorageType.isStore()) {
-      mCurrentBlockOutStream =
-          mBlockStore.getOutStream(getNextBlockId(), mBlockSize, mOptions);
-      mWriteToAlluxio = true;
-    }
-  }
-
-  private long getNextBlockId() throws IOException {
-    try (CloseableResource<FileSystemMasterClient> masterClient = mContext
-        .acquireMasterClientResource()) {
-      return masterClient.get().getNewBlockIdForFile(mUri);
-    }
-  }
-
-  private void handleCacheWriteException(Exception e) throws IOException {
-    LOG.warn("Failed to write into AlluxioStore, canceling write attempt.", e);
-    if (!mUnderStorageType.isSyncPersist()) {
-      mCanceled = true;
-      throw new IOException(ExceptionMessage.FAILED_CACHE.getMessage(e.getMessage()), e);
-    }
-
-    if (mCurrentBlockOutStream != null) {
-      mWriteToAlluxio = false;
-      mCurrentBlockOutStream.cancel();
-    }
   }
 
   /**

@@ -328,6 +328,27 @@ public class LocalCacheManager implements CacheManager {
     return false;
   }
 
+  public void commitFile(String fileId) {
+    try {
+      // TODO(JiamingMai): we still need to commit the data (not only the page metadata)
+      // call commit method of PageStoreDir
+      for (PageStoreDir pageStoreDir : mPageMetaStore.getStoreDirs()) {
+        try {
+          pageStoreDir.commit(fileId, fileId);
+        } catch (IllegalStateException illegalStateException) {
+          // ignore the commit exception
+          LOG.error(illegalStateException.getMessage());
+        } catch (IOException ioException) {
+          // ignore the commit exception
+          LOG.error(ioException.getMessage());
+        }
+      }
+      mPageMetaStore.commitFile(fileId, fileId);
+    } catch (PageNotFoundException e) {
+      LOG.error("page not found when committing the file");
+    }
+  }
+
   private PutResult putAttempt(PageId pageId, ByteBuffer page, CacheContext cacheContext,
       boolean forcedToEvict) {
     LOG.debug("putInternal({},{} bytes) enters", pageId, page.remaining());
