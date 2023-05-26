@@ -142,7 +142,7 @@ public class NoExceptionCacheManager implements CacheManager {
 
   @Override
   public Optional<DataFileChannel> getDataFileChannel(PageId pageId, int pageOffset,
-    int bytesToRead, CacheContext cacheContext) {
+      int bytesToRead, CacheContext cacheContext) {
     try {
       return mCacheManager.getDataFileChannel(pageId, pageOffset, bytesToRead, cacheContext);
     } catch (Exception e) {

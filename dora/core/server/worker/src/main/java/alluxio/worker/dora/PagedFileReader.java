@@ -18,7 +18,6 @@ import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCachePositionReader;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.PageNotFoundException;
 import alluxio.file.FileId;
 import alluxio.file.NettyBufTargetBuffer;
 import alluxio.file.ReadTargetBuffer;
