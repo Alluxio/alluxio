@@ -684,7 +684,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         LOG.debug("Using original API to HDFS");
         return new HdfsUnderFileInputStream(inputStream);
       } catch (IOException e) {
-        LOG.warn("{} try to open {} : {}", retryPolicy.getAttemptCount(), path, e.toString());
+        LOG.debug("{} try to open {} : {}", retryPolicy.getAttemptCount(), path, e.toString());
         te = e;
         if (options.getRecoverFailedOpen() && dfs != null && e.getMessage().toLowerCase()
             .startsWith("cannot obtain block length for")) {
@@ -710,6 +710,10 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
           }
         }
       }
+    }
+    if (te != null) {
+      LOG.error("{} failed attempts to open \"{}\" with last error:",
+          retryPolicy.getAttemptCount(), path, te);
     }
     throw te;
   }
