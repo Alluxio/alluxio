@@ -12,9 +12,9 @@
 package alluxio.network.protocol;
 
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.network.protocol.databuffer.CompositedDataBuffer;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
-import alluxio.network.protocol.databuffer.CompositedDataBuffer;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
 import alluxio.proto.dataserver.Protocol.Response;
 import alluxio.util.proto.ProtoMessage;

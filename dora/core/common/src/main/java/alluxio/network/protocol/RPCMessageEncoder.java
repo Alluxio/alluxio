@@ -11,9 +11,9 @@
 
 package alluxio.network.protocol;
 
+import alluxio.network.protocol.databuffer.CompositedDataBuffer;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
-import alluxio.network.protocol.databuffer.CompositedDataBuffer;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
 import alluxio.network.protocol.databuffer.NioDataBuffer;
 
