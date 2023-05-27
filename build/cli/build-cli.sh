@@ -41,18 +41,18 @@ main() {
     esac
   done
 
-  binDir="${CLI_DIR}/../../cli/src/alluxio.org/cli/bin"
-  mkdir -p "${binDir}"
+  cliBinDir="${CLI_DIR}/../../cli/src/alluxio.org/cli/bin"
+  mkdir -p "${cliBinDir}"
 
   cd "${CLI_DIR}/../../cli/src/alluxio.org/"
 
   if [[ ${build_all} == "false" ]]; then
-    GO111MODULE=on go build -o "${binDir}/alluxioCli-$(uname)-$(uname -m)" "${MAIN_PATH}"
+    GO111MODULE=on go build -o "${cliBinDir}/alluxioCli-$(uname)-$(uname -m)" "${MAIN_PATH}"
   else
     for osKey in "${!ALL_OS[@]}"; do
       for archKey in "${!ALL_ARCH[@]}"; do
         echo "Building executable for ${osKey} ${archKey}"
-        GO111MODULE=on GOOS="${osKey}" GOARCH="${archKey}" go build -o "${binDir}/alluxioCli-${ALL_OS[$osKey]}-${ALL_ARCH[$archKey]}" "${MAIN_PATH}"
+        GO111MODULE=on GOOS="${osKey}" GOARCH="${archKey}" go build -o "${cliBinDir}/alluxioCli-${ALL_OS[$osKey]}-${ALL_ARCH[$archKey]}" "${MAIN_PATH}"
       done
     done
   fi
