@@ -15,7 +15,6 @@ import alluxio.Constants;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * A collection of open file handles in a dora worker.
@@ -37,9 +36,9 @@ public class DoraOpenFileHandleContainer extends Thread {
       try {
         sleep(Constants.MINUTE_MS);
         // Iterate the mOpenFileHandles if some handles are stale (not active for a long time).
-        Set<String> keys = mOpenFileHandles.keySet();
-        for (String key : keys) {
-          OpenFileHandle handle = mOpenFileHandles.get(key);
+        for (Map.Entry<String, OpenFileHandle> entry : mOpenFileHandles.entrySet()) {
+          String key = entry.getKey();
+          OpenFileHandle handle = entry.getValue();
           if (System.currentTimeMillis() - handle.getLastAccessTimeMs() >= Constants.HOUR) {
             mOpenFileHandles.remove(key);
             handle.close();

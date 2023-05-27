@@ -27,7 +27,6 @@ public class OpenFileHandle {
   private long           mPos;
   private long           mLastAccessTimeMs;
   private OutputStream   mOutStream; //outstream from UFS
-
   private boolean        mClosed;
 
   /**
@@ -63,6 +62,46 @@ public class OpenFileHandle {
   }
 
   /**
+   *  Get path of this handle.
+   * @return path of this handle
+   */
+  public String getPath() {
+    return mPath;
+  }
+
+  /**
+   * Get info of this handle.
+   * @return info of this handle
+   */
+  public FileInfo getInfo() {
+    return mInfo;
+  }
+
+  /**
+   * Get write position of the out stream in this handle.
+   * @return write position of the out stream in this handle
+   */
+  public long getPos() {
+    return mPos;
+  }
+
+  /**
+   * Get UFS out stream of this handle.
+   * @return UFS out stream of this handle
+   */
+  public OutputStream getOutStream() {
+    return mOutStream;
+  }
+
+  /**
+   * Check if this handle is already closed.
+   * @return true if this handle is close, false otherwise
+   */
+  public boolean isClosed() {
+    return mClosed;
+  }
+
+  /**
    * Close this handle.
    */
   public void close() {
@@ -70,8 +109,9 @@ public class OpenFileHandle {
     if (mOutStream != null) {
       try {
         mOutStream.close();
+        mOutStream = null;
       } catch (IOException e) {
-        //;
+        //Ignored
       }
     }
   }

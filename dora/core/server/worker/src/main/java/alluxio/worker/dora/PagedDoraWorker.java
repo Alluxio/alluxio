@@ -200,7 +200,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     }
     mCacheManager = cacheManager;
     mOpenFileHandleContainer = new DoraOpenFileHandleContainer();
-    mOpenFileHandleContainer.start();
   }
 
   @Override
@@ -225,6 +224,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     super.start(address);
     mAddress = address;
     register();
+    mOpenFileHandleContainer.start();
 
     // setup worker-master heartbeat
     // the heartbeat is only used to notify the aliveness of this worker, so that clients
