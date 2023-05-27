@@ -14,6 +14,7 @@ package env
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -24,7 +25,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 
-	"alluxio.org/command"
 	"alluxio.org/log"
 )
 
@@ -45,14 +45,6 @@ type AlluxioEnv struct {
 	EnvVar   *viper.Viper
 
 	Processes map[string]Process
-}
-
-func (env *AlluxioEnv) CommandF(format string, args ...interface{}) *command.BashBuilder {
-	ret := command.NewF(format, args...)
-	for _, k := range env.EnvVar.AllKeys() {
-		ret.Env(k, env.EnvVar.Get(k))
-	}
-	return ret
 }
 
 func InitAlluxioEnv(rootPath string) error {
@@ -234,9 +226,10 @@ func checkAndSetJava(envVar *viper.Viper) error {
 		}
 	}
 	// check if java is available via `PATH` using `which`
-	whichJavaPath, err := command.Output("which java")
+	whichJavaPath, err := exec.Command("which", "java").Output()
 	if err == nil {
 		envVar.Set(ConfJava.EnvVar, string(whichJavaPath))
+		return nil
 	}
 	// cannot find java
 	// - ${JAVA} is not set
@@ -249,9 +242,10 @@ func checkAndSetJava(envVar *viper.Viper) error {
 var javaVersionRe = regexp.MustCompile(`.*"(?P<majorVer>\d+)\.(?P<minorVer>\d+)[\w.-]*".*`)
 
 func checkJavaVersion(javaPath string, requiredJavaVersion int) error {
-	javaVer, err := command.NewF("%v -version 2>&1", javaPath).Output()
+	cmd := exec.Command("bash", "-c", fmt.Sprintf("%v -version", javaPath))
+	javaVer, err := cmd.CombinedOutput()
 	if err != nil {
-		return stacktrace.Propagate(err, "error java version from `java -version`")
+		return stacktrace.Propagate(err, "error finding java version from `%v -version`", javaPath)
 	}
 	matches := javaVersionRe.FindStringSubmatch(string(javaVer))
 	if len(matches) != 3 {
