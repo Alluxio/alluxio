@@ -142,7 +142,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private RocksDBDoraMetaStore mMetaStore;
   private final UnderFileSystem mUfs;
 
-  private final DoraOpenFileHandles mOpenFileHandles;
+  private final DoraOpenFileHandleContainer mOpenFileHandleContainer;
 
   /**
    * Constructor.
@@ -199,8 +199,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       mMetaStore = null;
     }
     mCacheManager = cacheManager;
-    mOpenFileHandles = new DoraOpenFileHandles();
-    mOpenFileHandles.start();
+    mOpenFileHandleContainer = new DoraOpenFileHandleContainer();
+    mOpenFileHandleContainer.start();
   }
 
   @Override
@@ -218,7 +218,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     return Collections.emptyMap();
   }
 
-  public DoraOpenFileHandles getOpenFileHandles() { return mOpenFileHandles; }
+  public DoraOpenFileHandleContainer getOpenFileHandles() { return mOpenFileHandleContainer; }
 
   @Override
   public void start(WorkerNetAddress address) throws IOException {
@@ -267,7 +267,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   @Override
   public void stop() throws IOException {
-    mOpenFileHandles.shutdown();
+    mOpenFileHandleContainer.shutdown();
     super.stop();
   }
 

@@ -208,8 +208,7 @@ public class DoraCacheClient {
    * @return URIStatus of new file
    * @throws RuntimeException
    */
-  public URIStatus createFile(String path, CreateFilePOptions options)
-      throws RuntimeException {
+  public URIStatus createFile(String path, CreateFilePOptions options) {
     try (CloseableResource<BlockWorkerClient> client =
              mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
       CreateFilePRequest request = CreateFilePRequest.newBuilder()

@@ -246,7 +246,8 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   @Override
   public void createFile(CreateFilePRequest request,
                          StreamObserver<CreateFilePResponse> responseObserver) {
-    System.out.println("Got createFile:" + request);
+    LOG.debug("Got createFile: {}", request);
+
     String ufsFullPath = request.getPath();
 
     FileInfo info = FileInfo.newBuilder()
@@ -279,7 +280,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   @Override
   public void completeFile(CompleteFilePRequest request,
                            StreamObserver<CompleteFilePResponse> responseObserver) {
-    System.out.println("Got completeFile:" + request);
+    LOG.debug("Got completeFile: {}", request);
     CompleteFilePResponse response = CompleteFilePResponse.newBuilder().build();
     responseObserver.onNext(response);
     responseObserver.onCompleted();

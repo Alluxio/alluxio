@@ -24,11 +24,11 @@ public class OpenFileHandle {
   private final String   mPath;
   private final FileInfo mInfo;
   private final UUID     mUUID;
-  private Long           mPos;
-  private Long           mLastAccessTimeMs;
+  private long           mPos;
+  private long           mLastAccessTimeMs;
   private OutputStream   mOutStream; //outstream from UFS
 
-  private Boolean        mClosed;
+  private boolean        mClosed;
 
   /**
    * Construct a new open file handle.
@@ -43,7 +43,7 @@ public class OpenFileHandle {
     mOutStream = outStream;
     mPos = 0L;
     mLastAccessTimeMs = System.currentTimeMillis();
-    mClosed = Boolean.FALSE;
+    mClosed = false;
   }
 
   /**
@@ -58,7 +58,7 @@ public class OpenFileHandle {
    * Get last accessed time.
    * @return the last accessed time of this handle
    */
-  public Long getLastAccessTimeMs() {
+  public long getLastAccessTimeMs() {
     return mLastAccessTimeMs;
   }
 
@@ -66,7 +66,7 @@ public class OpenFileHandle {
    * Close this handle.
    */
   public void close() {
-    mClosed = Boolean.TRUE;
+    mClosed = true;
     if (mOutStream != null) {
       try {
         mOutStream.close();

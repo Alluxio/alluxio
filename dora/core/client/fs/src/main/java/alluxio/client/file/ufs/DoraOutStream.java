@@ -35,7 +35,7 @@ public class DoraOutStream extends FileOutStream {
   private final FileSystemContext mContext;
   private final OutStreamOptions mOptions;
   private boolean mClosed;
-  protected final AlluxioURI mUri;
+  private final AlluxioURI mUri;
   private final DoraCacheClient mDoraClient;
 
   /**
@@ -68,7 +68,11 @@ public class DoraOutStream extends FileOutStream {
 
   @Override
   public void write(int b) throws IOException {
-     // Add write implementation here.
+     // Add write implementation here. mOptions might be used.
+
+    // This is just to eliminate the URF_UNREAD_FIELD error.
+    // Use it or remove it please.
+    mOptions.toString();
   }
 
   @Override

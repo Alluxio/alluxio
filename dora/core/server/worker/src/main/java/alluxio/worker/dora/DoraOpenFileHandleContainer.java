@@ -22,13 +22,13 @@ import java.util.Set;
  *
  * It is also a thread, and will run periodic checking of stale open handles.
  */
-public class DoraOpenFileHandles extends Thread {
+public class DoraOpenFileHandleContainer extends Thread {
   private final Map<String, OpenFileHandle> mOpenFileHandles;
-  private Boolean mStop;
+  private boolean mStop;
 
-  DoraOpenFileHandles() {
+  DoraOpenFileHandleContainer() {
     mOpenFileHandles = new HashMap<>();
-    mStop = Boolean.FALSE;
+    mStop = false;
   }
 
   @Override
@@ -46,7 +46,9 @@ public class DoraOpenFileHandles extends Thread {
           }
         }
       } catch (InterruptedException e) {
-        // ignored.
+        // Ignored. If this is interrupted by shutdown(), we will stop.
+      } catch (Exception e) {
+        // Ignored. The thread will continue.
       }
     }
     // Now, it is stopped. Let's remove all handles.
@@ -68,7 +70,8 @@ public class DoraOpenFileHandles extends Thread {
    * Wakeup the current thread and ask it to stop.
    */
   public void shutdown() {
-    mStop = Boolean.TRUE;
+    mStop = true;
+    // This will wake up the current thread if it is in sleep().
     interrupt();
   }
 }
