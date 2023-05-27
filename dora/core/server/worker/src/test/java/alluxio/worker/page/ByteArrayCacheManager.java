@@ -99,8 +99,8 @@ class ByteArrayCacheManager implements CacheManager {
   }
 
   @Override
-  public Optional<DataFileChannel> getDataFileChannel(PageId pageId, int pageOffset, int bytesToRead,
-                                            CacheContext cacheContext) {
+  public Optional<DataFileChannel> getDataFileChannel(PageId pageId, int pageOffset,
+      int bytesToRead, CacheContext cacheContext) {
     return Optional.empty();
   }
 
