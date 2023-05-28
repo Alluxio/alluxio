@@ -60,12 +60,11 @@ var (
 			},
 		},
 		"fuseStandalone": {
-			generatedJarPath: "integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar",
+			generatedJarPath: "dora/integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar",
 			tarballJarPath:   "lib/alluxio-fuse-%v.jar",
 			fileReplacements: map[string]map[string]string{
-				"integration/fuse/bin/alluxio-fuse": {
-					fmt.Sprintf("target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", versionPlaceholder): fmt.Sprintf("alluxio-fuse-%v.jar", versionPlaceholder),
-					"/../../../libexec": "/../libexec",
+				"dora/integration/fuse/bin/alluxio-fuse": {
+					fmt.Sprintf("target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", versionPlaceholder): fmt.Sprintf("../../../lib/alluxio-fuse-%v.jar", versionPlaceholder),
 				},
 			},
 		},
@@ -121,12 +120,13 @@ func collectTarballContents(opts *buildOpts, repoBuildDir, dstDir, alluxioVersio
 
 	// create symlinks
 	for linkFile, linkPath := range opts.tarball.Symlinks {
-		if err := os.MkdirAll(filepath.Dir(linkFile), 0755); err != nil {
-			return stacktrace.Propagate(err, "error creating parent directory of %v", linkFile)
+		dst := filepath.Join(dstDir, linkFile)
+		if err := os.MkdirAll(filepath.Dir(dst), 0755); err != nil {
+			return stacktrace.Propagate(err, "error creating parent directory of %v", dst)
 		}
-		log.Printf("Creating symlink at %v to %v", linkFile, linkPath)
-		if err := command.RunF("ln -s %v %v", linkPath, linkFile); err != nil {
-			return stacktrace.Propagate(err, "error creating symlink at %v to %v", linkFile, linkPath)
+		log.Printf("Creating symlink at %v to %v", dst, linkPath)
+		if err := command.RunF("ln -s %v %v", linkPath, dst); err != nil {
+			return stacktrace.Propagate(err, "error creating symlink at %v to %v", dst, linkPath)
 		}
 	}
 
