@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.SyncInfo;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.file.options.DescendantType;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
@@ -24,21 +25,31 @@ import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterators;
+import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -57,6 +68,8 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   /** UFS Configuration options. */
   protected final UnderFileSystemConfiguration mUfsConf;
 
+  private final ExecutorService mAsyncIOExecutor;
+
   /**
    * Constructs an {@link BaseUnderFileSystem}.
    *
@@ -66,6 +79,19 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   protected BaseUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf) {
     mUri = Preconditions.checkNotNull(uri, "uri");
     mUfsConf = Preconditions.checkNotNull(ufsConf, "ufsConf");
+    mAsyncIOExecutor = Executors.newCachedThreadPool(
+        ThreadFactoryUtils.build(uri.getPath() + "IOThread", true));
+  }
+
+  @Override
+  public void close() throws IOException {
+    try (Closer closer = Closer.create()) {
+      closer.register(() -> {
+        if (mAsyncIOExecutor != null) {
+          mAsyncIOExecutor.shutdown();
+        }
+      });
+    }
   }
 
   @Override
@@ -161,6 +187,93 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   @Override
   public boolean isSeekable() {
     return false;
+  }
+
+  @Nullable
+  @Override
+  public Iterator<UfsStatus> listStatusIterable(
+      String path, ListOptions options, String startAfter, int batchSize) throws IOException {
+    // Calling this method on non s3 UFS might result in OOM because batch based fetching
+    // is not supported and this method essentially fetches all ufs status and converts it to
+    // an iterator.
+    UfsStatus[] result = listStatus(path, options);
+    if (result == null) {
+      return null;
+    }
+    return Iterators.forArray(result);
+  }
+
+  @Override
+  public void performListingAsync(
+      String path, @Nullable String continuationToken, @Nullable String startAfter,
+      DescendantType descendantType, boolean checkStatus, Consumer<UfsLoadResult> onComplete,
+      Consumer<Throwable> onError) {
+    mAsyncIOExecutor.submit(() -> {
+      try {
+        UfsStatus baseStatus = null;
+        if (checkStatus) {
+          try {
+            baseStatus = getStatus(path);
+            if (baseStatus == null && !isObjectStorage()) {
+              onComplete.accept(new UfsLoadResult(Stream.empty(), 0,
+                  null, null, false, false, false));
+              return;
+            }
+            if (baseStatus != null && (descendantType == DescendantType.NONE
+                || baseStatus.isFile())) {
+              onComplete.accept(new UfsLoadResult(Stream.of(baseStatus), 1,
+                  null, new AlluxioURI(baseStatus.getName()), false,
+                  baseStatus.isFile(), isObjectStorage()));
+              return;
+            }
+          } catch (FileNotFoundException e) {
+            // if we are not using object storage we know nothing exists at the path,
+            // so just return an empty result
+            if (!isObjectStorage()) {
+              onComplete.accept(new UfsLoadResult(Stream.empty(), 0,
+                  null, null, false, false, false));
+              return;
+            }
+          }
+        }
+        UfsStatus[] items = listStatus(path, ListOptions.defaults()
+            .setRecursive(descendantType == DescendantType.ALL));
+        if (items != null) {
+          if (descendantType == DescendantType.NONE && items.length > 0) {
+            assert isObjectStorage() && this instanceof ObjectUnderFileSystem;
+            ObjectUnderFileSystem.ObjectPermissions permissions =
+                ((ObjectUnderFileSystem) this).getPermissions();
+            items = new UfsStatus[] {
+                new UfsDirectoryStatus("", permissions.getOwner(), permissions.getGroup(),
+                    permissions.getMode())};
+          }
+          Arrays.sort(items, Comparator.comparing(UfsStatus::getName));
+          for (UfsStatus item: items) {
+            // performListingAsync is used by metadata sync v2
+            // which expects the name of an item to be a full path
+            item.setName(PathUtils.concatPath(path, item.getName()));
+          }
+        }
+        if (items != null && items.length == 0) {
+          items = null;
+        }
+        UfsStatus firstItem = baseStatus != null ? baseStatus
+            : items != null ? items[0] : null;
+        UfsStatus lastItem = items == null ? firstItem
+            : items[items.length - 1];
+        Stream<UfsStatus> itemStream = items == null ? Stream.empty() : Arrays.stream(items);
+        int itemCount = items == null ? 0 : items.length;
+        if (baseStatus != null) {
+          itemStream = Stream.concat(Stream.of(baseStatus), itemStream);
+          itemCount++;
+        }
+        onComplete.accept(new UfsLoadResult(itemStream, itemCount,
+            null, lastItem == null ? null : new AlluxioURI(lastItem.getName()), false,
+            firstItem != null && firstItem.isFile(), isObjectStorage()));
+      } catch (Throwable t) {
+        onError.accept(t);
+      }
+    });
   }
 
   @Override

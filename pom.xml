@@ -14,7 +14,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.alluxio</groupId>
   <artifactId>alluxio-parent</artifactId>
-  <version>295-SNAPSHOT</version>
+  <version>296-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Alluxio Parent</name>
   <description>Parent POM of Alluxio project: a Memory-Speed Virtual Distributed Storage System</description>
@@ -30,7 +30,7 @@
     <connection>scm:git:git@github.com:alluxio/alluxio.git</connection>
     <developerConnection>scm:git:git@github.com:alluxio/alluxio.git</developerConnection>
     <url>scm:git:git@github.com:alluxio/alluxio.git</url>
-    <tag>HEAD</tag>
+    <tag>alluxio-parent-296-SNAPSHOT</tag>
   </scm>
   <developers>
     <developer>
@@ -125,6 +125,7 @@
     <argLine />
     <apache.curator.version>4.2.0</apache.curator.version>
     <aws.amazonaws.version>1.11.815</aws.amazonaws.version>
+    <awssdk.version>2.20.56</awssdk.version>
     <build.path>build</build.path>
     <catalyst.version>1.2.1</catalyst.version>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
@@ -158,6 +159,7 @@
     <jackson.version>2.13.5</jackson.version>
     <hadoop-cos.version>3.1.0-5.8.5</hadoop-cos.version>
     <cos_api.version>5.6.19</cos_api.version>
+    <s3proxy.version>2.0.0</s3proxy.version>
     <stateless4j.version>2.6.0</stateless4j.version>
     <surefire.forkCount>2</surefire.forkCount>
     <surefire.useSystemClassLoader>true</surefire.useSystemClassLoader>
@@ -703,6 +705,13 @@
         <version>${kerby.version}</version>
       </dependency>
       <dependency>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>bom</artifactId>
+        <version>${awssdk.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
         <groupId>it.unimi.dsi</groupId>
         <artifactId>fastutil-core</artifactId>
         <version>${fastutil.version}</version>
@@ -742,6 +751,18 @@
         <artifactId>hadoop-test</artifactId>
         <version>${hadoop.version}</version>
         <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.gaul</groupId>
+        <artifactId>s3proxy</artifactId>
+        <version>${s3proxy.version}</version>
+        <scope>test</scope>
+        <exclusions>
+          <exclusion>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.hamcrest</groupId>

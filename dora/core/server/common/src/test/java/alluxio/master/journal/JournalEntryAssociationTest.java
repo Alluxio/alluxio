@@ -104,7 +104,10 @@ public class JournalEntryAssociationTest {
           .setBandwidth(1).setPartialListing(false).setVerify(true).setJobId("1").build()).build(),
       JournalEntry.newBuilder().setCopyJob(alluxio.proto.journal.Job.CopyJobEntry.newBuilder()
           .setSrc("/src").setDst("/dst").setState(alluxio.proto.journal.Job.PJobState.CREATED)
-          .setBandwidth(1).setPartialListing(false).setVerify(true).setJobId("2").build()).build()
+          .setBandwidth(1).setPartialListing(false).setVerify(true).setJobId("2").build()).build(),
+      JournalEntry.newBuilder().setMoveJob(alluxio.proto.journal.Job.MoveJobEntry.newBuilder()
+          .setSrc("/src").setDst("/dst").setState(alluxio.proto.journal.Job.PJobState.CREATED)
+          .setBandwidth(1).setPartialListing(false).setVerify(true).setJobId("3").build()).build()
   );
   // CHECKSTYLE.OFF: LineLengthExceed
 

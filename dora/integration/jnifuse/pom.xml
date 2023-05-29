@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-integration</artifactId>
-    <version>295-SNAPSHOT</version>
+    <version>296-SNAPSHOT</version>
   </parent>
   <packaging>pom</packaging>
   <artifactId>alluxio-integration-jnifuse</artifactId>

@@ -79,16 +79,29 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequestContext
   }
 
   /**
+   * Gets worker.
+   * @return dora worker
+   */
+  public DoraWorker getWorker() {
+    return mWorker;
+  }
+
+  /**
    * The packet reader to read from a local block worker.
    */
   @NotThreadSafe
-  public final class BlockPacketReader extends PacketReader {
+  public class BlockPacketReader extends PacketReader {
     /**
      * The Dora Worker.
      */
     private final DoraWorker mWorker;
 
-    BlockPacketReader(DoraWorker worker) {
+    /**
+     * Creates an instance of {@link BlockPacketReader}.
+     *
+     * @param worker dora worker
+     */
+    public BlockPacketReader(DoraWorker worker) {
       mWorker = worker;
     }
 

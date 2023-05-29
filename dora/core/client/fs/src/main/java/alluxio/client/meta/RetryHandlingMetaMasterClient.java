@@ -18,9 +18,11 @@ import alluxio.grpc.BackupStatusPRequest;
 import alluxio.grpc.CheckpointPOptions;
 import alluxio.grpc.GetConfigReportPOptions;
 import alluxio.grpc.GetMasterInfoPOptions;
+import alluxio.grpc.ListProxyStatusPRequest;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
+import alluxio.grpc.ProxyStatus;
 import alluxio.grpc.ServiceType;
 import alluxio.master.MasterClientContext;
 import alluxio.wire.BackupStatus;
@@ -30,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import javax.annotation.concurrent.ThreadSafe;
@@ -105,5 +108,12 @@ public class RetryHandlingMetaMasterClient extends AbstractMasterClient
     return retryRPC(() -> mClient
         .checkpoint(CheckpointPOptions.newBuilder().build()).getMasterHostname(),
         RPC_LOG, "Checkpoint", "");
+  }
+
+  @Override
+  public List<ProxyStatus> listProxyStatus() throws IOException {
+    return retryRPC(() -> mClient.listProxyStatus(
+        ListProxyStatusPRequest.getDefaultInstance()).getProxyStatusesList(),
+        RPC_LOG, "ListProxyStatus", "");
   }
 }

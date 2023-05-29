@@ -16,7 +16,7 @@
   <parent>
     <artifactId>alluxio-integration-tools</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>295-SNAPSHOT</version>
+    <version>296-SNAPSHOT</version>
   </parent>
 
   <artifactId>alluxio-integration-tools-hms</artifactId>
@@ -140,8 +140,8 @@
               <goal>copy</goal>
             </goals>
             <configuration>
-              <sourceFile>target/alluxio-integration-tools-hms-295-SNAPSHOT-jar-with-dependencies.jar</sourceFile>
-              <destinationFile>../../../../lib/alluxio-integration-tools-hms-295-SNAPSHOT.jar</destinationFile>
+              <sourceFile>${basedir}/target/${project.artifactId}-${project.version}.jar</sourceFile>
+              <destinationFile>${project.parent.parent.parent.parent.basedir}/lib/${lib.jar.name}</destinationFile>
             </configuration>
           </execution>
         </executions>

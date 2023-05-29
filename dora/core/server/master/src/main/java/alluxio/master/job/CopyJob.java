@@ -55,9 +55,12 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
+import io.netty.util.internal.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -126,7 +129,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
   public CopyJob(String src, String dst, boolean overwrite, Optional<String> user, String jobId,
       OptionalLong bandwidth, boolean usePartialListing, boolean verificationEnabled,
       boolean checkContent, Iterable<FileInfo> fileIterable) {
-    super(user, jobId);
+    super(user, jobId, new RoundRobinWorkerAssignPolicy());
     mSrc = requireNonNull(src, "src is null");
     mDst = requireNonNull(dst, "dst is null");
     Preconditions.checkArgument(
@@ -189,11 +192,6 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
   @Override
   public boolean needVerification() {
     return mVerificationEnabled && mProcessedFileCount.get() > 0;
-  }
-
-  @Override
-  public void continueJob() {
-    // NOOP
   }
 
   /**
@@ -279,15 +277,32 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
   /**
    * get next load task.
    *
-   * @param worker blocker to worker
+   * @param workers workerInfos
    * @return the next task to run. If there is no task to run, return empty
    */
-  public Optional<CopyTask> getNextTask(WorkerInfo worker) {
+  public List<CopyTask> getNextTasks(Collection<WorkerInfo> workers) {
+    List<CopyTask> tasks = new ArrayList<>();
     List<Route> routes = getNextRoutes(BATCH_SIZE);
     if (routes.isEmpty()) {
-      return Optional.empty();
+      return Collections.unmodifiableList(tasks);
     }
-    return Optional.of(new CopyTask(routes));
+    WorkerInfo workerInfo = mWorkerAssignPolicy.pickAWorker(StringUtil.EMPTY_STRING, workers);
+    CopyTask copyTask = new CopyTask(routes);
+    copyTask.setMyRunningWorker(workerInfo);
+    tasks.add(copyTask);
+    return Collections.unmodifiableList(tasks);
+  }
+
+  /**
+   * Define how to process task that gets rejected when scheduler tried to kick off.
+   * For CopyJob
+   * @param task
+   */
+  public void onTaskSubmitFailure(Task<?> task) {
+    if (!(task instanceof CopyTask)) {
+      throw new IllegalArgumentException("Task is not a CopyTask: " + task);
+    }
+    ((CopyTask) task).mRoutes.forEach(this::addToRetry);
   }
 
   /**
@@ -377,6 +392,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
+        .add("JobId", mJobId)
         .add("Src", mSrc)
         .add("Dst", mDst)
         .add("User", mUser)
@@ -490,6 +506,11 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     setVerificationEnabled(targetJob.isVerificationEnabled());
   }
 
+  @Override
+  public boolean hasFailure() {
+    return !mFailedFiles.isEmpty();
+  }
+
   /**
    * Loads blocks in a UFS through an Alluxio worker.
    */
@@ -510,6 +531,8 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
      * @param routes pair of source and destination files
      */
     public CopyTask(List<Route> routes) {
+      super(CopyJob.this, CopyJob.this.mTaskIdGenerator.incrementAndGet());
+      super.setPriority(2);
       mRoutes = routes;
     }
 
@@ -536,6 +559,11 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
           .setUfsReadOptions(ufsReadOptions.build())
           .setWriteOptions(writeOptions)
           .build());
+    }
+
+    @Override
+    public int compareTo(Task o) {
+      return 0;
     }
   }
 

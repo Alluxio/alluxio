@@ -117,4 +117,15 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    */
   ListenableFuture<List<RouteFailure>> copy(List<Route> routes, UfsReadOptions readOptions,
       WriteOptions writeOptions);
+
+  /**
+   * Moves files from src to dst.
+   *
+   * @param routes the files to move
+   * @param readOptions the options for reading
+   * @param writeOptions the options for writing
+   * @return a list of failed files
+   */
+  ListenableFuture<List<RouteFailure>> move(List<Route> routes, UfsReadOptions readOptions,
+                                            WriteOptions writeOptions);
 }

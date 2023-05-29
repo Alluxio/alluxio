@@ -52,6 +52,9 @@ public class JobFactoryProducer {
     if (entry.hasCopyJob()) {
       return new JournalCopyJobFactory(entry.getCopyJob(), fsMaster);
     }
+    if (entry.hasMoveJob()) {
+      return new JournalMoveJobFactory(entry.getMoveJob(), fsMaster);
+    }
     else {
       throw new IllegalArgumentException("Unknown job type: " + entry);
     }

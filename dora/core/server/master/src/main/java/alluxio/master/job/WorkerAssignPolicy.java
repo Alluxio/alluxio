@@ -17,6 +17,9 @@ import java.util.Collection;
 
 /**
  * The worker assign policy.
+ * This policy is membership agnostic for now, it will only pick a worker
+ * from a given set of workers based on the policy, it is caller's responsibility
+ * to resolve any membership considerations before giving the worker set to pick from.
  */
 public abstract class WorkerAssignPolicy {
 

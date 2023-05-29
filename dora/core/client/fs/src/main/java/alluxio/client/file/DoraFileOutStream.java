@@ -19,6 +19,7 @@ import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.UnderFileSystemFileOutStream;
+import alluxio.client.file.dora.DoraCacheClient;
 import alluxio.client.file.dora.netty.NettyDataWriter;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
@@ -82,6 +83,8 @@ public class DoraFileOutStream extends FileOutStream {
 
   protected final AlluxioURI mUri;
 
+  private final DoraCacheClient mDoraClient;
+
   /**
    * Creates a new file output stream.
    *
@@ -89,9 +92,10 @@ public class DoraFileOutStream extends FileOutStream {
    * @param options the client options
    * @param context the file system context
    */
-  public DoraFileOutStream(NettyDataWriter dataWriter, AlluxioURI path,
+  public DoraFileOutStream(DoraCacheClient doraClient, NettyDataWriter dataWriter, AlluxioURI path,
                            OutStreamOptions options, FileSystemContext context)
       throws IOException {
+    mDoraClient = doraClient;
     mNettyDataWriter = dataWriter;
     mCloser = Closer.create();
     // Acquire a resource to block FileSystemContext reinitialization, this needs to be done before
@@ -194,7 +198,14 @@ public class DoraFileOutStream extends FileOutStream {
 
       // Complete the file if it's ready to be completed.
       if (!mCanceled && (mUnderStorageType.isSyncPersist() || mAlluxioStorageType.isStore())) {
-        // TODO(JiamingMai): record to metadata store
+        // record to metadata store
+        CompleteFilePOptions options = CompleteFilePOptions.newBuilder()
+            .setUfsLength(mNettyDataWriter.pos())//getBytesWritten())
+            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().build())
+            .setContentHash("HASH-256") // compute hash here
+            .build();
+        mClosed = true;
+        mDoraClient.completeFile(mUri.getPath(), options);
       }
     } catch (Throwable e) { // must catch Throwable
       throw mCloser.rethrow(e); // IOException will be thrown as-is.

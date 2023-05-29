@@ -52,7 +52,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * @param <T> type of read request
  */
 @NotThreadSafe
-abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
+public abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
     extends ChannelInboundHandlerAdapter {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractReadHandler.class);
 

@@ -560,31 +560,28 @@ public class LocalCacheManager implements CacheManager {
     if (bytesRead > 0) {
       return bytesRead;
     }
-    ReadWriteLock pageLock = getPageLock(pageId);
-    try (LockResource r = new LockResource(pageLock.writeLock())) {
-      bytesRead = get(pageId, pageOffset, bytesToRead,
-          buffer, cacheContext);
-      if (bytesRead > 0) {
-        return bytesRead;
-      }
-      // on local cache miss, read a complete page from external storage. This will always make
-      // progress or throw an exception
-      long startTime = System.nanoTime();
-      byte[] page = externalDataSupplier.get();
-      long timeElapse = System.nanoTime() - startTime;
-      // cache misses
-      buffer.writeBytes(page, pageOffset, bytesToRead);
-      MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
-          .mark(bytesToRead);
-      cacheContext.incrementCounter(
-          MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), BYTE,
-          bytesToRead);
-      cacheContext.incrementCounter(
-          MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName(), NANO,
-          timeElapse);
-      put(pageId, page, cacheContext);
-      return bytesToRead;
-    }
+    // on local cache miss, read a complete page from external storage. This will always make
+    // progress or throw an exception
+    // Note that we cannot synchronize on the new page, as this will cause deadlock due to
+    // incompatible lock order within putAttempt
+    // Not synchronizing may cause the same page to be read multiple times from UFS by two or more
+    // concurrent requests,
+    // but this is acceptable, and is expected to be rare as long as the number of striping locks
+    // is big enough
+    long startTime = System.nanoTime();
+    byte[] page = externalDataSupplier.get();
+    long timeElapse = System.nanoTime() - startTime;
+    buffer.writeBytes(page, pageOffset, bytesToRead);
+    MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
+        .mark(bytesToRead);
+    cacheContext.incrementCounter(
+        MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), BYTE,
+        bytesToRead);
+    cacheContext.incrementCounter(
+        MetricKey.CLIENT_CACHE_PAGE_READ_EXTERNAL_TIME_NS.getMetricName(), NANO,
+        timeElapse);
+    put(pageId, page, cacheContext);
+    return bytesToRead;
   }
 
   /**
