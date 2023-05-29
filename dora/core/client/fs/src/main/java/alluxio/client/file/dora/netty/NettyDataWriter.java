@@ -169,13 +169,13 @@ public final class NettyDataWriter implements DataWriter {
     Protocol.WriteRequest.Builder builder =
         Protocol.WriteRequest.newBuilder().setTier(options.getWriteTier())
             .setType(getRequestType(type));
-    if (type == RequestType.UFS_FILE) {
-      Protocol.CreateUfsFileOptions ufsFileOptions =
-          Protocol.CreateUfsFileOptions.newBuilder().setUfsPath(options.getUfsPath())
-              .setOwner(options.getOwner()).setGroup(options.getGroup())
-              .setMode(options.getMode().toShort()).setMountId(options.getMountId()).build();
-      builder.setCreateUfsFileOptions(ufsFileOptions);
-    }
+
+    Protocol.CreateUfsFileOptions ufsFileOptions =
+        Protocol.CreateUfsFileOptions.newBuilder().setUfsPath(options.getUfsPath())
+            .setOwner(options.getOwner()).setGroup(options.getGroup())
+            .setMode(options.getMode().toShort()).setMountId(options.getMountId()).build();
+    builder.setCreateUfsFileOptions(ufsFileOptions);
+
     mPartialRequest = builder.buildPartial();
     mPacketSize = packetSize;
     mChannel = channel;
@@ -235,7 +235,9 @@ public final class NettyDataWriter implements DataWriter {
       throw e;
     }
 
-    Protocol.WriteRequest writeRequest = mPartialRequest.toBuilder().setOffset(offset).build();
+    Protocol.WriteRequest writeRequest = mPartialRequest.toBuilder()
+        .setOffset(offset)
+        .build();
     DataBuffer dataBuffer = new NettyDataBuffer(buf);
     mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(writeRequest), dataBuffer))
         .addListener(new WriteListener(offset + len));

@@ -330,24 +330,19 @@ public class LocalCacheManager implements CacheManager {
   }
 
   public void commitFile(String fileId) {
+    // TODO(JiamingMai): we still need to commit the data (not only the page metadata)
+    // call commit method of PageStoreDir
     try {
-      // TODO(JiamingMai): we still need to commit the data (not only the page metadata)
-      // call commit method of PageStoreDir
-      try {
-        PageStoreDir dir = mPageMetaStore.getStoreDirOfFile(fileId);
-        dir.commit(fileId, fileId);
-      } catch (FileDoesNotExistException notExistException) {
-        LOG.error(notExistException.getMessage());
-      } catch (IllegalStateException illegalStateException) {
-        // ignore the commit exception
-        LOG.error(illegalStateException.getMessage());
-      } catch (IOException ioException) {
-        // ignore the commit exception
-        LOG.error(ioException.getMessage());
-      }
-      mPageMetaStore.commitFile(fileId, fileId);
-    } catch (PageNotFoundException e) {
-      LOG.error("page not found when committing the file");
+      PageStoreDir dir = mPageMetaStore.getStoreDirOfFile(fileId);
+      dir.commit(fileId, fileId);
+    } catch (FileDoesNotExistException notExistException) {
+      LOG.error(notExistException.getMessage());
+    } catch (IllegalStateException illegalStateException) {
+      // ignore the commit exception
+      LOG.error(illegalStateException.getMessage());
+    } catch (IOException ioException) {
+      // ignore the commit exception
+      LOG.error(ioException.getMessage());
     }
   }
 
