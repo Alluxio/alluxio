@@ -7838,7 +7838,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       longBuilder(Name.DORA_WORKER_METASTORE_ROCKSDB_CACHE_SIZE)
           .setDescription("The capacity in bytes of the RocksDB block metadata table LRU "
               + " cache. If unset, the RocksDB default will be used."
-              + " See https://github.com/facebook/rocksdb/wiki/Block-Cache")
+              + " See https://github.com/facebook/rocksdb/wiki/Block-Cache."
+              + " Our microbench test shows that 1GB cache can double the metadata read operation"
+              + " performance for a meta store that persists 10M metadata entries."
+              + " Note that the memory is off-heap and does not count in jvm memory.")
+          .setDefaultSupplier(
+              () -> Math.min(1024L * 1024 * 1024, Runtime.getRuntime().maxMemory() / 10),
+              "10% of the heap memory, 1GB as maximum")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.WORKER)
           .build();
