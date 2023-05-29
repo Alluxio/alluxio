@@ -46,6 +46,16 @@ service BlockWorker {
   rpc ClearMetrics (ClearMetricsRequest) returns (ClearMetricsResponse);
 
   rpc FreeWorker (FreeWorkerRequest) returns (FreeWorkerResponse);
+
+  /**
+ * Creates a file.
+ */
+  rpc CreateFile(grpc.file.CreateFilePRequest) returns (grpc.file.CreateFilePResponse);
+
+  /**
+ * Marks a file as completed.
+ */
+  rpc CompleteFile(grpc.file.CompleteFilePRequest) returns (grpc.file.CompleteFilePResponse);
 }
 
 // The check request

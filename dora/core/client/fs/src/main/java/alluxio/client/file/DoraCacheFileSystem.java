@@ -18,6 +18,8 @@ import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.ReadType;
 import alluxio.client.file.dora.DoraCacheClient;
 import alluxio.client.file.dora.WorkerLocationPolicy;
+import alluxio.client.file.options.OutStreamOptions;
+import alluxio.client.file.ufs.DoraOutStream;
 import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -242,6 +244,30 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
+
+    CreateFilePOptions mergedOptions = FileSystemOptionsUtils.createFileDefaults(
+        mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+
+    URIStatus status = mDoraClient.createFile(ufsFullPath.toString(), mergedOptions);
+
+    LOG.debug("Created file {}, options: {}", path.getPath(), mergedOptions);
+    OutStreamOptions outStreamOptions =
+        new OutStreamOptions(mergedOptions, mFsContext,
+            mFsContext.getPathConf(path));
+    outStreamOptions.setUfsPath(status.getUfsPath());
+    outStreamOptions.setMountId(status.getMountId());
+    outStreamOptions.setAcl(status.getAcl());
+    try {
+      // Return this outStream to client, so it will be used to write data.
+      DoraOutStream outStream = mDoraClient.getOutStream(status, outStreamOptions, mFsContext);
+      // But in initial version for testing purpose we will close it and drop it, and fall back
+      // to use UFS's createFile().
+      outStream.close();
+    } catch (Exception e) {
+      delete(path);
+      throw e;
+    }
+
     LOG.warn("Dora Client does not support create/write. This is only for test.");
     return mDelegatedFileSystem.createFile(ufsFullPath, options);
   }

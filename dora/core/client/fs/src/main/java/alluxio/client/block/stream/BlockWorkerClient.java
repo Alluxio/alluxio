@@ -15,8 +15,12 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.ClearMetricsRequest;
 import alluxio.grpc.ClearMetricsResponse;
+import alluxio.grpc.CompleteFilePRequest;
+import alluxio.grpc.CompleteFilePResponse;
 import alluxio.grpc.CopyRequest;
 import alluxio.grpc.CopyResponse;
+import alluxio.grpc.CreateFilePRequest;
+import alluxio.grpc.CreateFilePResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.GetStatusPRequest;
@@ -221,4 +225,18 @@ public interface BlockWorkerClient extends Closeable {
    * @throws StatusRuntimeException if any error occurs
    */
   ListenableFuture<MoveResponse> move(MoveRequest request);
+
+  /**
+   * Create file request from client to worker.
+   * @param request the request to create a file
+   * @return a response to contain FileInfo and OpenHandle
+   */
+  CreateFilePResponse createFile(CreateFilePRequest request);
+
+  /**
+   * Complete a file when writing is done.
+   * @param request the request to complete a file
+   * @return a response of this operation
+   */
+  CompleteFilePResponse completeFile(CompleteFilePRequest request);
 }

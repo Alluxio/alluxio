@@ -21,9 +21,14 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.grpc.BlockWorkerGrpc;
+import alluxio.grpc.CompleteFilePRequest;
+import alluxio.grpc.CompleteFilePResponse;
 import alluxio.grpc.CopyRequest;
 import alluxio.grpc.CopyResponse;
+import alluxio.grpc.CreateFilePRequest;
+import alluxio.grpc.CreateFilePResponse;
 import alluxio.grpc.FileFailure;
+import alluxio.grpc.FileInfo;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GrpcUtils;
@@ -41,6 +46,7 @@ import alluxio.grpc.TaskStatus;
 import alluxio.underfs.UfsStatus;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.dora.DoraWorker;
+import alluxio.worker.dora.OpenFileHandle;
 import alluxio.worker.dora.PagedDoraWorker;
 
 import com.google.common.collect.ImmutableMap;
@@ -234,5 +240,48 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       LOG.error(String.format("Failed to list status of %s: ", request.getPath()), e);
       responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
     }
+  }
+
+  @Override
+  public void createFile(CreateFilePRequest request,
+                         StreamObserver<CreateFilePResponse> responseObserver) {
+    LOG.debug("Got createFile: {}", request);
+
+    String ufsFullPath = request.getPath();
+
+    FileInfo info = FileInfo.newBuilder()
+        .setFileId(1111)
+        .setName(ufsFullPath)
+        .setPath(ufsFullPath)
+        .setUfsPath(ufsFullPath)
+        .setFolder(false)
+        .setCompleted(false)
+        .setInMemoryPercentage(22)
+        .setCreationTimeMs(3333)
+        .setLastModificationTimeMs(4444)
+        .build();
+
+    CreateFilePResponse response = CreateFilePResponse.newBuilder()
+        .setFileInfo(info)
+        .build();
+
+    // Open UFS OutputStream and use it as input
+    OpenFileHandle handle = new OpenFileHandle(ufsFullPath, info, null);
+    //add to map. Need to check if it is already opened, and  check the return value too.
+    ((PagedDoraWorker) mWorker).getOpenFileHandles().add(ufsFullPath, handle);
+
+    // We may return the UUID of the handle to client, and verify the handle for each
+    // upcoming/subsequent write request.
+    responseObserver.onNext(response);
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void completeFile(CompleteFilePRequest request,
+                           StreamObserver<CompleteFilePResponse> responseObserver) {
+    LOG.debug("Got completeFile: {}", request);
+    CompleteFilePResponse response = CompleteFilePResponse.newBuilder().build();
+    responseObserver.onNext(response);
+    responseObserver.onCompleted();
   }
 }

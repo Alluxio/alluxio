@@ -142,6 +142,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private RocksDBDoraMetaStore mMetaStore;
   private final UnderFileSystem mUfs;
 
+  private final DoraOpenFileHandleContainer mOpenFileHandleContainer;
+
   /**
    * Constructor.
    * @param workerId
@@ -197,6 +199,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       mMetaStore = null;
     }
     mCacheManager = cacheManager;
+    mOpenFileHandleContainer = new DoraOpenFileHandleContainer();
   }
 
   @Override
@@ -214,11 +217,14 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     return Collections.emptyMap();
   }
 
+  public DoraOpenFileHandleContainer getOpenFileHandles() { return mOpenFileHandleContainer; }
+
   @Override
   public void start(WorkerNetAddress address) throws IOException {
     super.start(address);
     mAddress = address;
     register();
+    mOpenFileHandleContainer.start();
 
     // setup worker-master heartbeat
     // the heartbeat is only used to notify the aliveness of this worker, so that clients
@@ -261,6 +267,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   @Override
   public void stop() throws IOException {
+    mOpenFileHandleContainer.shutdown();
     super.stop();
   }
 
