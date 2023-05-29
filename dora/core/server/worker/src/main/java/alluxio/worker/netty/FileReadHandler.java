@@ -44,6 +44,7 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequest> {
 
   private static final long UFS_BLOCK_OPEN_TIMEOUT_MS =
       Configuration.getMs(PropertyKey.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS);
+  private final DoraWorker mWorker;
 
   /**
    * Creates an instance of {@link FileReadHandler}.
@@ -57,6 +58,7 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequest> {
                          DoraWorker worker, FileTransferType fileTransferType) {
     super(executorService, channel, BlockReadRequest.class,
         new FilePacketReaderFactory(worker, fileTransferType));
+    mWorker = worker;
   }
 
   @Override
