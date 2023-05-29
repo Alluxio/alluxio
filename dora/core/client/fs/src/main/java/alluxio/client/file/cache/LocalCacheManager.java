@@ -25,6 +25,7 @@ import alluxio.client.quota.CacheQuota;
 import alluxio.client.quota.CacheScope;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.Pair;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.file.ByteArrayTargetBuffer;
@@ -332,16 +333,17 @@ public class LocalCacheManager implements CacheManager {
     try {
       // TODO(JiamingMai): we still need to commit the data (not only the page metadata)
       // call commit method of PageStoreDir
-      for (PageStoreDir pageStoreDir : mPageMetaStore.getStoreDirs()) {
-        try {
-          pageStoreDir.commit(fileId, fileId);
-        } catch (IllegalStateException illegalStateException) {
-          // ignore the commit exception
-          LOG.error(illegalStateException.getMessage());
-        } catch (IOException ioException) {
-          // ignore the commit exception
-          LOG.error(ioException.getMessage());
-        }
+      try {
+        PageStoreDir dir = mPageMetaStore.getStoreDirOfFile(fileId);
+        dir.commit(fileId, fileId);
+      } catch (FileDoesNotExistException notExistException) {
+        LOG.error(notExistException.getMessage());
+      } catch (IllegalStateException illegalStateException) {
+        // ignore the commit exception
+        LOG.error(illegalStateException.getMessage());
+      } catch (IOException ioException) {
+        // ignore the commit exception
+        LOG.error(ioException.getMessage());
       }
       mPageMetaStore.commitFile(fileId, fileId);
     } catch (PageNotFoundException e) {
