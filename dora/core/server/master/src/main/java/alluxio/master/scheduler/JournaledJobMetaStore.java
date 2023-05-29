@@ -55,7 +55,7 @@ public class JournaledJobMetaStore implements JobMetaStore, Journaled {
 
   @Override
   public boolean processJournalEntry(Journal.JournalEntry entry) {
-    if (!entry.hasLoadJob() && !entry.hasCopyJob()) {
+    if (!entry.hasLoadJob() && !entry.hasCopyJob() && !entry.hasMoveJob()) {
       return false;
     }
     else {

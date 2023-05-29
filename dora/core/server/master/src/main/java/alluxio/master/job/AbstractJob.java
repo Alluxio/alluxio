@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Abstract class for job. It provides basic job information and state management.
@@ -33,6 +34,7 @@ import java.util.OptionalLong;
 public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
   private static final Logger LOG = LoggerFactory.getLogger(LoadJob.class);
   protected final String mJobId;
+  protected final AtomicInteger mTaskIdGenerator = new AtomicInteger(0);
   protected JobState mState; // TODO(lucy) make it thread safe state update
   protected OptionalLong mEndTime = OptionalLong.empty();
   protected final long mStartTime;
@@ -48,10 +50,21 @@ public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
    * @param jobId the job id
    */
   public AbstractJob(Optional<String> user, String jobId) {
+    this(user, jobId, new HashBasedWorkerAssignPolicy());
+  }
+
+  /**
+   * Creates a new instance of {@link AbstractJob}.
+   * @param user
+   * @param jobId
+   * @param workerAssignPolicy
+   */
+  public AbstractJob(Optional<String> user, String jobId, WorkerAssignPolicy workerAssignPolicy) {
     mUser = requireNonNull(user, "user is null");
     mJobId = requireNonNull(jobId, "jobId is null");
     mState = JobState.RUNNING;
     mStartTime = System.currentTimeMillis();
+    mWorkerAssignPolicy = workerAssignPolicy;
   }
 
   /**
@@ -68,6 +81,14 @@ public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
    */
   public void setWorkerAssignPolicy(WorkerAssignPolicy assignPolicy) {
     mWorkerAssignPolicy = assignPolicy;
+  }
+
+  /**
+   * Gets the worker assign policy.
+   * @return assignPolicy the assign policy
+   */
+  public WorkerAssignPolicy getWorkerAssignPolicy() {
+    return mWorkerAssignPolicy;
   }
 
   @Override
@@ -125,6 +146,11 @@ public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
 
   @Override
   public boolean isDone() {
-    return mState == JobState.SUCCEEDED || mState == JobState.FAILED;
+    return mState == JobState.SUCCEEDED || mState == JobState.FAILED || mState == JobState.STOPPED;
+  }
+
+  @Override
+  public void initializeJob() {
+    LOG.info("Job:{} initializing...", mJobId);
   }
 }

@@ -79,6 +79,7 @@ import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.grpc.GrpcExecutors;
 import alluxio.worker.page.PagedBlockWriter;
 import alluxio.worker.task.CopyHandler;
+import alluxio.worker.task.DeleteHandler;
 
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
@@ -143,6 +144,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private RocksDBDoraMetaStore mMetaStore;
   private final UnderFileSystem mUfs;
 
+  private final DoraOpenFileHandleContainer mOpenFileHandleContainer;
+
   /**
    * Constructor.
    * @param workerId
@@ -198,6 +201,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       mMetaStore = null;
     }
     mCacheManager = cacheManager;
+    mOpenFileHandleContainer = new DoraOpenFileHandleContainer();
   }
 
   @Override
@@ -215,11 +219,14 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     return Collections.emptyMap();
   }
 
+  public DoraOpenFileHandleContainer getOpenFileHandles() { return mOpenFileHandleContainer; }
+
   @Override
   public void start(WorkerNetAddress address) throws IOException {
     super.start(address);
     mAddress = address;
     register();
+    mOpenFileHandleContainer.start();
 
     // setup worker-master heartbeat
     // the heartbeat is only used to notify the aliveness of this worker, so that clients
@@ -262,6 +269,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   @Override
   public void stop() throws IOException {
+    mOpenFileHandleContainer.shutdown();
     super.stop();
   }
 
@@ -294,9 +302,13 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         ? options.getCommonOptions().getSyncIntervalMs() : -1) :
         -1;
 
+    final boolean skipCache = options.hasRecursive() && options.getRecursive();
     final UfsStatus[] cachedStatuses;
     final ListStatusResult resultFromCache = mListStatusCache.getIfPresent(path);
     if (resultFromCache == null) {
+      cachedStatuses = null;
+    } else if (skipCache) {
+      // Only use the cached result when its not recursive listing
       cachedStatuses = null;
     } else {
       // Metadata is cached. Check if it is expired.
@@ -334,7 +346,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     }
 
     // Add this into cache. Return value of listStatus() might be null if not found.
-    if (freshStatusesFromUfs != null) {
+    if (freshStatusesFromUfs != null && !skipCache) {
       ListStatusResult newResult = new ListStatusResult(System.nanoTime(), freshStatusesFromUfs);
       mListStatusCache.put(path, newResult);
     }
@@ -565,7 +577,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         } catch (Exception e) {
           AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
           errors.add(FileFailure.newBuilder().setFile(file).setCode(t.getStatus().getCode().value())
-                                .setMessage(t.getMessage()).build());
+              .setRetryable(t.isRetryable()).setMessage(t.getMessage()).build());
         }
       }, GrpcExecutors.BLOCK_READER_EXECUTOR);
       futures.add(loadFuture);
@@ -607,14 +619,12 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
           UnderFileSystemConfiguration.defaults(mConf));
       String srcRoot = new AlluxioURI(route.getSrc()).getRootPath();
       String dstRoot = new AlluxioURI(route.getDst()).getRootPath();
-      UnderFileSystem dstUfs = mUfsManager.getOrAdd(new AlluxioURI(route.getSrc()),
+      UnderFileSystem dstUfs = mUfsManager.getOrAdd(new AlluxioURI(route.getDst()),
           UnderFileSystemConfiguration.defaults(mConf));
       try (FileSystem srcFs = new UfsBaseFileSystem(mFsContext, new UfsFileSystemOptions(srcRoot),
           new UfsManager.UfsClient(() -> srcUfs, new AlluxioURI(srcRoot)));
-
           FileSystem dstFs = new UfsBaseFileSystem(mFsContext, new UfsFileSystemOptions(dstRoot),
-              new UfsManager.UfsClient(() -> dstUfs, new AlluxioURI(dstRoot)));) {
-
+              new UfsManager.UfsClient(() -> dstUfs, new AlluxioURI(dstRoot)))) {
         ListenableFuture<Void> future = Futures.submit(() -> {
           try {
             if (readOptions.hasUser()) {
@@ -622,11 +632,64 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             }
             CopyHandler.copy(route, writeOptions, srcFs, dstFs);
           } catch (Exception t) {
+            LOG.error("Failed to copy {} to {}", route.getSrc(), route.getDst(), t);
             AlluxioRuntimeException e = AlluxioRuntimeException.from(t);
             RouteFailure.Builder builder =
                 RouteFailure.newBuilder().setRoute(route).setCode(e.getStatus().getCode().value());
             if (e.getMessage() != null) {
               builder.setMessage(e.getMessage());
+            }
+            errors.add(builder.build());
+          }
+        }, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+        futures.add(future);
+      } catch (IOException e) {
+        // ignore close error
+      }
+    }
+    return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+  }
+
+  @Override
+  public ListenableFuture<List<RouteFailure>> move(List<Route> routes, UfsReadOptions readOptions,
+                                                   WriteOptions writeOptions) {
+    List<ListenableFuture<Void>> futures = new ArrayList<>();
+    List<RouteFailure> errors = Collections.synchronizedList(new ArrayList<>());
+    for (Route route : routes) {
+      UnderFileSystem srcUfs = mUfsManager.getOrAdd(new AlluxioURI(route.getSrc()),
+              UnderFileSystemConfiguration.defaults(mConf));
+      String srcRoot = new AlluxioURI(route.getSrc()).getRootPath();
+      String dstRoot = new AlluxioURI(route.getDst()).getRootPath();
+      UnderFileSystem dstUfs = mUfsManager.getOrAdd(new AlluxioURI(route.getDst()),
+              UnderFileSystemConfiguration.defaults(mConf));
+
+      try (FileSystem srcFs = new UfsBaseFileSystem(mFsContext, new UfsFileSystemOptions(srcRoot),
+              new UfsManager.UfsClient(() -> srcUfs, new AlluxioURI(srcRoot)));
+           FileSystem dstFs = new UfsBaseFileSystem(mFsContext, new UfsFileSystemOptions(dstRoot),
+                   new UfsManager.UfsClient(() -> dstUfs, new AlluxioURI(dstRoot)))) {
+        ListenableFuture<Void> future = Futures.submit(() -> {
+          Boolean deleteFailure = false;
+          try {
+            if (readOptions.hasUser()) {
+              AuthenticatedClientUser.set(readOptions.getUser());
+            }
+            CopyHandler.copy(route, writeOptions, srcFs, dstFs);
+            try {
+              DeleteHandler.delete(new AlluxioURI(route.getSrc()), srcFs);
+            } catch (Exception e) {
+              deleteFailure = true;
+              throw e;
+            }
+          } catch (Exception t) {
+            AlluxioRuntimeException e = AlluxioRuntimeException.from(t);
+            RouteFailure.Builder builder =
+                RouteFailure.newBuilder().setRoute(route).setCode(e.getStatus().getCode().value())
+                    .setRetryable(true);
+            if (e.getMessage() != null) {
+              builder.setMessage(e.getMessage());
+            }
+            if (deleteFailure) {
+              builder.setRetryable(false);
             }
             errors.add(builder.build());
           }

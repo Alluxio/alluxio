@@ -21,9 +21,14 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.grpc.BlockWorkerGrpc;
+import alluxio.grpc.CompleteFilePRequest;
+import alluxio.grpc.CompleteFilePResponse;
 import alluxio.grpc.CopyRequest;
 import alluxio.grpc.CopyResponse;
+import alluxio.grpc.CreateFilePRequest;
+import alluxio.grpc.CreateFilePResponse;
 import alluxio.grpc.FileFailure;
+import alluxio.grpc.FileInfo;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GrpcUtils;
@@ -31,6 +36,8 @@ import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
 import alluxio.grpc.LoadFileRequest;
 import alluxio.grpc.LoadFileResponse;
+import alluxio.grpc.MoveRequest;
+import alluxio.grpc.MoveResponse;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.grpc.ReadResponseMarshaller;
@@ -39,6 +46,7 @@ import alluxio.grpc.TaskStatus;
 import alluxio.underfs.UfsStatus;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.dora.DoraWorker;
+import alluxio.worker.dora.OpenFileHandle;
 import alluxio.worker.dora.PagedDoraWorker;
 
 import com.google.common.collect.ImmutableMap;
@@ -112,7 +120,6 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   @Override
   public void loadFile(LoadFileRequest request, StreamObserver<LoadFileResponse> responseObserver) {
     try {
-
       ListenableFuture<List<FileFailure>> failures =
           mWorker.load(request.getFilesList(), request.getOptions());
       ListenableFuture<LoadFileResponse> future = Futures.transform(failures, fail -> {
@@ -149,6 +156,28 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       RpcUtils.invoke(LOG, future, "loadFile", "request=%s", responseObserver, request);
     } catch (Exception e) {
       LOG.debug(String.format("Failed to load file %s: ", request.getRoutesList()), e);
+      responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
+    }
+  }
+
+  @Override
+  public void move(MoveRequest request, StreamObserver<MoveResponse> responseObserver) {
+    try {
+      ListenableFuture<List<RouteFailure>> failures =
+              mWorker.move(request.getRoutesList(), request.getUfsReadOptions(),
+                      request.getWriteOptions());
+      ListenableFuture<MoveResponse> future = Futures.transform(failures, fail -> {
+        int numFiles = request.getRoutesCount();
+        TaskStatus taskStatus = TaskStatus.SUCCESS;
+        if (fail.size() > 0) {
+          taskStatus = numFiles > fail.size() ? TaskStatus.PARTIAL_FAILURE : TaskStatus.FAILURE;
+        }
+        MoveResponse.Builder response = MoveResponse.newBuilder();
+        return response.addAllFailures(fail).setStatus(taskStatus).build();
+      }, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+      RpcUtils.invoke(LOG, future, "moveFile", "request=%s", responseObserver, request);
+    } catch (Exception e) {
+      LOG.debug(String.format("Failed to move file %s: ", request.getRoutesList()), e);
       responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
     }
   }
@@ -211,5 +240,48 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       LOG.error(String.format("Failed to list status of %s: ", request.getPath()), e);
       responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
     }
+  }
+
+  @Override
+  public void createFile(CreateFilePRequest request,
+                         StreamObserver<CreateFilePResponse> responseObserver) {
+    LOG.debug("Got createFile: {}", request);
+
+    String ufsFullPath = request.getPath();
+
+    FileInfo info = FileInfo.newBuilder()
+        .setFileId(1111)
+        .setName(ufsFullPath)
+        .setPath(ufsFullPath)
+        .setUfsPath(ufsFullPath)
+        .setFolder(false)
+        .setCompleted(false)
+        .setInMemoryPercentage(22)
+        .setCreationTimeMs(3333)
+        .setLastModificationTimeMs(4444)
+        .build();
+
+    CreateFilePResponse response = CreateFilePResponse.newBuilder()
+        .setFileInfo(info)
+        .build();
+
+    // Open UFS OutputStream and use it as input
+    OpenFileHandle handle = new OpenFileHandle(ufsFullPath, info, null);
+    //add to map. Need to check if it is already opened, and  check the return value too.
+    ((PagedDoraWorker) mWorker).getOpenFileHandles().add(ufsFullPath, handle);
+
+    // We may return the UUID of the handle to client, and verify the handle for each
+    // upcoming/subsequent write request.
+    responseObserver.onNext(response);
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void completeFile(CompleteFilePRequest request,
+                           StreamObserver<CompleteFilePResponse> responseObserver) {
+    LOG.debug("Got completeFile: {}", request);
+    CompleteFilePResponse response = CompleteFilePResponse.newBuilder().build();
+    responseObserver.onNext(response);
+    responseObserver.onCompleted();
   }
 }

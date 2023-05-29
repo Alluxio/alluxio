@@ -11,6 +11,8 @@
 
 package alluxio;
 
+import alluxio.grpc.BuildVersion;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -40,6 +42,11 @@ public final class RuntimeConstants {
       ? ProjectConstants.REVISION.substring(0, 8) : ProjectConstants.REVISION;
   public static final String VERSION_AND_REVISION_SHORT =
       VERSION + "-" + REVISION_SHORT;
+  public static final BuildVersion UNKNOWN_VERSION_INFO = BuildVersion.newBuilder()
+      .setVersion("UNKNOWN").setRevision("UNKNOWN").build();
+  public static final BuildVersion CURRENT_VERSION_INFO = BuildVersion.newBuilder()
+      .setVersion(RuntimeConstants.VERSION)
+      .setRevision(RuntimeConstants.REVISION_SHORT).build();
 
   /** The relative path to the Alluxio target jar. */
   public static final String ALLUXIO_JAR = "target/alluxio-" + VERSION

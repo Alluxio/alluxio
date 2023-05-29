@@ -19,8 +19,12 @@ import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.ClearMetricsRequest;
 import alluxio.grpc.ClearMetricsResponse;
+import alluxio.grpc.CompleteFilePRequest;
+import alluxio.grpc.CompleteFilePResponse;
 import alluxio.grpc.CopyRequest;
 import alluxio.grpc.CopyResponse;
+import alluxio.grpc.CreateFilePRequest;
+import alluxio.grpc.CreateFilePResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.DataMessageMarshaller;
@@ -35,10 +39,14 @@ import alluxio.grpc.GrpcSerializationUtils;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
+import alluxio.grpc.LoadFileRequest;
+import alluxio.grpc.LoadFileResponse;
 import alluxio.grpc.LoadRequest;
 import alluxio.grpc.LoadResponse;
 import alluxio.grpc.MoveBlockRequest;
 import alluxio.grpc.MoveBlockResponse;
+import alluxio.grpc.MoveRequest;
+import alluxio.grpc.MoveResponse;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.grpc.ReadRequest;
@@ -321,6 +329,11 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   }
 
   @Override
+  public ListenableFuture<LoadFileResponse> loadFile(LoadFileRequest request) {
+    return mRpcFutureStub.loadFile(request);
+  }
+
+  @Override
   public GetStatusPResponse getStatus(GetStatusPRequest request) {
     return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
         .getStatus(request);
@@ -335,5 +348,22 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   @Override
   public ListenableFuture<CopyResponse> copy(CopyRequest request) {
     return mRpcFutureStub.copy(request);
+  }
+
+  @Override
+  public ListenableFuture<MoveResponse> move(MoveRequest request) {
+    return mRpcFutureStub.move(request);
+  }
+
+  @Override
+  public CreateFilePResponse createFile(CreateFilePRequest request) {
+    return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
+        .createFile(request);
+  }
+
+  @Override
+  public CompleteFilePResponse completeFile(CompleteFilePRequest request) {
+    return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
+        .completeFile(request);
   }
 }

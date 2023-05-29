@@ -69,6 +69,12 @@ func TarballF(args []string) error {
 	baseMvnCmd := constructMavenCmd(opts.mavenArgs)
 	if opts.dryRun {
 		log.Printf("Skip running maven command:\n%v", baseMvnCmd)
+		// need to create libexec/version.sh
+		if _, err := os.Stat(filepath.Join(repoBuildDir, "libexec", "version.sh")); os.IsNotExist(err) {
+			if err := command.New("./build/version/write_version.sh").WithDir(repoBuildDir).Run(); err != nil {
+				return stacktrace.Propagate(err, "error creating libexec/version.sh")
+			}
+		}
 		// mock creation of client, assembly, and lib jars
 		mockFiles := []string{
 			fmt.Sprintf(clientJarPathF, alluxioVersion),

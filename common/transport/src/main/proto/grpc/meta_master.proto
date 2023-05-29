@@ -148,6 +148,25 @@ message BackupStatusPRequest {
     optional string backupId = 1;
 }
 
+message ProxyStatus {
+  optional grpc.NetAddress address = 1;
+  optional string state = 2;
+  optional int64 startTime = 3;
+  optional int64 lastHeartbeatTime = 4;
+  optional grpc.BuildVersion version = 5;
+}
+
+message ListProxyStatusPRequest {
+  optional ListProxyStatusPOptions options = 1;
+}
+
+message ListProxyStatusPOptions {
+}
+
+message ListProxyStatusPResponse {
+  repeated ProxyStatus proxyStatuses = 1;
+}
+
  /**
   * This interface contains meta master service endpoints for Alluxio clients.
   */
@@ -176,6 +195,11 @@ service MetaMasterClientService {
    * Creates a checkpoint in the primary master journal system.
    */
   rpc Checkpoint(CheckpointPOptions) returns (CheckpointPResponse);
+
+  /**
+   * Returns the status of all known Proxy instances in the cluster.
+   */
+  rpc ListProxyStatus(ListProxyStatusPRequest) returns (ListProxyStatusPResponse);
 }
 
 message SetPathConfigurationPOptions {}
@@ -295,4 +319,25 @@ service MetaMasterMasterService {
    * Heartbeats to indicate the master is lost or not.
    */
   rpc MasterHeartbeat(MasterHeartbeatPRequest) returns (MasterHeartbeatPResponse);
+}
+
+message ProxyHeartbeatPOptions {
+  optional grpc.NetAddress proxyAddress = 1;
+  optional int64 startTime = 2;
+  optional grpc.BuildVersion version = 3;
+}
+message ProxyHeartbeatPRequest {
+  optional ProxyHeartbeatPOptions options = 1;
+}
+message ProxyHeartbeatPResponse {
+}
+
+/**
+  * This interface contains meta master service endpoints for Alluxio Proxy instances.
+  */
+service MetaMasterProxyService {
+  /**
+   * Stateless heartbeat from proxy instances to report the current status.
+   */
+  rpc ProxyHeartbeat(ProxyHeartbeatPRequest) returns (ProxyHeartbeatPResponse);
 }

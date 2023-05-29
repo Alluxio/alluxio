@@ -15,7 +15,7 @@
   <parent>
     <artifactId>alluxio-table-server-underdb</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>295-SNAPSHOT</version>
+    <version>296-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-table-server-underdb-hive</artifactId>
   <packaging>jar</packaging>
@@ -138,8 +138,8 @@
               <goal>copy</goal>
             </goals>
             <configuration>
-              <sourceFile>target/alluxio-table-server-underdb-hive-295-SNAPSHOT-jar-with-dependencies.jar</sourceFile>
-              <destinationFile>../../../../../lib/alluxio-table-server-underdb-hive-295-SNAPSHOT.jar</destinationFile>
+              <sourceFile>${basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar</sourceFile>
+              <destinationFile>${project.parent.parent.parent.parent.parent.basedir}/lib/${lib.jar.name}</destinationFile>
             </configuration>
           </execution>
         </executions>

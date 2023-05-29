@@ -170,7 +170,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected List<String> deleteObjects(List<String> keys) throws IOException {
     try {
-      DeleteObjectsRequest request = new DeleteObjectsRequest(mBucketName);
+      DeleteObjectsRequest request = new DeleteObjectsRequest(mBucketNameInternal);
       List<DeleteObjectsRequest.KeyVersion> keyVersions = keys.stream()
           .map(DeleteObjectsRequest.KeyVersion::new)
           .collect(Collectors.toList());

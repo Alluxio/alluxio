@@ -15,8 +15,12 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.ClearMetricsRequest;
 import alluxio.grpc.ClearMetricsResponse;
+import alluxio.grpc.CompleteFilePRequest;
+import alluxio.grpc.CompleteFilePResponse;
 import alluxio.grpc.CopyRequest;
 import alluxio.grpc.CopyResponse;
+import alluxio.grpc.CreateFilePRequest;
+import alluxio.grpc.CreateFilePResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.GetStatusPRequest;
@@ -24,10 +28,14 @@ import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
+import alluxio.grpc.LoadFileRequest;
+import alluxio.grpc.LoadFileResponse;
 import alluxio.grpc.LoadRequest;
 import alluxio.grpc.LoadResponse;
 import alluxio.grpc.MoveBlockRequest;
 import alluxio.grpc.MoveBlockResponse;
+import alluxio.grpc.MoveRequest;
+import alluxio.grpc.MoveResponse;
 import alluxio.grpc.OpenLocalBlockRequest;
 import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.grpc.ReadRequest;
@@ -179,6 +187,13 @@ public interface BlockWorkerClient extends Closeable {
   ListenableFuture<LoadResponse> load(LoadRequest request);
 
   /**
+   * load files.
+   * @param request
+   * @return listenable future of LoadFileResponse
+   */
+  ListenableFuture<LoadFileResponse> loadFile(LoadFileRequest request);
+
+  /**
    * get file status.
    *
    * @param request
@@ -201,4 +216,27 @@ public interface BlockWorkerClient extends Closeable {
    * @throws StatusRuntimeException if any error occurs
    */
   ListenableFuture<CopyResponse> copy(CopyRequest request);
+
+  /**
+   * move files from src to dst.
+   *
+   * @param request the move request
+   * @return listenable future of MoveResponse
+   * @throws StatusRuntimeException if any error occurs
+   */
+  ListenableFuture<MoveResponse> move(MoveRequest request);
+
+  /**
+   * Create file request from client to worker.
+   * @param request the request to create a file
+   * @return a response to contain FileInfo and OpenHandle
+   */
+  CreateFilePResponse createFile(CreateFilePRequest request);
+
+  /**
+   * Complete a file when writing is done.
+   * @param request the request to complete a file
+   * @return a response of this operation
+   */
+  CompleteFilePResponse completeFile(CompleteFilePRequest request);
 }

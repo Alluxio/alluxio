@@ -124,7 +124,7 @@ public final class CopyHandler {
     CreateFilePOptions createOptions =
         CreateFilePOptions.getDefaultInstance().toBuilder().setRecursive(true).setMode(
             PMode.newBuilder().setOwnerBits(Bits.ALL).setGroupBits(Bits.ALL)
-                 .setOtherBits(Bits.NONE)).setWriteType(writeType).build();
+                 .setOtherBits(Bits.NONE)).setWriteType(writeType).setIsAtomicWrite(true).build();
     try (InputStream in = srcFs.openFile(src);
         OutputStream out = dstFs.createFile(dst, createOptions)) {
       copiedLength = IOUtils.copyLarge(in, out, new byte[Constants.MB * 8]);
