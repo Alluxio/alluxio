@@ -23,8 +23,8 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheUsage;
 import alluxio.client.file.cache.PageId;
-import alluxio.client.file.options.FileSystemOptions;
 import alluxio.client.file.options.UfsFileSystemOptions;
+import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -37,6 +37,7 @@ import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.File;
 import alluxio.grpc.FileFailure;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
@@ -47,6 +48,7 @@ import alluxio.grpc.Scope;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.UfsReadOptions;
 import alluxio.grpc.WriteOptions;
+import alluxio.heartbeat.FixedIntervalSupplier;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -75,6 +77,7 @@ import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.grpc.GrpcExecutors;
 import alluxio.worker.task.CopyHandler;
+import alluxio.worker.task.DeleteHandler;
 
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
@@ -121,6 +124,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private final BlockMasterClientPool mBlockMasterClientPool;
   private final String mRootUFS;
   private final LoadingCache<String, DoraMeta.FileStatus> mUfsStatusCache;
+  private FileSystemContext mFsContext;
 
   private static class ListStatusResult {
     public long mTimeStamp;
@@ -138,6 +142,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private RocksDBDoraMetaStore mMetaStore;
   private final UnderFileSystem mUfs;
 
+  private final DoraOpenFileHandleContainer mOpenFileHandleContainer;
+
   /**
    * Constructor.
    * @param workerId
@@ -154,6 +160,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     mConf = conf;
     mRootUFS = Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
     mUfsManager = mResourceCloser.register(new DoraUfsManager());
+    mFsContext = mResourceCloser.register(FileSystemContext.create(mConf));
     mUfsStreamCache = new UfsInputStreamCache();
     mUfs = UnderFileSystem.Factory.create(
         mRootUFS,
@@ -192,6 +199,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       mMetaStore = null;
     }
     mCacheManager = cacheManager;
+    mOpenFileHandleContainer = new DoraOpenFileHandleContainer();
   }
 
   @Override
@@ -209,11 +217,14 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     return Collections.emptyMap();
   }
 
+  public DoraOpenFileHandleContainer getOpenFileHandles() { return mOpenFileHandleContainer; }
+
   @Override
   public void start(WorkerNetAddress address) throws IOException {
     super.start(address);
     mAddress = address;
     register();
+    mOpenFileHandleContainer.start();
 
     // setup worker-master heartbeat
     // the heartbeat is only used to notify the aliveness of this worker, so that clients
@@ -222,7 +233,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC,
             mResourceCloser.register(new BlockMasterSync()),
-            () -> Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+            () -> new FixedIntervalSupplier(Configuration.getMs(
+                PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)),
             mConf, ServerUserState.global()));
   }
 
@@ -255,6 +267,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   @Override
   public void stop() throws IOException {
+    mOpenFileHandleContainer.shutdown();
     super.stop();
   }
 
@@ -287,9 +300,13 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         ? options.getCommonOptions().getSyncIntervalMs() : -1) :
         -1;
 
+    final boolean skipCache = options.hasRecursive() && options.getRecursive();
     final UfsStatus[] cachedStatuses;
     final ListStatusResult resultFromCache = mListStatusCache.getIfPresent(path);
     if (resultFromCache == null) {
+      cachedStatuses = null;
+    } else if (skipCache) {
+      // Only use the cached result when its not recursive listing
       cachedStatuses = null;
     } else {
       // Metadata is cached. Check if it is expired.
@@ -327,7 +344,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     }
 
     // Add this into cache. Return value of listStatus() might be null if not found.
-    if (freshStatusesFromUfs != null) {
+    if (freshStatusesFromUfs != null && !skipCache) {
       ListStatusResult newResult = new ListStatusResult(System.nanoTime(), freshStatusesFromUfs);
       mListStatusCache.put(path, newResult);
     }
@@ -553,7 +570,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         } catch (Exception e) {
           AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
           errors.add(FileFailure.newBuilder().setFile(file).setCode(t.getStatus().getCode().value())
-                                .setMessage(t.getMessage()).build());
+              .setRetryable(t.isRetryable()).setMessage(t.getMessage()).build());
         }
       }, GrpcExecutors.BLOCK_READER_EXECUTOR);
       futures.add(loadFuture);
@@ -569,6 +586,10 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     String fileId = new AlluxioURI(ufsPath).hash();
     ByteBuf buf = PooledDirectNioByteBuf.allocate((int) (4 * mPageSize));
     try (BlockReader fileReader = createFileReader(fileId, 0, false, options)) {
+      // cache file metadata
+      getFileInfo(ufsPath, GetStatusPOptions.newBuilder().setCommonOptions(
+          FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build()).build());
+      // cache file data
       while (fileReader.transferTo(buf) != -1) {
         buf.clear();
       }
@@ -585,32 +606,91 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       WriteOptions writeOptions) {
     List<ListenableFuture<Void>> futures = new ArrayList<>();
     List<RouteFailure> errors = Collections.synchronizedList(new ArrayList<>());
-    FileSystemContext fsContext = FileSystemContext.create(Configuration.global());
-    for (Route route : routes) {
-      FileSystem srcFs = FileSystem.Factory.create(fsContext,
-          FileSystemOptions.create(Configuration.global(),
-              Optional.of(new UfsFileSystemOptions(new AlluxioURI(route.getSrc()).getRootPath()))));
-      FileSystem dstFs = FileSystem.Factory.create(fsContext,
-          FileSystemOptions.create(Configuration.global(),
-              Optional.of(new UfsFileSystemOptions(new AlluxioURI(route.getDst()).getRootPath()))));
 
-      ListenableFuture<Void> future = Futures.submit(() -> {
-        try {
-          if (readOptions.hasUser()) {
-            AuthenticatedClientUser.set(readOptions.getUser());
+    for (Route route : routes) {
+      UnderFileSystem srcUfs = mUfsManager.getOrAdd(new AlluxioURI(route.getSrc()),
+          UnderFileSystemConfiguration.defaults(mConf));
+      String srcRoot = new AlluxioURI(route.getSrc()).getRootPath();
+      String dstRoot = new AlluxioURI(route.getDst()).getRootPath();
+      UnderFileSystem dstUfs = mUfsManager.getOrAdd(new AlluxioURI(route.getDst()),
+          UnderFileSystemConfiguration.defaults(mConf));
+      try (FileSystem srcFs = new UfsBaseFileSystem(mFsContext, new UfsFileSystemOptions(srcRoot),
+          new UfsManager.UfsClient(() -> srcUfs, new AlluxioURI(srcRoot)));
+          FileSystem dstFs = new UfsBaseFileSystem(mFsContext, new UfsFileSystemOptions(dstRoot),
+              new UfsManager.UfsClient(() -> dstUfs, new AlluxioURI(dstRoot)))) {
+        ListenableFuture<Void> future = Futures.submit(() -> {
+          try {
+            if (readOptions.hasUser()) {
+              AuthenticatedClientUser.set(readOptions.getUser());
+            }
+            CopyHandler.copy(route, writeOptions, srcFs, dstFs);
+          } catch (Exception t) {
+            LOG.error("Failed to copy {} to {}", route.getSrc(), route.getDst(), t);
+            AlluxioRuntimeException e = AlluxioRuntimeException.from(t);
+            RouteFailure.Builder builder =
+                RouteFailure.newBuilder().setRoute(route).setCode(e.getStatus().getCode().value());
+            if (e.getMessage() != null) {
+              builder.setMessage(e.getMessage());
+            }
+            errors.add(builder.build());
           }
-          CopyHandler.copy(route, writeOptions, srcFs, dstFs);
-        } catch (Exception t) {
-          AlluxioRuntimeException e = AlluxioRuntimeException.from(t);
-          RouteFailure.Builder builder =
-              RouteFailure.newBuilder().setRoute(route).setCode(e.getStatus().getCode().value());
-          if (e.getMessage() != null) {
-            builder.setMessage(e.getMessage());
+        }, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+        futures.add(future);
+      } catch (IOException e) {
+        // ignore close error
+      }
+    }
+    return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+  }
+
+  @Override
+  public ListenableFuture<List<RouteFailure>> move(List<Route> routes, UfsReadOptions readOptions,
+                                                   WriteOptions writeOptions) {
+    List<ListenableFuture<Void>> futures = new ArrayList<>();
+    List<RouteFailure> errors = Collections.synchronizedList(new ArrayList<>());
+    for (Route route : routes) {
+      UnderFileSystem srcUfs = mUfsManager.getOrAdd(new AlluxioURI(route.getSrc()),
+              UnderFileSystemConfiguration.defaults(mConf));
+      String srcRoot = new AlluxioURI(route.getSrc()).getRootPath();
+      String dstRoot = new AlluxioURI(route.getDst()).getRootPath();
+      UnderFileSystem dstUfs = mUfsManager.getOrAdd(new AlluxioURI(route.getDst()),
+              UnderFileSystemConfiguration.defaults(mConf));
+
+      try (FileSystem srcFs = new UfsBaseFileSystem(mFsContext, new UfsFileSystemOptions(srcRoot),
+              new UfsManager.UfsClient(() -> srcUfs, new AlluxioURI(srcRoot)));
+           FileSystem dstFs = new UfsBaseFileSystem(mFsContext, new UfsFileSystemOptions(dstRoot),
+                   new UfsManager.UfsClient(() -> dstUfs, new AlluxioURI(dstRoot)))) {
+        ListenableFuture<Void> future = Futures.submit(() -> {
+          Boolean deleteFailure = false;
+          try {
+            if (readOptions.hasUser()) {
+              AuthenticatedClientUser.set(readOptions.getUser());
+            }
+            CopyHandler.copy(route, writeOptions, srcFs, dstFs);
+            try {
+              DeleteHandler.delete(new AlluxioURI(route.getSrc()), srcFs);
+            } catch (Exception e) {
+              deleteFailure = true;
+              throw e;
+            }
+          } catch (Exception t) {
+            AlluxioRuntimeException e = AlluxioRuntimeException.from(t);
+            RouteFailure.Builder builder =
+                RouteFailure.newBuilder().setRoute(route).setCode(e.getStatus().getCode().value())
+                    .setRetryable(true);
+            if (e.getMessage() != null) {
+              builder.setMessage(e.getMessage());
+            }
+            if (deleteFailure) {
+              builder.setRetryable(false);
+            }
+            errors.add(builder.build());
           }
-          errors.add(builder.build());
-        }
-      }, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
-      futures.add(future);
+        }, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+        futures.add(future);
+      } catch (IOException e) {
+        // ignore close error
+      }
     }
     return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
   }
@@ -621,7 +701,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   private class BlockMasterSync implements HeartbeatExecutor {
     @Override
-    public void heartbeat() throws InterruptedException {
+    public void heartbeat(long timeLimitMs) throws InterruptedException {
       final Command cmdFromMaster;
       try (PooledResource<BlockMasterClient> bmc = mBlockMasterClientPool.acquireCloseable()) {
         cmdFromMaster = bmc.get().heartbeat(mWorkerId.get(),

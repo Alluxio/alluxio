@@ -25,7 +25,7 @@ message JournalOpPId {
     optional int64 leastSignificantBits = 2;
 }
 
-// next available id: 54
+// next available id: 56
 message JournalEntry {
   // shared fields.
   optional int64 sequence_number = 1;
@@ -69,6 +69,7 @@ message JournalEntry {
   optional UpdateInodeFileEntry update_inode_file = 37;
   optional LoadJobEntry load_job = 53;
   optional CopyJobEntry copy_job = 54;
+  optional MoveJobEntry move_job = 55;
 
   // This journal entry is a list of other entries. when a journal entry
   // contains other journal entries, all other optional fields must be unset.

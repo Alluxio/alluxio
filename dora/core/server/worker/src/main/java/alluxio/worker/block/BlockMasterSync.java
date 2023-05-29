@@ -11,6 +11,7 @@
 
 package alluxio.worker.block;
 
+import alluxio.Constants;
 import alluxio.ProcessUtils;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -18,6 +19,7 @@ import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.FailedToAcquireRegisterLeaseException;
 import alluxio.grpc.Command;
 import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.util.logging.SamplingLogger;
 import alluxio.wire.WorkerNetAddress;
 
 import org.slf4j.Logger;
@@ -43,6 +45,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class BlockMasterSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterSync.class);
+  private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 30L * Constants.SECOND);
   private static final long ACQUIRE_LEASE_WAIT_MAX_DURATION =
       Configuration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_MAX_DURATION);
   private static final int HEARTBEAT_TIMEOUT_MS =
@@ -117,7 +120,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * Heartbeats to the master node about the change in the worker's managed space.
    */
   @Override
-  public void heartbeat() {
+  public void heartbeat(long timeLimitMs) {
     boolean success = mBlockMasterSyncHelper.heartbeat(
         mWorkerId.get(), mBlockWorker.getReport(),
         mBlockWorker.getStoreMeta(), this::handleMasterCommand);
@@ -176,6 +179,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       // Unknown request
       case Unknown:
         LOG.error("Master heartbeat sends unknown command {}", cmd);
+        break;
+      case Decommissioned:
+        SAMPLING_LOG.info("This worker has been decommissioned");
         break;
       default:
         throw new RuntimeException("Un-recognized command from master " + cmd);

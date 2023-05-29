@@ -16,11 +16,14 @@ import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.grpc.Bits;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.PMode;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.stress.BaseParameters;
@@ -75,6 +78,11 @@ public abstract class StressMasterBenchBase
   protected final String mDirsDir = "dirs";
   protected final String mFilesDir = "files";
   protected final String mFixedDir = "fixed";
+
+  // vars for createTestTree
+  protected int[] mPathNodeIds;
+  protected int[] mTreeLevelNodeCount;
+  protected int mTreeTotalNodeCount;
 
   /**
    * Creates instance.
@@ -211,7 +219,6 @@ public abstract class StressMasterBenchBase
     private final AtomicLong mTotalCounter;
     private final Path[] mBasePaths;
     private final Path[] mFixedBasePaths;
-
     /** The results. Access must be synchronized for thread safety. */
     private T mResult;
 
@@ -236,11 +243,24 @@ public abstract class StressMasterBenchBase
       mBasePaths = new Path[operations.length];
       mFixedBasePaths = new Path[operations.length];
 
+      mPathNodeIds = new int[mParameters.mTreeDepth];
+      mTreeLevelNodeCount = new int[mParameters.mTreeDepth];
+      mTreeLevelNodeCount[mParameters.mTreeDepth - 1] = mParameters.mTreeWidth;
+      for (int levelCount = mTreeLevelNodeCount.length - 2; levelCount >= 0; levelCount--) {
+        mTreeLevelNodeCount[levelCount] =
+            mTreeLevelNodeCount[levelCount + 1] * mParameters.mTreeWidth;
+      }
+      mTreeTotalNodeCount = mTreeLevelNodeCount[0] * mParameters.mTreeThreads;
+
       for (int i = 0; i < operations.length; i++) {
         mOperationCounters[i] = new AtomicLong();
         if (operations[i] == Operation.CREATE_DIR) {
           mBasePaths[i] =
               new Path(PathUtils.concatPath(basePaths[i], mDirsDir, mBaseParameters.mId));
+        } else if (operations[i] == Operation.CREATE_TREE
+            || operations[i] == Operation.LOAD_METADATA) {
+          mBasePaths[i] = new Path(PathUtils.concatPath(basePaths[i],
+              extractHostName(mBaseParameters.mId)));
         } else {
           mBasePaths[i] =
               new Path(PathUtils.concatPath(basePaths[i], mFilesDir, mBaseParameters.mId));
@@ -333,7 +353,7 @@ public abstract class StressMasterBenchBase
       for (Map.Entry<String, MethodStatistics> entry : nameStatistics.entrySet()) {
         final MasterBenchTaskResultStatistics stats = new MasterBenchTaskResultStatistics();
         stats.encodeResponseTimeNsRaw(entry.getValue().getTimeNs());
-        stats.mNumSuccess = entry.getValue().getNumSuccess();
+        stats.mNumSuccesses = entry.getValue().getNumSuccess();
         stats.mMaxResponseTimeNs = entry.getValue().getMaxTimeNs();
         mResult.putStatisticsForMethod(entry.getKey(), stats);
       }
@@ -461,8 +481,44 @@ public abstract class StressMasterBenchBase
           throw new IOException("[INCONSISTENCY] file still exists after deletion");
         }
         break;
+      case LOAD_METADATA:
+        fs.loadMetadata(new AlluxioURI(basePath + "/" + counter), ListStatusPOptions.newBuilder()
+            .setLoadMetadataType(LoadMetadataPType.ALWAYS)
+            .setRecursive(true)
+            .setLoadMetadataOnly(true).build());
+        break;
+      case CREATE_TREE:
+        String nodePath = "";
+        int nodeNumber = (int) counter;
+        for (int levelCount = 0; levelCount < mParameters.mTreeDepth; levelCount++) {
+          mPathNodeIds[levelCount] = nodeNumber / mTreeLevelNodeCount[levelCount];
+          nodeNumber = nodeNumber % mTreeLevelNodeCount[levelCount];
+          nodePath += "/";
+          nodePath += mPathNodeIds[levelCount];
+        }
+        for (int fileNumber = 0; fileNumber < mParameters.mTreeFiles; fileNumber++) {
+          try {
+            fs.createFile(new AlluxioURI((basePath + nodePath + "/"
+                    + nodeNumber + "/" + fileNumber + ".txt")),
+                CreateFilePOptions.newBuilder().setRecursive(true).build()).close();
+          } catch (FileAlreadyExistsException e) {
+            break;
+          }
+        }
+        break;
       default:
         throw new IllegalStateException("Unknown operation: " + operation);
     }
+  }
+
+  protected String extractHostName(String mId) {
+    String hostName = "";
+    String[] splitedMid = mId.split("-");
+    hostName += splitedMid[0];
+    for (int i = 1; i < splitedMid.length - 1; i++) {
+      hostName += "-";
+      hostName += splitedMid[i];
+    }
+    return hostName;
   }
 }

@@ -59,7 +59,6 @@ import alluxio.util.webui.UIFileBlockInfo;
 import alluxio.util.webui.UIFileInfo;
 import alluxio.util.webui.WebUtils;
 import alluxio.web.MasterWebServer;
-import alluxio.wire.Address;
 import alluxio.wire.AlluxioMasterInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.Capacity;
@@ -100,7 +99,6 @@ import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetSocketAddress;
 import java.net.URLDecoder;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -141,6 +139,7 @@ public final class AlluxioMasterRestServiceHandler {
 
   // endpoints
   public static final String GET_INFO = "info";
+  public static final String SCHEDULER_INFO = "scheduler_info";
 
   // webui endpoints // TODO(william): DRY up these endpoints
   public static final String WEBUI_INIT = "webui_init";
@@ -184,6 +183,19 @@ public final class AlluxioMasterRestServiceHandler {
     mMetaMaster = mMasterProcess.getMaster(MetaMaster.class);
     mFsClient =
         (FileSystem) context.getAttribute(MasterWebServer.ALLUXIO_FILESYSTEM_CLIENT_RESOURCE_KEY);
+  }
+
+  /**
+   * @summary gateway to get scheduler info.
+   * @param jobId
+   * @return Response
+   */
+  @GET
+  @Path(SCHEDULER_INFO)
+  public Response getSchedulerInfo(@QueryParam("jobid") final String jobId) {
+    return RestUtils.call(() -> {
+      return mFileSystemMaster.getScheduler().printJobsStatus();
+    }, Configuration.global());
   }
 
   /**
@@ -698,9 +710,6 @@ public final class AlluxioMasterRestServiceHandler {
       }
       response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG)).setInvalidPathError("")
           .setViewingOffset(0).setCurrentPath("");
-      //response.setDownloadLogFile(1);
-      //response.setBaseUrl("./browseLogs");
-      //response.setShowPermissions(false);
 
       String logsPath = Configuration.getString(PropertyKey.LOGS_DIR);
       File logsDir = new File(logsPath);
@@ -745,7 +754,6 @@ public final class AlluxioMasterRestServiceHandler {
         }
       } else {
         // Request a specific log file.
-
         // Only allow filenames as the path, to avoid arbitrary local path lookups.
         requestFile = new File(requestFile).getName();
         response.setCurrentPath(requestFile);
@@ -875,24 +883,34 @@ public final class AlluxioMasterRestServiceHandler {
   @GET
   @Path(WEBUI_MASTERS)
   public Response getWebUIMasters() {
-    return RestUtils.call(() -> {
-      MasterWebUIMasters response = new MasterWebUIMasters();
+    final Map<String, Gauge> gauges = MetricsSystem.METRIC_REGISTRY.getGauges();
+    Gauge lastCheckpointGauge = gauges
+        .get(MetricKey.MASTER_JOURNAL_LAST_CHECKPOINT_TIME.getName());
+    long lastCheckpointTime = lastCheckpointGauge == null ? 0
+        : (long) lastCheckpointGauge.getValue();
+    Gauge journalEntriesGauge = gauges
+        .get(MetricKey.MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT.getName());
+    long journalEntriesSinceCheckpoint = journalEntriesGauge == null ? 0
+        : (long) journalEntriesGauge.getValue();
 
-      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG));
+    Gauge lastGainPrimacyGuage = gauges
+        .get(MetricKey.MASTER_LAST_GAIN_PRIMACY_TIME.getName());
+    long lastGainPrimacyTime = lastGainPrimacyGuage == null ? 0
+        : (long) lastGainPrimacyGuage.getValue();
 
-      MasterInfo[] failedMasterInfos = mMetaMaster.getLostMasterInfos();
-      response.setFailedMasterInfos(failedMasterInfos);
-
-      MasterInfo[] normalMasterInfos = mMetaMaster.getMasterInfos();
-      response.setNormalMasterInfos(normalMasterInfos);
-
-      InetSocketAddress leaderMasterAddress = mMasterProcess.getRpcAddress();
-      MasterInfo leaderMasterInfo = new MasterInfo(MASTER_ID_NULL,
-              new Address(leaderMasterAddress.getHostString(), leaderMasterAddress.getPort()),
-              System.currentTimeMillis());
-      response.setLeaderMasterInfo(leaderMasterInfo);
-      return response;
-    }, Configuration.global());
+    return RestUtils.call(() -> new MasterWebUIMasters()
+        .setDebug(Configuration.getBoolean(PropertyKey.DEBUG))
+        .setLostMasterInfos(mMetaMaster.getLostMasterInfos())
+        .setStandbyMasterInfos(mMetaMaster.getStandbyMasterInfos())
+        .setPrimaryMasterInfo(new MasterInfo(MASTER_ID_NULL, mMetaMaster.getMasterAddress())
+            .setLastUpdatedTimeMs(System.currentTimeMillis())
+            .setStartTimeMs(mMasterProcess.getStartTimeMs())
+            .setGainPrimacyTimeMs(lastGainPrimacyTime)
+            .setLastCheckpointTimeMs(lastCheckpointTime)
+            .setJournalEntriesSinceCheckpoint(journalEntriesSinceCheckpoint)
+            .setVersion(ProjectConstants.VERSION)
+            .setRevision(ProjectConstants.REVISION)),
+        Configuration.global());
   }
 
   /**

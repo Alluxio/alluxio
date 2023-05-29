@@ -40,10 +40,22 @@ service BlockWorker {
   rpc RemoveBlock (RemoveBlockRequest) returns (RemoveBlockResponse);
   rpc MoveBlock (MoveBlockRequest) returns (MoveBlockResponse);
 
+  rpc Move(MoveRequest) returns (MoveResponse);
+
   // TODO(lu) Move to metrics worker
   rpc ClearMetrics (ClearMetricsRequest) returns (ClearMetricsResponse);
 
   rpc FreeWorker (FreeWorkerRequest) returns (FreeWorkerResponse);
+
+  /**
+ * Creates a file.
+ */
+  rpc CreateFile(grpc.file.CreateFilePRequest) returns (grpc.file.CreateFilePResponse);
+
+  /**
+ * Marks a file as completed.
+ */
+  rpc CompleteFile(grpc.file.CompleteFilePRequest) returns (grpc.file.CompleteFilePResponse);
 }
 
 // The check request
@@ -195,10 +207,11 @@ message LoadFileRequest {
 }
 
 message File{
-  optional string ufs_path = 1;
+  optional string alluxio_path = 1;
+  optional string ufs_path = 2;
   // file length
-  optional int64 length = 2;
-  optional int64 mountId = 3;
+  optional int64 length = 3;
+  optional int64 mountId = 4;
 }
 
 message LoadFileResponse {
@@ -311,3 +324,14 @@ message MoveBlockResponse {}
 message ClearMetricsRequest {}
 
 message ClearMetricsResponse {}
+
+message MoveRequest {
+  repeated Route routes = 1;
+  optional UfsReadOptions ufs_read_options = 2;
+  required WriteOptions write_options= 3;
+}
+
+message MoveResponse {
+  required TaskStatus status = 1;
+  repeated RouteFailure failures = 2;
+}

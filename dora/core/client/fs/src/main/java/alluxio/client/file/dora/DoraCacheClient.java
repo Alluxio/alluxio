@@ -13,6 +13,7 @@ package alluxio.client.file.dora;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import alluxio.AlluxioURI;
 import alluxio.CloseableSupplier;
 import alluxio.PositionReader;
 import alluxio.client.block.BlockWorkerInfo;
@@ -22,7 +23,14 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.PositionReadFileInStream;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.dora.netty.NettyDataReader;
+import alluxio.client.file.options.OutStreamOptions;
+import alluxio.client.file.ufs.DoraOutStream;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.status.PermissionDeniedException;
+import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.CompleteFilePRequest;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.CreateFilePRequest;
 import alluxio.grpc.FileInfo;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GetStatusPRequest;
@@ -86,6 +94,23 @@ public class DoraCacheClient {
     return new PositionReadFileInStream(reader, status.getLength());
   }
 
+  /**
+   * Create a OutStream to write data to dora cluster.
+   * @param status
+   * @param outStreamOptions
+   * @param fsContext
+   * @return the out stream
+   * @throws IOException
+   */
+  public DoraOutStream getOutStream(URIStatus status,
+                                    OutStreamOptions outStreamOptions,
+                                    FileSystemContext fsContext) throws IOException {
+    return new DoraOutStream(new AlluxioURI(status.getUfsPath()),
+                                    outStreamOptions,
+                                    fsContext,
+                                    this);
+  }
+
   protected long getChunkSize() {
     return mChunkSize;
   }
@@ -115,7 +140,7 @@ public class DoraCacheClient {
     return new GrpcDataReader.Factory(mContext, workerNetAddress, builder);
   }
 
-  private NettyDataReader createNettyDataReader(
+  protected NettyDataReader createNettyDataReader(
       WorkerNetAddress workerNetAddress,
       Protocol.OpenUfsBlockOptions ufsOptions) {
     Protocol.ReadRequest.Builder builder = Protocol.ReadRequest.newBuilder()
@@ -133,7 +158,7 @@ public class DoraCacheClient {
    * @throws RuntimeException
    */
   public List<URIStatus> listStatus(String path, ListStatusPOptions options)
-      throws RuntimeException {
+      throws PermissionDeniedException {
     try (CloseableResource<BlockWorkerClient> client =
              mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
       List<URIStatus> result = new ArrayList<>();
@@ -156,11 +181,13 @@ public class DoraCacheClient {
    * @param options
    * @return uri status
    */
-  public URIStatus getStatus(String path, GetStatusPOptions options) {
+  public URIStatus getStatus(String path, GetStatusPOptions options)
+      throws PermissionDeniedException {
     return getStatusByGrpc(path, options);
   }
 
-  protected URIStatus getStatusByGrpc(String path, GetStatusPOptions options) {
+  protected URIStatus getStatusByGrpc(String path, GetStatusPOptions options)
+      throws PermissionDeniedException {
     try (CloseableResource<BlockWorkerClient> client =
              mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
       GetStatusPRequest request = GetStatusPRequest.newBuilder()
@@ -169,6 +196,48 @@ public class DoraCacheClient {
           .build();
       FileInfo fileInfo = client.get().getStatus(request).getFileInfo();
       return new URIStatus(GrpcUtils.fromProto(fileInfo));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Create File.
+   * @param path the file path
+   * @param options the option for creating operation
+   * @return URIStatus of new file
+   * @throws RuntimeException
+   */
+  public URIStatus createFile(String path, CreateFilePOptions options) {
+    try (CloseableResource<BlockWorkerClient> client =
+             mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
+      CreateFilePRequest request = CreateFilePRequest.newBuilder()
+          .setPath(path)
+          .setOptions(options)
+          .build();
+      FileInfo fileInfo = client.get().createFile(request).getFileInfo();
+      return new URIStatus(GrpcUtils.fromProto(fileInfo));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Mark the newly created and written file as complete.
+   *
+   * This is called when out stream is closed. This is equivalent to close() in some file system.
+   * @param path The file path
+   * @param options the close option
+   */
+  public void completeFile(String path, CompleteFilePOptions options) {
+    try (CloseableResource<BlockWorkerClient> client =
+             mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
+      CompleteFilePRequest request = CompleteFilePRequest.newBuilder()
+          .setPath(path)
+          .setOptions(options)
+          .build();
+      client.get().completeFile(request);
+      return;
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

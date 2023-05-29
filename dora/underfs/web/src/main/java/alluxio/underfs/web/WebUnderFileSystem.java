@@ -24,7 +24,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
-import alluxio.underfs.options.GetFileStatusOptions;
+import alluxio.underfs.options.GetStatusOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.UnderFileSystemUtils;
@@ -135,8 +135,8 @@ public class WebUnderFileSystem extends ConsistentUnderFileSystem {
   }
 
   @Override
-  public UfsFileStatus getFileStatus(String path, GetFileStatusOptions options) throws IOException {
-    UfsStatus ufsStatus = getStatus(path);
+  public UfsFileStatus getFileStatus(String path, GetStatusOptions options) throws IOException {
+    UfsStatus ufsStatus = getStatus(path, options);
     if (ufsStatus instanceof UfsFileStatus) {
       return (UfsFileStatus) ufsStatus;
     }
@@ -187,8 +187,8 @@ public class WebUnderFileSystem extends ConsistentUnderFileSystem {
   }
 
   @Override
-  public UfsStatus getStatus(String path) throws IOException {
-    return getStatus(path, GetFileStatusOptions.defaults());
+  public UfsStatus getStatus(String path, GetStatusOptions options) throws IOException {
+    return getStatus(path, (String) null);
   }
 
   @Override

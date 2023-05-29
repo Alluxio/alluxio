@@ -66,7 +66,7 @@ public final class JobServiceBenchSummary extends GeneralBenchSummary<JobService
     mEndTimeMs = mergedTaskResults.getEndMs();
     mParameters = mergedTaskResults.getParameters();
     mDurationMs = mEndTimeMs - mergedTaskResults.getRecordStartMs();
-    mThroughput = ((float) mStatistics.mNumSuccess / mDurationMs) * 1000.0f;
+    mThroughput = ((float) mStatistics.mNumSuccesses / mDurationMs) * 1000.0f;
     mNodeResults = nodes;
   }
 
@@ -203,7 +203,7 @@ public final class JobServiceBenchSummary extends GeneralBenchSummary<JobService
             responseTimeGraphPerMethod.get(method).addDataSeries(series, responseTimeData);
             // collect max success for each method
             methodCounts.put(method,
-                Math.max(methodCounts.getOrDefault(method, 0L), entry.getValue().mNumSuccess));
+                Math.max(methodCounts.getOrDefault(method, 0L), entry.getValue().mNumSuccesses));
           }
         }
 

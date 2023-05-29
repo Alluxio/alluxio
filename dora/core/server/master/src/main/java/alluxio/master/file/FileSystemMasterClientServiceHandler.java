@@ -16,6 +16,8 @@ import alluxio.RpcUtils;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.CheckAccessPRequest;
 import alluxio.grpc.CheckAccessPResponse;
 import alluxio.grpc.CheckConsistencyPOptions;
@@ -30,6 +32,7 @@ import alluxio.grpc.CreateFilePRequest;
 import alluxio.grpc.CreateFilePResponse;
 import alluxio.grpc.DeletePRequest;
 import alluxio.grpc.DeletePResponse;
+import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.ExistsPRequest;
 import alluxio.grpc.ExistsPResponse;
 import alluxio.grpc.FileSystemMasterClientServiceGrpc;
@@ -108,6 +111,7 @@ import alluxio.master.scheduler.Scheduler;
 import alluxio.recorder.Recorder;
 import alluxio.scheduler.job.Job;
 import alluxio.underfs.UfsMode;
+import alluxio.util.io.PathUtils;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 
@@ -116,7 +120,9 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -195,11 +201,26 @@ public final class FileSystemMasterClientServiceHandler
     }, "CompleteFile", "request=%s", responseObserver, request);
   }
 
+  private void checkBucketPathExists(String path)
+      throws AlluxioException, IOException {
+
+    String bucketPath = PathUtils.getFirstLevelDirectory(path);
+    boolean exists = mFileSystemMaster.exists(getAlluxioURI(bucketPath),
+        ExistsContext.create(ExistsPOptions.getDefaultInstance().toBuilder()));
+    if (!exists) {
+      throw new FileDoesNotExistException(
+          ExceptionMessage.BUCKET_DOES_NOT_EXIST.getMessage(bucketPath));
+    }
+  }
+
   @Override
   public void createDirectory(CreateDirectoryPRequest request,
       StreamObserver<CreateDirectoryPResponse> responseObserver) {
     CreateDirectoryPOptions options = request.getOptions();
     RpcUtils.call(LOG, () -> {
+      if (request.getOptions().getCheckS3BucketPath()) {
+        checkBucketPathExists(request.getPath());
+      }
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       mFileSystemMaster.createDirectory(pathUri, CreateDirectoryContext.create(options.toBuilder())
           .withTracker(new GrpcCallTracker(responseObserver)));
@@ -211,6 +232,9 @@ public final class FileSystemMasterClientServiceHandler
   public void createFile(CreateFilePRequest request,
       StreamObserver<CreateFilePResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
+      if (request.getOptions().getCheckS3BucketPath()) {
+        checkBucketPathExists(request.getPath());
+      }
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       return CreateFilePResponse.newBuilder()
           .setFileInfo(GrpcUtils.toProto(mFileSystemMaster.createFile(pathUri,
@@ -484,9 +508,9 @@ public final class FileSystemMasterClientServiceHandler
 
   @Override
   public void getStateLockHolders(GetStateLockHoldersPRequest request,
-                                  StreamObserver<GetStateLockHoldersPResponse> responseObserver) {
+      StreamObserver<GetStateLockHoldersPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      final List<String> holders = mFileSystemMaster.getStateLockSharedWaitersAndHolders();
+      final Collection<String> holders = mFileSystemMaster.getStateLockSharedWaitersAndHolders();
       return GetStateLockHoldersPResponse.newBuilder().addAllThreads(holders).build();
     }, "getStateLockHolders", "request=%s", responseObserver, request);
   }

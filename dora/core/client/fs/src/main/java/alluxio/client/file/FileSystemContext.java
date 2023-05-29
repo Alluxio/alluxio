@@ -668,6 +668,10 @@ public class FileSystemContext implements Closeable {
     return mNettyChannelPools.get(address).acquire();
   }
 
+  protected ConcurrentHashMap<SocketAddress, NettyChannelPool> getNettyChannelPools() {
+    return mNettyChannelPools;
+  }
+
   /**
    * Releases a netty channel to the channel pools.
    *
@@ -885,11 +889,9 @@ public class FileSystemContext implements Closeable {
    */
   private List<WorkerNetAddress> getWorkerAddresses() throws IOException {
     List<WorkerInfo> infos;
-    BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
-    try {
-      infos = blockMasterClient.getWorkerInfoList();
-    } finally {
-      mBlockMasterClientPool.release(blockMasterClient);
+    try (CloseableResource<BlockMasterClient> masterClientResource =
+        acquireBlockMasterClientResource()) {
+      infos = masterClientResource.get().getWorkerInfoList();
     }
     if (infos.isEmpty()) {
       throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());

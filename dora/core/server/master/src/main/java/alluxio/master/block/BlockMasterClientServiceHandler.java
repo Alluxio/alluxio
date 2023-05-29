@@ -13,10 +13,11 @@ package alluxio.master.block;
 
 import alluxio.RpcUtils;
 import alluxio.client.block.options.GetWorkerReportOptions;
-import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.BlockMasterClientServiceGrpc;
 import alluxio.grpc.BlockMasterInfo;
 import alluxio.grpc.BlockMasterInfoField;
+import alluxio.grpc.DecommissionWorkerPOptions;
+import alluxio.grpc.DecommissionWorkerPResponse;
 import alluxio.grpc.GetBlockInfoPOptions;
 import alluxio.grpc.GetBlockInfoPRequest;
 import alluxio.grpc.GetBlockInfoPResponse;
@@ -32,11 +33,8 @@ import alluxio.grpc.GetWorkerLostStoragePOptions;
 import alluxio.grpc.GetWorkerLostStoragePResponse;
 import alluxio.grpc.GetWorkerReportPOptions;
 import alluxio.grpc.GrpcUtils;
-import alluxio.grpc.RemoveDecommissionedWorkerPOptions;
-import alluxio.grpc.RemoveDecommissionedWorkerPResponse;
-import alluxio.grpc.WorkerInfoField;
-import alluxio.grpc.WorkerRange;
-import alluxio.wire.WorkerInfo;
+import alluxio.grpc.RemoveDisabledWorkerPOptions;
+import alluxio.grpc.RemoveDisabledWorkerPResponse;
 
 import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
@@ -44,7 +42,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -146,24 +143,13 @@ public final class BlockMasterClientServiceHandler
   }
 
   @Override
-  public void removeDecommissionedWorker(RemoveDecommissionedWorkerPOptions options,
-      StreamObserver<RemoveDecommissionedWorkerPResponse> responseObserver) {
+  public void removeDisabledWorker(RemoveDisabledWorkerPOptions options,
+       StreamObserver<RemoveDisabledWorkerPResponse> responseObserver) {
     RpcUtils.call(LOG, () -> {
-      List<WorkerInfo> decommissionedWorkers = mBlockMaster.getWorkerReport(
-              new GetWorkerReportOptions(GetWorkerReportPOptions.newBuilder()
-                      .setWorkerRange(WorkerRange.DECOMMISSIONED)
-                      .addFieldRanges(WorkerInfoField.ADDRESS)
-                      .addFieldRanges(WorkerInfoField.ID)
-                      .build()));
-      for (WorkerInfo worker : decommissionedWorkers) {
-        if (worker.getAddress().getHost().equals(options.getWorkerName()))  {
-          mBlockMaster.removeDecommissionedWorker(worker.getId());
-          return RemoveDecommissionedWorkerPResponse.getDefaultInstance();
-        }
-      }
-      // Exception info has been added in FreeWorkerCommand.
-      throw new NotFoundException(options.getWorkerName());
-    }, "RemoveDecommissionedWorker", "options=%s", responseObserver, options);
+      // This command is idempotent and is no-op if the address is not recognized
+      mBlockMaster.removeDisabledWorker(options);
+      return RemoveDisabledWorkerPResponse.getDefaultInstance();
+    }, "RemoveDisabledWorker", "options=%s", responseObserver, options);
   }
 
   @Override
@@ -183,5 +169,14 @@ public final class BlockMasterClientServiceHandler
         () -> GetWorkerLostStoragePResponse.newBuilder()
             .addAllWorkerLostStorageInfo(mBlockMaster.getWorkerLostStorage()).build(),
         "GetWorkerLostStorage", "options=%s", responseObserver, options);
+  }
+
+  @Override
+  public void decommissionWorker(DecommissionWorkerPOptions options,
+      StreamObserver<DecommissionWorkerPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      mBlockMaster.decommissionWorker(options);
+      return DecommissionWorkerPResponse.getDefaultInstance();
+    }, "DecommissionWorker", "request=%s", responseObserver, options);
   }
 }

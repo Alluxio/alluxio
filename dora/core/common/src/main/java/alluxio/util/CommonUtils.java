@@ -376,7 +376,7 @@ public final class CommonUtils {
     T value;
     long start = getCurrentMs();
     int interval = options.getInterval();
-    int timeout = options.getTimeoutMs();
+    long timeout = options.getTimeoutMs();
     while (condition.apply(value = objectSupplier.get()) != true) {
       if (timeout != WaitForOptions.NEVER && getCurrentMs() - start > timeout) {
         throw new TimeoutException("Timed out waiting for " + description + " options: " + options

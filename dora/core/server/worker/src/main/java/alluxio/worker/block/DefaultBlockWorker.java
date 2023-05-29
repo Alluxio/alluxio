@@ -42,6 +42,7 @@ import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.UfsReadOptions;
+import alluxio.heartbeat.FixedIntervalSupplier;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -169,7 +170,11 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
                             FileSystemMasterClient fileSystemMasterClient, Sessions sessions,
                             BlockStore blockStore,
                             @Named("workerId") AtomicReference<Long> workerId) {
-    super(ExecutorServiceFactories.fixedThreadPool("block-worker-executor", 5));
+    super(
+        Configuration.getBoolean(PropertyKey.WORKER_REGISTER_TO_ALL_MASTERS)
+            ? ExecutorServiceFactories.cachedThreadPool("block-worker-executor")
+            : ExecutorServiceFactories.fixedThreadPool("block-worker-executor", 5)
+    );
     mBlockMasterClientPool = mResourceCloser.register(blockMasterClientPool);
     mFileSystemMasterClient = mResourceCloser.register(fileSystemMasterClient);
     mHeartbeatReporter = new BlockHeartbeatReporter();
@@ -317,6 +322,11 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   }
 
   @Override
+  public WorkerNetAddress getWorkerAddress() {
+    return mAddress;
+  }
+
+  @Override
   public Set<Class<? extends Server>> getDependencies() {
     return new HashSet<>();
   }
@@ -361,7 +371,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         new PinListSync(this, mFileSystemMasterClient));
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_PIN_LIST_SYNC, pinListSync,
-            () -> Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+            () -> new FixedIntervalSupplier(
+                Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)),
             Configuration.global(), ServerUserState.global()));
 
     // Setup session cleaner
@@ -374,7 +385,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
       StorageChecker storageChecker = mResourceCloser.register(new StorageChecker());
       getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.WORKER_STORAGE_HEALTH, storageChecker,
-              () -> Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+              () -> new FixedIntervalSupplier(
+                  Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)),
                   Configuration.global(), ServerUserState.global()));
     }
     // Mounts the embedded Fuse application
@@ -388,7 +400,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
         .register(new BlockMasterSync(this, mWorkerId, mAddress, mBlockMasterClientPool));
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, blockMasterSync,
-            () -> Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS),
+            () -> new FixedIntervalSupplier(
+                Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)),
             Configuration.global(), ServerUserState.global()));
   }
 
@@ -476,7 +489,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
   @Override
   public BlockHeartbeatReport getReport() {
-    return mHeartbeatReporter.generateReport();
+    return mHeartbeatReporter.generateReportAndClear();
   }
 
   @Override
@@ -654,6 +667,8 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public static final class Metrics {
     public static final Counter WORKER_ACTIVE_CLIENTS =
         MetricsSystem.counter(MetricKey.WORKER_ACTIVE_CLIENTS.getName());
+    public static final Counter WORKER_ACTIVE_OPERATIONS =
+        MetricsSystem.counter(MetricKey.WORKER_ACTIVE_OPERATIONS.getName());
 
     /**
      * Registers metric gauges.
@@ -707,7 +722,7 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
   public final class StorageChecker implements HeartbeatExecutor {
 
     @Override
-    public void heartbeat() {
+    public void heartbeat(long timeLimitMs) {
       try {
         mBlockStore.removeInaccessibleStorage();
       } catch (Exception e) {

@@ -32,7 +32,10 @@ import alluxio.master.job.CopyJob;
 import alluxio.master.job.FileIterable;
 import alluxio.scheduler.job.JobState;
 import alluxio.wire.FileInfo;
+import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.collect.ImmutableList;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -55,9 +58,14 @@ public class CopyJobTest {
     FileIterable files =
         new FileIterable(fileSystemMaster, srcPath, user, false, CopyJob.QUALIFIED_FILE_FILTER);
     CopyJob copy = new CopyJob(srcPath, dstPath, false, user, "1",
-        OptionalLong.empty(), false, false, files);
-    Optional<CopyJob.CopyTask> nextTask = copy.getNextTask(null);
-    Assert.assertEquals(5, nextTask.get().getRoutes().size());
+        OptionalLong.empty(), false, false, false, files);
+    List<WorkerInfo> workers = ImmutableList.of(
+        new WorkerInfo().setId(1).setAddress(
+            new WorkerNetAddress().setHost("worker1").setRpcPort(1234)),
+        new WorkerInfo().setId(2).setAddress(
+            new WorkerNetAddress().setHost("worker2").setRpcPort(1234)));
+    List<CopyJob.CopyTask> nextTask = copy.getNextTasks(workers);
+    Assert.assertEquals(5, nextTask.get(0).getRoutes().size());
   }
 
   @Test
@@ -72,7 +80,7 @@ public class CopyJobTest {
     FileIterable files =
         new FileIterable(fileSystemMaster, srcPath, user, false, CopyJob.QUALIFIED_FILE_FILTER);
     CopyJob copy = new CopyJob(srcPath, dstPath, false, user, "1",
-        OptionalLong.empty(), false, false, files);
+        OptionalLong.empty(), false, false, false, files);
     List<Route> routes = copy.getNextRoutes(100);
     assertTrue(copy.isHealthy());
     routes.forEach(copy::addToRetry);
@@ -94,7 +102,7 @@ public class CopyJobTest {
     FileIterable files =
         new FileIterable(fileSystemMaster, srcPath, user, false, CopyJob.QUALIFIED_FILE_FILTER);
     CopyJob job = spy(new CopyJob(srcPath, dstPath, false, user, "1",
-        OptionalLong.empty(), false, false, files));
+        OptionalLong.empty(), false, false, false, files));
     when(job.getDurationInSec()).thenReturn(0L);
     job.setJobState(JobState.RUNNING);
     List<Route> nextRoutes = job.getNextRoutes(25);

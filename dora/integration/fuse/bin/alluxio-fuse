@@ -52,7 +52,7 @@ Usage:\n\talluxio-fuse umount mount_point [options]
 "
 
 get_env() {
-  DEFAULT_LIBEXEC_DIR="${SCRIPT_DIR}"/../../../libexec
+  DEFAULT_LIBEXEC_DIR="${SCRIPT_DIR}"/../../../../libexec
   ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 

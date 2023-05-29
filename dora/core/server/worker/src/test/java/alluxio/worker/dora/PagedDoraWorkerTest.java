@@ -113,7 +113,8 @@ public class PagedDoraWorkerTest {
     Route route =
         Route.newBuilder().setDst(b.getAbsolutePath()).setSrc(a.getAbsolutePath()).setLength(length)
              .build();
-    WriteOptions writeOptions = WriteOptions.newBuilder().setOverwrite(false).build();
+    WriteOptions writeOptions =
+        WriteOptions.newBuilder().setOverwrite(false).setCheckContent(true).build();
     UfsReadOptions read =
         UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build();
     ListenableFuture<List<RouteFailure>> copy =
@@ -162,7 +163,8 @@ public class PagedDoraWorkerTest {
     File b = new File(dstRoot, "b");
     Route route =
         Route.newBuilder().setDst(b.getAbsolutePath()).setSrc(a.getAbsolutePath()).build();
-    WriteOptions writeOptions = WriteOptions.newBuilder().setOverwrite(false).build();
+    WriteOptions writeOptions =
+        WriteOptions.newBuilder().setOverwrite(false).setCheckContent(true).build();
     UfsReadOptions read =
         UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build();
     ListenableFuture<List<RouteFailure>> copy =
@@ -202,7 +204,8 @@ public class PagedDoraWorkerTest {
     routes.add(route);
     routes.add(route2);
     routes.add(route3);
-    WriteOptions writeOptions = WriteOptions.newBuilder().setOverwrite(false).build();
+    WriteOptions writeOptions =
+        WriteOptions.newBuilder().setOverwrite(false).setCheckContent(true).build();
     UfsReadOptions read =
         UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build();
     ListenableFuture<List<RouteFailure>> copy = mWorker.copy(routes, read, writeOptions);
@@ -214,6 +217,136 @@ public class PagedDoraWorkerTest {
     Assert.assertTrue(b.isDirectory());
     Assert.assertTrue(dstD.exists());
     Assert.assertTrue(dstD.isDirectory());
+    try (InputStream in = Files.newInputStream(dstC.toPath())) {
+      byte[] readBuffer = new byte[length];
+      while (in.read(readBuffer) != -1) {
+      }
+      Assert.assertArrayEquals(buffer, readBuffer);
+    }
+  }
+
+  @Test
+  public void testSingleFileMove() throws IOException, ExecutionException, InterruptedException {
+    File srcRoot = mTestFolder.newFolder("src");
+    File dstRoot = mTestFolder.newFolder("dst");
+    // create test file under mSrcFolder
+    File a = new File(srcRoot, "a");
+    a.createNewFile();
+    File b = new File(dstRoot, "b");
+    int length = 10;
+    byte[] buffer = BufferUtils.getIncreasingByteArray(length);
+    BufferUtils.writeBufferToFile(a.getAbsolutePath(), buffer);
+    Route route =
+            Route.newBuilder().setDst(b.getAbsolutePath()).setSrc(a.getAbsolutePath())
+                    .setLength(length).build();
+    WriteOptions writeOptions =
+            WriteOptions.newBuilder().setOverwrite(false).setCheckContent(true).build();
+    UfsReadOptions read =
+            UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build();
+    ListenableFuture<List<RouteFailure>> move =
+            mWorker.move(Collections.singletonList(route), read, writeOptions);
+    List<RouteFailure> failures = move.get();
+    Assert.assertEquals(0, failures.size());
+    Assert.assertTrue(b.exists());
+    Assert.assertFalse(a.exists());
+    try (InputStream in = Files.newInputStream(b.toPath())) {
+      byte[] readBuffer = new byte[length];
+      while (in.read(readBuffer) != -1) {
+      }
+      Assert.assertArrayEquals(buffer, readBuffer);
+    }
+  }
+
+  @Test
+  public void testMoveException() throws IOException, ExecutionException, InterruptedException {
+    File srcRoot = mTestFolder.newFolder("srcException");
+    File dstRoot = mTestFolder.newFolder("dstException");
+    // create test file under mSrcFolder
+    File a = new File(srcRoot, "a");
+    a.createNewFile();
+    File b = new File(dstRoot, "b");
+    int length = 10;
+    byte[] buffer = BufferUtils.getIncreasingByteArray(length);
+    BufferUtils.writeBufferToFile(a.getAbsolutePath(), buffer);
+    Route route =
+            Route.newBuilder().setDst(b.getAbsolutePath()).setSrc(a.getAbsolutePath())
+                    .setLength(length).build();
+    WriteOptions writeOptions = WriteOptions.newBuilder().setOverwrite(false).build();
+    ListenableFuture<List<RouteFailure>> move =
+            mWorker.move(Collections.singletonList(route), null, writeOptions);
+    List<RouteFailure> failures = move.get();
+    Assert.assertEquals(1, failures.size());
+    Assert.assertFalse(b.exists());
+  }
+
+  @Test
+  public void testSingleFolderMove() throws IOException, ExecutionException, InterruptedException {
+    File srcRoot = mTestFolder.newFolder("src");
+    File dstRoot = mTestFolder.newFolder("dst");
+    // create test file under mSrcFolder
+    File a = new File(srcRoot, "a");
+    a.mkdirs();
+    File b = new File(dstRoot, "b");
+    Route route =
+            Route.newBuilder().setDst(b.getAbsolutePath()).setSrc(a.getAbsolutePath()).build();
+    WriteOptions writeOptions =
+            WriteOptions.newBuilder().setOverwrite(false).setCheckContent(true).build();
+    UfsReadOptions read =
+            UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build();
+    ListenableFuture<List<RouteFailure>> move =
+            mWorker.move(Collections.singletonList(route), read, writeOptions);
+    List<RouteFailure> failures = move.get();
+    Assert.assertEquals(0, failures.size());
+    Assert.assertTrue(b.exists());
+    Assert.assertTrue(b.isDirectory());
+    Assert.assertFalse(a.exists());
+  }
+
+  @Test
+  @Ignore
+  public void testFolderWithFileMove()
+          throws IOException, ExecutionException, InterruptedException {
+    File srcRoot = mTestFolder.newFolder("src");
+    File dstRoot = mTestFolder.newFolder("dst");
+    // create test file under mSrcFolder
+    File a = new File(srcRoot, "a");
+    a.mkdirs();
+    File c = new File(a, "c");
+    c.createNewFile();
+    File d = new File(a, "d");
+    d.mkdirs();
+    File b = new File(dstRoot, "b");
+    File dstC = new File(b, "c");
+    File dstD = new File(b, "d");
+    int length = 10;
+    byte[] buffer = BufferUtils.getIncreasingByteArray(length);
+    BufferUtils.writeBufferToFile(c.getAbsolutePath(), buffer);
+    List<Route> routes = new ArrayList<>();
+    Route route = Route.newBuilder().setDst(dstC.getAbsolutePath()).setSrc(c.getAbsolutePath())
+            .setLength(length).build();
+    Route route2 =
+            Route.newBuilder().setDst(b.getAbsolutePath()).setSrc(a.getAbsolutePath()).build();
+    Route route3 =
+            Route.newBuilder().setDst(dstD.getAbsolutePath()).setSrc(d.getAbsolutePath()).build();
+    routes.add(route);
+    routes.add(route2);
+    routes.add(route3);
+    WriteOptions writeOptions =
+            WriteOptions.newBuilder().setOverwrite(false).setCheckContent(true).build();
+    UfsReadOptions read =
+            UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build();
+    ListenableFuture<List<RouteFailure>> move = mWorker.move(routes, read, writeOptions);
+    List<RouteFailure> failures = move.get();
+
+    Assert.assertEquals(0, failures.size());
+    Assert.assertTrue(dstC.exists());
+    Assert.assertTrue(b.exists());
+    Assert.assertTrue(b.isDirectory());
+    Assert.assertTrue(dstD.exists());
+    Assert.assertTrue(dstD.isDirectory());
+    Assert.assertFalse(a.exists());
+    Assert.assertFalse(c.exists());
+    Assert.assertFalse(d.exists());
     try (InputStream in = Files.newInputStream(dstC.toPath())) {
       byte[] readBuffer = new byte[length];
       while (in.read(readBuffer) != -1) {

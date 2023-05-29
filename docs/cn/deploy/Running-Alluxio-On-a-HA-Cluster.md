@@ -47,7 +47,7 @@ alluxio.master.embedded.journal.addresses=<EMBEDDED_JOURNAL_ADDRESS>
 - 第二个属性 `alluxio.master.mount.table.root.ufs=<STORAGE_URI>` 设置为挂载到Alluxio根目录的底层存储URI。 一定保证master节点和所有worker节点都可以访问此共享存储。 示例包括`alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`或`alluxio.master.mount.table.root.ufs=s3://bucket/dir/` 。
 - 第三个属性 `alluxio.master.embedded.journal.addresses` 设置参加Alluxio leading master选举的master节点集。默认的嵌入式日志端口是 `19200`。例如: `alluxio.master.embedded.journal.addresses=master_hostname_1:19200，master_hostname_2:19200，master_hostname_3:19200`
 
-嵌入式日记特性依赖于 [Copycat](https://github.com/atomix/copycat) 内置leader选举功能。内置leader选举功能不能与Zookeeper一起使用，因为系统不能出现多种leader选举机制选出不同leader的情况。启用嵌入式日记就启用了Alluxio的内置leader election机制。请参阅[嵌入式日志配置文档]({{ '/en/operation/Journal.html' | relativize_url}}＃embedded-journal-configuration)，以了解更多详细信息以及使用内部leader选举配置HA集群的替代方案。
+嵌入式日记特性依赖于 [Ratis](https://github.com/apache/ratis) 内置leader选举功能。内置leader选举功能不能与Zookeeper一起使用，因为系统不能出现多种leader选举机制选出不同leader的情况。启用嵌入式日记就启用了Alluxio的内置leader election机制。请参阅[嵌入式日志配置文档]({{ '/en/operation/Journal.html' | relativize_url}}＃embedded-journal-configuration)，以了解更多详细信息以及使用内部leader选举配置HA集群的替代方案。
 
 ### 选项2:Zookeeper和共享日志存储
 

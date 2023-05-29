@@ -17,7 +17,8 @@ import alluxio.job.JobDescription;
 import alluxio.proto.journal.Journal;
 import alluxio.wire.WorkerInfo;
 
-import java.util.Optional;
+import java.util.Collection;
+import java.util.List;
 import java.util.OptionalLong;
 
 /**
@@ -60,11 +61,6 @@ public interface Job<T extends Task<?>> {
    * @return job id. unique id for the job
    */
   String getJobId();
-
-  /**
-   * Request the job to continue.
-   */
-  void continueJob();
 
   /**
    * set job as failure with exception.
@@ -117,11 +113,17 @@ public interface Job<T extends Task<?>> {
   void initiateVerification();
 
   /**
-   * @param worker blocker to worker
+   * @param workers blocker to worker
    * @return the next task to run. If there is no more task to run, return empty
    * @throws AlluxioRuntimeException if any error occurs when getting next task
    */
-  Optional<T> getNextTask(WorkerInfo worker);
+  List<T> getNextTasks(Collection<WorkerInfo> workers);
+
+  /**
+   * Define how to process task that gets rejected when scheduler tried to kick off.
+   * @param task
+   */
+  void onTaskSubmitFailure(Task<?> task);
 
   /**
    * @return job journal entry
@@ -140,4 +142,14 @@ public interface Job<T extends Task<?>> {
    * @param job the job to update from. Must be the same job type
    */
   void updateJob(Job<?> job);
+
+  /**
+   * @return whether the job has failed tasks
+   */
+  boolean hasFailure();
+
+  /**
+   * Initialize the job before kick it running.
+   */
+  void initializeJob();
 }

@@ -64,7 +64,9 @@ public class CollectLogCommand  extends AbstractCollectInfoCommand {
       "proxy.out",
       "task.log",
       "task.out",
-      "user"
+      "user",
+      "alluxio-master",
+      "alluxio-worker"
   ).collect(Collectors.toSet());
   // We tolerate the beginning of a log file to contain some rows that are not timestamped.
   // A YARN application log can have >20 rows in the beginning for

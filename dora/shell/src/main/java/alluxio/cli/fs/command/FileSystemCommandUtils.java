@@ -45,7 +45,7 @@ public final class FileSystemCommandUtils {
    */
   public static void setTtl(FileSystem fs, AlluxioURI path, long ttlMs,
       TtlAction ttlAction) throws AlluxioException, IOException {
-    SetAttributePOptions options = SetAttributePOptions.newBuilder().setRecursive(true)
+    SetAttributePOptions options = SetAttributePOptions.newBuilder().setRecursive(false)
         .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
             .setTtl(ttlMs).setTtlAction(ttlAction).build())
         .build();

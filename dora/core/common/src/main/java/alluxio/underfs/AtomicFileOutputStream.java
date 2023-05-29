@@ -81,10 +81,17 @@ public class AtomicFileOutputStream extends OutputStream implements ContentHasha
         throw new IOException(
             ExceptionMessage.FAILED_UFS_RENAME.getMessage(mTemporaryPath, mPermanentPath));
       }
-    } finally {
-      if (!mUfs.deleteFile(mTemporaryPath)) {
-        LOG.error("Failed to delete temporary file {}", mTemporaryPath);
+    } catch (IOException e) {
+      try {
+        if (!mUfs.deleteFile(mTemporaryPath)) {
+          LOG.warn("Failed to delete temporary file {} after failing to rename it to {}",
+              mTemporaryPath, mPermanentPath);
+        }
+      } catch (IOException e2) {
+        LOG.warn("Exception when deleting temporary file {} after failing to rename it to {}",
+            mTemporaryPath, mPermanentPath, e2);
       }
+      throw e;
     }
 
     // Preserve owner and group in case delegation was used to create the path

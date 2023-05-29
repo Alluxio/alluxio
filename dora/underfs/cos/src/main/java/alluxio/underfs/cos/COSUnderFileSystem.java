@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PositionReader;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
@@ -171,7 +170,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected List<String> deleteObjects(List<String> keys) throws IOException {
     try {
-      DeleteObjectsRequest request = new DeleteObjectsRequest(mBucketName);
+      DeleteObjectsRequest request = new DeleteObjectsRequest(mBucketNameInternal);
       List<DeleteObjectsRequest.KeyVersion> keyVersions = keys.stream()
           .map(DeleteObjectsRequest.KeyVersion::new)
           .collect(Collectors.toList());
@@ -282,7 +281,8 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   public PositionReader openPositionRead(String path, long fileLength) {
-    throw new UnimplementedRuntimeException("Position read is not implemented");
+    return new COSPositionReader(mClient, mBucketNameInternal,
+        stripPrefixIfPresent(path), fileLength);
   }
 
   @Override

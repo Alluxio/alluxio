@@ -114,11 +114,11 @@ public abstract class AbstractUfsManager implements UfsManager {
    * Return a UFS instance if it already exists in the cache, otherwise, creates a new instance and
    * return it.
    *
-   * @param ufsUri the UFS path
+   * @param ufsUri  the UFS path
    * @param ufsConf the UFS configuration
    * @return the UFS instance
    */
-  private UnderFileSystem getOrAdd(AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf) {
+  public UnderFileSystem getOrAdd(AlluxioURI ufsUri, UnderFileSystemConfiguration ufsConf) {
     return getOrAddWithRecorder(ufsUri, ufsConf, Recorder.noopRecorder());
   }
 
@@ -164,19 +164,20 @@ public abstract class AbstractUfsManager implements UfsManager {
       if (useManagedBlocking) {
         fs = new ManagedBlockingUfsForwarder(fs);
       }
-
-      if (mUnderFileSystemMap.putIfAbsent(key, fs) != null) {
-        // This shouldn't occur unless our synchronization is incorrect
-        LOG.warn("UFS already existed in UFS manager");
-      }
       mCloser.register(fs);
       try {
         connectUfs(fs);
-      } catch (IOException e) {
+        tryUseFileSystem(fs, ufsUri.getPath());
+      } catch (Exception e) {
         String message = String.format(
             "Failed to perform initial connect to UFS %s: %s", ufsUri, e);
         recorder.record(message);
         LOG.warn(message);
+        throw new RuntimeException(e);
+      }
+      if (mUnderFileSystemMap.putIfAbsent(key, fs) != null) {
+        // This shouldn't occur unless our synchronization is incorrect
+        LOG.warn("UFS already existed in UFS manager");
       }
       return fs;
     }
@@ -188,6 +189,17 @@ public abstract class AbstractUfsManager implements UfsManager {
    *  {@link UnderFileSystem#connectFromWorker(String)} depending on the running process.
    */
   protected abstract void connectUfs(UnderFileSystem fs) throws IOException;
+
+  /**
+   * To check whether the filesystem is available by calling exists.
+   *
+   * @param fs the filesystem
+   * @param ufsPath the UFS path
+   * @throws Exception
+   */
+  private void tryUseFileSystem(UnderFileSystem fs, String ufsPath) throws Exception {
+    fs.exists(ufsPath);
+  }
 
   @Override
   public void addMount(long mountId, final AlluxioURI ufsUri,

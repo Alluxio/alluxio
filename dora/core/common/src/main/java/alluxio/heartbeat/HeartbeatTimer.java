@@ -11,33 +11,27 @@
 
 package alluxio.heartbeat;
 
+import alluxio.conf.Reconfigurable;
+
 /**
  * An interface for heartbeat timers. The {@link HeartbeatThread} calls the {@link #tick()} method.
  */
-public interface HeartbeatTimer {
+public interface HeartbeatTimer extends Reconfigurable {
 
   /**
-   * Sets the heartbeat interval.
-   *
-   * @param intervalMs the heartbeat interval in ms
+   * When this object needs to be reconfigured
+   * due to external configuration change etc.,
+   * this function will be invoked.
    */
-  default void setIntervalMs(long intervalMs) {
-    throw new UnsupportedOperationException("Setting interval is not supported");
-  }
-
-  /**
-   * Get the interval of HeartbeatTimer.
-   *
-   * @return the interval of this HeartbeatTimer
-   */
-  default long getIntervalMs() {
-    throw new UnsupportedOperationException("Getting interval is not supported");
+  default void update() {
   }
 
   /**
    * Waits until next heartbeat should be executed.
    *
+   * @return time limit in milliseconds for this heartbeat action to run for before
+   * the next heartbeat is due.
    * @throws InterruptedException if the thread is interrupted while waiting
    */
-  void tick() throws InterruptedException;
+  long tick() throws InterruptedException;
 }

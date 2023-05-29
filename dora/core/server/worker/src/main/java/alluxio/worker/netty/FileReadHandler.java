@@ -65,6 +65,14 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequest> {
   }
 
   /**
+   * Gets worker.
+   * @return dora worker
+   */
+  public DoraWorker getWorker() {
+    return mWorker;
+  }
+
+  /**
    * Factory for creating {@link FilePacketReader}s.
    */
   public static final class FilePacketReaderFactory

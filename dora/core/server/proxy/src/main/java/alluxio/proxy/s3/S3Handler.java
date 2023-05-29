@@ -25,6 +25,8 @@ import alluxio.util.ThreadUtils;
 import alluxio.web.ProxyWebServer;
 
 import com.google.common.base.Stopwatch;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import org.eclipse.jetty.server.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +42,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
@@ -72,6 +75,17 @@ public class S3Handler {
           Pattern.compile("^" + S3RequestServlet.S3_V2_SERVICE_PATH_PREFIX + "/[^/]*$");
   public static final Pattern OBJECT_PATH_PATTERN =
           Pattern.compile("^" + S3RequestServlet.S3_V2_SERVICE_PATH_PREFIX + "/[^/]*/.*$");
+  public static final int BUCKET_PATH_CACHE_SIZE = 65536;
+  /* BUCKET_PATH_CACHE caches bucket path during specific period.
+   BUCKET_PATH_CACHE.put(bucketPath,true) means bucket path exists.
+   BUCKET_PATH_CACHE.put(bucketPath,false) plays the same effect
+   as BUCKET_PATH_CACHE.remove(bucketPath). */
+  public static final Cache<String, Boolean> BUCKET_PATH_CACHE = CacheBuilder.newBuilder()
+      .maximumSize(BUCKET_PATH_CACHE_SIZE)
+      .expireAfterWrite(
+          Configuration.global().getMs(PropertyKey.PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS),
+          TimeUnit.MILLISECONDS)
+      .build();
   private static final Logger LOG = LoggerFactory.getLogger(S3Handler.class);
   private static final ThreadLocal<byte[]> TLS_BYTES =
           ThreadLocal.withInitial(() -> new byte[8 * 1024]);

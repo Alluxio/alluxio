@@ -35,6 +35,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.local.LocalUnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
+import alluxio.underfs.options.GetStatusOptions;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
@@ -146,7 +147,7 @@ public class FileSystemMasterSyncMetadataTestBase {
     }
 
     @Override
-    public UfsStatus getStatus(String path) throws IOException {
+    public UfsStatus getStatus(String path, GetStatusOptions options) throws IOException {
       for (String failedPathsString: mFailedPaths) {
         if (path.contains(failedPathsString)) {
           throw new RuntimeException();
@@ -166,7 +167,7 @@ public class FileSystemMasterSyncMetadataTestBase {
           throw new RuntimeException(e);
         }
       }
-      return super.getStatus(path);
+      return super.getStatus(path, options);
     }
 
     @Override

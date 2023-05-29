@@ -25,7 +25,7 @@ import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
-import alluxio.underfs.options.GetFileStatusOptions;
+import alluxio.underfs.options.GetStatusOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -59,7 +60,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 @ThreadSafe
 // TODO(adit); API calls should use a URI instead of a String wherever appropriate
-public interface UnderFileSystem extends Closeable {
+public interface UnderFileSystem extends Closeable, AsyncUfsClient {
   /**
    * The factory for the {@link UnderFileSystem}.
    */
@@ -426,7 +427,7 @@ public interface UnderFileSystem extends Closeable {
    * @throws FileNotFoundException when the path does not exist
    */
   default UfsFileStatus getFileStatus(String path) throws IOException {
-    return getFileStatus(path, GetFileStatusOptions.defaults());
+    return getFileStatus(path, GetStatusOptions.defaults());
   }
 
   /**
@@ -438,7 +439,7 @@ public interface UnderFileSystem extends Closeable {
    * @return the file status
    * @throws FileNotFoundException when the path does not exist
    */
-  UfsFileStatus getFileStatus(String path, GetFileStatusOptions options) throws IOException;
+  UfsFileStatus getFileStatus(String path, GetStatusOptions options) throws IOException;
 
   /**
    * Gets the file status.
@@ -532,7 +533,9 @@ public interface UnderFileSystem extends Closeable {
    * @return the file or directory status
    * @throws FileNotFoundException when the path does not exist
    */
-  UfsStatus getStatus(String path) throws IOException;
+  default UfsStatus getStatus(String path) throws IOException {
+    return getStatus(path, GetStatusOptions.defaults());
+  }
 
   /**
    * Gets the file or directory status. The caller does not need to know if the path is a file or
@@ -543,9 +546,7 @@ public interface UnderFileSystem extends Closeable {
    * @return the file or directory status
    * @throws FileNotFoundException when the path does not exist
    */
-  default UfsStatus getStatus(String path, GetFileStatusOptions options) throws IOException {
-    return getStatus(path);
-  }
+  UfsStatus getStatus(String path, GetStatusOptions options) throws IOException;
 
   /**
    * Gets the file or directory status.
@@ -652,6 +653,20 @@ public interface UnderFileSystem extends Closeable {
    */
   @Nullable
   UfsStatus[] listStatus(String path, ListOptions options) throws IOException;
+
+  /**
+   * Lists the ufs statuses iteratively.
+   *
+   * @param path the abstract pathname to list
+   * @param options for list directory
+   * @param startAfter the start after token
+   * @param batchSize the batch size
+   * @return An iterator of ufs status. Returns
+   *  {@code null} if this abstract pathname does not denote a directory.
+   */
+  @Nullable
+  Iterator<UfsStatus> listStatusIterable(
+      String path, ListOptions options, String startAfter, int batchSize) throws IOException;
 
   /**
    * Returns an array of statuses of the files and directories in the directory denoted by this

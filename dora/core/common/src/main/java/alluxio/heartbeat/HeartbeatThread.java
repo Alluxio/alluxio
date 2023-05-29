@@ -12,7 +12,6 @@
 package alluxio.heartbeat;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.Reconfigurable;
 import alluxio.conf.ReconfigurableRegistry;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.UserState;
@@ -21,11 +20,12 @@ import alluxio.util.SecurityUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Clock;
+import java.util.function.Supplier;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -33,13 +33,12 @@ import javax.annotation.concurrent.NotThreadSafe;
  * the JVM from exiting.
  */
 @NotThreadSafe
-public final class HeartbeatThread implements Runnable, Reconfigurable {
+public final class HeartbeatThread implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(HeartbeatThread.class);
 
   private final String mThreadName;
   private final HeartbeatExecutor mExecutor;
   private final UserState mUserState;
-  private final Supplier<Long> mIntervalSupplier;
   private HeartbeatTimer mTimer;
   private AlluxioConfiguration mConfiguration;
   private Status mStatus;
@@ -73,26 +72,28 @@ public final class HeartbeatThread implements Runnable, Reconfigurable {
    * @param intervalSupplier Sleep time between different heartbeat supplier
    * @param conf Alluxio configuration
    * @param userState the user state for this heartbeat thread
+   * @param clock the clock used to compute the current time
    */
   public HeartbeatThread(String executorName, String threadId, HeartbeatExecutor executor,
-      Supplier<Long> intervalSupplier, AlluxioConfiguration conf, UserState userState) {
+      Supplier<SleepIntervalSupplier> intervalSupplier,
+      AlluxioConfiguration conf, UserState userState, Clock clock) {
     mThreadName = generateThreadName(executorName, threadId);
     mExecutor = Preconditions.checkNotNull(executor, "executor");
     Class<? extends HeartbeatTimer> timerClass = HeartbeatContext.getTimerClass(executorName);
-    mTimer = CommonUtils.createNewClassInstance(timerClass, new Class[] {String.class, long.class},
-        new Object[] {mThreadName, intervalSupplier.get()});
+    mTimer = CommonUtils.createNewClassInstance(timerClass,
+        new Class[] {String.class, Clock.class, Supplier.class},
+        new Object[] {mThreadName, clock, intervalSupplier});
     mConfiguration = conf;
     mUserState = userState;
-    mIntervalSupplier = intervalSupplier;
     mStatus = Status.INIT;
-    ReconfigurableRegistry.register(this);
+    ReconfigurableRegistry.register(mTimer);
   }
 
   /**
    * Convenience method for
    * {@link
    * #HeartbeatThread(String, String, HeartbeatExecutor, Supplier, AlluxioConfiguration,
-   * UserState)} where threadId is null.
+   * UserState, Clock)} where threadId is null.
    *
    * @param executorName the executor name that is one of those defined in {@link HeartbeatContext}
    * @param executor the heartbeat executor
@@ -101,12 +102,34 @@ public final class HeartbeatThread implements Runnable, Reconfigurable {
    * @param userState the user state for this heartbeat thread
    */
   public HeartbeatThread(String executorName, HeartbeatExecutor executor,
-      Supplier<Long> intervalSupplier, AlluxioConfiguration conf, UserState userState) {
-    this(executorName, null, executor, intervalSupplier, conf, userState);
+      Supplier<SleepIntervalSupplier> intervalSupplier, AlluxioConfiguration conf,
+      UserState userState) {
+    this(executorName, null, executor, intervalSupplier, conf, userState, Clock.systemUTC());
+  }
+
+  /**
+   * Convenience method for
+   * {@link
+   * #HeartbeatThread(String, String, HeartbeatExecutor, Supplier, AlluxioConfiguration,
+   * UserState, Clock)} where threadId is null.
+   *
+   * @param executorName the executor name that is one of those defined in {@link HeartbeatContext}
+   * @param executor the heartbeat executor
+   * @param intervalSupplier the interval between heartbeats supplier
+   * @param conf the Alluxio configuration
+   * @param userState the user state for this heartbeat thread
+   * @param clock the clock used to compute the current time
+   */
+  public HeartbeatThread(String executorName, HeartbeatExecutor executor,
+      Supplier<SleepIntervalSupplier> intervalSupplier,
+      AlluxioConfiguration conf, UserState userState, Clock clock) {
+    this(executorName, null, executor, intervalSupplier,
+        conf, userState, clock);
   }
 
   @Override
   public void run() {
+    long counter = 0L;
     try {
       if (SecurityUtils.isSecurityEnabled(mConfiguration)
           && AuthenticatedClientUser.get(mConfiguration) == null) {
@@ -123,9 +146,10 @@ public final class HeartbeatThread implements Runnable, Reconfigurable {
       while (!Thread.interrupted()) {
         // TODO(peis): Fix this. The current implementation consumes one thread even when ticking.
         mStatus = Status.WAITING;
-        mTimer.tick();
+        long limitTime = mTimer.tick();
         mStatus = Status.RUNNING;
-        mExecutor.heartbeat();
+        LOG.debug("{} #{} will run limited in {}s", mThreadName, counter++, limitTime / 1000);
+        mExecutor.heartbeat(limitTime);
       }
     } catch (InterruptedException e) {
       // Allow thread to exit.
@@ -133,17 +157,9 @@ public final class HeartbeatThread implements Runnable, Reconfigurable {
       LOG.error("Uncaught exception in heartbeat executor, Heartbeat Thread shutting down", e);
     } finally {
       mStatus = Status.STOPPED;
+      ReconfigurableRegistry.unregister(mTimer);
       mExecutor.close();
     }
-  }
-
-  /**
-   * Updates the heartbeat interval.
-   *
-   * @param intervalMs the heartbeat interval in ms
-   */
-  public void updateIntervalMs(long intervalMs) {
-    mTimer.setIntervalMs(intervalMs);
   }
 
   /**
@@ -151,18 +167,6 @@ public final class HeartbeatThread implements Runnable, Reconfigurable {
    */
   public Status getStatus() {
     return mStatus;
-  }
-
-  @Override
-  public void update() {
-    if (mStatus == Status.STOPPED) {
-      ReconfigurableRegistry.unregister(this);
-      return;
-    }
-    long interval = mIntervalSupplier.get();
-    if (interval != mTimer.getIntervalMs()) {
-      updateIntervalMs(interval);
-    }
   }
 
   /**

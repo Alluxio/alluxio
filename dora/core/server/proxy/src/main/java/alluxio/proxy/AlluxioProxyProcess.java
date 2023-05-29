@@ -11,15 +11,23 @@
 
 package alluxio.proxy;
 
+import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.NetAddress;
+import alluxio.heartbeat.FixedIntervalSupplier;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatThread;
+import alluxio.master.MasterClientContext;
 import alluxio.util.CommonUtils;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.ProxyWebServer;
 import alluxio.web.WebServer;
+import alluxio.wire.Address;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpResponse;
@@ -33,6 +41,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -50,6 +60,10 @@ public final class AlluxioProxyProcess implements ProxyProcess {
   private final long mStartTimeMs;
 
   private final CountDownLatch mLatch;
+  private ProxyMasterSync mMasterSync;
+
+  private ExecutorService mPool = Executors.newFixedThreadPool(1,
+      ThreadFactoryUtils.build("proxy-routine-%d", true));
 
   /**
    * Creates an instance of {@link AlluxioProxy}.
@@ -82,7 +96,19 @@ public final class AlluxioProxyProcess implements ProxyProcess {
     // reset proxy web port
     Configuration.set(PropertyKey.PROXY_WEB_PORT,
         mWebServer.getLocalPort());
+    NetAddress proxyAddress = NetAddress.newBuilder()
+        .setHost(NetworkAddressUtils.getConnectHost(ServiceType.PROXY_WEB,
+                Configuration.global()))
+        .setRpcPort(mWebServer.getLocalPort()).build();
     mWebServer.start();
+    MasterClientContext context = MasterClientContext.newBuilder(ClientContext.create()).build();
+    mMasterSync = new ProxyMasterSync(
+        Address.fromProto(proxyAddress), context, mStartTimeMs);
+    mPool.submit(new HeartbeatThread(HeartbeatContext.PROXY_META_MASTER_SYNC, mMasterSync,
+        () -> new FixedIntervalSupplier(
+            Configuration.getMs(PropertyKey.PROXY_MASTER_HEARTBEAT_INTERVAL)),
+        Configuration.global(), context.getUserState()));
+
     mLatch.await();
   }
 
@@ -91,6 +117,13 @@ public final class AlluxioProxyProcess implements ProxyProcess {
     if (mWebServer != null) {
       mWebServer.stop();
       mWebServer = null;
+    }
+    if (mMasterSync != null) {
+      mMasterSync.close();
+    }
+    if (mPool != null) {
+      mPool.shutdownNow();
+      mPool = null;
     }
     mLatch.countDown();
   }

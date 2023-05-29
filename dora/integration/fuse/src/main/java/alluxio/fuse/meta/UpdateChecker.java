@@ -79,7 +79,7 @@ public final class UpdateChecker implements HeartbeatExecutor {
    * Heartbeat for the periodic update check.
    */
   @Override
-  public void heartbeat() {
+  public void heartbeat(long timeLimitMs) {
     try {
       String latestVersion =
           UpdateCheck.getLatestVersion(mInstanceId, getFuseCheckInfo(),

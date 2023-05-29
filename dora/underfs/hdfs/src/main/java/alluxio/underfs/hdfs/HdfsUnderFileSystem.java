@@ -24,6 +24,7 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.AtomicFileOutputStream;
 import alluxio.underfs.AtomicFileOutputStreamCallback;
+import alluxio.underfs.ChecksumType;
 import alluxio.underfs.ConsistentUnderFileSystem;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
@@ -33,7 +34,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
-import alluxio.underfs.options.GetFileStatusOptions;
+import alluxio.underfs.options.GetStatusOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
@@ -182,9 +183,10 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         hdfsConf.setBoolean(KRB_KEYTAB_LOGIN_AUTO_RENEW,
                 mUfsConf.getBoolean(PropertyKey.HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL));
       }
-      if (mUfsConf.isSet(PropertyKey.HADOOP_CHECKSUM_COMBINE_MODE)) {
-        hdfsConf.set(CHECKSUM_COMBINE_MODE,
-            mUfsConf.getString(PropertyKey.HADOOP_CHECKSUM_COMBINE_MODE));
+      // HDFS default composite type is MD5 of a concatenation of chunk CRCs so no need to set
+      if (mUfsConf.getEnum(PropertyKey.UNDERFS_CHECKSUM_TYPE, ChecksumType.class)
+                  .equals(ChecksumType.CRC32C)) {
+        hdfsConf.set(CHECKSUM_COMBINE_MODE, "COMPOSITE_CRC");
       }
 
       // Set Hadoop UGI configuration to ensure UGI can be initialized by the shaded classes for
@@ -437,7 +439,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   @Override
-  public UfsFileStatus getFileStatus(String path, GetFileStatusOptions options) throws IOException {
+  public UfsFileStatus getFileStatus(String path, GetStatusOptions options) throws IOException {
     Path tPath = new Path(path);
     FileSystem hdfs = getFs();
     FileStatus fs = hdfs.getFileStatus(tPath);
@@ -481,7 +483,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   @Override
-  public UfsStatus getStatus(String path, GetFileStatusOptions options) throws IOException {
+  public UfsStatus getStatus(String path, GetStatusOptions options) throws IOException {
     Path tPath = new Path(path);
     FileSystem hdfs = getFs();
     FileStatus fs = hdfs.getFileStatus(tPath);
@@ -495,23 +497,6 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         contentHash =
             UnderFileSystemUtils.approximateContentHash(fs.getLen(), fs.getModificationTime());
       }
-      return new UfsFileStatus(path, contentHash, fs.getLen(), fs.getModificationTime(),
-          fs.getOwner(), fs.getGroup(), fs.getPermission().toShort(), fs.getBlockSize());
-    }
-    // Return directory status.
-    return new UfsDirectoryStatus(path, fs.getOwner(), fs.getGroup(), fs.getPermission().toShort(),
-        fs.getModificationTime());
-  }
-
-  @Override
-  public UfsStatus getStatus(String path) throws IOException {
-    Path tPath = new Path(path);
-    FileSystem hdfs = getFs();
-    FileStatus fs = hdfs.getFileStatus(tPath);
-    if (!fs.isDir()) {
-      // Return file status.
-      String contentHash =
-          UnderFileSystemUtils.approximateContentHash(fs.getLen(), fs.getModificationTime());
       return new UfsFileStatus(path, contentHash, fs.getLen(), fs.getModificationTime(),
           fs.getOwner(), fs.getGroup(), fs.getPermission().toShort(), fs.getBlockSize());
     }

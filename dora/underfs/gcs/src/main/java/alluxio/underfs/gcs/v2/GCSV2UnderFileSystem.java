@@ -17,6 +17,7 @@ import alluxio.PositionReader;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.retry.RetryPolicy;
+import alluxio.underfs.ChecksumType;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -315,7 +316,14 @@ public class GCSV2UnderFileSystem extends ObjectUnderFileSystem {
   private ObjectStatus getBlobStatus(Blob blob) {
     Long time = blob.getUpdateTime() != null ? blob.getUpdateTime()
         : blob.getCreateTime() != null ? blob.getCreateTime() : null;
-    return new ObjectStatus(blob.getName(), blob.getMd5() == null ? DIR_HASH : blob.getMd5(),
-        blob.getSize(), time);
+    String checkSum;
+    if (mUfsConf.getEnum(PropertyKey.UNDERFS_CHECKSUM_TYPE, ChecksumType.class)
+                .equals(ChecksumType.MD5)) {
+      checkSum = blob.getMd5() == null ? DIR_HASH : blob.getMd5();
+    }
+    else {
+      checkSum = blob.getCrc32c() == null ? DIR_HASH : blob.getCrc32c();
+    }
+    return new ObjectStatus(blob.getName(), checkSum, blob.getSize(), time);
   }
 }

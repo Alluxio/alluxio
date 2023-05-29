@@ -57,13 +57,6 @@ function update_poms() {
 # Arguments:
 #  $1: old version
 #  $2: new version
-function update_libexec() {
-    perl -pi -e "s/${1}/${2}/g" libexec/alluxio-config.sh
-}
-
-# Arguments:
-#  $1: old version
-#  $2: new version
 function update_readme() {
     perl -pi -e "s/${1}/${2}/g" README.md
 }
@@ -127,7 +120,6 @@ function main() {
 
     update_dataproc "$_old" "$_new"
     update_emr "$_old" "$_new"
-    update_libexec "$_old" "$_new"
     update_readme "$_old" "$_new"
     update_docs "$_old" "$_new"
     update_dockerfiles "$_old" "$_new"

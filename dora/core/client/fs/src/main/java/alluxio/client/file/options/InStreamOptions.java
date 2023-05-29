@@ -13,6 +13,7 @@ package alluxio.client.file.options;
 
 import alluxio.client.ReadType;
 import alluxio.client.block.policy.BlockLocationPolicy;
+import alluxio.client.block.policy.SpecificHostPolicy;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
@@ -91,7 +92,13 @@ public final class InStreamOptions {
 
     mStatus = status;
     mProtoOptions = openOptions;
-    mUfsReadLocationPolicy = context.getReadBlockLocationPolicy(alluxioConf);
+    if (options.hasUfsReadWorkerLocation()) {
+      int port = options.getUfsReadWorkerLocation().getRpcPort();
+      mUfsReadLocationPolicy = new SpecificHostPolicy(
+          options.getUfsReadWorkerLocation().getHost(), port == 0 ? null : port);
+    } else {
+      mUfsReadLocationPolicy = context.getReadBlockLocationPolicy(alluxioConf);
+    }
     mPositionShort = false;
   }
 
