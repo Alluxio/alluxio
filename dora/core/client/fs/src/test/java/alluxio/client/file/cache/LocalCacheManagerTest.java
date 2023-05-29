@@ -38,6 +38,8 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.file.NettyBufTargetBuffer;
+import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
@@ -46,6 +48,9 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.DefaultFileRegion;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -55,6 +60,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.WritableByteChannel;
 import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.List;
@@ -1087,6 +1093,25 @@ public final class LocalCacheManagerTest {
     assertEquals(zeroLenFilePageId,
         mCacheManager.getCachedPageIdsByFileId(zeroLenFilePageId.getFileId(),
             0).get(0));
+  }
+
+  @Test
+  public void getDataFileChannel() throws Exception {
+    mCacheManager = createLocalCacheManager();
+    mCacheManager.put(PAGE_ID1, PAGE1);
+    CacheContext cacheContext = CacheContext.defaults();
+    Optional<DataFileChannel> dataFileChannel = mCacheManager.getDataFileChannel(PAGE_ID1,
+        0, PAGE1.length, cacheContext);
+    assertNotNull(dataFileChannel);
+    assertEquals(dataFileChannel.isPresent(), true);
+    assertEquals(dataFileChannel.get().getNettyOutput() instanceof DefaultFileRegion, true);
+    DefaultFileRegion defaultFileRegion =
+        (DefaultFileRegion) dataFileChannel.get().getNettyOutput();
+    ByteBuf buf = Unpooled.buffer(PAGE1.length);
+    NettyBufTargetBuffer targetBuffer = new NettyBufTargetBuffer(buf);
+    defaultFileRegion.transferTo(targetBuffer.byteChannel(), 0);
+    byte[] bytes = targetBuffer.byteArray();
+    assertArrayEquals(PAGE1, bytes);
   }
 
   /**
