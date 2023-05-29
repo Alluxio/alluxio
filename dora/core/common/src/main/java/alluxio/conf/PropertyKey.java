@@ -2774,7 +2774,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METASTORE_ROCKS_BLOCK_META_CACHE_SIZE =
-      intBuilder(Name.MASTER_METASTORE_ROCKS_BLOCK_META_CACHE_SIZE)
+      longBuilder(Name.MASTER_METASTORE_ROCKS_BLOCK_META_CACHE_SIZE)
           .setDescription("The capacity in bytes of the RocksDB block metadata table LRU "
               + " cache. If unset, the RocksDB default will be used."
               + " See https://github.com/facebook/rocksdb/wiki/Block-Cache")
@@ -2807,7 +2807,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METASTORE_ROCKS_BLOCK_LOCATION_CACHE_SIZE =
-      intBuilder(Name.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_CACHE_SIZE)
+      longBuilder(Name.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_CACHE_SIZE)
           .setDescription("The capacity in bytes of the RocksDB block location table LRU "
               + "cache. If unset, the RocksDB default will be used."
               + " See https://github.com/facebook/rocksdb/wiki/Block-Cache")
@@ -7825,6 +7825,50 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey DORA_WORKER_METASTORE_ROCKSDB_BLOOM_FILTER =
+      booleanBuilder(Name.DORA_WORKER_METASTORE_ROCKSDB_BLOOM_FILTER)
+          .setDescription("Whether or not to use a bloom filter in the Block meta"
+              + " table in RocksDB. If unset, the RocksDB default will be used."
+              + " See https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter")
+          .setDefaultValue(false)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey DORA_WORKER_METASTORE_ROCKSDB_CACHE_SIZE =
+      longBuilder(Name.DORA_WORKER_METASTORE_ROCKSDB_CACHE_SIZE)
+          .setDescription("The capacity in bytes of the RocksDB block metadata table LRU "
+              + " cache. If unset, the RocksDB default will be used."
+              + " See https://github.com/facebook/rocksdb/wiki/Block-Cache")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey DORA_WORKER_METASTORE_ROCKSDB_BLOCK_INDEX =
+      enumBuilder(Name.DORA_WORKER_METASTORE_ROCKSDB_BLOCK_INDEX, DataBlockIndexType.class)
+          .setDescription("The block index type to be used in the RocksDB block metadata table."
+              + " If unset, the RocksDB default will be used."
+              + "See https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey DORA_WORKER_METASTORE_ROCKSDB_INDEX =
+      enumBuilder(Name.DORA_WORKER_METASTORE_ROCKSDB_INDEX, IndexType.class)
+          .setDescription("The index type to be used in the RocksDB block metadata table."
+              + " If unset, the RocksDB default will be used."
+              + " See https://github.com/facebook/rocksdb/wiki/Index-Block-Format")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey DORA_WORKER_POPULATE_METADATA_FINGERPRINT =
+      booleanBuilder(Name.DORA_WORKER_POPULATE_METADATA_FINGERPRINT)
+          .setDescription("Populate the fingerprint for file metadata fetched from UFS "
+              + "If set, when the file metadata is updated, the fingerprints will be compared. "
+              + "If the file metadata is updated but the data part does not change, "
+              + "we can skip invalidating the page cache, at the expense of having extra overhead "
+              + "on computing the fingerprint for UFS files.")
+          .setDefaultValue(false)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.WORKER)
+          .build();
 
   public static final PropertyKey DORA_UFS_LIST_STATUS_CACHE_TTL =
       durationBuilder(Name.DORA_UFS_LIST_STATUS_CACHE_TTL)
@@ -9456,6 +9500,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     public static final String DORA_WORKER_METASTORE_ROCKSDB_TTL =
         "alluxio.dora.worker.metastore.rocksdb.ttl";
+    public static final String DORA_WORKER_METASTORE_ROCKSDB_BLOOM_FILTER =
+        "alluxio.dora.worker.metastore.rocksdb.bloom.filter";
+    public static final String DORA_WORKER_METASTORE_ROCKSDB_CACHE_SIZE =
+        "alluxio.dora.worker.metastore.rocksdb.cache.size";
+    public static final String DORA_WORKER_METASTORE_ROCKSDB_BLOCK_INDEX =
+        "alluxio.dora.worker.metastore.rocksdb.block.index";
+    public static final String DORA_WORKER_METASTORE_ROCKSDB_INDEX =
+        "alluxio.dora.worker.metastore.rocksdb.index";
+
+    public static final String DORA_WORKER_POPULATE_METADATA_FINGERPRINT =
+        "alluxio.dora.worker.populate.metadata.fingerprint";
 
     public static final String DORA_UFS_LIST_STATUS_CACHE_TTL =
         "alluxio.dora.ufs.list.status.cache.ttl";
