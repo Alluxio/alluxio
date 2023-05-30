@@ -347,6 +347,18 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
   }
 
   @Override
+  public UfsStatus getStatus(String path) throws IOException {
+    ObjectStatus status = getObjectStatus(stripPrefixIfPresent(path));
+    if (!isDirectory(path)) {
+      ObjectPermissions permissions = getPermissions();
+      return new UfsFileStatus(path, status.getContentHash(), status.getContentLength(), status.getLastModifiedTimeMs(),
+              permissions.getOwner(), permissions.getGroup(), permissions.getMode(), mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
+    }
+    // Return directory status.
+    return getDirectoryStatus(path);
+  }
+  
+  @Override
   public boolean isDirectory(String path) throws IOException {
     if (!isEnvironmentPFS()) {
       return super.isDirectory(path);
