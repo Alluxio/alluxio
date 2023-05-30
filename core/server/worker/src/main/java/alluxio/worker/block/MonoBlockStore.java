@@ -171,16 +171,16 @@ public class MonoBlockStore implements BlockStore {
     try {
       BlockReader reader = mUnderFileSystemBlockStore.createBlockReader(sessionId, blockId, offset,
           positionShort, options);
-      return new DelegatingBlockReader(reader, () -> closeUfsBlock(sessionId, blockId));
+      return new DelegatingBlockReader(reader, () -> closeUfsBlock(sessionId, blockId, true));
     } catch (Exception e) {
       try {
-        closeUfsBlock(sessionId, blockId);
+        closeUfsBlock(sessionId, blockId, false);
       } catch (Exception ee) {
         LOG.warn("Failed to close UFS block", ee);
       }
       String errorMessage = format("Failed to read from UFS, sessionId=%d, "
               + "blockId=%d, offset=%d, positionShort=%s, options=%s: %s",
-          sessionId, blockId, offset, positionShort, options, e);
+          sessionId, blockId, offset, positionShort, options, e.toString());
       if (e instanceof FileNotFoundException) {
         throw new NotFoundException(errorMessage, e);
       }
@@ -188,13 +188,17 @@ public class MonoBlockStore implements BlockStore {
     }
   }
 
-  private void closeUfsBlock(long sessionId, long blockId)
+  private void closeUfsBlock(long sessionId, long blockId, boolean successful)
       throws IOException {
     try {
       mUnderFileSystemBlockStore.closeBlock(sessionId, blockId);
       Optional<TempBlockMeta> tempBlockMeta = mLocalBlockStore.getTempBlockMeta(blockId);
       if (tempBlockMeta.isPresent() && tempBlockMeta.get().getSessionId() == sessionId) {
-        commitBlock(sessionId, blockId, false);
+        if (successful) {
+          commitBlock(sessionId, blockId, false);
+        } else {
+          abortBlock(sessionId, blockId);
+        }
       } else {
         // When getTempBlockMeta() return null, such as a block readType NO_CACHE writeType THROUGH.
         // Counter will not be decrement in the commitblock().
