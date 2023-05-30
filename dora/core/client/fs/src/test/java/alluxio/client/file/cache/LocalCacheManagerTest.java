@@ -1108,8 +1108,11 @@ public final class LocalCacheManagerTest {
         (DefaultFileRegion) dataFileChannel.get().getNettyOutput();
     ByteBuf buf = Unpooled.buffer(PAGE1.length);
     NettyBufTargetBuffer targetBuffer = new NettyBufTargetBuffer(buf);
-    defaultFileRegion.transferTo(targetBuffer.byteChannel(), 0);
-    byte[] bytes = targetBuffer.byteArray();
+    long bytesTransferred = defaultFileRegion.transferTo(targetBuffer.byteChannel(), 0);
+    assertEquals(bytesTransferred, PAGE1.length);
+
+    byte[] bytes = new byte[PAGE1.length];
+    buf.readBytes(bytes);
     assertArrayEquals(PAGE1, bytes);
   }
 

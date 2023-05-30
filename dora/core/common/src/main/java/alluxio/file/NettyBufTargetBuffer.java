@@ -37,9 +37,7 @@ public class NettyBufTargetBuffer implements ReadTargetBuffer {
 
   @Override
   public byte[] byteArray() {
-    byte[] bytes = new byte[mTarget.readableBytes()];
-    mTarget.readBytes(bytes, 0, bytes.length);
-    return bytes;
+    return mTarget.array();
   }
 
   @Override
