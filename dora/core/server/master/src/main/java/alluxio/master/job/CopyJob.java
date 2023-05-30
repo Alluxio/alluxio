@@ -208,14 +208,14 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
    */
   @Override
   public void failJob(AlluxioRuntimeException reason) {
-    setJobState(JobState.FAILED);
+    setJobState(JobState.FAILED, true);
     mFailedReason = Optional.of(reason);
     JOB_COPY_FAIL.inc();
   }
 
   @Override
   public void setJobSuccess() {
-    setJobState(JobState.SUCCEEDED);
+    setJobState(JobState.SUCCEEDED, true);
     JOB_COPY_SUCCESS.inc();
   }
 

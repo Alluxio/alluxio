@@ -129,11 +129,15 @@ public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
    * Set load state.
    *
    * @param state new state
+   * @param journalUpdate true if state change needs to be journaled
    */
   @Override
-  public void setJobState(JobState state) {
-    LOG.debug("Change JobState to {} for job {}", state, this);
+  public void setJobState(JobState state, boolean journalUpdate) {
+    LOG.debug("Change JobState to {} for job {}, journalUpdate:{}", state, this, journalUpdate);
     mState = state;
+    if (journalUpdate) {
+      mMyScheduler.getJobMetaStore().updateJob(this);
+    }
     if (!isRunning()) {
       mEndTime = OptionalLong.of(System.currentTimeMillis());
     }

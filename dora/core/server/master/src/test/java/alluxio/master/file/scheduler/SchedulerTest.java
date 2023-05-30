@@ -505,7 +505,7 @@ public final class SchedulerTest {
             .setPath("/load/1")
             .setType("load")
             .build())
-        .setJobState(JobState.VERIFYING);
+        .setJobState(JobState.VERIFYING, false);
     scheduler
         .getJobs()
         .get(JobDescription
@@ -513,7 +513,7 @@ public final class SchedulerTest {
             .setPath("/load/2")
             .setType("load")
             .build())
-        .setJobState(JobState.FAILED);
+        .setJobState(JobState.FAILED, false);
     scheduler
         .getJobs()
         .get(JobDescription
@@ -521,7 +521,7 @@ public final class SchedulerTest {
             .setPath("/load/3")
             .setType("load")
             .build())
-        .setJobState(JobState.SUCCEEDED);
+        .setJobState(JobState.SUCCEEDED, false);
     scheduler
         .getJobs()
         .get(JobDescription
@@ -529,7 +529,7 @@ public final class SchedulerTest {
             .setPath("/load/4")
             .setType("load")
             .build())
-        .setJobState(JobState.STOPPED);
+        .setJobState(JobState.STOPPED, false);
     scheduler.cleanupStaleJob();
     assertEquals(2, scheduler
         .getJobs().size());

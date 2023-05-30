@@ -104,7 +104,7 @@ public class MoveJobTest {
     MoveJob job = spy(new MoveJob(srcPath, dstPath, false, user, "1",
         OptionalLong.empty(), false, false, false, files));
     when(job.getDurationInSec()).thenReturn(0L);
-    job.setJobState(JobState.RUNNING);
+    job.setJobState(JobState.RUNNING, false);
     List<Route> nextRoutes = job.getNextRoutes(25);
     job.addMovedBytes(640 * Constants.MB);
     String expectedTextReport = "\tSettings:\tbandwidth: unlimited\tverify: false\n"

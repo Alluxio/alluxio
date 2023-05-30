@@ -113,7 +113,7 @@ public class LoadJobTest {
         spy(new LoadJob("test", Optional.of("user"), "1", OptionalLong.empty(), false, false,
             files));
     when(job.getDurationInSec()).thenReturn(0L);
-    job.setJobState(JobState.RUNNING);
+    job.setJobState(JobState.RUNNING, false);
     List<Block> blocks = job.getNextBatchBlocks(25);
     job.addLoadedBytes(640 * Constants.MB);
     String expectedTextReport = "\tSettings:\tbandwidth: unlimited\tverify: false\n"

@@ -380,7 +380,7 @@ public final class Scheduler {
     mJobMetaStore.updateJob(existingJob);
     LOG.debug(format("updated existing job: %s from %s", existingJob, newJob));
     if (existingJob.getJobState() == JobState.STOPPED) {
-      existingJob.setJobState(JobState.RUNNING);
+      existingJob.setJobState(JobState.RUNNING, false);
       mJobToRunningTasks.compute(existingJob, (k, v) -> new ConcurrentHashSet<>());
       LOG.debug(format("restart existing job: %s", existingJob));
     }
@@ -394,7 +394,7 @@ public final class Scheduler {
   public boolean stopJob(JobDescription jobDescription) {
     Job<?> existingJob = mExistingJobs.get(jobDescription);
     if (existingJob != null && existingJob.isRunning()) {
-      existingJob.setJobState(JobState.STOPPED);
+      existingJob.setJobState(JobState.STOPPED, true);
       mJobMetaStore.updateJob(existingJob);
       // leftover tasks in mJobToRunningTasks would be removed by scheduling thread.
       return true;
