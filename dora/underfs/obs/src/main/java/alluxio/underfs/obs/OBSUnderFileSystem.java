@@ -377,7 +377,6 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
       return new UfsFileStatus(path, status.getContentHash(), status.getContentLength(), status.getLastModifiedTimeMs(),
               permissions.getOwner(), permissions.getGroup(), permissions.getMode(), mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
     }
-    // Return directory status.
     return getDirectoryStatus(path);
   }
 
