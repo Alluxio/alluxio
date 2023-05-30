@@ -21,15 +21,21 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import alluxio.Constants;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.grpc.Block;
 import alluxio.grpc.JobProgressReportFormat;
+import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.job.FileIterable;
 import alluxio.master.job.LoadJob;
+import alluxio.master.journal.JournalContext;
+import alluxio.master.scheduler.DefaultWorkerProvider;
+import alluxio.master.scheduler.JournaledJobMetaStore;
+import alluxio.master.scheduler.Scheduler;
 import alluxio.scheduler.job.JobState;
 import alluxio.wire.FileInfo;
 
@@ -105,7 +111,14 @@ public class LoadJobTest {
   @Test
   public void testLoadProgressReport() throws Exception {
     List<FileInfo> fileInfos = generateRandomFileInfo(10, 10, 64 * Constants.MB);
-    FileSystemMaster fileSystemMaster = mock(FileSystemMaster.class);
+    DefaultFileSystemMaster fileSystemMaster = mock(DefaultFileSystemMaster.class);
+    JournalContext journalContext = mock(JournalContext.class);
+    when(fileSystemMaster.createJournalContext()).thenReturn(journalContext);
+    FileSystemContext fileSystemContext = mock(FileSystemContext.class);
+    DefaultWorkerProvider workerProvider =
+        new DefaultWorkerProvider(fileSystemMaster, fileSystemContext);
+    Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider,
+        new JournaledJobMetaStore((DefaultFileSystemMaster) fileSystemMaster));
     when(fileSystemMaster.listStatus(any(), any())).thenReturn(fileInfos);
     FileIterable files = new FileIterable(fileSystemMaster, "test", Optional.of("user"), false,
         LoadJob.QUALIFIED_FILE_FILTER);
