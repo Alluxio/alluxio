@@ -1,8 +1,8 @@
 ---
 layout: global
 title: FUSE-based POSIX API with Local Cache
-group: Dora
-priority: 3
+group: FUSE SDK
+priority: 1
 ---
 
 * Table of Contents

@@ -1,8 +1,8 @@
 ---
 layout: global
 title: Presto SDK with local cache
-group: Dora
-priority: 3
+group: Presto SDK
+priority: 1
 ---
 
 * Table of Contents

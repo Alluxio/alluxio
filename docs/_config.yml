@@ -42,6 +42,8 @@ categoryList:
   - Overview
   - Core Services
   - Install Alluxio
+  - Presto SDK
+  - FUSE SDK
   - Kubernetes
   - Cloud Native
   - Compute Integrations
@@ -53,7 +55,6 @@ categoryList:
   - Client APIs
   - Contributor Resources
   - Reference
-  - Dora
 
 # Each language has a particular version of category names
 # When supporting a new language version, do not change the 'group' attribute in .md page files
@@ -68,6 +69,12 @@ categoryInfo:
   Install Alluxio:
     en: Install Alluxio
     cn: 部署 Alluxio
+  Presto SDK:
+    en: Presto SDK
+    cn: Presto SDK
+  FUSE SDK:
+    en: FUSE SDK
+    cn: FUSE SDK
   Kubernetes:
     en: Kubernetes
     cn: Kubernetes
@@ -101,9 +108,6 @@ categoryInfo:
   Reference:
     en: Reference
     cn: 参考
-  Dora:
-    en: Dora
-    cn: Dora
 
 # For no baseurl, leave blank
 # Anything other than blank: this should always START with a '/' and NEVER end with a '/' character

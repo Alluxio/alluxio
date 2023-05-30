@@ -1,7 +1,7 @@
 ---
 layout: global
 title: Deploy Alluxio on Kubernetes
-group: Dora
+group: Install Alluxio
 priority: 2
 ---
 

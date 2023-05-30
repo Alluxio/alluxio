@@ -246,3 +246,24 @@ On the left, check the box next to `Remote Login`. If there is `Allow full acces
 image, check the box next to it. Besides, click the `+` button and add yourself to the list of users that are allowed
 for Remote Login if you are not already in it.
 
+## Tuning
+
+### Optional Dora Server-side Metadata Cache
+
+By default, Dora worker caches metadata and data.
+Set `alluxio.dora.client.metadata.cache.enabled` to `false` to disable the metadata cache on docker worker if needed.
+If disabled, client will always fetch metadata from under storage directly.
+
+### High performance data transmission over Netty
+
+Set `alluxio.user.netty.data.transmission.enabled` to `true` to enable transmission of data between clients and
+Dora cache nodes over Netty. This avoids serialization and deserialization cost of gRPC, as well as consumes less
+resources on the worker side.
+
+## Known limitations
+
+1. Currently, only one UFS is supported by Dora. Nested mounts are not supported yet.
+2. Currently, the Alluxio Master node still needs to be up and running. It is used for Dora worker discovery,
+   cluster configuration updates, as well as handling write IO operations.
+3. Currently, Alluxio Fuse is not supported with Dora on Kubernetes with the existing helm chart. The helm chart
+   supporting Alluxio Fuse is under development.
