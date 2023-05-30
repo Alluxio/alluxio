@@ -30,13 +30,7 @@ import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.WorkerNetAddress;
-import javax.annotation.concurrent.GuardedBy;
-import javax.annotation.concurrent.NotThreadSafe;
-import java.io.IOException;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
+
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import io.netty.buffer.ByteBuf;
@@ -48,6 +42,14 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
+import javax.annotation.concurrent.GuardedBy;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A netty packet writer that streams a full block or a UFS file to a netty data server.
@@ -194,6 +196,13 @@ public final class NettyDataWriter implements DataWriter {
     return Optional.empty();
   }
 
+  /**
+   * Write chunk by sending a write request.
+   * @param bytes the bytes to be written
+   * @param off the offset of the given byte array
+   * @param len the length to be written
+   * @throws IOException
+   */
   public void writeChunk(byte[] bytes, int off, int len) throws IOException {
     // TODO(JiamingMai): maybe we can reduce copying here
     ByteBuf byteBuf = mChannel.alloc().buffer(len);

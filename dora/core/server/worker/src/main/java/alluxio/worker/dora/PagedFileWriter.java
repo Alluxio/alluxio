@@ -17,13 +17,14 @@ import alluxio.client.file.cache.PageId;
 import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.worker.block.io.BlockWriter;
-import alluxio.worker.page.BlockPageId;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.WritableByteChannel;
+
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.WritableByteChannel;
 
 /**
  * A paged implementation of BlockWriter interface.

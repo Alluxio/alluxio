@@ -81,7 +81,6 @@ import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.grpc.GrpcExecutors;
-import alluxio.worker.page.PagedBlockWriter;
 import alluxio.worker.task.CopyHandler;
 import alluxio.worker.task.DeleteHandler;
 
@@ -288,7 +287,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     } catch (Exception e) {
       throw new IOException(e);
     } finally {
-      super.close();         
+      super.close();
     }
   }
 

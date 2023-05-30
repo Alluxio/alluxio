@@ -18,17 +18,16 @@ import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.underfs.UfsManager;
-import alluxio.worker.block.BlockWorker;
-import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.dora.DoraWorker;
-import javax.annotation.concurrent.NotThreadSafe;
-import java.util.concurrent.ExecutorService;
+
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.ExecutorService;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This handler handles block write request. Check more information in

@@ -15,45 +15,29 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
-import alluxio.client.block.BlockStoreClient;
-import alluxio.client.block.policy.options.GetWorkerOptions;
-import alluxio.client.block.stream.BlockOutStream;
-import alluxio.client.block.stream.UnderFileSystemFileOutStream;
 import alluxio.client.file.dora.DoraCacheClient;
 import alluxio.client.file.dora.netty.NettyDataWriter;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
-import alluxio.resource.CloseableResource;
-import alluxio.retry.ExponentialTimeBoundedRetry;
-import alluxio.retry.RetryPolicy;
 import alluxio.util.CommonUtils;
 import alluxio.util.FileSystemOptionsUtils;
-import alluxio.wire.BlockInfo;
 import alluxio.wire.OperationId;
-import alluxio.wire.WorkerNetAddress;
-import javax.annotation.concurrent.NotThreadSafe;
-import javax.annotation.concurrent.ThreadSafe;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.UUID;
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Provides a streaming API to write a file. This class wraps the BlockOutStreams for each of the
@@ -91,9 +75,13 @@ public class DoraFileOutStream extends FileOutStream {
   /**
    * Creates a new file output stream.
    *
+   * @param doraClient the dora client for requesting dora worker
+   * @param dataWriter the netty data writer which is used for transferring data with netty
    * @param path the file path
    * @param options the client options
    * @param context the file system context
+   * @param ufsOutStream the UfsOutStream for writing data to UFS
+   * @param uuid the UUID of a certain OutStream
    */
   public DoraFileOutStream(DoraCacheClient doraClient, NettyDataWriter dataWriter, AlluxioURI path,
       OutStreamOptions options, FileSystemContext context,  FileOutStream ufsOutStream, String uuid)
