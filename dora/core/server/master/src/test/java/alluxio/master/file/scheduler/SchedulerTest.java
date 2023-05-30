@@ -219,25 +219,6 @@ public final class SchedulerTest {
   }
 
   @Test
-  public void testJobJournaling() throws Exception {
-    String validLoadPath = "/path/to/load";
-    DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
-    FileSystemContext fileSystemContext = mock(FileSystemContext.class);
-    when(fileSystemContext.getClusterConf()).thenReturn(Configuration.global());
-    JournalContext journalContext = mock(JournalContext.class);
-    when(fsMaster.createJournalContext()).thenReturn(journalContext);
-    DefaultWorkerProvider workerProvider =
-        new DefaultWorkerProvider(fsMaster, fileSystemContext);
-    JournaledJobMetaStore jobMetaStore = new JournaledJobMetaStore(fsMaster);
-    Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider, jobMetaStore);
-
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    jobMetaStore.writeToCheckpoint(baos);
-    jobMetaStore.restoreFromCheckpoint(
-        new CheckpointInputStream(new ByteArrayInputStream(baos.toByteArray())));
-  }
-
-  @Test
   public void testSubmitExceedsCapacity() throws Exception {
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
@@ -492,11 +473,11 @@ public final class SchedulerTest {
   }
 
   @Test
-  @Ignore
   public void testJobRetention() throws Exception {
     Configuration.modifiableGlobal().set(PropertyKey.JOB_RETENTION_TIME, "0ms", Source.RUNTIME);
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
+    when(fileSystemContext.getClusterConf()).thenReturn(Configuration.global());
     JournalContext journalContext = mock(JournalContext.class);
     when(fsMaster.createJournalContext()).thenReturn(journalContext);
     DefaultWorkerProvider workerProvider =
@@ -508,11 +489,10 @@ public final class SchedulerTest {
         .range(0, 5)
         .forEach(i -> {
           String path = String.format("/load/%d", i);
-          FileIterable files = new FileIterable(fsMaster, path, Optional.of("user"),
-              false, LoadJob.QUALIFIED_FILE_FILTER);
           assertTrue(scheduler.submitJob(
-              new LoadJob(path, Optional.of("user"), "1",
-                  OptionalLong.empty(), false, true, files)));
+              new DoraLoadJob(path, Optional.of("user"), "1",
+                  OptionalLong.empty(), false, true)
+          ));
         });
     assertEquals(5, scheduler
         .getJobs().size());
