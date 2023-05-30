@@ -171,19 +171,7 @@ public class MonoBlockStore implements BlockStore {
     try {
       BlockReader reader = mUnderFileSystemBlockStore.createBlockReader(sessionId, blockId, offset,
           positionShort, options);
-<<<<<<< HEAD
-      return new DelegatingBlockReader(reader, () -> closeUfsBlock(sessionId, blockId));
-||||||| parent of 812855fe50 (Fix a bug that creates 0 byte block file mistakenly)
-      BlockReader blockReader = new DelegatingBlockReader(reader,
-          () -> closeUfsBlock(sessionId, blockId));
-      Metrics.WORKER_ACTIVE_CLIENTS.inc();
-      return blockReader;
-=======
-      BlockReader blockReader = new DelegatingBlockReader(reader,
-          () -> closeUfsBlock(sessionId, blockId, true));
-      Metrics.WORKER_ACTIVE_CLIENTS.inc();
-      return blockReader;
->>>>>>> 812855fe50 (Fix a bug that creates 0 byte block file mistakenly)
+      return new DelegatingBlockReader(reader, () -> closeUfsBlock(sessionId, blockId, true));
     } catch (Exception e) {
       try {
         closeUfsBlock(sessionId, blockId, false);
