@@ -30,8 +30,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 /**
- * The Dora metadata manager that orchestrates the metadata operations and provides the
- * concurrency control.
+ * The Dora metadata manager that orchestrates the metadata operations.
  *
  * TODO(elega) Invalidating page cache synchronously causes performance issue and currently it
  *  also lacks concurrency control. Address this problem in the future.

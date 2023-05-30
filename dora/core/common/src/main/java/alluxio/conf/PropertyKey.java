@@ -7872,7 +7872,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "we can skip invalidating the page cache, at the expense of having extra overhead "
               + "on computing the fingerprint for UFS files.")
           .setDefaultValue(false)
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
 

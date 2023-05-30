@@ -32,7 +32,6 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.status.NotFoundException;
-import alluxio.file.FileId;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.CompleteFilePOptions;
@@ -340,15 +339,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    */
   @Override
   public boolean invalidateCachedFile(FileInfo fileInfo) {
-    long pages = (fileInfo.getLength() + mPageSize - 1) / mPageSize;
-    FileId file = FileId.of(new AlluxioURI(fileInfo.getUfsPath()).hash());
-
-    // @TODO(huanghua78) Only invalidate cached pages. Here, we don't check if a page is
-    // cached or not. If a page is not cached at all, the mCacheManager.delete() will log
-    // error messages to complain the non-existance of the page. As an optimization we need
-    // to only invalidate cached pages.
-    for (long i = 0; i < pages; i++) {
-      PageId page = new PageId(file.toString(), i);
+    for (PageId page: mCacheManager.getCachedPageIdsByFileId(
+        String.valueOf(fileInfo.getFileId()), fileInfo.getLength())) {
       mCacheManager.delete(page);
     }
     return true;
