@@ -30,6 +30,7 @@ import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -912,4 +913,193 @@ public interface UnderFileSystem extends Closeable, AsyncUfsClient {
    * @return true if active sync stopped
    */
   boolean stopActiveSyncPolling() throws IOException;
+
+  /**
+   * Gets a temporary token according to path, sid, effect and action.
+   *
+   * @param path the resource path
+   * @param sid the user id
+   * @param effect the effect
+   * @param action the action to be done
+   * @return the byte array of the temporary token
+   */
+  default byte[] getTemporaryToken(String path, String sid, String effect,
+      alluxio.security.authorization.Mode.Bits action) throws IOException {
+    throw new java.lang.UnsupportedOperationException("No implementation");
+  }
+
+  /**
+   * Sets the userState to UFS instance.
+   *
+   * @param userState the userState
+   */
+  default void setTemporaryTokenRefreshContext(alluxio.security.user.UserState userState) {
+    // noop
+  }
+
+  /**
+   * Denotes if the under storage is in the temporary connection token mode.
+   *
+   * @return true if the under storage is in the temporary connection token mode
+   */
+  default boolean isTemporaryConnectionToken() {
+    return false;
+  }
+
+  /**
+   * Refreshes the old temporary token.
+   *
+   * @param oldTemporaryToken the old temporary token
+   * @return the byte array of the temporary token
+   */
+  default byte[] refreshTemporaryToken(byte[] oldTemporaryToken) throws IOException {
+    throw new java.lang.UnsupportedOperationException("No implementation");
+  }
+
+
+  /**
+   * Whether this type of UFS supports Multipart upload.
+   *
+   * @return true if this type of UFS supports, false otherwise
+   */
+  default boolean supportUfsMultiPart() {
+    return false;
+  }
+
+  /**
+   * Initializes MultiPart Upload Task.
+   *
+   * @param path the path of the ufs file
+   * @param options ufs options
+   * @return the upload id of new Multipart task
+   * @throws IOException
+   */
+  default String initObjectMultiPart(String path,
+      alluxio.underfs.options.MultipartUfsOptions options)
+      throws IOException {
+    // not support
+    throw new IOException("not support");
+  }
+
+  /**
+   * Uploads a part in the under file system with the indicated upload id and part number.
+   *
+   * @param path the path of the ufs file
+   * @param uploadId the upload id of Multipart task
+   * @param partNum the partNum to upload part
+   * @param options ufs options
+   * @return A {@code OutputStream} object
+   * @throws IOException
+   */
+  default OutputStream uploadObjectMultiPart(String path, String uploadId, int partNum,
+      alluxio.underfs.options.MultipartUfsOptions options)
+      throws IOException {
+    // not support
+    throw new IOException("not support");
+  }
+
+  /**
+   * Uploads a part in the under file system with the indicated upload id and part number.
+   *
+   * @param path the path of the ufs file
+   * @param uploadId the upload id of Multipart task
+   * @param partNum the partNum to upload part
+   * @param fileSize the content length
+   * @param stream A {@code InputStream} Object to upload data
+   * @param options ufs options
+   * @return Etag of this part
+   * @throws IOException e
+   */
+  default String uploadObjectMultiPart(String path, String uploadId, int partNum, long fileSize,
+      InputStream stream,
+      alluxio.underfs.options.MultipartUfsOptions options)
+      throws IOException {
+    // not support
+    throw new IOException("not support");
+  }
+
+  /**
+   * Copy the data of a file in the ufs to be a part data with the indicated upload id
+   * and part number.
+   *
+   * @param destPath  the path of the destination ufs file
+   * @param srcPath   the path of the copy source ufs file
+   * @param uploadId  the upload id of Multipart task
+   * @param partNum   the partNum to upload part
+   * @param firstByte the optional zero-based byte offset to begin copying the source object
+   * @param lastByte  the optional zero-based byte offset to stop copying the source
+   * @param options   ufs options
+   * @return Etag of this part
+   * @throws IOException
+   */
+  default String uploadPartCopy(String destPath, String srcPath, String uploadId, int partNum,
+      @Nullable Long firstByte, @Nullable Long lastByte,
+      alluxio.underfs.options.MultipartUfsOptions options)
+      throws IOException {
+    // not support
+    throw new IOException("not support");
+  }
+
+  /**
+   * Completes a multipart Upload task in the under file system.
+   *
+   * @param path the path of the ufs file
+   * @param uploadId the upload id of multipart task
+   * @param etags the list of parts and their Etags
+   * @param options ufs options
+   * @return Etag of the completed file
+   * @throws IOException
+   */
+  default String completeObjectMultiPart(String path, String uploadId,
+      List<Pair<Integer, String>> etags,
+      alluxio.underfs.options.MultipartUfsOptions options)
+      throws IOException {
+    // not support
+    throw new IOException("not support");
+  }
+
+  /**
+   * Gets the list of uncompleted multipart upload task.
+   *
+   * @param options ufs options
+   * @return list of multipart upload task
+   * @throws IOException
+   */
+  default alluxio.underfs.response.ListMultipartUploadResult listMultipartUploads(
+      alluxio.underfs.options.ListMultiPartOptions options)
+      throws IOException {
+    // not support
+    throw new IOException("not support");
+  }
+
+  /**
+   * Gets the list of part with the indicated file path and upload id.
+   *
+   * @param path the path of the ufs file
+   * @param uploadId the upload id of multipart task
+   * @param options ufs options
+   * @return the list of part
+   * @throws IOException
+   */
+  default List<alluxio.underfs.response.PartSummaryInfo> listUfsParts(String path, String uploadId,
+      alluxio.underfs.options.MultipartUfsOptions options)
+      throws IOException {
+    // not support
+    throw new IOException("not support");
+  }
+
+  /**
+   * Aborts a multipart upload task in the under file system.
+   *
+   * @param path the path of the ufs file
+   * @param uploadId the upload id of multipart task
+   * @param options ufs options
+   * @throws IOException
+   */
+  default void abortUfsMultipartTask(String path, String uploadId,
+      alluxio.underfs.options.MultipartUfsOptions options)
+      throws IOException {
+    // not support
+    throw new IOException("not support");
+  }
 }

@@ -131,7 +131,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   private static final String S3_SERVICE_NAME = "s3";
 
   /** AWS-SDK S3 client. */
-  private final AmazonS3 mClient;
+  private AmazonS3 mClient;
 
   private final S3AsyncClient mAsyncClient;
 
