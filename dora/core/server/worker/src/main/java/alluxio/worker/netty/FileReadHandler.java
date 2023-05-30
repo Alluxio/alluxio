@@ -17,6 +17,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.netty.FileTransferType;
+import alluxio.network.protocol.databuffer.CompositeDataBuffer;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
@@ -26,6 +27,7 @@ import alluxio.retry.TimeoutRetry;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockReader;
 import alluxio.worker.dora.DoraWorker;
+import alluxio.worker.dora.PagedFileReader;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
@@ -34,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.ExecutorService;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -57,8 +60,8 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequestContext
   /**
    * Creates an instance of {@link FileReadHandler}.
    *
-   * @param executorService the executor service to run data readers
-   * @param worker block worker
+   * @param executorService  the executor service to run data readers
+   * @param worker           block worker
    * @param fileTransferType the file transfer type
    */
   public FileReadHandler(ExecutorService executorService,
@@ -120,24 +123,35 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequestContext
 
     @Override
     public DataBuffer getDataBuffer(BlockReadRequestContext context, Channel channel,
-                                       long offset, int len) throws Exception {
+                                    long offset, int len) throws Exception {
       openBlock(context, channel);
       BlockReader blockReader = context.getBlockReader();
       Preconditions.checkState(blockReader != null);
-      if (mTransferType == FileTransferType.TRANSFER
-          && (blockReader instanceof LocalFileBlockReader)) {
-        return new DataFileChannel(new File(((LocalFileBlockReader) blockReader).getFilePath()),
-            offset, len);
-      } else {
-        ByteBuf buf = channel.alloc().buffer(len, len);
-        try {
-          while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
-          }
-          return new NettyDataBuffer(buf);
-        } catch (Throwable e) {
-          buf.release();
-          throw e;
+      if (mTransferType == FileTransferType.TRANSFER) {
+        if (blockReader instanceof LocalFileBlockReader) {
+          return new DataFileChannel(new File(((LocalFileBlockReader) blockReader).getFilePath()),
+              offset, len);
+        } else if (blockReader instanceof PagedFileReader) {
+          PagedFileReader pagedFileReader = (PagedFileReader) blockReader;
+          CompositeDataBuffer compositeDataBuffer =
+              pagedFileReader.getMultipleDataFileChannel(channel, len);
+          return compositeDataBuffer;
         }
+      }
+      return getDataBufferByCopying(context, channel, len, blockReader);
+    }
+
+    private DataBuffer getDataBufferByCopying(
+        BlockReadRequestContext context, Channel channel, int len, BlockReader blockReader)
+        throws IOException {
+      ByteBuf buf = channel.alloc().buffer(len, len);
+      try {
+        while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
+        }
+        return new NettyDataBuffer(buf);
+      } catch (Throwable e) {
+        buf.release();
+        throw e;
       }
     }
 

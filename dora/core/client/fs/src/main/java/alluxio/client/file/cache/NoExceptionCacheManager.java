@@ -15,6 +15,7 @@ import alluxio.client.file.CacheContext;
 import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.network.protocol.databuffer.DataFileChannel;
 
 import com.codahale.metrics.Counter;
 import org.slf4j.Logger;
@@ -136,6 +137,18 @@ public class NoExceptionCacheManager implements CacheManager {
       LOG.error("Failed to delete page {}", pageId, e);
       Metrics.DELETE_ERRORS.inc();
       return false;
+    }
+  }
+
+  @Override
+  public Optional<DataFileChannel> getDataFileChannel(PageId pageId, int pageOffset,
+      int bytesToRead, CacheContext cacheContext) {
+    try {
+      return mCacheManager.getDataFileChannel(pageId, pageOffset, bytesToRead, cacheContext);
+    } catch (Exception e) {
+      LOG.error("Failed to getDataFileChannel of page {}", pageId, e);
+      Metrics.GET_ERRORS.inc();
+      return Optional.empty();
     }
   }
 

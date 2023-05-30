@@ -16,6 +16,7 @@ import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheUsage;
 import alluxio.client.file.cache.PageId;
 import alluxio.file.ReadTargetBuffer;
+import alluxio.network.protocol.databuffer.DataFileChannel;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -95,6 +96,12 @@ class ByteArrayCacheManager implements CacheManager {
   @Override
   public Optional<CacheUsage> getUsage() {
     return Optional.of(new Usage());
+  }
+
+  @Override
+  public Optional<DataFileChannel> getDataFileChannel(PageId pageId, int pageOffset,
+      int bytesToRead, CacheContext cacheContext) {
+    return Optional.empty();
   }
 
   class Usage implements CacheUsage {
