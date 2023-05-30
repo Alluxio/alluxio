@@ -78,6 +78,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Move job that move a file or a directory from source to destination.
  * This class should only be manipulated from the scheduler thread in Scheduler
  * thus the state changing functions are not thread safe.
+ * TODO() as task within this class is running on multithreaded context,
+ * make thread unsafe places to be thread safe in future.
  */
 @NotThreadSafe
 public class MoveJob extends AbstractJob<MoveJob.MoveTask> {

@@ -59,6 +59,7 @@ import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -81,6 +82,7 @@ public final class Scheduler {
   private static final long WORKER_UPDATE_INTERVAL = Configuration.getMs(
       PropertyKey.MASTER_WORKER_INFO_CACHE_REFRESH_TIME);
   private static final int EXECUTOR_SHUTDOWN_MS = 10 * Constants.SECOND_MS;
+  private static AtomicReference<Scheduler> sInstance = new AtomicReference<>();
   private final Map<JobDescription, Job<?>> mExistingJobs = new ConcurrentHashMap<>();
   private final Map<Job<?>, ConcurrentHashSet<Task<?>>> mJobToRunningTasks =
       new ConcurrentHashMap<>();
@@ -272,6 +274,17 @@ public final class Scheduler {
     MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_JOB_SCHEDULER_RUNNING_COUNT.getName(), mJobToRunningTasks::size);
     mWorkerInfoHub = new WorkerInfoHub(this, workerProvider);
+    // the scheduler won't be instantiated twice
+    sInstance.compareAndSet(null, this);
+  }
+
+  /**
+   * Get the singleton instance of Scheduler.
+   * getInstance won't be called before constructor.
+   * @return Scheduler instance
+   */
+  public static @Nullable Scheduler getInstance() {
+    return sInstance.get();
   }
 
   /**
@@ -312,14 +325,6 @@ public final class Scheduler {
    TODO(lucy) in future we should remove job automatically, but keep all history jobs in db to help
    user retrieve all submitted jobs status.
    */
-
-  /**
-   * Removes the job.
-   * @param job the job
-   */
-  public void removeJob(Job job) {
-    mExistingJobs.remove(job.getDescription());
-  }
 
   private void retrieveJobs() {
     for (Job<?> job : mJobMetaStore.getJobs()) {

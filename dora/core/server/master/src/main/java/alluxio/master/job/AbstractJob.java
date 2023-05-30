@@ -40,7 +40,6 @@ public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
   protected final long mStartTime;
   protected final Optional<String> mUser;
   protected final BlockingArrayQueue<Task<T>> mTaskList = new BlockingArrayQueue<>();
-  protected Scheduler mMyScheduler;
   protected WorkerAssignPolicy mWorkerAssignPolicy;
 
   /**
@@ -65,14 +64,6 @@ public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
     mState = JobState.RUNNING;
     mStartTime = System.currentTimeMillis();
     mWorkerAssignPolicy = workerAssignPolicy;
-  }
-
-  /**
-   * Sets the scheduler.
-   * @param scheduler the scheduler
-   */
-  public void setMyScheduler(Scheduler scheduler) {
-    mMyScheduler = scheduler;
   }
 
   /**
@@ -136,7 +127,7 @@ public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
     LOG.debug("Change JobState to {} for job {}, journalUpdate:{}", state, this, journalUpdate);
     mState = state;
     if (journalUpdate) {
-      mMyScheduler.getJobMetaStore().updateJob(this);
+      Scheduler.getInstance().getJobMetaStore().updateJob(this);
     }
     if (!isRunning()) {
       mEndTime = OptionalLong.of(System.currentTimeMillis());

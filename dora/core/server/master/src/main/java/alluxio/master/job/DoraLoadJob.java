@@ -84,6 +84,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Load job that loads a file or a directory into Alluxio.
  * This class should only be manipulated from the scheduler thread in Scheduler
  * thus the state changing functions are not thread safe.
+ * TODO() as task within this class is running on multithreaded context,
+ * make thread unsafe places to be thread safe in future.
  */
 @NotThreadSafe
 public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
@@ -131,16 +133,13 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
    * @param bandwidth           bandwidth
    * @param usePartialListing   whether to use partial listing
    * @param verificationEnabled whether to verify the job after loaded
-   * @param scheduler           the scheduler
    */
   public DoraLoadJob(
       String path,
       Optional<String> user, String jobId, OptionalLong bandwidth,
       boolean usePartialListing,
-      boolean verificationEnabled,
-      Scheduler scheduler) {
+      boolean verificationEnabled) {
     super(user, jobId, new HashBasedWorkerAssignPolicy());
-    super.setMyScheduler(scheduler);
     mPath = requireNonNull(path, "path is null");
     Preconditions.checkArgument(
         !bandwidth.isPresent() || bandwidth.getAsLong() > 0,
@@ -148,7 +147,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     mBandwidth = bandwidth;
     mUsePartialListing = usePartialListing;
     mVerificationEnabled = verificationEnabled;
-    FileSystem fs = FileSystem.Factory.create(scheduler.getFileSystemContext());
+    FileSystem fs = FileSystem.Factory.create(Scheduler.getInstance().getFileSystemContext());
     ListStatusPOptions listOptions = ListStatusPOptions
         .newBuilder()
         .setRecursive(true).build();
@@ -253,7 +252,6 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
         LOG.warn(format("error getting next task for job %s", this), e);
         if (!e.isRetryable()) {
           failJob(e);
-          mMyScheduler.removeJob(this);
         }
       }
     }
@@ -263,7 +261,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       // NOTE: active workers may not reflect all workers at start up,
       // but hashbased policy will deterministicly only among current recognized active workers
       WorkerInfo pickedWorker = mWorkerAssignPolicy.pickAWorker(uriStatus.getPath(),
-          mMyScheduler.getActiveWorkers().keySet());
+          Scheduler.getInstance().getActiveWorkers().keySet());
       if (pickedWorker == null) {
         mRetryFiles.offer(uriStatus.getPath());
         continue;

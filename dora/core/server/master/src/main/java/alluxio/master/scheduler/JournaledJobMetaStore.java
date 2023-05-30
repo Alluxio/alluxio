@@ -60,6 +60,9 @@ public class JournaledJobMetaStore implements JobMetaStore, Journaled {
     }
     else {
       Job<?> job = JobFactoryProducer.create(entry, mFileSystemMaster).create();
+      if (mExistingJobs.contains(job)) {
+        mExistingJobs.remove(job);
+      }
       mExistingJobs.add(job);
     }
     return true;
