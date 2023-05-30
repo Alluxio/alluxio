@@ -9,8 +9,8 @@
 #
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
-
-SCRIPT_DIR="$(cd "$(dirname "$(readlink "$0" || echo "$0")")"; pwd)"
+SCRIPT_NAME=$(basename $0)
+SCRIPT_DIR="$(cd "$(dirname $0)"; cd "$(dirname "$(readlink "$SCRIPT_NAME" || echo "$SCRIPT_NAME")")"; pwd)"
 
 readonly USAGE="Usage:\n\talluxio-fuse [mount|umount]
 

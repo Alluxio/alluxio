@@ -79,4 +79,4 @@ fuse:
       - libexec/version.sh
       - LICENSE
     symlinks:
-      bin/alluxio-fuse: ../../dora/integration/fuse/bin/alluxio-fuse
+      bin/alluxio-fuse: ../dora/integration/fuse/bin/alluxio-fuse
