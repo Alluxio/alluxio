@@ -21,7 +21,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.file.FileId;
 import alluxio.file.NettyBufTargetBuffer;
 import alluxio.file.ReadTargetBuffer;
-import alluxio.network.protocol.databuffer.CompositedDataBuffer;
+import alluxio.network.protocol.databuffer.CompositeDataBuffer;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
@@ -104,13 +104,13 @@ public class PagedFileReader extends BlockReader implements PositionReader {
   }
 
   /**
-   * Get a {@link CompositedDataBuffer} which has a list of {@link DataFileChannel}.
+   * Get a {@link CompositeDataBuffer} which has a list of {@link DataFileChannel}.
    *
    * @param channel the Channel object which is used for allocating ByteBuf
    * @param length the bytes to read
-   * @return {@link CompositedDataBuffer}
+   * @return {@link CompositeDataBuffer}
    */
-  public CompositedDataBuffer getMultipleDataFileChannel(Channel channel, long length)
+  public CompositeDataBuffer getMultipleDataFileChannel(Channel channel, long length)
       throws IOException {
     if (mFileSize <= mPos) {
       // TODO(JiamingMai): consider throwing exception directly
@@ -138,8 +138,8 @@ public class PagedFileReader extends BlockReader implements PositionReader {
       bytesToTransferLeft -= dataBuffer.getLength();
       dataBufferList.add(dataBuffer);
     }
-    CompositedDataBuffer compositedDataBuffer = new CompositedDataBuffer(dataBufferList);
-    return compositedDataBuffer;
+    CompositeDataBuffer compositeDataBuffer = new CompositeDataBuffer(dataBufferList);
+    return compositeDataBuffer;
   }
 
   private DataBuffer getDataBufferByCopying(Channel channel, int len) throws IOException {

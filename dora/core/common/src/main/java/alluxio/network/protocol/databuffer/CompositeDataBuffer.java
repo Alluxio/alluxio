@@ -18,17 +18,17 @@ import java.nio.channels.FileChannel;
 import java.util.List;
 
 /**
- * A DataBuffer with the underlying data being a {@link FileChannel}.
+ * A CompositeDataBuffer which includes a {@link List} of {@link DataBuffer}.
  */
-public final class CompositedDataBuffer implements DataBuffer {
+public final class CompositeDataBuffer implements DataBuffer {
 
   private final List<DataBuffer> mDataBufferList;
 
   /**
-   * CompositedDataBuffer wraps multiple {@link DataFileChannel}.
-   * @param dataBufferList a list of {@link DataFileChannel}
+   * CompositeDataBuffer wraps multiple {@link DataBuffer}.
+   * @param dataBufferList a list of {@link DataBuffer}
    */
-  public CompositedDataBuffer(List<DataBuffer> dataBufferList) {
+  public CompositeDataBuffer(List<DataBuffer> dataBufferList) {
     mDataBufferList = dataBufferList;
   }
 

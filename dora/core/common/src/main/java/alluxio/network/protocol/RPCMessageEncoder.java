@@ -11,7 +11,7 @@
 
 package alluxio.network.protocol;
 
-import alluxio.network.protocol.databuffer.CompositedDataBuffer;
+import alluxio.network.protocol.databuffer.CompositeDataBuffer;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
@@ -76,7 +76,7 @@ public final class RPCMessageEncoder extends MessageToMessageEncoder<RPCMessage>
       } else if (payload instanceof DataFileChannel) {
         FileRegion fileRegion = (FileRegion) payload.getNettyOutput();
         out.add(fileRegion);
-      } else if (payload instanceof CompositedDataBuffer) {
+      } else if (payload instanceof CompositeDataBuffer) {
         // add each channel to out
         List<DataBuffer> dataFileChannels = (List<DataBuffer>) payload.getNettyOutput();
         for (DataBuffer dataFileChannel : dataFileChannels) {
