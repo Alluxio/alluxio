@@ -29,12 +29,15 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
+import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.status.InternalException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.file.FileId;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
+import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.File;
 import alluxio.grpc.FileFailure;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
@@ -66,6 +69,7 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -96,6 +100,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -216,8 +221,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   public Map<ServiceType, GrpcService> getServices() {
     return Collections.emptyMap();
   }
-
-  public DoraOpenFileHandleContainer getOpenFileHandles() { return mOpenFileHandleContainer; }
 
   @Override
   public void start(WorkerNetAddress address) throws IOException {
@@ -693,6 +696,75 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       }
     }
     return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
+  }
+
+  @Override
+  public OpenFileHandle createFile(String path, CreateFilePOptions options) { // Lock is needed.
+    OutputStream outStream;
+    alluxio.grpc.FileInfo info;
+    OpenFileHandle existingHandle = mOpenFileHandleContainer.find(path);
+    if (existingHandle != null) {
+      LOG.error("A file opened for write and not closed yet: path={} handle={}",
+          path, existingHandle);
+      throw new RuntimeException(new FileAlreadyExistsException("File is already opened"));
+    }
+
+    // construct open option based on @param options
+    CreateOptions createOption = CreateOptions.defaults(mConf);
+
+    try {
+      // Check if the target file already exists. If yes, return throw error.
+      if (mUfs.exists(path)) {
+        throw new RuntimeException(new FileAlreadyExistsException("File already exists"));
+      }
+
+      // Open UFS OutputStream and use it in write operation.
+      outStream = mUfs.create(path, createOption);
+
+      // Prepare a "fake" UfsStatus here. Please prepare more fields here.
+      String owner = createOption.getOwner() != null ? createOption.getOwner() : "";
+      String group = createOption.getGroup() != null ? createOption.getGroup() : "";
+      UfsStatus status = new UfsFileStatus(new AlluxioURI(path).toString(),
+                                            "",
+                                            0,
+                                            System.currentTimeMillis(),
+                                            owner,
+                                            group,
+                                            createOption.getMode().toShort(),
+                                            64L * 1024 * 1024);
+      info = buildFileInfoFromUfsStatus(status, path);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
+    OpenFileHandle handle = new OpenFileHandle(path, info, outStream);
+    //add to map.
+    mOpenFileHandleContainer.add(path, handle);
+
+    return handle;
+  }
+
+  @Override
+  public void completeFile(String path, CompleteFilePOptions options, String uuid) {
+    OpenFileHandle handle = mOpenFileHandleContainer.findAndVerify(path, uuid);
+    if (handle != null) {
+      mOpenFileHandleContainer.remove(path);
+      handle.close();
+      handle = null; // no more use of this handle
+
+      // The simplest way of updating metadata is invalidating cache in worker.
+      // Next time, worker will get fresh metadata from ufs.
+      AlluxioURI fullPathUri = new AlluxioURI(path);
+      AlluxioURI parentDir;
+      if (fullPathUri.isRoot()) {
+        parentDir = fullPathUri;
+      } else {
+        parentDir = fullPathUri.getParent();
+      }
+      mListStatusCache.invalidate(parentDir.toString()); // invalidate dir cache
+      mUfsStatusCache.invalidate(path);                  // invalidate in-memory cache
+      mMetaStore.removeDoraMeta(path);                   // invalidate in-Rocks cache
+    }
   }
 
   @Override

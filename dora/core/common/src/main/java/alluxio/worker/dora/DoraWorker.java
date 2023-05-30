@@ -12,6 +12,8 @@
 package alluxio.worker.dora;
 
 import alluxio.exception.AccessControlException;
+import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.File;
 import alluxio.grpc.FileFailure;
 import alluxio.grpc.GetStatusPOptions;
@@ -118,4 +120,20 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    */
   ListenableFuture<List<RouteFailure>> move(List<Route> routes, UfsReadOptions readOptions,
                                             WriteOptions writeOptions);
+
+  /**
+   * Create File.
+   * @param path the path of this file
+   * @param options the options for this operation
+   * @return a open file handle including a unique uuid
+   */
+  OpenFileHandle createFile(String path, CreateFilePOptions options);
+
+  /**
+   * Complete writing a file. This operation will verify the supplied uuid matching its open handle.
+   * @param path the path of this file
+   * @param options the options for this operation
+   * @param uuid the uuid string of its file open handle
+   */
+  void completeFile(String path, CompleteFilePOptions options, String uuid);
 }

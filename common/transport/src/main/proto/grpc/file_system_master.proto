@@ -88,6 +88,7 @@ message CompleteFilePRequest {
   /** the path of the file */
   optional string path = 1;
   optional CompleteFilePOptions options = 2;
+  optional string uuid = 3;
 }
 
 message OpenFilePOptions {
@@ -130,6 +131,8 @@ message CreateDirectoryPRequest {
 
 message CreateFilePResponse {
   optional FileInfo fileInfo = 1;
+  /** uuid of its open file handle */
+  optional string uuid = 2;
 }
 message CreateFilePOptions {
   optional int64 blockSizeBytes = 1;
