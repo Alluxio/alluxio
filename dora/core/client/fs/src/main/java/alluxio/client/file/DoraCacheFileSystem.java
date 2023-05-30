@@ -263,7 +263,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       outStreamOptions.setMountId(status.getMountId());
       outStreamOptions.setAcl(status.getAcl());
 
-      return mDoraClient.getOutStream(alluxioPath, mFsContext, outStreamOptions,
+      return mDoraClient.getOutStream(ufsFullPath, mFsContext, outStreamOptions,
           mDelegatedFileSystem.createFile(ufsFullPath, options), uuid);
     } catch (Exception e) {
       // TODO(JiamingMai): delete the file

@@ -173,7 +173,7 @@ public class DoraFileOutStream extends FileOutStream {
             .setContentHash("HASH-256") // compute hash here
             .build();
         mClosed = true;
-        mDoraClient.completeFile(mUri.getPath(), options, mUuid);
+        mDoraClient.completeFile(mUri.toString(), options, mUuid);
       }
     } catch (Throwable e) { // must catch Throwable
       throw mCloser.rethrow(e); // IOException will be thrown as-is.
