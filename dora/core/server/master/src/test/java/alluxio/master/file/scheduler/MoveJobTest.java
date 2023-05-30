@@ -33,19 +33,25 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.job.FileIterable;
 import alluxio.master.job.MoveJob;
 import alluxio.master.journal.JournalContext;
+import alluxio.master.predicate.FilePredicate;
 import alluxio.master.scheduler.DefaultWorkerProvider;
 import alluxio.master.scheduler.JournaledJobMetaStore;
 import alluxio.master.scheduler.Scheduler;
+import alluxio.proto.journal.Job.FileFilter;
 import alluxio.scheduler.job.JobState;
+import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
@@ -64,7 +70,8 @@ public class MoveJobTest {
     FileIterable files =
         new FileIterable(fileSystemMaster, srcPath, user, false, MoveJob.QUALIFIED_FILE_FILTER);
     MoveJob move = new MoveJob(srcPath, dstPath, false, user, "1",
-        OptionalLong.empty(), false, false, false, files);
+        OptionalLong.empty(), false, false, false, files,
+        Optional.empty());
     List<WorkerInfo> workers = ImmutableList.of(
         new WorkerInfo().setId(1).setAddress(
             new WorkerNetAddress().setHost("worker1").setRpcPort(1234)),
@@ -86,7 +93,8 @@ public class MoveJobTest {
     FileIterable files =
         new FileIterable(fileSystemMaster, srcPath, user, false, MoveJob.QUALIFIED_FILE_FILTER);
     MoveJob move = new MoveJob(srcPath, dstPath, false, user, "1",
-        OptionalLong.empty(), false, false, false, files);
+        OptionalLong.empty(), false, false, false, files,
+        Optional.empty());
     List<Route> routes = move.getNextRoutes(100);
     assertTrue(move.isHealthy());
     routes.forEach(move::addToRetry);
@@ -116,7 +124,8 @@ public class MoveJobTest {
     FileIterable files =
         new FileIterable(fileSystemMaster, srcPath, user, false, MoveJob.QUALIFIED_FILE_FILTER);
     MoveJob job = spy(new MoveJob(srcPath, dstPath, false, user, "1",
-        OptionalLong.empty(), false, false, false, files));
+        OptionalLong.empty(), false, false, false, files,
+        Optional.empty()));
     when(job.getDurationInSec()).thenReturn(0L);
     job.setJobState(JobState.RUNNING, false);
     List<Route> nextRoutes = job.getNextRoutes(25);
@@ -159,5 +168,85 @@ public class MoveJobTest {
     assertTrue(jsonReport.contains("Test error 1"));
     assertTrue(jsonReport.contains("Test error 2"));
     assertTrue(jsonReport.contains("Test error 3"));
+  }
+
+  @Test
+  public void testFileNameFilter() throws Exception {
+    String srcPath = "/src";
+    String dstPath = "/dst";
+    List<FileInfo> fileInfos = Lists.newArrayList();
+    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd");
+    LocalDateTime now = LocalDateTime.now();
+    LocalDateTime threeDaysBefore = now.minusDays(3);
+    String date = dtf.format(threeDaysBefore);
+    // Invalid file name
+    fileInfos.add(new FileInfo().setName("aaaaaa")
+        .setPath(PathUtils.concatPath(srcPath, "aaaaaa"))
+        .setUfsPath(PathUtils.concatPath(srcPath, "aaaaaa")));
+    // qualified file
+    fileInfos.add(new FileInfo().setName(date)
+        .setPath(PathUtils.concatPath(srcPath, date))
+        .setUfsPath(PathUtils.concatPath(srcPath, date)));
+    LocalDateTime oneDaysBefore = now.minusDays(1);
+    date = dtf.format(oneDaysBefore);
+    // disqualified file
+    fileInfos.add(new FileInfo().setName(date)
+        .setPath(PathUtils.concatPath(srcPath, date))
+        .setUfsPath(PathUtils.concatPath(srcPath, date)));
+    DefaultFileSystemMaster fileSystemMaster = mock(DefaultFileSystemMaster.class);
+    JournalContext journalContext = mock(JournalContext.class);
+    when(fileSystemMaster.createJournalContext()).thenReturn(journalContext);
+    when(fileSystemMaster.listStatus(any(), any())).thenReturn(fileInfos);
+    Optional<String> user = Optional.of("user");
+
+    FileFilter.Builder builder = FileFilter.newBuilder().setValue("2d")
+        .setName("dateFromFileNameOlderThan").setPattern("YYYYMMDD");
+    FilePredicate filePredicate = FilePredicate.create(builder.build());
+    FileIterable files =
+        new FileIterable(fileSystemMaster, srcPath, user, false, filePredicate.get());
+    MoveJob job = spy(new MoveJob(srcPath, dstPath, false, user, "1",
+        OptionalLong.empty(), false, false, false, files,
+        Optional.of(builder.build())));
+
+    List<Route> routes = job.getNextRoutes(3);
+    assertEquals(PathUtils.concatPath(srcPath, dtf.format(threeDaysBefore)),
+        routes.get(0).getSrc());
+    assertEquals(1, routes.size());
+  }
+
+  @Test
+  public void testLastModifiedTimeFilter() throws Exception {
+    String srcPath = "/src";
+    String dstPath = "/dst";
+    List<FileInfo> fileInfos = Lists.newArrayList();
+    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMdd");
+    long timestamp = System.currentTimeMillis();
+    // qualified file
+    fileInfos.add(new FileInfo().setName("aaaaaa")
+        .setPath(PathUtils.concatPath(srcPath, "aaaaaa"))
+        .setUfsPath(PathUtils.concatPath(srcPath, "aaaaaa"))
+        .setLastModificationTimeMs(timestamp));
+    // disqualified file
+    fileInfos.add(new FileInfo().setName("bbbbbb")
+        .setPath(PathUtils.concatPath(srcPath, "bbbbbb"))
+        .setUfsPath(PathUtils.concatPath(srcPath, "bbbbbb"))
+        .setLastModificationTimeMs(timestamp - 10000));
+    DefaultFileSystemMaster fileSystemMaster = mock(DefaultFileSystemMaster.class);
+    JournalContext journalContext = mock(JournalContext.class);
+    when(fileSystemMaster.createJournalContext()).thenReturn(journalContext);
+    when(fileSystemMaster.listStatus(any(), any())).thenReturn(fileInfos);
+    Optional<String> user = Optional.of("user");
+
+    FileFilter.Builder builder = FileFilter.newBuilder().setValue("10s").setName("unmodifiedFor");
+    FilePredicate filePredicate = FilePredicate.create(builder.build());
+    FileIterable files =
+        new FileIterable(fileSystemMaster, srcPath, user, false, filePredicate.get());
+    MoveJob job = spy(new MoveJob(srcPath, dstPath, false, user, "1",
+        OptionalLong.empty(), false, false, false, files,
+        Optional.of(builder.build())));
+
+    List<Route> routes = job.getNextRoutes(3);
+    assertEquals(PathUtils.concatPath(srcPath, "bbbbbb"), routes.get(0).getSrc());
+    assertEquals(1, routes.size());
   }
 }
