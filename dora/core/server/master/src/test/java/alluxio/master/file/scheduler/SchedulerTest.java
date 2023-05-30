@@ -45,7 +45,6 @@ import alluxio.master.job.DoraLoadJob;
 import alluxio.master.job.FileIterable;
 import alluxio.master.job.LoadJob;
 import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.scheduler.DefaultWorkerProvider;
 import alluxio.master.scheduler.JournaledJobMetaStore;
 import alluxio.master.scheduler.Scheduler;
@@ -66,8 +65,6 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -152,15 +149,18 @@ public final class SchedulerTest {
 
     // Verify the job present in Scheduler and jobMetaStore has been updated.
     final DoraLoadJob loadJobFinal = loadJob;
-    Optional<alluxio.scheduler.job.Job<?>> loadJobInMetaStore = scheduler.getJobMetaStore().getJobs().stream()
+    Optional<alluxio.scheduler.job.Job<?>> loadJobInMetaStore =
+        scheduler.getJobMetaStore().getJobs().stream()
         .filter(j -> j.equals(loadJobFinal)).findFirst();
     assertTrue(loadJobInMetaStore.isPresent());
-    assertEquals(OptionalLong.empty(), ((DoraLoadJob)loadJobInMetaStore.get()).getBandwidth());
+    assertEquals(OptionalLong.empty(), ((DoraLoadJob) loadJobInMetaStore.get())
+        .getBandwidth());
 
     DoraLoadJob job = (DoraLoadJob) scheduler.getJobs().get(loadJob.getDescription());
     assertEquals(OptionalLong.empty(), job.getBandwidth());
     loadJob =
-        new DoraLoadJob(validLoadPath, Optional.of("user"), "1", OptionalLong.of(1000), true, false);
+        new DoraLoadJob(validLoadPath, Optional.of("user"), "1",
+            OptionalLong.of(1000), true, false);
     assertFalse(scheduler.submitJob(loadJob));
     verify(journalContext).append(argThat(journalEntry -> journalEntry.hasLoadJob()
         && journalEntry.getLoadJob().getLoadPath().equals(validLoadPath)
@@ -173,10 +173,11 @@ public final class SchedulerTest {
 
     // Verify the job present in Scheduler and jobMetaStore has been updated with new bandwidth.
     final DoraLoadJob loadJobFinalNew = loadJob;
-    Optional<alluxio.scheduler.job.Job<?>> loadJobInMetaStoreNewBandwidth = scheduler.getJobMetaStore().getJobs().stream()
-        .filter(j -> j.equals(loadJobFinalNew)).findFirst();
+    Optional<alluxio.scheduler.job.Job<?>> loadJobInMetaStoreNewBandwidth =
+        scheduler.getJobMetaStore().getJobs().stream()
+            .filter(j -> j.equals(loadJobFinalNew)).findFirst();
     assertTrue(loadJobInMetaStore.isPresent());
-    assertEquals(1000, ((DoraLoadJob)loadJobInMetaStoreNewBandwidth.get())
+    assertEquals(1000, ((DoraLoadJob) loadJobInMetaStoreNewBandwidth.get())
         .getBandwidth().getAsLong());
   }
 
