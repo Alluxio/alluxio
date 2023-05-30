@@ -30,7 +30,6 @@ import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -955,7 +954,6 @@ public interface UnderFileSystem extends Closeable, AsyncUfsClient {
   default byte[] refreshTemporaryToken(byte[] oldTemporaryToken) throws IOException {
     throw new java.lang.UnsupportedOperationException("No implementation");
   }
-
 
   /**
    * Whether this type of UFS supports Multipart upload.
