@@ -570,8 +570,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
   private static class CopyProgressReport {
     private final boolean mVerbose;
     private final JobState mJobState;
-    private final Long mBandwidth;
-    private final boolean mVerificationEnabled;
+    private final boolean mCheckContent;
     private final long mProcessedFileCount;
     private final long mByteCount;
     private final Long mTotalByteCount;
@@ -585,8 +584,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     {
       mVerbose = verbose;
       mJobState = job.mState;
-      mBandwidth = job.mBandwidth.isPresent() ? job.mBandwidth.getAsLong() : null;
-      mVerificationEnabled = job.mVerificationEnabled;
+      mCheckContent = job.mCheckContent;
       mProcessedFileCount = job.mProcessedFileCount.get();
       mByteCount = job.mCopiedByteCount.get();
       if (!job.mUsePartialListing && job.mFileIterator.isPresent()) {
@@ -636,9 +634,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     private String getTextReport() {
       StringBuilder progress = new StringBuilder();
       progress.append(
-          format("\tSettings:\tbandwidth: %s\tverify: %s%n",
-              mBandwidth == null ? "unlimited" : mBandwidth,
-              mVerificationEnabled));
+          format("\tSettings:\tcheck-content: %s%n", mCheckContent));
       progress.append(format("\tJob State: %s%s%n", mJobState,
           mFailureReason == null
               ? "" : format(
