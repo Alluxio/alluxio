@@ -399,7 +399,7 @@ public final class Scheduler {
   public boolean stopJob(JobDescription jobDescription) {
     Job<?> existingJob = mExistingJobs.get(jobDescription);
     if (existingJob != null && existingJob.isRunning()) {
-      existingJob.setJobState(JobState.STOPPED, true);
+      existingJob.setJobState(JobState.STOPPED, false);
       mJobMetaStore.updateJob(existingJob);
       // leftover tasks in mJobToRunningTasks would be removed by scheduling thread.
       return true;

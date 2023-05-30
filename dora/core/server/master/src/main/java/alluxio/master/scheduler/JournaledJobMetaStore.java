@@ -60,9 +60,7 @@ public class JournaledJobMetaStore implements JobMetaStore, Journaled {
     }
     else {
       Job<?> job = JobFactoryProducer.create(entry, mFileSystemMaster).create();
-      if (mExistingJobs.contains(job)) {
-        mExistingJobs.remove(job);
-      }
+      mExistingJobs.remove(job);
       mExistingJobs.add(job);
     }
     return true;
@@ -82,6 +80,7 @@ public class JournaledJobMetaStore implements JobMetaStore, Journaled {
   public void updateJob(Job<?> job) {
     try (JournalContext context = mFileSystemMaster.createJournalContext()) {
       context.append(job.toJournalEntry());
+      mExistingJobs.remove(job);
       mExistingJobs.add(job);
     } catch (UnavailableException e) {
       throw new UnavailableRuntimeException(
