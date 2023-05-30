@@ -18,6 +18,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
+import alluxio.underfs.UfsFileStatus;
+import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.OpenOptions;
