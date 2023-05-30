@@ -750,9 +750,20 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     if (handle != null) {
       mOpenFileHandleContainer.remove(path);
       handle.close();
-      handle = null;
+      handle = null; // no more use of this handle
 
-      // Add code to update Local metadata for this file.
+      // The simplest way of updating metadata is invalidating cache in worker.
+      // Next time, worker will get fresh metadata from ufs.
+      AlluxioURI fullPathUri = new AlluxioURI(path);
+      AlluxioURI parentDir;
+      if (fullPathUri.isRoot()) {
+        parentDir = fullPathUri;
+      } else {
+        parentDir = fullPathUri.getParent();
+      }
+      mListStatusCache.invalidate(parentDir.toString()); // invalidate dir cache
+      mUfsStatusCache.invalidate(path);                  // invalidate in-memory cache
+      mMetaStore.removeDoraMeta(path);                   // invalidate in-Rocks cache
     }
   }
 
