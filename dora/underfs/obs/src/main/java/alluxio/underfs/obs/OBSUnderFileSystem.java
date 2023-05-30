@@ -18,6 +18,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
+import alluxio.underfs.UfsFileStatus;
+import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.OpenOptions;
@@ -365,6 +367,18 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
       LOG.warn("Failed to get Object {}, return null", key, e);
       return null;
     }
+  }
+
+  @Override
+  public UfsStatus getStatus(String path) throws IOException {
+    ObjectStatus status = getObjectStatus(stripPrefixIfPresent(path));
+    if (!isDirectory(path)) {
+      ObjectPermissions permissions = getPermissions();
+      return new UfsFileStatus(path, status.getContentHash(), status.getContentLength(), status.getLastModifiedTimeMs(),
+              permissions.getOwner(), permissions.getGroup(), permissions.getMode(), mUfsConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT));
+    }
+    // Return directory status.
+    return getDirectoryStatus(path);
   }
 
   @Override
