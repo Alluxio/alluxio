@@ -85,6 +85,8 @@ public class DoraFileOutStream extends FileOutStream {
 
   private final DoraCacheClient mDoraClient;
 
+  private final String mUuid;
+
   /**
    * Creates a new file output stream.
    *
@@ -93,11 +95,12 @@ public class DoraFileOutStream extends FileOutStream {
    * @param context the file system context
    */
   public DoraFileOutStream(DoraCacheClient doraClient, NettyDataWriter dataWriter, AlluxioURI path,
-                           OutStreamOptions options, FileSystemContext context)
+                           OutStreamOptions options, FileSystemContext context, String uuid)
       throws IOException {
     mDoraClient = doraClient;
     mNettyDataWriter = dataWriter;
     mCloser = Closer.create();
+    mUuid = uuid;
     // Acquire a resource to block FileSystemContext reinitialization, this needs to be done before
     // using mContext.
     // The resource will be released in close().
@@ -205,7 +208,7 @@ public class DoraFileOutStream extends FileOutStream {
             .setContentHash("HASH-256") // compute hash here
             .build();
         mClosed = true;
-        mDoraClient.completeFile(mUri.getPath(), options);
+        mDoraClient.completeFile(mUri.getPath(), options, mUuid);
       }
     } catch (Throwable e) { // must catch Throwable
       throw mCloser.rethrow(e); // IOException will be thrown as-is.

@@ -26,12 +26,14 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.dora.netty.NettyDataReader;
 import alluxio.client.file.dora.netty.NettyDataWriter;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.PermissionDeniedException;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CompleteFilePRequest;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.CreateFilePRequest;
+import alluxio.grpc.CreateFilePResponse;
 import alluxio.grpc.FileInfo;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GetStatusPRequest;
@@ -105,11 +107,12 @@ public class DoraCacheClient {
    * @return the output stream
    */
   public DoraFileOutStream getOutStream(AlluxioURI alluxioPath, FileSystemContext fsContext,
-      OutStreamOptions outStreamOptions) throws IOException {
+      OutStreamOptions outStreamOptions, String uuid) throws IOException {
     WorkerNetAddress workerNetAddress = getWorkerNetAddress(alluxioPath.getPath());
     NettyDataWriter writer = NettyDataWriter.create(
         fsContext, workerNetAddress, Long.MAX_VALUE, RequestType.ALLUXIO_BLOCK, outStreamOptions);
-    return new DoraFileOutStream(this, writer, alluxioPath, outStreamOptions, fsContext);
+    return new DoraFileOutStream(this, writer, alluxioPath,
+        outStreamOptions, fsContext, uuid);
   }
   
   protected long getChunkSize() {
@@ -209,15 +212,17 @@ public class DoraCacheClient {
    * @return URIStatus of new file
    * @throws RuntimeException
    */
-  public URIStatus createFile(String path, CreateFilePOptions options) {
+  public Pair<URIStatus, String> createFile(String path, CreateFilePOptions options) {
     try (CloseableResource<BlockWorkerClient> client =
              mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
       CreateFilePRequest request = CreateFilePRequest.newBuilder()
           .setPath(path)
           .setOptions(options)
           .build();
-      FileInfo fileInfo = client.get().createFile(request).getFileInfo();
-      return new URIStatus(GrpcUtils.fromProto(fileInfo));
+      CreateFilePResponse response = client.get().createFile(request);
+      FileInfo fileInfo = response.getFileInfo();
+      String uuid = response.getUuid();
+      return new Pair<>(new URIStatus(GrpcUtils.fromProto(fileInfo)), uuid);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -229,13 +234,15 @@ public class DoraCacheClient {
    * This is called when out stream is closed. This is equivalent to close() in some file system.
    * @param path The file path
    * @param options the close option
+   * @param uuid the uuid of its open file handle
    */
-  public void completeFile(String path, CompleteFilePOptions options) {
+  public void completeFile(String path, CompleteFilePOptions options, String uuid) {
     try (CloseableResource<BlockWorkerClient> client =
              mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
       CompleteFilePRequest request = CompleteFilePRequest.newBuilder()
           .setPath(path)
           .setOptions(options)
+          .setUuid(uuid)
           .build();
       client.get().completeFile(request);
       return;

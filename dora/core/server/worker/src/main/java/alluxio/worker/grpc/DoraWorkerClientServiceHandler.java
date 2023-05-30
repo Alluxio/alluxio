@@ -28,7 +28,6 @@ import alluxio.grpc.CopyResponse;
 import alluxio.grpc.CreateFilePRequest;
 import alluxio.grpc.CreateFilePResponse;
 import alluxio.grpc.FileFailure;
-import alluxio.grpc.FileInfo;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GrpcUtils;
@@ -246,42 +245,40 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   public void createFile(CreateFilePRequest request,
                          StreamObserver<CreateFilePResponse> responseObserver) {
     LOG.debug("Got createFile: {}", request);
+    try {
+      String ufsFullPath = request.getPath();
 
-    String ufsFullPath = request.getPath();
+      OpenFileHandle handle = mWorker.createFile(ufsFullPath, request.getOptions());
 
-    FileInfo info = FileInfo.newBuilder()
-        .setFileId(1111)
-        .setName(ufsFullPath)
-        .setPath(ufsFullPath)
-        .setUfsPath(ufsFullPath)
-        .setFolder(false)
-        .setCompleted(false)
-        .setInMemoryPercentage(22)
-        .setCreationTimeMs(3333)
-        .setLastModificationTimeMs(4444)
-        .build();
+      CreateFilePResponse response = CreateFilePResponse.newBuilder()
+          .setFileInfo(handle.getInfo())
+          .setUuid(handle.getUUID().toString())
+          .build();
 
-    CreateFilePResponse response = CreateFilePResponse.newBuilder()
-        .setFileInfo(info)
-        .build();
-
-    // Open UFS OutputStream and use it as input
-    OpenFileHandle handle = new OpenFileHandle(ufsFullPath, info, null);
-    //add to map. Need to check if it is already opened, and  check the return value too.
-    ((PagedDoraWorker) mWorker).getOpenFileHandles().add(ufsFullPath, handle);
-
-    // We may return the UUID of the handle to client, and verify the handle for each
-    // upcoming/subsequent write request.
-    responseObserver.onNext(response);
-    responseObserver.onCompleted();
+      // We return the UUID of the handle to client, and verify the handle for each
+      // upcoming/subsequent write request.
+      responseObserver.onNext(response);
+      responseObserver.onCompleted();
+    } catch (Exception e) {
+      LOG.error(String.format("Failed to create file for %s: ", request.getPath()), e);
+      responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
+    }
   }
 
   @Override
   public void completeFile(CompleteFilePRequest request,
                            StreamObserver<CompleteFilePResponse> responseObserver) {
     LOG.debug("Got completeFile: {}", request);
-    CompleteFilePResponse response = CompleteFilePResponse.newBuilder().build();
-    responseObserver.onNext(response);
-    responseObserver.onCompleted();
+    try {
+      String ufsFullPath = request.getPath();
+
+      mWorker.completeFile(ufsFullPath, request.getOptions(), request.getUuid());
+      CompleteFilePResponse response = CompleteFilePResponse.newBuilder().build();
+      responseObserver.onNext(response);
+      responseObserver.onCompleted();
+    } catch (Exception e) {
+      LOG.error(String.format("Failed to complete file for %s: ", request.getPath()), e);
+      responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
+    }
   }
 }

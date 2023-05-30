@@ -6273,7 +6273,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   public static final PropertyKey USER_FILE_WRITE_TYPE_DEFAULT =
       enumBuilder(Name.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
-          .setDefaultValue(WriteType.ASYNC_THROUGH)
+          .setDefaultValue(WriteType.CACHE_THROUGH)
       .setDescription(
           format("Default write type when creating Alluxio files. Valid " + "options are "
               + "`MUST_CACHE` (write will only go to Alluxio and must be stored in Alluxio), "
