@@ -20,6 +20,8 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.GrpcDataReader;
 import alluxio.client.file.DoraFileOutStream;
+import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.PositionReadFileInStream;
 import alluxio.client.file.URIStatus;
@@ -107,12 +109,12 @@ public class DoraCacheClient {
    * @return the output stream
    */
   public DoraFileOutStream getOutStream(AlluxioURI alluxioPath, FileSystemContext fsContext,
-      OutStreamOptions outStreamOptions, String uuid) throws IOException {
+      OutStreamOptions outStreamOptions, FileOutStream ufsOutStream, String uuid) throws IOException {
     WorkerNetAddress workerNetAddress = getWorkerNetAddress(alluxioPath.getPath());
     NettyDataWriter writer = NettyDataWriter.create(
         fsContext, workerNetAddress, Long.MAX_VALUE, RequestType.ALLUXIO_BLOCK, outStreamOptions);
     return new DoraFileOutStream(this, writer, alluxioPath,
-        outStreamOptions, fsContext, uuid);
+        outStreamOptions, fsContext, ufsOutStream, uuid);
   }
   
   protected long getChunkSize() {

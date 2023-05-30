@@ -74,7 +74,8 @@ public class DoraFileOutStream extends FileOutStream {
   private final NettyDataWriter mNettyDataWriter;
 
   /** Stream to the file in the under storage, null if not writing to the under storage. */
-  private final UnderFileSystemFileOutStream mUnderStorageOutputStream;
+  private final FileOutStream mUnderStorageOutputStream;
+
   private final OutStreamOptions mOptions;
 
   private boolean mCanceled;
@@ -95,7 +96,7 @@ public class DoraFileOutStream extends FileOutStream {
    * @param context the file system context
    */
   public DoraFileOutStream(DoraCacheClient doraClient, NettyDataWriter dataWriter, AlluxioURI path,
-                           OutStreamOptions options, FileSystemContext context, String uuid)
+      OutStreamOptions options, FileSystemContext context,  FileOutStream ufsOutStream, String uuid)
       throws IOException {
     mDoraClient = doraClient;
     mNettyDataWriter = dataWriter;
@@ -119,30 +120,7 @@ public class DoraFileOutStream extends FileOutStream {
       if (!mUnderStorageType.isSyncPersist()) {
         mUnderStorageOutputStream = null;
       } else { // Write is through to the under storage, create mUnderStorageOutputStream.
-        // Create retry policy for initializing write.
-        AlluxioConfiguration pathConf = mContext.getPathConf(path);
-        RetryPolicy initRetryPolicy = ExponentialTimeBoundedRetry.builder()
-            .withMaxDuration(pathConf.getDuration(PropertyKey.USER_FILE_WRITE_INIT_MAX_DURATION))
-            .withInitialSleep(pathConf.getDuration(PropertyKey.USER_FILE_WRITE_INIT_SLEEP_MIN))
-            .withMaxSleep(pathConf.getDuration(PropertyKey.USER_FILE_WRITE_INIT_SLEEP_MAX))
-            .withSkipInitialSleep().build();
-        // Try find a worker from policy.
-        Optional<WorkerNetAddress> workerNetAddress = Optional.empty();
-        while (!workerNetAddress.isPresent() && initRetryPolicy.attempt()) {
-          GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults()
-                  .setBlockWorkerInfos(mContext.getCachedWorkers())
-                  .setBlockInfo(new BlockInfo()
-                  .setBlockId(-1)
-                  .setLength(0)); // not storing data to Alluxio, so block size is 0
-          workerNetAddress = options.getLocationPolicy().getWorker(getWorkerOptions);
-        }
-        if (!workerNetAddress.isPresent()) {
-          // Assume no worker is available because block size is 0.
-          throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
-        }
-        mUnderStorageOutputStream = mCloser
-            .register(UnderFileSystemFileOutStream.create(mContext,
-                workerNetAddress.get(), mOptions));
+        mUnderStorageOutputStream = ufsOutStream;
       }
     } catch (Throwable t) {
       throw CommonUtils.closeAndRethrow(mCloser, t);
@@ -172,10 +150,9 @@ public class DoraFileOutStream extends FileOutStream {
         if (mCanceled) {
           mUnderStorageOutputStream.cancel();
         } else {
+          mUnderStorageOutputStream.flush();
           mUnderStorageOutputStream.close();
           optionsBuilder.setUfsLength(mBytesWritten);
-          mUnderStorageOutputStream.getDataWriter().getUfsContentHash().ifPresent(
-              optionsBuilder::setContentHash);
         }
       }
 
