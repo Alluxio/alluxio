@@ -60,6 +60,10 @@ public final class JournalEntryAssociation {
         || entry.hasRemovePathProperties()) {
       return Constants.META_MASTER_NAME;
     }
+    if (entry.hasPolicyDefinition()
+        || entry.hasPolicyRemove()) {
+      return Constants.POLICY_ENGINE_NAME;
+    }
     if (entry.hasAttachDb()
         || entry.hasAddTable()
         || entry.hasAddTablePartitions()
