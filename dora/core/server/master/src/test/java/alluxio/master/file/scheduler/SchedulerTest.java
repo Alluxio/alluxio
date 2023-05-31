@@ -78,6 +78,7 @@ public final class SchedulerTest {
   @BeforeClass
   public static void before() {
     AuthenticatedClientUser.set("user");
+    Configuration.reloadProperties();
   }
 
   @AfterClass
