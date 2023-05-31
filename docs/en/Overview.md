@@ -34,48 +34,50 @@ with the largest deployment exceeding 1,500 nodes.
 <img src="https://d39kqat1wpn1o5.cloudfront.net/app/uploads/2021/07/alluxio-overview-r071521.png" width="800" alt="Ecosystem"/>
 </p>
 
-## Alluxio’s Next-Gen Architecture: DORA
+## DORA Architecture
 
-DORA, short for Decentralized Object Repository Architecture, is the next-generation architecture of Alluxio.
+DORA, short for Decentralized Object Repository Architecture, is the foundation of the Alluxio system.
 
-As an open-source distributed caching storage system, DORA offers low latency, high throughput, and cost savings, while aiming to provide a unified data layer that can support various data workloads, including AI and data analytics.
+As an open-source distributed caching storage system, DORA offers low latency, high throughput, and cost savings,
+while aiming to provide a unified data layer that can support various data workloads, including AI and data analytics.
 
-DORA leverages decentralized storage and metadata management to provide higher performance and availability, as well as pluggable data security and governance, enabling better scalability and more efficient management of large-scale data access.
+DORA leverages decentralized storage and metadata management to provide higher performance and availability,
+as well as pluggable data security and governance, enabling better scalability and more efficient management of large-scale data access.
 
 DORA’s architecture goal:
 * Scalability: Scalability is a top priority for DORA, which needs to support billions of files to meet the demands of data-intensive applications, such as AI training.
-* High Availability: DORA's architecture is designed with high availability in mind, with 99.99% uptime and protection against single points of failure at the master level.
-* Performance: Performance is also a key goal for DORA, which prioritizes faster insights for Presto/Trino type of SQL analytics workloads and GPU utilization for AI workloads.
+* High Availability: DORA's architecture is designed with high availability in mind, with 99.99% uptime and protection against single points of failure.
+* Performance: Performance is a key goal for DORA, which prioritizes Presto/Trino powered SQL analytics workloads and GPU utilization for AI workloads.
 
-Please refer to this [doc]({{ '/en/overview/Why-Dora.html' | relativize_url }}) for more information of why moving from Alluxio 2.X to Dora.
+Please refer to this [doc]({{ '/en/overview/Why-Dora.html' | relativize_url }}) for more information comparing the Alluxio 2.x architecture to Dora.
 
 The diagram below shows the architecture design of DORA, which consists of four major components: the service registry, scheduler, client, and worker.
 
 ![Dora Architecture]({{ '/img/dora_architecture.png' | relativize_url }})
 
-* The service registry is responsible for service discovery and maintains a list of workers.
-* The scheduler handles all asynchronous jobs, such as distributed load.
-* The client runs inside the applications and includes a consistent hash algorithm to determine which worker to visit.
 * The worker is the most important component, as it stores both metadata and data that are sharded by key, usually the path of the file.
+* The client runs inside the applications and utilizes the same consistent hash algorithm to determine the appropriate worker for the corresponding file.
+* The service registry is responsible for service discovery and maintains a list of workers.
+* The scheduler handles all asynchronous jobs, such as preloading data to workers.
 
 ## Technical Highlights
 
 ### Caching Data Affinity
 
-The client obtains a list of all the DORA workers from a highly available service registry such as Alluxio Master based on Raft or Kubernetes ETCD,
-which can support tens of thousands of Alluxio workers.
-The client then uses a consistent hashing algorithm to determine which worker to visit based on the file path as the key, ensuring that the same file always goes to the same worker for a maximum cache hit rate.
-As the service registry is not in the critical I/O path, it will not be a performance bottleneck.
+The client obtains a list of DORA workers from a highly available service registry to support tens of thousands of Alluxio workers.
+The client uses a consistent hashing algorithm to determine which worker to visit based on the file path as the key,
+ensuring that the same file always goes to the same worker for a maximum cache hit rate.
+This avoids a performance bottleneck because a client will directly interface with the appropriate worker
+without needing to refer to the service registry,
 
-In addition, DORA's architecture allows for easy scalability by simply adding more nodes to the cluster.
+In addition, DORA's architecture allows for easy scalability by adding more nodes to the cluster.
 Each worker node can support tens of millions of files, making it easy to handle increasing data volumes and growing user bases.
 
-### Page Data Store
+### Paging Data Store
 
-DORA uses a page store module as its cache storage, offering finer-grained caching for small to medium-sized read requests on large files.
-This page store has been battle-tested in applications like Presto in Meta, Uber, and TikTok, proving its reliability.
-DORA's fine-grained caching has resulted in solving up to 150X read amplification issues and improving unstructured file position read up to 9X.
-Additionally, it has improved structured file position read by 2 to 15X.
+DORA uses a paging store model as its cache storage, offering finer-grained caching for small to medium-sized read requests on large files.
+DORA's fine-grained caching has resulted in up to 150x read amplification and improved unstructured file position read by up to 9x.
+Additionally, it has improved structured file position read by 2x to 15x.
 
 ![Dora read approaches]({{ '/img/dora_read_approaches.png' | relativize_url }})
 
@@ -83,68 +85,56 @@ Additionally, it has improved structured file position read by 2 to 15X.
 
 DORA spreads metadata to every worker to ensure that metadata is always accessible and available.
 To optimize metadata access, DORA utilizes a two-level caching system for metadata entries.
-The first level of caching is the in-memory cache, which stores metadata entries in memory. This cache has a configurable maximum capacity and time-to-live (TTL) setting to set an expiration duration. The second level of caching is the persistent cache, which stores metadata entries on disk using RocksDB. The persistent cache has unbounded capacity, depending on available disk space, also uses TTL-based cache eviction, avoiding any active sync or invalidation. The stored metadata is hashed by the full UFS path like the Page Store.
+The first level of caching is the in-memory cache, which stores metadata entries in memory.
+This cache has a configurable maximum capacity and time-to-live (TTL) setting to set an expiration duration.
+The second level of caching is the persistent cache, which stores metadata entries on disk using RocksDB.
+The persistent cache has unbounded capacity, depending on available disk space,
+and also uses TTL-based cache eviction, avoiding any active sync or invalidation.
 
 The combination of in-memory and persistent caching helps ensure that metadata is readily available and accessible,
 while also allowing for efficient use of system resources.
-The decentralization of metadata avoids the bottleneck in the architecture where metadata is not primarily managed by the worker nodes.
-With the ability to store up to 30 million to 50 million files per DORA worker,
+The decentralization of metadata avoids the bottleneck in the architecture where metadata is primarily managed by the worker nodes.
+With the capability of storing 30 to 50 million files per worker,
 the system can support large-scale data-intensive applications with billions of files.
 
 ### Zero-copy Networking
 
 DORA provides a Netty-based data transmission solution that offers a 30%-50% performance improvement over gRPC.
 This solution has several advantages, including fewer data copies through different thread pools,
-zero-copy transmission that avoids serialization of Protobuf, optimized off-heap memory usage that prevents OOM errors,
+zero-copy transmission that avoids serialization of Protobuf, optimized off-heap memory usage that prevents memory capacity issues,
 and less data transfer due to the absence of additional HTTP headers.
 
-![Dora read approaches]({{ '/img/zero_copy_network.png' | relativize_url }})
+![Zero copy network]({{ '/img/zero_copy_network.png' | relativize_url }})
 
 ### Scheduler and Distribute Load
 
-Our scheduler provides an intuitive, extendable solution for efficient job scheduling,
+The scheduler provides an intuitive, extensible solution for efficient job scheduling,
 with consideration towards observability, scalability, and reliability.
 It has also been used to implement a distributed load capable of loading billions of files.
 
 ## Benchmark Results
 
-### Creating and Reading Large Numbers of Files (per worker)
+### Creating and Reading Large Number of Files for a Single Worker
 
-During a simple scalability test, DORA was tested for its ability to store and serve files on a single worker node without any performance regression.
+A single worker node was used to store and serve a large number of files as a straightforward scalability test.
 The test was conducted using three data points - 4.8 million files, 24 million files, and 48 million files.
-While the worker was able to store and serve 480 million files without any significant performance downgrade.
+The worker was able to serve 48 million files without significant performance impact.
 
 ![Single worker storage scalability]({{ '/img/single_worker_storage_scalability.png' | relativize_url }})
 
 ### Positioned Read on Structured Data
 
-DORA uses a new position read approach that has led to significant performance improvements.
-In single thread sequential read, with random seeks within 2MB, the performance for 100KB reads is similar to before,
-but for 100MB warm reads, there is a significant improvement in local NVMe throughput, ranging from 1.4X to 20X performance improvement.
+In single thread sequential read operation with random seeks within 2MB, the performance for 100KB reads is similar to Alluxio 2.x,
+but for 100MB warm reads, there is a significant improvement in local NVMe throughput, ranging from 1.4x to 20x improvement.
 In addition, for structured data in the Apache Arrow format with 4 processes of random partial warm read,
-there was an improvement of 15X to 20X in performance.
+there was an improvement of 15x to 20x.
 
 ![Position read latency]({{ '/img/position_read_latency.png' | relativize_url }})
 
-### Conclusion and Future Works
+### Downloads and References
 
-In conclusion, DORA is a decentralized object repository architecture that offers low latency, high throughput,
-and cost savings while supporting various data workloads, including machine learning and analytics.
-The architecture is designed with scalability, high availability, and performance in mind,
-aiming to provide a unified data layer that can support billions of files.
+Releases are available from the [downloads page](https://downloads.alluxio.io/downloads/files/).
 
-DORA's release marks a significant milestone in the evolution of Alluxio,
-enabling organizations to remain competitive in rapidly evolving markets.
-
-We will continue to enhance DORA's scalability, reliability, and performance through collaborations with our partners in the open-source community.
-Additionally, we will explore further in the following areas:
-
-* Further optimizations for cost-efficiency and storage efficiency
-* Enhancing RESTful APIs for both data and metadata
-* Better support for ETL and remote shuffle workloads.
-
-We welcome everyone to join our community and try out our Dora in your data infrastructure.
-Feel free to post issues and pull requests to our [GitHub](https://github.com/alluxio/alluxio).
-Also, please find us on the [Alluxio community chat](https://alluxio-community.slack.com/).
-
-[Download Alluxio with Dora archiecture](https://downloads.alluxio.io/downloads/files/) today.
+We welcome everyone to join our community and try out DORA.
+Feel free to post issues and pull requests to our [GitHub](https://github.com/alluxio/alluxio)
+and reach out to us on the [Alluxio community chat](https://alluxio-community.slack.com/).

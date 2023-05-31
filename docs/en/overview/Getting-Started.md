@@ -76,23 +76,22 @@ Set `alluxio.master.hostname` in `conf/alluxio-site.properties` to `localhost`.
 $ echo "alluxio.master.hostname=localhost" >> conf/alluxio-site.properties
 ```
 
-Set additional parameters required by dora in `conf/alluxio-site.properties`
+Set additional parameters in `conf/alluxio-site.properties`
 ```console
-$ echo "alluxio.dora.client.read.location.policy.enabled=true" >> conf/alluxio-site.properties
-$ echo "alluxio.user.short.circuit.enabled=false" >> conf/alluxio-site.properties
-$ echo "alluxio.master.worker.register.lease.enabled=false" >> conf/alluxio-site.properties
+echo "alluxio.dora.client.read.location.policy.enabled=true" >> conf/alluxio-site.properties
+echo "alluxio.user.short.circuit.enabled=false" >> conf/alluxio-site.properties
+echo "alluxio.master.worker.register.lease.enabled=false" >> conf/alluxio-site.properties
+echo "alluxio.worker.block.store.type=PAGE" >> conf/alluxio-site.properties
+echo "alluxio.worker.page.store.type=LOCAL" >> conf/alluxio-site.properties
+echo "alluxio.worker.page.store.sizes=1GB" >> conf/alluxio-site.properties
+echo "alluxio.worker.page.store.page.size=1MB" >> conf/alluxio-site.properties
 ```
-
-Configure Alluxio cache storage:
+Set the page store directories to an existing directory which the current user has read/write permissions to.
+The following uses `/mnt/ramdisk` as an example. 
 ```console
-$ echo "alluxio.worker.block.store.type=PAGE" >> conf/alluxio-site.properties
-$ echo "alluxio.worker.page.store.type=LOCAL" >> conf/alluxio-site.properties
 $ echo "alluxio.worker.page.store.dirs=/mnt/ramdisk" >> conf/alluxio-site.properties
-$ echo "alluxio.worker.page.store.sizes=1GB" >> conf/alluxio-site.properties
-$ echo "alluxio.worker.page.store.page.size=1MB" >> conf/alluxio-site.properties
 ```
-Set the page store directories (e.g. `/mnt/ramdisk`) to an existing directory which the current user has the read write permissions.
-The [page cache storage guide]({{ '/en/core-services/Caching.html' | relativize_url }}#paging-worker-storage) has more information about how to configure page block store.
+The [paging cache storage guide]({{ '/en/core-services/Caching.html' | relativize_url }}#paging-worker-storage) has more information about how to configure page block store.
 
 Configure Alluxio ufs:
 ```console
@@ -100,14 +99,11 @@ $ echo "alluxio.dora.client.ufs.root=/tmp" >> conf/alluxio-site.properties
 ```
 
 `<UFS_URI>` should be a full ufs uri. This can be set to a local folder (e.g. default value `/tmp`)
-in a single node deployment
-or a full ufs uri (e.g.`hdfs://namenode:port/path/` or `s3://bucket/path`).
+in a single node deployment  or a full ufs uri (e.g.`hdfs://namenode:port/path/` or `s3://bucket/path`).
 
 ### [Bonus] Configuration for AWS
 
-To configure Alluxio to interact with Amazon S3, add AWS access information to the Alluxio
-configuration in `conf/alluxio-site.properties`. The following commands update the
-configuration.
+To configure Alluxio to interact with Amazon S3, add AWS access information to the Alluxio configuration in `conf/alluxio-site.properties`.
 
 ```console
 $ echo "alluxio.dora.client.ufs.root=s3://<BUCKET_NAME>/<DIR>" >> conf/alluxio-site.properties
@@ -122,9 +118,7 @@ For more information, please refer to the [S3 configuration docs]({{ '/en/ufs/S3
 
 ### [Bonus] Configuration for HDFS
 
-To configure Alluxio to interact with Amazon S3, add AWS access information to the Alluxio
-configuration in `conf/alluxio-site.properties`. The following commands update the
-configuration.
+To configure Alluxio to interact with HDFS, provide the path to HDFS configuration files available locally on each node in `conf/alluxio-site.properties`.
 
 ```console
 $ echo "alluxio.dora.client.ufs.root=hdfs://nameservice/<DIR>" >> conf/alluxio-site.properties
@@ -185,10 +179,10 @@ $ ./bin/alluxio fs ls /
 ```
 
 The output shows the file has been written to Alluxio under storage successfully.
-The value of `alluxio.dora.client.ufs.root=<UFS_ROOT>`.
+Check the directory set as the value of `alluxio.dora.client.ufs.root`, which is `/tmp` by default.
 
 ```console
-$ ls ${UFS_ROOT}
+$ ls /tmp
 LICENSE
 ```
 
@@ -251,7 +245,7 @@ for Remote Login if you are not already in it.
 ### Optional Dora Server-side Metadata Cache
 
 By default, Dora worker caches metadata and data.
-Set `alluxio.dora.client.metadata.cache.enabled` to `false` to disable the metadata cache on docker worker if needed.
+Set `alluxio.dora.client.metadata.cache.enabled` to `false` to disable the metadata cache.
 If disabled, client will always fetch metadata from under storage directly.
 
 ### High performance data transmission over Netty
@@ -262,8 +256,8 @@ resources on the worker side.
 
 ## Known limitations
 
-1. Currently, only one UFS is supported by Dora. Nested mounts are not supported yet.
-2. Currently, the Alluxio Master node still needs to be up and running. It is used for Dora worker discovery,
-   cluster configuration updates, as well as handling write IO operations.
-3. Currently, Alluxio Fuse is not supported with Dora on Kubernetes with the existing helm chart. The helm chart
+1. Only one UFS is supported by Dora. Nested mounts are not supported yet.
+1. The Alluxio Master node still needs to be up and running. It is used for Dora worker discovery,
+   cluster configuration updates, as well as handling write I/O operations.
+1. Alluxio Fuse is not supported with Dora on Kubernetes with the existing helm chart. The helm chart
    supporting Alluxio Fuse is under development.
