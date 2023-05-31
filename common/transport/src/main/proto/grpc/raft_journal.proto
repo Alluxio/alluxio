@@ -36,6 +36,7 @@ message GetSnapshotRequest {
 message SnapshotMetadata {
   optional int64 snapshotTerm = 1;
   optional int64 snapshotIndex = 2;
+  optional bool exists = 3;
 }
 
 message SnapshotData {
@@ -62,18 +63,32 @@ message DownloadSnapshotPResponse {
   optional SnapshotData data = 1;
 }
 
+message LatestSnapshotInfoPRequest {}
+
 /**
   * This interface contains raft service endpoints for Alluxio masters.
   */
 service RaftJournalService {
 
   /**
+   * Deprecated.
    * Uploads a snapshot to primary master.
    */
   rpc UploadSnapshot (stream UploadSnapshotPRequest) returns (stream UploadSnapshotPResponse);
 
   /**
+   * Deprecated.
    * Downloads a snapshot from primary master.
    */
   rpc DownloadSnapshot (stream DownloadSnapshotPRequest) returns (stream DownloadSnapshotPResponse);
+
+  /**
+   * Requests information about snapshots on a particular machine.
+   */
+  rpc RequestLatestSnapshotInfo(LatestSnapshotInfoPRequest) returns (SnapshotMetadata) {}
+
+  /**
+   * Request to download the snapshot information from a particular machine.
+   */
+  rpc RequestLatestSnapshotData(SnapshotMetadata) returns (stream SnapshotData) {}
 }

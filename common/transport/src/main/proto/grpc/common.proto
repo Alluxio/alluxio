@@ -65,6 +65,8 @@ enum MetricType {
   // METER represents a metric value at a _rate_. The value of the metric varies with the time over which events are
   // recorded
   METER = 2;
+  // HISTOGRAM gives statistics about the value of past occurrences of an event.
+  HISTOGRAM = 5;
   // TIMER represents a histogram of the rate of the specified events.
   TIMER = 3;
   // EXECUTOR_SERVICE represents an executor service.
