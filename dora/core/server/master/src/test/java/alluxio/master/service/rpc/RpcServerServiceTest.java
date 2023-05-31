@@ -11,9 +11,12 @@
 
 package alluxio.master.service.rpc;
 
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.AlluxioMasterProcess;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -25,6 +28,11 @@ import org.powermock.modules.junit4.PowerMockRunner;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(AlluxioMasterProcess.class)
 public class RpcServerServiceTest extends RpcServerServiceTestBase {
+  @Before
+  public void before() {
+    Configuration.set(PropertyKey.STANDBY_MASTER_GRPC_ENABLED, false);
+  }
+
   @Test
   public void primaryOnlyTest() {
     RpcServerService service =

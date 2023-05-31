@@ -23,7 +23,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @PublicApi
 @NotThreadSafe
-public final class OpenOptions {
+public class OpenOptions {
   // Offset within file in bytes
   private long mOffset;
 
@@ -47,7 +47,7 @@ public final class OpenOptions {
   /**
    * Constructs a default {@link OpenOptions}.
    */
-  private OpenOptions() {
+  protected OpenOptions() {
     mOffset = 0;
     mLength = Long.MAX_VALUE;
     mRecoverFailedOpen = false;

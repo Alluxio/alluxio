@@ -53,7 +53,9 @@ import alluxio.master.WorkerState;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.block.meta.WorkerMetaLockSection;
 import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.SingleEntryJournaled;
 import alluxio.master.journal.checkpoint.CheckpointName;
+import alluxio.master.journal.checkpoint.Checkpointed;
 import alluxio.master.metastore.BlockMetaStore;
 import alluxio.master.metastore.BlockMetaStore.Block;
 import alluxio.master.metrics.MetricsMaster;
@@ -96,6 +98,7 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.time.Clock;
@@ -113,6 +116,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -374,7 +378,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public Map<ServiceType, GrpcService> getStandbyServices() {
-    return getServices();
+    if (Configuration.getBoolean(PropertyKey.WORKER_REGISTER_TO_ALL_MASTERS)) {
+      return getServices();
+    }
+    return Collections.emptyMap();
   }
 
   @Override
@@ -438,7 +445,36 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
 
   @Override
   public CheckpointName getCheckpointName() {
+    if (mBlockMetaStore instanceof Checkpointed) {
+      return ((Checkpointed) mBlockMetaStore).getCheckpointName();
+    }
     return CheckpointName.BLOCK_MASTER;
+  }
+
+  @Override
+  public CompletableFuture<Void> writeToCheckpoint(File directory,
+                                                   ExecutorService executorService) {
+    if (mBlockMetaStore instanceof Checkpointed) {
+      SingleEntryJournaled containerIdJournal = new DefaultBlockMasterContainerIdJournaled();
+      containerIdJournal.processJournalEntry(getContainerIdJournalEntry());
+      return CompletableFuture.allOf((
+          (Checkpointed) mBlockMetaStore).writeToCheckpoint(directory, executorService),
+          containerIdJournal.writeToCheckpoint(directory, executorService));
+    }
+    return super.writeToCheckpoint(directory, executorService);
+  }
+
+  @Override
+  public CompletableFuture<Void> restoreFromCheckpoint(File directory,
+                                                       ExecutorService executorService) {
+    if (mBlockMetaStore instanceof Checkpointed) {
+      SingleEntryJournaled containerIdJournal = new DefaultBlockMasterContainerIdJournaled();
+      return CompletableFuture.allOf((
+          (Checkpointed) mBlockMetaStore).restoreFromCheckpoint(directory, executorService),
+          containerIdJournal.restoreFromCheckpoint(directory, executorService)
+              .thenRun(() -> processJournalEntry(containerIdJournal.getEntry())));
+    }
+    return super.restoreFromCheckpoint(directory, executorService);
   }
 
   @Override

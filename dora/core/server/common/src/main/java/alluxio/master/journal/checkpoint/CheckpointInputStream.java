@@ -28,7 +28,7 @@ import java.io.InputStream;
  *
  * @see CheckpointOutputStream
  */
-public final class CheckpointInputStream extends DataInputStream {
+public class CheckpointInputStream extends DataInputStream {
   private static final Logger LOG = LoggerFactory.getLogger(CheckpointInputStream.class);
   private final CheckpointType mType;
 

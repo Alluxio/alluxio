@@ -37,7 +37,7 @@ public class NettyBufTargetBuffer implements ReadTargetBuffer {
 
   @Override
   public byte[] byteArray() {
-    throw new UnsupportedOperationException();
+    return mTarget.array();
   }
 
   @Override

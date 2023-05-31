@@ -14,10 +14,12 @@ package alluxio.client.file.cache;
 import alluxio.client.file.CacheContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.PageNotFoundException;
 import alluxio.file.ByteArrayTargetBuffer;
 import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.resource.LockResource;
 
 import com.codahale.metrics.Counter;
@@ -339,4 +341,16 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
    * @param fileId the file ID
    */
   void commitFile(String fileId);
+
+  /**
+   * Get a {@link DataFileChannel} which wraps a {@link io.netty.channel.FileRegion}.
+   * @param pageId the page id
+   * @param pageOffset the offset inside the page
+   * @param bytesToRead the bytes to read
+   * @param cacheContext the cache context
+   * @return an object of {@link DataFileChannel}
+   */
+  Optional<DataFileChannel> getDataFileChannel(
+      PageId pageId, int pageOffset, int bytesToRead, CacheContext cacheContext)
+      throws PageNotFoundException;
 }
