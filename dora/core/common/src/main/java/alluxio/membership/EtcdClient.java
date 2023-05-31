@@ -1,4 +1,4 @@
-package alluxio.worker.block;
+package alluxio.membership;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -99,7 +99,6 @@ public class EtcdClient {
           .setWebPort(3344);
       service.mWorkerId = new AtomicReference<Long>(12L);
       sd.registerService(service);
-      sd.reportHeartBeat(service);
       sd.getAllServices();
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -116,6 +115,16 @@ public class EtcdClient {
           .add("WorkerAddr", mAddress.toString())
           .add("LeaseId", mLeaseId)
           .toString();
+    }
+  }
+
+  public static class ServiceEntityContext {
+    CloseableClient mKeepAliveClient;
+    Long mLeaseId;
+    String mIdentifierName;
+//    workerInfo.getNetAddress().dumpMainInfo()
+    ServiceEntityContext() {
+
     }
   }
 
@@ -152,7 +161,7 @@ public class EtcdClient {
           throw new IOException("Failed to register service:" + service.toString());
         }
         service.mLeaseId = leaseId;
-        reportHeartBeat(service);
+        startHeartBeat(service);
       } catch (ExecutionException ex) {
         throw new IOException("ExecutionException in registering service:" + service, ex);
       } catch (InterruptedException ex) {
@@ -181,7 +190,7 @@ public class EtcdClient {
       }
     };
 
-    public void reportHeartBeat(WorkerService service) {
+    public void startHeartBeat(WorkerService service) {
       if (service.mLeaseId != -1L) {
         CloseableClient keepAliveClient = mClient.getLeaseClient()
             .keepAlive(service.mLeaseId, mKeepAliveObserver);
