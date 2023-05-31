@@ -271,7 +271,8 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       UFS_FALLBACK_COUNTER.inc();
       LOG.debug("Dora client CreateFile error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), e);
-      return mDelegatedFileSystem.createFile(ufsFullPath, options);
+      //return mDelegatedFileSystem.createFile(ufsFullPath, options);
+      throw e;
     }
   }
 

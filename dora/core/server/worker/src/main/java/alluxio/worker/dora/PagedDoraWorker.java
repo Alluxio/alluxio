@@ -62,6 +62,7 @@ import alluxio.resource.PooledResource;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.authorization.Mode;
 import alluxio.security.user.ServerUserState;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsInputStreamCache;
@@ -72,6 +73,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.util.CommonUtils;
+import alluxio.util.ModeUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -712,20 +714,32 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     if (existingHandle != null) {
       LOG.error("A file opened for write and not closed yet: path={} handle={}",
           path, existingHandle);
-      throw new RuntimeException(new FileAlreadyExistsException("File is already opened"));
+      // If want to enable this checking and throw exception, we need to handle such abnormal cases:
+      // 1. If client disconnects without sending CompleteFile request, we must have a way to
+      //    clean up the stale handle.
+      // 2. some other abnormal case ...
+      //throw new RuntimeException(new FileAlreadyExistsException("File is already opened"));
+      mOpenFileHandleContainer.remove(path);
+      existingHandle.close();
     }
 
     // construct open option based on @param options
     CreateOptions createOption = CreateOptions.defaults(mConf);
+    if (options.hasMode()) {
+      createOption.setMode(new Mode(ModeUtils.protoToShort(options.getMode())));
+    }
 
     try {
-      // Check if the target file already exists. If yes, return throw error.
-      if (mUfs.exists(path)) {
-        throw new RuntimeException(new FileAlreadyExistsException("File already exists"));
+      // Check if the target file already exists. If yes, return by throwing error.
+      boolean overWrite = options.hasOverwrite() ? options.getOverwrite() : false;
+      if (!overWrite && mUfs.exists(path)) {
+        throw new RuntimeException(
+            new FileAlreadyExistsException("File already exists but no overwrite flag"));
       }
 
       // Open UFS OutputStream and use it in write operation.
-      outStream = mUfs.create(path, createOption);
+      // We are writing UFS from client. No need of this outStream at this moment.
+      outStream = null; //mUfs.create(path, createOption);
 
       // Prepare a "fake" UfsStatus here. Please prepare more fields here.
       String owner = createOption.getOwner() != null ? createOption.getOwner() : "";

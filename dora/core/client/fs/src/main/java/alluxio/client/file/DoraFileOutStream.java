@@ -128,53 +128,47 @@ public class DoraFileOutStream extends FileOutStream {
     }
     try (Timer.Context ctx = MetricsSystem
             .uniformTimer(MetricKey.CLOSE_ALLUXIO_OUTSTREAM_LATENCY.getName()).time()) {
-      mNettyDataWriter.flush();
-      mNettyDataWriter.close();
+      try {
+        mNettyDataWriter.flush();
+        mNettyDataWriter.close();
+      } catch (Exception e) {
+        // Ignore.
+      }
 
-      CompleteFilePOptions.Builder optionsBuilder = CompleteFilePOptions.newBuilder();
-      optionsBuilder.setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
-          .setOperationId(new OperationId(UUID.randomUUID()).toFsProto()).buildPartial());
-      if (mUnderStorageType.isSyncPersist()) {
-        if (mCanceled) {
-          mUnderStorageOutputStream.cancel();
-        } else {
-          mUnderStorageOutputStream.flush();
-          mUnderStorageOutputStream.close();
-          optionsBuilder.setUfsLength(mBytesWritten);
+      try {
+        if (mUnderStorageType.isSyncPersist()) {
+          if (mCanceled) {
+            mUnderStorageOutputStream.cancel();
+          } else {
+            mUnderStorageOutputStream.flush();
+            mUnderStorageOutputStream.close();
+          }
         }
+      } catch (Exception e) {
+        //Ignore
       }
 
-      if (mAlluxioStorageType.isStore()) {
-        if (mCanceled) {
-          mNettyDataWriter.cancel();
-        } else {
-          // Note, this is a workaround to prevent commit(blockN-1) and write(blockN)
-          // race, in worse case, this may result in commit(blockN-1) completes earlier than
-          // write(blockN), and blockN evicts the committed blockN-1 and causing file lost.
+      try {
+        if (mAlluxioStorageType.isStore()) {
+          if (mCanceled) {
+            mNettyDataWriter.cancel();
+          } else {
+            // Note, this is a workaround to prevent commit(blockN-1) and write(blockN)
+            // race, in worse case, this may result in commit(blockN-1) completes earlier than
+            // write(blockN), and blockN evicts the committed blockN-1 and causing file lost.
+          }
         }
+      } catch (Exception e) {
+        //Ignore
       }
 
-      // Whether to complete file with async persist request.
-      if (!mCanceled && mUnderStorageType.isAsyncPersist()
-          && mOptions.getPersistenceWaitTime() != Constants.NO_AUTO_PERSIST) {
-        optionsBuilder.setAsyncPersistOptions(
-            FileSystemOptionsUtils.scheduleAsyncPersistDefaults(
-                mContext.getPathConf(mUri)).toBuilder()
-                .setCommonOptions(mOptions.getCommonOptions())
-                .setPersistenceWaitTime(mOptions.getPersistenceWaitTime()));
-      }
-
-      // Complete the file if it's ready to be completed.
-      if (!mCanceled && (mUnderStorageType.isSyncPersist() || mAlluxioStorageType.isStore())) {
-        // record to metadata store
-        CompleteFilePOptions options = CompleteFilePOptions.newBuilder()
-            .setUfsLength(mNettyDataWriter.pos())//getBytesWritten())
-            .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().build())
-            .setContentHash("HASH-256") // compute hash here
-            .build();
-        mClosed = true;
-        mDoraClient.completeFile(mUri.toString(), options, mUuid);
-      }
+      CompleteFilePOptions options = CompleteFilePOptions.newBuilder()
+          .setUfsLength(mNettyDataWriter.pos())
+          .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().build())
+          .setContentHash("HASH-256") // compute hash here
+          .build();
+      mClosed = true;
+      mDoraClient.completeFile(mUri.toString(), options, mUuid);
     } catch (Throwable e) { // must catch Throwable
       throw mCloser.rethrow(e); // IOException will be thrown as-is.
     } finally {
