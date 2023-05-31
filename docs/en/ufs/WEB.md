@@ -16,10 +16,9 @@ storage system.
 
 The Alluxio binaries must be on your machine. You can either
 [compile Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}), or
-[download the binaries locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
+[download the binaries locally]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
 
 ## Configuring Alluxio
-Alluxio unifies access to different storage systems through the [unified namespace]({{ '/en/core-services/Unified-Namespace.html' | relativize_url }}) feature. An WEB location can be either mounted at the root of the Alluxio namespace or at a nested directory.
 
 ### ROOT MOUNT
 Configure Alluxio to use under storage systems by modifying

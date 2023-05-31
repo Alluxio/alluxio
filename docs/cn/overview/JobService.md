@@ -24,11 +24,11 @@ Job Worker将来自Job Master的任务排列（queue)，并通过管理可配置
 
 ### 迁移 Migrate
 
-`fs distributedCp`和`fs distributedMv`CLI命令中使用了迁移作业，使用固定的[写入类型]({{ '/en/overview/Architecture.html#data-flow-write' | relativize_url }})进行数据复制/移动。
+`fs distributedCp`和`fs distributedMv`CLI命令中使用了迁移作业，使用固定的写入类型进行数据复制/移动。
 
 ### 持久化 Persist
 
-`fs persist` CLI命令间接使用了持久化作业，以`ASYNC_THROUGH`[写入类型]({{ '/en/overview/Architecture.html#data-flow-write' | relativize_url }})写入Alluxio时使用持久化作业在后台进行持久化。
+`fs persist` CLI命令间接使用了持久化作业，以`ASYNC_THROUGH`写入类型写入Alluxio时使用持久化作业在后台进行持久化。
 
 该作业负责将Alluxio中的文件持久化到特定的ufs路径中。
 

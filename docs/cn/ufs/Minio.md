@@ -19,7 +19,7 @@ Alluxio提供了原生s3://支持方案(建议使用以获得更好的性能)。
 必须在机器上安装了Alluxio二进制文件才能继续。
 可以
 [从源代码编译Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url}})，
-或[在本地下载二进制文件]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url}})。
+或[在本地下载二进制文件]({{ '/en/overview/Getting-Started.html' | relativize_url}})。
 
 ## 设置MinIO
 

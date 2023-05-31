@@ -350,7 +350,7 @@ The monitoring indicators describe the system status in a heuristic way to have 
 
 A: Check `${ALLUXIO_HOME}/logs` to see if there are any master or worker logs. Look for any errors
 in these logs. Double check if you missed any configuration
-steps in [Running-Alluxio-Locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
+steps in [Running-Alluxio-Locally]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
 
 Typical issues:
 - `ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS` is not configured correctly.
@@ -358,7 +358,7 @@ Typical issues:
 
 ### Q: I'm trying to deploy Alluxio in a cluster with Spark and HDFS. Are there any suggestions?
 
-A: Please follow [Running-Alluxio-on-a-Cluster]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}),
+A: Please follow [Running-Alluxio]({{ '/en/overview/Getting-Started.html' | relativize_url }}),
 [Configuring-Alluxio-with-HDFS]({{ '/en/ufs/HDFS.html' | relativize_url }}),
 and [Configuring-Spark-with-Alluxio]({{ '/en/compute/Spark.html' | relativize_url }}).
 
@@ -494,8 +494,6 @@ To reveal new files from under file system, you can use the command
 `alluxio fs ls -R -Dalluxio.user.file.metadata.sync.interval=${SOME_INTERVAL} /path` or by setting the same
 configuration property in masters' `alluxio-site.properties`.
 The value for the configuration property is used to determine the minimum interval between two syncs.
-You can read more about metadata sync from under file systems
-[here]({{ '/en/core-services/Unified-Namespace.html' | relativize_url }}#ufs-metadata-sync).
 
 ### Q: I see an error "Block ?????? is unavailable in both Alluxio and UFS" while reading some file. Where is my file?
 

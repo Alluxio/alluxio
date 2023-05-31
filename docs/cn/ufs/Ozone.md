@@ -13,7 +13,7 @@ Ozone可以在容器化环境(例如Kubernetes和YARN)中有效运行。
 ## 先决条件
 
 要在一组计算机上运行Alluxio集群，必须将Alluxio二进制文件部署到集群的每台
-计算机上。你可以使用[直接下载预编译的二进制文件]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url}}
+计算机上。你可以使用[直接下载预编译的二进制文件]({{ '/en/overview/Getting-Started.html' | relativize_url}}
 具有正确的Hadoop版本(推荐))，或 
 [从Alluxio源代码编译二进制文件]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url}})(适用于高级用户)。
 
