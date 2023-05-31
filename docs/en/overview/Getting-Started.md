@@ -35,7 +35,7 @@ If you are trying to speedup SQL analytics, you can try the
 
 ## Downloading Alluxio
 
-Download Alluxio from [this page](https://www.alluxio.io/download). Select the
+Download Alluxio from [this page](https://downloads.alluxio.io/downloads/files/). Select the
 desired release followed by the distribution built for default Hadoop.
 Unpack the downloaded file with the following commands.
 

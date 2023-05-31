@@ -16,7 +16,7 @@ Store](https://azure.microsoft.com/en-in/services/storage/blobs/) as the under s
 
 The Alluxio binaries must be on your machine.
 You can either [compile the binaries from Alluxio source code]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}),
-or [download the precompiled binaries directly]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
+or [download the precompiled binaries directly]({{ '/en/overview/Getting-started.html' | relativize_url }}).
 
 In preparation for using Azure Blob Store with Alluxio, create a new container in your Azure
 storage account or use an existing container. You should also note that the directory you want to

@@ -672,7 +672,6 @@ $ kubectl create -f ./worker/
 $ kubectl get pods
 ```
 
-你可以根据以下文档做更全面的确认 [Verify Alluxio]({{ '/en/deploy/Running-Alluxio-Locally.html?q=verify#verify-alluxio-is-running' | relativize_url}}).  
 {% endcollapsible %}
 {% endaccordion %}
 
