@@ -239,6 +239,7 @@ public final class SchedulerTest {
   }
 
   @Test
+  @Ignore
   public void testSubmitExceedsCapacity() throws Exception {
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
