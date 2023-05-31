@@ -131,7 +131,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   private static final String S3_SERVICE_NAME = "s3";
 
   /** AWS-SDK S3 client. */
-  private final AmazonS3 mClient;
+  private AmazonS3 mClient;
 
   private final S3AsyncClient mAsyncClient;
 
@@ -410,7 +410,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    * @return the endpoint configuration
    */
   @Nullable
-  private static AwsClientBuilder.EndpointConfiguration createEndpointConfiguration(
+  protected static AwsClientBuilder.EndpointConfiguration createEndpointConfiguration(
       UnderFileSystemConfiguration conf, ClientConfiguration clientConf) {
     if (!conf.isSet(PropertyKey.UNDERFS_S3_ENDPOINT)) {
       LOG.debug("No endpoint configuration generated, using default s3 endpoint");
@@ -873,7 +873,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   /**
    * Wrapper over S3 {@link ListObjectsV2Request}.
    */
-  private final class S3AObjectListingChunk implements ObjectListingChunk {
+  protected final class S3AObjectListingChunk implements ObjectListingChunk {
     final ListObjectsV2Request mRequest;
     final ListObjectsV2Result mResult;
 
@@ -924,7 +924,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   /**
    * Wrapper over S3 {@link ListObjectsRequest}.
    */
-  private final class S3AObjectListingChunkV1 implements ObjectListingChunk {
+  protected final class S3AObjectListingChunkV1 implements ObjectListingChunk {
     final ListObjectsRequest mRequest;
     final ObjectListing mResult;
 
