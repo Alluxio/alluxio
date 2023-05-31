@@ -19,6 +19,7 @@ import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.worker.block.io.BlockWriter;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,20 +53,12 @@ public class PagedFileWriter extends BlockWriter {
 
   @Override
   public long append(ByteBuffer inputBuf) {
-    long bytesWritten = 0;
-    while (inputBuf.hasRemaining()) {
-      PageId pageId = getPageId(bytesWritten);
-      int currentPageOffset = getCurrentPageOffset(bytesWritten);
-      int bytesLeftInPage = getBytesLeftInPage(currentPageOffset, inputBuf.remaining());
-      byte[] page = new byte[bytesLeftInPage];
-      inputBuf.get(page);
-      if (!mCacheManager.append(pageId, currentPageOffset, page, mTempCacheContext)) {
-        throw new InternalRuntimeException("Append failed for file " + mFileId);
-      }
-      bytesWritten += bytesLeftInPage;
+    try {
+      return append(Unpooled.wrappedBuffer(inputBuf));
+    } catch (IOException e) {
+      LOG.error("Failed to append ByteBuffer. ", e);
+      return -1;
     }
-    mPosition += bytesWritten;
-    return bytesWritten;
   }
 
   @Override
