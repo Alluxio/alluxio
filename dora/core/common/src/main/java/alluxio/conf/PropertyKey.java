@@ -7730,7 +7730,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   public static final PropertyKey USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES =
       dataSizeBuilder(Name.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES)
-          .setDefaultValue("64KB")
+          .setDefaultValue("1024KB")
           .setDescription("When a client writes to a remote worker, the maximum packet size.")
           .build();
 

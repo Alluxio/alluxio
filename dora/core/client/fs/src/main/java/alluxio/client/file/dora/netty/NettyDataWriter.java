@@ -204,10 +204,18 @@ public final class NettyDataWriter implements DataWriter {
    * @throws IOException
    */
   public void writeChunk(byte[] bytes, int off, int len) throws IOException {
-    // TODO(JiamingMai): maybe we can reduce copying here
-    ByteBuf byteBuf = mChannel.alloc().buffer(len);
-    byteBuf.writeBytes(bytes, off, len);
-    writeChunk(byteBuf);
+    long totalBytesLeft = len;
+    int bytesToWrite = (int) Math.min(len, mPacketSize);
+    int tmpOffset = off;
+    while (totalBytesLeft > 0) {
+      // TODO(JiamingMai): maybe we can reduce copying here
+      ByteBuf byteBuf = mChannel.alloc().buffer(bytesToWrite);
+      byteBuf.writeBytes(bytes, tmpOffset, bytesToWrite);
+      writeChunk(byteBuf);
+      tmpOffset += bytesToWrite;
+      totalBytesLeft -= bytesToWrite;
+      bytesToWrite = (int) Math.min(totalBytesLeft, mPacketSize);
+    }
   }
 
   @Override
@@ -266,7 +274,7 @@ public final class NettyDataWriter implements DataWriter {
 
     try (LockResource lr = new LockResource(mLock)) {
       while (true) {
-        if (mPosToWrite == mPosToQueue) {
+        if (mPosToWrite >= mPosToQueue) {
           return;
         }
         if (mPacketWriteException != null) {

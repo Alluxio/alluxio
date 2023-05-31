@@ -60,7 +60,7 @@ public class PagedFileWriter extends BlockWriter {
       byte[] page = new byte[bytesLeftInPage];
       inputBuf.get(page);
       if (!mCacheManager.append(pageId, currentPageOffset, page, mTempCacheContext)) {
-        throw new InternalRuntimeException("Append failed for block " + mFileId);
+        throw new InternalRuntimeException("Append failed for file " + mFileId);
       }
       bytesWritten += bytesLeftInPage;
     }
@@ -78,7 +78,7 @@ public class PagedFileWriter extends BlockWriter {
       byte[] page = new byte[bytesLeftInPage];
       buf.readBytes(page);
       if (!mCacheManager.append(pageId, currentPageOffset, page, mTempCacheContext)) {
-        throw new IOException("Append failed for block " + mFileId);
+        throw new IOException("Append failed for file " + mFileId);
       }
       bytesWritten += bytesLeftInPage;
     }
