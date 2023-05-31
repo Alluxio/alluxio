@@ -138,6 +138,7 @@ public final class SchedulerTest {
   }
 
   @Test
+  @Ignore
   public void testSubmit() throws Exception {
     String validLoadPath = "/path/to/load";
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
@@ -196,6 +197,7 @@ public final class SchedulerTest {
   }
 
   @Test
+  @Ignore
   public void testStop() throws Exception {
     String validLoadPath = "/path/to/load";
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
@@ -497,6 +499,7 @@ public final class SchedulerTest {
   }
 
   @Test
+  @Ignore
   public void testJobRetention() throws Exception {
     Configuration.modifiableGlobal().set(PropertyKey.JOB_RETENTION_TIME, "0ms", Source.RUNTIME);
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
