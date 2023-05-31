@@ -38,6 +38,7 @@ public class OpenFileHandle {
   public OpenFileHandle(String path, FileInfo info, OutputStream outStream) {
     mPath = path;
     mInfo = info;
+    // TODO(Hua): The operation of generating UUID is SLOW. We can replace it in other way.
     mUUID = UUID.randomUUID();
     mOutStream = outStream;
     mPos = 0L;

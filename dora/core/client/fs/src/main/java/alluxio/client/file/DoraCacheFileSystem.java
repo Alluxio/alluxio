@@ -280,7 +280,6 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
     LOG.warn("Dora Client does not support create/write. This is only for test.");
-    // TODO(JiamingMai): implement this method
     mDelegatedFileSystem.createDirectory(ufsFullPath, options);
   }
 
@@ -290,7 +289,6 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     AlluxioURI srcUfsFullPath = convertAlluxioPathToUFSPath(src);
     AlluxioURI dstUfsFullPath = convertAlluxioPathToUFSPath(dst);
     LOG.warn("Dora Client does not support create/write. This is only for test.");
-
     mDelegatedFileSystem.rename(srcUfsFullPath, dstUfsFullPath, options);
   }
 

@@ -185,7 +185,7 @@ public class DoraFileOutStream extends FileOutStream {
 
   @Override
   public void flush() throws IOException {
-    // TODO(yupeng): Handle flush for Alluxio storage stream as well.
+    mNettyDataWriter.flush();
     if (mUnderStorageType.isSyncPersist()) {
       mUnderStorageOutputStream.flush();
     }
