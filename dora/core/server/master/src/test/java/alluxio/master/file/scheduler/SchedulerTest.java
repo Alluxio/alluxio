@@ -28,7 +28,11 @@ import static org.mockito.Mockito.when;
 import alluxio.Constants;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.FileSystemUtils;
+import alluxio.client.file.options.FileSystemOptions;
+import alluxio.conf.AlluxioProperties;
 import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.exception.AccessControlException;
@@ -138,7 +142,10 @@ public final class SchedulerTest {
     String validLoadPath = "/path/to/load";
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
-    when(fileSystemContext.getClusterConf()).thenReturn(Configuration.global());
+    AlluxioProperties alluxioProperties = new AlluxioProperties();
+    InstancedConfiguration conf = new InstancedConfiguration(alluxioProperties);
+    when(fileSystemContext.getClusterConf()).thenReturn(conf);
+
     JournalContext journalContext = mock(JournalContext.class);
     when(fsMaster.createJournalContext()).thenReturn(journalContext);
     DefaultWorkerProvider workerProvider =
@@ -193,7 +200,10 @@ public final class SchedulerTest {
     String validLoadPath = "/path/to/load";
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
-    when(fileSystemContext.getClusterConf()).thenReturn(Configuration.global());
+    AlluxioProperties alluxioProperties = new AlluxioProperties();
+    InstancedConfiguration conf = new InstancedConfiguration(alluxioProperties);
+    when(fileSystemContext.getClusterConf()).thenReturn(conf);
+
     JournalContext journalContext = mock(JournalContext.class);
     when(fsMaster.createJournalContext()).thenReturn(journalContext);
     DefaultWorkerProvider workerProvider =
@@ -230,7 +240,10 @@ public final class SchedulerTest {
   public void testSubmitExceedsCapacity() throws Exception {
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
-    when(fileSystemContext.getClusterConf()).thenReturn(Configuration.global());
+    AlluxioProperties alluxioProperties = new AlluxioProperties();
+    InstancedConfiguration conf = new InstancedConfiguration(alluxioProperties);
+    when(fileSystemContext.getClusterConf()).thenReturn(conf);
+
     JournalContext journalContext = mock(JournalContext.class);
     when(fsMaster.createJournalContext()).thenReturn(journalContext);
     DefaultWorkerProvider workerProvider =
@@ -254,6 +267,9 @@ public final class SchedulerTest {
   public void testScheduling() throws Exception {
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
+    AlluxioProperties alluxioProperties = new AlluxioProperties();
+    InstancedConfiguration conf = new InstancedConfiguration(alluxioProperties);
+    when(fileSystemContext.getClusterConf()).thenReturn(conf);
     JournalContext journalContext = mock(JournalContext.class);
     when(fsMaster.createJournalContext()).thenReturn(journalContext);
     CloseableResource<BlockWorkerClient> blockWorkerClientResource = mock(CloseableResource.class);
@@ -485,7 +501,10 @@ public final class SchedulerTest {
     Configuration.modifiableGlobal().set(PropertyKey.JOB_RETENTION_TIME, "0ms", Source.RUNTIME);
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
-    when(fileSystemContext.getClusterConf()).thenReturn(Configuration.global());
+    AlluxioProperties alluxioProperties = new AlluxioProperties();
+    InstancedConfiguration conf = new InstancedConfiguration(alluxioProperties);
+    when(fileSystemContext.getClusterConf()).thenReturn(conf);
+
     JournalContext journalContext = mock(JournalContext.class);
     when(fsMaster.createJournalContext()).thenReturn(journalContext);
     DefaultWorkerProvider workerProvider =
