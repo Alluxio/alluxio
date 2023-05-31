@@ -239,7 +239,7 @@ public final class NettyDataWriter implements DataWriter {
           throw new CanceledException(e);
         }
       }
-    } catch (IOException e) {
+    } catch (Throwable e) {
       buf.release();
       throw e;
     }

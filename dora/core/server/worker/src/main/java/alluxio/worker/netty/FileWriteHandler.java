@@ -84,10 +84,7 @@ public final class FileWriteHandler extends AbstractWriteHandler<BlockWriteReque
 
   @Override
   protected void initRequestContext(BlockWriteRequestContext context) throws Exception {
-    BlockWriteRequest request = context.getRequest();
-    // TODO(JiamingMai): not sure whether this is still necessary or not
-    //mWorker.createBlockRemote(request.getSessionId(), request.getId(),
-    //    mStorageTierAssoc.getAlias(request.getTier()), FILE_BUFFER_SIZE);
+    // reserved as a placeholder as there is no need to do any processing here
   }
 
   /**
@@ -111,23 +108,17 @@ public final class FileWriteHandler extends AbstractWriteHandler<BlockWriteReque
     @Override
     protected void completeRequest(BlockWriteRequestContext context, Channel channel)
         throws Exception {
-      WriteRequest request = context.getRequest();
       context.getBlockWriter().commitFile();
       if (context.getBlockWriter() != null) {
         context.getBlockWriter().close();
       }
-      // TODO(JiamingMai): figure out whether we need to commit or not
-      // mWorker.commitBlock(request.getSessionId(), request.getId(), false);
     }
 
     @Override
     protected void cancelRequest(BlockWriteRequestContext context) throws Exception {
-      WriteRequest request = context.getRequest();
       if (context.getBlockWriter() != null) {
         context.getBlockWriter().close();
       }
-      // TODO(JiamingMai): figure out whether we need to call abort method or not
-      // mWorker.abortBlock(request.getSessionId(), request.getId());
     }
 
     @Override
