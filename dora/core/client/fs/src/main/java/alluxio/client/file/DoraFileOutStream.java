@@ -212,6 +212,7 @@ public class DoraFileOutStream extends FileOutStream {
       Integer intVal = b;
       byte[] bytes = new byte[]{intVal.byteValue()};
       mNettyDataWriter.writeChunk(bytes, 0, 1);
+      Metrics.BYTES_WRITTEN_ALLUXIO.inc();
     }
 
     if (mUnderStorageType.isSyncPersist()) {
@@ -228,6 +229,7 @@ public class DoraFileOutStream extends FileOutStream {
 
     if (mWriteToAlluxio) {
       mNettyDataWriter.writeChunk(b, off, len);
+      Metrics.BYTES_WRITTEN_ALLUXIO.inc(len);
     }
     if (mUnderStorageType.isSyncPersist()) {
       mUnderStorageOutputStream.write(b, off, len);
@@ -244,6 +246,8 @@ public class DoraFileOutStream extends FileOutStream {
     // Note that only counter can be added here.
     // Both meter and timer need to be used inline
     // because new meter and timer will be created after {@link MetricsSystem.resetAllMetrics()}
+    private static final Counter BYTES_WRITTEN_ALLUXIO =
+        MetricsSystem.counter(MetricKey.CLIENT_BYTES_WRITTEN_ALLUXIO.getName());
     private static final Counter BYTES_WRITTEN_UFS =
         MetricsSystem.counter(MetricKey.CLIENT_BYTES_WRITTEN_UFS.getName());
 
