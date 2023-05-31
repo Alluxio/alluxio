@@ -19,7 +19,7 @@ You can use this scheme to connect Alluxio with a MinIO server.
 The Alluxio binaries must be on your machine to proceed.
 You can either
 [compile Alluxio from source]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}),
-or [download the binaries locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
+or [download the binaries locally]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
 
 ## Setup MinIO
 

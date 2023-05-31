@@ -71,7 +71,6 @@ A good instance type to start off with is `r4.4xlarge`.
     For example, you can use the URL: `https://downloads.alluxio.io/downloads/files/{{site.ALLUXIO_VERSION_STRING}}/alluxio-{{site.ALLUXIO_VERSION_STRING}}-bin.tar.gz`
     - You can also specify additional Alluxio properties as a delimited list of key-value pairs in the format `key=value`.
     For example, `alluxio.user.file.writetype.default=CACHE_THROUGH` instructs Alluxio to write files synchronously to the underlying storage system.
-    See more about [write type options]({{ '/en/overview/Architecture.html#data-flow-write' | relativize_url }}).
 - `configurations`: The path to the configuration json file, also hosted in a publicly readable S3 bucket: `https://s3.amazonaws.com/alluxio-public/emr/{{site.ALLUXIO_VERSION_STRING}}/alluxio-emr.json`
   Alternatively, download the linked JSON file and provide the local path to the file, ex. `file:///path/to/alluxio-emr.json`.
 - `ec2-attributes`: EC2 settings to provide, most notably the name of the key pair used to connect to the cluster.

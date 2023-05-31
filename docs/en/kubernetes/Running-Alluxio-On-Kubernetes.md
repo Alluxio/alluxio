@@ -826,7 +826,7 @@ You should verify the Alluxio Pods are back up in Running status.
 $ kubectl get pods
 ```
 
-You can do more comprehensive verification following [Verify Alluxio]({{ '/en/deploy/Running-Alluxio-Locally.html?q=verify#verify-alluxio-is-running' | relativize_url }}).
+You can do more comprehensive verification following [Verify Alluxio]({{ '/en/overview/Getting-Started.html?q=verify#verify-alluxio-is-running' | relativize_url }}).
   {% endcollapsible %}
 {% endaccordion %}
 

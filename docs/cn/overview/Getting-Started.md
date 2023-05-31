@@ -198,6 +198,7 @@ Mounted s3://alluxio-quick-start/data at alluxio://localhost:19998/mnt/s3
 ```
 
 我们可以通过 Alluxio 命名空间列出 S3 中的文件。使用熟悉的`ls`命令列出 S3 挂载目录下的文件。
+我们可以通过 Alluxio 命名空间列出 S3 中的文件。使用熟悉的`ls`lOCALL命令列出 S3 挂载目录下的文件。
 
 ```console
 $ ./bin/alluxio fs ls /mnt/s3
@@ -295,35 +296,3 @@ $ ./bin/alluxio-stop.sh local
 恭喜你完成了 Alluxio 的快速上手指南！你成功地在本地电脑上下载和安装 Alluxio，并且通过 Alluxio shell 进行了基本的交互。这是一个如何上手 Alluxio 的简单例子。
 
 除此之外还有很多可以学习的内容。你可以通过我们的文档学到 Alluxio 的各种特性。下面的资源详细介绍了 Alluxio 各种部署方式、如何挂载现有存储系统，以及如何配置现有应用程序与 Alluxio 交互。
-
-### 部署 Alluxio
-
-Alluxio 可以部署在很多不同的环境下。
-
-* [本地运行 Alluxio]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }})
-* [在集群上独立运行 Alluxio]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }})
-* [在 Docker 上运行 Alluxio]({{ '/en/deploy/Running-Alluxio-On-Docker.html' | relativize_url }})
-
-### 底层存储系统
-
-有很多可以通过 Alluxio 访问的底层存储系统。
-
-* [Alluxio 使用 Azure Blob Store]({{ '/en/ufs/Azure-Blob-Store.html' | relativize_url }})
-* [Alluxio 使用 S3]({{ '/en/ufs/S3.html' | relativize_url }})
-* [Alluxio 使用 GCS]({{ '/en/ufs/GCS.html' | relativize_url }})
-* [Alluxio 使用 Minio]({{ '/en/ufs/Minio.html' | relativize_url }})
-* [Alluxio 使用 CephFS]({{ '/en/ufs/CephFS.html' | relativize_url }})
-* [Alluxio 使用 CephObjectStorage]({{ '/en/ufs/CephObjectStorage.html' | relativize_url }})
-* [Alluxio 使用 Swift]({{ '/en/ufs/Swift.html' | relativize_url }})
-* [Alluxio 使用 HDFS]({{ '/en/ufs/HDFS.html' | relativize_url }})
-* [Alluxio 使用 OSS]({{ '/en/ufs/OSS.html' | relativize_url }})
-* [Alluxio 使用 NFS]({{ '/en/ufs/NFS.html' | relativize_url }})
-
-### 计算框架和应用
-
-不同的计算框架和应用与 Alluxio 的集成。
-
-* [Apache Spark 使用 Alluxio]({{ '/en/compute/Spark.html' | relativize_url }})
-* [Apache Hadoop MapReduce 使用 Alluxio]({{ '/en/compute/Hadoop-MapReduce.html' | relativize_url }})
-* [Apache Hive 使用 Alluxio]({{ '/en/compute/Hive.html' | relativize_url }})
-* [Presto 使用 Alluxio]({{ '/en/compute/Presto.html' | relativize_url }})

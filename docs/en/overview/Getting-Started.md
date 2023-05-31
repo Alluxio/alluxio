@@ -92,7 +92,7 @@ $ echo "alluxio.worker.page.store.sizes=1GB" >> conf/alluxio-site.properties
 $ echo "alluxio.worker.page.store.page.size=1MB" >> conf/alluxio-site.properties
 ```
 Set the page store directories (e.g. `/mnt/ramdisk`) to an existing directory which the current user has the read write permissions.
-The [page cache storage guide]({{ '/en/core-services/caching.html' | relativize_url }}#paging-worker-storage) has more information about how to configure page block store.
+The [page cache storage guide]({{ '/en/core-services/Caching.html' | relativize_url }}#paging-worker-storage) has more information about how to configure page block store.
 
 Configure Alluxio ufs:
 ```console

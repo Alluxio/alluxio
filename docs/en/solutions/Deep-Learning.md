@@ -44,7 +44,7 @@ network I/O will increase costs and increase the time to process the data.
 While there are several data management related issues with deep learning, Alluxio can help with
 the challenge of accessing data. Alluxio in its simplest form is a virtual file system which
 transparently connects to existing storage systems and presents them as a single system to users.
-Using Alluxio's [unified namespace]({{ '/en/core-services/Unified-Namespace.html' | relativize_url }}),
+Using Alluxio's unified namespace,
 many storage technologies can be mounted into Alluxio, including cloud storage like S3, Azure, and
 GCS. Because Alluxio can already integrate with storage systems, deep learning frameworks only need
 to interact with Alluxio to be able to access data from any connected storage. This opens the door

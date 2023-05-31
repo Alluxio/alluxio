@@ -149,8 +149,6 @@ $ mvn clean install -pl underfs/hdfs/ \
 ```
 
 To enable active sync be sure to build using the `hdfsActiveSync` property.
-Please visit [Active Sync for HDFS]({{ '/en/core-services/Unified-Namespace.html#active-sync-for-hdfs' | relativize_url }})
-for more information on using active sync.
 
 If you find a jar named `alluxio-underfs-hdfs-<UFS_HADOOP_VERSION>-{{site.ALLUXIO_VERSION_STRING}}.jar` under `${ALLUXIO_HOME}/lib`, it indicates successful compilation.
 

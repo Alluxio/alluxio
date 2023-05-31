@@ -47,7 +47,7 @@ DORA’s architecture goal:
 * High Availability: DORA's architecture is designed with high availability in mind, with 99.99% uptime and protection against single points of failure at the master level.
 * Performance: Performance is also a key goal for DORA, which prioritizes faster insights for Presto/Trino type of SQL analytics workloads and GPU utilization for AI workloads.
 
-Please refer to this [doc]({{ '/en/overview/why-dora.html' | relativize_url }}) for more information of why moving from Alluxio 2.X to Dora.
+Please refer to this [doc]({{ '/en/overview/Why-Dora.html' | relativize_url }}) for more information of why moving from Alluxio 2.X to Dora.
 
 The diagram below shows the architecture design of DORA, which consists of four major components: the service registry, scheduler, client, and worker.
 

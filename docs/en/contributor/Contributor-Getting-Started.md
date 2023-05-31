@@ -316,8 +316,7 @@ In the pull request, you should also add documentation on your feature to
 
 There are a few things that new contributors can do to familiarize themselves with Alluxio:
 
-1.  [Run Alluxio Locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }})
-1.  [Run Alluxio on a Cluster]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }})
+1.  [Run Alluxio locally or as a cluster]({{ '/en/overview/Getting-Started.html' | relativize_url }})
 1.  Read [Configuration Settings]({{ '/en/operation/Configuration.html' | relativize_url }}) and
 [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }})
 1.  Read a [Code Example](https://github.com/Alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/MultiMount.java)

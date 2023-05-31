@@ -55,8 +55,6 @@ For example,
 # Build Alluxio for the Apache Hadoop version Hadoop 3.1.0 with active sync enabled
 $ mvn install -PhdfsActiveSync -Pufs-hadoop-3 -Dhadoop.version=3.1.0 -DskipTests
 ```
-Please visit [Active Sync for HDFS]({{ '/en/core-services/Unified-Namespace.html#active-sync-for-hdfs' | relativize_url }})
-for more information on using active sync.
 
 ## Basic Setup
 

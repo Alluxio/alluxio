@@ -19,7 +19,7 @@ using [Rados Gateway](http://docs.ceph.com/docs/master/radosgw/):
 
 The Alluxio binaries must be on your machine. You can either
 [compile Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}), or
-[download the binaries locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
+[download the binaries locally]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
 
 ## Basic Setup
 
