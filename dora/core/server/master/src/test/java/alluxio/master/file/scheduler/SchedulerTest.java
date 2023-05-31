@@ -61,6 +61,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import io.grpc.Status;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -84,6 +85,11 @@ public final class SchedulerTest {
   @AfterClass
   public static void after() {
     AuthenticatedClientUser.remove();
+  }
+
+  @Before
+  public void beforeTest() throws Exception {
+    Configuration.reloadProperties();
   }
 
   @Test
