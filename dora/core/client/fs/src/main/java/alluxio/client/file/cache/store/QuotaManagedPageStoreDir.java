@@ -151,7 +151,10 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
     try (LockResource tempFileIdSetlock = new LockResource(mTempFileIdSetLock.writeLock());
         LockResource fileIdSetlock = new LockResource(mFileIdSetLock.writeLock())) {
       checkState(mTempFileIdSet.contains(fileId), "temp file does not exist " + fileId);
-      checkState(!mFileIdSet.contains(newFileId), "file already committed " + newFileId);
+      // We need a new interface for {@PageStore} interface to remove all pages of a cached file,
+      // and remove the fileId from this mFileIdSet. See {@DoraWorker#invalidateCachedFile}.
+      // Currently, invalidated file is still in this map.
+      //checkState(!mFileIdSet.contains(newFileId), "file already committed " + newFileId);
       getPageStore().commit(fileId, newFileId);
       mTempFileIdSet.remove(fileId);
       mFileIdSet.add(newFileId);

@@ -732,9 +732,17 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     try {
       // Check if the target file already exists. If yes, return by throwing error.
       boolean overWrite = options.hasOverwrite() ? options.getOverwrite() : false;
-      if (!overWrite && mUfs.exists(path)) {
+      boolean exists = mUfs.exists(path);
+      if (!overWrite && exists) {
         throw new RuntimeException(
             new FileAlreadyExistsException("File already exists but no overwrite flag"));
+      } else if (overWrite && exists) {
+        // File exists in UFS already and client is going to overwrite it.
+        // We need to invalidate the cached data.
+        UfsStatus existingFileStatus = mUfs.getStatus(path);
+        alluxio.grpc.FileInfo existingFileInfo =
+            buildFileInfoFromUfsStatus(existingFileStatus, path);
+        invalidateCachedFile(GrpcUtils.fromProto(existingFileInfo));
       }
 
       // Open UFS OutputStream and use it in write operation.
