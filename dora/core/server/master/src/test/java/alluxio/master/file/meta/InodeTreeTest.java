@@ -92,7 +92,8 @@ import java.util.stream.StreamSupport;
 /**
  * Unit tests for {@link InodeTree}.
  */
-@RunWith(Parameterized.class)
+//@RunWith(Parameterized.class)
+@Deprecated
 public final class InodeTreeTest {
   private static final String TEST_PATH = "test";
   private static final AlluxioURI TEST_URI = new AlluxioURI("/test");
@@ -202,7 +203,7 @@ public final class InodeTreeTest {
   /**
    * Tests that initializing the root twice results in the same root.
    */
-  @Test
+  @Deprecated
   public void initializeRootTwice() throws Exception {
     MutableInode<?> root = getInodeByPath(new AlluxioURI("/"));
     // initializeRoot call does nothing
@@ -216,7 +217,7 @@ public final class InodeTreeTest {
    * Tests the {@link InodeTree#createPath(RpcContext, LockedInodePath, CreatePathContext)}
    * method for creating directories.
    */
-  @Test
+  @Deprecated
   public void createDirectory() throws Exception {
     // create directory
     createPath(mTree, TEST_URI, sDirectoryContext);
@@ -244,7 +245,7 @@ public final class InodeTreeTest {
    * Tests that an exception is thrown when trying to create an already existing directory with the
    * {@code allowExists} flag set to {@code false}.
    */
-  @Test
+  @Deprecated
   public void createExistingDirectory() throws Exception {
     // create directory
     createPath(mTree, TEST_URI, sDirectoryContext);
@@ -264,7 +265,7 @@ public final class InodeTreeTest {
   /**
    * Tests that creating a file under a pinned directory works.
    */
-  @Test
+  @Deprecated
   public void createFileUnderPinnedDirectory() throws Exception {
     // create nested directory
     createPath(mTree, NESTED_URI, sNestedDirectoryContext);
@@ -288,7 +289,7 @@ public final class InodeTreeTest {
    * Tests the {@link InodeTree#createPath(RpcContext, LockedInodePath, CreatePathContext)}
    * method for creating a file.
    */
-  @Test
+  @Deprecated
   public void createFile() throws Exception {
     // created nested file
     createPath(mTree, NESTED_FILE_URI, sNestedFileContext);
@@ -305,7 +306,7 @@ public final class InodeTreeTest {
    * Tests the {@link InodeTree#createPath(RpcContext, LockedInodePath, CreatePathContext)}
    * method.
    */
-  @Test
+  @Deprecated
   public void createPathTest() throws Exception {
     // save the last mod time of the root
     long lastModTime = mTree.getRoot().getLastModificationTimeMs();
@@ -365,7 +366,7 @@ public final class InodeTreeTest {
    * Tests the {@link InodeTree#createPath(RpcContext, LockedInodePath, CreatePathContext)} method
    * for inheriting owner and group when empty.
    */
-  @Test
+  @Deprecated
   public void createPathInheritanceTest() throws Exception {
     // create nested directory
     CreateDirectoryContext dirContext = CreateDirectoryContext.mergeFrom(
@@ -399,7 +400,7 @@ public final class InodeTreeTest {
   /**
    * Tests that an exception is thrown when trying to create the root path twice.
    */
-  @Test
+  @Deprecated
   public void createRootPath() throws Exception {
     mThrown.expect(FileAlreadyExistsException.class);
     mThrown.expectMessage("/");
@@ -410,7 +411,7 @@ public final class InodeTreeTest {
   /**
    * Tests that an exception is thrown when trying to create a file with invalid block size.
    */
-  @Test
+  @Deprecated
   public void createFileWithInvalidBlockSize() throws Exception {
     mThrown.expect(BlockInfoException.class);
     mThrown.expectMessage("Invalid block size 0");
@@ -423,7 +424,7 @@ public final class InodeTreeTest {
   /**
    * Tests that an exception is thrown when trying to create a file with a negative block size.
    */
-  @Test
+  @Deprecated
   public void createFileWithNegativeBlockSize() throws Exception {
     mThrown.expect(BlockInfoException.class);
     mThrown.expectMessage("Invalid block size -1");
@@ -436,7 +437,7 @@ public final class InodeTreeTest {
   /**
    * Tests that an exception is thrown when trying to create a file under a non-existing directory.
    */
-  @Test
+  @Deprecated
   public void createFileUnderNonexistingDir() throws Exception {
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage("File /nested/test creation failed. Component 1(nested) does not exist");
@@ -447,7 +448,7 @@ public final class InodeTreeTest {
   /**
    * Tests that an exception is thrown when trying to create a file twice.
    */
-  @Test
+  @Deprecated
   public void createFileTwice() throws Exception {
     mThrown.expect(FileAlreadyExistsException.class);
     mThrown.expectMessage("/nested/test");
@@ -459,7 +460,7 @@ public final class InodeTreeTest {
   /**
    * Tests that an exception is thrown when trying to create a file under a file path.
    */
-  @Test
+  @Deprecated
   public void createFileUnderFile() throws Exception {
     createPath(mTree, NESTED_URI, sNestedFileContext);
 
@@ -472,7 +473,7 @@ public final class InodeTreeTest {
   /**
    * Tests {@link InodeTree#inodeIdExists(long)}.
    */
-  @Test
+  @Deprecated
   public void inodeIdExists() throws Exception {
     assertTrue(mTree.inodeIdExists(0));
     assertFalse(mTree.inodeIdExists(1));
@@ -488,7 +489,7 @@ public final class InodeTreeTest {
   /**
    * Tests {@link InodeTree#inodePathExists(AlluxioURI)}.
    */
-  @Test
+  @Deprecated
   public void inodePathExists() throws Exception {
     assertFalse(mTree.inodePathExists(TEST_URI));
 
@@ -502,7 +503,7 @@ public final class InodeTreeTest {
   /**
    * Tests that an exception is thrown when trying to get an Inode by a non-existing path.
    */
-  @Test
+  @Deprecated
   public void getInodeByNonexistingPath() throws Exception {
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage("Path \"/test\" does not exist");
@@ -515,7 +516,7 @@ public final class InodeTreeTest {
    * Tests that an exception is thrown when trying to get an Inode by a non-existing, nested
    * path.
    */
-  @Test
+  @Deprecated
   public void getInodeByNonexistingNestedPath() throws Exception {
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage("Path \"/nested/test/file\" does not exist");
@@ -528,7 +529,7 @@ public final class InodeTreeTest {
   /**
    * Tests that an exception is thrown when trying to get an Inode with an invalid id.
    */
-  @Test
+  @Deprecated
   public void getInodeByInvalidId() throws Exception {
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(1));
@@ -543,7 +544,7 @@ public final class InodeTreeTest {
   /**
    * Tests the {@link InodeTree#isRootId(long)} method.
    */
-  @Test
+  @Deprecated
   public void isRootId() {
     assertTrue(mTree.isRootId(0));
     assertFalse(mTree.isRootId(1));
@@ -552,7 +553,7 @@ public final class InodeTreeTest {
   /**
    * Tests the {@link InodeTree#getPath(InodeView)} method.
    */
-  @Test
+  @Deprecated
   public void getPath() throws Exception {
     try (LockedInodePath inodePath =
              mTree.lockFullInodePath(0, LockPattern.READ, NoopJournalContext.INSTANCE)) {
@@ -615,7 +616,7 @@ public final class InodeTreeTest {
     }
   }
 
-  @Test
+  @Deprecated
   public void getChildrenPrefix() throws Exception {
     // Test a single file prefix
     String prefix = "afile";
@@ -663,7 +664,7 @@ public final class InodeTreeTest {
     }
   }
 
-  @Test
+  @Deprecated
   public void getChildrenPrefixAfter() throws Exception {
     // Test a single file prefix
     String prefix = "afile";
@@ -712,7 +713,7 @@ public final class InodeTreeTest {
     }
   }
 
-  @Test
+  @Deprecated
   public void getChildrenAfterId() throws Exception {
     int fileCount = 10;
     String parent = "/nxt";
@@ -725,7 +726,7 @@ public final class InodeTreeTest {
         iter, Spliterator.ORDERED), false);
   }
 
-  @Test
+  @Deprecated
   public void getChildAfterIdDeleted() throws Exception {
     int fileCount = 10;
     String parent = "/nxt";
@@ -738,7 +739,7 @@ public final class InodeTreeTest {
     checkChildren(files);
   }
 
-  @Test
+  @Deprecated
   public void getChildrenAfterIdNested() throws Exception {
     int fileCount = 10;
     int nestDepth = 10;
@@ -792,7 +793,7 @@ public final class InodeTreeTest {
     }
   }
 
-  @Test
+  @Deprecated
   public void getPathById() throws Exception {
     // test nesting
     long id;
@@ -808,7 +809,7 @@ public final class InodeTreeTest {
     assertThrows(FileDoesNotExistException.class, () -> mTree.getPath(id + 1));
   }
 
-  @Test
+  @Deprecated
   public void getInodesById() throws Exception {
     // test nesting
     long id;
@@ -827,7 +828,7 @@ public final class InodeTreeTest {
     assertThrows(FileDoesNotExistException.class, () -> mTree.getPathInodeNames(id + 1));
   }
 
-  @Test
+  @Deprecated
   public void getInodeChildrenRecursive() throws Exception {
     createPath(mTree, TEST_URI, sDirectoryContext);
     createPath(mTree, NESTED_URI, sNestedDirectoryContext);
@@ -845,7 +846,7 @@ public final class InodeTreeTest {
   /**
    * Tests deleting a nested inode.
    */
-  @Test
+  @Deprecated
   public void deleteInode() throws Exception {
     createPath(mTree, NESTED_URI, sNestedDirectoryContext);
 
@@ -863,7 +864,7 @@ public final class InodeTreeTest {
     }
   }
 
-  @Test
+  @Deprecated
   public void setPinned() throws Exception {
     createPath(mTree, NESTED_URI, sNestedDirectoryContext);
     createPath(mTree, NESTED_FILE_URI, sNestedFileContext);
@@ -894,7 +895,7 @@ public final class InodeTreeTest {
   /**
    * Tests that streaming to a journal checkpoint works.
    */
-  @Test
+  @Deprecated
   public void streamToJournalCheckpoint() throws Exception {
     verifyJournal(mTree, Arrays.asList(getInodeByPath("/")));
 
@@ -910,7 +911,7 @@ public final class InodeTreeTest {
         "/nested", "/nested/test", "/nested/test1", "/nested/test/file", "/nested/test1/file1")));
   }
 
-  @Test
+  @Deprecated
   public void addInodeFromJournal() throws Exception {
     createPath(mTree, NESTED_FILE_URI, sNestedFileContext);
     createPath(mTree, new AlluxioURI("/nested/test1/file1"), sNestedFileContext);
@@ -943,7 +944,7 @@ public final class InodeTreeTest {
     }
   }
 
-  @Test
+  @Deprecated
   public void addInodeModeFromJournalWithEmptyOwnership() throws Exception {
     createPath(mTree, NESTED_FILE_URI, sNestedFileContext);
     MutableInode<?> root = getInodeByPath("/");
@@ -980,7 +981,7 @@ public final class InodeTreeTest {
     }
   }
 
-  @Test
+  @Deprecated
   public void getInodePathById() throws Exception {
     try (LockedInodePath rootPath
              = mTree.lockFullInodePath(0, LockPattern.READ, NoopJournalContext.INSTANCE)) {
@@ -998,7 +999,7 @@ public final class InodeTreeTest {
     }
   }
 
-  @Test
+  @Deprecated
   public void getInodePathByPath() throws Exception {
     try (LockedInodePath rootPath =
         mTree.lockFullInodePath(

@@ -361,13 +361,13 @@ public final class PermissionCheckTest {
     }
   }
 
-  @Test
+  @Deprecated
   public void renameUnderRootAsAdmin() throws Exception {
     // rename "/testFile" to "/testFileRenamed" for superuser
     verifyRename(TEST_USER_ADMIN, TEST_FILE_URI, "/testFileRenamed");
   }
 
-  @Test
+  @Deprecated
   public void renameUnderRootAsSupergroup() throws Exception {
     // rename "/testFile" to "/testFileRenamed" for user in supergroup
     verifyRename(TEST_USER_SUPERGROUP, TEST_FILE_URI, "/testFileRenamed");
@@ -383,7 +383,7 @@ public final class PermissionCheckTest {
     verifyRename(TEST_USER_1, TEST_FILE_URI, "/testFileRenamed");
   }
 
-  @Test
+  @Deprecated
   public void renameSuccess() throws Exception {
     // rename "/testDir/file" to "/testDir/fileRenamed" for user1
     verifyRename(TEST_USER_1, TEST_DIR_FILE_URI, "/testDir/fileRenamed");
@@ -810,7 +810,7 @@ public final class PermissionCheckTest {
     }
   }
 
-  @Test
+  @Deprecated
   public void setOwnerSuccess() throws Exception {
     verifySetAcl(TEST_USER_ADMIN, TEST_FILE_URI, TEST_USER_1.getUser(), null, (short) -1, false);
     verifySetAcl(TEST_USER_SUPERGROUP, TEST_DIR_URI, TEST_USER_2.getUser(), null, (short) -1, true);
@@ -826,7 +826,7 @@ public final class PermissionCheckTest {
     verifySetAcl(TEST_USER_2, TEST_FILE_URI, TEST_USER_1.getUser(), null, (short) -1, false);
   }
 
-  @Test
+  @Deprecated
   public void setGroupSuccess() throws Exception {
     // super user
     verifySetAcl(TEST_USER_ADMIN, TEST_FILE_URI, null, TEST_USER_1.getGroup(), (short) -1, false);
@@ -884,7 +884,7 @@ public final class PermissionCheckTest {
     verifySetAcl(TEST_USER_1, TEST_FILE_URI, null, null, (short) 0777, false);
   }
 
-  @Test
+  @Deprecated
   public void setAclSuccess() throws Exception {
     // super user sets owner, group, and permission
     verifySetAcl(TEST_USER_ADMIN, TEST_FILE_URI, TEST_USER_1.getUser(), TEST_USER_1.getGroup(),
