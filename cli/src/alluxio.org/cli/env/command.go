@@ -30,7 +30,7 @@ type Command interface {
 }
 
 type BaseCommand struct {
-	Name          string
+	CommandName   string
 	JavaClassName string
 	Parameter     string
 
@@ -86,7 +86,7 @@ func (c *BaseCommand) Run(args []string) error {
 
 	log.Logger.Debugln(cmd.String())
 	if err := cmd.Run(); err != nil {
-		return stacktrace.Propagate(err, "error running %v", c.Name)
+		return stacktrace.Propagate(err, "error running %v", c.CommandName)
 	}
 	return nil
 }

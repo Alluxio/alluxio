@@ -19,6 +19,7 @@ var Service = &env.Service{
 	Name:        "conf",
 	Description: "Get, set, and validate configuration settings, primarily those defined in conf/alluxio-site.properties",
 	Commands: []env.Command{
-		GetConf,
+		Get,
+		Log,
 	},
 }

@@ -22,25 +22,25 @@ import (
 	"alluxio.org/log"
 )
 
-var GetConf = &GetConfCommand{
+var Get = &GetCommand{
 	BaseCommand: &env.BaseCommand{
-		Name:          "get",
+		CommandName:   "get",
 		JavaClassName: "alluxio.cli.GetConf",
 		ShellJavaOpts: fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioConfValidationEnabled, false),
 	},
 }
 
-type GetConfCommand struct {
+type GetCommand struct {
 	*env.BaseCommand
 }
 
-func (c *GetConfCommand) Base() *env.BaseCommand {
+func (c *GetCommand) Base() *env.BaseCommand {
 	return c.BaseCommand
 }
 
-func (c *GetConfCommand) ToCommand() *cobra.Command {
+func (c *GetCommand) ToCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   fmt.Sprintf("%v [key]", GetConf.Name),
+		Use:   fmt.Sprintf("%v [key]", Get.CommandName),
 		Short: "Look up a configuration value by its key or print all configuration if no key is provided",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -53,7 +53,7 @@ func (c *GetConfCommand) ToCommand() *cobra.Command {
 	return cmd
 }
 
-func (c *GetConfCommand) FetchValue(key string) (string, error) {
+func (c *GetCommand) FetchValue(key string) (string, error) {
 	cmd := c.RunJavaClassCmd([]string{key})
 
 	errBuf := &bytes.Buffer{}
