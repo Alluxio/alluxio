@@ -103,7 +103,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -708,7 +707,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   @Override
   public OpenFileHandle createFile(String path, CreateFilePOptions options) { // Lock is needed.
-    OutputStream outStream;
+    //OutputStream outStream;
     alluxio.grpc.FileInfo info;
     OpenFileHandle existingHandle = mOpenFileHandleContainer.find(path);
     if (existingHandle != null) {
@@ -747,7 +746,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
       // Open UFS OutputStream and use it in write operation.
       // We are writing UFS from client. No need of this outStream at this moment.
-      outStream = null; //mUfs.create(path, createOption);
+      //outStream = mUfs.create(path, createOption);
 
       // Prepare a "fake" UfsStatus here. Please prepare more fields here.
       String owner = createOption.getOwner() != null ? createOption.getOwner() : "";
@@ -765,7 +764,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       throw new RuntimeException(e);
     }
 
-    OpenFileHandle handle = new OpenFileHandle(path, info, outStream);
+    OpenFileHandle handle = new OpenFileHandle(path, info, null);
     //add to map.
     mOpenFileHandleContainer.add(path, handle);
 
