@@ -120,10 +120,10 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(S3AUnderFileSystem.class);
 
   /** Static hash for a directory's empty contents. */
-  private static final String DIR_HASH;
+  protected static final String DIR_HASH;
 
   /** Threshold to do multipart copy. */
-  private static final long MULTIPART_COPY_THRESHOLD = 100L * Constants.MB;
+  protected static final long MULTIPART_COPY_THRESHOLD = 100L * Constants.MB;
 
   /** Default owner of objects if owner cannot be determined. */
   private static final String DEFAULT_OWNER = "";
@@ -515,6 +515,30 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     }
     LOG.error("Failed to copy file {} to {}, after {} retries", src, dst, retries);
     return false;
+  }
+
+  protected AmazonS3 getClient() {
+    return mClient;
+  }
+
+  protected void setClient(AmazonS3 client) {
+    mClient = client;
+  }
+
+  protected String getBucketName() {
+    return mBucketName;
+  }
+
+  protected ListeningExecutorService getExecutor() {
+    return mExecutor;
+  }
+
+  protected TransferManager getTransferManager() {
+    return mManager;
+  }
+
+  protected boolean getStreamingUploadEnabled() {
+    return mStreamingUploadEnabled;
   }
 
   @Override
