@@ -26,8 +26,8 @@ message LoadJobEntry {
 
 // next available id: 12
 message CopyJobEntry {
-  required string src= 1;
-  required string dst= 2;
+  required string src = 1;
+  required string dst = 2;
   required PJobState state = 3;
   optional int64 bandwidth = 4;
   required bool verify = 5;
