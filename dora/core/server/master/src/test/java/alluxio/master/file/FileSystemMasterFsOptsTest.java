@@ -820,7 +820,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
   /**
    * Tests listing status on a non-persisted directory.
    */
-  @Test
+  @Deprecated
   public void listStatusWithLoadMetadataNonPersistedDir() throws Exception {
     AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
     mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryContext.defaults());

@@ -64,11 +64,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
-import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import java.io.IOException;
@@ -91,6 +88,7 @@ import java.util.stream.StreamSupport;
 
 /**
  * Unit tests for {@link InodeTree}.
+ * @deprecated
  */
 //@RunWith(Parameterized.class)
 @Deprecated
@@ -202,6 +200,7 @@ public final class InodeTreeTest {
 
   /**
    * Tests that initializing the root twice results in the same root.
+   * @deprecated
    */
   @Deprecated
   public void initializeRootTwice() throws Exception {
@@ -216,6 +215,7 @@ public final class InodeTreeTest {
   /**
    * Tests the {@link InodeTree#createPath(RpcContext, LockedInodePath, CreatePathContext)}
    * method for creating directories.
+   * @deprecated
    */
   @Deprecated
   public void createDirectory() throws Exception {
@@ -244,6 +244,7 @@ public final class InodeTreeTest {
   /**
    * Tests that an exception is thrown when trying to create an already existing directory with the
    * {@code allowExists} flag set to {@code false}.
+   * @deprecated
    */
   @Deprecated
   public void createExistingDirectory() throws Exception {
@@ -264,6 +265,7 @@ public final class InodeTreeTest {
 
   /**
    * Tests that creating a file under a pinned directory works.
+   * @deprecated
    */
   @Deprecated
   public void createFileUnderPinnedDirectory() throws Exception {
@@ -288,6 +290,7 @@ public final class InodeTreeTest {
   /**
    * Tests the {@link InodeTree#createPath(RpcContext, LockedInodePath, CreatePathContext)}
    * method for creating a file.
+   * @deprecated
    */
   @Deprecated
   public void createFile() throws Exception {
@@ -305,6 +308,7 @@ public final class InodeTreeTest {
   /**
    * Tests the {@link InodeTree#createPath(RpcContext, LockedInodePath, CreatePathContext)}
    * method.
+   * @deprecated
    */
   @Deprecated
   public void createPathTest() throws Exception {
@@ -365,6 +369,7 @@ public final class InodeTreeTest {
   /**
    * Tests the {@link InodeTree#createPath(RpcContext, LockedInodePath, CreatePathContext)} method
    * for inheriting owner and group when empty.
+   * @deprecated
    */
   @Deprecated
   public void createPathInheritanceTest() throws Exception {
@@ -399,6 +404,7 @@ public final class InodeTreeTest {
 
   /**
    * Tests that an exception is thrown when trying to create the root path twice.
+   * @deprecated
    */
   @Deprecated
   public void createRootPath() throws Exception {
@@ -410,6 +416,7 @@ public final class InodeTreeTest {
 
   /**
    * Tests that an exception is thrown when trying to create a file with invalid block size.
+   * @deprecated
    */
   @Deprecated
   public void createFileWithInvalidBlockSize() throws Exception {
@@ -423,6 +430,7 @@ public final class InodeTreeTest {
 
   /**
    * Tests that an exception is thrown when trying to create a file with a negative block size.
+   * @deprecated
    */
   @Deprecated
   public void createFileWithNegativeBlockSize() throws Exception {
@@ -436,6 +444,7 @@ public final class InodeTreeTest {
 
   /**
    * Tests that an exception is thrown when trying to create a file under a non-existing directory.
+   * @deprecated
    */
   @Deprecated
   public void createFileUnderNonexistingDir() throws Exception {
@@ -447,6 +456,7 @@ public final class InodeTreeTest {
 
   /**
    * Tests that an exception is thrown when trying to create a file twice.
+   * @deprecated
    */
   @Deprecated
   public void createFileTwice() throws Exception {
@@ -459,6 +469,7 @@ public final class InodeTreeTest {
 
   /**
    * Tests that an exception is thrown when trying to create a file under a file path.
+   * @deprecated
    */
   @Deprecated
   public void createFileUnderFile() throws Exception {
@@ -472,6 +483,7 @@ public final class InodeTreeTest {
 
   /**
    * Tests {@link InodeTree#inodeIdExists(long)}.
+   * @deprecated
    */
   @Deprecated
   public void inodeIdExists() throws Exception {
@@ -488,6 +500,7 @@ public final class InodeTreeTest {
 
   /**
    * Tests {@link InodeTree#inodePathExists(AlluxioURI)}.
+   * @deprecated
    */
   @Deprecated
   public void inodePathExists() throws Exception {
@@ -502,6 +515,7 @@ public final class InodeTreeTest {
 
   /**
    * Tests that an exception is thrown when trying to get an Inode by a non-existing path.
+   * @deprecated
    */
   @Deprecated
   public void getInodeByNonexistingPath() throws Exception {
@@ -515,6 +529,7 @@ public final class InodeTreeTest {
   /**
    * Tests that an exception is thrown when trying to get an Inode by a non-existing, nested
    * path.
+   * @deprecated
    */
   @Deprecated
   public void getInodeByNonexistingNestedPath() throws Exception {
@@ -528,6 +543,7 @@ public final class InodeTreeTest {
 
   /**
    * Tests that an exception is thrown when trying to get an Inode with an invalid id.
+   * @deprecated
    */
   @Deprecated
   public void getInodeByInvalidId() throws Exception {
@@ -543,6 +559,7 @@ public final class InodeTreeTest {
 
   /**
    * Tests the {@link InodeTree#isRootId(long)} method.
+   * @deprecated
    */
   @Deprecated
   public void isRootId() {
@@ -552,6 +569,7 @@ public final class InodeTreeTest {
 
   /**
    * Tests the {@link InodeTree#getPath(InodeView)} method.
+   * @deprecated
    */
   @Deprecated
   public void getPath() throws Exception {
@@ -845,6 +863,7 @@ public final class InodeTreeTest {
 
   /**
    * Tests deleting a nested inode.
+   * @deprecated
    */
   @Deprecated
   public void deleteInode() throws Exception {
@@ -894,6 +913,7 @@ public final class InodeTreeTest {
 
   /**
    * Tests that streaming to a journal checkpoint works.
+   * @deprecated
    */
   @Deprecated
   public void streamToJournalCheckpoint() throws Exception {
