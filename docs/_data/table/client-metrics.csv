@@ -61,3 +61,4 @@ Client.CloseUFSOutStreamLatency,TIMER
 Client.DefaultHiveClientCount,COUNTER
 Client.FileSystemMasterClientCount,COUNTER
 Client.MetadataCacheSize,GAUGE
+Client.UfsFallBackCount,GAUGE

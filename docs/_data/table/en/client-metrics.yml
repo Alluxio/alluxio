@@ -122,3 +122,5 @@ Client.FileSystemMasterClientCount:
   'Number of instances in the FileSystemMasterClientPool.'
 Client.MetadataCacheSize:
   'The total number of files and directories whose metadata is cached on the client-side. Only valid if the filesystem is alluxio.client.file.MetadataCachingBaseFileSystem.'
+Client.UfsFallBackCount:
+  'The number of fallbacks to UFS when failing to open file in Alluxio distributed cache.'
