@@ -28,8 +28,6 @@ import static org.mockito.Mockito.when;
 import alluxio.Constants;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemUtils;
-import alluxio.client.file.options.FileSystemOptions;
 import alluxio.conf.AlluxioProperties;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
