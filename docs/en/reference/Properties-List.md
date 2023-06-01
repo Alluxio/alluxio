@@ -77,21 +77,6 @@ The user configuration specifies values regarding file system access.
 {% endfor %}
 </table>
 
-## Resource Manager Configuration
-
-When running Alluxio with resource managers like Mesos and YARN, Alluxio has additional configuration options.
-
-<table class="table table-striped">
-<tr><th>Property Name</th><th>Default</th><th>Description</th></tr>
-{% for item in site.data.table.cluster-management-configuration %}
-  <tr>
-    <td><a class="anchor" name="{{ item.propertyName }}"></a> {{ item.propertyName }}</td>
-    <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.cluster-management-configuration[item.propertyName] }}</td>
-  </tr>
-{% endfor %}
-</table>
-
 ## Security Configuration
 
 The security configuration specifies information regarding the security features, such as
