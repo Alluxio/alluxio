@@ -88,6 +88,7 @@ func parseTarballFlags(cmd *flag.FlagSet, args []string) (*buildOpts, error) {
 	cmd.StringVar(&flagPluginModules, "pluginModules", "",
 		fmt.Sprintf("Either a plugin modules bundle name or a comma-separated list of plugin modules to compile into the tarball; list available plugin modules and plugin module bundles with the plugins command"))
 	cmd.StringVar(&flagTargetName, "target", "", "Name for the generated tarball; use '${VERSION}' as a placeholder for the version string")
+	// TODO(jason): remove this flag after it can be handled via config
 	cmd.BoolVar(&flagDisableTelemetry, "disableTelemetry", false, "Set true to disable Telemetry")
 
 	// parse and set finalized values into buildOpts

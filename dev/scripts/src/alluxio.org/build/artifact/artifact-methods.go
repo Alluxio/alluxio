@@ -12,12 +12,14 @@
 package artifact
 
 import (
-	"alluxio.org/command"
-	"github.com/palantir/stacktrace"
-	"gopkg.in/yaml.v3"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/palantir/stacktrace"
+	"gopkg.in/yaml.v3"
+
+	"alluxio.org/command"
 )
 
 func NewArtifact(artifactType ArtifactType, outputDir, targetName, version string, metadata map[string]string) (*Artifact, error) {

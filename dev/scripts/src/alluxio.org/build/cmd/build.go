@@ -12,7 +12,6 @@
 package cmd
 
 import (
-	"alluxio.org/build/artifact"
 	"flag"
 	"fmt"
 	"log"
@@ -22,6 +21,7 @@ import (
 
 	"github.com/palantir/stacktrace"
 
+	"alluxio.org/build/artifact"
 	"alluxio.org/command"
 )
 
@@ -49,7 +49,7 @@ func TarballF(args []string) error {
 		return stacktrace.Propagate(err, "error parsing version string")
 	}
 	if opts.artifactOutput != "" {
-		artifact, err := artifact.NewArtifact(
+		a, err := artifact.NewArtifact(
 			artifact.TarballArtifact,
 			opts.outputDir,
 			strings.ReplaceAll(opts.targetName, versionPlaceholder, alluxioVersion),
@@ -59,7 +59,7 @@ func TarballF(args []string) error {
 		if err != nil {
 			return stacktrace.Propagate(err, "error adding artifact")
 		}
-		return artifact.WriteToFile(opts.artifactOutput)
+		return a.WriteToFile(opts.artifactOutput)
 	}
 	if err := buildTarball(opts); err != nil {
 		return stacktrace.Propagate(err, "error building tarball")
