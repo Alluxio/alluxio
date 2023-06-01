@@ -28,7 +28,9 @@ import static org.mockito.Mockito.when;
 import alluxio.Constants;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
+import alluxio.conf.AlluxioProperties;
 import alluxio.conf.Configuration;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.exception.AccessControlException;
@@ -41,6 +43,7 @@ import alluxio.grpc.LoadResponse;
 import alluxio.grpc.TaskStatus;
 import alluxio.job.JobDescription;
 import alluxio.master.file.DefaultFileSystemMaster;
+import alluxio.master.job.DoraLoadJob;
 import alluxio.master.job.FileIterable;
 import alluxio.master.job.LoadJob;
 import alluxio.master.journal.JournalContext;
@@ -60,6 +63,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import io.grpc.Status;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -77,11 +81,17 @@ public final class SchedulerTest {
   @BeforeClass
   public static void before() {
     AuthenticatedClientUser.set("user");
+    Configuration.reloadProperties();
   }
 
   @AfterClass
   public static void after() {
     AuthenticatedClientUser.remove();
+  }
+
+  @Before
+  public void beforeTest() throws Exception {
+    Configuration.reloadProperties();
   }
 
   @Test
@@ -131,44 +141,57 @@ public final class SchedulerTest {
     String validLoadPath = "/path/to/load";
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
+    AlluxioProperties alluxioProperties = new AlluxioProperties();
+    InstancedConfiguration conf = new InstancedConfiguration(alluxioProperties);
+    when(fileSystemContext.getClusterConf()).thenReturn(conf);
+
     JournalContext journalContext = mock(JournalContext.class);
     when(fsMaster.createJournalContext()).thenReturn(journalContext);
     DefaultWorkerProvider workerProvider =
         new DefaultWorkerProvider(fsMaster, fileSystemContext);
     Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider,
         new JournaledJobMetaStore(fsMaster));
-    FileIterable files =
-        new FileIterable(fsMaster, validLoadPath, Optional.of("user"), false,
-            LoadJob.QUALIFIED_FILE_FILTER);
-    LoadJob loadJob =
-        new LoadJob(validLoadPath, Optional.of("user"), "1", OptionalLong.empty(), false, true,
-            files);
+    DoraLoadJob loadJob =
+        new DoraLoadJob(validLoadPath, Optional.of("user"), "1", OptionalLong.empty(), false, true);
     assertTrue(scheduler.submitJob(loadJob));
     verify(journalContext).append(argThat(journalEntry -> journalEntry.hasLoadJob()
         && journalEntry.getLoadJob().getLoadPath().equals(validLoadPath)
         && journalEntry.getLoadJob().getState() == Job.PJobState.CREATED
-        && !journalEntry.getLoadJob().hasBandwidth()
-        && journalEntry.getLoadJob().getVerify()));
-    assertEquals(1, scheduler
-        .getJobs().size());
-    LoadJob job = (LoadJob) scheduler.getJobs().get(loadJob.getDescription());
+        && !journalEntry.getLoadJob().hasBandwidth()));
+    assertEquals(1, scheduler.getJobs().size());
+
+    // Verify the job present in Scheduler and jobMetaStore has been updated.
+    final DoraLoadJob loadJobFinal = loadJob;
+    Optional<alluxio.scheduler.job.Job<?>> loadJobInMetaStore =
+        scheduler.getJobMetaStore().getJobs().stream()
+        .filter(j -> j.equals(loadJobFinal)).findFirst();
+    assertTrue(loadJobInMetaStore.isPresent());
+    assertEquals(OptionalLong.empty(), ((DoraLoadJob) loadJobInMetaStore.get())
+        .getBandwidth());
+
+    DoraLoadJob job = (DoraLoadJob) scheduler.getJobs().get(loadJob.getDescription());
     assertEquals(OptionalLong.empty(), job.getBandwidth());
-    assertTrue(job.isVerificationEnabled());
     loadJob =
-        new LoadJob(validLoadPath, Optional.of("user"), "1", OptionalLong.of(1000), true, false,
-            files);
+        new DoraLoadJob(validLoadPath, Optional.of("user"), "1",
+            OptionalLong.of(1000), true, false);
     assertFalse(scheduler.submitJob(loadJob));
     verify(journalContext).append(argThat(journalEntry -> journalEntry.hasLoadJob()
         && journalEntry.getLoadJob().getLoadPath().equals(validLoadPath)
         && journalEntry.getLoadJob().getState() == Job.PJobState.CREATED
         && journalEntry.getLoadJob().getBandwidth() == 1000
-        && !journalEntry.getLoadJob().getPartialListing()  // we don't update partialListing
-        && !journalEntry.getLoadJob().getVerify()));
-    assertEquals(1, scheduler
-        .getJobs().size());
-    job = (LoadJob) scheduler.getJobs().get(loadJob.getDescription());
+        && !journalEntry.getLoadJob().getPartialListing()));  // we don't update partialListing
+    assertEquals(1, scheduler.getJobs().size());
+    job = (DoraLoadJob) scheduler.getJobs().get(loadJob.getDescription());
     assertEquals(1000, job.getBandwidth().getAsLong());
-    assertFalse(job.isVerificationEnabled());
+
+    // Verify the job present in Scheduler and jobMetaStore has been updated with new bandwidth.
+    final DoraLoadJob loadJobFinalNew = loadJob;
+    Optional<alluxio.scheduler.job.Job<?>> loadJobInMetaStoreNewBandwidth =
+        scheduler.getJobMetaStore().getJobs().stream()
+            .filter(j -> j.equals(loadJobFinalNew)).findFirst();
+    assertTrue(loadJobInMetaStore.isPresent());
+    assertEquals(1000, ((DoraLoadJob) loadJobInMetaStoreNewBandwidth.get())
+        .getBandwidth().getAsLong());
   }
 
   @Test
@@ -177,32 +200,31 @@ public final class SchedulerTest {
     String validLoadPath = "/path/to/load";
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
+    AlluxioProperties alluxioProperties = new AlluxioProperties();
+    InstancedConfiguration conf = new InstancedConfiguration(alluxioProperties);
+    when(fileSystemContext.getClusterConf()).thenReturn(conf);
+
     JournalContext journalContext = mock(JournalContext.class);
     when(fsMaster.createJournalContext()).thenReturn(journalContext);
     DefaultWorkerProvider workerProvider =
         new DefaultWorkerProvider(fsMaster, fileSystemContext);
     Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider,
         new JournaledJobMetaStore(fsMaster));
-    FileIterable files =
-        new FileIterable(fsMaster, validLoadPath, Optional.of("user"), false,
-            LoadJob.QUALIFIED_FILE_FILTER);
-    LoadJob job =
-        new LoadJob(validLoadPath, Optional.of("user"), "1", OptionalLong.of(100), false, true,
-            files);
+    DoraLoadJob job =
+        new DoraLoadJob(validLoadPath, Optional.of("user"), "1", OptionalLong.of(100), false, true);
+
     assertTrue(scheduler.submitJob(job));
     verify(journalContext, times(1)).append(any());
     verify(journalContext).append(argThat(journalEntry -> journalEntry.hasLoadJob()
         && journalEntry.getLoadJob().getLoadPath().equals(validLoadPath)
         && journalEntry.getLoadJob().getState() == Job.PJobState.CREATED
-        && journalEntry.getLoadJob().getBandwidth() == 100
-        && journalEntry.getLoadJob().getVerify()));
+        && journalEntry.getLoadJob().getBandwidth() == 100));
     assertTrue(scheduler.stopJob(job.getDescription()));
     verify(journalContext, times(2)).append(any());
     verify(journalContext).append(argThat(journalEntry -> journalEntry.hasLoadJob()
         && journalEntry.getLoadJob().getLoadPath().equals(validLoadPath)
         && journalEntry.getLoadJob().getState() == Job.PJobState.STOPPED
         && journalEntry.getLoadJob().getBandwidth() == 100
-        && journalEntry.getLoadJob().getVerify()
         && journalEntry.getLoadJob().hasEndTime()));
     assertFalse(scheduler.stopJob(job.getDescription()));
     verify(journalContext, times(2)).append(any());
@@ -219,6 +241,10 @@ public final class SchedulerTest {
   public void testSubmitExceedsCapacity() throws Exception {
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
+    AlluxioProperties alluxioProperties = new AlluxioProperties();
+    InstancedConfiguration conf = new InstancedConfiguration(alluxioProperties);
+    when(fileSystemContext.getClusterConf()).thenReturn(conf);
+
     JournalContext journalContext = mock(JournalContext.class);
     when(fsMaster.createJournalContext()).thenReturn(journalContext);
     DefaultWorkerProvider workerProvider =
@@ -228,18 +254,13 @@ public final class SchedulerTest {
     IntStream.range(0, 100).forEach(
         i -> {
           String path = String.format("/path/to/load/%d", i);
-          FileIterable files = new FileIterable(fsMaster, path, Optional.of("user"), false,
-              LoadJob.QUALIFIED_FILE_FILTER);
           assertTrue(scheduler.submitJob(
-              new LoadJob(path, Optional.of("user"), "1", OptionalLong.empty(), false, true,
-                  files)));
+              new DoraLoadJob(path, Optional.of("user"), "1", OptionalLong.empty(), false, true)
+          ));
         });
-    FileIterable files =
-        new FileIterable(fsMaster, "/path/to/load/101", Optional.of("user"), false,
-            LoadJob.QUALIFIED_FILE_FILTER);
     assertThrows(ResourceExhaustedRuntimeException.class, () -> scheduler.submitJob(
-        new LoadJob("/path/to/load/101", Optional.of("user"), "1", OptionalLong.empty(), false,
-            true, files)));
+        new DoraLoadJob("/path/to/load/101", Optional.of("user"), "1", OptionalLong.empty(), false,
+            true)));
   }
 
   @Test
@@ -247,6 +268,9 @@ public final class SchedulerTest {
   public void testScheduling() throws Exception {
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
+    AlluxioProperties alluxioProperties = new AlluxioProperties();
+    InstancedConfiguration conf = new InstancedConfiguration(alluxioProperties);
+    when(fileSystemContext.getClusterConf()).thenReturn(conf);
     JournalContext journalContext = mock(JournalContext.class);
     when(fsMaster.createJournalContext()).thenReturn(journalContext);
     CloseableResource<BlockWorkerClient> blockWorkerClientResource = mock(CloseableResource.class);
@@ -479,6 +503,10 @@ public final class SchedulerTest {
     Configuration.modifiableGlobal().set(PropertyKey.JOB_RETENTION_TIME, "0ms", Source.RUNTIME);
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
+    AlluxioProperties alluxioProperties = new AlluxioProperties();
+    InstancedConfiguration conf = new InstancedConfiguration(alluxioProperties);
+    when(fileSystemContext.getClusterConf()).thenReturn(conf);
+
     JournalContext journalContext = mock(JournalContext.class);
     when(fsMaster.createJournalContext()).thenReturn(journalContext);
     DefaultWorkerProvider workerProvider =
@@ -490,11 +518,10 @@ public final class SchedulerTest {
         .range(0, 5)
         .forEach(i -> {
           String path = String.format("/load/%d", i);
-          FileIterable files = new FileIterable(fsMaster, path, Optional.of("user"),
-              false, LoadJob.QUALIFIED_FILE_FILTER);
           assertTrue(scheduler.submitJob(
-              new LoadJob(path, Optional.of("user"), "1",
-                  OptionalLong.empty(), false, true, files)));
+              new DoraLoadJob(path, Optional.of("user"), "1",
+                  OptionalLong.empty(), false, true)
+          ));
         });
     assertEquals(5, scheduler
         .getJobs().size());
@@ -505,7 +532,7 @@ public final class SchedulerTest {
             .setPath("/load/1")
             .setType("load")
             .build())
-        .setJobState(JobState.VERIFYING);
+        .setJobState(JobState.VERIFYING, false);
     scheduler
         .getJobs()
         .get(JobDescription
@@ -513,7 +540,7 @@ public final class SchedulerTest {
             .setPath("/load/2")
             .setType("load")
             .build())
-        .setJobState(JobState.FAILED);
+        .setJobState(JobState.FAILED, false);
     scheduler
         .getJobs()
         .get(JobDescription
@@ -521,7 +548,7 @@ public final class SchedulerTest {
             .setPath("/load/3")
             .setType("load")
             .build())
-        .setJobState(JobState.SUCCEEDED);
+        .setJobState(JobState.SUCCEEDED, false);
     scheduler
         .getJobs()
         .get(JobDescription
@@ -529,7 +556,7 @@ public final class SchedulerTest {
             .setPath("/load/4")
             .setType("load")
             .build())
-        .setJobState(JobState.STOPPED);
+        .setJobState(JobState.STOPPED, false);
     scheduler.cleanupStaleJob();
     assertEquals(2, scheduler
         .getJobs().size());

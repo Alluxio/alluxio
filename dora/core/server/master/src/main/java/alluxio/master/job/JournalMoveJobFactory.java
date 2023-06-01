@@ -53,7 +53,7 @@ public class JournalMoveJobFactory implements JobFactory {
         new UfsFileIterable(ufs, mJobEntry.getSrc(), user, mJobEntry.getPartialListing(),
             FileInfo::isCompleted);
     AbstractJob<?> job = getMoveJob(user, fileIterator);
-    job.setJobState(JobState.fromProto(mJobEntry.getState()));
+    job.setJobState(JobState.fromProto(mJobEntry.getState()), false);
     if (mJobEntry.hasEndTime()) {
       job.setEndTime(mJobEntry.getEndTime());
     }

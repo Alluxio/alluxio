@@ -21,15 +21,21 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import alluxio.Constants;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.Route;
+import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.job.FileIterable;
 import alluxio.master.job.MoveJob;
+import alluxio.master.journal.JournalContext;
+import alluxio.master.scheduler.DefaultWorkerProvider;
+import alluxio.master.scheduler.JournaledJobMetaStore;
+import alluxio.master.scheduler.Scheduler;
 import alluxio.scheduler.job.JobState;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerInfo;
@@ -96,7 +102,15 @@ public class MoveJobTest {
     String srcPath = "/src";
     String dstPath = "/dst";
     List<FileInfo> fileInfos = generateRandomFileInfoUnderRoot(500, 20, 64 * Constants.MB, srcPath);
-    FileSystemMaster fileSystemMaster = mock(FileSystemMaster.class);
+    DefaultFileSystemMaster fileSystemMaster = mock(DefaultFileSystemMaster.class);
+    JournalContext journalContext = mock(JournalContext.class);
+    when(fileSystemMaster.createJournalContext()).thenReturn(journalContext);
+    FileSystemContext fileSystemContext = mock(FileSystemContext.class);
+    DefaultWorkerProvider workerProvider =
+        new DefaultWorkerProvider(fileSystemMaster, fileSystemContext);
+    Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider,
+        new JournaledJobMetaStore((DefaultFileSystemMaster) fileSystemMaster));
+
     when(fileSystemMaster.listStatus(any(), any())).thenReturn(fileInfos);
     Optional<String> user = Optional.of("user");
     FileIterable files =
@@ -104,7 +118,7 @@ public class MoveJobTest {
     MoveJob job = spy(new MoveJob(srcPath, dstPath, false, user, "1",
         OptionalLong.empty(), false, false, false, files));
     when(job.getDurationInSec()).thenReturn(0L);
-    job.setJobState(JobState.RUNNING);
+    job.setJobState(JobState.RUNNING, false);
     List<Route> nextRoutes = job.getNextRoutes(25);
     job.addMovedBytes(640 * Constants.MB);
     String expectedTextReport = "\tSettings:\tbandwidth: unlimited\tverify: false\n"

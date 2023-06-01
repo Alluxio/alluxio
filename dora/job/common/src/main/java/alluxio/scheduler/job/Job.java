@@ -54,8 +54,9 @@ public interface Job<T extends Task<?>> {
   /**
    * set job state.
    * @param state job state
+   * @param journalUpdate true if needs to journal the update
    */
-  void setJobState(JobState state);
+  void setJobState(JobState state, boolean journalUpdate);
 
   /**
    * @return job id. unique id for the job
