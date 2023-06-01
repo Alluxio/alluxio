@@ -33,11 +33,7 @@ func VersionF() error {
 var versionRe = regexp.MustCompile(".*<version>(.*)</version>.*")
 
 func alluxioVersionFromPom() (string, error) {
-	repoRoot, err := findRepoRoot()
-	if err != nil {
-		return "", stacktrace.Propagate(err, "error finding repo root")
-	}
-	rootPomPath := filepath.Join(repoRoot, "pom.xml")
+	rootPomPath := filepath.Join(findRepoRoot(), "pom.xml")
 	contents, err := ioutil.ReadFile(rootPomPath)
 	if err != nil {
 		return "", stacktrace.Propagate(err, "error reading %v", rootPomPath)

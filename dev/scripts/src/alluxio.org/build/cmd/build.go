@@ -69,10 +69,7 @@ func TarballF(args []string) error {
 
 func buildTarball(opts *buildOpts) error {
 	// prepare repository
-	repoRoot, err := findRepoRoot()
-	if err != nil {
-		return stacktrace.Propagate(err, "error finding repo root")
-	}
+	repoRoot := findRepoRoot()
 	repoBuildDir := repoRoot
 	if !opts.skipRepoCopy {
 		// create temporary copy of repository to build from

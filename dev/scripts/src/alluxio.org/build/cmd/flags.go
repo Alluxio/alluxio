@@ -63,14 +63,9 @@ type buildOpts struct {
 func parseTarballFlags(cmd *flag.FlagSet, args []string) (*buildOpts, error) {
 	opts := &buildOpts{}
 
-	repoRoot, err := findRepoRoot()
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "error finding repo root")
-	}
-
 	// common flags
 	cmd.StringVar(&opts.artifactOutput, "artifact", "", "If set, writes object representing the tarball to YAML output file")
-	cmd.StringVar(&opts.outputDir, "outputDir", repoRoot, "Set output dir for generated tarball")
+	cmd.StringVar(&opts.outputDir, "outputDir", findRepoRoot(), "Set output dir for generated tarball")
 	cmd.BoolVar(&opts.dryRun, "dryRun", false, "If set, writes placeholder files instead of running maven commands to mock the final state of the build directory to be packaged as a tarball")
 	cmd.StringVar(&opts.modulesFile, "modulesFile", defaultModulesFilePath, "Path to modules.yml file")
 	cmd.StringVar(&opts.profilesFile, "profilesFile", defaultProfilesFilePath, "Path to profiles.yml file")
