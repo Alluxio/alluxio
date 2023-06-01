@@ -121,7 +121,7 @@ public class CopyJobTest {
     job.setJobState(JobState.RUNNING, false);
     List<Route> nextRoutes = job.getNextRoutes(25);
     job.addCopiedBytes(640 * Constants.MB);
-    String expectedTextReport = "\tSettings:\tbandwidth: unlimited\tverify: false\n"
+    String expectedTextReport = "\tSettings:\tcheck-content: false\n"
         + "\tJob State: RUNNING\n"
         + "\tFiles Processed: 25\n"
         + "\tBytes Copied: 640.00MB out of 31.25GB\n"
@@ -130,7 +130,7 @@ public class CopyJobTest {
     assertEquals(expectedTextReport, job.getProgress(JobProgressReportFormat.TEXT, false));
     assertEquals(expectedTextReport, job.getProgress(JobProgressReportFormat.TEXT, true));
     String expectedJsonReport = "{\"mVerbose\":false,\"mJobState\":\"RUNNING\","
-        + "\"mVerificationEnabled\":false,\"mProcessedFileCount\":25,"
+        + "\"mCheckContent\":false,\"mProcessedFileCount\":25,"
         + "\"mByteCount\":671088640,\"mTotalByteCount\":33554432000,"
         + "\"mFailurePercentage\":0.0,\"mFailedFileCount\":0,\"mFailedFilesWithReasons\":{}}";
     assertEquals(expectedJsonReport, job.getProgress(JobProgressReportFormat.JSON, false));
@@ -139,7 +139,7 @@ public class CopyJobTest {
     job.addFailure(nextRoutes.get(10).getSrc(),  "Test error 3", 2);
     job.failJob(new InternalRuntimeException("test"));
     assertEquals(JobState.FAILED, job.getJobState());
-    String expectedTextReportWithError = "\tSettings:\tbandwidth: unlimited\tverify: false\n"
+    String expectedTextReportWithError = "\tSettings:\tcheck-content: false\n"
         + "\tJob State: FAILED (alluxio.exception.runtime.InternalRuntimeException: test)\n"
         + "\tFiles Processed: 25\n"
         + "\tBytes Copied: 640.00MB out of 31.25GB\n"
