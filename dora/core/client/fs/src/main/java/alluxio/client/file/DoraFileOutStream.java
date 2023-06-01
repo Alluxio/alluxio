@@ -144,20 +144,6 @@ public class DoraFileOutStream extends FileOutStream {
         //Ignore
       }
 
-      try {
-        if (mAlluxioStorageType.isStore()) {
-          if (mCanceled) {
-            mNettyDataWriter.cancel();
-          } else {
-            // Note, this is a workaround to prevent commit(blockN-1) and write(blockN)
-            // race, in worse case, this may result in commit(blockN-1) completes earlier than
-            // write(blockN), and blockN evicts the committed blockN-1 and causing file lost.
-          }
-        }
-      } catch (Exception e) {
-        //Ignore
-      }
-
       CompleteFilePOptions options = CompleteFilePOptions.newBuilder()
           .setUfsLength(mNettyDataWriter.pos())
           .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().build())
