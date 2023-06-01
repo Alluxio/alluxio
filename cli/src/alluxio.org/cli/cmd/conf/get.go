@@ -14,7 +14,6 @@ package conf
 import (
 	"bytes"
 	"fmt"
-
 	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 
@@ -32,6 +31,10 @@ var Get = &GetCommand{
 
 type GetCommand struct {
 	*env.BaseCommand
+
+	ShowMaster bool
+	ShowSource bool
+	Unit       string
 }
 
 func (c *GetCommand) Base() *env.BaseCommand {
@@ -47,8 +50,29 @@ func (c *GetCommand) ToCommand() *cobra.Command {
 			return c.Run(args)
 		},
 	})
-	// TODO: add optional args defined in the corresponding java class, such as --master, --source, --unit
+	cmd.Flags().BoolVar(&c.ShowMaster, "master", false, "Show configuration properties used by the master")
+	cmd.Flags().BoolVar(&c.ShowSource, "source", false, "Show source of the configuration property instead of the value")
+	cmd.Flags().StringVar(&c.Unit, "unit", "",
+		`Unit of the value to return, converted to correspond to the given unit.
+E.g., with "--unit KB", a configuration value of "4096B" will return 4
+Possible options include B, KB, MB, GB, TP, PB, MS, S, M, H, D`)
 	return cmd
+}
+
+func (c *GetCommand) Run(args []string) error {
+	var javaArgs []string
+	if c.ShowMaster {
+		javaArgs = append(javaArgs, "--master")
+	}
+	if c.ShowSource {
+		javaArgs = append(javaArgs, "--source")
+	}
+	if c.Unit != "" {
+		javaArgs = append(javaArgs, "--unit", c.Unit)
+	}
+	javaArgs = append(javaArgs, args...)
+
+	return c.Base().Run(javaArgs)
 }
 
 func (c *GetCommand) FetchValue(key string) (string, error) {
