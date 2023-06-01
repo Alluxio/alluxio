@@ -8,7 +8,7 @@ import "proto/journal/file.proto";
 import "proto/journal/meta.proto";
 import "proto/journal/table.proto";
 import "proto/journal/job.proto";
-
+import "proto/journal/policy.proto";
 // Wraps around all types of Alluxio journal entries.
 //
 // NOTE: Exactly one of the *Entry entries is expected to be set. Ideally we would use the 'oneof'
@@ -70,6 +70,8 @@ message JournalEntry {
   optional LoadJobEntry load_job = 53;
   optional CopyJobEntry copy_job = 54;
   optional MoveJobEntry move_job = 55;
+  optional PolicyDefinitionEntry policy_definition = 56;
+  optional PolicyRemoveEntry policy_remove = 57;
 
   // This journal entry is a list of other entries. when a journal entry
   // contains other journal entries, all other optional fields must be unset.

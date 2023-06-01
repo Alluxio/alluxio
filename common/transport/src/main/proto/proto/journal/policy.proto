@@ -1,0 +1,18 @@
+syntax = "proto2";
+
+package alluxio.proto.journal;
+
+import "grpc/policy_master.proto";
+
+// next available id: 5
+message PolicyDefinitionEntry {
+  optional int64 id = 1;
+  optional string name = 2;
+  optional int64 created_at = 3;
+  optional alluxio.grpc.policy.AddPolicyPOptions options = 4;
+}
+
+// next available id: 2
+message PolicyRemoveEntry {
+  optional string name = 1;
+}

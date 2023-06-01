@@ -106,6 +106,7 @@ public final class Constants {
   public static final String BLOCK_MASTER_NAME = "BlockMaster";
   public static final String FILE_SYSTEM_MASTER_NAME = "FileSystemMaster";
   public static final String META_MASTER_NAME = "MetaMaster";
+  public static final String POLICY_ENGINE_NAME = "PolicyEngine";
   public static final String METRICS_MASTER_NAME = "MetricsMaster";
   public static final String JOURNAL_MASTER_NAME = "JournalMaster";
   public static final String BLOCK_WORKER_NAME = "BlockWorker";
