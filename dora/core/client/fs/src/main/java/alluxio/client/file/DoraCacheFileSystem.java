@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import alluxio.AlluxioURI;
 import alluxio.CloseableSupplier;
+import alluxio.Constants;
 import alluxio.PositionReader;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.ReadType;
@@ -243,7 +244,6 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   @Override
   public FileOutStream createFile(AlluxioURI alluxioPath, CreateFilePOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
-
     AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(alluxioPath);
 
     try {
@@ -263,8 +263,17 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       outStreamOptions.setMountId(status.getMountId());
       outStreamOptions.setAcl(status.getAcl());
 
-      return mDoraClient.getOutStream(ufsFullPath, mFsContext, outStreamOptions,
-          mDelegatedFileSystem.createFile(ufsFullPath, options), uuid);
+      FileOutStream ufsOutStream = mDelegatedFileSystem.createFile(ufsFullPath, options);
+
+      FileOutStream doraOutStream = mDoraClient.getOutStream(ufsFullPath, mFsContext,
+          outStreamOptions, ufsOutStream, uuid);
+
+      if (Constants.ENABLE_DORA_WRITE) {
+        return doraOutStream;
+      } else {
+        doraOutStream.close();
+        return ufsOutStream;
+      }
     } catch (Exception e) {
       // TODO(JiamingMai): delete the file
       // delete(alluxioPath);

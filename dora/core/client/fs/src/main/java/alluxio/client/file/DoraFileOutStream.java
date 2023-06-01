@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.file.dora.DoraCacheClient;
@@ -101,10 +102,11 @@ public class DoraFileOutStream extends FileOutStream {
       mWriteToAlluxio = mAlluxioStorageType.isStore();
       mBytesWritten = 0;
 
-      if (!mUnderStorageType.isSyncPersist()) {
-        mUnderStorageOutputStream = null;
-      } else { // Write is through to the under storage, create mUnderStorageOutputStream.
+      if (mUnderStorageType.isSyncPersist()) {
+        // Write is through to the under storage, create mUnderStorageOutputStream.
         mUnderStorageOutputStream = ufsOutStream;
+      } else {
+        mUnderStorageOutputStream = null;
       }
     } catch (Throwable t) {
       throw CommonUtils.closeAndRethrow(mCloser, t);
@@ -125,23 +127,36 @@ public class DoraFileOutStream extends FileOutStream {
     try (Timer.Context ctx = MetricsSystem
             .uniformTimer(MetricKey.CLOSE_ALLUXIO_OUTSTREAM_LATENCY.getName()).time()) {
       try {
-        mNettyDataWriter.flush();
-        mNettyDataWriter.close();
+        if (mAlluxioStorageType.isStore()) {
+          if (mCanceled) {
+            mNettyDataWriter.cancel();
+          } else {
+            mNettyDataWriter.flush();
+          }
+        }
       } catch (Exception e) {
         // Ignore.
+      } finally {
+        // FIXME: Stuck if no data is written after out stream is created.
+        //mNettyDataWriter.close();
       }
 
-      try {
-        if (mUnderStorageType.isSyncPersist()) {
+      if (mUnderStorageType.isSyncPersist()) {
+        try {
           if (mCanceled) {
             mUnderStorageOutputStream.cancel();
           } else {
             mUnderStorageOutputStream.flush();
+          }
+        } catch (Exception e) {
+          LOG.error("{}", e.getCause());
+        } finally {
+          if (Constants.ENABLE_DORA_WRITE) {
+            // Only close this output stream when write is enabled.
+            // Otherwise this outputStream is used by client/ufs direct write.
             mUnderStorageOutputStream.close();
           }
         }
-      } catch (Exception e) {
-        //Ignore
       }
 
       CompleteFilePOptions options = CompleteFilePOptions.newBuilder()
