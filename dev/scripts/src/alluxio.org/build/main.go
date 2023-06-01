@@ -32,6 +32,8 @@ func run(args []string) error {
 		return stacktrace.NewError("expected a subcommand argument. select one of the following: %v", cmd.SubCmdNames)
 	}
 	switch subCmd := args[1]; subCmd {
+	case cmd.Docker:
+		return cmd.DockerF(args[2:])
 	case cmd.Modules:
 		return cmd.PluginsF(args[2:])
 	case cmd.Profiles:

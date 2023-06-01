@@ -21,6 +21,7 @@ import (
 )
 
 const (
+	Docker          = "docker"
 	Modules         = "modules"
 	Profiles        = "profiles"
 	Tarball         = "tarball"
@@ -29,6 +30,7 @@ const (
 )
 
 var SubCmdNames = []string{
+	Docker,
 	Modules,
 	Profiles,
 	Tarball,

@@ -15,6 +15,7 @@ type ArtifactType string
 
 const (
 	TarballArtifact = ArtifactType("tarball")
+	DockerArtifact  = ArtifactType("docker")
 )
 
 type RepoMetadata struct {
