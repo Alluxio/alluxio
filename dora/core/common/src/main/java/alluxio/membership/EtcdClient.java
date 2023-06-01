@@ -2,6 +2,7 @@ package alluxio.membership;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -27,6 +28,8 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.GuardedBy;
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -41,6 +44,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class EtcdClient {
 
@@ -105,26 +109,20 @@ public class EtcdClient {
     }
   }
 
-  public static class WorkerService {
-    AtomicReference<Long> mWorkerId;
-    WorkerNetAddress mAddress;
-    Long mLeaseId = -1L;
-    public String toString() {
-      return MoreObjects.toStringHelper(this)
-          .add("WorkerId", mWorkerId.get())
-          .add("WorkerAddr", mAddress.toString())
-          .add("LeaseId", mLeaseId)
-          .toString();
-    }
-  }
 
-  public static class ServiceEntityContext {
+  public static class ServiceEntityContext implements Closeable {
     CloseableClient mKeepAliveClient;
     Long mLeaseId;
     String mIdentifierName;
-//    workerInfo.getNetAddress().dumpMainInfo()
-    ServiceEntityContext() {
+    protected ServiceEntityContext(String identifierName) {
+      mIdentifierName = identifierName;
+    }
 
+    @Override
+    public void close() throws IOException {
+      if (mKeepAliveClient != null) {
+        mKeepAliveClient.close();
+      }
     }
   }
 
@@ -133,15 +131,20 @@ public class EtcdClient {
     Client mClient;
     String mClusterIdentifier;
     final long mLeaseTtlInSec;
-    final ConcurrentHashMap<String, WorkerService> mRegisteredServices = new ConcurrentHashMap<>();
+    private final ReentrantLock mRegisterLock = new ReentrantLock();
+    final ConcurrentHashMap<String, ServiceEntityContext> mRegisteredServices = new ConcurrentHashMap<>();
     ServiceDiscoveryRecipe(Client client, String clusterIdentifier, long leaseTtlSec) {
       mClient = client;
       mClusterIdentifier = clusterIdentifier;
       mLeaseTtlInSec = leaseTtlSec;
     }
 
-    public void registerService(WorkerService service) throws IOException {
-      String path = service.mAddress.toString() + "/" + service.mWorkerId;
+    @GuardedBy("ServiceDiscoveryRecipe#mRegisterLock")
+    public void registerService(ServiceEntityContext service) throws IOException {
+      if (mRegisteredServices.containsKey(service.mIdentifierName)) {
+        throw new AlreadyExistsException("Service " + service.mIdentifierName + " already registerd.");
+      }
+      String path = service.mIdentifierName;
       String fullPath = basePath + "/" + mClusterIdentifier + "/" + path;
       CompletableFuture<LeaseGrantResponse> leaseGrantFut =
           mClient.getLeaseClient().grant(0, mLeaseTtlInSec, TimeUnit.SECONDS);
@@ -169,8 +172,14 @@ public class EtcdClient {
       }
     }
 
-    public void unregisterService() {
-
+    @GuardedBy("ServiceDiscoveryRecipe#mRegisterLock")
+    public void unregisterService(String serviceIdentifier) throws IOException {
+      if (!mRegisteredServices.containsKey(serviceIdentifier)) {
+        LOG.info("Service {} already unregistered.", serviceIdentifier);
+      }
+      try (ServiceEntityContext service = mRegisteredServices.get(serviceIdentifier)) {
+        
+      }
     }
 
     StreamObserver<LeaseKeepAliveResponse> mKeepAliveObserver = new StreamObserver<LeaseKeepAliveResponse>() {
@@ -190,9 +199,9 @@ public class EtcdClient {
       }
     };
 
-    public void startHeartBeat(WorkerService service) {
+    public void startHeartBeat(ServiceEntityContext service) {
       if (service.mLeaseId != -1L) {
-        CloseableClient keepAliveClient = mClient.getLeaseClient()
+        service.mKeepAliveClient = mClient.getLeaseClient()
             .keepAlive(service.mLeaseId, mKeepAliveObserver);
       }
     }

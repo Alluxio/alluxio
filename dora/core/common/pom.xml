@@ -140,6 +140,11 @@
       <groupId>io.netty</groupId>
       <artifactId>netty-tcnative-boringssl-static</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.etcd</groupId>
+      <artifactId>jetcd-core</artifactId>
+      <version>0.7.5</version>
+    </dependency>
 
     <!-- Internal dependencies -->
     <dependency>

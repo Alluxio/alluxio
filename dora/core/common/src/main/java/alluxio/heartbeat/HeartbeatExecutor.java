@@ -27,6 +27,8 @@ public interface HeartbeatExecutor extends Closeable {
    */
   void heartbeat(long timeLimitMs) throws InterruptedException;
 
+  void heartbeat() throws InterruptedException;
+
   /**
    * Cleans up any resources used by the heartbeat executor.
    */

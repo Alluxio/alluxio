@@ -1,24 +1,45 @@
 package alluxio.worker.block;
 
+import alluxio.client.block.BlockWorkerInfo;
 import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.membership.EtcdClient;
+import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerNetAddress;
+import com.google.common.base.MoreObjects;
 import io.etcd.jetcd.ByteSequence;
-import io.etcd.jetcd.KV;
-import io.etcd.jetcd.Lease;
-import io.etcd.jetcd.options.PutOption;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 public class BlockEtcdSync implements HeartbeatExecutor {
-  EtcdClient mEtcdClient;
+//  EtcdClient mEtcdClient;
 
 
   public BlockEtcdSync() {
-    mEtcdClient = new EtcdClient();
-    mEtcdClient.connect();
+//    mEtcdClient = new EtcdClient();
+//    mEtcdClient.connect();
   }
 
+  public static class WorkerService extends EtcdClient.ServiceEntityContext {
+    AtomicReference<Long> mWorkerId;
+    WorkerNetAddress mAddress;
+    Long mLeaseId = -1L;
+
+    public WorkerService(BlockWorkerInfo workerInfo) {
+      super(workerInfo.getNetAddress().dumpMainInfo());
+    }
+
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("WorkerId", mWorkerId.get())
+          .add("WorkerAddr", mAddress.toString())
+          .add("LeaseId", mLeaseId)
+          .toString();
+    }
+  }
 
   @Override
-  public void heartbeat() throws InterruptedException {
-    KV kvClient = mEtcdClient.getEtcdClient().getKVClient();
+  public void heartbeat(long timeLimitMs) throws InterruptedException {
+//    KV kvClient = mEtcdClient.getEtcdClient().getKVClient();
     ByteSequence key = ByteSequence.from("test_key".getBytes());
     ByteSequence value = ByteSequence.from("test_value".getBytes());
 
@@ -33,6 +54,11 @@ public class BlockEtcdSync implements HeartbeatExecutor {
 //
 //// delete the key
 //    kvClient.delete(key).get();
+  }
+
+  @Override
+  public void heartbeat() throws InterruptedException {
+
   }
 
   @Override
