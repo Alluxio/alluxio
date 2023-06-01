@@ -2625,7 +2625,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
 
   public static final MetricKey NETTY_CHANNEL_COUNT =
-      new Builder("Netty.NettyChannelCount")
+      new Builder("Process.NettyChannelCount")
           .setDescription("Number of instances in the NettyChannelPool.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)

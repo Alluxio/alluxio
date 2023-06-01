@@ -1,5 +1,6 @@
 metricName,metricType
 Worker.ActiveClients,COUNTER
+Worker.ActiveOperations,COUNTER
 Worker.ActiveRpcReadCount,COUNTER
 Worker.ActiveRpcWriteCount,COUNTER
 Worker.BlockReaderCompleteTaskCount,GAUGE

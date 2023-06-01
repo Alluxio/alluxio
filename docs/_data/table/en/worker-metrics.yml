@@ -1,5 +1,7 @@
 Worker.ActiveClients:
   'The number of clients actively reading from or writing to this worker'
+Worker.ActiveOperations:
+  'The number of active RPCs in the worker, including control RPCs and data I/O. Used to tell if the worker is idle or busy.'
 Worker.ActiveRpcReadCount:
   'The number of active read-RPCs managed by this worker'
 Worker.ActiveRpcWriteCount:

@@ -20,12 +20,20 @@ alluxio.worker.block.store.type:
   'The implementation of LocalBlockStore that can be instantiated.'
 alluxio.worker.container.hostname:
   'The container hostname if worker is running in a container.'
+alluxio.worker.data.bind.host:
+  'The hostname that the Alluxio worker''s data server runs on. See &lt;a href=&quot;#configure-multihomed-networks&quot;&gt;multi-homed networks&lt;/a&gt;.'
 alluxio.worker.data.folder:
   'A relative path within each storage directory used as the data folder for Alluxio worker to put data for tiered store.'
 alluxio.worker.data.folder.permissions:
   'The permission set for the worker data folder. If short circuit is used this folder should be accessible by all users (rwxrwxrwx).'
 alluxio.worker.data.folder.tmp:
   'A relative path in alluxio.worker.data.folder used to store the temporary data for uncommitted files.'
+alluxio.worker.data.hostname:
+  'The hostname of Alluxio worker data service.'
+alluxio.worker.data.port:
+  'The port Alluxio''s worker''s data server runs on.'
+alluxio.worker.data.server.class:
+  'Selects the networking stack to run the worker with. Valid options are: `alluxio.worker.netty.NettyDataServer`.'
 alluxio.worker.data.server.domain.socket.address:
   'The path to the domain socket. Short-circuit reads make use of a UNIX domain socket when this is set (non-empty). This is a special path in the file system that allows the client and the AlluxioWorker to communicate. You will need to set a path to this socket. The AlluxioWorker needs to be able to create the path. If alluxio.worker.data.server.domain.socket.as.uuid is set, the path should be the home directory for the domain socket. The full path for the domain socket with be {path}/{uuid}.'
 alluxio.worker.data.server.domain.socket.as.uuid:
@@ -34,6 +42,8 @@ alluxio.worker.data.tmp.subdir.max:
   'The maximum number of sub-directories allowed to be created in ${alluxio.worker.data.tmp.folder}.'
 alluxio.worker.evictor.class:
   'The strategy that a worker uses to evict block files when a storage layer runs out of space. Valid options include `alluxio.worker.block.evictor.LRFUEvictor`, `alluxio.worker.block.evictor.GreedyEvictor`, `alluxio.worker.block.evictor.LRUEvictor`, `alluxio.worker.block.evictor.PartialLRUEvictor`.'
+alluxio.worker.file.buffer.size:
+  'The buffer size for worker to write data into the tiered storage.'
 alluxio.worker.free.space.timeout:
   'The duration for which a worker will wait for eviction to make space available for a client write request.'
 alluxio.worker.fuse.enabled:
@@ -86,18 +96,42 @@ alluxio.worker.network.keepalive.timeout:
   'The maximum time for a data server (for block reads and block writes) to wait for a keepalive response before closing the connection.'
 alluxio.worker.network.max.inbound.message.size:
   'The max inbound message size used by worker gRPC connections.'
+alluxio.worker.network.netty.async.cache.manager.threads.max:
+  'The maximum number of threads used to cache blocks asynchronously in the netty data server.'
+alluxio.worker.network.netty.backlog:
+  'Netty socket option for SO_BACKLOG: the number of connections queued.'
+alluxio.worker.network.netty.block.reader.threads.max:
+  'The maximum number of threads used to read blocks in the netty data server.'
+alluxio.worker.network.netty.block.writer.threads.max:
+  'The maximum number of threads used to write blocks in the netty data server.'
 alluxio.worker.network.netty.boss.threads:
   'How many threads to use for accepting new requests.'
+alluxio.worker.network.netty.buffer.receive:
+  'Netty socket option for SO_RCVBUF: the proposed buffer size that will be used for receives.'
+alluxio.worker.network.netty.buffer.send:
+  'Netty socket option for SO_SNDBUF: the proposed buffer size that will be used for sends.'
 alluxio.worker.network.netty.channel:
   'Netty channel type: NIO or EPOLL. If EPOLL is not available, this will automatically fall back to NIO.'
+alluxio.worker.network.netty.file.transfer:
+  'When returning files to the user, select how the data is transferred; valid options are `MAPPED` (uses java MappedByteBuffer) and `TRANSFER` (uses Java FileChannel.transferTo).'
+alluxio.worker.network.netty.file.writer.threads.max:
+  'The maximum number of threads used to write files to UFS in the netty data server.'
+alluxio.worker.network.netty.reader.buffer.size.packets:
+  'The maximum number of parallel data packets when a client reads from a worker.'
+alluxio.worker.network.netty.rpc.threads.max:
+  'The maximum number of threads used to handle worker side RPCs in the netty data server.'
 alluxio.worker.network.netty.shutdown.quiet.period:
   'The quiet period. When the netty server is shutting down, it will ensure that no RPCs occur during the quiet period. If an RPC occurs, then the quiet period will restart before shutting down the netty server.'
+alluxio.worker.network.netty.shutdown.timeout:
+  'Maximum amount of time to wait until the netty server is shutdown (regardless of the quiet period).'
 alluxio.worker.network.netty.watermark.high:
   'Determines how many bytes can be in the write queue before switching to non-writable.'
 alluxio.worker.network.netty.watermark.low:
   'Once the high watermark limit is reached, the queue must be flushed down to the low watermark before switching back to writable.'
 alluxio.worker.network.netty.worker.threads:
   'Number of threads to use for processing requests in worker'
+alluxio.worker.network.netty.writer.buffer.size.packets:
+  'The maximum number of parallel data packets when a client writes to a worker.'
 alluxio.worker.network.permit.keepalive.time:
   'Specify the most aggressive keep-alive time clients are permitted to configure. The server will try to detect clients exceeding this rate and when detected will forcefully close the connection.'
 alluxio.worker.network.reader.buffer.pooled:
