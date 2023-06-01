@@ -24,13 +24,13 @@ import alluxio.conf.PropertyKey;
 import alluxio.resource.CloseableResource;
 import alluxio.wire.WorkerNetAddress;
 
-import java.io.IOException;
-import java.util.List;
 import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.powermock.api.mockito.PowerMockito;
+
+import java.io.IOException;
 
 /**
  * Test base for {@link FileSystem} related test.
