@@ -12,8 +12,8 @@
 package conf
 
 import (
-	"fmt"
 	"github.com/spf13/cobra"
+	"strings"
 
 	"alluxio.org/cli/env"
 )
@@ -30,7 +30,7 @@ type LogCommand struct {
 
 	LogName string
 	Level   string
-	Target  string
+	Targets []string
 }
 
 func (c *LogCommand) Base() *env.BaseCommand {
@@ -38,20 +38,20 @@ func (c *LogCommand) Base() *env.BaseCommand {
 }
 
 func (c *LogCommand) ToCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   fmt.Sprintf("%v --name <name> [--level <level>] [--target <target>]", Log.CommandName),
+	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
+		Use:   Log.CommandName,
 		Short: "Get or set the log level for the specified logger",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},
-	}
+	})
 	cmd.Flags().StringVar(&c.LogName, "name", "", "Logger name (ex. alluxio.master.file.DefaultFileSystemMaster)")
 	if err := cmd.MarkFlagRequired("name"); err != nil {
 		panic(err)
 	}
 	cmd.Flags().StringVar(&c.Level, "level", "", "If specified, sets the specified logger at the given level")
-	cmd.Flags().StringVar(&c.Target, "target", "", "A list of comma delimited targets among <master|workers|job_master|job_workers|host:webPort[:role]>. Defaults to master,workers,job_master,job_workers")
+	cmd.Flags().StringSliceVar(&c.Targets, "target", nil, "A target name among <master|workers|job_master|job_workers|host:webPort[:role]>. Defaults to master,workers,job_master,job_workers")
 	return cmd
 }
 
@@ -60,8 +60,8 @@ func (c *LogCommand) Run(_ []string) error {
 	if c.Level != "" {
 		javaArgs = append(javaArgs, "--level", c.Level)
 	}
-	if c.Target != "" {
-		javaArgs = append(javaArgs, "--target", c.Target)
+	if len(c.Targets) > 0 {
+		javaArgs = append(javaArgs, "--target", strings.Join(c.Targets, ","))
 	}
 
 	return c.Base().Run(javaArgs)

@@ -35,10 +35,15 @@ type BaseCommand struct {
 	Parameter     string
 
 	DebugMode bool
-	QuietMode bool
 
-	InlineJavaOpts string // java opts provided by the user as part of the inline command
-	ShellJavaOpts  string // default java opts encoded as part of the specific command
+	InlineJavaOpts []string // java opts provided by the user as part of the inline command
+	ShellJavaOpts  string   // default java opts encoded as part of the specific command
+}
+
+func (c *BaseCommand) InitRunJavaClassCmd(cmd *cobra.Command) *cobra.Command {
+	cmd.Flags().BoolVarP(&c.DebugMode, "attach-debug", "d", false, fmt.Sprintf("True to attach debug opts specified by $%v", ConfAlluxioUserAttachOpts.EnvVar))
+	cmd.Flags().StringSliceVarP(&c.InlineJavaOpts, "java-opts", "D", nil, `Alluxio properties to apply, ex. -Dkey=value`)
+	return cmd
 }
 
 // RunJavaClassCmd constructs a java command with a predetermined order of variable opts
@@ -62,8 +67,10 @@ func (c *BaseCommand) RunJavaClassCmd(args []string) *exec.Cmd {
 	if opts := strings.TrimSpace(c.ShellJavaOpts); opts != "" {
 		cmdArgs = append(cmdArgs, strings.Split(opts, " ")...)
 	}
-	if opts := strings.TrimSpace(c.InlineJavaOpts); opts != "" {
-		cmdArgs = append(cmdArgs, strings.Split(opts, " ")...)
+	for _, o := range c.InlineJavaOpts {
+		if opts := strings.TrimSpace(o); opts != "" {
+			cmdArgs = append(cmdArgs, fmt.Sprintf("-D%v", opts))
+		}
 	}
 	cmdArgs = append(cmdArgs, c.JavaClassName)
 	if c.Parameter != "" {

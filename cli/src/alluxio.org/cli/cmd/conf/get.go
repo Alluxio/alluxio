@@ -39,16 +39,14 @@ func (c *GetCommand) Base() *env.BaseCommand {
 }
 
 func (c *GetCommand) ToCommand() *cobra.Command {
-	cmd := &cobra.Command{
+	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   fmt.Sprintf("%v [key]", Get.CommandName),
-		Short: "Look up a configuration value by its key or print all configuration if no key is provided",
+		Short: "Look up a configuration value by its property key or print all configuration if no key is provided",
 		Args:  cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},
-	}
-	cmd.Flags().BoolVar(&c.DebugMode, "attachDebug", false, "True to attach debug opts")
-	cmd.Flags().StringVar(&c.InlineJavaOpts, "javaOpts", "", `Java options to apply, ex. "-Dkey=value"`)
+	})
 	// TODO: add optional args defined in the corresponding java class, such as --master, --source, --unit
 	return cmd
 }
