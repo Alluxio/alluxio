@@ -18,7 +18,7 @@
 #   See - https://github.com/moby/moby/issues/35525
 FROM alpine:3.10.2 AS alluxio-extractor
 # Note that downloads for *-SNAPSHOT tarballs are not available.
-ARG ALLUXIO_TARBALL=https://downloads.alluxio.io/downloads/files/291-gamma/alluxio-291-gamma-bin.tar.gz
+ARG ALLUXIO_TARBALL=http://downloads.alluxio.io/downloads/files/294/alluxio-294-bin.tar.gz
 
 ADD ${ALLUXIO_TARBALL} /opt/
 # Remote tarball needs to be untarred. Local tarball is untarred automatically.
@@ -27,84 +27,6 @@ RUN cd /opt && \
     (if ls | grep -q ".tar.gz"; then tar -xzf *.tar.gz && rm *.tar.gz; fi) && \
     ln -s alluxio-* alluxio
 
-FROM centos:7 as final
-RUN \
-    yum update -y && yum upgrade -y && \
-    yum install -y java-11-openjdk-devel java-11-openjdk && \
-    yum clean all
+FROM alluxio/alluxio-base:latest AS final
 
-ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk
-# Disable JVM DNS cache in java11 (https://github.com/Alluxio/alluxio/pull/9452)
-RUN echo "networkaddress.cache.ttl=0" >> /usr/lib/jvm/java-11-openjdk/conf/security/java.security
-
-# Install libfuse2 and libfuse3. Libfuse2 setup is modified from cheyang/fuse2:ubuntu1604-customize to be applied on centOS
-RUN \
-    yum install -y ca-certificates pkgconfig wget udev git bind-utils && \
-    yum install -y gcc gcc-c++ make cmake gettext-devel libtool autoconf && \
-    git clone https://github.com/Alluxio/libfuse.git && \
-    cd libfuse && \
-    git checkout fuse_2_9_5_customize_multi_threads && \
-    bash makeconf.sh && \
-    ./configure && \
-    make -j8 && \
-    make install && \
-    cd .. && \
-    rm -rf libfuse && \
-    yum remove -y gcc gcc-c++ make cmake gettext-devel libtool autoconf wget git && \
-    yum install -y fuse3 fuse3-devel fuse3-lib && \
-    yum clean all
-
-WORKDIR /
-
-# /lib64 is for rocksdb native libraries, /usr/local/lib is for libfuse2 native libraries
-ENV LD_LIBRARY_PATH "/lib64:/usr/local/lib:${LD_LIBRARY_PATH}"
-
-ARG ALLUXIO_USERNAME=alluxio
-ARG ALLUXIO_GROUP=alluxio
-ARG ALLUXIO_UID=1000
-ARG ALLUXIO_GID=1000
-
-# For dev image to know the user
-ENV ALLUXIO_DEV_UID=${ALLUXIO_UID}
-
-# Add Tini for Alluxio helm charts (https://github.com/Alluxio/alluxio/pull/12233)
-# - https://github.com/krallin/tini
-ENV TINI_VERSION v0.18.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini-static /usr/local/bin/tini
-RUN chmod +x /usr/local/bin/tini
-
-# If Alluxio user, group, gid, and uid aren't root|0, create the alluxio user and set file permissions accordingly
-RUN if [ ${ALLUXIO_USERNAME} != "root" ] \
-    && [ ${ALLUXIO_GROUP} != "root" ] \
-    && [ ${ALLUXIO_UID} -ne 0 ] \
-    && [ ${ALLUXIO_GID} -ne 0 ]; then \
-      groupadd --gid ${ALLUXIO_GID} ${ALLUXIO_GROUP} && \
-      useradd --system -m --uid ${ALLUXIO_UID} --gid ${ALLUXIO_GROUP} ${ALLUXIO_USERNAME} && \
-      usermod -a -G root ${ALLUXIO_USERNAME} && \
-      mkdir -p /mnt/alluxio && \
-      chown -R ${ALLUXIO_UID}:${ALLUXIO_GID} /mnt/alluxio && \
-      chmod -R g=u /mnt/alluxio && \
-      mkdir /mnt/alluxio/journal && \
-      chown -R ${ALLUXIO_UID}:${ALLUXIO_GID} /mnt/alluxio/journal && \
-      mkdir /mnt/alluxio/metastore && \
-      chown -R ${ALLUXIO_UID}:${ALLUXIO_GID} /mnt/alluxio/metastore && \
-      mkdir /mnt/alluxio/fuse && \
-      chown -R ${ALLUXIO_UID}:${ALLUXIO_GID} /mnt/alluxio/fuse; \
-    fi
-
-# Docker 19.03+ required to expand variables in --chown argument
-# https://github.com/moby/buildkit/pull/926#issuecomment-503943557
-COPY --from=alluxio-extractor --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} /opt /opt/
-COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} conf /opt/alluxio/conf/
-COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} entrypoint.sh /
-
-# Enable user_allow_other option for fuse in non-root mode
-RUN echo "user_allow_other" >> /etc/fuse.conf
-
-USER ${ALLUXIO_UID}
-
-WORKDIR /opt/alluxio
-
-ENV PATH="/opt/alluxio/bin:${PATH}"
-
-ENTRYPOINT ["/entrypoint.sh"]
+COPY --chown=${ALLUXIO_UID}:${ALLUXIO_GID} --from=alluxio-extractor /opt /opt/
