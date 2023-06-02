@@ -6383,6 +6383,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_MASTER_POLLING_CONCURRENT =
+      booleanBuilder(Name.USER_MASTER_POLLING_CONCURRENT)
+          .setDefaultValue(false)
+          .setDescription("Whether to concurrently polling the master.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_METADATA_CACHE_MAX_SIZE =
       intBuilder(Name.USER_METADATA_CACHE_MAX_SIZE)
           .setDefaultValue(0)
@@ -9119,6 +9126,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.local.writer.chunk.size.bytes";
     public static final String USER_LOGGING_THRESHOLD = "alluxio.user.logging.threshold";
     public static final String USER_MASTER_POLLING_TIMEOUT = "alluxio.user.master.polling.timeout";
+    public static final String USER_MASTER_POLLING_CONCURRENT =
+        "alluxio.user.master.polling.concurrent";
     public static final String USER_METADATA_CACHE_ENABLED =
         "alluxio.user.metadata.cache.enabled";
     public static final String USER_METADATA_CACHE_MAX_SIZE =

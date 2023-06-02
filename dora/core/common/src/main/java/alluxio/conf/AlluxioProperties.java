@@ -273,4 +273,11 @@ public class AlluxioProperties {
   public String hash() {
     return mHash.get();
   }
+
+  /**
+   * @return the last update time of the properties
+   */
+  public long getLastUpdateTime() {
+    return mHash.getLastUpdateTime();
+  }
 }

@@ -1689,7 +1689,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       }
       // Even readonly mount points should be able to complete a file, for UFS reads in CACHE mode.
       completeFileInternal(rpcContext, inodePath, context);
-      // Schedule async persistence if requested.
+      // Inode completion check is skipped because we know the file we completed is complete.
       if (context.getOptions().hasAsyncPersistOptions()) {
         scheduleAsyncPersistenceInternal(inodePath, ScheduleAsyncPersistenceContext
             .create(context.getOptions().getAsyncPersistOptionsBuilder()), rpcContext);
@@ -3957,18 +3957,31 @@ public class DefaultFileSystemMaster extends CoreMaster
             mInodeTree
                 .lockFullInodePath(path, LockPattern.WRITE_INODE, rpcContext.getJournalContext())
     ) {
+      InodeFile inode = inodePath.getInodeFile();
+      if (!inode.isCompleted()) {
+        throw new InvalidPathException(
+            "Cannot persist an incomplete Alluxio file: " + inodePath.getUri());
+      }
       scheduleAsyncPersistenceInternal(inodePath, context, rpcContext);
     }
   }
 
+  /**
+   * Persists an inode asynchronously.
+   * This method does not do the completion check. When this method is invoked,
+   * please make sure the inode has been completed.
+   * Currently, two places call this method. One is completeFile(), where we know that
+   * the file is completed. Another place is scheduleAsyncPersistence(), where we check
+   * if the inode is completed and throws an exception if it is not.
+   * @param inodePath the locked inode path
+   * @param context the context
+   * @param rpcContext the rpc context
+   * @throws FileDoesNotExistException if the file does not exist
+   */
   private void scheduleAsyncPersistenceInternal(LockedInodePath inodePath,
       ScheduleAsyncPersistenceContext context, RpcContext rpcContext)
-      throws InvalidPathException, FileDoesNotExistException {
+      throws FileDoesNotExistException {
     InodeFile inode = inodePath.getInodeFile();
-    if (!inode.isCompleted()) {
-      throw new InvalidPathException(
-          "Cannot persist an incomplete Alluxio file: " + inodePath.getUri());
-    }
     if (shouldPersistPath(inodePath.toString())) {
       mInodeTree.updateInode(rpcContext, UpdateInodeEntry.newBuilder().setId(inode.getId())
           .setPersistenceState(PersistenceState.TO_BE_PERSISTED.name()).build());
