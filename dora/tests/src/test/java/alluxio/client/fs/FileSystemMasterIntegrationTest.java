@@ -154,6 +154,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
   /**
    * Tests the {@link FileInfo} of a directory.
+   * @deprecated
    */
   @Deprecated
   public void clientFileInfoDirectory() throws Exception {
@@ -175,6 +176,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
   /**
    * Tests the {@link FileInfo} of an empty file.
+   * @deprecated
    */
   @Deprecated
   public void clientFileInfoEmptyFile() throws Exception {
@@ -240,6 +242,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
   /**
    * Tests concurrent rename of files.
+   * @deprecated
    */
   @Deprecated
   public void concurrentRename() throws Exception {

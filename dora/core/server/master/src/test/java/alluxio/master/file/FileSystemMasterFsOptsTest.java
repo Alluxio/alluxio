@@ -819,6 +819,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
 
   /**
    * Tests listing status on a non-persisted directory.
+   * @deprecated
    */
   @Deprecated
   public void listStatusWithLoadMetadataNonPersistedDir() throws Exception {

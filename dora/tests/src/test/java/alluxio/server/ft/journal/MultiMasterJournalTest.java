@@ -31,7 +31,6 @@ import alluxio.util.WaitForOptions;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
 import org.junit.rules.TestName;
 
 public class MultiMasterJournalTest extends BaseIntegrationTest {

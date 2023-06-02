@@ -99,7 +99,7 @@ public class DoraPositionReaderIntegrationTest extends BaseIntegrationTest {
     mFileSystem = mClusterResource.get().getClient(context);
     mFilePath =  UFS_ROOT + PathUtils.uniqPath();
     FileSystemTestUtils.createByteFile(
-        mFileSystem, mFilePath, WritePType.MUST_CACHE, mFileLen);
+        mFileSystem, mFilePath, WritePType.CACHE_THROUGH, mFileLen);
     mPositionReader = mFileSystem.openPositionRead(new AlluxioURI(mFilePath));
     mPositionReaderTest = new PositionReaderTest(mPositionReader, mFileLen);
   }
