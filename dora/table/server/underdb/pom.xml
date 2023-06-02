@@ -15,7 +15,7 @@
   <parent>
     <artifactId>alluxio-table-server</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>300</version>
+    <version>301-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-table-server-underdb</artifactId>
   <packaging>pom</packaging>

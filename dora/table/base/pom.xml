@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-table</artifactId>
-    <version>300</version>
+    <version>301-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-table-base</artifactId>
   <packaging>jar</packaging>
