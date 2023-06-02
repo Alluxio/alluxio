@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-dora</artifactId>
-    <version>300-SNAPSHOT</version>
+    <version>300</version>
   </parent>
   <artifactId>alluxio-table</artifactId>
   <packaging>pom</packaging>
