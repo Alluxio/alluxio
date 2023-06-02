@@ -542,12 +542,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     List<RouteFailure> errors = Collections.synchronizedList(new ArrayList<>());
 
     for (Route route : routes) {
-      UnderFileSystem srcUfs = mUfsManager.getOrAdd(new AlluxioURI(route.getSrc()),
-          UnderFileSystemConfiguration.defaults(mConf));
+      UnderFileSystem srcUfs = getUnderFileSystem(route.getSrc());
+      UnderFileSystem dstUfs = getUnderFileSystem(route.getDst());
       String srcRoot = new AlluxioURI(route.getSrc()).getRootPath();
       String dstRoot = new AlluxioURI(route.getDst()).getRootPath();
-      UnderFileSystem dstUfs = mUfsManager.getOrAdd(new AlluxioURI(route.getDst()),
-          UnderFileSystemConfiguration.defaults(mConf));
+
       try (FileSystem srcFs = new UfsBaseFileSystem(mFsContext, new UfsFileSystemOptions(srcRoot),
           new UfsManager.UfsClient(() -> srcUfs, new AlluxioURI(srcRoot)));
           FileSystem dstFs = new UfsBaseFileSystem(mFsContext, new UfsFileSystemOptions(dstRoot),
@@ -577,19 +576,21 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
   }
 
+  protected UnderFileSystem getUnderFileSystem(String ufsPath) {
+    return mUfsManager.getOrAdd(new AlluxioURI(ufsPath),
+        UnderFileSystemConfiguration.defaults(mConf));
+  }
+
   @Override
   public ListenableFuture<List<RouteFailure>> move(List<Route> routes, UfsReadOptions readOptions,
                                                    WriteOptions writeOptions) {
     List<ListenableFuture<Void>> futures = new ArrayList<>();
     List<RouteFailure> errors = Collections.synchronizedList(new ArrayList<>());
     for (Route route : routes) {
-      UnderFileSystem srcUfs = mUfsManager.getOrAdd(new AlluxioURI(route.getSrc()),
-              UnderFileSystemConfiguration.defaults(mConf));
+      UnderFileSystem srcUfs = getUnderFileSystem(route.getSrc());
+      UnderFileSystem dstUfs = getUnderFileSystem(route.getDst());
       String srcRoot = new AlluxioURI(route.getSrc()).getRootPath();
       String dstRoot = new AlluxioURI(route.getDst()).getRootPath();
-      UnderFileSystem dstUfs = mUfsManager.getOrAdd(new AlluxioURI(route.getDst()),
-              UnderFileSystemConfiguration.defaults(mConf));
-
       try (FileSystem srcFs = new UfsBaseFileSystem(mFsContext, new UfsFileSystemOptions(srcRoot),
               new UfsManager.UfsClient(() -> srcUfs, new AlluxioURI(srcRoot)));
            FileSystem dstFs = new UfsBaseFileSystem(mFsContext, new UfsFileSystemOptions(dstRoot),
