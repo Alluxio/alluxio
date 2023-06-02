@@ -67,6 +67,11 @@ func DockerF(args []string) error {
 		return stacktrace.Propagate(err, "error parsing build flags")
 	}
 
+	alluxioVersion, err := alluxioVersionFromPom()
+	if err != nil {
+		return stacktrace.Propagate(err, "error parsing version string")
+	}
+
 	// parse available docker images in docker.yml
 	{
 		wd, err := os.Getwd()
@@ -81,22 +86,21 @@ func DockerF(args []string) error {
 		if err := yaml.Unmarshal(content, &opts.dockerImages); err != nil {
 			return stacktrace.Propagate(err, "error unmarshalling docker images from:\n%v", string(content))
 		}
+		for _, img := range opts.dockerImages {
+			img.init(alluxioVersion)
+		}
 	}
 
 	image, ok := opts.dockerImages[opts.image]
 	if !ok {
 		return stacktrace.NewError("must provide valid 'image' arg")
 	}
-	alluxioVersion, err := alluxioVersionFromPom()
-	if err != nil {
-		return stacktrace.Propagate(err, "error parsing version string")
-	}
 	opts.buildOpts = tOpts
 	if opts.artifactOutput != "" {
 		artifact, err := artifact.NewArtifact(
 			artifact.DockerArtifact,
 			opts.outputDir,
-			strings.ReplaceAll(opts.dockerImages[opts.image].TargetName, versionPlaceholder, alluxioVersion),
+			image.TargetName,
 			alluxioVersion,
 			map[string]string{"image": opts.image})
 		if err != nil {
@@ -105,46 +109,52 @@ func DockerF(args []string) error {
 		return artifact.WriteToFile(opts.artifactOutput)
 	}
 
+	dockerWs := filepath.Join(findRepoRoot(), "integration", "docker")
+	tmpTarballPath := filepath.Join(dockerWs, tempAlluxioTarballName)
+
+	// create alluxio tarball and place directly in docker workdir
 	if opts.tarballPath == "" {
-		if err := buildTarball(tOpts); err != nil {
+		tmpOpts := *tOpts
+		tmpOpts.outputDir = dockerWs
+		tmpOpts.targetName = tempAlluxioTarballName
+		if err := buildTarball(&tmpOpts); err != nil {
 			return stacktrace.Propagate(err, "error building tarball")
 		}
-		opts.tarballPath = filepath.Join(opts.outputDir,
-			strings.ReplaceAll(opts.targetName, versionPlaceholder, alluxioVersion))
+		opts.tarballPath = tmpTarballPath
 	}
 
 	// docker logic
-	if err != nil {
-		return stacktrace.Propagate(err, "error finding repo root")
+	if opts.tarballPath != tmpTarballPath {
+		if err := command.RunF("cp %v %v", opts.tarballPath, tmpTarballPath); err != nil {
+			return stacktrace.Propagate(err, "error copying tarball to docker workspace")
+		}
 	}
-	dockerWs := filepath.Join(findRepoRoot(), "integration", "docker")
-	if err := command.RunF("cp %v %v", opts.tarballPath, filepath.Join(dockerWs, tempAlluxioTarballName)); err != nil {
-		return stacktrace.Propagate(err, "error copying tarball to docker workspace")
-	}
-	defer os.RemoveAll(filepath.Join(dockerWs, tempAlluxioTarballName))
+	defer os.RemoveAll(tmpTarballPath)
 
-	if err := image.build(opts, alluxioVersion, true); err != nil {
+	if err := image.build(opts, true); err != nil {
 		return stacktrace.Propagate(err, "error building image %v", opts.image)
 	}
 
 	return nil
 }
 
-func (i *DockerImage) build(opts *dockerBuildOpts, alluxioVersion string, save bool) error {
+func (i *DockerImage) init(alluxioVersion string) {
+	i.Tag = strings.ReplaceAll(i.Tag, versionPlaceholder, alluxioVersion)
+	i.TargetName = strings.ReplaceAll(i.TargetName, versionPlaceholder, alluxioVersion)
+}
+
+func (i *DockerImage) build(opts *dockerBuildOpts, save bool) error {
 	dockerWs := filepath.Join(findRepoRoot(), i.BuildDir)
 	if i.Dependency != "" {
 		dep, ok := opts.dockerImages[i.Dependency]
 		if !ok {
 			return stacktrace.NewError("%v not found in list of docker images", i.Dependency)
 		}
-		if err := dep.build(opts, alluxioVersion, false); err != nil {
+		if err := dep.build(opts, false); err != nil {
 			return stacktrace.Propagate(err, "error building dep %v", i.Dependency)
 		}
 	}
-	i.Tag = strings.ReplaceAll(i.Tag, versionPlaceholder, alluxioVersion)
-	i.TargetName = strings.ReplaceAll(i.TargetName, versionPlaceholder, alluxioVersion)
-	i.outputTarball = fmt.Sprintf("%v/%v",
-		opts.outputDir, strings.ReplaceAll(i.TargetName, versionPlaceholder, alluxioVersion))
+	i.outputTarball = fmt.Sprintf("%v/%v", opts.outputDir, i.TargetName)
 	var buildArgs []string
 	for _, a := range i.BuildArgs {
 		buildArgs = append(buildArgs, fmt.Sprintf("--build-arg %v",
