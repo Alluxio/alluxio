@@ -1569,5 +1569,29 @@
         <create.dependency.reduced.pom>true</create.dependency.reduced.pom>
       </properties>
     </profile>
+    <profile>
+      <id>goCli</id>
+      <build>
+        <plugins>
+          <!-- Build golang CLI -->
+          <plugin>
+            <artifactId>exec-maven-plugin</artifactId>
+            <groupId>org.codehaus.mojo</groupId>
+            <executions>
+              <execution>
+                <id>Build Golang CLI</id>
+                <phase>compile</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>${build.path}/cli/build-cli.sh</executable>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 </project>
