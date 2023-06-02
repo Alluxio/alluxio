@@ -79,7 +79,7 @@ public class BackupRequestMessage implements CatalystSerializable {
   public void writeObject(BufferOutput<?> bufferOutput, Serializer serializer) {
     bufferOutput.writeString(mBackupId.toString());
     byte[] serializedReq = mBackupRequest.toByteArray();
-    bufferOutput.writeInt(serializedReq.length);
+    bufferOutput.writeInt(serializedReq.length);JournalFormatter.java
     bufferOutput.write(serializedReq);
 
     bufferOutput.writeInt(mJournalSequences.size());

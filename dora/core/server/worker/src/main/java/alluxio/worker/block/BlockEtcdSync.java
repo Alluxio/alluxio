@@ -25,7 +25,7 @@ public class BlockEtcdSync implements HeartbeatExecutor {
     Long mLeaseId = -1L;
 
     public WorkerService(BlockWorkerInfo workerInfo) {
-      super(workerInfo.getNetAddress().dumpMainInfo());
+      super(workerInfo.getNetAddress().dumpMainInfo(), null);
     }
 
     public String toString() {
@@ -54,11 +54,6 @@ public class BlockEtcdSync implements HeartbeatExecutor {
 //
 //// delete the key
 //    kvClient.delete(key).get();
-  }
-
-  @Override
-  public void heartbeat() throws InterruptedException {
-
   }
 
   @Override

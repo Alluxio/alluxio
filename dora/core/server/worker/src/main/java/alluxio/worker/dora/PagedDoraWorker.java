@@ -18,6 +18,8 @@ import alluxio.Constants;
 import alluxio.DefaultStorageTierAssoc;
 import alluxio.Server;
 import alluxio.StorageTierAssoc;
+import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.cache.CacheManager;
@@ -55,6 +57,7 @@ import alluxio.heartbeat.FixedIntervalSupplier;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.membership.EtcdClient;
 import alluxio.network.protocol.databuffer.PooledDirectNioByteBuf;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.meta.DoraMeta;
@@ -88,6 +91,7 @@ import alluxio.worker.task.CopyHandler;
 import alluxio.worker.task.DeleteHandler;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -99,9 +103,16 @@ import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -211,6 +222,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     super.start(address);
     mAddress = address;
     register();
+    registerNew();
     mOpenFileHandleContainer.start();
 
     // setup worker-master heartbeat
@@ -223,6 +235,70 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             () -> new FixedIntervalSupplier(Configuration.getMs(
                 PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)),
             mConf, ServerUserState.global()));
+  }
+
+  public static class WorkerService extends EtcdClient.ServiceEntityContext {
+    AtomicReference<Long> mWorkerId;
+    WorkerNetAddress mAddress;
+    Long mLeaseId = -1L;
+
+    public WorkerService(String workerMainInfoName, Optional<String> workerId) {
+      super(workerMainInfoName, workerId);
+//      super(workerInfo.getNetAddress().dumpMainInfo(), null);
+    }
+
+    public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("WorkerId", mWorkerId.get())
+          .add("WorkerAddr", mAddress.toString())
+          .add("LeaseId", mLeaseId)
+          .toString();
+    }
+  }
+
+  private static String sSystemInfoFilePath =  Configuration.getString(PropertyKey.HOME) + "/SystemInfo.db";
+  public static class WorkerSystemInfo {
+    boolean mAuthed = false;
+    int mGenerationNum = -1;
+    String mClusterId = "";
+    String mId = "";
+    public static void serialize(OutputStream outputStream, WorkerSystemInfo sysInfo) throws IOException {
+      DataOutputStream dos = new DataOutputStream(outputStream);
+      dos.writeUTF(sysInfo.mClusterId);
+      dos.writeUTF(sysInfo.mId);
+      dos.writeBoolean(sysInfo.mAuthed);
+      dos.writeInt(sysInfo.mGenerationNum);
+    }
+
+    public static WorkerSystemInfo deserialize(InputStream inputStream) throws IOException {
+      WorkerSystemInfo sysInfo = new WorkerSystemInfo();
+      DataInputStream dis = new DataInputStream(inputStream);
+      sysInfo.mClusterId = dis.readUTF();
+      sysInfo.mId = dis.readUTF();
+      sysInfo.mAuthed = dis.readBoolean();
+      sysInfo.mGenerationNum = dis.readInt();
+      return sysInfo;
+    }
+  }
+
+
+  /**
+   * Use etcd for registration and starting
+   * @throws IOException
+   */
+  private void registerNew() throws IOException {
+    // create my service entity for servicediscovery
+    java.io.File file = new java.io.File(sSystemInfoFilePath);
+    WorkerSystemInfo sysInfo = new WorkerSystemInfo();
+    if (file.exists()) {
+      FileInputStream fis = new FileInputStream(file);
+      sysInfo = WorkerSystemInfo.deserialize(fis);
+    }
+    // new cluster deployment
+    if (!sysInfo.mAuthed) {
+
+    }
+
   }
 
   private void register() throws IOException {
