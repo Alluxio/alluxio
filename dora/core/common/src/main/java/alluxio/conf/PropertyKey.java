@@ -7842,9 +7842,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + " Our microbench test shows that 1GB cache can double the metadata read operation"
               + " performance for a meta store that persists 10M metadata entries."
               + " Note that the memory is off-heap and does not count in jvm memory.")
-          .setDefaultSupplier(
-              () -> Math.min(1024L * 1024 * 1024, Runtime.getRuntime().maxMemory() / 10),
-              "10% of the heap memory, 1GB as maximum")
+          .setDefaultValue(128L * 1024 * 1024)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.WORKER)
           .build();
