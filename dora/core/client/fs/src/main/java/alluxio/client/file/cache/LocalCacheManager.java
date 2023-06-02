@@ -664,7 +664,7 @@ public class LocalCacheManager implements CacheManager {
         try {
           pageInfo = mPageMetaStore.removePage(pageId, isTemporary);
         } catch (PageNotFoundException e) {
-          LOG.error("Failed to delete page {} from metaStore ", pageId, e);
+          LOG.debug("Failed to delete page {} from metaStore ", pageId, e);
           Metrics.DELETE_NON_EXISTING_PAGE_ERRORS.inc();
           Metrics.DELETE_ERRORS.inc();
           return false;

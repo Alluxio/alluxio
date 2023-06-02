@@ -14,6 +14,8 @@ package alluxio.client.file.dora.netty;
 import alluxio.exception.status.AlluxioStatusException;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -26,6 +28,7 @@ import java.util.concurrent.TimeoutException;
  * {@link Exception#getCause()}.
  */
 public class PartialReadException extends IOException {
+  private static final Logger LOG = LoggerFactory.getLogger(PartialReadException.class);
   private final int mBytesRead;
   private final int mBytesWanted;
   private final CauseType mCauseType;
@@ -43,7 +46,11 @@ public class PartialReadException extends IOException {
     super(String.format("Incomplete read due to exception, %d requested, %d actually read",
         bytesWanted, bytesRead),
         cause);
-    Preconditions.checkArgument(causeType.getType().isInstance(cause));
+    if (!causeType.getType().isInstance(cause)) {
+      LOG.error("Failed to read {}, actual read {}", bytesWanted, bytesRead, cause);
+      throw new IllegalArgumentException(String.format(
+          "Cause type %s is not the instance of cause %s", causeType.getType(), cause));
+    }
     mBytesRead = bytesRead;
     mBytesWanted = bytesWanted;
     mCauseType = causeType;
