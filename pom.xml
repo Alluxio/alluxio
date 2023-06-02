@@ -1683,6 +1683,30 @@
         -->
         <create.dependency.reduced.pom>true</create.dependency.reduced.pom>
       </properties>
+      <build>
+        <plugins>
+          <!-- Precompile golang binaries for CLI -->
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>Build Golang CLI</id>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <phase>compile</phase>
+                <configuration>
+                  <executable>${build.path}/cli/build-cli.sh</executable>
+                  <arguments>
+                    <argument>-a</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
   </profiles>
 </project>
