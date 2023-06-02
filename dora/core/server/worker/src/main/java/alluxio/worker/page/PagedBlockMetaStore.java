@@ -22,6 +22,7 @@ import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.quota.CacheScope;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
 import alluxio.worker.block.BlockStoreEventListener;
@@ -301,6 +302,20 @@ public class PagedBlockMetaStore implements PageMetaStore {
       throw new RuntimeException(e);
     }
     return blockMeta;
+  }
+
+  @Override
+  public PageStoreDir getStoreDirOfFile(String fileId) throws FileDoesNotExistException {
+    long blockId = BlockPageId.parseBlockId(fileId);
+    PagedBlockMeta blockMeta = mBlocks.getFirstByField(INDEX_BLOCK_ID, blockId);
+    if (blockMeta == null) {
+      PagedTempBlockMeta tempBlockMeta = mTempBlocks.getFirstByField(INDEX_TEMP_BLOCK_ID, blockId);
+      if (tempBlockMeta == null) {
+        throw new FileDoesNotExistException(String.format("Block %s does not exist", fileId));
+      }
+      return tempBlockMeta.getDir();
+    }
+    return blockMeta.getDir();
   }
 
   @Override

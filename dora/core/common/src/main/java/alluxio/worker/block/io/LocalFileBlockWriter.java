@@ -132,4 +132,9 @@ public class LocalFileBlockWriter extends BlockWriter {
     BufferUtils.cleanDirectBuffer(outputBuf);
     return bytesWritten;
   }
+
+  @Override
+  public void commitFile() {
+    throw new UnsupportedOperationException("commitFile method is unsupported. ");
+  }
 }

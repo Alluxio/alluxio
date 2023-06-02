@@ -9,16 +9,16 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.page;
+package alluxio.worker.dora;
 
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.PageId;
-import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.worker.block.io.BlockWriter;
 
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,38 +29,35 @@ import java.nio.channels.WritableByteChannel;
 /**
  * A paged implementation of BlockWriter interface.
  */
-public class PagedBlockWriter extends BlockWriter {
-  private static final Logger LOG = LoggerFactory.getLogger(PagedBlockWriter.class);
+public class PagedFileWriter extends BlockWriter {
+  private static final Logger LOG = LoggerFactory.getLogger(PagedFileWriter.class);
   private final CacheContext mTempCacheContext;
 
   private final CacheManager mCacheManager;
-  private final long mBlockId;
+  private final String mFileId;
   private final long mPageSize;
   private long mPosition;
 
-  PagedBlockWriter(CacheManager cacheManager, long blockId, long pageSize) {
+  PagedFileWriter(CacheManager cacheManager, String fileId, long pageSize) {
     mTempCacheContext = CacheContext.defaults().setTemporary(true);
     mCacheManager = cacheManager;
-    mBlockId = blockId;
+    mFileId = fileId;
     mPageSize = pageSize;
   }
 
   @Override
+  public void commitFile() {
+    mCacheManager.commitFile(mFileId);
+  }
+
+  @Override
   public long append(ByteBuffer inputBuf) {
-    long bytesWritten = 0;
-    while (inputBuf.hasRemaining()) {
-      PageId pageId = getPageId(bytesWritten);
-      int currentPageOffset = getCurrentPageOffset(bytesWritten);
-      int bytesLeftInPage = getBytesLeftInPage(currentPageOffset, inputBuf.remaining());
-      byte[] page = new byte[bytesLeftInPage];
-      inputBuf.get(page);
-      if (!mCacheManager.append(pageId, currentPageOffset, page, mTempCacheContext)) {
-        throw new InternalRuntimeException("Append failed for block " + mBlockId);
-      }
-      bytesWritten += bytesLeftInPage;
+    try {
+      return append(Unpooled.wrappedBuffer(inputBuf));
+    } catch (IOException e) {
+      LOG.error("Failed to append ByteBuffer. ", e);
+      return -1;
     }
-    mPosition += bytesWritten;
-    return bytesWritten;
   }
 
   @Override
@@ -73,7 +70,7 @@ public class PagedBlockWriter extends BlockWriter {
       byte[] page = new byte[bytesLeftInPage];
       buf.readBytes(page);
       if (!mCacheManager.append(pageId, currentPageOffset, page, mTempCacheContext)) {
-        throw new IOException("Append failed for block " + mBlockId);
+        throw new IOException("Append failed for file " + mFileId);
       }
       bytesWritten += bytesLeftInPage;
     }
@@ -107,7 +104,7 @@ public class PagedBlockWriter extends BlockWriter {
 
   private PageId getPageId(long bytesWritten) {
     long pageIndex = (mPosition + bytesWritten) / mPageSize;
-    return BlockPageId.newTempPage(mBlockId, pageIndex);
+    return new PageId(mFileId, pageIndex);
   }
 
   private int getCurrentPageOffset(long bytesWritten) {
@@ -116,10 +113,5 @@ public class PagedBlockWriter extends BlockWriter {
 
   private int getBytesLeftInPage(int currentPageOffset, int remaining) {
     return (int) Math.min(mPageSize - currentPageOffset, remaining);
-  }
-
-  @Override
-  public void commitFile() {
-    throw new UnsupportedOperationException("commitFile method is unsupported. ");
   }
 }

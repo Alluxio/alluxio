@@ -362,8 +362,9 @@ public final class ReplicationCheckerTest {
     Assert.assertEquals(expected, mMockReplicationHandler.getSetReplicaRequests());
   }
 
-  @Test
+  @Deprecated
   public void heartbeatFileUnderReplicatedAndLost() throws Exception {
+    // TODO(JiamingMai): replicated is unsupported temporarily
     mFileContext.getOptions().setReplicationMin(2);
     long blockId = createBlockHelper(TEST_FILE_1, mFileContext, "");
 

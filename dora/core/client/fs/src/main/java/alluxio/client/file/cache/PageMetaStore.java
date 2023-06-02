@@ -13,6 +13,7 @@ package alluxio.client.file.cache;
 
 import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.quota.CacheScope;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.PageNotFoundException;
 
 import java.io.IOException;
@@ -70,6 +71,17 @@ public interface PageMetaStore extends CacheStatus {
    * @param newFileId the new file name of the file after committing
    */
   void commitFile(String fileId, String newFileId) throws PageNotFoundException;
+
+  /**
+   * Gets the store dir which the specified file is assigned to be cached in.
+   * Implementations should ensure that all pages
+   * of the same file are cached in the same directory, until all the pages of the file are evicted.
+   *
+   * @param fileId the file ID
+   * @return the store dir which caches the pages of the file
+   * @throws FileDoesNotExistException if the file is not being cached
+   */
+  PageStoreDir getStoreDirOfFile(String fileId) throws FileDoesNotExistException;
 
   /**
    * Gets the storage directories.

@@ -1,0 +1,247 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
+package alluxio.client.file;
+
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.client.AlluxioStorageType;
+import alluxio.client.UnderStorageType;
+import alluxio.client.file.dora.DoraCacheClient;
+import alluxio.client.file.dora.netty.NettyDataWriter;
+import alluxio.client.file.options.OutStreamOptions;
+import alluxio.exception.PreconditionMessage;
+import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
+import alluxio.util.CommonUtils;
+
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.Timer;
+import com.google.common.base.Preconditions;
+import com.google.common.io.Closer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
+
+/**
+ * Provides a streaming API to write a file. This class wraps the BlockOutStreams for each of the
+ * blocks in the file and abstracts the switching between streams. The backing streams can write to
+ * Alluxio space in the local machine or remote machines. If the {@link UnderStorageType} is
+ * {@link UnderStorageType#SYNC_PERSIST}, another stream will write the data to the under storage
+ * system.
+ */
+@NotThreadSafe
+public class DoraFileOutStream extends FileOutStream {
+  private static final Logger LOG = LoggerFactory.getLogger(DoraFileOutStream.class);
+
+  /** Used to manage closeable resources. */
+  private final Closer mCloser;
+  private final AlluxioStorageType mAlluxioStorageType;
+  private final UnderStorageType mUnderStorageType;
+  private final FileSystemContext mContext;
+  private final NettyDataWriter mNettyDataWriter;
+
+  /** Stream to the file in the under storage, null if not writing to the under storage. */
+  private final FileOutStream mUnderStorageOutputStream;
+
+  private final OutStreamOptions mOptions;
+
+  private boolean mCanceled;
+  private boolean mClosed;
+  private boolean mWriteToAlluxio;
+
+  protected final AlluxioURI mUri;
+
+  private final DoraCacheClient mDoraClient;
+
+  private final String mUuid;
+
+  /**
+   * Creates a new file output stream.
+   *
+   * @param doraClient the dora client for requesting dora worker
+   * @param dataWriter the netty data writer which is used for transferring data with netty
+   * @param path the file path
+   * @param options the client options
+   * @param context the file system context
+   * @param ufsOutStream the UfsOutStream for writing data to UFS
+   * @param uuid the UUID of a certain OutStream
+   */
+  public DoraFileOutStream(DoraCacheClient doraClient, NettyDataWriter dataWriter, AlluxioURI path,
+      OutStreamOptions options, FileSystemContext context,  FileOutStream ufsOutStream, String uuid)
+      throws IOException {
+    mDoraClient = doraClient;
+    mNettyDataWriter = dataWriter;
+    mCloser = Closer.create();
+    mUuid = uuid;
+    // Acquire a resource to block FileSystemContext reinitialization, this needs to be done before
+    // using mContext.
+    // The resource will be released in close().
+    mContext = context;
+    mCloser.register(mContext.blockReinit());
+    try {
+      mUri = Preconditions.checkNotNull(path, "path");
+      mAlluxioStorageType = options.getAlluxioStorageType();
+      mUnderStorageType = options.getUnderStorageType();
+      mOptions = options;
+      mClosed = false;
+      mCanceled = false;
+      mWriteToAlluxio = mAlluxioStorageType.isStore();
+      mBytesWritten = 0;
+
+      if (mUnderStorageType.isSyncPersist()) {
+        // Write is through to the under storage, create mUnderStorageOutputStream.
+        mUnderStorageOutputStream = ufsOutStream;
+      } else {
+        mUnderStorageOutputStream = null;
+      }
+    } catch (Throwable t) {
+      throw CommonUtils.closeAndRethrow(mCloser, t);
+    }
+  }
+
+  @Override
+  public void cancel() throws IOException {
+    mCanceled = true;
+    close();
+  }
+
+  @Override
+  public void close() throws IOException {
+    if (mClosed) {
+      return;
+    }
+    try (Timer.Context ctx = MetricsSystem
+            .uniformTimer(MetricKey.CLOSE_ALLUXIO_OUTSTREAM_LATENCY.getName()).time()) {
+      try {
+        if (mAlluxioStorageType.isStore()) {
+          if (mCanceled) {
+            mNettyDataWriter.cancel();
+          } else {
+            mNettyDataWriter.flush();
+          }
+        }
+      } catch (Exception e) {
+        // Ignore.
+      } finally {
+        // FIXME: Stuck if no data is written after out stream is created.
+        //mNettyDataWriter.close();
+      }
+
+      if (mUnderStorageType.isSyncPersist()) {
+        try {
+          if (mCanceled) {
+            mUnderStorageOutputStream.cancel();
+          } else {
+            mUnderStorageOutputStream.flush();
+          }
+        } catch (Exception e) {
+          LOG.error("{}", e.getCause());
+        } finally {
+          if (Constants.ENABLE_DORA_WRITE) {
+            // Only close this output stream when write is enabled.
+            // Otherwise this outputStream is used by client/ufs direct write.
+            mUnderStorageOutputStream.close();
+          }
+        }
+      }
+
+      CompleteFilePOptions options = CompleteFilePOptions.newBuilder()
+          .setUfsLength(mNettyDataWriter.pos())
+          .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().build())
+          .setContentHash("HASH-256") // compute hash here
+          .build();
+      mClosed = true;
+      mDoraClient.completeFile(mUri.toString(), options, mUuid);
+    } catch (Throwable e) { // must catch Throwable
+      throw mCloser.rethrow(e); // IOException will be thrown as-is.
+    } finally {
+      mClosed = true;
+      mCloser.close();
+    }
+  }
+
+  @Override
+  public void flush() throws IOException {
+    mNettyDataWriter.flush();
+    if (mUnderStorageType.isSyncPersist()) {
+      mUnderStorageOutputStream.flush();
+    }
+  }
+
+  @Override
+  public void write(int b) throws IOException {
+    writeInternal(b);
+  }
+
+  @Override
+  public void write(byte[] b) throws IOException {
+    Preconditions.checkArgument(b != null, PreconditionMessage.ERR_WRITE_BUFFER_NULL);
+    writeInternal(b, 0, b.length);
+  }
+
+  @Override
+  public void write(byte[] b, int off, int len) throws IOException {
+    writeInternal(b, off, len);
+  }
+
+  private void writeInternal(int b) throws IOException {
+    if (mWriteToAlluxio) {
+      Integer intVal = b;
+      byte[] bytes = new byte[]{intVal.byteValue()};
+      mNettyDataWriter.writeChunk(bytes, 0, 1);
+      Metrics.BYTES_WRITTEN_ALLUXIO.inc();
+    }
+
+    if (mUnderStorageType.isSyncPersist()) {
+      mUnderStorageOutputStream.write(b);
+      Metrics.BYTES_WRITTEN_UFS.inc();
+    }
+    mBytesWritten++;
+  }
+
+  private void writeInternal(byte[] b, int off, int len) throws IOException {
+    Preconditions.checkArgument(b != null, PreconditionMessage.ERR_WRITE_BUFFER_NULL);
+    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
+        PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
+
+    if (mWriteToAlluxio) {
+      mNettyDataWriter.writeChunk(b, off, len);
+      Metrics.BYTES_WRITTEN_ALLUXIO.inc(len);
+    }
+    if (mUnderStorageType.isSyncPersist()) {
+      mUnderStorageOutputStream.write(b, off, len);
+      Metrics.BYTES_WRITTEN_UFS.inc(len);
+    }
+    mBytesWritten += len;
+  }
+
+  /**
+   * Class that contains metrics about FileOutStream.
+   */
+  @ThreadSafe
+  private static final class Metrics {
+    // Note that only counter can be added here.
+    // Both meter and timer need to be used inline
+    // because new meter and timer will be created after {@link MetricsSystem.resetAllMetrics()}
+    private static final Counter BYTES_WRITTEN_ALLUXIO =
+        MetricsSystem.counter(MetricKey.CLIENT_BYTES_WRITTEN_ALLUXIO.getName());
+    private static final Counter BYTES_WRITTEN_UFS =
+        MetricsSystem.counter(MetricKey.CLIENT_BYTES_WRITTEN_UFS.getName());
+
+    private Metrics() {} // prevent instantiation
+  }
+}

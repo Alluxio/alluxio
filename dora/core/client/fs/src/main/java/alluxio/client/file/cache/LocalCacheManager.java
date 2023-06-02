@@ -25,6 +25,7 @@ import alluxio.client.quota.CacheQuota;
 import alluxio.client.quota.CacheScope;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.Pair;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.file.ByteArrayTargetBuffer;
@@ -390,6 +391,24 @@ public class LocalCacheManager implements CacheManager {
       Metrics.PUT_INSUFFICIENT_SPACE_ERRORS.inc();
     }
     return false;
+  }
+
+  @Override
+  public void commitFile(String fileId) {
+    // TODO(JiamingMai): we still need to commit the data (not only the page metadata)
+    // call commit method of PageStoreDir
+    try {
+      PageStoreDir dir = mPageMetaStore.getStoreDirOfFile(fileId);
+      dir.commit(fileId, fileId);
+    } catch (FileDoesNotExistException notExistException) {
+      LOG.error(notExistException.getMessage());
+    } catch (IllegalStateException illegalStateException) {
+      // ignore the commit exception
+      LOG.error(illegalStateException.getMessage());
+    } catch (IOException ioException) {
+      // ignore the commit exception
+      LOG.error(ioException.getMessage());
+    }
   }
 
   private PutResult putAttempt(PageId pageId, ByteBuffer page, CacheContext cacheContext,
