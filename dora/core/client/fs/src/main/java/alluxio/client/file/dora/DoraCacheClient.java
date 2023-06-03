@@ -19,12 +19,14 @@ import alluxio.PositionReader;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.GrpcDataReader;
+import alluxio.client.file.DoraFileOutStream;
+import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.PositionReadFileInStream;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.dora.netty.NettyDataReader;
+import alluxio.client.file.dora.netty.NettyDataWriter;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.client.file.ufs.DoraOutStream;
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.PermissionDeniedException;
@@ -40,6 +42,7 @@ import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ReadRequest;
+import alluxio.grpc.RequestType;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.wire.WorkerNetAddress;
@@ -97,23 +100,23 @@ public class DoraCacheClient {
   }
 
   /**
-   * Create a OutStream to write data to dora cluster.
-   * @param status
-   * @param outStreamOptions
-   * @param fsContext
-   * @param uuid the uuid of its open file handle
-   * @return the out stream
-   * @throws IOException
+   * Get a stream to write the data to dora cache cluster.
+   *
+   * @param alluxioPath the alluxio path to be written
+   * @param fsContext the file system context
+   * @param outStreamOptions the output stream options
+   * @param ufsOutStream the UfsOutStream for writing data to UFS
+   * @param uuid the UUID for a certain FileOutStream
+   * @return the output stream
    */
-  public DoraOutStream getOutStream(URIStatus status,
-                                    OutStreamOptions outStreamOptions,
-                                    FileSystemContext fsContext,
-                                    String uuid) throws IOException {
-    return new DoraOutStream(new AlluxioURI(status.getUfsPath()),
-                                    outStreamOptions,
-                                    fsContext,
-                                    uuid,
-                                    this);
+  public DoraFileOutStream getOutStream(AlluxioURI alluxioPath, FileSystemContext fsContext,
+      OutStreamOptions outStreamOptions, FileOutStream ufsOutStream,
+      String uuid) throws IOException {
+    WorkerNetAddress workerNetAddress = getWorkerNetAddress(alluxioPath.getPath());
+    NettyDataWriter writer = NettyDataWriter.create(
+        fsContext, workerNetAddress, Long.MAX_VALUE, RequestType.ALLUXIO_BLOCK, outStreamOptions);
+    return new DoraFileOutStream(this, writer, alluxioPath,
+        outStreamOptions, fsContext, ufsOutStream, uuid);
   }
 
   protected long getChunkSize() {

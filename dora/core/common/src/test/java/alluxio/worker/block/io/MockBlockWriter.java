@@ -119,4 +119,9 @@ public final class MockBlockWriter extends BlockWriter {
   public byte[] getBytes() {
     return mOutputStream.toByteArray();
   }
+
+  @Override
+  public void commitFile() {
+    throw new UnsupportedOperationException("commitFile method is unsupported. ");
+  }
 }

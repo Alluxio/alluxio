@@ -76,6 +76,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Load job that loads a file or a directory into Alluxio.
  * This class should only be manipulated from the scheduler thread in Scheduler
  * thus the state changing functions are not thread safe.
+ * Deprecated class, refer to {@link DoraLoadJob}
  */
 @NotThreadSafe
 public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
@@ -205,14 +206,14 @@ public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
    */
   @Override
   public void failJob(AlluxioRuntimeException reason) {
-    setJobState(JobState.FAILED);
+    setJobState(JobState.FAILED, true);
     mFailedReason = Optional.of(reason);
     JOB_LOAD_FAIL.inc();
   }
 
   @Override
   public void setJobSuccess() {
-    setJobState(JobState.SUCCEEDED);
+    setJobState(JobState.SUCCEEDED, true);
     JOB_LOAD_SUCCESS.inc();
   }
 

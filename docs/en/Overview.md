@@ -68,7 +68,7 @@ The client obtains a list of DORA workers from a highly available service regist
 The client uses a consistent hashing algorithm to determine which worker to visit based on the file path as the key,
 ensuring that the same file always goes to the same worker for a maximum cache hit rate.
 This avoids a performance bottleneck because a client will directly interface with the appropriate worker
-without needing to refer to the service registry,
+without needing to refer to the service registry.
 
 In addition, DORA's architecture allows for easy scalability by adding more nodes to the cluster.
 Each worker node can support tens of millions of files, making it easy to handle increasing data volumes and growing user bases.
@@ -76,8 +76,10 @@ Each worker node can support tens of millions of files, making it easy to handle
 ### Paging Data Store
 
 DORA uses a paging store model as its cache storage, offering finer-grained caching for small to medium-sized read requests on large files.
-DORA's fine-grained caching has resulted in up to 150x read amplification and improved unstructured file position read by up to 9x.
-Additionally, it has improved structured file position read by 2x to 15x.
+Workloads may request specific portions of a structured file as opposed to reading the entire file.
+By utilizing a positioned read approach in this situation, the read algorithm can be up to 150x more efficient in streaming bytes as compared to a sequential read in a block store model.
+From the perspective of the workload, this results in a 2x to 15x throughput improvement.
+Other scenarios also reap benefits as well; 9x throughput improvement can be achieved when sequentially reading an unstructured file.
 
 ![Dora read approaches]({{ '/img/dora_read_approaches.png' | relativize_url }})
 
@@ -133,7 +135,7 @@ there was an improvement of 15x to 20x.
 
 ### Downloads and References
 
-Releases are available from the [downloads page](https://downloads.alluxio.io/downloads/files/).
+Releases are available from the [downloads page](https://alluxio.io/downloads/).
 
 We welcome everyone to join our community and try out DORA.
 Feel free to post issues and pull requests to our [GitHub](https://github.com/alluxio/alluxio)

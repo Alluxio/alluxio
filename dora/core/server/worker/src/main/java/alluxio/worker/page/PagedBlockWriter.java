@@ -117,4 +117,9 @@ public class PagedBlockWriter extends BlockWriter {
   private int getBytesLeftInPage(int currentPageOffset, int remaining) {
     return (int) Math.min(mPageSize - currentPageOffset, remaining);
   }
+
+  @Override
+  public void commitFile() {
+    throw new UnsupportedOperationException("commitFile method is unsupported. ");
+  }
 }

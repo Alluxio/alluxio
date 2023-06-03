@@ -106,11 +106,12 @@ public final class Constants {
   public static final String BLOCK_MASTER_NAME = "BlockMaster";
   public static final String FILE_SYSTEM_MASTER_NAME = "FileSystemMaster";
   public static final String META_MASTER_NAME = "MetaMaster";
+  public static final String POLICY_ENGINE_NAME = "PolicyEngine";
   public static final String METRICS_MASTER_NAME = "MetricsMaster";
   public static final String JOURNAL_MASTER_NAME = "JournalMaster";
   public static final String BLOCK_WORKER_NAME = "BlockWorker";
   public static final String FILE_SYSTEM_WORKER_NAME = "FileSystemWorker";
-
+  public static final long POLICY_ENGINE_CLIENT_SERVICE_VERSION = 1;
   public static final String BLOCK_MASTER_CLIENT_SERVICE_NAME = "BlockMasterClient";
   public static final String BLOCK_MASTER_WORKER_SERVICE_NAME = "BlockMasterWorker";
   public static final String FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME = "FileSystemMasterClient";
@@ -232,6 +233,12 @@ public final class Constants {
   public static final String MEDIUM_MEM = "MEM";
   public static final String MEDIUM_HDD = "HDD";
   public static final String MEDIUM_SSD = "SSD";
+
+  /**
+   * Please use this switch enable/disable Dora write support in development.
+   * This will be removed when Dora write support is production ready.
+   */
+  public static final boolean ENABLE_DORA_WRITE = true;
 
   private Constants() {} // prevent instantiation
 }

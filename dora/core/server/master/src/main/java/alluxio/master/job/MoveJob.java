@@ -78,6 +78,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Move job that move a file or a directory from source to destination.
  * This class should only be manipulated from the scheduler thread in Scheduler
  * thus the state changing functions are not thread safe.
+ * TODO() as task within this class is running on multithreaded context,
+ * make thread unsafe places to be thread safe in future.
  */
 @NotThreadSafe
 public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
@@ -207,14 +209,14 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
    */
   @Override
   public void failJob(AlluxioRuntimeException reason) {
-    setJobState(JobState.FAILED);
+    setJobState(JobState.FAILED, true);
     mFailedReason = Optional.of(reason);
     JOB_MOVE_FAIL.inc();
   }
 
   @Override
   public void setJobSuccess() {
-    setJobState(JobState.SUCCEEDED);
+    setJobState(JobState.SUCCEEDED, true);
     JOB_MOVE_SUCCESS.inc();
   }
 
@@ -559,8 +561,7 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
   private static class MoveProgressReport {
     private final boolean mVerbose;
     private final JobState mJobState;
-    private final Long mBandwidth;
-    private final boolean mVerificationEnabled;
+    private final boolean mCheckContent;
     private final long mProcessedFileCount;
     private final long mByteCount;
     private final Long mTotalByteCount;
@@ -574,8 +575,7 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
     {
       mVerbose = verbose;
       mJobState = job.mState;
-      mBandwidth = job.mBandwidth.isPresent() ? job.mBandwidth.getAsLong() : null;
-      mVerificationEnabled = job.mVerificationEnabled;
+      mCheckContent = job.mCheckContent;
       mProcessedFileCount = job.mProcessedFileCount.get();
       mByteCount = job.mMovedByteCount.get();
       if (!job.mUsePartialListing && job.mFileIterator.isPresent()) {
@@ -625,9 +625,7 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
     private String getTextReport() {
       StringBuilder progress = new StringBuilder();
       progress.append(
-          format("\tSettings:\tbandwidth: %s\tverify: %s%n",
-              mBandwidth == null ? "unlimited" : mBandwidth,
-              mVerificationEnabled));
+          format("\tSettings:\tcheck-content: %s%n", mCheckContent));
       progress.append(format("\tJob State: %s%s%n", mJobState,
           mFailureReason == null
               ? "" : format(

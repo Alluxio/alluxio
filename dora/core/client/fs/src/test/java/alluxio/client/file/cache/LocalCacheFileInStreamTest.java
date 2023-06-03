@@ -680,6 +680,11 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
+    public void commitFile(String fileId) {
+      throw new UnsupportedOperationException("commitFile method is unsupported. ");
+    }
+
+    @Override
     public int getAndLoad(PageId pageId, int pageOffset, int bytesToRead,
         ReadTargetBuffer buffer, CacheContext cacheContext,
         Supplier<byte[]> externalDataSupplier) {

@@ -21,15 +21,21 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import alluxio.Constants;
+import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.Route;
+import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.job.FileIterable;
 import alluxio.master.job.MoveJob;
+import alluxio.master.journal.JournalContext;
+import alluxio.master.scheduler.DefaultWorkerProvider;
+import alluxio.master.scheduler.JournaledJobMetaStore;
+import alluxio.master.scheduler.Scheduler;
 import alluxio.scheduler.job.JobState;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerInfo;
@@ -96,7 +102,15 @@ public class MoveJobTest {
     String srcPath = "/src";
     String dstPath = "/dst";
     List<FileInfo> fileInfos = generateRandomFileInfoUnderRoot(500, 20, 64 * Constants.MB, srcPath);
-    FileSystemMaster fileSystemMaster = mock(FileSystemMaster.class);
+    DefaultFileSystemMaster fileSystemMaster = mock(DefaultFileSystemMaster.class);
+    JournalContext journalContext = mock(JournalContext.class);
+    when(fileSystemMaster.createJournalContext()).thenReturn(journalContext);
+    FileSystemContext fileSystemContext = mock(FileSystemContext.class);
+    DefaultWorkerProvider workerProvider =
+        new DefaultWorkerProvider(fileSystemMaster, fileSystemContext);
+    Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider,
+        new JournaledJobMetaStore((DefaultFileSystemMaster) fileSystemMaster));
+
     when(fileSystemMaster.listStatus(any(), any())).thenReturn(fileInfos);
     Optional<String> user = Optional.of("user");
     FileIterable files =
@@ -104,10 +118,10 @@ public class MoveJobTest {
     MoveJob job = spy(new MoveJob(srcPath, dstPath, false, user, "1",
         OptionalLong.empty(), false, false, false, files));
     when(job.getDurationInSec()).thenReturn(0L);
-    job.setJobState(JobState.RUNNING);
+    job.setJobState(JobState.RUNNING, false);
     List<Route> nextRoutes = job.getNextRoutes(25);
     job.addMovedBytes(640 * Constants.MB);
-    String expectedTextReport = "\tSettings:\tbandwidth: unlimited\tverify: false\n"
+    String expectedTextReport = "\tSettings:\tcheck-content: false\n"
         + "\tJob State: RUNNING\n"
         + "\tFiles Processed: 25\n"
         + "\tBytes Moved: 640.00MB out of 31.25GB\n"
@@ -116,7 +130,7 @@ public class MoveJobTest {
     assertEquals(expectedTextReport, job.getProgress(JobProgressReportFormat.TEXT, false));
     assertEquals(expectedTextReport, job.getProgress(JobProgressReportFormat.TEXT, true));
     String expectedJsonReport = "{\"mVerbose\":false,\"mJobState\":\"RUNNING\","
-        + "\"mVerificationEnabled\":false,\"mProcessedFileCount\":25,"
+        + "\"mCheckContent\":false,\"mProcessedFileCount\":25,"
         + "\"mByteCount\":671088640,\"mTotalByteCount\":33554432000,"
         + "\"mFailurePercentage\":0.0,\"mFailedFileCount\":0,\"mFailedFilesWithReasons\":{}}";
     assertEquals(expectedJsonReport, job.getProgress(JobProgressReportFormat.JSON, false));
@@ -125,7 +139,7 @@ public class MoveJobTest {
     job.addFailure(nextRoutes.get(10).getSrc(),  "Test error 3", 2);
     job.failJob(new InternalRuntimeException("test"));
     assertEquals(JobState.FAILED, job.getJobState());
-    String expectedTextReportWithError = "\tSettings:\tbandwidth: unlimited\tverify: false\n"
+    String expectedTextReportWithError = "\tSettings:\tcheck-content: false\n"
         + "\tJob State: FAILED (alluxio.exception.runtime.InternalRuntimeException: test)\n"
         + "\tFiles Processed: 25\n"
         + "\tBytes Moved: 640.00MB out of 31.25GB\n"

@@ -172,16 +172,16 @@ alluxio.user.logging.threshold:
   'Logging a client RPC when it takes more time than the threshold.'
 alluxio.user.master.polling.timeout:
   'The maximum time for a rpc client to wait for master to respond.'
-alluxio.user.metadata.cache.enabled:
-  'If this is enabled, metadata of paths will be cached. The cached metadata will be evicted when it expires after alluxio.user.metadata.cache.expiration.time or the cache size is over the limit of alluxio.user.metadata.cache.max.size.'
 alluxio.user.metadata.cache.expiration.time:
-  'Metadata will expire and be evicted after being cached for this time period. Only valid if alluxio.user.metadata.cache.enabled is set to true.'
+  'Metadata will expire and be evicted after being cached for this time period. If the value is not set, metadata will not be expired and will only be evicted after reaching the alluxio.user.metadata.cache.max.size'
 alluxio.user.metadata.cache.max.size:
-  'Maximum number of paths with cached metadata. Only valid if alluxio.user.metadata.cache.enabled is set to true.'
+  'Maximum number of paths with cached metadata.The cached metadata will be evicted when it expires after alluxio.user.metadata.cache.expiration.time or the cache size is over the limit of alluxio.user.metadata.cache.max.size. Each 1000 entries cost around 2MB memory. Recommend using 20,000 entries are cached with around 40MB memory consumption for FUSE client.'
 alluxio.user.metrics.collection.enabled:
   'Enable collecting the client-side metrics and heartbeat them to master'
 alluxio.user.metrics.heartbeat.interval:
   'The time period of client master heartbeat to send the client-side metrics.'
+alluxio.user.netty.data.transmission.enabled:
+  'Whether to enable Netty data transmission.'
 alluxio.user.network.data.timeout:
   'The maximum time for an Alluxio client to wait for a data response (e.g. block reads and block writes) from Alluxio worker.'
 alluxio.user.network.flowcontrol.window:
@@ -194,8 +194,24 @@ alluxio.user.network.max.inbound.message.size:
   'The max inbound message size used by user gRPC connections.'
 alluxio.user.network.netty.channel:
   'Type of netty channels. If EPOLL is not available, this will automatically fall back to NIO.'
+alluxio.user.network.netty.channel.pool.disabled:
+  'Disable netty channel pool. This should be turned on if the client version is &gt;= 1.3.0 but server version is &lt;= 1.2.x.'
+alluxio.user.network.netty.channel.pool.gc.threshold:
+  'A netty channel is closed if it has been idle for more than this threshold.'
+alluxio.user.network.netty.channel.pool.size.max:
+  'The maximum number of netty channels cached in the netty channel pool.'
+alluxio.user.network.netty.reader.buffer.size.packets:
+  'When a client reads from a remote worker, the maximum number of packets to buffer by the client.'
+alluxio.user.network.netty.timeout:
+  'The maximum time for a netty client (for block reads and block writes) to wait for a response from the data server.'
 alluxio.user.network.netty.worker.threads:
   'How many threads to use for remote block worker client to read from remote block workers.'
+alluxio.user.network.netty.writer.buffer.size.packets:
+  'When a client writes to a remote worker, the maximum number of packets to buffer by the client.'
+alluxio.user.network.netty.writer.close.timeout:
+  'The timeout to close a netty writer client.'
+alluxio.user.network.netty.writer.packet.size.bytes:
+  'When a client writes to a remote worker, the maximum packet size.'
 alluxio.user.network.reader.buffer.size.messages:
   'When a client reads from a remote worker, the maximum number of messages to buffer by the client. A message can be either a command response, a data chunk, or a gRPC stream event such as complete or error.'
 alluxio.user.network.reader.chunk.size.bytes:

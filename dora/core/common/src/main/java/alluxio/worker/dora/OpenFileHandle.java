@@ -16,6 +16,7 @@ import alluxio.grpc.FileInfo;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.UUID;
+import javax.annotation.Nullable;
 
 /**
  * Open File Handle in Dora for write request.
@@ -35,9 +36,10 @@ public class OpenFileHandle {
    * @param info
    * @param outStream
    */
-  public OpenFileHandle(String path, FileInfo info, OutputStream outStream) {
+  public OpenFileHandle(String path, FileInfo info, @Nullable OutputStream outStream) {
     mPath = path;
     mInfo = info;
+    // TODO(Hua): The operation of generating UUID is SLOW. We can replace it in other way.
     mUUID = UUID.randomUUID();
     mOutStream = outStream;
     mPos = 0L;

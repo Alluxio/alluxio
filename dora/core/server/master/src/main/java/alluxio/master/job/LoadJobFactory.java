@@ -60,7 +60,7 @@ public class LoadJobFactory implements JobFactory {
     return new DoraLoadJob(path, user, UUID.randomUUID().toString(),
         bandwidth,
         partialListing,
-        verificationEnabled, mFsMaster.getScheduler());
+        verificationEnabled);
   }
 }
 

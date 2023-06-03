@@ -28,6 +28,7 @@ import alluxio.wire.FileInfo;
 import alluxio.worker.DataWorker;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.io.BlockWriter;
 
 import com.google.common.util.concurrent.ListenableFuture;
 
@@ -89,6 +90,15 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
   BlockReader createFileReader(String fileId, long offset,
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws IOException, AccessControlException;
+
+  /**
+   * Creates the file writer to write to Alluxio dora.
+   * Owner of this block writer must close it or lock will leak.
+   *
+   * @param fileId  the ID of the UFS file
+   * @return the block writer for the local file
+   */
+  BlockWriter createFileWriter(String fileId);
 
   /**
    * Loads files from UFS to Alluxio.

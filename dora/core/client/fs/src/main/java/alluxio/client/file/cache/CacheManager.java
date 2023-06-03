@@ -337,6 +337,12 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
   Optional<CacheUsage> getUsage();
 
   /**
+   * Commit the File.
+   * @param fileId the file ID
+   */
+  void commitFile(String fileId);
+
+  /**
    * Get a {@link DataFileChannel} which wraps a {@link io.netty.channel.FileRegion}.
    * @param pageId the page id
    * @param pageOffset the offset inside the page

@@ -51,14 +51,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -81,13 +79,13 @@ public final class Scheduler {
   private static final long WORKER_UPDATE_INTERVAL = Configuration.getMs(
       PropertyKey.MASTER_WORKER_INFO_CACHE_REFRESH_TIME);
   private static final int EXECUTOR_SHUTDOWN_MS = 10 * Constants.SECOND_MS;
+  private static AtomicReference<Scheduler> sInstance = new AtomicReference<>();
   private final Map<JobDescription, Job<?>> mExistingJobs = new ConcurrentHashMap<>();
   private final Map<Job<?>, ConcurrentHashSet<Task<?>>> mJobToRunningTasks =
       new ConcurrentHashMap<>();
   private final JobMetaStore mJobMetaStore;
   // initial thread in start method since we would stop and start thread when gainPrimacy
   private ScheduledExecutorService mSchedulerExecutor;
-  private ThreadPoolExecutor mWorkingExecutor;
   private volatile boolean mRunning = false;
   private final FileSystemContext mFileSystemContext;
   private final WorkerInfoHub mWorkerInfoHub;
@@ -98,7 +96,6 @@ public final class Scheduler {
   @SuppressFBWarnings(value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE",
       justification = "Already performed null check")
   public class WorkerInfoHub {
-    private Scheduler mScheduler;
     public Map<WorkerInfo, CloseableResource<BlockWorkerClient>> mActiveWorkers = ImmutableMap.of();
     private final WorkerProvider mWorkerProvider;
 
@@ -108,7 +105,6 @@ public final class Scheduler {
      * @param workerProvider worker provider
      */
     public WorkerInfoHub(Scheduler scheduler, WorkerProvider workerProvider) {
-      mScheduler = scheduler;
       mWorkerProvider = workerProvider;
     }
 
@@ -119,7 +115,7 @@ public final class Scheduler {
      * Enqueue task for worker.
      * @param workerInfo the worker
      * @param task the task
-     * @param kickStartTask kick start task
+     * @param kickStartTask kick-start task
      * @return whether the task is enqueued successfully
      */
     public boolean enqueueTaskForWorker(@Nullable WorkerInfo workerInfo, Task task,
@@ -139,41 +135,32 @@ public final class Scheduler {
         return false;
       }
       if (kickStartTask) {
-        mScheduler.getWorkingExecutor().submit(() -> {
-          try {
-            task.execute(blkWorkerClientResource.get(), workerInfo);
-            // track running tasks of a job
-            ConcurrentHashSet<Task<?>> tasks = mJobToRunningTasks.computeIfAbsent(task.getJob(),
+        // track running tasks of a job
+        ConcurrentHashSet<Task<?>> tasks = mJobToRunningTasks.computeIfAbsent(task.getJob(),
                 j -> new ConcurrentHashSet<>());
-            tasks.add(task);
-            task.getResponseFuture().addListener(() -> {
-              Job job = task.getJob();
-              try {
-                job.processResponse(task); // retry onfailure logic inside
-              /* TODO(lucy) now whether task succeed or fail, remove it from q,
-              it could be add numOfRetry logic to the task with added upgrade/degrade
-              priority to add back to the q for retry. */
-                workerTaskQ.remove(task);
-                ConcurrentHashSet runningTaskSet = mJobToRunningTasks.getOrDefault(
-                    job, new ConcurrentHashSet<>());
-                runningTaskSet.remove(task);
-                // TODO(lucy) currently processJob is only called in the single
-                // threaded scheduler thread context, in future once tasks are
-                // completed, they should be able to call processJob to resume
-                // their own job to schedule next set of tasks to run.
-              } catch (Exception e) {
-                // Unknown exception. This should not happen, but if it happens we don't
-                // want to lose the worker thread, thus catching it here. Any exception
-                // surfaced here should be properly handled.
-                LOG.error("Unexpected exception thrown in response future listener.", e);
-                job.failJob(new InternalRuntimeException(e));
-              }
-            }, mScheduler.getWorkingExecutor());
+        tasks.add(task);
+        task.execute(blkWorkerClientResource.get(), workerInfo);
+        task.getResponseFuture().addListener(() -> {
+          Job job = task.getJob();
+          try {
+            job.processResponse(task); // retry on failure logic inside
+            // TODO(lucy) currently processJob is only called in the single
+            // threaded scheduler thread context, in future once tasks are
+            // completed, they should be able to call processJob to resume
+            // their own job to schedule next set of tasks to run.
           } catch (Exception e) {
-            LOG.error("Unexpected exception thrown in submitting task:{} of job:{}.",
-                task, task.getJob(), e);
+            // Unknown exception. This should not happen, but if it happens we don't
+            // want to lose the worker thread, thus catching it here. Any exception
+            // surfaced here should be properly handled.
+            LOG.error("Unexpected exception thrown in response future listener.", e);
+            job.failJob(new InternalRuntimeException(e));
+          } finally {
+            // whether task succeed or fail, remove it from q,
+            workerTaskQ.remove(task);
+            ConcurrentHashSet<Task<?>> runningTaskSet = mJobToRunningTasks.get(job);
+            runningTaskSet.remove(task);
           }
-        });
+        }, mSchedulerExecutor);
       }
       return true;
     }
@@ -272,6 +259,17 @@ public final class Scheduler {
     MetricsSystem.registerCachedGaugeIfAbsent(
         MetricKey.MASTER_JOB_SCHEDULER_RUNNING_COUNT.getName(), mJobToRunningTasks::size);
     mWorkerInfoHub = new WorkerInfoHub(this, workerProvider);
+    // the scheduler won't be instantiated twice
+    sInstance.compareAndSet(null, this);
+  }
+
+  /**
+   * Get the singleton instance of Scheduler.
+   * getInstance won't be called before constructor.
+   * @return Scheduler instance
+   */
+  public static @Nullable Scheduler getInstance() {
+    return sInstance.get();
   }
 
   /**
@@ -280,9 +278,6 @@ public final class Scheduler {
   public void start() {
     if (!mRunning) {
       retrieveJobs();
-      mWorkingExecutor = new ThreadPoolExecutor(4, 4, 0, TimeUnit.SECONDS,
-          new ArrayBlockingQueue<>(16 * 1024),
-          ThreadFactoryUtils.build("SCHEDULER-WORKER-%d", true));
       mSchedulerExecutor = Executors.newSingleThreadScheduledExecutor(
           ThreadFactoryUtils.build("scheduler", false));
       mSchedulerExecutor.scheduleAtFixedRate(mWorkerInfoHub::updateWorkers, 0,
@@ -301,25 +296,10 @@ public final class Scheduler {
     mWorkerInfoHub.updateWorkers();
   }
 
-  /**
-   * @return the working executor
-   */
-  public ExecutorService getWorkingExecutor() {
-    return mWorkingExecutor;
-  }
-
   /*
    TODO(lucy) in future we should remove job automatically, but keep all history jobs in db to help
    user retrieve all submitted jobs status.
    */
-
-  /**
-   * Removes the job.
-   * @param job the job
-   */
-  public void removeJob(Job job) {
-    mExistingJobs.remove(job.getDescription());
-  }
 
   private void retrieveJobs() {
     for (Job<?> job : mJobMetaStore.getJobs()) {
@@ -342,7 +322,6 @@ public final class Scheduler {
       mWorkerInfoHub.mActiveWorkers.values().forEach(CloseableResource::close);
       mWorkerInfoHub.mActiveWorkers = ImmutableMap.of();
       ThreadUtils.shutdownAndAwaitTermination(mSchedulerExecutor, EXECUTOR_SHUTDOWN_MS);
-      ThreadUtils.shutdownAndAwaitTermination(mWorkingExecutor, EXECUTOR_SHUTDOWN_MS);
       mRunning = false;
     }
   }
@@ -380,7 +359,7 @@ public final class Scheduler {
     mJobMetaStore.updateJob(existingJob);
     LOG.debug(format("updated existing job: %s from %s", existingJob, newJob));
     if (existingJob.getJobState() == JobState.STOPPED) {
-      existingJob.setJobState(JobState.RUNNING);
+      existingJob.setJobState(JobState.RUNNING, false);
       mJobToRunningTasks.compute(existingJob, (k, v) -> new ConcurrentHashSet<>());
       LOG.debug(format("restart existing job: %s", existingJob));
     }
@@ -394,7 +373,7 @@ public final class Scheduler {
   public boolean stopJob(JobDescription jobDescription) {
     Job<?> existingJob = mExistingJobs.get(jobDescription);
     if (existingJob != null && existingJob.isRunning()) {
-      existingJob.setJobState(JobState.STOPPED);
+      existingJob.setJobState(JobState.STOPPED, false);
       mJobMetaStore.updateJob(existingJob);
       // leftover tasks in mJobToRunningTasks would be removed by scheduling thread.
       return true;

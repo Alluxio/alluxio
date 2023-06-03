@@ -2295,9 +2295,16 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
+
+  public static final MetricKey CLIENT_BYTES_WRITTEN_ALLUXIO =
+      new Builder("Client.BytesWrittenAlluxio")
+          .setDescription("Total number of bytes write to Alluxio by this client")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(true)
+          .build();
   public static final MetricKey CLIENT_BYTES_WRITTEN_UFS =
       new Builder("Client.BytesWrittenUfs")
-          .setDescription("Total number of bytes write to Alluxio UFS by this client")
+          .setDescription("Total number of bytes write to UFS by this client")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
@@ -2625,7 +2632,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
 
   public static final MetricKey NETTY_CHANNEL_COUNT =
-      new Builder("Netty.NettyChannelCount")
+      new Builder("Process.NettyChannelCount")
           .setDescription("Number of instances in the NettyChannelPool.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
