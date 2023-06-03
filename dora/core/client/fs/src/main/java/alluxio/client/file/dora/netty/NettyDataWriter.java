@@ -299,7 +299,15 @@ public final class NettyDataWriter implements DataWriter {
       return;
     }
 
-    sendEof();
+    if (mPosToQueue == 0) {
+      // File was opened but didn't write anything.
+      try (LockResource lr = new LockResource(mLock)) {
+        mDone = true;
+        mDoneOrFailed.signal();
+      }
+    } else {
+      sendEof();
+    }
     Future<?> closeFuture = null;
     mLock.lock();
     try {
