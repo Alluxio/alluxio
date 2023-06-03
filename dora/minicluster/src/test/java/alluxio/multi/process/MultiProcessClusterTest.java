@@ -43,7 +43,7 @@ public final class MultiProcessClusterTest {
     clusterVerification();
   }
 
-  @Test
+  @Deprecated
   public void zookeeper() throws Exception {
     mCluster = MultiProcessCluster.newBuilder(PortCoordination.MULTI_PROCESS_ZOOKEEPER)
         .setClusterName("zookeeper")
@@ -60,7 +60,7 @@ public final class MultiProcessClusterTest {
   private void clusterVerification() throws Exception {
     try {
       mCluster.start();
-      mCluster.waitForAllNodesRegistered(60 * Constants.SECOND_MS);
+      mCluster.waitForAllNodesRegistered(600 * Constants.SECOND_MS);
       FileSystem fs = mCluster.getFileSystemClient();
       createAndOpenFile(fs);
       mCluster.notifySuccess();

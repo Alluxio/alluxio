@@ -986,6 +986,8 @@ public final class MultiProcessCluster {
               .stream().filter(key ->  (key >= mNumWorkers || key < 0)).count() == 0,
           "The worker indexes in worker properties should be bigger or equal to zero "
               + "and small than %s", mNumWorkers);
+      addProperty(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED, true);
+
       return new MultiProcessCluster(mProperties, mMasterProperties, mWorkerProperties,
           mNumMasters, mNumWorkers, mClusterName, mNoFormat, mReservedPorts);
     }
