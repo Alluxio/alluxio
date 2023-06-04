@@ -34,7 +34,7 @@ import java.net.URI;
  * Alluxio clusters through {@link FileSystem}.
  */
 public class FileSystemUriIntegrationTest extends BaseIntegrationTest {
-  private static final int WAIT_TIMEOUT_MS = 60 * Constants.SECOND_MS;
+  private static final int WAIT_TIMEOUT_MS = 120 * Constants.SECOND_MS;
   private MultiProcessCluster mCluster;
 
   @After

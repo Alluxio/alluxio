@@ -4153,7 +4153,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_BLOCK_HEARTBEAT_INTERVAL_MS =
       durationBuilder(Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)
           .setAlias("alluxio.worker.block.heartbeat.interval.ms")
-          .setDefaultValue("1sec")
+          .setDefaultValue("10sec")
           .setDescription("The interval between block workers' heartbeats to update "
               + "block status, storage health and other workers' information to Alluxio Master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)

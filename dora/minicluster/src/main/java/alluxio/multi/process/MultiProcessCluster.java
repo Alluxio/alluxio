@@ -273,6 +273,7 @@ public final class MultiProcessCluster {
         PathUtils.concatPath(mWorkDir, "underFSStorage"));
     mProperties.put(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED, true);
     mProperties.put(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false);
+    mProperties.put(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED, true);
 
     if (format) {
       formatJournal();
@@ -366,7 +367,7 @@ public final class MultiProcessCluster {
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
-    }, WaitForOptions.defaults().setInterval(200).setTimeoutMs(timeoutMs));
+    }, WaitForOptions.defaults().setInterval(1000).setTimeoutMs(timeoutMs));
   }
 
   /**
@@ -733,11 +734,13 @@ public final class MultiProcessCluster {
     conf.put(PropertyKey.LOGS_DIR, logsDir.getAbsolutePath());
     conf.put(PropertyKey.WORKER_RPC_PORT, rpcPort);
     conf.put(PropertyKey.WORKER_WEB_PORT, webPort);
+    conf.put(PropertyKey.WORKER_DATA_PORT, dataPort);
     conf.put(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR, workerMetaStoreDir.getAbsolutePath());
 
     conf.put(PropertyKey.DORA_CLIENT_UFS_ROOT, PathUtils.concatPath(mWorkDir, "underFSStorage"));
     conf.put(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED, true);
     conf.put(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false);
+    conf.put(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED, true);
 
     Worker worker = mCloser.register(new Worker(logsDir, conf));
     mWorkers.add(worker);
@@ -986,8 +989,6 @@ public final class MultiProcessCluster {
               .stream().filter(key ->  (key >= mNumWorkers || key < 0)).count() == 0,
           "The worker indexes in worker properties should be bigger or equal to zero "
               + "and small than %s", mNumWorkers);
-      addProperty(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED, true);
-
       return new MultiProcessCluster(mProperties, mMasterProperties, mWorkerProperties,
           mNumMasters, mNumWorkers, mClusterName, mNoFormat, mReservedPorts);
     }
