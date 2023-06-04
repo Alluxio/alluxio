@@ -152,6 +152,7 @@ public class DoraFileOutStream extends FileOutStream {
             mUnderStorageOutputStream.flush();
           }
         } catch (Exception e) {
+          // Ignore;
         } finally {
           if (Constants.ENABLE_DORA_WRITE) {
             // Only close this output stream when write is enabled.
