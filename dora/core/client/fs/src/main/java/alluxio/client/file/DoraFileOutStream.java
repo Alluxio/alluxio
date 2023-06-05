@@ -173,7 +173,7 @@ public class DoraFileOutStream extends FileOutStream {
           .build();
       mClosed = true;
       mDoraClient.completeFile(mUri.toString(), options, mUuid);
-    } catch (Exception e) { // must catch Throwable
+    } catch (Exception e) {
       // Ignore.
     } finally {
       mClosed = true;
