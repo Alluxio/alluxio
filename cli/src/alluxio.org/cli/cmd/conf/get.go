@@ -22,7 +22,7 @@ import (
 )
 
 var Get = &GetCommand{
-	BaseCommand: &env.BaseCommand{
+	BaseJavaCommand: &env.BaseJavaCommand{
 		CommandName:   "get",
 		JavaClassName: "alluxio.cli.GetConf",
 		ShellJavaOpts: fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioConfValidationEnabled, false),
@@ -30,15 +30,15 @@ var Get = &GetCommand{
 }
 
 type GetCommand struct {
-	*env.BaseCommand
+	*env.BaseJavaCommand
 
 	ShowMaster bool
 	ShowSource bool
 	Unit       string
 }
 
-func (c *GetCommand) Base() *env.BaseCommand {
-	return c.BaseCommand
+func (c *GetCommand) Base() *env.BaseJavaCommand {
+	return c.BaseJavaCommand
 }
 
 func (c *GetCommand) ToCommand() *cobra.Command {

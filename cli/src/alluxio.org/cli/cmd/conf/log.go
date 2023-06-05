@@ -19,22 +19,22 @@ import (
 )
 
 var Log = &LogCommand{
-	BaseCommand: &env.BaseCommand{
+	BaseJavaCommand: &env.BaseJavaCommand{
 		CommandName:   "log",
 		JavaClassName: "alluxio.cli.LogLevel",
 	},
 }
 
 type LogCommand struct {
-	*env.BaseCommand
+	*env.BaseJavaCommand
 
 	LogName string
 	Level   string
 	Targets []string
 }
 
-func (c *LogCommand) Base() *env.BaseCommand {
-	return c.BaseCommand
+func (c *LogCommand) Base() *env.BaseJavaCommand {
+	return c.BaseJavaCommand
 }
 
 func (c *LogCommand) ToCommand() *cobra.Command {

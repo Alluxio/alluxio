@@ -34,7 +34,7 @@ This is preferred over the alternative of two separate commands with `setMark` a
 A majority of commands result in invoking a java class with arguments to execute the expected operation and possibly return some output.
 The output returned from the java invocation should tend towards being plain or machine parseable, such as a JSON formatted string,
 rather than terminal friendly or human readable format.
-When appropriate, the CLI command will default to formatting this output to be terminal friendly, with an option to ouptut in a machine parseable format such as JSON.
+When appropriate, the CLI command will default to formatting this output to be terminal friendly, with an option to output in a machine parseable format such as JSON.
 
 ## References
 
