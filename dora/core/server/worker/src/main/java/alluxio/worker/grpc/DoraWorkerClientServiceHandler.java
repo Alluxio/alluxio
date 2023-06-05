@@ -27,6 +27,8 @@ import alluxio.grpc.CopyRequest;
 import alluxio.grpc.CopyResponse;
 import alluxio.grpc.CreateFilePRequest;
 import alluxio.grpc.CreateFilePResponse;
+import alluxio.grpc.DeletePRequest;
+import alluxio.grpc.DeletePResponse;
 import alluxio.grpc.FileFailure;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
@@ -278,6 +280,22 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       responseObserver.onCompleted();
     } catch (Exception e) {
       LOG.error(String.format("Failed to complete file for %s: ", request.getPath()), e);
+      responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
+    }
+  }
+
+  @Override
+  public void remove(DeletePRequest request, StreamObserver<DeletePResponse> responseObserver) {
+    LOG.debug("Got Remove: {}", request);
+    try {
+      String ufsFullPath = request.getPath();
+
+      mWorker.delete(ufsFullPath, request.getOptions());
+      DeletePResponse response = DeletePResponse.newBuilder().build();
+      responseObserver.onNext(response);
+      responseObserver.onCompleted();
+    } catch (Exception e) {
+      LOG.error(String.format("Failed to delete file for %s: ", request.getPath()), e);
       responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
     }
   }

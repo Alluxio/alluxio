@@ -48,14 +48,19 @@ service BlockWorker {
   rpc FreeWorker (FreeWorkerRequest) returns (FreeWorkerResponse);
 
   /**
- * Creates a file.
- */
+   * Creates a file.
+   */
   rpc CreateFile(grpc.file.CreateFilePRequest) returns (grpc.file.CreateFilePResponse);
 
   /**
- * Marks a file as completed.
- */
+   * Marks a file as completed.
+   */
   rpc CompleteFile(grpc.file.CompleteFilePRequest) returns (grpc.file.CompleteFilePResponse);
+
+  /**
+   * Deletes a file or a directory and returns whether the remove operation succeeded.
+   */
+  rpc Remove(grpc.file.DeletePRequest) returns (grpc.file.DeletePResponse);
 }
 
 // The check request

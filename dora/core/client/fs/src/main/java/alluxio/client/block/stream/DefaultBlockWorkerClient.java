@@ -29,6 +29,8 @@ import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.DataMessageMarshaller;
 import alluxio.grpc.DataMessageMarshallerProvider;
+import alluxio.grpc.DeletePRequest;
+import alluxio.grpc.DeletePResponse;
 import alluxio.grpc.FreeWorkerRequest;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
@@ -365,5 +367,11 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   public CompleteFilePResponse completeFile(CompleteFilePRequest request) {
     return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
         .completeFile(request);
+  }
+
+  @Override
+  public DeletePResponse delete(DeletePRequest request) {
+    return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
+        .remove(request);
   }
 }

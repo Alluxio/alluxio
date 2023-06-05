@@ -38,6 +38,7 @@ import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.File;
 import alluxio.grpc.FileFailure;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
@@ -356,12 +357,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     return freshStatusesFromUfs;
   }
 
-  /**
-   * @param fileInfo the FileInfo of this file. Cached pages are identified by PageId
-   * @return true at this moment
-   */
-  @Override
-  public boolean invalidateCachedFile(FileInfo fileInfo) {
+  private boolean invalidateCachedFile(FileInfo fileInfo) {
     long pages = (fileInfo.getLength() + mPageSize - 1) / mPageSize;
     FileId file = FileId.of(new AlluxioURI(fileInfo.getUfsPath()).hash());
 
@@ -369,6 +365,29 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     // cached or not. If a page is not cached at all, the mCacheManager.delete() will log
     // error messages to complain the non-existance of the page. As an optimization we need
     // to only invalidate cached pages.
+    for (long i = 0; i < pages; i++) {
+      PageId page = new PageId(file.toString(), i);
+      mCacheManager.delete(page);
+    }
+    return true;
+  }
+
+  private boolean invalidateCachedFile(String path) {
+    long pages = 0;
+    try {
+      UfsStatus existingFileStatus = mUfs.getStatus(path);
+      if (existingFileStatus instanceof UfsFileStatus) {
+        pages =
+            (((UfsFileStatus) existingFileStatus).getContentLength() + mPageSize - 1) / mPageSize;
+      }
+    } catch (Exception e) {
+      // It's possible that this file is not found in UFS.
+      // FIXME: If the file is not found in UFS, we need a new API to remove all cached pages
+      // of that file, not based on the pageId. This needs a new API. See below.
+      pages = 10_000L; // 1MB * 10_000 = 10GB
+    }
+    // TODO(bowen) we need a new API to remove all cached pages of a file, not based on the pages.
+    FileId file = FileId.of(new AlluxioURI(path).hash());
     for (long i = 0; i < pages; i++) {
       PageId page = new PageId(file.toString(), i);
       mCacheManager.delete(page);
@@ -735,13 +754,10 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       if (!overWrite && exists) {
         throw new RuntimeException(
             new FileAlreadyExistsException("File already exists but no overwrite flag"));
-      } else if (overWrite && exists) {
-        // File exists in UFS already and client is going to overwrite it.
-        // We need to invalidate the cached data.
-        UfsStatus existingFileStatus = mUfs.getStatus(path);
-        alluxio.grpc.FileInfo existingFileInfo =
-            buildFileInfoFromUfsStatus(existingFileStatus, path);
-        invalidateCachedFile(GrpcUtils.fromProto(existingFileInfo));
+      } else if (overWrite) {
+        // client is going to overwrite this file. We need to invalidate the cached meta and data.
+        invalidateFileMeta(path);
+        invalidateCachedFile(path);
       }
 
       // Open UFS OutputStream and use it in write operation.
@@ -771,6 +787,21 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     return handle;
   }
 
+  private void invalidateFileMeta(String path) {
+    // The simplest way of updating metadata is invalidating cache in worker.
+    // Next time, worker will get fresh metadata from ufs.
+    AlluxioURI fullPathUri = new AlluxioURI(path);
+    AlluxioURI parentDir;
+    if (fullPathUri.isRoot()) {
+      parentDir = fullPathUri;
+    } else {
+      parentDir = fullPathUri.getParent();
+    }
+    mListStatusCache.invalidate(parentDir.toString()); // invalidate dir cache
+    mUfsStatusCache.invalidate(path);                  // invalidate in-memory cache
+    mMetaStore.removeDoraMeta(path);                   // invalidate in-Rocks cache
+  }
+
   @Override
   public void completeFile(String path, CompleteFilePOptions options, String uuid) {
     OpenFileHandle handle = mOpenFileHandleContainer.findAndVerify(path, uuid);
@@ -779,18 +810,20 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       handle.close();
       handle = null; // no more use of this handle
 
-      // The simplest way of updating metadata is invalidating cache in worker.
-      // Next time, worker will get fresh metadata from ufs.
-      AlluxioURI fullPathUri = new AlluxioURI(path);
-      AlluxioURI parentDir;
-      if (fullPathUri.isRoot()) {
-        parentDir = fullPathUri;
-      } else {
-        parentDir = fullPathUri.getParent();
-      }
-      mListStatusCache.invalidate(parentDir.toString()); // invalidate dir cache
-      mUfsStatusCache.invalidate(path);                  // invalidate in-memory cache
-      mMetaStore.removeDoraMeta(path);                   // invalidate in-Rocks cache
+      invalidateFileMeta(path);
+    }
+  }
+
+  @Override
+  public void delete(String path, DeletePOptions options) {
+    try {
+      invalidateFileMeta(path);
+      invalidateCachedFile(path);
+
+      // TODO(hua) Close the open file handle?
+      mUfs.deleteFile(path);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 

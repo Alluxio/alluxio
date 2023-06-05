@@ -23,6 +23,8 @@ import alluxio.grpc.CreateFilePRequest;
 import alluxio.grpc.CreateFilePResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
+import alluxio.grpc.DeletePRequest;
+import alluxio.grpc.DeletePResponse;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GrpcServerAddress;
@@ -239,4 +241,11 @@ public interface BlockWorkerClient extends Closeable {
    * @return a response of this operation
    */
   CompleteFilePResponse completeFile(CompleteFilePRequest request);
+
+  /**
+   * Delete a file from.
+   * @param request the request to delete a file
+   * @return a response of this operation
+   */
+  DeletePResponse delete(DeletePRequest request);
 }

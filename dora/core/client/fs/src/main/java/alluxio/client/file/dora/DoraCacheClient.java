@@ -35,6 +35,8 @@ import alluxio.grpc.CompleteFilePRequest;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.CreateFilePRequest;
 import alluxio.grpc.CreateFilePResponse;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.DeletePRequest;
 import alluxio.grpc.FileInfo;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GetStatusPRequest;
@@ -249,6 +251,25 @@ public class DoraCacheClient {
           .setUuid(uuid)
           .build();
       client.get().completeFile(request);
+      return;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Delete a file.
+   * @param path
+   * @param options
+   */
+  public void delete(String path, DeletePOptions options) {
+    try (CloseableResource<BlockWorkerClient> client =
+             mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
+      DeletePRequest request = DeletePRequest.newBuilder()
+          .setPath(path)
+          .setOptions(options)
+          .build();
+      client.get().delete(request);
       return;
     } catch (IOException e) {
       throw new RuntimeException(e);
