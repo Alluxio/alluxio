@@ -7731,7 +7731,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String CONF_SYNC_HEARTBEAT_ENABLED =
         "alluxio.conf.sync.heartbeat.enabled";
     public static final String CONF_SYNC_HEARTBEAT_INTERVAL_MS =
-        "alluxio.conf.sync.heartbeat.interval.ms";
+        "alluxio.conf.sync.heartbeat.interval";
     public static final String CONF_VALIDATION_ENABLED = "alluxio.conf.validation.enabled";
     public static final String DEBUG = "alluxio.debug";
     public static final String EXTENSIONS_DIR = "alluxio.extensions.dir";
