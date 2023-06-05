@@ -166,7 +166,7 @@ public class HdfsPositionedUnderFileInputStream
       totalRead += currentRead;
     }
     if (totalRead == 0) {
-      return currentRead;
+      return totalRead;
     }
     if (targetIsByteArray) {
       buffer.offset(arrayPosition);
