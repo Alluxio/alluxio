@@ -44,27 +44,18 @@ func RegisterProcess(p Process) Process {
 type Process interface {
 	Base() *BaseProcess
 	SetEnvVars(*viper.Viper)
-	SetStartFlags(*cobra.Command)
-	SetStopFlags(*cobra.Command)
-	Start(*StartOpts) error
-	Stop(*StopOpts) error
-}
 
-type StartOpts struct {
-	AsyncStart bool
-}
+	Start(*StartProcessCommand) error
+	StartCmd(*cobra.Command) *cobra.Command
 
-type StopOpts struct {
-	SoftKill bool
+	Stop(*StopProcessCommand) error
+	StopCmd(*cobra.Command) *cobra.Command
 }
 
 type BaseProcess struct {
 	Name              string
 	JavaClassName     string
 	JavaOptsEnvVarKey string
-
-	// command flag selection
-	Selected bool
 
 	// start
 	ProcessOutFile string
@@ -73,11 +64,7 @@ type BaseProcess struct {
 	MonitorJavaClassName string
 }
 
-func (p *BaseProcess) IsSelected() bool {
-	return p.Selected
-}
-
-func (p *BaseProcess) Launch(opts *StartOpts, args []string) error {
+func (p *BaseProcess) Launch(start *StartProcessCommand, args []string) error {
 	logsDir := Env.EnvVar.GetString(ConfAlluxioLogsDir.EnvVar)
 	if err := os.MkdirAll(logsDir, 0755); err != nil {
 		return stacktrace.Propagate(err, "error creating log directory at %v", logsDir)
@@ -102,7 +89,7 @@ func (p *BaseProcess) Launch(opts *StartOpts, args []string) error {
 		return stacktrace.Propagate(err, "error starting %v", p.Name)
 	}
 
-	if opts.AsyncStart {
+	if start.AsyncStart {
 		log.Logger.Warnf("Skipping monitor checks for %v", p.Name)
 	} else {
 		if err := p.Monitor(); err != nil {
@@ -149,7 +136,7 @@ func (p *BaseProcess) Monitor() error {
 	return nil
 }
 
-func (p *BaseProcess) Stop(opts *StopOpts) error {
+func (p *BaseProcess) Stop(cmd *StopProcessCommand) error {
 	processes, err := process.Processes()
 	if err != nil {
 		return stacktrace.Propagate(err, "error listing processes")
@@ -189,7 +176,7 @@ func (p *BaseProcess) Stop(opts *StopOpts) error {
 			// wait for process to exit
 			const killTimeoutSec = 120
 			if ok := waitForProcessExit(proc, killTimeoutSec); !ok {
-				if opts.SoftKill {
+				if cmd.SoftKill {
 					errs[i] = fmt.Errorf("Process for %v with pid %v did not terminate after %v seconds", p.JavaClassName, pid, killTimeoutSec)
 					return
 				} else {

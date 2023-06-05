@@ -70,11 +70,12 @@ func (p *ProxyProcess) SetEnvVars(envVar *viper.Viper) {
 	envVar.Set(p.JavaOptsEnvVarKey, strings.TrimSpace(proxyJavaOpts)) // leading spaces need to be trimmed as a exec.Command argument
 }
 
-func (p *ProxyProcess) SetStartFlags(cmd *cobra.Command) {
-	cmd.Flags().BoolVar(&p.Base().Selected, p.Name, false, "Proxy process")
+func (p *ProxyProcess) StartCmd(cmd *cobra.Command) *cobra.Command {
+	cmd.Use = p.Name
+	return cmd
 }
 
-func (p *ProxyProcess) Start(opts *env.StartOpts) error {
+func (p *ProxyProcess) Start(cmd *env.StartProcessCommand) error {
 	cmdArgs := []string{env.Env.EnvVar.GetString(env.ConfJava.EnvVar)}
 	if attachOpts := env.Env.EnvVar.GetString(confAlluxioProxyAttachOpts.EnvVar); attachOpts != "" {
 		cmdArgs = append(cmdArgs, strings.Split(attachOpts, " ")...)
@@ -86,12 +87,13 @@ func (p *ProxyProcess) Start(opts *env.StartOpts) error {
 
 	cmdArgs = append(cmdArgs, p.JavaClassName)
 
-	if err := p.Launch(opts, cmdArgs); err != nil {
+	if err := p.Launch(cmd, cmdArgs); err != nil {
 		return stacktrace.Propagate(err, "error launching process")
 	}
 	return nil
 }
 
-func (p *ProxyProcess) SetStopFlags(cmd *cobra.Command) {
-	cmd.Flags().BoolVar(&p.Base().Selected, p.Name, false, "Proxy process")
+func (p *ProxyProcess) StopCmd(cmd *cobra.Command) *cobra.Command {
+	cmd.Use = p.Name
+	return cmd
 }

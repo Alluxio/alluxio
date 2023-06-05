@@ -70,11 +70,12 @@ func (p *JobMasterProcess) SetEnvVars(envVar *viper.Viper) {
 	envVar.Set(p.JavaOptsEnvVarKey, strings.TrimSpace(jobMasterJavaOpts)) // leading spaces need to be trimmed as a exec.Command argument
 }
 
-func (p *JobMasterProcess) SetStartFlags(cmd *cobra.Command) {
-	cmd.Flags().BoolVar(&p.Base().Selected, p.Name, false, "Master process")
+func (p *JobMasterProcess) StartCmd(cmd *cobra.Command) *cobra.Command {
+	cmd.Use = p.Name
+	return cmd
 }
 
-func (p *JobMasterProcess) Start(opts *env.StartOpts) error {
+func (p *JobMasterProcess) Start(cmd *env.StartProcessCommand) error {
 	cmdArgs := []string{env.Env.EnvVar.GetString(env.ConfJava.EnvVar)}
 	if attachOpts := env.Env.EnvVar.GetString(confAlluxioJobMasterAttachOpts.EnvVar); attachOpts != "" {
 		cmdArgs = append(cmdArgs, strings.Split(attachOpts, " ")...)
@@ -86,12 +87,13 @@ func (p *JobMasterProcess) Start(opts *env.StartOpts) error {
 
 	cmdArgs = append(cmdArgs, p.JavaClassName)
 
-	if err := p.Launch(opts, cmdArgs); err != nil {
+	if err := p.Launch(cmd, cmdArgs); err != nil {
 		return stacktrace.Propagate(err, "error launching process")
 	}
 	return nil
 }
 
-func (p *JobMasterProcess) SetStopFlags(cmd *cobra.Command) {
-	cmd.Flags().BoolVar(&p.Base().Selected, p.Name, false, "Job master process")
+func (p *JobMasterProcess) StopCmd(cmd *cobra.Command) *cobra.Command {
+	cmd.Use = p.Name
+	return cmd
 }

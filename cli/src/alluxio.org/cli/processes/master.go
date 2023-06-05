@@ -80,12 +80,13 @@ func (p *MasterProcess) SetEnvVars(envVar *viper.Viper) {
 	envVar.Set(p.JavaOptsEnvVarKey, strings.TrimSpace(masterJavaOpts)) // leading spaces need to be trimmed as a exec.Command argument
 }
 
-func (p *MasterProcess) SetStartFlags(cmd *cobra.Command) {
-	cmd.Flags().BoolVar(&p.Base().Selected, p.Name, false, "Master process")
+func (p *MasterProcess) StartCmd(cmd *cobra.Command) *cobra.Command {
+	cmd.Use = p.Name
 	cmd.Flags().StringVar(&p.JournalBackupFile, "journal-backup-file", "", "Path to journal backup file to restore the master from")
+	return cmd
 }
 
-func (p *MasterProcess) Start(opts *env.StartOpts) error {
+func (p *MasterProcess) Start(cmd *env.StartProcessCommand) error {
 	if err := p.checkJournal(); err != nil {
 		return stacktrace.Propagate(err, "error validating journal")
 	}
@@ -115,14 +116,15 @@ func (p *MasterProcess) Start(opts *env.StartOpts) error {
 
 	cmdArgs = append(cmdArgs, p.JavaClassName)
 
-	if err := p.Launch(opts, cmdArgs); err != nil {
+	if err := p.Launch(cmd, cmdArgs); err != nil {
 		return stacktrace.Propagate(err, "error launching process")
 	}
 	return nil
 }
 
-func (p *MasterProcess) SetStopFlags(cmd *cobra.Command) {
-	cmd.Flags().BoolVar(&p.Base().Selected, p.Name, false, "Master process")
+func (p *MasterProcess) StopCmd(cmd *cobra.Command) *cobra.Command {
+	cmd.Use = p.Name
+	return cmd
 }
 
 func (p *MasterProcess) checkJournal() error {
