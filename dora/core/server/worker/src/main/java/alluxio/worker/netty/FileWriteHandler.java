@@ -108,8 +108,8 @@ public final class FileWriteHandler extends AbstractWriteHandler<BlockWriteReque
     @Override
     protected void completeRequest(BlockWriteRequestContext context, Channel channel)
         throws Exception {
-      context.getBlockWriter().commitFile();
       if (context.getBlockWriter() != null) {
+        context.getBlockWriter().commitFile();
         context.getBlockWriter().close();
       }
     }
