@@ -29,12 +29,16 @@ bin/cli.sh item mark --unset name
 where it is expected that either `--set` or `--unset` are specified.
 This is preferred over the alternative of two separate commands with `setMark` and `unsetMark` as the operations.
 
+## User input validation
+
+User inputs should be validated by the CLI command as much as possible as opposed to the resulting invocation.
+
 ## Output conventions and java invocation
 
 A majority of commands result in invoking a java class with arguments to execute the expected operation and possibly return some output.
 The output returned from the java invocation should tend towards being plain or machine parseable, such as a JSON formatted string,
 rather than terminal friendly or human readable format.
-When appropriate, the CLI command will default to formatting this output to be terminal friendly, with an option to output in a machine parseable format such as JSON.
+When appropriate, the CLI command will default to formatting this output to be terminal friendly, with an option to output in a machine parseable format.
 
 ## References
 
