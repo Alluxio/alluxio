@@ -12,6 +12,7 @@
 package alluxio.client.file.cache;
 
 import alluxio.client.file.CacheContext;
+import alluxio.exception.PageNotFoundException;
 import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -39,6 +40,15 @@ public class NoExceptionCacheManager implements CacheManager {
    */
   public NoExceptionCacheManager(CacheManager cacheManager) {
     mCacheManager = cacheManager;
+  }
+
+  @Override
+  public void commitFile(String fileId) {
+    try {
+      mCacheManager.commitFile(fileId);
+    } catch (Exception e) {
+      LOG.error("Failed to commit file {}", fileId);
+    }
   }
 
   @Override
@@ -146,7 +156,12 @@ public class NoExceptionCacheManager implements CacheManager {
     try {
       return mCacheManager.getDataFileChannel(pageId, pageOffset, bytesToRead, cacheContext);
     } catch (Exception e) {
-      LOG.error("Failed to getDataFileChannel of page {}", pageId, e);
+      if (e instanceof PageNotFoundException) {
+        // In cold read, this may be expected behavior
+        LOG.debug("Failed to getDataFileChannel of page {}", pageId, e);
+      } else {
+        LOG.error("Failed to getDataFileChannel of page {}", pageId, e);
+      }
       Metrics.GET_ERRORS.inc();
       return Optional.empty();
     }

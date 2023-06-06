@@ -53,6 +53,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -67,6 +68,7 @@ import java.util.List;
 /**
  * Unit tests for {@link PermissionChecker}.
  */
+@Ignore("metadata no longer exists in master")
 public final class PermissionCheckerTest {
   private static final String TEST_SUPER_GROUP = "test-supergroup";
 

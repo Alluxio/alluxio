@@ -60,6 +60,7 @@ import alluxio.resource.PooledResource;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.authorization.Mode;
 import alluxio.security.user.ServerUserState;
 import alluxio.underfs.Fingerprint;
 import alluxio.underfs.UfsFileStatus;
@@ -71,6 +72,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.util.CommonUtils;
+import alluxio.util.ModeUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -78,6 +80,7 @@ import alluxio.worker.AbstractWorker;
 import alluxio.worker.block.BlockMasterClient;
 import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.grpc.GrpcExecutors;
 import alluxio.worker.task.CopyHandler;
 import alluxio.worker.task.DeleteHandler;
@@ -98,7 +101,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -484,6 +486,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   }
 
   @Override
+  public BlockWriter createFileWriter(String fileId) {
+    return new PagedFileWriter(mCacheManager, fileId, mPageSize);
+  }
+
+  @Override
   public ListenableFuture<List<FileFailure>> load(List<File> files, UfsReadOptions options) {
     List<ListenableFuture<Void>> futures = new ArrayList<>();
     List<FileFailure> errors = Collections.synchronizedList(new ArrayList<>());
@@ -624,26 +631,46 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   @Override
   public OpenFileHandle createFile(String path, CreateFilePOptions options) { // Lock is needed.
-    OutputStream outStream;
+    //OutputStream outStream;
     alluxio.grpc.FileInfo info;
     OpenFileHandle existingHandle = mOpenFileHandleContainer.find(path);
     if (existingHandle != null) {
       LOG.error("A file opened for write and not closed yet: path={} handle={}",
           path, existingHandle);
-      throw new RuntimeException(new FileAlreadyExistsException("File is already opened"));
+      // If want to enable this checking and throw exception, we need to handle such abnormal cases:
+      // 1. If client disconnects without sending CompleteFile request, we must have a way to
+      //    clean up the stale handle.
+      // 2. some other abnormal case ...
+      //throw new RuntimeException(new FileAlreadyExistsException("File is already opened"));
+      mOpenFileHandleContainer.remove(path);
+      existingHandle.close();
     }
 
     // construct open option based on @param options
     CreateOptions createOption = CreateOptions.defaults(mConf);
+    if (options.hasMode()) {
+      createOption.setMode(new Mode(ModeUtils.protoToShort(options.getMode())));
+    }
 
     try {
-      // Check if the target file already exists. If yes, return throw error.
-      if (mUfs.exists(path)) {
-        throw new RuntimeException(new FileAlreadyExistsException("File already exists"));
+      // Check if the target file already exists. If yes, return by throwing error.
+      boolean overWrite = options.hasOverwrite() ? options.getOverwrite() : false;
+      boolean exists = mUfs.exists(path);
+      if (!overWrite && exists) {
+        throw new RuntimeException(
+            new FileAlreadyExistsException("File already exists but no overwrite flag"));
+      } else if (overWrite && exists) {
+        // File exists in UFS already and client is going to overwrite it.
+        // We need to invalidate the cached data.
+        UfsStatus existingFileStatus = mUfs.getStatus(path);
+        alluxio.grpc.FileInfo existingFileInfo =
+            buildFileInfoFromUfsStatus(existingFileStatus, path);
+        invalidateCachedFile(GrpcUtils.fromProto(existingFileInfo));
       }
 
       // Open UFS OutputStream and use it in write operation.
-      outStream = mUfs.create(path, createOption);
+      // We are writing UFS from client. No need of this outStream at this moment.
+      //outStream = mUfs.create(path, createOption);
 
       // Prepare a "fake" UfsStatus here. Please prepare more fields here.
       String owner = createOption.getOwner() != null ? createOption.getOwner() : "";
@@ -661,7 +688,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       throw new RuntimeException(e);
     }
 
-    OpenFileHandle handle = new OpenFileHandle(path, info, outStream);
+    OpenFileHandle handle = new OpenFileHandle(path, info, null);
     //add to map.
     mOpenFileHandleContainer.add(path, handle);
 

@@ -676,6 +676,13 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     }
   }
 
+  /**
+   * @return the last update time
+   */
+  public long getLastUpdateTime() {
+    return mProperties.getLastUpdateTime();
+  }
+
   protected class UnresolvablePropertyException extends Exception {
 
     public UnresolvablePropertyException(String msg) {

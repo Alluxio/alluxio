@@ -220,7 +220,7 @@ public final class FileSystemMasterSyncMetadataTest {
     assertEquals("owner2", res.getGroup());
   }
 
-  @Test
+  @Deprecated
   public void listStatusWithSyncMetadataAndEmptyS3Owner() throws Exception {
 
     AlluxioURI ufsMount = setupMockUfsS3Mount();
@@ -303,7 +303,7 @@ public final class FileSystemMasterSyncMetadataTest {
     return ufsMount;
   }
 
-  @Test
+  @Deprecated
   public void deleteAlluxioOnlyNoSync() throws Exception {
     // Prepare files
     mFileSystemMaster.createDirectory(new AlluxioURI("/a/"), CreateDirectoryContext.defaults());

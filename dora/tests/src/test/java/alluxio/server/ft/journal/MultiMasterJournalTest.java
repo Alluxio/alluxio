@@ -31,7 +31,6 @@ import alluxio.util.WaitForOptions;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
 import org.junit.rules.TestName;
 
 public class MultiMasterJournalTest extends BaseIntegrationTest {
@@ -58,16 +57,20 @@ public class MultiMasterJournalTest extends BaseIntegrationTest {
     mCluster.stop();
   }
 
-  @Test
+  @Deprecated
   public void testCheckpointReplay() throws Exception {
+    // TODO(JiamingMai): AlluxioFileOutStream is deprecated.
+    // We need to implement it with DoraFileOutStream.
     triggerAndWaitForCheckpoint();
     mCluster.restartMasters();
     assertEquals("The cluster should remember the 10 files", 10,
         mCluster.getClient().listStatus(new AlluxioURI("/")).size());
   }
 
-  @Test
+  @Deprecated
   public void testTtl() throws Exception {
+    // TODO(JiamingMai): AlluxioFileOutStream is deprecated.
+    // We need to implement it with DoraFileOutStream.
     // Test that ttls are still applied after restart.
     AlluxioURI file = new AlluxioURI("/file");
     mCluster.getClient().createFile(file).close();

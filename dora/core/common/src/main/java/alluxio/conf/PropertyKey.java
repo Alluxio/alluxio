@@ -6292,7 +6292,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   public static final PropertyKey USER_FILE_WRITE_TYPE_DEFAULT =
       enumBuilder(Name.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
-          .setDefaultValue(WriteType.ASYNC_THROUGH)
+          .setDefaultValue(WriteType.CACHE_THROUGH)
       .setDescription(
           format("Default write type when creating Alluxio files. Valid " + "options are "
               + "`MUST_CACHE` (write will only go to Alluxio and must be stored in Alluxio), "
@@ -6380,6 +6380,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       durationBuilder(Name.USER_MASTER_POLLING_TIMEOUT)
           .setDefaultValue("30sec")
           .setDescription("The maximum time for a rpc client to wait for master to respond.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_MASTER_POLLING_CONCURRENT =
+      booleanBuilder(Name.USER_MASTER_POLLING_CONCURRENT)
+          .setDefaultValue(false)
+          .setDescription("Whether to concurrently polling the master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -7730,7 +7737,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   public static final PropertyKey USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES =
       dataSizeBuilder(Name.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES)
-          .setDefaultValue("64KB")
+          .setDefaultValue("1024KB")
           .setDescription("When a client writes to a remote worker, the maximum packet size.")
           .build();
 
@@ -9167,6 +9174,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.local.writer.chunk.size.bytes";
     public static final String USER_LOGGING_THRESHOLD = "alluxio.user.logging.threshold";
     public static final String USER_MASTER_POLLING_TIMEOUT = "alluxio.user.master.polling.timeout";
+    public static final String USER_MASTER_POLLING_CONCURRENT =
+        "alluxio.user.master.polling.concurrent";
     public static final String USER_METADATA_CACHE_ENABLED =
         "alluxio.user.metadata.cache.enabled";
     public static final String USER_METADATA_CACHE_MAX_SIZE =

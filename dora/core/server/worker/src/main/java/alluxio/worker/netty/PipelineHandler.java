@@ -80,8 +80,10 @@ final class PipelineHandler extends ChannelInitializer<Channel> {
   }
 
   private void addBlockHandlerForDora(ChannelPipeline pipeline) {
-    pipeline.addLast("blockReadHandler",
+    pipeline.addLast("fileReadHandler",
         new FileReadHandler(NettyExecutors.BLOCK_READER_EXECUTOR, mDoraWorker, mFileTransferType));
     //TODO(JiamingMai): WriteHandle also needs to be replaced, but it has not been implemented yet
+    pipeline.addLast("fileWriteHandler",
+        new FileWriteHandler(NettyExecutors.BLOCK_WRITER_EXECUTOR, mDoraWorker));
   }
 }

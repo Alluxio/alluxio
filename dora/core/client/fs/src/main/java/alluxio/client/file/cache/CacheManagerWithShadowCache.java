@@ -51,6 +51,11 @@ public class CacheManagerWithShadowCache implements CacheManager {
   }
 
   @Override
+  public void commitFile(String fileId) {
+    mCacheManager.commitFile(fileId);
+  }
+
+  @Override
   public boolean put(PageId pageId, ByteBuffer page, CacheContext cacheContext) {
     updateShadowCache(pageId, page.remaining(), cacheContext);
     return mCacheManager.put(pageId, page, cacheContext);

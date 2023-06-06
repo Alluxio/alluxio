@@ -17,15 +17,20 @@ import static org.mockito.Mockito.when;
 
 import alluxio.ClientContext;
 import alluxio.TestLoggerRule;
+import alluxio.client.block.BlockWorkerInfo;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.resource.CloseableResource;
+import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.powermock.api.mockito.PowerMockito;
+
+import java.io.IOException;
 
 /**
  * Test base for {@link FileSystem} related test.
@@ -72,6 +77,12 @@ public class FileSystemTestBase {
     when(mFileContext.getClusterConf()).thenReturn(mConf);
     when(mFileContext.getPathConf(any())).thenReturn(mConf);
     when(mFileContext.getUriValidationEnabled()).thenReturn(true);
+    try {
+      when(mFileContext.getCachedWorkers()).thenReturn(Lists.newArrayList(
+          new BlockWorkerInfo(new WorkerNetAddress(), 1, 0)));
+    } catch (IOException e) {
+      // ignore this exception
+    }
     mFileSystem = new DummyAlluxioFileSystem(mFileContext);
   }
 

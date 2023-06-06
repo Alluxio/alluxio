@@ -94,7 +94,7 @@ public class DoraReadIntegrationTest extends BaseIntegrationTest {
   public void read() throws Exception {
     AlluxioURI path = new AlluxioURI(mFilePath);
     FileSystemTestUtils.createByteFile(
-        mFileSystem, mFilePath, WritePType.MUST_CACHE, mFileLength);
+        mFileSystem, mFilePath, WritePType.CACHE_THROUGH, mFileLength);
     // read a file to populate the cache
     try (FileInStream stream = mFileSystem.openFile(path)) {
       assertTrue(BufferUtils.equalIncreasingByteArray(
@@ -110,7 +110,7 @@ public class DoraReadIntegrationTest extends BaseIntegrationTest {
   public void positionedRead() throws Exception {
     AlluxioURI path = new AlluxioURI(mFilePath);
     FileSystemTestUtils.createByteFile(
-        mFileSystem, mFilePath, WritePType.MUST_CACHE, mFileLength);
+        mFileSystem, mFilePath, WritePType.CACHE_THROUGH, mFileLength);
     try (FileInStream stream = mFileSystem.openFile(path)) {
       byte[] buffer = new byte[mFileLength / 4];
       int bytesRead = stream.positionedRead(mFileLength / 10, buffer, 0, buffer.length);
