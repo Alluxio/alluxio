@@ -97,7 +97,7 @@ public final class SleepingTimerTest {
 
   @Test
   public void updateIntervalForSteppingTimer() throws Exception {
-    AtomicLong interval = new AtomicLong(10000L);
+    AtomicLong interval = new AtomicLong(10 * Constants.SECOND_MS);
     AtomicLong tickCount = new AtomicLong(0L);
     SteppingThreadSleeper sts =
         new SteppingThreadSleeper(ThreadSleeper.INSTANCE, SystemClock.systemUTC());

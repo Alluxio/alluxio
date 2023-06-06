@@ -34,7 +34,7 @@ public final class SteppingThreadSleeper implements Sleeper {
   private SteppingThreadSleeper() {
     mInternalSleeper = ThreadSleeper.INSTANCE;
     mClock = Clock.systemUTC();
-  } // Use ThreadSleeper.INSTANCE instead.
+  }
 
   /**
    * Creates a new instance of {@link SteppingThreadSleeper}.
@@ -66,8 +66,8 @@ public final class SteppingThreadSleeper implements Sleeper {
     long sleepTo = startSleepMs + duration.toMillis();
     long timeNow;
     while ((timeNow = mClock.millis()) < sleepTo) {
-      mInternalSleeper.sleep(Duration.ofMillis(sleepTo - timeNow > mSleepStepMs
-          ? mSleepStepMs : sleepTo - timeNow));
+      long sleepTime = Math.min(sleepTo - timeNow, mSleepStepMs);
+      mInternalSleeper.sleep(Duration.ofMillis(sleepTime));
 
       long newInterval = durationSupplier.get().toMillis();
       if (newInterval >= 0) {
