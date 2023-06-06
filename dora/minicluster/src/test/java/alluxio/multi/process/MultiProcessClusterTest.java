@@ -60,7 +60,7 @@ public final class MultiProcessClusterTest {
   private void clusterVerification() throws Exception {
     try {
       mCluster.start();
-      mCluster.waitForAllNodesRegistered(120 * Constants.SECOND_MS);
+      mCluster.waitForAllNodesRegistered(60 * Constants.SECOND_MS);
       FileSystem fs = mCluster.getFileSystemClient();
       createAndOpenFile(fs);
       mCluster.notifySuccess();

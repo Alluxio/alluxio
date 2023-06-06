@@ -367,7 +367,7 @@ public final class MultiProcessCluster {
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
-    }, WaitForOptions.defaults().setInterval(1000).setTimeoutMs(timeoutMs));
+    }, WaitForOptions.defaults().setInterval(200).setTimeoutMs(timeoutMs));
   }
 
   /**
