@@ -23,6 +23,7 @@ var Cache = &CacheCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
 		CommandName:   "cache",
 		JavaClassName: "alluxio.cli.fsadmin.FileSystemAdminShell",
+		Parameters:    []string{"report", "capacity"},
 	},
 }
 
@@ -56,7 +57,7 @@ func (c *CacheCommand) ToCommand() *cobra.Command {
 
 func (c *CacheCommand) Run(_ []string) error {
 	// TODO: output all in a serializable format and filter/trim as specified by flags
-	args := []string{"report", "capacity"}
+	var args []string
 	if c.liveWorkers {
 		args = append(args, "-live")
 	} else if c.lostWorkers {

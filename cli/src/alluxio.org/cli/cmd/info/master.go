@@ -21,6 +21,7 @@ var Master = &MasterCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
 		CommandName:   "master",
 		JavaClassName: "alluxio.cli.fs.FileSystemShell",
+		Parameters:    []string{"masterInfo"},
 	},
 }
 
@@ -45,5 +46,5 @@ func (c *MasterCommand) ToCommand() *cobra.Command {
 
 func (c *MasterCommand) Run(_ []string) error {
 	// TODO: output in a serializable format
-	return c.Base().Run([]string{"masterInfo"})
+	return c.Base().Run(nil)
 }

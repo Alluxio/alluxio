@@ -54,14 +54,14 @@ func (c *CollectCommand) ToCommand() *cobra.Command {
 		Use:   fmt.Sprintf("%v [command] [outputPath]", Collect.CommandName),
 		Short: "Collects information such as logs, config, metrics, and more from the running Alluxio cluster and bundle into a single tarball",
 		Long: `Collects information such as logs, config, metrics, and more from the running Alluxio cluster and bundle into a single tarball
-[command] can be one of the following values:
-all:                runs all the commands below.
-collectAlluxioInfo: runs a set of Alluxio commands to collect information about the Alluxio cluster.
-collectConfig:      collects the configuration files under ${ALLUXIO_HOME}/config/.
-collectEnv:         runs a set of linux commands to collect information about the cluster.
-collectJvmInfo:     collects jstack from the JVMs.
-collectLog:         collects the log files under ${ALLUXIO_HOME}/logs/.
-collectMetrics:     collects Alluxio system metrics.
+[command] must be one of the following values:
+  all:                runs all the commands below.
+  collectAlluxioInfo: runs a set of Alluxio commands to collect information about the Alluxio cluster.
+  collectConfig:      collects the configuration files under ${ALLUXIO_HOME}/config/.
+  collectEnv:         runs a set of linux commands to collect information about the cluster.
+  collectJvmInfo:     collects jstack from the JVMs.
+  collectLog:         collects the log files under ${ALLUXIO_HOME}/logs/.
+  collectMetrics:     collects Alluxio system metrics.
 
 [outputPath]        the directory you want the collected tarball to be in
 

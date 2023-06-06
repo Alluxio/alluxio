@@ -13,7 +13,9 @@ package info
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
@@ -23,13 +25,12 @@ var Report = &ReportCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
 		CommandName:   "report",
 		JavaClassName: "alluxio.cli.fsadmin.FileSystemAdminShell",
+		Parameters:    []string{"report"},
 	},
 }
 
 type ReportCommand struct {
 	*env.BaseJavaCommand
-
-	category string // can be empty or one of: jobservice, metrics, summary, ufs
 }
 
 func (c *ReportCommand) Base() *env.BaseJavaCommand {
@@ -38,36 +39,43 @@ func (c *ReportCommand) Base() *env.BaseJavaCommand {
 
 func (c *ReportCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   fmt.Sprintf("%v [args]", Report.CommandName),
+		Use:   fmt.Sprintf("%v [arg]", Report.CommandName),
 		Short: "Reports Alluxio running cluster information",
-		Args:  cobra.NoArgs,
+		Long: `Reports Alluxio running cluster information
+[arg] can be one of the following values:
+  jobservice: job service metrics information
+  metrics:    metrics information
+  summary:    cluster summary
+  ufs:        under storage system information
+
+Defaults to summary if no arg is provided
+`,
+		Args: cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return c.Run(nil)
+			return c.Run(args)
 		},
 	})
-	// note that the capacity category is moved into its own cache command
-	var isJobservice, isMetrics, isSummary, isUfs bool
-	cmd.Flags().BoolVar(&isJobservice, "job-service", false, "Job service metrics information")
-	cmd.Flags().BoolVar(&isMetrics, "metrics", false, "Metrics information")
-	cmd.Flags().BoolVar(&isSummary, "summary", false, "Cluster summary")
-	cmd.Flags().BoolVar(&isUfs, "ufs", false, "Under storage system information")
-	cmd.MarkFlagsMutuallyExclusive("job-service", "metrics", "summary", "ufs")
-	if isJobservice {
-		c.category = "jobservice"
-	} else if isMetrics {
-		c.category = "metrics"
-	} else if isSummary {
-		c.category = "summary"
-	} else if isUfs {
-		c.category = "ufs"
-	} else {
-		c.category = "summary"
-	}
-
 	return cmd
 }
 
-func (c *ReportCommand) Run(_ []string) error {
+func (c *ReportCommand) Run(args []string) error {
+	reportArg := "summary"
+	if len(args) == 1 {
+		options := map[string]struct{}{
+			"jobservice": {},
+			"metrics":    {},
+			"summary":    {},
+			"ufs":        {},
+		}
+		if _, ok := options[args[0]]; !ok {
+			var cmds []string
+			for c := range options {
+				cmds = append(cmds, c)
+			}
+			return stacktrace.NewError("first argument must be one of %v", strings.Join(cmds, ", "))
+		}
+		reportArg = args[0]
+	}
 	// TODO: output all in a serializable format and filter/trim as specified by flags
-	return c.Base().Run([]string{"report", c.category})
+	return c.Base().Run([]string{reportArg})
 }
