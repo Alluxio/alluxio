@@ -339,7 +339,7 @@ public final class RocksStore implements Closeable {
     if (Configuration.isSet(cacheSize)) {
       shoudSetConfig = true;
       // Set the inodes column options
-      Cache inodeCache = new LRUCache(Configuration.getInt(cacheSize));
+      Cache inodeCache = new LRUCache(Configuration.getLong(cacheSize));
       toClose.add(inodeCache);
       blockConfig.setBlockCache(inodeCache);
     }
