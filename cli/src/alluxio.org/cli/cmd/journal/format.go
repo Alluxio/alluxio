@@ -24,10 +24,11 @@ import (
 
 var Format = &FormatCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "format",
-		JavaClassName: "alluxio.cli.Format",
-		Parameters:    []string{"master"},
-		ShellJavaOpts: fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, "Console"),
+		CommandName:        "format",
+		JavaClassName:      "alluxio.cli.Format",
+		Parameters:         []string{"master"},
+		UseServerClasspath: true,
+		ShellJavaOpts:      fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, "Console"),
 	},
 }
 
