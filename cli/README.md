@@ -29,7 +29,20 @@ bin/cli.sh item mark --unset name
 where it is expected that either `--set` or `--unset` are specified.
 This is preferred over the alternative of two separate commands with `setMark` and `unsetMark` as the operations.
 
-## User input validation
+## User input
+
+### Flags and arguments
+After selecting the desired command, additional user input can be parsed, as a mix of arguments and/or flags:
+- Arguments: `bin/cli.sh command arg1 arg2 ...`
+- Flags: `bin/cli.sh command --flag1 --flag2 val2 ...`
+
+Flags are strictly preferred over arguments.
+- The flag name conveys context; an argument does not
+- Arguments must be ordered; flags can be declared arbitrarily
+- Flags can be designated as required to ensure user input.
+- Repeated flags can be defined to capture an ordered list of inputs, ex. `--target target1 --target target2`
+
+### Input validation
 
 User inputs should be validated by the CLI command as much as possible as opposed to the resulting invocation.
 

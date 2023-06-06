@@ -40,6 +40,7 @@ type CollectCommand struct {
 	includeLogs          []string
 	local                bool
 	maxThreads           int
+	outputPath           string
 	startTime            string
 }
 
@@ -51,7 +52,7 @@ const dateFormat = "2006-01-02T15:04:05"
 
 func (c *CollectCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   fmt.Sprintf("%v [command] [outputPath]", Collect.CommandName),
+		Use:   fmt.Sprintf("%v [command]", Collect.CommandName),
 		Short: "Collects information such as logs, config, metrics, and more from the running Alluxio cluster and bundle into a single tarball",
 		Long: `Collects information such as logs, config, metrics, and more from the running Alluxio cluster and bundle into a single tarball
 [command] must be one of the following values:
@@ -68,23 +69,26 @@ func (c *CollectCommand) ToCommand() *cobra.Command {
 WARNING: This command MAY bundle credentials. To understand the risks refer to the docs here.
 https://docs.alluxio.io/os/user/edge/en/operation/Troubleshooting.html#collect-alluxio-cluster-information
 `,
-		Args: cobra.ExactArgs(2),
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
 		},
 	})
-	cmd.Flags().StringSliceVar(&c.additionalLogs, "additional-logs", nil, "additional file name prefixes from ${ALLUXIO_HOME}/logs to include in the tarball, inclusive of the default log files")
-	cmd.Flags().StringVar(&c.endTime, "end-time", "", "logs that do not contain entries before this time will be ignored, format must be like "+dateFormat)
-	cmd.Flags().StringSliceVar(&c.excludeLogs, "exclude-logs", nil, "file name prefixes from ${ALLUXIO_HOME}/logs to exclude; this is evaluated after adding files from --additional-logs")
-	cmd.Flags().BoolVar(&c.excludeWorkerMetrics, "exclude-worker-metrics", false, "true to skip worker metrics collection")
-	cmd.Flags().StringSliceVar(&c.includeLogs, "include-logs", nil, "file name prefixes from ${ALLUXIO_HOME}/logs to include in the tarball, ignoring the default log files; cannot be used with --exclude-logs or --additional-logs")
-	cmd.Flags().BoolVar(&c.local, "local", false, "true to only collect information from the local machine")
-	cmd.Flags().IntVar(&c.maxThreads, "max-threads", 1, "parallelism of the command; use a smaller value to limit network I/O when transferring tarballs")
-	cmd.Flags().StringVar(&c.startTime, "start-time", "", "logs that do not contain entries after this time will be ignored, format must be like "+dateFormat)
+	cmd.Flags().StringSliceVar(&c.additionalLogs, "additional-logs", nil, "Additional file name prefixes from ${ALLUXIO_HOME}/logs to include in the tarball, inclusive of the default log files")
+	cmd.Flags().StringVar(&c.endTime, "end-time", "", "Logs that do not contain entries before this time will be ignored, format must be like "+dateFormat)
+	cmd.Flags().StringSliceVar(&c.excludeLogs, "exclude-logs", nil, "File name prefixes from ${ALLUXIO_HOME}/logs to exclude; this is evaluated after adding files from --additional-logs")
+	cmd.Flags().BoolVar(&c.excludeWorkerMetrics, "exclude-worker-metrics", false, "True to skip worker metrics collection")
+	cmd.Flags().StringSliceVar(&c.includeLogs, "include-logs", nil, "File name prefixes from ${ALLUXIO_HOME}/logs to include in the tarball, ignoring the default log files; cannot be used with --exclude-logs or --additional-logs")
+	cmd.Flags().BoolVar(&c.local, "local", false, "True to only collect information from the local machine")
+	cmd.Flags().IntVar(&c.maxThreads, "max-threads", 1, "Parallelism of the command; use a smaller value to limit network I/O when transferring tarballs")
+	cmd.Flags().StringVar(&c.outputPath, "output-path", "", "Output directory to write collect info tarball to")
+	cmd.MarkFlagRequired("output-path")
+	cmd.Flags().StringVar(&c.startTime, "start-time", "", "Logs that do not contain entries after this time will be ignored, format must be like "+dateFormat)
 	return cmd
 }
 
 func (c *CollectCommand) Run(args []string) error {
+	// TODO: use flags instead of arguments to parse user input
 	commands := map[string]struct{}{
 		"all":                {},
 		"collectAlluxioInfo": {},
@@ -141,7 +145,7 @@ func (c *CollectCommand) Run(args []string) error {
 		javaArgs = append(javaArgs, "--start-time", c.startTime)
 	}
 
-	javaArgs = append(javaArgs, args...)
+	javaArgs = append(javaArgs, args[0], c.outputPath)
 
 	return c.Base().Run(javaArgs)
 }
