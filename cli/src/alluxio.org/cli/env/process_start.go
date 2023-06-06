@@ -25,7 +25,7 @@ func (c *StartProcessCommand) ToCommand() *cobra.Command {
 		Use:   "start",
 		Short: "Starts a process",
 	}
-	cmd.PersistentFlags().BoolVarP(&c.SkipKillOnStart, "skipKillPrev", "N", false, "Avoid killing previous running processes when starting")
+	cmd.PersistentFlags().BoolVarP(&c.SkipKillOnStart, "skip-kill-prev", "N", false, "Avoid killing previous running processes when starting")
 	cmd.PersistentFlags().BoolVarP(&c.AsyncStart, "async", "a", false, "Asynchronously start processes without monitoring for start completion")
 
 	for _, p := range ProcessRegistry {

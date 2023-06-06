@@ -13,7 +13,6 @@ package processes
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"strings"
 
@@ -134,6 +133,10 @@ func (p *MasterProcess) checkJournal() error {
 	}
 	stat, err := os.Stat(journalDir)
 	if os.IsNotExist(err) {
+		log.Logger.Info("Journal directory does not exist, formatting")
+		if err := journal.Format.Format(); err != nil {
+			return stacktrace.Propagate(err, "error formatting journal")
+		}
 		return nil
 	}
 	if err != nil {
@@ -142,29 +145,6 @@ func (p *MasterProcess) checkJournal() error {
 	if !stat.IsDir() {
 		return stacktrace.NewError("Journal location %v is not a directory. Please remove the file and retry.", journalDir)
 	}
-	isEmpty, err := dirIsEmpty(journalDir)
-	if err != nil {
-		return stacktrace.Propagate(err, "error listing contents of %v", journalDir)
-	}
-	if !isEmpty {
-		// TODO: do we always format the journal on master startup for embedded journal? this is strange but following the previous logic
-		log.Logger.Info("Running formatJournal")
-		if err := journal.Format.Format(); err != nil {
-			return stacktrace.Propagate(err, "error formatting journal")
-		}
-	}
+	// journal folder path exists and is a directory
 	return nil
-}
-
-func dirIsEmpty(dir string) (bool, error) {
-	f, err := os.Open(dir)
-	if err != nil {
-		return false, stacktrace.Propagate(err, "error opening %v", dir)
-	}
-	defer f.Close()
-
-	if _, err := f.Readdirnames(1); err == io.EOF {
-		return true, nil
-	}
-	return false, stacktrace.Propagate(err, "error listing directory at %v", dir)
 }
