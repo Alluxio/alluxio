@@ -37,6 +37,7 @@ import alluxio.file.FileId;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.File;
@@ -46,6 +47,7 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.Route;
 import alluxio.grpc.RouteFailure;
 import alluxio.grpc.Scope;
@@ -821,7 +823,48 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       invalidateCachedFile(path);
 
       // TODO(hua) Close the open file handle?
-      mUfs.deleteFile(path);
+
+      UfsStatus status = mUfs.getStatus(path);
+      if (status.isFile()) {
+        mUfs.deleteFile(path);
+      } else {
+        mUfs.deleteDirectory(path);
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Override
+  public void rename(String src, String dst, RenamePOptions options) {
+    try {
+      invalidateFileMeta(src);
+      invalidateCachedFile(src);
+      invalidateFileMeta(dst);
+      invalidateCachedFile(dst);
+
+      UfsStatus status = mUfs.getStatus(src);
+      if (status.isFile()) {
+        mUfs.renameFile(src, dst);
+      } else {
+        mUfs.renameDirectory(src, dst);
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Override
+  public void createDirectory(String path, CreateDirectoryPOptions options) {
+    try {
+      invalidateFileMeta(path);
+      invalidateCachedFile(path);
+
+      boolean success = mUfs.mkdirs(path);
+      if (!success) {
+        throw new RuntimeException(
+            new FileAlreadyExistsException(String.format("%s already exists", path)));
+      }
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

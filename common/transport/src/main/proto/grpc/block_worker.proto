@@ -61,6 +61,16 @@ service BlockWorker {
    * Deletes a file or a directory and returns whether the remove operation succeeded.
    */
   rpc Remove(grpc.file.DeletePRequest) returns (grpc.file.DeletePResponse);
+
+  /**
+   * Renames a file or a directory.
+   */
+  rpc Rename(grpc.file.RenamePRequest) returns (grpc.file.RenamePResponse);
+
+  /**
+   * Creates a directory.
+   */
+  rpc CreateDirectory(grpc.file.CreateDirectoryPRequest) returns (grpc.file.CreateDirectoryPResponse);
 }
 
 // The check request

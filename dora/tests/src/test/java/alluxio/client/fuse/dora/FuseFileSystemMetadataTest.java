@@ -61,8 +61,8 @@ public class FuseFileSystemMetadataTest extends AbstractFuseFileSystemTest {
   }
 
   @Test
-  public void createDeletepathectory() {
-    String path = "/createDeletepathectory";
+  public void createDeleteDirectory() {
+    String path = "/createDeleteDirectory";
     Assert.assertEquals(0, mFuseFs.mkdir(path, DEFAULT_MODE.toShort()));
     Assert.assertEquals(0, mFuseFs.getattr(path, mFileStat));
     Assert.assertEquals(0, mFuseFs.unlink(path));

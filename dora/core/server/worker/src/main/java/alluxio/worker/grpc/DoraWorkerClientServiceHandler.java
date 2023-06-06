@@ -25,6 +25,8 @@ import alluxio.grpc.CompleteFilePRequest;
 import alluxio.grpc.CompleteFilePResponse;
 import alluxio.grpc.CopyRequest;
 import alluxio.grpc.CopyResponse;
+import alluxio.grpc.CreateDirectoryPRequest;
+import alluxio.grpc.CreateDirectoryPResponse;
 import alluxio.grpc.CreateFilePRequest;
 import alluxio.grpc.CreateFilePResponse;
 import alluxio.grpc.DeletePRequest;
@@ -42,6 +44,8 @@ import alluxio.grpc.MoveResponse;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.grpc.ReadResponseMarshaller;
+import alluxio.grpc.RenamePRequest;
+import alluxio.grpc.RenamePResponse;
 import alluxio.grpc.RouteFailure;
 import alluxio.grpc.TaskStatus;
 import alluxio.underfs.UfsStatus;
@@ -296,6 +300,39 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       responseObserver.onCompleted();
     } catch (Exception e) {
       LOG.error(String.format("Failed to delete file for %s: ", request.getPath()), e);
+      responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
+    }
+  }
+
+  @Override
+  public void rename(RenamePRequest request, StreamObserver<RenamePResponse> responseObserver) {
+    LOG.debug("Got rename: {}", request);
+    String src = request.getPath();
+    String dst = request.getDstPath();
+    try {
+      mWorker.rename(src, dst, request.getOptions());
+      RenamePResponse response = RenamePResponse.newBuilder().build();
+      responseObserver.onNext(response);
+      responseObserver.onCompleted();
+    } catch (Exception e) {
+      LOG.error(String.format("Failed to rename file for %s -> %s: ", src, dst), e);
+      responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
+    }
+  }
+
+  @Override
+  public void createDirectory(CreateDirectoryPRequest request,
+                              StreamObserver<CreateDirectoryPResponse> responseObserver) {
+    LOG.debug("Got CreateDirectory: {}", request);
+    try {
+      String ufsFullPath = request.getPath();
+
+      mWorker.createDirectory(ufsFullPath, request.getOptions());
+      CreateDirectoryPResponse response = CreateDirectoryPResponse.newBuilder().build();
+      responseObserver.onNext(response);
+      responseObserver.onCompleted();
+    } catch (Exception e) {
+      LOG.error(String.format("Failed to CreateDirectory for %s: ", request.getPath()), e);
       responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
     }
   }

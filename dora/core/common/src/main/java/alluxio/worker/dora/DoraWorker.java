@@ -13,12 +13,14 @@ package alluxio.worker.dora;
 
 import alluxio.exception.AccessControlException;
 import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.File;
 import alluxio.grpc.FileFailure;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.Route;
 import alluxio.grpc.RouteFailure;
 import alluxio.grpc.UfsReadOptions;
@@ -144,4 +146,19 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    * @param options the options for this operation
    */
   void delete(String path, DeletePOptions options);
+
+  /**
+   * Rename src to dst.
+   * @param src the source file/dir
+   * @param dst the destination file/dir
+   * @param options the options for this operations
+   */
+  void rename(String src, String dst, RenamePOptions options);
+
+  /**
+   * Create a directory.
+   * @param path the directory name
+   * @param options the options for this operations
+   */
+  void createDirectory(String path, CreateDirectoryPOptions options);
 }
