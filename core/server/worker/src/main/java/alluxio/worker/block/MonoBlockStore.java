@@ -148,17 +148,20 @@ public class MonoBlockStore implements BlockStore {
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws IOException {
     BlockReader reader;
-    Optional<? extends BlockMeta> blockMeta = mLocalBlockStore.getVolatileBlockMeta(blockId);
-    if (blockMeta.isPresent()) {
+    // first try reading from Alluxio cache
+    try {
       reader = mLocalBlockStore.createBlockReader(sessionId, blockId, offset);
-    } else {
-      boolean checkUfs = options != null && (options.hasUfsPath() || options.getBlockInUfsTier());
-      if (!checkUfs) {
-        throw new BlockDoesNotExistRuntimeException(blockId);
-      }
-      // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
-      reader = createUfsBlockReader(sessionId, blockId, offset, positionShort, options);
+      DefaultBlockWorker.Metrics.WORKER_ACTIVE_CLIENTS.inc();
+      return reader;
+    } catch (BlockDoesNotExistRuntimeException e) {
+      // the block does not exist in Alluxio, try loading from UFS
     }
+    boolean checkUfs = options != null && (options.hasUfsPath() || options.getBlockInUfsTier());
+    if (!checkUfs) {
+      throw new BlockDoesNotExistRuntimeException(blockId);
+    }
+    // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
+    reader = createUfsBlockReader(sessionId, blockId, offset, positionShort, options);
     DefaultBlockWorker.Metrics.WORKER_ACTIVE_CLIENTS.inc();
     return reader;
   }
