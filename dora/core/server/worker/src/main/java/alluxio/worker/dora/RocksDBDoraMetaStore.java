@@ -12,11 +12,13 @@
 package alluxio.worker.dora;
 
 import alluxio.Constants;
+import alluxio.conf.PropertyKey;
 import alluxio.proto.meta.DoraMeta;
 import alluxio.rocks.RocksStore;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
+import org.rocksdb.BlockBasedTableConfig;
 import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.ColumnFamilyOptions;
@@ -73,7 +75,7 @@ public class RocksDBDoraMetaStore implements DoraMetaStore {
     Preconditions.checkState(metaTTL > 0 || metaTTL == -1);
 
     // the rocksDB objects must be initialized after RocksDB.loadLibrary() is called
-    mWriteOption = new WriteOptions();
+    mWriteOption = new WriteOptions().setDisableWAL(true);
     mReadOption  = new ReadOptions();
     String dbPath = PathUtils.concatPath(baseDir, DORA_META_DB_NAME);
     String backupPath = PathUtils.concatPath(baseDir, DORA_META_DB_NAME + "-backup");
@@ -94,6 +96,14 @@ public class RocksDBDoraMetaStore implements DoraMetaStore {
                     .setCompressionType(CompressionType.NO_COMPRESSION)));
     mToClose.addAll(columns.stream().map(
             ColumnFamilyDescriptor::getOptions).collect(Collectors.toList()));
+
+    Optional<BlockBasedTableConfig> config = RocksStore.checkSetTableConfig(
+        PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_CACHE_SIZE,
+        PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_BLOOM_FILTER,
+        PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_INDEX,
+        PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_BLOCK_INDEX, mToClose);
+    config.ifPresent(blockBasedTableConfig -> columns.get(0).getOptions()
+        .setTableFormatConfig(blockBasedTableConfig));
 
     mRocksStore = new RocksStore(DORA_META_STORE_NAME, dbPath, backupPath, opts, columns,
             Arrays.asList(mFileStatusColumn), false);
