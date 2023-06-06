@@ -686,8 +686,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         parentDir = fullPathUri.getParent();
       }
       mListStatusCache.invalidate(parentDir.toString()); // invalidate dir cache
-      mUfsStatusCache.invalidate(path);                  // invalidate in-memory cache
-      mMetaStore.removeDoraMeta(path);                   // invalidate in-Rocks cache
+      mMetaManager.removeFromMetaStore(path);
     }
   }
 
