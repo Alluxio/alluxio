@@ -164,7 +164,8 @@ public final class HeartbeatThread implements Runnable {
             limitTime / Constants.SECOND_MS);
         mExecutor.heartbeat(limitTime);
         long endHeartbeatTime = System.currentTimeMillis();
-        mPreviousReport = String.format("#%d [%s - %s - %s] ticked(s) %d, run(s) %d.", mCounter,
+        mPreviousReport = String.format("#%d [%s - %s - %s] ticked(s) %d, run(s) %d.",
+            mCounter.get(),
             CommonUtils.convertMsToDate(mStartTickTime, DATE_PATTERN),
             CommonUtils.convertMsToDate(mStartHeartbeatTime, DATE_PATTERN),
             CommonUtils.convertMsToDate(endHeartbeatTime, DATE_PATTERN),
