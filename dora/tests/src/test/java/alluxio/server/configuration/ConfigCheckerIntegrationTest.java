@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
  * Test server-side configuration checker.
  */
 public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
-  private static final int WAIT_TIMEOUT_MS = 120 * Constants.SECOND_MS;
+  private static final int WAIT_TIMEOUT_MS = 60 * Constants.SECOND_MS;
   private static final int TEST_NUM_MASTERS = 2;
   private static final int TEST_NUM_WORKERS = 2;
 
