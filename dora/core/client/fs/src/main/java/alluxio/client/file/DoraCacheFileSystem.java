@@ -25,15 +25,19 @@ import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.FileIncompleteException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.OpenDirectoryException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.OpenFilePOptions;
@@ -42,6 +46,7 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.underfs.options.DeleteOptions;
 import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockInfo;
@@ -61,6 +66,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 /**
@@ -119,6 +125,15 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
         .getBoolean(PropertyKey.DORA_CLIENT_METADATA_CACHE_ENABLED);
     mDefaultVirtualBlockSize = context.getClusterConf()
         .getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+  }
+
+  @Override
+  public void delete(AlluxioURI path, DeletePOptions options)
+      throws IOException, AlluxioException {
+    URIStatus status = getStatus(path);
+    AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
+    mDelegatedFileSystem.delete(ufsFullPath, options);
+    // TODO(JiamingMai): we need to invalidate the metadata and delete pages from Alluxio Worker
   }
 
   @Override

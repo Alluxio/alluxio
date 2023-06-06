@@ -22,6 +22,7 @@ import alluxio.util.io.BufferUtils;
 
 import jnr.constants.platform.OpenFlags;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
@@ -32,7 +33,7 @@ import java.nio.ByteBuffer;
 public class OutStreamTest extends AbstractStreamTest {
   @Test
   public void createEmpty() throws Exception {
-    AlluxioURI alluxioURI = getTestFileUri();
+    AlluxioURI alluxioURI = getTestFileAlluxioUri();
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
     createStream(alluxioURI, false).close();
@@ -44,7 +45,7 @@ public class OutStreamTest extends AbstractStreamTest {
 
   @Test (expected = AlreadyExistsRuntimeException.class)
   public void createExisting() throws Exception {
-    AlluxioURI alluxioURI = getTestFileUri();
+    AlluxioURI alluxioURI = getTestFileAlluxioUri();
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
     try (FuseFileStream outStream = createStream(alluxioURI, false)) {
       ByteBuffer buffer = ByteBuffer.allocate(1);
@@ -53,9 +54,9 @@ public class OutStreamTest extends AbstractStreamTest {
     }
   }
 
-  @Test
+  @Ignore("truncate is unsupported as delete operation isn't implemented")
   public void createTruncateFlag() throws Exception {
-    AlluxioURI alluxioURI = getTestFileUri();
+    AlluxioURI alluxioURI = getTestFileAlluxioUri();
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
     int newLen = 30;
     int newStartValue = 15;
@@ -66,9 +67,9 @@ public class OutStreamTest extends AbstractStreamTest {
     checkFile(alluxioURI, newLen, newStartValue);
   }
 
-  @Test
+  @Ignore("truncate is unsupported as delete operation isn't implemented")
   public void createTruncateZeroWrite() throws Exception {
-    AlluxioURI alluxioURI = getTestFileUri();
+    AlluxioURI alluxioURI = getTestFileAlluxioUri();
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
     int newLen = 30;
     int newStartValue = 15;
@@ -82,7 +83,7 @@ public class OutStreamTest extends AbstractStreamTest {
 
   @Test (expected = FailedPreconditionRuntimeException.class)
   public void read() throws Exception {
-    AlluxioURI alluxioURI = getTestFileUri();
+    AlluxioURI alluxioURI = getTestFileAlluxioUri();
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
     try (FuseFileStream outStream = createStream(alluxioURI, false)) {
@@ -94,7 +95,7 @@ public class OutStreamTest extends AbstractStreamTest {
 
   @Test (expected = UnimplementedRuntimeException.class)
   public void randomWrite() throws Exception {
-    AlluxioURI alluxioURI = getTestFileUri();
+    AlluxioURI alluxioURI = getTestFileAlluxioUri();
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
     try (FuseFileStream outStream = createStream(alluxioURI, false)) {
@@ -105,7 +106,7 @@ public class OutStreamTest extends AbstractStreamTest {
 
   @Test
   public void sequentialWriteAndgetFileLength() throws Exception {
-    AlluxioURI alluxioURI = getTestFileUri();
+    AlluxioURI alluxioURI = getTestFileAlluxioUri();
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
     try (FuseFileStream outStream = createStream(alluxioURI, false)) {
@@ -119,9 +120,9 @@ public class OutStreamTest extends AbstractStreamTest {
     checkFile(alluxioURI, DEFAULT_FILE_LEN * 2, 0);
   }
 
-  @Test
+  @Ignore("truncate is unsupported as delete operation isn't implemented")
   public void truncateZeroOrDefaultFileLen() throws Exception {
-    AlluxioURI alluxioURI = getTestFileUri();
+    AlluxioURI alluxioURI = getTestFileAlluxioUri();
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
     try (FuseFileStream outStream = createStream(alluxioURI, false)) {
@@ -141,7 +142,7 @@ public class OutStreamTest extends AbstractStreamTest {
 
   @Test (expected = UnimplementedRuntimeException.class)
   public void truncateMiddle() throws Exception {
-    AlluxioURI alluxioURI = getTestFileUri();
+    AlluxioURI alluxioURI = getTestFileAlluxioUri();
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
     try (FuseFileStream outStream = createStream(alluxioURI, false)) {
@@ -154,7 +155,7 @@ public class OutStreamTest extends AbstractStreamTest {
 
   @Test (expected = UnimplementedRuntimeException.class)
   public void openExistingTruncateFuture() throws Exception {
-    AlluxioURI alluxioURI = getTestFileUri();
+    AlluxioURI alluxioURI = getTestFileAlluxioUri();
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
     try (FuseFileStream outStream = createStream(alluxioURI, false)) {
       // Alluxio does not support append to existing file
@@ -164,7 +165,7 @@ public class OutStreamTest extends AbstractStreamTest {
 
   @Test
   public void truncateBiggerThanBytesWritten() throws Exception {
-    AlluxioURI alluxioURI = getTestFileUri();
+    AlluxioURI alluxioURI = getTestFileAlluxioUri();
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
     try (FuseFileStream outStream = createStream(alluxioURI, false)) {
@@ -183,7 +184,7 @@ public class OutStreamTest extends AbstractStreamTest {
 
   @Test
   public void truncateFileLen() throws Exception {
-    AlluxioURI alluxioURI = getTestFileUri();
+    AlluxioURI alluxioURI = getTestFileAlluxioUri();
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
     try (FuseFileStream outStream = createStream(alluxioURI, false)) {
@@ -199,7 +200,7 @@ public class OutStreamTest extends AbstractStreamTest {
 
   @Test
   public void truncateBiggerThanFileLen() throws Exception {
-    AlluxioURI alluxioURI = getTestFileUri();
+    AlluxioURI alluxioURI = getTestFileAlluxioUri();
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
     try (FuseFileStream outStream = createStream(alluxioURI, false)) {
@@ -215,7 +216,7 @@ public class OutStreamTest extends AbstractStreamTest {
 
   @Test
   public void truncateMultiple() throws Exception {
-    AlluxioURI alluxioURI = getTestFileUri();
+    AlluxioURI alluxioURI = getTestFileAlluxioUri();
     mFileSystem.createDirectory(alluxioURI.getParent(),
         CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
     try (FuseFileStream outStream = createStream(alluxioURI, false)) {

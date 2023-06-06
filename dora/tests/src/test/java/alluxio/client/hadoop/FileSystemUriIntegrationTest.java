@@ -25,6 +25,7 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.net.URI;
@@ -33,6 +34,7 @@ import java.net.URI;
  * Integration tests for using URIs with connect details in authorities to connect to
  * Alluxio clusters through {@link FileSystem}.
  */
+@Ignore("Master's URI is no longer used for writing")
 public class FileSystemUriIntegrationTest extends BaseIntegrationTest {
   private static final int WAIT_TIMEOUT_MS = 60 * Constants.SECOND_MS;
   private MultiProcessCluster mCluster;

@@ -137,7 +137,11 @@ public class DoraFileOutStream extends FileOutStream {
       } catch (Exception e) {
         // Ignore.
       } finally {
-        mNettyDataWriter.close();
+        try {
+          mNettyDataWriter.close();
+        } catch (Exception ex) {
+          // Ignore
+        }
       }
 
       if (mUnderStorageType.isSyncPersist()) {
