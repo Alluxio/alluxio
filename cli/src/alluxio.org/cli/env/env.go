@@ -170,6 +170,10 @@ func InitAlluxioEnv(rootPath string) error {
 
 	envVar.Set(ConfAlluxioJavaOpts.EnvVar, alluxioJavaOpts)
 
+	for _, p := range ProcessRegistry {
+		p.SetEnvVars(envVar)
+	}
+
 	// also set user environment variables, as they are not associated with a particular process
 	// ALLUXIO_USER_JAVA_OPTS = {default logger opts} ${ALLUXIO_JAVA_OPTS} {user provided opts}
 	userJavaOpts := fmt.Sprintf(JavaOptFormat, ConfAlluxioLoggerType, userLoggerType)

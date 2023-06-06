@@ -24,12 +24,10 @@ import (
 )
 
 type Command interface {
-	Base() *BaseCommand
-	Run([]string) error
 	ToCommand() *cobra.Command
 }
 
-type BaseCommand struct {
+type BaseJavaCommand struct {
 	CommandName   string
 	JavaClassName string
 	Parameter     string
@@ -40,7 +38,7 @@ type BaseCommand struct {
 	ShellJavaOpts  string   // default java opts encoded as part of the specific command
 }
 
-func (c *BaseCommand) InitRunJavaClassCmd(cmd *cobra.Command) *cobra.Command {
+func (c *BaseJavaCommand) InitRunJavaClassCmd(cmd *cobra.Command) *cobra.Command {
 	cmd.Flags().BoolVarP(&c.DebugMode, "attach-debug", "d", false, fmt.Sprintf("True to attach debug opts specified by $%v", ConfAlluxioUserAttachOpts.EnvVar))
 	cmd.Flags().StringSliceVarP(&c.InlineJavaOpts, "java-opts", "D", nil, `Alluxio properties to apply, ex. -Dkey=value`)
 	return cmd
@@ -53,7 +51,7 @@ func (c *BaseCommand) InitRunJavaClassCmd(cmd *cobra.Command) *cobra.Command {
 // - ${ALLUXIO_USER_*} are environment variables set by the user in alluxio-env.sh
 // - {command *} are encoded as part of the command's definition
 // - {user inline *} are specified by the user when entering the command
-func (c *BaseCommand) RunJavaClassCmd(args []string) *exec.Cmd {
+func (c *BaseJavaCommand) RunJavaClassCmd(args []string) *exec.Cmd {
 	var cmdArgs []string
 	if c.DebugMode {
 		if opts := Env.EnvVar.GetString(ConfAlluxioUserAttachOpts.EnvVar); opts != "" {
@@ -85,7 +83,7 @@ func (c *BaseCommand) RunJavaClassCmd(args []string) *exec.Cmd {
 	return ret
 }
 
-func (c *BaseCommand) Run(args []string) error {
+func (c *BaseJavaCommand) Run(args []string) error {
 	cmd := c.RunJavaClassCmd(args)
 
 	cmd.Stdout = os.Stdout

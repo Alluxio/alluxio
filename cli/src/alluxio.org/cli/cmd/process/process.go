@@ -9,39 +9,17 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package main
+package process
 
 import (
-	"os"
-
-	"alluxio.org/cli/cmd/conf"
-	"alluxio.org/cli/cmd/journal"
-	"alluxio.org/cli/cmd/process"
 	"alluxio.org/cli/env"
-	"alluxio.org/cli/launch"
-	"alluxio.org/cli/processes"
 )
 
-func main() {
-	for _, p := range []env.Process{
-		processes.JobMaster,
-		processes.JobWorker,
-		processes.Master,
-		processes.Proxy,
-		processes.Worker,
-	} {
-		env.RegisterProcess(p)
-	}
-
-	for _, c := range []*env.Service{
-		conf.Service,
-		journal.Service,
-		process.Service,
-	} {
-		env.RegisterService(c)
-	}
-
-	if err := launch.Run(); err != nil {
-		os.Exit(1)
-	}
+var Service = &env.Service{
+	Name:        "process",
+	Description: "Start, stop, and other operations related to the cluster processes",
+	Commands: []env.Command{
+		&env.StartProcessCommand{},
+		&env.StopProcessCommand{},
+	},
 }
