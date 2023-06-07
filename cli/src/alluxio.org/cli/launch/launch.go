@@ -47,6 +47,5 @@ func Run() error {
 
 	env.InitServiceCommandTree(rootCmd)
 
-	rootCmd.SilenceUsage = true
 	return rootCmd.Execute()
 }
