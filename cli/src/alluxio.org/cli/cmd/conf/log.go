@@ -46,8 +46,9 @@ func (c *LogCommand) ToCommand() *cobra.Command {
 			return c.Run(args)
 		},
 	})
-	cmd.Flags().StringVar(&c.LogName, "name", "", "Logger name (ex. alluxio.master.file.DefaultFileSystemMaster)")
-	if err := cmd.MarkFlagRequired("name"); err != nil {
+	const name = "name"
+	cmd.Flags().StringVar(&c.LogName, name, "", "Logger name (ex. alluxio.master.file.DefaultFileSystemMaster)")
+	if err := cmd.MarkFlagRequired(name); err != nil {
 		panic(err)
 	}
 	cmd.Flags().StringVar(&c.Level, "level", "", "If specified, sets the specified logger at the given level")
