@@ -46,9 +46,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
-import java.io.File;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.HashSet;
@@ -241,20 +245,33 @@ public class TieredBlockStore implements LocalBlockStore {
    */
   private void validateBlockIntegrityForRead(BlockMeta blockMeta) throws IllegalStateException {
     final long blockId = blockMeta.getBlockId();
-    File blockFile = new File(blockMeta.getPath());
-
-    if (!blockFile.exists()) {
+    final Path blockPath = Paths.get(blockMeta.getPath());
+    final BasicFileAttributes blockFileAttrs;
+    try {
+      blockFileAttrs = Files.readAttributes(blockPath, BasicFileAttributes.class);
+    } catch (NoSuchFileException e) {
       throw new IllegalStateException(String.format(
-          "Block %s exists in block meta but actual physical block file does not exist", blockId));
+          "Block %s exists in block meta but actual physical block file %s does not exist",
+          blockId, blockPath));
+    } catch (IOException e) {
+      // cannot read file attributes, possibly due to bad permission or bad file type
+      LOG.debug("Cannot read file attributes for block {}", blockId, e);
+      throw new IllegalStateException(String.format(
+          "Cannot read attributes of file %s for block %s during validation", blockId, blockPath));
     }
-
-    final long actualLength = blockFile.length();
+    // need to check if file is a regular file, as for directories and device files the file length
+    // is unspecified
+    if (!blockFileAttrs.isRegularFile()) {
+      throw new IllegalStateException(String.format(
+          "Block file %s for block %s is not a regular file", blockPath, blockId));
+    }
+    final long actualLength = blockFileAttrs.size();
     final long expectedLength = blockMeta.getBlockSize();
     if (actualLength != expectedLength) {
       throw new IllegalStateException(String.format(
           "Block %s exists in block meta but the size from block meta does not match that of "
-              + "the block file, expected block size = %d, actual block file length = %d",
-          blockId, expectedLength, actualLength));
+              + "the block file %s, expected block size = %d, actual block file length = %d",
+          blockId, blockPath, expectedLength, actualLength));
     }
   }
 
