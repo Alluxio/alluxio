@@ -15,6 +15,7 @@ import (
 	"os"
 
 	"alluxio.org/cli/cmd/conf"
+	"alluxio.org/cli/cmd/info"
 	"alluxio.org/cli/cmd/journal"
 	"alluxio.org/cli/cmd/process"
 	"alluxio.org/cli/env"
@@ -37,6 +38,7 @@ func main() {
 		conf.Service,
 		journal.Service,
 		process.Service,
+		info.Service,
 	} {
 		env.RegisterService(c)
 	}

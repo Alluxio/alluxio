@@ -30,7 +30,7 @@ type Command interface {
 type BaseJavaCommand struct {
 	CommandName   string
 	JavaClassName string
-	Parameter     string
+	Parameters    []string
 
 	DebugMode bool
 
@@ -71,8 +71,8 @@ func (c *BaseJavaCommand) RunJavaClassCmd(args []string) *exec.Cmd {
 		}
 	}
 	cmdArgs = append(cmdArgs, c.JavaClassName)
-	if c.Parameter != "" {
-		cmdArgs = append(cmdArgs, c.Parameter)
+	if len(c.Parameters) > 0 {
+		cmdArgs = append(cmdArgs, c.Parameters...)
 	}
 	cmdArgs = append(cmdArgs, args...)
 
