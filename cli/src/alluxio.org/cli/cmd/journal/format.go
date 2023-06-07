@@ -26,7 +26,7 @@ var Format = &FormatCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
 		CommandName:   "format",
 		JavaClassName: "alluxio.cli.Format",
-		Parameter:     "master",
+		Parameters:    []string{"master"},
 		ShellJavaOpts: fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, "Console"),
 	},
 }
