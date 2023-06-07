@@ -56,13 +56,13 @@ func (c *CollectCommand) ToCommand() *cobra.Command {
 		Short: "Collects information such as logs, config, metrics, and more from the running Alluxio cluster and bundle into a single tarball",
 		Long: `Collects information such as logs, config, metrics, and more from the running Alluxio cluster and bundle into a single tarball
 [command] must be one of the following values:
-  all:                runs all the commands below.
-  collectAlluxioInfo: runs a set of Alluxio commands to collect information about the Alluxio cluster.
-  collectConfig:      collects the configuration files under ${ALLUXIO_HOME}/config/.
-  collectEnv:         runs a set of linux commands to collect information about the cluster.
-  collectJvmInfo:     collects jstack from the JVMs.
-  collectLog:         collects the log files under ${ALLUXIO_HOME}/logs/.
-  collectMetrics:     collects Alluxio system metrics.
+  all      runs all the commands below
+  cluster: runs a set of Alluxio commands to collect information about the Alluxio cluster
+  conf:    collects the configuration files under ${ALLUXIO_HOME}/config/
+  env:     runs a set of linux commands to collect information about the cluster
+  jvm:     collects jstack from the JVMs
+  log:     collects the log files under ${ALLUXIO_HOME}/logs/
+  metrics: collects Alluxio system metrics
 
 WARNING: This command MAY bundle credentials. To understand the risks refer to the docs here.
 https://docs.alluxio.io/os/user/edge/en/operation/Troubleshooting.html#collect-alluxio-cluster-information
@@ -90,16 +90,17 @@ https://docs.alluxio.io/os/user/edge/en/operation/Troubleshooting.html#collect-a
 
 func (c *CollectCommand) Run(args []string) error {
 	// TODO: use flags instead of arguments to parse user input
-	commands := map[string]struct{}{
-		"all":                {},
-		"collectAlluxioInfo": {},
-		"collectConfig":      {},
-		"collectEnv":         {},
-		"collectJvmInfo":     {},
-		"collectLog":         {},
-		"collectMetrics":     {},
+	commands := map[string]string{
+		"all":     "all",
+		"cluster": "collectAlluxioInfo",
+		"conf":    "collectConfig",
+		"env":     "collectEnv",
+		"jvm":     "collectJvmInfo",
+		"log":     "collectLog",
+		"metrics": "collectMetrics",
 	}
-	if _, ok := commands[args[0]]; !ok {
+	commandArg, ok := commands[args[0]]
+	if !ok {
 		var cmds []string
 		for c := range commands {
 			cmds = append(cmds, c)
@@ -146,7 +147,7 @@ func (c *CollectCommand) Run(args []string) error {
 		javaArgs = append(javaArgs, "--start-time", c.startTime)
 	}
 
-	javaArgs = append(javaArgs, args[0], c.outputPath)
+	javaArgs = append(javaArgs, commandArg, c.outputPath)
 
 	return c.Base().Run(javaArgs)
 }
