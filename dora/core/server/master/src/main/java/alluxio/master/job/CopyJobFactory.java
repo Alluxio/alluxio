@@ -29,7 +29,7 @@ import java.util.OptionalLong;
 import java.util.UUID;
 
 /**
- * Factory for creating {@link LoadJob}s that get file infos from master.
+ * Factory for creating {@link CopyJob}s that get file infos from master.
  */
 public class CopyJobFactory implements JobFactory {
 
@@ -38,7 +38,7 @@ public class CopyJobFactory implements JobFactory {
 
   /**
    * Create factory.
-   * @param request load job request
+   * @param request copy job request
    * @param fsMaster file system master
    */
   public CopyJobFactory(CopyJobRequest request, DefaultFileSystemMaster fsMaster) {
