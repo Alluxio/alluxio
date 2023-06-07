@@ -19,6 +19,9 @@ var Service = &env.Service{
 	Name:        "journal",
 	Description: "Format, backup, and other journal related operations",
 	Commands: []env.Command{
+		Backup,
+		Checkpoint,
 		Format,
+		Read,
 	},
 }
