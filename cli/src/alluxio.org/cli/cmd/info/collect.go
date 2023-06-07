@@ -64,8 +64,6 @@ func (c *CollectCommand) ToCommand() *cobra.Command {
   collectLog:         collects the log files under ${ALLUXIO_HOME}/logs/.
   collectMetrics:     collects Alluxio system metrics.
 
-[outputPath]        the directory you want the collected tarball to be in
-
 WARNING: This command MAY bundle credentials. To understand the risks refer to the docs here.
 https://docs.alluxio.io/os/user/edge/en/operation/Troubleshooting.html#collect-alluxio-cluster-information
 `,
