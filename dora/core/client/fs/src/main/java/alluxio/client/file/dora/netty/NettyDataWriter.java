@@ -256,8 +256,12 @@ public final class NettyDataWriter implements DataWriter {
         .setOffset(offset)
         .build();
     DataBuffer dataBuffer = new NettyDataBuffer(buf);
-    mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(writeRequest), dataBuffer))
-        .addListener(new WriteListener(offset + len));
+    try {
+      mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(writeRequest), dataBuffer))
+          .addListener(new WriteListener(offset + len)).sync();
+    } catch (InterruptedException e) {
+      // ignore
+    }
   }
 
   @Override
@@ -299,15 +303,7 @@ public final class NettyDataWriter implements DataWriter {
       return;
     }
 
-    if (mPosToQueue == 0) {
-      // File was opened but didn't write anything.
-      try (LockResource lr = new LockResource(mLock)) {
-        mDone = true;
-        mDoneOrFailed.signal();
-      }
-    } else {
-      sendEof();
-    }
+    sendEof();
     Future<?> closeFuture = null;
     mLock.lock();
     try {

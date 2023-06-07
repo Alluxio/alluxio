@@ -33,6 +33,7 @@ import alluxio.grpc.WriteOptions;
 import alluxio.job.JobDescription;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.proto.journal.Job.FileFilter;
 import alluxio.proto.journal.Journal;
 import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobState;
@@ -112,6 +113,7 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
   private final Iterable<FileInfo> mFileIterable;
   private Optional<Iterator<FileInfo>> mFileIterator = Optional.empty();
   private OptionalLong mEndTime = OptionalLong.empty();
+  private Optional<FileFilter> mFilter;
 
   /**
    * Constructor.
@@ -126,10 +128,12 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
    * @param verificationEnabled whether to verify the job after moved
    * @param checkContent        whether to check content
    * @param fileIterable        file iterable
+   * @param filter              file filter
    */
   public MoveJob(String src, String dst, boolean overwrite, Optional<String> user, String jobId,
                  OptionalLong bandwidth, boolean usePartialListing, boolean verificationEnabled,
-                 boolean checkContent, Iterable<FileInfo> fileIterable) {
+                 boolean checkContent, Iterable<FileInfo> fileIterable,
+                 Optional<FileFilter> filter) {
     super(user, jobId);
     mSrc = requireNonNull(src, "src is null");
     mDst = requireNonNull(dst, "dst is null");
@@ -144,6 +148,7 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
     mFileIterable = fileIterable;
     mOverwrite = overwrite;
     mCheckContent = checkContent;
+    mFilter = filter;
   }
 
   /**
@@ -422,6 +427,14 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
     mUser.ifPresent(jobEntry::setUser);
     mBandwidth.ifPresent(jobEntry::setBandwidth);
     mEndTime.ifPresent(jobEntry::setEndTime);
+    if (mFilter.isPresent()) {
+      FileFilter.Builder builder = FileFilter.newBuilder().setValue(mFilter.get().getValue())
+          .setName(mFilter.get().getName());
+      if (mFilter.get().hasPattern()) {
+        builder.setPattern(mFilter.get().getPattern());
+      }
+      jobEntry.setFilter(builder.build());
+    }
     return Journal.JournalEntry
         .newBuilder()
         .setMoveJob(jobEntry.build())

@@ -139,8 +139,8 @@ public class DoraFileOutStream extends FileOutStream {
       } finally {
         try {
           mNettyDataWriter.close();
-        } catch (Exception e) {
-          // Ignore;
+        } catch (Exception ex) {
+          // Ignore
         }
       }
 
