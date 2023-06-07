@@ -34,8 +34,9 @@ type BaseJavaCommand struct {
 
 	DebugMode bool
 
-	InlineJavaOpts []string // java opts provided by the user as part of the inline command
-	ShellJavaOpts  string   // default java opts encoded as part of the specific command
+	UseServerClasspath bool     // defaults to ALLUXIO_CLIENT_CLASSPATH, use ALLUXIO_SERVER_CLASSPATH if true
+	InlineJavaOpts     []string // java opts provided by the user as part of the inline command
+	ShellJavaOpts      string   // default java opts encoded as part of the specific command
 }
 
 func (c *BaseJavaCommand) InitRunJavaClassCmd(cmd *cobra.Command) *cobra.Command {
@@ -58,7 +59,12 @@ func (c *BaseJavaCommand) RunJavaClassCmd(args []string) *exec.Cmd {
 			cmdArgs = append(cmdArgs, strings.Split(opts, " ")...)
 		}
 	}
-	cmdArgs = append(cmdArgs, "-cp", Env.EnvVar.GetString(EnvAlluxioClientClasspath))
+	classpath := EnvAlluxioClientClasspath
+	if c.UseServerClasspath {
+		classpath = EnvAlluxioServerClasspath
+	}
+	cmdArgs = append(cmdArgs, "-cp", Env.EnvVar.GetString(classpath))
+
 	if opts := Env.EnvVar.GetString(ConfAlluxioUserJavaOpts.EnvVar); opts != "" {
 		cmdArgs = append(cmdArgs, strings.Split(opts, " ")...)
 	}
