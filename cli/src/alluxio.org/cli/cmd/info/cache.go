@@ -51,7 +51,7 @@ func (c *CacheCommand) ToCommand() *cobra.Command {
 	cmd.Flags().BoolVar(&c.liveWorkers, "live", false, "Only show live workers for capacity report")
 	cmd.Flags().BoolVar(&c.lostWorkers, "lost", false, "Only show lost workers for capacity report")
 	cmd.Flags().StringSliceVar(&c.workersList, "worker", nil, "Only show specified workers for capacity report, labeled by hostname or IP address")
-	cmd.MarkFlagsMutuallyExclusive("live", "lost", "workers")
+	cmd.MarkFlagsMutuallyExclusive("live", "lost", "worker")
 	return cmd
 }
 
