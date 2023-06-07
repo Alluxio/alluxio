@@ -12,27 +12,27 @@
 package quorum
 
 import (
+	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
 )
 
 var Elect = &ElectCommand{
-	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "elect",
-		JavaClassName: "alluxio.cli.fsadmin.FileSystemAdminShell",
-		Parameters:    []string{"journal", "quorum"},
+	QuorumCommand: &QuorumCommand{
+		BaseJavaCommand: &env.BaseJavaCommand{
+			CommandName:   "elect",
+			JavaClassName: "alluxio.cli.fsadmin.FileSystemAdminShell",
+			Parameters:    []string{"journal", "quorum", "elect"},
+		},
+		allowedDomains: []string{domainMaster},
 	},
 }
 
 type ElectCommand struct {
-	*env.BaseJavaCommand
+	*QuorumCommand
 
-	ServerAddress string
-}
-
-func (c *ElectCommand) Base() *env.BaseJavaCommand {
-	return c.BaseJavaCommand
+	serverAddress string
 }
 
 func (c *ElectCommand) ToCommand() *cobra.Command {
@@ -43,9 +43,9 @@ func (c *ElectCommand) ToCommand() *cobra.Command {
 			return c.Run(nil)
 		},
 	})
-	// TODO: to be consistent with other quorum commands, should this have a domain flag?
+
 	const address = "address"
-	cmd.Flags().StringVar(&c.ServerAddress, address, "", "Address of new leader server in the format <hostname>:<port>")
+	cmd.Flags().StringVar(&c.serverAddress, address, "", "Address of new leader server in the format <hostname>:<port>")
 	if err := cmd.MarkFlagRequired(address); err != nil {
 		panic(err)
 	}
@@ -53,5 +53,10 @@ func (c *ElectCommand) ToCommand() *cobra.Command {
 }
 
 func (c *ElectCommand) Run(_ []string) error {
-	return c.Base().Run([]string{"elect", "-address", c.ServerAddress})
+	if err := checkDomain(c.QuorumCommand.domain, c.QuorumCommand.allowedDomains...); err != nil {
+		return stacktrace.Propagate(err, "error checking domain %v", c.QuorumCommand.domain)
+	}
+	// TODO: ignore the domain flag for now since elect command can only operate on MASTER
+	//  java command needs to be updated such that it can accept the domain flag
+	return c.Base().Run([]string{"-address", c.serverAddress})
 }

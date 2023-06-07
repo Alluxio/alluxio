@@ -12,45 +12,38 @@
 package quorum
 
 import (
-	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
 )
 
 var Remove = &RemoveCommand{
-	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "remove",
-		JavaClassName: "alluxio.cli.fsadmin.FileSystemAdminShell",
-		Parameters:    []string{"journal", "quorum"},
+	QuorumCommand: &QuorumCommand{
+		BaseJavaCommand: &env.BaseJavaCommand{
+			CommandName:   "remove",
+			JavaClassName: "alluxio.cli.fsadmin.FileSystemAdminShell",
+			Parameters:    []string{"journal", "quorum", "remove"},
+		},
+		allowedDomains: []string{domainJobMaster, domainMaster},
 	},
 }
 
 type RemoveCommand struct {
-	*env.BaseJavaCommand
+	*QuorumCommand
 
-	Domain        string
-	ServerAddress string
-}
-
-func (c *RemoveCommand) Base() *env.BaseJavaCommand {
-	return c.BaseJavaCommand
+	serverAddress string
 }
 
 func (c *RemoveCommand) ToCommand() *cobra.Command {
-	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
+	cmd := c.QuorumCommand.InitQuorumCmd(c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   Remove.CommandName,
 		Short: "Removes the specified server from the quorum",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(nil)
 		},
-	})
-	const address, domain = "address", "domain"
-	cmd.Flags().StringVar(&c.Domain, domain, "", "")
-	if err := cmd.MarkFlagRequired(domain); err != nil {
-		panic(err)
-	}
-	cmd.Flags().StringVar(&c.ServerAddress, address, "", "Address of server in the format <hostname>:<port>")
+	}))
+	const address = "address"
+	cmd.Flags().StringVar(&c.serverAddress, address, "", "Address of server in the format <hostname>:<port>")
 	if err := cmd.MarkFlagRequired(address); err != nil {
 		panic(err)
 	}
@@ -58,8 +51,5 @@ func (c *RemoveCommand) ToCommand() *cobra.Command {
 }
 
 func (c *RemoveCommand) Run(_ []string) error {
-	if err := checkDomain(c.Domain); err != nil {
-		return stacktrace.Propagate(err, "error checking domain %v", c.Domain)
-	}
-	return c.Base().Run([]string{"remove", "-address", c.ServerAddress, "-domain", c.Domain})
+	return c.QuorumCommand.Run([]string{"-address", c.serverAddress})
 }

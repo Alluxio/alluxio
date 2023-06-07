@@ -12,13 +12,13 @@
 package main
 
 import (
-	"alluxio.org/cli/cmd/quorum"
 	"os"
 
 	"alluxio.org/cli/cmd/conf"
 	"alluxio.org/cli/cmd/info"
 	"alluxio.org/cli/cmd/journal"
 	"alluxio.org/cli/cmd/process"
+	"alluxio.org/cli/cmd/quorum"
 	"alluxio.org/cli/env"
 	"alluxio.org/cli/launch"
 	"alluxio.org/cli/processes"

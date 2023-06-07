@@ -12,49 +12,37 @@
 package quorum
 
 import (
-	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
 )
 
 var Info = &InfoCommand{
-	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "info",
-		JavaClassName: "alluxio.cli.fsadmin.FileSystemAdminShell",
-		Parameters:    []string{"journal", "quorum"},
+	QuorumCommand: &QuorumCommand{
+		BaseJavaCommand: &env.BaseJavaCommand{
+			CommandName:   "info",
+			JavaClassName: "alluxio.cli.fsadmin.FileSystemAdminShell",
+			Parameters:    []string{"journal", "quorum", "info"},
+		},
+		allowedDomains: []string{domainJobMaster, domainMaster},
 	},
 }
 
 type InfoCommand struct {
-	*env.BaseJavaCommand
-
-	Domain string
-}
-
-func (c *InfoCommand) Base() *env.BaseJavaCommand {
-	return c.BaseJavaCommand
+	*QuorumCommand
 }
 
 func (c *InfoCommand) ToCommand() *cobra.Command {
-	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
+	cmd := c.QuorumCommand.InitQuorumCmd(c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   Info.CommandName,
 		Short: "Shows quorum information",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(nil)
 		},
-	})
-	const domain = "domain"
-	cmd.Flags().StringVar(&c.Domain, domain, "", "")
-	if err := cmd.MarkFlagRequired(domain); err != nil {
-		panic(err)
-	}
+	}))
 	return cmd
 }
 
 func (c *InfoCommand) Run(_ []string) error {
-	if err := checkDomain(c.Domain); err != nil {
-		return stacktrace.Propagate(err, "error checking domain %v", c.Domain)
-	}
-	return c.Base().Run([]string{"info", "-domain", c.Domain})
+	return c.QuorumCommand.Run(nil)
 }
