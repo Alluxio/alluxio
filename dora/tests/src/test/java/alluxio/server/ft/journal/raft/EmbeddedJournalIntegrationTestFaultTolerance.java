@@ -39,8 +39,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.ratis.server.RaftServerConfigKeys;
 import org.apache.ratis.server.storage.RaftStorage;
 import org.apache.ratis.server.storage.StorageImplUtils;
-import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
-import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
+import org.apache.ratis.statemachine.SnapshotInfo;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -178,9 +177,9 @@ public class EmbeddedJournalIntegrationTestFaultTolerance
         RaftStorage.StartupOption.RECOVER,
         RaftServerConfigKeys.STORAGE_FREE_SPACE_MIN_DEFAULT.getSize());
     rs.initialize();
-    SimpleStateMachineStorage storage = new SimpleStateMachineStorage();
+    SnapshotDirStateMachineStorage storage = new SnapshotDirStateMachineStorage();
     storage.init(rs);
-    SingleFileSnapshotInfo snapshot = storage.findLatestSnapshot();
+    SnapshotInfo snapshot = storage.getLatestSnapshot();
     assertNotNull(snapshot);
     mCluster.notifySuccess();
   }
@@ -225,9 +224,9 @@ public class EmbeddedJournalIntegrationTestFaultTolerance
         RaftStorage.StartupOption.RECOVER,
         RaftServerConfigKeys.STORAGE_FREE_SPACE_MIN_DEFAULT.getSize());
     rs.initialize();
-    SimpleStateMachineStorage storage = new SimpleStateMachineStorage();
+    SnapshotDirStateMachineStorage storage = new SnapshotDirStateMachineStorage();
     storage.init(rs);
-    SingleFileSnapshotInfo snapshot = storage.findLatestSnapshot();
+    SnapshotInfo snapshot = storage.getLatestSnapshot();
     assertNotNull(snapshot);
     mCluster.notifySuccess();
   }
