@@ -162,6 +162,11 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
+  public long getMountId(AlluxioURI ufsUri) throws AlluxioStatusException {
+    return 0;
+  }
+
+  @Override
   public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
       SetAclPOptions options) throws AlluxioStatusException {
   }

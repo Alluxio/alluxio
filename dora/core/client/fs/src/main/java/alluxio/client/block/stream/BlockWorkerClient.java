@@ -19,10 +19,14 @@ import alluxio.grpc.CompleteFilePRequest;
 import alluxio.grpc.CompleteFilePResponse;
 import alluxio.grpc.CopyRequest;
 import alluxio.grpc.CopyResponse;
+import alluxio.grpc.CreateDirectoryPRequest;
+import alluxio.grpc.CreateDirectoryPResponse;
 import alluxio.grpc.CreateFilePRequest;
 import alluxio.grpc.CreateFilePResponse;
 import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
+import alluxio.grpc.DeletePRequest;
+import alluxio.grpc.DeletePResponse;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GrpcServerAddress;
@@ -42,6 +46,8 @@ import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.grpc.RemoveBlockRequest;
 import alluxio.grpc.RemoveBlockResponse;
+import alluxio.grpc.RenamePRequest;
+import alluxio.grpc.RenamePResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
 import alluxio.security.user.UserState;
@@ -239,4 +245,25 @@ public interface BlockWorkerClient extends Closeable {
    * @return a response of this operation
    */
   CompleteFilePResponse completeFile(CompleteFilePRequest request);
+
+  /**
+   * Delete a file from.
+   * @param request the request to delete a file
+   * @return a response of this operation
+   */
+  DeletePResponse delete(DeletePRequest request);
+
+  /**
+   * Rename the src to dst.
+   * @param request the request to do rename
+   * @return a response of this operation
+   */
+  RenamePResponse rename(RenamePRequest request);
+
+  /**
+   * Create a directory.
+   * @param request the request to create a dir
+   * @return a response of this operation
+   */
+  CreateDirectoryPResponse createDirectory(CreateDirectoryPRequest request);
 }

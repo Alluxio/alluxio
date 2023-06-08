@@ -13,7 +13,6 @@ package alluxio.client.fuse.dora.stream;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
-import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.file.FuseFileStream;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -22,6 +21,7 @@ import alluxio.util.io.BufferUtils;
 import jnr.constants.platform.OpenFlags;
 import org.junit.Test;
 
+import java.io.FileNotFoundException;
 import java.nio.ByteBuffer;
 
 /**
@@ -50,7 +50,7 @@ public class InOrOutStreamOutTest extends OutStreamTest {
     }
   }
 
-  @Test (expected = NotFoundRuntimeException.class)
+  @Test (expected = FileNotFoundException.class)
   public void createEmpty() throws Exception {
     AlluxioURI alluxioURI = getTestFileUri();
     mFileSystem.createDirectory(alluxioURI.getParent(),

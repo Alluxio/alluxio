@@ -271,6 +271,15 @@ public interface FileSystemMasterClient extends Client {
   AlluxioURI reverseResolve(AlluxioURI ufsUri) throws AlluxioStatusException;
 
   /**
+   * Reverse resolve a ufs uri and get mount id.
+   *
+   * @param ufsUri the ufs uri
+   * @return the mount id for the ufsUri
+   * @throws AlluxioStatusException if any error occurs
+   */
+  long getMountId(AlluxioURI ufsUri) throws AlluxioStatusException;
+
+  /**
    * Sets the ACL for a path.
    *
    * @param path the file or directory path

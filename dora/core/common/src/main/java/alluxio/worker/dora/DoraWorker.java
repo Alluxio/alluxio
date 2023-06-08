@@ -13,11 +13,14 @@ package alluxio.worker.dora;
 
 import alluxio.exception.AccessControlException;
 import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.File;
 import alluxio.grpc.FileFailure;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.Route;
 import alluxio.grpc.RouteFailure;
 import alluxio.grpc.UfsReadOptions;
@@ -65,16 +68,6 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
   @Nullable
   UfsStatus[] listStatus(String path, ListStatusPOptions options)
       throws IOException, AccessControlException;
-
-  /**
-   * Invalidate all cached pages of this file.
-   *
-   * @param fileInfo the FileInfo of this file. Cached pages are identified by PageId and PageId is
-   *                 generated from fileInfo.fullUfsPath.
-   *
-   * @return successful or not
-   */
-  boolean invalidateCachedFile(FileInfo fileInfo);
 
   /**
    * Creates the file reader to read from Alluxio dora.
@@ -149,4 +142,26 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    */
   void completeFile(String path, CompleteFilePOptions options, String uuid)
       throws IOException, AccessControlException;
+
+  /**
+   * Delete a file.
+   * @param path the path of this file
+   * @param options the options for this operation
+   */
+  void delete(String path, DeletePOptions options);
+
+  /**
+   * Rename src to dst.
+   * @param src the source file/dir
+   * @param dst the destination file/dir
+   * @param options the options for this operations
+   */
+  void rename(String src, String dst, RenamePOptions options);
+
+  /**
+   * Create a directory.
+   * @param path the directory name
+   * @param options the options for this operations
+   */
+  void createDirectory(String path, CreateDirectoryPOptions options);
 }

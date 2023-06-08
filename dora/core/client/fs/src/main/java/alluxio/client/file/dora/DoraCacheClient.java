@@ -32,9 +32,13 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.status.PermissionDeniedException;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CompleteFilePRequest;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateDirectoryPRequest;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.CreateFilePRequest;
 import alluxio.grpc.CreateFilePResponse;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.DeletePRequest;
 import alluxio.grpc.FileInfo;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GetStatusPRequest;
@@ -42,6 +46,8 @@ import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ReadRequest;
+import alluxio.grpc.RenamePOptions;
+import alluxio.grpc.RenamePRequest;
 import alluxio.grpc.RequestType;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
@@ -251,6 +257,65 @@ public class DoraCacheClient {
           .setUuid(uuid)
           .build();
       client.get().completeFile(request);
+      return;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Delete a file.
+   * @param path
+   * @param options
+   */
+  public void delete(String path, DeletePOptions options) {
+    try (CloseableResource<BlockWorkerClient> client =
+             mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
+      DeletePRequest request = DeletePRequest.newBuilder()
+          .setPath(path)
+          .setOptions(options)
+          .build();
+      client.get().delete(request);
+      return;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Rename a src file/dir to dst file/dir.
+   * @param src the source file/dir
+   * @param dst the destination file/dir
+   * @param options the rename option
+   */
+  public void rename(String src, String dst, RenamePOptions options) {
+    try (CloseableResource<BlockWorkerClient> client =
+             mContext.acquireBlockWorkerClient(getWorkerNetAddress(src))) {
+      RenamePRequest request = RenamePRequest.newBuilder()
+          .setPath(src)
+          .setDstPath(dst)
+          .setOptions(options)
+          .build();
+      client.get().rename(request);
+      return;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Create a dir.
+   * @param path the name of the dir
+   * @param options the option of this operation
+   */
+  public void createDirectory(String path, CreateDirectoryPOptions options) {
+    try (CloseableResource<BlockWorkerClient> client =
+             mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
+      CreateDirectoryPRequest request = CreateDirectoryPRequest.newBuilder()
+          .setPath(path)
+          .setOptions(options)
+          .build();
+      client.get().createDirectory(request);
       return;
     } catch (IOException e) {
       throw new RuntimeException(e);
