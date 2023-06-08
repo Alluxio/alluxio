@@ -143,7 +143,7 @@ public final class FileWriteHandler extends AbstractWriteHandler<BlockWriteReque
       if (context.getBlockWriter() == null) {
         String metricName = "BytesWrittenAlluxio";
         context.setBlockWriter(
-            mWorker.createFileWriter(request.getFileId()));
+            mWorker.createFileWriter(request.getFileId(), request.getUfsPath()));
         context.setCounter(MetricsSystem.counter(metricName));
       }
       Preconditions.checkState(context.getBlockWriter() != null);

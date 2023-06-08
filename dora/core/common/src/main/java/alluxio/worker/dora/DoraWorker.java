@@ -96,9 +96,10 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    * Owner of this block writer must close it or lock will leak.
    *
    * @param fileId  the ID of the UFS file
+   * @param ufsPath the path of UFS file
    * @return the block writer for the local file
    */
-  BlockWriter createFileWriter(String fileId);
+  BlockWriter createFileWriter(String fileId, String ufsPath) throws AccessControlException, IOException;
 
   /**
    * Loads files from UFS to Alluxio.
@@ -137,7 +138,8 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    * @param options the options for this operation
    * @return a open file handle including a unique uuid
    */
-  OpenFileHandle createFile(String path, CreateFilePOptions options);
+  OpenFileHandle createFile(String path, CreateFilePOptions options)
+      throws AccessControlException, IOException;
 
   /**
    * Complete writing a file. This operation will verify the supplied uuid matching its open handle.
@@ -145,5 +147,6 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    * @param options the options for this operation
    * @param uuid the uuid string of its file open handle
    */
-  void completeFile(String path, CompleteFilePOptions options, String uuid);
+  void completeFile(String path, CompleteFilePOptions options, String uuid)
+      throws IOException, AccessControlException;
 }

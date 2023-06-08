@@ -486,7 +486,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   }
 
   @Override
-  public BlockWriter createFileWriter(String fileId) {
+  public BlockWriter createFileWriter(String fileId, String ufsPath) throws AccessControlException, IOException {
     return new PagedFileWriter(mCacheManager, fileId, mPageSize);
   }
 
@@ -630,7 +630,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   }
 
   @Override
-  public OpenFileHandle createFile(String path, CreateFilePOptions options) { // Lock is needed.
+  public OpenFileHandle createFile(String path, CreateFilePOptions options)
+      throws AccessControlException, IOException { // Lock is needed.
     //OutputStream outStream;
     alluxio.grpc.FileInfo info;
     OpenFileHandle existingHandle = mOpenFileHandleContainer.find(path);
@@ -696,7 +697,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   }
 
   @Override
-  public void completeFile(String path, CompleteFilePOptions options, String uuid) {
+  public void completeFile(String path, CompleteFilePOptions options, String uuid)
+      throws IOException, AccessControlException {
     OpenFileHandle handle = mOpenFileHandleContainer.findAndVerify(path, uuid);
     if (handle != null) {
       mOpenFileHandleContainer.remove(path);
