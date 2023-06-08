@@ -1032,22 +1032,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       }
 
       RaftPeerId newLeaderPeerId = RaftJournalUtils.getPeerId(serverAddress);
-      /* update priorities to enable transfer */
-      List<RaftPeer> peersWithNewPriorities = new ArrayList<>();
-      for (RaftPeer peer : oldPeers) {
-        peersWithNewPriorities.add(
-            RaftPeer.newBuilder(peer)
-                .setPriority(peer.getId().equals(newLeaderPeerId) ? 2 : 1)
-                .build()
-        );
-      }
-      try (RaftClient client = createClient()) {
-        String stringPeers = "[" + peersWithNewPriorities.stream().map(RaftPeer::toString)
-            .collect(Collectors.joining(", ")) + "]";
-        LOG.info("Applying new peer state before transferring leadership: {}", stringPeers);
-        RaftClientReply reply = client.admin().setConfiguration(peersWithNewPriorities);
-        processReply(reply, "failed to set master priorities before initiating election");
-      }
       /* transfer leadership */
       LOG.info("Transferring leadership to master with address <{}> and with RaftPeerId <{}>",
           serverAddress, newLeaderPeerId);

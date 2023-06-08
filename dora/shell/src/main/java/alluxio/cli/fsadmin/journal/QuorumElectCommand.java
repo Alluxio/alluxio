@@ -67,7 +67,6 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
     JournalMasterClient jmClient = mMasterJournalMasterClient;
     String serverAddress = cl.getOptionValue(ADDRESS_OPTION_NAME);
     NetAddress address = QuorumCommand.stringToAddress(serverAddress);
-    boolean success = false;
     try {
       mPrintStream.println(String.format(TRANSFER_INIT, serverAddress));
       String transferId = jmClient.transferLeadership(address);
@@ -96,21 +95,12 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
         throw new Exception(errorMessage.get());
       }
       mPrintStream.println(String.format(TRANSFER_SUCCESS, serverAddress));
-      success = true;
     } catch (Exception e) {
       mPrintStream.println(String.format(TRANSFER_FAILED, serverAddress, e.getMessage()));
-    }
-    // reset priorities regardless of transfer success
-    try {
-      mPrintStream.println(String.format(RESET_INIT, success ? "successful" : "failed"));
-      jmClient.resetPriorities();
-      mPrintStream.println(RESET_SUCCESS);
-    } catch (IOException e) {
-      mPrintStream.println(String.format(RESET_FAILED, e));
-      success = false;
+      return -1;
     }
 
-    return success ? 0 : -1;
+    return 0;
   }
 
   @Override
