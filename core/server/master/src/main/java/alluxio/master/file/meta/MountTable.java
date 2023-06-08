@@ -356,6 +356,17 @@ public final class MountTable implements DelegatingJournaled {
    */
   public boolean containsMountPoint(AlluxioURI uri, boolean containsSelf)
       throws InvalidPathException {
+    return containsMountPoint(uri, containsSelf, true);
+  }
+
+  /**
+   * @param uri the Alluxio uri to check
+   * @param containsSelf cause method to return true when given uri itself is a mount point
+   * @param cleanPath if the paths should be cleaned
+   * @return true if the given uri has a descendant which is a mount point [, or is a mount point]
+   */
+  public boolean containsMountPoint(AlluxioURI uri, boolean containsSelf, boolean cleanPath)
+      throws InvalidPathException {
     String path = uri.getPath();
 
     try (LockResource r = new LockResource(mReadLock)) {
@@ -364,7 +375,7 @@ public final class MountTable implements DelegatingJournaled {
         if (!containsSelf && mountPath.equals(path)) {
           continue;
         }
-        if (PathUtils.hasPrefix(mountPath, path)) {
+        if (PathUtils.hasPrefix(mountPath, path, cleanPath)) {
           return true;
         }
       }

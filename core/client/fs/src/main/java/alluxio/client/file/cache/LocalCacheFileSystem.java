@@ -16,6 +16,7 @@ import alluxio.client.file.DelegatingFileSystem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.cache.filter.CacheFilter;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.OpenFilePOptions;
@@ -32,6 +33,7 @@ import java.io.IOException;
 public class LocalCacheFileSystem extends DelegatingFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(LocalCacheFileSystem.class);
   private final CacheManager mCacheManager;
+  private final CacheFilter mCacheFilter;
   private final AlluxioConfiguration mConf;
 
   /**
@@ -43,6 +45,7 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
     super(fs);
     mCacheManager = Preconditions.checkNotNull(cacheManage, "cacheManager");
     mConf = Preconditions.checkNotNull(conf, "conf");
+    mCacheFilter = CacheFilter.create(conf);
   }
 
   @Override
@@ -62,7 +65,8 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
   @Override
   public FileInStream openFile(URIStatus status, OpenFilePOptions options)
       throws IOException, AlluxioException {
-    if (mCacheManager == null || mCacheManager.state() == CacheManager.State.NOT_IN_USE) {
+    if (mCacheManager == null || mCacheManager.state() == CacheManager.State.NOT_IN_USE
+        || !mCacheFilter.needsCache(status)) {
       return mDelegatedFileSystem.openFile(status, options);
     }
     return new LocalCacheFileInStream(status,

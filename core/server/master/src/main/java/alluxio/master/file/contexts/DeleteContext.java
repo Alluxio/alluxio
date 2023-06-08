@@ -23,6 +23,7 @@ import com.google.common.base.MoreObjects;
  */
 public class DeleteContext extends OperationContext<DeletePOptions.Builder, DeleteContext> {
   private boolean mMetadataLoad = false;
+  private boolean mSkipNotPersisted = false;
 
   /**
    * Creates context with given option data.
@@ -79,6 +80,22 @@ public class DeleteContext extends OperationContext<DeletePOptions.Builder, Dele
   public DeleteContext setMetadataLoad(boolean metadataLoad) {
     mMetadataLoad = metadataLoad;
     return this;
+  }
+
+  /**
+   * @param skipNotPersisted if true non-completed, or non-persisted files will be skipped
+   * @return the updated context
+   */
+  public DeleteContext skipNotPersisted(boolean skipNotPersisted) {
+    mSkipNotPersisted = skipNotPersisted;
+    return this;
+  }
+
+  /**
+   * @return true if the deletion should skip non-completed, or non-persisted files
+   */
+  public boolean isSkipNotPersisted() {
+    return mSkipNotPersisted;
   }
 
   /**

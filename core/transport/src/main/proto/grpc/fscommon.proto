@@ -11,3 +11,9 @@ enum LoadDescendantPType {
   ONE = 1;
   ALL = 2;
 }
+
+enum DirectoryLoadPType {
+  SINGLE_LISTING = 0;
+  BFS = 1;
+  DFS = 2;
+}

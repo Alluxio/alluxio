@@ -56,11 +56,6 @@
       <artifactId>commons-io</artifactId>
     </dependency>
     <dependency>
-      <groupId>io.findify</groupId>
-      <artifactId>s3mock_2.13</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest</artifactId>
       <scope>compile</scope>
@@ -99,6 +94,12 @@
     <dependency>
       <groupId>org.apache.parquet</groupId>
       <artifactId>parquet-avro</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.inject</groupId>
+      <artifactId>guice</artifactId>
+      <version>5.0.1</version> <!-- S3 proxy invokes a guice method by reflection that is only available since 5.0 -->
+      <scope>test</scope>
     </dependency>
 
     <!-- Internal dependencies -->
@@ -228,41 +229,20 @@
           <version>${project.version}</version>
           <scope>test</scope>
       </dependency>
+      <dependency>
+          <groupId>org.gaul</groupId>
+          <artifactId>s3proxy</artifactId>
+          <exclusions>
+            <exclusion>
+              <groupId>ch.qos.logback</groupId>
+              <artifactId>logback-classic</artifactId>
+            </exclusion>
+          </exclusions>
+          <scope>test</scope>
+      </dependency>
   </dependencies>
 
   <profiles>
-    <!-- Profile to build tests module connecting to hdfs 1 -->
-    <!-- In hadoop-1, hadoop-client is a wrapper on hadoop-core but excluding a few dependencies from hadoop-core.
-         Depending on hadoop-client will lead to missing class errors in test.
-         So we need to have the direct dep on hadoop-core. -->
-    <!-- Mark hadoop-core as provided because alluxio-underfs-hdfs will come with a shaded version. -->
-    <profile>
-      <id>hadoop-1</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-core</artifactId>
-          <version>${hadoop.version}</version>
-          <scope>provided</scope>
-        </dependency>
-      </dependencies>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>com.igormaznitsa</groupId>
-            <artifactId>jcp</artifactId>
-            <configuration>
-              <globalVars>
-                <property>
-                  <name>HADOOP1</name>
-                </property>
-              </globalVars>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
     <!-- Profile to build tests module connecting to hdfs 2 -->
     <!-- Mark hadoop-{common, hdfs} as provided because alluxio-underfs-hdfs will come with a shaded version. -->
     <profile>

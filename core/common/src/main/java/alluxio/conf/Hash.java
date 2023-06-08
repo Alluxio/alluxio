@@ -29,6 +29,7 @@ public final class Hash {
   private final Supplier<Stream<byte[]>> mProperties;
   private final AtomicBoolean mShouldUpdate;
   private volatile String mVersion;
+  private volatile long mLastUpdateTime;
 
   /**
    * @param properties a stream of encoded properties
@@ -70,10 +71,18 @@ public final class Hash {
         // If another thread has recomputed the version, no need to recompute again.
         if (mShouldUpdate.get()) {
           mVersion = compute();
+          mLastUpdateTime = System.currentTimeMillis();
           mShouldUpdate.set(false);
         }
       }
     }
     return mVersion;
+  }
+
+  /**
+   * @return the latest update time
+   */
+  public synchronized long getLastUpdateTime() {
+    return mLastUpdateTime;
   }
 }

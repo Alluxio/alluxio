@@ -72,6 +72,27 @@ public final class TrieNode<V> {
   }
 
   /**
+   * Get the terminal node closest to the full path.
+   * @param path the path to check
+   * @return the terminal node
+   */
+  public Optional<TrieNode<V>> getClosestTerminal(String path) {
+    TrieNode<V> current = this;
+    TrieNode<V> result = current.isTerminal() ?  current : null;
+    for (String nxt : path.split("/")) {
+      if (current.mChildren.containsKey(nxt)) {
+        current = current.mChildren.get(nxt);
+        if (current.mIsTerminal) {
+          result = current;
+        }
+      } else {
+        break;
+      }
+    }
+    return Optional.ofNullable(result);
+  }
+
+  /**
    * Traverses the trie along the path components until the traversal cannot proceed any more.
    *
    * @param path the target path

@@ -22,6 +22,8 @@ message GetConfigurationPResponse{
   map<string, ConfigProperties> pathConfigs = 2;
   optional string clusterConfigHash = 3;
   optional string pathConfigHash = 4;
+  optional int64 clusterConfigLastUpdateTime = 5;
+  optional int64 pathConfigLastUpdateTime = 6;
 }
 
 enum ConfigStatus {

@@ -230,7 +230,7 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
    */
   public static MutableInodeDirectory create(long id, long parentId, String name,
       CreateDirectoryContext context) {
-    return new MutableInodeDirectory(id)
+    MutableInodeDirectory directory = new MutableInodeDirectory(id)
         .setParentId(parentId)
         .setName(name)
         .setTtl(context.getTtl())
@@ -243,6 +243,10 @@ public final class MutableInodeDirectory extends MutableInode<MutableInodeDirect
         .setAcl(context.getDefaultAcl())
         .setMountPoint(context.isMountPoint())
         .setXAttr(context.getXAttr());
+    if (context.getFingerprint() != null) {
+      directory.setUfsFingerprint(context.getFingerprint());
+    }
+    return directory;
   }
 
   @Override

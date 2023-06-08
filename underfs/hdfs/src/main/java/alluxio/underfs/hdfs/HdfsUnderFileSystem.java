@@ -466,25 +466,13 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       // Hadoop 2 and removed in Hadoop 3
       switch (type) {
         case SPACE_TOTAL:
-          //#ifdef HADOOP1
-          space = ((DistributedFileSystem) hdfs).getDiskStatus().getCapacity();
-          //#else
           space = hdfs.getStatus().getCapacity();
-          //#endif
           break;
         case SPACE_USED:
-          //#ifdef HADOOP1
-          space = ((DistributedFileSystem) hdfs).getDiskStatus().getDfsUsed();
-          //#else
           space = hdfs.getStatus().getUsed();
-          //#endif
           break;
         case SPACE_FREE:
-          //#ifdef HADOOP1
-          space = ((DistributedFileSystem) hdfs).getDiskStatus().getRemaining();
-          //#else
           space = hdfs.getStatus().getRemaining();
-          //#endif
           break;
         default:
           throw new IOException("Unknown space type: " + type);
@@ -684,7 +672,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         LOG.debug("Using original API to HDFS");
         return new HdfsUnderFileInputStream(inputStream);
       } catch (IOException e) {
-        LOG.warn("{} try to open {} : {}", retryPolicy.getAttemptCount(), path, e.toString());
+        LOG.debug("{} try to open {} : {}", retryPolicy.getAttemptCount(), path, e.toString());
         te = e;
         if (options.getRecoverFailedOpen() && dfs != null && e.getMessage().toLowerCase()
             .startsWith("cannot obtain block length for")) {
@@ -711,7 +699,12 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         }
       }
     }
-    throw te;
+    if (te != null) {
+      LOG.error("{} failed attempts to open \"{}\" with last error:",
+          retryPolicy.getAttemptCount(), path, te);
+      throw te;
+    }
+    throw new IllegalStateException("Exceeded the number of retry attempts with no exception");
   }
 
   @Override

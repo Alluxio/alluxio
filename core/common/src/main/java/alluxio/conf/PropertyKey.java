@@ -3753,6 +3753,33 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_UFS_CONCURRENT_GET_STATUS =
+      booleanBuilder(Name.MASTER_METADATA_SYNC_UFS_CONCURRENT_GET_STATUS)
+          .setDefaultValue(true)
+          .setDescription("Allows metadata sync operations on single items (i.e. getStatus) "
+              + "operations to run concurrently with metadata sync operations on directories "
+              + "(i.e listings) on intersecting paths.")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_UFS_CONCURRENT_LISTING =
+      booleanBuilder(Name.MASTER_METADATA_SYNC_UFS_CONCURRENT_LISTING)
+          .setDefaultValue(true)
+          .setDescription("Allows non-recursive metadata sync operations directories "
+              + "to run concurrently with recursive metadata sync operations on "
+              + "intersecting paths.")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_UFS_CONCURRENT_LOADS =
+      intBuilder(Name.MASTER_METADATA_SYNC_UFS_CONCURRENT_LOADS)
+          .setDefaultValue(100)
+          .setDescription("The number of concurrently running UFS listing operations "
+              + "during metadata sync. This includes loads that have completed, but "
+              + "have not yet been processed.")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
   // In Java8 in container environment Runtime.availableProcessors() always returns 1,
   // which is not the actual number of cpus, so we set a safe default value 32.
   public static final PropertyKey MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
@@ -3789,6 +3816,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("100ms")
           .setDescription("The timeout for a metadata fetch operation from the UFSes. "
               + "Adjust this timeout according to the expected UFS worst-case response time.")
+          .setScope(Scope.MASTER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .build();
+  public static final PropertyKey MASTER_METADATA_SYNC_UFS_RATE_LIMIT =
+      longBuilder(Name.MASTER_METADATA_SYNC_UFS_RATE_LIMIT)
+          .setDescription("The maximum number of operations per second to execute "
+              + "on an individual UFS during metadata sync operations. If 0 or unset "
+              + "then no rate limit is enforced.")
           .setScope(Scope.MASTER)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
@@ -6296,6 +6331,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_MASTER_POLLING_CONCURRENT =
+      booleanBuilder(Name.USER_MASTER_POLLING_CONCURRENT)
+          .setDefaultValue(false)
+          .setDescription("Whether to concurrently polling the master.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_METADATA_CACHE_ENABLED =
       booleanBuilder(Name.USER_METADATA_CACHE_ENABLED)
           .setDefaultValue(false)
@@ -8141,6 +8183,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metadata.sync.report.failure";
     public static final String MASTER_METADATA_SYNC_GET_DIRECTORY_STATUS_SKIP_LOADING_CHILDREN =
         "alluxio.master.metadata.sync.get.directory.status.skip.loading.children";
+    public static final String MASTER_METADATA_SYNC_UFS_CONCURRENT_LOADS =
+        "alluxio.master.metadata.sync.ufs.concurrent.loads";
+    public static final String MASTER_METADATA_SYNC_UFS_CONCURRENT_GET_STATUS =
+        "alluxio.master.metadata.sync.ufs.concurrent.get.status";
+    public static final String MASTER_METADATA_SYNC_UFS_CONCURRENT_LISTING =
+        "alluxio.master.metadata.sync.ufs.concurrent.listing";
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_POOL_SIZE =
         "alluxio.master.metadata.sync.ufs.prefetch.pool.size";
     public static final String MASTER_METADATA_SYNC_TRAVERSAL_ORDER =
@@ -8149,6 +8197,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metadata.sync.ufs.prefetch.status";
     public static final String MASTER_METADATA_SYNC_UFS_PREFETCH_TIMEOUT =
         "alluxio.master.metadata.sync.ufs.prefetch.timeout";
+    public static final String MASTER_METADATA_SYNC_UFS_RATE_LIMIT =
+        "alluxio.master.metadata.sync.ufs.rate.limit";
     public static final String MASTER_METADATA_SYNC_IGNORE_TTL =
         "alluxio.master.metadata.sync.ignore.ttl";
     public static final String MASTER_METASTORE = "alluxio.master.metastore";
@@ -8893,6 +8943,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.local.writer.chunk.size.bytes";
     public static final String USER_LOGGING_THRESHOLD = "alluxio.user.logging.threshold";
     public static final String USER_MASTER_POLLING_TIMEOUT = "alluxio.user.master.polling.timeout";
+    public static final String USER_MASTER_POLLING_CONCURRENT =
+        "alluxio.user.master.polling.concurrent";
     public static final String USER_METADATA_CACHE_ENABLED =
         "alluxio.user.metadata.cache.enabled";
     public static final String USER_METADATA_CACHE_MAX_SIZE =

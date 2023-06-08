@@ -12,10 +12,13 @@
 package alluxio.master.file.contexts;
 
 import alluxio.conf.Configuration;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPartialPOptions;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.util.FileSystemOptionsUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 
 import java.util.Optional;
@@ -32,6 +35,7 @@ public class ListStatusContext
   private boolean mDoneListing = false;
   private long mTotalListings;
   private final ListStatusPartialPOptions.Builder mPartialPOptions;
+  private boolean mDisableMetadataSync = false;
 
   /**
    *
@@ -39,6 +43,27 @@ public class ListStatusContext
    */
   public Optional<ListStatusPartialPOptions.Builder> getPartialOptions() {
     return Optional.ofNullable(mPartialPOptions);
+  }
+
+  /**
+   * Set to true to disable metadata sync.
+   * @return the context
+   */
+  @VisibleForTesting
+  public ListStatusContext disableMetadataSync() {
+    mDisableMetadataSync = true;
+    getOptions().setLoadMetadataType(LoadMetadataPType.NEVER)
+        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
+            .setSyncIntervalMs(-1).mergeFrom(
+                getOptions().getCommonOptions()).buildPartial());
+    return this;
+  }
+
+  /**
+   * @return true if metadata sync has been disabled for this operation
+   */
+  public boolean isDisableMetadataSync() {
+    return mDisableMetadataSync;
   }
 
   /**
