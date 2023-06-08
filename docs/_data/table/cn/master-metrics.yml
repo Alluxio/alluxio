@@ -27,7 +27,7 @@ Master.CompleteFileOps:
 Master.CompletedOperationRetryCount:
   '已由客户端重试的完成操作总数'
 Master.CreateDirectoryOps:
-  '这个指标通过汇总 Master.RocksBlockEstimatedMemUsage 和 Master.RocksInodeEstimatedMemUsage 的值，给出了 RocksDB 内存使用总量的估计值'
+  'CreateDirectory 操作的总数'
 Master.CreateFileOps:
   'CreateFile 操作的总数'
 Master.DeletePathOps:
