@@ -55,7 +55,7 @@ function get_ramdisk_array() {
   for i in "${!patharray[@]}"; do
     local dir=${patharray[$i]}
     if [[ -z "${dir}" ]]; then
-      echo "Alluxio has a configured ramcache with an empty path"
+      echo "Alluxio has a configured cache directory with an empty path: ${tier_path}"
       exit 1
     fi
 
