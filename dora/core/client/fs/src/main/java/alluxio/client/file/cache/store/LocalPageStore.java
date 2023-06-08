@@ -83,11 +83,11 @@ public class LocalPageStore implements PageStore {
       }
     } catch (Exception e) {
       Files.deleteIfExists(pagePath);
-      if (e.getMessage().contains(ERROR_NO_SPACE_LEFT)) {
+      if (e.getMessage() != null && e.getMessage().contains(ERROR_NO_SPACE_LEFT)) {
         throw new ResourceExhaustedException(
             String.format("%s is full, configured with %d bytes", mRoot, mCapacity), e);
       }
-      throw new IOException("Failed to write file " + pagePath + " for page " + pageId);
+      throw new IOException("Failed to write file " + pagePath + " for page " + pageId, e);
     }
   }
 

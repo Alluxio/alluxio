@@ -485,7 +485,12 @@ message ReverseResolvePRequest {
 message ReverseResolvePResponse {
   optional string alluxioPath = 1;
 }
-
+message GetMountIdPRequest {
+  required string ufsUri = 1;
+}
+message GetMountIdPResponse {
+  required int64 mountId = 1;
+}
 
 message SetAttributePResponse {}
 message SetAttributePOptions {
@@ -769,6 +774,11 @@ service FileSystemMasterClientService {
    * Reverse resolve a ufs path.
    */
   rpc ReverseResolve(ReverseResolvePRequest) returns (ReverseResolvePResponse);
+
+  /**
+   * Reverse resolve a ufs path and get mount id.
+   */
+  rpc GetMountId(GetMountIdPRequest) returns (GetMountIdPResponse);
 
   /**
    * Schedules async persistence.

@@ -137,8 +137,11 @@ public class DoraFileOutStream extends FileOutStream {
       } catch (Exception e) {
         // Ignore.
       } finally {
-        // FIXME: Stuck if no data is written after out stream is created.
-        //mNettyDataWriter.close();
+        try {
+          mNettyDataWriter.close();
+        } catch (Exception ex) {
+          // Ignore
+        }
       }
 
       if (mUnderStorageType.isSyncPersist()) {

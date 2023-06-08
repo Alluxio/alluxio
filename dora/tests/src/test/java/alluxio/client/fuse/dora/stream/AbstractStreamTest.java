@@ -54,6 +54,10 @@ public abstract class AbstractStreamTest extends AbstractFuseDoraTest {
     return UFS_ROOT.join("/file" + UUID.randomUUID());
   }
 
+  protected AlluxioURI getTestFileAlluxioUri() {
+    return new AlluxioURI("/file/" + UUID.randomUUID());
+  }
+
   /**
    * Helper to write an Alluxio file with one increasing byte array, using a single
    * {@link FileOutStream#write(byte[], int, int)} invocation.

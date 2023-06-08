@@ -256,8 +256,12 @@ public final class NettyDataWriter implements DataWriter {
         .setOffset(offset)
         .build();
     DataBuffer dataBuffer = new NettyDataBuffer(buf);
-    mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(writeRequest), dataBuffer))
-        .addListener(new WriteListener(offset + len));
+    try {
+      mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(writeRequest), dataBuffer))
+          .addListener(new WriteListener(offset + len)).sync();
+    } catch (InterruptedException e) {
+      // ignore
+    }
   }
 
   @Override

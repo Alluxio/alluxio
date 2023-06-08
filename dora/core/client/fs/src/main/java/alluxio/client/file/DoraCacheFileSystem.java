@@ -33,6 +33,7 @@ import alluxio.exception.OpenDirectoryException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
@@ -119,6 +120,15 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
         .getBoolean(PropertyKey.DORA_CLIENT_METADATA_CACHE_ENABLED);
     mDefaultVirtualBlockSize = context.getClusterConf()
         .getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+  }
+
+  @Override
+  public void delete(AlluxioURI path, DeletePOptions options)
+      throws IOException, AlluxioException {
+    URIStatus status = getStatus(path);
+    AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
+    mDelegatedFileSystem.delete(ufsFullPath, options);
+    // TODO(JiamingMai): we need to invalidate the metadata and delete pages from Alluxio Worker
   }
 
   @Override
