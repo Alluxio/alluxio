@@ -203,7 +203,7 @@ public class TieredBlockStore implements LocalBlockStore {
       // release the read lock because removeBlockInternal needs a write lock on the same block
       blockLock.close();
       // at this point we are not holding any lock, so two threads may attempt to remove the same
-      // block concurrently. This is find as long as removeBlockInternal is no-op for a
+      // block concurrently. This is fine as long as removeBlockInternal is no-op for a
       // non-existing block.
       try {
         removeBlockInternal(sessionId, blockId, REMOVE_BLOCK_TIMEOUT_MS);
@@ -267,11 +267,18 @@ public class TieredBlockStore implements LocalBlockStore {
     }
     final long actualLength = blockFileAttrs.size();
     final long expectedLength = blockMeta.getBlockSize();
+    // check if the actual file length matches the expected length from block meta
     if (actualLength != expectedLength) {
-      throw new IllegalStateException(String.format(
-          "Block %s exists in block meta but the size from block meta does not match that of "
-              + "the block file %s, expected block size = %d, actual block file length = %d",
-          blockId, blockPath, expectedLength, actualLength));
+      LOG.debug("Block {} is expected to be {} bytes, "
+          + "but the actual block file length is {}", blockId, expectedLength, actualLength);
+      // Note: we only errors out on 0-sized blocks which are definitely not correct
+      // but if the size is not 0, we treat it as valid
+      if (actualLength == 0) {
+        throw new IllegalStateException(String.format(
+            "Block %s exists in block meta but the size from block meta does not match that of "
+                + "the block file %s, expected block size = %d, actual block file length = %d",
+            blockId, blockPath, expectedLength, actualLength));
+      }
     }
   }
 
