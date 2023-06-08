@@ -75,6 +75,11 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   private DataServer mDomainSocketDataServer;
 
   /**
+   * HTTP Server provides RESTful API to get/put/append/delete page.
+   */
+  private HttpServer httpServer;
+
+  /**
    * The worker registry.
    */
   private final WorkerRegistry mRegistry;
@@ -121,7 +126,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       UfsManager ufsManager,
       Worker worker,
       DataServerFactory dataServerFactory,
-      @Nullable NettyDataServer nettyDataServer) {
+      @Nullable NettyDataServer nettyDataServer,
+      @Nullable HttpServer httpServer) {
     try {
       mTieredIdentitiy = requireNonNull(tieredIdentity);
       mUfsManager = requireNonNull(ufsManager);
@@ -166,7 +172,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
         mNettyDataServer = null;
       }
 
-      mHttpServer = new HttpServer();
+      mHttpServer = httpServer;
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -247,6 +253,9 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
     // Start serving the web server, this will not block.
     mWebServer.start();
+
+    // Start HTTP Server
+    mHttpServer.start();
 
     // Start monitor jvm
     if (Configuration.getBoolean(PropertyKey.WORKER_JVM_MONITOR_ENABLED)) {
