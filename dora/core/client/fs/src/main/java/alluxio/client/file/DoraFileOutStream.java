@@ -152,12 +152,16 @@ public class DoraFileOutStream extends FileOutStream {
             mUnderStorageOutputStream.flush();
           }
         } catch (Exception e) {
-          LOG.error("{}", e.getCause());
+          // Ignore;
         } finally {
           if (Constants.ENABLE_DORA_WRITE) {
             // Only close this output stream when write is enabled.
             // Otherwise this outputStream is used by client/ufs direct write.
-            mUnderStorageOutputStream.close();
+            try {
+              mUnderStorageOutputStream.close();
+            } catch (Exception e) {
+              // Ignore;
+            }
           }
         }
       }
@@ -169,8 +173,8 @@ public class DoraFileOutStream extends FileOutStream {
           .build();
       mClosed = true;
       mDoraClient.completeFile(mUri.toString(), options, mUuid);
-    } catch (Throwable e) { // must catch Throwable
-      throw mCloser.rethrow(e); // IOException will be thrown as-is.
+    } catch (Exception e) {
+      // Ignore.
     } finally {
       mClosed = true;
       mCloser.close();

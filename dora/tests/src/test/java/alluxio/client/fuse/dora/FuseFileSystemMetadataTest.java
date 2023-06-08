@@ -61,8 +61,8 @@ public class FuseFileSystemMetadataTest extends AbstractFuseFileSystemTest {
   }
 
   @Test
-  public void createDeletepathectory() {
-    String path = "/createDeletepathectory";
+  public void createDeleteDirectory() {
+    String path = "/createDeleteDirectory";
     Assert.assertEquals(0, mFuseFs.mkdir(path, DEFAULT_MODE.toShort()));
     Assert.assertEquals(0, mFuseFs.getattr(path, mFileStat));
     Assert.assertEquals(0, mFuseFs.unlink(path));
@@ -96,8 +96,8 @@ public class FuseFileSystemMetadataTest extends AbstractFuseFileSystemTest {
 
   @Test
   public void renameFile() {
-    String src = "/src";
-    String dst = "/dst";
+    String src = "/src_renameFile";
+    String dst = "/dst_renameFile";
     createEmptyFile(src);
     Assert.assertEquals(0, mFuseFs.getattr(src, mFileStat));
     Assert.assertEquals(0, mFuseFs.rename(src, dst, AlluxioJniRenameUtils.NO_FLAGS));
@@ -107,8 +107,8 @@ public class FuseFileSystemMetadataTest extends AbstractFuseFileSystemTest {
 
   @Test
   public void renameDirectory() {
-    String src = "/src";
-    String dst = "/dst";
+    String src = "/src_renameDirectory";
+    String dst = "/dst_renameDirectory";
     Assert.assertEquals(0, mFuseFs.mkdir(src, DEFAULT_MODE.toShort()));
     Assert.assertEquals(0, mFuseFs.getattr(src, mFileStat));
     mFuseFs.rename(src, dst, AlluxioJniRenameUtils.NO_FLAGS);
@@ -119,14 +119,15 @@ public class FuseFileSystemMetadataTest extends AbstractFuseFileSystemTest {
   @Test
   public void renameSrcNotExist() {
     assertEquals(-ErrorCodes.ENOENT(),
-        mFuseFs.rename("/src", "/dst", AlluxioJniRenameUtils.NO_FLAGS));
+        mFuseFs.rename("/src_renameSrcNotExist",
+            "/dst_renameSrcNotExist", AlluxioJniRenameUtils.NO_FLAGS));
   }
 
   // TODO(lu) different rename flags
   @Test
   public void renameDstFileExist() {
-    String src = "/src";
-    String dst = "/dst";
+    String src = "/src_renameDstFileExist";
+    String dst = "/dst_renameDstFileExist";
     createEmptyFile(src);
     createEmptyFile(dst);
     Assert.assertEquals(0, mFuseFs.rename(src, dst, AlluxioJniRenameUtils.NO_FLAGS));
@@ -134,8 +135,8 @@ public class FuseFileSystemMetadataTest extends AbstractFuseFileSystemTest {
 
   @Test
   public void renameDstDirectoryExist() {
-    String src = "/src";
-    String dst = "/dst";
+    String src = "/src_renameDstDirectoryExist";
+    String dst = "/dst_renameDstDirectoryExist";
     Assert.assertEquals(0, mFuseFs.mkdir(src, DEFAULT_MODE.toShort()));
     Assert.assertEquals(0, mFuseFs.mkdir(dst, DEFAULT_MODE.toShort()));
     Assert.assertEquals(0, mFuseFs.rename(src, dst, AlluxioJniRenameUtils.NO_FLAGS));
@@ -143,7 +144,7 @@ public class FuseFileSystemMetadataTest extends AbstractFuseFileSystemTest {
 
   @Test
   public void renameWithLengthLimit() {
-    String src = "/src";
+    String src = "/src_renameWithLengthLimit";
     createEmptyFile(src);
     assertEquals(-ErrorCodes.ENAMETOOLONG(),
         mFuseFs.rename(src, EXCEED_LENGTH_PATH_NAME, AlluxioJniRenameUtils.NO_FLAGS));
