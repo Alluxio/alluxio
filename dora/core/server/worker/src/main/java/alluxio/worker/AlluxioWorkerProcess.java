@@ -32,6 +32,7 @@ import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.dora.DoraWorker;
 import alluxio.worker.netty.NettyDataServer;
+import alluxio.worker.http.HttpServer;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
@@ -55,6 +56,11 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioWorkerProcess.class);
 
   private final TieredIdentity mTieredIdentitiy;
+
+  /**
+   * Server for http restful api
+   */
+  private HttpServer mHttpServer;
 
   /**
    * Server for data requests and responses.
@@ -159,6 +165,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       } else {
         mNettyDataServer = null;
       }
+
+      mHttpServer = new HttpServer();
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
