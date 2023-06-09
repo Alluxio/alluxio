@@ -42,6 +42,7 @@ public class AbfsUnderFileSystem extends HdfsUnderFileSystem {
 
     boolean sharedKey = false;
     boolean clientCredentials = false;
+    boolean sasToken = false;
 
     for (Map.Entry<String, Object> entry : conf.toMap().entrySet()) {
       String key = entry.getKey();
@@ -53,9 +54,15 @@ public class AbfsUnderFileSystem extends HdfsUnderFileSystem {
         sharedKey = true;
         break;
       }
+      if (PropertyKey.Template.UNDERFS_ABFS_SAS_TOKEN.matches(key)) {
+        abfsConf.set("fs.azure.account.auth.type", "SAS");
+        abfsConf.set("fs.azure.sas.token.provider.type", "alluxio.underfs.abfs.AbfsPropertySasTokenProvider");
+        sasToken = true;
+        break;
+      }
     }
 
-    if (!sharedKey) {
+    if (!sasToken && !sharedKey) {
       if (conf.isSet(PropertyKey.ABFS_CLIENT_ENDPOINT)
           && conf.isSet(PropertyKey.ABFS_CLIENT_ID)
           && conf.isSet(PropertyKey.ABFS_CLIENT_SECRET)) {
@@ -72,7 +79,7 @@ public class AbfsUnderFileSystem extends HdfsUnderFileSystem {
       }
     }
 
-    if (!clientCredentials && !sharedKey) {
+    if (!clientCredentials && !sasToken && !sharedKey) {
       abfsConf.set("fs.azure.account.auth.type", "OAuth");
       abfsConf.set("fs.azure.account.oauth.provider.type",
               "org.apache.hadoop.fs.azurebfs.oauth2.MsiTokenProvider");

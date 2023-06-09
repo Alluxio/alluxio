@@ -9604,6 +9604,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "fs\\.azure\\.account\\.key\\.(\\w+)\\.dfs\\.core\\.windows\\.net",
         PropertyCreators.fromBuilder(stringBuilder("fs.azure.account.key.%s.dfs.core.windows.net")
             .setDisplayType(DisplayType.CREDENTIALS))),
+    UNDERFS_ABFS_SAS_TOKEN(
+        "fs.azure.sas.%s.%s.dfs.core.windows.net",
+        "fs\\.azure\\.sas\\.(\\w+)\\.(\\w+)\\.dfs\\.core\\.windows\\.net",
+        PropertyCreators.fromBuilder(stringBuilder("fs.azure.sas.%s.%s.dfs.core.windows.net")
+            .setDisplayType(DisplayType.CREDENTIALS))),
     UNDERFS_AZURE_ACCOUNT_KEY(
         "fs.azure.account.key.%s.blob.core.windows.net",
         "fs\\.azure\\.account\\.key\\.(\\w+)\\.blob\\.core\\.windows\\.net",
