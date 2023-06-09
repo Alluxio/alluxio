@@ -12,10 +12,8 @@
 package alluxio.master.journal.raft;
 
 import org.apache.ratis.protocol.RaftPeerId;
-import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.CompletableFuture;
 
@@ -58,23 +56,6 @@ public class RaftJournalUtils {
    */
   public static File getRaftJournalDir(File baseDir) {
     return new File(baseDir, RAFT_DIR);
-  }
-
-  /**
-   * Creates a temporary snapshot file.
-   *
-   * @param storage the snapshot storage
-   * @return the temporary snapshot file
-   * @throws IOException if error occurred while creating the snapshot file
-   */
-  public static File createTempSnapshotFile(SimpleStateMachineStorage storage) throws IOException {
-    File tempDir = new File(storage.getSmDir().getParentFile(), "tmp");
-    if (!tempDir.isDirectory() && !tempDir.mkdir()) {
-      throw new IOException(
-          "Cannot create temporary snapshot directory at " + tempDir.getAbsolutePath());
-    }
-    return File.createTempFile("raft_snapshot_" + System.currentTimeMillis() + "_",
-        ".dat", tempDir);
   }
 
   /**

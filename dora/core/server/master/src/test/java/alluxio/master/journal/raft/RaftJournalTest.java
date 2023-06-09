@@ -13,6 +13,7 @@ package alluxio.master.journal.raft;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.NetAddress;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.master.NoopMaster;
 import alluxio.master.StateLockManager;
@@ -24,9 +25,7 @@ import alluxio.proto.journal.Journal;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.ratis.conf.RaftProperties;
-import org.apache.ratis.server.RaftServer;
 import org.apache.ratis.server.RaftServerConfigKeys;
 import org.junit.After;
 import org.junit.Assert;
@@ -36,7 +35,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.Timeout;
 
-import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.ArrayList;
@@ -400,8 +398,11 @@ public class RaftJournalTest {
     Assert.assertTrue(mLeaderJournalSystem.isLeader());
     Assert.assertFalse(mFollowerJournalSystem.isLeader());
     // Triggering rigged election via reflection to switch the leader.
-    changeToFollower(mLeaderJournalSystem);
-    changeToCandidate(mFollowerJournalSystem);
+    NetAddress followerAddress =
+        mLeaderJournalSystem.getQuorumServerInfoList().stream()
+            .filter(info -> !info.getIsLeader()).findFirst()
+            .map(QuorumServerInfo::getServerAddress).get();
+    mLeaderJournalSystem.transferLeadership(followerAddress);
     CommonUtils.waitFor("follower becomes leader", () -> mFollowerJournalSystem.isLeader(),
         mWaitOptions);
     Assert.assertFalse(mLeaderJournalSystem.isLeader());
@@ -578,37 +579,6 @@ public class RaftJournalTest {
     }
     CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get();
     return journalSystems;
-  }
-
-  @VisibleForTesting
-  void changeToCandidate(RaftJournalSystem journalSystem) throws Exception {
-    RaftServer.Division serverImpl = journalSystem.getRaftServer()
-            .getDivision(RaftJournalSystem.RAFT_GROUP_ID);
-    Class<?> raftServerImpl = (Class.forName("org.apache.ratis.server.impl.RaftServerImpl"));
-    Method method = raftServerImpl.getDeclaredMethod("changeToCandidate", boolean.class);
-    method.setAccessible(true);
-    method.invoke(serverImpl, true);
-  }
-
-  @VisibleForTesting
-  void changeToFollower(RaftJournalSystem journalSystem) throws Exception {
-    RaftServer.Division serverImplObj = journalSystem.getRaftServer()
-            .getDivision(RaftJournalSystem.RAFT_GROUP_ID);
-    Class<?> raftServerImplClass = Class.forName("org.apache.ratis.server.impl.RaftServerImpl");
-
-    Method getStateMethod = raftServerImplClass.getDeclaredMethod("getState");
-    getStateMethod.setAccessible(true);
-    Object serverStateObj = getStateMethod.invoke(serverImplObj);
-    Class<?> serverStateClass = Class.forName("org.apache.ratis.server.impl.ServerState");
-    Method getCurrentTermMethod = serverStateClass.getDeclaredMethod("getCurrentTerm");
-    getCurrentTermMethod.setAccessible(true);
-    long currentTermObj = (long) getCurrentTermMethod.invoke(serverStateObj);
-
-    Method changeToFollowerMethod = raftServerImplClass.getDeclaredMethod("changeToFollower",
-        long.class, boolean.class, boolean.class, Object.class);
-
-    changeToFollowerMethod.setAccessible(true);
-    changeToFollowerMethod.invoke(serverImplObj, currentTermObj, true, false, "test");
   }
 
   /**
