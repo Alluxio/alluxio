@@ -40,6 +40,7 @@ public final class ConfigurationTestUtils {
    */
   public static Map<PropertyKey, Object> testConfigurationDefaults(AlluxioConfiguration alluxioConf,
       String hostname, String workDirectory) {
+    // TODO(elega) update these configurations to reflect dora env once we clean up the legacy code
     Map<PropertyKey, Object> conf = new HashMap<>();
     conf.put(PropertyKey.MASTER_HOSTNAME, hostname);
     conf.put(PropertyKey.WORKER_BIND_HOST, hostname);

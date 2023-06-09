@@ -2254,6 +2254,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_SCHEDULER_INITIAL_DELAY =
+      durationBuilder(Name.MASTER_SCHEDULER_INITIAL_WAIT_TIME)
+          .setDefaultValue("10min")
+          .setDescription("The initial wait time before the scheduler starts. This grace period "
+          + "is added to make sure workers have registered to master successfully.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE =
       enumBuilder(Name.MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE, GraceMode.class)
           .setDefaultValue(GraceMode.FORCED)
@@ -8242,6 +8250,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.backup.suspend.timeout";
     public static final String MASTER_BLOCK_SCAN_INVALID_BATCH_MAX_SIZE =
         "alluxio.master.block.scan.invalid.batch.max.size";
+    public static final String MASTER_SCHEDULER_INITIAL_WAIT_TIME =
+        "alluxio.master.scheduler.initial.wait.time";
     public static final String MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE =
         "alluxio.master.shell.backup.state.lock.grace.mode";
     public static final String MASTER_SHELL_BACKUP_STATE_LOCK_TRY_DURATION =

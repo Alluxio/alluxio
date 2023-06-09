@@ -39,13 +39,11 @@ import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.File;
-import alluxio.grpc.FileFailure;
-import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadFileFailure;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.Route;
 import alluxio.grpc.RouteFailure;
@@ -150,6 +148,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private WorkerNetAddress mAddress;
 
   private DoraMetaStore mMetaStore;
+
   private final UnderFileSystem mUfs;
 
   private final DoraOpenFileHandleContainer mOpenFileHandleContainer;
@@ -519,28 +518,49 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   }
 
   @Override
-  public ListenableFuture<List<FileFailure>> load(List<File> files, UfsReadOptions options) {
+  public ListenableFuture<List<LoadFileFailure>> load(
+      boolean loadData, List<UfsStatus> ufsStatuses, UfsReadOptions options) {
     List<ListenableFuture<Void>> futures = new ArrayList<>();
-    List<FileFailure> errors = Collections.synchronizedList(new ArrayList<>());
-    for (File file : files) {
-      ListenableFuture<Void> loadFuture = Futures.submit(() -> {
-        try {
-          if (options.hasUser()) {
-            AuthenticatedClientUser.set(options.getUser());
+    List<LoadFileFailure> errors = Collections.synchronizedList(new ArrayList<>());
+    for (UfsStatus status : ufsStatuses) {
+      String ufsFullPath = status.getUfsFullPath().toString();
+      DoraMeta.FileStatus fs = buildFileStatusFromUfsStatus(status, ufsFullPath);
+      mMetaManager.put(ufsFullPath, fs);
+      // We use the ufs status sent from master to construct the file metadata,
+      // and that ufs status might be stale.
+      // This is a known consistency issue and will remain as long as the get metadata and
+      // load data operations are not atomic.
+      // Ideally, we can either:
+      // 1. Use a single API to load the file alongside with fetching the file metadata
+      // 2. Getting a last updated timestamp when loading data of a file and use it to
+      //  validate the freshness of the metadata and discard the metadata if it is stale.
+      // These two need UFS api support and cannot be achieved in a generic UFS interface.
+      // We may be able to solve this by providing specific implementations for certain UFSes
+      // in the future.
+      if (loadData && status.isFile() && (status.asUfsFileStatus().getContentLength() > 0)) {
+        ListenableFuture<Void> loadFuture = Futures.submit(() -> {
+          try {
+            if (options.hasUser()) {
+              AuthenticatedClientUser.set(options.getUser());
+            }
+            loadData(status.getUfsFullPath().toString(), 0,
+                status.asUfsFileStatus().getContentLength());
+          } catch (Exception e) {
+            LOG.error("Loading {} failed", status, e);
+            AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
+            errors.add(LoadFileFailure.newBuilder().setUfsStatus(status.toProto())
+                .setCode(t.getStatus().getCode().value())
+                .setRetryable(t.isRetryable())
+                .setMessage(t.getMessage()).build());
           }
-          load(file.getUfsPath(), file.getMountId(), file.getLength());
-        } catch (Exception e) {
-          AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
-          errors.add(FileFailure.newBuilder().setFile(file).setCode(t.getStatus().getCode().value())
-              .setRetryable(t.isRetryable()).setMessage(t.getMessage()).build());
-        }
-      }, GrpcExecutors.BLOCK_READER_EXECUTOR);
-      futures.add(loadFuture);
+        }, GrpcExecutors.BLOCK_READER_EXECUTOR);
+        futures.add(loadFuture);
+      }
     }
     return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.BLOCK_READER_EXECUTOR);
   }
 
-  private void load(String ufsPath, long mountId, long length) {
+  private void loadData(String ufsPath, long mountId, long length) {
     Protocol.OpenUfsBlockOptions options =
         Protocol.OpenUfsBlockOptions.newBuilder().setUfsPath(ufsPath).setMountId(mountId)
                                     .setNoCache(false).setOffsetInFile(0).setBlockSize(length)
@@ -548,9 +568,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     String fileId = new AlluxioURI(ufsPath).hash();
     ByteBuf buf = PooledDirectNioByteBuf.allocate((int) (4 * mPageSize));
     try (BlockReader fileReader = createFileReader(fileId, 0, false, options)) {
-      // cache file metadata
-      getFileInfo(ufsPath, GetStatusPOptions.newBuilder().setCommonOptions(
-          FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0).build()).build());
       // cache file data
       while (fileReader.transferTo(buf) != -1) {
         buf.clear();
@@ -843,5 +860,10 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   void setPopulateMetadataFingerprint(boolean value) {
     mPopulateMetadataFingerprint = value;
     mMetaManager.setPopulateMetadataFingerprint(value);
+  }
+
+  @VisibleForTesting
+  UnderFileSystem getUfs() {
+    return mUfs;
   }
 }
