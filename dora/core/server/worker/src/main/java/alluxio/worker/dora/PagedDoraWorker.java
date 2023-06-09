@@ -354,25 +354,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   }
 
   private boolean invalidateCachedFile(String path) {
-    long pages = 0;
-    try {
-      UfsStatus existingFileStatus = mUfs.getStatus(path);
-      if (existingFileStatus instanceof UfsFileStatus) {
-        pages =
-            (((UfsFileStatus) existingFileStatus).getContentLength() + mPageSize - 1) / mPageSize;
-      }
-    } catch (Exception e) {
-      // It's possible that this file is not found in UFS.
-      // FIXME: If the file is not found in UFS, we need a new API to remove all cached pages
-      // of that file, not based on the pageId. This needs a new API. See below.
-      pages = 10_000L; // 1MB * 10_000 = 10GB
-    }
-    // TODO(bowen) we need a new API to remove all cached pages of a file, not based on the pages.
     FileId file = FileId.of(new AlluxioURI(path).hash());
-    for (long i = 0; i < pages; i++) {
-      PageId page = new PageId(file.toString(), i);
-      mCacheManager.delete(page);
-    }
+    mCacheManager.invalidateAllPagesByFileId(file.toString());
     return true;
   }
 
