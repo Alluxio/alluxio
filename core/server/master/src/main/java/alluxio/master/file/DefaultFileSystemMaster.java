@@ -411,7 +411,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   private final ActiveSyncManager mSyncManager;
 
   /** Log writer for user access audit log. */
-  protected AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
+  protected final AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
 
   /** Stores the time series for various metrics which are exposed in the UI. */
   private final TimeSeriesStore mTimeSeriesStore;
@@ -535,6 +535,9 @@ public class DefaultFileSystemMaster extends CoreMaster
     mDefaultSyncProcess =  createSyncProcess(
         mInodeStore, mMountTable, mInodeTree, getSyncPathCache());
 
+    mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("AUDIT_LOG");
+    mAsyncAuditLogWriter.start();
+
     // The mount table should come after the inode tree because restoring the mount table requires
     // that the inode tree is already restored.
     ArrayList<Journaled> journaledComponents = new ArrayList<Journaled>() {
@@ -558,6 +561,10 @@ public class DefaultFileSystemMaster extends CoreMaster
     MetricsSystem.registerCachedGaugeIfAbsent(
         MetricsSystem.getMetricName(MetricKey.MASTER_METADATA_SYNC_EXECUTOR_QUEUE_SIZE.getName()),
         () -> mSyncMetadataExecutor.getQueue().size(), 2, TimeUnit.SECONDS);
+    MetricsSystem.registerGaugeIfAbsent(
+        MetricKey.MASTER_AUDIT_LOG_ENTRIES_SIZE.getName(),
+        () -> mAsyncAuditLogWriter != null
+            ? mAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
   }
 
   private static MountInfo getRootMountInfo(MasterUfsManager ufsManager) {
@@ -780,12 +787,6 @@ public class DefaultFileSystemMaster extends CoreMaster
               () -> new FixedIntervalSupplier(
                   Configuration.getMs(PropertyKey.MASTER_METRICS_TIME_SERIES_INTERVAL)),
               Configuration.global(), mMasterContext.getUserState()));
-      mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("AUDIT_LOG");
-      mAsyncAuditLogWriter.start();
-      MetricsSystem.registerGaugeIfAbsent(
-          MetricKey.MASTER_AUDIT_LOG_ENTRIES_SIZE.getName(),
-          () -> mAsyncAuditLogWriter != null
-              ? mAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
       if (Configuration.getBoolean(PropertyKey.UNDERFS_CLEANUP_ENABLED)) {
         getExecutorService().submit(
             new HeartbeatThread(HeartbeatContext.MASTER_UFS_CLEANUP, new UfsCleaner(this),
@@ -804,10 +805,6 @@ public class DefaultFileSystemMaster extends CoreMaster
   @Override
   public void stop() throws IOException {
     LOG.info("Next directory id before close: {}", mDirectoryIdGenerator.peekDirectoryId());
-    if (mAsyncAuditLogWriter != null) {
-      mAsyncAuditLogWriter.stop();
-      mAsyncAuditLogWriter = null;
-    }
     mSyncManager.stop();
     if (mAccessTimeUpdater != null) {
       mAccessTimeUpdater.stop();
