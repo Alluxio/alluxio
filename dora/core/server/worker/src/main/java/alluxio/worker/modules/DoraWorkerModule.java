@@ -28,7 +28,6 @@ import alluxio.worker.dora.DoraWorker;
 import alluxio.worker.dora.PagedDoraWorker;
 import alluxio.worker.file.FileSystemMasterClient;
 import alluxio.worker.http.HttpServer;
-import alluxio.worker.http.HttpServerHandler;
 import alluxio.worker.http.HttpServerInitializer;
 import alluxio.worker.http.PagedService;
 

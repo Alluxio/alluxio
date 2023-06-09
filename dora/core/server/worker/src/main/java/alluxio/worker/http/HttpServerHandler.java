@@ -11,9 +11,15 @@
 
 package alluxio.worker.http;
 
-import com.google.inject.Inject;
+import static io.netty.handler.codec.http.HttpHeaderNames.CONNECTION;
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
+import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
+import static io.netty.handler.codec.http.HttpHeaderValues.CLOSE;
+import static io.netty.handler.codec.http.HttpHeaderValues.KEEP_ALIVE;
+import static io.netty.handler.codec.http.HttpHeaderValues.TEXT_PLAIN;
+import static io.netty.handler.codec.http.HttpResponseStatus.OK;
+
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -24,74 +30,73 @@ import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpUtil;
 
-import static io.netty.handler.codec.http.HttpHeaderNames.CONNECTION;
-import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH;
-import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
-import static io.netty.handler.codec.http.HttpHeaderValues.CLOSE;
-import static io.netty.handler.codec.http.HttpHeaderValues.KEEP_ALIVE;
-import static io.netty.handler.codec.http.HttpHeaderValues.TEXT_PLAIN;
-import static io.netty.handler.codec.http.HttpResponseStatus.OK;
-import alluxio.client.file.cache.CacheManager;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * {@link HttpServerHandler} deals with HTTP requests received from Netty Channel.
+ */
 public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
 
-    private final PagedService mPagedService;
+  private final PagedService mPagedService;
 
-    public HttpServerHandler(PagedService pagedService) {
-        mPagedService = pagedService;
-    }
+  /**
+   * {@link HttpServerHandler} deals with HTTP requests received from Netty Channel.
+   * @param pagedService the {@link PagedService} object provides page related RESTful API
+   */
+  public HttpServerHandler(PagedService pagedService) {
+    mPagedService = pagedService;
+  }
 
-    @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) {
-        ctx.flush();
-    }
+  @Override
+  public void channelReadComplete(ChannelHandlerContext ctx) {
+    ctx.flush();
+  }
 
-    @Override
-    public void channelRead0(ChannelHandlerContext ctx, HttpObject msg) {
-        if (msg instanceof HttpRequest) {
-            HttpRequest req = (HttpRequest) msg;
-            String requestUri = req.uri();
-            // parse the request uri to get the parameters
-            requestUri = requestUri.substring(requestUri.indexOf("?") + 1);
-            String[] params = requestUri.split("&");
-            Map<String, String> parametersMap = new HashMap<>();
-            for (String param : params) {
-                String[] keyValue = param.split("=");
-                parametersMap.put(keyValue[0], keyValue[1]);
-            }
-            String fileId = parametersMap.get("fileId");
-            long pageIndex = Long.parseLong(parametersMap.get("pageIndex"));
+  @Override
+  public void channelRead0(ChannelHandlerContext ctx, HttpObject msg) {
+    if (msg instanceof HttpRequest) {
+      HttpRequest req = (HttpRequest) msg;
+      String requestUri = req.uri();
+      // parse the request uri to get the parameters
+      requestUri = requestUri.substring(requestUri.indexOf("?") + 1);
+      String[] params = requestUri.split("&");
+      Map<String, String> parametersMap = new HashMap<>();
+      for (String param : params) {
+        String[] keyValue = param.split("=");
+        parametersMap.put(keyValue[0], keyValue[1]);
+      }
+      String fileId = parametersMap.get("fileId");
+      long pageIndex = Long.parseLong(parametersMap.get("pageIndex"));
 
-            boolean keepAlive = HttpUtil.isKeepAlive(req);
-            ByteBuf byteBuf = mPagedService.getPage(fileId, pageIndex, ctx.channel());
-            FullHttpResponse response = new DefaultFullHttpResponse(req.protocolVersion(), OK,
-                byteBuf);
-            response.headers()
-                    .set(CONTENT_TYPE, TEXT_PLAIN)
-                    .setInt(CONTENT_LENGTH, response.content().readableBytes());
+      boolean keepAlive = HttpUtil.isKeepAlive(req);
+      ByteBuf byteBuf = mPagedService.getPage(fileId, pageIndex, ctx.channel());
+      FullHttpResponse response = new DefaultFullHttpResponse(req.protocolVersion(), OK,
+          byteBuf);
+      response.headers()
+          .set(CONTENT_TYPE, TEXT_PLAIN)
+          .setInt(CONTENT_LENGTH, response.content().readableBytes());
 
-            if (keepAlive) {
-                if (!req.protocolVersion().isKeepAliveDefault()) {
-                    response.headers().set(CONNECTION, KEEP_ALIVE);
-                }
-            } else {
-                // Tell the client we're going to close the connection.
-                response.headers().set(CONNECTION, CLOSE);
-            }
-
-            ChannelFuture f = ctx.write(response);
-
-            if (!keepAlive) {
-                f.addListener(ChannelFutureListener.CLOSE);
-            }
+      if (keepAlive) {
+        if (!req.protocolVersion().isKeepAliveDefault()) {
+          response.headers().set(CONNECTION, KEEP_ALIVE);
         }
-    }
+      } else {
+        // Tell the client we're going to close the connection.
+        response.headers().set(CONNECTION, CLOSE);
+      }
 
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        cause.printStackTrace();
-        ctx.close();
+      ChannelFuture f = ctx.write(response);
+
+      if (!keepAlive) {
+        f.addListener(ChannelFutureListener.CLOSE);
+      }
     }
+  }
+
+  @Override
+  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+    cause.printStackTrace();
+    ctx.close();
+  }
 }

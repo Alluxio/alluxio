@@ -17,23 +17,37 @@ import alluxio.client.file.cache.PageId;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.file.NettyBufTargetBuffer;
-import alluxio.file.ReadTargetBuffer;
+
 import com.google.inject.Inject;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 
+/**
+ * {@link PagedService} is used for providing page related RESTful API service.
+ */
 public class PagedService {
 
   private final CacheManager mCacheManager;
 
   private final long mPageSize;
 
+  /**
+   * {@link PagedService} is used for providing page related RESTful API service.
+   * @param cacheManager The interface for managing cached pages
+   */
   @Inject
   public PagedService(CacheManager cacheManager) {
     mCacheManager = cacheManager;
     mPageSize = Configuration.global().getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
   }
 
+  /**
+   * Get page bytes given fileId, pageIndex, and channel which is used for allocating ByteBuf.
+   * @param fileId the file ID
+   * @param pageIndex the page index
+   * @param channel the Netty channel which is used for allocating ByteBuf
+   * @return the ByteBuf object that wraps page bytes
+   */
   public ByteBuf getPage(String fileId, long pageIndex, Channel channel) {
     ByteBuf byteBuf = channel.alloc().buffer((int) mPageSize);
     NettyBufTargetBuffer targetBuffer = new NettyBufTargetBuffer(byteBuf);
@@ -41,5 +55,4 @@ public class PagedService {
     int bytesRead = mCacheManager.get(pageId, 0, targetBuffer, CacheContext.defaults());
     return targetBuffer.getTargetBuffer();
   }
-
 }

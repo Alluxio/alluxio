@@ -20,21 +20,28 @@ import io.netty.handler.codec.http.HttpContentCompressor;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.HttpServerExpectContinueHandler;
 
+/**
+ * {@link HttpServerInitializer} is used for initializing the Netty pipeline of HTTP Server.
+ */
 public class HttpServerInitializer extends ChannelInitializer<SocketChannel> {
 
-    private final PagedService mPagedService;
+  private final PagedService mPagedService;
 
-    @Inject
-    public HttpServerInitializer(PagedService pagedService) {
-        mPagedService = pagedService;
-    }
+  /**
+   * {@link HttpServerInitializer} is used for initializing the Netty pipeline of HTTP Server.
+   * @param pagedService the {@link PagedService} object provides page related RESTful API
+   */
+  @Inject
+  public HttpServerInitializer(PagedService pagedService) {
+    mPagedService = pagedService;
+  }
 
-    @Override
-    public void initChannel(SocketChannel ch) {
-        ChannelPipeline p = ch.pipeline();
-        p.addLast(new HttpServerCodec());
-        p.addLast(new HttpContentCompressor((CompressionOptions[]) null));
-        p.addLast(new HttpServerExpectContinueHandler());
-        p.addLast(new HttpServerHandler(mPagedService));
-    }
+  @Override
+  public void initChannel(SocketChannel ch) {
+    ChannelPipeline p = ch.pipeline();
+    p.addLast(new HttpServerCodec());
+    p.addLast(new HttpContentCompressor((CompressionOptions[]) null));
+    p.addLast(new HttpServerExpectContinueHandler());
+    p.addLast(new HttpServerHandler(mPagedService));
+  }
 }

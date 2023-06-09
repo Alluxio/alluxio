@@ -31,8 +31,8 @@ import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.dora.DoraWorker;
-import alluxio.worker.netty.NettyDataServer;
 import alluxio.worker.http.HttpServer;
+import alluxio.worker.netty.NettyDataServer;
 
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
@@ -58,11 +58,6 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   private final TieredIdentity mTieredIdentitiy;
 
   /**
-   * Server for http restful api
-   */
-  private HttpServer mHttpServer;
-
-  /**
    * Server for data requests and responses.
    */
   private DataServer mDataServer;
@@ -77,7 +72,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   /**
    * HTTP Server provides RESTful API to get/put/append/delete page.
    */
-  private HttpServer httpServer;
+  private HttpServer mHttpServer;
 
   /**
    * The worker registry.

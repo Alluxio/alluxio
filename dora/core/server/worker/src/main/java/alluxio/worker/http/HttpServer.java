@@ -11,7 +11,7 @@
 
 package alluxio.worker.http;
 
-import alluxio.worker.dora.PagedFileWriter;
+import com.google.common.base.Throwables;
 import com.google.inject.Inject;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -21,46 +21,55 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * {@link HttpServer} provides Alluxio RESTful API. It is implemented through Netty.
+ */
 public final class HttpServer {
 
-    private static final Logger LOG = LoggerFactory.getLogger(HttpServer.class);
-    static final boolean SSL = false;
-    static final int PORT = 28080;
+  private static final Logger LOG = LoggerFactory.getLogger(HttpServer.class);
+  static final boolean SSL = false;
+  static final int PORT = 28080;
 
-    private final HttpServerInitializer mHttpServerInitializer;
+  private final HttpServerInitializer mHttpServerInitializer;
 
-    @Inject
-    public HttpServer(HttpServerInitializer httpServerInitializer) {
-        mHttpServerInitializer = httpServerInitializer;
+  /**
+   * {@link HttpServer} provides Alluxio RESTful API. It is implemented through Netty.
+   * @param httpServerInitializer this object initializes the Netty pipeline of HTTP Server
+   */
+  @Inject
+  public HttpServer(HttpServerInitializer httpServerInitializer) {
+    mHttpServerInitializer = httpServerInitializer;
+  }
+
+  /**
+   * Starts the HTTP server.
+   */
+  public void start() {
+    // Configure the server.
+    EventLoopGroup bossGroup = new NioEventLoopGroup(1);
+    EventLoopGroup workerGroup = new NioEventLoopGroup();
+    try {
+      ServerBootstrap b = new ServerBootstrap();
+      b.option(ChannelOption.SO_BACKLOG, 1024);
+      b.group(bossGroup, workerGroup)
+          .channel(NioServerSocketChannel.class)
+          .handler(new LoggingHandler(LogLevel.INFO))
+          .childHandler(mHttpServerInitializer);
+
+      Channel ch = b.bind(PORT).sync().channel();
+
+      LOG.info("Open your web browser and navigate to "
+          + (SSL ? "https" : "http") + "://127.0.0.1:" + PORT + '/');
+
+      ch.closeFuture().sync();
+    } catch (InterruptedException e) {
+      throw Throwables.propagate(e);
+    } finally {
+      bossGroup.shutdownGracefully();
+      workerGroup.shutdownGracefully();
     }
-
-    public void start() {
-        // Configure the server.
-        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
-        try {
-            ServerBootstrap b = new ServerBootstrap();
-            b.option(ChannelOption.SO_BACKLOG, 1024);
-            b.group(bossGroup, workerGroup)
-                .channel(NioServerSocketChannel.class)
-                .handler(new LoggingHandler(LogLevel.INFO))
-                .childHandler(mHttpServerInitializer);
-
-            Channel ch = b.bind(PORT).sync().channel();
-
-            LOG.info("Open your web browser and navigate to " +
-                (SSL? "https" : "http") + "://127.0.0.1:" + PORT + '/');
-
-            ch.closeFuture().sync();
-        } catch (InterruptedException e) {
-            throw Throwables.propagate(e);
-        } finally {
-            bossGroup.shutdownGracefully();
-            workerGroup.shutdownGracefully();
-        }
-    }
+  }
 }

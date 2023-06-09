@@ -111,7 +111,7 @@ public class NettyBufTargetBuffer implements ReadTargetBuffer {
   }
 
   /**
-   * Get the internal Bytebuf object
+   * Get the internal Bytebuf object.
    * @return the internal Bytebuf object
    */
   public ByteBuf getTargetBuffer() {
