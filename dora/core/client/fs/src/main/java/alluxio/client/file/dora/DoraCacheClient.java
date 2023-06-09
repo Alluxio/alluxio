@@ -222,7 +222,8 @@ public class DoraCacheClient {
    * @return URIStatus of new file
    * @throws RuntimeException
    */
-  public Pair<URIStatus, String> createFile(String path, CreateFilePOptions options) {
+  public Pair<URIStatus, String> createFile(String path, CreateFilePOptions options)
+      throws PermissionDeniedException {
     try (CloseableResource<BlockWorkerClient> client =
              mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
       CreateFilePRequest request = CreateFilePRequest.newBuilder()
@@ -246,7 +247,8 @@ public class DoraCacheClient {
    * @param options the close option
    * @param uuid the uuid of its open file handle
    */
-  public void completeFile(String path, CompleteFilePOptions options, String uuid) {
+  public void completeFile(String path, CompleteFilePOptions options, String uuid)
+      throws PermissionDeniedException {
     try (CloseableResource<BlockWorkerClient> client =
              mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
       CompleteFilePRequest request = CompleteFilePRequest.newBuilder()

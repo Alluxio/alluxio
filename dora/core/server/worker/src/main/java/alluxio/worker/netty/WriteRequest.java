@@ -27,13 +27,16 @@ class WriteRequest {
 
   private final String mFileId;
 
+  private final String mUfsPath;
+
   /** The session id associated with all temporary resources of this request. */
   private final long mSessionId;
 
   WriteRequest(Protocol.WriteRequest request) {
     mId = request.getId();
     mSessionId = IdUtils.createSessionId();
-    mFileId = new AlluxioURI(request.getCreateUfsFileOptions().getUfsPath()).hash();
+    mUfsPath = request.getCreateUfsFileOptions().getUfsPath();
+    mFileId = new AlluxioURI(mUfsPath).hash();
   }
 
   /**
@@ -48,6 +51,13 @@ class WriteRequest {
    */
   public long getSessionId() {
     return mSessionId;
+  }
+
+  /**
+   * @return the ufs path
+   */
+  public String getUfsPath() {
+    return mUfsPath;
   }
 
   /**
