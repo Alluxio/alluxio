@@ -243,7 +243,8 @@ public class TieredBlockStore implements LocalBlockStore {
    * @param blockMeta the block meta acquired from meta data manager
    * @throws IllegalStateException if the block is deemed corrupted
    */
-  private void validateBlockIntegrityForRead(BlockMeta blockMeta) throws IllegalStateException {
+  public static void validateBlockIntegrityForRead(BlockMeta blockMeta)
+      throws IllegalStateException {
     final long blockId = blockMeta.getBlockId();
     final Path blockPath = Paths.get(blockMeta.getPath());
     final BasicFileAttributes blockFileAttrs;
