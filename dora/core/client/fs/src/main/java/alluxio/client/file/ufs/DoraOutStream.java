@@ -16,6 +16,8 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.dora.DoraCacheClient;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.exception.runtime.PermissionDeniedRuntimeException;
+import alluxio.exception.status.PermissionDeniedException;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.util.CommonUtils;
@@ -88,7 +90,11 @@ public class DoraOutStream extends FileOutStream {
           .setContentHash("HASH-256") // compute hash here
           .build();
       mClosed = true;
-      mDoraClient.completeFile(mUri.toString(), options, mUuid);
+      try {
+        mDoraClient.completeFile(mUri.toString(), options, mUuid);
+      } catch (PermissionDeniedException e) {
+        throw new PermissionDeniedRuntimeException(e);
+      }
     }
   }
 }

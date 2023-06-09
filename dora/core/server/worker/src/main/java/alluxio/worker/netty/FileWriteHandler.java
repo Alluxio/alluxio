@@ -38,7 +38,7 @@ import javax.annotation.concurrent.NotThreadSafe;
     justification = "false positive with superclass generics, "
         + "see more description in https://sourceforge.net/p/findbugs/bugs/1242/")
 @NotThreadSafe
-public final class FileWriteHandler extends AbstractWriteHandler<BlockWriteRequestContext> {
+public class FileWriteHandler extends AbstractWriteHandler<BlockWriteRequestContext> {
   private static final Logger LOG = LoggerFactory.getLogger(FileWriteHandler.class);
   private static final long FILE_BUFFER_SIZE = Configuration.getBytes(
       PropertyKey.WORKER_FILE_BUFFER_SIZE);
@@ -54,10 +54,9 @@ public final class FileWriteHandler extends AbstractWriteHandler<BlockWriteReque
    * Creates an instance of {@link FileWriteHandler}.
    *
    * @param executorService the executor service to run {@link PacketWriter}s
-   * @param blockWorker the block worker
-   * @param ufsManager the UFS manager
+   * @param doraWorker the dora worker
    */
-  FileWriteHandler(ExecutorService executorService, DoraWorker doraWorker) {
+  protected FileWriteHandler(ExecutorService executorService, DoraWorker doraWorker) {
     super(executorService);
     mWorker = doraWorker;
   }
@@ -85,6 +84,10 @@ public final class FileWriteHandler extends AbstractWriteHandler<BlockWriteReque
   @Override
   protected void initRequestContext(BlockWriteRequestContext context) throws Exception {
     // reserved as a placeholder as there is no need to do any processing here
+  }
+
+  protected DoraWorker getWorker() {
+    return mWorker;
   }
 
   /**
@@ -143,7 +146,7 @@ public final class FileWriteHandler extends AbstractWriteHandler<BlockWriteReque
       if (context.getBlockWriter() == null) {
         String metricName = "BytesWrittenAlluxio";
         context.setBlockWriter(
-            mWorker.createFileWriter(request.getFileId()));
+            mWorker.createFileWriter(request.getFileId(), request.getUfsPath()));
         context.setCounter(MetricsSystem.counter(metricName));
       }
       Preconditions.checkState(context.getBlockWriter() != null);

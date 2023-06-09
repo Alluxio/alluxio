@@ -68,7 +68,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * writing.
  */
 @NotThreadSafe
-public final class NettyDataWriter implements DataWriter {
+public class NettyDataWriter implements DataWriter {
   private static final Logger LOG = LoggerFactory.getLogger(NettyDataWriter.class);
 
   private static final int MAX_PACKETS_IN_FLIGHT =
@@ -82,7 +82,7 @@ public final class NettyDataWriter implements DataWriter {
   private final Channel mChannel;
   private final WorkerNetAddress mAddress;
   private final long mLength;
-  private final Protocol.WriteRequest mPartialRequest;
+  protected Protocol.WriteRequest mPartialRequest;
   private final long mPacketSize;
 
   private boolean mClosed;
@@ -138,7 +138,7 @@ public final class NettyDataWriter implements DataWriter {
         nettyChannel);
   }
 
-  private Protocol.RequestType getRequestType(RequestType requestType) {
+  protected Protocol.RequestType getRequestType(RequestType requestType) {
     switch (requestType) {
       case ALLUXIO_BLOCK:
         return Protocol.RequestType.ALLUXIO_BLOCK;
@@ -162,7 +162,7 @@ public final class NettyDataWriter implements DataWriter {
    * @param options    details of the write request which are constant for all requests
    * @param channel    netty channel
    */
-  private NettyDataWriter(FileSystemContext context, final WorkerNetAddress address,
+  protected NettyDataWriter(FileSystemContext context, final WorkerNetAddress address,
                           long length, long packetSize, RequestType type, OutStreamOptions options,
                           Channel channel) {
     mContext = context;
