@@ -25,6 +25,8 @@ public interface HeartbeatTimer extends Reconfigurable {
    * When this object needs to be reconfigured
    * due to external configuration change etc.,
    * this function will be invoked.
+   *
+   * @param changedProperties the changed properties
    */
   default void update(Map<PropertyKey, Object> changedProperties) {
   }
