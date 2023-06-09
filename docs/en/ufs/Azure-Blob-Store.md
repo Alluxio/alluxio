@@ -49,21 +49,8 @@ Specify credentials for the Azure account of the root mount point by adding the 
 properties in `conf/alluxio-site.properties`:
 
 ```
-alluxio.master.mount.table.root.option.fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<YOUR ACCESS KEY>
+fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<YOUR ACCESS KEY>
 ```
-
-### Nested Mount
-An Azure blob store location can be mounted at a nested directory in the Alluxio namespace to have unified access
-to multiple under storage systems. Alluxio's
-[Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) can be used for this purpose.
-
-```console
-$ ./bin/alluxio fs mount \
-  --option fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<AZURE_ACCESS_KEY> \
-  /mnt/azure wasb://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.blob.core.windows.net/<AZURE_DIRECTORY>/
-```
-
-After these changes, Alluxio should be configured to work with Azure Blob Store as its under storage system, and you can run Alluxio locally with it.
 
 ## Running Alluxio Locally with Azure Blob Store
 

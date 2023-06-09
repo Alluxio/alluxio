@@ -34,11 +34,11 @@ Modify `conf/alluxio-site.properties` to include:
 
 ```properties
 alluxio.dora.client.ufs.root=swift://<bucket>/<folder>
-alluxio.master.mount.table.root.option.fs.swift.user=<swift-user>
-alluxio.master.mount.table.root.option.fs.swift.tenant=<swift-tenant>
-alluxio.master.mount.table.root.option.fs.swift.password=<swift-user-password>
-alluxio.master.mount.table.root.option.fs.swift.auth.url=<swift-auth-url>
-alluxio.master.mount.table.root.option.fs.swift.auth.method=<swift-auth-model>
+fs.swift.user=<swift-user>
+fs.swift.tenant=<swift-tenant>
+fs.swift.password=<swift-user-password>
+fs.swift.auth.url=<swift-auth-url>
+fs.swift.auth.method=<swift-auth-model>
 ```
 
 Replace `<bucket>/<folder>` with an existing Swift bucket location. Possible values of
@@ -48,27 +48,12 @@ Replace `<bucket>/<folder>` with an existing Swift bucket location. Possible val
 When using either keystone authentication, the following parameter can optionally be set:
 
 ```properties
-alluxio.master.mount.table.root.option.fs.swift.region=<swift-preferred-region>
+fs.swift.region=<swift-preferred-region>
 ```
 
 On the successful authentication, Keystone will return two access URLs: public and private. If
 Alluxio is used inside company network and Swift is located on the same network it is advised to set
 value of `<swift-use-public>`  to `false`.
-
-### Nested Mount Point
-
-An Swift location can be mounted at a nested directory in the Alluxio namespace to have unified access
-to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) can be used for this purpose.
-
-```console
-$ ./bin/alluxio fs mount \
-  --option fs.swift.user=<SWIFT_USER> \
-  --option fs.swift.tenant=<SWIFT_TENANT> \
-  --option fs.swift.password=<SWIFT_PASSWORD> \
-  --option fs.swift.auth.url=<AUTH_URL> \
-  --option fs.swift.auth.method=<AUTH_METHOD> \
-  /mnt/swift swift://<BUCKET>/<FOLDER>
-```
 
 ## Options for Swift Object Storage
 

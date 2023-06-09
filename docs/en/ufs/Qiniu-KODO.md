@@ -57,19 +57,6 @@ alluxio.underfs.kodo.endpoint=<KODO_ENDPOINT>
 |North America| na0| iovip-na0.qbox.me | 
 |Southeast Asia| as0| iovip-as0.qbox.me |
 
-### Nested Mount
-
-An Kodo location can be mounted at a nested directory in the Alluxio namespace to have unified
-access to multiple under storage systems. Alluxio's
-[mount command]({{ '/en/operation/User-CLI.html' | relativize_url}}#mount) can be used for this purpose.
-For example, the following command mounts a directory inside an Kodo bucket into Alluxio directory
-```console 
-$ ./bin/alluxio fs mount --option fs.kodo.accessKey=<KODO_ACCESS_KEY> \
-  --option fs.kodo.secretkey=<KODO_SECRET_KET> \
-  --option alluxio.underfs.kodo.downloadhost=<KODO_DOWNLOAD_HOST> \
-  --option alluxio.underfs.kodo.endpoint=<KODO_ENDPOINT> \
-  kodo/ kodo://<KODO_BUCKET>/<KODO_DIRECTORY>/
-```
 ## Running Alluxio Locally with Kodo
 
 After everything is configured, you can start up Alluxio locally to see that everything works.
