@@ -9624,6 +9624,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "fs.adl.account.%s.oauth2.refresh.url",
         "fs\\.adl\\.account\\.(\\w+)\\.oauth2\\.refresh\\.url",
         PropertyType.STRING),
+    UNDERFS_WASB_SAS_TOKEN(
+        "fs.azure.sas.%s.%s.blob.core.windows.net",
+        "fs\\.azure\\.sas\\.(\\w+)\\.(\\w+)\\.blob\\.core\\.windows\\.net",
+        PropertyCreators.fromBuilder(stringBuilder("fs.azure.sas.%s.%s.blob.core.windows.net")
+            .setDisplayType(DisplayType.CREDENTIALS))),
     // TODO(binfan): use alluxio.worker.tieredstore.levelX.mediatype instead
     WORKER_TIERED_STORE_LEVEL_ALIAS("alluxio.worker.tieredstore.level%d.alias",
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.alias",
