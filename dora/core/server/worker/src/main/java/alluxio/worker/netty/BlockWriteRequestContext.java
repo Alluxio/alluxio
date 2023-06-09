@@ -21,11 +21,11 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The block write request internal representation.
  */
 @NotThreadSafe
-public final class BlockWriteRequestContext extends WriteRequestContext<BlockWriteRequest> {
+public class BlockWriteRequestContext extends WriteRequestContext<BlockWriteRequest> {
   private BlockWriter mBlockWriter;
   private long mBytesReserved;
 
-  BlockWriteRequestContext(Protocol.WriteRequest request, long bytesReserved) {
+  protected BlockWriteRequestContext(Protocol.WriteRequest request, long bytesReserved) {
     super(new BlockWriteRequest(request));
     mBytesReserved = bytesReserved;
   }
