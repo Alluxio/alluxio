@@ -180,6 +180,21 @@
     {{- $fuseJavaOpts = concat $fuseJavaOpts .Values.fuse.jvmOptions }}
   {{- end }}
 {{- end }}
+
+{{- /* ===================================== */}}
+{{- /*       ALLUXIO_PROXY_JAVA_OPTS        */}}
+{{- /* ===================================== */}}
+{{- $proxyJavaOpts := list }}
+{{- if eq .Values.proxy.enabled true }}
+  {{- $proxyJavaOpts = print "-Dalluxio.user.hostname=${ALLUXIO_CLIENT_HOSTNAME}" | append $proxyJavaOpts }}
+  {{- range $key, $val := .Values.proxy.properties }}
+    {{- $proxyJavaOpts = printf "-D%v=%v" $key $val | append $proxyJavaOpts }}
+  {{- end }}
+  {{- if .Values.proxy.jvmOptions }}
+    {{- $proxyJavaOpts = concat $proxyJavaOpts .Values.proxy.jvmOptions }}
+  {{- end }}
+{{- end }}
+
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -203,6 +218,9 @@ data:
   ALLUXIO_WORKER_JAVA_OPTS: |-
     {{- /* Format ALLUXIO_WORKER_JAVA_OPTS list to one line */}}
     {{ range $key := $workerJavaOpts }}{{ printf "%v " $key }}{{ end }}
+  ALLUXIO_PROXY_JAVA_OPTS: |-
+    {{- /* Format ALLUXIO_PROXY_JAVA_OPTS list to one line */}}
+    {{ range $key := $proxyJavaOpts }}{{ printf "%v " $key }}{{ end }}
   ALLUXIO_JOB_WORKER_JAVA_OPTS: |-
     {{- /* Format ALLUXIO_JOB_WORKER_JAVA_OPTS list to one line */}}
     {{ range $key := $jobWorkerJavaOpts }}{{ printf "%v " $key }}{{ end }}

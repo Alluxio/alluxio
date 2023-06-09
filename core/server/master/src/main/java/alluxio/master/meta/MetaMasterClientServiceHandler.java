@@ -13,8 +13,8 @@ package alluxio.master.meta;
 
 import alluxio.RpcUtils;
 import alluxio.RuntimeConstants;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.BackupPStatus;
 import alluxio.grpc.BackupStatusPRequest;
@@ -24,9 +24,13 @@ import alluxio.grpc.GetConfigReportPOptions;
 import alluxio.grpc.GetConfigReportPResponse;
 import alluxio.grpc.GetMasterInfoPOptions;
 import alluxio.grpc.GetMasterInfoPResponse;
+import alluxio.grpc.ListProxyStatusPRequest;
+import alluxio.grpc.ListProxyStatusPResponse;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
+import alluxio.grpc.MasterVersion;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
+import alluxio.grpc.NetAddress;
 import alluxio.master.StateLockOptions;
 import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.wire.Address;
@@ -72,18 +76,15 @@ public final class MetaMasterClientServiceHandler
   @Override
   public void getConfigReport(GetConfigReportPOptions options,
       StreamObserver<GetConfigReportPResponse> responseObserver) {
-    RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<GetConfigReportPResponse>) () -> {
-
-          return GetConfigReportPResponse.newBuilder()
-              .setReport(mMetaMaster.getConfigCheckReport().toProto()).build();
-        }, "getConfigReport", "options=%s", responseObserver, options);
+    RpcUtils.call(LOG, () -> GetConfigReportPResponse.newBuilder()
+            .setReport(mMetaMaster.getConfigCheckReport().toProto()).build(),
+        "getConfigReport", "options=%s", responseObserver, options);
   }
 
   @Override
   public void getMasterInfo(GetMasterInfoPOptions options,
       StreamObserver<GetMasterInfoPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetMasterInfoPResponse>) () -> {
+    RpcUtils.call(LOG, () -> {
       MasterInfo.Builder masterInfo = MasterInfo.newBuilder();
       for (MasterInfoField field : options.getFilterCount() > 0 ? options.getFilterList()
           : Arrays.asList(MasterInfoField.values())) {
@@ -121,9 +122,9 @@ public final class MetaMasterClientServiceHandler
                 .map(Address::toProto).collect(Collectors.toList()));
             break;
           case ZOOKEEPER_ADDRESSES:
-            if (ServerConfiguration.isSet(PropertyKey.ZOOKEEPER_ADDRESS)) {
+            if (Configuration.isSet(PropertyKey.ZOOKEEPER_ADDRESS)) {
               masterInfo.addAllZookeeperAddresses(
-                  Arrays.asList(ServerConfiguration.getString(PropertyKey.ZOOKEEPER_ADDRESS)
+                  Arrays.asList(Configuration.getString(PropertyKey.ZOOKEEPER_ADDRESS)
                       .split(",")));
             }
             break;
@@ -142,6 +143,36 @@ public final class MetaMasterClientServiceHandler
             masterInfo.setRaftJournal(mMetaMaster.getMasterContext().getJournalSystem()
                 instanceof RaftJournalSystem);
             break;
+          case MASTER_VERSION:
+            masterInfo.addMasterVersions(
+                MasterVersion.newBuilder()
+                    .setAddresses(NetAddress.newBuilder().setHost(
+                        mMetaMaster.getRpcAddress().getHostName())
+                        .setRpcPort(mMetaMaster.getRpcAddress().getPort()).build())
+                    .setVersion(RuntimeConstants.VERSION)
+                    .setState("PRIMARY")
+                    .build()
+            );
+            List<MasterVersion> standbyMasterVersions =
+                Arrays.stream(mMetaMaster.getStandbyMasterInfos())
+                  .map(it -> MasterVersion.newBuilder()
+                      .setVersion(it.getVersion())
+                      .setAddresses(it.getAddress().toProto())
+                      .setState("STANDBY")
+                      .build())
+                  .collect(Collectors.toList());
+
+            masterInfo.addAllMasterVersions(standbyMasterVersions);
+            List<MasterVersion> lostMasterVersions =
+                Arrays.stream(mMetaMaster.getLostMasterInfos())
+                  .map(it -> MasterVersion.newBuilder()
+                      .setVersion(it.getVersion())
+                      .setAddresses(it.getAddress().toProto())
+                      .setState("LOST")
+                      .build())
+                  .collect(Collectors.toList());
+            masterInfo.addAllMasterVersions(lostMasterVersions);
+            break;
           default:
             LOG.warn("Unrecognized meta master info field: " + field);
         }
@@ -153,8 +184,17 @@ public final class MetaMasterClientServiceHandler
   @Override
   public void checkpoint(CheckpointPOptions options,
       StreamObserver<CheckpointPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<CheckpointPResponse>) () ->
-        CheckpointPResponse.newBuilder().setMasterHostname(mMetaMaster.checkpoint()).build(),
+    RpcUtils.call(LOG,
+        () -> CheckpointPResponse.newBuilder().setMasterHostname(mMetaMaster.checkpoint()).build(),
         "checkpoint", "options=%s", responseObserver, options);
+  }
+
+  @Override
+  public void listProxyStatus(ListProxyStatusPRequest request,
+                              StreamObserver<ListProxyStatusPResponse> responseObserver) {
+    RpcUtils.call(LOG,
+        () -> ListProxyStatusPResponse.newBuilder()
+            .addAllProxyStatuses(mMetaMaster.listProxyStatus()).build(),
+            "listProxyStatus", "options=%s", responseObserver, request.getOptions());
   }
 }

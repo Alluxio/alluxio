@@ -11,11 +11,10 @@
 
 package alluxio.master.meta;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.MetaCommand;
 import alluxio.grpc.Scope;
 import alluxio.heartbeat.HeartbeatExecutor;
-import alluxio.util.ConfigurationUtils;
 import alluxio.wire.Address;
 
 import org.slf4j.Logger;
@@ -63,12 +62,14 @@ public final class MetaMasterSync implements HeartbeatExecutor {
    * Heartbeats to the leader master node.
    */
   @Override
-  public void heartbeat() {
+  public void heartbeat(long timeLimitMs) {
     MetaCommand command = null;
     try {
       if (mMasterId.get() == UNINITIALIZED_MASTER_ID) {
         setIdAndRegister();
       }
+      LOG.debug("Standby master: {} send a heartbeat request to the leader master.",
+          mMasterId.get());
       command = mMasterClient.heartbeat(mMasterId.get());
       handleCommand(command);
     } catch (IOException e) {
@@ -113,7 +114,7 @@ public final class MetaMasterSync implements HeartbeatExecutor {
   private void setIdAndRegister() throws IOException {
     mMasterId.set(mMasterClient.getId(mMasterAddress));
     mMasterClient.register(mMasterId.get(),
-        ConfigurationUtils.getConfiguration(ServerConfiguration.global(), Scope.MASTER));
+        Configuration.getConfiguration(Scope.MASTER));
   }
 
   @Override

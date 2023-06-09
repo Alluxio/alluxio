@@ -12,6 +12,7 @@
 package alluxio.master.block;
 
 import alluxio.RpcUtils;
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.DeadlineExceededException;
 import alluxio.grpc.GrpcExceptionUtils;
@@ -25,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.annotation.concurrent.GuardedBy;
 
 /**
  * This class handles the master side logic of the register stream.
@@ -36,12 +38,16 @@ import java.util.concurrent.atomic.AtomicReference;
 public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPRequest> {
   private static final Logger LOG = LoggerFactory.getLogger(RegisterStreamObserver.class);
 
-  private WorkerRegisterContext mContext;
+  @GuardedBy("this")
+  @SuppressFBWarnings(value = "IS_FIELD_NOT_GUARDED")
+  // Context is initialized on the 1st request so later requests are guaranteed to see the context
+  // Locking is applied on init and cleanup
+  private volatile WorkerRegisterContext mContext;
   private final BlockMaster mBlockMaster;
   // Used to send responses to the worker
   private final StreamObserver<RegisterWorkerPResponse> mMasterResponseObserver;
   // Records the error from the worker side, if any
-  private AtomicReference<Throwable> mErrorReceived = new AtomicReference<>();
+  private final AtomicReference<Throwable> mErrorReceived = new AtomicReference<>();
 
   /**
    * Constructor.
@@ -143,7 +149,7 @@ public class RegisterStreamObserver implements StreamObserver<RegisterWorkerPReq
     String methodName = "registerWorkerComplete";
     RpcUtils.streamingRPCAndLog(LOG, new RpcUtils.StreamingRpcCallable<RegisterWorkerPResponse>() {
       @Override
-      public RegisterWorkerPResponse call() throws Exception {
+      public RegisterWorkerPResponse call() {
         Preconditions.checkState(mErrorReceived.get() == null,
             "The stream has been closed due to an earlier error received: %s",
             mErrorReceived.get());

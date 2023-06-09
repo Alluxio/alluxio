@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -39,8 +40,8 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.collections.Pair;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.job.JobServerContext;
@@ -59,14 +60,12 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -78,9 +77,6 @@ import java.util.Set;
 /**
  * Tests replicate functionality of {@link SetReplicaDefinition}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({BlockStoreClient.class, FileSystemContext.class, JobServerContext.class,
-    BlockInStream.class})
 public final class SetReplicaDefinitionReplicateTest {
   private static final long TEST_BLOCK_ID = 1L;
   private static final long TEST_BLOCK_SIZE = 512L;
@@ -93,7 +89,7 @@ public final class SetReplicaDefinitionReplicateTest {
       new WorkerNetAddress().setHost("host3").setDataPort(10);
   private static final WorkerNetAddress LOCAL_ADDRESS =
       new WorkerNetAddress().setHost(NetworkAddressUtils
-          .getLocalHostName((int) ServerConfiguration
+          .getLocalHostName((int) Configuration
               .getMs(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS))).setDataPort(10);
   private static final WorkerInfo WORKER_INFO_1 = new WorkerInfo().setAddress(ADDRESS_1);
   private static final WorkerInfo WORKER_INFO_2 = new WorkerInfo().setAddress(ADDRESS_2);
@@ -107,24 +103,26 @@ public final class SetReplicaDefinitionReplicateTest {
   private UfsManager mMockUfsManager;
   private BlockInfo mTestBlockInfo;
   private URIStatus mTestStatus;
+  private MockedStatic<BlockStoreClient> mMockStaticBlockStore;
 
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
   @Before
   public void before() throws Exception {
-    mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
+    mMockFileSystemContext = mock(FileSystemContext.class);
     when(mMockFileSystemContext.getClientContext())
-        .thenReturn(ClientContext.create(ServerConfiguration.global()));
+        .thenReturn(ClientContext.create(Configuration.global()));
     when(mMockFileSystemContext.getClusterConf())
-        .thenReturn(ServerConfiguration.global());
-    mMockBlockStore = PowerMockito.mock(BlockStoreClient.class);
+        .thenReturn(Configuration.global());
+    mMockBlockStore = mock(BlockStoreClient.class);
     mMockFileSystem = mock(FileSystem.class);
     mMockUfsManager = mock(UfsManager.class);
     mMockJobServerContext =
         new JobServerContext(mMockFileSystem, mMockFileSystemContext, mMockUfsManager);
-    PowerMockito.mockStatic(BlockStoreClient.class);
-    when(BlockStoreClient.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
+    mMockStaticBlockStore = mockStatic(BlockStoreClient.class);
+    mMockStaticBlockStore.when(() ->
+        BlockStoreClient.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
     mTestBlockInfo = new BlockInfo().setBlockId(TEST_BLOCK_ID).setLength(TEST_BLOCK_SIZE);
     when(mMockBlockStore.getInfo(TEST_BLOCK_ID)).thenReturn(mTestBlockInfo);
     mTestStatus = new URIStatus(
@@ -132,6 +130,11 @@ public final class SetReplicaDefinitionReplicateTest {
             .setPersisted(true)
             .setFileBlockInfos(Lists.newArrayList(
                 new FileBlockInfo().setBlockInfo(mTestBlockInfo))));
+  }
+
+  @After
+  public void after() {
+    mMockStaticBlockStore.close();
   }
 
   /**
@@ -165,18 +168,13 @@ public final class SetReplicaDefinitionReplicateTest {
             any(InStreamOptions.class))).thenReturn(mockInStream);
     when(mMockBlockStore.getInStream(any(BlockInfo.class),
         any(InStreamOptions.class), any(Map.class))).thenReturn(mockInStream);
-    PowerMockito.mockStatic(BlockInStream.class);
-    when(BlockInStream.create(any(FileSystemContext.class), any(BlockInfo.class),
-        any(WorkerNetAddress.class), any(BlockInStreamSource.class), any(InStreamOptions.class)))
-        .thenReturn(mockInStream);
     when(
         mMockBlockStore.getOutStream(eq(TEST_BLOCK_ID), eq(TEST_BLOCK_SIZE), eq(LOCAL_ADDRESS),
             any(OutStreamOptions.class))).thenReturn(mockOutStream);
     when(mMockBlockStore.getInfo(TEST_BLOCK_ID))
         .thenReturn(mTestBlockInfo
             .setLocations(Lists.newArrayList(new BlockLocation().setWorkerAddress(ADDRESS_1))));
-    PowerMockito.mockStatic(BlockStoreClient.class);
-    when(BlockStoreClient.create(any(FileSystemContext.class))).thenReturn(mMockBlockStore);
+
     SetReplicaConfig config =
         new SetReplicaConfig(TEST_PATH, TEST_BLOCK_ID, 1 /* value not used */);
     SetReplicaDefinition definition = new SetReplicaDefinition();
@@ -265,7 +263,7 @@ public final class SetReplicaDefinitionReplicateTest {
     byte[] input = BufferUtils.getIncreasingByteArray(0, (int) TEST_BLOCK_SIZE);
 
     TestBlockInStream mockInStream =
-        new TestBlockInStream(input, TEST_BLOCK_ID, input.length, false,
+        new TestBlockInStream(input, TEST_BLOCK_ID, input.length,
             BlockInStreamSource.NODE_LOCAL);
     TestBlockOutStream mockOutStream =
         new TestBlockOutStream(ByteBuffer.allocate(MAX_BYTES), TEST_BLOCK_SIZE);
@@ -280,22 +278,29 @@ public final class SetReplicaDefinitionReplicateTest {
     for (boolean persisted : new boolean[] {true, false}) {
       for (boolean pinned : new boolean[] {true, false}) {
         mTestStatus.getFileInfo().setPersisted(persisted)
+            .setPinned(pinned)
             .setMediumTypes(pinned ? Sets.newHashSet(Constants.MEDIUM_MEM)
                 : Collections.emptySet());
         byte[] input = BufferUtils.getIncreasingByteArray(0, (int) TEST_BLOCK_SIZE);
         TestBlockInStream mockInStream =
-            new TestBlockInStream(input, TEST_BLOCK_ID, input.length, false,
+            new TestBlockInStream(input, TEST_BLOCK_ID, input.length,
                 BlockInStreamSource.NODE_LOCAL);
         TestBlockOutStream mockOutStream =
             new TestBlockOutStream(ByteBuffer.allocate(MAX_BYTES), TEST_BLOCK_SIZE);
         BlockWorkerInfo localBlockWorker = new BlockWorkerInfo(LOCAL_ADDRESS, TEST_BLOCK_SIZE, 0);
-        runTaskReplicateTestHelper(Lists.newArrayList(localBlockWorker), mockInStream,
-            mockOutStream);
-        assertEquals(TEST_BLOCK_SIZE, mockInStream.getBytesRead());
-        if (!persisted || pinned) {
-          assertArrayEquals(
-              String.format("input-output mismatched: pinned=%s, persisted=%s", pinned, persisted),
-              input, mockOutStream.getWrittenData());
+        try (MockedStatic<BlockInStream> mockBlockInStream = mockStatic(BlockInStream.class)) {
+          mockBlockInStream.when(() ->
+              BlockInStream.create(any(FileSystemContext.class), any(BlockInfo.class),
+                  any(WorkerNetAddress.class), any(BlockInStreamSource.class),
+                  any(InStreamOptions.class))).thenReturn(mockInStream);
+          runTaskReplicateTestHelper(Lists.newArrayList(localBlockWorker), mockInStream,
+              mockOutStream);
+          assertEquals(TEST_BLOCK_SIZE, mockInStream.getBytesRead());
+          if (!persisted || pinned) {
+            assertArrayEquals(
+                String.format("input-output mismatched: pinned=%s, persisted=%s",
+                    pinned, persisted), input, mockOutStream.getWrittenData());
+          }
         }
       }
     }
@@ -304,6 +309,7 @@ public final class SetReplicaDefinitionReplicateTest {
   @Test
   public void runTaskInputIOException() throws Exception {
     // file is pinned on a medium
+    mTestStatus.getFileInfo().setPinned(true);
     mTestStatus.getFileInfo().setMediumTypes(Sets.newHashSet(Constants.MEDIUM_MEM));
     BlockInStream mockInStream = mock(BlockInStream.class);
     BlockOutStream mockOutStream = mock(BlockOutStream.class);

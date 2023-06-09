@@ -47,7 +47,7 @@ val sc = new SparkContext(conf)
 
 ## Hadoop MapReduce 作业
 
-Hadoop MapReduce用户可以在`hadoop jar`或“`yarn jar`命令后添加`"-Dproperty=value"`。
+Hadoop MapReduce用户可以在`hadoop jar`或"`yarn jar`命令后添加`"-Dproperty=value"`。
 属性将被传播到这个作业的所有任务中。例如,下面的
 MapReduce任务中设置wordcount集写入Alluxio类型为`CACHE_THROUGH`：
 

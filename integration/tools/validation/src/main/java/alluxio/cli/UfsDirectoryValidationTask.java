@@ -14,6 +14,7 @@ package alluxio.cli;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.ExceptionUtils;
 
 import java.util.Map;
 
@@ -61,7 +62,7 @@ public final class UfsDirectoryValidationTask extends AbstractValidationTask {
     } catch (Exception e) {
       msg.append(String.format("Unable to access under file system path %s: %s. ", mPath,
               e.getMessage()));
-      msg.append(ValidationUtils.getErrorInfo(e));
+      msg.append(ExceptionUtils.asPlainText(e));
       advice.append(String.format("Please verify your path %s is correct.%n", mPath));
       return new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
               msg.toString(), advice.toString());

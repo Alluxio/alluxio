@@ -68,7 +68,7 @@ public final class CsvRow implements TableRow {
     return new ParquetRow(recordBuilder.build());
   }
 
-  /**
+  /*
    * @param value the value read based on the read schema
    * @param name the name of the field
    * @param type the type of the value based on Alluxio table schema

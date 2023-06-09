@@ -16,8 +16,8 @@ import static org.junit.Assert.assertTrue;
 import alluxio.AlluxioURI;
 import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.underfs.delegating.DelegatingUnderFileSystem;
 import alluxio.testutils.underfs.delegating.DelegatingUnderFileSystemFactory;
@@ -47,7 +47,7 @@ public class RenameFailureJournalTest {
 
   // An under file system which fails 90% of its renames.
   private static final UnderFileSystem UFS =
-      new DelegatingUnderFileSystem(Factory.create(LOCAL_UFS_PATH, ServerConfiguration.global())) {
+      new DelegatingUnderFileSystem(Factory.create(LOCAL_UFS_PATH, Configuration.global())) {
         @Override
         public boolean renameFile(String src, String dst) throws IOException {
           if (ThreadLocalRandom.current().nextInt(10) == 0) {
@@ -75,7 +75,7 @@ public class RenameFailureJournalTest {
 
   @Before
   public void before() throws Exception {
-    mFs = FileSystem.Factory.create(ServerConfiguration.global());
+    mFs = FileSystem.Factory.create();
   }
 
   @Test

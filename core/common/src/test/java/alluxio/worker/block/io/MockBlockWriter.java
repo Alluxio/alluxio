@@ -11,6 +11,7 @@
 
 package alluxio.worker.block.io;
 
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.network.protocol.databuffer.DataBuffer;
 
 import io.netty.buffer.ByteBuf;
@@ -43,10 +44,14 @@ public final class MockBlockWriter extends BlockWriter {
   }
 
   @Override
-  public long append(ByteBuffer inputBuf) throws IOException {
+  public long append(ByteBuffer inputBuf) {
     byte[] bytes = new byte[inputBuf.remaining()];
     inputBuf.get(bytes);
-    mOutputStream.write(bytes);
+    try {
+      mOutputStream.write(bytes);
+    } catch (IOException e) {
+      throw AlluxioRuntimeException.from(e);
+    }
     mPosition += bytes.length;
     return bytes.length;
   }

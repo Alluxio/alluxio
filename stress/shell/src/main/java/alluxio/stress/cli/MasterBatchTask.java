@@ -33,9 +33,9 @@ public class MasterBatchTask extends BatchTask {
   private static final int TARGET_THROUGHPUT  = 1_000_000;
 
   @ParametersDelegate
-  private BaseParameters mBaseParameter = new BaseParameters();
+  private final BaseParameters mBaseParameter = new BaseParameters();
   @ParametersDelegate
-  private MasterBatchTaskParameters mParameter = new MasterBatchTaskParameters();
+  private final MasterBatchTaskParameters mParameter = new MasterBatchTaskParameters();
 
   @Override
   public void run(String[] args) {
@@ -106,7 +106,7 @@ public class MasterBatchTask extends BatchTask {
         // add all base parameters
         command.addAll(mBaseParameter.toBatchTaskArgumentString());
 
-        commandList.add(command.toArray(new String[command.size()]));
+        commandList.add(command.toArray(new String[0]));
       }
     }
     return commandList;

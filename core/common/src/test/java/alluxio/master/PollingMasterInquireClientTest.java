@@ -11,11 +11,20 @@
 
 package alluxio.master;
 
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertThrows;
 
 import alluxio.Constants;
+import alluxio.conf.AlluxioProperties;
 import alluxio.conf.ConfigurationBuilder;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.UnavailableException;
+import alluxio.grpc.GrpcServer;
+import alluxio.grpc.GrpcServerAddress;
+import alluxio.grpc.GrpcServerBuilder;
+import alluxio.grpc.GrpcService;
+import alluxio.grpc.ServiceType;
+import alluxio.grpc.ServiceVersionClientServiceGrpc;
 import alluxio.network.RejectingServer;
 import alluxio.retry.CountingRetry;
 import alluxio.util.network.NetworkAddressUtils;
@@ -43,12 +52,43 @@ public class PollingMasterInquireClientTest {
     List<InetSocketAddress> addrs = Arrays.asList(InetSocketAddress
         .createUnresolved(NetworkAddressUtils.getLocalHostName(Constants.SECOND_MS), port));
     PollingMasterInquireClient client = new PollingMasterInquireClient(addrs,
-        () -> new CountingRetry(0), new ConfigurationBuilder().build());
+        () -> new CountingRetry(0), new ConfigurationBuilder().build(),
+        ServiceType.META_MASTER_CLIENT_SERVICE);
+    assertThrows("Expected polling to fail", UnavailableException.class,
+        client::getPrimaryRpcAddress);
+  }
+
+  @Test(timeout = 10000)
+  public void concurrentPollingMaster() throws Exception {
+    int port1 = PortRegistry.reservePort();
+    int port2 = PortRegistry.reservePort();
+    InetSocketAddress serverAddress1 = new InetSocketAddress("127.0.0.1", port1);
+    InetSocketAddress serverAddress2 = new InetSocketAddress("127.0.0.1", port2);
+    RejectingServer s1 = new RejectingServer(serverAddress1, 20000);
+    GrpcServer s2 =
+        GrpcServerBuilder.forAddress(GrpcServerAddress.create(serverAddress2),
+                new InstancedConfiguration(new AlluxioProperties()))
+            .addService(ServiceType.META_MASTER_CLIENT_SERVICE, new GrpcService(
+                new ServiceVersionClientServiceGrpc.ServiceVersionClientServiceImplBase() {
+                })).build();
     try {
+      s1.start();
+      s2.start();
+      List<InetSocketAddress> addrs =
+          Arrays.asList(InetSocketAddress.createUnresolved("127.0.0.1", port1),
+              InetSocketAddress.createUnresolved("127.0.0.1", port2));
+      PollingMasterInquireClient client = new PollingMasterInquireClient(addrs,
+          () -> new CountingRetry(0),
+          new ConfigurationBuilder()
+              .setProperty(PropertyKey.USER_MASTER_POLLING_CONCURRENT, true)
+              .build(),
+          ServiceType.META_MASTER_CLIENT_SERVICE);
       client.getPrimaryRpcAddress();
-      fail("Expected polling to fail");
-    } catch (UnavailableException e) {
-      // Expected
+    } finally {
+      s1.stopAndJoin();
+      s2.shutdown();
+      PortRegistry.release(port1);
+      PortRegistry.release(port2);
     }
   }
 }

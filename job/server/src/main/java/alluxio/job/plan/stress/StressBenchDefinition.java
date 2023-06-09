@@ -13,8 +13,8 @@ package alluxio.job.plan.stress;
 
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.job.RunTaskContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.PlanDefinition;
@@ -121,7 +121,7 @@ public final class StressBenchDefinition
   public String runTask(StressBenchConfig config, ArrayList<String> args,
       RunTaskContext runTaskContext) throws Exception {
     List<String> command = new ArrayList<>(3 + config.getArgs().size());
-    command.add(ServerConfiguration.get(PropertyKey.HOME) + "/bin/alluxio");
+    command.add(Configuration.get(PropertyKey.HOME) + "/bin/alluxio");
     command.add("runClass");
     command.add(config.getClassName());
 
@@ -170,8 +170,7 @@ public final class StressBenchDefinition
 
     command.addAll(commandArgs);
     command.addAll(args);
-    String output = ShellUtils.execCommand(command.toArray(new String[0]));
-    return output;
+    return ShellUtils.execCommand(command.toArray(new String[0]));
   }
 
   @Override

@@ -14,8 +14,8 @@ package alluxio.master.table;
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.client.job.JobMasterClient;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
@@ -40,7 +40,7 @@ public final class TableMasterFactory implements MasterFactory<CoreMasterContext
 
   @Override
   public boolean isEnabled() {
-    return ServerConfiguration.getBoolean(PropertyKey.TABLE_ENABLED);
+    return Configuration.getBoolean(PropertyKey.TABLE_ENABLED);
   }
 
   @Override
@@ -53,7 +53,7 @@ public final class TableMasterFactory implements MasterFactory<CoreMasterContext
     LOG.info("Creating {} ", TableMaster.class.getName());
 
     JobMasterClient jobMasterClient = JobMasterClient.Factory.create(JobMasterClientContext
-        .newBuilder(ClientContext.create(ServerConfiguration.global())).build());
+        .newBuilder(ClientContext.create(Configuration.global())).build());
     TableMaster master = new DefaultTableMaster(context, jobMasterClient);
     registry.add(TableMaster.class, master);
     return master;

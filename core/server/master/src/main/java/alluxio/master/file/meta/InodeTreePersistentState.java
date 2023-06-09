@@ -16,7 +16,7 @@ import static alluxio.conf.PropertyKey.MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_
 import static alluxio.conf.PropertyKey.MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS;
 
 import alluxio.ProcessUtils;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.file.RpcContext;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalUtils;
@@ -56,6 +56,7 @@ import com.google.common.cache.CacheBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Path;
@@ -68,8 +69,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 
 /**
@@ -131,12 +135,12 @@ public class InodeTreePersistentState implements Journaled {
     mInodeLockManager = lockManager;
     mTtlBuckets = ttlBucketList;
     mBucketCounter = new BucketCounter(
-        ServerConfiguration.getList(MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS)
+        Configuration.getList(MASTER_METRICS_FILE_SIZE_DISTRIBUTION_BUCKETS)
             .stream().map(FormatUtils::parseSpaceSize).collect(Collectors.toList()));
     mRetryCacheEnabled =
-        ServerConfiguration.getBoolean(MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED);
+        Configuration.getBoolean(MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_ENABLED);
     mOpIdCache = CacheBuilder.newBuilder()
-        .maximumSize(ServerConfiguration.getInt(MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_SIZE))
+        .maximumSize(Configuration.getInt(MASTER_FILE_SYSTEM_OPERATION_RETRY_CACHE_SIZE))
         .build();
   }
 
@@ -202,6 +206,24 @@ public class InodeTreePersistentState implements Journaled {
   public Set<Long> getToBePersistedIds() {
     return Collections.unmodifiableSet(mToBePersistedIds);
   }
+
+  /**
+   * @return the list of TTL buckets for tracking inode TTLs
+   */
+  public TtlBucketList getTtlBuckets() {
+    return mTtlBuckets;
+  }
+
+  ////
+  /// The applyAndJournal() methods make sure the in-memory metadata state and the journal are
+  /// BOTH updated. Any exception seen here will crash the master! So if an exception should be
+  /// tolerated, make sure it is caught and handled properly.
+  /// However, the journal flushing is async and happens when the JournalContext is closed.
+  /// That means when applyAndJournal() returns, the metadata states are updated but the
+  /// journal entries are not necessarily persisted or sent to standby masters.
+  /// Therefore, to ensure atomicity, callers should make sure the JournalContext is closed
+  /// after calling the applyAndJournal() methods.
+  ////
 
   /**
    * Deletes an inode (may be either a file or directory).
@@ -384,6 +406,7 @@ public class InodeTreePersistentState implements Journaled {
   ////
   /// Apply Implementations. These methods are used for journal replay, so they are not allowed to
   /// fail. They are also used when making metadata changes during regular operation.
+  /// If the method throws an exception, the caller applyAndJournal() method will crash the master.
   ////
 
   private void applyDelete(DeleteFileEntry entry) {
@@ -398,12 +421,15 @@ public class InodeTreePersistentState implements Journaled {
         InodeDirectory dir = dirsToDelete.poll();
         mInodeStore.removeInodeAndParentEdge(inode);
         mInodeCounter.decrement();
-        for (Inode child : mInodeStore.getChildren(dir)) {
-          if (child.isDirectory()) {
-            dirsToDelete.add(child.asDirectory());
-          } else {
-            mInodeStore.removeInodeAndParentEdge(inode);
-            mInodeCounter.decrement();
+        try (CloseableIterator<? extends Inode> it = mInodeStore.getChildren(dir)) {
+          while (it.hasNext()) {
+            Inode child = it.next();
+            if (child.isDirectory()) {
+              dirsToDelete.add(child.asDirectory());
+            } else {
+              mInodeStore.removeInodeAndParentEdge(inode);
+              mInodeCounter.decrement();
+            }
           }
         }
       }
@@ -803,11 +829,29 @@ public class InodeTreePersistentState implements Journaled {
   }
 
   @Override
+  public CompletableFuture<Void> writeToCheckpoint(File directory,
+                                                   ExecutorService executorService) {
+    return CompletableFuture.allOf(Stream.of(mInodeStore, mPinnedInodeFileIds,
+        mReplicationLimitedFileIds, mToBePersistedIds, mTtlBuckets, mInodeCounter)
+        .map(journaled -> journaled.writeToCheckpoint(directory, executorService))
+        .toArray(CompletableFuture[]::new));
+  }
+
+  @Override
   public void writeToCheckpoint(OutputStream output) throws IOException, InterruptedException {
     // mTtlBuckets must come after mInodeStore so that it can query the inode store to resolve inode
     // ids to inodes.
     JournalUtils.writeToCheckpoint(output, Arrays.asList(mInodeStore, mPinnedInodeFileIds,
         mReplicationLimitedFileIds, mToBePersistedIds, mTtlBuckets, mInodeCounter));
+  }
+
+  @Override
+  public CompletableFuture<Void> restoreFromCheckpoint(File directory,
+                                                       ExecutorService executorService) {
+    return CompletableFuture.allOf(Stream.of(mInodeStore, mPinnedInodeFileIds,
+        mReplicationLimitedFileIds, mToBePersistedIds, mTtlBuckets, mInodeCounter)
+        .map(journaled -> journaled.restoreFromCheckpoint(directory, executorService))
+        .toArray(CompletableFuture[]::new));
   }
 
   @Override

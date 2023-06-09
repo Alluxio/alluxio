@@ -12,16 +12,17 @@
 package alluxio.job.plan.load;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
-import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.job.JobServerContext;
 import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.load.LoadDefinition.LoadTask;
@@ -36,16 +37,11 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -56,9 +52,6 @@ import java.util.Set;
 /**
  * Tests {@link LoadDefinition}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystem.class, JobServerContext.class, FileSystemContext.class,
-    BlockStoreClient.class})
 public class LoadDefinitionTest {
   private static final String TEST_URI = "/test";
   private static final WorkerNetAddress WORKER_ADDR_0 =
@@ -98,25 +91,20 @@ public class LoadDefinitionTest {
 
   private JobServerContext mJobServerContext;
   private FileSystem mMockFileSystem;
-  private BlockStoreClient mMockBlockStore;
   private FileSystemContext mMockFsContext;
 
   @Before
   public void before() throws Exception {
-    mMockFileSystem = PowerMockito.mock(FileSystem.class);
-    mMockBlockStore = PowerMockito.mock(BlockStoreClient.class);
-    mMockFsContext = PowerMockito.mock(FileSystemContext.class);
-    PowerMockito.mockStatic(BlockStoreClient.class);
-    PowerMockito.when(BlockStoreClient.create(any(FileSystemContext.class)))
-        .thenReturn(mMockBlockStore);
-    Mockito.when(mMockFsContext.getCachedWorkers()).thenReturn(BLOCK_WORKERS);
-    PowerMockito.when(mMockFsContext.getClientContext())
-        .thenReturn(ClientContext.create(ServerConfiguration.global()));
-    PowerMockito.when(mMockFsContext.getClusterConf()).thenReturn(ServerConfiguration.global());
-    PowerMockito.when(mMockFsContext.getPathConf(any(AlluxioURI.class)))
-        .thenReturn(ServerConfiguration.global());
+    mMockFileSystem = mock(FileSystem.class);
+    mMockFsContext = mock(FileSystemContext.class);
+    when(mMockFsContext.getCachedWorkers()).thenReturn(BLOCK_WORKERS);
+    when(mMockFsContext.getClientContext())
+        .thenReturn(ClientContext.create(Configuration.global()));
+    when(mMockFsContext.getClusterConf()).thenReturn(Configuration.global());
+    when(mMockFsContext.getPathConf(any(AlluxioURI.class)))
+        .thenReturn(Configuration.global());
     mJobServerContext =
-        new JobServerContext(mMockFileSystem, mMockFsContext, Mockito.mock(UfsManager.class));
+        new JobServerContext(mMockFileSystem, mMockFsContext, mock(UfsManager.class));
   }
 
   @Test
@@ -141,7 +129,7 @@ public class LoadDefinitionTest {
   public void skipJobWorkersWithoutLocalBlockWorkers() throws Exception {
     List<BlockWorkerInfo> blockWorkers =
         Arrays.asList(new BlockWorkerInfo(new WorkerNetAddress().setHost("host0"), 0, 0));
-    Mockito.when(mMockFsContext.getCachedWorkers()).thenReturn(blockWorkers);
+    when(mMockFsContext.getCachedWorkers()).thenReturn(blockWorkers);
     createFileWithNoLocations(TEST_URI, 10);
     LoadConfig config = new LoadConfig(TEST_URI, 1, Collections.EMPTY_SET, Collections.EMPTY_SET,
         Collections.EMPTY_SET, Collections.EMPTY_SET, false);
@@ -156,14 +144,11 @@ public class LoadDefinitionTest {
     createFileWithNoLocations(TEST_URI, 1);
     LoadConfig config = new LoadConfig(TEST_URI, 5, Collections.EMPTY_SET, Collections.EMPTY_SET,
         Collections.EMPTY_SET, Collections.EMPTY_SET, false); // set replication to 5
-    try {
-      new LoadDefinition().selectExecutors(config, JOB_WORKERS,
-          new SelectExecutorsContext(1, mJobServerContext));
-      Assert.fail();
-    } catch (Exception e) {
-      Assert.assertThat(e.getMessage(), CoreMatchers.containsString(
-          "Failed to find enough block workers to replicate to. Needed 5 but only found 4."));
-    }
+    IOException exception = Assert.assertThrows(
+        IOException.class, () -> new LoadDefinition().selectExecutors(
+            config, JOB_WORKERS, new SelectExecutorsContext(1, mJobServerContext)));
+    Assert.assertTrue(exception.getMessage().contains(
+        "Failed to find enough block workers to replicate to. Needed 5 but only found 4."));
   }
 
   @Test
@@ -171,21 +156,17 @@ public class LoadDefinitionTest {
     List<BlockWorkerInfo> blockWorkers =
         Arrays.asList(new BlockWorkerInfo(new WorkerNetAddress().setHost("host0"), 0, 0),
             new BlockWorkerInfo(new WorkerNetAddress().setHost("otherhost"), 0, 0));
-    Mockito.when(mMockFsContext.getCachedWorkers()).thenReturn(blockWorkers);
+    when(mMockFsContext.getCachedWorkers()).thenReturn(blockWorkers);
     createFileWithNoLocations(TEST_URI, 1);
     LoadConfig config = new LoadConfig(TEST_URI, 2, Collections.EMPTY_SET, Collections.EMPTY_SET,
         Collections.EMPTY_SET, Collections.EMPTY_SET, false); // set replication to 2
-    try {
-      new LoadDefinition().selectExecutors(config, JOB_WORKERS,
-          new SelectExecutorsContext(1, mJobServerContext));
-      Assert.fail();
-    } catch (Exception e) {
-      Assert.assertThat(e.getMessage(),
-          CoreMatchers.containsString("Available workers without the block"));
-      Assert.assertThat(e.getMessage(),
-          CoreMatchers.containsString("The following workers could not be used because "
-              + "they have no local job workers: [otherhost]"));
-    }
+    IOException exception = Assert.assertThrows(IOException.class,
+        () -> new LoadDefinition().selectExecutors(config, JOB_WORKERS,
+            new SelectExecutorsContext(1, mJobServerContext)));
+    Assert.assertTrue(exception.getMessage().contains("Available workers without the block"));
+    Assert.assertTrue(exception.getMessage().contains(
+        "The following workers could not be used"
+            + " because they have no local job workers: [otherhost]"));
   }
 
   @Test
@@ -274,9 +255,9 @@ public class LoadDefinitionTest {
           .setBlockInfo(new BlockInfo().setLocations(Lists.<BlockLocation>newArrayList())));
     }
     testFileInfo.setFolder(false).setPath(testFile).setFileBlockInfos(blockInfos);
-    Mockito.when(mMockFileSystem.listStatus(uri))
+    when(mMockFileSystem.listStatus(uri))
         .thenReturn(Lists.newArrayList(new URIStatus(testFileInfo)));
-    Mockito.when(mMockFileSystem.getStatus(uri)).thenReturn(new URIStatus(testFileInfo));
+    when(mMockFileSystem.getStatus(uri)).thenReturn(new URIStatus(testFileInfo));
     return testFileInfo;
   }
 }

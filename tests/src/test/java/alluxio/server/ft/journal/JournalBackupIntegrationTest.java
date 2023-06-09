@@ -21,15 +21,18 @@ import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
+import alluxio.client.WriteType;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
+import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.client.meta.RetryHandlingMetaMasterClient;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.BackupAbortedException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.grpc.BackupPOptions;
@@ -42,28 +45,43 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.WritePType;
 import alluxio.master.MasterClientContext;
+import alluxio.master.NoopMaster;
+import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalType;
+import alluxio.master.journal.ufs.UfsJournal;
+import alluxio.master.journal.ufs.UfsJournalLogWriter;
+import alluxio.master.journal.ufs.UfsJournalReader;
 import alluxio.master.metastore.MetastoreType;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.PortCoordination;
+import alluxio.proto.journal.Journal;
 import alluxio.testutils.AlluxioOperationThread;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.util.CommonUtils;
+import alluxio.util.URIUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.wire.BackupStatus;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 /**
  * Integration test for backing up and restoring alluxio master.
@@ -79,7 +97,7 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
     {
       put(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
     }
-  }, ServerConfiguration.global());
+  }, Configuration.modifiableGlobal());
 
   @After
   public void after() throws Exception {
@@ -97,6 +115,8 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
         // Masters become primary faster
         .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "3sec")
+        // Disable backup delegation
+        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, false)
         .build();
     backupRestoreTest(true);
   }
@@ -111,6 +131,8 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         // Masters become primary faster
         .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
         .addProperty(PropertyKey.MASTER_METASTORE, MetastoreType.HEAP)
+        // Disable backup delegation
+        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, false)
         .build();
     backupRestoreMetaStoreTest();
   }
@@ -125,8 +147,265 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         // Masters become primary faster
         .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
         .addProperty(PropertyKey.MASTER_METASTORE, MetastoreType.ROCKS)
+        // Disable backup delegation
+        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, false)
         .build();
     backupRestoreMetaStoreTest();
+  }
+
+  @Test
+  public void backupRestoreMetastore_InodeRocksBlockHeap() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_RESTORE_METASSTORE_ROCKS)
+        .setClusterName("backupRestoreMetastore_InodeRocksBlockHeap")
+        .setNumMasters(1)
+        .setNumWorkers(1)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
+        // Masters become primary faster
+        .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
+        .addProperty(PropertyKey.MASTER_INODE_METASTORE, MetastoreType.ROCKS)
+        .addProperty(PropertyKey.MASTER_BLOCK_METASTORE, MetastoreType.HEAP)
+        // Disable backup delegation
+        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, false)
+        .build();
+    backupRestoreMetaStoreTest();
+  }
+
+  @Test
+  public void backupRestoreMetastore_InodeHeapBlockRocks() throws Exception {
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_RESTORE_METASSTORE_ROCKS)
+        .setClusterName("backupRestoreMetastore_InodeHeapBlockRocks")
+        .setNumMasters(1)
+        .setNumWorkers(1)
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
+        // Masters become primary faster
+        .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
+        .addProperty(PropertyKey.MASTER_INODE_METASTORE, MetastoreType.HEAP)
+        .addProperty(PropertyKey.MASTER_BLOCK_METASTORE, MetastoreType.ROCKS)
+        // Disable backup delegation
+        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, false)
+        .build();
+    backupRestoreMetaStoreTest();
+  }
+
+  @Test
+  public void emergencyBackup() throws Exception {
+    emergencyBackupCore(1);
+  }
+
+  @Test
+  public void emergencyBackupHA() throws Exception {
+    emergencyBackupCore(3);
+  }
+
+  private void emergencyBackupCore(int numMasters) throws Exception {
+    TemporaryFolder backupFolder = new TemporaryFolder();
+    backupFolder.create();
+    List<PortCoordination.ReservedPort> ports1 = numMasters > 1
+        ? PortCoordination.BACKUP_EMERGENCY_HA_1 : PortCoordination.BACKUP_EMERGENCY_1;
+    String clusterName1 = numMasters > 1 ? "emergencyBackup_HA_1" : "emergencyBackup_1";
+    mCluster = MultiProcessCluster.newBuilder(ports1)
+        .setClusterName(clusterName1)
+        .setNumMasters(numMasters)
+        .setNumWorkers(0)
+        // Masters become primary faster, will be ignored in non HA case
+        .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
+        .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
+        .addProperty(PropertyKey.MASTER_METASTORE, MetastoreType.ROCKS)
+        .addProperty(PropertyKey.MASTER_BACKUP_DIRECTORY, backupFolder.getRoot())
+        .addProperty(PropertyKey.MASTER_JOURNAL_BACKUP_WHEN_CORRUPTED, true)
+        // Disable backup delegation
+        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, false)
+        .build();
+    mCluster.start();
+    final int numFiles = 10;
+    // create normal uncorrupted journal
+    for (int i = 0; i < numFiles; i++) {
+      mCluster.getFileSystemClient().createFile(new AlluxioURI("/normal-file-" + i));
+    }
+    mCluster.stopMasters();
+    // corrupt journal
+    URI journalLocation = new URI(mCluster.getJournalDir());
+    UfsJournal fsMaster =
+        new UfsJournal(URIUtils.appendPathOrDie(journalLocation, "FileSystemMaster"),
+            new NoopMaster(), 0, Collections::emptySet);
+    fsMaster.start();
+    fsMaster.gainPrimacy();
+    long nextSN = 0;
+    try (UfsJournalReader reader = new UfsJournalReader(fsMaster, true)) {
+      while (reader.advance() != JournalReader.State.DONE) {
+        nextSN++;
+      }
+    }
+    try (UfsJournalLogWriter writer = new UfsJournalLogWriter(fsMaster, nextSN)) {
+      Journal.JournalEntry entry = Journal.JournalEntry.newBuilder()
+          .setSequenceNumber(nextSN)
+          .setDeleteFile(alluxio.proto.journal.File.DeleteFileEntry.newBuilder()
+              .setId(4563728) // random non-zero ID number (zero would delete the root)
+              .setPath("/nonexistant")
+              .build())
+          .build();
+      writer.write(entry);
+      writer.flush();
+    }
+    // this should fail and create backup(s)
+    mCluster.startMasters();
+    // wait for backup file(s) to be created
+    // successful backups leave behind one .gz file and one .gz.complete file
+    CommonUtils.waitFor("backup file(s) to be created automatically",
+        () -> 2 * numMasters == Objects.requireNonNull(backupFolder.getRoot().list()).length,
+        WaitForOptions.defaults().setInterval(500).setTimeoutMs(30_000));
+    List<String> backupFiles = Arrays.stream(Objects.requireNonNull(backupFolder.getRoot().list()))
+            .filter(s -> s.endsWith(".gz")).collect(Collectors.toList());
+    assertEquals(numMasters, backupFiles.size());
+    // create new cluster
+    List<PortCoordination.ReservedPort> ports2 = numMasters > 1
+        ? PortCoordination.BACKUP_EMERGENCY_HA_2 : PortCoordination.BACKUP_EMERGENCY_2;
+    String clusterName2 = numMasters > 1 ? "emergencyBackup_HA_2" : "emergencyBackup_2";
+    // verify that every backup contains all the entries
+    for (String backupFile : backupFiles) {
+      mCluster = MultiProcessCluster.newBuilder(ports2)
+          .setClusterName(String.format("%s_%s", clusterName2, backupFile))
+          .setNumMasters(numMasters)
+          .setNumWorkers(0)
+          .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "1sec")
+          .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
+          // change metastore type to ensure backup is independent of metastore type
+          .addProperty(PropertyKey.MASTER_METASTORE, MetastoreType.HEAP)
+          .addProperty(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP,
+              Paths.get(backupFolder.getRoot().toString(), backupFile))
+          .build();
+      mCluster.start();
+      // test that the files were restored from the backup properly
+      for (int i = 0; i < numFiles; i++) {
+        boolean exists = mCluster.getFileSystemClient().exists(new AlluxioURI("/normal-file-" + i));
+        assertTrue(exists);
+      }
+      mCluster.stopMasters();
+      mCluster.notifySuccess();
+    }
+    backupFolder.delete();
+  }
+
+  @Test
+  public void syncRootOnBackupRestore() throws Exception {
+    syncLsTestCore(true);
+  }
+
+  @Test
+  public void doNotSyncRootOnBackupRestore() throws Exception {
+    syncLsTestCore(false);
+  }
+
+  private void syncLsTestCore(boolean syncRootOnRestore) throws Exception {
+    TemporaryFolder temporaryFolder = new TemporaryFolder();
+    temporaryFolder.create();
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_SYNC_ON_RESTORE)
+        .setClusterName("syncRootOnBackupRestore")
+        .setNumMasters(1)
+        .setNumWorkers(1)
+        .addProperty(PropertyKey.MASTER_BACKUP_DIRECTORY, temporaryFolder.getRoot())
+        .addProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)
+        .addProperty(PropertyKey.MASTER_JOURNAL_SYNC_ROOT_AFTER_INIT_FROM_BACKUP, syncRootOnRestore)
+        // this test uses NEVER as the metadata load type to ensure that the UFS sync is
+        // performed due to the invalidation associated with restoring a backup, as opposed to
+        // performed automatically under some other metadata load types
+        .addProperty(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataPType.NEVER)
+        // Disable backup delegation
+        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, false)
+        .build();
+    mCluster.start();
+
+    mCluster.getFileSystemClient().createDirectory(new AlluxioURI("/in_backup"));
+    BackupStatus backup =
+        mCluster.getMetaMasterClient().backup(BackupPRequest.getDefaultInstance());
+    UUID id = backup.getBackupId();
+    while (backup.getState() != BackupState.Completed) {
+      backup = mCluster.getMetaMasterClient().getBackupStatus(id);
+    }
+    mCluster.getFileSystemClient().createDirectory(new AlluxioURI("/NOT_in_backup"));
+    mCluster.stopMasters();
+    // give it an empty journal and start from backup
+    mCluster.updateMasterConf(PropertyKey.MASTER_JOURNAL_FOLDER,
+        temporaryFolder.newFolder().getAbsolutePath());
+    mCluster.updateMasterConf(PropertyKey.MASTER_METASTORE_DIR,
+        temporaryFolder.newFolder().getAbsolutePath());
+    mCluster.updateMasterConf(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP,
+        backup.getBackupUri().getPath());
+    mCluster.startMasters();
+    List<URIStatus> statuses = mCluster.getFileSystemClient().listStatus(new AlluxioURI("/"));
+    int expected = syncRootOnRestore ? 2 : 1;
+    assertEquals(expected, statuses.size());
+    mCluster.notifySuccess();
+    temporaryFolder.delete();
+  }
+
+  @Test
+  public void syncContentsOnBackupRestore() throws Exception {
+    syncContentsTestCore(true);
+  }
+
+  @Test
+  public void doNotSyncContentsOnBackupRestore() throws Exception {
+    syncContentsTestCore(false);
+  }
+
+  private void syncContentsTestCore(boolean syncRootOnRestore) throws Exception {
+    TemporaryFolder temporaryFolder = new TemporaryFolder();
+    temporaryFolder.create();
+    mCluster = MultiProcessCluster.newBuilder(PortCoordination.BACKUP_CONTENT_ON_RESTORE)
+        .setClusterName("syncContentOnBackupRestore")
+        .setNumMasters(1)
+        .setNumWorkers(1)
+        .addProperty(PropertyKey.MASTER_BACKUP_DIRECTORY, temporaryFolder.getRoot())
+        .addProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)
+        .addProperty(PropertyKey.MASTER_JOURNAL_SYNC_ROOT_AFTER_INIT_FROM_BACKUP, syncRootOnRestore)
+        // Disable backup delegation
+        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, false)
+        .build();
+    mCluster.start();
+
+    AlluxioURI f = new AlluxioURI("/in_backup");
+    String originalData = "data";
+    try (FileOutStream inBackup = mCluster.getFileSystemClient().createFile(f)) {
+      inBackup.write(originalData.getBytes());
+    }
+
+    BackupStatus backup =
+        mCluster.getMetaMasterClient().backup(BackupPRequest.getDefaultInstance());
+    UUID id = backup.getBackupId();
+    while (backup.getState() != BackupState.Completed) {
+      backup = mCluster.getMetaMasterClient().getBackupStatus(id);
+    }
+
+    mCluster.getFileSystemClient().delete(f);
+    String modifiedData = "modified data";
+    try (FileOutStream overwriteInBackup = mCluster.getFileSystemClient().createFile(f)) {
+      overwriteInBackup.write(modifiedData.getBytes());
+    }
+    mCluster.stopMasters();
+    // give it an empty journal and start from backup
+    mCluster.updateMasterConf(PropertyKey.MASTER_JOURNAL_FOLDER,
+        temporaryFolder.newFolder().getAbsolutePath());
+    mCluster.updateMasterConf(PropertyKey.MASTER_METASTORE_DIR,
+        temporaryFolder.newFolder().getAbsolutePath());
+    mCluster.updateMasterConf(PropertyKey.MASTER_JOURNAL_INIT_FROM_BACKUP,
+        backup.getBackupUri().getPath());
+    mCluster.startMasters();
+    mCluster.waitForAllNodesRegistered(WAIT_NODES_REGISTERED_MS);
+
+    try (FileInStream inStream = mCluster.getFileSystemClient().openFile(f)) {
+      byte[] bytes = new byte[modifiedData.length()];
+      int read = inStream.read(bytes);
+      // if the invalidation is not set during the backup restore only the length of the old
+      // contents ("data") will be read (instead of reading the new contents "modified data")
+      int expectedLength = syncRootOnRestore ? modifiedData.length() : originalData.length();
+      String expectedStart = syncRootOnRestore ? modifiedData :
+          modifiedData.substring(0, originalData.length());
+      assertEquals(expectedLength, read);
+      assertTrue(new String(bytes).startsWith(expectedStart));
+    }
+    mCluster.notifySuccess();
+    temporaryFolder.delete();
   }
 
   // This test needs to stop and start master many times, so it can take up to a minute to complete.
@@ -136,6 +415,8 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         .setClusterName("backupRestoreEmbedded")
         .setNumMasters(3)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.EMBEDDED)
+        // Disable backup delegation
+        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, false)
         .build();
     backupRestoreTest(true);
   }
@@ -146,6 +427,8 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
         .setClusterName("backupRestoreSingle")
         .setNumMasters(1)
         .addProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS)
+        // Disable backup delegation
+        .addProperty(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED, false)
         .build();
     backupRestoreTest(false);
   }
@@ -534,14 +817,14 @@ public final class JournalBackupIntegrationTest extends BaseIntegrationTest {
 
   private MetaMasterClient getMetaClient(MultiProcessCluster cluster) {
     return new RetryHandlingMetaMasterClient(
-        MasterClientContext.newBuilder(ClientContext.create(ServerConfiguration.global()))
+        MasterClientContext.newBuilder(ClientContext.create(Configuration.global()))
             .setMasterInquireClient(cluster.getMasterInquireClient())
             .build());
   }
 
   private BlockMasterClient getBlockClient(MultiProcessCluster cluster) {
     return new RetryHandlingBlockMasterClient(
-        MasterClientContext.newBuilder(ClientContext.create(ServerConfiguration.global()))
+        MasterClientContext.newBuilder(ClientContext.create(Configuration.global()))
             .setMasterInquireClient(cluster.getMasterInquireClient()).build());
   }
 }

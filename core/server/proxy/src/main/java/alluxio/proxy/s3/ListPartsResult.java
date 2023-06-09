@@ -26,7 +26,8 @@ import java.util.List;
  * It is defined in http://docs.aws.amazon.com/AmazonS3/latest/API/mpUploadListParts.html.
  * It will be encoded into an XML string to be returned as a response for the REST call.
  */
-// TODO(cc): Support more fields
+// TODO(czhu): Support more fields (MaxParts, PartNumberMarker, NextPartNumberMarker, etc.)
+// - use options similar to ListBucketOptions
 @JacksonXmlRootElement(localName = "ListPartsResult")
 @JsonPropertyOrder({ "Bucket", "Key", "UploadId", "StorageClass", "IsTruncated", "Part" })
 public class ListPartsResult {
@@ -190,7 +191,7 @@ public class ListPartsResult {
     public Part() {
       mPartNumber = 0;
       mLastModified = "";
-      mETag = S3RestUtils.quoteETag("");
+      mETag = "";
       mSize = 0;
     }
 
@@ -227,7 +228,7 @@ public class ListPartsResult {
     }
 
     /**
-     * @return the entity tag surrounded by quotes
+     * @return the entity tag
      */
     @JacksonXmlProperty(localName = "ETag")
     public String getETag() {
@@ -235,11 +236,11 @@ public class ListPartsResult {
     }
 
     /**
-     * @param etag the entity tag to set (without surrounding quotes)
+     * @param etag the entity tag to set
      */
     @JacksonXmlProperty(localName = "ETag")
     public void setETag(String etag) {
-      mETag = S3RestUtils.quoteETag(etag);
+      mETag = etag;
     }
 
     /**

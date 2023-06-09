@@ -13,8 +13,8 @@ package alluxio.web;
 
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.master.AlluxioMasterProcess;
 import alluxio.util.io.PathUtils;
 
@@ -62,7 +62,7 @@ public final class MasterWebServer extends WebServer {
     ResourceConfig config = new ResourceConfig()
         .packages("alluxio.master", "alluxio.master.block", "alluxio.master.file")
         .register(JacksonProtobufObjectMapperProvider.class);
-    mFileSystem = FileSystem.Factory.create(ServerConfiguration.global());
+    mFileSystem = FileSystem.Factory.create();
     // Override the init method to inject a reference to AlluxioMaster into the servlet context.
     // ServletContext may not be modified until after super.init() is called.
     ServletContainer servlet = new ServletContainer(config) {
@@ -83,9 +83,9 @@ public final class MasterWebServer extends WebServer {
     // STATIC assets
     try {
       // If the Web UI is disabled, disable the resources and servlet together.
-      if (ServerConfiguration.getBoolean(PropertyKey.WEB_UI_ENABLED)) {
+      if (Configuration.getBoolean(PropertyKey.WEB_UI_ENABLED)) {
         String resourceDirPathString =
-                ServerConfiguration.getString(PropertyKey.WEB_RESOURCES) + "/master/build/";
+                Configuration.getString(PropertyKey.WEB_RESOURCES) + "/master/build/";
         File resourceDir = new File(resourceDirPathString);
         mServletContextHandler.setBaseResource(Resource.newResource(resourceDir.getAbsolutePath()));
         mServletContextHandler.setWelcomeFiles(new String[]{"index.html"});

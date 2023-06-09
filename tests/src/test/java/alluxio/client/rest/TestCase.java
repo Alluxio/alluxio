@@ -63,6 +63,7 @@ public final class TestCase {
    */
   public TestCase(String hostname, int port, String baseUri, String endpoint,
                   Map<String, String> parameters, String method, TestCaseOptions options) {
+    // TODO(czhu): URL-encode the URI & parameters
     mHostname = hostname;
     mPort = port;
     mBaseUri = baseUri;
@@ -163,6 +164,16 @@ public final class TestCase {
     }
 
     connection.connect();
+    return connection;
+  }
+
+  /**
+   * if response is not successful, it will assert fail.
+   * @return connection
+   * @throws Exception
+   */
+  public HttpURLConnection executeAndAssertSuccess() throws Exception {
+    HttpURLConnection connection = execute();
     if (Response.Status.Family.familyOf(connection.getResponseCode())
         != Response.Status.Family.SUCCESSFUL) {
       InputStream errorStream = connection.getErrorStream();
@@ -178,7 +189,7 @@ public final class TestCase {
    * Runs the test case and returns the output.
    */
   public String runAndGetResponse() throws Exception {
-    return getResponse(execute());
+    return getResponse(executeAndAssertSuccess());
   }
 
   public void runAndCheckResult() throws Exception {

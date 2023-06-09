@@ -14,7 +14,7 @@ This guide describes how to run [Tensorflow](https://www.tensorflow.org/) on top
 ## Overview
 
 Tensorflow enables developers to quickly and easily get started with deep learning. 
-The [deep learning]({{ '/en/compute/Deep-Learning.html' | relativize_url }}) section illustrates the data challenges of deep learning 
+The [deep learning]({{ '/en/solutions/Deep-Learning.html' | relativize_url }}) section illustrates the data challenges of deep learning 
 and how Alluxio helps to solve those challenges. 
 This tutorial aims to provide some hands-on examples and tips for running Tensorflow
 on top of Alluxio POSIX API.
@@ -118,11 +118,11 @@ total 0
 
 ### Run image recognition test
 
-Download the [image recognition script](https://github.com/ssz1997/AlluxioFuseTensorflowExample/blob/main/mnist_test.py)
+Download the [image recognition script](https://github.com/Alluxio/alluxio/tree/master/docs/resources/mnist_classification.py)
 and run it with the training data `/mnt/fuse/mnist.npz`.
 
 ```shell
-$ curl -o mnist_test.py -L https://github.com/ssz1997/AlluxioFuseTensorflowExample/blob/main/mnist_test.py?raw=true
+$ curl -o mnist_test.py -L https://github.com/Alluxio/alluxio/tree/master/docs/resources/mnist_classification.py?raw=true
 $ python3 mnist_test.py /mnt/fuse/mnist.npz
 ```
 

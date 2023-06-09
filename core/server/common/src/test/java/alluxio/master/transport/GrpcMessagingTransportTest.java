@@ -11,13 +11,14 @@
 
 package alluxio.master.transport;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.security.user.ServerUserState;
 
 import io.atomix.catalyst.buffer.BufferInput;
 import io.atomix.catalyst.buffer.BufferOutput;
 import io.atomix.catalyst.serializer.CatalystSerializable;
 import io.atomix.catalyst.serializer.Serializer;
+import io.grpc.StatusRuntimeException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -41,7 +42,7 @@ public class GrpcMessagingTransportTest {
   @Before
   public void before() {
     mTransport = new GrpcMessagingTransport(
-        ServerConfiguration.global(), ServerUserState.global(), "TestClient");
+        Configuration.global(), ServerUserState.global(), "TestClient");
   }
 
   @After
@@ -150,7 +151,8 @@ public class GrpcMessagingTransportTest {
     try {
       sendRequest(clientConnection, new DummyRequest("dummy")).get();
     } catch (ExecutionException e) {
-      Assert.assertTrue(e.getCause() instanceof IllegalStateException);
+      Assert.assertTrue(e.getCause() instanceof IllegalStateException
+          || e.getCause() instanceof StatusRuntimeException);
       failed = true;
     }
     Assert.assertTrue(failed);

@@ -21,7 +21,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class BlockStreamTracker {
   /** List of listeners for this tracker. */
-  private static List<BlockClientListener> sListeners = new CopyOnWriteArrayList<>();
+  private static final List<BlockClientListener> LISTENERS = new CopyOnWriteArrayList<>();
 
   /**
    * Register a new listener.
@@ -29,7 +29,7 @@ public class BlockStreamTracker {
    * @param listener listener
    */
   public static void registerListener(BlockClientListener listener) {
-    sListeners.add(listener);
+    LISTENERS.add(listener);
   }
 
   /**
@@ -38,7 +38,7 @@ public class BlockStreamTracker {
    * @param listener listener
    */
   public static void unregisterListener(BlockClientListener listener) {
-    sListeners.remove(listener);
+    LISTENERS.remove(listener);
   }
 
   /**
@@ -48,7 +48,7 @@ public class BlockStreamTracker {
    * @param location location of read
    */
   public static void readerOpened(BlockReader reader, BlockStoreLocation location) {
-    for (BlockClientListener listener : sListeners) {
+    for (BlockClientListener listener : LISTENERS) {
       listener.clientOpened(reader, location);
     }
   }
@@ -60,7 +60,7 @@ public class BlockStreamTracker {
    * @param location location of read
    */
   public static void readerClosed(BlockReader reader, BlockStoreLocation location) {
-    for (BlockClientListener listener : sListeners) {
+    for (BlockClientListener listener : LISTENERS) {
       listener.clientClosed(reader, location);
     }
   }
@@ -72,7 +72,7 @@ public class BlockStreamTracker {
    * @param location location of write
    */
   public static void writerOpened(BlockWriter writer, BlockStoreLocation location) {
-    for (BlockClientListener listener : sListeners) {
+    for (BlockClientListener listener : LISTENERS) {
       listener.clientOpened(writer, location);
     }
   }
@@ -84,7 +84,7 @@ public class BlockStreamTracker {
    * @param location location of write
    */
   public static void writerClosed(BlockWriter writer, BlockStoreLocation location) {
-    for (BlockClientListener listener : sListeners) {
+    for (BlockClientListener listener : LISTENERS) {
       listener.clientClosed(writer, location);
     }
   }

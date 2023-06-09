@@ -15,8 +15,8 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 import alluxio.Constants;
-import alluxio.StorageTierAssoc;
 import alluxio.DefaultStorageTierAssoc;
+import alluxio.StorageTierAssoc;
 import alluxio.master.block.DefaultBlockMaster.Metrics;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;

@@ -11,7 +11,7 @@
 
 package alluxio;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.status.AlluxioStatusException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,7 +33,7 @@ public class RestUtilsTest {
       public Void call() throws Exception {
         return null;
       }
-    }, ServerConfiguration.global());
+    }, Configuration.global());
     Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
     Assert.assertNull(response.getEntity());
   }
@@ -46,7 +46,7 @@ public class RestUtilsTest {
       public String call() throws Exception {
         return message;
       }
-    }, ServerConfiguration.global());
+    }, Configuration.global());
     Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
     ObjectMapper mapper = new ObjectMapper();
     String jsonMessage = mapper.writeValueAsString(message);
@@ -81,7 +81,7 @@ public class RestUtilsTest {
       public Obj call() throws Exception {
         return object;
       }
-    }, ServerConfiguration.global());
+    }, Configuration.global());
     Assert.assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
     Obj obj = (Obj) response.getEntity();
     Assert.assertEquals(status, obj.getStatus());
@@ -97,7 +97,7 @@ public class RestUtilsTest {
       public Void call() throws Exception {
         throw new AlluxioStatusException(status.withDescription(message));
       }
-    }, ServerConfiguration.global());
+    }, Configuration.global());
     Assert.assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),
         response.getStatus());
     RestUtils.ErrorResponse errorResponse = (RestUtils.ErrorResponse) response.getEntity();

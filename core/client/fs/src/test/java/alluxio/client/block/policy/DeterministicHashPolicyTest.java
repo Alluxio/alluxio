@@ -14,10 +14,10 @@ package alluxio.client.block.policy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.wire.BlockInfo;
@@ -38,7 +38,7 @@ public final class DeterministicHashPolicyTest {
   private static final int PORT = 1;
 
   private final List<BlockWorkerInfo> mWorkerInfos = new ArrayList<>();
-  private static InstancedConfiguration sConf = ConfigurationTestUtils.defaults();
+  private static InstancedConfiguration sConf = Configuration.copyGlobal();
 
   @Before
   public void before() {
@@ -55,7 +55,6 @@ public final class DeterministicHashPolicyTest {
     mWorkerInfos.add(new BlockWorkerInfo(
         new WorkerNetAddress().setHost("worker4").setRpcPort(PORT).setDataPort(PORT)
             .setWebPort(PORT), 3 * (long) Constants.GB, 0));
-    sConf = ConfigurationTestUtils.defaults();
   }
 
   @Test
@@ -63,7 +62,8 @@ public final class DeterministicHashPolicyTest {
     DeterministicHashPolicy policy = (DeterministicHashPolicy) BlockLocationPolicy.Factory.create(
         DeterministicHashPolicy.class, sConf);
     String host = policy.getWorker(GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
-        .setBlockInfo(new BlockInfo().setBlockId(1).setLength(2 * (long) Constants.GB))).getHost();
+        .setBlockInfo(new BlockInfo().setBlockId(1).setLength(2 * (long) Constants.GB)))
+        .orElseThrow(() -> new IllegalStateException("Expected worker")).getHost();
     for (int i = 0; i < 10; i++) {
       DeterministicHashPolicy p = (DeterministicHashPolicy) BlockLocationPolicy.Factory.create(
           DeterministicHashPolicy.class,
@@ -72,11 +72,11 @@ public final class DeterministicHashPolicyTest {
       assertEquals(host, p.getWorker(
           GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
               .setBlockInfo(new BlockInfo().setBlockId(1).setLength(2 * (long) Constants.GB)))
-          .getHost());
+          .orElseThrow(() -> new IllegalStateException("Expected worker")).getHost());
       assertEquals(host, p.getWorker(
           GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
               .setBlockInfo(new BlockInfo().setBlockId(1).setLength(2 * (long) Constants.GB)))
-          .getHost());
+          .orElseThrow(() -> new IllegalStateException("Expected worker")).getHost());
     }
   }
 
@@ -89,7 +89,8 @@ public final class DeterministicHashPolicyTest {
       assertNotEquals("worker1", policy.getWorker(
           GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
               .setBlockInfo(new BlockInfo().setBlockId(blockId)
-              .setLength(2 * (long) Constants.GB))).getHost());
+                  .setLength(2 * (long) Constants.GB)))
+          .orElseThrow(() -> new IllegalStateException("Expected worker")).getHost());
     }
   }
 
@@ -104,11 +105,13 @@ public final class DeterministicHashPolicyTest {
       addresses1.add(policy2.getWorker(
           GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
               .setBlockInfo(new BlockInfo().setBlockId(1)
-                  .setLength(2 * (long) Constants.GB))).getHost());
+                  .setLength(2 * (long) Constants.GB)))
+          .orElseThrow(() -> new IllegalStateException("Expected worker")).getHost());
       addresses2.add(policy2.getWorker(
-          GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
+              GetWorkerOptions.defaults().setBlockWorkerInfos(mWorkerInfos)
               .setBlockInfo(new BlockInfo().setBlockId(1)
-              .setLength(2 * (long) Constants.GB))).getHost());
+                  .setLength(2 * (long) Constants.GB)))
+          .orElseThrow(() -> new IllegalStateException("Expected worker")).getHost());
     }
     // With sufficient traffic, 2 (= #shards) workers should be picked to serve the block.
     assertEquals(2, addresses1.size());

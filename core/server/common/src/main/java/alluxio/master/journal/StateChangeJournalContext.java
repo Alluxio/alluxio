@@ -16,8 +16,6 @@ import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.LockResource;
 
 import com.google.common.base.Preconditions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -26,7 +24,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class StateChangeJournalContext implements JournalContext {
-  private static final Logger LOG = LoggerFactory.getLogger(StateChangeJournalContext.class);
   private final JournalContext mJournalContext;
   private final LockResource mStateLockResource;
 
@@ -45,6 +42,11 @@ public final class StateChangeJournalContext implements JournalContext {
   @Override
   public void append(JournalEntry entry) {
     mJournalContext.append(entry);
+  }
+
+  @Override
+  public void flush() throws UnavailableException {
+    mJournalContext.flush();
   }
 
   @Override

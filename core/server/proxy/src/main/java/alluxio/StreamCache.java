@@ -46,9 +46,9 @@ public final class StreamCache {
         }
       };
 
-  private AtomicInteger mCounter;
-  private Cache<Integer, FileInStream> mInStreamCache;
-  private Cache<Integer, FileOutStream> mOutStreamCache;
+  private final AtomicInteger mCounter = new AtomicInteger();
+  private final Cache<Integer, FileInStream> mInStreamCache;
+  private final Cache<Integer, FileOutStream> mOutStreamCache;
 
   /**
    * Creates a new instance of {@link StreamCache}.
@@ -56,7 +56,6 @@ public final class StreamCache {
    * @param timeoutMs the timeout (in milliseconds) for the stream cache eviction
    */
   public StreamCache(long timeoutMs) {
-    mCounter = new AtomicInteger();
     mInStreamCache = CacheBuilder.newBuilder()
         .expireAfterAccess(timeoutMs, TimeUnit.MILLISECONDS).removalListener(CLOSER).build();
     mOutStreamCache = CacheBuilder.newBuilder()

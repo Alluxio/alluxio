@@ -12,7 +12,7 @@
 package alluxio.server.health;
 
 import alluxio.HealthCheckClient;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.LocalAlluxioJobCluster;
 import alluxio.master.MasterHealthCheckClient;
 import alluxio.master.job.JobMasterRpcHealthCheckClient;
@@ -43,7 +43,7 @@ public class JobMasterHealthCheckClientIntegrationTest extends BaseIntegrationTe
     mLocalAlluxioJobCluster.start();
     InetSocketAddress address = mLocalAlluxioJobCluster.getMaster().getRpcAddress();
     mHealthCheckClient = new JobMasterRpcHealthCheckClient(address, () -> new CountingRetry(1),
-        ServerConfiguration.global());
+        Configuration.global());
   }
 
   @After
@@ -64,7 +64,7 @@ public class JobMasterHealthCheckClientIntegrationTest extends BaseIntegrationTe
 
   @Test
   public void isServingMasterHealthCheck() {
-    mHealthCheckClient = new MasterHealthCheckClient.Builder(ServerConfiguration.global())
+    mHealthCheckClient = new MasterHealthCheckClient.Builder(Configuration.global())
         .withRetryPolicy(() -> new CountingRetry(1))
         .withProcessCheck(false)
         .withAlluxioMasterType(MasterHealthCheckClient.MasterType.JOB_MASTER)
@@ -75,7 +75,7 @@ public class JobMasterHealthCheckClientIntegrationTest extends BaseIntegrationTe
   @Test
   public void isServingStopJobsMasterHealthCheck() throws Exception {
     mLocalAlluxioJobCluster.stop();
-    mHealthCheckClient = new MasterHealthCheckClient.Builder(ServerConfiguration.global())
+    mHealthCheckClient = new MasterHealthCheckClient.Builder(Configuration.global())
         .withRetryPolicy(() -> new CountingRetry(1))
         .withProcessCheck(false)
         .withAlluxioMasterType(MasterHealthCheckClient.MasterType.JOB_MASTER)

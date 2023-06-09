@@ -20,7 +20,7 @@ import java.util.List;
  */
 public class CatchupFuture {
   /** Internal list of catch-up threads. */
-  private List<AbstractCatchupThread> mCatchupThreads;
+  private final List<AbstractCatchupThread> mCatchupThreads;
 
   /**
    * Creates a single future for tracking a list of catchup futures.

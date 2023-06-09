@@ -54,9 +54,9 @@ public final class FileSystemMasterJobServiceHandler
     GetFileInfoPOptions options = request.getOptions();
 
     RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<GetFileInfoPResponse>) () -> GetFileInfoPResponse
-            .newBuilder().setFileInfo(GrpcUtils.toProto(mFileSystemMaster.getFileInfo(fileId)))
-            .build(),
+            () -> GetFileInfoPResponse
+                .newBuilder().setFileInfo(GrpcUtils.toProto(mFileSystemMaster.getFileInfo(fileId)))
+                .build(),
         "getFileInfo", "fileId=%s, options=%s", responseObserver, fileId, options);
   }
 
@@ -68,9 +68,9 @@ public final class FileSystemMasterJobServiceHandler
     GetUfsInfoPOptions options = request.getOptions();
 
     RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<GetUfsInfoPResponse>) () -> GetUfsInfoPResponse
-            .newBuilder().setUfsInfo(GrpcUtils.toProto(mFileSystemMaster.getUfsInfo(mountId)))
-            .build(),
+            () -> GetUfsInfoPResponse
+                .newBuilder().setUfsInfo(GrpcUtils.toProto(mFileSystemMaster.getUfsInfo(mountId)))
+                .build(),
         "getUfsInfo", "mountId=%s, options=%s", responseObserver, mountId, options);
   }
 }

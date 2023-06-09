@@ -13,27 +13,21 @@ package alluxio.util;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.ConfigurationTestUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 
-import org.junit.Before;
 import org.junit.Test;
 
 public final class SecurityUtilsTest {
 
-  private InstancedConfiguration mConfiguration;
-
-  @Before
-  public void before() {
-    mConfiguration = ConfigurationTestUtils.defaults();
-  }
+  private final InstancedConfiguration mConfiguration = Configuration.copyGlobal();
 
   /**
-   * Tests the {@link SecurityUtils#getOwnerFromGrpcClient()} ()} method.
+   * Tests the {@link SecurityUtils#getOwnerFromGrpcClient} method.
    */
   @Test
   public void getOwnerFromGrpcClient() throws Exception {
@@ -49,7 +43,7 @@ public final class SecurityUtilsTest {
   }
 
   /**
-   * Tests the {@link SecurityUtils#getGroupFromGrpcClient()} ()} method.
+   * Tests the {@link SecurityUtils#getGroupFromGrpcClient} method.
    */
   @Test
   public void getGroupFromGrpcClient() throws Exception {

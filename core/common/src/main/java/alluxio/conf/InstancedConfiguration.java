@@ -19,7 +19,6 @@ import static java.lang.String.format;
 
 import alluxio.conf.PropertyKey.Template;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.PreconditionMessage;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 
@@ -42,50 +41,32 @@ import javax.annotation.Nonnull;
 
 /**
  * Alluxio configuration.
+
+ * WARNING: This API is not intended to be used outside of internal Alluxio code and may be
+ * changed or removed in a future minor release.
+ *
+ * Application code should use APIs {@link Configuration}.
+ *
  */
 public class InstancedConfiguration implements AlluxioConfiguration {
   private static final Logger LOG = LoggerFactory.getLogger(InstancedConfiguration.class);
-
-  public static final AlluxioConfiguration EMPTY_CONFIGURATION
-      = new InstancedConfiguration(new AlluxioProperties());
-
   /** Source of the truth of all property values (default or customized). */
-  protected AlluxioProperties mProperties;
+  protected final AlluxioProperties mProperties;
 
   private final boolean mClusterDefaultsLoaded;
 
   /**
-   * Users should use this API to obtain a configuration for modification before passing to a
-   * FileSystem constructor. The default configuration contains all default configuration params
-   * and configuration properties modified in the alluxio-site.properties file.
-   *
-   * Example usage:
-   *
-   * InstancedConfiguration conf = InstancedConfiguration.defaults();
-   * conf.set(...);
-   * FileSystem fs = FileSystem.Factory.create(conf);
-   *
-   * WARNING: This API is unstable and may be changed in a future minor release.
-   *
-   * @return an instanced configuration preset with defaults
-   */
-  public static InstancedConfiguration defaults() {
-    return new InstancedConfiguration(ConfigurationUtils.defaults());
-  }
-
-  /**
    * Creates a new instance of {@link InstancedConfiguration}.
    *
    * WARNING: This API is not intended to be used outside of internal Alluxio code and may be
    * changed or removed in a future minor release.
    *
-   * Application code should use {@link InstancedConfiguration#defaults}.
+   * Application code should use {@link Configuration#global()}.
    *
    * @param properties alluxio properties underlying this configuration
    */
   public InstancedConfiguration(AlluxioProperties properties) {
-    mProperties = properties;
-    mClusterDefaultsLoaded = false;
+    this(properties, false);
   }
 
   /**
@@ -94,7 +75,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
    * WARNING: This API is not intended to be used outside of internal Alluxio code and may be
    * changed or removed in a future minor release.
    *
-   * Application code should use {@link InstancedConfiguration#defaults}.
+   * Application code should use {@link Configuration#global()}.
    *
    * @param properties alluxio properties underlying this configuration
    * @param clusterDefaultsLoaded Whether or not the properties represent the cluster defaults
@@ -105,23 +86,14 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   /**
-   * Creates a new instance of {@link InstancedConfiguration}.
-   *
-   * WARNING: This API is not intended to be used outside of internal Alluxio code and may be
-   * changed or removed in a future minor release.
-   *
-   * Application code should use {@link InstancedConfiguration#defaults}.
-   *
-   * @param conf configuration to copy
+   * Return reference to mProperties.
+   * @return mProperties
    */
-  public InstancedConfiguration(AlluxioConfiguration conf) {
-    mProperties = conf.copyProperties();
-    mClusterDefaultsLoaded = conf.clusterDefaultsLoaded();
+  public AlluxioProperties getProperties() {
+    return mProperties;
   }
 
-  /**
-   * @return the properties backing this configuration
-   */
+  @Override
   public AlluxioProperties copyProperties() {
     return mProperties.copy();
   }
@@ -217,7 +189,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   public void set(@Nonnull PropertyKey key, @Nonnull String value) {
     checkArgument(!value.equals(""),
         "The key \"%s\" cannot be have an empty string as a value. Use "
-            + "ServerConfiguration.unset to remove a key from the configuration.", key);
+            + "Configuration.unset to remove a key from the configuration.", key);
     if (key.validateValue(value)) {
       mProperties.put(key, key.formatValue(value), Source.RUNTIME);
     } else {
@@ -225,9 +197,9 @@ public class InstancedConfiguration implements AlluxioConfiguration {
         throw new IllegalArgumentException(
             format("Invalid value for property key %s: %s", key, value));
       }
-      LOG.warn(format("The value %s for property key %s is invalid. PropertyKey are now typed "
+      LOG.warn("The value {} for property key {} is invalid. PropertyKey are now typed "
               + "and require values to be properly typed. Invalid PropertyKey values will not be "
-              + "accepted in 3.0", value, key));
+              + "accepted in 3.0", value, key);
       mProperties.put(key, key.parseValue(value), Source.RUNTIME);
     }
   }
@@ -242,7 +214,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   public void set(@Nonnull PropertyKey key, @Nonnull Object value, @Nonnull Source source) {
     checkArgument(!value.equals(""),
         "The key \"%s\" cannot be have an empty string as a value. Use "
-            + "ServerConfiguration.unset to remove a key from the configuration.", key);
+            + "Configuration.unset to remove a key from the configuration.", key);
     checkArgument(key.validateValue(value),
         "Invalid value for property key %s: %s", key, value);
     value = key.formatValue(value);
@@ -283,9 +255,9 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   @Override
   public String getString(PropertyKey key) {
     if (key.getType() != PropertyKey.PropertyType.STRING) {
-      LOG.warn(format("PropertyKey %s's type is %s, please use proper getter method for the type, "
+      LOG.warn("PropertyKey {}'s type is {}, please use proper getter method for the type, "
           + "getString will no longer work for non-STRING property types in 3.0",
-          key, key.getType()));
+          key, key.getType());
     }
     Object value = get(key);
     if (value instanceof String) {
@@ -299,6 +271,15 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   {
     checkArgument(key.getType() == PropertyKey.PropertyType.INTEGER);
     return (int) get(key);
+  }
+
+  @Override
+  public long getLong(PropertyKey key) {
+    // Low-precision types int can be implicitly converted to high-precision types long
+    // without loss of precision
+    checkArgument(key.getType() == PropertyKey.PropertyType.LONG
+        || key.getType() == PropertyKey.PropertyType.INTEGER);
+    return ((Number) get(key)).longValue();
   }
 
   @Override
@@ -396,7 +377,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
               + "If no JVM property is present, Alluxio will use default value '%s'.",
           key.getName(), key.getDefaultValue());
 
-      if (PropertyKey.isDeprecated(key) && getSource(key).compareTo(Source.DEFAULT) != 0) {
+      if (PropertyKey.isDeprecated(key) && isSetByUser(key)) {
         LOG.warn("{} is deprecated. Please avoid using this key in the future. {}", key.getName(),
             PropertyKey.getDeprecationMessage(key));
       }
@@ -408,6 +389,8 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     checkZkConfiguration();
     checkTieredLocality();
     checkTieredStorage();
+    checkMasterThrottleThresholds();
+    checkCheckpointZipConfig();
   }
 
   @Override
@@ -493,9 +476,9 @@ public class InstancedConfiguration implements AlluxioConfiguration {
       String message = "%s cannot be specified when allowing multiple workers per host with "
           + PropertyKey.Name.INTEGRATION_YARN_WORKERS_PER_HOST_MAX + "=" + maxWorkersPerHost;
       checkState(System.getProperty(PropertyKey.Name.WORKER_RPC_PORT) == null,
-          String.format(message, PropertyKey.WORKER_RPC_PORT));
+          message, PropertyKey.WORKER_RPC_PORT);
       checkState(System.getProperty(PropertyKey.Name.WORKER_WEB_PORT) == null,
-          String.format(message, PropertyKey.WORKER_WEB_PORT));
+          message, PropertyKey.WORKER_WEB_PORT);
     }
   }
 
@@ -544,7 +527,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     }
     long usrFileBufferBytes = getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
     checkState((usrFileBufferBytes & Integer.MAX_VALUE) == usrFileBufferBytes,
-        PreconditionMessage.INVALID_USER_FILE_BUFFER_BYTES.toString(),
+        "Invalid value of %s: %s",
         PropertyKey.Name.USER_FILE_BUFFER_BYTES, usrFileBufferBytes);
   }
 
@@ -556,7 +539,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   private void checkZkConfiguration() {
     checkState(
         isSet(PropertyKey.ZOOKEEPER_ADDRESS) == getBoolean(PropertyKey.ZOOKEEPER_ENABLED),
-        PreconditionMessage.INCONSISTENT_ZK_CONFIGURATION.toString(),
+        "Inconsistent Zookeeper configuration; %s should be set if and only if %s is true",
         PropertyKey.Name.ZOOKEEPER_ADDRESS, PropertyKey.Name.ZOOKEEPER_ENABLED);
   }
 
@@ -613,6 +596,109 @@ public class InstancedConfiguration implements AlluxioConfiguration {
               + "storage setting: %s",
           alias, i, key, String.join(", ", globalTierAliasSet));
     }
+  }
+
+  /**
+   * @throws IllegalStateException if invalid checkpoint zip configuration parameters are found
+   */
+  private void checkCheckpointZipConfig() {
+    int compression = getInt(
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_LEVEL);
+    if (compression < -1 || compression > 9) {
+      throw new IllegalStateException(String.format("Zip compression level for property key %s"
+          + " must be between -1 and 9 inclusive",
+          PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_LEVEL.getName()));
+    }
+  }
+
+  /**
+   * @throws IllegalStateException if invalid throttle threshold parameters are found
+   */
+  private void checkMasterThrottleThresholds() {
+    boolean heapUsedRatioThresholdValid
+        = (Double
+        .compare(0,
+            getDouble(PropertyKey.MASTER_THROTTLE_ACTIVE_HEAP_USED_RATIO)) < 0
+        && Double
+        .compare(getDouble(PropertyKey.MASTER_THROTTLE_ACTIVE_HEAP_USED_RATIO),
+        getDouble(PropertyKey.MASTER_THROTTLE_STRESSED_HEAP_USED_RATIO)) < 0
+        && Double
+        .compare(getDouble(PropertyKey.MASTER_THROTTLE_STRESSED_HEAP_USED_RATIO),
+        getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_HEAP_USED_RATIO)) < 0
+        && Double
+        .compare(getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_HEAP_USED_RATIO),
+            1) <= 0);
+    if (!heapUsedRatioThresholdValid) {
+      throw new IllegalStateException(
+          String.format("The heap used ratio thresholds are not set correctly, the values should"
+                  + " be between 0 and 1, it is expected: ACTIVE < STRESSED < OVERLOADED,"
+                  + " while they are ACTIVE({}), STRESSED({}), OVERLOADED({})",
+              getDouble(PropertyKey.MASTER_THROTTLE_ACTIVE_HEAP_USED_RATIO),
+              getDouble(PropertyKey.MASTER_THROTTLE_STRESSED_HEAP_USED_RATIO),
+              getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_HEAP_USED_RATIO)));
+    }
+
+    boolean cpuUsedRatioThresholdValid
+        = (Double
+        .compare(0,
+            getDouble(PropertyKey.MASTER_THROTTLE_ACTIVE_CPU_LOAD_RATIO)) < 0
+        && Double
+        .compare(getDouble(PropertyKey.MASTER_THROTTLE_ACTIVE_CPU_LOAD_RATIO),
+            getDouble(PropertyKey.MASTER_THROTTLE_STRESSED_CPU_LOAD_RATIO)) < 0
+        && Double
+        .compare(getDouble(PropertyKey.MASTER_THROTTLE_STRESSED_CPU_LOAD_RATIO),
+            getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_CPU_LOAD_RATIO)) < 0
+        && Double
+        .compare(getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_CPU_LOAD_RATIO),
+            1) <= 0);
+    if (!cpuUsedRatioThresholdValid) {
+      throw new IllegalStateException(
+          String.format("The cpu used ratio thresholds are not set correctly, the values should"
+                  + " be between 0 and 1, it is expected: ACTIVE < STRESSED < OVERLOADED,"
+                  + " while they are ACTIVE({}), STRESSED({}), OVERLOADED({})",
+              getDouble(PropertyKey.MASTER_THROTTLE_ACTIVE_CPU_LOAD_RATIO),
+              getDouble(PropertyKey.MASTER_THROTTLE_STRESSED_CPU_LOAD_RATIO),
+              getDouble(PropertyKey.MASTER_THROTTLE_OVERLOADED_CPU_LOAD_RATIO)));
+    }
+
+    boolean heapGCTimeThresholdValid
+        = (0 < getMs(PropertyKey.MASTER_THROTTLE_ACTIVE_HEAP_GC_TIME)
+        && getMs(PropertyKey.MASTER_THROTTLE_ACTIVE_HEAP_GC_TIME)
+        < getMs(PropertyKey.MASTER_THROTTLE_STRESSED_HEAP_GC_TIME)
+        && getMs(PropertyKey.MASTER_THROTTLE_STRESSED_HEAP_GC_TIME)
+        < getMs(PropertyKey.MASTER_THROTTLE_OVERLOADED_HEAP_GC_TIME));
+    if (!heapGCTimeThresholdValid) {
+      throw new IllegalStateException(
+          String.format("The heap GC extra time threshold is not set correctly,"
+                  + " it is expected: ACTIVE < STRESSED < OVERLOADED, while they are "
+                  + "ACTIVE({}), STRESSED({}), OVERLOADED({})",
+              getMs(PropertyKey.MASTER_THROTTLE_ACTIVE_HEAP_GC_TIME),
+              getMs(PropertyKey.MASTER_THROTTLE_STRESSED_HEAP_GC_TIME),
+              getMs(PropertyKey.MASTER_THROTTLE_OVERLOADED_HEAP_GC_TIME)));
+    }
+
+    boolean rpcQueueSizeThresholdValid
+        = (0 < getInt(PropertyKey.MASTER_THROTTLE_ACTIVE_RPC_QUEUE_SIZE)
+        && getInt(PropertyKey.MASTER_THROTTLE_ACTIVE_RPC_QUEUE_SIZE)
+        < getInt(PropertyKey.MASTER_THROTTLE_STRESSED_RPC_QUEUE_SIZE)
+        && getInt(PropertyKey.MASTER_THROTTLE_STRESSED_RPC_QUEUE_SIZE)
+        < getInt(PropertyKey.MASTER_THROTTLE_OVERLOADED_RPC_QUEUE_SIZE));
+    if (!rpcQueueSizeThresholdValid) {
+      throw new IllegalStateException(
+          String.format("The rpc queue size threshold is not set correctly,"
+                  + " it is expected: ACTIVE < STRESSED < OVERLOADED, while they are "
+                  + "ACTIVE({}), STRESSED({}), OVERLOADED({})",
+              getInt(PropertyKey.MASTER_THROTTLE_ACTIVE_RPC_QUEUE_SIZE),
+              getInt(PropertyKey.MASTER_THROTTLE_STRESSED_RPC_QUEUE_SIZE),
+              getInt(PropertyKey.MASTER_THROTTLE_OVERLOADED_RPC_QUEUE_SIZE)));
+    }
+  }
+
+  /**
+   * @return the last update time
+   */
+  public long getLastUpdateTime() {
+    return mProperties.getLastUpdateTime();
   }
 
   private class UnresolvablePropertyException extends Exception {

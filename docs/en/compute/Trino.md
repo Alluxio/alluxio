@@ -19,24 +19,6 @@ latency when other storage systems are remote or the network is slow or congeste
 * Table of Contents
 {:toc}
 
-## Using Trino with the Alluxio Catalog Service
-
-Currently, there are 2 ways to enable Trino to interact with Alluxio:
-* Trino interacts with the [Alluxio Catalog Service]({{ '/en/core-services/Catalog.html' | relativize_url }})
-* Trino interacts directly with the Hive Metastore (with table definitions updated to use Alluxio paths)
-
-The primary benefits for using Trino with the Alluxio Catalog Service are
-- Simpler deployments of Alluxio with Trino (no modifications to the Hive Metastore)
-- Enabling schema-aware optimizations (transformations like coalescing and file conversions).
-
-Currently, the catalog service is limited to read-only workloads.
-
-For more details and instructions on how to use the Alluxio Catalog Service with Trino, please
-visit the [Alluxio Catalog Service documentation]({{ '/en/core-services/Catalog.html' | relativize_url }}).
-
-The rest of this page discusses the alternative approach of Trino directly interacting with the
-Hive Metastore, while IO access is performed through Alluxio.
-
 ## Prerequisites
 
 * Setup Java for Java 11, at least version 11.0.7, 64-bit，as required by Trino

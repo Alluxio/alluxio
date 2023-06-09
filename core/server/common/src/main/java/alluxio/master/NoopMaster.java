@@ -54,7 +54,8 @@ public class NoopMaster implements Master, NoopJournaled {
    */
   public NoopMaster(String name, UfsManager ufsManager) {
     mName = name;
-    mMasterContext = new MasterContext(new NoopJournalSystem(), null, ufsManager);
+    mMasterContext = new MasterContext(new NoopJournalSystem(),
+        new AlwaysStandbyPrimarySelector(), null, ufsManager);
   }
 
   @Override

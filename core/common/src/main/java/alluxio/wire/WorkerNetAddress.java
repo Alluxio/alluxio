@@ -32,6 +32,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class WorkerNetAddress implements Serializable {
   private static final long serialVersionUID = 0L;
 
+  public static final WorkerNetAddress DUMMY = new WorkerNetAddress();
+
   private String mHost = "";
   private String mContainerHost = "";
   private int mRpcPort;

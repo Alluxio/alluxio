@@ -18,8 +18,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -28,7 +28,6 @@ import static org.mockito.Mockito.when;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.SystemPropertyRule;
 import alluxio.client.block.BlockStoreClient;
@@ -38,7 +37,9 @@ import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
@@ -92,7 +93,7 @@ import java.util.Map;
 public class AbstractFileSystemTest {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractFileSystemTest.class);
 
-  private InstancedConfiguration mConfiguration = ConfigurationTestUtils.defaults();
+  private InstancedConfiguration mConfiguration = alluxio.conf.Configuration.copyGlobal();
 
   /**
    * Sets up the configuration before a test runs.
@@ -113,7 +114,7 @@ public class AbstractFileSystemTest {
 
   @After
   public void after() {
-    mConfiguration = ConfigurationTestUtils.defaults();
+    mConfiguration = alluxio.conf.Configuration.copyGlobal();
     HadoopClientTestUtils.disableMetrics(mConfiguration);
   }
 
@@ -406,9 +407,58 @@ public class AbstractFileSystemTest {
     Path path = new Path("/dir");
     alluxio.client.file.FileSystem alluxioFs =
         mock(alluxio.client.file.FileSystem.class);
-    when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
-        .thenReturn(Lists.newArrayList(new URIStatus(fileInfo1), new URIStatus(fileInfo2)));
     FileSystem alluxioHadoopFs = new FileSystem(alluxioFs);
+    URI uri = URI.create(Constants.HEADER + "host:1");
+    alluxioHadoopFs.initialize(uri, getConf());
+    ListStatusPOptions listStatusPOptions = ListStatusPOptions.getDefaultInstance().toBuilder()
+        .setExcludeMountInfo(alluxioHadoopFs.mAlluxioConf.getBoolean(
+            PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS)).build();
+    when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path)),
+        listStatusPOptions))
+        .thenReturn(Lists.newArrayList(new URIStatus(fileInfo1), new URIStatus(fileInfo2)));
+
+    FileStatus[] fileStatuses = alluxioHadoopFs.listStatus(path);
+    assertFileInfoEqualsFileStatus(fileInfo1, fileStatuses[0]);
+    assertFileInfoEqualsFileStatus(fileInfo2, fileStatuses[1]);
+    alluxioHadoopFs.close();
+  }
+
+  /**
+   * Tests that the {@link AbstractFileSystem#listStatus(Path)} method uses
+   * {@link URIStatus#getLastModificationTimeMs()} correctly without mount info.
+   */
+  @Test
+  public void listStatusWithoutMountInfo() throws Exception {
+    FileInfo fileInfo1 = new FileInfo()
+        .setLastModificationTimeMs(111L)
+        .setLastAccessTimeMs(123L)
+        .setFolder(false)
+        .setOwner("user1")
+        .setGroup("group1")
+        .setMode(00755);
+    FileInfo fileInfo2 = new FileInfo()
+        .setLastModificationTimeMs(222L)
+        .setLastAccessTimeMs(234L)
+        .setFolder(true)
+        .setOwner("user2")
+        .setGroup("group2")
+        .setMode(00644);
+
+    Path path = new Path("/dir");
+    alluxio.client.file.FileSystem alluxioFs =
+        mock(alluxio.client.file.FileSystem.class);
+    FileSystem alluxioHadoopFs = new FileSystem(alluxioFs);
+    URI uri = URI.create(Constants.HEADER + "host:1");
+    Configuration configuration = getConf();
+    configuration.setBoolean(
+        PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS.getName(),
+        true);
+    alluxioHadoopFs.initialize(uri, configuration);
+    ListStatusPOptions listStatusPOptions = ListStatusPOptions.getDefaultInstance().toBuilder()
+        .setExcludeMountInfo(true).build();
+    when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path)),
+        listStatusPOptions))
+        .thenReturn(Lists.newArrayList(new URIStatus(fileInfo1), new URIStatus(fileInfo2)));
 
     FileStatus[] fileStatuses = alluxioHadoopFs.listStatus(path);
     assertFileInfoEqualsFileStatus(fileInfo1, fileStatuses[0]);
@@ -426,9 +476,15 @@ public class AbstractFileSystemTest {
     try {
       Path path = new Path("/ALLUXIO-2036");
       alluxio.client.file.FileSystem alluxioFs = mock(alluxio.client.file.FileSystem.class);
-      when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
-          .thenThrow(new FileNotFoundException("ALLUXIO-2036 not Found"));
       alluxioHadoopFs = new FileSystem(alluxioFs);
+      URI uri = URI.create(Constants.HEADER + "host:1");
+      alluxioHadoopFs.initialize(uri, getConf());
+      ListStatusPOptions listStatusPOptions = ListStatusPOptions.getDefaultInstance().toBuilder()
+          .setExcludeMountInfo(alluxioHadoopFs.mAlluxioConf.getBoolean(
+              PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS)).build();
+      when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path)),
+          listStatusPOptions))
+          .thenThrow(new FileNotFoundException("ALLUXIO-2036 not Found"));
       FileStatus[] fileStatuses = alluxioHadoopFs.listStatus(path);
       // if we reach here, FileNotFoundException is not thrown hence Fail the test case
       assertTrue(false);
@@ -492,7 +548,7 @@ public class AbstractFileSystemTest {
     sysProps.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), "true");
     sysProps.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), "zkHost:2181");
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
-      ConfigurationUtils.reloadProperties();
+      alluxio.conf.Configuration.reloadProperties();
       URI uri = URI.create("alluxio:///");
       FileSystem fs = getHadoopFilesystem(org.apache.hadoop.fs.FileSystem.get(uri, getConf()));
 
@@ -507,7 +563,7 @@ public class AbstractFileSystemTest {
     // those in the URI has the highest priority.
     try (Closeable p = new SystemPropertyRule(
          PropertyKey.ZOOKEEPER_ENABLED.getName(), "false").toResource()) {
-      ConfigurationUtils.reloadProperties();
+      alluxio.conf.Configuration.reloadProperties();
       URI uri = URI.create("alluxio://zk@zkHost:2181");
       FileSystem fs = getHadoopFilesystem(org.apache.hadoop.fs.FileSystem.get(uri, getConf()));
       assertTrue(fs.mFileSystem.getConf().getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
@@ -519,14 +575,14 @@ public class AbstractFileSystemTest {
     sysProps.put(PropertyKey.ZOOKEEPER_ENABLED.getName(), "true");
     sysProps.put(PropertyKey.ZOOKEEPER_ADDRESS.getName(), "zkHost1:2181");
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
-      ConfigurationUtils.reloadProperties();
+      alluxio.conf.Configuration.reloadProperties();
       URI uri = URI.create("alluxio://zk@zkHost2:2181");
       FileSystem fs = getHadoopFilesystem(org.apache.hadoop.fs.FileSystem.get(uri, getConf()));
       assertTrue(fs.mFileSystem.getConf().getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
       assertEquals("zkHost2:2181", fs.mFileSystem.getConf().get(PropertyKey.ZOOKEEPER_ADDRESS));
       fs.close();
     }
-    ConfigurationUtils.reloadProperties();
+    alluxio.conf.Configuration.reloadProperties();
   }
 
   @Test
@@ -666,15 +722,38 @@ public class AbstractFileSystemTest {
     when(alluxioFs.exists(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
         .thenReturn(true);
     when(alluxioFs.createFile(eq(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))), any()))
-        .thenThrow(new FileAlreadyExistsException(path.toString()));
+        .thenThrow(new FileAlreadyExistsException(
+            ExceptionMessage.CANNOT_OVERWRITE_FILE_WITHOUT_OVERWRITE.getMessage(path.toString())));
 
     try (FileSystem alluxioHadoopFs = new FileSystem(alluxioFs)) {
       alluxioHadoopFs.create(path, false, 100, (short) 1, 1000);
       fail("create() of existing file is expected to fail");
     } catch (IOException e) {
-      assertEquals("Not allowed to create() (overwrite=false) for existing Alluxio path: " + path,
+      assertEquals("alluxio.exception.FileAlreadyExistsException: "
+              + ExceptionMessage.CANNOT_OVERWRITE_FILE_WITHOUT_OVERWRITE.getMessage(path),
           e.getMessage());
     }
+  }
+
+  @Test
+  public void defaultPortTest() throws Exception {
+    // this test ensures that that default port for Alluxio Hadoop file system is the same
+    // whether in Hadoop 1.x or Hadoop 2.x
+    int defaultRpcPort = (int) PropertyKey.MASTER_RPC_PORT.getDefaultValue();
+
+    Configuration conf = new Configuration();
+    conf.set("fs.AbstractFileSystem.alluxio.impl", "alluxio.hadoop.AlluxioFileSystem");
+    conf.set("fs.alluxio.impl", "alluxio.hadoop.FileSystem");
+    URI uri = new URI("alluxio:///test");
+    org.apache.hadoop.fs.AbstractFileSystem system = org.apache.hadoop.fs.AbstractFileSystem
+        .createFileSystem(uri, conf);
+    assertTrue(system instanceof AlluxioFileSystem);
+    assertEquals(defaultRpcPort, system.getUriDefaultPort());
+
+    org.apache.hadoop.fs.FileSystem system2 = org.apache.hadoop.fs.FileSystem.get(uri, conf);
+    assertTrue(system2 instanceof FileSystem);
+    // casting is required as org.apache.hadoop.fs.FileSystem#getDefaultPort is protected
+    assertEquals(defaultRpcPort, ((FileSystem) system2).getDefaultPort());
   }
 
   void verifyBlockLocations(List<WorkerNetAddress> blockWorkers, List<String> ufsLocations,

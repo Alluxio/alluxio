@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -99,7 +100,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
               + "clientCancelled: %s serverClosed: %s",
           LogUtils.truncateMessageLineLength(request), mClosed, mCanceled, mClosedFromRemote));
     }
-    try (LockResource lr = new LockResource(mLock)) {
+    try (LockResource ignored = new LockResource(mLock)) {
       long startMs = System.currentTimeMillis();
       while (true) {
         checkError();
@@ -156,7 +157,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
       }
       return;
     }
-    try (LockResource lr = new LockResource(mLock)) {
+    try (LockResource ignored = new LockResource(mLock)) {
       checkError();
     }
     mRequestObserver.onNext(request);
@@ -216,13 +217,6 @@ public class GrpcBlockingStream<ReqT, ResT> {
   }
 
   /**
-   * @return true if the current stream has responses received but hasn't processed
-   */
-  public boolean hasResponseInCache() {
-    return !mResponses.isEmpty();
-  }
-
-  /**
    * Closes the outbound stream. If the stream is already closed then invoking this method has no
    * effect.
    */
@@ -250,28 +244,27 @@ public class GrpcBlockingStream<ReqT, ResT> {
    * Wait for server to complete the inbound stream.
    *
    * @param timeoutMs maximum time to wait for server response
+   * @return the last response of the stream
    */
-  public void waitForComplete(long timeoutMs) throws IOException {
+  public Optional<ResT> waitForComplete(long timeoutMs) throws IOException {
     if (mCompleted || mCanceled) {
-      return;
+      return Optional.empty();
     }
-    while (receive(timeoutMs) != null) {
+    ResT prevResponse;
+    ResT response = null;
+    do {
       // wait until inbound stream is closed from server.
-    }
-  }
-
-  /**
-   * @return whether the stream is closed by the server
-   */
-  public boolean isClosedFromRemote() {
-    return mClosedFromRemote;
+      prevResponse = response;
+      response = receive(timeoutMs);
+    } while (response != null);
+    return Optional.ofNullable(prevResponse);
   }
 
   /**
    * @return whether the stream is open
    */
   public boolean isOpen() {
-    try (LockResource lr = new LockResource(mLock)) {
+    try (LockResource ignored = new LockResource(mLock)) {
       return !mClosed && !mCanceled && mError == null;
     }
   }
@@ -291,7 +284,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
   }
 
   private void checkError() throws IOException {
-    try (LockResource lr = new LockResource(mLock)) {
+    try (LockResource ignored = new LockResource(mLock)) {
       if (mError != null) {
         // prevents rethrowing the same error
         mCanceled = true;
@@ -313,14 +306,13 @@ public class GrpcBlockingStream<ReqT, ResT> {
       ex = AlluxioStatusException.fromThrowable(mError);
     }
     // attaches description to the exception while maintaining the cause
-    return (AlluxioStatusException) AlluxioStatusException
+    return AlluxioStatusException
         .from(ex.getStatus().withDescription(formatErrorMessage(ex.getMessage())));
   }
 
   private String formatErrorMessage(String format, Object... args) {
-    StringBuilder errorMessage = new StringBuilder(
-        format == null ? "Unknown error" : String.format(format, args));
-    return new StringBuilder(errorMessage).append(String.format(" (%s)", mDescription)).toString();
+    return (format == null ? "Unknown error" : String.format(format, args))
+        + String.format(" (%s)", mDescription);
   }
 
   private final class ResponseStreamObserver
@@ -337,8 +329,8 @@ public class GrpcBlockingStream<ReqT, ResT> {
 
     @Override
     public void onError(Throwable t) {
-      try (LockResource lr = new LockResource(mLock)) {
-        LOG.warn("Received error {} for stream ({})", t, mDescription);
+      try (LockResource ignored = new LockResource(mLock)) {
+        LOG.warn("Received error on stream ({})", mDescription, t);
         updateException(t);
         mReadyOrFailed.signal();
       }
@@ -358,7 +350,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
     @Override
     public void beforeStart(ClientCallStreamObserver<ReqT> requestStream) {
       requestStream.setOnReadyHandler(() -> {
-        try (LockResource lr = new LockResource(mLock)) {
+        try (LockResource ignored = new LockResource(mLock)) {
           mReadyOrFailed.signal();
         }
       });
@@ -366,7 +358,7 @@ public class GrpcBlockingStream<ReqT, ResT> {
 
     private void handleInterruptedException(InterruptedException e) {
       Thread.currentThread().interrupt();
-      try (LockResource lr = new LockResource(mLock)) {
+      try (LockResource ignored = new LockResource(mLock)) {
         updateException(e);
       }
       throw new RuntimeException(e);

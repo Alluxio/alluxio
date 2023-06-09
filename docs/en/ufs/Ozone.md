@@ -30,7 +30,9 @@ To configure Alluxio to use Ozone as under storage, you will need to modify the 
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-Edit `conf/alluxio-site.properties` file to set the under storage address to the Ozone bucket and the Ozone directory you want to mount to Alluxio. 
+Edit `conf/alluxio-site.properties` file to set the under storage address to the Ozone bucket and the Ozone directory you want to mount to Alluxio.
+Ozone supports two different schemas `o3fs` and `ofs`
+### o3fs
 For example, the under storage address can be `o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/` if you want to mount the whole bucket to Alluxio, 
 or `o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/alluxio/data` if only the directory `/alluxio/data` inside the ozone bucket `<OZONE_BUCKET>` of `<OZONE_VOLUME>` is mapped to Alluxio.
 
@@ -41,15 +43,30 @@ alluxio.master.mount.table.root.ufs=o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/
 alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/ozone-site.xml
 ``` 
 
-## Ozone HA Mode
+### ofs
+For example, the under storage address can be `ofs://<OZONE_MANAGER>/<OZONE_VOLUME>/<OZONE_BUCKET>/` if you want to mount the whole bucket to Alluxio,
+or `ofs://<OZONE_MANAGER>/<OZONE_VOLUME>/<OZONE_BUCKET>/alluxio/data` if only the directory `/alluxio/data` inside the ozone bucket `<OZONE_BUCKET>` of `<OZONE_VOLUME>` is mapped to Alluxio.
 
+```properties
+alluxio.master.mount.table.root.ufs=ofs://<OZONE_MANAGER>/<OZONE_VOLUME>/<OZONE_BUCKET>/
+``` 
+
+## Ozone HA Mode
+### o3fs
 To make Alluxio mount Ozone in HA mode, you should configure Alluxio's server so that it can find the OzoneManager. Please note that once set up, your application using the Alluxio client does not require any special configuration.
 In HA mode `alluxio.master.mount.table.root.ufs` needs to specify `<OM_SERVICE_IDS>`
 such as:
+
 ```properties
 alluxio.master.mount.table.root.ufs=o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>.<OM_SERVICE_IDS>/
 alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/ozone-site.xml
 ``` 
+
+### ofs
+```properties
+alluxio.master.mount.table.root.ufs=ofs://<OZONE_MANAGER>/<OZONE_VOLUME>/<OZONE_BUCKET>/
+alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/ozone-site.xml
+```
 
 `<OM_SERVICE_IDS>` can be found in `ozone-site.xml`.
 In the following example `ozone-site.xml` file, `<OM_SERVICE_IDS>` is `omservice1`:

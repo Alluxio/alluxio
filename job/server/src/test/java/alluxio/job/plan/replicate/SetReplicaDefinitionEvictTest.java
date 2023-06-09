@@ -11,6 +11,8 @@
 
 package alluxio.job.plan.replicate;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 import alluxio.client.block.BlockStoreClient;
@@ -28,13 +30,11 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.beust.jcommander.internal.Sets;
 import com.google.common.collect.Lists;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
 
 import java.util.List;
 import java.util.Set;
@@ -42,8 +42,6 @@ import java.util.Set;
 /**
  * Tests evict functionality of {@link SetReplicaDefinition}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({BlockStoreClient.class, FileSystemContext.class, JobServerContext.class})
 public final class SetReplicaDefinitionEvictTest {
   private static final long TEST_BLOCK_ID = 1L;
   private static final WorkerNetAddress ADDRESS_1 =
@@ -61,14 +59,23 @@ public final class SetReplicaDefinitionEvictTest {
   private FileSystemContext mMockFileSystemContext;
   private BlockStoreClient mMockBlockStore;
   private JobServerContext mJobServerContext;
+  private MockedStatic<BlockStoreClient> mMockStaticBlockStore;
 
   @Before
   public void before() {
-    mMockFileSystemContext = PowerMockito.mock(FileSystemContext.class);
-    mMockFileSystem = PowerMockito.mock(FileSystem.class);
-    mMockBlockStore = PowerMockito.mock(BlockStoreClient.class);
+    mMockFileSystemContext = mock(FileSystemContext.class);
+    mMockFileSystem = mock(FileSystem.class);
+    mMockBlockStore = mock(BlockStoreClient.class);
     mJobServerContext = new JobServerContext(mMockFileSystem, mMockFileSystemContext,
-        PowerMockito.mock(UfsManager.class));
+        mock(UfsManager.class));
+    mMockStaticBlockStore = mockStatic(BlockStoreClient.class);
+    mMockStaticBlockStore.when(() -> BlockStoreClient.create(mMockFileSystemContext))
+        .thenReturn(mMockBlockStore);
+  }
+
+  @After
+  public void after() {
+    mMockStaticBlockStore.close();
   }
 
   /**
@@ -85,8 +92,6 @@ public final class SetReplicaDefinitionEvictTest {
     BlockInfo blockInfo = new BlockInfo().setBlockId(TEST_BLOCK_ID);
     blockInfo.setLocations(blockLocations);
     when(mMockBlockStore.getInfo(TEST_BLOCK_ID)).thenReturn(blockInfo);
-    PowerMockito.mockStatic(BlockStoreClient.class);
-    PowerMockito.when(BlockStoreClient.create(mMockFileSystemContext)).thenReturn(mMockBlockStore);
 
     SetReplicaConfig config = new SetReplicaConfig("", TEST_BLOCK_ID, replicas);
     SetReplicaDefinition definition = new SetReplicaDefinition();

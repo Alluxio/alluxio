@@ -105,7 +105,7 @@ $ docker run -d --rm \
 
   1. 参数`net=host`告诉Docker使用主机网络。在这种设置下，容器直接使用主机的网络适配器。
 所有容器都将具有与Docker主机相同的主机名和IP地址，并且所有主机的端口也都直接映射到容器。因此，所有必需的容器端口 `19999、19998、29999、30000` 都通过Docker主机允许客户端访问。[在此处](https://docs.docker.com/network/host/)可以找到有关此设置的更多详细信息。
-  1. 参数`-e ALLUXIO_JAVA_OPTS =“-Dalluxio.worker.memory.size = 1G -Dalluxio.master.hostname = $(hostname -I)”` 分配worker的内存容量并绑定master地址。使用`host`网络驱动程序时，不能通过master容器名来引用`alluxio-master`，否则将报 “No Alluxio worker available” 错误。而是应通过主机IP地址引用它。`$(hostname -i` 要改用Docker主机的名称。
+  1. 参数`-e ALLUXIO_JAVA_OPTS ="-Dalluxio.worker.memory.size = 1G -Dalluxio.master.hostname = $(hostname -I)"` 分配worker的内存容量并绑定master地址。使用`host`网络驱动程序时，不能通过master容器名来引用`alluxio-master`，否则将报 "No Alluxio worker available" 错误。而是应通过主机IP地址引用它。`$(hostname -i` 要改用Docker主机的名称。
   1. 参数`--shm-size = 1G`将为workers分配 `1G` tmpfs存储Alluxio数据。
   1. 参数`-v /alluxio_ufs:/opt/alluxio/underFSStorage` 指引Docker使用host volume并将Alluxio UFS根数据保留在主机目录 `/alluxio_ufs`中，如上文在Docker volume部分所述。
 

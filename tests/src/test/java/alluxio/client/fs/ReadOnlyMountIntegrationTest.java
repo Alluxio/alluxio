@@ -16,8 +16,8 @@ import static org.hamcrest.CoreMatchers.containsString;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
@@ -67,9 +67,9 @@ public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
     // Create another directory on the local filesystem, alongside the existing Ufs, to be used as
     // a second Ufs.
     AlluxioURI parentURI =
-        new AlluxioURI(ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))
+        new AlluxioURI(Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))
             .getParent();
-    mUfs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
+    mUfs = UnderFileSystem.Factory.createForRoot(Configuration.global());
     mAlternateUfsRoot = parentURI.join("alternateUnderFSStorage").toString();
     String ufsMountDir = PathUtils.concatPath(mAlternateUfsRoot, MOUNT_PATH);
     UnderFileSystemUtils.mkdirIfNotExists(mUfs, mAlternateUfsRoot);

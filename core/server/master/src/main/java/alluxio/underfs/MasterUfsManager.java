@@ -12,7 +12,7 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.journal.DelegatingJournaled;
 import alluxio.master.journal.JournalContext;
@@ -21,6 +21,7 @@ import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.UpdateUfsModeEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.recorder.Recorder;
 import alluxio.resource.CloseableIterator;
 import alluxio.util.network.NetworkAddressUtils;
 
@@ -43,34 +44,31 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class MasterUfsManager extends AbstractUfsManager implements DelegatingJournaled {
   private static final Logger LOG = LoggerFactory.getLogger(MasterUfsManager.class);
 
-  private final State mState;
+  private final State mState = new State();
 
   /** A set of all managed ufs roots. */
-  private final Set<String> mUfsRoots;
+  private final Set<String> mUfsRoots = new HashSet<>();
 
   /** Mapping from mount ID to ufs root. */
-  private final Map<Long, String> mIdToRoot;
-
-  /**
-   * Constructs the instance of {@link MasterUfsManager}.
-   */
-  public MasterUfsManager() {
-    mState = new State();
-    mUfsRoots = new HashSet<>();
-    mIdToRoot = new HashMap<>();
-  }
+  private final Map<Long, String> mIdToRoot = new HashMap<>();
 
   @Override
   protected void connectUfs(UnderFileSystem fs) throws IOException {
     fs.connectFromMaster(
         NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC,
-            ServerConfiguration.global()));
+            Configuration.global()));
   }
 
   @Override
   public synchronized void addMount(long mountId, final AlluxioURI ufsUri,
       final UnderFileSystemConfiguration ufsConf) {
-    super.addMount(mountId, ufsUri, ufsConf);
+    addMountWithRecorder(mountId, ufsUri, ufsConf, Recorder.noopRecorder());
+  }
+
+  @Override
+  public synchronized void addMountWithRecorder(long mountId, final AlluxioURI ufsUri,
+      final UnderFileSystemConfiguration ufsConf, Recorder recorder) {
+    super.addMountWithRecorder(mountId, ufsUri, ufsConf, recorder);
     String root = ufsUri.getRootPath();
     mUfsRoots.add(root);
     mIdToRoot.put(mountId, root);
@@ -80,6 +78,11 @@ public final class MasterUfsManager extends AbstractUfsManager implements Delega
   public synchronized void removeMount(long mountId) {
     mIdToRoot.remove(mountId);
     super.removeMount(mountId);
+  }
+
+  @Override
+  public boolean hasMount(long mountId) {
+    return mIdToRoot.containsKey(mountId);
   }
 
   /**

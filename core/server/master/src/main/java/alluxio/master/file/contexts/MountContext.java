@@ -11,9 +11,10 @@
 
 package alluxio.master.file.contexts;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.MountPOptions;
-import alluxio.util.FileSystemOptions;
+import alluxio.recorder.Recorder;
+import alluxio.util.FileSystemOptionsUtils;
 
 import com.google.common.base.MoreObjects;
 
@@ -21,6 +22,8 @@ import com.google.common.base.MoreObjects;
  * Used to merge and wrap {@link MountPOptions}.
  */
 public class MountContext extends OperationContext<MountPOptions.Builder, MountContext> {
+  // A Recorder used to record the execution process
+  private final Recorder mRecorder;
 
   /**
    * Creates context with given option data.
@@ -29,6 +32,7 @@ public class MountContext extends OperationContext<MountPOptions.Builder, MountC
    */
   private MountContext(MountPOptions.Builder optionsBuilder) {
     super(optionsBuilder);
+    mRecorder = new Recorder();
   }
 
   /**
@@ -46,7 +50,7 @@ public class MountContext extends OperationContext<MountPOptions.Builder, MountC
    * @return the instance of {@link MountContext} with default values for master
    */
   public static MountContext mergeFrom(MountPOptions.Builder optionsBuilder) {
-    MountPOptions masterOptions = FileSystemOptions.mountDefaults(ServerConfiguration.global());
+    MountPOptions masterOptions = FileSystemOptionsUtils.mountDefaults(Configuration.global());
     MountPOptions.Builder mergedOptionsBuilder =
         masterOptions.toBuilder().mergeFrom(optionsBuilder.build());
     return create(mergedOptionsBuilder);
@@ -56,7 +60,15 @@ public class MountContext extends OperationContext<MountPOptions.Builder, MountC
    * @return the instance of {@link MountContext} with default values for master
    */
   public static MountContext defaults() {
-    return create(FileSystemOptions.mountDefaults(ServerConfiguration.global()).toBuilder());
+    return create(FileSystemOptionsUtils.mountDefaults(Configuration.global()).toBuilder());
+  }
+
+  /**
+   * Gets the Recorder.
+   * @return Recorder
+   */
+  public Recorder getRecorder() {
+    return mRecorder;
   }
 
   @Override

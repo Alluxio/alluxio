@@ -11,7 +11,7 @@
 
 package alluxio.worker.grpc;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
 import alluxio.metrics.MetricInfo;
@@ -22,6 +22,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.security.authentication.AuthenticatedUserInfo;
 import alluxio.security.authorization.Mode;
+import alluxio.underfs.ContentHashable;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
@@ -83,6 +84,14 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
     }
     Preconditions.checkState(context.getOutputStream() != null);
     context.getOutputStream().close();
+    if (context.getOutputStream() instanceof ContentHashable) {
+      try {
+        ((ContentHashable) context.getOutputStream()).getContentHash()
+            .ifPresent(context::setContentHash);
+      } catch (IOException e) {
+        LOG.warn("Error getting content hash after completing file", e);
+      }
+    }
     CreateOptions createOptions = context.getCreateOptions();
     if (createOptions != null) {
       try {
@@ -155,7 +164,7 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
     CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource();
     context.setUfsResource(ufsResource);
     UnderFileSystem ufs = ufsResource.get();
-    CreateOptions createOptions = CreateOptions.defaults(ServerConfiguration.global())
+    CreateOptions createOptions = CreateOptions.defaults(Configuration.global())
         .setCreateParent(true)
         .setOwner(createUfsFileOptions.getOwner()).setGroup(createUfsFileOptions.getGroup())
         .setMode(new Mode((short) createUfsFileOptions.getMode()));

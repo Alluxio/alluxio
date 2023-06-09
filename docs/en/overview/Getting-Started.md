@@ -18,7 +18,7 @@ The guide will cover the following tasks:
 * **[Bonus]** Mount a public Amazon S3 bucket in Alluxio
 * Stop Alluxio
 
-**[Bonus]** This guide contains optional tasks that uses credentials from an
+**[Bonus]** This guide contains optional tasks that use credentials from an
 [AWS account with an access key id and secret access key](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html).
 The optional sections will be labeled with **[Bonus]**.
 
@@ -49,6 +49,19 @@ source files and Java binaries. Through this tutorial, the path of this director
 to as `${ALLUXIO_HOME}`.
 
 ## Configuring Alluxio
+
+In the `${ALLUXIO_HOME}/conf` directory, create the `conf/alluxio-env.sh` configuration
+file by copying the template file.
+
+```console
+$ cp conf/alluxio-env.sh.template conf/alluxio-env.sh
+```
+
+In `conf/alluxio-env.sh`, adds configuration for `JAVA_HOME`. For example:
+
+```console
+$ echo "JAVA_HOME=/path/to/java/home" >> conf/alluxio-env.sh
+```
 
 In the `${ALLUXIO_HOME}/conf` directory, create the `conf/alluxio-site.properties` configuration
 file by copying the template file.
@@ -358,7 +371,7 @@ Alluxio can be deployed in many different environments, such as:
 * [Alluxio on Local Machine]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }})
 * [Alluxio Standalone on a Cluster]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }})
 * [Alluxio on Docker]({{ '/en/deploy/Running-Alluxio-On-Docker.html' | relativize_url }})
-* [Alluxio on Kubernetes]({{ '/en/deploy/Running-Alluxio-On-Kubernetes.html' | relativize_url }})
+* [Alluxio on Kubernetes]({{ '/en/kubernetes/Running-Alluxio-On-Kubernetes.html' | relativize_url }})
 
 Check the `Install Alluxio` dropdown on the left sidebar for more available options.
 

@@ -13,6 +13,8 @@ package alluxio.master.file.meta;
 
 import alluxio.underfs.Fingerprint;
 
+import com.google.common.base.Preconditions;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -37,6 +39,7 @@ public final class UfsSyncUtils {
     // issues#15211: If Inodes store a Fingerprint proto instead of Strings,
     // we would save many String parsings here.
     Fingerprint inodeFingerprint =  Fingerprint.parse(inode.getUfsFingerprint());
+    Preconditions.checkState(inodeFingerprint != null, "Got invalid UFS fingerprint");
     boolean isContentSynced = inodeUfsIsContentSynced(inode, inodeFingerprint, ufsFingerprint);
     boolean isMetadataSynced = inodeUfsIsMetadataSynced(inode, inodeFingerprint, ufsFingerprint);
     boolean ufsExists = ufsFingerprint.isValid();

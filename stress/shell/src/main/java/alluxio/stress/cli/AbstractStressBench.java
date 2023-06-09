@@ -34,10 +34,15 @@ public abstract class AbstractStressBench<T extends TaskResult, P extends FileSy
   @ParametersDelegate
   protected P mParameters;
 
+  /**
+   * Validates the parameters.
+   */
+  public abstract void validateParams() throws Exception;
+
   @Override
   public String run(String[] args) throws Exception {
     parseParameters(args);
-
+    validateParams();
     // if the benchmark execute multiple tasks
     if (mParameters.mWriteType.equals("ALL")) {
       List<String> writeTypes = ImmutableList.of("MUST_CACHE", "CACHE_THROUGH",

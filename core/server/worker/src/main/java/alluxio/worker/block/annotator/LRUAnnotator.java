@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class LRUAnnotator implements BlockAnnotator<LRUAnnotator.LRUSortedField> {
   private static final Logger LOG = LoggerFactory.getLogger(LRUAnnotator.class);
 
-  private AtomicLong mLRUClock;
+  private final AtomicLong mLRUClock;
 
   /**
    * Creates a new LRU annotator.
@@ -67,7 +67,7 @@ public class LRUAnnotator implements BlockAnnotator<LRUAnnotator.LRUSortedField>
    * Sorted-field for LRU.
    */
   protected class LRUSortedField implements BlockSortedField {
-    private Long mClockValue;
+    private final Long mClockValue;
 
     private LRUSortedField(long clockValue) {
       mClockValue = clockValue;
@@ -81,7 +81,7 @@ public class LRUAnnotator implements BlockAnnotator<LRUAnnotator.LRUSortedField>
 
     @Override
     public boolean equals(Object o) {
-      if (o == null || !(o instanceof LRUSortedField)) {
+      if (!(o instanceof LRUSortedField)) {
         return false;
       }
       return Long.compare(mClockValue, ((LRUSortedField) o).mClockValue) == 0;

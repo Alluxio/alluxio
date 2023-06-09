@@ -177,7 +177,7 @@ $ ./bin/alluxio-start.sh worker SudoMount # 启动本地 worker
 $ ./bin/alluxio-stop.sh worker # 停止本地 worker
 ```
 
-一旦worker被停止，master将在预定的超时值（通过master参数`alluxio.master.worker.timeout`配置）后将此worker标记为缺失。 主机视worker为“丢失”，并且不再将其包括在集群中。
+一旦worker被停止，master将在预定的超时值（通过master参数`alluxio.master.worker.timeout`配置）后将此worker标记为缺失。 主机视worker为"丢失"，并且不再将其包括在集群中。
 
 ### 更新master配置
 

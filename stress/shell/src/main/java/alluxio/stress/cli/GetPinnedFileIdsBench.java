@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -51,15 +51,14 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
   @ParametersDelegate
   private final GetPinnedFileIdsParameters mParameters = new GetPinnedFileIdsParameters();
 
-  private final InstancedConfiguration mConf = InstancedConfiguration.defaults();
-  private final FileSystemContext mFileSystemContext = FileSystemContext.create(mConf);
+  private final FileSystemContext mFileSystemContext = FileSystemContext.create();
   private final ThreadLocal<Stopwatch> mDurationStopwatch =
       ThreadLocal.withInitial(Stopwatch::createUnstarted);
   private final ThreadLocal<Stopwatch> mPointStopwatch =
       ThreadLocal.withInitial(Stopwatch::createUnstarted);
   private final PinListFileSystemMasterClient mWorkerClient =
       new PinListFileSystemMasterClient(
-          MasterClientContext.newBuilder(ClientContext.create(mConf)).build());
+          MasterClientContext.newBuilder(ClientContext.create()).build());
 
   @Override
   public String getBenchDescription() {
@@ -113,7 +112,8 @@ public class GetPinnedFileIdsBench extends RpcBench<GetPinnedFileIdsParameters> 
           client.get().createFile(fileUri,
               CreateFilePOptions
                   .newBuilder()
-                  .setBlockSizeBytes(mConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT))
+                  .setBlockSizeBytes(Configuration.getBytes(
+                      PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT))
                   .build());
           client.get().setAttribute(fileUri,
               SetAttributePOptions

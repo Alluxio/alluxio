@@ -11,6 +11,8 @@
 
 package alluxio.cli;
 
+import alluxio.util.ExceptionUtils;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -88,7 +90,7 @@ public final class UserLimitValidationTask extends AbstractValidationTask {
     } catch (IOException e) {
       msg.append(String.format("Unable to check user limit for %s: %s. ",
               getName(), e.getMessage()));
-      msg.append(ValidationUtils.getErrorInfo(e));
+      msg.append(ExceptionUtils.asPlainText(e));
       return new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
               msg.toString(), advice.toString());
     }

@@ -23,8 +23,8 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.NoSuchElementException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Test for {@link UnmodifiableArrayList}.

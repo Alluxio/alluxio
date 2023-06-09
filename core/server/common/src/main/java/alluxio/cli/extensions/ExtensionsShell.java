@@ -14,8 +14,8 @@ package alluxio.cli.extensions;
 import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
-import alluxio.conf.InstancedConfiguration;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 
 import java.util.Map;
 
@@ -28,7 +28,7 @@ public final class ExtensionsShell extends AbstractShell {
    *
    * @param conf the Alluxio configuration to use when instantiating the shell
    */
-  ExtensionsShell(InstancedConfiguration conf) {
+  ExtensionsShell(AlluxioConfiguration conf) {
     super(null, null, conf);
   }
 
@@ -39,7 +39,7 @@ public final class ExtensionsShell extends AbstractShell {
    */
   public static void main(String[] args) {
     ExtensionsShell extensionShell =
-        new ExtensionsShell(ServerConfiguration.global());
+        new ExtensionsShell(Configuration.global());
     System.exit(extensionShell.run(args));
   }
 

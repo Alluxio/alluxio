@@ -54,8 +54,8 @@ public class MigrateCliRunner extends AbstractCmdRunner {
 
   /**
    * constructor.
-   * @param fsContext
-   * @param jobMaster
+   * @param fsContext fs context
+   * @param jobMaster job master
    */
   public MigrateCliRunner(FileSystemContext fsContext, JobMaster jobMaster) {
     super(fsContext, jobMaster);
@@ -100,17 +100,6 @@ public class MigrateCliRunner extends AbstractCmdRunner {
       filePool.clear();
     }
     return cmdInfo;
-  }
-
-  // call this method after finishing distCp job submission.
-  // user can only see the child jobs after submisssion is completed.
-  private List<CmdRunAttempt> consolidateDistCpJobs(long jobControlId) {
-    if (mJobMap.containsKey(jobControlId)) {
-      List<CmdRunAttempt> attempts = mJobMap.get(jobControlId);
-      return attempts;
-    } else {
-      return null;
-    }
   }
 
   private void copy(AlluxioURI srcPath, AlluxioURI dstPath, boolean overwrite, int batchSize,

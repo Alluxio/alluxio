@@ -12,6 +12,7 @@
 package alluxio.master;
 
 import alluxio.AlluxioTestDirectory;
+import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.cli.Format;
 import alluxio.client.file.FileSystem;
@@ -19,8 +20,10 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.client.util.ClientTestUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.DefaultBlockMaster;
@@ -32,6 +35,7 @@ import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.WorkerProcess;
 
 import org.slf4j.Logger;
@@ -39,6 +43,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
@@ -53,6 +58,7 @@ public abstract class AbstractLocalAlluxioCluster {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractLocalAlluxioCluster.class);
 
   private static final Random RANDOM_GENERATOR = new Random();
+  private static final int WAIT_MASTER_START_TIMEOUT_MS = 200_000;
 
   protected ProxyProcess mProxyProcess;
   protected Thread mProxyThread;
@@ -96,6 +102,20 @@ public abstract class AbstractLocalAlluxioCluster {
    * Configures and starts the master(s).
    */
   protected abstract void startMasters() throws Exception;
+
+  protected void waitForMasterServing() throws TimeoutException, InterruptedException {
+    CommonUtils.waitFor("master starts serving RPCs", () -> {
+      try {
+        getClient().getStatus(new AlluxioURI("/"));
+        return true;
+      } catch (AlluxioException | AlluxioStatusException e) {
+        LOG.error("Failed to get status of /:", e);
+        return false;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(WAIT_MASTER_START_TIMEOUT_MS));
+  }
 
   /**
    * Restarts the master(s).
@@ -162,31 +182,74 @@ public abstract class AbstractLocalAlluxioCluster {
   }
 
   /**
+   * Restarts workers with the addresses provided, so that the workers can restart with
+   * static addresses to simulate a worker restart in the cluster.
+   *
+   * @param addresses worker addresses to use
+   */
+  public void restartWorkers(Collection<WorkerNetAddress> addresses) throws Exception {
+    // Start the worker one by one, so we avoid updating config while this worker is starting
+    for (WorkerNetAddress addr : addresses) {
+      Configuration.set(PropertyKey.WORKER_RPC_PORT, addr.getRpcPort());
+      Configuration.set(PropertyKey.WORKER_WEB_PORT, addr.getWebPort());
+      WorkerProcess worker = WorkerProcess.Factory.create();
+      mWorkers.add(worker);
+
+      Runnable runWorker = () -> {
+        try {
+          worker.start();
+        } catch (InterruptedException e) {
+          // this is expected
+        } catch (Exception e) {
+          // Log the exception as the RuntimeException will be caught and handled silently by
+          // JUnit
+          LOG.error("Start worker error", e);
+          throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
+        }
+      };
+      Thread thread = new Thread(runWorker);
+      thread.setName("WorkerThread-" + System.identityHashCode(thread));
+      mWorkerThreads.add(thread);
+      thread.start();
+
+      TestUtils.waitForReady(worker);
+    }
+  }
+
+  /**
    * Sets up corresponding directories for tests.
    */
   protected void setupTest() throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
-    String underfsAddress = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot(Configuration.global());
+    String underfsAddress = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
 
     // Deletes the ufs dir for this test from to avoid permission problems
-    UnderFileSystemUtils.deleteDirIfExists(ufs, underfsAddress);
+    // Do not delete the ufs root if the ufs is an object storage.
+    // In test environment, this means s3 mock is used.
+    if (!ufs.isObjectStorage()) {
+      UnderFileSystemUtils.deleteDirIfExists(ufs, underfsAddress);
+    }
 
     // Creates ufs dir. This must be called before starting UFS with UnderFileSystemCluster.create()
     UnderFileSystemUtils.mkdirIfNotExists(ufs, underfsAddress);
 
     // Creates storage dirs for worker
-    int numLevel = ServerConfiguration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
+    int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     for (int level = 0; level < numLevel; level++) {
       PropertyKey tierLevelDirPath =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
-      String[] dirPaths = ServerConfiguration.getString(tierLevelDirPath).split(",");
+      String[] dirPaths = Configuration.getString(tierLevelDirPath).split(",");
       for (String dirPath : dirPaths) {
         FileUtils.createDir(dirPath);
       }
     }
 
+    formatJournal();
+  }
+
+  protected void formatJournal() throws IOException {
     // Formats the journal
-    Format.format(Format.Mode.MASTER, ServerConfiguration.global());
+    Format.format(Format.Mode.MASTER, Configuration.global());
   }
 
   /**
@@ -195,7 +258,7 @@ public abstract class AbstractLocalAlluxioCluster {
   public void stop() throws Exception {
     stopFS();
     reset();
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   /**
@@ -214,7 +277,7 @@ public abstract class AbstractLocalAlluxioCluster {
    */
   public void formatAndRestartMasters() throws Exception {
     stopMasters();
-    Format.format(Format.Mode.MASTER, ServerConfiguration.global());
+    Format.format(Format.Mode.MASTER, Configuration.global());
     startMasters();
   }
 
@@ -242,6 +305,22 @@ public abstract class AbstractLocalAlluxioCluster {
    * Stops the workers.
    */
   public void stopWorkers() throws Exception {
+    killWorkerProcesses();
+
+    // forget all the workers in the master
+    LocalAlluxioMaster master = getLocalAlluxioMaster();
+    if (master != null) {
+      DefaultBlockMaster bm =
+          (DefaultBlockMaster) master.getMasterProcess().getMaster(BlockMaster.class);
+      bm.forgetAllWorkers();
+    }
+  }
+
+  /**
+   * Kills all worker processes without forgetting them in the master,
+   * so we can validate the master mechanism handling dead workers.
+   */
+  public void killWorkerProcesses() throws Exception {
     if (mWorkers == null) {
       return;
     }
@@ -256,14 +335,6 @@ public abstract class AbstractLocalAlluxioCluster {
       }
     }
     mWorkerThreads.clear();
-
-    // forget all the workers in the master
-    LocalAlluxioMaster master = getLocalAlluxioMaster();
-    if (master != null) {
-      DefaultBlockMaster bm =
-          (DefaultBlockMaster) master.getMasterProcess().getMaster(BlockMaster.class);
-      bm.forgetAllWorkers();
-    }
   }
 
   /**
@@ -274,7 +345,7 @@ public abstract class AbstractLocalAlluxioCluster {
   }
 
   /**
-   * Creates a default {@link ServerConfiguration} for testing.
+   * Creates a default {@link Configuration} for testing.
    *
    * @param name the name of the test/cluster
    */
@@ -315,8 +386,8 @@ public abstract class AbstractLocalAlluxioCluster {
   public void waitForWorkersRegistered(int timeoutMs)
       throws TimeoutException, InterruptedException, IOException {
     try (MetaMasterClient client =
-             new RetryHandlingMetaMasterClient(MasterClientContext
-                 .newBuilder(ClientContext.create(ServerConfiguration.global())).build())) {
+         new RetryHandlingMetaMasterClient(MasterClientContext
+             .newBuilder(ClientContext.create(Configuration.global())).build())) {
       CommonUtils.waitFor("workers registered", () -> {
         try {
           return client.getMasterInfo(Collections.emptySet())
@@ -334,15 +405,15 @@ public abstract class AbstractLocalAlluxioCluster {
    * Resets the cluster to original state.
    */
   protected void reset() {
-    ClientTestUtils.resetClient(ServerConfiguration.global());
+    ClientTestUtils.resetClient(Configuration.modifiableGlobal());
     GroupMappingServiceTestUtils.resetCache();
   }
 
   /**
    * Resets the client pools to the original state.
    */
-  protected void resetClientPools() throws IOException {
-    ServerConfiguration.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
+  protected void resetClientPools() {
+    Configuration.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
   }
 
   /**

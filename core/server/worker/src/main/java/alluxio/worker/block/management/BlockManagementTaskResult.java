@@ -26,14 +26,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class BlockManagementTaskResult {
   /** Map of block-operation results. */
-  private Map<BlockOperationType, BlockOperationResult> mBlockOpResults;
+  private final Map<BlockOperationType, BlockOperationResult> mBlockOpResults = new HashMap<>();
 
   /**
    * Creates a new empty task result.
    */
-  public BlockManagementTaskResult() {
-    mBlockOpResults = new HashMap<>();
-  }
+  public BlockManagementTaskResult() {}
 
   /**
    * Add results for a specific {@link BlockOperationType}.

@@ -12,8 +12,8 @@
 package alluxio.master.block;
 
 import alluxio.RpcUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.RegisterLeaseNotFoundException;
 import alluxio.grpc.BlockHeartbeatPRequest;
 import alluxio.grpc.BlockHeartbeatPResponse;
@@ -28,6 +28,8 @@ import alluxio.grpc.GetWorkerIdPRequest;
 import alluxio.grpc.GetWorkerIdPResponse;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.LocationBlockIdListEntry;
+import alluxio.grpc.NotifyWorkerIdPRequest;
+import alluxio.grpc.NotifyWorkerIdPResponse;
 import alluxio.grpc.RegisterWorkerPOptions;
 import alluxio.grpc.RegisterWorkerPRequest;
 import alluxio.grpc.RegisterWorkerPResponse;
@@ -86,7 +88,7 @@ public final class BlockMasterWorkerServiceHandler extends
     final List<Metric> metrics = request.getOptions().getMetricsList()
         .stream().map(Metric::fromProto).collect(Collectors.toList());
 
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<BlockHeartbeatPResponse>) () ->
+    RpcUtils.call(LOG, () ->
         BlockHeartbeatPResponse.newBuilder().setCommand(mBlockMaster.workerHeartbeat(workerId,
           capacityBytesOnTiers, usedBytesOnTiers, removedBlockIds, addedBlocksMap,
             lostStorageMap, metrics)).build(),
@@ -104,7 +106,7 @@ public final class BlockMasterWorkerServiceHandler extends
     final String mediumType = request.getMediumType();
     final long length = request.getLength();
 
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<CommitBlockPResponse>) () -> {
+    RpcUtils.call(LOG, () -> {
       mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias,
           mediumType, blockId, length);
       return CommitBlockPResponse.getDefaultInstance();
@@ -116,26 +118,24 @@ public final class BlockMasterWorkerServiceHandler extends
       StreamObserver<CommitBlockInUfsPResponse> responseObserver) {
 
     RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<CommitBlockInUfsPResponse>) () -> {
-          mBlockMaster.commitBlockInUFS(request.getBlockId(), request.getLength());
-          return CommitBlockInUfsPResponse.getDefaultInstance();
-        }, "commitBlock", "request=%s", responseObserver, request);
+            () -> {
+              mBlockMaster.commitBlockInUFS(request.getBlockId(), request.getLength());
+              return CommitBlockInUfsPResponse.getDefaultInstance();
+            }, "commitBlock", "request=%s", responseObserver, request);
   }
 
   @Override
   public void getWorkerId(GetWorkerIdPRequest request,
       StreamObserver<GetWorkerIdPResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetWorkerIdPResponse>) () -> {
-      return GetWorkerIdPResponse.newBuilder()
-          .setWorkerId(mBlockMaster.getWorkerId(GrpcUtils.fromProto(request.getWorkerNetAddress())))
-          .build();
-    }, "getWorkerId", "request=%s", responseObserver, request);
+    RpcUtils.call(LOG, () -> GetWorkerIdPResponse.newBuilder()
+        .setWorkerId(mBlockMaster.getWorkerId(GrpcUtils.fromProto(request.getWorkerNetAddress())))
+        .build(), "getWorkerId", "request=%s", responseObserver, request);
   }
 
   @Override
   public void requestRegisterLease(GetRegisterLeasePRequest request,
                                    StreamObserver<GetRegisterLeasePResponse> responseObserver) {
-    RpcUtils.call(LOG, (RpcUtils.RpcCallableThrowsIOException<GetRegisterLeasePResponse>) () ->
+    RpcUtils.call(LOG, () ->
         GrpcUtils.toProto(request.getWorkerId(), mBlockMaster.tryAcquireRegisterLease(request)),
         "getRegisterLease", "request=%s", responseObserver, request);
   }
@@ -151,11 +151,12 @@ public final class BlockMasterWorkerServiceHandler extends
 
     final long workerId = request.getWorkerId();
     RegisterWorkerPOptions options = request.getOptions();
+    final boolean leaseEnabled =
+        Configuration.getBoolean(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED);
     RpcUtils.call(LOG,
-        (RpcUtils.RpcCallableThrowsIOException<RegisterWorkerPResponse>) () -> {
+        () -> {
           // The exception will be propagated to the worker side and the worker should retry.
-          if (ServerConfiguration.getBoolean(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED)
-              && !mBlockMaster.hasRegisterLease(workerId)) {
+          if (leaseEnabled && !mBlockMaster.hasRegisterLease(workerId)) {
             String errorMsg = String.format("Worker %s does not have a lease or the lease "
                 + "has expired. The worker should acquire a new lease and retry to register.",
                 workerId);
@@ -174,9 +175,13 @@ public final class BlockMasterWorkerServiceHandler extends
           // If the register is unsuccessful, the lease will be kept around until the expiry.
           // The worker can retry and use the existing lease.
           mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
-                  currBlocksOnLocationMap, lostStorageMap, options);
-          LOG.info("Worker {} finished registering, releasing its lease.", workerId);
-          mBlockMaster.releaseRegisterLease(workerId);
+              currBlocksOnLocationMap, lostStorageMap, options);
+          if (leaseEnabled) {
+            LOG.info("Worker {} finished registering, releasing its lease.", workerId);
+            mBlockMaster.releaseRegisterLease(workerId);
+          } else {
+            LOG.info("Worker {} finished registering.", workerId);
+          }
           return RegisterWorkerPResponse.getDefaultInstance();
         }, "registerWorker", true, "request=%s", responseObserver, workerId);
   }
@@ -201,7 +206,7 @@ public final class BlockMasterWorkerServiceHandler extends
             e -> Block.BlockLocation.newBuilder().setTier(e.getKey().getTierAlias())
                 .setMediumType(e.getKey().getMediumType()).setWorkerId(workerId).build(),
             e -> e.getValue().getBlockIdList(),
-            /**
+            /*
              * The merger function is invoked on key collisions to merge the values.
              * In fact this merger should never be invoked because the list is deduplicated
              * by {@link BlockMasterClient} before sending to the master.
@@ -214,5 +219,16 @@ public final class BlockMasterWorkerServiceHandler extends
                 String.format("Duplicate locations found for worker %s "
                     + "with LocationBlockIdListEntry objects %s", workerId, entryReport));
             }));
+  }
+
+  @Override
+  public void notifyWorkerId(
+      NotifyWorkerIdPRequest request,
+      StreamObserver<NotifyWorkerIdPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      mBlockMaster.notifyWorkerId(request.getWorkerId(),
+          GrpcUtils.fromProto(request.getWorkerNetAddress()));
+      return alluxio.grpc.NotifyWorkerIdPResponse.getDefaultInstance();
+    }, "notifyWorkerId", "request=%s", responseObserver, request);
   }
 }

@@ -33,14 +33,14 @@ public final class GrpcServer {
   private static final Logger LOG = LoggerFactory.getLogger(GrpcServer.class);
 
   /** Internal server reference. */
-  private Server mServer;
+  private final Server mServer;
   /** Authentication server for this server. */
-  private AuthenticationServer mAuthServer;
+  private final AuthenticationServer mAuthServer;
   /** Closer for closing resources during shutdown. */
-  private Closer mCloser;
+  private final Closer mCloser;
 
   /** Set to TRUE when the server has been successfully started. **/
-  private boolean mStarted = false;
+  private volatile boolean mStarted = false;
   private final long mServerShutdownTimeoutMs;
 
   /**
@@ -74,7 +74,7 @@ public final class GrpcServer {
    * @throws IOException when unable to start serving
    */
   public GrpcServer start() throws IOException {
-    RetryUtils.retry("Starting gRPC server", () -> mServer.start(),
+    RetryUtils.retry("Starting gRPC server", mServer::start,
         new ExponentialBackoffRetry(100, 500, 5));
     mStarted = true;
     return this;
@@ -91,7 +91,6 @@ public final class GrpcServer {
    * Shuts down the server.
    *
    * @return {@code true} if the server was successfully terminated
-   * @throws InterruptedException
    */
   public boolean shutdown() {
     // Stop accepting new connections.

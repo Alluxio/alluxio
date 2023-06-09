@@ -15,9 +15,10 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.file.CacheContext;
+import alluxio.client.file.cache.store.PageReadTargetBuffer;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.io.BufferUtils;
@@ -27,6 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -43,7 +45,7 @@ public final class CacheManagerWithShadowCacheTest {
   private static final byte[] PAGE2 = BufferUtils.getIncreasingByteArray(255, PAGE_SIZE_BYTES);
   private final byte[] mBuf = new byte[PAGE_SIZE_BYTES];
   private CacheManagerWithShadowCache mCacheManager;
-  private InstancedConfiguration mConf = ConfigurationTestUtils.defaults();
+  private final InstancedConfiguration mConf = Configuration.copyGlobal();
 
   private final ShadowCacheType mShadowCacheType;
   private final int mAgeBits;
@@ -218,22 +220,23 @@ public final class CacheManagerWithShadowCacheTest {
     private final HashMap<PageId, byte[]> mCache = new HashMap<>();
 
     @Override
-    public boolean put(PageId pageId, byte[] page, CacheContext cacheContext) {
+    public boolean put(PageId pageId, ByteBuffer page, CacheContext cacheContext) {
       if (!mCache.containsKey(pageId)) {
-        mCache.put(pageId, page);
+        mCache.put(pageId, page.array());
       }
       return true;
     }
 
     @Override
-    public int get(PageId pageId, int pageOffset, int bytesToRead, byte[] buffer,
-        int offsetInBuffer, CacheContext cacheContext) {
+    public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer buffer,
+        CacheContext cacheContext) {
       if (!mCache.containsKey(pageId)) {
         return 0;
       }
       byte[] page = mCache.get(pageId);
       if (bytesToRead >= 0) {
-        System.arraycopy(page, pageOffset + 0, buffer, offsetInBuffer + 0, bytesToRead);
+        System.arraycopy(page, pageOffset + 0, buffer.byteArray(), (int) buffer.offset(),
+            bytesToRead);
       }
       return bytesToRead;
     }
@@ -250,6 +253,11 @@ public final class CacheManagerWithShadowCacheTest {
     @Override
     public State state() {
       return null;
+    }
+
+    @Override
+    public boolean append(PageId pageId, int appendAt, byte[] page, CacheContext cacheContext) {
+      return false;
     }
 
     @Override

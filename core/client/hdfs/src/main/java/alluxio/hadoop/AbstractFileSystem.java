@@ -25,18 +25,17 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterInquireClient.Factory;
 import alluxio.security.CurrentUser;
 import alluxio.security.authorization.Mode;
-import alluxio.util.ConfigurationUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -82,8 +81,6 @@ import javax.security.auth.Subject;
 public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractFileSystem.class);
 
-  public static final String FIRST_COM_PATH = "alluxio_dep/";
-
   protected AlluxioConfiguration mAlluxioConf = null;
   protected FileSystem mFileSystem = null;
 
@@ -91,6 +88,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
   private Path mWorkingDir = new Path(AlluxioURI.SEPARATOR);
   private Statistics mStatistics = null;
   private String mAlluxioHeader = null;
+  private boolean mExcludeMountInfoOnListStatus;
 
   /**
    * Constructs a new {@link AbstractFileSystem} instance with specified a {@link FileSystem}
@@ -175,29 +173,14 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
 
     AlluxioURI uri = getAlluxioPath(path);
     CreateFilePOptions options = CreateFilePOptions.newBuilder().setBlockSizeBytes(blockSize)
-        .setMode(new Mode(permission.toShort()).toProto()).setRecursive(true).build();
+        .setMode(new Mode(permission.toShort()).toProto()).setRecursive(true)
+        .setOverwrite(overwrite).build();
 
     FileOutStream outStream;
     try {
       outStream = mFileSystem.createFile(uri, options);
     } catch (AlluxioException e) {
-      //now we should consider the override parameter
-      try {
-        if (mFileSystem.exists(uri)) {
-          if (!overwrite) {
-            throw new IOException(
-                "Not allowed to create() (overwrite=false) for existing Alluxio path: " + uri);
-          }
-          if (mFileSystem.getStatus(uri).isFolder()) {
-            throw new IOException(
-                ExceptionMessage.FILE_CREATE_IS_DIRECTORY.getMessage(uri));
-          }
-          mFileSystem.delete(uri);
-        }
-        outStream = mFileSystem.createFile(uri, options);
-      } catch (AlluxioException e2) {
-        throw new IOException(e2);
-      }
+      throw new IOException(e);
     }
     return new FSDataOutputStream(outStream, mStatistics);
   }
@@ -269,6 +252,16 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
   }
 
   @Override
+  protected int getDefaultPort() {
+    return (Integer) PropertyKey.MASTER_RPC_PORT.getDefaultValue();
+  }
+
+  @Override
+  protected URI canonicalizeUri(URI uri) {
+    return uri;
+  }
+
+  @Override
   public long getDefaultBlockSize() {
     return mFileSystem.getConf()
         .getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
@@ -295,9 +288,14 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     }
 
     List<BlockLocation> blockLocations = new ArrayList<>();
-    AlluxioURI path = getAlluxioPath(file.getPath());
     try {
-      List<BlockLocationInfo> locations = mFileSystem.getBlockLocations(path);
+      List<BlockLocationInfo> locations;
+      if (file instanceof AlluxioFileStatus) {
+        locations = mFileSystem.getBlockLocations(((AlluxioFileStatus) file).getUriStatus());
+      } else {
+        AlluxioURI path = getAlluxioPath(file.getPath());
+        locations = mFileSystem.getBlockLocations(path);
+      }
       locations.forEach(location -> {
         FileBlockInfo info = location.getBlockInfo();
         List<WorkerNetAddress> workers = location.getLocations();
@@ -313,7 +311,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
               info.getBlockInfo().getLength()));
         }
       });
-      BlockLocation[] ret = blockLocations.toArray(new BlockLocation[blockLocations.size()]);
+      BlockLocation[] ret = blockLocations.toArray(new BlockLocation[0]);
       if (LOG.isDebugEnabled()) {
         LOG.debug("getFileBlockLocations({}, {}, {}) returned {}",
             file.getPath().getName(), start, len, Arrays.toString(ret));
@@ -367,11 +365,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
-
-    return new FileStatus(fileStatus.getLength(), fileStatus.isFolder(), getReplica(fileStatus),
-        fileStatus.getBlockSizeBytes(), fileStatus.getLastModificationTimeMs(),
-        fileStatus.getLastAccessTimeMs(), new FsPermission((short) fileStatus.getMode()),
-        fileStatus.getOwner(), fileStatus.getGroup(), getFsPath(mAlluxioHeader, fileStatus));
+    return new AlluxioFileStatus(fileStatus, getFsPath(mAlluxioHeader, fileStatus));
   }
 
   private int getReplica(URIStatus status) {
@@ -505,7 +499,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
         hadoopConfProperties, uriConfProperties);
     AlluxioProperties alluxioProps =
         (alluxioConfiguration != null) ? alluxioConfiguration.copyProperties()
-            : ConfigurationUtils.defaults();
+            : alluxio.conf.Configuration.copyProperties();
     // Merge relevant Hadoop configuration into Alluxio's configuration.
     alluxioProps.merge(hadoopConfProperties, Source.RUNTIME);
     // Merge relevant connection details in the URI with the highest priority
@@ -513,6 +507,8 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     // Creating a new instanced configuration from an AlluxioProperties object isn't expensive.
     mAlluxioConf = new InstancedConfiguration(alluxioProps);
     mAlluxioConf.validate();
+    mExcludeMountInfoOnListStatus = mAlluxioConf.getBoolean(
+        PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS);
 
     if (mFileSystem != null) {
       return;
@@ -588,7 +584,9 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     AlluxioURI uri = getAlluxioPath(path);
     List<URIStatus> statuses;
     try {
-      statuses = mFileSystem.listStatus(uri);
+      ListStatusPOptions listStatusPOptions = ListStatusPOptions.getDefaultInstance().toBuilder()
+          .setExcludeMountInfo(mExcludeMountInfoOnListStatus).build();
+      statuses = mFileSystem.listStatus(uri, listStatusPOptions);
     } catch (FileDoesNotExistException e) {
       throw new FileNotFoundException(getAlluxioPath(path).toString());
     } catch (AlluxioException e) {
@@ -598,11 +596,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     FileStatus[] ret = new FileStatus[statuses.size()];
     for (int k = 0; k < statuses.size(); k++) {
       URIStatus status = statuses.get(k);
-
-      ret[k] = new FileStatus(status.getLength(), status.isFolder(), getReplica(status),
-          status.getBlockSizeBytes(), status.getLastModificationTimeMs(),
-          status.getLastAccessTimeMs(), new FsPermission((short) status.getMode()),
-          status.getOwner(), status.getGroup(), getFsPath(mAlluxioHeader, status));
+      ret[k] = new AlluxioFileStatus(status, getFsPath(mAlluxioHeader, status));
     }
     return ret;
   }
@@ -720,7 +714,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
   /**
    * Gets the connection configuration from the input uri.
    *
-   * @param uri a Alluxio Uri that may contain connection configuration
+   * @param uri an Alluxio Uri that may contain connection configuration
    */
   protected abstract Map<String, Object> getConfigurationFromUri(URI uri, Configuration conf);
 

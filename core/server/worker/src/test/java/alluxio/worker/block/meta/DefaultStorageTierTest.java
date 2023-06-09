@@ -12,11 +12,12 @@
 package alluxio.worker.block.meta;
 
 import alluxio.Constants;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
+import com.google.common.collect.ImmutableList;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -145,10 +146,10 @@ public class DefaultStorageTierTest {
   }
 
   @Test
-  public void tolerantFailureInStorageDir() throws Exception {
+  public void tolerantFailureInStorageDir() {
     PropertyKey tierDirPathConf =
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0);
-    ServerConfiguration.set(tierDirPathConf, "/dev/null/invalid," + mTestDirPath1);
+    Configuration.set(tierDirPathConf, "/dev/null/invalid," + mTestDirPath1);
     mTier = DefaultStorageTier.newStorageTier(Constants.MEDIUM_MEM, 0, false);
     List<StorageDir> dirs = mTier.getStorageDirs();
     Assert.assertEquals(1, dirs.size());
@@ -156,16 +157,34 @@ public class DefaultStorageTierTest {
   }
 
   @Test
-  public void tolerantMisconfigurationInStorageDir() throws Exception {
-    ServerConfiguration
+  public void tolerantMisconfigurationInStorageDir() {
+    Configuration
         .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_MEDIUMTYPE.format(0),
             Constants.MEDIUM_MEM);
-    ServerConfiguration
+    Configuration
         .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(0),
             "2000");
     mTier = DefaultStorageTier.newStorageTier(Constants.MEDIUM_MEM, 0, false);
     List<StorageDir> dirs = mTier.getStorageDirs();
     Assert.assertEquals(2, dirs.size());
     Assert.assertEquals(mTestBlockDirPath1, dirs.get(0).getDirPath());
+  }
+
+  @Test
+  public void removeDir() {
+    List<StorageDir> dirs = mTier.getStorageDirs();
+    Assert.assertEquals(2, dirs.size());
+    StorageDir dir0 = dirs.get(0);
+    StorageDir dir1 = dirs.get(1);
+    mTier.removeStorageDir(dir0);
+    Assert.assertEquals(ImmutableList.of(dir1), mTier.getStorageDirs());
+    mTier.removeStorageDir(dir1);
+    Assert.assertEquals(ImmutableList.of(), mTier.getStorageDirs());
+
+    StorageTier anotherTier = DefaultStorageTier.newStorageTier("anotherTier", 0, false);
+    StorageDir dirInAnotherTier =
+        DefaultStorageDir.newStorageDir(anotherTier, 0, 0, 0, "dir", "medium");
+    Assert.assertThrows("should not remove a dir that does not belong to this tier",
+        IllegalArgumentException.class, () -> mTier.removeStorageDir(dirInAnotherTier));
   }
 }

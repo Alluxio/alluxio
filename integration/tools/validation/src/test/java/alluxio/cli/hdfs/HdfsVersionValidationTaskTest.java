@@ -17,13 +17,13 @@ import static org.junit.Assert.assertThat;
 
 import alluxio.cli.ValidationTaskResult;
 import alluxio.cli.ValidationUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.ShellUtils;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
@@ -31,17 +31,10 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.IOException;
-
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(ShellUtils.class)
 public class HdfsVersionValidationTaskTest {
-  private static InstancedConfiguration sConf;
-
-  @BeforeClass
-  public static void initConf() throws IOException {
-    sConf = InstancedConfiguration.defaults();
-  }
+  private static final InstancedConfiguration CONF = Configuration.copyGlobal();
 
   @Test
   public void versionNotMatchedDefault() throws Exception {
@@ -49,7 +42,7 @@ public class HdfsVersionValidationTaskTest {
     String[] cmd = new String[]{"hadoop", "version"};
     BDDMockito.given(ShellUtils.execCommand(cmd)).willReturn("Hadoop 2.2");
 
-    HdfsVersionValidationTask task = new HdfsVersionValidationTask(sConf);
+    HdfsVersionValidationTask task = new HdfsVersionValidationTask(CONF);
     ValidationTaskResult result = task.validateImpl(ImmutableMap.of());
     assertEquals(ValidationUtils.State.FAILED, result.getState());
     assertThat(result.getResult(), containsString("2.2 does not match alluxio.underfs.version"));
@@ -61,9 +54,9 @@ public class HdfsVersionValidationTaskTest {
     PowerMockito.mockStatic(ShellUtils.class);
     String[] cmd = new String[]{"hadoop", "version"};
     BDDMockito.given(ShellUtils.execCommand(cmd)).willReturn("Hadoop 2.7");
-    sConf.set(PropertyKey.UNDERFS_VERSION, "2.6");
+    CONF.set(PropertyKey.UNDERFS_VERSION, "2.6");
 
-    HdfsVersionValidationTask task = new HdfsVersionValidationTask(sConf);
+    HdfsVersionValidationTask task = new HdfsVersionValidationTask(CONF);
     ValidationTaskResult result = task.validateImpl(ImmutableMap.of());
     assertEquals(ValidationUtils.State.FAILED, result.getState());
     assertThat(result.getResult(), containsString(
@@ -76,9 +69,9 @@ public class HdfsVersionValidationTaskTest {
     PowerMockito.mockStatic(ShellUtils.class);
     String[] cmd = new String[]{"hadoop", "version"};
     BDDMockito.given(ShellUtils.execCommand(cmd)).willReturn("Hadoop 2.6");
-    sConf.set(PropertyKey.UNDERFS_VERSION, "2.6");
+    CONF.set(PropertyKey.UNDERFS_VERSION, "2.6");
 
-    HdfsVersionValidationTask task = new HdfsVersionValidationTask(sConf);
+    HdfsVersionValidationTask task = new HdfsVersionValidationTask(CONF);
     ValidationTaskResult result = task.validateImpl(ImmutableMap.of());
     assertEquals(ValidationUtils.State.OK, result.getState());
   }
@@ -89,9 +82,9 @@ public class HdfsVersionValidationTaskTest {
     String[] cmd = new String[]{"hadoop", "version"};
     // The minor version is not defined in Alluxio, which should work
     BDDMockito.given(ShellUtils.execCommand(cmd)).willReturn("Hadoop 2.6.2");
-    sConf.set(PropertyKey.UNDERFS_VERSION, "2.6");
+    CONF.set(PropertyKey.UNDERFS_VERSION, "2.6");
 
-    HdfsVersionValidationTask task = new HdfsVersionValidationTask(sConf);
+    HdfsVersionValidationTask task = new HdfsVersionValidationTask(CONF);
     ValidationTaskResult result = task.validateImpl(ImmutableMap.of());
     assertEquals(ValidationUtils.State.OK, result.getState());
   }
@@ -102,9 +95,9 @@ public class HdfsVersionValidationTaskTest {
     String[] cmd = new String[]{"hadoop", "version"};
     // Alluxio defines a different minor version, which should not work
     BDDMockito.given(ShellUtils.execCommand(cmd)).willReturn("Hadoop 2.6.2");
-    sConf.set(PropertyKey.UNDERFS_VERSION, "2.6.3");
+    CONF.set(PropertyKey.UNDERFS_VERSION, "2.6.3");
 
-    HdfsVersionValidationTask task = new HdfsVersionValidationTask(sConf);
+    HdfsVersionValidationTask task = new HdfsVersionValidationTask(CONF);
     ValidationTaskResult result = task.validateImpl(ImmutableMap.of());
     assertEquals(ValidationUtils.State.FAILED, result.getState());
     assertThat(result.getResult(), containsString(
@@ -122,7 +115,7 @@ public class HdfsVersionValidationTaskTest {
             + "This command was run using "
             + "/tmp/hadoop/share/hadoop/common/hadoop-common-2.7.2.jar";
 
-    HdfsVersionValidationTask task = new HdfsVersionValidationTask(sConf);
+    HdfsVersionValidationTask task = new HdfsVersionValidationTask(CONF);
     String version = task.parseVersion(versionStr);
     assertEquals("2.7.2", version);
   }
@@ -137,13 +130,13 @@ public class HdfsVersionValidationTaskTest {
             + "From source with checksum 79b9b24a29c6358b53597c3b49575e37\n"
             + "This command was run using /usr/lib/hadoop/hadoop-common-2.6.0-cdh5.16.2.jar";
 
-    HdfsVersionValidationTask task = new HdfsVersionValidationTask(sConf);
+    HdfsVersionValidationTask task = new HdfsVersionValidationTask(CONF);
     String version = task.parseVersion(versionStr);
     assertEquals("cdh5.16.2", version);
   }
 
   @After
   public void resetConfig() {
-    sConf.unset(PropertyKey.UNDERFS_VERSION);
+    CONF.unset(PropertyKey.UNDERFS_VERSION);
   }
 }

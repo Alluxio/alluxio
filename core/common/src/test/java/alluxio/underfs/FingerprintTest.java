@@ -119,6 +119,12 @@ public final class FingerprintTest {
     assertEquals(owner, fp.getTag(Fingerprint.Tag.OWNER));
     assertEquals(group, fp.getTag(Fingerprint.Tag.GROUP));
     assertEquals(String.valueOf(mode), fp.getTag(Fingerprint.Tag.MODE));
+    assertEquals(contentHash, fp.getTag(Fingerprint.Tag.CONTENT_HASH));
+
+    // create a fingerprint with a custom content hash
+    String contentHash2 = CommonUtils.randomAlphaNumString(10);
+    fp = Fingerprint.create(ufsName, fileStatus, contentHash2);
+    assertEquals(contentHash2, fp.getTag(Fingerprint.Tag.CONTENT_HASH));
   }
 
   @Test
@@ -131,11 +137,21 @@ public final class FingerprintTest {
         CommonUtils.randomAlphaNumString(10),
         CommonUtils.randomAlphaNumString(10),
         Arrays.asList("user::rw-", "group::r--", "other::rwx"));
-    Fingerprint fp = Fingerprint.create(CommonUtils.randomAlphaNumString(10), status, acl);
+    Fingerprint fp = Fingerprint.create(CommonUtils.randomAlphaNumString(10), status, null, acl);
     String expected = fp.serialize();
     assertNotNull(expected);
     assertEquals("user::rw-,group::r--,other::rwx",
         Fingerprint.parse(expected).getTag(Fingerprint.Tag.ACL));
     assertEquals(expected, Fingerprint.parse(expected).serialize());
+  }
+
+  @Test
+  public void sanitizeString() {
+    Fingerprint dummy = Fingerprint.INVALID_FINGERPRINT;
+    assertEquals("foobar", dummy.sanitizeString("foobar"));
+    assertEquals("foo_bar", dummy.sanitizeString("foo bar"));
+    assertEquals("foo_bar", dummy.sanitizeString("foo|bar"));
+    assertEquals("foo_bar_baz", dummy.sanitizeString("foo bar|baz"));
+    assertEquals("foo_bar_baz_qux", dummy.sanitizeString("foo bar baz qux"));
   }
 }

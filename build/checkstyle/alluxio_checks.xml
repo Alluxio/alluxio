@@ -162,7 +162,7 @@
     </module>
     <module name="LocalVariableName">
       <property name="tokens" value="VARIABLE_DEF"/>
-      <property name="format" value="^[a-z][a-zA-Z0-9]*$"/>
+      <property name="format" value="^[a-ln-z][a-zA-Z0-9]*$|^m([a-z0-9][a-zA-Z0-9]*)?$"/>
       <property name="allowOneCharVarInForLoop" value="true"/>
       <message key="name.invalidPattern"
                value="Local variable name ''{0}'' must match pattern ''{1}''."/>
@@ -201,6 +201,7 @@
     <module name="CustomImportOrder">
       <property name="specialImportsRegExp" value="alluxio"/>
       <property name="customImportOrderRules" value="STATIC###SPECIAL_IMPORTS###THIRD_PARTY_PACKAGE###STANDARD_JAVA_PACKAGE"/>
+      <property name="sortImportsInGroupAlphabetically" value="true" />
     </module>
     <module name="MethodParamPad"/>
     <module name="ParenPad">

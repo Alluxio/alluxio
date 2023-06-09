@@ -21,8 +21,10 @@ import static org.junit.Assert.fail;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
+import alluxio.underfs.UnderFileSystemConfiguration;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -268,21 +270,26 @@ public final class PathUtilsTest {
     // Get temporary path
     Pattern pattern = Pattern.compile(
         "\\.alluxio_ufs_persistence\\/test\\.parquet\\.alluxio\\.\\d+\\.\\S+\\.tmp");
-    String tempPersistencePath = PathUtils.getPersistentTmpPath("s3://test/test.parquet");
+    AlluxioConfiguration alluxioConfiguration = UnderFileSystemConfiguration.emptyConfig();
+    String tempPersistencePath = PathUtils.getPersistentTmpPath(alluxioConfiguration,
+        "s3://test/test.parquet");
     assertEquals(pattern.matcher(tempPersistencePath).matches(), true);
     pattern = Pattern.compile(
         "\\.alluxio_ufs_persistence\\/test\\.parquet\\.alluxio\\.\\d+\\.\\S+\\.tmp");
-    tempPersistencePath = PathUtils.getPersistentTmpPath("hdfs://localhost:9010/test/test.parquet");
+    tempPersistencePath = PathUtils
+        .getPersistentTmpPath(alluxioConfiguration, "hdfs://localhost:9010/test/test.parquet");
     assertEquals(pattern.matcher(tempPersistencePath).matches(), true);
 
     // Get temporary path with root path
     pattern = Pattern.compile(
         "\\.alluxio_ufs_persistence\\/test\\.parquet\\.alluxio\\.\\d+\\.\\S+\\.tmp");
-    tempPersistencePath = PathUtils.getPersistentTmpPath("s3://test.parquet");
+    tempPersistencePath = PathUtils.getPersistentTmpPath(alluxioConfiguration,
+        "s3://test.parquet");
     assertEquals(pattern.matcher(tempPersistencePath).matches(), true);
     pattern = Pattern.compile(
         "\\.alluxio_ufs_persistence\\/test\\.parquet\\.alluxio\\.\\d+\\.\\S+\\.tmp");
-    tempPersistencePath = PathUtils.getPersistentTmpPath("hdfs://localhost:9010/test.parquet");
+    tempPersistencePath = PathUtils
+        .getPersistentTmpPath(alluxioConfiguration, "hdfs://localhost:9010/test.parquet");
     assertEquals(pattern.matcher(tempPersistencePath).matches(), true);
   }
 
@@ -301,6 +308,13 @@ public final class PathUtilsTest {
         PathUtils.getPathComponents("/foo/../bar"));
     assertArrayEquals(new String[] {"", "foo", "bar", "a", "b", "c"},
         PathUtils.getPathComponents("/foo//bar/a/b/c"));
+  }
+
+  @Test
+  public void getCleanedPathComponents() throws InvalidPathException {
+    assertArrayEquals(new String[] {"s3:", "", "a", "b"},
+        PathUtils.getCleanedPathComponents("s3://a/b"));
+    assertArrayEquals(new String[] {""}, PathUtils.getCleanedPathComponents("/"));
   }
 
   /**
@@ -492,5 +506,35 @@ public final class PathUtilsTest {
     assertEquals("/foo/bar/", PathUtils.normalizePath("/foo/bar/", "/"));
     assertEquals("/foo/bar//", PathUtils.normalizePath("/foo/bar//", "/"));
     assertEquals("/foo/bar%", PathUtils.normalizePath("/foo/bar", "%"));
+  }
+
+  /**
+   * Tests the {@link PathUtils#getPossibleMountPoints(String)} method to
+   * throw an exception in case the path is invalid.
+   */
+  @Test
+  public void getPossibleMountPointsException() throws InvalidPathException {
+    mException.expect(InvalidPathException.class);
+    PathUtils.getPossibleMountPoints("");
+  }
+
+  /**
+   * Tests the {@link PathUtils#getPossibleMountPoints(String)} method.
+   */
+  @Test
+  public void getPossibleMountPointsNoException() throws InvalidPathException {
+    ArrayList<String> paths = new ArrayList<>();
+    assertEquals(paths, PathUtils.getPossibleMountPoints("/"));
+    assertEquals(paths, PathUtils.getPossibleMountPoints("//"));
+
+    paths.add("/a");
+    assertEquals(paths, PathUtils.getPossibleMountPoints("/a"));
+    assertEquals(paths, PathUtils.getPossibleMountPoints("/a/"));
+    paths.add("/a/b");
+    assertEquals(paths, PathUtils.getPossibleMountPoints("/a/b"));
+    assertEquals(paths, PathUtils.getPossibleMountPoints("/a/b/"));
+    paths.add("/a/b/c");
+    assertEquals(paths, PathUtils.getPossibleMountPoints("/a/b/c"));
+    assertEquals(paths, PathUtils.getPossibleMountPoints("/a/b/c/"));
   }
 }

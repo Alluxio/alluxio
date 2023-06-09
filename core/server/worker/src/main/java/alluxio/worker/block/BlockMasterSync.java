@@ -11,28 +11,21 @@
 
 package alluxio.worker.block;
 
+import alluxio.Constants;
 import alluxio.ProcessUtils;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.FailedToAcquireRegisterLeaseException;
 import alluxio.grpc.Command;
-import alluxio.grpc.ConfigProperty;
-import alluxio.grpc.Scope;
 import alluxio.heartbeat.HeartbeatExecutor;
-import alluxio.metrics.MetricsSystem;
-import alluxio.retry.ExponentialTimeBoundedRetry;
-import alluxio.retry.RetryPolicy;
-import alluxio.util.ConfigurationUtils;
+import alluxio.util.logging.SamplingLogger;
 import alluxio.wire.WorkerNetAddress;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -52,18 +45,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class BlockMasterSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterSync.class);
-  private static final boolean ACQUIRE_LEASE =
-      ServerConfiguration.getBoolean(PropertyKey.WORKER_REGISTER_LEASE_ENABLED);
-  private static final long ACQUIRE_LEASE_WAIT_BASE_SLEEP_MS =
-      ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_SLEEP_MIN);
-  private static final long ACQUIRE_LEASE_WAIT_MAX_SLEEP_MS =
-      ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_SLEEP_MAX);
+  private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 30L * Constants.SECOND);
   private static final long ACQUIRE_LEASE_WAIT_MAX_DURATION =
-      ServerConfiguration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_MAX_DURATION);
-  private static final boolean USE_STREAMING =
-      ServerConfiguration.getBoolean(PropertyKey.WORKER_REGISTER_STREAM_ENABLED);
+      Configuration.getMs(PropertyKey.WORKER_REGISTER_LEASE_RETRY_MAX_DURATION);
   private static final int HEARTBEAT_TIMEOUT_MS =
-      (int) ServerConfiguration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
+      (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
 
   /** The block worker responsible for interacting with Alluxio and UFS storage. */
   private final BlockWorker mBlockWorker;
@@ -85,6 +71,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed. */
   private long mLastSuccessfulHeartbeatMs;
 
+  /** The helper instance for sync related methods. */
+  private final BlockMasterSyncHelper mBlockMasterSyncHelper;
+
   /**
    * Creates a new instance of {@link BlockMasterSync}.
    *
@@ -101,25 +90,10 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     mMasterClientPool = masterClientPool;
     mMasterClient = mMasterClientPool.acquire();
     mAsyncBlockRemover = new AsyncBlockRemover(mBlockWorker);
+    mBlockMasterSyncHelper = new BlockMasterSyncHelper(mMasterClient);
 
     registerWithMaster();
     mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
-  }
-
-  /**
-   * Gets the default retry policy for acquiring a {@link alluxio.wire.RegisterLease}
-   * from the BlockMaster.
-   *
-   * @return the policy to use
-   */
-  public static RetryPolicy getDefaultAcquireLeaseRetryPolicy() {
-    RetryPolicy retry = ExponentialTimeBoundedRetry.builder()
-        .withMaxDuration(Duration.of(ACQUIRE_LEASE_WAIT_MAX_DURATION, ChronoUnit.MILLIS))
-        .withInitialSleep(Duration.of(ACQUIRE_LEASE_WAIT_BASE_SLEEP_MS, ChronoUnit.MILLIS))
-        .withMaxSleep(Duration.of(ACQUIRE_LEASE_WAIT_MAX_SLEEP_MS, ChronoUnit.MILLIS))
-        .withSkipInitialSleep()
-        .build();
-    return retry;
   }
 
   /**
@@ -128,75 +102,34 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    */
   private void registerWithMaster() throws IOException {
     BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
-    List<ConfigProperty> configList =
-        ConfigurationUtils.getConfiguration(ServerConfiguration.global(), Scope.WORKER);
-
-    if (ACQUIRE_LEASE) {
-      LOG.info("Acquiring a RegisterLease from the master before registering");
-      try {
-        mMasterClient.acquireRegisterLeaseWithBackoff(mWorkerId.get(),
-            storeMeta.getNumberOfBlocks(),
-            getDefaultAcquireLeaseRetryPolicy());
-        LOG.info("Lease acquired");
-      } catch (FailedToAcquireRegisterLeaseException e) {
-        mMasterClient.disconnect();
-        if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
-          throw new RuntimeException(String.format("Master register lease timeout exceeded: %dms",
-              ACQUIRE_LEASE_WAIT_MAX_DURATION));
-        }
-        ProcessUtils.fatalError(LOG, "Master register lease timeout exceeded: %dms",
-            ACQUIRE_LEASE_WAIT_MAX_DURATION);
+    try {
+      mBlockMasterSyncHelper.tryAcquireLease(mWorkerId.get(), storeMeta);
+    } catch (FailedToAcquireRegisterLeaseException e) {
+      mMasterClient.disconnect();
+      if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
+        throw new RuntimeException(String.format("Master register lease timeout exceeded: %dms",
+            ACQUIRE_LEASE_WAIT_MAX_DURATION));
       }
+      ProcessUtils.fatalError(LOG, "Master register lease timeout exceeded: %dms",
+          ACQUIRE_LEASE_WAIT_MAX_DURATION);
     }
-
-    if (USE_STREAMING) {
-      mMasterClient.registerWithStream(mWorkerId.get(),
-          storeMeta.getStorageTierAssoc().getOrderedStorageAliases(),
-          storeMeta.getCapacityBytesOnTiers(),
-          storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
-          storeMeta.getLostStorage(), configList);
-    } else {
-      mMasterClient.register(mWorkerId.get(),
-          storeMeta.getStorageTierAssoc().getOrderedStorageAliases(),
-          storeMeta.getCapacityBytesOnTiers(),
-          storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockListByStorageLocation(),
-          storeMeta.getLostStorage(), configList);
-    }
-    // If the worker registers with master successfully, the lease will be recycled on the
-    // master side. No need to manually request for recycle on the worker side.
+    mBlockMasterSyncHelper.registerToMaster(mWorkerId.get(), storeMeta);
   }
 
   /**
    * Heartbeats to the master node about the change in the worker's managed space.
    */
   @Override
-  public void heartbeat() {
-    // Prepare metadata for the next heartbeat
-    BlockHeartbeatReport blockReport = mBlockWorker.getReport();
-    BlockStoreMeta storeMeta = mBlockWorker.getStoreMeta();
-
-    // Send the heartbeat and execute the response
-    Command cmdFromMaster = null;
-    List<alluxio.grpc.Metric> metrics = MetricsSystem.reportWorkerMetrics();
-
-    try {
-      cmdFromMaster = mMasterClient.heartbeat(mWorkerId.get(), storeMeta.getCapacityBytesOnTiers(),
-          storeMeta.getUsedBytesOnTiers(), blockReport.getRemovedBlocks(),
-          blockReport.getAddedBlocks(), blockReport.getLostStorage(), metrics);
-      handleMasterCommand(cmdFromMaster);
+  public void heartbeat(long timeLimitMs) {
+    boolean success = mBlockMasterSyncHelper.heartbeat(
+        mWorkerId.get(), mBlockWorker.getReport(),
+        mBlockWorker.getStoreMeta(), this::handleMasterCommand);
+    if (success) {
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
-    } catch (IOException | ConnectionFailedException e) {
-      // An error occurred, log and ignore it or error if heartbeat timeout is reached
-      if (cmdFromMaster == null) {
-        LOG.error("Failed to receive master heartbeat command.", e);
-      } else {
-        LOG.error("Failed to receive or execute master heartbeat command: {}",
-            cmdFromMaster.toString(), e);
-      }
-      mMasterClient.disconnect();
+    } else {
       if (HEARTBEAT_TIMEOUT_MS > 0) {
         if (System.currentTimeMillis() - mLastSuccessfulHeartbeatMs >= HEARTBEAT_TIMEOUT_MS) {
-          if (ServerConfiguration.getBoolean(PropertyKey.TEST_MODE)) {
+          if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
             throw new RuntimeException(
                 String.format("Master heartbeat timeout exceeded: %s", HEARTBEAT_TIMEOUT_MS));
           }
@@ -246,6 +179,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       // Unknown request
       case Unknown:
         LOG.error("Master heartbeat sends unknown command {}", cmd);
+        break;
+      case Decommissioned:
+        SAMPLING_LOG.info("This worker has been decommissioned");
         break;
       default:
         throw new RuntimeException("Un-recognized command from master " + cmd);

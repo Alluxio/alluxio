@@ -16,14 +16,15 @@ import alluxio.SyncInfo;
 import alluxio.annotation.PublicApi;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.recorder.Recorder;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
+import alluxio.underfs.options.GetFileStatusOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
@@ -37,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -56,7 +58,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 @ThreadSafe
 // TODO(adit); API calls should use a URI instead of a String wherever appropriate
-public interface UnderFileSystem extends Closeable {
+public interface UnderFileSystem extends Closeable, UfsClient {
   /**
    * The factory for the {@link UnderFileSystem}.
    */
@@ -87,9 +89,25 @@ public interface UnderFileSystem extends Closeable {
      * @return client for the under file system
      */
     public static UnderFileSystem create(String path, UnderFileSystemConfiguration ufsConf) {
+      return createWithRecorder(path, ufsConf, Recorder.noopRecorder());
+    }
+
+    /**
+     * Creates a client for operations involved with the under file system and record the
+     * execution process.
+     * An {@link IllegalArgumentException} is thrown if there is no under file system for the given
+     * path or if no under file system could successfully be created.
+     *
+     * @param path path
+     * @param ufsConf configuration object for the UFS
+     * @param recorder recorder used to record the detailed execution process
+     * @return client for the under file system
+     */
+    public static UnderFileSystem createWithRecorder(String path,
+        UnderFileSystemConfiguration ufsConf, Recorder recorder) {
       // Try to obtain the appropriate factory
       List<UnderFileSystemFactory> factories =
-          UnderFileSystemFactoryRegistry.findAll(path, ufsConf);
+          UnderFileSystemFactoryRegistry.findAllWithRecorder(path, ufsConf, recorder);
       if (factories.isEmpty()) {
         throw new IllegalArgumentException("No Under File System Factory found for: " + path);
       }
@@ -101,13 +119,27 @@ public interface UnderFileSystem extends Closeable {
           // Reflection may be invoked during UFS creation on service loading which uses context
           // classloader by default. Stashing the context classloader on creation and switch it back
           // when creation is done.
+          recorder.record(
+              "Trying to create UFS from factory {} of version {} for path {} with ClassLoader {}",
+              factory.getClass().getSimpleName(),
+              factory.getVersion(),
+              path,
+              factory.getClass().getClassLoader().getClass().getSimpleName());
           Thread.currentThread().setContextClassLoader(factory.getClass().getClassLoader());
+          UnderFileSystem underFileSystem =
+              new UnderFileSystemWithLogging(path, factory.create(path, ufsConf), ufsConf);
           // Use the factory to create the actual client for the Under File System
-          return new UnderFileSystemWithLogging(path, factory.create(path, ufsConf), ufsConf);
+          recorder.record("UFS created with factory {}",
+              factory.getClass().getSimpleName());
+          return underFileSystem;
         } catch (Throwable e) {
           // Catching Throwable rather than Exception to catch service loading errors
           errors.add(e);
-          LOG.warn("Failed to create UnderFileSystem by factory {}: {}", factory, e.toString());
+          String errorMsg = String.format(
+              "Failed to create UnderFileSystem by factory %s: %s",
+              factory.getClass().getSimpleName(), e);
+          recorder.record(errorMsg);
+          LOG.warn(errorMsg);
         } finally {
           Thread.currentThread().setContextClassLoader(previousClassLoader);
         }
@@ -126,16 +158,16 @@ public interface UnderFileSystem extends Closeable {
     }
 
     /**
+     * @param conf configuration
      * @return the instance of under file system for Alluxio root directory
      */
     public static UnderFileSystem createForRoot(AlluxioConfiguration conf) {
       String ufsRoot = conf.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       boolean readOnly = conf.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
-      boolean shared = conf.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_SHARED);
       Map<String, Object> ufsConf =
           conf.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
-      return create(ufsRoot, UnderFileSystemConfiguration.defaults(conf).setReadOnly(readOnly)
-          .setShared(shared).createMountSpecificConf(ufsConf));
+      return create(ufsRoot, new UnderFileSystemConfiguration(conf, readOnly)
+          .createMountSpecificConf(ufsConf));
     }
   }
 
@@ -343,7 +375,7 @@ public interface UnderFileSystem extends Closeable {
    * @return the configuration
    */
   default AlluxioConfiguration getConfiguration() throws IOException {
-    return InstancedConfiguration.EMPTY_CONFIGURATION;
+    return UnderFileSystemConfiguration.emptyConfig();
   }
 
   /**
@@ -392,7 +424,20 @@ public interface UnderFileSystem extends Closeable {
    * @return the file status
    * @throws FileNotFoundException when the path does not exist
    */
-  UfsFileStatus getFileStatus(String path) throws IOException;
+  default UfsFileStatus getFileStatus(String path) throws IOException {
+    return getFileStatus(path, GetFileStatusOptions.defaults());
+  }
+
+  /**
+   * Gets the file status. The caller must already know the path is a file. This method will
+   * throw an exception if the path exists, but is a directory.
+   *
+   * @param path the path to the file
+   * @param options method options
+   * @return the file status
+   * @throws FileNotFoundException when the path does not exist
+   */
+  UfsFileStatus getFileStatus(String path, GetFileStatusOptions options) throws IOException;
 
   /**
    * Gets the file status.
@@ -431,9 +476,20 @@ public interface UnderFileSystem extends Closeable {
    * @param path the path to compute the fingerprint for
    * @return the string representing the fingerprint
    */
-  default Fingerprint getParsedFingerprint(String path) {
-    return Fingerprint.parse(getFingerprint(path));
-  }
+  Fingerprint getParsedFingerprint(String path);
+
+  /**
+   * Same as {@link #getParsedFingerprint(String)} except, will use the given content hash
+   * as the {@link alluxio.underfs.Fingerprint.Tag#CONTENT_HASH} field of the fingerprint
+   * if non-null. This is intended to be used when the file is already in Alluxio and
+   * a fingerprint is being created based on that file where the content hash has already
+   * been computed.
+   * @param path the path to compute the fingerprint for
+   * @param contentHash is used as the {@link alluxio.underfs.Fingerprint.Tag#CONTENT_HASH}
+   *                    field when creating the fingerprint.
+   * @return the string representing the fingerprint
+   */
+  Fingerprint getParsedFingerprint(String path, @Nullable String contentHash);
 
   /**
    * An {@link UnderFileSystem} may be composed of one or more "physical UFS"s. This method is used
@@ -582,6 +638,20 @@ public interface UnderFileSystem extends Closeable {
    */
   @Nullable
   UfsStatus[] listStatus(String path, ListOptions options) throws IOException;
+
+  /**
+   * Lists the ufs statuses iteratively.
+   *
+   * @param path the abstract pathname to list
+   * @param options for list directory
+   * @param startAfter the start after token
+   * @param batchSize the batch size
+   * @return An iterator of ufs status. Returns
+   *  {@code null} if this abstract pathname does not denote a directory.
+   */
+  @Nullable
+  Iterator<UfsStatus> listStatusIterable(
+      String path, ListOptions options, String startAfter, int batchSize) throws IOException;
 
   /**
    * Creates the directory named by this abstract pathname. If the folder already exists, the method

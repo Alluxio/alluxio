@@ -12,6 +12,8 @@
 package alluxio.job;
 
 import alluxio.Constants;
+import alluxio.RuntimeConstants;
+import alluxio.grpc.BuildVersion;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -29,6 +31,8 @@ public final class MasterWorkerInfo {
   private final WorkerNetAddress mWorkerAddress;
   /** The id of the worker. */
   private final long mId;
+
+  private final BuildVersion mVersion;
   /** Start time of the worker in ms. */
   private final long mStartTimeMs;
   /** Worker's last updated time in ms. */
@@ -45,6 +49,22 @@ public final class MasterWorkerInfo {
     mId = id;
     mStartTimeMs = System.currentTimeMillis();
     mLastUpdatedTimeMs = System.currentTimeMillis();
+    mVersion = RuntimeConstants.UNKNOWN_VERSION_INFO;
+  }
+
+  /**
+   * Creates a new instance of {@link MasterWorkerInfo}.
+   *
+   * @param id the worker id to use
+   * @param address the worker address to use
+   * @param version the worker version info
+   */
+  public MasterWorkerInfo(long id, WorkerNetAddress address, BuildVersion version) {
+    mWorkerAddress = Preconditions.checkNotNull(address);
+    mId = id;
+    mStartTimeMs = System.currentTimeMillis();
+    mLastUpdatedTimeMs = System.currentTimeMillis();
+    mVersion = version;
   }
 
   /**
@@ -73,6 +93,13 @@ public final class MasterWorkerInfo {
    */
   public synchronized long getStartTime() {
     return mStartTimeMs;
+  }
+
+  /**
+   * @return the build version
+   */
+  public synchronized BuildVersion getVersion() {
+    return mVersion;
   }
 
   /**

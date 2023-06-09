@@ -75,9 +75,7 @@ public class IOTaskResult implements TaskResult {
     mErrors.add(errorMsg);
   }
 
-  /**
-   * @return all the error messages
-   * */
+  @Override
   public List<String> getErrors() {
     return mErrors;
   }
@@ -96,9 +94,7 @@ public class IOTaskResult implements TaskResult {
     mPoints = points;
   }
 
-  /**
-   * @return the {@link BaseParameters}
-   * */
+  @Override
   public BaseParameters getBaseParameters() {
     return mBaseParameters;
   }

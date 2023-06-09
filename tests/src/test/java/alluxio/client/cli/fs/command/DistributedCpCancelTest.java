@@ -38,7 +38,7 @@ import java.io.FileWriter;
  */
 public final class DistributedCpCancelTest extends AbstractFileSystemShellTest {
   private static final long SLEEP_MS = Constants.SECOND_MS * 30;
-  private static final int TEST_TIMEOUT = 20;
+  private static final int TEST_TIMEOUT = Constants.SECOND_MS * 90;
 
   @ClassRule
   public static UnderFileSystemFactoryRegistryRule sUnderfilesystemfactoryregistry =

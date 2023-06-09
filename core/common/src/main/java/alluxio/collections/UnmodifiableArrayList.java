@@ -15,7 +15,6 @@ import alluxio.annotation.SuppressFBWarnings;
 
 import com.google.common.base.Preconditions;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
@@ -24,6 +23,7 @@ import java.util.ListIterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Consumer;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This class provides an unmodifiable List proxy for an underlying array.

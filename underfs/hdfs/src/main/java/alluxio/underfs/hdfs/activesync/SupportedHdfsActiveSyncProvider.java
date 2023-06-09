@@ -132,8 +132,9 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
    * unsynced syncpoints.
    */
   private void initNextWindow() {
-    for (String syncPoint : mActivity.keySet()) {
-      mActivity.put(syncPoint, mActivity.get(syncPoint) / 10);
+    for (Map.Entry<String, Integer> activity : mActivity.entrySet()) {
+      String syncPoint = activity.getKey();
+      mActivity.put(syncPoint, activity.getValue() / 10);
       mAge.put(syncPoint, mAge.get(syncPoint) + 1);
     }
   }
@@ -389,11 +390,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
     }
   }
 
-  /**
-   * Get the activity sync info.
-   *
-   * @return SyncInfo object which encapsulates the necessary information about changes
-   */
+  @Override
   public SyncInfo getActivitySyncInfo() {
     // The overview of this method is
     // 1. setup a source of event
@@ -410,7 +407,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
     try (LockResource r = new LockResource(mWriteLock)) {
       initNextWindow();
       if (mEventMissed) {
-        // force sync every syncpoint
+        // force sync every sync point
         for (AlluxioURI uri : mUfsUriList) {
           syncPointFiles.put(uri, null);
           syncSyncPoint(uri.toString());
@@ -421,10 +418,11 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
         SyncInfo syncInfo = new SyncInfo(syncPointFiles, true, getLastTxId());
         return syncInfo;
       }
-      for (String syncPoint : mActivity.keySet()) {
+      for (Map.Entry<String, Integer> activity : mActivity.entrySet()) {
+        String syncPoint = activity.getKey();
         AlluxioURI syncPointURI = new AlluxioURI(syncPoint);
         // if the activity level is below the threshold or the sync point is too old, we sync
-        if (mActivity.get(syncPoint) < mActiveUfsSyncMaxActivity
+        if (activity.getValue() < mActiveUfsSyncMaxActivity
             || mAge.get(syncPoint) > mActiveUfsSyncMaxAge) {
           if (!syncPointFiles.containsKey(syncPointURI)) {
             syncPointFiles.put(syncPointURI, mChangedFiles.get(syncPoint));
@@ -434,8 +432,7 @@ public class SupportedHdfsActiveSyncProvider implements HdfsActiveSyncProvider {
       }
       txId = getLastTxId();
     }
-    LOG.debug("Syncing {} files", syncPointFiles.size());
-    LOG.debug("Last transaction id {}", txId);
+    LOG.debug("Syncing {} files with last transaction id {}", syncPointFiles.size(), txId);
 
     SyncInfo syncInfo = new SyncInfo(syncPointFiles, false, txId);
     return syncInfo;

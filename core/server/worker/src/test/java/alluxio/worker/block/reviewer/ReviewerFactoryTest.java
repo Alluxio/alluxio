@@ -13,8 +13,8 @@ package alluxio.worker.block.reviewer;
 
 import static org.junit.Assert.assertTrue;
 
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 
 import org.junit.Test;
 
@@ -25,7 +25,7 @@ import org.junit.Test;
 public class ReviewerFactoryTest {
   @Test
   public void createProbabilisticBufferReviewer() {
-    ServerConfiguration.set(PropertyKey.WORKER_REVIEWER_CLASS,
+    Configuration.set(PropertyKey.WORKER_REVIEWER_CLASS,
             ProbabilisticBufferReviewer.class.getName());
     Reviewer allocator = Reviewer.Factory.create();
     assertTrue(allocator instanceof ProbabilisticBufferReviewer);

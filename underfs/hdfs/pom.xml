@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>2.9.0-SNAPSHOT</version>
+    <version>2.10.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs-hdfs</artifactId>
   <name>Alluxio Under File System - HDFS</name>
@@ -57,34 +57,6 @@
   </dependencies>
 
   <profiles>
-    <!-- Profile to build this UFS module connecting to hdfs 1 -->
-    <profile>
-      <!-- Decouple hadoop profiles: hadoop-1 to indicate north bound and ufs-hadoop-1 to indicate the south bound -->
-      <id>ufs-hadoop-1</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.alluxio</groupId>
-          <artifactId>alluxio-shaded-hadoop</artifactId>
-          <version>${ufs.hadoop.version}</version>
-        </dependency>
-      </dependencies>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>com.igormaznitsa</groupId>
-            <artifactId>jcp</artifactId>
-            <configuration>
-              <globalVars>
-                <property>
-                  <name>HADOOP1</name>
-                </property>
-              </globalVars>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
     <!-- Profile to build this UFS module connecting to hdfs 2 -->
     <profile>
       <!-- Decouple hadoop profiles: hadoop-2 to indicate north bound and ufs-hadoop-2 to indicate the south bound -->

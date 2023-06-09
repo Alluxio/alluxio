@@ -50,7 +50,7 @@ public final class ListBucketOptions {
     mPrefix = "";
     mMaxKeys = DEFAULT_MAX_KEYS;
     mDelimiter = null;
-    mEncodingType = DEFAULT_ENCODING_TYPE;
+    mEncodingType = null;
     // listObject parameter
     mMarker = null;
     // listObjectV2 parameter

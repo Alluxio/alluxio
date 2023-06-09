@@ -82,6 +82,7 @@ message CompleteFilePOptions {
   optional int64 ufsLength = 1;
   optional ScheduleAsyncPersistencePOptions asyncPersistOptions = 2;
   optional FileSystemMasterCommonPOptions commonOptions = 3;
+  optional string contentHash = 4;
 }
 message CompleteFilePRequest {
   /** the path of the file */
@@ -94,6 +95,11 @@ message OpenFilePOptions {
   optional int32 maxUfsReadConcurrency = 2;
   optional FileSystemMasterCommonPOptions commonOptions = 3;
   optional bool updateLastAccessTime = 4 [default = true];
+  // If specified and the blocks are not cached in any worker,
+  // the data will be read and cached to the certain worker.
+  // If the blocks have been cached in some alluxio workers,
+  // this field will be ignored.
+  optional grpc.WorkerNetAddress ufsReadWorkerLocation = 15;
 }
 
 // XAttrPropagationStrategy controls the behaviour for assigning xAttr
@@ -114,6 +120,7 @@ message CreateDirectoryPOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 5;
   map<string, bytes> xattr = 6;
   optional XAttrPropagationStrategy xattrPropStrat = 7 [default = NEW_PATHS];
+  optional bool checkS3BucketPath = 8;
 }
 message CreateDirectoryPRequest {
   /** the path of the directory */
@@ -137,6 +144,10 @@ message CreateFilePOptions {
   optional int64 persistenceWaitTime = 10;
   map<string, bytes> xattr = 11;
   optional XAttrPropagationStrategy xattrPropStrat = 12 [default = NEW_PATHS];
+  optional bool overwrite = 13;
+  optional bool checkS3BucketPath = 14;
+  // If specified, the data will be written to the certain worker
+  optional grpc.WorkerNetAddress workerLocation = 15;
 }
 message CreateFilePRequest {
   /** the path of the file */
@@ -150,6 +161,8 @@ message DeletePOptions {
   optional bool alluxioOnly = 2;
   optional bool unchecked = 3;
   optional FileSystemMasterCommonPOptions commonOptions = 4;
+  optional bool syncParentNextTime = 5;
+  optional bool deleteMountPoint = 6;
 }
 message DeletePRequest {
   /** the path of the file or directory */
@@ -189,6 +202,7 @@ message GetStatusPOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 2;
   optional Bits accessMode = 3;
   optional bool updateTimestamps = 4 [default = true];
+  optional bool includeRealContentHash = 5;
 }
 message GetStatusPRequest {
   /** the path of the file or directory */
@@ -228,11 +242,73 @@ message ListStatusPOptions {
   optional bool recursive = 4;
   // No data will be transferred.
   optional bool loadMetadataOnly = 5;
+  // Setting this to true will disable checking during metadata sync to see if the children
+  // of a directory has been loaded. This will avoid a costly full traversal of the file
+  // system during recursive listings, but may result in the children of directories not
+  // being loaded. It is recommended to set this to true after the first call of a
+  // recursive partial listing.
+  optional bool disableAreDescendantsLoadedCheck = 6;
+  // Mount info will be excluded from the list status response if this field is set to true.
+  // Resolving a path and obtain the mount info is an expensive operation.
+  // For clients that do not need this information such as hadoop-compatible clients,
+  // excluding mount info improves the endpoint performance.
+  optional bool excludeMountInfo = 7;
 }
 message ListStatusPRequest {
   /** the path of the file or directory */
   optional string path = 1;
   optional ListStatusPOptions options = 2;
+}
+message ListStatusPartialPRequest {
+  /** the path of the file or directory */
+  optional string path = 1;
+  optional ListStatusPartialPOptions options = 2;
+}
+message ListStatusPartialPOptions {
+  optional ListStatusPOptions options = 1;
+  // An offset type can be chosen as from where to start the listing.
+  // If none are set the listing will start from the beginning.
+  oneof OffsetType {
+    // Start listing after the given FileId, the FileId can be calculated from the
+    // result of a previous listing's FileInfo or URIStatus results using the
+    // getFileId method. If the file with the given ID has been moved or deleted
+    // then the call will return an error.
+    int64 offsetId = 2;
+    // Start the listing after this path.
+    // If startAfter starts with "/", then it is expected that the path given in
+    // the ListStatusPartialPRequest is a prefix of startAfter (e.g. if listing "/dir",
+    // then startAfter could be "/dir/next"). Otherwise if start after does not start with "/",
+    // then startAfter is appended to the path given in the ListStatusPartialPRequest
+    // (e.g. if the listing path is "/dir" and startAfter is "after" then files that
+    // start after "/dir/after" in lexicographic order will be listed).
+    // The full path itself does not need to exist.
+    // This offset type is recommended to use if POSIX compatible listings are needed.
+    string startAfter = 3;
+    // Only start listing items after this many items have been processed.
+    // This will count from the start of the listing up to offsetCont
+    // before listing items. This can be useful for example to show
+    // individual pages in a UI. Note that this listing type may
+    // be more expensive than the others as it must traverse offsetCount
+    // items, while the others reach the listing point by querying
+    // a skip list.
+    int32 offsetCount = 4;
+  }
+  // Batch size for partial listings.
+  optional int32 batchSize = 5;
+  // Only match files with a given prefix.
+  // The prefix starts after the given listing path
+  // (e.g. if "/dir" is being listed and prefix is "/pre", then
+  // any file with path having a prefix of "/dir/pre" will be listed).
+  optional string prefix = 6;
+}
+message ListStatusPartialPResponse {
+  repeated FileInfo fileInfos = 1;
+  // True if the partial listing was truncated.
+  optional bool isTruncated = 2;
+  // The total number of files in the listing directory,
+  // (i.e. the size of the result if partial listing was not used)
+  // or -1 if the listing was recursive.
+  optional int64 fileCount = 3;
 }
 
 message LoadMetadataPOptions {
@@ -347,7 +423,9 @@ message MountPRequest {
 message GetMountTablePResponse {
   map<string, MountPointInfo> mountPoints = 1;
 }
-message GetMountTablePRequest {}
+message GetMountTablePRequest {
+  optional bool checkUfs = 1;
+}
 
 message MountPointInfo {
   optional string ufsUri = 1;
@@ -378,10 +456,16 @@ message FileSystemCommand {
   optional FileSystemCommandOptions commandOptions = 2;
 }
 
+message S3SyntaxOptions {
+  optional bool overwrite = 1;
+  optional bool isMultipartUpload = 2;
+}
+
 message RenamePResponse {}
 message RenamePOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 1;
   optional bool persist = 2;
+  optional S3SyntaxOptions s3SyntaxOptions = 3;
 }
 message RenamePRequest {
   /** the source path of the file or directory */
@@ -413,6 +497,7 @@ message SetAttributePOptions {
   repeated string pinnedMedia = 10;
   map<string, bytes> xattr = 11;
   optional alluxio.proto.journal.XAttrUpdateStrategy xattrUpdateStrategy = 12;
+  optional bool directChildrenLoaded = 13;
 }
 message SetAttributePRequest {
   /** the path of the file */
@@ -519,6 +604,131 @@ message GetStateLockHoldersPRequest {
   optional GetStateLockHoldersPOptions options = 1;
 }
 
+message NeedsSyncRequest {
+  required string path = 1;
+}
+
+message NeedsSyncResponse {}
+
+message SubmitJobPRequest{
+  optional bytes request_body = 1;
+}
+
+message SubmitJobPResponse {
+  optional string jobId = 1;
+}
+
+message LoadJobPOptions {
+  optional int64 bandwidth = 1;
+  optional bool verify = 2;
+  optional bool partialListing = 3;
+}
+
+message CopyJobPOptions {
+  optional int64 bandwidth = 1;
+  optional bool verify = 2;
+  optional bool partialListing = 3;
+  optional bool overwrite = 4;
+}
+
+message StopJobPRequest {
+  required JobDescription jobDescription = 1;
+}
+
+message StopJobPResponse {
+  optional bool jobStopped = 1;
+}
+
+enum JobProgressReportFormat {
+  TEXT = 1;
+  JSON = 2;
+}
+
+message JobDescription{
+  required string type = 1;
+  optional string path = 2;
+}
+
+message JobProgressPOptions {
+  optional JobProgressReportFormat format = 1;
+  optional bool verbose = 2;
+}
+
+message GetJobProgressPRequest {
+  required JobDescription jobDescription = 1;
+  optional JobProgressPOptions options = 2;
+}
+
+message GetJobProgressPResponse {
+  optional string progressReport = 1;
+  optional JobProgressReportFormat format = 2;
+}
+
+message SyncMetadataPOptions {
+  optional fscommon.LoadDescendantPType loadDescendantType = 1;
+  optional fscommon.DirectoryLoadPType directoryLoadType = 2;
+}
+
+message SyncMetadataPRequest {
+  required string path = 1;
+  optional SyncMetadataPOptions options = 2;
+}
+
+enum SyncMetadataState {
+  UNKNOWN = 0;
+  RUNNING = 1;
+  SUCCEEDED = 2;
+  FAILED = 3;
+  CANCELED = 4;
+}
+
+message SyncMetadataTask {
+  message Exception {
+    optional string exceptionType = 1;
+    optional string exceptionMessage = 2;
+    optional string stacktrace = 3;
+  }
+
+  optional int64 id = 1;
+  optional SyncMetadataState state = 2;
+  optional int64 syncDurationMs = 3;
+  optional Exception exception = 4;
+  optional int64 successOpCount = 5;
+
+  optional string taskInfoString = 100;
+  optional string taskStatString = 101;
+
+}
+
+message SyncMetadataPResponse {
+  repeated SyncMetadataTask task = 1;
+
+  optional string debugInfo = 1000;
+}
+
+message SyncMetadataAsyncPResponse {
+  optional bool submitted = 1;
+  optional int64 taskGroupId = 2;
+  repeated int64 taskIds = 3;
+}
+
+message GetSyncProgressPRequest {
+  optional int64 taskGroupId = 1;
+}
+
+message GetSyncProgressPResponse {
+  repeated SyncMetadataTask task = 1;
+
+  optional string debugInfo = 1000;
+}
+
+message CancelSyncMetadataPRequest {
+  optional int64 taskGroupId = 1;
+}
+
+message CancelSyncMetadataPResponse {
+  optional bool success = 1;
+}
 
 /**
  * This interface contains file system master service endpoints for Alluxio clients.
@@ -593,6 +803,13 @@ service FileSystemMasterClientService {
   rpc ListStatus(ListStatusPRequest) returns (stream ListStatusPResponse);
 
   /**
+   * If the path points to a file, the method returns a singleton with its file information.
+   * If the path points to a directory, the method returns a list with file information for the
+   * directory contents. This operation takes additional options for partial listing of files.
+   */
+  rpc ListStatusPartial(ListStatusPartialPRequest) returns (ListStatusPartialPResponse);
+
+  /**
    * Creates a new "mount point", mounts the given UFS path in the Alluxio namespace at the given
    * path. The path should not exist and should not be nested under any existing mount point.
    */
@@ -656,6 +873,25 @@ service FileSystemMasterClientService {
   rpc UpdateUfsMode(UpdateUfsModePRequest) returns (UpdateUfsModePResponse);
 
   rpc GetStateLockHolders(GetStateLockHoldersPRequest) returns (GetStateLockHoldersPResponse);
+
+  rpc NeedsSync(NeedsSyncRequest) returns (NeedsSyncResponse);
+
+  /**
+   * Load a directory into Alluxio.
+   */
+  rpc submitJob(SubmitJobPRequest) returns (SubmitJobPResponse);
+
+  rpc StopJob(StopJobPRequest) returns (StopJobPResponse);
+
+  rpc GetJobProgress(GetJobProgressPRequest) returns (GetJobProgressPResponse);
+
+  /**
+   * Load metadata from up into Alluxio.
+   */
+  rpc SyncMetadata(SyncMetadataPRequest) returns (SyncMetadataPResponse);
+  rpc SyncMetadataAsync(SyncMetadataPRequest) returns (SyncMetadataAsyncPResponse);
+  rpc GetSyncProgress(GetSyncProgressPRequest) returns (GetSyncProgressPResponse);
+  rpc CancelSyncMetadata(CancelSyncMetadataPRequest) returns (CancelSyncMetadataPResponse);
 }
 
 message FileSystemHeartbeatPResponse {

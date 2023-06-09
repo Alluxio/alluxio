@@ -12,9 +12,10 @@
 package alluxio.client.file.cache.evictor;
 
 import alluxio.client.file.cache.PageId;
-import alluxio.conf.AlluxioConfiguration;
 
 import java.util.LinkedList;
+import java.util.function.Predicate;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -27,9 +28,9 @@ public class FIFOCacheEvictor implements CacheEvictor {
   /**
    * Required constructor.
    *
-   * @param conf Alluxio configuration
+   * @param options
    */
-  public FIFOCacheEvictor(AlluxioConfiguration conf) {}
+  public FIFOCacheEvictor(CacheEvictorOptions options) {}
 
   @Override
   public void updateOnGet(PageId pageId) {
@@ -52,6 +53,17 @@ public class FIFOCacheEvictor implements CacheEvictor {
   @Override
   public PageId evict() {
     return mQueue.peek();
+  }
+
+  @Nullable
+  @Override
+  public PageId evictMatching(Predicate<PageId> criterion) {
+    for (PageId candidate : mQueue) {
+      if (criterion.test(candidate)) {
+        return candidate;
+      }
+    }
+    return null;
   }
 
   @Override

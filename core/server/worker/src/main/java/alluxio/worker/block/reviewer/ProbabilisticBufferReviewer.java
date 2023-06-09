@@ -11,9 +11,9 @@
 
 package alluxio.worker.block.reviewer;
 
-import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageDirView;
 
@@ -43,14 +43,14 @@ public class ProbabilisticBufferReviewer implements Reviewer {
    * Constructor the instance from configuration.
    * */
   public ProbabilisticBufferReviewer() {
-    InstancedConfiguration conf = ServerConfiguration.global();
+    AlluxioConfiguration conf = Configuration.global();
     mHardLimitBytes = conf.getBytes(PropertyKey.WORKER_REVIEWER_PROBABILISTIC_HARDLIMIT_BYTES);
     long stopSoftBytes = conf.getBytes(PropertyKey.WORKER_REVIEWER_PROBABILISTIC_SOFTLIMIT_BYTES);
     if (stopSoftBytes <= mHardLimitBytes) {
       LOG.warn("{} should be greater than or equal to {}. Setting {} to {}.",
-              PropertyKey.WORKER_REVIEWER_PROBABILISTIC_SOFTLIMIT_BYTES.toString(),
-              PropertyKey.WORKER_REVIEWER_PROBABILISTIC_HARDLIMIT_BYTES.toString(),
-              PropertyKey.WORKER_REVIEWER_PROBABILISTIC_SOFTLIMIT_BYTES.toString(),
+          PropertyKey.WORKER_REVIEWER_PROBABILISTIC_SOFTLIMIT_BYTES,
+          PropertyKey.WORKER_REVIEWER_PROBABILISTIC_HARDLIMIT_BYTES,
+          PropertyKey.WORKER_REVIEWER_PROBABILISTIC_SOFTLIMIT_BYTES,
               mHardLimitBytes);
       mSoftLimitBytes = mHardLimitBytes;
     } else {

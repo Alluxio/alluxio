@@ -39,8 +39,8 @@ for details.
 ## Coding Style
 
 - Please follow the style of the existing codebase. We mainly follow the
-[Google Java style](https://google.github.io/styleguide/javaguide.html),
-with the following deviations:
+  [Google Java style](https://google.github.io/styleguide/javaguide.html),
+  with the following deviations:
   - Maximum line length of **100** characters.
   - Third-party imports are grouped together to make IDE formatting much simpler.
   - Class member variable names should be prefixed with `m`
@@ -60,9 +60,9 @@ must be compatible with Bash 3.x
     settings [as such]({{ '/resources/style_scheme.png' | relativize_url }}).
 - If you use Eclipse:
     - You can download our
-[Eclipse formatter]({{ '/resources/alluxio-code-formatter-eclipse.xml' | relativize_url }})
+    [Eclipse formatter]({{ '/resources/alluxio-code-formatter-eclipse.xml' | relativize_url }})
     - To organize your imports correctly, configure "Organize Imports" to look like
-[this]({{ '/resources/eclipse_imports.png' | relativize_url }})
+    [this]({{ '/resources/eclipse_imports.png' | relativize_url }})
 - To automatically reorder methods alphabetically, try the
 [Rearranger Plugin](http://plugins.jetbrains.com/plugin/173), open Preferences, search for
 rearranger, remove the unnecessary comments, then right click, choose "Rearrange", codes
@@ -187,8 +187,8 @@ Note that, each class must use its own logger based on the class name,
 like `LoggerFactory.getLogger(MyClass.class)` in above example,
 so its output can easily be searched for.
 The location of the output of SLF4J loggers can be found for
-[server logs]({{ '/en/operation/Basic-Logging.html' | relativize_url }}#server-logs)
-and [application logs]({{ '/en/operation/Basic-Logging.html' | relativize_url }}#application-logs).
+[server logs]({{ '/en/administration/Basic-Logging.html' | relativize_url }}#server-logs)
+and [application logs]({{ '/en/administration/Basic-Logging.html' | relativize_url }}#application-logs).
 
 ### Best Practice
 
@@ -230,7 +230,7 @@ messages.
 ### Which logging level to use
 
 There are several levels of logging, see detailed explanation of
-[different Levels]({{ '/en/operation/Basic-Logging.html' | relativize_url }}#configuring-log-levels)
+[different Levels]({{ '/en/administration/Basic-Logging.html' | relativize_url }}#configuring-log-levels)
 Here are the guidelines for deciding which level to use.
 
 #### Error Log Level
@@ -771,19 +771,24 @@ public ConfigurationRule mConfigurationRule = new ConfigurationRule(ImmutableMap
     PropertyKey.key1, "value1",
     PropertyKey.key2, "value2"));
 ```
-For configuration changes needed for an individual test, use `Configuration.set(key, value)`, and
-create an `@After` method to clean up the configuration changes after the test:
+For configuration changes needed for an individual test, use `ConfigurationRule#set(key, value)` on the instance created by your test class. The resulting change of this method is only visible for the calling test.
 
 ```java
-@After
-public void after() {
-  ConfigurationTestUtils.resetConfiguration();
-}
+@Rule
+public ConfigurationRule mConfigurationRule = new ConfigurationRule(ImmutableMap.of(
+    PropertyKey.key1, "value1",
+    PropertyKey.key2, "value2"));
 
 @Test
 public void testSomething() {
-  Configuration.set(PropertyKey.key, "value");
+  mConfigurationRule.set(PropertyKey.key1, "value3");
+  // Now PropertyKey.key1 = "value3"
   ...
+}
+
+@Test
+public void testAnotherThing() {
+  // Now PropertyKey.key1 = "value1"
 }
 ```
 

@@ -11,8 +11,8 @@
 
 package alluxio.stress;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 import alluxio.stress.cli.AbstractStressBench;
 import alluxio.stress.common.FileSystemParameters;
@@ -66,6 +66,10 @@ public class AbstractStressBenchTest {
 
     public List<String[]> getArgsList() {
       return mArgsList;
+    }
+
+    @Override
+    public void validateParams() throws Exception {
     }
   }
 

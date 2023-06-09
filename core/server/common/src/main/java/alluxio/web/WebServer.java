@@ -14,8 +14,8 @@ package alluxio.web;
 import static alluxio.Constants.REST_API_PREFIX;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
@@ -38,7 +38,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.EnumSet;
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.servlet.DispatcherType;
 
 /**
  * Class that bootstraps and starts a web server.
@@ -60,6 +62,10 @@ public abstract class WebServer {
   private final PrometheusMetricsServlet mPMetricsServlet = new PrometheusMetricsServlet(
       MetricsSystem.METRIC_REGISTRY);
 
+  protected ServerConnector getServerConnector() {
+    return mServerConnector;
+  }
+
   /**
    * Creates a new instance of {@link WebServer}. It pairs URLs with servlets and sets the webapp
    * folder.
@@ -75,7 +81,8 @@ public abstract class WebServer {
     mServiceName = serviceName;
 
     QueuedThreadPool threadPool = new QueuedThreadPool();
-    int webThreadCount = ServerConfiguration.getInt(PropertyKey.WEB_THREADS);
+    threadPool.setName(mServiceName.replace(" ", "-").toUpperCase());
+    int webThreadCount = Configuration.getInt(PropertyKey.WEB_THREADS);
 
     // Jetty needs at least (1 + selectors + acceptors) threads.
     threadPool.setMinThreads(webThreadCount * 2 + 1);
@@ -111,6 +118,9 @@ public abstract class WebServer {
     }
     mServletContextHandler.addServlet(StacksServlet.class, THREAD_DUMP_PATH);
     mServletContextHandler.addServlet(JmxServlet.class, JMX_PATH);
+    mServletContextHandler.addFilter(CORSFilter.class, "/*",
+        EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.INCLUDE,
+            DispatcherType.ASYNC, DispatcherType.ERROR));
     HandlerList handlers = new HandlerList();
     handlers.setHandlers(new Handler[] {mMetricsServlet.getHandler(), mPMetricsServlet.getHandler(),
         mServletContextHandler, new DefaultHandler()});

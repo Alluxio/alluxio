@@ -21,8 +21,11 @@ import alluxio.cli.job.JobShell;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
+import alluxio.grpc.ExistsPOptions;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
 import alluxio.grpc.WritePType;
@@ -122,8 +125,8 @@ public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrati
     sLocalAlluxioJobCluster.start();
     sFileSystem = sLocalAlluxioCluster.getClient();
     sJobMaster = sLocalAlluxioJobCluster.getMaster().getJobMaster();
-    sJobShell = new alluxio.cli.job.JobShell(ServerConfiguration.global());
-    sFsShell = new FileSystemShell(ServerConfiguration.global());
+    sJobShell = new alluxio.cli.job.JobShell(Configuration.global());
+    sFsShell = new FileSystemShell(Configuration.global());
   }
 
   @AfterClass
@@ -293,6 +296,22 @@ public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrati
   protected boolean fileExists(AlluxioURI path) {
     try {
       return sFileSystem.exists(path);
+    } catch (IOException e) {
+      return false;
+    } catch (AlluxioException e) {
+      return false;
+    }
+  }
+
+  /**
+   * @param path a file path
+   * @return whether the file exists in Alluxio
+   */
+  protected boolean fileExistsInAlluxio(AlluxioURI path) {
+    try {
+      return sFileSystem.exists(path,
+          ExistsPOptions.newBuilder().setLoadMetadataType(LoadMetadataPType.NEVER).setCommonOptions(
+              FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1).build()).build());
     } catch (IOException e) {
       return false;
     } catch (AlluxioException e) {

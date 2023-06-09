@@ -16,6 +16,7 @@ import alluxio.exception.status.UnavailableException;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 
 /**
  * Interface for a client in the Alluxio system.
@@ -34,10 +35,16 @@ public interface Client extends Closeable {
   void disconnect();
 
   /**
-   * @return the {@link InetSocketAddress} of the remote
+   * @return the {@link SocketAddress} of the remote
    * @throws UnavailableException if the primary address cannot be determined
    */
-  InetSocketAddress getAddress() throws UnavailableException;
+  SocketAddress getRemoteSockAddress() throws UnavailableException;
+
+  /**
+   * @return the host name of the remote
+   * @throws UnavailableException if the primary address cannot be determined
+   */
+  String getRemoteHostName() throws UnavailableException;
 
   /**
    * @return the {@link InetSocketAddress} of the configuration remote

@@ -13,8 +13,8 @@ package alluxio.client.rest;
 
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.AuthType;
@@ -67,7 +67,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
 
   @Test
   public void getCapacity() throws Exception {
-    long total = ServerConfiguration.getBytes(PropertyKey.WORKER_RAMDISK_SIZE);
+    long total = Configuration.getBytes(PropertyKey.WORKER_RAMDISK_SIZE);
     Capacity capacity = getInfo().getCapacity();
     Assert.assertEquals(total, capacity.getTotal());
     Assert.assertEquals(0, capacity.getUsed());
@@ -75,7 +75,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
 
   @Test
   public void getConfiguration() throws Exception {
-    ServerConfiguration.set(PropertyKey.METRICS_CONF_FILE, "abc");
+    Configuration.set(PropertyKey.METRICS_CONF_FILE, "abc");
     Assert.assertEquals("abc",
         getInfo().getConfiguration().get(PropertyKey.METRICS_CONF_FILE.toString()));
   }
@@ -100,7 +100,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
 
   @Test
   public void getTierCapacity() throws Exception {
-    long total = ServerConfiguration.getBytes(PropertyKey.WORKER_RAMDISK_SIZE);
+    long total = Configuration.getBytes(PropertyKey.WORKER_RAMDISK_SIZE);
     Capacity capacity = getInfo().getTierCapacity().get(Constants.MEDIUM_MEM);
     Assert.assertEquals(total, capacity.getTotal());
     Assert.assertEquals(0, capacity.getUsed());

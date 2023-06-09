@@ -72,6 +72,17 @@ message GetTransferLeaderMessagePResponse{
     required TransferLeaderMessage transMsg = 1;
 }
 
+message GetNodeStatePRequest {}
+
+message GetNodeStatePResponse {
+    optional NodeState node_state = 1;
+}
+
+enum NodeState {
+    STANDBY = 0;
+    PRIMARY = 1;
+}
+
 /**
   * This interface contains journal master service endpoints for Alluxio clients.
   */
@@ -101,4 +112,9 @@ service JournalMasterClientService {
      * Gets exception message throwing when transfer leader.
      */
     rpc GetTransferLeaderMessage(GetTransferLeaderMessagePRequest) returns (GetTransferLeaderMessagePResponse);
+
+    /**
+     * Gets the state of the current node and returns whether it is primary or standby.
+     */
+     rpc GetNodeState (GetNodeStatePRequest) returns (GetNodeStatePResponse);
 }

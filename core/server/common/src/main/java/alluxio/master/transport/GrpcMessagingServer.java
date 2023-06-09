@@ -16,7 +16,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcServerBuilder;
 import alluxio.grpc.GrpcService;
-import alluxio.security.authentication.ClientIpAddressInjector;
+import alluxio.security.authentication.ClientContextServerInjector;
 import alluxio.security.user.UserState;
 
 import io.grpc.ServerInterceptors;
@@ -99,13 +99,13 @@ public class GrpcMessagingServer {
       // Create gRPC server.
       mGrpcServer = GrpcServerBuilder
           .forAddress(GrpcServerAddress.create(bindAddress.getHostString(),
-              bindAddress), mConf, mUserState)
+              bindAddress), mConf)
           .maxInboundMessageSize((int) mConf.getBytes(
               PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE))
           .addService(new GrpcService(ServerInterceptors.intercept(
               new GrpcMessagingServiceClientHandler(address, listener::accept, threadContext,
                   mExecutor, mConf.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT)),
-              new ClientIpAddressInjector())))
+              new ClientContextServerInjector())))
           .build();
 
       try {

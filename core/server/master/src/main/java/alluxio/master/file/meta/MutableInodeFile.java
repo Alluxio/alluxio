@@ -439,8 +439,8 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
     CreateFilePOptionsOrBuilder options = context.getOptions();
     Preconditions.checkArgument(
         options.getReplicationMax() == Constants.REPLICATION_MAX_INFINITY
-        || options.getReplicationMax() >= options.getReplicationMin());
-    return new MutableInodeFile(blockContainerId)
+            || options.getReplicationMax() >= options.getReplicationMin());
+    MutableInodeFile inodeFile = new MutableInodeFile(blockContainerId)
         .setBlockSizeBytes(options.getBlockSizeBytes())
         .setCreationTimeMs(creationTimeMs)
         .setName(name)
@@ -462,6 +462,15 @@ public final class MutableInodeFile extends MutableInode<MutableInodeFile>
             ? Constants.NO_AUTO_PERSIST :
             System.currentTimeMillis() + options.getPersistenceWaitTime())
         .setXAttr(context.getXAttr());
+    if (context.getFingerprint() != null) {
+      inodeFile.setUfsFingerprint(context.getFingerprint());
+    }
+    if (context.getCompleteFileInfo() != null) {
+      inodeFile.setBlockIds(context.getCompleteFileInfo().getBlockIds());
+      inodeFile.setCompleted(true);
+      inodeFile.setLength(context.getCompleteFileInfo().getLength());
+    }
+    return inodeFile;
   }
 
   @Override

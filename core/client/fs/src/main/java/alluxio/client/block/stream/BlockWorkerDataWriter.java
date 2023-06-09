@@ -16,10 +16,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.InvalidWorkerStateException;
-import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.exception.runtime.ResourceExhaustedRuntimeException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.IdUtils;
@@ -27,10 +24,10 @@ import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.io.BlockWriter;
 
-import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
+import java.util.Optional;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -50,7 +47,7 @@ public final class BlockWorkerDataWriter implements DataWriter {
   private final OutStreamOptions mOptions;
   private final long mSessionId;
   private final long mBufferSize;
-  private long mReservedBytes;
+  private final long mReservedBytes;
 
   /**
    * Creates an instance of {@link BlockWorkerDataWriter}.
@@ -66,8 +63,8 @@ public final class BlockWorkerDataWriter implements DataWriter {
     AlluxioConfiguration conf = context.getClusterConf();
     int chunkSize = (int) conf.getBytes(PropertyKey.USER_LOCAL_WRITER_CHUNK_SIZE_BYTES);
     long reservedBytes = Math.min(blockSize, conf.getBytes(PropertyKey.USER_FILE_RESERVED_BYTES));
-    BlockWorker blockWorker = context.getProcessLocalWorker();
-    Preconditions.checkNotNull(blockWorker, "blockWorker");
+    BlockWorker blockWorker = context.getProcessLocalWorker()
+        .orElseThrow(NullPointerException::new);
     long sessionId = IdUtils.createSessionId();
     try {
       blockWorker.createBlock(sessionId, blockId, options.getWriteTier(),
@@ -75,8 +72,7 @@ public final class BlockWorkerDataWriter implements DataWriter {
       BlockWriter blockWriter = blockWorker.createBlockWriter(sessionId, blockId);
       return new BlockWorkerDataWriter(sessionId, blockId, options, blockWriter, blockWorker,
           chunkSize, reservedBytes, conf);
-    } catch (BlockAlreadyExistsException | WorkerOutOfSpaceException | BlockDoesNotExistException
-        | InvalidWorkerStateException e) {
+    } catch (ResourceExhaustedRuntimeException | IllegalStateException e) {
       throw new IOException(e);
     }
   }
@@ -89,6 +85,11 @@ public final class BlockWorkerDataWriter implements DataWriter {
   @Override
   public int chunkSize() {
     return mChunkSize;
+  }
+
+  @Override
+  public Optional<String> getUfsContentHash() {
+    return Optional.empty();
   }
 
   @Override
@@ -144,7 +145,7 @@ public final class BlockWorkerDataWriter implements DataWriter {
    *
    * @param sessionId the session ID
    * @param blockId the block ID
-   * @param options the outstream options
+   * @param options the OutStream options
    * @param blockWriter the block writer
    * @param blockWorker the block worker
    * @param chunkSize the chunk size

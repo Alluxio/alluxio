@@ -23,7 +23,7 @@ function main {
   fi
   if [ -z "${ALLUXIO_DOCKER_IMAGE}" ]
   then
-    ALLUXIO_DOCKER_IMAGE="alluxio/alluxio-maven:0.0.7-jdk8"
+    ALLUXIO_DOCKER_IMAGE="alluxio/alluxio-maven:0.0.8-jdk8"
   fi
 
   local run_args="--rm"
@@ -31,6 +31,11 @@ function main {
   if [ -z ${ALLUXIO_DOCKER_NO_TTY} ]
   then
     run_args+=" -it"
+  fi
+
+  if [ -n "${ALLUXIO_DOCKER_FORK_COUNT}" ]
+   then
+     run_args+=" -e ALLUXIO_FORK_COUNT=${ALLUXIO_DOCKER_FORK_COUNT}"
   fi
 
   if [ -n "${ALLUXIO_DOCKER_GIT_CLEAN}" ]

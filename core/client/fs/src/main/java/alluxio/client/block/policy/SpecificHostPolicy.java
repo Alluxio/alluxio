@@ -21,23 +21,28 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
+import java.util.Optional;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Always returns a worker with the hostname specified by
- * {@link PropertyKey.WORKER_HOSTNAME} (alluxio.worker.hostname).
+ * {@link PropertyKey#WORKER_HOSTNAME} (alluxio.worker.hostname).
  */
 @ThreadSafe
 public final class SpecificHostPolicy implements BlockLocationPolicy {
   private final String mHostname;
+  @Nullable
+  private final Integer mRpcPort;
 
   /**
-   * Constructs a new {@link SpecificHostPolicy}.
+   * Constructs a new {@link SpecificHostPolicy}
+   * needed for instantiation in {@link BlockLocationPolicy.Factory}.
    *
    * @param conf Alluxio configuration
    */
   public SpecificHostPolicy(AlluxioConfiguration conf) {
-    this(conf.getString(PropertyKey.WORKER_HOSTNAME));
+    this(conf.getString(PropertyKey.WORKER_HOSTNAME), conf.getInt(PropertyKey.WORKER_RPC_PORT));
   }
 
   /**
@@ -46,7 +51,18 @@ public final class SpecificHostPolicy implements BlockLocationPolicy {
    * @param hostname the name of the host
    */
   public SpecificHostPolicy(String hostname) {
+    this(hostname, null);
+  }
+
+  /**
+   * Constructs the policy with the hostname and port.
+   *
+   * @param hostname the name of the host
+   * @param rpcPort the rpc port
+   */
+  public SpecificHostPolicy(String hostname, @Nullable Integer rpcPort) {
     mHostname = Preconditions.checkNotNull(hostname, "hostname");
+    mRpcPort = rpcPort;
   }
 
   /**
@@ -54,14 +70,15 @@ public final class SpecificHostPolicy implements BlockLocationPolicy {
    * provided in WORKER_HOSTNAME (alluxio.worker.hostname).
    */
   @Override
-  public WorkerNetAddress getWorker(GetWorkerOptions options) {
+  public Optional<WorkerNetAddress> getWorker(GetWorkerOptions options) {
     // find the first worker matching the host name
     for (BlockWorkerInfo info : options.getBlockWorkerInfos()) {
-      if (info.getNetAddress().getHost().equals(mHostname)) {
-        return info.getNetAddress();
+      if (info.getNetAddress().getHost().equals(mHostname)
+          && (mRpcPort == null || info.getNetAddress().getRpcPort() == mRpcPort)) {
+        return Optional.of(info.getNetAddress());
       }
     }
-    return null;
+    return Optional.empty();
   }
 
   @Override

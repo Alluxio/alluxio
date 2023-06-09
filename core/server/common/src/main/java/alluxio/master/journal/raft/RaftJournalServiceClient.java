@@ -12,28 +12,41 @@
 package alluxio.master.journal.raft;
 
 import alluxio.AbstractMasterClient;
+import alluxio.ClientContext;
 import alluxio.Constants;
-import alluxio.grpc.DownloadSnapshotPRequest;
-import alluxio.grpc.DownloadSnapshotPResponse;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.grpc.LatestSnapshotInfoPRequest;
 import alluxio.grpc.RaftJournalServiceGrpc;
 import alluxio.grpc.ServiceType;
-import alluxio.grpc.UploadSnapshotPRequest;
-import alluxio.grpc.UploadSnapshotPResponse;
+import alluxio.grpc.SnapshotData;
+import alluxio.grpc.SnapshotMetadata;
 import alluxio.master.MasterClientContext;
+import alluxio.master.selectionpolicy.MasterSelectionPolicy;
+import alluxio.retry.RetryPolicy;
 
-import io.grpc.stub.StreamObserver;
+import java.util.Iterator;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 /**
  * A client for raft journal service.
  */
 public class RaftJournalServiceClient extends AbstractMasterClient {
-  private RaftJournalServiceGrpc.RaftJournalServiceStub mClient = null;
+  private final long mRequestInfoTimeoutMs =
+      Configuration.getMs(PropertyKey.MASTER_JOURNAL_REQUEST_INFO_TIMEOUT);
+
+  private RaftJournalServiceGrpc.RaftJournalServiceBlockingStub mBlockingClient = null;
 
   /**
-   * @param clientContext master client context
+   * Create a client that talks to a specific master.
+   * @param selectionPolicy specifies which master is targeted
+   * @param retryPolicySupplier the retry policy to use when connecting to another master
    */
-  public RaftJournalServiceClient(MasterClientContext clientContext) {
-    super(clientContext);
+  public RaftJournalServiceClient(MasterSelectionPolicy selectionPolicy,
+                                  Supplier<RetryPolicy> retryPolicySupplier) {
+    super(MasterClientContext.newBuilder(ClientContext.create(Configuration.global())).build(),
+        selectionPolicy, retryPolicySupplier);
   }
 
   @Override
@@ -52,27 +65,32 @@ public class RaftJournalServiceClient extends AbstractMasterClient {
   }
 
   @Override
+  protected void beforeConnect() {
+    // the default behavior of this method is to search for the primary master
+    // in our case we do no care which one is the primary master as MasterSelectionPolicy is
+    // explicitly specified
+  }
+
+  @Override
   protected void afterConnect() {
-    mClient = RaftJournalServiceGrpc.newStub(mChannel);
+    mBlockingClient = RaftJournalServiceGrpc.newBlockingStub(mChannel);
   }
 
   /**
-   * Uploads a snapshot.
-   * @param responseObserver the response stream observer
-   * @return the request stream observer
+   * @return {@link SnapshotMetadata} from specified master
    */
-  public StreamObserver<UploadSnapshotPRequest> uploadSnapshot(
-      StreamObserver<UploadSnapshotPResponse> responseObserver) {
-    return mClient.uploadSnapshot(responseObserver);
+  public SnapshotMetadata requestLatestSnapshotInfo() {
+    return mBlockingClient.withDeadlineAfter(mRequestInfoTimeoutMs, TimeUnit.MILLISECONDS)
+        .requestLatestSnapshotInfo(LatestSnapshotInfoPRequest.getDefaultInstance());
   }
 
   /**
-   * Downloads a snapshot.
-   * @param responseObserver the response stream observer
-   * @return the request stream observer
+   * Receive snapshot data from specified follower.
+   *
+   * @param request the request detailing which file to download
+   * @return an iterator containing the snapshot data
    */
-  public StreamObserver<DownloadSnapshotPRequest> downloadSnapshot(
-      StreamObserver<DownloadSnapshotPResponse> responseObserver) {
-    return mClient.downloadSnapshot(responseObserver);
+  public Iterator<SnapshotData> requestLatestSnapshotData(SnapshotMetadata request) {
+    return mBlockingClient.requestLatestSnapshotData(request);
   }
 }

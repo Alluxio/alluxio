@@ -31,7 +31,8 @@ Where ACTION is one of:
   job_workers        \tStart monitors for all job_worker nodes.
   proxy              \tStart the proxy monitor on this node.
   proxies            \tStart monitors for all proxies nodes.
-
+"
+USAGE+="
 [host1,host2,...] is a comma separated list of host to monitor, if not given the default config for the target is used.
 
 -L  enables the log mode, this option disable the monitor checks and causes alluxio-monitor to only print the node log tail.
@@ -124,7 +125,7 @@ run_monitor() {
   else
     "${JAVA}" -cp ${CLASSPATH} ${alluxio_config} ${monitor_exec}
     if [[ $? -ne 0 ]]; then
-      echo -e "${WHITE}---${NC} ${RED}[ FAILED ]${NC} The ${CYAN}${node_type}${NC} @ ${PURPLE}$(hostname -f)${NC} is not serving requests.${NC}"
+      echo -e "${WHITE}---${NC} ${RED}[ FAILED ]${NC} The ${CYAN}${node_type}${NC} @ ${PURPLE}$(hostname -f)${NC} is not serving requests after 120s. Please check if the process is running and the logs/ if necessary.${NC}"
       print_node_logs "${node_type}"
       return 1
     fi

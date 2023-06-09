@@ -89,10 +89,27 @@ public interface MasterInquireClient {
       } else {
         List<InetSocketAddress> addresses = ConfigurationUtils.getMasterRpcAddresses(conf);
         if (addresses.size() > 1) {
-          return new PollingMasterInquireClient(addresses, conf, userState);
+          return new PollingMasterInquireClient(addresses, conf, userState,
+              alluxio.grpc.ServiceType.META_MASTER_CLIENT_SERVICE);
         } else {
           return new SingleMasterInquireClient(addresses.get(0));
         }
+      }
+    }
+
+    /**
+     * @param addresses the addresses to use for the client
+     * @param conf configuration for creating the master inquire client
+     * @param userState the user state for the client
+     * @return a master inquire client using the addresses given
+     */
+    public static MasterInquireClient createForAddresses(
+        List<InetSocketAddress> addresses, AlluxioConfiguration conf, UserState userState) {
+      if (addresses.size() > 1) {
+        return new PollingMasterInquireClient(addresses, conf, userState,
+            alluxio.grpc.ServiceType.META_MASTER_CLIENT_SERVICE);
+      } else {
+        return new SingleMasterInquireClient(addresses.get(0));
       }
     }
 
@@ -112,7 +129,8 @@ public interface MasterInquireClient {
       } else {
         List<InetSocketAddress> addresses = ConfigurationUtils.getJobMasterRpcAddresses(conf);
         if (addresses.size() > 1) {
-          return new PollingMasterInquireClient(addresses, conf, userState);
+          return new PollingMasterInquireClient(addresses, conf, userState,
+              alluxio.grpc.ServiceType.JOB_MASTER_CLIENT_SERVICE);
         } else {
           return new SingleMasterInquireClient(addresses.get(0));
         }

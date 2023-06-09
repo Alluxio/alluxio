@@ -30,6 +30,8 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 编辑`conf/alluxio-site.properties`将`alluxio.master.mount.table.root.ufs`底层存储地址设置为Ozone桶或想要挂载到Alluxio的Ozone目录。
+Ozone 支持`o3fs`和`ofs`两种不同的 schema
+### o3fs
 例如，如果要将整个存储桶挂载到Alluxio的根目录，则将`alluxio.master.mount.table.root.ufs`设置为`o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/`；
 如果仅将`<OZONE_VOLUME>`的`<OZONE_BUCKET>`Ozone桶内的`/alluxio/data`目录映射到Alluxio的根目录，
 则可以设置为`o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/alluxio/data`。
@@ -41,8 +43,13 @@ alluxio.master.mount.table.root.ufs=o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/
 alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/ozone-site.xml
 ``` 
 
-## Ozone HA模式
+### ofs
+例如，如果要将整个存储桶挂载到Alluxio的根目录，则将`alluxio.master.mount.table.root.ufs`设置为`ofs://<OZONE_MANAGER>/<OZONE_VOLUME>/<OZONE_BUCKET>/`；
+如果仅将`<OZONE_VOLUME>`的`<OZONE_BUCKET>`Ozone桶内的`/alluxio/data`目录映射到Alluxio的根目录，
+则可以设置为`ofs://<OZONE_MANAGER>/<OZONE_VOLUME>/<OZONE_BUCKET>/alluxio/data`。
 
+## Ozone HA模式
+### o3fs
 要让Alluxio挂载HA模式下Ozone，你应该配置Alluxio的服务端以让其可以找到OzoneManager。请注意一旦设置，你使用Alluxio客户端的应用程序不再需要任何特殊的配置。
 在HA模式下`alluxio.master.mount.table.root.ufs`需要指定`<OM_SERVICE_IDS>`
 例如：
@@ -50,6 +57,12 @@ alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/
 alluxio.master.mount.table.root.ufs=o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>.<OM_SERVICE_IDS>/
 alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/ozone-site.xml
 ``` 
+
+### ofs
+```properties
+alluxio.master.mount.table.root.ufs=ofs://<OZONE_MANAGER>/<OZONE_VOLUME>/<OZONE_BUCKET>/
+alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/ozone-site.xml
+```
 
 `<OM_SERVICE_IDS>` 可以在`ozone-site.xml`中找到，
 例如以下`ozone-site.xml`配置文件中`<OM_SERVICE_IDS>`为`omservice1`。

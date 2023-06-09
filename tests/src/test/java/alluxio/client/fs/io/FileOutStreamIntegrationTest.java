@@ -16,8 +16,8 @@ import alluxio.Constants;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
@@ -101,7 +101,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     URIStatus status = mFileSystem.getStatus(parentPath);
     String checkpointPath = status.getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.Factory.create(checkpointPath,
-        ServerConfiguration.global());
+        Configuration.global());
     ufs.deleteDirectory(checkpointPath);
 
     // write a file to a directory exists in Alluxio but not in UFS
@@ -239,7 +239,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
       os.write(BufferUtils.getIncreasingByteArray(0, BLOCK_SIZE_BYTES * 3 + 1));
       os.cancel();
     }
-    long gracePeriod = ServerConfiguration
+    long gracePeriod = Configuration
         .getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 2;
     CommonUtils.sleepMs(gracePeriod);
     List<WorkerInfo> workers =

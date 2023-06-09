@@ -125,7 +125,7 @@ hive> desc formatted u_user;
 #### 使用已存在的外部表的Hive命令行示例
 
 假设在Hive中有一个已存在的外部表`u_user` ，存储位置设置为`hdfs://namenode_hostname:port/ml-100k`.
-你可以使用下面的HiveQL语句来检查它的“位置”属性
+你可以使用下面的HiveQL语句来检查它的"位置"属性
 
 ```
 hive> desc formatted u_user;

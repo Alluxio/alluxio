@@ -12,7 +12,7 @@
 package alluxio.table.common.udb;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.InvalidPathException;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.PathUtils;
@@ -30,7 +30,7 @@ import java.io.IOException;
 public class PathTranslator {
   private static final Logger LOG = LoggerFactory.getLogger(PathTranslator.class);
   private static final String SCHEME_AUTHORITY_PREFIX =
-      ConfigurationUtils.getSchemeAuthority(ServerConfiguration.global());
+      ConfigurationUtils.getSchemeAuthority(Configuration.global());
   private static final AlluxioURI BASE_URI = new AlluxioURI(SCHEME_AUTHORITY_PREFIX);
   private final BiMap<AlluxioURI, AlluxioURI> mPathMap;
 

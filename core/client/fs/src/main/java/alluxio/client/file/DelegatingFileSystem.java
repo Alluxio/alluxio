@@ -20,6 +20,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.FileIncompleteException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.OpenDirectoryException;
+import alluxio.grpc.CancelSyncMetadataPResponse;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -27,7 +28,10 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.FreePOptions;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.GetSyncProgressPResponse;
+import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.MountPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
@@ -35,7 +39,12 @@ import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.SyncMetadataAsyncPResponse;
+import alluxio.grpc.SyncMetadataPOptions;
+import alluxio.grpc.SyncMetadataPResponse;
 import alluxio.grpc.UnmountPOptions;
+import alluxio.job.JobDescription;
+import alluxio.job.JobRequest;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.MountPointInfo;
@@ -44,6 +53,7 @@ import alluxio.wire.SyncPointInfo;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
@@ -109,6 +119,12 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
+  public List<BlockLocationInfo> getBlockLocations(URIStatus status)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    return mDelegatedFileSystem.getBlockLocations(status);
+  }
+
+  @Override
   public AlluxioConfiguration getConf() {
     return mDelegatedFileSystem.getConf();
   }
@@ -123,6 +139,13 @@ public class DelegatingFileSystem implements FileSystem {
   public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     return mDelegatedFileSystem.listStatus(path, options);
+  }
+
+  @Override
+  public ListStatusPartialResult listStatusPartial(
+      AlluxioURI path, ListStatusPartialPOptions options)
+      throws AlluxioException, IOException {
+    return mDelegatedFileSystem.listStatusPartial(path, options);
   }
 
   @Override
@@ -151,8 +174,9 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
-  public Map<String, MountPointInfo> getMountTable() throws IOException, AlluxioException {
-    return mDelegatedFileSystem.getMountTable();
+  public Map<String, MountPointInfo> getMountTable(boolean checkUfs)
+      throws IOException, AlluxioException {
+    return mDelegatedFileSystem.getMountTable(checkUfs);
   }
 
   @Override
@@ -222,7 +246,59 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
+  public void needsSync(AlluxioURI path) throws IOException, AlluxioException {
+    mDelegatedFileSystem.needsSync(path);
+  }
+
+  @Override
+  public Optional<String> submitJob(JobRequest jobRequest) {
+    return mDelegatedFileSystem.submitJob(jobRequest);
+  }
+
+  @Override
+  public boolean stopJob(JobDescription jobDescription) {
+    return mDelegatedFileSystem.stopJob(jobDescription);
+  }
+
+  @Override
+  public String getJobProgress(JobDescription jobDescription,
+      JobProgressReportFormat format, boolean verbose) {
+    return mDelegatedFileSystem.getJobProgress(jobDescription, format, verbose);
+  }
+
+  @Override
+  public SyncMetadataPResponse syncMetadata(AlluxioURI path, SyncMetadataPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    return mDelegatedFileSystem.syncMetadata(path, options);
+  }
+
+  @Override
+  public SyncMetadataAsyncPResponse syncMetadataAsync(AlluxioURI path, SyncMetadataPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    return mDelegatedFileSystem.syncMetadataAsync(path, options);
+  }
+
+  @Override
+  public GetSyncProgressPResponse getSyncProgress(long taskGroupId)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    return mDelegatedFileSystem.getSyncProgress(taskGroupId);
+  }
+
+  @Override
+  public CancelSyncMetadataPResponse cancelSyncMetadata(long taskGroupId)
+      throws IOException, AlluxioException {
+    return mDelegatedFileSystem.cancelSyncMetadata(taskGroupId);
+  }
+
+  @Override
   public void close() throws IOException {
     mDelegatedFileSystem.close();
+  }
+
+  /**
+   * @return the underlying fileSystem
+   */
+  public FileSystem getUnderlyingFileSystem() {
+    return mDelegatedFileSystem;
   }
 }

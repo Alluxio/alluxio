@@ -19,7 +19,6 @@ import alluxio.wire.TieredIdentity;
 import alluxio.wire.TieredIdentity.LocalityTier;
 import alluxio.wire.WorkerNetAddress;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,7 +48,7 @@ public final class ClientTestUtils {
     }
   }
 
-  private static void resetContexts(InstancedConfiguration conf) throws IOException {
+  private static void resetContexts(InstancedConfiguration conf) {
     conf.set(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false);
   }
 

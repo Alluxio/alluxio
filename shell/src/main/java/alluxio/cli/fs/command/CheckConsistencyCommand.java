@@ -24,7 +24,7 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.CheckConsistencyPOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.resource.CloseableResource;
-import alluxio.util.FileSystemOptions;
+import alluxio.util.FileSystemOptionsUtils;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -139,7 +139,7 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
   private void runConsistencyCheck(AlluxioURI path, boolean repairConsistency, int repairThreads)
       throws AlluxioException, IOException {
     List<AlluxioURI> inconsistentUris =
-        checkConsistency(path, FileSystemOptions.checkConsistencyDefaults(
+        checkConsistency(path, FileSystemOptionsUtils.checkConsistencyDefaults(
             mFsContext.getPathConf(path)));
     if (inconsistentUris.isEmpty()) {
       System.out.println(path + " is consistent with the under storage system.");
@@ -153,8 +153,8 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
       }
     } else {
       Collections.sort(inconsistentUris);
-      System.out.println(String.format("%s has: %d inconsistent files. Repairing with %d threads.",
-          path, inconsistentUris.size(), repairThreads));
+      System.out.printf("%s has: %d inconsistent files. Repairing with %d threads.%n",
+          path, inconsistentUris.size(), repairThreads);
       ConcurrentHashSet<AlluxioURI> inconsistentDirs = new ConcurrentHashSet<>();
 
       ExecutorService svc = Executors.newFixedThreadPool(repairThreads);

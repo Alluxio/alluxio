@@ -26,7 +26,7 @@ public class WriteRequest {
   private final long mId;
 
   /** Whether to pin block on create. */
-  private boolean mPinOnCreate;
+  private final boolean mPinOnCreate;
 
   /** The session id associated with all temporary resources of this request. */
   private final long mSessionId;

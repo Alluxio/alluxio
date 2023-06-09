@@ -20,6 +20,7 @@ import alluxio.exception.status.UnauthenticatedException;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.ImpersonationAuthenticator;
 import alluxio.security.user.UserState;
+import alluxio.util.ExceptionUtils;
 
 import java.util.Map;
 
@@ -111,7 +112,7 @@ public class HdfsProxyUserValidationTask extends HdfsConfValidationTask {
       return validateProxyUsers(alluxioUser);
     } catch (UnauthenticatedException e) {
       mMsg.append(String.format("Failed to authenticate in Alluxio: "));
-      mMsg.append(ValidationUtils.getErrorInfo(e));
+      mMsg.append(ExceptionUtils.asPlainText(e));
       mAdvice.append("Please fix the authentication issue.");
       return new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
               mMsg.toString(), mAdvice.toString());

@@ -15,6 +15,7 @@ import alluxio.cli.ValidationTaskResult;
 import alluxio.cli.ValidationUtils;
 import alluxio.collections.Pair;
 import alluxio.util.CommonUtils;
+import alluxio.util.ExceptionUtils;
 
 import java.net.InetAddress;
 import java.net.URI;
@@ -62,7 +63,7 @@ public class UriCheckTask extends MetastoreValidationTask<Void, String> {
         uri = new URI(rawUri);
       } catch (Throwable t) {
         return new Pair<>(new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
-            ValidationUtils.getErrorInfo(t),
+            ExceptionUtils.asPlainText(t),
             "Please make sure the given hive metastore uri(s) is valid"), null);
       }
 
@@ -77,7 +78,7 @@ public class UriCheckTask extends MetastoreValidationTask<Void, String> {
         InetAddress.getByName(uri.getHost());
       } catch (Throwable t) {
         return new Pair<>(new ValidationTaskResult(ValidationUtils.State.FAILED, getName(),
-            ValidationUtils.getErrorInfo(t),
+            ExceptionUtils.asPlainText(t),
             "Please make sure the hostname in given hive metastore uri(s) is resolvable"), null);
       }
 

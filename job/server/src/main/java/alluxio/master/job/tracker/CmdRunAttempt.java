@@ -44,7 +44,7 @@ public class CmdRunAttempt {
   private JobConfig mJobConfig;
   private long mFileCount;
   private long mFileSize;
-  private Set<String> mFailedFiles = Sets.newHashSet(); // FAILED files
+  private final Set<String> mFailedFiles = Sets.newHashSet(); // FAILED files
   private String mFilePathString;
 
   protected CmdRunAttempt(RetryPolicy retryPolicy, JobMaster jobMaster) {
@@ -55,7 +55,7 @@ public class CmdRunAttempt {
 
   /**
    * Set job config.
-   * @param config
+   * @param config job config
    */
   public void setConfig(JobConfig config) {
     mJobConfig = config;
@@ -63,7 +63,7 @@ public class CmdRunAttempt {
 
   /**
    * Set file count.
-   * @param fileCount
+   * @param fileCount file count
    */
   public void setFileCount(long fileCount) {
     mFileCount = fileCount;
@@ -71,7 +71,7 @@ public class CmdRunAttempt {
 
   /**
    * Set file size.
-   * @param fileSize
+   * @param fileSize file size
    */
   public void setFileSize(long fileSize) {
     mFileSize = fileSize;
@@ -79,7 +79,7 @@ public class CmdRunAttempt {
 
   /**
    * Set file path.
-   * @param filePath
+   * @param filePath file path
    */
   public void setFilePath(String filePath) {
     mFilePathString = filePath;
@@ -173,12 +173,14 @@ public class CmdRunAttempt {
       return Status.FAILED;
     }
 
-    // This make an assumption that this job tree only goes 1 level deep
     boolean finished = true;
-    for (JobInfo child : jobInfo.getChildren()) {
-      if (!child.getStatus().isFinished()) {
-        finished = false;
-        break;
+    if (!jobInfo.getStatus().isFinished()) {
+      // This make an assumption that this job tree only goes 1 level deep
+      for (JobInfo child : jobInfo.getChildren()) {
+        if (!child.getStatus().isFinished()) {
+          finished = false;
+          break;
+        }
       }
     }
 
@@ -188,7 +190,11 @@ public class CmdRunAttempt {
         Set<JobInfo> failed = jobInfo.getChildren().stream()
                 .filter(child -> child.getStatus() == Status.FAILED).collect(Collectors.toSet());
         for (JobInfo task : failed) {
-          mFailedFiles.add(StringUtils.substringBetween(task.getDescription(), prefix, ","));
+          String filePath = StringUtils.substringBetween(task.getDescription(), prefix, ",");
+          if (filePath == null) {
+            filePath = String.format("unknown filePath for task: %s", task.getId());
+          }
+          mFailedFiles.add(filePath);
         }
       }
       return jobInfo.getStatus();

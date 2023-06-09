@@ -13,8 +13,8 @@ package alluxio.master;
 
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
+import alluxio.conf.Configuration;
 import alluxio.conf.ConfigurationValueOptions;
-import alluxio.conf.ServerConfiguration;
 import alluxio.util.LogUtils;
 import alluxio.web.JobMasterWebServer;
 import alluxio.wire.AlluxioJobMasterInfo;
@@ -93,7 +93,7 @@ public final class AlluxioJobMasterRestServiceHandler {
               .setVersion(RuntimeConstants.VERSION)
               .setWorkers(mJobMaster.getJobMaster().getWorkerInfoList());
       return result;
-    }, ServerConfiguration.global());
+    }, Configuration.global());
   }
 
   /**
@@ -107,14 +107,14 @@ public final class AlluxioJobMasterRestServiceHandler {
   public Response logLevel(@QueryParam(LOG_ARGUMENT_NAME) final String logName,
                            @QueryParam(LOG_ARGUMENT_LEVEL) final String level) {
     return RestUtils.call(() -> LogUtils.setLogLevel(logName, level),
-            ServerConfiguration.global());
+            Configuration.global());
   }
 
   private Map<String, Object> getConfigurationInternal(boolean raw) {
     if (raw) {
-      return ServerConfiguration.toMap(ConfigurationValueOptions.defaults().useRawValue(raw));
+      return Configuration.toMap(ConfigurationValueOptions.defaults().useRawValue(raw));
     } else {
-      return ServerConfiguration.toMap();
+      return Configuration.toMap();
     }
   }
 }

@@ -13,7 +13,7 @@ package alluxio.proxy;
 
 import alluxio.ProcessUtils;
 import alluxio.RuntimeConstants;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 
@@ -41,7 +41,7 @@ public final class AlluxioProxy {
       System.exit(-1);
     }
 
-    if (!ConfigurationUtils.masterHostConfigured(ServerConfiguration.global())) {
+    if (!ConfigurationUtils.masterHostConfigured(Configuration.global())) {
       ProcessUtils.fatalError(LOG,
           ConfigurationUtils.getMasterHostNotConfiguredMessage("Alluxio proxy"));
     }

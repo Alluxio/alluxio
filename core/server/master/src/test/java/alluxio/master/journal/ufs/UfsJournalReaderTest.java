@@ -15,7 +15,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.master.NoopMaster;
 import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalReader.State;
@@ -53,7 +53,7 @@ public final class UfsJournalReaderTest {
     URI location = URIUtils
         .appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "FileSystemMaster");
     mUfs = Mockito
-        .spy(UnderFileSystem.Factory.create(location.toString(), ServerConfiguration.global()));
+        .spy(UnderFileSystem.Factory.create(location.toString(), Configuration.global()));
     mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0, Collections::emptySet);
     mJournal.start();
     mJournal.gainPrimacy();
@@ -62,7 +62,7 @@ public final class UfsJournalReaderTest {
   @After
   public void after() throws Exception {
     mJournal.close();
-    ServerConfiguration.reset();
+    Configuration.reloadProperties();
   }
 
   /**

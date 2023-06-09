@@ -103,7 +103,7 @@ $ ./bin/alluxio-stop.sh local
 
 ### GCS用户到Alluxio文件所有者的映射关系
 
-默认情况下， Alluxio会尝试从证书中解析其GCS用户id。另外，可以配置`alluxio.underfs.gcs.owner.id.to.username.mapping`从而指定某个GCS用户id到Alluxio用户名的映射关系，其配置形式为"id1=user1;id2=user2"。谷歌云存储ID可以在[该控制台地址](https://console.cloud.google.com/storage/settings)找到，请使用“Owners”这一项。
+默认情况下， Alluxio会尝试从证书中解析其GCS用户id。另外，可以配置`alluxio.underfs.gcs.owner.id.to.username.mapping`从而指定某个GCS用户id到Alluxio用户名的映射关系，其配置形式为"id1=user1;id2=user2"。谷歌云存储ID可以在[该控制台地址](https://console.cloud.google.com/storage/settings)找到，请使用"Owners"这一项。
 
 ### GCS ACL到Alluxio权限的映射关系
 

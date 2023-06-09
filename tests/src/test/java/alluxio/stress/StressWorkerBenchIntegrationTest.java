@@ -11,8 +11,8 @@
 
 package alluxio.stress;
 
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.stress.cli.worker.StressWorkerBench;
 import alluxio.stress.worker.WorkerBenchSummary;

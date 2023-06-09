@@ -35,6 +35,8 @@ public class Sessions {
   public static final int CACHE_WORKER_SESSION_ID = -7;
   public static final int CACHE_UFS_SESSION_ID = -8;
 
+  public static final int LOAD_SESSION_ID = -9;
+
   // internal session id base should be smaller than all predefined session ids
   public static final long INTERNAL_SESSION_ID_BASE = -8;
 

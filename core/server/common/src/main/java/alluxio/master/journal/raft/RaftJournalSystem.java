@@ -12,21 +12,23 @@
 package alluxio.master.journal.raft;
 
 import alluxio.Constants;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
-import alluxio.exception.ExceptionMessage;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.status.CancelledException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.AddQuorumServerRequest;
+import alluxio.grpc.ErrorType;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.JournalQueryRequest;
 import alluxio.grpc.NetAddress;
+import alluxio.grpc.NodeState;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.grpc.QuorumServerState;
-import alluxio.grpc.ServiceType;
 import alluxio.grpc.TransferLeaderMessage;
 import alluxio.master.Master;
 import alluxio.master.PrimarySelector;
+import alluxio.master.StateLockManager;
 import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.CatchupFuture;
@@ -36,12 +38,17 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.RatisDropwizardExports;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.LogUtils;
 import alluxio.util.WaitForOptions;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.net.HostAndPort;
+import io.grpc.Status;
 import org.apache.commons.io.FileUtils;
 import org.apache.ratis.RaftConfigKeys;
 import org.apache.ratis.client.RaftClient;
@@ -78,9 +85,10 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.nio.file.AccessDeniedException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -89,6 +97,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
@@ -155,7 +164,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * so we allow a snapshot to be taken once a day at a user-configured time. To support this,
  * all state changes must first acquire a read lock, and snapshotting requires the
  * corresponding write lock. Once we have the write lock for all state machines, we enable
- * snapshots in Copycat through our AtomicBoolean, then wait for any snapshot to complete.
+ * snapshots in Ratis through our AtomicBoolean, then wait for any snapshot to complete.
  */
 @ThreadSafe
 public class RaftJournalSystem extends AbstractJournalSystem {
@@ -172,11 +181,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
   /// Lifecycle: constant from when the journal system is constructed.
 
-  private final RaftJournalConfiguration mConf;
-  /** Controls whether state machine can take snapshots. */
-  private final AtomicBoolean mSnapshotAllowed;
-  /** Controls whether or not the quorum leadership can be transferred. */
-  private final AtomicBoolean mTransferLeaderAllowed;
+  private final File mPath;
+  private final InetSocketAddress mLocalAddress;
+  private final List<InetSocketAddress> mClusterAddresses;
+  /** Controls whether the quorum leadership can be transferred. */
+  private final AtomicBoolean mTransferLeaderAllowed = new AtomicBoolean(false);
 
   private final Map<String, RatisDropwizardExports> mRatisMetricsMap =
       new ConcurrentHashMap<>();
@@ -186,12 +195,12 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    * object is the same as the lifecycle of the {@link RaftJournalSystem}. When the Ratis server
    * is reset during failover, this object must be re-initialized with the new server.
    */
-  private final RaftPrimarySelector mPrimarySelector;
+  private final RaftPrimarySelector mPrimarySelector = new RaftPrimarySelector();
 
   /// Lifecycle: constant from when the journal system is started.
 
   /** Contains all journals created by this journal system. */
-  private final ConcurrentHashMap<String, RaftJournal> mJournals;
+  private final ConcurrentHashMap<String, RaftJournal> mJournals = new ConcurrentHashMap<>();
 
   /// Lifecycle: created at startup and re-created when master loses primacy and resets.
 
@@ -200,6 +209,12 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    * and installing snapshots.
    */
   private JournalStateMachine mStateMachine;
+
+  /**
+   * Serves as the storage object for the above state machine.
+   */
+  private final SnapshotDirStateMachineStorage mStateMachineStorage =
+      new SnapshotDirStateMachineStorage();
   /**
    * Ratis server.
    */
@@ -217,7 +232,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    * will use the writer within this reference. The writer is null when the journal is in standby
    * mode.
    */
-  private final AtomicReference<AsyncJournalWriter> mAsyncJournalWriter;
+  private final AtomicReference<AsyncJournalWriter> mAsyncJournalWriter = new AtomicReference<>();
   /**
    * The id for submitting a normal raft client request.
    **/
@@ -229,28 +244,39 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   private final ClientId mRawClientId = ClientId.randomId();
   private RaftGroup mRaftGroup;
   private RaftPeerId mPeerId;
-  private final Map<String, TransferLeaderMessage> mErrorMessages;
+  private final Map<String, TransferLeaderMessage> mErrorMessages = new ConcurrentHashMap<>();
 
   static long nextCallId() {
     return CALL_ID_COUNTER.getAndIncrement() & Long.MAX_VALUE;
   }
 
   /**
-   * @param conf raft journal configuration
+   * Creates a {@link RaftJournalSystem}.
+   * @param path where the journal will be stored
+   * @param serviceType is either MASTER_RAFT or JOB_MASTER_RAFT
    */
-  private RaftJournalSystem(RaftJournalConfiguration conf) {
-    mConf = processRaftConfiguration(conf);
-    mJournals = new ConcurrentHashMap<>();
-    mSnapshotAllowed = new AtomicBoolean(true);
-    mTransferLeaderAllowed = new AtomicBoolean(false);
-    mPrimarySelector = new RaftPrimarySelector();
-    mAsyncJournalWriter = new AtomicReference<>();
-    mErrorMessages = new ConcurrentHashMap<>();
+  public RaftJournalSystem(URI path, ServiceType serviceType) {
+    this(path,
+        NetworkAddressUtils.getConnectAddress(serviceType, Configuration.global()),
+        ConfigurationUtils.getEmbeddedJournalAddresses(Configuration.global(), serviceType));
+  }
+
+  @VisibleForTesting
+  RaftJournalSystem(URI path, InetSocketAddress localAddress,
+      List<InetSocketAddress> clusterAddresses) {
+    Preconditions.checkState(clusterAddresses.contains(localAddress)
+        || NetworkAddressUtils.containsLocalIp(clusterAddresses, Configuration.global()),
+        "The cluster addresses (%s) must contain the local master address (%s)",
+        clusterAddresses, localAddress);
+
+    mPath = new File(Objects.requireNonNull(path).getPath());
+    mLocalAddress = Objects.requireNonNull(localAddress);
+    mClusterAddresses = Objects.requireNonNull(clusterAddresses);
   }
 
   private void maybeMigrateOldJournal() {
-    File oldJournalPath = new File(mConf.getPath(), RAFT_GROUP_UUID.toString());
-    File newJournalBasePath = RaftJournalUtils.getRaftJournalDir(mConf.getPath());
+    File oldJournalPath = new File(mPath, RAFT_GROUP_UUID.toString());
+    File newJournalBasePath = RaftJournalUtils.getRaftJournalDir(mPath);
     File newJournalPath = new File(newJournalBasePath, RAFT_GROUP_UUID.toString());
     if (oldJournalPath.isDirectory() && !newJournalBasePath.exists()) {
       LOG.info("Old journal detected at {} . moving journal to {}", oldJournalPath, newJournalPath);
@@ -264,35 +290,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   /**
-   * Creates and initializes a raft journal system.
-   *
-   * @param conf raft journal configuration
-   * @return the created raft journal system
-   */
-  public static RaftJournalSystem create(RaftJournalConfiguration conf) {
-    return new RaftJournalSystem(conf);
-  }
-
-  private RaftJournalConfiguration processRaftConfiguration(RaftJournalConfiguration conf) {
-    // Override election/heartbeat timeouts for single master cluster
-    // if election timeout is not set explicitly.
-    // This is to speed up single master cluster boot-up.
-    if (conf.getClusterAddresses().size() == 1
-        && !ServerConfiguration.isSetByUser(
-            PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT)
-        && !ServerConfiguration.isSetByUser(
-            PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT)) {
-      LOG.debug("Overriding election timeout to {}ms for single master cluster.",
-          SINGLE_MASTER_ELECTION_TIMEOUT_MS);
-      conf.setElectionMinTimeoutMs(SINGLE_MASTER_ELECTION_TIMEOUT_MS);
-      conf.setElectionMaxTimeoutMs(2 * SINGLE_MASTER_ELECTION_TIMEOUT_MS);
-    }
-    // Validate the conf.
-    conf.validate();
-    return conf;
-  }
-
-  /**
    * @return a raft peer id for local raft server
    */
   public synchronized RaftPeerId getLocalPeerId() {
@@ -300,12 +297,10 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   private synchronized void initServer() throws IOException {
-    LOG.debug("Creating journal with max segment size {}", mConf.getMaxLogSize());
     if (mStateMachine != null) {
       mStateMachine.close();
     }
-    mStateMachine = new JournalStateMachine(mJournals, this,
-        mConf.getMaxConcurrencyPoolSize());
+    mStateMachine = new JournalStateMachine(mJournals, this, mStateMachineStorage);
 
     RaftProperties properties = new RaftProperties();
     Parameters parameters = new Parameters();
@@ -314,69 +309,93 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     RaftConfigKeys.Rpc.setType(properties, SupportedRpcType.GRPC);
 
     // RPC port
-    GrpcConfigKeys.Server.setPort(properties, mConf.getLocalAddress().getPort());
+    GrpcConfigKeys.Server.setPort(properties, mLocalAddress.getPort());
 
     // storage path
     maybeMigrateOldJournal();
     RaftServerConfigKeys.setStorageDir(properties, Collections.singletonList(
-        RaftJournalUtils.getRaftJournalDir(mConf.getPath())));
+        RaftJournalUtils.getRaftJournalDir(mPath)));
 
     // segment size
-    RaftServerConfigKeys.Log.setSegmentSizeMax(properties,
-        SizeInBytes.valueOf(mConf.getMaxLogSize()));
+    long segmentSize = Configuration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
+    LOG.debug("Creating journal with max segment size {}", segmentSize);
+    if (segmentSize > Integer.MAX_VALUE) {
+      LOG.warn("{} has value {} but must not exceed {}. Resetting to {}.",
+          PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, segmentSize, Integer.MAX_VALUE,
+          Integer.MAX_VALUE);
+      segmentSize = Integer.MAX_VALUE;
+    }
+    RaftServerConfigKeys.Log.setSegmentSizeMax(properties, SizeInBytes.valueOf(segmentSize));
 
     // the following configurations need to be changed when the single journal entry
     // is unexpectedly big.
     RaftServerConfigKeys.Log.Appender.setBufferByteLimit(properties,
-        SizeInBytes.valueOf(ServerConfiguration.global()
+        SizeInBytes.valueOf(Configuration.global()
             .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX)));
     // this property defines the maximum allowed size of the concurrent journal flush requests.
     // if the total size of the journal entries contained in the flush requests
     // are bigger than the given threshold, Ratis may error out as
     // `Log entry size 117146048 exceeds the max buffer limit of 104857600`
     RaftServerConfigKeys.Write.setByteLimit(properties,
-        SizeInBytes.valueOf(ServerConfiguration.global()
+        SizeInBytes.valueOf(Configuration.global()
             .getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_FLUSH_SIZE_MAX)));
     // this property defines the maximum allowed size of the concurrent journal write IO tasks.
     // if the total size of the journal entries contained in the write IO tasks
     // are bigger than the given threshold, ratis may error out as
     // `SegmentedRaftLogWorker: elementNumBytes = 78215699 > byteLimit = 67108864`
-    RaftServerConfigKeys.Log.setQueueByteLimit(properties, (int) ServerConfiguration
+    RaftServerConfigKeys.Log.setQueueByteLimit(properties, (int) Configuration
         .global().getBytes(PropertyKey.MASTER_EMBEDDED_JOURNAL_FLUSH_SIZE_MAX));
 
+    // Override election/heartbeat timeouts for single master cluster if election timeout is not
+    // set explicitly. This is to speed up single master cluster boot-up.
+    long min = Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT);
+    long max = Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT);
+    if (mClusterAddresses.size() == 1
+        && !Configuration.isSetByUser(
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_MIN_ELECTION_TIMEOUT)
+        && !Configuration.isSetByUser(
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT)) {
+      LOG.info("Overriding election timeout to {}ms for single master cluster.",
+          SINGLE_MASTER_ELECTION_TIMEOUT_MS);
+      min = SINGLE_MASTER_ELECTION_TIMEOUT_MS;
+      max = 2 * min;
+    }
+    Preconditions.checkState(min < max,
+        "Min election timeout (%sms) should be less than max election timeout (%sms)", min, max);
+
     // election timeout, heartbeat timeout is automatically 1/2 of the value
-    final TimeDuration leaderElectionMinTimeout = TimeDuration.valueOf(
-        mConf.getMinElectionTimeoutMs(), TimeUnit.MILLISECONDS);
-    final TimeDuration leaderElectionMaxTimeout = TimeDuration.valueOf(
-        mConf.getMaxElectionTimeoutMs(), TimeUnit.MILLISECONDS);
-    RaftServerConfigKeys.Rpc.setTimeoutMin(properties, leaderElectionMinTimeout);
-    RaftServerConfigKeys.Rpc.setTimeoutMax(properties, leaderElectionMaxTimeout);
+    RaftServerConfigKeys.Rpc.setTimeoutMin(properties,
+        TimeDuration.valueOf(min, TimeUnit.MILLISECONDS));
+    RaftServerConfigKeys.Rpc.setTimeoutMax(properties,
+        TimeDuration.valueOf(max, TimeUnit.MILLISECONDS));
 
     // request timeout
-    RaftServerConfigKeys.Rpc.setRequestTimeout(properties,
-        TimeDuration.valueOf(
-            ServerConfiguration.global()
-                .getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS),
-            TimeUnit.MILLISECONDS));
+    RaftServerConfigKeys.Rpc.setRequestTimeout(properties, TimeDuration.valueOf(
+        Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_REQUEST_TIMEOUT_MS),
+        TimeUnit.MILLISECONDS));
 
-    RaftServerConfigKeys.RetryCache.setExpiryTime(properties,
-        TimeDuration.valueOf(
-            ServerConfiguration
-                .getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_RETRY_CACHE_EXPIRY_TIME),
-            TimeUnit.MILLISECONDS));
+    RaftServerConfigKeys.RetryCache.setExpiryTime(properties, TimeDuration.valueOf(
+        Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_RETRY_CACHE_EXPIRY_TIME),
+        TimeUnit.MILLISECONDS));
 
     // snapshot retention
-    RaftServerConfigKeys.Snapshot.setRetentionFileNum(properties, 3);
+    RaftServerConfigKeys.Snapshot.setRetentionFileNum(properties, 2);
+
+    // unsafe flush
+    RaftServerConfigKeys.Log.setUnsafeFlushEnabled(properties,
+        Configuration.getBoolean(PropertyKey.MASTER_EMBEDDED_JOURNAL_UNSAFE_FLUSH_ENABLED));
 
     // snapshot interval
     RaftServerConfigKeys.Snapshot.setAutoTriggerEnabled(
         properties, true);
-    int snapshotAutoTriggerThreshold =
-        ServerConfiguration.global().getInt(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
+    long snapshotAutoTriggerThreshold =
+        Configuration.getLong(PropertyKey.MASTER_JOURNAL_CHECKPOINT_PERIOD_ENTRIES);
     RaftServerConfigKeys.Snapshot.setAutoTriggerThreshold(properties,
         snapshotAutoTriggerThreshold);
+    // minimum distance between two snapshots in number of log entries
+    RaftServerConfigKeys.Snapshot.setCreationGap(properties, 1L);
 
-    if (ServerConfiguration.global().getBoolean(PropertyKey.MASTER_JOURNAL_LOCAL_LOG_COMPACTION)) {
+    if (Configuration.getBoolean(PropertyKey.MASTER_JOURNAL_LOCAL_LOG_COMPACTION)) {
       // purges log files after taking a snapshot successfully
       RaftServerConfigKeys.Log.setPurgeUptoSnapshotIndex(properties, true);
       // leaves no gap between log file purges: all log files included in a newly installed
@@ -412,11 +431,13 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     RaftServerConfigKeys.LeaderElection.setLeaderStepDownWaitTime(properties,
         TimeDuration.valueOf(Long.MAX_VALUE, TimeUnit.MILLISECONDS));
 
-    long messageSize = ServerConfiguration.global().getBytes(
+    long messageSize = Configuration.getBytes(
         PropertyKey.MASTER_EMBEDDED_JOURNAL_TRANSPORT_MAX_INBOUND_MESSAGE_SIZE);
     GrpcConfigKeys.setMessageSizeMax(properties,
         SizeInBytes.valueOf(messageSize));
     RatisDropwizardExports.registerRatisMetricReporters(mRatisMetricsMap);
+
+    mergeAlluxioRatisConfig(properties);
 
     // TODO(feng): clean up embedded journal configuration
     // build server
@@ -434,6 +455,19 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     MetricsSystem.registerGaugeIfAbsent(MetricKey.CLUSTER_LEADER_ID.getName(), this::getLeaderId);
   }
 
+  @VisibleForTesting
+  void mergeAlluxioRatisConfig(RaftProperties properties) {
+    Map<String, Object> ratisConf =
+        Configuration.getNestedProperties(PropertyKey.MASTER_EMBEDDED_JOURNAL_RATIS_CONFIG);
+
+    for (Map.Entry<String, Object> entry : ratisConf.entrySet()) {
+      if (entry.getValue() != null) {
+        properties.set(entry.getKey(), entry.getValue().toString());
+        LOG.info("set ratis config {}={}", entry.getKey(), entry.getValue());
+      }
+    }
+  }
+
   /**
    * @return current raft group
    */
@@ -444,7 +478,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       Preconditions.checkState(groupIter.hasNext(), "no group info found");
       RaftGroup group = groupIter.next();
       Preconditions.checkState(group.getGroupId() == RAFT_GROUP_ID,
-          String.format("Invalid group id %s, expecting %s", group.getGroupId(), RAFT_GROUP_ID));
+          "Invalid group id %s, expecting %s", group.getGroupId(), RAFT_GROUP_ID);
       return group;
     } catch (IOException | IllegalStateException e) {
       LogUtils.warnWithException(LOG, "Failed to get raft group, falling back to initial group", e);
@@ -453,18 +487,22 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   private RaftClient createClient() {
-    long timeoutMs =
-        ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT);
+    return createClient(Configuration.getMs(
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT));
+  }
+
+  private RaftClient createClient(long timeoutMs) {
     long retryBaseMs =
-        ServerConfiguration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_INTERVAL);
+        Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_INTERVAL);
+    long maxSleepTimeMs =
+        Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT);
     RaftProperties properties = new RaftProperties();
     Parameters parameters = new Parameters();
     RaftClientConfigKeys.Rpc.setRequestTimeout(properties,
         TimeDuration.valueOf(timeoutMs, TimeUnit.MILLISECONDS));
     RetryPolicy retryPolicy = ExponentialBackoffRetry.newBuilder()
         .setBaseSleepTime(TimeDuration.valueOf(retryBaseMs, TimeUnit.MILLISECONDS))
-        .setMaxSleepTime(
-            TimeDuration.valueOf(mConf.getMaxElectionTimeoutMs(), TimeUnit.MILLISECONDS))
+        .setMaxSleepTime(TimeDuration.valueOf(maxSleepTimeMs, TimeUnit.MILLISECONDS))
         .build();
     return RaftClient.newBuilder()
         .setRaftGroup(mRaftGroup)
@@ -478,7 +516,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized Journal createJournal(Master master) {
-    RaftJournal journal = new RaftJournal(master, mConf.getPath().toURI(), mAsyncJournalWriter);
+    RaftJournal journal = new RaftJournal(master, mPath.toURI(), mAsyncJournalWriter);
     mJournals.put(master.getName(), journal);
     return journal;
   }
@@ -486,9 +524,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   @Override
   public synchronized void gainPrimacy() {
     LOG.info("Gaining primacy.");
-    mSnapshotAllowed.set(false);
-    RaftJournalAppender client = new RaftJournalAppender(mServer, this::createClient,
-        mRawClientId, ServerConfiguration.global());
+    RaftJournalAppender client = new RaftJournalAppender(mServer, this::createClient, mRawClientId);
 
     Runnable closeClient = () -> {
       try {
@@ -515,6 +551,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mAsyncJournalWriter
         .set(new AsyncJournalWriter(mRaftJournalWriter, () -> getJournalSinks(null)));
     mTransferLeaderAllowed.set(true);
+    super.registerMetrics();
     LOG.info("Gained primacy.");
   }
 
@@ -530,8 +567,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       // Close async writer first to flush pending entries.
       mAsyncJournalWriter.get().close();
       mRaftJournalWriter.close();
-    } catch (IOException e) {
-      LOG.warn("Error closing journal writer: {}", e.toString());
     } finally {
       mAsyncJournalWriter.set(null);
       mRaftJournalWriter = null;
@@ -545,12 +580,11 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     }
     LOG.info("Shut down Raft server");
     try {
-      mSnapshotAllowed.set(true);
       initServer();
     } catch (IOException e) {
       throw new IllegalStateException(String.format(
           "Fatal error: failed to init Raft cluster with addresses %s while stepping down",
-          mConf.getClusterAddresses()), e);
+          mClusterAddresses), e);
     }
     LOG.info("Bootstrapping new Raft server");
     try {
@@ -558,7 +592,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     } catch (IOException e) {
       throw new IllegalStateException(String.format(
           "Fatal error: failed to start Raft cluster with addresses %s while stepping down",
-          mConf.getClusterAddresses()), e);
+          mClusterAddresses), e);
     }
 
     LOG.info("Raft server successfully restarted and lost primacy");
@@ -578,17 +612,12 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public synchronized void suspend(Runnable interruptCallback) throws IOException {
-    mSnapshotAllowed.set(false);
     mStateMachine.suspend(interruptCallback);
   }
 
   @Override
   public synchronized void resume() throws IOException {
-    try {
-      mStateMachine.resume();
-    } finally {
-      mSnapshotAllowed.set(true);
-    }
+    mStateMachine.resume();
   }
 
   /**
@@ -607,21 +636,16 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     return mStateMachine.catchup(distinctSequences.get(0));
   }
 
-  static Message toRaftMessage(JournalEntry entry) {
-    return Message.valueOf(UnsafeByteOperations.unsafeWrap(
-        new JournalEntryCommand(entry).getSerializedJournalEntry()));
-  }
-
   @Override
-  public synchronized void checkpoint() throws IOException {
-    // TODO(feng): consider removing this once we can automatically propagate
-    //             snapshots from standby master
+  public synchronized void checkpoint(StateLockManager stateLockManager) throws IOException {
     try (RaftJournalAppender client = new RaftJournalAppender(mServer, this::createClient,
-        mRawClientId, ServerConfiguration.global())) {
-      mSnapshotAllowed.set(true);
+        mRawClientId); RaftClient raftClt = createClient()) {
       catchUp(mStateMachine, client);
-      mStateMachine.takeLocalSnapshot();
-      // TODO(feng): maybe prune logs after snapshot
+      mStateMachine.allowLeaderSnapshots(stateLockManager);
+      // taking a manual checkpoint can take a long time, users are warned about this, so we set
+      // a long timeout for the operation
+      RaftClientReply reply = raftClt.getSnapshotManagementApi(mPeerId).create(Integer.MAX_VALUE);
+      processReply(reply, "failed to take checkpoint");
     } catch (TimeoutException e) {
       LOG.warn("Timeout while performing snapshot: {}", e.toString());
       throw new IOException("Timeout while performing snapshot", e);
@@ -630,15 +654,15 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       Thread.currentThread().interrupt();
       throw new CancelledException("Interrupted while performing snapshot", e);
     } finally {
-      mSnapshotAllowed.set(false);
+      mStateMachine.disallowLeaderSnapshots();
     }
   }
 
   @Override
-  public synchronized Map<ServiceType, GrpcService> getJournalServices() {
-    Map<ServiceType, GrpcService> services = new HashMap<>();
-    services.put(ServiceType.RAFT_JOURNAL_SERVICE, new GrpcService(
-        new RaftJournalServiceHandler(mStateMachine.getSnapshotReplicationManager())));
+  public synchronized Map<alluxio.grpc.ServiceType, GrpcService> getJournalServices() {
+    Map<alluxio.grpc.ServiceType, GrpcService> services = new HashMap<>();
+    services.put(alluxio.grpc.ServiceType.RAFT_JOURNAL_SERVICE, new GrpcService(
+        new RaftJournalServiceHandler(mStateMachineStorage)));
     return services;
   }
 
@@ -650,8 +674,8 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   private void catchUp(JournalStateMachine stateMachine, RaftJournalAppender client)
       throws TimeoutException, InterruptedException {
     long startTime = System.currentTimeMillis();
-    long waitBeforeRetry = ServerConfiguration.global()
-        .getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_CATCHUP_RETRY_WAIT);
+    long waitBeforeRetry =
+        Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_CATCHUP_RETRY_WAIT);
     // Wait for any outstanding snapshot to complete.
     CommonUtils.waitFor("snapshotting to finish", () -> !stateMachine.isSnapshotting(),
         WaitForOptions.defaults().setTimeoutMs(10 * Constants.MINUTE_MS));
@@ -694,7 +718,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     //    will see that an entry was written after its ID, and double check that it is still the
     //    leader before trying again.
     while (true) {
-      if (mPrimarySelector.getState() != PrimarySelector.State.PRIMARY) {
+      if (mPrimarySelector.getState() != NodeState.PRIMARY) {
         return;
       }
       long lastAppliedSN = stateMachine.getLastAppliedSequenceNumber();
@@ -703,9 +727,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
           lastAppliedSN, gainPrimacySN);
       Exception ex;
       try {
+        JournalEntry entry = JournalEntry.newBuilder().setSequenceNumber(gainPrimacySN).build();
         CompletableFuture<RaftClientReply> future = client.sendAsync(
-            toRaftMessage(JournalEntry.newBuilder().setSequenceNumber(gainPrimacySN).build()),
-            TimeDuration.valueOf(5, TimeUnit.SECONDS));
+            Message.valueOf(UnsafeByteOperations.unsafeWrap(entry.toByteArray())));
         RaftClientReply reply = future.get(5, TimeUnit.SECONDS);
         ex = reply.getException();
       } catch (TimeoutException | ExecutionException | IOException e) {
@@ -727,13 +751,15 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       // Wait election timeout so that this master and other masters have time to realize they
       // are not leader.
       try {
+        long maxElectionTimeoutMs =
+            Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT);
         CommonUtils.waitFor("check primacySN " + gainPrimacySN + " and lastAppliedSN "
             + lastAppliedSN + " to be applied to leader", () ->
             stateMachine.getLastAppliedSequenceNumber() == lastAppliedSN
                 && stateMachine.getLastPrimaryStartSequenceNumber() == gainPrimacySN,
             WaitForOptions.defaults()
                 .setInterval(Constants.SECOND_MS)
-                .setTimeoutMs((int) mConf.getMaxElectionTimeoutMs()));
+                .setTimeoutMs((int) maxElectionTimeoutMs));
       } catch (TimeoutException e) {
         // Someone has committed a journal entry since we started trying to catch up.
         // Restart the catchup process.
@@ -745,13 +771,15 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     }
   }
 
+  /**
+   * Throws {@link AlluxioRuntimeException} when it cannot start a RaftCluster and therefore
+   * cannot join the quorum.
+   */
   @Override
-  public synchronized void startInternal() throws IOException {
+  public synchronized void startInternal() {
     LOG.info("Initializing Raft Journal System");
-    InetSocketAddress localAddress = mConf.getLocalAddress();
-    mPeerId = RaftJournalUtils.getPeerId(localAddress);
-    List<InetSocketAddress> addresses = mConf.getClusterAddresses();
-    Set<RaftPeer> peers = addresses.stream()
+    mPeerId = RaftJournalUtils.getPeerId(mLocalAddress);
+    Set<RaftPeer> peers = mClusterAddresses.stream()
         .map(addr -> RaftPeer.newBuilder()
                 .setId(RaftJournalUtils.getPeerId(addr))
                 .setAddress(addr)
@@ -759,32 +787,29 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         )
         .collect(Collectors.toSet());
     mRaftGroup = RaftGroup.valueOf(RAFT_GROUP_ID, peers);
-    initServer();
-    super.registerMetrics();
-    List<InetSocketAddress> clusterAddresses = mConf.getClusterAddresses();
     LOG.info("Starting Raft journal system. Cluster addresses: {}. Local address: {}",
-        clusterAddresses, mConf.getLocalAddress());
-    long startTime = System.currentTimeMillis();
+        mClusterAddresses, mLocalAddress);
     try {
+      initServer();
+      long startTime = System.currentTimeMillis();
       mServer.start();
+      LOG.info("Started Raft Journal System in {}ms", System.currentTimeMillis() - startTime);
     } catch (IOException e) {
-      String errorMessage = ExceptionMessage.FAILED_RAFT_BOOTSTRAP
-          .getMessage(Arrays.toString(clusterAddresses.toArray()),
-              e.getCause() == null ? e : e.getCause().toString());
-      throw new IOException(errorMessage, e.getCause());
+      String errorMessage = MessageFormat.format("Failed to bootstrap raft cluster "
+          + "with addresses {}", mClusterAddresses);
+      throw new AlluxioRuntimeException(Status.UNAVAILABLE, errorMessage, e, ErrorType.Internal,
+          true);
     }
-    LOG.info("Started Raft Journal System in {}ms", System.currentTimeMillis() - startTime);
     joinQuorum();
   }
 
   private void joinQuorum() {
-    InetSocketAddress localAddress = mConf.getLocalAddress();
     // Send a request to join the quorum.
     // If the server is already part of the quorum, this operation is a noop.
     AddQuorumServerRequest request = AddQuorumServerRequest.newBuilder()
         .setServerAddress(NetAddress.newBuilder()
-            .setHost(localAddress.getHostString())
-            .setRpcPort(localAddress.getPort()))
+            .setHost(mLocalAddress.getHostString())
+            .setRpcPort(mLocalAddress.getPort()))
         .build();
     RaftClient client = createClient();
     client.async().sendReadOnly(Message.valueOf(
@@ -810,7 +835,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   }
 
   @Override
-  public synchronized void stopInternal() throws IOException {
+  public synchronized void stopInternal() {
     LOG.info("Shutting down raft journal");
     if (mRaftJournalWriter != null) {
       mRaftJournalWriter.close();
@@ -850,17 +875,18 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       NetAddress memberAddress = NetAddress.newBuilder().setHost(hp.getHost())
           .setRpcPort(hp.getPort()).build();
 
+      long maxElectionTimeoutMs =
+          Configuration.getMs(PropertyKey.MASTER_EMBEDDED_JOURNAL_MAX_ELECTION_TIMEOUT);
       quorumMemberStateList.add(QuorumServerInfo.newBuilder()
               .setIsLeader(false)
               .setPriority(member.getId().getPriority())
               .setServerAddress(memberAddress)
-          .setServerState(member.getLastRpcElapsedTimeMs() > mConf.getMaxElectionTimeoutMs()
+          .setServerState(member.getLastRpcElapsedTimeMs() > maxElectionTimeoutMs
               ? QuorumServerState.UNAVAILABLE : QuorumServerState.AVAILABLE).build());
     }
-    InetSocketAddress localAddress = mConf.getLocalAddress();
     NetAddress self = NetAddress.newBuilder()
-        .setHost(localAddress.getHostString())
-        .setRpcPort(localAddress.getPort())
+        .setHost(mLocalAddress.getHostString())
+        .setRpcPort(mLocalAddress.getPort())
         .build();
     quorumMemberStateList.add(QuorumServerInfo.newBuilder()
             .setIsLeader(true)
@@ -880,7 +906,21 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    */
   public synchronized CompletableFuture<RaftClientReply> sendMessageAsync(
       RaftPeerId server, Message message) {
-    RaftClient client = createClient();
+    return sendMessageAsync(server, message, Configuration.getMs(
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT));
+  }
+
+  /**
+   * Sends a message to a raft server asynchronously.
+   *
+   * @param server the raft peer id of the target server
+   * @param message the message to send
+   * @param timeoutMs the message timeout in milliseconds
+   * @return a future to be completed with the client reply
+   */
+  public synchronized CompletableFuture<RaftClientReply> sendMessageAsync(
+      RaftPeerId server, Message message, long timeoutMs) {
+    RaftClient client = createClient(timeoutMs);
     RaftClientRequest request = RaftClientRequest.newBuilder()
             .setClientId(mRawClientId)
             .setServerId(server)
@@ -913,7 +953,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   public synchronized boolean isLeader() {
     return mServer != null
         && mServer.getLifeCycleState() == LifeCycle.State.RUNNING
-        && mPrimarySelector.getState() == PrimarySelector.State.PRIMARY;
+        && mPrimarySelector.getState() == NodeState.PRIMARY;
   }
 
   /**
@@ -1007,36 +1047,36 @@ public class RaftJournalSystem extends AbstractJournalSystem {
         LOG.info("Applying new peer state before transferring leadership: {}", stringPeers);
         RaftClientReply reply = client.admin().setConfiguration(peersWithNewPriorities);
         processReply(reply, "failed to set master priorities before initiating election");
-        /* transfer leadership */
-        LOG.info("Transferring leadership to master with address <{}> and with RaftPeerId <{}>",
-            serverAddress, newLeaderPeerId);
-        // fire and forget: need to immediately return as the master will shut down its RPC servers
-        // once the TransferLeadershipRequest is initiated.
-        final int SLEEP_TIME_MS = 3_000;
-        final int TRANSFER_LEADER_WAIT_MS = 30_000;
-        new Thread(() -> {
-          try {
-            Thread.sleep(SLEEP_TIME_MS);
-            RaftClientReply reply1 = client.admin().transferLeadership(newLeaderPeerId,
-                TRANSFER_LEADER_WAIT_MS);
-            processReply(reply1, "election failed");
-          } catch (Throwable t) {
-            LOG.error("caught an error when executing transfer: {}", t.getMessage());
-            // we only allow transfers again if the transfer is unsuccessful: a success means it
-            // will soon lose primacy
-            mTransferLeaderAllowed.set(true);
-            mErrorMessages.put(transferId, TransferLeaderMessage.newBuilder()
-                .setMsg(t.getMessage()).build());
-            /* checking the transfer happens in {@link QuorumElectCommand} */
-          }
-        }).start();
-        LOG.info("Transferring leadership initiated");
       }
+      /* transfer leadership */
+      LOG.info("Transferring leadership to master with address <{}> and with RaftPeerId <{}>",
+          serverAddress, newLeaderPeerId);
+      // fire and forget: need to immediately return as the master will shut down its RPC servers
+      // once the TransferLeadershipRequest is initiated.
+      final int SLEEP_TIME_MS = 3_000;
+      final int TRANSFER_LEADER_WAIT_MS = 30_000;
+      new Thread(() -> {
+        try (RaftClient client = createClient()) {
+          Thread.sleep(SLEEP_TIME_MS);
+          RaftClientReply reply1 = client.admin().transferLeadership(newLeaderPeerId,
+              TRANSFER_LEADER_WAIT_MS);
+          processReply(reply1, "election failed");
+        } catch (Throwable t) {
+          LOG.error("caught an error when executing transfer: {}", t.getMessage());
+          // we only allow transfers again if the transfer is unsuccessful: a success means it
+          // will soon lose primacy
+          mTransferLeaderAllowed.set(true);
+          mErrorMessages.put(transferId, TransferLeaderMessage.newBuilder()
+              .setMsg(t.getMessage()).build());
+          /* checking the transfer happens in {@link QuorumElectCommand} */
+        }
+      }).start();
+      LOG.info("Transferring leadership initiated");
     } catch (Throwable t) {
       mTransferLeaderAllowed.set(true);
       LOG.warn(t.getMessage());
       mErrorMessages.put(transferId, TransferLeaderMessage.newBuilder()
-              .setMsg(t.getMessage()).build());
+          .setMsg(t.getMessage()).build());
     }
     return transferId;
   }
@@ -1102,40 +1142,43 @@ public class RaftJournalSystem extends AbstractJournalSystem {
 
   @Override
   public boolean isFormatted() {
-    return mConf.getPath().exists();
+    return mPath.exists();
   }
 
   @Override
   public void format() throws IOException {
-    File journalPath = mConf.getPath();
-    if (journalPath.isDirectory()) {
-      if (alluxio.util.io.FileUtils.isStorageDirAccessible(journalPath.getPath())) {
-        FileUtils.cleanDirectory(journalPath);
+    if (mPath.isDirectory()) {
+      if (alluxio.util.io.FileUtils.isStorageDirAccessible(mPath.getPath())) {
+        FileUtils.cleanDirectory(mPath);
       } else {
-        throw new AccessDeniedException(journalPath.getPath());
+        throw new AccessDeniedException(mPath.getPath());
       }
     } else {
-      if (journalPath.exists()) {
-        FileUtils.forceDelete(journalPath);
+      if (mPath.exists()) {
+        FileUtils.forceDelete(mPath);
       }
-      if (!journalPath.mkdirs()) {
-        throw new AccessDeniedException(journalPath.getPath());
+      if (!mPath.mkdirs()) {
+        throw new AccessDeniedException(mPath.getPath());
       }
     }
   }
 
-  /**
-   * @return a primary selector backed by leadership within the Raft cluster
-   */
-  public PrimarySelector getPrimarySelector() {
-    return mPrimarySelector;
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("JournalPath", mPath)
+        .add("Address", mLocalAddress)
+        .add("State", mPrimarySelector.getState())
+        .add("Cluster", mClusterAddresses)
+        .add("RaftGroup", mRaftGroup)
+        .toString();
   }
 
   /**
-   * @return whether it is allowed to take a local snapshot
+   * @return a primary selector that reflects the Raft quorum status
    */
-  public boolean isSnapshotAllowed() {
-    return mSnapshotAllowed.get();
+  public PrimarySelector getPrimarySelector() {
+    return mPrimarySelector;
   }
 
   /**
@@ -1144,12 +1187,17 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    */
   public void notifyLeadershipStateChanged(boolean isLeader) {
     mPrimarySelector.notifyStateChanged(
-        isLeader ? PrimarySelector.State.PRIMARY : PrimarySelector.State.STANDBY);
+        isLeader ? NodeState.PRIMARY : NodeState.STANDBY);
   }
 
   @VisibleForTesting
   synchronized RaftServer getRaftServer() {
     return mServer;
+  }
+
+  @VisibleForTesting
+  ConcurrentHashMap<String, RaftJournal> getJournals() {
+    return mJournals;
   }
 
   /**
@@ -1163,8 +1211,9 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     }
   }
 
+  @VisibleForTesting
   @Nullable
-  private RaftProtos.RoleInfoProto getRaftRoleInfo() {
+  RaftProtos.RoleInfoProto getRaftRoleInfo() {
     GroupInfoReply groupInfo = null;
     try {
       groupInfo = getGroupInfo();
@@ -1229,7 +1278,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     }
     String leaderAddress = leaderId.replace('_', ':');
     int index = 0;
-    for (InetSocketAddress address : mConf.getClusterAddresses()) {
+    for (InetSocketAddress address : mClusterAddresses) {
       if (address.toString().equals(leaderAddress)) {
         return index;
       }

@@ -15,8 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
 import alluxio.client.fs.io.AbstractFileOutStreamIntegrationTest;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.WritePType;
 import alluxio.master.file.meta.PersistenceState;
@@ -51,13 +51,13 @@ public final class PersistMultipleMountsIntegrationTest
   public void before() throws Exception {
     super.before();
 
-    mUfsRoot = PathUtils.concatPath(ServerConfiguration
+    mUfsRoot = PathUtils.concatPath(Configuration
         .get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS));
-    mUfs = UnderFileSystem.Factory.create(mUfsRoot, ServerConfiguration.global());
+    mUfs = UnderFileSystem.Factory.create(mUfsRoot, Configuration.global());
 
     mMountedUfsRoot = mTempFolder.getRoot().getAbsolutePath();
     mFileSystem.mount(new AlluxioURI(MOUNT_PATH), new AlluxioURI(mMountedUfsRoot));
-    mMountedUfs = UnderFileSystem.Factory.create(mMountedUfsRoot, ServerConfiguration.global());
+    mMountedUfs = UnderFileSystem.Factory.create(mMountedUfsRoot, Configuration.global());
   }
 
   @Test

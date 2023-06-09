@@ -21,10 +21,11 @@ import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
@@ -65,7 +66,7 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
   @Rule
   public ConfigurationRule mConfiguration = new ConfigurationRule(ImmutableMap
       .of(PropertyKey.SECURITY_GROUP_MAPPING_CLASS, FakeUserGroupsMapping.class.getName()),
-      ServerConfiguration.global());
+      Configuration.modifiableGlobal());
 
   /**
    * Tests copying a file to a new location.
@@ -199,7 +200,7 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
    */
   @Test
   public void copyFileWithPreservedAttributes() throws Exception {
-    InstancedConfiguration conf = new InstancedConfiguration(ServerConfiguration.global());
+    InstancedConfiguration conf = Configuration.copyGlobal();
     // avoid chown on UFS since test might not be run with root
     conf.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
     try (FileSystemShell fsShell = new FileSystemShell(conf)) {
@@ -237,7 +238,7 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
    */
   @Test
   public void copyDirectoryWithPreservedAttributes() throws Exception {
-    InstancedConfiguration conf = new InstancedConfiguration(ServerConfiguration.global());
+    InstancedConfiguration conf = Configuration.copyGlobal();
     conf.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
     try (FileSystemShell fsShell = new FileSystemShell(conf)) {
       String testDir = FileSystemShellUtilsTest.resetFileHierarchy(sFileSystem);
@@ -328,7 +329,7 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
 
   @Test
   public void copyAfterWorkersNotAvailableMustCache() throws Exception {
-    InstancedConfiguration conf = new InstancedConfiguration(ServerConfiguration.global());
+    InstancedConfiguration conf = Configuration.copyGlobal();
     conf.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
     try (FileSystemShell fsShell = new FileSystemShell(conf)) {
       File testFile = new File(sLocalAlluxioCluster.getAlluxioHome() + "/testFile");
@@ -505,7 +506,8 @@ public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest 
     String[] cmd2 = {"cp", "file://" +  testFile2.getPath(), alluxioFilePath.getPath()};
     Assert.assertEquals(-1, sFsShell.run(cmd2));
     Assert.assertThat(mOutput.toString(), containsString(
-        "Not allowed to create file because path already exists: " + alluxioFilePath.getPath()));
+        ExceptionMessage.CANNOT_OVERWRITE_FILE_WITHOUT_OVERWRITE.getMessage(
+            alluxioFilePath.getPath())));
     // Make sure the original file is intact
     Assert.assertTrue(BufferUtils
         .equalIncreasingByteArray(LEN1, readContent(alluxioFilePath, LEN1)));

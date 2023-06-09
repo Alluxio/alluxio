@@ -21,6 +21,7 @@
 /conf/alluxio-env.sh
 /conf/alluxio-env.sh.bootstrap.bk
 /conf/metrics.properties
+/conf/rocks-*.ini
 /data/
 /dev/scripts/*.tar.gz
 /dev/scripts/tarballs

@@ -54,6 +54,10 @@ exports[`App Shallow component Matches snapshot 1`] = `
               "url": "/config",
             },
             Object {
+              "innerText": "Masters",
+              "url": "/masters",
+            },
+            Object {
               "innerText": "Workers",
               "url": "/workers",
             },
@@ -135,6 +139,11 @@ exports[`App Shallow component Matches snapshot 1`] = `
         />
         <Route
           exact={true}
+          path="/masters"
+          render={[Function]}
+        />
+        <Route
+          exact={true}
           path="/workers"
           render={[Function]}
         />
@@ -172,6 +181,10 @@ exports[`App Shallow component Matches snapshot 1`] = `
               },
               "innerText": "User Mailing List",
               "url": "https://groups.google.com/forum/#!forum/alluxio-users",
+            },
+            Object {
+              "innerText": "Masters",
+              "url": "/masters",
             },
             Object {
               "innerText": "Workers",

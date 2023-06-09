@@ -20,9 +20,11 @@ import alluxio.Constants;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
+import alluxio.client.file.ListStatusPartialResult;
 import alluxio.client.file.URIStatus;
+import alluxio.collections.Pair;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
@@ -32,6 +34,7 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
+import alluxio.grpc.ListStatusPartialPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
@@ -52,7 +55,10 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Integration tests for Alluxio Client (reuse the {@link LocalAlluxioCluster}).
@@ -77,7 +83,7 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
     mWriteBoth = CreateFilePOptions.newBuilder().setRecursive(true)
         .setWriteType(WritePType.CACHE_THROUGH).build();
-    mUfs = UnderFileSystem.Factory.createForRoot(ServerConfiguration.global());
+    mUfs = UnderFileSystem.Factory.createForRoot(Configuration.global());
   }
 
   @Test
@@ -189,7 +195,7 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
    */
   private String createAlternateUfs() throws Exception {
     AlluxioURI parentURI =
-        new AlluxioURI(ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))
+        new AlluxioURI(Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS))
             .getParent();
     String alternateUfsRoot = parentURI.join("alternateUnderFSStorage").toString();
     UnderFileSystemUtils.mkdirIfNotExists(mUfs, alternateUfsRoot);
@@ -243,7 +249,7 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
   @Test
   public void mountPrefixUfs() throws Exception {
     // Primary UFS cannot be re-mounted
-    String ufsRoot = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufsRoot = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     String ufsSubdir = PathUtils.concatPath(ufsRoot, "dir1");
     UnderFileSystemUtils.mkdirIfNotExists(mUfs, ufsSubdir);
     try {
@@ -280,7 +286,7 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void mountShadowUfs() throws Exception {
-    String ufsRoot = ServerConfiguration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufsRoot = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     String ufsSubdir = PathUtils.concatPath(ufsRoot, "dir1");
     UnderFileSystemUtils.mkdirIfNotExists(mUfs, ufsSubdir);
 
@@ -336,7 +342,7 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
   public void testMultiSetAttribute() throws Exception {
     AlluxioURI testFile = new AlluxioURI("/test1");
     FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.MUST_CACHE, 512);
-    long expectedTtl = ServerConfiguration.getMs(PropertyKey.USER_FILE_CREATE_TTL);
+    long expectedTtl = Configuration.getMs(PropertyKey.USER_FILE_CREATE_TTL);
     URIStatus stat = mFileSystem.getStatus(testFile);
     assertEquals("TTL should be equal to configuration", expectedTtl, stat.getTtl());
 
@@ -376,7 +382,7 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
     AlluxioURI testFile = new AlluxioURI("/test1");
     FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.MUST_CACHE, 512);
     TtlAction expectedAction =
-        ServerConfiguration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class);
+        Configuration.getEnum(PropertyKey.USER_FILE_CREATE_TTL_ACTION, TtlAction.class);
     URIStatus stat = mFileSystem.getStatus(testFile);
     assertEquals("TTL action should be same", expectedAction, stat.getTtlAction());
 
@@ -520,5 +526,131 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
   public void getBlockLocationNonExistingPath() throws Exception {
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystem.getBlockLocations(new AlluxioURI("/path"));
+  }
+
+  Pair<List<String>, ListStatusPartialResult> partialList(
+      AlluxioURI path, ListStatusPartialPOptions options) throws Exception {
+    ListStatusPartialResult result = mFileSystem.listStatusPartial(path, options);
+    return new Pair<>(result.getListings().stream().map(URIStatus::getName)
+        .collect(Collectors.toList()), result);
+  }
+
+  @Test
+  public void listStatusPartial() throws Exception {
+    AlluxioURI dir = new AlluxioURI("/dir");
+    mFileSystem.createDirectory(dir);
+    mFileSystem.createFile(new AlluxioURI(PathUtils.concatPath(dir, "a"))).close();
+    mFileSystem.createFile(new AlluxioURI(PathUtils.concatPath(dir, "b"))).close();
+    mFileSystem.createFile(new AlluxioURI(PathUtils.concatPath(dir, "e"))).close();
+    mFileSystem.createFile(new AlluxioURI(PathUtils.concatPath(dir, "f"))).close();
+    Pair<List<String>, ListStatusPartialResult> result = partialList(dir,
+        ListStatusPartialPOptions.newBuilder().setBatchSize(2).build());
+    assertEquals(Arrays.asList("a", "b"), result.getFirst());
+    assertTrue(result.getSecond().isTruncated());
+    result = partialList(dir, ListStatusPartialPOptions.newBuilder()
+        .setOffsetId(result.getSecond().getListings().get(
+            result.getSecond().getListings().size() - 1).getFileId()).build());
+    assertEquals(Arrays.asList("e", "f"), result.getFirst());
+    assertFalse(result.getSecond().isTruncated());
+  }
+
+  @Test
+  public void listStatusStartAfterLoop() throws Exception {
+    AlluxioURI dir = new AlluxioURI("/dir");
+    mFileSystem.createDirectory(dir);
+    int fileCount = 100;
+    for (int i = 0; i < fileCount; i++) {
+      mFileSystem.createFile(new AlluxioURI(PathUtils.concatPath(
+          dir, String.format("%05d", i)))).close();
+    }
+    int batchSize = 2;
+    String startAfter = "";
+    for (int i = 0; i < fileCount; i += batchSize) {
+      Pair<List<String>, ListStatusPartialResult> result = partialList(dir,
+          ListStatusPartialPOptions.newBuilder().setStartAfter(startAfter)
+              .setBatchSize(batchSize).build());
+      List<String> expectedResult = new ArrayList<>();
+      for (int j = i; j < Math.min(fileCount, i + batchSize); j++) {
+        expectedResult.add(String.format("%05d", j));
+      }
+      assertEquals(expectedResult, result.getFirst());
+      if ((i + batchSize) < fileCount) {
+        assertTrue(result.getSecond().isTruncated());
+      } else {
+        assertFalse(result.getSecond().isTruncated());
+      }
+      List<URIStatus> listings = result.getSecond().getListings();
+      if (!listings.isEmpty()) {
+        startAfter = listings.get(listings.size() - 1).getPath();
+      }
+    }
+  }
+
+  @Test
+  public void listStatusPartialLoop() throws Exception {
+    AlluxioURI dir = new AlluxioURI("/dir");
+    mFileSystem.createDirectory(dir);
+    int fileCount = 100;
+    for (int i = 0; i < fileCount; i++) {
+      mFileSystem.createFile(new AlluxioURI(PathUtils.concatPath(
+          dir, String.format("%05d", i)))).close();
+    }
+    int batchSize = 2;
+    long startAfter = 0;
+    for (int i = 0; i < fileCount; i += batchSize) {
+      Pair<List<String>, ListStatusPartialResult> result = partialList(dir,
+          ListStatusPartialPOptions.newBuilder().setOffsetId(startAfter)
+              .setBatchSize(batchSize).build());
+      List<String> expectedResult = new ArrayList<>();
+      for (int j = i; j < Math.min(fileCount, i + batchSize); j++) {
+        expectedResult.add(String.format("%05d", j));
+      }
+      assertEquals(expectedResult, result.getFirst());
+      if ((i + batchSize) < fileCount) {
+        assertTrue(result.getSecond().isTruncated());
+      } else {
+        assertFalse(result.getSecond().isTruncated());
+      }
+      List<URIStatus> listings = result.getSecond().getListings();
+      if (!listings.isEmpty()) {
+        startAfter = listings.get(listings.size() - 1).getFileId();
+      }
+    }
+  }
+
+  @Test
+  public void listStatusPartialStartAfter() throws Exception {
+    AlluxioURI dir = new AlluxioURI("/dir");
+    mFileSystem.createDirectory(dir);
+    dir = dir.join("nested");
+    mFileSystem.createDirectory(dir);
+    mFileSystem.createFile(new AlluxioURI(PathUtils.concatPath(dir, "a"))).close();
+    mFileSystem.createFile(new AlluxioURI(PathUtils.concatPath(dir, "b"))).close();
+    mFileSystem.createFile(new AlluxioURI(PathUtils.concatPath(dir, "e"))).close();
+    mFileSystem.createFile(new AlluxioURI(PathUtils.concatPath(dir, "f"))).close();
+    Pair<List<String>, ListStatusPartialResult> result = partialList(dir,
+        ListStatusPartialPOptions.newBuilder().setBatchSize(2).build());
+    assertEquals(Arrays.asList("a", "b"), result.getFirst());
+    assertTrue(result.getSecond().isTruncated());
+    result = partialList(dir, ListStatusPartialPOptions.newBuilder()
+        .setStartAfter("b").build());
+    assertEquals(Arrays.asList("e", "f"), result.getFirst());
+    assertFalse(result.getSecond().isTruncated());
+  }
+
+  @Test
+  public void listStatusPartialPrefix() throws Exception {
+    AlluxioURI dir = new AlluxioURI("/dir");
+    mFileSystem.createDirectory(dir);
+    dir = dir.join("nested");
+    mFileSystem.createDirectory(dir);
+    mFileSystem.createFile(new AlluxioURI(PathUtils.concatPath(dir, "prefix"))).close();
+    mFileSystem.createFile(new AlluxioURI(PathUtils.concatPath(dir, "prefix-suffix"))).close();
+    mFileSystem.createFile(new AlluxioURI(PathUtils.concatPath(dir, "dif-prefix"))).close();
+    mFileSystem.createFile(new AlluxioURI(PathUtils.concatPath(dir, "dif-suffix"))).close();
+    Pair<List<String>, ListStatusPartialResult> result = partialList(dir,
+        ListStatusPartialPOptions.newBuilder().setPrefix("/prefix").build());
+    assertEquals(Arrays.asList("prefix", "prefix-suffix"), result.getFirst());
+    assertFalse(result.getSecond().isTruncated());
   }
 }

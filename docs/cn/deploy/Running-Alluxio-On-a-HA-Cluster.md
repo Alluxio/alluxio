@@ -47,7 +47,7 @@ alluxio.master.embedded.journal.addresses=<EMBEDDED_JOURNAL_ADDRESS>
 - 第二个属性 `alluxio.master.mount.table.root.ufs=<STORAGE_URI>` 设置为挂载到Alluxio根目录的底层存储URI。 一定保证master节点和所有worker节点都可以访问此共享存储。 示例包括`alluxio.master.mount.table.root.ufs=hdfs://1.2.3.4:9000/alluxio/root/`或`alluxio.master.mount.table.root.ufs=s3://bucket/dir/` 。
 - 第三个属性 `alluxio.master.embedded.journal.addresses` 设置参加Alluxio leading master选举的master节点集。默认的嵌入式日志端口是 `19200`。例如: `alluxio.master.embedded.journal.addresses=master_hostname_1:19200，master_hostname_2:19200，master_hostname_3:19200`
 
-嵌入式日记特性依赖于 [Copycat](https://github.com/atomix/copycat) 内置leader选举功能。内置leader选举功能不能与Zookeeper一起使用，因为系统不能出现多种leader选举机制选出不同leader的情况。启用嵌入式日记就启用了Alluxio的内置leader election机制。请参阅[嵌入式日志配置文档]({{ '/en/operation/Journal.html' | relativize_url}}＃embedded-journal-configuration)，以了解更多详细信息以及使用内部leader选举配置HA集群的替代方案。
+嵌入式日记特性依赖于 [Ratis](https://github.com/apache/ratis) 内置leader选举功能。内置leader选举功能不能与Zookeeper一起使用，因为系统不能出现多种leader选举机制选出不同leader的情况。启用嵌入式日记就启用了Alluxio的内置leader election机制。请参阅[嵌入式日志配置文档]({{ '/en/operation/Journal.html' | relativize_url}}＃embedded-journal-configuration)，以了解更多详细信息以及使用内部leader选举配置HA集群的替代方案。
 
 ### 选项2:Zookeeper和共享日志存储
 
@@ -170,7 +170,7 @@ alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>
 - 使用嵌入式日志时，使用 `alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998/path`
 - 使用Zookeeper做leader选举时，使用 `alluxio://zk@<ZOOKEEPER_ADDRESS>/path`。
 
-对于许多应用程序(例如，Hadoop，HBase，Hive和Flink)，可以使用逗号作为URI中多个地址的分隔符，例如 `alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998/path` 和 `alluxio://zk@zkHost1:2181,zkHost2:2181,zkHost3:2181/path`。
+对于许多应用程序(例如，Hadoop，Hive和Flink)，可以使用逗号作为URI中多个地址的分隔符，例如 `alluxio://master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998/path` 和 `alluxio://zk@zkHost1:2181,zkHost2:2181,zkHost3:2181/path`。
 
 对于URL Authority内不接受逗号的其他一些应用程序(例如Spark)，需要使用分号作为多个地址的分隔符，例如 `alluxio://master_hostname_1:19998; master_hostname_2:19998; master_hostname_3:19998` 和 `alluxio://zk@zkHost1:2181; zkHost2:2181; zkHost3:2181/path`。
 
@@ -299,7 +299,7 @@ $ ./bin/alluxio-start.sh worker SudoMount # 开始 local worker
 $ ./bin/alluxio-stop.sh worker # 停止 local worker
 ```
 
-一旦worker被停止，master将在预定的超时值（通过master参数alluxio.master.worker.timeout配置）后将此worker标记为缺失。 主机视worker为“丢失”，并且不再将其包括在集群中。
+一旦worker被停止，master将在预定的超时值（通过master参数alluxio.master.worker.timeout配置）后将此worker标记为缺失。 主机视worker为"丢失"，并且不再将其包括在集群中。
 
 ### 添加/删除Masters
 如要添加一个master节点，Alluxio集群必须已经在HA模式下运行。如果目前集群为单个master集群，则必须先将其配置为HA集群才能有多于一个master。

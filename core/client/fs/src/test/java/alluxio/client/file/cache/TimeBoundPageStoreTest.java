@@ -19,9 +19,10 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.client.file.cache.store.ByteArrayTargetBuffer;
 import alluxio.client.file.cache.store.PageStoreOptions;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
@@ -56,30 +57,32 @@ public class TimeBoundPageStoreTest {
 
   @Before
   public void before() throws Exception {
-    InstancedConfiguration conf = ConfigurationTestUtils.defaults();
+    InstancedConfiguration conf = Configuration.copyGlobal();
     conf.set(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE, PAGE_SIZE_BYTES);
-    conf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, CACHE_SIZE_BYTES);
-    conf.set(PropertyKey.USER_CLIENT_CACHE_DIR, mTemp.getRoot().getAbsolutePath());
+    conf.set(PropertyKey.USER_CLIENT_CACHE_SIZE, String.valueOf(CACHE_SIZE_BYTES));
+    conf.set(PropertyKey.USER_CLIENT_CACHE_DIRS, mTemp.getRoot().getAbsolutePath());
     conf.set(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_DURATION, "-1");
-    mPageStoreOptions = PageStoreOptions.create(conf);
+    mPageStoreOptions = PageStoreOptions.create(conf).get(0);
     mPageStore = new HangingPageStore(mPageStoreOptions);
 
     conf.set(PropertyKey.USER_CLIENT_CACHE_TIMEOUT_DURATION, "2s");
-    mTimeBoundPageStoreOptions = PageStoreOptions.create(conf);
+    mTimeBoundPageStoreOptions = PageStoreOptions.create(conf).get(0);
     mTimeBoundPageStore = new TimeBoundPageStore(mPageStore, mTimeBoundPageStoreOptions);
   }
 
   @Test
   public void put() throws Exception {
     mTimeBoundPageStore.put(PAGE_ID, PAGE);
-    assertEquals(PAGE.length, mPageStore.get(PAGE_ID, 0, PAGE.length, mBuf, 0));
+    assertEquals(PAGE.length,
+        mPageStore.get(PAGE_ID, 0, PAGE.length, new ByteArrayTargetBuffer(mBuf, 0)));
     assertArrayEquals(PAGE, mBuf);
   }
 
   @Test
   public void get() throws Exception {
     mPageStore.put(PAGE_ID, PAGE);
-    assertEquals(PAGE.length, mTimeBoundPageStore.get(PAGE_ID, 0, PAGE.length, mBuf, 0));
+    assertEquals(PAGE.length,
+        mTimeBoundPageStore.get(PAGE_ID, 0, PAGE.length, new ByteArrayTargetBuffer(mBuf, 0)));
     assertArrayEquals(PAGE, mBuf);
   }
 
@@ -88,7 +91,7 @@ public class TimeBoundPageStoreTest {
     mPageStore.put(PAGE_ID, PAGE);
     mTimeBoundPageStore.delete(PAGE_ID);
     assertThrows(PageNotFoundException.class, () ->
-        mPageStore.get(PAGE_ID, 0, PAGE.length, mBuf, 0));
+        mPageStore.get(PAGE_ID, 0, PAGE.length, new ByteArrayTargetBuffer(mBuf, 0)));
   }
 
   @Test
@@ -106,7 +109,7 @@ public class TimeBoundPageStoreTest {
   public void getTimeout() throws Exception {
     mPageStore.setGetHanging(true);
     try {
-      mTimeBoundPageStore.get(PAGE_ID, 0, PAGE.length, mBuf, 0);
+      mTimeBoundPageStore.get(PAGE_ID, 0, PAGE.length, new ByteArrayTargetBuffer(mBuf, 0));
       fail();
     } catch (IOException e) {
       assertTrue(e.getCause() instanceof TimeoutException);

@@ -23,7 +23,11 @@ import static org.mockito.Mockito.doAnswer;
 
 import alluxio.TestLoggerRule;
 
+import com.google.common.base.Stopwatch;
 import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.WriterAppender;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -31,7 +35,9 @@ import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 import org.powermock.reflect.Whitebox;
 
+import java.util.Enumeration;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 public final class JvmPauseMonitorTest {
@@ -41,6 +47,17 @@ public final class JvmPauseMonitorTest {
 
   @Rule
   public ExpectedException mException = ExpectedException.none();
+
+  @Before
+  public void before() {
+    Enumeration appenders = Logger.getLogger(JvmPauseMonitor.class).getAllAppenders();
+    while (appenders.hasMoreElements()) {
+      Object appender = appenders.nextElement();
+      if (appender instanceof WriterAppender) {
+        ((WriterAppender) appender).setImmediateFlush(true);
+      }
+    }
+  }
 
   @Test
   public void pauseMonitorStartStopTest() {
@@ -89,7 +106,11 @@ public final class JvmPauseMonitorTest {
     JvmPauseMonitor mon = Mockito.spy(new JvmPauseMonitor(100, Long.MAX_VALUE, 250));
     CyclicBarrier before = new CyclicBarrier(2);
     doAnswer((Answer<Void>) invocation -> {
-      Thread.sleep(250);
+      Stopwatch sw = Stopwatch.createUnstarted();
+      sw.start();
+      while (sw.elapsed(TimeUnit.MILLISECONDS) < 251) {
+        Thread.sleep(Math.abs(251 - sw.elapsed(TimeUnit.MILLISECONDS)));
+      }
       invocation.callRealMethod();
       before.await();
       return null;

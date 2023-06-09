@@ -12,12 +12,16 @@
 package alluxio.client.file.cache;
 
 import alluxio.client.file.CacheContext;
+import alluxio.client.file.cache.store.PageReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.nio.ByteBuffer;
+import java.util.List;
 
 /**
  * A wrapper class of CacheManager without throwing unchecked exceptions.
@@ -46,7 +50,7 @@ public class NoExceptionCacheManager implements CacheManager {
   }
 
   @Override
-  public boolean put(PageId pageId, byte[] page, CacheContext cacheContext) {
+  public boolean put(PageId pageId, ByteBuffer page, CacheContext cacheContext) {
     try {
       return mCacheManager.put(pageId, page, cacheContext);
     } catch (Exception e) {
@@ -94,6 +98,20 @@ public class NoExceptionCacheManager implements CacheManager {
   }
 
   @Override
+  public int get(PageId pageId, int pageOffset, int bytesToRead, PageReadTargetBuffer buffer,
+      CacheContext cacheContext) {
+    try {
+      return mCacheManager
+          .get(pageId, pageOffset, bytesToRead, buffer, cacheContext);
+    } catch (Exception e) {
+      LOG.error("Failed to get page {}, offset {} cacheContext {}", pageId, pageOffset,
+          cacheContext, e);
+      Metrics.GET_ERRORS.inc();
+      return -1;
+    }
+  }
+
+  @Override
   public boolean delete(PageId pageId) {
     try {
       return mCacheManager.delete(pageId);
@@ -110,12 +128,22 @@ public class NoExceptionCacheManager implements CacheManager {
   }
 
   @Override
+  public boolean append(PageId pageId, int appendAt, byte[] page, CacheContext cacheContext) {
+    return mCacheManager.append(pageId, appendAt, page, cacheContext);
+  }
+
+  @Override
   public void close() throws Exception {
     try {
       mCacheManager.close();
     } catch (Exception e) {
       LOG.error("Failed to close CacheManager", e);
     }
+  }
+
+  @Override
+  public List<PageId> getCachedPageIdsByFileId(String fileId, long fileLength) {
+    return mCacheManager.getCachedPageIdsByFileId(fileId, fileLength);
   }
 
   private static final class Metrics {

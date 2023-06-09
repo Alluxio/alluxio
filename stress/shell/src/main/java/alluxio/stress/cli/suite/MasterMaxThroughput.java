@@ -13,17 +13,15 @@ package alluxio.stress.cli.suite;
 
 import alluxio.ClientContext;
 import alluxio.client.job.JobMasterClient;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.job.util.SerializationUtils;
 import alluxio.stress.cli.Benchmark;
 import alluxio.stress.cli.StressMasterBench;
 import alluxio.stress.common.GeneralBenchSummary;
+import alluxio.stress.master.MasterBenchParameters;
 import alluxio.stress.master.MasterBenchSummary;
 import alluxio.stress.master.MasterBenchTaskResult;
 import alluxio.stress.master.MasterMaxThroughputSummary;
 import alluxio.stress.master.Operation;
-import alluxio.stress.master.MasterBenchParameters;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.JsonSerializable;
 import alluxio.worker.job.JobMasterClientContext;
@@ -76,8 +74,7 @@ public class MasterMaxThroughput extends
       prepareBeforeAllTests(mBaseArgs);
     }
     try (JobMasterClient client = JobMasterClient.Factory.create(
-        JobMasterClientContext.newBuilder(ClientContext.create(new InstancedConfiguration(
-            ConfigurationUtils.defaults()))).build())) {
+        JobMasterClientContext.newBuilder(ClientContext.create()).build())) {
       mNumWorkers = client.getAllWorkerHealth().size();
     }
   }
@@ -156,7 +153,6 @@ public class MasterMaxThroughput extends
   /**
    * @param requiredCount the number of operations that may happen for a successful run
    * @param args the args
-   * @return the results
    */
   private void prepareBeforeSingleTest(long requiredCount, List<String> args) throws Exception {
     switch (mParameters.mOperation) {

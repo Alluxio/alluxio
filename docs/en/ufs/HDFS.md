@@ -170,7 +170,7 @@ alluxio.master.mount.table.root.ufs=hdfs://nameservice/
 
 ### User/Permission Mapping
 
-Alluxio supports POSIX-like filesystem [user and permission checking]({{ '/en/operation/Security.html' | relativize_url }}).
+Alluxio supports POSIX-like filesystem [user and permission checking]({{ '/en/security/Security.html' | relativize_url }}).
 To ensure that the permission information of files/directories including user, group and mode in
 HDFS is consistent with Alluxio (e.g., a file created by user Foo in Alluxio is persisted to
 HDFS also with owner as user Foo), the user to start Alluxio master and worker processes
@@ -210,7 +210,11 @@ Use the principal `hdfs` and the keytab that you configured earlier in `alluxio-
 A known limitation is that the Kerberos TGT may expire after
 the max renewal lifetime. You can work around this by renewing the TGT periodically. Otherwise you
 may see `No valid credentials provided (Mechanism level: Failed to find any Kerberos tgt)`
-when starting Alluxio services.
+when starting Alluxio services. Another option is to set `alluxio.hadoop.security.kerberos.keytab.login.autorenewal=true`
+so the TGT is automatically refreshed.
+
+The user can also use `alluxio.hadoop.security.krb5.conf` to specify the krb5.conf file location
+and use `alluxio.hadoop.security.authentication` to specify authentication method.
 
 #### Custom Kerberos Realm/KDC
 

@@ -18,7 +18,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
@@ -31,6 +30,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -115,6 +115,15 @@ public final class LsCommand extends AbstractFileSystemCommand {
           .required(false)
           .hasArg(false)
           .desc("list all pinned files")
+          .build();
+
+  private static final Option OMIT_MOUNT_INFO =
+      Option.builder("m")
+          .required(false)
+          .longOpt("omit-mount-info")
+          .hasArg(false)
+          .desc("if specified, the status will not include mount point related information, "
+              + "like the UFS path")
           .build();
 
   private static final Option RECURSIVE_OPTION =
@@ -235,6 +244,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
         .addOption(LIST_DIR_AS_FILE_OPTION)
         .addOption(LIST_HUMAN_READABLE_OPTION)
         .addOption(LIST_PINNED_FILES_OPTION)
+        .addOption(OMIT_MOUNT_INFO)
         .addOption(RECURSIVE_OPTION)
         .addOption(REVERSE_SORT_OPTION)
         .addOption(SORT_OPTION)
@@ -249,9 +259,11 @@ public final class LsCommand extends AbstractFileSystemCommand {
    * @param dirAsFile list the directory status as a plain file
    * @param hSize print human-readable format sizes
    * @param sortField sort the result by this field
+   * @param excludeMountInfo if enabled, the mount info will be excluded from the response
    */
   private void ls(AlluxioURI path, boolean recursive, boolean forceLoadMetadata, boolean dirAsFile,
-      boolean hSize, boolean pinnedOnly, String sortField, boolean reverse, String timestampOption)
+      boolean hSize, boolean pinnedOnly, String sortField, boolean reverse, String timestampOption,
+      boolean excludeMountInfo)
       throws AlluxioException, IOException {
     Function<URIStatus, Long> timestampFunction = TIMESTAMP_FIELDS.get(timestampOption);
     if (dirAsFile) {
@@ -265,6 +277,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
       optionsBuilder.setLoadMetadataType(LoadMetadataPType.ALWAYS);
     }
     optionsBuilder.setRecursive(recursive);
+    optionsBuilder.setExcludeMountInfo(excludeMountInfo);
 
     if (sortField == null) {
       mFileSystem.iterateStatus(path, optionsBuilder.build(),
@@ -285,8 +298,8 @@ public final class LsCommand extends AbstractFileSystemCommand {
             SORT_FIELD_COMPARATORS.get(sortField));
 
     if (!sortToUse.isPresent()) {
-      throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_SORT_FIELD
-          .getMessage(sortField));
+      throw new InvalidArgumentException(
+          MessageFormat.format("Invalid sort option `{0}` for --sort", sortField));
     }
 
     Comparator<URIStatus> sortBy = sortToUse.get();
@@ -303,7 +316,8 @@ public final class LsCommand extends AbstractFileSystemCommand {
     ls(path, cl.hasOption(RECURSIVE_OPTION.getOpt()), cl.hasOption("f"),
         cl.hasOption("d"), cl.hasOption("h"), cl.hasOption("p"),
         cl.getOptionValue("sort", null), cl.hasOption("r"),
-        cl.getOptionValue("timestamp", "lastModificationTime"));
+        cl.getOptionValue("timestamp", "lastModificationTime"),
+        cl.hasOption("m") || cl.hasOption("omit-mount-info"));
   }
 
   @Override
@@ -318,7 +332,8 @@ public final class LsCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "ls [-d|-f|-p|-R/--recursive|-h|--sort=option|--timestamp=option|-r] <path> ...";
+    return "ls [-d|-f|-p|-R/--recursive|-h|--sort=option|--timestamp=option|-r"
+        + "|-m/--omit-mount-info] <path> ...";
   }
 
   @Override

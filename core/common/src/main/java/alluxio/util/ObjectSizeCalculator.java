@@ -198,6 +198,7 @@ public class ObjectSizeCalculator {
     }
     mClassSizeCache = new HashMap<>();
     mClassInfos = CacheBuilder.newBuilder().build(new CacheLoader<Class<?>, ClassSizeInfo>() {
+      @Override
       public ClassSizeInfo load(Class<?> clazz) {
         return new ClassSizeInfo(clazz);
       }
@@ -458,7 +459,7 @@ public class ObjectSizeCalculator {
       }
       mFieldSize = fieldsSize;
       mObjectSize = roundTo(mObjectHeaderSize + fieldsSize, mObjectPadding);
-      mReferencedFields = referenceFields.toArray(new Field[referenceFields.size()]);
+      mReferencedFields = referenceFields.toArray(new Field[0]);
     }
 
     void visit(Object obj, ObjectSizeCalculator calc) {

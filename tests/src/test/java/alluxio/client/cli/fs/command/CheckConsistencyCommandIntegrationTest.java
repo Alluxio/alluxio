@@ -18,7 +18,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.AlluxioURI;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.conf.ServerConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.LoadMetadataPType;
@@ -64,7 +64,7 @@ public class CheckConsistencyCommandIntegrationTest extends AbstractFileSystemSh
     FileSystemTestUtils.createByteFile(sFileSystem, "/testRoot/testDir/testFileB",
             WritePType.CACHE_THROUGH, 20);
     String ufsPath = sFileSystem.getStatus(new AlluxioURI("/testRoot/testDir")).getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, ServerConfiguration.global());
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, Configuration.global());
     ufs.deleteDirectory(ufsPath, DeleteOptions.defaults().setRecursive(true));
     sFsShell.run("checkConsistency", "/testRoot");
     StringBuilder expected = new StringBuilder();
@@ -106,7 +106,7 @@ public class CheckConsistencyCommandIntegrationTest extends AbstractFileSystemSh
     FileSystemTestUtils
         .createByteFile(sFileSystem, "/testRoot/testFileA", WritePType.CACHE_THROUGH, 10);
     String ufsPath = sFileSystem.getStatus(new AlluxioURI("/testRoot")).getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, ServerConfiguration.global());
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, Configuration.global());
     ufs.deleteFile(sFileSystem.getStatus(new AlluxioURI("/testRoot/testFileA")).getUfsPath());
 
     sFsShell.run("checkConsistency", "/testRoot");
@@ -164,7 +164,7 @@ public class CheckConsistencyCommandIntegrationTest extends AbstractFileSystemSh
         .createByteFile(sFileSystem, path, WritePType.CACHE_THROUGH, 10));
 
     String ufsPath = sFileSystem.getStatus(new AlluxioURI("/testRoot/testDir")).getUfsPath();
-    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, ServerConfiguration.global());
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsPath, Configuration.global());
     ufs.deleteDirectory(ufsPath, DeleteOptions.defaults().setRecursive(true));
   }
 }

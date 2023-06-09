@@ -17,7 +17,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
-import javax.annotation.Nullable;
+import java.util.Optional;
 
 /**
  * <p>
@@ -64,8 +64,7 @@ public interface BlockLocationPolicy {
    * Gets the worker's network address for serving operations requested for the block.
    *
    * @param options the options to get a block worker network address for a block
-   * @return the address of the worker to write to, null if no worker can be selected
+   * @return the address of the worker to write to, or empty if no worker can be selected
    */
-  @Nullable
-  WorkerNetAddress getWorker(GetWorkerOptions options);
+  Optional<WorkerNetAddress> getWorker(GetWorkerOptions options);
 }

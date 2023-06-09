@@ -142,7 +142,7 @@ $ spark-submit \
 ### 从 HA 模式的 Alluxio 中访问数据
 
 如果 Spark 已经根据 [HA 模式的 Alluxio](#configure-spark-to-find-alluxio-cluster-in-ha-mode) 中的步骤进行了设置，
-你就可以使用“`alluxio://`”方案编写 URI，而无需在权限中指定 Alluxio master。
+你就可以使用"`alluxio://`"方案编写 URI，而无需在权限中指定 Alluxio master。
 这是因为在 HA 模式下，Alluxio 主 master 的地址将由配置的 ZooKeeper 服务提供 ，
 而不是由从 URI 推断的用户指定主机名提供。
 
@@ -152,7 +152,7 @@ $ spark-submit \
 > double.saveAsTextFile("alluxio:///Output")
 ```
 
-或者，如果在 Spark 配置中没有设置 Alluxio HA 的 Zookeeper 地址，则可以在 URI 中以“`zk@zkHost1:2181;zkHost2:2181;zkHost3:2181`”的格式指定 Zookeeper 地址：
+或者，如果在 Spark 配置中没有设置 Alluxio HA 的 Zookeeper 地址，则可以在 URI 中以"`zk@zkHost1:2181;zkHost2:2181;zkHost3:2181`"的格式指定 Zookeeper 地址：
 
 ```scala
 > val s = sc.textFile("alluxio://zk@zkHost1:2181;zkHost2:2181;zkHost3:2181/Input")
@@ -182,7 +182,7 @@ $ spark-submit \
 > rdd = sc.objectFile("alluxio://localhost:19998/rdd2")
 ```
 
-见博客文章[“通过 Alluxio 高效使用 Spark RDD”](https://www.alluxio.io/blog/effective-spark-rdds-with-alluxio/)。
+见博客文章["通过 Alluxio 高效使用 Spark RDD"](https://www.alluxio.io/blog/effective-spark-rdds-with-alluxio/)。
 
 ### 缓存 Dataframe 到 Alluxio 中
 
@@ -195,7 +195,7 @@ DataFrame 通常用`df.write.parquet()`作为 parquet 文件写入。
 > df = sqlContext.read.parquet("alluxio://localhost:19998/data.parquet")
 ```
 
-见博客文章“[通过 Alluxio 高效使用 Spark DataFrame](https://www.alluxio.io/blog/effective-spark-rdds-with-alluxio/)”.
+见博客文章"[通过 Alluxio 高效使用 Spark DataFrame](https://www.alluxio.io/blog/effective-spark-rdds-with-alluxio/)".
 
 ## 故障排除指南
 
@@ -259,7 +259,7 @@ org.apache.hadoop.hive.ql.metadata.HiveException: MetaException(message:java.lan
 
 推荐的解决方案是配置[`spark.sql.hive.metastore.sharedPrefixes`](http://spark.apache.org/docs/2.0.0/sql-programming-guide.html#interacting-with-different-versions-of-hive-metastore)。
 在 Spark 1.4.0 和之后的版本中，Spark 为了访问 Hive MetaStore 使用了独立的类加载器来加载 java 类。
-然而，这个独立的类加载器忽视了特定的包，并且让主类加载器去加载“共享”类（Hadoop 的 HDFS 客户端就是一种“共享”类）。
+然而，这个独立的类加载器忽视了特定的包，并且让主类加载器去加载"共享"类（Hadoop 的 HDFS 客户端就是一种"共享"类）。
 Alluxio 客户端也应该由主类加载器加载，你可以将`alluxio`包加到配置参数`spark.sql.hive.metastore.sharedPrefixes`中，以通知 Spark 用主类加载器加载 Alluxio。例如，该参数可以在`spark/conf/spark-defaults.conf`中这样设置：
 
 ```

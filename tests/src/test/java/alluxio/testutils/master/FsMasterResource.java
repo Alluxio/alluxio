@@ -55,11 +55,7 @@ public class FsMasterResource implements Closeable {
 
   @Override
   public void close() throws IOException {
-    try {
-      mRegistry.close();
-      mJournal.stop();
-    } catch (InterruptedException e) {
-      throw new IOException(e);
-    }
+    mRegistry.close();
+    mJournal.stop();
   }
 }

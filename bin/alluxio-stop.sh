@@ -28,7 +28,8 @@ Where component is one of:
   worker  [-c cache]  \tStop local worker.
   workers [-c cache]  \tStop workers on worker nodes.
   logserver           \tStop the logserver
-
+"
+USAGE+="
 -c cache   save the worker ramcache(s) from the worker node(s) to the
            specified directory (relative to each worker node's host filesystem).
 -s         processes won't be forcibly killed even if operation is timeout.

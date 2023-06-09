@@ -19,9 +19,9 @@ import alluxio.client.cli.fs.AbstractShellIntegrationTest;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.meta.MetaMasterConfigClient;
 import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
+import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ServerConfiguration;
 import alluxio.master.MasterClientContext;
 
 import org.junit.Assert;
@@ -47,21 +47,21 @@ public class ListCommandIntegrationTest extends AbstractShellIntegrationTest {
    * @return the configuration after updating from meta master
    */
   private InstancedConfiguration setPathConfigurations() throws Exception {
-    FileSystemContext metaCtx = FileSystemContext.create(ServerConfiguration.global());
+    FileSystemContext metaCtx = FileSystemContext.create(Configuration.global());
     MetaMasterConfigClient client = new RetryHandlingMetaMasterConfigClient(
         MasterClientContext.newBuilder(metaCtx.getClientContext()).build());
     client.setPathConfiguration(new AlluxioURI(DIR1), PROPERTY_KEY1, PROPERTY_VALUE1);
     client.setPathConfiguration(new AlluxioURI(DIR2), PROPERTY_KEY2, PROPERTY_VALUE2);
     InetSocketAddress address = sLocalAlluxioClusterResource.get().getLocalAlluxioMaster()
         .getAddress();
-    FileSystemContext fsCtx = FileSystemContext.create(ServerConfiguration.global());
+    FileSystemContext fsCtx = FileSystemContext.create(Configuration.global());
     fsCtx.getClientContext().loadConf(address, true, true);
     return (InstancedConfiguration) fsCtx.getClusterConf();
   }
 
   @Test
   public void listEmpty() throws Exception {
-    try (FileSystemAdminShell shell = new FileSystemAdminShell(ServerConfiguration.global())) {
+    try (FileSystemAdminShell shell = new FileSystemAdminShell(Configuration.global())) {
       int ret = shell.run("pathConf", "list");
       Assert.assertEquals(0, ret);
       String output = mOutput.toString();

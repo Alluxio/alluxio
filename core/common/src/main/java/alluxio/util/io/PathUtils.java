@@ -12,6 +12,8 @@
 package alluxio.util.io;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.util.OSUtils;
@@ -136,18 +138,18 @@ public final class PathUtils {
     if (paths == null || paths.isEmpty()) {
       return null;
     }
-    List<String> matchedComponents = null;
+    String[] matchedComponents = null;
     int matchedLen = 0;
     for (AlluxioURI path : paths) {
       String[] pathComp = path.getPath().split(AlluxioURI.SEPARATOR);
       if (matchedComponents == null) {
-        matchedComponents = new ArrayList<>(Arrays.asList(pathComp));
+        matchedComponents = pathComp;
         matchedLen = pathComp.length;
         continue;
       }
 
       for (int i = 0; i < pathComp.length && i < matchedLen; ++i) {
-        if (!matchedComponents.get(i).equals(pathComp[i])) {
+        if (!matchedComponents[i].equals(pathComp[i])) {
           matchedLen = i;
           break;
         }
@@ -161,7 +163,7 @@ public final class PathUtils {
       }
     }
     return new AlluxioURI(PathUtils.concatPath(AlluxioURI.SEPARATOR,
-        matchedComponents.subList(0, matchedLen).toArray()));
+        Arrays.copyOf(matchedComponents, matchedLen)));
   }
 
   /**
@@ -172,7 +174,16 @@ public final class PathUtils {
    * @throws InvalidPathException if the path is invalid
    */
   public static String getParent(String path) throws InvalidPathException {
-    String cleanedPath = cleanPath(path);
+    return getParentCleaned(cleanPath(path));
+  }
+
+  /**
+   * The same as {@link #getParent} except does not clean the path before getting the parent.
+   * @param cleanedPath the path that has been cleaned
+   * @return the parent path of the file; this is "/" if the given path is the root
+   * @throws InvalidPathException if the path is invalid
+   */
+  public static String getParentCleaned(String cleanedPath) throws InvalidPathException {
     String name = FilenameUtils.getName(cleanedPath);
     String parent = cleanedPath.substring(0, cleanedPath.length() - name.length() - 1);
     if (parent.isEmpty()) {
@@ -180,6 +191,29 @@ public final class PathUtils {
       return AlluxioURI.SEPARATOR;
     }
     return parent;
+  }
+
+  /**
+   * Gets the first level directory of the path.
+   * For example,
+   *
+   * <pre>
+   * {@code
+   * getFirstLevelDirectory("/a/xx/").equals("/a");
+   * getFirstLevelDirectory("/a/").equals("/a");
+   * }
+   * </pre>
+   *
+   * @param path the path
+   * @return the first level directory of the path;
+   * @throws InvalidPathException if the path is the root or invalid
+   */
+  public static String getFirstLevelDirectory(String path) throws InvalidPathException {
+    String[] paths = getPathComponents(path);
+    if (paths.length < 2) {
+      throw new InvalidPathException(path + " has no first level directory");
+    }
+    return AlluxioURI.SEPARATOR + paths[1];
   }
 
   /**
@@ -217,20 +251,26 @@ public final class PathUtils {
   /**
    * Get temp path for async persistence job.
    *
+   * @param ufsConfiguration the ufs configuration
    * @param path ufs path
    * @return ufs temp path with UUID
    */
-  public static String getPersistentTmpPath(String path) {
+  public static String getPersistentTmpPath(AlluxioConfiguration ufsConfiguration,
+      String path) {
     StringBuilder tempFilePath = new StringBuilder();
     StringBuilder tempFileName = new StringBuilder();
     String fileName = FilenameUtils.getName(path);
     String timeStamp = String.valueOf(System.currentTimeMillis());
-    tempFilePath.append(".alluxio_ufs_persistence/");
     String uuid = UUID.randomUUID().toString();
+    String tempDir = ufsConfiguration
+          .getString(PropertyKey.UNDERFS_PERSISTENCE_ASYNC_TEMP_DIR);
+    tempFilePath.append(tempDir);
+    tempFilePath.append(AlluxioURI.SEPARATOR);
     tempFileName.append(fileName);
     tempFileName.append(".alluxio.");
     tempFileName.append(timeStamp);
-    tempFileName.append(String.format(".%s", uuid));
+    tempFileName.append(".");
+    tempFileName.append(uuid);
     tempFileName.append(".tmp");
     tempFilePath.append(tempFileName);
     return tempFilePath.toString();
@@ -249,6 +289,21 @@ public final class PathUtils {
   public static String[] getPathComponents(String path) throws InvalidPathException {
     path = cleanPath(path);
     if (isRoot(path)) {
+      return new String[]{""};
+    }
+    return path.split(AlluxioURI.SEPARATOR);
+  }
+
+  /**
+   * Get the components of a path that has already been cleaned.
+   * @param path the path
+   * @return the components
+   */
+  public static String[] getCleanedPathComponents(String path) throws InvalidPathException {
+    if (path == null || path.isEmpty()) {
+      throw new InvalidPathException(ExceptionMessage.PATH_INVALID.getMessage(path));
+    }
+    if (AlluxioURI.SEPARATOR.equals(path)) { // root
       return new String[]{""};
     }
     return path.split(AlluxioURI.SEPARATOR);
@@ -291,14 +346,28 @@ public final class PathUtils {
    * @throws InvalidPathException when the path or prefix is invalid
    */
   public static boolean hasPrefix(String path, String prefix) throws InvalidPathException {
-    try {
-      // normalize path and prefix(e.g. "/a/b/../c" -> "/a/c", "/a/b/" --> "/a/b")
+    return hasPrefix(path, prefix, true);
+  }
+
+  /**
+   * Checks whether the given path contains the given prefix. The comparison happens at a component
+   * granularity; for example, {@code hasPrefix(/dir/file, /dir)} should evaluate to true, while
+   * {@code hasPrefix(/dir/file, /d)} should evaluate to false.
+   *
+   * @param path a path
+   * @param prefix a prefix
+   * @param cleanPath if the paths should be cleaned
+   * @return whether the given path has the given prefix
+   * @throws InvalidPathException when the path or prefix is invalid
+   */
+  public static boolean hasPrefix(String path, String prefix, boolean cleanPath)
+      throws InvalidPathException {
+    // normalize path and prefix(e.g. "/a/b/../c" -> "/a/c", "/a/b/" --> "/a/b")
+    if (cleanPath) {
       path = cleanPath(path);
       prefix = cleanPath(prefix);
-    } catch (InvalidPathException e) {
-      // if the literal is invalid, throw an exception
-      throw e;
     }
+
     if (prefix.equals("/")) {
       return true;
     }
@@ -394,5 +463,39 @@ public final class PathUtils {
     return path.endsWith(separator) ? path : path + separator;
   }
 
+  /**
+   * Adds a starting separator if it does not exist in path.
+   *
+   * @param path the file name
+   * @param separator trailing separator to add
+   * @return updated path with trailing separator
+   */
+  public static String normalizePathStart(
+      String path, String separator) {
+    return path.startsWith(separator) ? path : separator + path;
+  }
+
   private PathUtils() {} // prevent instantiation
+
+  /**
+   * Returns the list of possible mount points of the given path.
+   *
+   * "/a/b/c" => {"/a", "/a/b", "/a/b/c"}
+   *
+   * @param path the path to get the mount points of
+   * @return a list of paths
+   */
+  public static List<String> getPossibleMountPoints(String path) throws InvalidPathException {
+    String basePath = cleanPath(path);
+    List<String> paths = new ArrayList<>();
+    if ((basePath != null) && !basePath.equals(AlluxioURI.SEPARATOR)) {
+      paths.add(basePath);
+      String parent = getParent(path);
+      while (!parent.equals(AlluxioURI.SEPARATOR)) {
+        paths.add(0, parent);
+        parent = getParent(parent);
+      }
+    }
+    return paths;
+  }
 }

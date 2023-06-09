@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions;
 import io.grpc.stub.StreamObserver;
 
 import java.io.IOException;
+import java.util.Optional;
 import java.util.function.Function;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -48,8 +49,7 @@ public class GrpcDataMessageBlockingStream<ReqT, ResT> extends GrpcBlockingStrea
       DataMessageClientResponseObserver<ReqT, ResT> newObserver =
           new DataMessageClientResponseObserver<>(resObserver, requestMarshaller,
               responseMarshaller);
-      StreamObserver<ReqT> requestObserver = rpcFunc.apply(newObserver);
-      return requestObserver;
+      return rpcFunc.apply(newObserver);
     }, bufferSize, description);
     mRequestMarshaller = requestMarshaller;
     mResponseMarshaller = responseMarshaller;
@@ -105,17 +105,21 @@ public class GrpcDataMessageBlockingStream<ReqT, ResT> extends GrpcBlockingStrea
   }
 
   @Override
-  public void waitForComplete(long timeoutMs) throws IOException {
+  public Optional<ResT> waitForComplete(long timeoutMs) throws IOException {
     if (mResponseMarshaller == null) {
-      super.waitForComplete(timeoutMs);
-      return;
+      return super.waitForComplete(timeoutMs);
     }
+    // loop until the last response is received, whose result will be returned
     DataMessage<ResT, DataBuffer> message;
+    DataMessage<ResT, DataBuffer> prevMessage = null;
     while (!isCanceled() && (message = receiveDataMessage(timeoutMs)) != null) {
-      if (message.getBuffer() != null) {
-        message.getBuffer().release();
+      if (prevMessage != null && prevMessage.getBuffer() != null) {
+        prevMessage.getBuffer().release();
       }
+      prevMessage = message;
     }
-    super.waitForComplete(timeoutMs);
+    // note that the combineData call is responsible for releasing the buffer of prevMessage
+    ResT result = mResponseMarshaller.combineData(prevMessage);
+    return Optional.ofNullable(super.waitForComplete(timeoutMs).orElse(result));
   }
 }

@@ -35,7 +35,7 @@ Alluxio是通过把存储分为两个不同的类别来实现这一目标的。
 ![Alluxio存储图]({{ '/img/stack.png' | relativize_url }})
 
 Alluxio存储通过将数据存储在计算节点内存中来提高性能。
-Alluxio存储中的数据可以被复制来形成“热”数据，更易于I/O并行操作和使用。
+Alluxio存储中的数据可以被复制来形成"热"数据，更易于I/O并行操作和使用。
 
 Alluxio中的数据副本独立于UFS中可能已存在的副本。
 Alluxio存储中的数据副本数是由集群活动动态决定的。
@@ -232,7 +232,7 @@ Alluxio将动态地跨层移动数据块，以使块组成与配置的块注释�
 为辅助块对齐，Alluxio会监视I/O模式并会跨层重组数据块，以确保
 **较高层的最低块比下面层的最高块具有更高的次序**。
 
-这是通过“对齐”这个管理任务来实现的。此管理任务在检测到层之间
+这是通过"对齐"这个管理任务来实现的。此管理任务在检测到层之间
 顺序已乱时，会通过在层之间交换块位置来有效地将各层与已配置的注释策略对齐以消除乱序。
 有关如何控制这些新的后台任务对用户I/O的影响，参见[管理任务推后](#management-task-back-off)部分。
 
@@ -328,13 +328,13 @@ $ ./bin/alluxio fs persist ${PATH_TO_FILE}
 
 ### 设置生存时间(TTL)
 
-Alluxio支持命名空间中每个文件和目录的”生存时间(TTL)”设置。此
+Alluxio支持命名空间中每个文件和目录的"生存时间(TTL)"设置。此
 功能可用于有效地管理Alluxio缓存，尤其是在严格
 保证数据访问模式的环境中。例如，如果对上一周提取数据进行分析，
 则TTL功能可用于明确刷新旧数据，从而为新文件释放缓存空间。
 
 Alluxio具有与每个文件或目录关联的TTL属性。这些属性将保存为
-日志的一部分，所以集群重新后也能持久保持。活跃master节点负责
+日志的一部分，所以集群重启后也能持久保持。活跃master节点负责
 当Alluxio提供服务时将元数据保存在内存中。在内部，master运行一个后台
 线程，该线程定期检查文件是否已达到其TTL到期时间。
 
@@ -388,7 +388,7 @@ Alluxio客户端可以配置为只要在Alluxio命名空间添加新文件时就
 * `alluxio.user.file.create.ttl`-在Alluxio中文件上设置的TTL持续时间。
 默认情况下，未设置TTL持续时间。
 * `alluxio.user.file.create.ttl.action`-对文件设置的TTL到期后的操作
-在Alluxio中。**注意：默认情况下，此操作为“DELETE”，它将导致文件永久被删除。**
+在Alluxio中。**注意：默认情况下，此操作为"DELETE"，它将导致文件永久被删除。**
 
 TTL默认情况下处于不使用状态，仅当客户有严格数据访问模式才启用。
 
@@ -478,8 +478,12 @@ Alluxio cluster summary:
     Started: 09-28-2018 12:52:09:486
     Uptime: 0 day(s), 0 hour(s), 0 minute(s), and 26 second(s)
     Version: 2.0.0
-    Safe Mode: true
+    Safe Mode: false
     Zookeeper Enabled: false
+    Raft-based Journal: true
+    Raft Journal Addresses: 
+        localhost:19200
+        localhost:19201
     Live Workers: 1
     Lost Workers: 0
     Total Capacity: 10.67GB
