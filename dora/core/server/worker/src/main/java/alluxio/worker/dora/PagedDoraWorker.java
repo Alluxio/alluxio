@@ -514,7 +514,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   }
 
   @Override
-  public BlockWriter createFileWriter(String fileId, String ufsPath) throws AccessControlException, IOException {
+  public BlockWriter createFileWriter(String fileId, String ufsPath)
+      throws AccessControlException, IOException {
     return new PagedFileWriter(mCacheManager, fileId, mPageSize);
   }
 

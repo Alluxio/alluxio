@@ -92,7 +92,8 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    * @param ufsPath the path of UFS file
    * @return the block writer for the local file
    */
-  BlockWriter createFileWriter(String fileId, String ufsPath) throws AccessControlException, IOException;
+  BlockWriter createFileWriter(String fileId, String ufsPath)
+      throws AccessControlException, IOException;
 
   /**
    * Loads files from UFS to Alluxio.
