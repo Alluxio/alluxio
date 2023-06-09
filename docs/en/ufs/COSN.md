@@ -38,7 +38,7 @@ Specify an existing COS bucket and directory as the under storage system by modi
 `conf/alluxio-site.properties` to include:
 
 ```
-alluxio.master.mount.table.root.ufs=cosn://COSN_ALLUXIO_BUCKET/COSN_DATA/
+alluxio.dora.client.ufs.root=cosn://COSN_ALLUXIO_BUCKET/COSN_DATA/
 ```
 
 Specify COS configuration information in order to access COS by modifying `conf/core-site.xml` to include:

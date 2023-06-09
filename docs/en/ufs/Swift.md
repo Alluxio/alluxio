@@ -14,9 +14,7 @@ This guide describes how to configure Alluxio with an under storage system suppo
 
 ## Prerequisites
 
-The Alluxio binaries must be on your machine. You can either
-[compile Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}), or
-[download the binaries locally]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
+The Alluxio binaries must be on your machine. You can [download the binaries locally]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
 
 ## Basic Setup
 
@@ -35,7 +33,7 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 Modify `conf/alluxio-site.properties` to include:
 
 ```properties
-alluxio.master.mount.table.root.ufs=swift://<bucket>/<folder>
+alluxio.dora.client.ufs.root=swift://<bucket>/<folder>
 alluxio.master.mount.table.root.option.fs.swift.user=<swift-user>
 alluxio.master.mount.table.root.option.fs.swift.tenant=<swift-tenant>
 alluxio.master.mount.table.root.option.fs.swift.password=<swift-user-password>

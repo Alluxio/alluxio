@@ -17,8 +17,7 @@ using [Rados Gateway](http://docs.ceph.com/docs/master/radosgw/):
 
 ## Prerequisites
 
-The Alluxio binaries must be on your machine. You can either
-[compile Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}), or
+The Alluxio binaries must be on your machine. You can
 [download the binaries locally]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
 
 ## Basic Setup
@@ -40,7 +39,7 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 Modify `conf/alluxio-site.properties` to include:
 
 ```properties
-alluxio.master.mount.table.root.ufs=s3://<bucket>/<folder>
+alluxio.dora.client.ufs.root=s3://<bucket>/<folder>
 alluxio.master.mount.table.root.option.s3a.accessKeyId=<access-key>
 alluxio.master.mount.table.root.option.s3a.secretKey=<secret-key>
 alluxio.master.mount.table.root.option.alluxio.underfs.s3.endpoint=http://<rgw-hostname>:<rgw-port>
@@ -56,7 +55,7 @@ to use v2 S3 signatures. To use GET Bucket (List Objects) Version 1 specify
 Modify `conf/alluxio-site.properties` to include:
 
 ```properties
-alluxio.master.mount.table.root.ufs=swift://<bucket>/<folder>
+alluxio.dora.client.ufs.root=swift://<bucket>/<folder>
 alluxio.master.mount.table.root.option.fs.swift.user=<swift-user>
 alluxio.master.mount.table.root.option.fs.swift.tenant=<swift-tenant>
 alluxio.master.mount.table.root.option.fs.swift.password=<swift-user-password>

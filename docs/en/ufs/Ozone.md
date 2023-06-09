@@ -14,10 +14,8 @@ Ozone can function effectively in containerized environments such as Kubernetes 
 ## Prerequisites
 
 To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these
-machines. You can either [download the precompiled binaries directly]({{ '/en/overview/Getting-Started.html' | relativize_url }})
-with the correct Hadoop version (recommended), or 
-[compile the binaries from Alluxio source code]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}) (for advanced users).
-
+machines. You can [download the precompiled binaries directly]({{ '/en/overview/Getting-Started.html' | relativize_url }})
+with the correct Hadoop version (recommended).
 In preparation for using Ozone with Alluxio, follow the [Ozone On Premise Installation](https://ozone.apache.org/docs/1.2.1/start/onprem.html)
 to install a Ozone cluster, and follow the [Cli Commands](https://ozone.apache.org/docs/1.2.1/interface/cli.html) to create volume and bucket for Ozone cluster.
 
@@ -39,7 +37,7 @@ or `o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/alluxio/data` if only the directory `/a
 set the property `alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration` in `conf/alluxio-site.properties` to point to your `ozone-site.xml`. Make sure this configuration is set on all servers running Alluxio.
 
 ```properties
-alluxio.master.mount.table.root.ufs=o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/
+alluxio.dora.client.ufs.root=o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/
 alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/ozone-site.xml
 ``` 
 
@@ -48,23 +46,23 @@ For example, the under storage address can be `ofs://<OZONE_MANAGER>/<OZONE_VOLU
 or `ofs://<OZONE_MANAGER>/<OZONE_VOLUME>/<OZONE_BUCKET>/alluxio/data` if only the directory `/alluxio/data` inside the ozone bucket `<OZONE_BUCKET>` of `<OZONE_VOLUME>` is mapped to Alluxio.
 
 ```properties
-alluxio.master.mount.table.root.ufs=ofs://<OZONE_MANAGER>/<OZONE_VOLUME>/<OZONE_BUCKET>/
+alluxio.dora.client.ufs.root=ofs://<OZONE_MANAGER>/<OZONE_VOLUME>/<OZONE_BUCKET>/
 ``` 
 
 ## Ozone HA Mode
 ### o3fs
 To make Alluxio mount Ozone in HA mode, you should configure Alluxio's server so that it can find the OzoneManager. Please note that once set up, your application using the Alluxio client does not require any special configuration.
-In HA mode `alluxio.master.mount.table.root.ufs` needs to specify `<OM_SERVICE_IDS>`
+In HA mode `alluxio.dora.client.ufs.root` needs to specify `<OM_SERVICE_IDS>`
 such as:
 
 ```properties
-alluxio.master.mount.table.root.ufs=o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>.<OM_SERVICE_IDS>/
+alluxio.dora.client.ufs.root=o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>.<OM_SERVICE_IDS>/
 alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/ozone-site.xml
 ``` 
 
 ### ofs
 ```properties
-alluxio.master.mount.table.root.ufs=ofs://<OZONE_MANAGER>/<OZONE_VOLUME>/<OZONE_BUCKET>/
+alluxio.dora.client.ufs.root=ofs://<OZONE_MANAGER>/<OZONE_VOLUME>/<OZONE_BUCKET>/
 alluxio.master.mount.table.root.option.alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/ozone-site.xml
 ```
 

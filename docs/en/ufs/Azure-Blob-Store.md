@@ -15,8 +15,7 @@ Store](https://azure.microsoft.com/en-in/services/storage/blobs/) as the under s
 ## Prerequisites
 
 The Alluxio binaries must be on your machine.
-You can either [compile the binaries from Alluxio source code]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}),
-or [download the precompiled binaries directly]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
+You can [download the precompiled binaries directly]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
 
 In preparation for using Azure Blob Store with Alluxio, create a new container in your Azure
 storage account or use an existing container. You should also note that the directory you want to
@@ -43,7 +42,7 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 Specify the underfs address by modifying `conf/alluxio-site.properties` to include:
 
 ```
-alluxio.master.mount.table.root.ufs=wasbs://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.blob.core.windows.net/<AZURE_DIRECTORY>/
+alluxio.dora.client.ufs.root=wasbs://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.blob.core.windows.net/<AZURE_DIRECTORY>/
 ```
 
 Specify credentials for the Azure account of the root mount point by adding the following

@@ -13,10 +13,6 @@ priority: 9
 
 Listed below are the generic requirements to run Alluxio locally or as a cluster.
 
-For large scale deployments and tuning suggestions, see
-[Scalability Tuning]({{ '/en/administration/Scalability-Tuning.html' | relativize_url }})
-and [Performance Tuning]({{ '/en/administration/Performance-Tuning.html' | relativize_url }}).
-
 * Cluster nodes should be running one of the following supported operating systems:
   * MacOS 10.10 or later
   * CentOS - 6.8 or 7
@@ -27,8 +23,7 @@ and [Performance Tuning]({{ '/en/administration/Performance-Tuning.html' | relat
 * Allow the following ports and protocols:
   * Inbound TCP 22 - ssh as a user to install Alluxio components across specified nodes.
 * It is recommended to use hardware based on the x86 architecture. It is verified that Alluxio can run on the ARM architecture, but it may be possible that certain features may not work.
-  * The [web UI]({{ '/en/operation/Web-Interface.html' | relativize_url }}) is a known component that is incompatible with ARM. There may be additional incompatibilities; this is not an exhaustive list.
-  * Alluxio's overall performance is similar between the two architectures,
+   * Alluxio's overall performance is similar between the two architectures,
   based on benchmark results when running on [AWS Graviton processors](https://aws.amazon.com/ec2/graviton/) (ex. [r6g instances](https://aws.amazon.com/ec2/instance-types/r6g/))
   versus [AWS 3rd generation AMD EPYC processors](https://aws.amazon.com/ec2/amd/) (ex. [r6a instances](https://aws.amazon.com/ec2/instance-types/r6a/)).
 

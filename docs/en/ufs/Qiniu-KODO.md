@@ -16,9 +16,7 @@ Service (Kodo) is a massive, secure and highly reliable cloud storage service.
 ## Initial Setup
 
 To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these
-machines.You can
-[compile the binaries from Alluxio source code]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}),
-or [download the precompiled binaries directly]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
+machines.You can [download the precompiled binaries directly]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
 
 A Qiniu Kodo bucket is necessary before using Kodo with Alluxio. In this guide, the Qiniu Kodo bucket
 is called `KODO_BUCKET`, and the directory in the bucket is called `KODO_DIRECTORY`.
@@ -36,7 +34,7 @@ The root of Alluxio namespace or its subdirectories are all available for the mo
 If you want to use Qiniu Kodo as its under storage system in Alluxio, `conf/alluxio-site.properties` must be modified.
 In the beginning, an existing Kodo bucket and its directory should be specified for storage by the following code:
 ```
-alluxio.master.mount.table.root.ufs=kodo://<KODO_BUCKET>/<KODO_DIRECTORY>/
+alluxio.dora.client.ufs.root=kodo://<KODO_BUCKET>/<KODO_DIRECTORY>/
 ```
 Next, some settings must be added to `conf/alluxio-site.properties`:
 ```
