@@ -354,6 +354,12 @@ public final class CpCommand extends AbstractFileSystemCommand {
     AlluxioURI dstPath = new AlluxioURI(args[1]);
     if ((dstPath.getScheme() == null || isAlluxio(dstPath.getScheme()))
         && isFile(srcPath.getScheme())) {
+      // If the dstPath ends with "/" but does not exist, then the dstPath should be directory
+      // and must be created first
+      boolean dstExist = mFileSystem.exists(dstPath);
+      if (!dstExist && args[1].endsWith(AlluxioURI.SEPARATOR)) {
+        throw new IOException(dstPath + " is a directory and should be created first.");
+      }
       List<AlluxioURI> srcPaths = new ArrayList<>();
       if (srcPath.containsWildcard()) {
         List<File> srcFiles = FileSystemShellUtils.getFiles(srcPath.getPath());
@@ -379,7 +385,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
         }
       }
       if (srcPaths.size() == 1 && !(new File(srcPaths.get(0).getPath())).isDirectory()) {
-        copyFromLocalFile(srcPaths.get(0), dstPath);
+        copyFromLocalFile(srcPaths.get(0), dstPath, dstExist);
       } else {
         CopyThreadPoolExecutor pool = new CopyThreadPoolExecutor(mThread, System.out, System.err,
             mFileSystem, mFileSystem.exists(dstPath) ? null : dstPath);
@@ -597,14 +603,20 @@ public final class CpCommand extends AbstractFileSystemCommand {
   }
 
   private void copyFromLocalFile(AlluxioURI srcPath, AlluxioURI dstPath)
+          throws AlluxioException, IOException {
+    copyFromLocalFile(srcPath, dstPath, mFileSystem.exists(dstPath));
+  }
+
+  private void copyFromLocalFile(AlluxioURI srcPath, AlluxioURI dstPath, boolean dstExist)
       throws AlluxioException, IOException {
     File src = new File(srcPath.getPath());
     if (src.isDirectory()) {
       throw new IOException("Source " + src.getAbsolutePath() + " is not a file.");
     }
+
     // If the dstPath is a directory, then it should be updated to be the path of the file where
     // src will be copied to.
-    if (mFileSystem.exists(dstPath) && mFileSystem.getStatus(dstPath).isFolder()) {
+    if (dstExist && mFileSystem.getStatus(dstPath).isFolder()) {
       dstPath = dstPath.join(src.getName());
     }
 
