@@ -358,7 +358,12 @@ public final class CpCommand extends AbstractFileSystemCommand {
       // and must be created first
       boolean dstExist = mFileSystem.exists(dstPath);
       if (!dstExist && args[1].endsWith(AlluxioURI.SEPARATOR)) {
-        throw new IOException(dstPath + " is a directory and should be created first.");
+        throw new IOException(
+                ExceptionMessage.CANNOT_COPY_TO_NOT_EXIST_DIRECTORY.getMessage(dstPath.getPath()));
+      }
+      if (dstExist && args[1].endsWith(AlluxioURI.SEPARATOR)
+              && !mFileSystem.getStatus(dstPath).isFolder()) {
+        throw new IOException(ExceptionMessage.FILE_TYPE_NOT_MATCH.getMessage(dstPath.getPath()));
       }
       List<AlluxioURI> srcPaths = new ArrayList<>();
       if (srcPath.containsWildcard()) {
