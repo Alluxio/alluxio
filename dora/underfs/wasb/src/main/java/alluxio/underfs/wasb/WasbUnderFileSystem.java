@@ -55,6 +55,9 @@ public class WasbUnderFileSystem extends HdfsUnderFileSystem {
       if (PropertyKey.Template.UNDERFS_AZURE_ACCOUNT_KEY.matches(key)) {
         wasbConf.set(key, (String) value);
       }
+      if (PropertyKey.Template.UNDERFS_WASB_SAS_TOKEN.matches(key)) {
+        wasbConf.set(key, (String) value);
+      }
     }
     if (isSecure) {
       wasbConf.set("fs.AbstractFileSystem.wasbs.impl", "org.apache.hadoop.fs.azure.Wasbs");
