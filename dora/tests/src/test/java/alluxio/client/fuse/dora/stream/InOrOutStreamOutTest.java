@@ -13,6 +13,7 @@ package alluxio.client.fuse.dora.stream;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.file.FuseFileStream;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -50,7 +51,7 @@ public class InOrOutStreamOutTest extends OutStreamTest {
     }
   }
 
-  @Test (expected = FileNotFoundException.class)
+  @Test (expected = FileDoesNotExistException.class)
   public void createEmpty() throws Exception {
     AlluxioURI alluxioURI = getTestFileUri();
     mFileSystem.createDirectory(alluxioURI.getParent(),
