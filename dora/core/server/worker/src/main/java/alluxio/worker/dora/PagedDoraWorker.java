@@ -355,7 +355,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   private boolean invalidateCachedFile(String path) {
     FileId file = FileId.of(new AlluxioURI(path).hash());
-    mCacheManager.invalidateAllPagesByFileId(file.toString());
+    mCacheManager.deleteFile(file.toString());
     return true;
   }
 

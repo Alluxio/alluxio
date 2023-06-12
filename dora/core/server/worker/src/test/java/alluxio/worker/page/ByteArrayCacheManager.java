@@ -99,6 +99,11 @@ class ByteArrayCacheManager implements CacheManager {
   }
 
   @Override
+  public void deleteFile(String fileId) {
+    // Add its specific implementation here.
+  }
+
+  @Override
   public Optional<CacheUsage> getUsage() {
     return Optional.of(new Usage());
   }

@@ -228,7 +228,7 @@ public class DefaultPageMetaStore implements PageMetaStore {
   }
 
   @Override
-  @GuardedBy("getLock()")
+  @GuardedBy("getLock().readLock()")
   public Set<PageInfo> getAllPagesByFileId(String fileId) {
     Set<PageInfo> pages = mPages.getByField(INDEX_FILE_ID, fileId);
     return pages;

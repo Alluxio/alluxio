@@ -192,11 +192,11 @@ public class NoExceptionCacheManager implements CacheManager {
   }
 
   @Override
-  public void invalidateAllPagesByFileId(String fileId) {
+  public void deleteFile(String fileId) {
     try {
-      mCacheManager.invalidateAllPagesByFileId(fileId);
+      mCacheManager.deleteFile(fileId);
     } catch (Exception e) {
-      LOG.error("Failed to invalidateAllPages for {}", fileId, e);
+      LOG.error("Failed to deleteFile for {}", fileId, e);
     }
   }
 

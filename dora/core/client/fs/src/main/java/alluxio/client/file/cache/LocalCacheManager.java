@@ -803,7 +803,7 @@ public class LocalCacheManager implements CacheManager {
   }
 
   @Override
-  public void invalidateAllPagesByFileId(String fileId) {
+  public void deleteFile(String fileId) {
     Set<PageInfo> pages;
     try (LockResource r = new LockResource(mPageMetaStore.getLock().readLock())) {
       pages = mPageMetaStore.getAllPagesByFileId(fileId);
