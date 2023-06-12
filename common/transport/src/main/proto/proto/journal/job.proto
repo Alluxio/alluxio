@@ -21,6 +21,7 @@ message LoadJobEntry {
   required bool partialListing = 6;
   required string job_id = 7;
   optional int64 end_time = 8;
+  optional bool load_metadata_only = 9;
 }
 
 // next available id: 12

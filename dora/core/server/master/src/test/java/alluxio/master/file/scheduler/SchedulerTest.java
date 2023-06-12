@@ -92,6 +92,7 @@ public final class SchedulerTest {
   @Before
   public void beforeTest() throws Exception {
     Configuration.reloadProperties();
+    Configuration.set(PropertyKey.MASTER_SCHEDULER_INITIAL_DELAY, "1s");
   }
 
   @Test
@@ -136,7 +137,6 @@ public final class SchedulerTest {
   }
 
   @Test
-  @Ignore
   public void testSubmit() throws Exception {
     String validLoadPath = "/path/to/load";
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
@@ -152,7 +152,8 @@ public final class SchedulerTest {
     Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider,
         new JournaledJobMetaStore(fsMaster));
     DoraLoadJob loadJob =
-        new DoraLoadJob(validLoadPath, Optional.of("user"), "1", OptionalLong.empty(), false, true);
+        new DoraLoadJob(validLoadPath, Optional.of("user"), "1", OptionalLong.empty(),
+            false, true, false);
     assertTrue(scheduler.submitJob(loadJob));
     verify(journalContext).append(argThat(journalEntry -> journalEntry.hasLoadJob()
         && journalEntry.getLoadJob().getLoadPath().equals(validLoadPath)
@@ -173,7 +174,7 @@ public final class SchedulerTest {
     assertEquals(OptionalLong.empty(), job.getBandwidth());
     loadJob =
         new DoraLoadJob(validLoadPath, Optional.of("user"), "1",
-            OptionalLong.of(1000), true, false);
+            OptionalLong.of(1000), true, false, false);
     assertFalse(scheduler.submitJob(loadJob));
     verify(journalContext).append(argThat(journalEntry -> journalEntry.hasLoadJob()
         && journalEntry.getLoadJob().getLoadPath().equals(validLoadPath)
@@ -195,7 +196,6 @@ public final class SchedulerTest {
   }
 
   @Test
-  @Ignore
   public void testStop() throws Exception {
     String validLoadPath = "/path/to/load";
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
@@ -211,7 +211,8 @@ public final class SchedulerTest {
     Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider,
         new JournaledJobMetaStore(fsMaster));
     DoraLoadJob job =
-        new DoraLoadJob(validLoadPath, Optional.of("user"), "1", OptionalLong.of(100), false, true);
+        new DoraLoadJob(validLoadPath, Optional.of("user"), "1", OptionalLong.of(100),
+            false, true, false);
 
     assertTrue(scheduler.submitJob(job));
     verify(journalContext, times(1)).append(any());
@@ -237,7 +238,6 @@ public final class SchedulerTest {
   }
 
   @Test
-  @Ignore
   public void testSubmitExceedsCapacity() throws Exception {
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
@@ -255,16 +255,17 @@ public final class SchedulerTest {
         i -> {
           String path = String.format("/path/to/load/%d", i);
           assertTrue(scheduler.submitJob(
-              new DoraLoadJob(path, Optional.of("user"), "1", OptionalLong.empty(), false, true)
+              new DoraLoadJob(path, Optional.of("user"), "1", OptionalLong.empty(),
+                  false, true, false)
           ));
         });
     assertThrows(ResourceExhaustedRuntimeException.class, () -> scheduler.submitJob(
         new DoraLoadJob("/path/to/load/101", Optional.of("user"), "1", OptionalLong.empty(), false,
-            true)));
+            true, false)));
   }
 
-  @Test
   @Ignore
+  @Test
   public void testScheduling() throws Exception {
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
@@ -520,7 +521,7 @@ public final class SchedulerTest {
           String path = String.format("/load/%d", i);
           assertTrue(scheduler.submitJob(
               new DoraLoadJob(path, Optional.of("user"), "1",
-                  OptionalLong.empty(), false, true)
+                  OptionalLong.empty(), false, true, false)
           ));
         });
     assertEquals(5, scheduler

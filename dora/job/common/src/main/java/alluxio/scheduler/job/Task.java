@@ -170,8 +170,7 @@ public abstract class Task<V> implements Comparable<Task> {
       return false;
     }
     Task<?> other = (Task<?>) obj;
-    return getPriority() == other.getPriority()
-        && Objects.equals(mMyJob, other.mMyJob);
+    return getTaskId() == other.getTaskId() && Objects.equals(mMyJob, other.mMyJob);
   }
 
   @Override

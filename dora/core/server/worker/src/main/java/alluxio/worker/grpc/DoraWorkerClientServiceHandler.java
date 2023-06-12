@@ -31,12 +31,12 @@ import alluxio.grpc.CreateFilePRequest;
 import alluxio.grpc.CreateFilePResponse;
 import alluxio.grpc.DeletePRequest;
 import alluxio.grpc.DeletePResponse;
-import alluxio.grpc.FileFailure;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
+import alluxio.grpc.LoadFileFailure;
 import alluxio.grpc.LoadFileRequest;
 import alluxio.grpc.LoadFileResponse;
 import alluxio.grpc.MoveRequest;
@@ -68,6 +68,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Server side implementation of the gRPC dora worker interface.
@@ -125,20 +126,22 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   @Override
   public void loadFile(LoadFileRequest request, StreamObserver<LoadFileResponse> responseObserver) {
     try {
-      ListenableFuture<List<FileFailure>> failures =
-          mWorker.load(request.getFilesList(), request.getOptions());
+      ListenableFuture<List<LoadFileFailure>> failures =
+          mWorker.load(!request.getLoadMetadataOnly(), request.getUfsStatusList().stream().map(
+              UfsStatus::fromProto).collect(
+              Collectors.toList()), request.getOptions());
       ListenableFuture<LoadFileResponse> future = Futures.transform(failures, fail -> {
-        int numFiles = request.getFilesCount();
+        int numFiles = request.getUfsStatusCount();
         TaskStatus taskStatus = TaskStatus.SUCCESS;
         if (fail.size() > 0) {
           taskStatus = numFiles > fail.size() ? TaskStatus.PARTIAL_FAILURE : TaskStatus.FAILURE;
         }
         LoadFileResponse.Builder response = LoadFileResponse.newBuilder();
-        return response.addAllFiles(fail).setStatus(taskStatus).build();
+        return response.addAllFailures(fail).setStatus(taskStatus).build();
       }, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
       RpcUtils.invoke(LOG, future, "loadFile", "request=%s", responseObserver, request);
     } catch (Exception e) {
-      LOG.debug(String.format("Failed to load file %s: ", request.getFilesList()), e);
+      LOG.debug(String.format("Failed to load file %s: ", request.getUfsStatusList()), e);
       responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
     }
   }

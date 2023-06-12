@@ -13,12 +13,10 @@ package alluxio.master.job;
 
 import alluxio.grpc.LoadJobPOptions;
 import alluxio.job.LoadJobRequest;
-import alluxio.master.file.FileSystemMaster;
 import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobFactory;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
-import alluxio.wire.FileInfo;
 
 import java.util.Optional;
 import java.util.OptionalLong;
@@ -29,16 +27,13 @@ import java.util.UUID;
  */
 public class LoadJobFactory implements JobFactory {
 
-  private final FileSystemMaster mFsMaster;
   private final LoadJobRequest mRequest;
 
   /**
    * Create factory.
    * @param request load job request
-   * @param fsMaster file system master
    */
-  public LoadJobFactory(LoadJobRequest request, FileSystemMaster fsMaster) {
-    mFsMaster = fsMaster;
+  public LoadJobFactory(LoadJobRequest request) {
     mRequest = request;
   }
 
@@ -50,17 +45,15 @@ public class LoadJobFactory implements JobFactory {
         options.hasBandwidth() ? OptionalLong.of(options.getBandwidth()) : OptionalLong.empty();
     boolean partialListing = options.hasPartialListing() && options.getPartialListing();
     boolean verificationEnabled = options.hasVerify() && options.getVerify();
-    Iterable<FileInfo> fileIterator = new FileIterable(mFsMaster, path, Optional
-        .ofNullable(AuthenticatedClientUser.getOrNull())
-        .map(User::getName), partialListing,
-        LoadJob.QUALIFIED_FILE_FILTER);
     Optional<String> user = Optional
         .ofNullable(AuthenticatedClientUser.getOrNull())
         .map(User::getName);
     return new DoraLoadJob(path, user, UUID.randomUUID().toString(),
         bandwidth,
         partialListing,
-        verificationEnabled);
+        verificationEnabled,
+        options.getLoadMetadataOnly()
+    );
   }
 }
 

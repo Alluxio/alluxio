@@ -153,11 +153,15 @@ public abstract class AbstractLocalAlluxioCluster {
    */
   public void startWorkers() throws Exception {
     mWorkers = new ArrayList<>();
-    for (int i = 0; i < mNumWorkers; i++) {
-      mWorkers.add(WorkerProcess.Factory.create());
-    }
-
-    for (final WorkerProcess worker : mWorkers) {
+    for (int i = 0; i < mNumWorkers; ++i) {
+      // If dora is enabled, automatically setting the worker page store and rocksdb dirs.
+      if (Configuration.getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED)) {
+        String pageStoreDir = Configuration.getString(PropertyKey.WORK_DIR) + "/worker" + i;
+        Configuration.set(PropertyKey.WORKER_PAGE_STORE_DIRS, pageStoreDir);
+        Configuration.set(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR, pageStoreDir);
+      }
+      WorkerProcess worker = WorkerProcess.Factory.create();
+      mWorkers.add(worker);
       Runnable runWorker = () -> {
         try {
           worker.start();
@@ -429,6 +433,13 @@ public abstract class AbstractLocalAlluxioCluster {
    * @param name the name of the test/cluster
    */
   protected void setAlluxioWorkDirectory(String name) {
+    if (name.contains(",")) {
+      String normalizedName = name.replace(",", "_");
+      LOG.warn("Alluxio work directory {} contains delimiter ',', renaming it to {}",
+          name, normalizedName);
+      name = normalizedName;
+    }
+
     mWorkDirectory =
         AlluxioTestDirectory.createTemporaryDirectory(name).getAbsolutePath();
   }

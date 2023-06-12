@@ -133,6 +133,13 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       .desc("Whether to return a verbose progress report with detailed errors")
       .build();
 
+  private static final Option LOAD_METADATA_ONLY = Option.builder()
+      .longOpt("metadata-only")
+      .required(false)
+      .hasArg(false)
+      .desc("If specified, only the file metadata are loaded")
+      .build();
+
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
    *
@@ -163,7 +170,8 @@ public final class LoadCommand extends AbstractFileSystemCommand {
         .addOption(PROGRESS_OPTION)
         .addOption(PROGRESS_FORMAT)
         .addOption(PROGRESS_VERBOSE)
-        .addOption(LOCAL_OPTION);
+        .addOption(LOCAL_OPTION)
+        .addOption(LOAD_METADATA_ONLY);
   }
 
   @Override
@@ -189,7 +197,8 @@ public final class LoadCommand extends AbstractFileSystemCommand {
           path,
           bandwidth,
           cl.hasOption(PARTIAL_LISTING_OPTION.getLongOpt()),
-          cl.hasOption(VERIFY_OPTION.getLongOpt()));
+          cl.hasOption(VERIFY_OPTION.getLongOpt()),
+          cl.hasOption(LOAD_METADATA_ONLY.getLongOpt()));
     }
 
     if (cl.hasOption(STOP_OPTION.getLongOpt())) {
@@ -210,7 +219,8 @@ public final class LoadCommand extends AbstractFileSystemCommand {
   public String getUsage() {
     return "For backward compatibility: load [--local] <path>\n"
         + "For distributed load:\n"
-        + "\tload <path> --submit [--bandwidth N] [--verify] [--partial-listing]\n"
+        + "\tload <path> --submit "
+        + "[--bandwidth N] [--verify] [--partial-listing] [--metadata-only]\n"
         + "\tload <path> --stop\n"
         + "\tload <path> --progress [--format TEXT|JSON] [--verbose]\n";
   }
@@ -241,9 +251,10 @@ public final class LoadCommand extends AbstractFileSystemCommand {
   }
 
   private int submitLoad(AlluxioURI path, OptionalLong bandwidth,
-      boolean usePartialListing, boolean verify) {
+      boolean usePartialListing, boolean verify, boolean loadMetadataOnly) {
     LoadJobPOptions.Builder options = alluxio.grpc.LoadJobPOptions
-        .newBuilder().setPartialListing(usePartialListing).setVerify(verify);
+        .newBuilder().setPartialListing(usePartialListing).setVerify(verify)
+        .setLoadMetadataOnly(loadMetadataOnly);
     if (bandwidth.isPresent()) {
       options.setBandwidth(bandwidth.getAsLong());
     }
