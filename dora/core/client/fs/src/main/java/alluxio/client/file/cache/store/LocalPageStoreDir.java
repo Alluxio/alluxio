@@ -101,7 +101,7 @@ public class LocalPageStoreDir extends QuotaManagedPageStoreDir {
 
   /**
    * @param path path of a file
-   * @return the corresponding page info for the file otherwise null
+   * @return the corresponding page info for the file otherwise empty
    */
   private Optional<PageInfo> getPageInfo(Path path) {
     Optional<PageId> pageId = getPageId(path);
@@ -114,22 +114,38 @@ public class LocalPageStoreDir extends QuotaManagedPageStoreDir {
         createdTime = creationTime.toMillis();
       } catch (IOException e) {
         LOG.error("Failed to get file size for " + path, e);
+        deleteUnrecognizedPage(path);
         return Optional.empty();
       }
       return Optional.of(new PageInfo(pageId.get(),
           pageSize, CacheScope.GLOBAL, this, createdTime));
     }
+    deleteUnrecognizedPage(path);
     return Optional.empty();
   }
 
   /**
+   * Deletes an unrecognized page file due to various reasons.
+   * @param path the file path of a page file
+   */
+  private void deleteUnrecognizedPage(Path path) {
+    try {
+      Files.delete(path);
+    } catch (IOException e) {
+      // ignore.
+    }
+  }
+
+  /**
    * @param path path of a file
-   * @return the corresponding page id, or null if the file name does not match the pattern
+   * @return the corresponding page id, or empty if the file name does not match the pattern
    */
   private Optional<PageId> getPageId(Path path) {
     Matcher matcher = mPagePattern.matcher(path.toString());
     if (!matcher.matches()) {
-      LOG.error("Unrecognized page file " + path);
+      // Please note, TEMP page files are also treated as Unrecognized!!
+      LOG.error("Unrecognized page file " + path + ". Let's delete it.");
+      deleteUnrecognizedPage(path);
       return Optional.empty();
     }
     try {
@@ -137,6 +153,7 @@ public class LocalPageStoreDir extends QuotaManagedPageStoreDir {
       String fileId = Preconditions.checkNotNull(matcher.group(2));
       if (!fileBucket.equals(getFileBucket(mFileBuckets, fileId))) {
         LOG.error("Bucket number mismatch " + path);
+        deleteUnrecognizedPage(path);
         return Optional.empty();
       }
       String fileName = Preconditions.checkNotNull(matcher.group(3));
@@ -144,6 +161,7 @@ public class LocalPageStoreDir extends QuotaManagedPageStoreDir {
       return Optional.of(new PageId(fileId, pageIndex));
     } catch (NumberFormatException e) {
       LOG.error("Illegal numbers in path " + path);
+      deleteUnrecognizedPage(path);
       return Optional.empty();
     }
   }
