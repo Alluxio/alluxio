@@ -22,7 +22,6 @@ import alluxio.util.io.BufferUtils;
 import jnr.constants.platform.OpenFlags;
 import org.junit.Test;
 
-import java.io.FileNotFoundException;
 import java.nio.ByteBuffer;
 
 /**
