@@ -52,7 +52,10 @@ public class PagedService {
     ByteBuf byteBuf = channel.alloc().buffer((int) mPageSize);
     NettyBufTargetBuffer targetBuffer = new NettyBufTargetBuffer(byteBuf);
     PageId pageId = new PageId(fileId, pageIndex);
+    // TODO(JiamingMai): load the page from UFS if it doesn't exist, but this requires AlluxioURI
+    // instead of the given fileId
     int bytesRead = mCacheManager.get(pageId, 0, targetBuffer, CacheContext.defaults());
     return targetBuffer.getTargetBuffer();
   }
+  // TODO(JiamingMai): do we need to implement a method for reading file directly?
 }

@@ -59,6 +59,7 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
       HttpRequest req = (HttpRequest) msg;
       String requestUri = req.uri();
       // parse the request uri to get the parameters
+      // TODO(JiamingMai): parse the URI and dispatch it to different methods
       requestUri = requestUri.substring(requestUri.indexOf("?") + 1);
       String[] params = requestUri.split("&");
       Map<String, String> parametersMap = new HashMap<>();
