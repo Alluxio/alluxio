@@ -24,6 +24,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.ReadPType;
 import alluxio.grpc.WritePType;
+import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.io.BufferUtils;
@@ -55,7 +56,7 @@ import java.util.Optional;
  * 1. its block meta exists in memory, but no physical block file exist in the cache directory, or
  * 2. its length in block meta is non-zero, but the physical block file is 0-sized.
  */
-public class TieredStoreBlockCorruptionIntegrationTest {
+public class TieredStoreBlockCorruptionIntegrationTest extends BaseIntegrationTest {
   private static final int MEM_CAPACITY_BYTES = 1000;
   private static final int BLOCK_SIZE = 100;
   private final AlluxioURI mFile = new AlluxioURI("/file1");
