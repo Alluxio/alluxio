@@ -295,7 +295,10 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     }
 
     if (conf.getBoolean(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS)) {
-      LOG.warn("Path style is not supported by aws asy");
+      S3Configuration config = S3Configuration.builder()
+          .pathStyleAccessEnabled(true)
+          .build();
+      clientBuilder.serviceConfiguration(config);
     }
 
     // Proxy host
