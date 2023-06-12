@@ -25,7 +25,6 @@ import alluxio.grpc.NetAddress;
 import alluxio.grpc.NodeState;
 import alluxio.grpc.QuorumServerInfo;
 import alluxio.grpc.QuorumServerState;
-import alluxio.grpc.TransferLeaderMessage;
 import alluxio.master.Master;
 import alluxio.master.PrimarySelector;
 import alluxio.master.StateLockManager;
@@ -244,7 +243,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   private final ClientId mRawClientId = ClientId.randomId();
   private RaftGroup mRaftGroup;
   private RaftPeerId mPeerId;
-  private final Map<String, TransferLeaderMessage> mErrorMessages = new ConcurrentHashMap<>();
 
   static long nextCallId() {
     return CALL_ID_COUNTER.getAndIncrement() & Long.MAX_VALUE;
@@ -985,7 +983,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    */
   public synchronized void resetPriorities() throws IOException {
     List<RaftPeer> resetPeers = new ArrayList<>();
-    final int NEUTRAL_PRIORITY = 1;
+    final int NEUTRAL_PRIORITY = 0;
     for (RaftPeer peer : mRaftGroup.getPeers()) {
       resetPeers.add(
               RaftPeer.newBuilder(peer)
@@ -1004,17 +1002,14 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    * Transfers the leadership of the quorum to another server.
    *
    * @param newLeaderNetAddress the address of the server
-   * @return the guid of transfer leader command
+   * @return error message if an error occurs or empty string if no error occurred
    */
   public synchronized String transferLeadership(NetAddress newLeaderNetAddress) {
     final boolean allowed = mTransferLeaderAllowed.getAndSet(false);
-    String transferId = UUID.randomUUID().toString();
     if (!allowed) {
-      String msg = "transfer is not allowed at the moment because the master is "
+      return "transfer is not allowed at the moment because the master is "
           + (mRaftJournalWriter == null ? "still gaining primacy" : "already transferring the ")
           + "leadership";
-      mErrorMessages.put(transferId, TransferLeaderMessage.newBuilder().setMsg(msg).build());
-      return transferId;
     }
     try {
       InetSocketAddress serverAddress = InetSocketAddress
@@ -1024,45 +1019,28 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       String strAddr = NetUtils.address2String(serverAddress);
       // if you cannot find the address in the quorum, throw exception.
       if (oldPeers.stream().map(RaftPeer::getAddress).noneMatch(addr -> addr.equals(strAddr))) {
-        throw new IOException(String.format("<%s> is not part of the quorum <%s>.",
-                strAddr, oldPeers.stream().map(RaftPeer::getAddress).collect(Collectors.toList())));
+        return String.format("<%s> is not part of the quorum <%s>.",
+            strAddr, oldPeers.stream().map(RaftPeer::getAddress).collect(Collectors.toList()));
       }
       if (strAddr.equals(mRaftGroup.getPeer(mPeerId).getAddress())) {
-        throw new IOException(String.format("%s is already the leader", strAddr));
+        return String.format("%s is already the leader", strAddr);
       }
 
       RaftPeerId newLeaderPeerId = RaftJournalUtils.getPeerId(serverAddress);
       /* transfer leadership */
       LOG.info("Transferring leadership to master with address <{}> and with RaftPeerId <{}>",
           serverAddress, newLeaderPeerId);
-      // fire and forget: need to immediately return as the master will shut down its RPC servers
-      // once the TransferLeadershipRequest is initiated.
-      final int SLEEP_TIME_MS = 3_000;
-      final int TRANSFER_LEADER_WAIT_MS = 30_000;
-      new Thread(() -> {
-        try (RaftClient client = createClient()) {
-          Thread.sleep(SLEEP_TIME_MS);
-          RaftClientReply reply1 = client.admin().transferLeadership(newLeaderPeerId,
-              TRANSFER_LEADER_WAIT_MS);
-          processReply(reply1, "election failed");
-        } catch (Throwable t) {
-          LOG.error("caught an error when executing transfer: {}", t.getMessage());
-          // we only allow transfers again if the transfer is unsuccessful: a success means it
-          // will soon lose primacy
-          mTransferLeaderAllowed.set(true);
-          mErrorMessages.put(transferId, TransferLeaderMessage.newBuilder()
-              .setMsg(t.getMessage()).build());
-          /* checking the transfer happens in {@link QuorumElectCommand} */
-        }
-      }).start();
-      LOG.info("Transferring leadership initiated");
+      try (RaftClient client = createClient()) {
+        RaftClientReply reply1 = client.admin().transferLeadership(newLeaderPeerId, 30_000);
+        processReply(reply1, "election failed");
+      }
+      return "";
     } catch (Throwable t) {
-      mTransferLeaderAllowed.set(true);
       LOG.warn(t.getMessage());
-      mErrorMessages.put(transferId, TransferLeaderMessage.newBuilder()
-          .setMsg(t.getMessage()).build());
+      return t.getMessage();
+    } finally {
+      mTransferLeaderAllowed.set(true);
     }
-    return transferId;
   }
 
   /**
@@ -1076,19 +1054,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
               : new IOException(String.format("reply <%s> failed", reply));
       LOG.error("{}. Error: {}", msgToUser, ioe);
       throw new IOException(msgToUser);
-    }
-  }
-
-  /**
-   * Gets exception message throwing when transfer leader.
-   * @param transferId the guid of transferLeader command
-   * @return the exception
-   */
-  public synchronized TransferLeaderMessage getTransferLeaderMessage(String transferId) {
-    if (mErrorMessages.get(transferId) != null) {
-      return mErrorMessages.get(transferId);
-    } else {
-      return TransferLeaderMessage.newBuilder().setMsg("").build();
     }
   }
 
