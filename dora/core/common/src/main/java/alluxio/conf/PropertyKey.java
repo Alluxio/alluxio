@@ -7109,6 +7109,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey DORA_FILE_READ_PARTITION_SIZE =
+      dataSizeBuilder(Name.DORA_FILE_READ_PARTITION_SIZE)
+          .setDefaultValue("100MB")
+          .setDescription("The minimum required file size of partition to enable concurrent read. "
+              + "Files larger than this would be split into partitions "
+              + "and read in parallel from different works. ")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.CLIENT)
+          .build();
 
   public static final PropertyKey CLIENT_WRITE_TO_UFS_ENABLED =
       booleanBuilder(Name.CLIENT_WRITE_TO_UFS_ENABLED)
@@ -8596,7 +8605,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     public static final String DORA_UFS_LIST_STATUS_CACHE_TTL =
         "alluxio.dora.ufs.list.status.cache.ttl";
-
     public static final String DORA_UFS_LIST_STATUS_CACHE_NR_FILES =
         "alluxio.dora.ufs.list.status.cache.nr.files";
 
@@ -8607,6 +8615,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String EXTRA_LOADED_FILESYSTEM_CLASSNAME =
             "alluxio.extra.loaded.filesystem.classname";
+    public static final String DORA_UFS_LIST_STATUS_CACHE_NR_DIRS =
+        "alluxio.dora.ufs.list.status.cache.nr.dirs";
+    public static final String DORA_FILE_READ_PARTITION_SIZE =
+        "alluxio.dora.ufs.list.status.cache.nr.dirs";
 
     private Name() {} // prevent instantiation
   }
