@@ -34,7 +34,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
-import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.allocator.GreedyAllocator;
@@ -312,43 +311,42 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
     BlockWorker worker = mLocalAlluxioClusterResource.get()
         .getWorkerProcess()
         .getWorker(BlockWorker.class);
-    AlluxioURI uri1 = new AlluxioURI("/file1");
-    int fileLen = 2 * 100; // two blocks, 100 bytes each
-    FileSystemTestUtils.createByteFile(mFileSystem, uri1, WritePType.CACHE_THROUGH, fileLen);
-    URIStatus fileStatus = mFileSystem.getStatus(uri1);
-    Path ufsFilePath = Paths.get(fileStatus.getFileInfo().getUfsPath());
-    Assert.assertTrue(Files.exists(ufsFilePath));
-    Assert.assertEquals(fileLen, Files.size(ufsFilePath));
-
+    AlluxioURI file = new AlluxioURI("/file1");
+    int fileLen = 3 * 100; // 3 blocks, 100 bytes each
+    prepareCorruptThreeBlockFile(file, fileLen);
+    URIStatus fileStatus = mFileSystem.getStatus(file);
     List<FileBlockInfo> blocks = fileStatus.getFileBlockInfos();
-    Assert.assertEquals(2, blocks.size());
-    Assert.assertTrue(blocks.get(0).getBlockInfo().getLocations().size() >= 1);
-    Optional<BlockMeta> firstBlockMeta =
-        worker.getBlockStore().getVolatileBlockMeta(blocks.get(0).getBlockInfo().getBlockId());
-    Assert.assertTrue(
-        String.format("Expected file to have 2 blocks, but block meta of first block does not "
-            + "exist on worker %s", worker.getWorkerAddress()),
-        firstBlockMeta.isPresent());
-    Path blockFilePath = Paths.get(firstBlockMeta.get().getPath());
-    // truncate the block file on disk, bypassing worker management to simulate block corruption
-    Files.write(blockFilePath, new byte[0], StandardOpenOption.TRUNCATE_EXISTING);
-    Assert.assertEquals(0, Files.size(blockFilePath));
-
-    FileInStream is = mFileSystem.openFile(uri1, FileSystemOptionsUtils.openFileDefaults(
+    // verify that the file can be read
+    FileInStream is = mFileSystem.openFile(fileStatus, FileSystemOptionsUtils.openFileDefaults(
         mLocalAlluxioClusterResource.get().getClient().getConf())
             .toBuilder()
             .setReadType(ReadPType.NO_CACHE) // don't cache the corrupt block
             .build());
     byte[] fileContent = ByteStreams.toByteArray(is);
-    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(fileLen, fileContent));
+    Assert.assertTrue(
+        BufferUtils.equalIncreasingByteArray(fileLen, fileContent));
     Assert.assertFalse(worker
         .getBlockStore()
         .getVolatileBlockMeta(blocks.get(0).getBlockInfo().getBlockId())
         .isPresent());
-    Assert.assertTrue(worker
+    Assert.assertFalse(worker
         .getBlockStore()
         .getVolatileBlockMeta(blocks.get(1).getBlockInfo().getBlockId())
         .isPresent());
+    Assert.assertTrue(worker
+        .getBlockStore()
+        .getVolatileBlockMeta(blocks.get(2).getBlockInfo().getBlockId())
+        .isPresent());
+    // verify that the block location info has been updated in master
+    Thread.sleep(mLocalAlluxioClusterResource.get().getClient().getConf()
+        .getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 2);
+    URIStatus newStatus = mFileSystem.getStatus(file);
+    Assert.assertEquals(0,
+        newStatus.getFileBlockInfos().get(0).getBlockInfo().getLocations().size());
+    Assert.assertEquals(0,
+        newStatus.getFileBlockInfos().get(1).getBlockInfo().getLocations().size());
+    Assert.assertEquals(1,
+        newStatus.getFileBlockInfos().get(2).getBlockInfo().getLocations().size());
   }
 
   @Test
@@ -360,50 +358,101 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
     BlockWorker worker = mLocalAlluxioClusterResource.get()
         .getWorkerProcess()
         .getWorker(BlockWorker.class);
-    AlluxioURI uri1 = new AlluxioURI("/file1");
-    int fileLen = 2 * 100; // two blocks, 100 bytes each
-    FileSystemTestUtils.createByteFile(mFileSystem, uri1, WritePType.CACHE_THROUGH, fileLen);
-    URIStatus fileStatus = mFileSystem.getStatus(uri1);
-    Path ufsFilePath = Paths.get(fileStatus.getFileInfo().getUfsPath());
-    Assert.assertTrue(Files.exists(ufsFilePath));
-    Assert.assertEquals(fileLen, Files.size(ufsFilePath));
-
+    AlluxioURI file = new AlluxioURI("/file1");
+    int fileLen = 3 * 100; // 3 blocks, 100 bytes each
+    prepareCorruptThreeBlockFile(file, fileLen);
+    URIStatus fileStatus = mFileSystem.getStatus(file);
     List<FileBlockInfo> blocks = fileStatus.getFileBlockInfos();
-    Assert.assertEquals(2, blocks.size());
-    BlockInfo firstBlockInfo = blocks.get(0).getBlockInfo();
-    Optional<BlockMeta> firstBlockMeta =
-        worker.getBlockStore().getVolatileBlockMeta(firstBlockInfo.getBlockId());
-    Assert.assertTrue(
-        String.format("Expected file to have 2 blocks, but block meta of first block does not "
-            + "exist on worker %s", worker.getWorkerAddress()),
-        firstBlockMeta.isPresent());
-    Path blockFilePath = Paths.get(firstBlockMeta.get().getPath());
-    // truncate the block file on disk, bypassing worker management to simulate block corruption
-    Files.write(blockFilePath, new byte[0], StandardOpenOption.TRUNCATE_EXISTING);
-    Assert.assertEquals(0, Files.size(blockFilePath));
 
     // verify that the block cannot be read via short-circuit
     FileSystemContext fsContext = FileSystemContext.create();
     InStreamOptions inStreamOptions = new InStreamOptions(fileStatus, fsContext.getClusterConf());
     Assert.assertThrows(NotFoundException.class, () -> new LocalFileDataReader.Factory(
-        fsContext, worker.getWorkerAddress(), firstBlockInfo.getBlockId(),
+        fsContext, worker.getWorkerAddress(), blocks.get(0).getBlockInfo().getBlockId(),
         Constants.KB, inStreamOptions));
 
     // verify that the file is readable
-    FileInStream is = mFileSystem.openFile(uri1, FileSystemOptionsUtils.openFileDefaults(
+    FileInStream is = mFileSystem.openFile(fileStatus, FileSystemOptionsUtils.openFileDefaults(
             fsContext.getClusterConf())
         .toBuilder()
         .setReadType(ReadPType.NO_CACHE) // don't cache the corrupt block
         .build());
     byte[] fileContent = ByteStreams.toByteArray(is);
-    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(fileLen, fileContent));
+    Assert.assertTrue(
+        BufferUtils.equalIncreasingByteArray(fileLen, fileContent));
     Assert.assertFalse(worker
         .getBlockStore()
         .getVolatileBlockMeta(blocks.get(0).getBlockInfo().getBlockId())
         .isPresent());
-    Assert.assertTrue(worker
+    Assert.assertFalse(worker
         .getBlockStore()
         .getVolatileBlockMeta(blocks.get(1).getBlockInfo().getBlockId())
         .isPresent());
+    Assert.assertTrue(worker
+        .getBlockStore()
+        .getVolatileBlockMeta(blocks.get(2).getBlockInfo().getBlockId())
+        .isPresent());
+    // verify that the block location info has been updated in master
+    Thread.sleep(fsContext
+        .getClusterConf()
+        .getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 2);
+    URIStatus newStatus = mFileSystem.getStatus(file);
+    Assert.assertEquals(0,
+        newStatus.getFileBlockInfos().get(0).getBlockInfo().getLocations().size());
+    Assert.assertEquals(0,
+        newStatus.getFileBlockInfos().get(1).getBlockInfo().getLocations().size());
+    Assert.assertEquals(1,
+        newStatus.getFileBlockInfos().get(2).getBlockInfo().getLocations().size());
+  }
+
+  /**
+   * Prepares a 3-block file, truncates the first block to 0 size, removes the second block, and
+   * leaves the third block intact.
+   */
+  private void prepareCorruptThreeBlockFile(AlluxioURI fileName, int fileLen) throws Exception {
+    BlockWorker worker = mLocalAlluxioClusterResource.get()
+        .getWorkerProcess()
+        .getWorker(BlockWorker.class);
+    FileSystemTestUtils.createByteFile(mFileSystem, fileName, WritePType.CACHE_THROUGH, fileLen);
+    URIStatus fileStatus = mFileSystem.getStatus(fileName);
+    Path ufsFilePath = Paths.get(fileStatus.getFileInfo().getUfsPath());
+    Assert.assertTrue(Files.exists(ufsFilePath));
+    Assert.assertEquals(fileLen, Files.size(ufsFilePath));
+
+    List<FileBlockInfo> blocks = fileStatus.getFileBlockInfos();
+    Assert.assertEquals(3, blocks.size());
+    Assert.assertTrue(blocks.get(0).getBlockInfo().getLocations().size() >= 1);
+    Assert.assertTrue(blocks.get(1).getBlockInfo().getLocations().size() >= 1);
+    Assert.assertTrue(blocks.get(2).getBlockInfo().getLocations().size() >= 1);
+
+    // truncate the first block on disk, bypassing worker management to simulate block corruption
+    Optional<BlockMeta> firstBlockMeta =
+        worker.getBlockStore().getVolatileBlockMeta(blocks.get(0).getBlockInfo().getBlockId());
+    Assert.assertTrue(
+        String.format("Block meta of first block does not exist on worker %s",
+            worker.getWorkerAddress()), firstBlockMeta.isPresent());
+    Path blockFilePath = Paths.get(firstBlockMeta.get().getPath());
+    Files.write(blockFilePath, new byte[0], StandardOpenOption.TRUNCATE_EXISTING);
+    Assert.assertTrue(Files.exists(blockFilePath));
+    Assert.assertEquals(0, Files.size(blockFilePath));
+
+    // remove the second block file
+    Optional<BlockMeta> secondBlockMeta =
+        worker.getBlockStore().getVolatileBlockMeta(blocks.get(1).getBlockInfo().getBlockId());
+    Assert.assertTrue(
+        String.format("Block meta of second block does not exist on worker %s",
+            worker.getWorkerAddress()), secondBlockMeta.isPresent());
+    blockFilePath = Paths.get(secondBlockMeta.get().getPath());
+    Files.deleteIfExists(blockFilePath);
+    Assert.assertFalse(Files.exists(blockFilePath));
+
+    Optional<BlockMeta> thirdBlockMeta =
+        worker.getBlockStore().getVolatileBlockMeta(blocks.get(2).getBlockInfo().getBlockId());
+    Assert.assertTrue(
+        String.format("Block meta of third block does not exist on worker %s",
+            worker.getWorkerAddress()), thirdBlockMeta.isPresent());
+    blockFilePath = Paths.get(thirdBlockMeta.get().getPath());
+    Assert.assertTrue(Files.exists(blockFilePath));
+    Assert.assertEquals(thirdBlockMeta.get().getBlockSize(), Files.size(blockFilePath));
   }
 }

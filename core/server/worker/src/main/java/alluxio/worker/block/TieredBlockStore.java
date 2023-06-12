@@ -903,7 +903,7 @@ public class TieredBlockStore implements LocalBlockStore {
    * @param blockMeta block metadata
    */
   private void removeBlockFileAndMeta(BlockMeta blockMeta) {
-    FileUtils.delete(blockMeta.getPath());
+    FileUtils.deleteIfExists(blockMeta.getPath());
     mMetaManager.removeBlockMeta(blockMeta);
   }
 
