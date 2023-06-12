@@ -91,7 +91,8 @@ public class PagedDoraWorkerTest {
   @Ignore
   // TODO(elega) fix this broken test
   public void testLoad()
-      throws ExecutionException, InterruptedException, TimeoutException, IOException {
+      throws AccessControlException, ExecutionException, InterruptedException, TimeoutException,
+      IOException {
     int numPages = 10;
     long length = mPageSize * numPages;
     String ufsPath = mTestFolder.newFile("test").getAbsolutePath();
@@ -462,7 +463,8 @@ public class PagedDoraWorkerTest {
   }
 
   private void loadFileData(String path)
-      throws ExecutionException, InterruptedException, TimeoutException, IOException {
+      throws ExecutionException, InterruptedException, TimeoutException, IOException,
+      AccessControlException {
     UfsStatus ufsStatus = mWorker.getUfs().getStatus(path);
     ufsStatus.setUfsFullPath(new AlluxioURI(path));
     ListenableFuture<List<LoadFileFailure>> load =

@@ -520,7 +520,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   @Override
   public ListenableFuture<List<LoadFileFailure>> load(
-      boolean loadData, List<UfsStatus> ufsStatuses, UfsReadOptions options) {
+      boolean loadData, List<UfsStatus> ufsStatuses, UfsReadOptions options)
+      throws AccessControlException, IOException {
     List<ListenableFuture<Void>> futures = new ArrayList<>();
     List<LoadFileFailure> errors = Collections.synchronizedList(new ArrayList<>());
     for (UfsStatus status : ufsStatuses) {
@@ -561,7 +562,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.BLOCK_READER_EXECUTOR);
   }
 
-  private void loadData(String ufsPath, long mountId, long length) {
+  private void loadData(String ufsPath, long mountId, long length)
+      throws AccessControlException, IOException {
     Protocol.OpenUfsBlockOptions options =
         Protocol.OpenUfsBlockOptions.newBuilder().setUfsPath(ufsPath).setMountId(mountId)
                                     .setNoCache(false).setOffsetInFile(0).setBlockSize(length)
