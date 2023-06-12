@@ -250,7 +250,9 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     mWebServer.start();
 
     // Start HTTP Server
-    mHttpServer.start();
+    if (mHttpServer != null) {
+      mHttpServer.start();
+    }
 
     // Start monitor jvm
     if (Configuration.getBoolean(PropertyKey.WORKER_JVM_MONITOR_ENABLED)) {
