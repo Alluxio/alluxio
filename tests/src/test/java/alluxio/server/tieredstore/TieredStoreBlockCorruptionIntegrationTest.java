@@ -30,6 +30,8 @@ import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
+import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.WorkerProcess;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.meta.BlockMeta;
 
@@ -62,6 +64,7 @@ public class TieredStoreBlockCorruptionIntegrationTest extends BaseIntegrationTe
   private final AlluxioURI mFile = new AlluxioURI("/file1");
   private final int mFileLength = 3 * 100; // 3 blocks, 100 bytes each
   private BlockWorker mWorker;
+  private WorkerNetAddress mWorkerAddress;
   private FileSystem mFileSystem;
 
   @Rule
@@ -83,9 +86,10 @@ public class TieredStoreBlockCorruptionIntegrationTest extends BaseIntegrationTe
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mWorker = mLocalAlluxioClusterResource.get()
-        .getWorkerProcess()
-        .getWorker(BlockWorker.class);
+    WorkerProcess workerProcess = mLocalAlluxioClusterResource.get()
+        .getWorkerProcess();
+    mWorker = workerProcess.getWorker(BlockWorker.class);
+    mWorkerAddress = workerProcess.getAddress();
     prepareFileWithCorruptBlocks();
   }
 
@@ -119,7 +123,7 @@ public class TieredStoreBlockCorruptionIntegrationTest extends BaseIntegrationTe
       InStreamOptions inStreamOptions = new InStreamOptions(fileStatus,
           fsContext.getClusterConf());
       Assert.assertThrows(NotFoundException.class, () -> new LocalFileDataReader.Factory(
-          fsContext, mWorker.getWorkerAddress(), blocks.get(0).getBlockInfo().getBlockId(),
+          fsContext, mWorkerAddress, blocks.get(0).getBlockInfo().getBlockId(),
           Constants.KB, inStreamOptions));
     }
 
@@ -152,7 +156,7 @@ public class TieredStoreBlockCorruptionIntegrationTest extends BaseIntegrationTe
         worker.getBlockStore().getVolatileBlockMeta(blocks.get(0).getBlockInfo().getBlockId());
     Assert.assertTrue(
         String.format("Block meta of first block does not exist on worker %s",
-            worker.getWorkerAddress()), firstBlockMeta.isPresent());
+            mWorkerAddress), firstBlockMeta.isPresent());
     Path blockFilePath = Paths.get(firstBlockMeta.get().getPath());
     Files.write(blockFilePath, new byte[0], StandardOpenOption.TRUNCATE_EXISTING);
     Assert.assertTrue(Files.exists(blockFilePath));
@@ -163,7 +167,7 @@ public class TieredStoreBlockCorruptionIntegrationTest extends BaseIntegrationTe
         worker.getBlockStore().getVolatileBlockMeta(blocks.get(1).getBlockInfo().getBlockId());
     Assert.assertTrue(
         String.format("Block meta of second block does not exist on worker %s",
-            worker.getWorkerAddress()), secondBlockMeta.isPresent());
+            mWorkerAddress), secondBlockMeta.isPresent());
     blockFilePath = Paths.get(secondBlockMeta.get().getPath());
     Files.deleteIfExists(blockFilePath);
     Assert.assertFalse(Files.exists(blockFilePath));
@@ -172,7 +176,7 @@ public class TieredStoreBlockCorruptionIntegrationTest extends BaseIntegrationTe
         worker.getBlockStore().getVolatileBlockMeta(blocks.get(2).getBlockInfo().getBlockId());
     Assert.assertTrue(
         String.format("Block meta of third block does not exist on worker %s",
-            worker.getWorkerAddress()), thirdBlockMeta.isPresent());
+            mWorkerAddress), thirdBlockMeta.isPresent());
     blockFilePath = Paths.get(thirdBlockMeta.get().getPath());
     Assert.assertTrue(Files.exists(blockFilePath));
     Assert.assertEquals(thirdBlockMeta.get().getBlockSize(), Files.size(blockFilePath));
@@ -256,13 +260,13 @@ public class TieredStoreBlockCorruptionIntegrationTest extends BaseIntegrationTe
         .map(FileBlockInfo::getBlockInfo)
         .map(BlockInfo::getLocations)
         .flatMap(Collection::stream)
-        .noneMatch(loc -> loc.getWorkerAddress().equals(mWorker.getWorkerAddress())));
+        .noneMatch(loc -> loc.getWorkerAddress().equals(mWorkerAddress)));
     Assert.assertTrue(blocks
         .stream()
         .skip(2)
         .map(FileBlockInfo::getBlockInfo)
         .map(BlockInfo::getLocations)
         .flatMap(Collection::stream)
-        .anyMatch(loc -> loc.getWorkerAddress().equals(mWorker.getWorkerAddress())));
+        .anyMatch(loc -> loc.getWorkerAddress().equals(mWorkerAddress)));
   }
 }
