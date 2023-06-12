@@ -39,7 +39,6 @@ import alluxio.worker.block.TieredBlockWriterFactory;
 import alluxio.worker.block.TieredTempBlockMetaFactory;
 import alluxio.worker.file.FileSystemMasterClient;
 import alluxio.worker.http.HttpServer;
-import alluxio.worker.netty.NettyDataServer;
 import alluxio.worker.page.PagedBlockMetaStore;
 import alluxio.worker.page.PagedBlockStore;
 import alluxio.worker.page.PagedBlockStoreDir;
