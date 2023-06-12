@@ -88,7 +88,8 @@ public class PagedDoraWorkerTest {
 
   @Test
   public void testLoad()
-      throws ExecutionException, InterruptedException, TimeoutException, IOException {
+      throws AccessControlException, ExecutionException, InterruptedException, TimeoutException,
+      IOException {
     int numPages = 10;
     long length = mPageSize * numPages;
     String ufsPath = mTestFolder.newFile("test").getAbsolutePath();
@@ -459,7 +460,8 @@ public class PagedDoraWorkerTest {
   }
 
   private void loadFileData(String path, long length)
-      throws ExecutionException, InterruptedException, TimeoutException {
+      throws AccessControlException, ExecutionException, InterruptedException, TimeoutException,
+      IOException {
     alluxio.grpc.File file =
         alluxio.grpc.File.newBuilder().setUfsPath(path).setLength(length).setMountId(1).build();
     ListenableFuture<List<FileFailure>> load = mWorker.load(Collections.singletonList(file),
