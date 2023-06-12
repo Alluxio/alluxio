@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -56,7 +57,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 @ThreadSafe
 // TODO(adit); API calls should use a URI instead of a String wherever appropriate
-public interface UnderFileSystem extends Closeable {
+public interface UnderFileSystem extends Closeable, UfsClient {
   /**
    * The factory for the {@link UnderFileSystem}.
    */
@@ -623,6 +624,20 @@ public interface UnderFileSystem extends Closeable {
    */
   @Nullable
   UfsStatus[] listStatus(String path, ListOptions options) throws IOException;
+
+  /**
+   * Lists the ufs statuses iteratively.
+   *
+   * @param path the abstract pathname to list
+   * @param options for list directory
+   * @param startAfter the start after token
+   * @param batchSize the batch size
+   * @return An iterator of ufs status. Returns
+   *  {@code null} if this abstract pathname does not denote a directory.
+   */
+  @Nullable
+  Iterator<UfsStatus> listStatusIterable(
+      String path, ListOptions options, String startAfter, int batchSize) throws IOException;
 
   /**
    * Creates the directory named by this abstract pathname. If the folder already exists, the method

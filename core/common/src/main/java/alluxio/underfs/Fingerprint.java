@@ -14,12 +14,13 @@ package alluxio.underfs;
 import alluxio.Constants;
 import alluxio.security.authorization.AccessControlList;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -43,11 +44,12 @@ public final class Fingerprint {
   private static final char KVDELIMTER = '|';
   private static final char TAGDELIMTER = ' ';
 
-  private static final Pattern SANITIZE_REGEX = Pattern.compile("[" + KVDELIMTER
-      + TAGDELIMTER + "]");
   public static final String UNDERSCORE = "_";
 
   private final Map<Tag, String> mValues;
+
+  private final String[] mSearchList = new String[] {"|", " "};
+  private final String[] mReplaceList = new String[] {"_", "_"};
 
   /**
    * The possible types of the fingerprint.
@@ -282,10 +284,11 @@ public final class Fingerprint {
     }
   }
 
-  private String sanitizeString(String input) {
+  @VisibleForTesting
+  String sanitizeString(String input) {
     if (input == null || input.isEmpty()) {
       return UNDERSCORE;
     }
-    return SANITIZE_REGEX.matcher(input).replaceAll(UNDERSCORE);
+    return StringUtils.replaceEachRepeatedly(input, mSearchList, mReplaceList);
   }
 }

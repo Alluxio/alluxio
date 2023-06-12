@@ -1153,6 +1153,9 @@ $ ./bin/alluxio fs load <path> --local
 
 The `loadMetadata` command loads metadata about a path in the UFS to Alluxio.
 No data will be transferred.
+
+#### loadMetadata V1(legacy)
+
 This command is a client-side optimization without storing all returned `ls` results, preventing OOM for massive amount of small files.
 This is useful when data has been added to the UFS outside of Alluxio and users are expected to reference the new data.
 This command is more efficient than using the `ls` command since it does not store any directory or file information to be returned.
@@ -1166,6 +1169,39 @@ The -F option will force the loading of metadata even if there are existing meta
 ```console
 $ ./bin/alluxio fs loadMetadata -R -F <path>
 ```
+
+#### loadMetadata V2(new)
+
+The load metadata v2 is a better implementation of metadata sync that designs for object storage (e.g. s3),
+with better resource control and performance. 
+To use the v2 implementation, please attach the option `-v2` in your command. `-F` is no longer supported in v2. 
+The command will always load the metadata from UFS. If files are in alluxio already, they will be compared with and updated based on the UFS result. 
+The v2 implementation also has some unique options:
+```console
+$ ./bin/alluxio fs loadMetadata -v2 -R -d <type> -a <path>
+```
+
+Options:
+* `-d <type>` option that determines how alluxio will load metadata of subdirectories, if a recursive loading is required. Possible values:
+  * SINGLE_LISTING (default): Loads the file infos from UFS using a single listing. Use this mode if the directory does not contain or only contains few subdirectories. This mode gives you better reliability. This mode is only allowed on some object storage where single listing is allowed (e.g. ListObjectsV2 in s3).
+  * BFS: Loads the file infos on a directory basis; Creates a new job to load the subdirectory; Use this mode if your UFS directory contains many subdirectories. This mode loads the metadata for each subdirectory concurrently and gives you the best performance. Note that this is only an approximate BFS, as batches are processed and loaded concurrently and may be loaded in different orders.
+  * DFS: Loads the file infos directory by directory, in a DFS way.  Note that this is only an approximate DFS, as batches are processed and loaded concurrently and may be loaded in different orders.  
+* `-R` option recursively loads metadata in subdirectories
+* `-a/--async` If specified, the metadata loading states are pulled and printed every couple of seconds until the sync job is finished. Otherwise, the command line is blocked until the sync job is finished. Note that regardless this option is specified or not, the metadata sync task is processed asynchronously by alluxio master and this option only changes the behavior of display. Hence closing the terminal or CTRL+C do not cancel the sync job.  
+
+If `-a` is used, the console will print the task group id when the task is submitted. A task will be created for each mount point in the sync root.
+One can use the task group id to get the metadata load progress or cancel the load.
+
+To get the status a task group, use
+```console
+$ ./bin/alluxio fs loadMetadata -v2 -o get -id <task_group_id>
+```
+
+To cancel the task group, use
+```console
+$ ./bin/alluxio fs loadMetadata -v2 -o get -id <task_group_id>
+```
+
 
 ### location
 

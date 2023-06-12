@@ -449,6 +449,18 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @return true the current alluxioURI is an ancestor of the AlluxioURI
    */
   public boolean isAncestorOf(AlluxioURI alluxioURI) throws InvalidPathException {
+    return isAncestorOf(alluxioURI, true);
+  }
+
+  /**
+   * Returns true if the current AlluxioURI is an ancestor of another AlluxioURI.
+   * otherwise, return false.
+   * @param alluxioURI potential children to check
+   * @param cleanPath if the paths should be cleaned
+   * @return true the current alluxioURI is an ancestor of the AlluxioURI
+   */
+  public boolean isAncestorOf(AlluxioURI alluxioURI, boolean cleanPath)
+      throws InvalidPathException {
     // To be an ancestor of another URI, authority and scheme must match
     if (!Objects.equals(getAuthority(), alluxioURI.getAuthority())) {
       return false;
@@ -458,7 +470,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
     }
 
     return PathUtils.hasPrefix(PathUtils.normalizePath(alluxioURI.getPath(), SEPARATOR),
-        PathUtils.normalizePath(getPath(), SEPARATOR));
+        PathUtils.normalizePath(getPath(), SEPARATOR), cleanPath);
   }
 
   /**

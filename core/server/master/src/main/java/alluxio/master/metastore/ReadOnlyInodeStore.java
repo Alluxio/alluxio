@@ -11,15 +11,24 @@
 
 package alluxio.master.metastore;
 
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
+import alluxio.exception.runtime.InternalRuntimeException;
+import alluxio.file.options.DescendantType;
 import alluxio.master.file.meta.EdgeEntry;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryView;
+import alluxio.master.file.meta.InodeIterationResult;
+import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MutableInode;
 import alluxio.resource.CloseableIterator;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -180,6 +189,122 @@ public interface ReadOnlyInodeStore extends Closeable {
    */
   default CloseableIterator<? extends Inode> getChildren(InodeDirectoryView inode) {
     return getChildren(inode.getId(), ReadOption.defaults());
+  }
+
+  /**
+   * Creates an iterator starting from the path, and including its
+   * children.
+   * @param option the read option
+   * @param descendantType the type of descendants to load
+   * @param includeBaseInode if the iterator should include the inode from the base path
+   * @param lockedPath the locked path to the root inode
+   * @return a skippable iterator that supports to skip children during the iteration
+   */
+  default SkippableInodeIterator getSkippableChildrenIterator(
+      ReadOption option, DescendantType descendantType, boolean includeBaseInode,
+      LockedInodePath lockedPath) {
+    Inode inode;
+    try {
+      inode = lockedPath.getInode();
+    } catch (FileDoesNotExistException e) {
+      return new SkippableInodeIterator() {
+        @Override
+        public void skipChildrenOfTheCurrent() {
+        }
+
+        @Override
+        public void close() {
+        }
+
+        @Override
+        public boolean hasNext() {
+          return false;
+        }
+
+        @Override
+        public InodeIterationResult next() {
+          throw new NoSuchElementException();
+        }
+      };
+    }
+    if (descendantType == DescendantType.ALL) {
+      return new RecursiveInodeIterator(this, inode, includeBaseInode, option, lockedPath);
+    } else if (descendantType == DescendantType.NONE) {
+      Preconditions.checkState(includeBaseInode);
+      // if descendant type is none, we should only return the parent node
+      return new SkippableInodeIterator() {
+        InodeIterationResult mFirst = new InodeIterationResult(inode, lockedPath);
+        @Override
+        public void close() {
+        }
+
+        @Override
+        public void skipChildrenOfTheCurrent() {
+        }
+
+        @Override
+        public boolean hasNext() {
+          return mFirst != null;
+        }
+
+        @Override
+        public InodeIterationResult next() {
+          if (mFirst == null) {
+            throw new NoSuchElementException();
+          }
+          InodeIterationResult ret = mFirst;
+          mFirst = null;
+          return ret;
+        }
+      };
+    }
+
+    final CloseableIterator<? extends Inode> iterator = getChildren(inode.getId(), option);
+    return new SkippableInodeIterator() {
+
+      LockedInodePath mPreviousPath = null;
+      final LockedInodePath mRootPath = lockedPath;
+      Inode mFirst = includeBaseInode ? inode : null;
+
+      @Override
+      public void skipChildrenOfTheCurrent() {
+        // No-op
+      }
+
+      @Override
+      public boolean hasNext() {
+        return mFirst != null || iterator.hasNext();
+      }
+
+      @Override
+      public InodeIterationResult next() {
+        if (mFirst != null) {
+          Inode ret = mFirst;
+          mFirst = null;
+          return new InodeIterationResult(ret, lockedPath);
+        }
+        if (mPreviousPath != null) {
+          mPreviousPath.close();
+        }
+        Inode inode = iterator.next();
+
+        try {
+          mPreviousPath = mRootPath.lockChild(inode, InodeTree.LockPattern.WRITE_EDGE, false);
+        } catch (InvalidPathException e) {
+          // Should not reach here since the path should be valid
+          throw new InternalRuntimeException(e);
+        }
+        return new InodeIterationResult(inode, mPreviousPath);
+      }
+
+      @Override
+      public void close() throws IOException {
+        iterator.close();
+        if (mPreviousPath != null) {
+          mPreviousPath.close();
+        }
+      }
+    };
   }
 
   /**

@@ -15,6 +15,8 @@ import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.CancelSyncMetadataPRequest;
+import alluxio.grpc.CancelSyncMetadataPResponse;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CheckAccessPRequest;
 import alluxio.grpc.CheckConsistencyPOptions;
@@ -43,6 +45,8 @@ import alluxio.grpc.GetStateLockHoldersPRequest;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetSyncPathListPRequest;
+import alluxio.grpc.GetSyncProgressPRequest;
+import alluxio.grpc.GetSyncProgressPResponse;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.JobProgressPOptions;
 import alluxio.grpc.JobProgressReportFormat;
@@ -70,6 +74,10 @@ import alluxio.grpc.StopJobPResponse;
 import alluxio.grpc.StopSyncPRequest;
 import alluxio.grpc.SubmitJobPRequest;
 import alluxio.grpc.SubmitJobPResponse;
+import alluxio.grpc.SyncMetadataAsyncPResponse;
+import alluxio.grpc.SyncMetadataPOptions;
+import alluxio.grpc.SyncMetadataPRequest;
+import alluxio.grpc.SyncMetadataPResponse;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.grpc.UnmountPRequest;
 import alluxio.grpc.UpdateMountPRequest;
@@ -474,6 +482,53 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
             .setOptions(options.build())
             .build());
     return response.getProgressReport();
+  }
+
+  @Override
+  public SyncMetadataPResponse syncMetadata(AlluxioURI path, SyncMetadataPOptions options)
+      throws AlluxioStatusException {
+    return retryRPC(() -> {
+      SyncMetadataPRequest request = SyncMetadataPRequest.newBuilder()
+          .setPath(path.getPath())
+          .setOptions(options)
+          .build();
+      SyncMetadataPResponse response = mClient.syncMetadata(request);
+      return response;
+    }, RPC_LOG, "SyncMetadata", "path=%s,options=%s", path, options);
+  }
+
+  @Override
+  public SyncMetadataAsyncPResponse syncMetadataAsync(AlluxioURI path, SyncMetadataPOptions options)
+      throws AlluxioStatusException {
+    return retryRPC(() -> {
+      SyncMetadataPRequest request = SyncMetadataPRequest.newBuilder()
+          .setPath(path.getPath())
+          .setOptions(options)
+          .build();
+      SyncMetadataAsyncPResponse response = mClient.syncMetadataAsync(request);
+      return response;
+    }, RPC_LOG, "SyncMetadataAsync", "path=%s,options=%s", path, options);
+  }
+
+  @Override
+  public GetSyncProgressPResponse getSyncProgress(long taskGroupId) throws AlluxioStatusException {
+    return retryRPC(() -> {
+      GetSyncProgressPRequest request = GetSyncProgressPRequest.newBuilder()
+          .setTaskGroupId(taskGroupId)
+          .build();
+      return mClient.getSyncProgress(request);
+    }, RPC_LOG, "GetSyncProgress", "taskGroupId=%s", taskGroupId);
+  }
+
+  @Override
+  public CancelSyncMetadataPResponse cancelSyncMetadata(long taskGroupId)
+      throws AlluxioStatusException {
+    return retryRPC(() -> {
+      CancelSyncMetadataPRequest request = CancelSyncMetadataPRequest.newBuilder()
+          .setTaskGroupId(taskGroupId)
+          .build();
+      return mClient.cancelSyncMetadata(request);
+    }, RPC_LOG, "CancelSyncMetadata", "taskGroupId=%s", taskGroupId);
   }
 
   /**

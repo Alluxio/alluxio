@@ -35,6 +35,7 @@ import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.SyncMetadataPOptions;
 import alluxio.grpc.TtlAction;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.security.authorization.Mode;
@@ -167,6 +168,14 @@ public class FileSystemOptionsUtils {
         .setLoadMetadataType(conf.getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE,
             LoadMetadataPType.class))
         .build();
+  }
+
+  /**
+   * @param conf Alluxio configuration
+   * @return options based on the configuration
+   */
+  public static SyncMetadataPOptions syncMetadataDefaults(AlluxioConfiguration conf) {
+    return SyncMetadataPOptions.newBuilder().build();
   }
 
   /**
