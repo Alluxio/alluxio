@@ -48,6 +48,11 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.HashSet;
@@ -188,8 +193,35 @@ public class TieredBlockStore implements LocalBlockStore {
       blockLock.close();
       throw new BlockDoesNotExistRuntimeException(blockId);
     }
+    BlockMeta block = blockMeta.get();
     try {
-      BlockReader reader = new StoreBlockReader(sessionId, blockMeta.get());
+      validateBlockIntegrityForRead(block);
+    } catch (IllegalStateException validationError) {
+      LOG.warn("Block {} is corrupted, removing it: {}",
+          blockId, validationError.getMessage());
+      // in case of a corrupted block, remove it and propagate the exception
+      // release the read lock because removeBlockInternal needs a write lock on the same block
+      blockLock.close();
+      // at this point we are not holding any lock, so two threads may attempt to remove the same
+      // block concurrently. This is fine as long as removeBlockInternal is no-op for a
+      // non-existing block.
+      try {
+        removeBlockInternal(sessionId, blockId, REMOVE_BLOCK_TIMEOUT_MS);
+        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+          synchronized (listener) {
+            listener.onRemoveBlockByWorker(blockId);
+            listener.onRemoveBlock(blockId, block.getBlockLocation());
+          }
+        }
+      } catch (Exception removeBlockError) {
+        LOG.warn("Failed to remove a corrupted block {}", blockId, removeBlockError);
+        validationError.addSuppressed(removeBlockError);
+      }
+      throw new BlockDoesNotExistRuntimeException(blockId, validationError);
+    }
+
+    try {
+      BlockReader reader = new StoreBlockReader(sessionId, block);
       ((FileChannel) reader.getChannel()).position(offset);
       accessBlock(sessionId, blockId);
       return new DelegatingBlockReader(reader, blockLock);
@@ -197,6 +229,57 @@ public class TieredBlockStore implements LocalBlockStore {
       blockLock.close();
       throw new IOException(format("Failed to get local block reader, sessionId=%d, "
           + "blockId=%d, offset=%d", sessionId, blockId, offset), e);
+    }
+  }
+
+  /**
+   * Validates the integrity of the block for reading:
+   * 1. the block file should exist
+   * 2. the length of the block file should match its BlockMeta
+   * If any of the above does not hold, this can be a result of corrupted block files
+   * due to faulty storage hardware, manual manipulation of the block files by admin,
+   * or a bug where the block was pre-maturely committed when it was not done writing.
+   *
+   * @param blockMeta the block meta acquired from meta data manager
+   * @throws IllegalStateException if the block is deemed corrupted
+   */
+  public static void validateBlockIntegrityForRead(BlockMeta blockMeta)
+      throws IllegalStateException {
+    final long blockId = blockMeta.getBlockId();
+    final Path blockPath = Paths.get(blockMeta.getPath());
+    final BasicFileAttributes blockFileAttrs;
+    try {
+      blockFileAttrs = Files.readAttributes(blockPath, BasicFileAttributes.class);
+    } catch (NoSuchFileException e) {
+      throw new IllegalStateException(String.format(
+          "Block %s exists in block meta but actual physical block file %s does not exist",
+          blockId, blockPath));
+    } catch (IOException e) {
+      // cannot read file attributes, possibly due to bad permission or bad file type
+      LOG.debug("Cannot read file attributes for block {}", blockId, e);
+      throw new IllegalStateException(String.format(
+          "Cannot read attributes of file %s for block %s during validation", blockId, blockPath));
+    }
+    // need to check if file is a regular file, as for directories and device files the file length
+    // is unspecified
+    if (!blockFileAttrs.isRegularFile()) {
+      throw new IllegalStateException(String.format(
+          "Block file %s for block %s is not a regular file", blockPath, blockId));
+    }
+    final long actualLength = blockFileAttrs.size();
+    final long expectedLength = blockMeta.getBlockSize();
+    // check if the actual file length matches the expected length from block meta
+    if (actualLength != expectedLength) {
+      LOG.debug("Block {} is expected to be {} bytes, "
+          + "but the actual block file length is {}", blockId, expectedLength, actualLength);
+      // Note: we only errors out on 0-sized blocks which are definitely not correct
+      // but if the size is not 0, we treat it as valid
+      if (actualLength == 0) {
+        throw new IllegalStateException(String.format(
+            "Block %s exists in block meta but the size from block meta does not match that of "
+                + "the block file %s, expected block size = %d, actual block file length = %d",
+            blockId, blockPath, expectedLength, actualLength));
+      }
     }
   }
 
@@ -820,7 +903,7 @@ public class TieredBlockStore implements LocalBlockStore {
    * @param blockMeta block metadata
    */
   private void removeBlockFileAndMeta(BlockMeta blockMeta) {
-    FileUtils.delete(blockMeta.getPath());
+    FileUtils.deleteIfExists(blockMeta.getPath());
     mMetaManager.removeBlockMeta(blockMeta);
   }
 
