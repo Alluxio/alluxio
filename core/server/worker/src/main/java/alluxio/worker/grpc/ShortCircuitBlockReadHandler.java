@@ -27,6 +27,7 @@ import alluxio.worker.block.BlockLock;
 import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.DefaultBlockWorker;
+import alluxio.worker.block.TieredBlockStore;
 import alluxio.worker.block.meta.BlockMeta;
 
 import io.grpc.stub.StreamObserver;
@@ -85,6 +86,13 @@ class ShortCircuitBlockReadHandler implements StreamObserver<OpenLocalBlockReque
         Optional<BlockMeta> meta = mLocalBlockStore.getVolatileBlockMeta(mRequest.getBlockId());
         if (!meta.isPresent()) {
           throw new BlockDoesNotExistRuntimeException(mRequest.getBlockId());
+        }
+        try {
+          // assuming the underlying BlockStore is TieredBlockStore, as it's the only impl
+          // that allows short-circuit read
+          TieredBlockStore.validateBlockIntegrityForRead(meta.get());
+        } catch (IllegalStateException validationError) {
+          throw new BlockDoesNotExistRuntimeException(mRequest.getBlockId(), validationError);
         }
         if (mRequest.getPromote()) {
           // TODO(calvin): Move this logic into BlockStore#moveBlockInternal if possible
