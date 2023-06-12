@@ -751,7 +751,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   }
 
   @Override
-  public void delete(String path, DeletePOptions options) {
+  public void delete(String path, DeletePOptions options) throws IOException,
+      AccessControlException {
     try {
       invalidateFileMeta(path);
       invalidateCachedFile(path);
@@ -770,7 +771,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   }
 
   @Override
-  public void rename(String src, String dst, RenamePOptions options) {
+  public void rename(String src, String dst, RenamePOptions options)
+      throws IOException, AccessControlException {
     try {
       invalidateFileMeta(src);
       invalidateCachedFile(src);
@@ -789,7 +791,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   }
 
   @Override
-  public void createDirectory(String path, CreateDirectoryPOptions options) {
+  public void createDirectory(String path, CreateDirectoryPOptions options)
+      throws IOException, AccessControlException {
     try {
       invalidateFileMeta(path);
       invalidateCachedFile(path);

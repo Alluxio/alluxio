@@ -149,7 +149,7 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    * @param path the path of this file
    * @param options the options for this operation
    */
-  void delete(String path, DeletePOptions options);
+  void delete(String path, DeletePOptions options) throws IOException, AccessControlException;
 
   /**
    * Rename src to dst.
@@ -157,12 +157,14 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    * @param dst the destination file/dir
    * @param options the options for this operations
    */
-  void rename(String src, String dst, RenamePOptions options);
+  void rename(String src, String dst, RenamePOptions options)
+      throws IOException, AccessControlException;
 
   /**
    * Create a directory.
    * @param path the directory name
    * @param options the options for this operations
    */
-  void createDirectory(String path, CreateDirectoryPOptions options);
+  void createDirectory(String path, CreateDirectoryPOptions options)
+      throws IOException, AccessControlException;
 }
