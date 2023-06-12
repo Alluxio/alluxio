@@ -1014,13 +1014,13 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     try {
       InetSocketAddress serverAddress = InetSocketAddress
           .createUnresolved(newLeaderNetAddress.getHost(), newLeaderNetAddress.getRpcPort());
-      List<RaftPeer> oldPeers = new ArrayList<>(mRaftGroup.getPeers());
+      Collection<RaftPeer> peers = mRaftGroup.getPeers();
       // The NetUtil function is used by Ratis to convert InetSocketAddress to string
       String strAddr = NetUtils.address2String(serverAddress);
       // if you cannot find the address in the quorum, throw exception.
-      if (oldPeers.stream().map(RaftPeer::getAddress).noneMatch(addr -> addr.equals(strAddr))) {
+      if (peers.stream().map(RaftPeer::getAddress).noneMatch(addr -> addr.equals(strAddr))) {
         return String.format("<%s> is not part of the quorum <%s>.",
-            strAddr, oldPeers.stream().map(RaftPeer::getAddress).collect(Collectors.toList()));
+            strAddr, peers.stream().map(RaftPeer::getAddress).collect(Collectors.toList()));
       }
       if (strAddr.equals(mRaftGroup.getPeer(mPeerId).getAddress())) {
         return String.format("%s is already the leader", strAddr);
