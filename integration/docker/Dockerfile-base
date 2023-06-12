@@ -11,6 +11,11 @@
 
 FROM golang:1.19 as go_installer
 
+FROM golang:1.19 as entrypoint_builder
+COPY entrypoint /entrypoint
+WORKDIR /entrypoint
+RUN go build
+
 FROM centos:7 as base
 RUN \
     yum update -y && yum upgrade -y && \
@@ -77,8 +82,8 @@ RUN if [ ${ALLUXIO_USERNAME} != "root" ] \
 
 # Docker 19.03+ required to expand variables in --chown argument
 # https://github.com/moby/buildkit/pull/926#issuecomment-503943557
-COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} entrypoint.sh /
 COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} --from=go_installer /usr/local/go/ /usr/local/go
+COPY --chown=${ALLUXIO_USERNAME}:${ALLUXIO_GROUP} --from=entrypoint_builder /entrypoint/entrypoint /entrypoint
 
 # Enable user_allow_other option for fuse in non-root mode
 RUN echo "user_allow_other" >> /etc/fuse.conf
@@ -87,4 +92,4 @@ USER ${ALLUXIO_UID}
 
 ENV PATH="/opt/alluxio/bin:/usr/local/go/bin:${PATH}"
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["tini", "--", "/entrypoint"]
