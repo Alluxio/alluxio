@@ -7109,12 +7109,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey DORA_FILE_READ_PARTITION_SIZE =
-      dataSizeBuilder(Name.DORA_FILE_READ_PARTITION_SIZE)
-          .setDefaultValue("100MB")
-          .setDescription("The minimum required file size of partition to enable concurrent read. "
+  public static final PropertyKey DORA_READ_PARTITION_SIZE =
+      dataSizeBuilder(Name.DORA_READ_PARTITION_SIZE)
+          .setDefaultValue("64MB")
+          .setDescription(format("The minimum required file size of partition to enable concurrent read. "
               + "Files larger than this would be split into partitions "
-              + "and read in parallel from different works. ")
+              + "and read in parallel from different works. Partition size need to be "
+              + "a multiplier of %s", Name.WORKER_PAGE_STORE_PAGE_SIZE))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.CLIENT)
           .build();
@@ -8617,8 +8618,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
             "alluxio.extra.loaded.filesystem.classname";
     public static final String DORA_UFS_LIST_STATUS_CACHE_NR_DIRS =
         "alluxio.dora.ufs.list.status.cache.nr.dirs";
-    public static final String DORA_FILE_READ_PARTITION_SIZE =
-        "alluxio.dora.ufs.list.status.cache.nr.dirs";
+    public static final String DORA_READ_PARTITION_SIZE =
+        "alluxio.dora.file.read.partition.size";
 
     private Name() {} // prevent instantiation
   }

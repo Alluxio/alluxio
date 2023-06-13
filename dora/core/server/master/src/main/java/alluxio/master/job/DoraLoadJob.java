@@ -37,8 +37,6 @@ import alluxio.scheduler.job.Task;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.underfs.options.ListOptions;
 import alluxio.util.FormatUtils;
 import alluxio.wire.WorkerInfo;
 
@@ -54,7 +52,6 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterators;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,8 +82,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Load job that loads a file or a directory into Alluxio.
  * This class should only be manipulated from the scheduler thread in Scheduler
  * thus the state changing functions are not thread safe.
- * TODO() as task within this class is running on multithreaded context,
- * make thread unsafe places to be thread safe in future.
  */
 @NotThreadSafe
 public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
@@ -100,8 +95,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
      status is on each dora worker, so the decision to load or not delegates to
      worker on getting the load req. */
   // Job configurations
-  private final String mLoadRootAlluxioPath;
-  private final AlluxioURI mLoadRootAlluxioUri;
+  private final String mLoadPath;
   private OptionalLong mBandwidth;
   private boolean mUsePartialListing;
   private boolean mVerificationEnabled;
@@ -121,7 +115,8 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   private final AtomicLong mTotalFailureCount = new AtomicLong();
   private final AtomicLong mCurrentFailureCount = new AtomicLong();
   private Optional<AlluxioRuntimeException> mFailedReason = Optional.empty();
-  private Iterator<UfsStatus> mUfsStatusIterator;
+  private final Iterable<UfsStatus> mUfsStatusIterable;
+  private Optional<Iterator<UfsStatus>> mUfsStatusIterator = Optional.empty();
   private AtomicBoolean mPreparingTasks = new AtomicBoolean(false);
   private final UnderFileSystem mUfs;
   private boolean mLoadMetadataOnly = false;
@@ -132,7 +127,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   private static final int RETRY_ATTEMPT_THRESHOLD = Configuration.getInt(
       PropertyKey.MASTER_DORA_LOAD_JOB_RETRIES);
   private final boolean mSkipIfExists;
-
+  private final long mPartitionSize = Configuration.getBytes(PropertyKey.DORA_READ_PARTITION_SIZE);
   /**
    * Constructor.
    *
@@ -152,53 +147,22 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       boolean usePartialListing,
       boolean verificationEnabled,
       boolean loadMetadataOnly,
-      boolean skipIfExists) {
+      boolean skipIfExists, Iterable<UfsStatus> fileIterable, UnderFileSystem ufs) {
     super(user, jobId, new HashBasedWorkerAssignPolicy());
-    mLoadRootAlluxioPath = requireNonNull(path, "path is null");
-    mLoadRootAlluxioUri = new AlluxioURI(mLoadRootAlluxioPath);
+    mLoadPath = requireNonNull(path, "path is null");
     Preconditions.checkArgument(
         !bandwidth.isPresent() || bandwidth.getAsLong() > 0,
         format("bandwidth should be greater than 0 if provided, get %s", bandwidth));
     mBandwidth = bandwidth;
     mUsePartialListing = usePartialListing;
     mVerificationEnabled = verificationEnabled;
-    String ufsRoot = Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
-    AlluxioURI ufsRootUri = new AlluxioURI(ufsRoot);
-    AlluxioURI ufsSyncRootUri = ufsRootUri.join(path);
-    mUfs = UnderFileSystem.Factory.create(
-        ufsRoot,
-        UnderFileSystemConfiguration.defaults(Configuration.global()));
+    mUfs = ufs;
     mLoadMetadataOnly = loadMetadataOnly;
     mSkipIfExists = skipIfExists;
     LOG.info(
         "DoraLoadJob for {} created. {} workers are active",
         path, Preconditions.checkNotNull(Scheduler.getInstance()).getActiveWorkers().size());
-
-    UfsStatus rootUfsStatus = null;
-    try {
-      try {
-        rootUfsStatus = mUfs.getStatus(ufsSyncRootUri.toString());
-      } catch (FileNotFoundException ignored) {
-        // No-op
-      }
-      if (rootUfsStatus != null && rootUfsStatus.isFile()) {
-        rootUfsStatus.setUfsFullPath(ufsSyncRootUri);
-        mUfsStatusIterator = Iterators.singletonIterator(rootUfsStatus);
-      } else {
-        mUfsStatusIterator = mUfs.listStatusIterable(
-            ufsSyncRootUri.toString(), ListOptions.defaults().setRecursive(true), null, 0);
-        if (mUfsStatusIterator == null) {
-          mUfsStatusIterator = Collections.emptyIterator();
-        } else {
-          mUfsStatusIterator = Iterators.transform(mUfsStatusIterator, (it) -> {
-            it.setUfsFullPath(ufsSyncRootUri.join(it.getName()));
-            return it;
-          });
-        }
-      }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    mUfsStatusIterable = fileIterable;
   }
 
   /**
@@ -211,6 +175,12 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     LOG.debug("Preparing next set of tasks for jobId:{}", mJobId);
     int workerNum = workers.size();
     ImmutableList.Builder<UfsStatus> batchBuilder = ImmutableList.builder();
+    if (!mUfsStatusIterator.isPresent()) {
+      mUfsStatusIterator = Optional.of(mUfsStatusIterable.iterator());
+      if (!mUfsStatusIterator.get().hasNext()) {
+        return ImmutableList.of();
+      }
+    }
     int i = 0;
     int startRetryListSize = mRetryFiles.size();
     int filesToLoad = 0;
@@ -233,9 +203,9 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
         }
       }
     }
-    while (filesToLoad < BATCH_SIZE * workerNum && mUfsStatusIterator.hasNext()) {
+    while (filesToLoad < BATCH_SIZE * workerNum && mUfsStatusIterator.get().hasNext()) {
       try {
-        UfsStatus ufsStatus = mUfsStatusIterator.next();
+        UfsStatus ufsStatus = mUfsStatusIterator.get().next();
         batchBuilder.add(ufsStatus);
         ++filesToLoad;
       } catch (AlluxioRuntimeException e) {
@@ -287,12 +257,12 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
    * @return file path
    */
   public String getPath() {
-    return mLoadRootAlluxioPath;
+    return mLoadPath;
   }
 
   @Override
   public JobDescription getDescription() {
-    return JobDescription.newBuilder().setPath(mLoadRootAlluxioPath).setType(TYPE).build();
+    return JobDescription.newBuilder().setPath(mLoadPath).setType(TYPE).build();
   }
 
   /**
@@ -413,7 +383,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 
   @Override
   public boolean isCurrentPassDone() {
-    return !mUfsStatusIterator.hasNext() && mRetryFiles.isEmpty()
+    return mUfsStatusIterator.isPresent()&&!mUfsStatusIterator.get().hasNext() && mRetryFiles.isEmpty()
         && mRetryTaskList.isEmpty();
   }
 
@@ -453,7 +423,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("JobId", mJobId)
-        .add("Path", mLoadRootAlluxioPath)
+        .add("Path", mLoadPath)
         .add("User", mUser)
         .add("Bandwidth", mBandwidth)
         .add("UsePartialListing", mUsePartialListing)
@@ -479,7 +449,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   public Journal.JournalEntry toJournalEntry() {
     alluxio.proto.journal.Job.LoadJobEntry.Builder jobEntry = alluxio.proto.journal.Job.LoadJobEntry
         .newBuilder()
-        .setLoadPath(mLoadRootAlluxioPath)
+        .setLoadPath(mLoadPath)
         .setState(JobState.toProto(mState))
         .setPartialListing(mUsePartialListing)
         .setVerify(mVerificationEnabled)

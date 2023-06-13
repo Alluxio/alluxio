@@ -11,8 +11,11 @@
 
 package alluxio.master.file.scheduler;
 
+import alluxio.AlluxioURI;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
+import alluxio.grpc.UfsFileStatus;
+import alluxio.underfs.UfsStatus;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockInfo;
@@ -63,6 +66,16 @@ public final class JobTestUtils {
     return fileInfos;
   }
 
+  public static  List<UfsStatus> generateRandomUfsStatusUnderRoot(
+      int fileCount, String rootPath) {
+    List<UfsStatus> files = Lists.newArrayList();
+    for (int i = 0; i < fileCount; i++) {
+      UfsStatus info = createUfsStatus(rootPath);
+
+      files.add(info);
+    }
+    return files;
+  }
   public static List<FileInfo> fileWithBlockLocations(List<FileInfo> files, double ratio) {
     ImmutableList.Builder<FileInfo> newFiles = ImmutableList.builder();
     files.forEach(fileInfo -> {
@@ -95,6 +108,16 @@ public final class JobTestUtils {
       fileInfos.add(info);
     }
     return fileInfos;
+  }
+
+  private static UfsStatus createUfsStatus(String rootPath) {
+    Random random = new Random();
+    String name = CommonUtils.randomAlphaNumString(6);
+    UfsStatus status =
+        new alluxio.underfs.UfsFileStatus(name, "1", random.nextLong(), null, "user", "test",
+            (short) 0);
+    status.setUfsFullPath(new AlluxioURI(PathUtils.concatPath(rootPath, name)));
+    return status;
   }
 
   private static FileInfo createFileInfo(int blockCount, long blockSizeLimit) {
