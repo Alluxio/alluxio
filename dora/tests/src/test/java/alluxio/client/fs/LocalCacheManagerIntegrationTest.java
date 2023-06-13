@@ -232,11 +232,10 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     FileUtils.createFile(invalidPageFileName);
     mCacheManager = LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore);
     // There is an invalid file in the cache dir. But the cache manager will not recognize it as a
-    // valid page file and will delete it, and then will continue start as normal.
+    // valid page file and will delete it, and then will continue starting as normal.
     assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(PAGE_ID, PAGE_SIZE_BYTES, mBuffer, 0));
     assertArrayEquals(PAGE, mBuffer);
     assertEquals(false, FileUtils.exists(invalidPageFileName));
-
   }
 
   @Test
