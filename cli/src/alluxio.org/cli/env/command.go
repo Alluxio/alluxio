@@ -40,7 +40,7 @@ type BaseJavaCommand struct {
 }
 
 func (c *BaseJavaCommand) InitRunJavaClassCmd(cmd *cobra.Command) *cobra.Command {
-	cmd.Flags().BoolVarP(&c.DebugMode, "attach-debug", "d", false, fmt.Sprintf("True to attach debug opts specified by $%v", ConfAlluxioUserAttachOpts.EnvVar))
+	cmd.Flags().BoolVar(&c.DebugMode, "attach-debug", false, fmt.Sprintf("True to attach debug opts specified by $%v", ConfAlluxioUserAttachOpts.EnvVar))
 	cmd.Flags().StringSliceVarP(&c.InlineJavaOpts, "java-opts", "D", nil, `Alluxio properties to apply, ex. -Dkey=value`)
 	return cmd
 }
