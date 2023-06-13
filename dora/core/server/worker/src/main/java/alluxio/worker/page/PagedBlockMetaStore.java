@@ -472,6 +472,14 @@ public class PagedBlockMetaStore implements PageMetaStore {
 
   @Override
   public Set<PageInfo> getAllPagesByFileId(String fileId) {
+    long blockId = BlockPageId.parseBlockId(fileId);
+    PagedBlockMeta blockMeta = mBlocks.getFirstByField(INDEX_BLOCK_ID, blockId);
+    if (blockMeta == null) {
+      blockMeta = mTempBlocks.getFirstByField(INDEX_TEMP_BLOCK_ID, blockId);
+    }
+    if (blockMeta != null) {
+      return blockMeta.getDir().getBlockPages(blockId);
+    }
     return Collections.emptySet();
   }
 
