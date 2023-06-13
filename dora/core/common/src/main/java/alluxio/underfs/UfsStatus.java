@@ -11,6 +11,9 @@
 
 package alluxio.underfs;
 
+import alluxio.AlluxioURI;
+import alluxio.util.CommonUtils;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
@@ -29,6 +32,22 @@ public abstract class UfsStatus {
   /** Last modified epoch time in ms, or null if it is not available. */
   protected final Long mLastModifiedTimeMs;
   protected String mName;
+
+  /**
+   * @return the full ufs path
+   */
+  public AlluxioURI getUfsFullPath() {
+    return mUfsFullPath;
+  }
+
+  /**
+   * @param ufsFullPath the ufs full path
+   */
+  public void setUfsFullPath(AlluxioURI ufsFullPath) {
+    mUfsFullPath = ufsFullPath;
+  }
+
+  protected AlluxioURI mUfsFullPath;
 
   // Permissions
   protected final String mOwner;
@@ -192,7 +211,8 @@ public abstract class UfsStatus {
         .add("owner", mOwner)
         .add("group", mGroup)
         .add("mode", mMode)
-        .add("xAttr", mXAttr);
+        .add("xAttr", mXAttr)
+        .add("ufsFullPath", mUfsFullPath);
   }
 
   @Override
@@ -209,6 +229,74 @@ public abstract class UfsStatus {
         && Objects.equal(mOwner, that.mOwner)
         && Objects.equal(mGroup, that.mGroup)
         && Objects.equal(mMode, that.mMode)
-        && Objects.equal(mXAttr, that.mXAttr);
+        && Objects.equal(mXAttr, that.mXAttr)
+        && Objects.equal(mUfsFullPath, that.mUfsFullPath);
+  }
+
+  /**
+   * @return the UfsStatus protobuf
+   */
+  public alluxio.grpc.UfsStatus toProto() {
+    alluxio.grpc.UfsStatus.Builder builder = alluxio.grpc.UfsStatus.newBuilder();
+    builder.setName(getName());
+    builder.setIsDirectory(isDirectory());
+    if (mLastModifiedTimeMs != null) {
+      builder.setLastModifiedTimeMs(mLastModifiedTimeMs);
+    }
+    builder.setOwner(mOwner);
+    builder.setGroup(mGroup);
+    builder.setMode(mMode);
+    if (mXAttr != null) {
+      builder.putAllXattr(CommonUtils.convertToByteString(mXAttr));
+    }
+    if (mUfsFullPath != null) {
+      builder.setUfsFullPath(mUfsFullPath.toString());
+    }
+    if (this instanceof UfsFileStatus) {
+      builder.setUfsFileStatus(
+          alluxio.grpc.UfsFileStatus.newBuilder()
+              .setBlockSize(((UfsFileStatus) this).getBlockSize())
+              .setContentHash(((UfsFileStatus) this).getContentHash())
+              .setContentLength(((UfsFileStatus) this).getContentLength())
+              .build()
+      );
+    }
+    return builder.build();
+  }
+
+  /**
+   * @param ufsStatus the UfsStatus protobuf
+   * @return the UfsStatus model
+   */
+  public static UfsStatus fromProto(alluxio.grpc.UfsStatus ufsStatus) {
+    final UfsStatus status;
+    if (ufsStatus.getIsDirectory()) {
+      status = new UfsDirectoryStatus(
+          ufsStatus.getName(), ufsStatus.getOwner(), ufsStatus.getGroup(),
+          (short) ufsStatus.getMode(),
+          ufsStatus.hasLastModifiedTimeMs() ? ufsStatus.getLastModifiedTimeMs() : null,
+          CommonUtils.convertFromByteString(ufsStatus.getXattrMap())
+      );
+    } else {
+      status = new UfsFileStatus(
+          ufsStatus.getName(), ufsStatus.getUfsFileStatus().getContentHash(),
+          ufsStatus.getUfsFileStatus().getContentLength(),
+          ufsStatus.hasLastModifiedTimeMs() ? ufsStatus.getLastModifiedTimeMs() : null,
+          ufsStatus.getOwner(), ufsStatus.getGroup(), (short) ufsStatus.getMode(),
+          CommonUtils.convertFromByteString(ufsStatus.getXattrMap()),
+          ufsStatus.getUfsFileStatus().getBlockSize()
+      );
+    }
+    if (ufsStatus.hasUfsFullPath()) {
+      status.setUfsFullPath(new AlluxioURI(ufsStatus.getUfsFullPath()));
+    }
+    return status;
+  }
+
+  /**
+   * @return the object converted to UfsFileStatus type
+   */
+  public UfsFileStatus asUfsFileStatus() {
+    return (UfsFileStatus) this;
   }
 }

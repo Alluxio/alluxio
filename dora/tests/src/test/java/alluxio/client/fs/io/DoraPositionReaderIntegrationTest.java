@@ -44,9 +44,6 @@ public class DoraPositionReaderIntegrationTest extends BaseIntegrationTest {
   private static final String UFS_ROOT =
       AlluxioTestDirectory.createTemporaryDirectory("ufs_root").getAbsolutePath();
 
-  private static final String PAGE_STORE =
-      AlluxioTestDirectory.createTemporaryDirectory("page_store").getAbsolutePath();
-
   @Parameterized.Parameters(name = "{index}-{0}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
@@ -79,7 +76,6 @@ public class DoraPositionReaderIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES, Constants.KB)
           .setProperty(PropertyKey.WORKER_BLOCK_STORE_TYPE, "PAGE")
           .setProperty(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, Constants.KB)
-          .setProperty(PropertyKey.WORKER_PAGE_STORE_DIRS, PAGE_STORE)
           .setProperty(PropertyKey.WORKER_PAGE_STORE_SIZES, "1GB")
           .setProperty(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED, true)
           .build();

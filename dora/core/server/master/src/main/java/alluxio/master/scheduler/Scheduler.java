@@ -78,6 +78,9 @@ public final class Scheduler {
   private static final int CAPACITY = 100;
   private static final long WORKER_UPDATE_INTERVAL = Configuration.getMs(
       PropertyKey.MASTER_WORKER_INFO_CACHE_REFRESH_TIME);
+  private final long mSchedulerInitialDelay = Configuration.getMs(
+      PropertyKey.MASTER_SCHEDULER_INITIAL_DELAY
+  );
   private static final int EXECUTOR_SHUTDOWN_MS = 10 * Constants.SECOND_MS;
   private static AtomicReference<Scheduler> sInstance = new AtomicReference<>();
   private final Map<JobDescription, Job<?>> mExistingJobs = new ConcurrentHashMap<>();
@@ -221,6 +224,7 @@ public final class Scheduler {
                   workerInfo.getAddress()));
             }
           } catch (AlluxioRuntimeException e) {
+            LOG.warn("Updating worker {} address failed", workerInfo.getAddress(), e);
             // skip the worker if we cannot obtain a client
           }
         }
@@ -282,7 +286,7 @@ public final class Scheduler {
           ThreadFactoryUtils.build("scheduler", false));
       mSchedulerExecutor.scheduleAtFixedRate(mWorkerInfoHub::updateWorkers, 0,
           WORKER_UPDATE_INTERVAL, TimeUnit.MILLISECONDS);
-      mSchedulerExecutor.scheduleWithFixedDelay(this::processJobs, 10 * 60 * 1000, 2000,
+      mSchedulerExecutor.scheduleWithFixedDelay(this::processJobs, mSchedulerInitialDelay, 2000,
           TimeUnit.MILLISECONDS);
       mSchedulerExecutor.scheduleWithFixedDelay(this::cleanupStaleJob, 1, 1, TimeUnit.HOURS);
       mRunning = true;
