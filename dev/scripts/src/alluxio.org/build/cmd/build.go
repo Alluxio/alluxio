@@ -127,6 +127,7 @@ func buildTarball(opts *buildOpts) error {
 		cmd := command.New(baseMvnCmd).WithDir(repoBuildDir)
 		if !opts.suppressMavenOutput {
 			cmd = cmd.SetStdout(os.Stdout)
+			cmd = cmd.SetStderr(os.Stderr)
 		}
 		if err := cmd.Run(); err != nil {
 			return stacktrace.Propagate(err, "error building project with command %v", baseMvnCmd)
@@ -147,6 +148,7 @@ func buildTarball(opts *buildOpts) error {
 			cmd := command.New(moduleMvnCmd).WithDir(repoBuildDir)
 			if !opts.suppressMavenOutput {
 				cmd = cmd.SetStdout(os.Stdout)
+				cmd = cmd.SetStderr(os.Stderr)
 			}
 			if err := cmd.Run(); err != nil {
 				return stacktrace.Propagate(err, "error building module with command %v", moduleMvnCmd)
