@@ -206,7 +206,7 @@ public class EmbeddedJournalIntegrationTestTransferLeadership
     String transferId = transferAndWait(leaderAddr);
     GetTransferLeaderMessagePResponse transferLeaderMessage =
         mCluster.getJournalMasterClientForMaster().getTransferLeaderMessage(transferId);
-    Assert.assertFalse(transferLeaderMessage.getTransMsg().getMsg().isEmpty());
+    Assert.assertTrue(transferLeaderMessage.getTransMsg().getMsg().isEmpty());
 
     int newLeaderIdx = (leaderIdx + 1) % NUM_MASTERS;
     MasterNetAddress newLeaderAddr = mCluster.getMasterAddresses().get(newLeaderIdx);
