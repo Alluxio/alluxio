@@ -179,6 +179,8 @@ public class UnderStorageReadIntegrationTest extends BaseIntegrationTest {
             }
             Assert.assertEquals(100, mFileSystem.getStatus(uri).getInAlluxioPercentage());
             count.incrementAndGet();
+          } catch (AssertionError e) {
+            throw e;
           } catch (Throwable e) {
             LOG.error("Failed to read file {}.", index, e);
           }
@@ -189,7 +191,7 @@ public class UnderStorageReadIntegrationTest extends BaseIntegrationTest {
     executorService.awaitTermination(Constants.MINUTE_MS * 5, TimeUnit.MILLISECONDS);
     // There can be some errors due because SASL handsake failure or opening the connections too
     // fast. If that happens, consider loosing the condition a bit.
-    Assert.assertTrue(expectedCount >= count.get() - 1);
+    Assert.assertTrue(count.get() >= expectedCount * 0.99);
   }
 
   /**
@@ -202,8 +204,17 @@ public class UnderStorageReadIntegrationTest extends BaseIntegrationTest {
       AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteUnderStore, k);
 
-      FileInStream is = mFileSystem.openFile(uri, mReadCache);
+      FileInStream is = mFileSystem.openFile(uri, mReadNoCache);
+      Assert.assertEquals(0, is.read());
+      is.seek(k / 3);
+      Assert.assertEquals(k / 3, is.read());
+      is.seek(k / 2);
+      Assert.assertEquals(k / 2, is.read());
+      is.seek(k / 4);
+      Assert.assertEquals(k / 4, is.read());
+      is.close();
 
+      is = mFileSystem.openFile(uri, mReadCache);
       Assert.assertEquals(0, is.read());
       is.seek(k / 3);
       Assert.assertEquals(k / 3, is.read());
@@ -225,7 +236,21 @@ public class UnderStorageReadIntegrationTest extends BaseIntegrationTest {
       AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteUnderStore, k);
 
-      FileInStream is = mFileSystem.openFile(uri, mReadCache);
+      FileInStream is = mFileSystem.openFile(uri, mReadNoCache);
+      Assert.assertEquals(k / 2, is.skip(k / 2));
+      Assert.assertEquals(k / 2, is.read());
+      is.close();
+      if (k >= 3) {
+        is = mFileSystem.openFile(uri, mReadNoCache);
+        int t = k / 3;
+        Assert.assertEquals(t, is.skip(t));
+        Assert.assertEquals(t, is.read());
+        Assert.assertEquals(t, is.skip(t));
+        Assert.assertEquals(2 * t + 1, is.read());
+        is.close();
+      }
+
+      is = mFileSystem.openFile(uri, mReadCache);
       Assert.assertEquals(k / 2, is.skip(k / 2));
       Assert.assertEquals(k / 2, is.read());
       is.close();
@@ -261,7 +286,13 @@ public class UnderStorageReadIntegrationTest extends BaseIntegrationTest {
     }
     os.close();
 
-    FileInStream is = mFileSystem.openFile(uri, mReadCache);
+    FileInStream is = mFileSystem.openFile(uri, mReadNoCache);
+    for (int i = 0; i < blockSizeByte * numBlocks; i++) {
+      Assert.assertEquals((byte) i, is.read());
+    }
+    is.close();
+
+    is = mFileSystem.openFile(uri, mReadCache);
     for (int i = 0; i < blockSizeByte * numBlocks; i++) {
       Assert.assertEquals((byte) i, is.read());
     }
