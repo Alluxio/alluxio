@@ -1433,6 +1433,28 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+
+  public static final PropertyKey PROXY_HTTP_AUTH_ENABLE =
+          stringBuilder(Name.PROXY_HTTP_AUTH_ENABLE)
+                  .setDefaultValue(false)
+                  .setDescription("Optionally, specify proxy http auth.")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+                  .setScope(Scope.SERVER)
+                  .build();
+
+  public static final PropertyKey PROXY_HTTP_AUTH_USERNAME =
+          stringBuilder(Name.PROXY_HTTP_AUTH_USERNAME)
+                  .setDescription("Optionally, specify proxy http auth username.")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+                  .setScope(Scope.SERVER)
+                  .build();
+
+  public static final PropertyKey PROXY_HTTP_AUTH_PASSWORD =
+          stringBuilder(Name.PROXY_HTTP_AUTH_PASSWORD)
+                  .setDescription("Optionally, specify proxy http auth pass.")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+                  .setScope(Scope.SERVER)
+                  .build();
   public static final PropertyKey UNDERFS_S3_PROXY_HOST =
       stringBuilder(Name.UNDERFS_S3_PROXY_HOST)
           .setDescription("Optionally, specify a proxy host for communicating with S3.")
@@ -8748,6 +8770,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.proxy.s3.global.read.rate.limit.mb";
     public static final String PROXY_S3_SINGLE_CONNECTION_READ_RATE_LIMIT_MB =
         "alluxio.proxy.s3.single.connection.read.rate.limit.mb";
+    public static final String PROXY_HTTP_AUTH_ENABLE =
+        "alluxio.proxy.http.auth.enable";
+    public static final String PROXY_HTTP_AUTH_USERNAME =
+        "alluxio.proxy.http.auth.username";
+    public static final String PROXY_HTTP_AUTH_PASSWORD =
+        "alluxio.proxy.http.auth.password";
 
     //
     // Locality related properties
