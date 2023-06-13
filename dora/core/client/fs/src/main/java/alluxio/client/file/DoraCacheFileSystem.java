@@ -59,7 +59,6 @@ import io.grpc.StatusRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -139,7 +138,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     } catch (RuntimeException ex) {
       if (ex instanceof StatusRuntimeException) {
         if (((StatusRuntimeException) ex).getStatus().getCode() == Status.NOT_FOUND.getCode()) {
-          throw new FileNotFoundException();
+          throw new FileDoesNotExistException(ufsFullPath);
         }
       }
       UFS_FALLBACK_COUNTER.inc();
