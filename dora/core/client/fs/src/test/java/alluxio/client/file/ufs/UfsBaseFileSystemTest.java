@@ -49,7 +49,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Add unit tests for {@link UfsBaseFileSystem}.
@@ -93,9 +92,13 @@ public class UfsBaseFileSystemTest {
     String ufs = AlluxioTestDirectory.createTemporaryDirectory("ufs").toString();
     mRootUfs = new AlluxioURI(ufs);
     UnderFileSystemFactoryRegistry.register(new LocalUnderFileSystemFactory());
+    final FileSystemOptions fileSystemOptions =
+        FileSystemOptions.Builder
+            .fromConfig(mConf)
+            .setUfsFileSystemOptions(new UfsFileSystemOptions(ufs))
+            .build();
     mFileSystem = FileSystem.Factory.create(FileSystemContext.create(
-        ClientContext.create(mConf)), FileSystemOptions.create(mConf,
-        Optional.of(new UfsFileSystemOptions(ufs))));
+        ClientContext.create(mConf)), fileSystemOptions);
   }
 
   @After

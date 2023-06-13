@@ -55,7 +55,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.annotation.concurrent.ThreadSafe;
@@ -333,11 +332,17 @@ public final class AlluxioFuse {
       // Standalone FUSE SDK without distributed cache
       updateCheckEnabled = true;
     }
-    return cli.hasOption(MOUNT_ROOT_UFS_OPTION_NAME)
-        && !cli.getOptionValue(MOUNT_ROOT_UFS_OPTION_NAME).startsWith(Constants.SCHEME)
-        ? FuseOptions.create(conf, FileSystemOptions.create(conf,
-        Optional.of(new UfsFileSystemOptions(cli.getOptionValue(MOUNT_ROOT_UFS_OPTION_NAME)))),
-        updateCheckEnabled) : FuseOptions.create(conf, updateCheckEnabled);
+    if (cli.hasOption(MOUNT_ROOT_UFS_OPTION_NAME)
+        && !cli.getOptionValue(MOUNT_ROOT_UFS_OPTION_NAME).startsWith(Constants.SCHEME)) {
+      final UfsFileSystemOptions ufsFileSystemOptions =
+          new UfsFileSystemOptions(cli.getOptionValue(MOUNT_ROOT_UFS_OPTION_NAME));
+      final FileSystemOptions fileSystemOptions = FileSystemOptions.Builder.fromConfig(conf)
+          .setUfsFileSystemOptions(ufsFileSystemOptions)
+          .build();
+      return FuseOptions.create(conf, fileSystemOptions, updateCheckEnabled);
+    } else {
+      return FuseOptions.create(conf, updateCheckEnabled);
+    }
   }
 
   private static void validateFuseConfAndOptions(AlluxioConfiguration conf, FuseOptions options) {
