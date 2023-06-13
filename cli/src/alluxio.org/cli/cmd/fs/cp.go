@@ -13,7 +13,10 @@ package fs
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 
+	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
@@ -23,14 +26,16 @@ var Cp = &CopyCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
 		CommandName:   "cp",
 		JavaClassName: "alluxio.cli.fs.FileSystemShell",
-		Parameters:    []string{"cp"},
 	},
 }
 
 type CopyCommand struct {
 	*env.BaseJavaCommand
 
+	bufferSize  string
 	isRecursive bool
+	preserve    bool
+	threads     int
 }
 
 func (c *CopyCommand) Base() *env.BaseJavaCommand {
@@ -49,16 +54,64 @@ use the recursive flag to copy directories`,
 			return c.Run(args)
 		},
 	})
+	cmd.Flags().StringVar(&c.bufferSize, "buffer-size", "", "Read buffer size when coping to or from local, with defaults of 64MB and 8MB respectively")
 	cmd.Flags().BoolVarP(&c.isRecursive, "recursive", "R", false, "True to copy the directory subtree to the destination directory")
-	// TODO: the java class also exposes flags for preserve, and threads
-	//  buffersize is also declared and mentioned in the usage text, but it's not added as an option in java code so it was never working
+	cmd.Flags().BoolVarP(&c.preserve, "preserve", "p", false, "Preserve file permission attributes when copying files; all ownership, permissions, and ACLs will be preserved")
+	cmd.Flags().IntVar(&c.threads, "thread", 0, "Number of threads used to copy files in parallel, defaults to 2 * CPU cores")
 	return cmd
 }
 
+const (
+	localScheme = "file://"
+)
+
 func (c *CopyCommand) Run(args []string) error {
-	var javaArgs []string
+	src, dst := args[0], args[1]
+	if strings.HasPrefix(src, localScheme) && strings.HasPrefix(dst, localScheme) {
+		return stacktrace.NewError("both src and dst paths are local file paths")
+	}
+	var cmd string
+	if strings.HasPrefix(src, localScheme) {
+		cmd = "copyFromLocal"
+		if c.preserve {
+			return stacktrace.NewError("cannot set preserve flag when copying from local file path")
+		}
+		if c.isRecursive {
+			return stacktrace.NewError("cannot set recursive flag when copying from local file path")
+		}
+	} else if strings.HasPrefix(dst, localScheme) {
+		cmd = "copyToLocal"
+		if c.preserve {
+			return stacktrace.NewError("cannot set preserve flag when copying to local file path")
+		}
+		if c.isRecursive {
+			return stacktrace.NewError("cannot set recursive flag when copying to local file path")
+		}
+		if c.threads != 0 {
+			return stacktrace.NewError("cannot set thread flag when copying to local file path")
+		}
+	} else {
+		cmd = "cp"
+		if c.bufferSize != "" {
+			return stacktrace.NewError("can only set buffer-size flag when copying to or from a local file path")
+		}
+	}
+	if c.threads < 0 {
+		return stacktrace.NewError("thread value must be positive but was %v", c.threads)
+	}
+
+	javaArgs := []string{cmd}
+	if c.bufferSize != "" {
+		javaArgs = append(javaArgs, "--buffersize", c.bufferSize)
+	}
 	if c.isRecursive {
-		javaArgs = append(javaArgs, "-r")
+		javaArgs = append(javaArgs, "--recursive")
+	}
+	if c.preserve {
+		javaArgs = append(javaArgs, "--preserve")
+	}
+	if c.threads != 0 {
+		javaArgs = append(javaArgs, "--thread", strconv.Itoa(c.threads))
 	}
 	javaArgs = append(javaArgs, args...)
 	return c.Base().Run(javaArgs)
