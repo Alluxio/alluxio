@@ -56,6 +56,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
+import io.netty.util.internal.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -134,7 +135,7 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
                  OptionalLong bandwidth, boolean usePartialListing, boolean verificationEnabled,
                  boolean checkContent, Iterable<FileInfo> fileIterable,
                  Optional<FileFilter> filter) {
-    super(user, jobId);
+    super(user, jobId, new RoundRobinWorkerAssignPolicy());
     mSrc = requireNonNull(src, "src is null");
     mDst = requireNonNull(dst, "dst is null");
     Preconditions.checkArgument(
@@ -292,7 +293,10 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
     if (routes.isEmpty()) {
       return Collections.unmodifiableList(tasks);
     }
-    tasks.add(new MoveTask(routes));
+    WorkerInfo workerInfo = mWorkerAssignPolicy.pickAWorker(StringUtil.EMPTY_STRING, workers);
+    MoveTask moveTask = new MoveTask(routes);
+    moveTask.setMyRunningWorker(workerInfo);
+    tasks.add(moveTask);
     return Collections.unmodifiableList(tasks);
   }
 
@@ -411,6 +415,8 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
         .add("BatchSize", BATCH_SIZE)
         .add("FailedReason", mFailedReason)
         .add("FileIterator", mFileIterator)
+        .add("FileFilter", mFilter)
+        .add("FileIterable", mFileIterable)
         .add("EndTime", mEndTime)
         .toString();
   }

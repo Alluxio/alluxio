@@ -547,7 +547,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             }
             loadData(status.getUfsFullPath().toString(), 0,
                 status.asUfsFileStatus().getContentLength());
-          } catch (Exception e) {
+          } catch (Throwable e) {
             LOG.error("Loading {} failed", status, e);
             AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
             errors.add(LoadFileFailure.newBuilder().setUfsStatus(status.toProto())
@@ -562,7 +562,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.BLOCK_READER_EXECUTOR);
   }
 
-  private void loadData(String ufsPath, long mountId, long length)
+  protected void loadData(String ufsPath, long mountId, long length)
       throws AccessControlException, IOException {
     Protocol.OpenUfsBlockOptions options =
         Protocol.OpenUfsBlockOptions.newBuilder().setUfsPath(ufsPath).setMountId(mountId)
@@ -605,7 +605,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
               AuthenticatedClientUser.set(readOptions.getUser());
             }
             CopyHandler.copy(route, writeOptions, srcFs, dstFs);
-          } catch (Exception t) {
+          } catch (Throwable t) {
             LOG.error("Failed to copy {} to {}", route.getSrc(), route.getDst(), t);
             AlluxioRuntimeException e = AlluxioRuntimeException.from(t);
             RouteFailure.Builder builder =
@@ -656,7 +656,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
               deleteFailure = true;
               throw e;
             }
-          } catch (Exception t) {
+          } catch (Throwable t) {
+            LOG.error("Failed to move {} to {}", route.getSrc(), route.getDst(), t);
             AlluxioRuntimeException e = AlluxioRuntimeException.from(t);
             RouteFailure.Builder builder =
                 RouteFailure.newBuilder().setRoute(route).setCode(e.getStatus().getCode().value())
