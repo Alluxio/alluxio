@@ -57,6 +57,7 @@ import jnr.ffi.Runtime;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -78,6 +79,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockMasterClient.Factory.class})
+@Ignore("we don't maintain jnr any more")
 public class AlluxioJnrFuseFileSystemTest {
 
   private static final String TEST_ROOT_PATH = "/t/root";
