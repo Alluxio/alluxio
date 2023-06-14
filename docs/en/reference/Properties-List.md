@@ -81,10 +81,7 @@ The user configuration specifies values regarding file system access.
 
 The security configuration specifies information regarding the security features, such as
 authentication and file permission. Settings for authentication take effect for master, worker, and
-user. Settings for file permission only take effect for master. See
-[Security]({{ '/en/security/Security.html' | relativize_url }})
-for more information about security features.
-
+user. Settings for file permission only take effect for master.
 <table class="table table-striped">
 <tr><th>Property Name</th><th>Default</th><th>Description</th></tr>
 {% for item in site.data.table.security-configuration %}

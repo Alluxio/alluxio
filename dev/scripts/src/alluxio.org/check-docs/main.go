@@ -14,6 +14,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"log"
 	"os"
@@ -22,7 +23,6 @@ import (
 	"strings"
 
 	"bytes"
-	"gopkg.in/yaml.v3"
 	"io"
 )
 
@@ -97,7 +97,7 @@ func run() error {
 	}
 
 	// scan through markdown files
-	for _, langDir := range []string{"en", "cn"} {
+	for _, langDir := range []string{"en"} {
 		if err := filepath.Walk(filepath.Join(docsPath, langDir),
 			func(p string, info os.FileInfo, err error) error {
 				if err != nil {

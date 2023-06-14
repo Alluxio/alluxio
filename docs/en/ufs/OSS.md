@@ -14,9 +14,7 @@ Object Storage Service (OSS) is a massive, secure and highly reliable cloud stor
 
 ## Prerequisites
 
-The Alluxio binaries must be on your machine. You can either
-[compile Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}), or
-[download the binaries locally]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
+The Alluxio binaries must be on your machine. You can [download the binaries locally]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
 
 In preparation for using OSS with Alluxio, follow the [OSS quick start guide](https://www.alibabacloud.com/help/doc-detail/31883.htm)
 to sign up for OSS and create an OSS bucket.
@@ -36,7 +34,7 @@ you want to mount the whole bucket to Alluxio, or `oss://alluxio-bucket/alluxio/
 inside the oss bucket `alluxio-bucket` is mapped to Alluxio.
 
 ```
-alluxio.master.mount.table.root.ufs=oss://<OSS_BUCKET>/<OSS_DIRECTORY>
+alluxio.dora.client.ufs.root=oss://<OSS_BUCKET>/<OSS_DIRECTORY>
 ``` 
 
 Specify the Aliyun credentials for OSS access. In `conf/alluxio-site.properties`, add:

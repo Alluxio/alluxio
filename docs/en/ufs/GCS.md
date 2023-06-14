@@ -14,9 +14,7 @@ as the under storage system.
 
 ## Prerequisites
 
-The Alluxio binaries must be on your machine. You can either
-[compile Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}), or
-[download the binaries locally]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
+The Alluxio binaries must be on your machine. You can [download the binaries locally]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
 
 In preparation for using GCS with Alluxio, create a bucket (or use an existing bucket). You
 should also note the directory you want to use in that bucket, either by creating a new directory in
@@ -60,7 +58,7 @@ specify an **existing** GCS bucket and directory as the under storage system by 
 `conf/alluxio-site.properties` to include:
 
 ```
-alluxio.master.mount.table.root.ufs=gs://GCS_BUCKET/GCS_DIRECTORY
+alluxio.dora.client.ufs.root=gs://GCS_BUCKET/GCS_DIRECTORY
 ```
 
 Choose your preferred GCS UFS version and provide the corresponding Google credentials.
@@ -70,7 +68,7 @@ Choose your preferred GCS UFS version and provide the corresponding Google crede
 
 In`conf/alluxio-site.properties`, add:
 ```properties
-alluxio.master.mount.table.root.option.fs.gcs.credential.path=/path/to/<google_application_credentials>.json
+fs.gcs.credential.path=/path/to/<google_application_credentials>.json
 ```
 This property key provides the path to the Google application credentials json file. Note that the
 Google application credentials json file should be placed in all the Alluxio nodes in the same path.
@@ -83,9 +81,9 @@ but it is always recommended to set this property explicitly.
 
 In`conf/alluxio-site.properties`, add:
 ```properties
-alluxio.master.mount.table.root.option.alluxio.underfs.gcs.version=1
-alluxio.master.mount.table.root.option.fs.gcs.accessKeyId=<GCS_ACCESS_KEY_ID>
-alluxio.master.mount.table.root.option.fs.gcs.secretAccessKey=<GCS_SECRET_ACCESS_KEY>
+alluxio.underfs.gcs.version=1
+fs.gcs.accessKeyId=<GCS_ACCESS_KEY_ID>
+fs.gcs.secretAccessKey=<GCS_SECRET_ACCESS_KEY>
 ```
 - The first property key tells Alluxio to load the Version 1 GCS UFS module which uses the [jets3t](http://www.jets3t.org/) library.
 - Replace `<GCS_ACCESS_KEY_ID>` and `<GCS_SECRET_ACCESS_KEY>` with actual
@@ -100,36 +98,6 @@ Click on `Create a new key` to get the Access Key and Secret pair.
 
 After these changes, Alluxio should be configured to work with GCS as its under storage system, and
 you can [Run Alluxio Locally with GCS](#running-alluxio-locally-with-gcs).
-
-### Nested Mount Point
-
-An GCS location can be mounted at a nested directory in the Alluxio namespace to have unified access
-to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) can be used for this purpose.
-
-First, within `conf/alluxio-site.properties`, specify the master host:
-```properties
-alluxio.master.hostname=localhost
-```
-
-Then, mount GCS:
-{% navtabs nestedMount %}
-{% navtab GCS version 2 %}
-```console
-$ ./bin/alluxio fs mount \
-  --option fs.gcs.credential.path=/path/to/<google_application_credentials>.json \
-  /gcs gs://GCS_BUCKET/GCS_DIRECTORY
-```
-{% endnavtab %}
-{% navtab GCS version 1 %}
-```console
-$ ./bin/alluxio fs mount \
-  --option alluxio.underfs.gcs.version=1 \
-  --option fs.gcs.accessKeyId=<GCS_ACCESS_KEY_ID> \
-  --option fs.gcs.secretAccessKey=<GCS_SECRET_ACCESS_KEY> \
-  /gcs gs://GCS_BUCKET/GCS_DIRECTORY
-```
-{% endnavtab %}
-{% endnavtabs %}
 
 ## Running Alluxio Locally with GCS
 
