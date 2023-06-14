@@ -34,6 +34,7 @@ import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.UfsUrl;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.master.MasterInquireClient;
 import alluxio.security.authorization.AclEntry;
@@ -286,6 +287,15 @@ public class FileSystemCache {
     @Override
     public URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
         throws FileDoesNotExistException, IOException, AlluxioException {
+      if (mClosed) {
+        throw new IOException(CLOSED_FS_ERROR_MESSAGE);
+      }
+      return super.getStatus(path, options);
+    }
+
+    @Override
+    public URIStatus getStatus(UfsUrl path, GetStatusPOptions options)
+            throws FileDoesNotExistException, IOException, AlluxioException {
       if (mClosed) {
         throw new IOException(CLOSED_FS_ERROR_MESSAGE);
       }

@@ -58,6 +58,7 @@ import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.UfsUrl;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
@@ -281,6 +282,23 @@ public class BaseFileSystem implements FileSystem {
     });
     if (!status.isCompleted()) {
       LOG.debug("File {} is not yet completed. getStatus will see incomplete metadata.", path);
+    }
+    return status;
+  }
+
+  @Override
+  public URIStatus getStatus(UfsUrl ufsPath, final GetStatusPOptions options)
+          throws FileDoesNotExistException, IOException, AlluxioException {
+    checkUri(ufsPath);
+    URIStatus status = rpc(client -> {
+      // TODO: implement getPathConf(ufsPath), currently path conf is ignored
+//      GetStatusPOptions mergedOptions = FileSystemOptionsUtils.getStatusDefaults(
+//              mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+//      return client.getStatus(ufsPath, mergedOptions);
+      return client.getStatus(ufsPath, options);
+    });
+    if (!status.isCompleted()) {
+      LOG.debug("File {} is not yet completed. getStatus will see incomplete metadata.", ufsPath);
     }
     return status;
   }
@@ -606,6 +624,55 @@ public class BaseFileSystem implements FileSystem {
           throw new IllegalArgumentException(
                   String.format("The URI authority %s does not match the configured value of %s.",
                           uri.getAuthority(), configured));
+        }
+      }
+    }
+  }
+
+  // Copied from checkUri(AlluxioURI)
+  protected void checkUri(UfsUrl ufsPath) {
+    Preconditions.checkNotNull(ufsPath, "uri");
+    if (!mFsContext.getUriValidationEnabled()) {
+      return;
+    }
+
+    if (ufsPath.hasScheme()) {
+      String warnMsg = "The URI scheme \"{}\" is ignored and not required in URIs passed to"
+          + " the Alluxio Filesystem client.";
+      // TODO(jiacheng): does this still apply?
+      switch (ufsPath.getScheme()) {
+        case Constants.SCHEME:
+          LOG.warn(warnMsg, Constants.SCHEME);
+          break;
+        default:
+          throw new IllegalArgumentException(
+              String.format("Scheme %s:// in AlluxioURI is invalid. Schemes in filesystem"
+                      + " operations are ignored. \"alluxio://\" or no scheme at all is valid.",
+                  ufsPath.getScheme()));
+      }
+    }
+
+    if (ufsPath.hasAuthority()) {
+      LOG.warn("The URI authority (hostname and port) is ignored and not required in URIs passed "
+          + "to the Alluxio Filesystem client.");
+      // TODO(jiacheng): is this still necessary?
+      AlluxioConfiguration conf = mFsContext.getClusterConf();
+      boolean skipAuthorityCheck = conf.isSet(PropertyKey.USER_SKIP_AUTHORITY_CHECK)
+          && conf.getBoolean(PropertyKey.USER_SKIP_AUTHORITY_CHECK);
+      if (!skipAuthorityCheck) {
+        /* Even if we choose to log the warning, check if the Configuration host matches what the
+         * user passes. If not, throw an exception letting the user know they don't match.
+         */
+        Authority configured =
+            MasterInquireClient.Factory
+                .create(mFsContext.getClusterConf(),
+                    mFsContext.getClientContext().getUserState())
+                .getConnectDetails().toAuthority();
+        // TODO(jiacheng): double check the toString() Authority -> String conversion
+        if (!configured.toString().equals(ufsPath.getAuthority())) {
+          throw new IllegalArgumentException(
+              String.format("The URI authority %s does not match the configured value of %s.",
+                  ufsPath.getAuthority(), configured));
         }
       }
     }

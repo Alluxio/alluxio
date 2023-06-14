@@ -15,6 +15,7 @@ import static org.mockito.ArgumentMatchers.eq;
 
 import alluxio.AlluxioURI;
 import alluxio.PositionReader;
+import alluxio.UfsUrlUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -42,6 +43,7 @@ import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.UfsUrl;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.jnifuse.FuseFileSystem;
 import alluxio.jnifuse.struct.FuseContext;
@@ -179,6 +181,17 @@ public abstract class AbstractAuthPolicyTest {
     @Override
     public URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
         throws IOException, AlluxioException {
+      if (mFiles.containsKey(path)) {
+        return mFiles.get(path);
+      } else {
+        throw new FileDoesNotExistException(path);
+      }
+    }
+
+    @Override
+    public URIStatus getStatus(UfsUrl ufsPath, GetStatusPOptions options)
+            throws IOException, AlluxioException {
+      AlluxioURI path = UfsUrlUtils.toAlluxioURI(ufsPath);
       if (mFiles.containsKey(path)) {
         return mFiles.get(path);
       } else {

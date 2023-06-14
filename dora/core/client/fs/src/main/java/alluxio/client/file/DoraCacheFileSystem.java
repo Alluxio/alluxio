@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.CloseableSupplier;
 import alluxio.Constants;
 import alluxio.PositionReader;
+import alluxio.UfsUrlUtils;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.ReadType;
 import alluxio.client.file.dora.DoraCacheClient;
@@ -41,6 +42,7 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.UfsUrl;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
@@ -145,6 +147,30 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       LOG.debug("Dora client get status error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), ex);
       return mDelegatedFileSystem.getStatus(ufsFullPath, options);
+    }
+  }
+
+  @Override
+  public URIStatus getStatus(UfsUrl ufsPath, GetStatusPOptions options)
+          throws IOException, AlluxioException {
+    if (!mMetadataCacheEnabled) {
+      return mDelegatedFileSystem.getStatus(ufsPath, options);
+    }
+    try {
+      // TODO: implement getPathConf(ufsPath) and use the merged options in the call
+//      GetStatusPOptions mergedOptions = FileSystemOptionsUtils.getStatusDefaults(
+//              mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+      return mDoraClient.getStatus(UfsUrlUtils.asString(ufsPath), options);
+    } catch (RuntimeException ex) {
+      if (ex instanceof StatusRuntimeException) {
+        if (((StatusRuntimeException) ex).getStatus().getCode() == Status.NOT_FOUND.getCode()) {
+          throw new FileNotFoundException();
+        }
+      }
+      UFS_FALLBACK_COUNTER.inc();
+      LOG.debug("Dora client get status error ({} times). Fall back to UFS.",
+              UFS_FALLBACK_COUNTER.getCount(), ex);
+      return mDelegatedFileSystem.getStatus(ufsPath, options);
     }
   }
 

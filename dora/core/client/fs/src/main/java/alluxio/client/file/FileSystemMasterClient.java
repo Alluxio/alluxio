@@ -34,6 +34,7 @@ import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.UfsUrl;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
@@ -158,6 +159,8 @@ public interface FileSystemMasterClient extends Client {
    * @throws NotFoundException if the path does not exist
    */
   URIStatus getStatus(AlluxioURI path, GetStatusPOptions options) throws AlluxioStatusException;
+
+  URIStatus getStatus(UfsUrl ufsPath, GetStatusPOptions options) throws AlluxioStatusException;
 
   /**
    * @param path the file path

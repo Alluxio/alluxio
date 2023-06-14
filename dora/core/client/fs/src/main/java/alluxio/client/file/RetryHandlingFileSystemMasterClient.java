@@ -71,6 +71,7 @@ import alluxio.grpc.StopJobPResponse;
 import alluxio.grpc.StopSyncPRequest;
 import alluxio.grpc.SubmitJobPRequest;
 import alluxio.grpc.SubmitJobPResponse;
+import alluxio.grpc.UfsUrl;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.grpc.UnmountPRequest;
 import alluxio.grpc.UpdateMountPRequest;
@@ -230,6 +231,16 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
         .fromProto(mClient.getStatus(GetStatusPRequest.newBuilder().setPath(getTransportPath(path))
             .setOptions(options).build()).getFileInfo())),
         RPC_LOG, "GetStatus", "path=%s,options=%s", path, options);
+  }
+
+  @Override
+  public URIStatus getStatus(final UfsUrl ufsPath, final GetStatusPOptions options)
+          throws AlluxioStatusException {
+    return retryRPC(() -> new URIStatus(GrpcUtils
+                .fromProto(mClient.getStatus(GetStatusPRequest.newBuilder().setUfsPath(ufsPath)
+                    .setOptions(options).build()).getFileInfo())),
+            // TODO: what does UfsUrl.toString look like?
+            RPC_LOG, "GetStatus", "path=%s,options=%s", ufsPath, options);
   }
 
   @Override

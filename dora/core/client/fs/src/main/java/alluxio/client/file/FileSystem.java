@@ -50,6 +50,7 @@ import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.UfsUrl;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
@@ -388,9 +389,15 @@ public interface FileSystem extends Closeable {
    * @return the {@link URIStatus} of the file
    * @throws FileDoesNotExistException if the path does not exist
    */
+  @Deprecated
   default URIStatus getStatus(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException {
     return getStatus(path, GetStatusPOptions.getDefaultInstance());
+  }
+
+  default URIStatus getStatus(UfsUrl ufsPath)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    return getStatus(ufsPath, GetStatusPOptions.getDefaultInstance());
   }
 
   /**
@@ -401,8 +408,12 @@ public interface FileSystem extends Closeable {
    * @return the {@link URIStatus} of the file
    * @throws FileDoesNotExistException if the path does not exist
    */
+  @Deprecated
   URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
+
+  URIStatus getStatus(UfsUrl ufsPath, GetStatusPOptions options)
+          throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
    * Performs a specific action on each {@code URIStatus} in the result of {@link #listStatus}.

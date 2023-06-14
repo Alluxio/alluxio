@@ -35,6 +35,7 @@ import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.UfsUrl;
 import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
@@ -104,6 +105,12 @@ class MockFuseFileSystemMasterClient implements FileSystemMasterClient {
   @Override
   public URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
       throws AlluxioStatusException {
+    return null;
+  }
+
+  @Override
+  public URIStatus getStatus(UfsUrl path, GetStatusPOptions options)
+          throws AlluxioStatusException {
     return null;
   }
 

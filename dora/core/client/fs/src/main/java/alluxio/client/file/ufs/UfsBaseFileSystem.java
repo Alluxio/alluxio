@@ -13,6 +13,7 @@ package alluxio.client.file.ufs;
 
 import alluxio.AlluxioURI;
 import alluxio.PositionReader;
+import alluxio.UfsUrlUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -41,6 +42,7 @@ import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.UfsUrl;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
@@ -238,6 +240,18 @@ public class UfsBaseFileSystem implements FileSystem {
       UfsStatus ufsStatus = mUfs.get().getStatus(path.toString(), GetStatusOptions.defaults()
                             .setIncludeRealContentHash(options.getIncludeRealContentHash()));
       return transformStatus(ufsStatus, path.toString());
+    });
+  }
+
+  @Override
+  public URIStatus getStatus(UfsUrl ufsPath, final GetStatusPOptions options) {
+    return callWithReturn(() -> {
+      // TODO(jiacheng): can this path contain scheme and authority?
+      String pathStr = UfsUrlUtils.asString(ufsPath);
+      UfsStatus ufsStatus = mUfs.get().getStatus(pathStr, GetStatusOptions.defaults()
+              .setIncludeRealContentHash(options.getIncludeRealContentHash()));
+      // TODO: avoid using AlluxioURI in this method and avoid string copies as much as possible
+      return transformStatus(ufsStatus, pathStr);
     });
   }
 

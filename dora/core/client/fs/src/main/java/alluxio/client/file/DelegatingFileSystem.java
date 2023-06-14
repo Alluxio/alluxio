@@ -38,6 +38,7 @@ import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.UfsUrl;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
@@ -128,6 +129,12 @@ public class DelegatingFileSystem implements FileSystem {
   @Override
   public URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
+    return mDelegatedFileSystem.getStatus(path, options);
+  }
+
+  @Override
+  public URIStatus getStatus(UfsUrl path, GetStatusPOptions options)
+          throws FileDoesNotExistException, IOException, AlluxioException {
     return mDelegatedFileSystem.getStatus(path, options);
   }
 
