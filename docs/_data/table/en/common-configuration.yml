@@ -16,10 +16,20 @@ alluxio.dora.ufs.list.status.cache.nr.dirs:
   'Number of the file/dir cache of UFS list status results'
 alluxio.dora.ufs.list.status.cache.ttl:
   'The TTL of the cache of UFS list status results'
+alluxio.dora.worker.metastore.rocksdb.block.index:
+  'The block index type to be used in the RocksDB block metadata table. If unset, the RocksDB default will be used.See https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html'
+alluxio.dora.worker.metastore.rocksdb.bloom.filter:
+  'Whether or not to use a bloom filter in the Block meta table in RocksDB. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter'
+alluxio.dora.worker.metastore.rocksdb.cache.size:
+  'The capacity in bytes of the RocksDB block metadata table LRU  cache. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Block-Cache. Our microbench test shows that 1GB cache can double the metadata read operation performance for a meta store that persists 10M metadata entries. Note that the memory is off-heap and does not count in jvm memory.'
 alluxio.dora.worker.metastore.rocksdb.dir:
   'The base dir of RocksDB to store Dora metadata'
+alluxio.dora.worker.metastore.rocksdb.index:
+  'The index type to be used in the RocksDB block metadata table. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Index-Block-Format'
 alluxio.dora.worker.metastore.rocksdb.ttl:
   'The TTL (Time To Live) in duration of RocksDB of Dora metadata. 0s or negative value means no expiry'
+alluxio.dora.worker.populate.metadata.fingerprint:
+  'Populate the fingerprint for file metadata fetched from UFS If set, when the file metadata is updated, the fingerprints will be compared. If the file metadata is updated but the data part does not change, we can skip invalidating the page cache, at the expense of having extra overhead on computing the fingerprint for UFS files.'
 alluxio.exit.collect.info:
   'If true, the process will dump metrics and jstack into the log folder. This only applies to Alluxio master and worker processes.'
 alluxio.fuse.auth.policy.class:
