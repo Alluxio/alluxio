@@ -129,6 +129,8 @@ public class LocalPageStoreDir extends QuotaManagedPageStoreDir {
    * @param path the file path of a page file
    */
   private void deleteUnrecognizedPage(Path path) {
+    Preconditions.checkState(path.startsWith(getRootPath()),
+        String.format("%s is not inside the cache dir (%s)!", path, getRootPath()));
     try {
       Files.delete(path);
     } catch (IOException e) {

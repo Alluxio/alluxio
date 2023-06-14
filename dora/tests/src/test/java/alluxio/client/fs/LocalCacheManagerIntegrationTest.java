@@ -13,6 +13,7 @@ package alluxio.client.fs;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
 import alluxio.Constants;
@@ -218,7 +219,8 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
   /**
    * Test the case that cache manager will properly handle invalid page file.
    * if there is an invalid page file in the cache dir, cache manage will not recognize such
-   * file and will delete this file.
+   * file and will delete this file. Other valid page files are not affected
+   * and the cache manager should be able to read data from them normally.
    * @throws Exception
    */
   @Test
@@ -235,7 +237,7 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     // valid page file and will delete it, and then will continue starting as normal.
     assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(PAGE_ID, PAGE_SIZE_BYTES, mBuffer, 0));
     assertArrayEquals(PAGE, mBuffer);
-    assertEquals(false, FileUtils.exists(invalidPageFileName));
+    assertFalse(FileUtils.exists(invalidPageFileName));
   }
 
   @Test
