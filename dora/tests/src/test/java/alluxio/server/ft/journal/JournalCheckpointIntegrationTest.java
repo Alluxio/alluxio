@@ -35,6 +35,7 @@ import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -44,6 +45,8 @@ import java.io.File;
 /**
  * Tests checkpoints remain consistent with intended master state.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Master no longer manages metadata")
 public class JournalCheckpointIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mClusterResource =

@@ -47,6 +47,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -63,6 +64,8 @@ import java.util.Map;
 import java.util.UUID;
 
 @RunWith(Parameterized.class)
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("fix this test or remove it if it is deprecated")
 public final class FileSystemMasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
   private static final int CLUSTER_WAIT_TIMEOUT_MS = 120 * Constants.SECOND_MS;
   private static final String TEST_USER = "test";

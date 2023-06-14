@@ -87,6 +87,7 @@ import alluxio.worker.grpc.GrpcExecutors;
 import alluxio.worker.task.CopyHandler;
 import alluxio.worker.task.DeleteHandler;
 
+import javax.inject.Named;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
@@ -161,7 +162,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    */
   @Inject
   public PagedDoraWorker(
-      AtomicReference<Long> workerId,
+      @Named("workerId") AtomicReference<Long> workerId,
       AlluxioConfiguration conf,
       CacheManager cacheManager) {
     super(ExecutorServiceFactories.fixedThreadPool("dora-worker-executor", 5));

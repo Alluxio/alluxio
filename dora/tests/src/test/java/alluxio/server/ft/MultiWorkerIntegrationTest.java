@@ -43,6 +43,7 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.io.ByteStreams;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -56,6 +57,8 @@ import java.util.stream.StreamSupport;
 /**
  * Tests a cluster containing multiple workers.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("We don't use block store any more in DORA")
 public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   private static final int NUM_WORKERS = 4;
   private static final int WORKER_MEMORY_SIZE_BYTES = Constants.MB;

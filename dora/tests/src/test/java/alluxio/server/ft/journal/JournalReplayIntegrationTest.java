@@ -24,6 +24,7 @@ import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -33,6 +34,8 @@ import java.util.List;
 /**
  * Tests which perform master operations, then restart master and verify its state.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Master no longer manages metadata")
 public final class JournalReplayIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mClusterResource =

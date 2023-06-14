@@ -28,12 +28,15 @@ import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
 /**
  * Integration tests for block master functionality.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("We don't use block store any more in DORA")
 public class BlockMasterJournalIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mClusterResource =
