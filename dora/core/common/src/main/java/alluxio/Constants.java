@@ -79,6 +79,7 @@ public final class Constants {
   public static final String HEADER_WASB = "wasb://";
   public static final String HEADER_WASBS = "wasbs://";
   public static final String HEADER_OBS = "obs://";
+  public final static String DEFAULT_URI_SCHEMA = "local";
 
   public static final int MAX_PORT = 65535;
 
