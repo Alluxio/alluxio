@@ -108,7 +108,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -183,8 +182,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
   private final File mPath;
   private final InetSocketAddress mLocalAddress;
   private final List<InetSocketAddress> mClusterAddresses;
-  /** Controls whether the quorum leadership can be transferred. */
-  private final AtomicBoolean mTransferLeaderAllowed = new AtomicBoolean(false);
 
   private final Map<String, RatisDropwizardExports> mRatisMetricsMap =
       new ConcurrentHashMap<>();
@@ -548,7 +545,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     mRaftJournalWriter = new RaftJournalWriter(nextSN, client);
     mAsyncJournalWriter
         .set(new AsyncJournalWriter(mRaftJournalWriter, () -> getJournalSinks(null)));
-    mTransferLeaderAllowed.set(true);
     super.registerMetrics();
     LOG.info("Gained primacy.");
   }
@@ -560,7 +556,6 @@ public class RaftJournalSystem extends AbstractJournalSystem {
       // Avoid duplicate shut down Ratis server
       return;
     }
-    mTransferLeaderAllowed.set(false);
     try {
       // Close async writer first to flush pending entries.
       mAsyncJournalWriter.get().close();
@@ -994,7 +989,7 @@ public class RaftJournalSystem extends AbstractJournalSystem {
     LOG.info("Resetting RaftPeer priorities");
     try (RaftClient client = createClient()) {
       RaftClientReply reply = client.admin().setConfiguration(resetPeers);
-      processReply(reply, "failed to reset master priorities to 1");
+      processReply(reply, "failed to reset master priorities to 0");
     }
   }
 
@@ -1005,39 +1000,29 @@ public class RaftJournalSystem extends AbstractJournalSystem {
    * @return error message if an error occurs or empty string if no error occurred
    */
   public synchronized String transferLeadership(NetAddress newLeaderNetAddress) {
-    final boolean allowed = mTransferLeaderAllowed.getAndSet(false);
-    if (!allowed) {
-      return "transfer is not allowed at the moment because the master is "
-          + (mRaftJournalWriter == null ? "still gaining primacy" : "already transferring the ")
-          + "leadership";
+    InetSocketAddress serverAddress = InetSocketAddress
+        .createUnresolved(newLeaderNetAddress.getHost(), newLeaderNetAddress.getRpcPort());
+    Collection<RaftPeer> peers = mRaftGroup.getPeers();
+    // The NetUtil function is used by Ratis to convert InetSocketAddress to string
+    String strAddr = NetUtils.address2String(serverAddress);
+    // if you cannot find the address in the quorum, return error message.
+    if (peers.stream().map(RaftPeer::getAddress).noneMatch(addr -> addr.equals(strAddr))) {
+      return String.format("<%s> is not part of the quorum <%s>.",
+          strAddr, peers.stream().map(RaftPeer::getAddress).collect(Collectors.toList()));
     }
-    try {
-      InetSocketAddress serverAddress = InetSocketAddress
-          .createUnresolved(newLeaderNetAddress.getHost(), newLeaderNetAddress.getRpcPort());
-      Collection<RaftPeer> peers = mRaftGroup.getPeers();
-      // The NetUtil function is used by Ratis to convert InetSocketAddress to string
-      String strAddr = NetUtils.address2String(serverAddress);
-      // if you cannot find the address in the quorum, return error message.
-      if (peers.stream().map(RaftPeer::getAddress).noneMatch(addr -> addr.equals(strAddr))) {
-        return String.format("<%s> is not part of the quorum <%s>.",
-            strAddr, peers.stream().map(RaftPeer::getAddress).collect(Collectors.toList()));
-      }
 
-      RaftPeerId newLeaderPeerId = RaftJournalUtils.getPeerId(serverAddress);
-      /* transfer leadership */
-      LOG.info("Transferring leadership to master with address <{}> and with RaftPeerId <{}>",
-          serverAddress, newLeaderPeerId);
-      try (RaftClient client = createClient()) {
-        RaftClientReply reply1 = client.admin().transferLeadership(newLeaderPeerId, 30_000);
-        processReply(reply1, "election failed");
-      }
-      return "";
+    RaftPeerId newLeaderPeerId = RaftJournalUtils.getPeerId(serverAddress);
+    /* transfer leadership */
+    LOG.info("Transferring leadership to master with address <{}> and with RaftPeerId <{}>",
+        serverAddress, newLeaderPeerId);
+    try (RaftClient client = createClient()) {
+      RaftClientReply reply1 = client.admin().transferLeadership(newLeaderPeerId, 30_000);
+      processReply(reply1, "election failed");
     } catch (Throwable t) {
       LOG.warn(t.getMessage());
       return t.getMessage();
-    } finally {
-      mTransferLeaderAllowed.set(true);
     }
+    return "";
   }
 
   /**
