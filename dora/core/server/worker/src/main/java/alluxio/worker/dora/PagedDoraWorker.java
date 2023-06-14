@@ -22,7 +22,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheUsage;
-import alluxio.client.file.cache.PageId;
 import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.conf.AlluxioConfiguration;
@@ -340,23 +339,12 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   }
 
   /**
-   * @param fileInfo the FileInfo of this file. Cached pages are identified by PageId
-   * @return true at this moment
+   * Invalidate the given cached File by deleting it from local cache.
+   * @param path the full path of this file
    */
-  public boolean invalidateCachedFile(FileInfo fileInfo) {
-    FileId fileId = FileId.of(new AlluxioURI(fileInfo.getUfsPath()).hash());
-
-    for (PageId page: mCacheManager.getCachedPageIdsByFileId(
-        fileId.toString(), fileInfo.getLength())) {
-      mCacheManager.delete(page);
-    }
-    return true;
-  }
-
-  private boolean invalidateCachedFile(String path) {
+  private void invalidateCachedFile(String path) {
     FileId file = FileId.of(new AlluxioURI(path).hash());
     mCacheManager.deleteFile(file.toString());
-    return true;
   }
 
   @Override
