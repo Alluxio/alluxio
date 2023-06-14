@@ -7785,7 +7785,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   public static final PropertyKey DORA_CLIENT_READ_LOCATION_POLICY_ENABLED =
       booleanBuilder(Name.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .setDescription("Whether to use client side location policy for reading")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
