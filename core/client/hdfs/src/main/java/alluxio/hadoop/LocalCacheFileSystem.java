@@ -26,6 +26,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
+import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
@@ -204,5 +205,17 @@ public class LocalCacheFileSystem extends org.apache.hadoop.fs.FileSystem {
   @Override
   public FileStatus getFileStatus(Path f) throws IOException {
     return mExternalFileSystem.getFileStatus(f);
+  }
+
+  @Override
+  public BlockLocation[] getFileBlockLocations(FileStatus file, long start,
+      long len) throws IOException {
+    return mExternalFileSystem.getFileBlockLocations(file, start, len);
+  }
+
+  @Override
+  public BlockLocation[] getFileBlockLocations(Path p, long start, long len)
+      throws IOException {
+    return mExternalFileSystem.getFileBlockLocations(p, start, len);
   }
 }
