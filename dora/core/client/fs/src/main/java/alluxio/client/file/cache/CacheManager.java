@@ -303,6 +303,13 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
   }
 
   /**
+   * Deletes all pages of the given file.
+   *
+   * @param fileId the file id of the target file
+   */
+  void deleteFile(String fileId);
+
+  /**
    * Deletes a page from the cache.
    *
    * @param pageId page identifier
