@@ -192,6 +192,15 @@ public class NoExceptionCacheManager implements CacheManager {
   }
 
   @Override
+  public void deleteFile(String fileId) {
+    try {
+      mCacheManager.deleteFile(fileId);
+    } catch (Exception e) {
+      LOG.error("Failed to deleteFile for {}", fileId, e);
+    }
+  }
+
+  @Override
   public Optional<CacheUsage> getUsage() {
     return mCacheManager.getUsage();
   }

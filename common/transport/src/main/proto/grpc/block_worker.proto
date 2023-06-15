@@ -73,6 +73,25 @@ service BlockWorker {
   rpc CreateDirectory(grpc.file.CreateDirectoryPRequest) returns (grpc.file.CreateDirectoryPResponse);
 }
 
+message UfsStatus {
+  optional string name = 1;
+  optional bool is_directory = 2;
+  optional int64 last_modified_time_ms = 3;
+  optional string owner = 4;
+  optional string group = 5;
+  optional int32 mode = 6;
+  map<string, bytes> xattr = 7;
+  optional string ufs_full_path = 8;
+
+  optional UfsFileStatus ufs_file_status = 100;
+}
+
+message UfsFileStatus {
+  optional string content_hash = 1;
+  optional int64 content_length = 2;
+  optional int64 block_size = 3;
+}
+
 // The check request
 message CheckRequest {}
 
@@ -217,8 +236,9 @@ enum TaskStatus {
 }
 
 message LoadFileRequest {
-  repeated File files = 1;
+  repeated UfsStatus ufs_status = 1;
   required UfsReadOptions options = 2;
+  optional bool load_metadata_only = 3; // If set false, only the metadata of file will be loaded.
 }
 
 message File{
@@ -231,7 +251,7 @@ message File{
 
 message LoadFileResponse {
   required TaskStatus status = 1;
-  repeated FileFailure files = 2;
+  repeated LoadFileFailure failures = 2;
 }
 
 message FreeWorkerRequest{}
@@ -242,6 +262,15 @@ message BlockStatus {
   required Block block = 1;
   // The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
   required int32 code = 2;
+  // A developer-facing error message
+  optional string message = 3;
+  optional bool retryable = 4;
+}
+
+message LoadFileFailure {
+  optional UfsStatus ufs_status = 1;
+  // The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
+  optional int32 code = 2;
   // A developer-facing error message
   optional string message = 3;
   optional bool retryable = 4;

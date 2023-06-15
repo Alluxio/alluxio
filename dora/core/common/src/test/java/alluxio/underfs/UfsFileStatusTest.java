@@ -17,6 +17,7 @@ import alluxio.util.CommonUtils;
 
 import org.junit.Test;
 
+import java.util.Collections;
 import java.util.Random;
 
 /**
@@ -67,5 +68,21 @@ public final class UfsFileStatusTest {
             mode, blockSize);
     UfsFileStatus status = new UfsFileStatus(statusToCopy);
     assertEquals(statusToCopy, status);
+  }
+
+  @Test
+  public void toProto() {
+    Random random = new Random();
+    String contentHash = CommonUtils.randomAlphaNumString(10);
+    long contentLength = random.nextLong();
+    long lastModifiedTimeMs = random.nextLong();
+    short mode = 0777;
+    long blockSize = random.nextLong();
+
+    UfsFileStatus status =
+        new UfsFileStatus("name", contentHash, contentLength, lastModifiedTimeMs, "owner", "group",
+            mode, Collections.emptyMap() , blockSize);
+    UfsStatus status2 = UfsStatus.fromProto(status.toProto());
+    assertEquals(status, status2);
   }
 }

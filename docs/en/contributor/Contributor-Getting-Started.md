@@ -18,9 +18,6 @@ to get started becoming a contributor to the Alluxio open source project.
 The main requirement is a computer with MacOS or Linux-based operating system installed. Alluxio
 does not have Windows support at this time.
 
-If you haven't already, we recommend first cloning and compiling the Alluxio source code with our
-[Building Alluxio from Source Tutorial]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}).
-
 ### Software Requirements
 
 - Required Software:
@@ -102,9 +99,6 @@ $ mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip \
 
 This should take less than 1 minute.
 
-Here are more
-[details for building Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}).
-
 ## Taking a New Contributor Task
 
 There are multiple levels of tickets in Alluxio. The levels are:
@@ -176,9 +170,6 @@ Once the appropriate files are staged, create a local commit of these modificati
 ```console
 $ git commit -m "<concise but descriptive commit message>"
 ```
-
-Please read the [Alluxio coding conventions]({{ '/en/contributor/Code-Conventions.html' | relativize_url }})
-for more details and tips on how to update the Alluxio source code.
 
 For more details for creating commits, please visit [instructions on how to create
 commits](https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository).
@@ -319,8 +310,6 @@ There are a few things that new contributors can do to familiarize themselves wi
 1.  [Run Alluxio locally or as a cluster]({{ '/en/overview/Getting-Started.html' | relativize_url }})
 1.  Read [Configuration Settings]({{ '/en/operation/Configuration.html' | relativize_url }}) and
 [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }})
-1.  Read a [Code Example](https://github.com/Alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/MultiMount.java)
-1.  [Build Alluxio From Source]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }})
 1.  Fork the repository, add unit tests or javadoc for one or two files, and submit a pull request.
 You are also welcome to address issues in our [Github Issues](https://github.com/Alluxio/alluxio/issues).
 Here is a list of unassigned

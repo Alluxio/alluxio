@@ -336,19 +336,3 @@ the `'generate'` maven profile.
 ```shell
 $ mvn clean install -Pgenerate -pl "org.alluxio:alluxio-core-transport"
 ```
-
-## Usage of `./bin/alluxio`
- 
-Please refer to [Alluxio commands]({{ '/en/operation/User-CLI.html' | relativize_url }})
-for all available commands.
-
-Some commands have different prerequisites.
-
-All commands except `bootstrapConf`, `killAll`, `copyDir` and `clearCache`
-will require that you have already built Alluxio 
-(see [Build Alluxio Master Branch]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}) 
-about how to build Alluxio manually).
-
-Some commands require the Alluxio cluster to be running, and others do not.
-Please check [all Alluxio commands]({{ '/en/operation/User-CLI.html' | relativize_url }})
-where each command specifies if it requires the Alluxio cluster to be running.

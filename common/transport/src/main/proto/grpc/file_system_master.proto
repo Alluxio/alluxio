@@ -631,6 +631,7 @@ message LoadJobPOptions {
   optional int64 bandwidth = 1;
   optional bool verify = 2;
   optional bool partialListing = 3;
+  optional bool loadMetadataOnly = 4;
 }
 
 message CopyJobPOptions {

@@ -16,10 +16,9 @@ import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.File;
-import alluxio.grpc.FileFailure;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadFileFailure;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.Route;
 import alluxio.grpc.RouteFailure;
@@ -96,13 +95,16 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
       throws AccessControlException, IOException;
 
   /**
-   * Loads files from UFS to Alluxio.
+   * Loads the metadata and data of files from UFS to Alluxio.
    *
-   * @param files   the files to load
+   * @param loadData true if data should also be loaded, otherwise metadata only
+   * @param ufsStatuses the files to load
    * @param options
    * @return a list of failed files
    */
-  ListenableFuture<List<FileFailure>> load(List<File> files, UfsReadOptions options);
+  ListenableFuture<List<LoadFileFailure>> load(
+      boolean loadData, List<UfsStatus> ufsStatuses, UfsReadOptions options)
+      throws AccessControlException, IOException;
 
   /**
    * Copies files from src to dst.
@@ -149,7 +151,7 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    * @param path the path of this file
    * @param options the options for this operation
    */
-  void delete(String path, DeletePOptions options);
+  void delete(String path, DeletePOptions options) throws IOException, AccessControlException;
 
   /**
    * Rename src to dst.
@@ -157,12 +159,14 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    * @param dst the destination file/dir
    * @param options the options for this operations
    */
-  void rename(String src, String dst, RenamePOptions options);
+  void rename(String src, String dst, RenamePOptions options)
+      throws IOException, AccessControlException;
 
   /**
    * Create a directory.
    * @param path the directory name
    * @param options the options for this operations
    */
-  void createDirectory(String path, CreateDirectoryPOptions options);
+  void createDirectory(String path, CreateDirectoryPOptions options)
+      throws IOException, AccessControlException;
 }

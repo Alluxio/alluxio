@@ -268,7 +268,7 @@ public class DoraCacheClient {
    * @param path
    * @param options
    */
-  public void delete(String path, DeletePOptions options) {
+  public void delete(String path, DeletePOptions options) throws PermissionDeniedException {
     try (CloseableResource<BlockWorkerClient> client =
              mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
       DeletePRequest request = DeletePRequest.newBuilder()
@@ -288,7 +288,8 @@ public class DoraCacheClient {
    * @param dst the destination file/dir
    * @param options the rename option
    */
-  public void rename(String src, String dst, RenamePOptions options) {
+  public void rename(String src, String dst, RenamePOptions options)
+      throws PermissionDeniedException {
     try (CloseableResource<BlockWorkerClient> client =
              mContext.acquireBlockWorkerClient(getWorkerNetAddress(src))) {
       RenamePRequest request = RenamePRequest.newBuilder()
@@ -308,7 +309,8 @@ public class DoraCacheClient {
    * @param path the name of the dir
    * @param options the option of this operation
    */
-  public void createDirectory(String path, CreateDirectoryPOptions options) {
+  public void createDirectory(String path, CreateDirectoryPOptions options)
+      throws PermissionDeniedException {
     try (CloseableResource<BlockWorkerClient> client =
              mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
       CreateDirectoryPRequest request = CreateDirectoryPRequest.newBuilder()

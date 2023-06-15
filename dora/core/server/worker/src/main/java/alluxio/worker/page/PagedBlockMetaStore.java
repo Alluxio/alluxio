@@ -33,6 +33,7 @@ import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -467,6 +468,19 @@ public class PagedBlockMetaStore implements PageMetaStore {
   public Optional<CacheUsage> getUsage() {
     // TODO(bowen): implement partition by block
     return mDelegate.getUsage();
+  }
+
+  @Override
+  public Set<PageInfo> getAllPagesByFileId(String fileId) {
+    long blockId = BlockPageId.parseBlockId(fileId);
+    PagedBlockMeta blockMeta = mBlocks.getFirstByField(INDEX_BLOCK_ID, blockId);
+    if (blockMeta == null) {
+      blockMeta = mTempBlocks.getFirstByField(INDEX_TEMP_BLOCK_ID, blockId);
+    }
+    if (blockMeta != null) {
+      return blockMeta.getDir().getBlockPages(blockId);
+    }
+    return Collections.emptySet();
   }
 
   private static PagedBlockStoreDir downcast(PageStoreDir pageStoreDir) {

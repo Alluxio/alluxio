@@ -47,6 +47,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
@@ -801,6 +802,15 @@ public class LocalCacheManager implements CacheManager {
       }
     }
     return pageIds;
+  }
+
+  @Override
+  public void deleteFile(String fileId) {
+    Set<PageInfo> pages;
+    try (LockResource r = new LockResource(mPageMetaStore.getLock().readLock())) {
+      pages = mPageMetaStore.getAllPagesByFileId(fileId);
+    }
+    pages.forEach(page -> delete(page.getPageId()));
   }
 
   @Override

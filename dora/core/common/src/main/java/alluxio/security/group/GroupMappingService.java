@@ -40,10 +40,10 @@ public interface GroupMappingService {
     // TODO(chaomin): maintain a map from SECURITY_GROUP_MAPPING_CLASS name to cachedGroupMapping.
     // Currently the single global cached GroupMappingService assumes that there is no dynamic
     // configuration change for {@link Constants#SECURITY_GROUP_MAPPING_CLASS}.
-    private static volatile CachedGroupMapping sCachedGroupMapping = null;
+    protected static volatile CachedGroupMapping sCachedGroupMapping = null;
 
     // prevent instantiation
-    private Factory() {
+    protected Factory() {
     }
 
     /**

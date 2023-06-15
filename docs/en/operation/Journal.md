@@ -171,9 +171,6 @@ backup directory can be configured by setting `alluxio.master.backup.directory`
 alluxio.master.backup.directory=/alluxio/backups
 ```
 
-See the [backup command documentation]({{ '/en/operation/Admin-CLI.html' | relativize_url }}#backup)
-for additional backup options.
-
 ### Automatically backing up the journal
 
 Alluxio supports automatically taking leading master metadata snapshots every day at a fixed time
@@ -191,7 +188,7 @@ We recommend setting the backup time to an off-peak time to avoid interfering wi
 
 In the daily backup, the backup directory needs to be an absolute path within the root UFS.
 For example, if `alluxio.master.backup.directory=/alluxio_backups`
-and `alluxio.master.mount.table.root.ufs=hdfs://192.168.1.1:9000/alluxio/underfs`,
+and `alluxio.dora.client.ufs.root=hdfs://192.168.1.1:9000/alluxio/underfs`,
 the default backup directory would be `hdfs://192.168.1.1:9000/alluxio_backups`.
 
 The files to retain in the backup directory is limited by `alluxio.master.daily.backup.files.retained`.
@@ -358,19 +355,6 @@ make the checkpointing a few times faster(depending how many threads are used).
 `alluxio.master.metastore.rocks.parallel.backup.compression.level` specifies the compression level, 
 where smaller means bigger file and less CPU consumption, and larger means smaller file and more CPU consumption. 
 
-#### Checkpointing on secondary master
-
-If HA mode is not an option, it is possible to run a master on the same node as a
-dedicated standby master. This second master exists only to write checkpoints, and
-will not serve client requests if the leading master dies. In this setup, both
-masters have similar memory requirements since they both need to hold all Alluxio
-metadata in memory. To start a dedicated standby master for writing periodic checkpoints,
-run
-
-```console
-$ ./bin/alluxio-start.sh secondary_master
-```
-
 #### Checkpointing on the leading master
 
 Checkpointing requires a pause in master metadata changes and causes temporary service
@@ -408,18 +392,6 @@ By default, if a master encounters corruption when replaying a journal it will a
 take a backup of the state up to the corrupted entry in the configured backup directory. The master will notice the
 corruption when elected leader. The backup directory is configured by `alluxio.master.backup.directory`.
 This feature can be disabled by setting `alluxio.master.journal.backup.when.corrupted` to `false`.
-
-### Get a human-readable journal
-
-Alluxio journal is serialized and not human-readable. The following command
-read the Alluxio journal and write it to a directory in a human-readable format.
-
-```console
-$ ./bin/alluxio readJournal
-```
-
-See [here]({{ '/en/operation/User-CLI.html' | relativize_url }}#readjournal) for more detailed usage.
-
 
 ### Exiting upon Demotion
 
