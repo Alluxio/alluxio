@@ -520,10 +520,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
                 status.asUfsFileStatus().getContentLength());
           } catch (Throwable e) {
             LOG.error("Loading {} failed", status, e);
+            boolean permissionCheckSucceeded = !(e instanceof AccessControlException);
             AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
             errors.add(LoadFileFailure.newBuilder().setUfsStatus(status.toProto())
                 .setCode(t.getStatus().getCode().value())
-                .setRetryable(t.isRetryable())
+                .setRetryable(t.isRetryable() && permissionCheckSucceeded)
                 .setMessage(t.getMessage()).build());
           }
         }, GrpcExecutors.BLOCK_READER_EXECUTOR);
@@ -575,12 +576,15 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             if (readOptions.hasUser()) {
               AuthenticatedClientUser.set(readOptions.getUser());
             }
+            checkCopyPermission(route.getSrc(), route.getDst());
             CopyHandler.copy(route, writeOptions, srcFs, dstFs);
           } catch (Throwable t) {
+            boolean permissionCheckSucceeded = !(t instanceof AccessControlException);
             LOG.error("Failed to copy {} to {}", route.getSrc(), route.getDst(), t);
             AlluxioRuntimeException e = AlluxioRuntimeException.from(t);
             RouteFailure.Builder builder =
-                RouteFailure.newBuilder().setRoute(route).setCode(e.getStatus().getCode().value());
+                RouteFailure.newBuilder().setRoute(route).setCode(e.getStatus().getCode().value())
+                    .setRetryable(e.isRetryable() && permissionCheckSucceeded);
             if (e.getMessage() != null) {
               builder.setMessage(e.getMessage());
             }
@@ -620,6 +624,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             if (readOptions.hasUser()) {
               AuthenticatedClientUser.set(readOptions.getUser());
             }
+            checkMovePermission(route.getSrc(), route.getDst());
             CopyHandler.copy(route, writeOptions, srcFs, dstFs);
             try {
               DeleteHandler.delete(new AlluxioURI(route.getSrc()), srcFs);
@@ -629,10 +634,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             }
           } catch (Throwable t) {
             LOG.error("Failed to move {} to {}", route.getSrc(), route.getDst(), t);
+            boolean permissionCheckSucceeded = !(t instanceof AccessControlException);
             AlluxioRuntimeException e = AlluxioRuntimeException.from(t);
             RouteFailure.Builder builder =
                 RouteFailure.newBuilder().setRoute(route).setCode(e.getStatus().getCode().value())
-                    .setRetryable(true);
+                    .setRetryable(e.isRetryable() && permissionCheckSucceeded);
             if (e.getMessage() != null) {
               builder.setMessage(e.getMessage());
             }
@@ -845,6 +851,16 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   @VisibleForTesting
   UnderFileSystem getUfs() {
     return mUfs;
+  }
+
+  protected void checkCopyPermission(String srcPath, String dstPath)
+      throws AccessControlException, IOException {
+    // No-op
+  }
+
+  protected void checkMovePermission(String srcPath, String dstPath)
+      throws AccessControlException, IOException {
+    // No-op
   }
 
   protected DoraOpenFileHandleContainer getOpenFileHandleContainer() {

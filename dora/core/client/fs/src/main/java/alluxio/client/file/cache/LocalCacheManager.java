@@ -564,6 +564,24 @@ public class LocalCacheManager implements CacheManager {
   }
 
   @Override
+  public int get(PageId pageId, int pageOffset, ReadTargetBuffer buffer,
+                 CacheContext cacheContext) {
+    ReadWriteLock pageLock = getPageLock(pageId);
+    long pageSize = -1L;
+    try (LockResource r = new LockResource(pageLock.readLock())) {
+      PageInfo pageInfo;
+      try (LockResource r2 = new LockResource(mPageMetaStore.getLock().readLock())) {
+        pageInfo = mPageMetaStore.getPageInfo(pageId); //check if page exists and refresh LRU items
+      } catch (PageNotFoundException e) {
+        LOG.debug("get({},pageOffset={}) fails due to page not found", pageId, pageOffset);
+        return 0;
+      }
+      pageSize = pageInfo.getPageSize();
+    }
+    return get(pageId, pageOffset, (int) pageSize, buffer, cacheContext);
+  }
+
+  @Override
   public int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer buffer,
                  CacheContext cacheContext) {
     Preconditions.checkArgument(pageOffset <= mOptions.getPageSize(),
