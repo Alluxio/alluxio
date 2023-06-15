@@ -30,6 +30,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -43,6 +44,8 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Integration tests for implementations of {@link JournalSystem}.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Master no longer manages metadata")
 public class JournalIntegrationTest {
   private static final Logger LOG = LoggerFactory.getLogger(JournalIntegrationTest.class);
 
