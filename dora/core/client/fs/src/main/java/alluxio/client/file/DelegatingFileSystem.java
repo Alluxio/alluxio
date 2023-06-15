@@ -42,6 +42,7 @@ import alluxio.grpc.UnmountPOptions;
 import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
 import alluxio.security.authorization.AclEntry;
+import alluxio.uri.UfsUrl;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
@@ -128,6 +129,12 @@ public class DelegatingFileSystem implements FileSystem {
   @Override
   public URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
+    return mDelegatedFileSystem.getStatus(path, options);
+  }
+
+  @Override
+  public URIStatus getStatus(UfsUrl path, GetStatusPOptions options)
+          throws FileDoesNotExistException, IOException, AlluxioException {
     return mDelegatedFileSystem.getStatus(path, options);
   }
 

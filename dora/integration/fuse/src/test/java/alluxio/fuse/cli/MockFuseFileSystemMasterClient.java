@@ -39,6 +39,7 @@ import alluxio.grpc.UpdateUfsModePOptions;
 import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
 import alluxio.security.authorization.AclEntry;
+import alluxio.uri.UfsUrl;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 
@@ -104,6 +105,12 @@ class MockFuseFileSystemMasterClient implements FileSystemMasterClient {
   @Override
   public URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
       throws AlluxioStatusException {
+    return null;
+  }
+
+  @Override
+  public URIStatus getStatus(UfsUrl path, GetStatusPOptions options)
+          throws AlluxioStatusException {
     return null;
   }
 

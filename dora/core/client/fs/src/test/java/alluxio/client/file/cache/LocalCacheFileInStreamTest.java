@@ -14,6 +14,7 @@ package alluxio.client.file.cache;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PositionReader;
+import alluxio.UfsUrlUtils;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -57,6 +58,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.security.authorization.AclEntry;
+import alluxio.uri.UfsUrl;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockLocationInfo;
@@ -834,6 +836,12 @@ public class LocalCacheFileInStreamTest {
       } else {
         throw new FileDoesNotExistException(path);
       }
+    }
+
+    @Override
+    public URIStatus getStatus(UfsUrl ufsPath, GetStatusPOptions options)
+            throws FileDoesNotExistException, IOException, AlluxioException {
+      return getStatus(ufsPath.toAlluxioURI(), options);
     }
 
     @Override

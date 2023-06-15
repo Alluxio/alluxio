@@ -31,6 +31,7 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.resource.CloseableResource;
+import alluxio.uri.UfsUrl;
 import alluxio.wire.FileInfo;
 
 import org.junit.After;
@@ -310,6 +311,12 @@ public class MetadataCachingFileSystemTest {
         return mFileStatusMap.get(path);
       }
       throw new NotFoundException("Path \"" + path.getPath() + "\" does not exist.");
+    }
+
+    @Override
+    public URIStatus getStatus(UfsUrl path, GetStatusPOptions options)
+            throws AlluxioStatusException {
+      throw new UnsupportedOperationException("getStatus(UfsUrl) is not supported");
     }
 
     @Override

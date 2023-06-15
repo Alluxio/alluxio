@@ -39,6 +39,7 @@ import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
 import alluxio.master.MasterClientContext;
 import alluxio.security.authorization.AclEntry;
+import alluxio.uri.UfsUrl;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.SyncPointInfo;
 
@@ -158,6 +159,8 @@ public interface FileSystemMasterClient extends Client {
    * @throws NotFoundException if the path does not exist
    */
   URIStatus getStatus(AlluxioURI path, GetStatusPOptions options) throws AlluxioStatusException;
+
+  URIStatus getStatus(UfsUrl ufsPath, GetStatusPOptions options) throws AlluxioStatusException;
 
   /**
    * @param path the file path

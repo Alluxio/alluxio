@@ -156,3 +156,11 @@ message BuildVersion {
   /** the git revision at the time of building */
   optional string revision = 2;
 }
+
+// TODO: use this instead of string for RPCs
+// TODO: add a wrapper for this class
+message UfsUrlMessage {
+  optional string scheme = 1;
+  optional string authority = 2;
+  repeated string pathComponents = 3;
+}
