@@ -407,6 +407,20 @@ public final class Scheduler {
   }
 
   /**
+   * Get the job's state.
+   * @param jobDescription job identifier
+   * @return the job state
+   * @throws NotFoundRuntimeException if the job does not exist
+   */
+  public JobState getJobState(JobDescription jobDescription) {
+    Job<?> job = mExistingJobs.get(jobDescription);
+    if (job == null) {
+      throw new NotFoundRuntimeException(format("%s cannot be found.", jobDescription));
+    }
+    return job.getJobState();
+  }
+
+  /**
    * @return the file system context
    */
   public FileSystemContext getFileSystemContext() {
