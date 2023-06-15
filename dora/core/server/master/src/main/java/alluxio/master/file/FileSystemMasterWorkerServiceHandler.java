@@ -11,6 +11,7 @@
 
 package alluxio.master.file;
 
+import alluxio.AlluxioURI;
 import alluxio.RpcUtils;
 import alluxio.grpc.FileSystemHeartbeatPOptions;
 import alluxio.grpc.FileSystemHeartbeatPRequest;
@@ -19,6 +20,8 @@ import alluxio.grpc.FileSystemMasterWorkerServiceGrpc;
 import alluxio.grpc.GetFileInfoPOptions;
 import alluxio.grpc.GetFileInfoPRequest;
 import alluxio.grpc.GetFileInfoPResponse;
+import alluxio.grpc.GetMountIdPRequest;
+import alluxio.grpc.GetMountIdPResponse;
 import alluxio.grpc.GetPinnedFileIdsPOptions;
 import alluxio.grpc.GetPinnedFileIdsPRequest;
 import alluxio.grpc.GetPinnedFileIdsPResponse;
@@ -111,5 +114,15 @@ public final class FileSystemMasterWorkerServiceHandler
                 .newBuilder().setUfsInfo(GrpcUtils.toProto(mFileSystemMaster.getUfsInfo(mountId)))
                 .build(),
         "getUfsInfo", "mountId=%s, options=%s", responseObserver, mountId, options);
+  }
+
+  @Override
+  public void getMountId(GetMountIdPRequest request,
+      StreamObserver<GetMountIdPResponse> responseObserver) {
+    RpcUtils.call(LOG,
+            () -> GetMountIdPResponse
+                .newBuilder().setMountId(mFileSystemMaster.getMountIdFromUfsPath(new AlluxioURI(request.getUfsUri())))
+                .build(),
+        "getMountId", "ufsPath=%s", responseObserver, request.getUfsUri());
   }
 }
