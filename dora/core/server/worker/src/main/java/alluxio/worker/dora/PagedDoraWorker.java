@@ -862,4 +862,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       throws AccessControlException, IOException {
     // No-op
   }
+
+  protected DoraOpenFileHandleContainer getOpenFileHandleContainer() {
+    return mOpenFileHandleContainer;
+  }
 }
