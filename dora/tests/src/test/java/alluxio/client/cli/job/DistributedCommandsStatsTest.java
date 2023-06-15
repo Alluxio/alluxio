@@ -30,6 +30,7 @@ import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemOptions;
 import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -42,6 +43,8 @@ import java.util.Collections;
  * If the job completes fast enough before the CANCEL operations runs,then the test would fail.
  * The tests compare the job statuses (CANCEL or not) and stat counter values for each status.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Job master and job worker no longer exist")
 public class DistributedCommandsStatsTest extends JobShellTest {
   private static final long SLEEP_MS = Constants.SECOND_MS * 15;
   private static final int TEST_TIMEOUT = 45;

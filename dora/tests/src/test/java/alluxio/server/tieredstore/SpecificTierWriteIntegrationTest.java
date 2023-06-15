@@ -36,6 +36,7 @@ import com.google.common.io.Files;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -45,6 +46,8 @@ import java.util.Map;
 /**
  * Integration tests for writing to various storage tiers.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Block store is deprecated in DORA")
 public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
   private static final int FILES_PER_TIER = 10;
   private static final String BLOCK_SIZE_BYTES = "1KB";

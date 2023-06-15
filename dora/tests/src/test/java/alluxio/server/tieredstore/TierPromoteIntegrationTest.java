@@ -30,6 +30,7 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.io.Files;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,6 +41,8 @@ import java.util.Collection;
 import java.util.List;
 
 @RunWith(Parameterized.class)
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Block store is deprecated in DORA")
 public class TierPromoteIntegrationTest extends BaseIntegrationTest {
   private static final int BLOCKS_PER_TIER = 10;
   private static final String BLOCK_SIZE_BYTES = "1KB";
