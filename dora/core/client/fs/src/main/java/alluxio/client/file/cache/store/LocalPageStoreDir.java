@@ -145,8 +145,13 @@ public class LocalPageStoreDir extends QuotaManagedPageStoreDir {
   private Optional<PageId> getPageId(Path path) {
     Matcher matcher = mPagePattern.matcher(path.toString());
     if (!matcher.matches()) {
-      // Please note, TEMP page files are also treated as Unrecognized!!
-      LOG.error("Unrecognized page file " + path + ". Let's delete it.");
+      if (Pattern.matches(String.format("%s/%d/%s/([^/]+)/(\\d+)",
+          Pattern.quote(mPageStoreOptions.getRootDir().toString()),
+          mPageStoreOptions.getPageSize(), LocalPageStore.TEMP_DIR), path.toString())) {
+        LOG.info("TEMP page file " + path + " is going to be deleted.");
+      } else {
+        LOG.error("Unrecognized page file " + path + "is going to be deleted.");
+      }
       deleteUnrecognizedPage(path);
       return Optional.empty();
     }
