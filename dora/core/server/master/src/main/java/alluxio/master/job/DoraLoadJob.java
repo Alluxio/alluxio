@@ -602,6 +602,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
           .newBuilder()
           .setTag(mJobId)
           .setPositionShort(false);
+      mUser.ifPresent(ufsReadOptions::setUser);
       loadFileReqBuilder.setOptions(ufsReadOptions);
       loadFileReqBuilder.setLoadMetadataOnly(mLoadMetadataOnly);
       return workerClient.loadFile(loadFileReqBuilder.build());
