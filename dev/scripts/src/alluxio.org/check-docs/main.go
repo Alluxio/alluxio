@@ -14,7 +14,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"log"
 	"os"
@@ -35,8 +34,7 @@ func main() {
 
 type checkContext struct {
 	// inputs
-	categoryNames StringSet // category or group names defined in _config.yml
-	docsPath      string    // path to docs directory in repository
+	docsPath string // path to docs directory in repository
 
 	// intermediate
 	knownFiles    StringSet                  // file paths of files that can be referenced by markdown files
@@ -82,14 +80,7 @@ func run() error {
 		return fmt.Errorf("expected to find %s in %s; script should be executed from repository root", configYml, docsDir)
 	}
 
-	// parse category names from config file
-	categoryNames, err := parseCategoryNames(configPath)
-	if err != nil {
-		return fmt.Errorf("error parsing category names: %v", err)
-	}
-
 	ctx := &checkContext{
-		categoryNames:  categoryNames,
 		docsPath:       docsPath,
 		knownFiles:     StringSet{},
 		markdownLinks:  map[string][]*relativeLink{},
@@ -149,25 +140,6 @@ func run() error {
 	}
 
 	return nil
-}
-
-// parseCategoryNames parses the given config file for the list of category names
-func parseCategoryNames(configPath string) (StringSet, error) {
-	contents, err := ioutil.ReadFile(configPath)
-	if err != nil {
-		return nil, fmt.Errorf("error reading file: %v", err)
-	}
-	var docsConfig struct {
-		CategoryList []string `yaml:"categoryList"`
-	}
-	if err := yaml.Unmarshal(contents, &docsConfig); err != nil {
-		return nil, fmt.Errorf("error deserializing yaml file: %v", err)
-	}
-	ret := StringSet{}
-	for _, category := range docsConfig.CategoryList {
-		ret.Add(category)
-	}
-	return ret, nil
 }
 
 var (
@@ -267,7 +239,6 @@ func checkFile(mdFile string, ctx *checkContext) error {
 		return fmt.Errorf("error scanning file: %v", err)
 	}
 
-	ctx.checkHeader(headers, mdFile)
 	ctx.addRelativeLinks(relativeLinks, mdFile)
 
 	return nil
@@ -292,18 +263,6 @@ type Header struct {
 	Nickname string `yaml:"nickname"`
 	Group    string `yaml:"group" binding:"required"`
 	Priority int    `yaml:"priority"`
-}
-
-// checkHeader validates the header lines
-func (ctx *checkContext) checkHeader(headerBytes *bytes.Buffer, mdFile string) {
-	var header Header
-	if err := yaml.Unmarshal(headerBytes.Bytes(), &header); err != nil {
-		ctx.addError(mdFile, 0, "error parsing header: %v", err)
-		return
-	}
-	if _, ok := ctx.categoryNames[header.Group]; !ok {
-		ctx.addError(mdFile, 0, "group should be one of %v but was %q", ctx.categoryNames, header.Group)
-	}
 }
 
 // addRelativeLinks updates knownFiles and markdownLinks
