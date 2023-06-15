@@ -42,10 +42,10 @@ import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.grpc.UfsUrl;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.uri.UfsUrl;
 import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockInfo;
@@ -61,6 +61,7 @@ import io.grpc.StatusRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -160,7 +161,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       // TODO: implement getPathConf(ufsPath) and use the merged options in the call
 //      GetStatusPOptions mergedOptions = FileSystemOptionsUtils.getStatusDefaults(
 //              mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
-      return mDoraClient.getStatus(UfsUrlUtils.asString(ufsPath), options);
+      return mDoraClient.getStatus(ufsPath.asString(), options);
     } catch (RuntimeException ex) {
       if (ex instanceof StatusRuntimeException) {
         if (((StatusRuntimeException) ex).getStatus().getCode() == Status.NOT_FOUND.getCode()) {

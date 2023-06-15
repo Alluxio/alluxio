@@ -51,7 +51,6 @@ import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.grpc.UfsUrl;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
@@ -59,6 +58,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.security.authorization.AclEntry;
+import alluxio.uri.UfsUrl;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockLocationInfo;
@@ -841,7 +841,7 @@ public class LocalCacheFileInStreamTest {
     @Override
     public URIStatus getStatus(UfsUrl ufsPath, GetStatusPOptions options)
             throws FileDoesNotExistException, IOException, AlluxioException {
-      return getStatus(UfsUrlUtils.toAlluxioURI(ufsPath), options);
+      return getStatus(ufsPath.toAlluxioURI(), options);
     }
 
     @Override

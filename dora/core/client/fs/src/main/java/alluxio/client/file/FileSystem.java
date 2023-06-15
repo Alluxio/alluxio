@@ -50,12 +50,12 @@ import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.grpc.UfsUrl;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.user.UserState;
+import alluxio.uri.UfsUrl;
 import alluxio.util.CommonUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.MountPointInfo;
@@ -168,6 +168,7 @@ public interface FileSystem extends Closeable {
      */
     public static FileSystem create(FileSystemContext context, FileSystemOptions options) {
       AlluxioConfiguration conf = context.getClusterConf();
+      // TODO(jiacheng): get rid of this check
       checkSortConf(conf);
       FileSystem fs = options.getUfsFileSystemOptions().isPresent()
           ? new UfsBaseFileSystem(context, options.getUfsFileSystemOptions().get())
@@ -221,6 +222,7 @@ public interface FileSystem extends Closeable {
    * @throws InvalidPathException if the path is invalid
    * @throws alluxio.exception.AccessControlException if the access is denied
    */
+  // easy
   void checkAccess(AlluxioURI path, CheckAccessPOptions options)
       throws InvalidPathException, IOException, AlluxioException;
 
@@ -281,6 +283,7 @@ public interface FileSystem extends Closeable {
    * @throws FileDoesNotExistException if the given path does not exist
    * @throws DirectoryNotEmptyException if recursive is false and the path is a nonempty directory
    */
+  // medium - hard
   default void delete(AlluxioURI path)
       throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
     delete(path, DeletePOptions.getDefaultInstance());
@@ -317,6 +320,7 @@ public interface FileSystem extends Closeable {
    * @return true if the path exists, false otherwise
    * @throws InvalidPathException if the path is invalid
    */
+  // medium - hard
   boolean exists(AlluxioURI path, ExistsPOptions options)
       throws InvalidPathException, IOException, AlluxioException;
 
@@ -326,6 +330,7 @@ public interface FileSystem extends Closeable {
    * @param path the path to free in Alluxio space
    * @throws FileDoesNotExistException if the given path does not exist
    */
+  // medium - hard
   default void free(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException {
     free(path, FreePOptions.getDefaultInstance());

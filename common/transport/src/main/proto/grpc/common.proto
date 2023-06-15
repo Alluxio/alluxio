@@ -158,7 +158,8 @@ message BuildVersion {
 }
 
 // TODO: use this instead of string for RPCs
-message UfsUrl {
+// TODO: add a wrapper for this class
+message UfsUrlMessage {
   optional string scheme = 1;
   optional string authority = 2;
   repeated string pathComponents = 3;

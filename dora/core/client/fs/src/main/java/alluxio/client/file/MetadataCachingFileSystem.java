@@ -29,9 +29,9 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.RenamePOptions;
-import alluxio.grpc.UfsUrl;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.uri.UfsUrl;
 import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.ThreadUtils;
 import alluxio.wire.BlockLocationInfo;
@@ -168,7 +168,7 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
           throws FileDoesNotExistException, IOException, AlluxioException {
     // TODO: the shitty thing is the cache is key-ed by AlluxioURI, we have to fully change it
     //  to UfsUrl to use the cache, so now we only delegate with a cost
-    return getStatus(UfsUrlUtils.toAlluxioURI(ufsPath), options);
+    return getStatus(ufsPath, options);
   }
 
   @Override

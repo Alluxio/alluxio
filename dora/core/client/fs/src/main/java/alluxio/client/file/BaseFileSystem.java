@@ -58,7 +58,6 @@ import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.grpc.UfsUrl;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
@@ -66,6 +65,7 @@ import alluxio.master.MasterInquireClient;
 import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.AclEntry;
 import alluxio.uri.Authority;
+import alluxio.uri.UfsUrl;
 import alluxio.util.FileSystemOptionsUtils;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.BlockLocationInfo;
@@ -206,6 +206,7 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
+  // medium
   public boolean exists(AlluxioURI path, final ExistsPOptions options)
       throws IOException, AlluxioException {
     checkUri(path);

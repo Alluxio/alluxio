@@ -71,7 +71,6 @@ import alluxio.grpc.StopJobPResponse;
 import alluxio.grpc.StopSyncPRequest;
 import alluxio.grpc.SubmitJobPRequest;
 import alluxio.grpc.SubmitJobPResponse;
-import alluxio.grpc.UfsUrl;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.grpc.UnmountPRequest;
 import alluxio.grpc.UpdateMountPRequest;
@@ -82,6 +81,7 @@ import alluxio.job.JobRequest;
 import alluxio.master.MasterClientContext;
 import alluxio.retry.CountingRetry;
 import alluxio.security.authorization.AclEntry;
+import alluxio.uri.UfsUrl;
 import alluxio.util.FileSystemOptionsUtils;
 import alluxio.wire.SyncPointInfo;
 
@@ -237,7 +237,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   public URIStatus getStatus(final UfsUrl ufsPath, final GetStatusPOptions options)
           throws AlluxioStatusException {
     return retryRPC(() -> new URIStatus(GrpcUtils
-                .fromProto(mClient.getStatus(GetStatusPRequest.newBuilder().setUfsPath(ufsPath)
+                .fromProto(mClient.getStatus(GetStatusPRequest.newBuilder().setUfsPath(ufsPath.getProto())
                     .setOptions(options).build()).getFileInfo())),
             // TODO: what does UfsUrl.toString look like?
             RPC_LOG, "GetStatus", "path=%s,options=%s", ufsPath, options);

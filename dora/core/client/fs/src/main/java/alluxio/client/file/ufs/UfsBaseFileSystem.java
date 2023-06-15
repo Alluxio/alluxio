@@ -42,7 +42,6 @@ import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.grpc.UfsUrl;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
@@ -60,6 +59,7 @@ import alluxio.underfs.options.GetStatusOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.uri.UfsUrl;
 import alluxio.util.CommonUtils;
 import alluxio.util.ModeUtils;
 import alluxio.util.io.PathUtils;
@@ -247,7 +247,7 @@ public class UfsBaseFileSystem implements FileSystem {
   public URIStatus getStatus(UfsUrl ufsPath, final GetStatusPOptions options) {
     return callWithReturn(() -> {
       // TODO(jiacheng): can this path contain scheme and authority?
-      String pathStr = UfsUrlUtils.asString(ufsPath);
+      String pathStr = ufsPath.asString();
       UfsStatus ufsStatus = mUfs.get().getStatus(pathStr, GetStatusOptions.defaults()
               .setIncludeRealContentHash(options.getIncludeRealContentHash()));
       // TODO: avoid using AlluxioURI in this method and avoid string copies as much as possible

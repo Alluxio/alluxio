@@ -30,8 +30,8 @@ import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.RenamePOptions;
-import alluxio.grpc.UfsUrl;
 import alluxio.resource.CloseableResource;
+import alluxio.uri.UfsUrl;
 import alluxio.wire.FileInfo;
 
 import org.junit.After;

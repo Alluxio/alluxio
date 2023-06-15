@@ -1,10 +1,11 @@
 package alluxio;
 
 import alluxio.grpc.MountPointInfo;
-import alluxio.grpc.UfsUrl;
+import alluxio.grpc.UfsUrlMessage;
 import alluxio.uri.Authority;
 import alluxio.uri.URI;
 
+import alluxio.uri.UfsUrl;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.ArrayUtils;
@@ -20,54 +21,13 @@ import java.util.List;
  * TODO: implement the equivalence of AlluixoURI
  * TODO: move/rename the UTs of above, to make sure we have guaranteed the same functionalities
  */
+// TODO: move this to Util package
 public class UfsUrlUtils {
-  // TODO: try to avoid the copy by a RelativeUrl class
-  public static UfsUrl getParentURL(UfsUrl ufsPath) {
-    List<String> pathComponents = ufsPath.getPathComponentsList();
-    return UfsUrl.newBuilder().setScheme(ufsPath.getScheme()).setAuthority(ufsPath.getAuthority())
-        // TODO: how many copies are there
-        .addAllPathComponents(pathComponents.subList(0, pathComponents.size() - 1)).build();
-  }
-
-  // TODO: try to avoid the copy by a RelativeUrl class
-  public static UfsUrl getChildURL(UfsUrl ufsPath, String childName) {
-    List<String> pathComponents = ufsPath.getPathComponentsList();
-    return UfsUrl.newBuilder().setScheme(ufsPath.getScheme()).setAuthority(ufsPath.getAuthority())
-        .addAllPathComponents(pathComponents).addPathComponents(childName).build();
-  }
-
   // TODO(jiacheng): this should be implemented elsewhere, where the MountTable is accessible
   public static MountPointInfo findMountPoint(UfsUrl ufsPath) {
     return null;
   }
 
-  public static boolean isPrefix(UfsUrl ufsPath, UfsUrl another, boolean allowEquals) {
-    // TODO: implement this
-    return false;
-  }
-
-  /**
-   * Generate an URL in scheme://authority/path format
-   */
-  public static String asString(UfsUrl ufsPath) {
-    // TODO: consider corner cases
-    StringBuilder sb = new StringBuilder();
-    sb.append(ufsPath.getScheme());
-    sb.append("://");
-    sb.append(ufsPath.getAuthority());
-    sb.append(AlluxioURI.SEPARATOR);
-    List<String> pathComponents = ufsPath.getPathComponentsList();
-    for (int i = 0; i < pathComponents.size(); i++) {
-      sb.append(pathComponents.get(i));
-      if (i < pathComponents.size() - 1) {
-        sb.append(AlluxioURI.SEPARATOR);
-      }
-      // TODO: need a trailing separator if the path is dir?
-    }
-    return sb.toString();
-  }
-
-  // TODO: implement equals(a, b)
 
   /**
    * Creates a {@link URI} from a string.
@@ -146,15 +106,15 @@ public class UfsUrlUtils {
   public static UfsUrl create(String scheme, Authority authority, String path) {
     Preconditions.checkArgument(path != null, "Can not create a uri with a null path.");
     Preconditions.checkArgument(scheme != null && !scheme.isEmpty(), "Scheme is empty");
-    return UfsUrl.newBuilder().setScheme(scheme).setAuthority(authority.toString())
-        .addAllPathComponents(Arrays.asList(path.split(AlluxioURI.SEPARATOR))).build();
+    return new UfsUrl(UfsUrlMessage.newBuilder().setScheme(scheme).setAuthority(authority.toString())
+        .addAllPathComponents(Arrays.asList(path.split(AlluxioURI.SEPARATOR))).build());
   }
 
   public static UfsUrl create(String scheme, String authorityStr, String path) {
     Preconditions.checkArgument(path != null, "Can not create a uri with a null path.");
     Preconditions.checkArgument(scheme != null && !scheme.isEmpty(), "Scheme is empty");
-    return UfsUrl.newBuilder().setScheme(scheme).setAuthority(authorityStr)
-            .addAllPathComponents(Arrays.asList(path.split(AlluxioURI.SEPARATOR))).build();
+    return new UfsUrl(UfsUrlMessage.newBuilder().setScheme(scheme).setAuthority(authorityStr)
+            .addAllPathComponents(Arrays.asList(path.split(AlluxioURI.SEPARATOR))).build());
   }
 
   /**
@@ -168,9 +128,9 @@ public class UfsUrlUtils {
     if (childPathComponents == null || childPathComponents.length == 0) {
       return parent;
     }
-    return UfsUrl.newBuilder().setScheme(parent.getScheme()).setAuthority(parent.getAuthority())
-            .addAllPathComponents(parent.getPathComponentsList())
-            .addAllPathComponents(Arrays.asList(childPathComponents)).build();
+    return new UfsUrl(UfsUrlMessage.newBuilder().setScheme(parent.getScheme()).setAuthority(parent.getAuthorityString())
+            .addAllPathComponents(parent.getPathComponents())
+            .addAllPathComponents(Arrays.asList(childPathComponents)).build());
   }
 
   /**
@@ -179,13 +139,5 @@ public class UfsUrlUtils {
    */
   public static UfsUrl create(UfsUrl parent, String childPath) {
     return create(parent, childPath.split(AlluxioURI.SEPARATOR));
-  }
-
-  public static String getFullPath(UfsUrl ufsPath) {
-    return Strings.join(ufsPath.getPathComponentsList(), AlluxioURI.SEPARATOR.charAt(0));
-  }
-
-  public static AlluxioURI toAlluxioURI(UfsUrl ufsPath) {
-    return new AlluxioURI(ufsPath.getScheme(), Authority.fromString(ufsPath.getAuthority()), getFullPath(ufsPath));
   }
 }

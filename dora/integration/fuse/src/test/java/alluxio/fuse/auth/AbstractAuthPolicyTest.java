@@ -43,13 +43,13 @@ import alluxio.grpc.ScheduleAsyncPersistencePOptions;
 import alluxio.grpc.SetAclAction;
 import alluxio.grpc.SetAclPOptions;
 import alluxio.grpc.SetAttributePOptions;
-import alluxio.grpc.UfsUrl;
 import alluxio.grpc.UnmountPOptions;
 import alluxio.jnifuse.FuseFileSystem;
 import alluxio.jnifuse.struct.FuseContext;
 import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
 import alluxio.security.authorization.AclEntry;
+import alluxio.uri.UfsUrl;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
@@ -191,7 +191,7 @@ public abstract class AbstractAuthPolicyTest {
     @Override
     public URIStatus getStatus(UfsUrl ufsPath, GetStatusPOptions options)
             throws IOException, AlluxioException {
-      AlluxioURI path = UfsUrlUtils.toAlluxioURI(ufsPath);
+      AlluxioURI path = ufsPath.toAlluxioURI();
       if (mFiles.containsKey(path)) {
         return mFiles.get(path);
       } else {
