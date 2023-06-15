@@ -34,8 +34,7 @@ func main() {
 
 type checkContext struct {
 	// inputs
-	categoryNames StringSet // category or group names defined in _config.yml
-	docsPath      string    // path to docs directory in repository
+	docsPath string // path to docs directory in repository
 
 	// intermediate
 	knownFiles    StringSet                  // file paths of files that can be referenced by markdown files
