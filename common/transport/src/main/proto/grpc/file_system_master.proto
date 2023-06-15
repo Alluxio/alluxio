@@ -905,6 +905,11 @@ service FileSystemMasterWorkerService {
    * Returns the UFS information for the given mount point identified by its id.
    **/
   rpc GetUfsInfo(GetUfsInfoPRequest) returns (GetUfsInfoPResponse);
+
+  /**
+   * Reverse resolve a ufs path and get mount id.
+   */
+  rpc GetMountId(GetMountIdPRequest) returns (GetMountIdPResponse);
 }
 
 /**

@@ -14,8 +14,10 @@ package alluxio.worker.file;
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.FileSystemMasterWorkerServiceGrpc;
 import alluxio.grpc.GetFileInfoPRequest;
+import alluxio.grpc.GetMountIdPRequest;
 import alluxio.grpc.GetPinnedFileIdsPRequest;
 import alluxio.grpc.GetUfsInfoPRequest;
 import alluxio.grpc.GrpcUtils;
@@ -103,5 +105,18 @@ public class FileSystemMasterClient extends AbstractMasterClient {
     return retryRPC(() -> mClient
         .getUfsInfo(GetUfsInfoPRequest.newBuilder().setMountId(mountId).build()).getUfsInfo(),
         LOG, "GetUfsInfo", "mountId=%d", mountId);
+  }
+
+  /**
+   * Reverse resolve a ufs uri and get mount id.
+   *
+   * @param ufsUri the ufs uri
+   * @return the mount id for the ufsUri
+   * @throws AlluxioStatusException if any error occurs
+   */
+  public long getMountId(final String ufsUri) throws IOException {
+    return retryRPC(
+        () -> mClient.getMountId(GetMountIdPRequest.newBuilder().setUfsUri(ufsUri).build())
+                     .getMountId(), LOG, "GetMountId", "ufsUri=%s", ufsUri);
   }
 }
