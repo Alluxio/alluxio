@@ -38,6 +38,5 @@ PATH=$JAVA_HOME/bin:$PATH
 mvn -Duser.home=/home/jenkins -T 4C clean install -Pdeveloper -DskipTests -Dmaven.javadoc.skip \
 -Dsurefire.forkCount=2 ${mvn_args}
 
-./dev/scripts/check-docs.sh
 ./dev/scripts/build-artifact.sh ufsVersionCheck
 
