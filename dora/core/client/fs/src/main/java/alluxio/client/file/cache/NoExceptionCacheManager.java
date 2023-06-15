@@ -74,6 +74,18 @@ public class NoExceptionCacheManager implements CacheManager {
   }
 
   @Override
+  public int get(PageId pageId, int pageOffset, ReadTargetBuffer buffer,
+                 CacheContext cacheContext) {
+    try {
+      return mCacheManager.get(pageId, pageOffset, buffer, cacheContext);
+    } catch (Exception e) {
+      LOG.error("Failed to get page {}", pageId, e);
+      Metrics.GET_ERRORS.inc();
+      return -1;
+    }
+  }
+
+  @Override
   public int get(PageId pageId, int bytesToRead, byte[] buffer, int offsetInBuffer) {
     try {
       return mCacheManager.get(pageId, bytesToRead, buffer, offsetInBuffer);
