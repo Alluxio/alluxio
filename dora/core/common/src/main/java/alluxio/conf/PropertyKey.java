@@ -3944,7 +3944,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_WORKER_REGISTER_LEASE_ENABLED =
       booleanBuilder(Name.MASTER_WORKER_REGISTER_LEASE_ENABLED)
-          .setDefaultValue(true)
+          .setDefaultValue(false)
           .setDescription("Whether workers request for leases before they register. "
               + "The RegisterLease is used by the master to control the concurrency of workers"
               + " that are actively registering.")
