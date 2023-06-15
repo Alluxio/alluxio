@@ -13,11 +13,14 @@ package alluxio.client.cli.job;
 
 import static org.junit.Assert.assertTrue;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Tests for job list command.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Job master and job worker no longer exist")
 public final class ListCommandTest extends JobShellTest {
   @Test
   public void listTest() throws Exception {

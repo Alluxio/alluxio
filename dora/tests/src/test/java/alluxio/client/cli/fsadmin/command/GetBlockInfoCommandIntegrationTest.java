@@ -22,6 +22,7 @@ import alluxio.grpc.WritePType;
 import alluxio.master.block.BlockId;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -29,6 +30,8 @@ import java.io.IOException;
 /**
  * Tests for getBlockInfo command.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Block store is deprecated in DORA")
 public final class GetBlockInfoCommandIntegrationTest extends AbstractFsAdminShellTest {
   @Test
   public void invalidId() {

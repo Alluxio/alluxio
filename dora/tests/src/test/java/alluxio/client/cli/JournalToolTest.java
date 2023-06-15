@@ -50,6 +50,7 @@ import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
 import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
 import org.hamcrest.Matchers;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -64,6 +65,8 @@ import java.util.List;
 /**
  * Tests for {@link JournalTool}.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Master no longer manages metadata")
 public class JournalToolTest extends BaseIntegrationTest {
   private static final int CHECKPOINT_SIZE = 100;
 

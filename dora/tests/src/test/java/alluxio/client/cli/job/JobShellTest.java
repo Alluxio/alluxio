@@ -23,7 +23,10 @@ import alluxio.job.wire.JobInfo;
 import alluxio.job.wire.Status;
 
 import java.util.concurrent.TimeoutException;
+import org.junit.Ignore;
 
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Job master and job worker no longer exist")
 public abstract class JobShellTest extends AbstractFileSystemShellTest {
 
   protected long runPersistJob() throws Exception {
