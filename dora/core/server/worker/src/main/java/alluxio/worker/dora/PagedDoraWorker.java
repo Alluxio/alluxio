@@ -846,4 +846,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   UnderFileSystem getUfs() {
     return mUfs;
   }
+
+  protected DoraOpenFileHandleContainer getOpenFileHandleContainer() {
+    return mOpenFileHandleContainer;
+  }
 }
