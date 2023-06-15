@@ -12,7 +12,6 @@
 package alluxio.master.scheduler;
 
 import alluxio.collections.ConcurrentHashSet;
-import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.file.DefaultFileSystemMaster;
@@ -62,10 +61,9 @@ public class JournaledJobMetaStore implements JobMetaStore, Journaled {
     else {
       try {
         Job<?> job = JobFactoryProducer.create(entry, mFileSystemMaster).create();
-      mExistingJobs.remove(job);
-      mExistingJobs.add(job);
-      }
-      catch (RuntimeException e) {
+        mExistingJobs.remove(job);
+        mExistingJobs.add(job);
+      } catch (RuntimeException e) {
         LOG.error("Failed to create job from journal entry: {}", entry, e);
       }
     }

@@ -119,10 +119,8 @@ public final class FileSystemMasterWorkerServiceHandler
   @Override
   public void getMountId(GetMountIdPRequest request,
       StreamObserver<GetMountIdPResponse> responseObserver) {
-    RpcUtils.call(LOG,
-            () -> GetMountIdPResponse
-                .newBuilder().setMountId(mFileSystemMaster.getMountIdFromUfsPath(new AlluxioURI(request.getUfsUri())))
-                .build(),
+    RpcUtils.call(LOG, () -> GetMountIdPResponse.newBuilder().setMountId(
+            mFileSystemMaster.getMountIdFromUfsPath(new AlluxioURI(request.getUfsUri()))).build(),
         "getMountId", "ufsPath=%s", responseObserver, request.getUfsUri());
   }
 }
