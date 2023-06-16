@@ -767,7 +767,9 @@ public class LocalCacheManager implements CacheManager {
     }
     try {
       pageStoreDir.scanPages(pageInfo -> {
-        addPageToDir(pageStoreDir, pageInfo.get());
+        if (pageInfo.isPresent()) {
+          addPageToDir(pageStoreDir, pageInfo.get());
+        }
       });
     } catch (IOException | RuntimeException e) {
       LOG.error("Failed to restore PageStore", e);
