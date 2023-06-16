@@ -280,6 +280,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   }
 
   @Override
+  // TODO(jiacheng): change the signature to ufsPath
   public UfsStatus[] listStatus(String path, ListStatusPOptions options)
       throws IOException, AccessControlException {
     final long syncIntervalMs = options.hasCommonOptions()
@@ -437,15 +438,16 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    */
   public alluxio.grpc.FileInfo buildFileInfoFromUfsStatus(UfsStatus status, String ufsFullPath) {
     String filename = new AlluxioURI(ufsFullPath).getName();
-    String relativePath = CommonUtils.stripPrefixIfPresent(ufsFullPath, mRootUFS);
-    if (!relativePath.startsWith(AlluxioURI.SEPARATOR)) {
-      relativePath = AlluxioURI.SEPARATOR + relativePath;
-    }
+//    String relativePath = CommonUtils.stripPrefixIfPresent(ufsFullPath, mRootUFS);
+//    if (!relativePath.startsWith(AlluxioURI.SEPARATOR)) {
+//      relativePath = AlluxioURI.SEPARATOR + relativePath;
+//    }
 
     alluxio.grpc.FileInfo.Builder infoBuilder = alluxio.grpc.FileInfo.newBuilder()
         .setFileId(ufsFullPath.hashCode())
         .setName(filename)
-        .setPath(relativePath)
+        // TODO(jiacheng): this is no longer provided
+//        .setPath(relativePath)
         .setUfsPath(ufsFullPath)
         .setMode(status.getMode())
         .setFolder(status.isDirectory())

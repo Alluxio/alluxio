@@ -194,6 +194,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   public void getStatus(GetStatusPRequest request,
       StreamObserver<GetStatusPResponse> responseObserver) {
     try {
+      // request.getPath() is actually a UFS full path
       alluxio.wire.FileInfo fileInfo = mWorker.getFileInfo(request.getPath(),
           request.getOptions());
       GetStatusPResponse response =
@@ -214,6 +215,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
     LOG.debug("listStatus is called for {}", request.getPath());
 
     try {
+      // request.getPath() is actually a UFS full path
       UfsStatus[] statuses = mWorker.listStatus(request.getPath(), request.getOptions());
       if (statuses == null) {
         responseObserver.onError(
@@ -310,6 +312,8 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   @Override
   public void rename(RenamePRequest request, StreamObserver<RenamePResponse> responseObserver) {
     LOG.debug("Got rename: {}", request);
+    // Implicitly, this propagates to a rename operation within one UFS
+    // Both src and dst are UFS paths
     String src = request.getPath();
     String dst = request.getDstPath();
     try {

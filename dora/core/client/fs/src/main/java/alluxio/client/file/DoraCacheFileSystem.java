@@ -157,6 +157,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   @Override
   public FileInStream openFile(URIStatus status, OpenFilePOptions options)
       throws IOException, AlluxioException {
+    // TODO(jiacheng): is this path an Alluxio path or ufs path
     AlluxioURI path = new AlluxioURI(status.getPath());
     if (status.isFolder()) {
       throw new OpenDirectoryException(path);
@@ -195,6 +196,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
 
   @Override
   public PositionReader openPositionRead(URIStatus status, OpenFilePOptions options) {
+    // TODO(jiacheng): is this alluxio path or ufs path
     AlluxioURI path = new AlluxioURI(status.getPath());
     if (status.isFolder()) {
       throw AlluxioRuntimeException.from(new OpenDirectoryException(path));
@@ -256,6 +258,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       URIStatus status = result.getFirst();
       String uuid = result.getSecond();
 
+      // TODO(jiacheng): no getPath
       LOG.debug("Created file {}, options: {}", alluxioPath.getPath(), mergedOptions);
       OutStreamOptions outStreamOptions =
           new OutStreamOptions(mergedOptions, mFsContext,

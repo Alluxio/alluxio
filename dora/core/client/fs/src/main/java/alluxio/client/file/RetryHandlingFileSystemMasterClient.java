@@ -490,6 +490,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
    * @param uri uri
    * @return transport path
    */
+  // So the return string is ufs path(full path) or alluxio path(relative path)
   private static String getTransportPath(AlluxioURI uri) {
     if (uri.hasScheme() && !uri.getScheme().equals(Constants.SCHEME)) {
       // Return full URI for non-Alluxio path.

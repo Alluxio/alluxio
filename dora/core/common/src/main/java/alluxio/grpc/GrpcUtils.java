@@ -235,7 +235,8 @@ public final class GrpcUtils {
    */
   public static FileInfo fromProto(alluxio.grpc.FileInfo pInfo) {
     FileInfo fileInfo = new FileInfo().setFileId(pInfo.getFileId()).setName(pInfo.getName())
-        .setPath(pInfo.getPath()).setUfsPath(pInfo.getUfsPath()).setLength(pInfo.getLength())
+//        .setPath(pInfo.getPath())
+            .setUfsPath(pInfo.getUfsPath()).setLength(pInfo.getLength())
         .setBlockSizeBytes(pInfo.getBlockSizeBytes()).setCreationTimeMs(pInfo.getCreationTimeMs())
         .setCompleted(pInfo.getCompleted()).setFolder(pInfo.getFolder())
         .setPinned(pInfo.getPinned()).setCacheable(pInfo.getCacheable())
@@ -475,7 +476,8 @@ public final class GrpcUtils {
       fileBlockInfos.add(toProto(fileBlockInfo));
     }
     alluxio.grpc.FileInfo.Builder builder = alluxio.grpc.FileInfo.newBuilder()
-        .setFileId(fileInfo.getFileId()).setName(fileInfo.getName()).setPath(fileInfo.getPath())
+        .setFileId(fileInfo.getFileId()).setName(fileInfo.getName())
+//            .setPath(fileInfo.getPath())
         .setUfsPath(fileInfo.getUfsPath()).setLength(fileInfo.getLength())
         .setBlockSizeBytes(fileInfo.getBlockSizeBytes())
         .setCreationTimeMs(fileInfo.getCreationTimeMs()).setCompleted(fileInfo.isCompleted())

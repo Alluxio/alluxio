@@ -70,7 +70,7 @@ public class BenchStandaloneGrpcServer {
                 FileInfo.newBuilder()
                     .setFileId(0)
                     .setName("")
-                    .setPath("/")
+//                    .setPath("/")
                     .setUfsPath("/tmp/alluxio-tmp/alluxio-0/underFSStorage")
                     .setLength(0)
                     .setBlockSizeBytes(0)

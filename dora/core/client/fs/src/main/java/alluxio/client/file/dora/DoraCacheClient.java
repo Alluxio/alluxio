@@ -195,6 +195,7 @@ public class DoraCacheClient {
    * @param options
    * @return uri status
    */
+  // TODO(jiacheng): retry
   public URIStatus getStatus(String path, GetStatusPOptions options)
       throws PermissionDeniedException {
     return getStatusByGrpc(path, options);
@@ -204,6 +205,7 @@ public class DoraCacheClient {
       throws PermissionDeniedException {
     try (CloseableResource<BlockWorkerClient> client =
              mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
+      // TODO: which handler on the worker receives this?
       GetStatusPRequest request = GetStatusPRequest.newBuilder()
           .setPath(path)
           .setOptions(options)
@@ -254,6 +256,7 @@ public class DoraCacheClient {
       CompleteFilePRequest request = CompleteFilePRequest.newBuilder()
           .setPath(path)
           .setOptions(options)
+              // TODO(jiacheng): remove UUID
           .setUuid(uuid)
           .build();
       client.get().completeFile(request);
