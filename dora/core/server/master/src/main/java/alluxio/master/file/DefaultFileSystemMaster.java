@@ -707,42 +707,6 @@ public class DefaultFileSystemMaster extends CoreMaster
               path, inodeFile.getTempUfsPath());
         }
       }
-      if (Configuration
-          .getBoolean(PropertyKey.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)) {
-        validateInodeBlocks(true);
-      }
-
-      long blockIntegrityCheckInterval = Configuration
-          .getMs(PropertyKey.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL);
-
-      if (blockIntegrityCheckInterval > 0) { // negative or zero interval implies disabled
-        getExecutorService().submit(
-            new HeartbeatThread(HeartbeatContext.MASTER_BLOCK_INTEGRITY_CHECK,
-                new BlockIntegrityChecker(this), () ->
-                new FixedIntervalSupplier(Configuration.getMs(
-                    PropertyKey.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL)),
-                Configuration.global(), mMasterContext.getUserState()));
-      }
-      getExecutorService().submit(
-          new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK,
-              new InodeTtlChecker(this, mInodeTree),
-              () -> new FixedIntervalSupplier(
-                  Configuration.getMs(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS)),
-              Configuration.global(), mMasterContext.getUserState()));
-      getExecutorService().submit(
-          new HeartbeatThread(HeartbeatContext.MASTER_LOST_FILES_DETECTION,
-              new LostFileDetector(this, mBlockMaster, mInodeTree),
-              () -> new FixedIntervalSupplier(
-                  Configuration.getMs(PropertyKey.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL)),
-              Configuration.global(), mMasterContext.getUserState()));
-      mReplicationCheckHeartbeatThread = new HeartbeatThread(
-          HeartbeatContext.MASTER_REPLICATION_CHECK,
-          new alluxio.master.file.replication.ReplicationChecker(mInodeTree, mBlockMaster,
-              mSafeModeManager, mJobMasterClientPool),
-          () -> new FixedIntervalSupplier(
-              Configuration.getMs(PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS)),
-          Configuration.global(), mMasterContext.getUserState());
-      getExecutorService().submit(mReplicationCheckHeartbeatThread);
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_PERSISTENCE_SCHEDULER,
               new PersistenceScheduler(),
@@ -833,14 +797,6 @@ public class DefaultFileSystemMaster extends CoreMaster
       Thread.currentThread().interrupt();
       LOG.warn("Failed to wait for active sync executor to shut down.");
     }
-  }
-
-  @Override
-  public void validateInodeBlocks(boolean repair) throws UnavailableException {
-    mBlockMaster.validateBlocks((blockId) -> {
-      long fileId = IdUtils.fileIdFromBlockId(blockId);
-      return mInodeTree.inodeIdExists(fileId);
-    }, repair);
   }
 
   @Override

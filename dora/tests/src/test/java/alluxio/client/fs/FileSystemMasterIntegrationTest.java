@@ -113,10 +113,6 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   private static final String TEST_USER = "test";
 
   @ClassRule
-  public static ManuallyScheduleHeartbeat sManuallySchedule =
-      new ManuallyScheduleHeartbeat(HeartbeatContext.MASTER_TTL_CHECK);
-
-  @ClassRule
   public static TtlIntervalRule sTtlIntervalRule = new TtlIntervalRule(TTL_CHECKER_INTERVAL_MS);
 
   @Rule
@@ -126,7 +122,6 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.USER_METRICS_COLLECTION_ENABLED, false)
-          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, TTL_CHECKER_INTERVAL_MS)
           .setProperty(PropertyKey.WORKER_RAMDISK_SIZE, "10mb")
           .setProperty(PropertyKey.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, 0)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "1kb")
@@ -658,55 +653,6 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
         mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
     Assert.assertEquals(ttl, folderInfo.getTtl());
     Assert.assertEquals(TtlAction.FREE, folderInfo.getTtlAction());
-  }
-
-  @Test
-  public void ttlExpiredCreateFile() throws Exception {
-    mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryContext.defaults());
-    long ttl = 1;
-    CreateFileContext context = CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder()
-        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(ttl)))
-        .setWriteType(WriteType.CACHE_THROUGH);
-    long fileId =
-        mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), context).getFileId();
-    FileInfo folderInfo =
-        mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile1")));
-    Assert.assertEquals(fileId, folderInfo.getFileId());
-    Assert.assertEquals(ttl, folderInfo.getTtl());
-    // Sleep for the ttl expiration.
-    CommonUtils.sleepMs(2 * TTL_CHECKER_INTERVAL_MS);
-    HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 10, TimeUnit.SECONDS);
-    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_TTL_CHECK);
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 10, TimeUnit.SECONDS);
-    FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
-    Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
-    Assert.assertEquals(TtlAction.DELETE, fileInfo.getTtlAction());
-  }
-
-  @Test
-  public void ttlExpiredCreateFileWithFreeAction() throws Exception {
-    mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryContext.defaults());
-    long ttl = 1;
-    CreateFileContext context = CreateFileContext
-        .mergeFrom(CreateFilePOptions.newBuilder().setCommonOptions(FileSystemMasterCommonPOptions
-            .newBuilder().setTtl(ttl).setTtlAction(alluxio.grpc.TtlAction.FREE)))
-        .setWriteType(WriteType.CACHE_THROUGH);
-    long fileId =
-        mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), context).getFileId();
-    FileInfo folderInfo =
-        mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile1")));
-    Assert.assertEquals(fileId, folderInfo.getFileId());
-    Assert.assertEquals(ttl, folderInfo.getTtl());
-    Assert.assertEquals(TtlAction.FREE, folderInfo.getTtlAction());
-    // Sleep for the ttl expiration.
-    CommonUtils.sleepMs(2 * TTL_CHECKER_INTERVAL_MS);
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 10, TimeUnit.SECONDS);
-    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_TTL_CHECK);
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 10, TimeUnit.SECONDS);
-    FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
-    Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
-    Assert.assertEquals(TtlAction.DELETE, fileInfo.getTtlAction());
   }
 
   @Deprecated

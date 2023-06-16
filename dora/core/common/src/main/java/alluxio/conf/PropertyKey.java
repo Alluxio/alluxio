@@ -2969,14 +2969,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL =
-      durationBuilder(Name.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL)
-          .setDefaultValue("5min")
-          .setDescription("The interval between Alluxio master detections to find lost "
-              + "files based on updates from Alluxio workers.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
   public static final PropertyKey MASTER_LOST_WORKER_DETECTION_INTERVAL =
       durationBuilder(Name.MASTER_LOST_WORKER_DETECTION_INTERVAL)
           .setDefaultValue("10sec")
@@ -3298,19 +3290,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "in memory. This config is only available when "
               + Name.MASTER_FILE_SYSTEM_MERGE_INODE_JOURNALS + "is enabled.")
           .build();
-  public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
-      booleanBuilder(Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR)
-          .setDefaultValue(true)
-          .setDescription("Whether the system should delete orphaned blocks found during the "
-              + "periodic integrity check.")
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
-      durationBuilder(Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL)
-          .setDefaultValue("1hr")
-          .setDescription("The period for the block integrity check, disabled if <= 0.")
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_PERSISTENCE_CHECKER_INTERVAL_MS =
       durationBuilder(Name.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS)
           .setDefaultValue("1s")
@@ -3422,15 +3401,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setIsHidden(true)
           .setIgnoredSiteProperty(true)
           .build();
-  public static final PropertyKey MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
-      booleanBuilder(Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("Whether the system should be checked on startup for orphaned blocks "
-              + "(blocks having no corresponding files but still taking system resource due to "
-              + "various system failures). Orphaned blocks will be deleted during master startup "
-              + "if this property is true. This property is available since 1.7.1")
-          .setScope(Scope.MASTER)
-          .build();
   public static final PropertyKey MASTER_STATE_LOCK_ERROR_THRESHOLD =
       intBuilder(Name.MASTER_STATE_LOCK_ERROR_THRESHOLD)
           .setDefaultValue(20)
@@ -3472,15 +3442,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("MEM,SSD,HDD")
           .setDescription("The list of medium types we support in the system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey MASTER_TTL_CHECKER_INTERVAL_MS =
-      durationBuilder(Name.MASTER_TTL_CHECKER_INTERVAL_MS)
-          .setAlias("alluxio.master.ttl.checker.interval.ms")
-          .setDefaultValue("1hour")
-          .setDescription("How often to periodically check and delete/free the files "
-              + "with expired ttl value.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_UFS_ACTIVE_SYNC_INTERVAL =
@@ -8520,10 +8481,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.merge.journal.context.num.entries.logging.threshold";
     public static final String MASTER_RECURSIVE_OPERATION_JOURNAL_FORCE_FLUSH_MAX_ENTRIES =
         "alluxio.master.recursive.operation.journal.force.flush.max.entries";
-    public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
-        "alluxio.master.periodic.block.integrity.check.repair";
-    public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
-        "alluxio.master.periodic.block.integrity.check.interval";
     public static final String MASTER_PRINCIPAL = "alluxio.master.principal";
     public static final String MASTER_PROXY_TIMEOUT_MS = "alluxio.master.proxy.timeout";
     public static final String MASTER_PROXY_CHECK_HEARTBEAT_INTERVAL =
@@ -8552,8 +8509,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.serving.thread.timeout";
     public static final String MASTER_SKIP_ROOT_ACL_CHECK =
         "alluxio.master.skip.root.acl.check";
-    public static final String MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
-        "alluxio.master.startup.block.integrity.check.enabled";
     public static final String MASTER_STATE_LOCK_ERROR_THRESHOLD =
         "alluxio.master.state.lock.error.threshold";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
@@ -8566,8 +8521,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.tieredstore.global.levels";
     public static final String MASTER_TIERED_STORE_GLOBAL_MEDIUMTYPE =
         "alluxio.master.tieredstore.global.mediumtype";
-    public static final String MASTER_TTL_CHECKER_INTERVAL_MS =
-        "alluxio.master.ttl.checker.interval";
     public static final String MASTER_UFS_ACTIVE_SYNC_INTERVAL =
         "alluxio.master.ufs.active.sync.interval";
     public static final String MASTER_UFS_ACTIVE_SYNC_MAX_ACTIVITIES =
