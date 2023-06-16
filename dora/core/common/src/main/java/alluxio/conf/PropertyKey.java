@@ -7791,14 +7791,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
 
-  public static final PropertyKey DORA_UFS_CACHED_FILE_SYSTEM_ENABLED =
-      booleanBuilder(Name.DORA_UFS_CACHED_FILE_SYSTEM_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("Whether to use fileSystem cache for options")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
-          .setScope(Scope.ALL)
-          .build();
-
   public static final PropertyKey DORA_CLIENT_METADATA_CACHE_ENABLED =
       booleanBuilder(Name.DORA_CLIENT_METADATA_CACHE_ENABLED)
           .setDefaultValue(true)
@@ -9507,9 +9499,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.dora.client.read.location.policy.enabled";
 
     public static final String DORA_CLIENT_UFS_ROOT = "alluxio.dora.client.ufs.root";
-
-    public static final String DORA_UFS_CACHED_FILE_SYSTEM_ENABLED = "alluxio.dora.cached.file.system.enabled";
-
     public static final String DORA_CLIENT_METADATA_CACHE_ENABLED
         = "alluxio.dora.client.metadata.cache.enabled";
 
