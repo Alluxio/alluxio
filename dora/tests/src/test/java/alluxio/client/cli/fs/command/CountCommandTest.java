@@ -19,11 +19,14 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.WritePType;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Tests for count command.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Master no longer manages metadata")
 public final class CountCommandTest extends AbstractFileSystemShellTest {
   @Test
   public void countNotExist() throws Exception {

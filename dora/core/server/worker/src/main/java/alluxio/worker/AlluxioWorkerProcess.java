@@ -331,7 +331,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   public boolean waitForReady(int timeoutMs) {
     try {
       CommonUtils.waitFor(this + " to start",
-          () -> isServing() && mRegistry.get(DataWorker.class).getWorkerId() != null,
+          () -> isServing() && mRegistry.get(DataWorker.class).getWorkerId() != null
+              && mWebServer != null && mWebServer.getServer().isRunning(),
           WaitForOptions.defaults().setTimeoutMs(timeoutMs));
       return true;
     } catch (InterruptedException e) {

@@ -28,6 +28,7 @@ import alluxio.util.io.PathUtils;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -88,6 +89,8 @@ public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest
    * Tests {@link alluxio.client.block.LocalBlockInStream#read()}.
    */
   @Test
+  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+  @Ignore("Block store is deprecated in DORA")
   public void readTest1() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFilePOptions op : getOptionSet()) {
@@ -129,6 +132,8 @@ public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest
    * Tests {@link alluxio.client.block.LocalBlockInStream#read(byte[])}.
    */
   @Test
+  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+  @Ignore("Block store is deprecated in DORA")
   public void readTest2() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFilePOptions op : getOptionSet()) {
@@ -154,6 +159,8 @@ public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest
    * Tests {@link alluxio.client.block.LocalBlockInStream#read(byte[], int, int)}.
    */
   @Test
+  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+  @Ignore("Block store is deprecated in DORA")
   public void readTest3() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFilePOptions op : getOptionSet()) {
@@ -180,6 +187,8 @@ public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest
    * exception for seeking a negative position.
    */
   @Test
+  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+  @Ignore("Block store is deprecated in DORA")
   public void seekExceptionTest1() throws Exception {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(String.format(PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), -1));
@@ -199,6 +208,8 @@ public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest
    * exception for seeking a position that is past buffer limit.
    */
   @Test
+  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+  @Ignore("Block store is deprecated in DORA")
   public void seekExceptionTest2() throws Exception {
     mThrown.expect(IllegalArgumentException.class);
     mThrown
@@ -219,6 +230,8 @@ public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest
    * Tests {@link alluxio.client.block.LocalBlockInStream#seek(long)}.
    */
   @Test
+  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+  @Ignore("Block store is deprecated in DORA")
   public void seek() throws Exception {
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (CreateFilePOptions op : getOptionSet()) {
@@ -241,6 +254,8 @@ public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest
    * Tests {@link alluxio.client.block.LocalBlockInStream#skip(long)}.
    */
   @Test
+  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+  @Ignore("Block store is deprecated in DORA")
   public void skip() throws Exception {
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (CreateFilePOptions op : getOptionSet()) {

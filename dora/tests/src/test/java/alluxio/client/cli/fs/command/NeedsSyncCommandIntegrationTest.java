@@ -26,6 +26,7 @@ import alluxio.grpc.WritePType;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -37,6 +38,8 @@ import java.util.stream.Collectors;
 /**
  * Tests for needsSync command.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Master no longer manages metadata")
 public final class NeedsSyncCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void needsSyncDir() throws IOException, AlluxioException {

@@ -26,6 +26,7 @@ import alluxio.grpc.WritePType;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -36,6 +37,8 @@ import java.util.List;
 /**
  * Integration tests for checkConsistency command.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Master no longer manages metadata")
 public class CheckConsistencyCommandIntegrationTest extends AbstractFileSystemShellTest {
   /**
    * Tests the check consistency shell command correctly identifies a consistent subtree.

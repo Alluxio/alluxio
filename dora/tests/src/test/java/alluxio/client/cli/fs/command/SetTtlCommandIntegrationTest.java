@@ -20,6 +20,7 @@ import alluxio.grpc.TtlAction;
 import alluxio.grpc.WritePType;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -28,6 +29,8 @@ import java.util.Map;
 /**
  * Tests for setTtl command.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Master no longer manages metadata")
 public final class SetTtlCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void setTtl() throws Exception {

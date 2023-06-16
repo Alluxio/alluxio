@@ -44,6 +44,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Closer;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -61,6 +62,8 @@ import java.util.List;
     confParams = {
         PropertyKey.Name.MASTER_WORKER_INFO_CACHE_REFRESH_TIME, "1ms",
         PropertyKey.Name.USER_WORKER_LIST_REFRESH_INTERVAL, "1ms"})
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Master no longer manages metadata")
 public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest {
 
   @Rule

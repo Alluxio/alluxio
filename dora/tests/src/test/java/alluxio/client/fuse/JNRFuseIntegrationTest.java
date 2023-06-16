@@ -19,12 +19,15 @@ import alluxio.fuse.AlluxioJnrFuseFileSystem;
 import alluxio.fuse.options.FuseOptions;
 
 import org.junit.Assume;
+import org.junit.Ignore;
 
 import java.nio.file.Paths;
 
 /**
  * Integration tests for JNR-FUSE based {@link AlluxioJnrFuseFileSystem}.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("JNR is deprecated")
 public class JNRFuseIntegrationTest extends AbstractFuseIntegrationTest {
   private AlluxioJnrFuseFileSystem mFuseFileSystem;
 

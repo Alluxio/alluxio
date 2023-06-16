@@ -19,11 +19,14 @@ import alluxio.util.io.BufferUtils;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Tests checksum command.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Master no longer manages metadata")
 public final class ChecksumCommandIntegrationTest extends AbstractFileSystemShellTest {
 
   /**

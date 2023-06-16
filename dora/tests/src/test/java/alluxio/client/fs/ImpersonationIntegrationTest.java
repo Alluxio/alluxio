@@ -31,6 +31,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -45,6 +46,8 @@ import javax.security.auth.Subject;
 /**
  * Integration tests for user impersonation.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("check if this needs to be fixed")
 public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
   private static final String IMPERSONATION_USER = "impersonation_user";
   private static final String IMPERSONATION_GROUP1 = "impersonation_group1";

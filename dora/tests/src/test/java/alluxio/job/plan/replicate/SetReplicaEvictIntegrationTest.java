@@ -26,11 +26,14 @@ import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Integration tests for evict functionality of  {@link SetReplicaDefinition}.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("job master is deprecated")
 public final class SetReplicaEvictIntegrationTest extends JobIntegrationTest {
   private static final String TEST_URI = "/test";
   private static final int TEST_BLOCK_SIZE = 100;

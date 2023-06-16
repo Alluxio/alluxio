@@ -26,6 +26,7 @@ import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.DefaultBlockWorker;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
@@ -80,6 +81,8 @@ public class WorkerMetadataSyncIntegrationTest {
   }
 
   @Test
+  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+  @Ignore("Block store is deprecated")
   public void freeBlocks() throws Exception {
     mLocalAlluxioClusterResource.start();
 

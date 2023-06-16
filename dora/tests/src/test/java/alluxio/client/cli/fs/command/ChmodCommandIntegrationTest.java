@@ -18,6 +18,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.grpc.WritePType;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -25,6 +26,8 @@ import java.io.IOException;
 /**
  * Tests for chmod command.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Master no longer manages metadata")
 public final class ChmodCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void chmod() throws IOException, AlluxioException {

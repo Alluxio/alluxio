@@ -31,6 +31,7 @@ import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerInfo;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -44,6 +45,8 @@ import java.util.List;
  * types.
  */
 @RunWith(Parameterized.class)
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("job master and job worker are deprecated in DORA")
 public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamIntegrationTest {
   // TODO(binfan): Run tests with local writes enabled and disabled.
 

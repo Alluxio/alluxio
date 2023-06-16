@@ -37,6 +37,7 @@ import com.google.common.io.Files;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -46,6 +47,8 @@ import java.io.IOException;
 /**
  * Tests the pin command with multiple media.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Master no longer manages metadata")
 public final class PinCommandMultipleMediaIntegrationTest extends BaseIntegrationTest {
   private static final int SIZE_BYTES = Constants.MB * 16;
 

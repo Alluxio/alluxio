@@ -18,11 +18,14 @@ import alluxio.grpc.WritePType;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Tests for head command.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Master no longer manages metadata")
 public final class HeadCommandIntegrationTest extends AbstractFileSystemShellTest {
 
   @Test

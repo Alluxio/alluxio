@@ -22,6 +22,7 @@ import alluxio.master.file.meta.PersistenceState;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -29,6 +30,8 @@ import java.util.Collections;
 /**
  * Integration tests for {@link LoadDefinition}.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("job master is deprecated")
 public final class LoadIntegrationTest extends JobIntegrationTest {
   private static final String TEST_URI = "/test";
 

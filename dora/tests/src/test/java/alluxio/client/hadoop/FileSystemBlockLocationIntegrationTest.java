@@ -24,6 +24,7 @@ import org.apache.hadoop.fs.Path;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.net.URI;
@@ -59,6 +60,8 @@ public class FileSystemBlockLocationIntegrationTest extends BaseIntegrationTest 
    * Test the different situations of different start and len.
    */
   @Test
+  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+  @Ignore("Block store is deprecated")
   public void basicBlockLocation() throws Exception {
     FileStatus fStatus = sTFS.getFileStatus(new Path("/testFile1"));
 

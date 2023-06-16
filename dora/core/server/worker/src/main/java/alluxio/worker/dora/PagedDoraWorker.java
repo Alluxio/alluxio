@@ -87,7 +87,6 @@ import alluxio.worker.grpc.GrpcExecutors;
 import alluxio.worker.task.CopyHandler;
 import alluxio.worker.task.DeleteHandler;
 
-import javax.inject.Named;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
@@ -112,6 +111,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.inject.Named;
 
 /**
  * Page store based dora worker.

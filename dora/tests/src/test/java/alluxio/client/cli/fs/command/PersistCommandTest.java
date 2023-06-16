@@ -38,6 +38,7 @@ import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
 import org.junit.Assume;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -49,6 +50,8 @@ import java.util.List;
  */
 @LocalAlluxioClusterResource.ServerConfig(
     confParams = {PropertyKey.Name.MASTER_PERSISTENCE_BLACKLIST, "foobar_blacklist"})
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Master no longer manages metadata")
 public final class PersistCommandTest extends AbstractFileSystemShellTest {
 
   @Rule

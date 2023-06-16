@@ -20,6 +20,7 @@ import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.IntegrationTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -34,6 +35,8 @@ public class SecondaryMasterTest extends BaseIntegrationTest {
           .build();
 
   @Test
+  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+  @Ignore("master no longer manages metadata")
   public void secondaryShouldCreateCheckpoints() throws Exception {
     FileSystem fs = mClusterResource.get().getClient();
     // Create a bunch of directories to trigger a checkpoint.

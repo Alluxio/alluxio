@@ -34,6 +34,7 @@ import alluxio.wire.BlockInfo;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.powermock.reflect.Whitebox;
@@ -41,6 +42,8 @@ import org.powermock.reflect.Whitebox;
 /**
  * Integration tests for replicate functionality of {@link SetReplicaDefinition}.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("job master is deprecated")
 public final class SetReplicaReplicateIntegrationTest extends JobIntegrationTest {
 
   @ClassRule

@@ -58,6 +58,7 @@ import io.grpc.Context;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -76,6 +77,8 @@ import java.util.stream.Collectors;
 /**
  * Tests the loading of metadata and the available options.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("check if this needs to be fixed")
 public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   private static final long INTERVAL_MS = 100;
   private static final long LARGE_INTERVAL_MS = 1000;

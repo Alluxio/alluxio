@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -37,6 +38,8 @@ import javax.ws.rs.HttpMethod;
 /**
  * Test cases for {@link AlluxioWorkerRestServiceHandler}.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Block store is deprecated")
 public final class AlluxioWorkerRestApiTest extends RestApiTest {
 
   // TODO(chaomin): Rest API integration tests are only run in NOSASL mode now. Need to

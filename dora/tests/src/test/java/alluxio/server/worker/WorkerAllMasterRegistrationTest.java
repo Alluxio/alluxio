@@ -40,6 +40,7 @@ import com.google.common.collect.Maps;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
@@ -104,6 +105,8 @@ public class WorkerAllMasterRegistrationTest {
    * Tests a happy path where added and removed blocks can all be reported to standby masters.
    */
   @Test
+  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+  @Ignore("Block store is deprecated")
   public void happyPath() throws Exception {
     CommonUtils.waitFor("wait for worker registration complete", () ->
         mWorker.getBlockSyncMasterGroup().isRegisteredToAllMasters(), mDefaultWaitForOptions);
@@ -154,6 +157,8 @@ public class WorkerAllMasterRegistrationTest {
    * Tests a scenario where the worker to master heartbeat fails.
    */
   @Test
+  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+  @Ignore("Block store is deprecated")
   public void workerHeartbeatFail() throws Exception {
     CommonUtils.waitFor("wait for worker registration complete", () ->
         mWorker.getBlockSyncMasterGroup().isRegisteredToAllMasters(), mDefaultWaitForOptions);
@@ -206,6 +211,8 @@ public class WorkerAllMasterRegistrationTest {
    * on the new elected primary master.
    */
   @Test
+  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+  @Ignore("Block store is deprecated")
   public void masterFailover() throws Exception {
     CommonUtils.waitFor("wait for worker registration complete", () ->
         mWorker.getBlockSyncMasterGroup().isRegisteredToAllMasters(), mDefaultWaitForOptions);
@@ -245,6 +252,8 @@ public class WorkerAllMasterRegistrationTest {
    * Tests worker being able to worker and re-register to all masters after its restart.
    */
   @Test
+  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+  @Ignore("Block store is deprecated")
   public void workerRestart() throws Exception {
     CommonUtils.waitFor("wait for worker registration complete", () ->
         mWorker.getBlockSyncMasterGroup().isRegisteredToAllMasters(), mDefaultWaitForOptions);
@@ -278,6 +287,8 @@ public class WorkerAllMasterRegistrationTest {
    * and the block report becomes too big and takes up too many memory.
    */
   @Test
+  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+  @Ignore("Block store is deprecated")
   public void heartbeatFallsBackToRegister() throws Exception {
     CommonUtils.waitFor("wait for worker registration complete", () ->
         mWorker.getBlockSyncMasterGroup().isRegisteredToAllMasters(), mDefaultWaitForOptions);

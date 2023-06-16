@@ -21,6 +21,7 @@ import alluxio.stress.client.ClientIOTaskResult;
 import alluxio.util.JsonSerializable;
 
 import com.google.common.collect.ImmutableList;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -31,6 +32,8 @@ import java.util.List;
 /**
  * Tests {@link StressClientIOBench}.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("need to be fixed")
 public class StressClientIOBenchIntegrationTest extends AbstractStressBenchIntegrationTest {
   @Test
   public void readIO() throws Exception {

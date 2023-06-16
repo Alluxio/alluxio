@@ -22,6 +22,7 @@ import alluxio.job.wire.JobInfo;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -38,6 +39,8 @@ public final class MigrateIntegrationTest extends JobIntegrationTest {
   public TemporaryFolder mFolder = new TemporaryFolder();
 
   @Test
+  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+  @Ignore("job master is deprecated in DORA")
   public void migrateFile() throws Exception {
     File ufsMountPoint1 = mFolder.newFolder();
     File ufsMountPoint2 = mFolder.newFolder();
@@ -57,6 +60,8 @@ public final class MigrateIntegrationTest extends JobIntegrationTest {
   }
 
   @Test
+  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+  @Ignore("job master is deprecated in DORA")
   public void migrateDirectory() throws Exception {
     File ufsMountPoint1 = mFolder.newFolder();
     File ufsMountPoint2 = mFolder.newFolder();

@@ -21,6 +21,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -32,6 +33,8 @@ import java.util.List;
 /**
  * Tests loading UFS metadata many times concurrently.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Master no longer manages metadata")
 public final class ConcurrentFileSystemMasterLoadMetadataIntegrationTest {
   private static final int CONCURRENCY_FACTOR = 20;
   private FileSystem mFileSystem;

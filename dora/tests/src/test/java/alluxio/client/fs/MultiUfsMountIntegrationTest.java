@@ -39,6 +39,7 @@ import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -48,6 +49,8 @@ import java.util.Map;
 /**
  * Integration tests for mounting multiple UFSes into Alluxio, each with a different configuration.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("multiple ufs mount feature is unsupported in DORA temporarily")
 public final class MultiUfsMountIntegrationTest extends BaseIntegrationTest {
   private static final String MOUNT_POINT1 = "/mnt1";
   private static final String MOUNT_POINT2 = "/mnt2";

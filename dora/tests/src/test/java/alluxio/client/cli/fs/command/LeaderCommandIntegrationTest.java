@@ -14,11 +14,14 @@ package alluxio.client.cli.fs.command;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Tests for leader command.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Master no longer manages metadata")
 public final class LeaderCommandIntegrationTest extends AbstractFileSystemShellTest {
 
   @Test

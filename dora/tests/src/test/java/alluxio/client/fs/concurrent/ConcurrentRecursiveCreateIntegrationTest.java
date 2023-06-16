@@ -28,6 +28,7 @@ import alluxio.underfs.UnderFileSystem.Factory;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -42,6 +43,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * Tests the correctness of concurrent recursive creates.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Master no longer manages metadata")
 public class ConcurrentRecursiveCreateIntegrationTest extends BaseIntegrationTest {
   private static final int NUM_TOP_LEVEL_DIRS = 10;
 

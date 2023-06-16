@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -22,6 +23,8 @@ import java.io.IOException;
 /**
  * Tests for mv command.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Master no longer manages metadata")
 public final class MvCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void rename() throws IOException {

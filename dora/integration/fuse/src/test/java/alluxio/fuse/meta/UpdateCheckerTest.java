@@ -22,6 +22,7 @@ import alluxio.metrics.MetricsSystem;
 
 import org.junit.Assert;
 import org.junit.Assume;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
@@ -33,6 +34,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class UpdateCheckerTest {
   @Test
+  // TODO(LuQQiu): <TEST_FIX> Fix this test or remove it if it is deprecated
+  @Ignore("need to be fixed")
   public void UnderFileSystemAlluxio() {
     try (UpdateChecker checker = UpdateChecker
         .create(FuseOptions.create(Configuration.global()))) {

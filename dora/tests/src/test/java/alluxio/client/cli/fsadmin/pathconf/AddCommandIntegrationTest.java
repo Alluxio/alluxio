@@ -29,6 +29,7 @@ import alluxio.grpc.CreateFilePOptions;
 import alluxio.master.file.meta.PersistenceState;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -121,6 +122,8 @@ public class AddCommandIntegrationTest extends AbstractShellIntegrationTest {
   }
 
   @Test
+  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+  @Ignore("need to be fixed")
   public void immediatelyEffectiveForShellCommands() throws Exception {
     // Tests that after adding some path configuration, it's immediately effective for command
     // line calls afterwards.

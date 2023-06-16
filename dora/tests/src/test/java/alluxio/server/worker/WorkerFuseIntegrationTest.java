@@ -17,9 +17,13 @@ import alluxio.client.fuse.AbstractFuseIntegrationTest;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 
+import org.junit.Ignore;
+
 /**
  * Integration tests for worker embedded Fuse application.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Block store is deprecated in DORA")
 public class WorkerFuseIntegrationTest extends AbstractFuseIntegrationTest {
   @Override
   public void configure() {

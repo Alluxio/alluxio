@@ -34,11 +34,14 @@ import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
 import org.junit.Assume;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Integration tests for {@link FileOutStream} of under storage type being async persist.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("job master and job worker are deprecated in DORA")
 public final class FileOutStreamAsyncWriteJobIntegrationTest
     extends AbstractFileOutStreamIntegrationTest {
   private static final int LEN = 1024;

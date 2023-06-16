@@ -20,6 +20,7 @@ import alluxio.grpc.WritePType;
 import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -27,6 +28,8 @@ import org.junit.rules.ExpectedException;
 /**
  * Tests for setReplication command.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Master no longer manages metadata")
 public final class SetReplicationCommandTest extends AbstractFileSystemShellTest {
   private static final String TEST_FILE = "/testFile";
 

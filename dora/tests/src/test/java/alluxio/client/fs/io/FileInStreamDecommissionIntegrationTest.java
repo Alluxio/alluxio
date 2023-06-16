@@ -44,6 +44,7 @@ import alluxio.wire.WorkerNetAddress;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -54,6 +55,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("decommission is unsupported in DORA temporarily")
 public class FileInStreamDecommissionIntegrationTest {
   private static final int BLOCK_SIZE = 1024 * 1024;
   private static final int LENGTH = 2 * BLOCK_SIZE;

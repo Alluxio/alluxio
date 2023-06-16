@@ -37,6 +37,7 @@ import com.google.common.io.Files;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -48,6 +49,8 @@ import java.util.HashSet;
 /**
  * Integration tests for the pin operation.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("pin is unsupported in DORA temporarily")
 public final class PinIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =

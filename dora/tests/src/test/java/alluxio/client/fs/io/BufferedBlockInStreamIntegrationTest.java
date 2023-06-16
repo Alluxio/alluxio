@@ -27,6 +27,7 @@ import alluxio.util.io.PathUtils;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -76,6 +77,8 @@ public final class BufferedBlockInStreamIntegrationTest extends BaseIntegrationT
    * Tests {@link alluxio.client.block.BufferedBlockInStream#read()}.
    */
   @Test
+  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+  @Ignore("Block store is deprecated in DORA")
   public void readTest1() throws IOException, AlluxioException {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFilePOptions op : getOptionSet()) {
@@ -103,6 +106,8 @@ public final class BufferedBlockInStreamIntegrationTest extends BaseIntegrationT
    * Tests {@link alluxio.client.block.BufferedBlockInStream#read(byte[])}.
    */
   @Test
+  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+  @Ignore("Block store is deprecated in DORA")
   public void readTest2() throws IOException, AlluxioException {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFilePOptions op : getOptionSet()) {
@@ -127,6 +132,8 @@ public final class BufferedBlockInStreamIntegrationTest extends BaseIntegrationT
    * Tests {@link alluxio.client.block.BufferedBlockInStream#read(byte[], int, int)}.
    */
   @Test
+  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+  @Ignore("Block store is deprecated in DORA")
   public void readTest3() throws IOException, AlluxioException {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFilePOptions op : getOptionSet()) {
@@ -152,6 +159,8 @@ public final class BufferedBlockInStreamIntegrationTest extends BaseIntegrationT
    * Tests {@link alluxio.client.block.BufferedBlockInStream#skip(long)}.
    */
   @Test
+  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+  @Ignore("Block store is deprecated in DORA")
   public void skip() throws IOException, AlluxioException {
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (CreateFilePOptions op : getOptionSet()) {

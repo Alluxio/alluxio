@@ -27,6 +27,7 @@ import alluxio.util.io.PathUtils;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -34,6 +35,8 @@ import org.junit.rules.TemporaryFolder;
 /**
  * Integration tests of file permission propagation for persist and async persist.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("multiple mount point is unsupported in DORA temporarily")
 public final class PersistMultipleMountsIntegrationTest
     extends AbstractFileOutStreamIntegrationTest {
   private static final String MOUNT_PATH = "/mounted";

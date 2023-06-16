@@ -22,6 +22,7 @@ import alluxio.grpc.WritePType;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -30,6 +31,8 @@ import java.io.IOException;
 /**
  * Tests for chown command.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Master no longer manages metadata")
 public final class ChownCommandIntegrationTest extends AbstractFileSystemShellTest {
 
   @Rule

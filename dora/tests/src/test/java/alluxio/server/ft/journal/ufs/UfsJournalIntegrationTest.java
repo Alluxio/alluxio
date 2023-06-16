@@ -52,6 +52,7 @@ import alluxio.wire.FileInfo;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -65,6 +66,8 @@ import java.util.Map;
 /**
  * Test master journal, including checkpoint and entry log.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Block store is deprecated in DORA")
 public class UfsJournalIntegrationTest extends BaseIntegrationTest {
 
   @Rule

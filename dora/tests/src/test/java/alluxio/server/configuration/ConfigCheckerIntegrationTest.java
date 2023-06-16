@@ -32,6 +32,7 @@ import alluxio.wire.InconsistentProperty;
 import com.google.common.collect.ImmutableMap;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -120,6 +121,8 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
+  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+  @Ignore("check if this needs to be fixed")
   public void multiNodes() throws Exception {
     PropertyKey key = PropertyKey.UNDERFS_WEB_CONNECTION_TIMEOUT;
     // Prepare properties

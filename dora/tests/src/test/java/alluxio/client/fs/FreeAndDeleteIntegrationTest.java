@@ -37,6 +37,7 @@ import alluxio.worker.block.DefaultBlockWorker;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -44,6 +45,8 @@ import org.junit.Test;
  * Integration tests for file free and delete with under storage persisted.
  *
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("master doesn't manage metadata any more")
 public final class FreeAndDeleteIntegrationTest extends BaseIntegrationTest {
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   private static final int LOCK_POOL_LOW_WATERMARK = 50;

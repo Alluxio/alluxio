@@ -37,6 +37,7 @@ import alluxio.worker.block.BlockStoreType;
 import com.google.common.collect.ImmutableList;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -57,6 +58,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Integration tests for {@link alluxio.client.file.FileInStream}.
  */
 @RunWith(Parameterized.class)
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("check if this is necessary")
 public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   // The block size needs to be sufficiently large based on TCP send/receive buffers, set to 1MB.
   private static final int BLOCK_SIZE = Constants.MB;

@@ -31,6 +31,7 @@ import alluxio.worker.block.BlockWorker;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.powermock.reflect.Whitebox;
@@ -47,6 +48,8 @@ public class BlockMasterIntegrityIntegrationTest {
   }
 
   @Test
+  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+  @Ignore("Block store is deprecated")
   public void deleteOrphanedBlocks() throws Exception {
     AlluxioURI uri = new AlluxioURI("/test");
     int len = 10;
@@ -68,6 +71,8 @@ public class BlockMasterIntegrityIntegrationTest {
   @LocalAlluxioClusterResource.Config(confParams = {
       PropertyKey.Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED, "true"
       })
+  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+  @Ignore("Block store is deprecated")
   public void deleteInvalidBlocks() throws Exception {
     AlluxioURI uri = new AlluxioURI("/test");
     int len = 10;
@@ -90,6 +95,8 @@ public class BlockMasterIntegrityIntegrationTest {
       PropertyKey.Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL, "1sec",
       PropertyKey.Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR, "true"
       })
+  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+  @Ignore("Block store is deprecated")
   public void deleteInvalidBlocksPeriodically() throws Exception {
     AlluxioURI uri = new AlluxioURI("/test");
     int len = 10;

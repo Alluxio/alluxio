@@ -15,6 +15,7 @@ import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.exception.ExceptionMessage;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -22,6 +23,8 @@ import java.io.IOException;
 /**
  * Test for location command.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Master no longer manages metadata")
 public final class LocationCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void locationNotExist() throws IOException {

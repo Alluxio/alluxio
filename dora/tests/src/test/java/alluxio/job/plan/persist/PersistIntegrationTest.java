@@ -37,11 +37,14 @@ import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Integration tests for {@link PersistDefinition}.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("job master is deprecated")
 public final class PersistIntegrationTest extends JobIntegrationTest {
   private static final String TEST_URI = "/test";
   private static final Mode TEST_MODE = new Mode((short) 0777);

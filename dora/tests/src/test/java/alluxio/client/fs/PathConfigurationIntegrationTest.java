@@ -31,6 +31,7 @@ import com.google.common.io.ByteStreams;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -79,6 +80,8 @@ public class PathConfigurationIntegrationTest {
   }
 
   @Test
+  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+  @Ignore("remote worker is unsupported in DORA temporarily")
   public void read() throws Exception {
     final int n = 3;
 

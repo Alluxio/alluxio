@@ -33,6 +33,7 @@ import alluxio.util.io.BufferUtils;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -49,6 +50,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * Tests for copyFromLocal command.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Master no longer manages metadata")
 public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSystemShellTest {
   /** Rule to create a new temporary folder during each test. */
   @Rule

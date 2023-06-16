@@ -81,6 +81,7 @@ import io.grpc.StatusException;
 import io.grpc.stub.StreamObserver;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -109,6 +110,8 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub.class})
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Block store is deprecated")
 public class BlockWorkerRegisterStreamIntegrationTest {
   private static final long WORKER_ID = 1L;
 

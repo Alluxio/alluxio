@@ -50,6 +50,7 @@ import alluxio.wire.BlockLocationInfo;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -63,6 +64,8 @@ import java.util.stream.Collectors;
 /**
  * Integration tests for Alluxio Client (reuse the {@link LocalAlluxioCluster}).
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("master doesn't manage metadata any more")
 public final class FileSystemIntegrationTest extends BaseIntegrationTest {
   private static final byte[] TEST_BYTES = "TestBytes".getBytes();
   private static final int USER_QUOTA_UNIT_BYTES = 1000;

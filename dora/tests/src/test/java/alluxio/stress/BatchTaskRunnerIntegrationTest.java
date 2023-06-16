@@ -24,6 +24,7 @@ import alluxio.util.JsonSerializable;
 import com.google.common.collect.ImmutableList;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -31,6 +32,8 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.Map;
 
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("master doesn't manage metadata any more")
 public class BatchTaskRunnerIntegrationTest extends AbstractStressBenchIntegrationTest {
   private PrintStream mOriginalOut;
   private ByteArrayOutputStream mOut;

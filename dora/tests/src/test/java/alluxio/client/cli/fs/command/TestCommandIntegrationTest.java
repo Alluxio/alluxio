@@ -17,11 +17,14 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.grpc.WritePType;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Tests for test command.
  */
+// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@Ignore("Master no longer manages metadata")
 public final class TestCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void testPathIsDirectoryWhenPathNotExist() throws Exception {
