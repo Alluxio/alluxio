@@ -11,8 +11,13 @@ echo "Copying extension jars..."
 rm -r "${LIB_DIR}"
 mkdir -p "${LIB_DIR}"
 
-for f in "${REPO_ROOT}/dora/lib"/*.jar; do
-  echo "Copying ${f}"
-  cp "${f}" "${LIB_DIR}/"
-done
+DORA_LIB="${REPO_ROOT}/dora/lib"
+if [ -d "${DORA_LIB}" ]; then
+  if [ "$(ls -A "${DORA_LIB}")" ]; then
+    for f in "${REPO_ROOT}/dora/lib"/*.jar; do
+      echo "Copying ${f}"
+      cp "${f}" "${LIB_DIR}/"
+    done
+  fi
+fi
 
