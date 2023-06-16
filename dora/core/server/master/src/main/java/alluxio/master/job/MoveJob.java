@@ -469,8 +469,8 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
         for (RouteFailure status : response.getFailuresList()) {
           totalBytes -= status.getRoute().getLength();
           LOG.debug(format("Move file %s to %s failure: Status code: %s, message: %s",
-                  status.getRoute().getSrc(), status.getRoute().getDst()),
-              status.getCode(), status.getMessage());
+                  status.getRoute().getSrc(), status.getRoute().getDst(),
+              status.getCode(), status.getMessage()));
           if (!isHealthy() || !status.getRetryable() || !addToRetry(
               status.getRoute())) {
             addFailure(status.getRoute().getSrc(), status.getMessage(), status.getCode());
