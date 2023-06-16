@@ -1,0 +1,182 @@
+# These are the ordered category names
+  - title: Overview
+    buttonTitle: Overview
+    subfiles:
+      - title: Introduction
+        url: /en/overview.html
+      - title: Architecture
+        url: /en/overview/Architecture.html
+      - title: JobService
+        url: /en/overview/JobService.html
+      - title: Getting Started
+        url: /en/overview/Getting-Started.html
+      - title: FAQ
+        url: /en/overview/FAQ.html
+      - title: Use Cases
+        url: /en/overview/Use-Cases.html
+
+  - title: Core Services
+    buttonTitle: Core_Services
+    subfiles:
+      - title: Caching
+        url: /en/core-services/Caching.html
+      - title: Unified Namespace
+        url: /en/core-services/Unified-Namespace.html
+
+  - title: Install Alluxio
+    buttonTitle: Install_Alluxio
+    subfiles:
+      - title: Local Machine
+        url: /en/deploy/Running-Alluxio-Locally.html
+      - title: Cluster
+        url: /en/deploy/Running-Alluxio-On-a-Cluster.html
+      - title: Cluster with HA
+        url: /en/deploy/Running-Alluxio-On-a-HA-Cluster.html
+      - title: Docker
+        url: /en/deploy/Running-Alluxio-On-Docker.html
+      - title: Software Requirements
+        url: /en/deploy/Requirements.html
+
+  - title: Kubernetes
+    buttonTitle: Kubernetes
+    subfiles:
+      - title: Deploy
+        url: /en/kubernetes/Running-Alluxio-On-Kubernetes.html
+      - title: Spark on Kubernetes
+        url: /en/kubernetes/Spark-On-Kubernetes.html
+      - title: Metrics
+        url: /en/kubernetes/Metrics-On-Kubernetes.html
+
+  - title: Compute Integrations
+    buttonTitle: Compute_Integrations
+    subfiles:
+      - title: Apache Spark
+        url: /en/compute/Spark.html
+      - title: Apache Hadoop MapReduce
+        url: /en/compute/Hadoop-MapReduce.html
+      - title: Apache Flink
+        url: /en/compute/Flink.html
+      - title: Apache Hive
+        url: /en/compute/Hive.html
+      - title: Presto on Iceberg (Experimental)
+        url: /en/compute/Presto-Iceberg.html
+      - title: Presto
+        url: /en/compute/Presto.html
+      - title: Trino
+        url: /en/compute/Trino.html
+      - title: Tensorflow
+        url: /en/compute/Tensorflow.html
+
+  - title: Storage Integrations
+    buttonTitle: Storage_Integrations
+    subfiles:
+      - title: Amazon AWS S3
+        url: /en/ufs/S3.html
+      - title: HDFS
+        url: /en/ufs/HDFS.html
+      - title: Azure Blob Store
+        url: /en/ufs/Azure-Blob-Store.html
+      - title: Azure Data Lake Storage
+        url: /en/ufs/Azure-Data-Lake.html
+      - title: Azure Data Lake Storage Gen2
+        url: /en/ufs/Azure-Data-Lake-Gen2.html
+      - title: Google Cloud Storage
+        url: /en/ufs/GCS.html
+      - title: Qiniu Kodo
+        url: /en/ufs/Qiniu-KODO.html
+      - title: COSN
+        url: /en/ufs/COSN.html
+      - title: CephObjectStorage
+        url: /en/ufs/CephObjectStorage.html
+      - title: MinIO
+        url: /en/ufs/Minio.html
+      - title: NFS
+        url: /en/ufs/NFS.html
+      - title: Aliyun Object Storage Service
+        url: /en/ufs/OSS.html
+      - title: Ozone
+        url: /en/ufs/Ozone.html
+      - title: Swift
+        url: /en/ufs/Swift.html
+      - title: WEB
+        url: /en/ufs/WEB.html
+      - title: CephFS
+        url: /en/ufs/CephFS.html
+
+  - title: Operations
+    buttonTitle: Operations
+    subfiles:
+      - title: Configuration Settings
+        url: /en/operation/Configuration.html
+      - title: User CLI
+        url: /en/operation/User-CLI.html
+      - title: Journal Management
+        url: /en/operation/Journal.html
+      - title: Metrics
+        url: /en/operation/Metrics-System.html
+
+  - title: Administration
+    buttonTitle: Administration
+    subfiles:
+      - title: Troubleshooting
+        url: /en/administration/Troubleshooting.html
+      - title: Basic Logging
+        url: /en/administration/Basic-Logging.html
+
+  - title: Solutions
+    buttonTitle: Solutions
+    subfiles:
+      - title: Framework | Deep Learning Frameworks
+        url: /en/solutions/Deep-Learning.html
+
+  - title: Client APIs
+    buttonTitle: Client_APIs
+    subfiles:
+      - title: Java API
+        url: /en/api/Java-API.html
+      - title: S3 API
+        url: /en/api/S3-API.html
+      - title: REST API
+        url: /en/api/REST-API.html
+      - title: POSIX API
+        url: /en/api/POSIX-API.html
+      - title: POSIX API with Alluxio Local Cache
+        url: /en/api/POSIX-API-local-cache.html
+
+  - title: Contributor Resources
+    buttonTitle: Contributor_Resources
+    subfiles:
+      - title: Building Alluxio From Source
+        url: /en/contributor/Building-Alluxio-From-Source.html
+      - title: Contribution Guide
+        url: /en/contributor/Contributor-Getting-Started.html
+      - title: Code Conventions
+        url: /en/contributor/Code-Conventions.html
+      - title: Documentation Conventions
+        url: /en/contributor/Documentation-Conventions.html
+      - title: Contributor Tools
+        url: /en/contributor/Contributor-Tools.html
+
+  - title: Reference
+    buttonTitle: Reference
+    subfiles:
+      - title: List of Configuration Properties
+        url: /en/reference/Properties-List.html
+      - title: List of Metrics
+        url: /en/reference/Metrics-List.html
+
+  - title: Dora
+    buttonTitle: Dora
+    subfiles:
+      - title: Introduction
+        url: /en/dora/Overview.html
+      - title: Deploy Alluxio Cluster
+        url: /en/dora/Deploy-Alluxio-Cluster.html
+      - title: Deploy Alluxio on Kubernetes
+        url: /en/dora/Deploy-Alluxio-Kubernetes.html
+      - title: FUSE-based POSIX API with Local Cache
+        url: /en/dora/FUSE-SDK.html
+      - title: Metadata Cache and Invalidation in Dora
+        url: /en/dora/Metadata.html
+      - title: Presto SDK with local cache
+        url: /en/dora/PRESTO-SDK.html
