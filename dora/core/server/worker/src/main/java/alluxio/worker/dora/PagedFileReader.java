@@ -114,7 +114,7 @@ public class PagedFileReader extends BlockReader implements PositionReader {
       throws IOException {
     if (mFileSize <= mPos) {
       // TODO(JiamingMai): consider throwing exception directly
-      return null;
+      return new CompositeDataBuffer(List.of());
     }
     List<DataBuffer> dataBufferList = new ArrayList<>();
     long bytesToTransfer = Math.min(length, mFileSize - mPos);
