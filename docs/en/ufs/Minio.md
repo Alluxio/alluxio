@@ -17,9 +17,7 @@ You can use this scheme to connect Alluxio with a MinIO server.
 ## Prerequisites
 
 The Alluxio binaries must be on your machine to proceed.
-You can either
-[compile Alluxio from source]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}),
-or [download the binaries locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
+You can [download the binaries locally]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
 
 ## Setup MinIO
 
@@ -47,7 +45,7 @@ pointing to an AWS S3 endpoint.
 All the fields to be modified in `conf/alluxio-site.properties` file are listed here:
 
 ```properties
-alluxio.master.mount.table.root.ufs=s3://<MINIO_BUCKET>/<MINIO_DIRECTORY>
+alluxio.dora.client.ufs.root=s3://<MINIO_BUCKET>/<MINIO_DIRECTORY>
 alluxio.underfs.s3.endpoint=http://<MINIO_ENDPOINT>/
 alluxio.underfs.s3.disable.dns.buckets=true
 alluxio.underfs.s3.inherit.acl=false
@@ -88,7 +86,7 @@ See below for a few common cases and their resolutions.
 
 If a message like this is returned, then you'll need to double check the name of the bucket in the
 `alluxio-site.properties` file and make sure that it exists in MinIO.
-The property for the bucket name is controlled by [`alluxio.master.mount.table.root.ufs`]({{ '/en/reference/Properties-List.html' | relativize_url}}#alluxio.master.mount.table.root.ufs)
+The property for the bucket name is controlled by [`alluxio.dora.client.ufs.root`]({{ '/en/reference/Properties-List.html' | relativize_url}}#alluxio.dora.client.ufs.root)
 
 ```
 Exception in thread "main" alluxio.exception.DirectoryNotEmptyException: Failed to delete /default_tests_files (com.amazonaws.services.s3.model.AmazonS3Exception: The specified bucket does not exist (Service: Amazon S3; Status Code: 404; Error Code: NoSuchBucke

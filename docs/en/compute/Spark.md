@@ -32,18 +32,13 @@ data-locality.
 * Java 8 Update 60 or higher (8u60+), 64-bit.
 * An Alluxio cluster is set up and is running.
 This guide assumes the persistent under storage is a local HDFS deployment.
-E.g., a line of `alluxio.master.mount.table.root.ufs=hdfs://localhost:9000/alluxio/`
+E.g., a line of `alluxio.dora.client.ufs.root=hdfs://localhost:9000/alluxio/`
 is included in `${ALLUXIO_HOME}/conf/alluxio-site.properties`.
 Note that Alluxio supports many other under storage systems in addition to HDFS.
-To access data from any number of those systems is orthogonal to the focus of
-this guide but covered by
-[Unified and Transparent Namespace]({{ '/en/core-services/Unified-Namespace.html' | relativize_url }}).
 * Make sure that the Alluxio client jar is available.
 This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`
 in the tarball distribution downloaded from Alluxio
 [download page](https://www.alluxio.io/download).
-Alternatively, advanced users can compile this client jar from the source code
-by following the [instructions]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}).
 
 ## Basic Setup
 

@@ -12,9 +12,11 @@
 package alluxio.client.file.cache;
 
 import alluxio.client.file.CacheContext;
+import alluxio.exception.PageNotFoundException;
 import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.network.protocol.databuffer.DataFileChannel;
 
 import com.codahale.metrics.Counter;
 import org.slf4j.Logger;
@@ -41,6 +43,15 @@ public class NoExceptionCacheManager implements CacheManager {
   }
 
   @Override
+  public void commitFile(String fileId) {
+    try {
+      mCacheManager.commitFile(fileId);
+    } catch (Exception e) {
+      LOG.error("Failed to commit file {}", fileId);
+    }
+  }
+
+  @Override
   public boolean put(PageId pageId, byte[] page) {
     try {
       return mCacheManager.put(pageId, page);
@@ -59,6 +70,18 @@ public class NoExceptionCacheManager implements CacheManager {
       LOG.error("Failed to put page {}, cacheContext {}", pageId, cacheContext, e);
       Metrics.PUT_ERRORS.inc();
       return false;
+    }
+  }
+
+  @Override
+  public int get(PageId pageId, int pageOffset, ReadTargetBuffer buffer,
+                 CacheContext cacheContext) {
+    try {
+      return mCacheManager.get(pageId, pageOffset, buffer, cacheContext);
+    } catch (Exception e) {
+      LOG.error("Failed to get page {}", pageId, e);
+      Metrics.GET_ERRORS.inc();
+      return -1;
     }
   }
 
@@ -140,6 +163,23 @@ public class NoExceptionCacheManager implements CacheManager {
   }
 
   @Override
+  public Optional<DataFileChannel> getDataFileChannel(PageId pageId, int pageOffset,
+      int bytesToRead, CacheContext cacheContext) {
+    try {
+      return mCacheManager.getDataFileChannel(pageId, pageOffset, bytesToRead, cacheContext);
+    } catch (Exception e) {
+      if (e instanceof PageNotFoundException) {
+        // In cold read, this may be expected behavior
+        LOG.debug("Failed to getDataFileChannel of page {}", pageId, e);
+      } else {
+        LOG.error("Failed to getDataFileChannel of page {}", pageId, e);
+      }
+      Metrics.GET_ERRORS.inc();
+      return Optional.empty();
+    }
+  }
+
+  @Override
   public State state() {
     return mCacheManager.state();
   }
@@ -161,6 +201,15 @@ public class NoExceptionCacheManager implements CacheManager {
   @Override
   public List<PageId> getCachedPageIdsByFileId(String fileId, long fileLength) {
     return mCacheManager.getCachedPageIdsByFileId(fileId, fileLength);
+  }
+
+  @Override
+  public void deleteFile(String fileId) {
+    try {
+      mCacheManager.deleteFile(fileId);
+    } catch (Exception e) {
+      LOG.error("Failed to deleteFile for {}", fileId, e);
+    }
   }
 
   @Override

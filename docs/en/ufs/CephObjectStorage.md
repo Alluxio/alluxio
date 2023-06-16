@@ -17,9 +17,8 @@ using [Rados Gateway](http://docs.ceph.com/docs/master/radosgw/):
 
 ## Prerequisites
 
-The Alluxio binaries must be on your machine. You can either
-[compile Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}), or
-[download the binaries locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
+The Alluxio binaries must be on your machine. You can
+[download the binaries locally]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
 
 ## Basic Setup
 
@@ -40,12 +39,12 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 Modify `conf/alluxio-site.properties` to include:
 
 ```properties
-alluxio.master.mount.table.root.ufs=s3://<bucket>/<folder>
-alluxio.master.mount.table.root.option.s3a.accessKeyId=<access-key>
-alluxio.master.mount.table.root.option.s3a.secretKey=<secret-key>
-alluxio.master.mount.table.root.option.alluxio.underfs.s3.endpoint=http://<rgw-hostname>:<rgw-port>
-alluxio.master.mount.table.root.option.alluxio.underfs.s3.disable.dns.buckets=true
-alluxio.master.mount.table.root.option.alluxio.underfs.s3.inherit.acl=<inherit-acl>
+alluxio.dora.client.ufs.root=s3://<bucket>/<folder>
+s3a.accessKeyId=<access-key>
+s3a.secretKey=<secret-key>
+alluxio.underfs.s3.endpoint=http://<rgw-hostname>:<rgw-port>
+alluxio.underfs.s3.disable.dns.buckets=true
+alluxio.underfs.s3.inherit.acl=<inherit-acl>
 ```
 
 If using a Ceph release such as hammer (or older) specify `alluxio.underfs.s3.signer.algorithm=S3SignerType`
@@ -56,43 +55,16 @@ to use v2 S3 signatures. To use GET Bucket (List Objects) Version 1 specify
 Modify `conf/alluxio-site.properties` to include:
 
 ```properties
-alluxio.master.mount.table.root.ufs=swift://<bucket>/<folder>
-alluxio.master.mount.table.root.option.fs.swift.user=<swift-user>
-alluxio.master.mount.table.root.option.fs.swift.tenant=<swift-tenant>
-alluxio.master.mount.table.root.option.fs.swift.password=<swift-user-password>
-alluxio.master.mount.table.root.option.fs.swift.auth.url=<swift-auth-url>
-alluxio.master.mount.table.root.option.fs.swift.auth.method=<swift-auth-method>
+alluxio.dora.client.ufs.root=swift://<bucket>/<folder>
+fs.swift.user=<swift-user>
+fs.swift.tenant=<swift-tenant>
+fs.swift.password=<swift-user-password>
+fs.swift.auth.url=<swift-auth-url>
+fs.swift.auth.method=<swift-auth-method>
 ```
 Replace `<bucket>/<folder>` with an existing Swift container location. Possible values of `<swift-use-public>` are
 `true`, `false`. Specify `<swift-auth-model>` as `swiftauth` if using native Ceph RGW authentication and `<swift-auth-url>`
 as `http://<rgw-hostname>:<rgw-port>/auth/1.0`.
-
-### Nested Mount Point
-
-An Ceph location can be mounted at a nested directory in the Alluxio namespace to have unified access
-to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) can be used for this purpose.
-
-Issue the following command to use the S3 interface:
-```console
-$ ./bin/alluxio fs mount \
-  --option s3a.accessKeyId=<CEPH_ACCESS_KEY_ID> \
-  --option s3a.secretKey=<CEPH_SECRET_ACCESS_KEY> \
-  --option alluxio.underfs.s3.endpoint=<HTTP_ENDPOINT> \
-  --option alluxio.underfs.s3.disable.dns.buckets=true \
-  --option alluxio.underfs.s3.inherit.acl=false \
-  /mnt/ceph s3://<BUCKET>/<FOLDER>
-```
-
-Similarly, to use the Swift interface:
-```console
-$ ./bin/alluxio fs mount \
-  --option fs.swift.user=<SWIFT_USER> \
-  --option fs.swift.tenant=<SWIFT_TENANT> \
-  --option fs.swift.password=<SWIFT_PASSWORD> \
-  --option fs.swift.auth.url=<AUTH_URL> \
-  --option fs.swift.auth.method=<AUTH_METHOD> \
-  /mnt/ceph swift://<BUCKET>/<FOLDER>
-```
 
 ## Running Alluxio Locally with Ceph
 

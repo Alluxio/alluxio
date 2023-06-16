@@ -125,7 +125,7 @@ run_monitor() {
   else
     "${JAVA}" -cp ${CLASSPATH} ${alluxio_config} ${monitor_exec}
     if [[ $? -ne 0 ]]; then
-      echo -e "${WHITE}---${NC} ${RED}[ FAILED ]${NC} The ${CYAN}${node_type}${NC} @ ${PURPLE}$(hostname -f)${NC} is not serving requests.${NC}"
+      echo -e "${WHITE}---${NC} ${RED}[ FAILED ]${NC} The ${CYAN}${node_type}${NC} @ ${PURPLE}$(hostname -f)${NC} is not serving requests after 120s. Please check if the process is running and the logs/ if necessary.${NC}"
       print_node_logs "${node_type}"
       return 1
     fi

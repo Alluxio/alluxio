@@ -17,6 +17,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.status.PermissionDeniedException;
 import alluxio.network.netty.FileTransferType;
+import alluxio.network.protocol.databuffer.CompositeDataBuffer;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
@@ -24,6 +25,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockReader;
 import alluxio.worker.dora.DoraWorker;
+import alluxio.worker.dora.PagedFileReader;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -143,20 +145,30 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequest> {
 
     @Override
     public DataBuffer getDataBuffer(Channel channel, long offset, int len) throws Exception {
-      if (mTransferType == FileTransferType.TRANSFER
-          && (mReader instanceof LocalFileBlockReader)) {
-        return new DataFileChannel(new File(((LocalFileBlockReader) mReader).getFilePath()),
-            offset, len);
-      } else {
-        ByteBuf buf = channel.alloc().buffer(len, len);
-        try {
-          while (buf.writableBytes() > 0 && mReader.transferTo(buf) != -1) {
-          }
-          return new NettyDataBuffer(buf);
-        } catch (Throwable e) {
-          buf.release();
-          throw e;
+      if (mTransferType == FileTransferType.TRANSFER) {
+        if (mReader instanceof LocalFileBlockReader) {
+          return new DataFileChannel(new File(((LocalFileBlockReader) mReader).getFilePath()),
+              offset, len);
+        } else if (mReader instanceof PagedFileReader) {
+          PagedFileReader pagedFileReader = (PagedFileReader) mReader;
+          CompositeDataBuffer compositeDataBuffer =
+              pagedFileReader.getMultipleDataFileChannel(channel, len);
+          return compositeDataBuffer;
         }
+      }
+      return getDataBufferByCopying(channel, len);
+    }
+
+    private DataBuffer getDataBufferByCopying(Channel channel, int len)
+        throws IOException {
+      ByteBuf buf = channel.alloc().buffer(len, len);
+      try {
+        while (buf.writableBytes() > 0 && mReader.transferTo(buf) != -1) {
+        }
+        return new NettyDataBuffer(buf);
+      } catch (Throwable e) {
+        buf.release();
+        throw e;
       }
     }
 

@@ -37,7 +37,7 @@ public class NettyBufTargetBuffer implements ReadTargetBuffer {
 
   @Override
   public byte[] byteArray() {
-    throw new UnsupportedOperationException();
+    return mTarget.array();
   }
 
   @Override
@@ -108,5 +108,13 @@ public class NettyBufTargetBuffer implements ReadTargetBuffer {
       mTarget.writerIndex(mTarget.writerIndex() + bytesRead);
     }
     return bytesRead;
+  }
+
+  /**
+   * Get the internal Bytebuf object.
+   * @return the internal Bytebuf object
+   */
+  public ByteBuf getTargetBuffer() {
+    return mTarget;
   }
 }

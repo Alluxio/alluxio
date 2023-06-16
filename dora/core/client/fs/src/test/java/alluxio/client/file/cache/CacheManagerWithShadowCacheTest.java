@@ -21,6 +21,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.file.ReadTargetBuffer;
+import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.Before;
@@ -244,6 +245,11 @@ public final class CacheManagerWithShadowCacheTest {
     }
 
     @Override
+    public void commitFile(String fileId) {
+      throw new UnsupportedOperationException("commitFile method is unsupported. ");
+    }
+
+    @Override
     public int getAndLoad(PageId pageId, int pageOffset, int bytesToRead,
          ReadTargetBuffer buffer, CacheContext cacheContext,
           Supplier<byte[]> externalDataSupplier) {
@@ -281,7 +287,18 @@ public final class CacheManagerWithShadowCacheTest {
     }
 
     @Override
+    public void deleteFile(String fileId) {
+      // no-op
+    }
+
+    @Override
     public Optional<CacheUsage> getUsage() {
+      return Optional.empty();
+    }
+
+    @Override
+    public Optional<DataFileChannel> getDataFileChannel(PageId pageId, int pageOffset,
+        int bytesToRead, CacheContext cacheContext) {
       return Optional.empty();
     }
 

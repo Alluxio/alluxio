@@ -79,7 +79,7 @@ action from the `Navigate > Search Everywhere` dialog.
 8. Prepare the RamFS and format the Alluxio Worker with `bin/alluxio-mount.sh SudoMount && bin/alluxio formatWorker`
 9. In Intellij, start Alluxio worker process by selecting `Run > Run > AlluxioWorker`
 10. In Intellij, start Alluxio job worker process by selecting `Run > Run > AlluxioJobWorker`
-11. [Verify the Alluxio cluster is up]({{ '/en/deploy/Running-Alluxio-Locally.html#verify-alluxio-is-running' | relativize_url }}).
+11. [Verify the Alluxio cluster is up]({{ '/en/overview/Getting-Started.html#verify-alluxio-is-running' | relativize_url }}).
 
 ##### Start a High Availability (HA) Alluxio cluster
 1. Create journal directories for the masters 
@@ -252,7 +252,7 @@ $ mvn -T 2C install -DskipTests
 ```
 
 After the install target executes, you can follow the instructions at 
-[Running Alluxio Locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }})
+[Running Alluxio Locally]({{ '/en/overview/Getting-Started.html' | relativize_url }})
 to start a local cluster.
 
 ### Unit Tests
@@ -308,7 +308,7 @@ To have the logs output to STDOUT, append the following arguments to the `mvn` c
 
 The FUSE tests are ignored if the `libfuse` library is missing.
 To run those tests, please install the libraries referenced in
-[the Alluxio FUSE documentation]({{ '/en/api/POSIX-API.html' | relativize_url }}#requirements).
+[the Alluxio FUSE documentation]({{ '/en/fuse-sdk/Overview.html' | relativize_url }}).
 
 ## Modifying a gRPC definition
 
@@ -336,19 +336,3 @@ the `'generate'` maven profile.
 ```shell
 $ mvn clean install -Pgenerate -pl "org.alluxio:alluxio-core-transport"
 ```
-
-## Usage of `./bin/alluxio`
- 
-Please refer to [Alluxio commands]({{ '/en/operation/User-CLI.html' | relativize_url }})
-for all available commands.
-
-Some commands have different prerequisites.
-
-All commands except `bootstrapConf`, `killAll`, `copyDir` and `clearCache`
-will require that you have already built Alluxio 
-(see [Build Alluxio Master Branch]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}) 
-about how to build Alluxio manually).
-
-Some commands require the Alluxio cluster to be running, and others do not.
-Please check [all Alluxio commands]({{ '/en/operation/User-CLI.html' | relativize_url }})
-where each command specifies if it requires the Alluxio cluster to be running.

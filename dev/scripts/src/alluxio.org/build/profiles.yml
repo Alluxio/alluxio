@@ -43,10 +43,8 @@ default:
       - conf/rocks-block.ini.template
       - conf/workers
       - dora/integration/fuse/bin/alluxio-fuse
-      - integration/docker/.dockerignore
-      - integration/docker/conf/alluxio-env.sh.template
-      - integration/docker/conf/alluxio-site.properties.template
       - integration/docker/Dockerfile
+      - integration/docker/Dockerfile-base
       - integration/docker/Dockerfile-dev
       - integration/docker/entrypoint.sh
       - integration/metrics/docker-compose-master.yaml
@@ -79,4 +77,4 @@ fuse:
       - libexec/version.sh
       - LICENSE
     symlinks:
-      bin/alluxio-fuse: ../../dora/integration/fuse/bin/alluxio-fuse
+      bin/alluxio-fuse: ../dora/integration/fuse/bin/alluxio-fuse

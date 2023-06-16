@@ -13,17 +13,19 @@ package alluxio.client.file;
 
 import alluxio.AlluxioURI;
 import alluxio.CloseableSupplier;
+import alluxio.Constants;
 import alluxio.PositionReader;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.ReadType;
 import alluxio.client.file.dora.DoraCacheClient;
 import alluxio.client.file.dora.WorkerLocationPolicy;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.client.file.ufs.DoraOutStream;
 import alluxio.client.file.ufs.UfsBaseFileSystem;
+import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.FileIncompleteException;
@@ -32,6 +34,7 @@ import alluxio.exception.OpenDirectoryException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
@@ -56,7 +59,6 @@ import io.grpc.StatusRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -90,7 +92,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     }
 
     /**
-     * @param fs the filesystem
+     * @param fs      the filesystem
      * @param context the context
      * @return a DoraCacheFileSystem instance
      */
@@ -102,7 +104,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   /**
    * Wraps a file system instance to forward messages.
    *
-   * @param fs the underlying file system
+   * @param fs      the underlying file system
    * @param context
    */
   public DoraCacheFileSystem(FileSystem fs, FileSystemContext context) {
@@ -110,7 +112,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   }
 
   protected DoraCacheFileSystem(FileSystem fs, FileSystemContext context,
-      DoraCacheClient doraCacheClient) {
+                                DoraCacheClient doraCacheClient) {
     super(fs);
     mDoraClient = doraCacheClient;
     mFsContext = context;
@@ -136,7 +138,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     } catch (RuntimeException ex) {
       if (ex instanceof StatusRuntimeException) {
         if (((StatusRuntimeException) ex).getStatus().getCode() == Status.NOT_FOUND.getCode()) {
-          throw new FileNotFoundException();
+          throw new FileDoesNotExistException(ufsFullPath);
         }
       }
       UFS_FALLBACK_COUNTER.inc();
@@ -241,44 +243,82 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   }
 
   @Override
-  public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options)
+  public FileOutStream createFile(AlluxioURI alluxioPath, CreateFilePOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
-    AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
+    AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(alluxioPath);
 
-    CreateFilePOptions mergedOptions = FileSystemOptionsUtils.createFileDefaults(
-        mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
-
-    URIStatus status = mDoraClient.createFile(ufsFullPath.toString(), mergedOptions);
-
-    LOG.debug("Created file {}, options: {}", path.getPath(), mergedOptions);
-    OutStreamOptions outStreamOptions =
-        new OutStreamOptions(mergedOptions, mFsContext,
-            mFsContext.getPathConf(path));
-    outStreamOptions.setUfsPath(status.getUfsPath());
-    outStreamOptions.setMountId(status.getMountId());
-    outStreamOptions.setAcl(status.getAcl());
     try {
-      // Return this outStream to client, so it will be used to write data.
-      DoraOutStream outStream = mDoraClient.getOutStream(status, outStreamOptions, mFsContext);
-      // But in initial version for testing purpose we will close it and drop it, and fall back
-      // to use UFS's createFile().
-      outStream.close();
+      CreateFilePOptions mergedOptions = FileSystemOptionsUtils.createFileDefaults(
+          mFsContext.getPathConf(alluxioPath)).toBuilder().mergeFrom(options).build();
+
+      Pair<URIStatus, String> result =
+          mDoraClient.createFile(ufsFullPath.toString(), mergedOptions);
+      URIStatus status = result.getFirst();
+      String uuid = result.getSecond();
+
+      LOG.debug("Created file {}, options: {}", alluxioPath.getPath(), mergedOptions);
+      OutStreamOptions outStreamOptions =
+          new OutStreamOptions(mergedOptions, mFsContext,
+              mFsContext.getPathConf(alluxioPath));
+      outStreamOptions.setUfsPath(status.getUfsPath());
+      outStreamOptions.setMountId(status.getMountId());
+      outStreamOptions.setAcl(status.getAcl());
+
+      FileOutStream ufsOutStream = mDelegatedFileSystem.createFile(ufsFullPath, options);
+
+      FileOutStream doraOutStream = mDoraClient.getOutStream(ufsFullPath, mFsContext,
+          outStreamOptions, ufsOutStream, uuid);
+
+      if (Constants.ENABLE_DORA_WRITE) {
+        return doraOutStream;
+      } else {
+        doraOutStream.close();
+        return ufsOutStream;
+      }
     } catch (Exception e) {
-      delete(path);
+      // TODO(JiamingMai): delete the file
+      // delete(alluxioPath);
+      UFS_FALLBACK_COUNTER.inc();
+      LOG.debug("Dora client CreateFile error ({} times). Fall back to UFS.",
+          UFS_FALLBACK_COUNTER.getCount(), e);
+      //return mDelegatedFileSystem.createFile(ufsFullPath, options);
       throw e;
     }
-
-    LOG.warn("Dora Client does not support create/write. This is only for test.");
-    return mDelegatedFileSystem.createFile(ufsFullPath, options);
   }
 
   @Override
   public void createDirectory(AlluxioURI path, CreateDirectoryPOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
-    LOG.warn("Dora Client does not support create/write. This is only for test.");
+    try {
+      CreateDirectoryPOptions mergedOptions = FileSystemOptionsUtils.createDirectoryDefaults(
+          mFsContext.getPathConf(ufsFullPath)).toBuilder().mergeFrom(options).build();
 
-    mDelegatedFileSystem.createDirectory(ufsFullPath, options);
+      mDoraClient.createDirectory(ufsFullPath.toString(), mergedOptions);
+    } catch (RuntimeException ex) {
+      UFS_FALLBACK_COUNTER.inc();
+      LOG.debug("Dora client createDirectory error ({} times). Fall back to UFS.",
+          UFS_FALLBACK_COUNTER.getCount(), ex);
+      mDelegatedFileSystem.createDirectory(ufsFullPath, options);
+    }
+  }
+
+  @Override
+  public void delete(AlluxioURI path, DeletePOptions options)
+      throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
+    AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
+
+    try {
+      DeletePOptions mergedOptions = FileSystemOptionsUtils.deleteDefaults(
+          mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+
+      mDoraClient.delete(ufsFullPath.toString(), mergedOptions);
+    } catch (RuntimeException ex) {
+      UFS_FALLBACK_COUNTER.inc();
+      LOG.debug("Dora client delete error ({} times). Fall back to UFS.",
+          UFS_FALLBACK_COUNTER.getCount(), ex);
+      mDelegatedFileSystem.delete(ufsFullPath, options);
+    }
   }
 
   @Override
@@ -286,14 +326,22 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       throws FileDoesNotExistException, IOException, AlluxioException {
     AlluxioURI srcUfsFullPath = convertAlluxioPathToUFSPath(src);
     AlluxioURI dstUfsFullPath = convertAlluxioPathToUFSPath(dst);
-    LOG.warn("Dora Client does not support create/write. This is only for test.");
+    try {
+      RenamePOptions mergedOptions = FileSystemOptionsUtils.renameDefaults(
+          mFsContext.getPathConf(srcUfsFullPath)).toBuilder().mergeFrom(options).build();
 
-    mDelegatedFileSystem.rename(srcUfsFullPath, dstUfsFullPath, options);
+      mDoraClient.rename(srcUfsFullPath.toString(), dstUfsFullPath.toString(), mergedOptions);
+    } catch (RuntimeException ex) {
+      UFS_FALLBACK_COUNTER.inc();
+      LOG.debug("Dora client rename error ({} times). Fall back to UFS.",
+          UFS_FALLBACK_COUNTER.getCount(), ex);
+      mDelegatedFileSystem.rename(srcUfsFullPath, dstUfsFullPath, options);
+    }
   }
 
   @Override
   public void iterateStatus(AlluxioURI path, ListStatusPOptions options,
-      Consumer<? super URIStatus> action)
+                            Consumer<? super URIStatus> action)
       throws FileDoesNotExistException, IOException, AlluxioException {
     listStatus(path, options).forEach(action);
   }
@@ -317,7 +365,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
 
   /**
    * Converts the Alluxio based path to UfsBaseFileSystem based path if needed.
-   *
+   * <p>
    * UfsBaseFileSystem expects absolute/full file path. The Dora Worker
    * expects absolute/full file path, too. So we need to convert the input path from Alluxio
    * relative path to full UFS path if it is an Alluxio relative path.

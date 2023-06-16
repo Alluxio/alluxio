@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-dora</artifactId>
-    <version>296-SNAPSHOT</version>
+    <version>301-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-tests</artifactId>
   <packaging>jar</packaging>
@@ -237,38 +237,6 @@
   </dependencies>
 
   <profiles>
-    <!-- Profile to build tests module connecting to hdfs 1 -->
-    <!-- In hadoop-1, hadoop-client is a wrapper on hadoop-core but excluding a few dependencies from hadoop-core.
-         Depending on hadoop-client will lead to missing class errors in test.
-         So we need to have the direct dep on hadoop-core. -->
-    <!-- Mark hadoop-core as provided because alluxio-underfs-hdfs will come with a shaded version. -->
-    <profile>
-      <id>hadoop-1</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-core</artifactId>
-          <version>${hadoop.version}</version>
-          <scope>provided</scope>
-        </dependency>
-      </dependencies>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>com.igormaznitsa</groupId>
-            <artifactId>jcp</artifactId>
-            <configuration>
-              <globalVars>
-                <property>
-                  <name>HADOOP1</name>
-                </property>
-              </globalVars>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
     <!-- Profile to build tests module connecting to hdfs 2 -->
     <!-- Mark hadoop-{common, hdfs} as provided because alluxio-underfs-hdfs will come with a shaded version. -->
     <profile>
@@ -436,6 +404,19 @@
             <id>clearGeneratedFolders</id>
             <goals>
               <goal>clear</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Export test classes in a test-jar so that other projects can use them for testing -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
             </goals>
           </execution>
         </executions>

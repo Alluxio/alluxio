@@ -2,11 +2,11 @@
 layout: global
 title: Quick Start Guide
 group: Overview
-priority: 4
+priority: 1
 ---
 
 * Table of Contents
-{:toc}
+  {:toc}
 
 This quick start guide goes over how to run Alluxio on a local machine.
 The guide will cover the following tasks:
@@ -23,7 +23,7 @@ The guide will cover the following tasks:
 The optional sections will be labeled with **[Bonus]**.
 
 **Note**  This guide is designed to start an Alluxio system with minimal setup on a single machine.
-If you are trying to speedup SQL analytics, you can try the 
+If you are trying to speedup SQL analytics, you can try the
 [Presto Alluxio Getting Started](https://www.alluxio.io/alluxio-presto-sandbox-docker/) tutorial.
 
 ## Prerequisites
@@ -35,7 +35,7 @@ If you are trying to speedup SQL analytics, you can try the
 
 ## Downloading Alluxio
 
-Download Alluxio from [this page](https://www.alluxio.io/download). Select the
+Download Alluxio from [this page](https://alluxio.io/downloads/). Select the
 desired release followed by the distribution built for default Hadoop.
 Unpack the downloaded file with the following commands.
 
@@ -76,33 +76,58 @@ Set `alluxio.master.hostname` in `conf/alluxio-site.properties` to `localhost`.
 $ echo "alluxio.master.hostname=localhost" >> conf/alluxio-site.properties
 ```
 
+Set additional parameters in `conf/alluxio-site.properties`
+```console
+echo "alluxio.dora.client.read.location.policy.enabled=true" >> conf/alluxio-site.properties
+echo "alluxio.user.short.circuit.enabled=false" >> conf/alluxio-site.properties
+echo "alluxio.master.worker.register.lease.enabled=false" >> conf/alluxio-site.properties
+echo "alluxio.worker.block.store.type=PAGE" >> conf/alluxio-site.properties
+echo "alluxio.worker.page.store.type=LOCAL" >> conf/alluxio-site.properties
+echo "alluxio.worker.page.store.sizes=1GB" >> conf/alluxio-site.properties
+echo "alluxio.worker.page.store.page.size=1MB" >> conf/alluxio-site.properties
+```
+Set the page store directories to an existing directory which the current user has read/write permissions to.
+The following uses `/mnt/ramdisk` as an example. 
+```console
+$ echo "alluxio.worker.page.store.dirs=/mnt/ramdisk" >> conf/alluxio-site.properties
+```
+The [paging cache storage guide]({{ '/en/core-services/Caching.html' | relativize_url }}#paging-worker-storage) has more information about how to configure page block store.
+
+Configure Alluxio ufs:
+```console
+$ echo "alluxio.dora.client.ufs.root=/tmp" >> conf/alluxio-site.properties
+```
+
+`<UFS_URI>` should be a full ufs uri. This can be set to a local folder (e.g. default value `/tmp`)
+in a single node deployment  or a full ufs uri (e.g.`hdfs://namenode:port/path/` or `s3://bucket/path`).
+
 ### [Bonus] Configuration for AWS
 
-To configure Alluxio to interact with Amazon S3, add AWS access information to the Alluxio
-configuration in `conf/alluxio-site.properties`. The following commands update the
-configuration.
+To configure Alluxio to interact with Amazon S3, add AWS access information to the Alluxio configuration in `conf/alluxio-site.properties`.
 
 ```console
+$ echo "alluxio.dora.client.ufs.root=s3://<BUCKET_NAME>/<DIR>" >> conf/alluxio-site.properties
 $ echo "s3a.accessKeyId=<AWS_ACCESS_KEY_ID>" >> conf/alluxio-site.properties
 $ echo "s3a.secretKey=<AWS_SECRET_ACCESS_KEY>" >> conf/alluxio-site.properties
 ```
 
-Replace **`<AWS_ACCESS_KEY_ID>`** and **`<AWS_SECRET_ACCESS_KEY>`** with
-a valid AWS access key ID and AWS secret access key respectively.
+Replace **`s3://<BUCKET_NAME>/<DIR>`**, **`<AWS_ACCESS_KEY_ID>`** and **`<AWS_SECRET_ACCESS_KEY>`** with
+a valid AWS S3 address, AWS access key ID and AWS secret access key respectively.
 
-## Validating Alluxio environment
+For more information, please refer to the [S3 configuration docs]({{ '/en/ufs/S3.html' | relativize_url }}.
 
-Alluxio provides commands to ensure the system environment is ready for running Alluxio services.
-Run the following command to validate the environment for running Alluxio locally:
+### [Bonus] Configuration for HDFS
+
+To configure Alluxio to interact with HDFS, provide the path to HDFS configuration files available locally on each node in `conf/alluxio-site.properties`.
 
 ```console
-$ ./bin/alluxio validateEnv local
+$ echo "alluxio.dora.client.ufs.root=hdfs://nameservice/<DIR>" >> conf/alluxio-site.properties
+$ echo "alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/core-site.xml:/path/to/hdfs/conf/hdfs-site.xml" >> conf/alluxio-site.properties
 ```
 
-This reports potential problems that might prevent Alluxio from starting locally.
+Replace the url and configuration with the actual value.
 
-Check out [this page]({{ '/en/operation/User-CLI.html' | relativize_url }}#validateenv) for detailed
-usage information regarding the `validateEnv` command.
+For more information, please refer to the [HDFS configuration docs]({{ '/en/ufs/HDFS.html' | relativize_url }}.
 
 ## Starting Alluxio
 
@@ -113,18 +138,14 @@ the Alluxio journal and worker storage directories.
 $ ./bin/alluxio format
 ```
 
-Note that if this command returns failures related to 'ValidateHdfsVersion',
-and you are not planning to integrate HDFS to alluxio yet, you can ignore this failure for now.
-By default, Alluxio is configured to start a master and worker process when running locally.
-Start Alluxio on localhost with the following command:
+Start the Alluxio services
 
 ```console
-$ ./bin/alluxio-start.sh local SudoMount
+$ ./bin/alluxio-start.sh master
+$ ./bin/alluxio-start.sh worker SudoMount
 ```
 
-Congratulations! Alluxio is now up and running! Visit
-[http://localhost:19999](http://localhost:19999) and [http://localhost:30000](http://localhost:30000)
-to see the status of the Alluxio master and worker respectively.
+Congratulations! Alluxio is now up and running!
 
 ## Using the Alluxio Shell
 
@@ -154,12 +175,16 @@ List the files in Alluxio again to see the `LICENSE` file.
 
 ```console
 $ ./bin/alluxio fs ls /
--rw-r--r-- staff  staff     27040       PERSISTED 02-17-2021 16:21:11:061 100% /LICENSE
+-rw-r--r-- staff  staff     27040     02-17-2021 16:21:11:061 0% /LICENSE
 ```
 
-The output shows the file that exists in Alluxio. Each line contains the owner and group of the file,
-the size of the file, whether it has been persisted to its under file storage (UFS), the date it was created,
-and the percentage of the file that is cached in Alluxio.
+The output shows the file has been written to Alluxio under storage successfully.
+Check the directory set as the value of `alluxio.dora.client.ufs.root`, which is `/tmp` by default.
+
+```console
+$ ls /tmp
+LICENSE
+```
 
 The `cat` command prints the contents of the file.
 
@@ -173,184 +198,15 @@ $ ./bin/alluxio fs cat /LICENSE
 ...
 ```
 
-With the default configuration, Alluxio uses the local file system as its UFS and automatically
-persists data to it. The default path for the UFS is `${ALLUXIO_HOME}/underFSStorage`. Examine the contents of the UFS with:
-
-```console
-$ ls ${ALLUXIO_HOME}/underFSStorage
-LICENSE
-```
-
-The LICENSE file also appears in the Alluxio file system through the
-[master's web UI](http://localhost:19999/browse). Here, the **Persistence State** column
-shows the file as **PERSISTED**.
-
-View the amount of memory currently consumed by data in Alluxio under the **Storage Usage Summary**
-on the main page of the [master's web UI](http://localhost:19999), or through the following command.
-
-
-```console
-$ ./bin/alluxio fs getUsedBytes
-Used Bytes: 27040
-```
-
-This memory can be reclaimed by freeing it from Alluxio. Notice this does not remove
-it from the Alluxio filesystem nor the UFS. Rather it is just removed from the cache in Alluxio.
-
-```console
-$ ./bin/alluxio fs free /LICENSE
-/LICENSE was successfully freed from Alluxio space.
-
-$ ./bin/alluxio fs getUsedBytes
-Used Bytes: 0
-
-$ ./bin/alluxio fs ls /
--rw-r--r-- staff  staff     27040       PERSISTED 02-17-2021 16:21:11:061 0% /LICENSE
-
-$ ls ${ALLUXIO_HOME}/underFSStorage/
-LICENSE
-```
-
-Accessing the data will fetch the file from the UFS and bring it back into
-the cache in Alluxio.
-
-```console
-$ ./bin/alluxio fs copyToLocal /LICENSE ~/LICENSE.bak
-Copied /LICENSE to file:///home/staff/LICENSE.bak
-
-$ ./bin/alluxio fs getUsedBytes
-Used Bytes: 27040
-
-$ ./bin/alluxio fs ls /
--rw-r--r-- staff  staff     27040       PERSISTED 02-17-2021 16:21:11:061 100% /LICENSE
-
-$ rm ~/LICENSE.bak
-```
-
-## [Bonus] Mounting in Alluxio
-
-Alluxio unifies access to storage systems with the unified namespace feature. Read the [Unified
-Namespace blog post](https://www.alluxio.io/resources/whitepapers/unified-namespace-allowing-applications-to-access-data-anywhere/)
-and the [unified namespace documentation]({{ '/en/core-services/Unified-Namespace.html' | relativize_url }}) for more detailed
-explanations of the feature.
-
-This feature allows users to mount different storage systems into the Alluxio namespace and
-access the files across various storage systems through the Alluxio namespace seamlessly.
-
-Create a directory in Alluxio to store our mount points.
-
-```console
-$ ./bin/alluxio fs mkdir /mnt
-Successfully created directory /mnt
-```
-
-Mount an existing S3 bucket to Alluxio. This guide uses the `alluxio-quick-start` S3 bucket.
-
-```console
-$ ./bin/alluxio fs mount --readonly alluxio://localhost:19998/mnt/s3 s3://alluxio-quick-start/data
-Mounted s3://alluxio-quick-start/data at alluxio://localhost:19998/mnt/s3
-```
-
-List the files mounted from S3 through the Alluxio namespace by using the `ls` command.
-
-```console
-$ ./bin/alluxio fs ls /mnt/s3
--r-x------ staff  staff    955610 PERSISTED 01-09-2018 16:35:00:882   0% /mnt/s3/sample_tweets_1m.csv
--r-x------ staff  staff  10077271 PERSISTED 01-09-2018 16:35:00:910   0% /mnt/s3/sample_tweets_10m.csv
--r-x------ staff  staff     89964 PERSISTED 01-09-2018 16:35:00:972   0% /mnt/s3/sample_tweets_100k.csv
--r-x------ staff  staff 157046046 PERSISTED 01-09-2018 16:35:01:002   0% /mnt/s3/sample_tweets_150m.csv
-```
-
-The newly mounted files and directories are also visible in the
-[Alluxio web UI](http://localhost:19999/browse?path=%2Fmnt%2Fs3).
-
-With Alluxio's unified namespace, users can interact with data from different storage systems
-seamlessly. The `ls -R` command recursively lists all the files that exist under a directory.
-
-```console
-$ ./bin/alluxio fs ls -R /
--rw-r--r-- staff  staff     26847 PERSISTED 01-09-2018 15:24:37:088 100% /LICENSE
-drwxr-xr-x staff  staff         1 PERSISTED 01-09-2018 16:05:59:547  DIR /mnt
-dr-x------ staff  staff         4 PERSISTED 01-09-2018 16:34:55:362  DIR /mnt/s3
--r-x------ staff  staff    955610 PERSISTED 01-09-2018 16:35:00:882   0% /mnt/s3/sample_tweets_1m.csv
--r-x------ staff  staff  10077271 PERSISTED 01-09-2018 16:35:00:910   0% /mnt/s3/sample_tweets_10m.csv
--r-x------ staff  staff     89964 PERSISTED 01-09-2018 16:35:00:972   0% /mnt/s3/sample_tweets_100k.csv
--r-x------ staff  staff 157046046 PERSISTED 01-09-2018 16:35:01:002   0% /mnt/s3/sample_tweets_150m.csv
-```
-
-This shows all the files across all of the mounted storage
-systems. The `/LICENSE` file is from the local file system whereas the files under `/mnt/s3/` are
-in S3.
-
-## [Bonus] Accelerating Data Access with Alluxio
-
-Since Alluxio leverages memory to store data, it can accelerate access to data. Check the status
-of a file previously mounted from S3 into Alluxio:
-
-```console
-$ ./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
--r-x------ staff  staff 157046046 PERSISTED 01-09-2018 16:35:01:002   0% /mnt/s3/sample_tweets_150m.csv
-```
-
-The `0%` in the output shows that the file is **Not In Memory**. This file is a sample of tweets.
-Count the number of tweets with the word "kitten" and time the duration of the operation.
-
-```console
-$ time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c kitten
-889
-
-real	0m22.857s
-user	0m7.557s
-sys	0m1.181s
-```
-
-Depending on your network connection, the operation may take over 20 seconds. If reading this file
-takes too long, use a smaller dataset. The other files in the directory are smaller subsets
-of this file. Alluxio can accelerate access to this data by using memory to store the data.
-
-After reading the file by the `cat` command, check the status with the `ls` command:
-
-```console
-$ ./bin/alluxio fs ls /mnt/s3/sample_tweets_150m.csv
--r-x------ staff  staff 157046046 PERSISTED 01-09-2018 16:35:01:002 100% /mnt/s3/sample_tweets_150m.csv
-```
-
-`100%` in the output shows that the file is now fully loaded to Alluxio, so reading the file 
-from now on should be significantly faster.
-
-Now count the number of tweets with the word "puppy".
-
-```console
-$ time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c puppy
-1553
-
-real	0m1.917s
-user	0m2.306s
-sys	0m0.243s
-```
-
-Subsequent reads of the same file are noticeably faster since the data is stored in Alluxio
-memory.
-
-Now count how many tweets mention the word "bunny".
-
-```console
-$ time ./bin/alluxio fs cat /mnt/s3/sample_tweets_150m.csv | grep -c bunny
-907
-
-real	0m1.983s
-user	0m2.362s
-sys	0m0.240s
-```
-
-Congratulations! You installed Alluxio locally and used Alluxio to accelerate access to data!
+When the file is read, it will also be cached by Alluxio to speed up future data access.
 
 ## Stopping Alluxio
 
 Stop Alluxio with the following command:
 
 ```console
-$ ./bin/alluxio-stop.sh local
+$ ./bin/alluxio-stop.sh master
+$ ./bin/alluxio-stop.sh worker
 ```
 
 ## Conclusion
@@ -363,41 +219,9 @@ There are several next steps available. Learn more about the various features of
 our documentation. The resources below detail deploying Alluxio in various ways,
 mounting existing storage systems, and configuring existing applications to interact with Alluxio.
 
-## Next Steps
-
-### Deploying Alluxio
-
-Alluxio can be deployed in many different environments, such as:
-* [Alluxio on Local Machine]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }})
-* [Alluxio Standalone on a Cluster]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }})
-* [Alluxio on Docker]({{ '/en/deploy/Running-Alluxio-On-Docker.html' | relativize_url }})
-* [Alluxio on Kubernetes]({{ '/en/kubernetes/Running-Alluxio-On-Kubernetes.html' | relativize_url }})
-
-Check the `Install Alluxio` dropdown on the left sidebar for more available options.
-
-### Under Storage Systems
-
-Various under storage systems can be accessed through Alluxio, such as:
-* [Azure Blob Store]({{ '/en/ufs/Azure-Blob-Store.html' | relativize_url }})
-* [AWS S3]({{ '/en/ufs/S3.html' | relativize_url }})
-* [GCS]({{ '/en/ufs/GCS.html' | relativize_url }})
-* [HDFS]({{ '/en/ufs/HDFS.html' | relativize_url }})
-* [NFS]({{ '/en/ufs/NFS.html' | relativize_url }})
-
-Check the `Storage Integrations` dropdown on the left sidebar for more available options.
-
-### Frameworks and Applications
-
-Different frameworks and applications work with Alluxio, such as:
-* [Apache Spark]({{ '/en/compute/Spark.html' | relativize_url }})
-* [Apache Hive]({{ '/en/compute/Hive.html' | relativize_url }})
-* [Presto]({{ '/en/compute/Presto.html' | relativize_url }})
-
-Check the `Compute integrations` dropdown on the left sidebar for more available options.
-
 ## FAQ
 
-### Why do I keep getting "Operation not permitted" for ssh and alluxio? 
+### Why do I keep getting "Operation not permitted" for ssh and alluxio?
 
 For the users who are using macOS 11(Big Sur) or later, when running the command
 ```console
@@ -407,13 +231,33 @@ you might get the error message:
 ```
 alluxio-{{site.ALLUXIO_VERSION_STRING}}/bin/alluxio: Operation not permitted
 ```
-This can be caused by the newly added setting options to macOS. 
+This can be caused by the newly added setting options to macOS.
 To fix it, open `System Preferences` and open `Sharing`.
 
 ![macOS System Preferences Sharing]({{ '/img/screenshot_sharing_setting.png' | relativize_url }})
 
-On the left, check the box next to `Remote Login`. If there is `Allow full access to remote users` as shown in the 
+On the left, check the box next to `Remote Login`. If there is `Allow full access to remote users` as shown in the
 image, check the box next to it. Besides, click the `+` button and add yourself to the list of users that are allowed
 for Remote Login if you are not already in it.
 
+## Tuning
 
+### Optional Dora Server-side Metadata Cache
+
+By default, Dora worker caches metadata and data.
+Set `alluxio.dora.client.metadata.cache.enabled` to `false` to disable the metadata cache.
+If disabled, client will always fetch metadata from under storage directly.
+
+### High performance data transmission over Netty
+
+Set `alluxio.user.netty.data.transmission.enabled` to `true` to enable transmission of data between clients and
+Dora cache nodes over Netty. This avoids serialization and deserialization cost of gRPC, as well as consumes less
+resources on the worker side.
+
+## Known limitations
+
+1. Only one UFS is supported by Dora. Nested mounts are not supported yet.
+1. The Alluxio Master node still needs to be up and running. It is used for Dora worker discovery,
+   cluster configuration updates, as well as handling write I/O operations.
+1. Alluxio Fuse is not supported with Dora on Kubernetes with the existing helm chart. The helm chart
+   supporting Alluxio Fuse is under development.

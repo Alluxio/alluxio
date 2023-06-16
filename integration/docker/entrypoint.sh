@@ -102,7 +102,7 @@ function formatWorkerIfSpecified {
 }
 
 function mountAlluxioFSWithFuseOption {
-  exec integration/fuse/bin/alluxio-fuse mount "${@}" -f
+  exec dora/integration/fuse/bin/alluxio-fuse mount "${@}" -f
 }
 
 function mountFuseWithUFS {

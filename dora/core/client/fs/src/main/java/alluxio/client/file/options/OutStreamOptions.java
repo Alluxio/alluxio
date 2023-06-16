@@ -40,7 +40,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @PublicApi
 @NotThreadSafe
-public final class OutStreamOptions {
+public class OutStreamOptions {
   private FileSystemMasterCommonPOptions mCommonOptions;
   private long mBlockSizeBytes;
   private BlockLocationPolicy mLocationPolicy;
@@ -121,7 +121,7 @@ public final class OutStreamOptions {
     }
   }
 
-  private OutStreamOptions(FileSystemContext context, AlluxioConfiguration alluxioConf) {
+  protected OutStreamOptions(FileSystemContext context, AlluxioConfiguration alluxioConf) {
     mCommonOptions = FileSystemOptionsUtils.commonDefaults(alluxioConf);
     mBlockSizeBytes = alluxioConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mLocationPolicy = context.getWriteBlockLocationPolicy(alluxioConf);
@@ -312,6 +312,15 @@ public final class OutStreamOptions {
    */
   public OutStreamOptions setLocationPolicy(BlockLocationPolicy locationPolicy) {
     mLocationPolicy = locationPolicy;
+    return this;
+  }
+
+  /**
+   * @param commonOptions the FileSystem Master Common POptions(only for copy)
+   * @return the updated options object
+   */
+  protected OutStreamOptions setCommonOptions(FileSystemMasterCommonPOptions commonOptions) {
+    mCommonOptions = commonOptions;
     return this;
   }
 

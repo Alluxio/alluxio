@@ -16,6 +16,8 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.dora.DoraCacheClient;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.exception.runtime.PermissionDeniedRuntimeException;
+import alluxio.exception.status.PermissionDeniedException;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.util.CommonUtils;
@@ -38,16 +40,19 @@ public class DoraOutStream extends FileOutStream {
   private final AlluxioURI mUri;
   private final DoraCacheClient mDoraClient;
 
+  private final String mUuid;
+
   /**
    * Creates a new file output stream.
    *
    * @param path the file path
    * @param options the client options
    * @param context the file system context
+   * @param uuid the uuid of its file open file
    * @param doraClient the client saved to do close()
    */
   public DoraOutStream(AlluxioURI path, OutStreamOptions options, FileSystemContext context,
-                       DoraCacheClient doraClient)
+                       String uuid, DoraCacheClient doraClient)
       throws IOException {
     mCloser = Closer.create();
     // Acquire a resource to block FileSystemContext reinitialization, this needs to be done before
@@ -61,6 +66,7 @@ public class DoraOutStream extends FileOutStream {
       mOptions = options;
       mClosed = false;
       mBytesWritten = 0;
+      mUuid = uuid;
     } catch (Throwable t) {
       throw CommonUtils.closeAndRethrow(mCloser, t);
     }
@@ -79,12 +85,16 @@ public class DoraOutStream extends FileOutStream {
   public void close() {
     if (!mClosed) {
       CompleteFilePOptions options = CompleteFilePOptions.newBuilder()
-          .setUfsLength(12345)//getBytesWritten())
+          .setUfsLength(12345) // fill actual length of this file please.
           .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().build())
           .setContentHash("HASH-256") // compute hash here
           .build();
       mClosed = true;
-      mDoraClient.completeFile(mUri.getPath(), options);
+      try {
+        mDoraClient.completeFile(mUri.toString(), options, mUuid);
+      } catch (PermissionDeniedException e) {
+        throw new PermissionDeniedRuntimeException(e);
+      }
     }
   }
 }

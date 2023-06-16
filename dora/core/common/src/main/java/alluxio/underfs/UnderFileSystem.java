@@ -912,4 +912,46 @@ public interface UnderFileSystem extends Closeable, AsyncUfsClient {
    * @return true if active sync stopped
    */
   boolean stopActiveSyncPolling() throws IOException;
+
+  /**
+   * Gets a temporary token according to path, sid, effect and action.
+   *
+   * @param path the resource path
+   * @param sid the user id
+   * @param effect the effect
+   * @param action the action to be done
+   * @return the byte array of the temporary token
+   */
+  default byte[] getTemporaryToken(String path, String sid, String effect,
+      alluxio.security.authorization.Mode.Bits action) throws IOException {
+    throw new java.lang.UnsupportedOperationException("No implementation");
+  }
+
+  /**
+   * Sets the userState to UFS instance.
+   *
+   * @param userState the userState
+   */
+  default void setTemporaryTokenRefreshContext(alluxio.security.user.UserState userState) {
+    // noop
+  }
+
+  /**
+   * Denotes if the under storage is in the temporary connection token mode.
+   *
+   * @return true if the under storage is in the temporary connection token mode
+   */
+  default boolean isTemporaryConnectionToken() {
+    return false;
+  }
+
+  /**
+   * Refreshes the old temporary token.
+   *
+   * @param oldTemporaryToken the old temporary token
+   * @return the byte array of the temporary token
+   */
+  default byte[] refreshTemporaryToken(byte[] oldTemporaryToken) throws IOException {
+    throw new java.lang.UnsupportedOperationException("No implementation");
+  }
 }

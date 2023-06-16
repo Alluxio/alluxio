@@ -11,6 +11,7 @@
 
 package alluxio.master.job;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobFactory;
@@ -22,8 +23,8 @@ import java.util.OptionalLong;
 /**
  * Factory for creating {@link LoadJob}s from journal entries.
  */
+@SuppressFBWarnings(value = "URF_UNREAD_FIELD", justification = "Field will be used in future")
 public class JournalLoadJobFactory implements JobFactory {
-
   private final FileSystemMaster mFsMaster;
 
   private final alluxio.proto.journal.Job.LoadJobEntry mJobEntry;
@@ -43,14 +44,10 @@ public class JournalLoadJobFactory implements JobFactory {
   public Job<?> create() {
     Optional<String> user =
         mJobEntry.hasUser() ? Optional.of(mJobEntry.getUser()) : Optional.empty();
-    //TODO() use ufs iterator later
-//    Iterable<FileInfo> fileIterator =
-//        new FileIterable(mFsMaster, mJobEntry.getLoadPath(), user, mJobEntry.getPartialListing(),
-//            LoadJob.QUALIFIED_FILE_FILTER);
     DoraLoadJob job = new DoraLoadJob(mJobEntry.getLoadPath(), user, mJobEntry.getJobId(),
         mJobEntry.hasBandwidth() ? OptionalLong.of(mJobEntry.getBandwidth()) : OptionalLong.empty(),
-        mJobEntry.getPartialListing(), mJobEntry.getVerify(), mFsMaster.getScheduler());
-    job.setJobState(JobState.fromProto(mJobEntry.getState()));
+        mJobEntry.getPartialListing(), mJobEntry.getVerify(), mJobEntry.getLoadMetadataOnly());
+    job.setJobState(JobState.fromProto(mJobEntry.getState()), false);
     if (mJobEntry.hasEndTime()) {
       job.setEndTime(mJobEntry.getEndTime());
     }

@@ -55,6 +55,7 @@ import alluxio.job.JobDescription;
 import alluxio.job.JobRequest;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.security.authorization.AclEntry;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
@@ -223,7 +224,8 @@ public class LocalCacheFileInStreamTest {
     stream.seek(offset);
     Assert.assertEquals(partialReadSize, stream.read(cacheMissBuffer));
     Assert.assertArrayEquals(
-        Arrays.copyOfRange(testData, offset, offset + partialReadSize), cacheMissBuffer.array());
+        Arrays.copyOfRange(testData, offset, offset + partialReadSize),
+        cacheMissBuffer.array());
     Assert.assertEquals(0, manager.mPagesServed);
     Assert.assertEquals(1, manager.mPagesCached);
 
@@ -379,7 +381,8 @@ public class LocalCacheFileInStreamTest {
 
     // cache miss
     byte[] cacheMiss = new byte[fileSize * 2];
-    Assert.assertEquals(fileSize - 1, stream.positionedRead(1, cacheMiss, 2, fileSize * 2));
+    Assert.assertEquals(fileSize - 1,
+        stream.positionedRead(1, cacheMiss, 2, fileSize * 2));
     Assert.assertArrayEquals(
         Arrays.copyOfRange(testData, 1, fileSize - 1),
         Arrays.copyOfRange(cacheMiss, 2, fileSize));
@@ -388,7 +391,8 @@ public class LocalCacheFileInStreamTest {
 
     // cache hit
     byte[] cacheHit = new byte[fileSize * 2];
-    Assert.assertEquals(fileSize - 1, stream.positionedRead(1, cacheHit, 2, fileSize * 2));
+    Assert.assertEquals(fileSize - 1,
+        stream.positionedRead(1, cacheHit, 2, fileSize * 2));
     Assert.assertArrayEquals(
         Arrays.copyOfRange(testData, 1, fileSize - 1),
         Arrays.copyOfRange(cacheHit, 2, fileSize));
@@ -676,6 +680,11 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
+    public void commitFile(String fileId) {
+      throw new UnsupportedOperationException("commitFile method is unsupported. ");
+    }
+
+    @Override
     public int getAndLoad(PageId pageId, int pageOffset, int bytesToRead,
         ReadTargetBuffer buffer, CacheContext cacheContext,
         Supplier<byte[]> externalDataSupplier) {
@@ -714,8 +723,19 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
+    public void deleteFile(String fileId) {
+      // no-op
+    }
+
+    @Override
     public Optional<CacheUsage> getUsage() {
       return Optional.of(new Usage());
+    }
+
+    @Override
+    public Optional<DataFileChannel> getDataFileChannel(PageId pageId, int pageOffset,
+        int bytesToRead, CacheContext cacheContext) {
+      return Optional.empty();
     }
 
     class Usage implements CacheUsage {

@@ -14,8 +14,7 @@ This guide describes how to configure Alluxio with [Azure Data Lake Storage Gen1
 ## Prerequisites
 
 The Alluxio binaries must be on your machine.
-You can either [compile the binaries from Alluxio source code]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}),
-or [download the precompiled binaries directly]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
+You can [download the precompiled binaries directly]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
 
 In preparation for using Azure Data Lake storage with Alluxio, create a new Data Lake storage in your Azure
 account or use an existing Data Lake storage. You should also note the directory you want to
@@ -43,7 +42,7 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 Specify the underfs address by modifying `conf/alluxio-site.properties` to include:
 
 ```properties
-alluxio.master.mount.table.root.ufs=adl://<AZURE_ACCOUNT>.azuredatalakestore.net/<AZURE_DIRECTORY>/
+alluxio.dora.client.ufs.root=adl://<AZURE_ACCOUNT>.azuredatalakestore.net/<AZURE_DIRECTORY>/
 ```
 
 Specify the application ID, authentication key and tenant ID for the Azure AD application used for the Azure account of the root mount point by adding the following
@@ -52,9 +51,9 @@ properties in `conf/alluxio-site.properties`:
 - For instructions on how to retrieve the tenant ID, see [Get tenant ID](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal#get-tenant-and-app-id-values-for-signing-in).
 
 ```properties
-alluxio.master.mount.table.root.option.fs.adl.account.<AZURE_ACCOUNT>.oauth2.client.id=<APPLICATION_ID>
-alluxio.master.mount.table.root.option.fs.adl.account.<AZURE_ACCOUNT>.oauth2.credential=<AUTHENTICATION_KEY>
-alluxio.master.mount.table.root.option.fs.adl.account.<AZURE_ACCOUNT>.oauth2.refresh.url=https://login.microsoftonline.com/<TENANT_ID>/oauth2/token
+fs.adl.account.<AZURE_ACCOUNT>.oauth2.client.id=<APPLICATION_ID>
+fs.adl.account.<AZURE_ACCOUNT>.oauth2.credential=<AUTHENTICATION_KEY>
+fs.adl.account.<AZURE_ACCOUNT>.oauth2.refresh.url=https://login.microsoftonline.com/<TENANT_ID>/oauth2/token
 ```
 
 ### Nested Mount

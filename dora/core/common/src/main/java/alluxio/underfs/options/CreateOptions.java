@@ -28,7 +28,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @PublicApi
 @NotThreadSafe
-public final class CreateOptions {
+public class CreateOptions {
   // Determine whether to create any necessary but nonexistent parent directories.
   // When setting permissions, this option should be = false to remain in sync w/ master
   private boolean mCreateParent;
@@ -52,7 +52,7 @@ public final class CreateOptions {
   /**
    * Constructs a default {@link CreateOptions}.
    */
-  private CreateOptions(String authUmask) {
+  protected CreateOptions(String authUmask) {
     mAcl = null;
     mCreateParent = false;
     mEnsureAtomic = false;

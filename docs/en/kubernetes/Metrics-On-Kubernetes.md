@@ -45,26 +45,6 @@ $ kubectl exec <alluxio-fuse-xxxxx> -- curl 127.0.0.1:49999/metrics/json/
 
 #### Visualization
 
-##### Master Web UI Metrics
-
-Besides the raw metrics shown via metrics servlet or custom metrics configuration,
-users can track key cluster performance metrics in a more human-readable way in the web interface of
-Alluxio leading master.
-
-![Master Metrics]({{ '/img/screenshot_generalMetrics.png' | relativize_url }})
-
-To access the web UI of the leading master, you need to forward a port on a physical machine to the master web port.
-For example, if your leading master is running in pod `alluxio-master-0` and you want to serve the Alluxio master web UI at 
-node `master-node-1` on port `8080`, you can run the following command on your control plane:
-```console
-$ kubectl port-forward <CONTROL_PLANE_HOSTNAME> pods/alluxio-master-0 8080:19999
-```
-
-The metrics can be then accessed at `http://<leading_master_node_hostname>:<forwared_port>/metrics`
-
-Refer to [Access the Web UI]({{ '/en/kubernetes/Running-Alluxio-On-Kubernetes.html' | relativize_url }}#access-the-web-ui) for more detailed instructions.
-
-
 ### Prometheus Sink
 
 [Prometheus](https://prometheus.io/) is a monitoring tool that can help to monitor Alluxio metrics changes.

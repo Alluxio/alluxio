@@ -16,25 +16,34 @@ import (
 	"log"
 	"path/filepath"
 	"runtime"
+	"sync"
 
 	"github.com/palantir/stacktrace"
 
 	"alluxio.org/command"
 )
 
-func findRepoRoot() (string, error) {
-	// navigate 7 parent directories to reach repo root,
-	// assuming this go file is located in <repoRoot>/dev/scripts/src/alluxio.org/build/cmd/repo.go
-	const repoRootDepth = 7
-	_, repoRoot, _, ok := runtime.Caller(0)
-	if !ok {
-		return "", stacktrace.NewError("error getting call stack")
-	}
-	for i := 0; i < repoRootDepth; i++ {
-		repoRoot = filepath.Dir(repoRoot)
-	}
-	log.Printf("Repository root at directory: %v", repoRoot)
-	return repoRoot, nil
+var (
+	root         string
+	repoRootOnce sync.Once
+)
+
+func findRepoRoot() string {
+	repoRootOnce.Do(func() {
+		// navigate 7 parent directories to reach repo root,
+		// assuming this go file is located in <repoRoot>/dev/scripts/src/alluxio.org/build/cmd/repo.go
+		const repoRootDepth = 7
+		_, r, _, ok := runtime.Caller(0)
+		if !ok {
+			panic(stacktrace.NewError("error getting call stack to find repo root"))
+		}
+		for i := 0; i < repoRootDepth; i++ {
+			r = filepath.Dir(r)
+		}
+		log.Printf("Repository root at directory: %v", r)
+		root = r
+	})
+	return root
 }
 
 func copyRepoToTempDir(repoRoot string) (string, error) {

@@ -66,4 +66,9 @@ public abstract class BlockWriter extends BlockClient {
    * @return a writeable byte channel of the block
    */
   public abstract WritableByteChannel getChannel();
+
+  /**
+   * Commit the file.
+   */
+  public abstract void commitFile();
 }

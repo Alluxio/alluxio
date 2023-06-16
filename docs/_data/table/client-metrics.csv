@@ -5,6 +5,7 @@ Client.BlockWorkerClientCount,COUNTER
 Client.BusyExceptionCount,COUNTER
 Client.BytesReadLocal,COUNTER
 Client.BytesReadLocalThroughput,METER
+Client.BytesWrittenAlluxio,COUNTER
 Client.BytesWrittenLocal,COUNTER
 Client.BytesWrittenLocalThroughput,METER
 Client.BytesWrittenUfs,COUNTER
@@ -61,3 +62,4 @@ Client.CloseUFSOutStreamLatency,TIMER
 Client.DefaultHiveClientCount,COUNTER
 Client.FileSystemMasterClientCount,COUNTER
 Client.MetadataCacheSize,GAUGE
+Client.UfsFallBackCount,GAUGE

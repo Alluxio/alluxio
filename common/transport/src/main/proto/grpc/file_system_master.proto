@@ -88,6 +88,7 @@ message CompleteFilePRequest {
   /** the path of the file */
   optional string path = 1;
   optional CompleteFilePOptions options = 2;
+  optional string uuid = 3;
 }
 
 message OpenFilePOptions {
@@ -130,6 +131,8 @@ message CreateDirectoryPRequest {
 
 message CreateFilePResponse {
   optional FileInfo fileInfo = 1;
+  /** uuid of its open file handle */
+  optional string uuid = 2;
 }
 message CreateFilePOptions {
   optional int64 blockSizeBytes = 1;
@@ -482,7 +485,12 @@ message ReverseResolvePRequest {
 message ReverseResolvePResponse {
   optional string alluxioPath = 1;
 }
-
+message GetMountIdPRequest {
+  required string ufsUri = 1;
+}
+message GetMountIdPResponse {
+  required int64 mountId = 1;
+}
 
 message SetAttributePResponse {}
 message SetAttributePOptions {
@@ -623,6 +631,7 @@ message LoadJobPOptions {
   optional int64 bandwidth = 1;
   optional bool verify = 2;
   optional bool partialListing = 3;
+  optional bool loadMetadataOnly = 4;
 }
 
 message CopyJobPOptions {
@@ -768,6 +777,11 @@ service FileSystemMasterClientService {
   rpc ReverseResolve(ReverseResolvePRequest) returns (ReverseResolvePResponse);
 
   /**
+   * Reverse resolve a ufs path and get mount id.
+   */
+  rpc GetMountId(GetMountIdPRequest) returns (GetMountIdPResponse);
+
+  /**
    * Schedules async persistence.
    */
   rpc ScheduleAsyncPersistence(ScheduleAsyncPersistencePRequest) returns (ScheduleAsyncPersistencePResponse);
@@ -891,6 +905,11 @@ service FileSystemMasterWorkerService {
    * Returns the UFS information for the given mount point identified by its id.
    **/
   rpc GetUfsInfo(GetUfsInfoPRequest) returns (GetUfsInfoPResponse);
+
+  /**
+   * Reverse resolve a ufs path and get mount id.
+   */
+  rpc GetMountId(GetMountIdPRequest) returns (GetMountIdPResponse);
 }
 
 /**

@@ -11,6 +11,7 @@
 
 package alluxio.worker.netty;
 
+import alluxio.AlluxioURI;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.IdUtils;
 
@@ -24,12 +25,18 @@ class WriteRequest {
   /** This ID can either be block ID or temp UFS file ID. */
   private final long mId;
 
+  private final String mFileId;
+
+  private final String mUfsPath;
+
   /** The session id associated with all temporary resources of this request. */
   private final long mSessionId;
 
   WriteRequest(Protocol.WriteRequest request) {
     mId = request.getId();
     mSessionId = IdUtils.createSessionId();
+    mUfsPath = request.getCreateUfsFileOptions().getUfsPath();
+    mFileId = new AlluxioURI(mUfsPath).hash();
   }
 
   /**
@@ -44,5 +51,19 @@ class WriteRequest {
    */
   public long getSessionId() {
     return mSessionId;
+  }
+
+  /**
+   * @return the ufs path
+   */
+  public String getUfsPath() {
+    return mUfsPath;
+  }
+
+  /**
+   * @return the file ID
+   */
+  public String getFileId() {
+    return mFileId;
   }
 }

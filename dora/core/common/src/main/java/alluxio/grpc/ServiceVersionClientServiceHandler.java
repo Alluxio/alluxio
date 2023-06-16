@@ -124,6 +124,9 @@ public final class ServiceVersionClientServiceHandler
       case SECURITY_SERVER_CLIENT_SERVICE:
         serviceVersion = Constants.SECURITY_SERVER_VERSION;
         break;
+      case POLICY_MASTER_CLIENT_SERVICE:
+        serviceVersion = Constants.POLICY_ENGINE_CLIENT_SERVICE_VERSION;
+        break;
       default:
         serviceVersion = Constants.UNKNOWN_SERVICE_VERSION;
         break;

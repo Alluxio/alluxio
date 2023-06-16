@@ -18,8 +18,8 @@ import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.CheckpointOutputStream;
 import alluxio.master.journal.checkpoint.CheckpointType;
 import alluxio.retry.TimeoutRetry;
-import alluxio.util.ParallelZipUtils;
-import alluxio.util.TarUtils;
+import alluxio.util.compression.ParallelZipUtils;
+import alluxio.util.compression.TarUtils;
 import alluxio.util.io.FileUtils;
 
 import com.google.common.base.Preconditions;
@@ -73,7 +73,7 @@ public final class RocksStore implements Closeable {
   private final DBOptions mDbOpts;
 
   private final int mCompressLevel = Configuration.getInt(
-      PropertyKey.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL);
+      PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_LEVEL);
   private final boolean mParallelBackup = Configuration.getBoolean(
       PropertyKey.MASTER_METASTORE_ROCKS_PARALLEL_BACKUP);
 
@@ -206,6 +206,15 @@ public final class RocksStore implements Closeable {
   }
 
   /**
+   * Writes a checkpoint under the specified directory.
+   * @param directory that the checkpoint will be written under
+   * @throws RocksDBException if it encounters and error when writing the checkpoint
+   */
+  public synchronized void writeToCheckpoint(File directory) throws RocksDBException {
+    mCheckpoint.createCheckpoint(directory.getPath());
+  }
+
+  /**
    * Writes a checkpoint of the database's content to the given output stream.
    *
    * @param output the stream to write to
@@ -238,6 +247,24 @@ public final class RocksStore implements Closeable {
     LOG.info("Completed rocksdb checkpoint in {}ms", (System.nanoTime() - startNano) / 1_000_000);
     // Checkpoint is no longer needed, delete to save space.
     FileUtils.deletePathRecursively(mDbCheckpointPath);
+  }
+
+  /**
+   * Restores RocksDB state from a checkpoint at the provided location. Moves the directory to a
+   * permanent location, restores RocksDB state, and then immediately takes a new snapshot in the
+   * original location as replacement.
+   * @param directory where the checkpoint is located
+   * @throws RocksDBException if rocks encounters a problem
+   * @throws IOException if moving files around encounters a problem
+   */
+  public synchronized void restoreFromCheckpoint(File directory)
+      throws RocksDBException, IOException {
+    stopDb();
+    File dbPath = new File(mDbPath);
+    org.apache.commons.io.FileUtils.deleteDirectory(dbPath);
+    org.apache.commons.io.FileUtils.moveDirectory(directory, dbPath);
+    createDb();
+    writeToCheckpoint(directory);
   }
 
   /**
@@ -312,7 +339,7 @@ public final class RocksStore implements Closeable {
     if (Configuration.isSet(cacheSize)) {
       shoudSetConfig = true;
       // Set the inodes column options
-      Cache inodeCache = new LRUCache(Configuration.getInt(cacheSize));
+      Cache inodeCache = new LRUCache(Configuration.getLong(cacheSize));
       toClose.add(inodeCache);
       blockConfig.setBlockCache(inodeCache);
     }

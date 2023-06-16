@@ -33,6 +33,7 @@ import alluxio.grpc.WriteOptions;
 import alluxio.job.JobDescription;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.proto.journal.Job.FileFilter;
 import alluxio.proto.journal.Journal;
 import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobState;
@@ -55,6 +56,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
+import io.netty.util.internal.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,6 +80,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Move job that move a file or a directory from source to destination.
  * This class should only be manipulated from the scheduler thread in Scheduler
  * thus the state changing functions are not thread safe.
+ * TODO() as task within this class is running on multithreaded context,
+ * make thread unsafe places to be thread safe in future.
  */
 @NotThreadSafe
 public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
@@ -110,6 +114,7 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
   private final Iterable<FileInfo> mFileIterable;
   private Optional<Iterator<FileInfo>> mFileIterator = Optional.empty();
   private OptionalLong mEndTime = OptionalLong.empty();
+  private Optional<FileFilter> mFilter;
 
   /**
    * Constructor.
@@ -124,11 +129,13 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
    * @param verificationEnabled whether to verify the job after moved
    * @param checkContent        whether to check content
    * @param fileIterable        file iterable
+   * @param filter              file filter
    */
   public MoveJob(String src, String dst, boolean overwrite, Optional<String> user, String jobId,
                  OptionalLong bandwidth, boolean usePartialListing, boolean verificationEnabled,
-                 boolean checkContent, Iterable<FileInfo> fileIterable) {
-    super(user, jobId);
+                 boolean checkContent, Iterable<FileInfo> fileIterable,
+                 Optional<FileFilter> filter) {
+    super(user, jobId, new RoundRobinWorkerAssignPolicy());
     mSrc = requireNonNull(src, "src is null");
     mDst = requireNonNull(dst, "dst is null");
     Preconditions.checkArgument(
@@ -142,6 +149,7 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
     mFileIterable = fileIterable;
     mOverwrite = overwrite;
     mCheckContent = checkContent;
+    mFilter = filter;
   }
 
   /**
@@ -207,14 +215,14 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
    */
   @Override
   public void failJob(AlluxioRuntimeException reason) {
-    setJobState(JobState.FAILED);
+    setJobState(JobState.FAILED, true);
     mFailedReason = Optional.of(reason);
     JOB_MOVE_FAIL.inc();
   }
 
   @Override
   public void setJobSuccess() {
-    setJobState(JobState.SUCCEEDED);
+    setJobState(JobState.SUCCEEDED, true);
     JOB_MOVE_SUCCESS.inc();
   }
 
@@ -285,7 +293,10 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
     if (routes.isEmpty()) {
       return Collections.unmodifiableList(tasks);
     }
-    tasks.add(new MoveTask(routes));
+    WorkerInfo workerInfo = mWorkerAssignPolicy.pickAWorker(StringUtil.EMPTY_STRING, workers);
+    MoveTask moveTask = new MoveTask(routes);
+    moveTask.setMyRunningWorker(workerInfo);
+    tasks.add(moveTask);
     return Collections.unmodifiableList(tasks);
   }
 
@@ -404,6 +415,8 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
         .add("BatchSize", BATCH_SIZE)
         .add("FailedReason", mFailedReason)
         .add("FileIterator", mFileIterator)
+        .add("FileFilter", mFilter)
+        .add("FileIterable", mFileIterable)
         .add("EndTime", mEndTime)
         .toString();
   }
@@ -420,6 +433,14 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
     mUser.ifPresent(jobEntry::setUser);
     mBandwidth.ifPresent(jobEntry::setBandwidth);
     mEndTime.ifPresent(jobEntry::setEndTime);
+    if (mFilter.isPresent()) {
+      FileFilter.Builder builder = FileFilter.newBuilder().setValue(mFilter.get().getValue())
+          .setName(mFilter.get().getName());
+      if (mFilter.get().hasPattern()) {
+        builder.setPattern(mFilter.get().getPattern());
+      }
+      jobEntry.setFilter(builder.build());
+    }
     return Journal.JournalEntry
         .newBuilder()
         .setMoveJob(jobEntry.build())
@@ -559,8 +580,7 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
   private static class MoveProgressReport {
     private final boolean mVerbose;
     private final JobState mJobState;
-    private final Long mBandwidth;
-    private final boolean mVerificationEnabled;
+    private final boolean mCheckContent;
     private final long mProcessedFileCount;
     private final long mByteCount;
     private final Long mTotalByteCount;
@@ -574,8 +594,7 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
     {
       mVerbose = verbose;
       mJobState = job.mState;
-      mBandwidth = job.mBandwidth.isPresent() ? job.mBandwidth.getAsLong() : null;
-      mVerificationEnabled = job.mVerificationEnabled;
+      mCheckContent = job.mCheckContent;
       mProcessedFileCount = job.mProcessedFileCount.get();
       mByteCount = job.mMovedByteCount.get();
       if (!job.mUsePartialListing && job.mFileIterator.isPresent()) {
@@ -625,9 +644,7 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
     private String getTextReport() {
       StringBuilder progress = new StringBuilder();
       progress.append(
-          format("\tSettings:\tbandwidth: %s\tverify: %s%n",
-              mBandwidth == null ? "unlimited" : mBandwidth,
-              mVerificationEnabled));
+          format("\tSettings:\tcheck-content: %s%n", mCheckContent));
       progress.append(format("\tJob State: %s%s%n", mJobState,
           mFailureReason == null
               ? "" : format(

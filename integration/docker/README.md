@@ -13,7 +13,7 @@ To build with a local Alluxio tarball, specify the `ALLUXIO_TARBALL` build argum
 $ docker build -t alluxio/alluxio --build-arg ALLUXIO_TARBALL=alluxio-${version}.tar.gz .
 ```
 
-Starting from v2.6.0, alluxio-fuse image is deprecated. It is embedded in `alluxio/alluxio` image.
+Starting from `alluxio/alluxio:294`, only Java 11 is supported.
 
 ## Building docker image for development
 Starting from now, Alluxio has a separate image for development usage. Unlike the default Alluxio 
@@ -33,52 +33,17 @@ $ docker build -t alluxio/alluxio-dev -f Dockerfile-dev \
 --build-arg ALLUXIO_TARBALL=alluxio-${version}.tar.gz .
 ```
 
-Development image also has Java11 installed. To run Alluxio with Java11, build development image 
-with the `JAVA_VERSION` build argument specified.
-
-```console
-$ docker build -t alluxio/alluxio-dev -f Dockerfile-dev \
---build-arg ALLUXIO_TARBALL=alluxio-${version}.tar.gz \
---build-arg JAVA_VERSION=11 .
-```
-
-To use a customized user/group to launch Alluxio inside containers, build the Dockerfile
-with `--build-arg ALLUXIO_USERNAME=`, `--build-arg ALLUXIO_GROUP=`, etc. For example,
-if you want to use user `alluxio2` with uid `1001` and group `alluxio2` with gid `1001`, run the following command:
-
-```console
-$ docker build -t alluxio/alluxio:customizedUser \
---build-arg ALLUXIO_USERNAME=alluxio2 --build-arg ALLUXIO_UID=1001 \
---build-arg ALLUXIO_GROUP=alluxio2 --build-arg ALLUXIO_GID=1001 .
-```
-
-To use a customized user/group in the development image,
-you need to first build the base image with the customized user/group, 
-modify `Dockerfile-dev` to make it based on your base image, and build your dev image.
-For example, if you already build the `alluxio/alluxio:customizedUser` image, modify `Dockerfile-dev` to 
-
-```
-FROM alluxio/alluxio:customizedUser
-```
-
-and run
-
-```console
-$ docker build -t alluxio/alluxio-dev:customizedUser -f Dockerfile-dev .
-```
-
 ## Running docker image
 The generated image expects to be run with single argument of "master", "worker", "proxy", or "fuse".
 To set an Alluxio configuration property, convert it to an environment variable by uppercasing
 and replacing periods with underscores. For example, `alluxio.master.hostname` converts to
 `ALLUXIO_MASTER_HOSTNAME`. You can then set the environment variable on the image with
-`-e PROPERTY=value`. Alluxio configuration values will be copied to `conf/alluxio-site.properties`
-when the image starts.
+`-e PROPERTY=value`. Alluxio configuration values will be copied to `conf/alluxio-env.sh`
+when the container starts.
 
 ```console
 $ docker run -e ALLUXIO_MASTER_HOSTNAME=ec2-203-0-113-25.compute-1.amazonaws.com \
-alluxio/alluxio-[
-|dev] [master|worker|proxy|fuse]
+alluxio/alluxio-[|dev] [master|worker|proxy|fuse]
 ```
 
 Additional configuration files can be included when building the image by adding them to the
@@ -91,18 +56,12 @@ to launch a standalone Fuse container:
 
 ```console
 $ docker run -e ALLUXIO_MASTER_HOSTNAME=alluxio-master \
---cap-add SYS_ADMIN --device /dev/fuse alluxio/alluxio fuse --fuse-opts=allow_other
+--cap-add SYS_ADMIN --device /dev/fuse alluxio/alluxio fuse <ufs_address> -o <option1> -o <options2> ...
 ```
 
 Note: running FUSE in docker requires adding
 [SYS_ADMIN capability](http://man7.org/linux/man-pages/man7/capabilities.7.html) to the container.
 This removes isolation of the container and should be used with caution.
-
-## Extending docker image with applications
-You can easily extend the docker image to include applications to run on top of Alluxio.
-In order for the application to access data from Alluxio storage mounted with FUSE, it must run
-in the same container as Alluxio FUSE. Simply edit `Dockerfile` to install the applications, and 
-then build the image with the same command for building image with FUSE support and run it.
 
 ## More information
 For more information on launching alluxio in docker containers, please refer to

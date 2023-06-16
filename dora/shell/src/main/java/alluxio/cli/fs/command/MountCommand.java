@@ -14,7 +14,14 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.cli.fsadmin.report.UfsCommand;
+import alluxio.client.file.BaseFileSystem;
+import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.options.FileSystemOptions;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.AlluxioProperties;
+import alluxio.conf.InstancedConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.MountPOptions;
@@ -67,6 +74,11 @@ public final class MountCommand extends AbstractFileSystemCommand {
    */
   public MountCommand(FileSystemContext fsContext) {
     super(fsContext);
+    AlluxioProperties properties = fsContext.getClusterConf().copyProperties();
+    properties.set(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED, false);
+    AlluxioConfiguration config = new InstancedConfiguration(properties);
+    mFileSystem = FileSystem.Factory.create(fsContext, FileSystemOptions.create(config));
+    assert (mFileSystem instanceof BaseFileSystem);
   }
 
   @Override

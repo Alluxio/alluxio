@@ -54,6 +54,7 @@ import alluxio.security.authentication.AuthType;
 import alluxio.underfs.ChecksumType;
 import alluxio.util.FormatUtils;
 import alluxio.util.OSUtils;
+import alluxio.util.compression.DirectoryMarshaller;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.BlockStoreType;
 import alluxio.worker.block.management.BackoffStrategy;
@@ -69,6 +70,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import com.sun.management.OperatingSystemMXBean;
 import io.netty.util.ResourceLeakDetector;
+import org.rocksdb.CompressionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -2252,6 +2254,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_SCHEDULER_INITIAL_DELAY =
+      durationBuilder(Name.MASTER_SCHEDULER_INITIAL_WAIT_TIME)
+          .setDefaultValue("10min")
+          .setDescription("The initial wait time before the scheduler starts. This grace period "
+          + "is added to make sure workers have registered to master successfully.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE =
       enumBuilder(Name.MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE, GraceMode.class)
           .setDefaultValue(GraceMode.FORCED)
@@ -2453,6 +2463,28 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_TYPE =
+      enumBuilder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_TYPE,
+          DirectoryMarshaller.Type.class)
+          .setDefaultValue(DirectoryMarshaller.Type.NO_COMPRESSION)
+          .setDescription("The type of compression to use when transferring a snapshot from one "
+              + "master to another. Options are NO_COMPRESSION, GZIP, TAR_GZIP")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_LEVEL =
+      intBuilder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_LEVEL)
+          .setAlias(Name.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL)
+          .setDefaultValue(1)
+          .setDescription("The zip compression level of sending a snapshot from one master to "
+              + "another. Only applicable when "
+              + "alluxio.master.embedded.journal.snapshot.replication.compression.type is not "
+              + "NO_COMPRESSION. The zip format defines ten levels of compression, ranging from 0 "
+              + "(no compression, but very fast) to 9 (best compression, but slow). "
+              + "Or -1 for the system default compression level.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE =
       dataSizeBuilder(Name.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE)
           .setDefaultValue("4MB")
@@ -2636,13 +2668,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL =
-      intBuilder(Name.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL)
-          .setDefaultValue(1)
-          .setDescription("The zip compression level of checkpointing rocksdb, the zip"
-                  + " format defines ten levels of compression, ranging from 0"
-                  + " (no compression, but very fast) to 9 (best compression, but slow)."
-                  + " Or -1 for the system default compression level.")
+  public static final PropertyKey MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_TYPE =
+      enumBuilder(Name.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_TYPE, CompressionType.class)
+          // default value informed by https://github.com/facebook/rocksdb/wiki/Compression
+          .setDefaultValue(CompressionType.LZ4_COMPRESSION)
+          .setDescription("The compression algorithm that RocksDB uses internally. One of "
+              + "{NO_COMPRESSION SNAPPY_COMPRESSION ZLIB_COMPRESSION BZLIB2_COMPRESSION "
+              + "LZ4_COMPRESSION LZ4HC_COMPRESSION XPRESS_COMPRESSION ZSTD_COMPRESSION "
+              + "DISABLE_COMPRESSION_OPTION}")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -2749,7 +2782,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METASTORE_ROCKS_BLOCK_META_CACHE_SIZE =
-      intBuilder(Name.MASTER_METASTORE_ROCKS_BLOCK_META_CACHE_SIZE)
+      longBuilder(Name.MASTER_METASTORE_ROCKS_BLOCK_META_CACHE_SIZE)
           .setDescription("The capacity in bytes of the RocksDB block metadata table LRU "
               + " cache. If unset, the RocksDB default will be used."
               + " See https://github.com/facebook/rocksdb/wiki/Block-Cache")
@@ -2782,7 +2815,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_METASTORE_ROCKS_BLOCK_LOCATION_CACHE_SIZE =
-      intBuilder(Name.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_CACHE_SIZE)
+      longBuilder(Name.MASTER_METASTORE_ROCKS_BLOCK_LOCATION_CACHE_SIZE)
           .setDescription("The capacity in bytes of the RocksDB block location table LRU "
               + "cache. If unset, the RocksDB default will be used."
               + " See https://github.com/facebook/rocksdb/wiki/Block-Cache")
@@ -3150,14 +3183,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
-  public static final PropertyKey MASTER_JOURNAL_LOG_CONCURRENCY_MAX =
-          intBuilder(Name.MASTER_JOURNAL_LOG_CONCURRENCY_MAX)
-                  .setDefaultValue(256)
-                  .setDescription("Max concurrency for notifyTermIndexUpdated method, be sure it's "
-                          + "enough")
-                  .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-                  .setScope(Scope.MASTER)
-                  .build();
   public static final PropertyKey MASTER_JOURNAL_REQUEST_DATA_TIMEOUT =
       durationBuilder(Name.MASTER_JOURNAL_REQUEST_DATA_TIMEOUT)
           .setDefaultValue(20000)
@@ -3167,7 +3192,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_JOURNAL_REQUEST_INFO_TIMEOUT =
       durationBuilder(Name.MASTER_JOURNAL_REQUEST_INFO_TIMEOUT)
-          .setDefaultValue(20000)
+          .setDefaultValue(10_000)
           .setDescription("Time to wait for follower to respond to request to get information"
               + " about its latest snapshot")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -3964,8 +3989,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey STANDBY_MASTER_GRPC_ENABLED =
       booleanBuilder(Name.STANDBY_MASTER_GRPC_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("Whether a standby master runs a grpc server")
+          .setDefaultValue(true)
+          .setIsHidden(true)
+          .setDescription("Whether a standby master runs a grpc server. WARNING: disabling this "
+              + "will prevent master snapshotting from working correctly.")
           .setScope(Scope.ALL)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
@@ -4134,7 +4161,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_BLOCK_HEARTBEAT_INTERVAL_MS =
       durationBuilder(Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)
           .setAlias("alluxio.worker.block.heartbeat.interval.ms")
-          .setDefaultValue("1sec")
+          .setDefaultValue("10sec")
           .setDescription("The interval between block workers' heartbeats to update "
               + "block status, storage health and other workers' information to Alluxio Master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -6273,7 +6300,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   public static final PropertyKey USER_FILE_WRITE_TYPE_DEFAULT =
       enumBuilder(Name.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
-          .setDefaultValue(WriteType.ASYNC_THROUGH)
+          .setDefaultValue(WriteType.CACHE_THROUGH)
       .setDescription(
           format("Default write type when creating Alluxio files. Valid " + "options are "
               + "`MUST_CACHE` (write will only go to Alluxio and must be stored in Alluxio), "
@@ -6361,6 +6388,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       durationBuilder(Name.USER_MASTER_POLLING_TIMEOUT)
           .setDefaultValue("30sec")
           .setDescription("The maximum time for a rpc client to wait for master to respond.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_MASTER_POLLING_CONCURRENT =
+      booleanBuilder(Name.USER_MASTER_POLLING_CONCURRENT)
+          .setDefaultValue(false)
+          .setDescription("Whether to concurrently polling the master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -7711,7 +7745,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   public static final PropertyKey USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES =
       dataSizeBuilder(Name.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES)
-          .setDefaultValue("64KB")
+          .setDefaultValue("1024KB")
           .setDescription("When a client writes to a remote worker, the maximum packet size.")
           .build();
 
@@ -7737,7 +7771,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS =
       durationBuilder(Name.USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS)
           .setAlias(new String[]{"alluxio.user.network.netty.writer.close.timeout.ms"})
-          .setDefaultValue("30min")
+          .setDefaultValue("3sec")
           .setDescription("The timeout to close a netty writer client.")
           .build();
 
@@ -7803,6 +7837,54 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("-1s") // -1s means no expiry
           .setDescription("The TTL (Time To Live) in duration of RocksDB of Dora metadata. "
               + "0s or negative value means no expiry")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey DORA_WORKER_METASTORE_ROCKSDB_BLOOM_FILTER =
+      booleanBuilder(Name.DORA_WORKER_METASTORE_ROCKSDB_BLOOM_FILTER)
+          .setDescription("Whether or not to use a bloom filter in the Block meta"
+              + " table in RocksDB. If unset, the RocksDB default will be used."
+              + " See https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter")
+          .setDefaultValue(false)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey DORA_WORKER_METASTORE_ROCKSDB_CACHE_SIZE =
+      longBuilder(Name.DORA_WORKER_METASTORE_ROCKSDB_CACHE_SIZE)
+          .setDescription("The capacity in bytes of the RocksDB block metadata table LRU "
+              + " cache. If unset, the RocksDB default will be used."
+              + " See https://github.com/facebook/rocksdb/wiki/Block-Cache."
+              + " Our microbench test shows that 1GB cache can double the metadata read operation"
+              + " performance for a meta store that persists 10M metadata entries."
+              + " Note that the memory is off-heap and does not count in jvm memory.")
+          .setDefaultValue(128L * 1024 * 1024)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey DORA_WORKER_METASTORE_ROCKSDB_BLOCK_INDEX =
+      enumBuilder(Name.DORA_WORKER_METASTORE_ROCKSDB_BLOCK_INDEX, DataBlockIndexType.class)
+          .setDescription("The block index type to be used in the RocksDB block metadata table."
+              + " If unset, the RocksDB default will be used."
+              + "See https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey DORA_WORKER_METASTORE_ROCKSDB_INDEX =
+      enumBuilder(Name.DORA_WORKER_METASTORE_ROCKSDB_INDEX, IndexType.class)
+          .setDescription("The index type to be used in the RocksDB block metadata table."
+              + " If unset, the RocksDB default will be used."
+              + " See https://github.com/facebook/rocksdb/wiki/Index-Block-Format")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey DORA_WORKER_POPULATE_METADATA_FINGERPRINT =
+      booleanBuilder(Name.DORA_WORKER_POPULATE_METADATA_FINGERPRINT)
+          .setDescription("Populate the fingerprint for file metadata fetched from UFS "
+              + "If set, when the file metadata is updated, the fingerprints will be compared. "
+              + "If the file metadata is updated but the data part does not change, "
+              + "we can skip invalidating the page cache, at the expense of having extra overhead "
+              + "on computing the fingerprint for UFS files.")
+          .setDefaultValue(false)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -8168,6 +8250,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.backup.suspend.timeout";
     public static final String MASTER_BLOCK_SCAN_INVALID_BATCH_MAX_SIZE =
         "alluxio.master.block.scan.invalid.batch.max.size";
+    public static final String MASTER_SCHEDULER_INITIAL_WAIT_TIME =
+        "alluxio.master.scheduler.initial.wait.time";
     public static final String MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE =
         "alluxio.master.shell.backup.state.lock.grace.mode";
     public static final String MASTER_SHELL_BACKUP_STATE_LOCK_TRY_DURATION =
@@ -8289,6 +8373,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.embedded.journal.write.timeout";
     public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_CHUNK_SIZE =
         "alluxio.master.embedded.journal.snapshot.replication.chunk.size";
+    public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_TYPE =
+        "alluxio.master.embedded.journal.snapshot.replication.compression.type";
+    public static final String MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_LEVEL =
+        "alluxio.master.embedded.journal.snapshot.replication.compression.level";
     public static final String MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_TIMEOUT =
         "alluxio.master.embedded.journal.raft.client.request.timeout";
     public static final String MASTER_EMBEDDED_JOURNAL_RAFT_CLIENT_REQUEST_INTERVAL =
@@ -8340,6 +8428,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.metastore.dir.block";
     public static final String MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_LEVEL =
         "alluxio.master.metastore.rocks.checkpoint.compression.level";
+    public static final String MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_TYPE =
+        "alluxio.master.metastore.rocks.checkpoint.compression.type";
     public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP =
         "alluxio.master.metastore.rocks.parallel.backup";
     public static final String MASTER_METASTORE_ROCKS_PARALLEL_BACKUP_THREADS =
@@ -9094,6 +9184,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.local.writer.chunk.size.bytes";
     public static final String USER_LOGGING_THRESHOLD = "alluxio.user.logging.threshold";
     public static final String USER_MASTER_POLLING_TIMEOUT = "alluxio.user.master.polling.timeout";
+    public static final String USER_MASTER_POLLING_CONCURRENT =
+        "alluxio.user.master.polling.concurrent";
     public static final String USER_METADATA_CACHE_ENABLED =
         "alluxio.user.metadata.cache.enabled";
     public static final String USER_METADATA_CACHE_MAX_SIZE =
@@ -9431,6 +9523,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     public static final String DORA_WORKER_METASTORE_ROCKSDB_TTL =
         "alluxio.dora.worker.metastore.rocksdb.ttl";
+    public static final String DORA_WORKER_METASTORE_ROCKSDB_BLOOM_FILTER =
+        "alluxio.dora.worker.metastore.rocksdb.bloom.filter";
+    public static final String DORA_WORKER_METASTORE_ROCKSDB_CACHE_SIZE =
+        "alluxio.dora.worker.metastore.rocksdb.cache.size";
+    public static final String DORA_WORKER_METASTORE_ROCKSDB_BLOCK_INDEX =
+        "alluxio.dora.worker.metastore.rocksdb.block.index";
+    public static final String DORA_WORKER_METASTORE_ROCKSDB_INDEX =
+        "alluxio.dora.worker.metastore.rocksdb.index";
+
+    public static final String DORA_WORKER_POPULATE_METADATA_FINGERPRINT =
+        "alluxio.dora.worker.populate.metadata.fingerprint";
 
     public static final String DORA_UFS_LIST_STATUS_CACHE_TTL =
         "alluxio.dora.ufs.list.status.cache.ttl";

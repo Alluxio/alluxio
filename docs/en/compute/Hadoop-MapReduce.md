@@ -18,8 +18,6 @@ MapReduce programs can read+write data stored in Alluxio.
 * Make sure that the Alluxio client jar is available on each machine.
 This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
 downloaded from the Alluxio [download page](https://www.alluxio.io/download).
-Alternatively, advanced users can compile the client jar from the source code by following the
-[instructions]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}).
 * In order to run map-reduce examples, we also recommend downloading the
 [`hadoop-mapreduce-examples` jar](https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-examples)
 based on your Hadoop version.

@@ -59,8 +59,13 @@ public class JournaledJobMetaStore implements JobMetaStore, Journaled {
       return false;
     }
     else {
-      Job<?> job = JobFactoryProducer.create(entry, mFileSystemMaster).create();
-      mExistingJobs.add(job);
+      try {
+        Job<?> job = JobFactoryProducer.create(entry, mFileSystemMaster).create();
+        mExistingJobs.remove(job);
+        mExistingJobs.add(job);
+      } catch (RuntimeException e) {
+        LOG.error("Failed to create job from journal entry: {}", entry, e);
+      }
     }
     return true;
   }
@@ -79,6 +84,7 @@ public class JournaledJobMetaStore implements JobMetaStore, Journaled {
   public void updateJob(Job<?> job) {
     try (JournalContext context = mFileSystemMaster.createJournalContext()) {
       context.append(job.toJournalEntry());
+      mExistingJobs.remove(job);
       mExistingJobs.add(job);
     } catch (UnavailableException e) {
       throw new UnavailableRuntimeException(

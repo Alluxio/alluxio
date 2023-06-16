@@ -11,7 +11,9 @@
 
 package alluxio.wire;
 
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.GetConfigHashPResponse;
+import alluxio.util.CommonUtils;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -25,23 +27,29 @@ import javax.annotation.concurrent.ThreadSafe;
 public class ConfigHash {
   private final String mClusterConfigHash;
   private final String mPathConfigHash;
+  private long mClusterConfigLastUpdateTime;
+  private long mPathConfigLastUpdateTime;
 
   /**
    * Constructs a new ConfigHash.
    *
    * @param clusterConfigHash cluster configuration hash, cannot be null
    * @param pathConfigHash path configuration hash, cannot be null
+   * @param clusterConfigLastUpdateTime the cluster config last update time
+   * @param pathConfigLastUpdateTime path config last update time
    */
-  public ConfigHash(String clusterConfigHash, String pathConfigHash) {
+  public ConfigHash(String clusterConfigHash, String pathConfigHash,
+      long clusterConfigLastUpdateTime, long pathConfigLastUpdateTime) {
     Preconditions.checkNotNull(clusterConfigHash, "clusterConfigHash");
     Preconditions.checkNotNull(pathConfigHash, "pathConfigHash");
     mClusterConfigHash = clusterConfigHash;
     mPathConfigHash = pathConfigHash;
+    mClusterConfigLastUpdateTime = clusterConfigLastUpdateTime;
+    mPathConfigLastUpdateTime = pathConfigLastUpdateTime;
   }
 
   private ConfigHash(GetConfigHashPResponse response) {
-    mClusterConfigHash = response.getClusterConfigHash();
-    mPathConfigHash = response.getPathConfigHash();
+    this(response.getClusterConfigHash(), response.getPathConfigHash(), 0, 0);
   }
 
   /**
@@ -78,6 +86,36 @@ public class ConfigHash {
    */
   public String getPathConfigHash() {
     return mPathConfigHash;
+  }
+
+  /**
+   * @return cluster config last update time
+   */
+  public long getClusterConfigLastUpdateTime() {
+    return mClusterConfigLastUpdateTime;
+  }
+
+  /**
+   * @return path config last update time
+   */
+  public long getPathConfigLastUpdateTime() {
+    return mPathConfigLastUpdateTime;
+  }
+
+  /**
+   * @return cluster config last update time text
+   */
+  public String getClusterConfigLastUpdateTimeText() {
+    return CommonUtils.convertMsToDate(mClusterConfigLastUpdateTime,
+        alluxio.conf.Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN));
+  }
+
+  /**
+   * @return path config last update time text
+   */
+  public String getPathConfigLastUpdateTimeText() {
+    return CommonUtils.convertMsToDate(mPathConfigLastUpdateTime,
+        alluxio.conf.Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN));
   }
 
   @Override

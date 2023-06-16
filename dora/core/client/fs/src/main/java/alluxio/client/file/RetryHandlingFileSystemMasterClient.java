@@ -35,6 +35,7 @@ import alluxio.grpc.FreePRequest;
 import alluxio.grpc.GetFilePathPRequest;
 import alluxio.grpc.GetJobProgressPRequest;
 import alluxio.grpc.GetJobProgressPResponse;
+import alluxio.grpc.GetMountIdPRequest;
 import alluxio.grpc.GetMountTablePRequest;
 import alluxio.grpc.GetNewBlockIdForFilePOptions;
 import alluxio.grpc.GetNewBlockIdForFilePRequest;
@@ -349,6 +350,13 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     return retryRPC(() -> new AlluxioURI(mClient.reverseResolve(ReverseResolvePRequest.newBuilder()
         .setUfsUri(ufsUri.toString()).build()).getAlluxioPath()), RPC_LOG, "ReverseResolve",
         "ufsUri=%s", ufsUri);
+  }
+
+  @Override
+  public long getMountId(AlluxioURI ufsUri) throws AlluxioStatusException {
+    return retryRPC(() -> mClient
+        .getMountId(GetMountIdPRequest.newBuilder().setUfsUri(ufsUri.toString()).build())
+        .getMountId(), RPC_LOG, "GetMountId", "ufsUri=%s", ufsUri);
   }
 
   @Override

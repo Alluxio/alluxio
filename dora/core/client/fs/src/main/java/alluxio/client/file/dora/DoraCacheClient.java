@@ -19,18 +19,26 @@ import alluxio.PositionReader;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.GrpcDataReader;
+import alluxio.client.file.DoraFileOutStream;
+import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.PositionReadFileInStream;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.dora.netty.NettyDataReader;
+import alluxio.client.file.dora.netty.NettyDataWriter;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.client.file.ufs.DoraOutStream;
+import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.PermissionDeniedException;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CompleteFilePRequest;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateDirectoryPRequest;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.CreateFilePRequest;
+import alluxio.grpc.CreateFilePResponse;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.DeletePRequest;
 import alluxio.grpc.FileInfo;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GetStatusPRequest;
@@ -38,6 +46,9 @@ import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ReadRequest;
+import alluxio.grpc.RenamePOptions;
+import alluxio.grpc.RenamePRequest;
+import alluxio.grpc.RequestType;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.wire.WorkerNetAddress;
@@ -83,7 +94,7 @@ public class DoraCacheClient {
    */
   public PositionReadFileInStream getInStream(URIStatus status,
       Protocol.OpenUfsBlockOptions ufsOptions) {
-    WorkerNetAddress workerNetAddress = getWorkerNetAddress(status.getPath());
+    WorkerNetAddress workerNetAddress = getWorkerNetAddress(status.toString());
     // Construct the partial read request
     NettyDataReader reader;
     if (mNettyTransEnabled) {
@@ -95,20 +106,23 @@ public class DoraCacheClient {
   }
 
   /**
-   * Create a OutStream to write data to dora cluster.
-   * @param status
-   * @param outStreamOptions
-   * @param fsContext
-   * @return the out stream
-   * @throws IOException
+   * Get a stream to write the data to dora cache cluster.
+   *
+   * @param alluxioPath the alluxio path to be written
+   * @param fsContext the file system context
+   * @param outStreamOptions the output stream options
+   * @param ufsOutStream the UfsOutStream for writing data to UFS
+   * @param uuid the UUID for a certain FileOutStream
+   * @return the output stream
    */
-  public DoraOutStream getOutStream(URIStatus status,
-                                    OutStreamOptions outStreamOptions,
-                                    FileSystemContext fsContext) throws IOException {
-    return new DoraOutStream(new AlluxioURI(status.getUfsPath()),
-                                    outStreamOptions,
-                                    fsContext,
-                                    this);
+  public DoraFileOutStream getOutStream(AlluxioURI alluxioPath, FileSystemContext fsContext,
+      OutStreamOptions outStreamOptions, FileOutStream ufsOutStream,
+      String uuid) throws IOException {
+    WorkerNetAddress workerNetAddress = getWorkerNetAddress(alluxioPath.toString());
+    NettyDataWriter writer = NettyDataWriter.create(
+        fsContext, workerNetAddress, Long.MAX_VALUE, RequestType.ALLUXIO_BLOCK, outStreamOptions);
+    return new DoraFileOutStream(this, writer, alluxioPath,
+        outStreamOptions, fsContext, ufsOutStream, uuid);
   }
 
   protected long getChunkSize() {
@@ -124,7 +138,7 @@ public class DoraCacheClient {
   public DoraCachePositionReader createNettyPositionReader(URIStatus status,
       Protocol.OpenUfsBlockOptions ufsOptions,
       CloseableSupplier<PositionReader> externalPositionReader) {
-    WorkerNetAddress workerNetAddress = getWorkerNetAddress(status.getPath());
+    WorkerNetAddress workerNetAddress = getWorkerNetAddress(status.toString());
     // Construct the partial read request
     NettyDataReader reader = createNettyDataReader(workerNetAddress, ufsOptions);
     return new DoraCachePositionReader(reader, status.getLength(), externalPositionReader);
@@ -208,15 +222,18 @@ public class DoraCacheClient {
    * @return URIStatus of new file
    * @throws RuntimeException
    */
-  public URIStatus createFile(String path, CreateFilePOptions options) {
+  public Pair<URIStatus, String> createFile(String path, CreateFilePOptions options)
+      throws PermissionDeniedException {
     try (CloseableResource<BlockWorkerClient> client =
              mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
       CreateFilePRequest request = CreateFilePRequest.newBuilder()
           .setPath(path)
           .setOptions(options)
           .build();
-      FileInfo fileInfo = client.get().createFile(request).getFileInfo();
-      return new URIStatus(GrpcUtils.fromProto(fileInfo));
+      CreateFilePResponse response = client.get().createFile(request);
+      FileInfo fileInfo = response.getFileInfo();
+      String uuid = response.getUuid();
+      return new Pair<>(new URIStatus(GrpcUtils.fromProto(fileInfo)), uuid);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -228,15 +245,79 @@ public class DoraCacheClient {
    * This is called when out stream is closed. This is equivalent to close() in some file system.
    * @param path The file path
    * @param options the close option
+   * @param uuid the uuid of its open file handle
    */
-  public void completeFile(String path, CompleteFilePOptions options) {
+  public void completeFile(String path, CompleteFilePOptions options, String uuid)
+      throws PermissionDeniedException {
     try (CloseableResource<BlockWorkerClient> client =
              mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
       CompleteFilePRequest request = CompleteFilePRequest.newBuilder()
           .setPath(path)
           .setOptions(options)
+          .setUuid(uuid)
           .build();
       client.get().completeFile(request);
+      return;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Delete a file.
+   * @param path
+   * @param options
+   */
+  public void delete(String path, DeletePOptions options) throws PermissionDeniedException {
+    try (CloseableResource<BlockWorkerClient> client =
+             mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
+      DeletePRequest request = DeletePRequest.newBuilder()
+          .setPath(path)
+          .setOptions(options)
+          .build();
+      client.get().delete(request);
+      return;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Rename a src file/dir to dst file/dir.
+   * @param src the source file/dir
+   * @param dst the destination file/dir
+   * @param options the rename option
+   */
+  public void rename(String src, String dst, RenamePOptions options)
+      throws PermissionDeniedException {
+    try (CloseableResource<BlockWorkerClient> client =
+             mContext.acquireBlockWorkerClient(getWorkerNetAddress(src))) {
+      RenamePRequest request = RenamePRequest.newBuilder()
+          .setPath(src)
+          .setDstPath(dst)
+          .setOptions(options)
+          .build();
+      client.get().rename(request);
+      return;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Create a dir.
+   * @param path the name of the dir
+   * @param options the option of this operation
+   */
+  public void createDirectory(String path, CreateDirectoryPOptions options)
+      throws PermissionDeniedException {
+    try (CloseableResource<BlockWorkerClient> client =
+             mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
+      CreateDirectoryPRequest request = CreateDirectoryPRequest.newBuilder()
+          .setPath(path)
+          .setOptions(options)
+          .build();
+      client.get().createDirectory(request);
       return;
     } catch (IOException e) {
       throw new RuntimeException(e);

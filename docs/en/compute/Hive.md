@@ -18,12 +18,10 @@ that you can easily store Hive tables in Alluxio's tiered storage.
 * [Download and setup Hive](https://cwiki.apache.org/confluence/display/Hive/GettingStarted). If you are using Hive2.1+, 
   make sure to [run the schematool](https://cwiki.apache.org/confluence/display/Hive/GettingStarted#GettingStarted-RunningHiveServer2andBeeline.1)
   before starting Hive. `$HIVE_HOME/bin/schematool -dbType derby -initSchema`
-* Alluxio has been [set up and is running]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
+* Alluxio has been [set up and is running]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
 * Make sure that the Alluxio client jar is available.
   This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
   downloaded from Alluxio [download page](https://www.alluxio.io/download).
-  Alternatively, advanced users can compile this client jar from the source code
-  by following the [instructions]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}).
 * To run Hive on Hadoop MapReduce, please also follow the instructions in
   [running MapReduce on Alluxio]({{ '/en/compute/Hadoop-MapReduce.html' | relativize_url }})
   to make sure Hadoop MapReduce can work with Alluxio.
@@ -125,10 +123,8 @@ And you can see the query results from console:
 When Hive is already serving and managing the tables stored in HDFS,
 Alluxio can also serve them for Hive if HDFS is mounted as the under storage of Alluxio.
 In this example, we assume an HDFS cluster is mounted as the under storage of
-Alluxio root directory (i.e., property `alluxio.master.mount.table.root.ufs=hdfs://namenode:port/`
-is set in `conf/alluxio-site.properties`). Please refer to
-[unified namespace]({{ '/en/core-services/Unified-Namespace.html' | relativize_url }})
-for more details about Alluxio `mount` operation.
+Alluxio root directory (i.e., property `alluxio.dora.client.ufs.root=hdfs://namenode:port/`
+is set in `conf/alluxio-site.properties`).
 
 ### Move an Internal Table from HDFS to Alluxio
 

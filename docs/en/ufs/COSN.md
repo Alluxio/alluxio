@@ -16,16 +16,13 @@ It can store massive amounts of data and features imperceptible bandwidth and ca
 ## Basic Setup
 
 Alluxio runs on multiple machines in cluster mode so its binary package needs to be deployed on the machines.
-You can either [compile Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}) or [download the binaries locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
+You can either [compile Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}) or [download the binaries locally]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
 
 In preparation for using COS with Alluxio, create a new bucket or use an existing bucket.
 You should also note the directory you want to use in that bucket, either by creating a new directory in the bucket or using an existing one.
 For the purposes of this guide, the COS Bucket name is called `COSN_ALLUXIO_BUCKET`, the directory in that bucket is called `COSN_DATA`, and COS Bucket region is called `COSN_REGION` which specifies the region of your bucket.
 
 ## Basic Setup
-
-Alluxio unifies access to different storage systems through the [unified namespace]({{ '/en/core-services/Unified-Namespace.html' | relativize_url }}) feature.
-COSN UFS is used to access Tencent Cloud object storage and a COS location can be either mounted at the root of the Alluxio namespace or as a nested directory.
 
 ### Root Mount Point
 
@@ -41,7 +38,7 @@ Specify an existing COS bucket and directory as the under storage system by modi
 `conf/alluxio-site.properties` to include:
 
 ```
-alluxio.master.mount.table.root.ufs=cosn://COSN_ALLUXIO_BUCKET/COSN_DATA/
+alluxio.dora.client.ufs.root=cosn://COSN_ALLUXIO_BUCKET/COSN_DATA/
 ```
 
 Specify COS configuration information in order to access COS by modifying `conf/core-site.xml` to include:
@@ -71,20 +68,6 @@ Specify COS configuration information in order to access COS by modifying `conf/
 
 The above is the most basic configuration. For more configuration please refer to [here](https://hadoop.apache.org/docs/r3.3.1/hadoop-cos/cloud-storage/index.html).
 After these changes, Alluxio should be configured to work with COSN as its under storage system and you can try [Running Alluxio Locally with COSN](#running-alluxio-locally-with-cosn).
-
-### Nested Mount
-
-A COS location can be mounted at a nested directory in the Alluxio namespace to have unified access to multiple under storage systems.
-The [mount command]({{ '/en/operation/User-CLI.html' | relativize_url }}#mount) can be used for this purpose.
-
-```console
-$ ./bin/alluxio fs mount --option fs.cosn.userinfo.secretId=<COSN_SECRET_ID> \
-    --option fs.cosn.userinfo.secretKey=<COSN_SECRET_KEY> \
-    --option fs.cosn.bucket.region=<COSN_REGION> \
-    --option fs.cosn.impl=org.apache.hadoop.fs.CosFileSystem \
-    --option fs.AbstractFileSystem.cosn.impl=org.apache.hadoop.fs.CosN \
-    /cosn cosn://COSN_ALLUXIO_BUCKET/COSN_DATA/
-```
 
 ## Running Alluxio Locally with COSN
 

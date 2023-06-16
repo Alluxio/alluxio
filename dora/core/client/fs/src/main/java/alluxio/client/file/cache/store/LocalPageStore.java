@@ -18,11 +18,13 @@ import alluxio.client.file.cache.PageStore;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.file.ReadTargetBuffer;
+import alluxio.network.protocol.databuffer.DataFileChannel;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.FileUtils;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -81,11 +83,11 @@ public class LocalPageStore implements PageStore {
       }
     } catch (Exception e) {
       Files.deleteIfExists(pagePath);
-      if (e.getMessage().contains(ERROR_NO_SPACE_LEFT)) {
+      if (e.getMessage() != null && e.getMessage().contains(ERROR_NO_SPACE_LEFT)) {
         throw new ResourceExhaustedException(
             String.format("%s is full, configured with %d bytes", mRoot, mCapacity), e);
       }
-      throw new IOException("Failed to write file " + pagePath + " for page " + pageId);
+      throw new IOException("Failed to write file " + pagePath + " for page " + pageId, e);
     }
   }
 
@@ -195,6 +197,21 @@ public class LocalPageStore implements PageStore {
     Path filePath =
         isTemporary ? getTempFilePath(pageId.getFileId()) : getFilePath(pageId.getFileId());
     return filePath.resolve(Long.toString(pageId.getPageIndex()));
+  }
+
+  @Override
+  public DataFileChannel getDataFileChannel(
+      PageId pageId, int pageOffset, int bytesToRead, boolean isTemporary)
+      throws PageNotFoundException {
+    Preconditions.checkArgument(pageOffset >= 0,
+        "page offset should be non-negative");
+    Path pagePath = getPagePath(pageId, isTemporary);
+    File pageFile = pagePath.toFile();
+    if (!pageFile.exists()) {
+      throw new PageNotFoundException(pagePath.toString());
+    }
+    DataFileChannel dataFileChannel = new DataFileChannel(pageFile, pageOffset, bytesToRead);
+    return dataFileChannel;
   }
 
   @Override

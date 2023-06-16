@@ -2,6 +2,34 @@ alluxio.conf.dynamic.update.enabled:
   'Whether to support dynamic update property.'
 alluxio.debug:
   'Set to true to enable debug mode which has additional logging and info in the Web UI.'
+alluxio.dora.client.metadata.cache.enabled:
+  'Whether to enable metadata cache for dora client. This is only valid for read only workloads.'
+alluxio.dora.client.read.location.policy.enabled:
+  'Whether to use client side location policy for reading'
+alluxio.dora.client.ufs.root:
+  'UFS root for dora client'
+alluxio.dora.ufs.file.status.cache.size:
+  'The max size of the cache of UFS file status'
+alluxio.dora.ufs.file.status.cache.ttl:
+  'The TTL of the cache of UFS file status'
+alluxio.dora.ufs.list.status.cache.nr.dirs:
+  'Number of the file/dir cache of UFS list status results'
+alluxio.dora.ufs.list.status.cache.ttl:
+  'The TTL of the cache of UFS list status results'
+alluxio.dora.worker.metastore.rocksdb.block.index:
+  'The block index type to be used in the RocksDB block metadata table. If unset, the RocksDB default will be used.See https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html'
+alluxio.dora.worker.metastore.rocksdb.bloom.filter:
+  'Whether or not to use a bloom filter in the Block meta table in RocksDB. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter'
+alluxio.dora.worker.metastore.rocksdb.cache.size:
+  'The capacity in bytes of the RocksDB block metadata table LRU  cache. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Block-Cache. Our microbench test shows that 1GB cache can double the metadata read operation performance for a meta store that persists 10M metadata entries. Note that the memory is off-heap and does not count in jvm memory.'
+alluxio.dora.worker.metastore.rocksdb.dir:
+  'The base dir of RocksDB to store Dora metadata'
+alluxio.dora.worker.metastore.rocksdb.index:
+  'The index type to be used in the RocksDB block metadata table. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Index-Block-Format'
+alluxio.dora.worker.metastore.rocksdb.ttl:
+  'The TTL (Time To Live) in duration of RocksDB of Dora metadata. 0s or negative value means no expiry'
+alluxio.dora.worker.populate.metadata.fingerprint:
+  'Populate the fingerprint for file metadata fetched from UFS If set, when the file metadata is updated, the fingerprints will be compared. If the file metadata is updated but the data part does not change, we can skip invalidating the page cache, at the expense of having extra overhead on computing the fingerprint for UFS files.'
 alluxio.exit.collect.info:
   'If true, the process will dump metrics and jstack into the log folder. This only applies to Alluxio master and worker processes.'
 alluxio.fuse.auth.policy.class:
@@ -19,7 +47,7 @@ alluxio.fuse.fs.name:
 alluxio.fuse.jnifuse.enabled:
   'Use JNI-Fuse library for better performance. If disabled, JNR-Fuse will be used.'
 alluxio.fuse.jnifuse.libfuse.version:
-  'The version of libfuse used by libjnifuse. Libfuse2 and Libfuse3 are supported.'
+  'The version of libfuse used by libjnifuse. Libfuse2 (value=&quot;2&quot;) and Libfuse3 (value=&quot;3&quot;, default value) are supported.'
 alluxio.fuse.logging.threshold:
   'Logging a FUSE API call when it takes more time than the threshold.'
 alluxio.fuse.mount.alluxio.path:
@@ -28,6 +56,8 @@ alluxio.fuse.mount.options:
   'The platform specific Fuse mount options to mount the given Fuse mount point. If multiple mount options are provided, separate them with comma.'
 alluxio.fuse.mount.point:
   'The absolute local filesystem path that worker (if alluxio.worker.fuse.enabled is enabled)or standalone Fuse will mount Alluxio path to.'
+alluxio.fuse.position.read.enabled:
+  'By default FUSE uses sequential reader which may have unsatisfied performance when having random read operations. Note that even user side sequential read may lead to Alluxio FUSE side small range random read behavior'
 alluxio.fuse.shared.caching.reader.enabled:
   '(Experimental) Use share grpc data reader for better performance on multi-process file reading through Alluxio JNI Fuse. Blocks data will be cached on the client side so more memory is required for the Fuse process.'
 alluxio.fuse.special.command.enabled:
@@ -74,8 +104,14 @@ alluxio.job.master.hostname:
   'The hostname of the Alluxio job master.'
 alluxio.job.master.job.capacity:
   'The total possible number of available job statuses in the job master. This value includes running and finished jobs which are have completed within alluxio.job.master.finished.job.retention.time.'
+alluxio.job.master.lost.master.interval:
+  'The time interval the job master waits between checks for lost job masters.'
 alluxio.job.master.lost.worker.interval:
   'The time interval the job master waits between checks for lost workers.'
+alluxio.job.master.master.heartbeat.interval:
+  'The amount of time that a standby Alluxio Job Master should wait in between heartbeats to the primary Job Master.'
+alluxio.job.master.master.timeout:
+  'The time period after which the primary Job Master will mark a standby as lost without a subsequent heartbeat.'
 alluxio.job.master.network.flowcontrol.window:
   'The HTTP2 flow control window used by Alluxio job-master gRPC connections. Larger value will allow more data to be buffered but will use more memory.'
 alluxio.job.master.network.keepalive.time:
@@ -132,16 +168,6 @@ alluxio.leak.detector.level:
   'Set this to one of {DISABLED, SIMPLE, ADVANCED, PARANOID} to track resource leaks in the Alluxio codebase. DISABLED does not track any leaks. SIMPLE only samples resources, and doesn''t track recent accesses, having a low overhead. ADVANCED is like simple, but tracks recent object accesses and has higher overhead. PARANOID tracks all objects and has the highest overhead. It is recommended to only use this value during testing.'
 alluxio.locality.compare.node.ip:
   'Whether try to resolve the node IP address for locality checking'
-alluxio.logserver.hostname:
-  'The hostname of Alluxio logserver. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending &quot;-Dalluxio.logserver.hostname&quot;=&lt;NEW_VALUE&gt;&quot; to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
-alluxio.logserver.logs.dir:
-  'Default location for remote log files. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending &quot;-Dalluxio.logserver.logs.dir&quot;=&lt;NEW_VALUE&gt;&quot; to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
-alluxio.logserver.port:
-  'Default port of logserver to receive logs from alluxio servers. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending &quot;-Dalluxio.logserver.port&quot;=&lt;NEW_VALUE&gt;&quot; to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
-alluxio.logserver.threads.max:
-  'The maximum number of threads used by logserver to service logging requests.'
-alluxio.logserver.threads.min:
-  'The minimum number of threads used by logserver to service logging requests.'
 alluxio.metrics.conf.file:
   'The file path of the metrics system configuration file. By default it is `metrics.properties` in the `conf` directory.'
 alluxio.metrics.executor.task.warn.frequency:
@@ -162,8 +188,12 @@ alluxio.network.host.resolution.timeout:
   'During startup of the Master and Worker processes Alluxio needs to ensure that they are listening on externally resolvable and reachable host names. To do this, Alluxio will automatically attempt to select an appropriate host name if one was not explicitly specified. This represents the maximum amount of time spent waiting to determine if a candidate host name is resolvable over the network.'
 alluxio.network.ip.address.used:
   'If true, when alluxio.&lt;service_name&gt;.hostname and alluxio.&lt;service_name&gt;.bind.host of a service not specified, use IP as the connect host of the service.'
+alluxio.network.netty.heartbeat.timeout:
+  'The amount of time the server will wait before closing a netty connection if there has not been any incoming traffic. The client will periodically heartbeat when there is no activity on a connection. This value should be the same on the clients and server.'
 alluxio.proxy.audit.logging.enabled:
   'Set to true to enable proxy audit.'
+alluxio.proxy.master.heartbeat.interval:
+  'Proxy instances maintain a heartbeat with the primary master. This key specifies the heartbeat interval.'
 alluxio.proxy.s3.bucket.naming.restrictions.enabled:
   'Toggles whether or not the Alluxio S3 API will enforce AWS S3 bucket naming restrictions. See https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html.'
 alluxio.proxy.s3.bucketpathcache.timeout:
@@ -288,6 +318,8 @@ alluxio.underfs.cephfs.mount.point:
   'Directory to mount on the CephFS filesystem.'
 alluxio.underfs.cephfs.mount.uid:
   'The user ID of CephFS mount.'
+alluxio.underfs.checksum.type:
+  'UFS checksum type.'
 alluxio.underfs.cleanup.enabled:
   'Whether or not to clean up under file storage periodically.Some ufs operations may not be completed and cleaned up successfully in normal ways and leave some intermediate data that needs periodical cleanup.If enabled, all the mount points will be cleaned up when a leader master starts or cleanup interval is reached. This should be used sparingly.'
 alluxio.underfs.cleanup.interval:

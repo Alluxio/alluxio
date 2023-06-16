@@ -20,6 +20,7 @@ import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.network.protocol.databuffer.DataFileChannel;
 
 import com.codahale.metrics.Counter;
 import org.slf4j.Logger;
@@ -212,6 +213,21 @@ public interface PageStore extends AutoCloseable {
    * @param fileId
    */
   default void abort(String fileId) throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  /**
+   * Get a {@link DataFileChannel} which wraps a {@link io.netty.channel.FileRegion}.
+   * @param pageId the page id
+   * @param pageOffset the offset inside the page
+   * @param bytesToRead the bytes to read
+   * @param isTemporary whether it is temporary or not
+   * @return an object of {@link DataFileChannel}
+   * @throws PageNotFoundException
+   */
+  default DataFileChannel getDataFileChannel(
+      PageId pageId, int pageOffset, int bytesToRead, boolean isTemporary)
+      throws PageNotFoundException {
     throw new UnsupportedOperationException();
   }
 

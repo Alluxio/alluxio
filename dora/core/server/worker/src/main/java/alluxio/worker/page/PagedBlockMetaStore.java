@@ -22,6 +22,7 @@ import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.quota.CacheScope;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.runtime.BlockDoesNotExistRuntimeException;
 import alluxio.worker.block.BlockStoreEventListener;
@@ -32,6 +33,7 @@ import com.google.common.collect.ImmutableMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -304,6 +306,20 @@ public class PagedBlockMetaStore implements PageMetaStore {
   }
 
   @Override
+  public PageStoreDir getStoreDirOfFile(String fileId) throws FileDoesNotExistException {
+    long blockId = BlockPageId.parseBlockId(fileId);
+    PagedBlockMeta blockMeta = mBlocks.getFirstByField(INDEX_BLOCK_ID, blockId);
+    if (blockMeta == null) {
+      PagedTempBlockMeta tempBlockMeta = mTempBlocks.getFirstByField(INDEX_TEMP_BLOCK_ID, blockId);
+      if (tempBlockMeta == null) {
+        throw new FileDoesNotExistException(String.format("Block %s does not exist", fileId));
+      }
+      return tempBlockMeta.getDir();
+    }
+    return blockMeta.getDir();
+  }
+
+  @Override
   public List<PageStoreDir> getStoreDirs() {
     return mDelegate.getStoreDirs();
   }
@@ -452,6 +468,19 @@ public class PagedBlockMetaStore implements PageMetaStore {
   public Optional<CacheUsage> getUsage() {
     // TODO(bowen): implement partition by block
     return mDelegate.getUsage();
+  }
+
+  @Override
+  public Set<PageInfo> getAllPagesByFileId(String fileId) {
+    long blockId = BlockPageId.parseBlockId(fileId);
+    PagedBlockMeta blockMeta = mBlocks.getFirstByField(INDEX_BLOCK_ID, blockId);
+    if (blockMeta == null) {
+      blockMeta = mTempBlocks.getFirstByField(INDEX_TEMP_BLOCK_ID, blockId);
+    }
+    if (blockMeta != null) {
+      return blockMeta.getDir().getBlockPages(blockId);
+    }
+    return Collections.emptySet();
   }
 
   private static PagedBlockStoreDir downcast(PageStoreDir pageStoreDir) {

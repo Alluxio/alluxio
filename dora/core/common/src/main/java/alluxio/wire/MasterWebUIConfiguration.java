@@ -28,6 +28,7 @@ public final class MasterWebUIConfiguration implements Serializable {
 
   private List<String> mWhitelist;
   private TreeSet<Triple<String, String, String>> mConfiguration;
+  private ConfigHash mConfigHash;
 
   /**
    * Creates a new instance of {@link MasterWebUIConfiguration}.
@@ -73,6 +74,23 @@ public final class MasterWebUIConfiguration implements Serializable {
    */
   public MasterWebUIConfiguration setWhitelist(List<String> whitelist) {
     mWhitelist = whitelist;
+    return this;
+  }
+
+  /**
+   * @return cluster config hash
+   */
+  public ConfigHash getConfigHash() {
+    return mConfigHash;
+  }
+
+  /**
+   * Sets config hash.
+   * @param configHash the config hash
+   * @return the configuration
+   */
+  public MasterWebUIConfiguration setConfigHash(ConfigHash configHash) {
+    mConfigHash = configHash;
     return this;
   }
 

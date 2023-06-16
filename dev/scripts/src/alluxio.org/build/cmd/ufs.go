@@ -44,10 +44,6 @@ func UfsVersionCheckF(args []string) error {
 	if err := cmd.Parse(args); err != nil {
 		return stacktrace.Propagate(err, "error parsing flags")
 	}
-	repoRoot, err := findRepoRoot()
-	if err != nil {
-		return stacktrace.Propagate(err, "error finding repo root")
-	}
 	modules, err := loadModules(ret.modulesFile)
 	if err != nil {
 		return stacktrace.Propagate(err, "error loading plugin modules from file at %v", ret.modulesFile)
@@ -73,7 +69,7 @@ func UfsVersionCheckF(args []string) error {
 
 		parsedVersions, ok := parsedFiles[u.VersionEnumFilePath]
 		if !ok {
-			parsed, err := parseEnumFile(filepath.Join(repoRoot, u.VersionEnumFilePath))
+			parsed, err := parseEnumFile(filepath.Join(findRepoRoot(), u.VersionEnumFilePath))
 			if err != nil {
 				return stacktrace.Propagate(err, "error parsing enum file %v", u.VersionEnumFilePath)
 			}
