@@ -960,8 +960,9 @@ public class DefaultFileSystemMaster extends CoreMaster
               FileSystemMasterCommonPOptions.newBuilder()
                   .setTtl(context.getOptions().getCommonOptions().getTtl())
                   .setTtlAction(context.getOptions().getCommonOptions().getTtlAction())));
-      /*
-      See the comments in #getFileIdInternal for an explanation on why the loop here is required.
+      /**
+       * See the comments in {@link #getFileIdInternal(AlluxioURI, boolean)} for an explanation
+       * on why the loop here is required.
        */
       boolean run = true;
       boolean loadMetadata = false;
@@ -1131,8 +1132,9 @@ public class DefaultFileSystemMaster extends CoreMaster
         context.getOptions().setLoadMetadataType(LoadMetadataPType.NEVER);
         ufsAccessed = true;
       }
-      /*
-      See the comments in #getFileIdInternal for an explanation on why the loop here is required.
+      /**
+       * See the comments in {@link #getFileIdInternal(AlluxioURI, boolean)} for an explanation
+       * on why the loop here is required.
        */
       DescendantType loadDescendantType;
       if (context.getOptions().getLoadMetadataType() == LoadMetadataPType.NEVER) {
@@ -1519,8 +1521,9 @@ public class DefaultFileSystemMaster extends CoreMaster
           LoadMetadataPOptions.newBuilder()
               .setCommonOptions(context.getOptions().getCommonOptions())
               .setLoadType(context.getOptions().getLoadMetadataType()));
-      /*
-      See the comments in #getFileIdInternal for an explanation on why the loop here is required.
+      /**
+       * See the comments in {@link #getFileIdInternal(AlluxioURI, boolean)} for an explanation
+       * on why the loop here is required.
        */
       boolean run = true;
       boolean loadMetadata = false;
@@ -1676,7 +1679,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       UnavailableException {
     if (isOperationComplete(context)) {
       Metrics.COMPLETED_OPERATION_RETRIED_COUNT.inc();
-      LOG.warn("A completed \"completeFile\" operation has been retried. {}", context);
+      LOG.warn("A completed \"completeFile\" operation has been retried. OperationContext={}",
+          context);
       return;
     }
     Metrics.COMPLETE_FILE_OPS.inc();
@@ -1941,7 +1945,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       BlockInfoException, IOException, FileDoesNotExistException {
     if (isOperationComplete(context)) {
       Metrics.COMPLETED_OPERATION_RETRIED_COUNT.inc();
-      LOG.warn("A completed \"createFile\" operation has been retried. {}", context);
+      LOG.warn("A completed \"createFile\" operation has been retried. OperationContext={}",
+          context);
       return getFileInfo(path,
           GetStatusContext.create(GetStatusPOptions.newBuilder()
               .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1))
@@ -2173,7 +2178,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       InvalidPathException, AccessControlException {
     if (isOperationComplete(context)) {
       Metrics.COMPLETED_OPERATION_RETRIED_COUNT.inc();
-      LOG.warn("A completed \"delete\" operation has been retried. {}", context);
+      LOG.warn("A completed \"delete\" operation has been retried. OperationContext={}", context);
       return;
     }
     Metrics.DELETE_PATHS_OPS.inc();
@@ -2790,7 +2795,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       FileDoesNotExistException {
     if (isOperationComplete(context)) {
       Metrics.COMPLETED_OPERATION_RETRIED_COUNT.inc();
-      LOG.warn("A completed \"createDirectory\" operation has been retried. {}", context);
+      LOG.warn("A completed \"createDirectory\" operation has been retried. OperationContext={}",
+          context);
       return getFileInfo(path,
           GetStatusContext.create(GetStatusPOptions.newBuilder()
               .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1))
@@ -2917,7 +2923,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       IOException, AccessControlException {
     if (isOperationComplete(context)) {
       Metrics.COMPLETED_OPERATION_RETRIED_COUNT.inc();
-      LOG.warn("A completed \"rename\" operation has been retried. {}", context);
+      LOG.warn("A completed \"rename\" operation has been retried. OperationContext={}", context);
       return;
     }
     Metrics.RENAME_PATH_OPS.inc();

@@ -79,10 +79,10 @@ public final class Scheduler {
   private final WorkerProvider mWorkerProvider;
 
   /**
-   * Constructor.
+   * Creates a new instance of {@link Scheduler}.
    *
-   * @param workerProvider   workerProvider
-   * @param jobMetaStore     jobMetaStore
+   * @param workerProvider interface for providing worker information and client
+   * @param jobMetaStore job meta store that store job information
    */
   public Scheduler(WorkerProvider workerProvider, JobMetaStore jobMetaStore) {
     mWorkerProvider = workerProvider;
