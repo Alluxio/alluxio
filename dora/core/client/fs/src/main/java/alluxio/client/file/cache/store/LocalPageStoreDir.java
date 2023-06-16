@@ -145,6 +145,8 @@ public class LocalPageStoreDir extends QuotaManagedPageStoreDir {
   private Optional<PageId> getPageId(Path path) {
     Matcher matcher = mPagePattern.matcher(path.toString());
     if (!matcher.matches()) {
+      // @TODO(hua) define the mPagePattern and TEMP page Pattern as static class member to save
+      // CPU time and memory footprint.
       if (Pattern.matches(String.format("%s/%d/%s/([^/]+)/(\\d+)",
           Pattern.quote(mPageStoreOptions.getRootDir().toString()),
           mPageStoreOptions.getPageSize(), LocalPageStore.TEMP_DIR), path.toString())) {
