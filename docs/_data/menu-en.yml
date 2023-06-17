@@ -3,7 +3,7 @@
     buttonTitle: Overview
     subfiles:
       - title: Introduction
-        url: /en/overview.html
+        url: /en/Overview.html
       - title: Dora
         url: /en/overview/Why-Dora.html
       - title: Getting Started
@@ -15,7 +15,7 @@
       - title: Data Caching
         url: /en/core-services/Caching.html
       - title: Metadata Caching
-        url: /en/core-services/Metadata-Caching.md
+        url: /en/core-services/Metadata-Caching.html
 
   - title: Install Alluxio
     buttonTitle: Install_Alluxio
@@ -86,7 +86,7 @@
         url: /en/ufs/CephFS.html
 
   - title: FUSE SDK
-    buttonTitle: FUSE SDK
+    buttonTitle: FUSE_SDK
     subfiles:
       - title: FUSE SDK
         url: /en/fuse-sdk/Overview.html
@@ -104,7 +104,7 @@
         url: /en/fuse-sdk/Advanced-Tuning.html
 
   - title: Presto SDK
-    buttonTitle: Presto SDK
+    buttonTitle: Presto_SDK
     subfiles:
       - title: Presto SDK
         url: /en/presto-sdk/presto-sdk.html
