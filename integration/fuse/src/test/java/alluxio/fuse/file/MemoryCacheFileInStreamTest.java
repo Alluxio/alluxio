@@ -32,7 +32,7 @@ public class MemoryCacheFileInStreamTest {
 
   @Test
   public void testRead() throws IOException, AlluxioException {
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 100; i++) {
       int size = 1 + mRandom.nextInt(16 * Constants.MB);
       byte[] bytes = new byte[size];
       mRandom.nextBytes(bytes);
