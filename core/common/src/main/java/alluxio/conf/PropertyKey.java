@@ -7099,6 +7099,45 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The port Alluxio FUSE web UI runs on.")
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey FUSE_MEMORY_CACHE_ENABLE =
+      booleanBuilder(Name.FUSE_MEMORY_CACHE_ENABLE)
+          .setDefaultValue(false)
+          .setDescription("Whether the Alluxio FUSE memory cache is enabled.")
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_MEMORY_CACHE_PAGE_SIZE =
+      dataSizeBuilder(Name.FUSE_MEMORY_CACHE_PAGE_SIZE)
+          .setDefaultValue("4MB")
+          .setDescription("The page size for Alluxio Fuse memory caching. "
+              + "We recommend not changing this value "
+              + "as both excessively large and small values can degrade performance.")
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_MEMORY_CACHE_PAGE_COUNT =
+      intBuilder(Name.FUSE_MEMORY_CACHE_PAGE_COUNT)
+          .setDefaultValue(256)
+          .setDescription("The maximum number of pages in the cache. "
+              + "Since memory caching consumes JVM heap memory, "
+              + "this value must be carefully set to prevent Out of Memory (OOM) errors. "
+              + "We recommend setting "
+              + "FUSE_MEMORY_CACHE_PAGE_COUNT * FUSE_MEMORY_CACHE_PAGE_SIZE < 0.5 * Xmx.")
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_MEMORY_CACHE_CONCURRENCY_LEVEL =
+      intBuilder(Name.FUSE_MEMORY_CACHE_CONCURRENCY_LEVEL)
+          .setDefaultValue(128)
+          .setDescription("The maximum concurrency for cache updates. "
+              + "If you have a high level of concurrent file reads, "
+              + "you can increase this value accordingly.")
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_MEMORY_CACHE_EXPIRE_MS =
+      longBuilder(Name.FUSE_MEMORY_CACHE_EXPIRE_MS)
+          .setDefaultValue(60 * 60 * 1000L)
+          .setDescription("The cache expiration time, "
+              + "typically does not need to be changed as it automatically expires.")
+          .setScope(Scope.CLIENT)
+          .build();
 
   //
   // Security related properties
@@ -9103,6 +9142,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_WEB_PORT = "alluxio.fuse.web.port";
     public static final String FUSE_JNIFUSE_LIBFUSE_VERSION =
         "alluxio.fuse.jnifuse.libfuse.version";
+    public static final String FUSE_MEMORY_CACHE_ENABLE = "alluxio.fuse.memory.cache.enable";
+    public static final String FUSE_MEMORY_CACHE_PAGE_SIZE = "alluxio.fuse.memory.cache.page.size";
+    public static final String FUSE_MEMORY_CACHE_PAGE_COUNT =
+        "alluxio.fuse.memory.cache.page.count";
+    public static final String FUSE_MEMORY_CACHE_CONCURRENCY_LEVEL =
+        "alluxio.fuse.memory.cache.concurrency.level";
+    public static final String FUSE_MEMORY_CACHE_EXPIRE_MS =
+        "alluxio.fuse.memory.cache.expire.ms";
 
     //
     // Security related properties
