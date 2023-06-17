@@ -4,36 +4,24 @@
     subfiles:
       - title: Introduction
         url: /en/overview.html
-      - title: Architecture
-        url: /en/overview/Architecture.html
-      - title: JobService
-        url: /en/overview/JobService.html
+      - title: Dora
+        url: /en/overview/Why-Dora.html
       - title: Getting Started
         url: /en/overview/Getting-Started.html
-      - title: FAQ
-        url: /en/overview/FAQ.html
-      - title: Use Cases
-        url: /en/overview/Use-Cases.html
 
   - title: Core Services
     buttonTitle: Core_Services
     subfiles:
-      - title: Caching
+      - title: Data Caching
         url: /en/core-services/Caching.html
-      - title: Unified Namespace
-        url: /en/core-services/Unified-Namespace.html
+      - title: Metadata Caching
+        url: /en/core-services/Metadata-Caching.md
 
   - title: Install Alluxio
     buttonTitle: Install_Alluxio
     subfiles:
-      - title: Local Machine
-        url: /en/deploy/Running-Alluxio-Locally.html
       - title: Cluster
-        url: /en/deploy/Running-Alluxio-On-a-Cluster.html
-      - title: Cluster with HA
         url: /en/deploy/Running-Alluxio-On-a-HA-Cluster.html
-      - title: Docker
-        url: /en/deploy/Running-Alluxio-On-Docker.html
       - title: Software Requirements
         url: /en/deploy/Requirements.html
 
@@ -42,8 +30,6 @@
     subfiles:
       - title: Deploy
         url: /en/kubernetes/Running-Alluxio-On-Kubernetes.html
-      - title: Spark on Kubernetes
-        url: /en/kubernetes/Spark-On-Kubernetes.html
       - title: Metrics
         url: /en/kubernetes/Metrics-On-Kubernetes.html
 
@@ -64,8 +50,6 @@
         url: /en/compute/Presto.html
       - title: Trino
         url: /en/compute/Trino.html
-      - title: Tensorflow
-        url: /en/compute/Tensorflow.html
 
   - title: Storage Integrations
     buttonTitle: Storage_Integrations
@@ -98,10 +82,32 @@
         url: /en/ufs/Ozone.html
       - title: Swift
         url: /en/ufs/Swift.html
-      - title: WEB
-        url: /en/ufs/WEB.html
       - title: CephFS
         url: /en/ufs/CephFS.html
+
+  - title: FUSE SDK
+    buttonTitle: FUSE SDK
+    subfiles:
+      - title: FUSE SDK
+        url: /en/fuse-sdk/Overview.html
+      - title: Local Cache Quick Start
+        url: /en/fuse-sdk/Local-Cache-Quick-Start.html
+      - title: FUSE SDK on Dora Quick Start
+        url: /en/fuse-sdk/FUSE-SDK-Dora-Quick-Start.html
+      - title: Local Cache
+        url: /en/fuse-sdk/Local-Cache.html
+      - title: Local Metadata Cache
+        url: /en/fuse-sdk/Local-Metadata-Cache.html
+      - title: Local Data Cache
+        url: /en/fuse-sdk/Local-Data-Cache.html
+      - title: Advanced Tuning
+        url: /en/fuse-sdk/Advanced-Tuning.html
+
+  - title: Presto SDK
+    buttonTitle: Presto SDK
+    subfiles:
+      - title: Presto SDK
+        url: /en/presto-sdk/presto-sdk.html
 
   - title: Operations
     buttonTitle: Operations
@@ -123,12 +129,6 @@
       - title: Basic Logging
         url: /en/administration/Basic-Logging.html
 
-  - title: Solutions
-    buttonTitle: Solutions
-    subfiles:
-      - title: Framework | Deep Learning Frameworks
-        url: /en/solutions/Deep-Learning.html
-
   - title: Client APIs
     buttonTitle: Client_APIs
     subfiles:
@@ -138,10 +138,6 @@
         url: /en/api/S3-API.html
       - title: REST API
         url: /en/api/REST-API.html
-      - title: POSIX API
-        url: /en/api/POSIX-API.html
-      - title: POSIX API with Alluxio Local Cache
-        url: /en/api/POSIX-API-local-cache.html
 
   - title: Contributor Resources
     buttonTitle: Contributor_Resources
@@ -164,19 +160,3 @@
         url: /en/reference/Properties-List.html
       - title: List of Metrics
         url: /en/reference/Metrics-List.html
-
-  - title: Dora
-    buttonTitle: Dora
-    subfiles:
-      - title: Introduction
-        url: /en/dora/Overview.html
-      - title: Deploy Alluxio Cluster
-        url: /en/dora/Deploy-Alluxio-Cluster.html
-      - title: Deploy Alluxio on Kubernetes
-        url: /en/dora/Deploy-Alluxio-Kubernetes.html
-      - title: FUSE-based POSIX API with Local Cache
-        url: /en/dora/FUSE-SDK.html
-      - title: Metadata Cache and Invalidation in Dora
-        url: /en/dora/Metadata.html
-      - title: Presto SDK with local cache
-        url: /en/dora/PRESTO-SDK.html
