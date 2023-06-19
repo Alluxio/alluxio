@@ -4178,7 +4178,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_BLOCK_STORE_TYPE =
       enumBuilder(Name.WORKER_BLOCK_STORE_TYPE, BlockStoreType.class)
-          .setDefaultValue(BlockStoreType.FILE)
+          .setDefaultValue(BlockStoreType.PAGE)
           .setDescription("The implementation of LocalBlockStore that can be instantiated.")
           .setScope(Scope.WORKER)
           .build();
@@ -7782,15 +7782,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The maximum time for a netty client (for block "
               + "reads and block writes) to wait for a response from the data server.")
           .build();
-
+  // TODO(jiacheng): Actually, by being the main switch for dora, this deserves a better name
   public static final PropertyKey DORA_CLIENT_READ_LOCATION_POLICY_ENABLED =
       booleanBuilder(Name.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("Whether to use client side location policy for reading")
+          .setDefaultValue(true)
+          .setDescription("This is the main switch for the Dora architecture. Make sure this is " +
+              "enabled on all Alluxio components including clients, masters, workers etc.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
           .build();
-
   public static final PropertyKey DORA_CLIENT_UFS_ROOT =
       stringBuilder(Name.DORA_CLIENT_UFS_ROOT)
           .setDefaultValue("/tmp")
