@@ -18,8 +18,6 @@ import alluxio.Constants;
 import alluxio.DefaultStorageTierAssoc;
 import alluxio.Server;
 import alluxio.StorageTierAssoc;
-import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.cache.CacheManager;
@@ -103,15 +101,10 @@ import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.FileInputStream;
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Serializable;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -237,50 +230,69 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             mConf, ServerUserState.global()));
   }
 
-  public static class WorkerService extends EtcdClient.ServiceEntityContext {
-    AtomicReference<Long> mWorkerId;
-    WorkerNetAddress mAddress;
-    Long mLeaseId = -1L;
+  public static class PagedDoraWorkerServiceEntity extends EtcdClient.ServiceEntityContext {
 
-    public WorkerService(String workerMainInfoName, Optional<String> workerId) {
-      super(workerMainInfoName, workerId);
-//      super(workerInfo.getNetAddress().dumpMainInfo(), null);
+    enum State {
+      JOINED,
+      AUTHORIZED,
+      DECOMMISSIONED
+    }
+    WorkerNetAddress mAddress;
+    State mState = State.JOINED;
+    int mGenerationNum = -1;
+
+    public PagedDoraWorkerServiceEntity() {
+
     }
 
+    public WorkerNetAddress getWorkerNetAddress() {
+      return mAddress;
+    }
+
+    public PagedDoraWorkerServiceEntity(WorkerNetAddress addr) {
+      super(CommonUtils.hashAsStr(addr.dumpMainInfo()));
+      mAddress = addr;
+      mState = State.JOINED;
+      // read from local file to populate state / genNum
+    }
+
+    @Override
     public String toString() {
       return MoreObjects.toStringHelper(this)
-          .add("WorkerId", mWorkerId.get())
+          .add("WorkerId", getServiceEntityName())
           .add("WorkerAddr", mAddress.toString())
-          .add("LeaseId", mLeaseId)
+          .add("State", mState.toString())
           .toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (!(o instanceof PagedDoraWorkerServiceEntity)) {
+        return false;
+      }
+      PagedDoraWorkerServiceEntity anotherO = (PagedDoraWorkerServiceEntity)o;
+      return mAddress.equals(anotherO) &&
+          getServiceEntityName().equals(anotherO.getServiceEntityName());
+    }
+
+    @Override
+    public void serialize(DataOutput out) throws IOException {
+      super.serialize(out);
+      out.writeInt(mState.ordinal());
+      out.writeUTF(mAddress.getHost());
+      out.writeInt(mAddress.getRpcPort());
+    }
+
+    @Override
+    public void deserialize(DataInput in) throws IOException {
+      super.deserialize(in);
+      mState = State.values()[in.readInt()];
+      mAddress = new WorkerNetAddress().setHost(in.readUTF())
+              .setRpcPort(in.readInt());
     }
   }
 
   private static String sSystemInfoFilePath =  Configuration.getString(PropertyKey.HOME) + "/SystemInfo.db";
-  public static class WorkerSystemInfo {
-    boolean mAuthed = false;
-    int mGenerationNum = -1;
-    String mClusterId = "";
-    String mId = "";
-    public static void serialize(OutputStream outputStream, WorkerSystemInfo sysInfo) throws IOException {
-      DataOutputStream dos = new DataOutputStream(outputStream);
-      dos.writeUTF(sysInfo.mClusterId);
-      dos.writeUTF(sysInfo.mId);
-      dos.writeBoolean(sysInfo.mAuthed);
-      dos.writeInt(sysInfo.mGenerationNum);
-    }
-
-    public static WorkerSystemInfo deserialize(InputStream inputStream) throws IOException {
-      WorkerSystemInfo sysInfo = new WorkerSystemInfo();
-      DataInputStream dis = new DataInputStream(inputStream);
-      sysInfo.mClusterId = dis.readUTF();
-      sysInfo.mId = dis.readUTF();
-      sysInfo.mAuthed = dis.readBoolean();
-      sysInfo.mGenerationNum = dis.readInt();
-      return sysInfo;
-    }
-  }
-
 
   /**
    * Use etcd for registration and starting
@@ -289,17 +301,20 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private void registerNew() throws IOException {
     // create my service entity for servicediscovery
     java.io.File file = new java.io.File(sSystemInfoFilePath);
-    WorkerSystemInfo sysInfo = new WorkerSystemInfo();
-    if (file.exists()) {
-      FileInputStream fis = new FileInputStream(file);
-      sysInfo = WorkerSystemInfo.deserialize(fis);
+//    WorkerSystemInfo sysInfo = new WorkerSystemInfo();
+//    if (file.exists()) {
+//      FileInputStream fis = new FileInputStream(file);
+//      sysInfo = WorkerSystemInfo.deserialize(fis);
+//    }
+//    // new cluster deployment
+//    if (!sysInfo.mAuthed) {
+//
+//    }
+//    else {
+//      EtcdClient.ServiceDiscoveryRecipe sd = new EtcdClient.ServiceDiscoveryRecipe(new EtcdClient(),
+//          sysInfo.mClusterId, 2L);
+//      sd.registerService(new EtcdClient.ServiceEntityContext());
     }
-    // new cluster deployment
-    if (!sysInfo.mAuthed) {
-
-    }
-
-  }
 
   private void register() throws IOException {
     Preconditions.checkState(mAddress != null, "worker not started");

@@ -175,6 +175,7 @@ public final class Constants {
   public static final String MODE_BITS_READ_EXECUTE = "r-x";
   public static final String MODE_BITS_READ_WRITE = "rw-";
   public static final String MODE_BITS_ALL = "rwx";
+  public static final String FILE_SEPARATER = "/";
 
   // Specific tier write
   public static final int FIRST_TIER = 0;
@@ -228,6 +229,16 @@ public final class Constants {
   public static final String MEDIUM_MEM = "MEM";
   public static final String MEDIUM_HDD = "HDD";
   public static final String MEDIUM_SSD = "SSD";
+
+  /**
+   * Please use this switch enable/disable Dora write support in development.
+   * This will be removed when Dora write support is production ready.
+   */
+  public static final boolean ENABLE_DORA_WRITE = true;
+
+  // Membership
+  public static final String STATIC_MEMBERSHIP = "STATIC";
+  public static final String ETCD_MEMBERSHIP = "ETCD";
 
   private Constants() {} // prevent instantiation
 }

@@ -27,6 +27,7 @@ import static java.lang.String.format;
 
 import alluxio.Constants;
 import alluxio.DefaultSupplier;
+import alluxio.MembershipType;
 import alluxio.ProjectConstants;
 import alluxio.RuntimeConstants;
 import alluxio.annotation.PublicApi;
@@ -5505,6 +5506,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_MEMBERSHIP_TYPE =
+      enumBuilder(Name.WORKER_MEMBERSHIP_TYPE, MembershipType.class)
+          .setDefaultValue(MembershipType.ETCD.name())
+          .setDescription("Type of membership configuration for workers."
+              + "Choose STATIC for pre-configured members."
+              + "Choose ETCD for using etcd for membership management")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .setDefaultValue(MembershipType.ETCD)
+          .build();
 
   //
   // Proxy related properties
@@ -8993,6 +9004,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_UFS_INSTREAM_CACHE_MAX_SIZE =
         "alluxio.worker.ufs.instream.cache.max.size";
     public static final String WORKER_WHITELIST = "alluxio.worker.whitelist";
+    public static final String WORKER_MEMBERSHIP_TYPE = "alluxio.worker.membership.type"
 
     //
     // Proxy related properties

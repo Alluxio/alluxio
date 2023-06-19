@@ -26,6 +26,7 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
+import com.google.common.hash.HashFunction;
 import com.google.common.io.Closer;
 import com.google.protobuf.ByteString;
 import io.grpc.Status;
@@ -69,6 +70,10 @@ import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
+import static com.google.common.hash.Hashing.murmur3_32_fixed;
+import static java.lang.String.format;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 /**
  * Common utilities shared by all components in Alluxio.
  */
@@ -82,6 +87,7 @@ public final class CommonUtils {
 
   private static final int JAVA_MAJOR_VERSION =
       parseMajorVersion(System.getProperty("java.version"));
+  private static final HashFunction HASH_FUNCTION = murmur3_32_fixed();
 
   /**
    * Convenience method for calling {@link #createProgressThread(long, PrintStream)} with an
@@ -952,6 +958,10 @@ public final class CommonUtils {
     }
     // VirtualMachineError includes OutOfMemoryError and other fatal errors
     return e instanceof VirtualMachineError || e instanceof LinkageError;
+  }
+
+  public static String hashAsStr(String object) {
+    return HASH_FUNCTION.hashString(object, UTF_8).toString();
   }
 
   private CommonUtils() {} // prevent instantiation
