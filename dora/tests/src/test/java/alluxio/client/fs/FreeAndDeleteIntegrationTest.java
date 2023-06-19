@@ -16,6 +16,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -45,8 +46,9 @@ import org.junit.Test;
  * Integration tests for file free and delete with under storage persisted.
  *
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("master doesn't manage metadata any more")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "make the tests work")
 public final class FreeAndDeleteIntegrationTest extends BaseIntegrationTest {
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   private static final int LOCK_POOL_LOW_WATERMARK = 50;

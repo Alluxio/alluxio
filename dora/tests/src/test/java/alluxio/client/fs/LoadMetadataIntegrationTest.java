@@ -20,6 +20,7 @@ import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.Constants;
 import alluxio.UnderFileSystemFactoryRegistryRule;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -67,8 +68,9 @@ import java.util.concurrent.TimeoutException;
 /**
  * Tests the loading of metadata and the available options.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("master doesn't manage metadata any more")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "check if the feature is still relevant")
 public class LoadMetadataIntegrationTest extends BaseIntegrationTest {
   private static final long SLEEP_MS = Constants.SECOND_MS / 2;
   private static final int EXTRA_DIR_FILES = 6;

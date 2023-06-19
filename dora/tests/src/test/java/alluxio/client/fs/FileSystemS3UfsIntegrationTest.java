@@ -14,6 +14,7 @@ package alluxio.client.fs;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -42,9 +43,9 @@ import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("need to be fixed")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "yuyang",
+    comment = "the API should be validated")
 public class FileSystemS3UfsIntegrationTest extends BaseIntegrationTest {
   private static final String TEST_CONTENT = "TestContents";
   private static final String TEST_FILE = "test_file";

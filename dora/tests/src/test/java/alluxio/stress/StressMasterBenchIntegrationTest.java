@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.stress.cli.StressMasterBench;
 import alluxio.stress.master.MasterBenchSummary;
 import alluxio.util.JsonSerializable;
@@ -32,8 +33,9 @@ import java.util.List;
 /**
  * Tests {@link StressMasterBench}.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("master doesn't manage metadata any more")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "these tests should be moved to worker")
 public class StressMasterBenchIntegrationTest extends AbstractStressBenchIntegrationTest {
   @Test
   public void createFileAndDelete() throws Exception {

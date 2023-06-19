@@ -12,6 +12,7 @@
 package alluxio.web;
 
 import alluxio.ClientContext;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.conf.Configuration;
 import alluxio.exception.ConnectionFailedException;
@@ -39,8 +40,6 @@ import java.nio.channels.SocketChannel;
 /**
  * Simple integration tests for the bind configuration options.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Web UI services needs to be fixed")
 public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
@@ -108,6 +107,9 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
+  @Ignore
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
+      comment = "Web UI services needs to be fixed")
   public void listenEmpty() throws Exception {
     startCluster(null);
     boolean allConnected = true;
@@ -135,6 +137,9 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
+  @Ignore
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
+      comment = "Web UI services needs to be fixed")
   public void listenSameAddress() throws Exception {
     startCluster(NetworkAddressUtils.getLocalHostName(100));
     boolean allConnected = true;

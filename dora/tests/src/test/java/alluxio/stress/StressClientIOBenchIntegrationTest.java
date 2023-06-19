@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.stress.cli.client.StressClientIOBench;
 import alluxio.stress.client.ClientIOSummary;
 import alluxio.stress.client.ClientIOTaskResult;
@@ -32,8 +33,9 @@ import java.util.List;
 /**
  * Tests {@link StressClientIOBench}.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("need to be fixed")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "need to fix the tests")
 public class StressClientIOBenchIntegrationTest extends AbstractStressBenchIntegrationTest {
   @Test
   public void readIO() throws Exception {
