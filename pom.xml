@@ -1386,6 +1386,25 @@
           </execution>
         </executions>
       </plugin>
+
+      <!-- Copy extension jars to lib/ -->
+      <plugin>
+        <artifactId>exec-maven-plugin</artifactId>
+        <groupId>org.codehaus.mojo</groupId>
+        <inherited>false</inherited>
+        <executions>
+          <execution>
+            <id>Copy extension jars from subsystem lib to root lib</id>
+            <phase>install</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${build.path}/extjar/copy_jars.sh</executable>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
