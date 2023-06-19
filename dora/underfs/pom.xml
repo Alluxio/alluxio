@@ -129,8 +129,7 @@
               </goals>
               <configuration>
                 <sourceFile>${basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar</sourceFile>
-                <!-- copy into $REPO_ROOT/dora/lib/, which gets copied into $REPO_ROOT/lib/ via build/extjar/copy_jars.sh -->
-                <destinationFile>${project.parent.parent.basedir}/lib/${lib.jar.name}</destinationFile>
+                <destinationFile>${project.parent.parent.parent.basedir}/lib/${lib.jar.name}</destinationFile>
               </configuration>
             </execution>
           </executions>
@@ -140,7 +139,7 @@
           <configuration>
             <filesets>
               <fileset>
-                <directory>${project.parent.parent.basedir}/lib</directory>
+                <directory>${basedir}/../../../lib</directory>
                 <includes>
                   <include>**/${project.artifactId}-*.jar</include>
                 </includes>
