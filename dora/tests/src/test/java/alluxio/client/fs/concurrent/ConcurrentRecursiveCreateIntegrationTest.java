@@ -15,6 +15,7 @@ import static junit.framework.TestCase.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -43,8 +44,9 @@ import java.util.concurrent.TimeUnit;
 /**
  * Tests the correctness of concurrent recursive creates.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "redefine behaviors")
 public class ConcurrentRecursiveCreateIntegrationTest extends BaseIntegrationTest {
   private static final int NUM_TOP_LEVEL_DIRS = 10;
 

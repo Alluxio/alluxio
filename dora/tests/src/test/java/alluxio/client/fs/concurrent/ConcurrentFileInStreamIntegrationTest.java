@@ -12,6 +12,7 @@
 package alluxio.client.fs.concurrent;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
@@ -36,8 +37,9 @@ import java.util.List;
 /**
  * Tests the concurrency of {@link FileInStream}.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "redefine behaviors")
 public final class ConcurrentFileInStreamIntegrationTest extends BaseIntegrationTest {
   private static final int BLOCK_SIZE = 30;
 

@@ -20,6 +20,7 @@ import static org.junit.Assume.assumeTrue;
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -61,8 +62,8 @@ import java.util.concurrent.TimeoutException;
  * implementations and launch ways should support. Each Fuse implementation and launch ways is
  * expected to create a test that extends this base class.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("This test need to be fixed")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu",
+    comment = "fix tests")
 public abstract class AbstractFuseIntegrationTest {
   protected static final String ALLUXIO_ROOT = "/";
   private static final int BLOCK_SIZE = 4 * Constants.KB;
@@ -107,7 +108,6 @@ public abstract class AbstractFuseIntegrationTest {
     assumeTrue("This test only runs when libfuse is installed", AlluxioFuseUtils.isFuseInstalled());
   }
 
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
   @Before
   public void before() throws Exception {
     Configuration.set(PropertyKey.USER_METADATA_CACHE_MAX_SIZE, 0);
@@ -154,7 +154,7 @@ public abstract class AbstractFuseIntegrationTest {
   }
 
   @Test
-  @Ignore("This test need to be fixed")
+  @Ignore
   public void cat() throws Exception {
     String testFile = "/catTestFile";
     String content = "Alluxio Cat Test File Content";
@@ -168,7 +168,7 @@ public abstract class AbstractFuseIntegrationTest {
   }
 
   @Test
-  @Ignore("This test need to be fixed")
+  @Ignore
   public void chgrp() throws Exception {
     String testFile = "/chgrpTestFile";
     String userName = System.getProperty("user.name");
@@ -180,7 +180,7 @@ public abstract class AbstractFuseIntegrationTest {
   }
 
   @Test
-  @Ignore("This test need to be fixed")
+  @Ignore
   public void chmod() throws Exception {
     String testFile = "/chmodTestFile";
     FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.MUST_CACHE, 10);
@@ -189,7 +189,7 @@ public abstract class AbstractFuseIntegrationTest {
   }
 
   @Test
-  @Ignore("This test need to be fixed")
+  @Ignore
   public void chown() throws Exception {
     String testFile = "/chownTestFile";
     FileSystemTestUtils.createByteFile(mFileSystem, testFile, WritePType.MUST_CACHE, 10);
@@ -203,7 +203,7 @@ public abstract class AbstractFuseIntegrationTest {
   }
 
   @Test
-  @Ignore("This test need to be fixed")
+  @Ignore
   public void cp() throws Exception {
     String testFile = "/cpTestFile";
     String content = "Alluxio Cp Test File Content";
@@ -228,7 +228,7 @@ public abstract class AbstractFuseIntegrationTest {
   }
 
   @Test
-  @Ignore("This test need to be fixed")
+  @Ignore
   public void ddDuAndRm() throws Exception {
     String testFile = "/ddTestFile";
     createFileInFuse(testFile);
@@ -248,7 +248,7 @@ public abstract class AbstractFuseIntegrationTest {
   }
 
   @Test
-  @Ignore("This test need to be fixed")
+  @Ignore
   public void head() throws Exception {
     String testFile = "/headTestFile";
     String content = "Alluxio Head Test File Content";
@@ -260,7 +260,7 @@ public abstract class AbstractFuseIntegrationTest {
   }
 
   @Test
-  @Ignore("This test need to be fixed")
+  @Ignore
   public void ls() throws Exception {
     // ls -sh has different results in osx
     assumeTrue(OSUtils.isLinux());
@@ -278,7 +278,7 @@ public abstract class AbstractFuseIntegrationTest {
   }
 
   @Test
-  @Ignore("This test need to be fixed")
+  @Ignore
   public void mkdirAndMv() throws Exception {
     String testFile = "/mvTestFile";
     String testFolder = "/mkdirTestFolder";
@@ -290,7 +290,7 @@ public abstract class AbstractFuseIntegrationTest {
   }
 
   @Test
-  @Ignore("This test need to be fixed")
+  @Ignore
   public void tail() throws Exception {
     String testFile = "/tailTestFile";
     String content = "Alluxio Tail Test File Content";
@@ -304,7 +304,7 @@ public abstract class AbstractFuseIntegrationTest {
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {
       PropertyKey.Name.AUTHENTICATION_INACTIVE_CHANNEL_REAUTHENTICATE_PERIOD, "250ms"})
-  @Ignore("This test need to be fixed")
+  @Ignore
   public void continueWithRevokedAuth() throws Exception {
     String testFile = "/tailTestFile";
     String content = "Alluxio Tail Test File Content";
@@ -328,7 +328,7 @@ public abstract class AbstractFuseIntegrationTest {
   }
 
   @Test
-  @Ignore("This test need to be fixed")
+  @Ignore
   public void touchAndLs() throws Exception {
     FileSystemTestUtils.createByteFile(mFileSystem, "/lsTestFile", WritePType.MUST_CACHE, 10);
     String touchTestFile = "/touchTestFile";

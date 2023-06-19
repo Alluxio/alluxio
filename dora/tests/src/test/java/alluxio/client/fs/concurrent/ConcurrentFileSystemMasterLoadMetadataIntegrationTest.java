@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -33,8 +34,9 @@ import java.util.List;
 /**
  * Tests loading UFS metadata many times concurrently.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "redefine behaviors")
 public final class ConcurrentFileSystemMasterLoadMetadataIntegrationTest {
   private static final int CONCURRENCY_FACTOR = 20;
   private FileSystem mFileSystem;

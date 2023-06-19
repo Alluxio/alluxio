@@ -11,6 +11,7 @@
 
 package alluxio.client.fuse;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.Configuration;
@@ -26,8 +27,9 @@ import java.nio.file.Paths;
 /**
  * Integration tests for JNR-FUSE based {@link AlluxioJnrFuseFileSystem}.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("JNR is deprecated")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "LuQQiu",
+    comment = "remove JNR")
 public class JNRFuseIntegrationTest extends AbstractFuseIntegrationTest {
   private AlluxioJnrFuseFileSystem mFuseFileSystem;
 

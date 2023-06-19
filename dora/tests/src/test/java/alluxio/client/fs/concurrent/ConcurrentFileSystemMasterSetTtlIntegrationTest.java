@@ -14,6 +14,7 @@ package alluxio.client.fs.concurrent;
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.collections.ConcurrentHashSet;
@@ -58,8 +59,9 @@ import java.util.concurrent.CyclicBarrier;
  * The tests also validate that operations are concurrent by injecting a short sleep in the
  * critical code path. Tests will timeout if the critical section is performed serially.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "redefine behaviors")
 public class ConcurrentFileSystemMasterSetTtlIntegrationTest extends BaseIntegrationTest {
   private static final String TEST_USER = "test";
   private static final int CONCURRENCY_FACTOR = 50;
