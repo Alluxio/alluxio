@@ -205,6 +205,37 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
   }
 
   @Test
+  public void copyFromLocalDirectoryNotExist() throws Exception {
+    final int LEN = 10;
+    File testFile1 = generateFileContent("/testFile1", BufferUtils.getIncreasingByteArray(LEN));
+    String dirPath = "/testDir-notExist/";
+    AlluxioURI alluxioFilePath = new AlluxioURI(dirPath);
+    String[] cmd = {"copyFromLocal", testFile1.getPath(), dirPath};
+    Assert.assertEquals(-1, sFsShell.run(cmd));
+    Assert.assertThat(mOutput.toString(), containsString(
+            ExceptionMessage.CANNOT_COPY_TO_NOT_EXIST_DIRECTORY.getMessage(
+                    alluxioFilePath.getPath())));
+  }
+
+  @Test
+  public void copyFromLocalTypeNotMatch() throws Exception {
+    final int LEN = 10;
+    String path = "/testFile1";
+    File testFile1 = generateFileContent(path, BufferUtils.getIncreasingByteArray(LEN));
+    AlluxioURI alluxioFilePath = new AlluxioURI(path);
+
+    // Write the first file
+    String[] cmd1 = {"copyFromLocal", testFile1.getPath(), alluxioFilePath.getPath()};
+    Assert.assertEquals(0, sFsShell.run(cmd1));
+    mOutput.reset();
+
+    String[] cmd2 = {"copyFromLocal", testFile1.getPath(), alluxioFilePath.getPath() + "/"};
+    Assert.assertEquals(-1, sFsShell.run(cmd2));
+    Assert.assertThat(mOutput.toString(), containsString(
+            ExceptionMessage.FILE_TYPE_NOT_MATCH.getMessage(alluxioFilePath.getPath())));
+  }
+
+  @Test
   public void copyFromLocal() throws IOException, AlluxioException {
     File testDir = new File(sLocalAlluxioCluster.getAlluxioHome() + "/testDir");
     testDir.mkdir();
