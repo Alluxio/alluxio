@@ -159,6 +159,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable, Closea
             blockMeta.getUnderFileSystemPath(), sessionId));
       }
       mBlocks.put(key, new BlockInfo(blockMeta));
+      // TODO(jiacheng): what is the session used for?
       Set<Long> blockIds = mSessionIdToBlockIds.computeIfAbsent(sessionId, k -> new HashSet<>());
       blockIds.add(blockId);
     }
@@ -263,6 +264,8 @@ public final class UnderFileSystemBlockStore implements SessionCleanable, Closea
   public BlockReader createBlockReader(final long sessionId, long blockId, long offset,
       boolean positionShort, Protocol.OpenUfsBlockOptions options)
       throws IOException, BlockAlreadyExistsException {
+    // TODO(jiacheng): this is so weird, the option does not have a UFS path and this means reading
+    //  from UFS
     if (!options.hasUfsPath() && options.getBlockInUfsTier()) {
       // This is a fallback UFS block read. Reset the UFS block path according to the UfsBlock
       // flag.mUnderFileSystemBlockStore

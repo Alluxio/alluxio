@@ -67,10 +67,10 @@ public class BlockWorkerModule extends AbstractModule {
         MasterClientContext.newBuilder(ClientContext.create(Configuration.global())).build()));
     bind(UfsManager.class).to(WorkerUfsManager.class).in(Scopes.SINGLETON);
 
-    // TODO(jiacheng): it will be hard switching in all tests
+    // TODO(jiacheng): remove the config later to remove the block API once and for all
     switch (Configuration.global()
         .getEnum(PropertyKey.WORKER_BLOCK_STORE_TYPE, BlockStoreType.class)) {
-      // TODO(jiacheng): remove all here
+      // TODO(jiacheng): actually the whole class is going down
       case FILE:
         throw new UnsupportedOperationException("FILE block store is no longer supported");
 //        bind(BlockMetadataManager.class)
