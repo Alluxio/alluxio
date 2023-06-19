@@ -12,6 +12,7 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
 import alluxio.client.fs.io.AbstractFileOutStreamIntegrationTest;
@@ -35,8 +36,9 @@ import org.junit.Test;
 /**
  * Integration tests of file permission propagation for persist and async persist.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("need to be fixed")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "pending on perm features in dora")
+@Ignore
 public final class PersistPermissionIntegrationTest extends AbstractFileOutStreamIntegrationTest {
   private String mUfsRoot;
   private UnderFileSystem mUfs;

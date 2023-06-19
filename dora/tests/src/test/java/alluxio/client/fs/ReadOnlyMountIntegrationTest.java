@@ -14,6 +14,7 @@ package alluxio.client.fs;
 import static org.hamcrest.CoreMatchers.containsString;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.Configuration;
@@ -49,8 +50,9 @@ import java.io.IOException;
 /**
  * Integration tests for mounting (reuse the {@link LocalAlluxioCluster}).
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("check if this needs to be fixed")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "check if this feature is still relevant")
+@Ignore
 public class ReadOnlyMountIntegrationTest extends BaseIntegrationTest {
   private static final String MOUNT_PATH = PathUtils.concatPath("/", "mnt", "foo");
   private static final String FILE_PATH = PathUtils.concatPath(MOUNT_PATH, "file");

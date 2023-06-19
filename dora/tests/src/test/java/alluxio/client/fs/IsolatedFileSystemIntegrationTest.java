@@ -13,6 +13,7 @@ package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
@@ -38,8 +39,9 @@ import java.util.List;
 /**
  * Integration tests on Alluxio client (do not reuse the {@link LocalAlluxioCluster}).
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("check if this needs to be fixed")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "check the block locking tests")
+@Ignore
 public class IsolatedFileSystemIntegrationTest extends BaseIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 200 * Constants.MB;
   private static final int WORKER_UNRESERVED_BYTES = WORKER_CAPACITY_BYTES / 10 * 9;

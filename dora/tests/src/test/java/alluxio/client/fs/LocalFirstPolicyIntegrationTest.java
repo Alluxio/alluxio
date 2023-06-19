@@ -17,6 +17,7 @@ import alluxio.AlluxioTestDirectory;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Process;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.Configuration;
@@ -45,8 +46,9 @@ import java.util.concurrent.Executors;
 /**
  * Integration tests for functionality relating to tiered identity.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Block store is deprecated")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
+    comment = "this policy is still relevant but racking is no longer supported")
+@Ignore
 public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
   private ExecutorService mExecutor;
 

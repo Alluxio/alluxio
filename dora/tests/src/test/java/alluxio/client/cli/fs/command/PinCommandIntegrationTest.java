@@ -27,8 +27,8 @@ import org.junit.Test;
 /**
  * Tests the "pin" and "unpin" commands.
  */
-@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
-    comment = "check if the command is still relevant")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "check if this feature is still relevant")
 @Ignore
 public final class PinCommandIntegrationTest extends AbstractFileSystemShellTest {
   /**

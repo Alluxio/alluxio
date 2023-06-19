@@ -12,6 +12,7 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
 import alluxio.client.fs.io.AbstractFileOutStreamIntegrationTest;
@@ -35,8 +36,9 @@ import org.junit.rules.TemporaryFolder;
 /**
  * Integration tests of file permission propagation for persist and async persist.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("multiple mount point is unsupported in DORA temporarily")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "check if this feature is still relevant")
+@Ignore
 public final class PersistMultipleMountsIntegrationTest
     extends AbstractFileOutStreamIntegrationTest {
   private static final String MOUNT_PATH = "/mounted";

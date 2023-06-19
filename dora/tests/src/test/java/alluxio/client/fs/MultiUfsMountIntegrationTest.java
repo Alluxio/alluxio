@@ -12,6 +12,7 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
@@ -49,8 +50,9 @@ import java.util.Map;
 /**
  * Integration tests for mounting multiple UFSes into Alluxio, each with a different configuration.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("multiple ufs mount feature is unsupported in DORA temporarily")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "check if this feature is still relevant")
+@Ignore
 public final class MultiUfsMountIntegrationTest extends BaseIntegrationTest {
   private static final String MOUNT_POINT1 = "/mnt1";
   private static final String MOUNT_POINT2 = "/mnt2";

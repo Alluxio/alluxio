@@ -12,6 +12,7 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -80,8 +81,9 @@ public class PathConfigurationIntegrationTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("remote worker is unsupported in DORA temporarily")
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
+      comment = "fix the test here with remote worker")
+  @Ignore
   public void read() throws Exception {
     final int n = 3;
 
