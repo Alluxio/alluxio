@@ -16,6 +16,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.SystemPropertyRule;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.WriteType;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
@@ -50,8 +51,9 @@ import java.util.concurrent.TimeUnit;
 /**
  * Tests for copyFromLocal command.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "the command is still relevant")
 public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSystemShellTest {
   /** Rule to create a new temporary folder during each test. */
   @Rule

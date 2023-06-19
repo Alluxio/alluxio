@@ -35,8 +35,9 @@ import java.util.concurrent.TimeUnit;
  */
 public class UpdateCheckerTest {
   @Test
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu")
-  @Ignore("need to be fixed")
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu",
+      comment = "fix UpdateChecker for 30x")
+  @Ignore
   public void UnderFileSystemAlluxio() {
     try (UpdateChecker checker = UpdateChecker
         .create(FuseOptions.create(Configuration.global()))) {

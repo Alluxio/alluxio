@@ -68,7 +68,7 @@ import java.util.List;
  */
 @DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "Jiacheng",
     comment = "journal no longer exists in dora")
-@Ignore("ignored during dora transition")
+@Ignore
 public class JournalToolTest extends BaseIntegrationTest {
   private static final int CHECKPOINT_SIZE = 100;
 

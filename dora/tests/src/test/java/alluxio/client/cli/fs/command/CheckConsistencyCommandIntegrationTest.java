@@ -16,6 +16,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.Configuration;
@@ -37,8 +38,9 @@ import java.util.List;
 /**
  * Integration tests for checkConsistency command.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "Jiacheng",
+    comment = "need to check if this command will still exist in Dora")
 public class CheckConsistencyCommandIntegrationTest extends AbstractFileSystemShellTest {
   /**
    * Tests the check consistency shell command correctly identifies a consistent subtree.

@@ -12,6 +12,7 @@
 package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.AlluxioException;
@@ -26,8 +27,9 @@ import java.io.IOException;
 /**
  * Tests for chmod command.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "Jiacheng",
+    comment = "need to check if this command will still exist in Dora")
 public final class ChmodCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void chmod() throws IOException, AlluxioException {

@@ -14,6 +14,7 @@ package alluxio.client.cli.fs.command;
 import static alluxio.cli.fs.command.CountCommand.COUNT_FORMAT;
 import static org.junit.Assert.assertEquals;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.ExceptionMessage;
@@ -25,8 +26,9 @@ import org.junit.Test;
 /**
  * Tests for count command.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "the command is still relevant")
 public final class CountCommandTest extends AbstractFileSystemShellTest {
   @Test
   public void countNotExist() throws Exception {

@@ -34,8 +34,8 @@ import java.io.InputStream;
  * Add unit tests for {@link UfsFileOutStream}.
  */
 @RunWith(Parameterized.class)
-@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu")
-@Ignore("check if this needs to be fixed as it is often blocked")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu",
+    comment = "check if UfsBaseFS is still relevant and fix the tests if so")
 public class UfsFileOutStreamTest extends AbstractUfsStreamTest {
   /**
    * Runs {@link UfsFileInStreamTest} with different configuration combinations.

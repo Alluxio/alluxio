@@ -80,8 +80,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockMasterClient.Factory.class})
-@Ignore("we don't maintain jnr any more")
-@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "LuQQiu")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "LuQQiu",
+    comment = "remove JNR support in 30x")
 public class AlluxioJnrFuseFileSystemTest {
 
   private static final String TEST_ROOT_PATH = "/t/root";

@@ -41,7 +41,7 @@ import java.util.concurrent.ScheduledFuture;
 
 @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "Jiacheng",
     comment = "remove if the master should no longer collect metrics")
-@Ignore("ignored during dora transition")
+@Ignore
 public class MetricsHeartbeatContextTest {
 
   @Test

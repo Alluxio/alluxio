@@ -19,7 +19,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.conf.Configuration;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -32,8 +31,6 @@ import java.util.TreeSet;
 /**
  * Integration tests for help command.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
 public final class HelpCommandIntegrationTest extends AbstractFileSystemShellTest {
 
   /**

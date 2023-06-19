@@ -15,6 +15,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
@@ -62,8 +63,9 @@ import java.util.List;
     confParams = {
         PropertyKey.Name.MASTER_WORKER_INFO_CACHE_REFRESH_TIME, "1ms",
         PropertyKey.Name.USER_WORKER_LIST_REFRESH_INTERVAL, "1ms"})
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "the command is still relevant")
 public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest {
 
   @Rule
