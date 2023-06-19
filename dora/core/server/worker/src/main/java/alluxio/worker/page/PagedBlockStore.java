@@ -77,7 +77,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.inject.Named;
 
 /**
- * A paged implementation of LocalBlockStore interface.
+ * A paged implementation of {@link BlockStore} interface.
  * Implements the block level operations， but instead of using physical block files,
  * we use pages managed by the CacheManager to store the data.
  */
@@ -106,6 +106,7 @@ public class PagedBlockStore implements BlockStore {
   private final Lock mMetadataReadLock = mMetadataLock.readLock();
 
   /** WriteLock provided by {@link #mMetadataLock} to guard metadata write operations. */
+  // TODO(jiacheng): why is this lock not used?
   private final Lock mMetadataWriteLock = mMetadataLock.writeLock();
 
   /**

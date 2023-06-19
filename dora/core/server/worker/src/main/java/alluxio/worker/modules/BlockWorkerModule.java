@@ -24,19 +24,19 @@ import alluxio.underfs.WorkerUfsManager;
 import alluxio.wire.TieredIdentity;
 import alluxio.worker.Worker;
 import alluxio.worker.block.AllMasterRegistrationBlockWorker;
-import alluxio.worker.block.BlockMetadataManager;
-import alluxio.worker.block.BlockReaderFactory;
+//import alluxio.worker.block.BlockMetadataManager;
+//import alluxio.worker.block.BlockReaderFactory;
 import alluxio.worker.block.BlockStore;
 import alluxio.worker.block.BlockStoreType;
-import alluxio.worker.block.BlockWriterFactory;
+//import alluxio.worker.block.BlockWriterFactory;
 import alluxio.worker.block.DefaultBlockWorker;
-import alluxio.worker.block.LocalBlockStore;
-import alluxio.worker.block.MonoBlockStore;
-import alluxio.worker.block.TempBlockMetaFactory;
-import alluxio.worker.block.TieredBlockReaderFactory;
-import alluxio.worker.block.TieredBlockStore;
-import alluxio.worker.block.TieredBlockWriterFactory;
-import alluxio.worker.block.TieredTempBlockMetaFactory;
+//import alluxio.worker.block.LocalBlockStore;
+//import alluxio.worker.block.MonoBlockStore;
+//import alluxio.worker.block.TempBlockMetaFactory;
+//import alluxio.worker.block.TieredBlockReaderFactory;
+//import alluxio.worker.block.TieredBlockStore;
+//import alluxio.worker.block.TieredBlockWriterFactory;
+//import alluxio.worker.block.TieredTempBlockMetaFactory;
 import alluxio.worker.file.FileSystemMasterClient;
 import alluxio.worker.http.HttpServer;
 import alluxio.worker.page.PagedBlockMetaStore;
@@ -67,17 +67,20 @@ public class BlockWorkerModule extends AbstractModule {
         MasterClientContext.newBuilder(ClientContext.create(Configuration.global())).build()));
     bind(UfsManager.class).to(WorkerUfsManager.class).in(Scopes.SINGLETON);
 
+    // TODO(jiacheng): it will be hard switching in all tests
     switch (Configuration.global()
         .getEnum(PropertyKey.WORKER_BLOCK_STORE_TYPE, BlockStoreType.class)) {
+      // TODO(jiacheng): remove all here
       case FILE:
-        bind(BlockMetadataManager.class)
-            .toProvider(BlockMetadataManager::createBlockMetadataManager);
-        bind(BlockReaderFactory.class).to(TieredBlockReaderFactory.class);
-        bind(BlockWriterFactory.class).to(TieredBlockWriterFactory.class);
-        bind(TempBlockMetaFactory.class).to(TieredTempBlockMetaFactory.class);
-        bind(LocalBlockStore.class).to(TieredBlockStore.class).in(Scopes.SINGLETON);
-        bind(BlockStore.class).to(MonoBlockStore.class).in(Scopes.SINGLETON);
-        break;
+        throw new UnsupportedOperationException("FILE block store is no longer supported");
+//        bind(BlockMetadataManager.class)
+//            .toProvider(BlockMetadataManager::createBlockMetadataManager);
+//        bind(BlockReaderFactory.class).to(TieredBlockReaderFactory.class);
+//        bind(BlockWriterFactory.class).to(TieredBlockWriterFactory.class);
+//        bind(TempBlockMetaFactory.class).to(TieredTempBlockMetaFactory.class);
+//        bind(LocalBlockStore.class).to(TieredBlockStore.class).in(Scopes.SINGLETON);
+//        bind(BlockStore.class).to(MonoBlockStore.class).in(Scopes.SINGLETON);
+//        break;
       case PAGE:
         try {
           CacheManagerOptions cacheManagerOptions =
@@ -101,6 +104,7 @@ public class BlockWorkerModule extends AbstractModule {
         throw new UnsupportedOperationException("Unsupported block store type.");
     }
 
+    // TODO(jiacheng): remove reg to all masters
     if (!Configuration.getBoolean(PropertyKey.WORKER_REGISTER_TO_ALL_MASTERS)) {
       bind(Worker.class).to(DefaultBlockWorker.class).in(Scopes.SINGLETON);
     } else {

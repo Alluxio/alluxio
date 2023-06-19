@@ -195,11 +195,15 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     mFuseManager = mResourceCloser.register(new FuseManager(fsContext));
     mWhitelist = new PrefixList(Configuration.getList(PropertyKey.WORKER_WHITELIST));
     if (mBlockStore instanceof MonoBlockStore) {
+      LOG.info("Using TieredBlockStore from MonoBlockStore");
       mUnderFileSystemBlockStore =
           new UnderFileSystemBlockStore(
               ((MonoBlockStore) mBlockStore).getLocalBlockStore(),
               new WorkerUfsManager(mFileSystemMasterClient));
     } else {
+      // TODO(jiacheng): when PageStore is used, this is called
+      //  So how do I get rid of TieredBlockStore??
+      LOG.info("Creating TieredBlockStore from scratch");
       mUnderFileSystemBlockStore =
           new UnderFileSystemBlockStore(new TieredBlockStore(
               BlockMetadataManager.createBlockMetadataManager(),
