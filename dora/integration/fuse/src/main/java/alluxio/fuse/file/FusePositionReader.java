@@ -92,6 +92,9 @@ public class FusePositionReader implements FuseFileStream {
     if (mClosed) {
       throw new FailedPreconditionRuntimeException("Position reader is closed");
     }
+    if (offset >= mFileStatus.getFileLength()) {
+      return 0;
+    }
     try {
       return mPositionReader.read(offset, buf, (int) size);
     } catch (IOException e) {
