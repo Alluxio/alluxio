@@ -12,6 +12,7 @@
 package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.cli.fs.command.DistributedLoadCommand;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
@@ -48,8 +49,9 @@ import java.util.Set;
 /**
  * Test for {@link DistributedLoadCommand}.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jianjian",
+    comment = "fix or remove these tests")
 public final class DistributedLoadCommandTest extends AbstractFileSystemShellTest {
   @Rule
   public TemporaryFolder mTempFolder = new TemporaryFolder();

@@ -15,6 +15,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.FileSystemUtils;
@@ -28,8 +29,9 @@ import org.junit.Test;
 /**
  * Tests for load command.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jianjian",
+    comment = "fix tests or demise with the command")
+@Ignore
 public final class OldLoadCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void loadDir() throws Exception {

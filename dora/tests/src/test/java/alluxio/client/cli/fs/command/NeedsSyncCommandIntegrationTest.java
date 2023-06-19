@@ -12,6 +12,7 @@
 package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
@@ -38,8 +39,9 @@ import java.util.stream.Collectors;
 /**
  * Tests for needsSync command.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "adapt the command to the new arch")
+@Ignore
 public final class NeedsSyncCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void needsSyncDir() throws IOException, AlluxioException {

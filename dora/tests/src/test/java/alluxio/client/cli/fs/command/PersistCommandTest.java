@@ -17,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.TestLoggerRule;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
@@ -50,8 +51,9 @@ import java.util.List;
  */
 @LocalAlluxioClusterResource.ServerConfig(
     confParams = {PropertyKey.Name.MASTER_PERSISTENCE_BLACKLIST, "foobar_blacklist"})
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "fix persist command command")
+@Ignore
 public final class PersistCommandTest extends AbstractFileSystemShellTest {
 
   @Rule

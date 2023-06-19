@@ -16,6 +16,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.grpc.WritePType;
@@ -26,8 +27,9 @@ import org.junit.Test;
 /**
  * Tests the "pin" and "unpin" commands.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "check if the command is still relevant")
+@Ignore
 public final class PinCommandIntegrationTest extends AbstractFileSystemShellTest {
   /**
    * Tests the "pin" and "unpin" commands. Creates a file and tests unpinning it, then pinning

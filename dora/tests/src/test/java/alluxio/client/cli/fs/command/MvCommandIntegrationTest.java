@@ -12,6 +12,7 @@
 package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 
 import org.junit.Assert;
@@ -23,8 +24,9 @@ import java.io.IOException;
 /**
  * Tests for mv command.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "adapt mv command to the new logic and bring back the tests")
+@Ignore
 public final class MvCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void rename() throws IOException {

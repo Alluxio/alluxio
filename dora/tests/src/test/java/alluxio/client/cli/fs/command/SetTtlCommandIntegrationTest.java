@@ -13,6 +13,7 @@ package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
@@ -29,8 +30,9 @@ import java.util.Map;
 /**
  * Tests for setTtl command.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "hua",
+    comment = "fix TTL command tests")
+@Ignore
 public final class SetTtlCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void setTtl() throws Exception {

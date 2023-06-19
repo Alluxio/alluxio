@@ -12,6 +12,7 @@
 package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.exception.AlluxioException;
@@ -26,8 +27,9 @@ import java.io.IOException;
 /**
  * Tests for rm command.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "fix rm command")
+@Ignore
 public final class RmCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void rmNotExistingDir() throws IOException {

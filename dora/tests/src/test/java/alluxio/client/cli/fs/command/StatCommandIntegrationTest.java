@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.exception.AlluxioException;
@@ -28,8 +29,9 @@ import java.io.IOException;
 /**
  * Tests for stat command.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "adapt this command to the new arch")
+@Ignore
 public final class StatCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void statFileNotExist() throws IOException {

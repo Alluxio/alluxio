@@ -12,6 +12,7 @@
 package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
@@ -43,8 +44,9 @@ import java.util.List;
         PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS,
         "alluxio.security.group.provider.IdentityUserGroupsMapping",
         PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "setfacl_test_user"})
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "check if this feature will be supported")
+@Ignore
 public final class SetFaclCommandIntegrationTest extends AbstractFileSystemShellTest {
   private static final List<String> FACL_STRING_ENTRIES
       = Arrays.asList("user::rw-", "group::r--", "other::r--");

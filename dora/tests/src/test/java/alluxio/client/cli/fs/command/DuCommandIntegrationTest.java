@@ -26,7 +26,7 @@ import org.junit.Test;
  */
 @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
     comment = "write through dora is broken")
-@Ignore("ignored due to broken write support")
+@Ignore
 public final class DuCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void du() throws Exception {

@@ -25,10 +25,10 @@ import org.junit.Test;
 /**
  * Tests for head command.
  */
-@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen")
-@Ignore("ignored during dora transition")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "fix head command")
+@Ignore
 public final class HeadCommandIntegrationTest extends AbstractFileSystemShellTest {
-
   @Test
   public void headEmptyFile() throws Exception {
     FileSystemTestUtils.createByteFile(sFileSystem, "/emptyFile", WritePType.MUST_CACHE, 0);

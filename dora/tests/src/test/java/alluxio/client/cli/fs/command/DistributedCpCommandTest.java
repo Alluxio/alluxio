@@ -13,6 +13,7 @@ package alluxio.client.cli.fs.command;
 
 import static org.junit.Assert.assertEquals;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.util.io.PathUtils;
 
@@ -30,8 +31,9 @@ import java.util.List;
 /**
  * Tests for cross-mount {@link alluxio.cli.fs.command.DistributedCpCommand}.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jianjian",
+    comment = "fix or remove these tests")
 public final class DistributedCpCommandTest extends AbstractFileSystemShellTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();

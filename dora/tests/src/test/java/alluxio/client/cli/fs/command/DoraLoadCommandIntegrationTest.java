@@ -20,13 +20,10 @@ import alluxio.client.cli.fs.AbstractDoraFileSystemShellTest;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.conf.PropertyKey;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
 
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
 public class DoraLoadCommandIntegrationTest extends AbstractDoraFileSystemShellTest {
 
   public DoraLoadCommandIntegrationTest() throws IOException {
