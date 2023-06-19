@@ -13,14 +13,17 @@ package alluxio.client.cli.job;
 
 import static org.junit.Assert.assertTrue;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
+
 import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Tests for job list command.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Job master and job worker no longer exist")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "Jianjian",
+    comment = "Job master and job worker no longer exists in dora")
+@Ignore("ignored during dora transition")
 public final class ListCommandTest extends JobShellTest {
   @Test
   public void listTest() throws Exception {

@@ -17,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.UnderFileSystemFactoryRegistryRule;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.grpc.WritePType;
 import alluxio.job.plan.load.LoadConfig;
@@ -43,8 +44,9 @@ import java.util.Collections;
  * If the job completes fast enough before the CANCEL operations runs,then the test would fail.
  * The tests compare the job statuses (CANCEL or not) and stat counter values for each status.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Job master and job worker no longer exist")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "Jianjian",
+    comment = "Job master and job worker no longer exists in dora")
+@Ignore("ignored during dora transition")
 public class DistributedCommandsStatsTest extends JobShellTest {
   private static final long SLEEP_MS = Constants.SECOND_MS * 15;
   private static final int TEST_TIMEOUT = 45;

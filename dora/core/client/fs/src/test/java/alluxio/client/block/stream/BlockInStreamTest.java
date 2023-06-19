@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 
 import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
@@ -58,6 +59,7 @@ import java.util.Optional;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({NettyUtils.class})
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "bowen", comment = "block level IO")
 public class BlockInStreamTest {
   private FileSystemContext mMockContext;
   private BlockInfo mInfo;
@@ -91,7 +93,6 @@ public class BlockInStreamTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
   @Ignore("Block store is deprecated in DORA")
   public void closeReaderAfterReadingAllData() throws Exception {
     int chunkSize = 512;
@@ -122,7 +123,6 @@ public class BlockInStreamTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
   @Ignore("Block store is deprecated in DORA")
   public void createShortCircuit() throws Exception {
     WorkerNetAddress dataSource = new WorkerNetAddress();
@@ -134,7 +134,6 @@ public class BlockInStreamTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
   @Ignore("Block store is deprecated in DORA")
   public void createRemote() throws Exception {
     WorkerNetAddress dataSource = new WorkerNetAddress();
@@ -146,7 +145,6 @@ public class BlockInStreamTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
   @Ignore("Block store is deprecated in DORA")
   public void createUfs() throws Exception {
     WorkerNetAddress dataSource = new WorkerNetAddress();
@@ -158,7 +156,6 @@ public class BlockInStreamTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
   @Ignore("Block store is deprecated in DORA")
   public void createShortCircuitDisabled() throws Exception {
     try (Closeable ignored =
@@ -176,7 +173,6 @@ public class BlockInStreamTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
   @Ignore("Block store is deprecated in DORA")
   public void createDomainSocketEnabled() throws Exception {
     PowerMockito.mockStatic(NettyUtils.class);
@@ -196,7 +192,6 @@ public class BlockInStreamTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
   @Ignore("Block store is deprecated in DORA")
   public void createProcessLocal() throws Exception {
     WorkerNetAddress dataSource = new WorkerNetAddress();

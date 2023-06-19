@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
@@ -26,6 +27,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
+@Ignore("ignored during dora transition")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "pending security metadata in dora")
 public class ChownCommandTest {
   private ByteArrayOutputStream mOutput = new ByteArrayOutputStream();
   private ByteArrayOutputStream mError  = new ByteArrayOutputStream();
@@ -43,8 +47,6 @@ public class ChownCommandTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("check if this is necessary")
   public void chownPanicIllegalOwnerName() throws AlluxioException, IOException {
     ChownCommand command = new ChownCommand(null);
 
@@ -62,8 +64,6 @@ public class ChownCommandTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("check if this is necessary")
   public void chownPanicIllegalGroupName() throws AlluxioException, IOException {
     ChownCommand command = new ChownCommand(null);
 
@@ -73,8 +73,6 @@ public class ChownCommandTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("check if this is necessary")
   public void chownLegalCases() throws AlluxioException, IOException {
     ChownCommand command = Mockito.spy(new ChownCommand(null));
     Mockito.doNothing().when(command).runWildCardCmd(

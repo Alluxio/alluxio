@@ -17,6 +17,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.quota.CacheScope;
 import alluxio.test.util.ConcurrencyUtils;
 
@@ -30,6 +31,11 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+@Ignore("ignored during dora transition")
+@DoraTestTodoItem(
+    action = DoraTestTodoItem.Action.FIX,
+    owner = "bowen",
+    comment = "CuckooFilter should work with Dora")
 public class ConcurrentClockCuckooFilterTest {
   private static final int EXPECTED_INSERTIONS = Constants.KB;
   private static final int BITS_PER_CLOCK = 4;
@@ -57,8 +63,6 @@ public class ConcurrentClockCuckooFilterTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("check if this needs to be fixed")
   public void testClockField() {
     for (int i = 1; i <= MAX_AGE; i++) {
       assertTrue(mClockFilter.put(i, 1, SCOPE1));
@@ -83,8 +87,6 @@ public class ConcurrentClockCuckooFilterTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("check if this needs to be fixed")
   public void testSizeField() {
     int scope1Size = 0;
     for (int i = 1; i <= BITS_PER_SIZE; i++) {
@@ -111,8 +113,6 @@ public class ConcurrentClockCuckooFilterTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("check if this needs to be fixed")
   public void testSizeRange() {
     // inserted item size should be in range (0, 2^BITS_PER_SIZE]
     int maxSize = (1 << BITS_PER_SIZE);
@@ -133,8 +133,6 @@ public class ConcurrentClockCuckooFilterTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("check if this needs to be fixed")
   public void testComputeFpp() {
     double epsilon = 1e-6;
     assertEquals(0., mClockFilter.expectedFpp(), epsilon);
@@ -146,8 +144,6 @@ public class ConcurrentClockCuckooFilterTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("check if this needs to be fixed")
   public void testConcurrentPut() throws Exception {
     List<Runnable> runnables = new ArrayList<>();
     for (int k = 0; k < DEFAULT_THREAD_AMOUNT; k++) {
@@ -164,8 +160,6 @@ public class ConcurrentClockCuckooFilterTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("check if this needs to be fixed")
   public void testBackwardMovement() throws Exception {
     // put item 1 into filter,
     // then check whether it exists after every insertion.
@@ -186,8 +180,6 @@ public class ConcurrentClockCuckooFilterTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("check if this needs to be fixed")
   public void testCountBasedSlingWindowAging() {
     // expect each operation to age once
     long windowSize = (1 << BITS_PER_CLOCK);
@@ -209,8 +201,6 @@ public class ConcurrentClockCuckooFilterTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("check if this needs to be fixed")
   public void testTimeBasedSlingWindowAging() throws InterruptedException {
     // aging each 1s
     long agingPeriod = Constants.SECOND_MS;

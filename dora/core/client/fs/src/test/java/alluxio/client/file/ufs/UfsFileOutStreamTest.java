@@ -16,6 +16,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileOutStream;
 import alluxio.exception.AlluxioException;
 import alluxio.util.io.BufferUtils;
@@ -33,7 +34,7 @@ import java.io.InputStream;
  * Add unit tests for {@link UfsFileOutStream}.
  */
 @RunWith(Parameterized.class)
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu")
 @Ignore("check if this needs to be fixed as it is often blocked")
 public class UfsFileOutStreamTest extends AbstractUfsStreamTest {
   /**

@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 
 import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.WriteType;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
@@ -90,6 +91,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class})
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "bowen", comment = "block level IO")
 public final class BlockStoreClientTest {
 
   private static final InstancedConfiguration S_CONF = Configuration.copyGlobal();

@@ -16,6 +16,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileInStream;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -37,7 +38,7 @@ import java.util.Random;
  * Add unit tests for {@link UfsFileInStream}.
  */
 @RunWith(Parameterized.class)
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu")
 @Ignore("check if this needs to be fixed, some methods are always blocked")
 public class UfsFileInStreamTest extends AbstractUfsStreamTest {
   /**

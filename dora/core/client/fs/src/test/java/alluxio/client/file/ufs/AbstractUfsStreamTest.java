@@ -14,6 +14,7 @@ package alluxio.client.file.ufs;
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -44,7 +45,7 @@ import java.util.UUID;
  * Add unit tests for streams of {@link UfsBaseFileSystem}.
  */
 @RunWith(Parameterized.class)
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu")
 @Ignore("check if this needs to be fixed")
 public abstract class AbstractUfsStreamTest {
   protected static final int CHUNK_SIZE = 100;

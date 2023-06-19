@@ -14,6 +14,7 @@ package alluxio.client.file.ufs;
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -56,7 +57,7 @@ import java.util.Optional;
  * Add unit tests for {@link UfsBaseFileSystem}.
  */
 @RunWith(Parameterized.class)
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu")
 @Ignore("check if this needs to be fixed")
 public class UfsBaseFileSystemTest {
   private InstancedConfiguration mConf;

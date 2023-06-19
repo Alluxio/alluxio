@@ -24,6 +24,7 @@ import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.SystemOutRule;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -65,8 +66,9 @@ import java.util.List;
 /**
  * Tests for {@link JournalTool}.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "Jiacheng",
+    comment = "Job master and job worker no longer exists in dora")
+@Ignore("ignored during dora transition")
 public class JournalToolTest extends BaseIntegrationTest {
   private static final int CHECKPOINT_SIZE = 100;
 

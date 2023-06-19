@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.ClientContext;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -38,11 +39,12 @@ import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "Jiacheng",
+    comment = "no masters in Dora")
+@Ignore("ignored during dora transition")
 public class MetricsHeartbeatContextTest {
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("check if this needs to be fixed")
   public void testExecutorInitialized() {
     InstancedConfiguration conf = Configuration.copyGlobal();
     conf.set(PropertyKey.MASTER_HOSTNAME, "localhost");
@@ -75,8 +77,6 @@ public class MetricsHeartbeatContextTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("check if this needs to be fixed")
   public void testContextCounter() {
     Map<MasterInquireClient.ConnectDetails, MetricsHeartbeatContext> map =
         getContextMap();
@@ -118,8 +118,6 @@ public class MetricsHeartbeatContextTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("check if this needs to be fixed")
   public void testCancelFuture() {
     Map<MasterInquireClient.ConnectDetails, MetricsHeartbeatContext> map =
         getContextMap();

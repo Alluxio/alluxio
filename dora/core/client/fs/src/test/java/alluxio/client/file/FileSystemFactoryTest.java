@@ -19,6 +19,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import alluxio.SystemPropertyRule;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
@@ -69,7 +70,8 @@ public class FileSystemFactoryTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "Jiacheng",
+      comment = "no masters in Dora")
   @Ignore("check if this needs to be fixed")
   public void multiMasterFileSystemCacheTest()  {
     try (Closeable p = new SystemPropertyRule(PropertyKey.MASTER_RPC_ADDRESSES.getName(),
