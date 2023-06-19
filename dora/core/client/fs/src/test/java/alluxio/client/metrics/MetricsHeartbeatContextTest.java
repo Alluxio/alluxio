@@ -39,8 +39,8 @@ import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
-@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "Jiacheng",
-    comment = "no masters in Dora")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "Jiacheng",
+    comment = "remove if the master should no longer collect metrics")
 @Ignore("ignored during dora transition")
 public class MetricsHeartbeatContextTest {
 

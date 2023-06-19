@@ -27,7 +27,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
-@Ignore("ignored during dora transition")
+@Ignore
 @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
     comment = "pending security metadata in dora")
 public class ChownCommandTest {

@@ -67,7 +67,7 @@ import java.util.List;
  * Tests for {@link JournalTool}.
  */
 @DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "Jiacheng",
-    comment = "Job master and job worker no longer exists in dora")
+    comment = "journal no longer exists in dora")
 @Ignore("ignored during dora transition")
 public class JournalToolTest extends BaseIntegrationTest {
   private static final int CHECKPOINT_SIZE = 100;

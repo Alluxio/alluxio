@@ -70,9 +70,9 @@ public class FileSystemFactoryTest {
   }
 
   @Test
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "Jiacheng",
-      comment = "no masters in Dora")
-  @Ignore("check if this needs to be fixed")
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "Jiacheng",
+      comment = "fix master HA or remove if no longer needed")
+  @Ignore
   public void multiMasterFileSystemCacheTest()  {
     try (Closeable p = new SystemPropertyRule(PropertyKey.MASTER_RPC_ADDRESSES.getName(),
         "192.168.0.1:1234,192.168.0.2:1445,192.168.0.3:9943").toResource()) {
