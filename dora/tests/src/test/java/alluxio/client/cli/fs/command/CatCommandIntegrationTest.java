@@ -36,9 +36,10 @@ import java.io.PrintWriter;
 /**
  * Tests for cat command.
  */
-@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "Jiacheng",
-    comment = "cat is still a relevant command")
-//@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "the cluster is not properly cleaned up before each test run, "
+        + "see alluxio.testutils.LocalAlluxioClusterResource.ResetRule.resetCluster")
+@Ignore("ignored due to broken test infrastructure")
 public final class CatCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void catDirectory() throws Exception {
