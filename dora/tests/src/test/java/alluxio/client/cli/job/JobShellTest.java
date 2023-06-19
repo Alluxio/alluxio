@@ -29,7 +29,7 @@ import java.util.concurrent.TimeoutException;
 
 @DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "Jianjian",
     comment = "Job master and job worker no longer exists in dora")
-@Ignore("ignored during dora transition")
+@Ignore
 public abstract class JobShellTest extends AbstractFileSystemShellTest {
 
   protected long runPersistJob() throws Exception {

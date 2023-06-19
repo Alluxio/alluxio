@@ -11,6 +11,7 @@
 
 package alluxio.client.cli.fs.command;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.exception.ExceptionMessage;
 
@@ -23,8 +24,8 @@ import java.io.IOException;
 /**
  * Test for location command.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "fix the test because the command is still relevant")
 public final class LocationCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void locationNotExist() throws IOException {

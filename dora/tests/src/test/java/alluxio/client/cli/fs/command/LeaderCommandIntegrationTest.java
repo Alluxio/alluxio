@@ -11,6 +11,7 @@
 
 package alluxio.client.cli.fs.command;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 
 import org.junit.Assert;
@@ -20,8 +21,9 @@ import org.junit.Test;
 /**
  * Tests for leader command.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "check if the command is still relevant")
 public final class LeaderCommandIntegrationTest extends AbstractFileSystemShellTest {
 
   @Test

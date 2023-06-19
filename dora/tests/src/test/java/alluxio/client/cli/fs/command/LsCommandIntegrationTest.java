@@ -17,6 +17,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.client.file.FileSystem;
@@ -45,8 +46,9 @@ import java.io.PrintWriter;
     confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
         PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL",
         PropertyKey.Name.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, "0"})
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
+    comment = "the command is still relevant")
 public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest {
   private static final String FILE_NEW_CONTENT = "testfoobarlongerthantheoriginalfile";
 

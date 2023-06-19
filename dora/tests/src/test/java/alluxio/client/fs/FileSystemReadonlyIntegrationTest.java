@@ -14,6 +14,7 @@ package alluxio.client.fs;
 import static junit.framework.TestCase.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.Configuration;
@@ -35,8 +36,9 @@ import java.util.Map;
 /**
  * Test behavior of {@link FileSystemMaster}, when the paths are readonly.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jiacheng",
+    comment = "the FSM does not exist in dora")
 public class FileSystemReadonlyIntegrationTest {
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =

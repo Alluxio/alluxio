@@ -16,6 +16,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -43,8 +44,9 @@ import java.nio.file.Paths;
     PropertyKey.Name.MASTER_SHELL_BACKUP_STATE_LOCK_TRY_DURATION, "3s",
     PropertyKey.Name.MASTER_SHELL_BACKUP_STATE_LOCK_TIMEOUT, "3s",
     PropertyKey.Name.MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE, "TIMEOUT"})
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
 @Ignore("Master doesn't manage metadata any more")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jiacheng",
+    comment = "backup no longer exists")
 public final class BackupCommandStateLockingIntegrationTest extends AbstractFsAdminShellTest {
   @Test
   public void timeoutWhenStateLockAcquired() throws Exception {

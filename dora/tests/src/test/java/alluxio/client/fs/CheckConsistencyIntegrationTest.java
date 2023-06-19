@@ -13,6 +13,7 @@ package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -42,8 +43,9 @@ import java.util.List;
  * Integration test for
  * {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyContext)}.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("master doesn't manage metadata any more")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "check if the command is still relevant")
 public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
   private static final AlluxioURI DIRECTORY = new AlluxioURI("/dir");
   private static final AlluxioURI FILE = new AlluxioURI("/dir/file");

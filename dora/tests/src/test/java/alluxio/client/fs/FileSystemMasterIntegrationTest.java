@@ -18,6 +18,7 @@ import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.ClientContext;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.WriteType;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystem;
@@ -101,8 +102,9 @@ import javax.annotation.Nullable;
  *
  * For example, (concurrently) creating/deleting/renaming files.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jiacheng",
+    comment = "the FSM does not exist in dora")
 public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   private static final int DEPTH = 6;
   private static final int FILES_PER_NODE = 4;

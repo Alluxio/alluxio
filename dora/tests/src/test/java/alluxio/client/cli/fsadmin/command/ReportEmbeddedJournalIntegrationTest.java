@@ -12,6 +12,7 @@
 package alluxio.client.cli.fsadmin.command;
 
 import alluxio.ProjectConstants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -32,8 +33,9 @@ public class ReportEmbeddedJournalIntegrationTest  extends AbstractFsAdminShellT
   static final String JOURNAL_PORT = "0";
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("need to be fixed")
+  @Ignore
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jiacheng",
+      comment = "journal no longer exists in dora")
   public void reportSummary() {
     int ret = mFsAdminShell.run("report", "summary");
     Assert.assertEquals(0, ret);

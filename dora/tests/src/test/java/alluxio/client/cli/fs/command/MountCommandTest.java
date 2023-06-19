@@ -13,6 +13,7 @@ package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.UnderFileSystemFactoryRegistryRule;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
@@ -36,8 +37,9 @@ import java.nio.file.Paths;
 /**
  * Tests for mount command.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "check if the command is still relevant")
 public final class MountCommandTest extends AbstractFileSystemShellTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();

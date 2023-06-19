@@ -14,6 +14,7 @@ package alluxio.client.cli.fs.command;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
@@ -32,8 +33,9 @@ import java.io.IOException;
 /**
  * Tests for loadMetadata command.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "check how to apply to the new use case in dora")
 public final class LoadMetadataCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void loadMetadataDir() throws IOException, AlluxioException {

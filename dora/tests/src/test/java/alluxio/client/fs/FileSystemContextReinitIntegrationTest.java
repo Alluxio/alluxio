@@ -44,8 +44,6 @@ import java.util.concurrent.TimeUnit;
 /**
  * Tests reinitializing {@link FileSystemContext}.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("master doesn't manage metadata any more")
 public final class FileSystemContextReinitIntegrationTest extends BaseIntegrationTest {
   private static final AlluxioURI PATH_TO_UPDATE = new AlluxioURI("/path/to/update");
   private static final PropertyKey KEY_TO_UPDATE = PropertyKey.USER_FILE_READ_TYPE_DEFAULT;

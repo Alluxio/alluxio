@@ -46,7 +46,7 @@ import java.util.Collections;
  */
 @DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "Jianjian",
     comment = "Job master and job worker no longer exists in dora")
-@Ignore("ignored during dora transition")
+@Ignore
 public class DistributedCommandsStatsTest extends JobShellTest {
   private static final long SLEEP_MS = Constants.SECOND_MS * 15;
   private static final int TEST_TIMEOUT = 45;

@@ -17,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
@@ -64,8 +65,9 @@ import java.util.stream.Collectors;
 /**
  * Integration tests for Alluxio Client (reuse the {@link LocalAlluxioCluster}).
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("master doesn't manage metadata any more")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "many tests fail due to a few missing APIs")
 public final class FileSystemIntegrationTest extends BaseIntegrationTest {
   private static final byte[] TEST_BYTES = "TestBytes".getBytes();
   private static final int USER_QUOTA_UNIT_BYTES = 1000;

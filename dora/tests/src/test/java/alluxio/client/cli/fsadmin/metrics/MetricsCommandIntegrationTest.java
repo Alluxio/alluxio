@@ -14,6 +14,7 @@ package alluxio.client.cli.fsadmin.metrics;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.grpc.WritePType;
@@ -27,8 +28,9 @@ import java.io.IOException;
 /**
  * Integration tests for the metrics command.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata, so some metrics are deprecated")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "check if metrics are still relevant")
 public final class MetricsCommandIntegrationTest extends AbstractFsAdminShellTest {
   @Test
   public void clearLeadingMasterMetrics() throws IOException {

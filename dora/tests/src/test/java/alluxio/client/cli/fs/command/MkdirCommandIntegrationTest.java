@@ -12,6 +12,7 @@
 package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
@@ -25,8 +26,9 @@ import java.io.IOException;
 /**
  * Tests for mkdir command.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "the command is still relevant")
 public final class MkdirCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void mkdir() throws IOException, AlluxioException {
