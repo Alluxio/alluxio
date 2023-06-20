@@ -18,6 +18,7 @@
 .port_coordination/
 .project
 .settings/
+.java-version
 /client/
 /conf/alluxio-env.sh
 /conf/alluxio-env.sh.bootstrap.bk
@@ -36,9 +37,7 @@
 /journal/
 /lib/*.jar
 /libexec/version.sh
-/logs/*.log*
-/logs/*.out*
-/logs/user/*
+/logs/
 /metastore
 /underFSStorage/
 /underfs/hdfs/src/main/java/alluxio/UfsConstants.java
