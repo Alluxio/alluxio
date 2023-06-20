@@ -163,8 +163,13 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
         "DoraLoadJob for {} created. {} workers are active",
         path, Preconditions.checkNotNull(Scheduler.getInstance()).getActiveWorkers().size());
 
+    UfsStatus rootUfsStatus = null;
     try {
-      UfsStatus rootUfsStatus = mUfs.getStatus(ufsSyncRootUri.toString());
+      try {
+        rootUfsStatus = mUfs.getStatus(ufsSyncRootUri.toString());
+      } catch (FileNotFoundException ignored) {
+        // No-op
+      }
       if (rootUfsStatus != null && rootUfsStatus.isFile()) {
         rootUfsStatus.setUfsFullPath(ufsSyncRootUri);
         mUfsStatusIterator = Iterators.singletonIterator(rootUfsStatus);
