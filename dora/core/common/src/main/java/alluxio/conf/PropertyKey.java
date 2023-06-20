@@ -7792,7 +7792,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey DORA_CLIENT_UFS_FALLBACK_ENABLED =
       booleanBuilder(Name.DORA_CLIENT_UFS_FALLBACK_ENABLED)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .setDescription("Whether the client falls back to the UFS to perform IO operations "
               + "directly when Alluxio workers are not available. If enabled, "
               + Name.DORA_CLIENT_UFS_ROOT + " should also be specified to resolve UFS paths.")
