@@ -7288,6 +7288,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
            .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
            .setScope(Scope.ALL)
            .build();
+
+  public static final PropertyKey S3_REST_AUTHENTICATOR_ACCESS_KEY =
+          classBuilder(Name.S3_REST_AUTHENTICATOR_ACCESS_KEY)
+                  .setDescription("The secret access key of S3 authenticator.")
+                  .setDefaultValue("")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+                  .setScope(Scope.ALL)
+                  .build();
   //
   // Network TLS support
   //
@@ -9375,7 +9383,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.s3.rest.authentication.enabled";
     public static final String S3_REST_AUTHENTICATOR_CLASSNAME =
         "alluxio.s3.rest.authenticator.classname";
-
+    public static final String S3_REST_AUTHENTICATOR_ACCESS_KEY =
+            "alluxio.s3.rest.authenticator.access.key";
     //
     // Network TLS support
     //
