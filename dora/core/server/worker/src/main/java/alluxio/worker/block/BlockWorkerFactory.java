@@ -17,6 +17,7 @@ import alluxio.Sessions;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.UfsManager;
+import alluxio.util.FeatureUtils;
 import alluxio.worker.WorkerFactory;
 import alluxio.worker.file.FileSystemMasterClient;
 
@@ -62,7 +63,7 @@ public final class BlockWorkerFactory implements WorkerFactory {
 
   @Override
   public boolean isEnabled() {
-    return !Configuration.getBoolean(PropertyKey.DORA_ENABLED);
+    return !FeatureUtils.isDora();
   }
 
   @Override

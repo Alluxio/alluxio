@@ -116,4 +116,13 @@ public final class FeatureUtils {
   public static boolean isPageStoreEnabled() {
     return Configuration.get(PropertyKey.WORKER_BLOCK_STORE_TYPE) == BlockStoreType.PAGE;
   }
+
+  /**
+   * Utility to check if running on the new DORA architecture(Alluxio 3.x).
+   *
+   * @return true if the architecture is DORA
+   */
+  public static boolean isDora() {
+    return Configuration.getBoolean(PropertyKey.DORA_ENABLED);
+  }
 }

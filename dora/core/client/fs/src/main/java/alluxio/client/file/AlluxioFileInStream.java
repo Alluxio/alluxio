@@ -34,6 +34,7 @@ import alluxio.resource.CloseableResource;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.CommonUtils;
+import alluxio.util.FeatureUtils;
 import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.BlockInfo;
@@ -128,7 +129,7 @@ public class AlluxioFileInStream extends FileInStream {
       AlluxioConfiguration conf = mContext.getPathConf(new AlluxioURI(status.getPath()));
       mPassiveCachingEnabled = conf.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
       mNettyTransEnabled = conf.getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
-      mDoraEnabled = conf.getBoolean(PropertyKey.DORA_ENABLED);
+      mDoraEnabled = FeatureUtils.isDora();
       final Duration blockReadRetryMaxDuration =
           conf.getDuration(PropertyKey.USER_BLOCK_READ_RETRY_MAX_DURATION);
       final Duration blockReadRetrySleepBase =

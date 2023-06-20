@@ -15,6 +15,7 @@ import alluxio.Process;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.UfsManager;
+import alluxio.util.FeatureUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.modules.AlluxioWorkerProcessModule;
 import alluxio.worker.modules.BlockWorkerModule;
@@ -44,13 +45,11 @@ public interface WorkerProcess extends Process {
      */
     public static WorkerProcess create() {
       // read configurations
-      boolean isDoraEnable = Configuration.global()
-          .getBoolean(PropertyKey.DORA_ENABLED);
       boolean isNettyDataTransmissionEnable =
           Configuration.global().getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
       // add modules that need to be injected
       ImmutableList.Builder<Module> modules = ImmutableList.builder();
-      modules.add(isDoraEnable ? new DoraWorkerModule() : new BlockWorkerModule());
+      modules.add(FeatureUtils.isDora() ? new DoraWorkerModule() : new BlockWorkerModule());
       modules.add(new GrpcServerModule());
       modules.add(new NettyServerModule(isNettyDataTransmissionEnable));
       modules.add(new AlluxioWorkerProcessModule());

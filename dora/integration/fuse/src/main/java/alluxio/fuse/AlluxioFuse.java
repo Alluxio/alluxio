@@ -35,6 +35,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.user.UserState;
 import alluxio.util.CommonUtils;
+import alluxio.util.FeatureUtils;
 import alluxio.util.JvmPauseMonitor;
 import alluxio.util.network.NetworkAddressUtils;
 
@@ -328,7 +329,7 @@ public final class AlluxioFuse {
     boolean updateCheckEnabled = false;
     if (cli.hasOption(UPDATE_CHECK_OPTION_NAME)) {
       updateCheckEnabled = Boolean.parseBoolean(cli.getOptionValue(UPDATE_CHECK_OPTION_NAME));
-    } else if (!conf.getBoolean(PropertyKey.DORA_ENABLED)
+    } else if (!FeatureUtils.isDora()
         && cli.hasOption(MOUNT_ROOT_UFS_OPTION_NAME)) {
       // Standalone FUSE SDK without distributed cache
       updateCheckEnabled = true;
