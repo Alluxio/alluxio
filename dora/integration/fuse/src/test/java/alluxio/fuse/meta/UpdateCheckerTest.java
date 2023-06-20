@@ -110,7 +110,7 @@ public class UpdateCheckerTest {
   private UpdateChecker getUpdateCheckerWithUfs(String ufsAddress) {
     final FileSystemOptions fileSystemOptions =
         FileSystemOptions.Builder
-            .fromConfig(Configuration.global())
+            .fromConf(Configuration.global())
             .setUfsFileSystemOptions(new UfsFileSystemOptions(ufsAddress))
             .build();
     return UpdateChecker.create(

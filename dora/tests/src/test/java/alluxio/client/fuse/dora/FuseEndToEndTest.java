@@ -87,7 +87,7 @@ public class FuseEndToEndTest {
     FileSystem fileSystem = new UfsBaseFileSystem(context, ufsOptions);
     final FileSystemOptions fileSystemOptions =
         FileSystemOptions.Builder
-            .fromConfig(context.getClusterConf())
+            .fromConf(context.getClusterConf())
             .setUfsFileSystemOptions(ufsOptions)
             .build();
     AlluxioJniFuseFileSystem fuseFileSystem = new AlluxioJniFuseFileSystem(context, fileSystem,

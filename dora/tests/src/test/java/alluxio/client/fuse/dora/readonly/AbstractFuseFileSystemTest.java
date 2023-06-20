@@ -32,7 +32,7 @@ public abstract class AbstractFuseFileSystemTest extends AbstractFuseDoraReadOnl
   public void beforeActions() {
     final FileSystemOptions fileSystemOptions =
         FileSystemOptions.Builder
-            .fromConfig(mContext.getClusterConf())
+            .fromConf(mContext.getClusterConf())
             .setUfsFileSystemOptions(mUfsOptions)
             .build();
     mFuseFs = new AlluxioJniFuseFileSystem(mContext, mFileSystem,

@@ -45,7 +45,7 @@ public abstract class AbstractFuseFileSystemTest extends AbstractTest {
   public void beforeActions() {
     final FuseOptions fuseOptions = FuseOptions.create(
         mContext.getClusterConf(),
-        FileSystemOptions.Builder.fromConfig(mConf)
+        FileSystemOptions.Builder.fromConf(mConf)
             .setUfsFileSystemOptions(mUfsOptions).build(),
         false
     );

@@ -336,7 +336,7 @@ public final class AlluxioFuse {
         && !cli.getOptionValue(MOUNT_ROOT_UFS_OPTION_NAME).startsWith(Constants.SCHEME)) {
       final UfsFileSystemOptions ufsFileSystemOptions =
           new UfsFileSystemOptions(cli.getOptionValue(MOUNT_ROOT_UFS_OPTION_NAME));
-      final FileSystemOptions fileSystemOptions = FileSystemOptions.Builder.fromConfig(conf)
+      final FileSystemOptions fileSystemOptions = FileSystemOptions.Builder.fromConf(conf)
           .setUfsFileSystemOptions(ufsFileSystemOptions)
           .build();
       return FuseOptions.create(conf, fileSystemOptions, updateCheckEnabled);

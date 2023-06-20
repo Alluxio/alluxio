@@ -46,7 +46,7 @@ public class FileSystemOptions {
      * @param conf configuration
      * @return new builder with options set to values from configuration
      */
-    public static Builder fromConfig(AlluxioConfiguration conf) {
+    public static Builder fromConf(AlluxioConfiguration conf) {
       Builder builder = new Builder();
       builder.setDataCacheEnabled(conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED))
           .setMetadataCacheEnabled(FileSystemUtils.metadataEnabled(conf))

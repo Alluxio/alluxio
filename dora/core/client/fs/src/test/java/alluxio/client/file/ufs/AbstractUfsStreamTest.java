@@ -79,7 +79,7 @@ public abstract class AbstractUfsStreamTest {
     UnderFileSystemFactoryRegistry.register(new LocalUnderFileSystemFactory());
     final FileSystemOptions fileSystemOptions =
         FileSystemOptions.Builder
-            .fromConfig(mConf)
+            .fromConf(mConf)
             .setUfsFileSystemOptions(new UfsFileSystemOptions(ufs))
             .build();
     mFileSystem = FileSystem.Factory.create(FileSystemContext.create(

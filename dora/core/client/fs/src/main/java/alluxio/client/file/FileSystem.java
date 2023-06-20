@@ -160,7 +160,7 @@ public interface FileSystem extends Closeable {
     public static FileSystem create(FileSystemContext context) {
       return create(
           context,
-          FileSystemOptions.Builder.fromConfig(context.getClusterConf()).build()
+          FileSystemOptions.Builder.fromConf(context.getClusterConf()).build()
       );
     }
 
