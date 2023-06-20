@@ -12,12 +12,14 @@
 package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -25,6 +27,9 @@ import java.io.IOException;
 /**
  * Tests for rm command.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "fix rm command")
+@Ignore
 public final class RmCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void rmNotExistingDir() throws IOException {

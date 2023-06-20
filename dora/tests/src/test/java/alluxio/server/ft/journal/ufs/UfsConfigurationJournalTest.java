@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystem;
 import alluxio.grpc.MountPOptions;
 import alluxio.master.file.FileSystemMaster;
@@ -28,6 +29,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.powermock.reflect.Whitebox;
@@ -37,6 +39,9 @@ import java.util.Map;
 /**
  * Integration test to check ufs configuration is persisted after a restart.
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jiacheng",
+    comment = "journal is deprecated")
 public class UfsConfigurationJournalTest {
   private static final String LOCAL_UFS_PATH = Files.createTempDir().getAbsolutePath();
 

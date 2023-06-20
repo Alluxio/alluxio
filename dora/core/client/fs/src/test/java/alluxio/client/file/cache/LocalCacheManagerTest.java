@@ -674,6 +674,10 @@ public final class LocalCacheManagerTest {
     assertTrue(mCacheManager.delete(PAGE_ID2));
   }
 
+  /**
+   * Invalid page file will be deleted and cache manager will start normally.
+   * @throws Exception
+   */
   @Test
   public void syncRestoreUnknownFile() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, false);
@@ -690,10 +694,14 @@ public final class LocalCacheManagerTest {
     mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(dir));
     mCacheManager = LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore);
     assertEquals(CacheManager.State.READ_WRITE, mCacheManager.state());
-    assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
-    assertEquals(0, mCacheManager.get(pageUuid, PAGE2.length, mBuf, 0));
+    assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
+    assertEquals(PAGE2.length, mCacheManager.get(pageUuid, PAGE2.length, mBuf, 0));
   }
 
+  /**
+   * Invalid page file will be deleted and cache manager will start normally.
+   * @throws Exception
+   */
   @Test
   public void asyncRestoreUnknownFile() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, true);
@@ -708,8 +716,8 @@ public final class LocalCacheManagerTest {
     FileUtils.createFile(Paths.get(rootDir, "invalidPageFile").toString());
     mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(dir));
     mCacheManager = createLocalCacheManager(mConf, mPageMetaStore);
-    assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
-    assertEquals(0, mCacheManager.get(pageUuid, PAGE2.length, mBuf, 0));
+    assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
+    assertEquals(PAGE2.length, mCacheManager.get(pageUuid, PAGE2.length, mBuf, 0));
   }
 
   @Test

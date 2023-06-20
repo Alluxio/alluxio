@@ -572,8 +572,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     try {
       mClient.deleteObject(mBucketName, key);
     } catch (AmazonClientException e) {
-      LOG.error("Failed to delete {}", key, e);
-      return false;
+      throw AlluxioS3Exception.from(e);
     }
     return true;
   }

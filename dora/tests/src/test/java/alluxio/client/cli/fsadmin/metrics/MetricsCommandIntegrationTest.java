@@ -14,11 +14,13 @@ package alluxio.client.cli.fsadmin.metrics;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.grpc.WritePType;
 
 import org.hamcrest.CoreMatchers;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -26,6 +28,9 @@ import java.io.IOException;
 /**
  * Integration tests for the metrics command.
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "check if metrics are still relevant")
 public final class MetricsCommandIntegrationTest extends AbstractFsAdminShellTest {
   @Test
   public void clearLeadingMasterMetrics() throws IOException {

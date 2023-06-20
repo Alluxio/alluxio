@@ -13,6 +13,7 @@ package alluxio.client.fs;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
 import alluxio.Constants;
@@ -215,6 +216,13 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     }
   }
 
+  /**
+   * Test the case that cache manager will properly handle invalid page file.
+   * if there is an invalid page file in the cache dir, cache manage will not recognize such
+   * file and will delete this file. Other valid page files are not affected
+   * and the cache manager should be able to read data from them normally.
+   * @throws Exception
+   */
   @Test
   public void loadCacheWithInvalidPageFile() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_STORE_TYPE, PageStoreType.LOCAL);
@@ -222,9 +230,14 @@ public final class LocalCacheManagerIntegrationTest extends BaseIntegrationTest 
     mCacheManager.close();
     // creates with an invalid page file stored
     String rootDir = mPageMetaStore.getStoreDirs().get(0).getRootPath().toString();
-    FileUtils.createFile(Paths.get(rootDir, "invalidPageFile").toString());
+    String invalidPageFileName = Paths.get(rootDir, "invalidPageFile").toString();
+    FileUtils.createFile(invalidPageFileName);
     mCacheManager = LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore);
-    assertEquals(0, mCacheManager.get(PAGE_ID, PAGE_SIZE_BYTES, mBuffer, 0));
+    // There is an invalid file in the cache dir. But the cache manager will not recognize it as a
+    // valid page file and will delete it, and then will continue starting as normal.
+    assertEquals(PAGE_SIZE_BYTES, mCacheManager.get(PAGE_ID, PAGE_SIZE_BYTES, mBuffer, 0));
+    assertArrayEquals(PAGE, mBuffer);
+    assertFalse(FileUtils.exists(invalidPageFileName));
   }
 
   @Test

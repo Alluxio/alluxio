@@ -17,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
@@ -37,6 +38,7 @@ import com.google.common.io.Files;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -46,6 +48,9 @@ import java.io.IOException;
 /**
  * Tests the pin command with multiple media.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jiacheng",
+    comment = "Multiple media is no longer supported")
+@Ignore
 public final class PinCommandMultipleMediaIntegrationTest extends BaseIntegrationTest {
   private static final int SIZE_BYTES = Constants.MB * 16;
 

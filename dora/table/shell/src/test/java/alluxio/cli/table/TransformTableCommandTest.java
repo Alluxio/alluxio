@@ -16,10 +16,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.cli.table.command.TransformTableCommand;
 import alluxio.client.table.TableMasterClient;
 import alluxio.conf.Configuration;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
@@ -27,6 +29,9 @@ import org.mockito.ArgumentMatchers;
 /**
  * Test cases for TransformTableCommand.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "bowen",
+    comment = "table module is deprecated")
+@Ignore("ignored during dora transition")
 public class TransformTableCommandTest {
 
   @Test

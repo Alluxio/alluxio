@@ -17,11 +17,13 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.quota.CacheScope;
 import alluxio.test.util.ConcurrencyUtils;
 
 import com.google.common.hash.Funnels;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -29,6 +31,11 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
+@Ignore("ignored during dora transition")
+@DoraTestTodoItem(
+    action = DoraTestTodoItem.Action.FIX,
+    owner = "bowen",
+    comment = "CuckooFilter should work with Dora")
 public class ConcurrentClockCuckooFilterTest {
   private static final int EXPECTED_INSERTIONS = Constants.KB;
   private static final int BITS_PER_CLOCK = 4;

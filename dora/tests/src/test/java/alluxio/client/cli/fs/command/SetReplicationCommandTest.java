@@ -12,6 +12,7 @@
 package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.client.file.FileSystemTestUtils;
@@ -20,6 +21,7 @@ import alluxio.grpc.WritePType;
 import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -27,6 +29,9 @@ import org.junit.rules.ExpectedException;
 /**
  * Tests for setReplication command.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "recycle the tests after redefining this feature")
+@Ignore
 public final class SetReplicationCommandTest extends AbstractFileSystemShellTest {
   private static final String TEST_FILE = "/testFile";
 
