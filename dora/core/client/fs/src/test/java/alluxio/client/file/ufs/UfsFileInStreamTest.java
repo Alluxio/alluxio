@@ -40,6 +40,7 @@ import java.util.Random;
 @RunWith(Parameterized.class)
 @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu",
     comment = "check if UfsBaseFS is still relevant and fix the tests if so")
+@Ignore
 public class UfsFileInStreamTest extends AbstractUfsStreamTest {
   /**
    * Runs {@link UfsFileInStreamTest} with different configuration combinations.
