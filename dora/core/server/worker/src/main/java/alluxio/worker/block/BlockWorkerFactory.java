@@ -62,7 +62,7 @@ public final class BlockWorkerFactory implements WorkerFactory {
 
   @Override
   public boolean isEnabled() {
-    return !Configuration.getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED);
+    return !Configuration.getBoolean(PropertyKey.DORA_ENABLED);
   }
 
   @Override

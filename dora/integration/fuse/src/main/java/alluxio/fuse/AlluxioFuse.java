@@ -328,7 +328,7 @@ public final class AlluxioFuse {
     boolean updateCheckEnabled = false;
     if (cli.hasOption(UPDATE_CHECK_OPTION_NAME)) {
       updateCheckEnabled = Boolean.parseBoolean(cli.getOptionValue(UPDATE_CHECK_OPTION_NAME));
-    } else if (!conf.getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED)
+    } else if (!conf.getBoolean(PropertyKey.DORA_ENABLED)
         && cli.hasOption(MOUNT_ROOT_UFS_OPTION_NAME)) {
       // Standalone FUSE SDK without distributed cache
       updateCheckEnabled = true;

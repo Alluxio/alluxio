@@ -45,7 +45,7 @@ public interface WorkerProcess extends Process {
     public static WorkerProcess create() {
       // read configurations
       boolean isDoraEnable = Configuration.global()
-          .getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED);
+          .getBoolean(PropertyKey.DORA_ENABLED);
       boolean isNettyDataTransmissionEnable =
           Configuration.global().getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
       // add modules that need to be injected

@@ -35,7 +35,7 @@ public class FileSystemOptions {
    * @return the file system options
    */
   public static FileSystemOptions create(AlluxioConfiguration conf) {
-    if (conf.getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED)) {
+    if (conf.getBoolean(PropertyKey.DORA_ENABLED)) {
       return create(conf,
           Optional.of(new UfsFileSystemOptions(conf.getString(PropertyKey.DORA_CLIENT_UFS_ROOT))));
     }
@@ -53,7 +53,7 @@ public class FileSystemOptions {
       Optional<UfsFileSystemOptions> ufsOptions) {
     return new FileSystemOptions(FileSystemUtils.metadataEnabled(conf),
         conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED),
-        conf.getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED),
+        conf.getBoolean(PropertyKey.DORA_ENABLED),
         ufsOptions);
   }
 
