@@ -41,7 +41,9 @@ public class MemoryCacheFileInStreamTest {
 
   @Before
   public void setConfig() {
-    Configuration.set(PropertyKey.FUSE_MEMORY_CACHE_PAGE_COUNT, 16);
+    Configuration.set(PropertyKey.FUSE_MEMORY_CACHE_PAGE_COUNT, 4);
+    Configuration.set(PropertyKey.FUSE_MEMORY_CACHE_PAGE_SIZE, "4KB");
+    Configuration.set(PropertyKey.FUSE_MEMORY_CACHE_CONCURRENCY_LEVEL, 4);
   }
 
   @Test
@@ -50,79 +52,80 @@ public class MemoryCacheFileInStreamTest {
     testRead(0, 1);
 
     // dataSize < buffer
-    for (int i = 0; i < 100; i++) {
-      testRead(1 + mRandom.nextInt(1024), 1024 + mRandom.nextInt(4096));
+    for (int i = 0; i < 1000; i++) {
+      testRead(mRandom.nextInt(1024), 1024 + mRandom.nextInt(1024));
     }
 
-    // dataSize > buffer && dataSize < 4MB(default page size)
-    for (int i = 0; i < 100; i++) {
-      testRead(Constants.MB + mRandom.nextInt(3 * Constants.MB), 128 + mRandom.nextInt(4096));
+    // dataSize > buffer && dataSize < 4KB(page size)
+    for (int i = 0; i < 1000; i++) {
+      testRead(Constants.KB + mRandom.nextInt(3 * Constants.KB), 128 + mRandom.nextInt(128));
     }
 
-    // dataSize > buffer && dataSize < 4MB
-    for (int i = 0; i < 100; i++) {
-      testRead(Constants.MB + mRandom.nextInt(3 * Constants.MB), 1024 + mRandom.nextInt(4096));
+    // dataSize > 4KB && dataSize < 16KB(cache bytes)
+    for (int i = 0; i < 1000; i++) {
+      testRead(4 * Constants.KB + mRandom.nextInt(12 * Constants.KB), 128 + mRandom.nextInt(128));
     }
 
-    // dataSize > 4M && dataSize < 64MB(cache bytes)
-    for (int i = 0; i < 100; i++) {
-      testRead(4 * Constants.MB + mRandom.nextInt(16 * Constants.MB), 2048 + mRandom.nextInt(4096));
-    }
-
-    // dataSize > 64MB(cache bytes)
-    for (int i = 0; i < 100; i++) {
-      testRead(64 * Constants.MB + mRandom.nextInt(Constants.MB), 2048 + mRandom.nextInt(4096));
+    // dataSize > 16KB(cache bytes)
+    for (int i = 0; i < 1000; i++) {
+      testRead(16 * Constants.KB + mRandom.nextInt(Constants.KB), 128 + mRandom.nextInt(128));
     }
   }
 
   @Test
   public void testMultipleThreadSameData() throws ExecutionException, InterruptedException {
-    byte[] bytes = new byte[64 * Constants.MB + mRandom.nextInt(Constants.MB)];
-    mRandom.nextBytes(bytes);
-    ExecutorService pool = Executors.newFixedThreadPool(4);
-    List<FutureTask<?>> tasks = new ArrayList<>();
-    for (int i = 0; i < 10; i++) {
-      FutureTask<Object> task = new FutureTask<>(() -> {
-        testRead(bytes, 128 + mRandom.nextInt(4096));
-        return null;
-      });
-      tasks.add(task);
-      pool.submit(task);
+    ExecutorService pool = Executors.newFixedThreadPool(8 + mRandom.nextInt(8));
+    try {
+      byte[] bytes = new byte[64 * Constants.KB + mRandom.nextInt(Constants.KB)];
+      mRandom.nextBytes(bytes);
+      List<FutureTask<?>> tasks = new ArrayList<>();
+      for (int i = 0; i < 1000; i++) {
+        FutureTask<Object> task = new FutureTask<>(() -> {
+          testRead(bytes, 128 + mRandom.nextInt(128));
+          return null;
+        });
+        tasks.add(task);
+        pool.submit(task);
+      }
+      for (FutureTask<?> task : tasks) {
+        task.get();
+      }
+    } finally {
+      pool.shutdown();
     }
-    for (FutureTask<?> task : tasks) {
-      task.get();
-    }
-    pool.shutdown();
   }
 
   @Test
   public void testMultipleThreadDifferentData() throws ExecutionException, InterruptedException {
-    byte[] bytes1 = new byte[64 * Constants.MB + mRandom.nextInt(Constants.MB)];
-    byte[] bytes2 = new byte[64 * Constants.MB + mRandom.nextInt(Constants.MB)];
-    mRandom.nextBytes(bytes1);
-    mRandom.nextBytes(bytes2);
-    ExecutorService pool = Executors.newFixedThreadPool(4);
-    List<FutureTask<?>> tasks = new ArrayList<>();
-    for (int i = 0; i < 20; i++) {
-      FutureTask<Object> task;
-      if (mRandom.nextBoolean()) {
-        task = new FutureTask<>(() -> {
-          testRead(bytes1, 128 + mRandom.nextInt(4096));
-          return null;
-        });
-      } else {
-        task = new FutureTask<>(() -> {
-          testRead(bytes2, 128 + mRandom.nextInt(4096));
-          return null;
-        });
+    ExecutorService pool = Executors.newFixedThreadPool(8 + mRandom.nextInt(8));
+    try {
+      byte[] bytes1 = new byte[64 * Constants.KB + mRandom.nextInt(Constants.KB)];
+      byte[] bytes2 = new byte[64 * Constants.KB + mRandom.nextInt(Constants.KB)];
+      mRandom.nextBytes(bytes1);
+      mRandom.nextBytes(bytes2);
+      List<FutureTask<?>> tasks = new ArrayList<>();
+      for (int i = 0; i < 1000; i++) {
+        FutureTask<Object> task;
+        if (mRandom.nextBoolean()) {
+          task = new FutureTask<>(() -> {
+            testRead(bytes1, 128 + mRandom.nextInt(4096));
+            return null;
+          });
+        } else {
+          task = new FutureTask<>(() -> {
+            testRead(bytes2, 128 + mRandom.nextInt(4096));
+            return null;
+          });
+        }
+        tasks.add(task);
+        pool.submit(task);
       }
-      tasks.add(task);
-      pool.submit(task);
+      for (FutureTask<?> task : tasks) {
+        task.get();
+      }
+    } finally {
+      pool.shutdown();
     }
-    for (FutureTask<?> task : tasks) {
-      task.get();
-    }
-    pool.shutdown();
   }
 
   private void testRead(byte[] bytes, int bufferSize)
@@ -132,7 +135,6 @@ public class MemoryCacheFileInStreamTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
       IOUtils.copy(memoryCacheFileInStream, outputStream, bufferSize);
       Assert.assertArrayEquals(bytes, outputStream.toByteArray());
-      MemoryCacheFileInStream.invalidateAllCache();
     }
   }
 
