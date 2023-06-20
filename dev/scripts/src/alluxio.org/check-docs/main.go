@@ -29,6 +29,7 @@ import (
 const (
 	htmlType = ".html"
 	mdType   = ".md"
+	enPath   = "en"
 )
 
 func main() {
@@ -62,7 +63,7 @@ func (ctx *checkContext) addError(mdFile string, lineNum int, format string, arg
 
 func run() error {
 	// check that script is being run from repo root
-	const docsDir, configYml, menuYml = "docs", "_config.yml", "_data/menu-en.yml"
+	const docsDir, configYml, menuEnYml = "docs", "_config.yml", "_data/menu-en.yml"
 	repoRoot, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("could not get current working directory: %v", err)
@@ -81,20 +82,20 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("could not get absolute path of %v: %v", filepath.Join(repoRoot, docsDir), err)
 	}
-	menuPath := filepath.Join(docsPath, menuYml)
-	if _, err := os.Stat(menuPath); os.IsNotExist(err) {
-		return fmt.Errorf("expected to find %s in %s; script should be executed from repository root", menuYml, docsDir)
-	}
 	configPath := filepath.Join(docsPath, configYml)
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		return fmt.Errorf("expected to find %s in %s; script should be executed from repository root", configYml, docsDir)
 	}
+	menuPath := filepath.Join(docsPath, menuEnYml)
+	if _, err := os.Stat(menuPath); os.IsNotExist(err) {
+		return fmt.Errorf("expected to find %s in %s; script should be executed from repository root", menuEnYml, docsDir)
+	}
 	menuListOfURL, err := parseMenuURl(menuPath)
 	if err != nil {
-		return fmt.Errorf("error reading menu-en.yml with message : \n %v", err)
+		return fmt.Errorf("error reading menu.yml with message : \n %v", err)
 	}
-	if err := checkUrlMatch(docsPath, menuListOfURL); err != nil {
-		return fmt.Errorf("error matching content of menu-en.yml with acutally list of docs in directory of docs/ with message : \n %v", err)
+	if err := checkUrlMatch(docsPath, enPath, menuListOfURL); err != nil {
+		return fmt.Errorf("error matching content of menu.yml with acutally list of docs in directory of docs/ with message : \n %v", err)
 	}
 	ctx := &checkContext{
 		docsPath:       docsPath,
@@ -312,7 +313,8 @@ func parseMenuURl(menuPath string) (map[string]struct{}, error) {
 	return menuMap, nil
 }
 
-func checkUrlMatch(docsPath string, menuListOfURL map[string]struct{}) error {
+// Check menu.yml URLs should match exactly with list of all markdown doc files
+func checkUrlMatch(docsPath, checkPath string, menuListOfURL map[string]struct{}) error {
 	fileList := make(map[string]struct{})
 	// go through files in the docs directory
 	if err := filepath.Walk(docsPath, func(path string, info os.FileInfo, err error) error {
@@ -328,7 +330,7 @@ func checkUrlMatch(docsPath string, menuListOfURL map[string]struct{}) error {
 				return fmt.Errorf("error getting the relative path from %v with message: \n %v", path, err)
 			}
 			// only check files in en directory and skip index.html
-			if strings.HasPrefix(relativePath, "en") && info.Name() != "index.html" {
+			if strings.HasPrefix(relativePath, checkPath) && info.Name() != "index.html" {
 				relativePath = fmt.Sprintf("/%v", relativePath)
 				fileList[relativePath] = struct{}{}
 			}
@@ -341,10 +343,10 @@ func checkUrlMatch(docsPath string, menuListOfURL map[string]struct{}) error {
 	switch true {
 	case len(menuListOfURL) > len(fileList):
 		result := compareDiff(menuListOfURL, fileList)
-		return fmt.Errorf("error matching menu-en.yml with list of docs in directory of docs, following docs in menu-en.yml are no longer in directory of docs: %v", result)
+		return fmt.Errorf("error matching menu.yml with list of docs in directory of docs, following docs in menu-en.yml are no longer in directory of docs: %v", result)
 	case len(menuListOfURL) < len(fileList):
 		result := compareDiff(fileList, menuListOfURL)
-		return fmt.Errorf("error matching menu-en.yml with list of docs in directory of docs, following docs are not in the menu-en.yml: %v", result)
+		return fmt.Errorf("error matching menu.yml with list of docs in directory of docs, following docs are not in the menu-en.yml: %v", result)
 	default:
 		return nil
 	}
