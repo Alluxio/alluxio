@@ -13,6 +13,7 @@ package alluxio.job.plan.load;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
 import alluxio.grpc.CreateFilePOptions;
@@ -30,8 +31,9 @@ import java.util.Collections;
 /**
  * Integration tests for {@link LoadDefinition}.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("job master is deprecated")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jianjian",
+    comment = "job service is deprecated but recycle the test cases")
+@Ignore
 public final class LoadIntegrationTest extends JobIntegrationTest {
   private static final String TEST_URI = "/test";
 

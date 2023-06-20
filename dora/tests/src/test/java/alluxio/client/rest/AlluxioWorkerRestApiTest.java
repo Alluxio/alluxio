@@ -13,6 +13,7 @@ package alluxio.client.rest;
 
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricKey;
@@ -38,8 +39,9 @@ import javax.ws.rs.HttpMethod;
 /**
  * Test cases for {@link AlluxioWorkerRestServiceHandler}.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Block store is deprecated")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
+    comment = "fix the test case")
+@Ignore
 public final class AlluxioWorkerRestApiTest extends RestApiTest {
 
   // TODO(chaomin): Rest API integration tests are only run in NOSASL mode now. Need to

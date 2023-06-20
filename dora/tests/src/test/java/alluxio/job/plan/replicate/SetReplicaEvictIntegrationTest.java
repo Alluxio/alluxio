@@ -13,6 +13,7 @@ package alluxio.job.plan.replicate;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
 import alluxio.grpc.CreateFilePOptions;
@@ -32,8 +33,9 @@ import org.junit.Test;
 /**
  * Integration tests for evict functionality of  {@link SetReplicaDefinition}.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("job master is deprecated")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jianjian",
+    comment = "job service is deprecated but recycle the test cases")
+@Ignore
 public final class SetReplicaEvictIntegrationTest extends JobIntegrationTest {
   private static final String TEST_URI = "/test";
   private static final int TEST_BLOCK_SIZE = 100;

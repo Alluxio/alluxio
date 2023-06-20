@@ -16,6 +16,7 @@ import static alluxio.job.wire.Status.FAILED;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
@@ -43,8 +44,9 @@ import org.junit.Test;
 /**
  * Integration tests for {@link PersistDefinition}.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("job master is deprecated")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jianjian",
+    comment = "job service is deprecated but recycle the test cases")
+@Ignore
 public final class PersistIntegrationTest extends JobIntegrationTest {
   private static final String TEST_URI = "/test";
   private static final Mode TEST_MODE = new Mode((short) 0777);

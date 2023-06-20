@@ -15,6 +15,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.exception.ExceptionMessage;
 import alluxio.job.JobIntegrationTest;
 import alluxio.job.plan.transform.format.parquet.ParquetSchema;
@@ -35,6 +36,9 @@ import java.nio.file.Files;
 /**
  * Unit tests for {@link TableWriter}.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "bowen",
+    comment = "remove if the table module is deprecated")
+@Ignore
 public class TableWriterIntegrationTest extends JobIntegrationTest {
   @Rule
   public TemporaryFolder mTmpFolder = new TemporaryFolder();
@@ -48,8 +52,6 @@ public class TableWriterIntegrationTest extends JobIntegrationTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("table writer is deprecated")
   public void createLocalWriterWithNonExistingParents() throws IOException {
     File file = mTmpFolder.newFile();
     File parentDir = file.getParentFile();
@@ -61,8 +63,6 @@ public class TableWriterIntegrationTest extends JobIntegrationTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("table writer is deprecated")
   public void createAlluxioWriterWithNonExistingParents() throws Exception {
     AlluxioURI uri = new AlluxioURI("alluxio",
         Authority.fromString(mFsContext.getMasterAddress().toString()),
@@ -74,8 +74,6 @@ public class TableWriterIntegrationTest extends JobIntegrationTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("table writer is deprecated")
   public void createWriterWithoutScheme() throws Exception {
     AlluxioURI uri = new AlluxioURI("/CREATE_WRITER_WITHOUT_SCHEME");
     mThrown.expect(IllegalArgumentException.class);
@@ -84,8 +82,6 @@ public class TableWriterIntegrationTest extends JobIntegrationTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("table writer is deprecated")
   public void createAlluxioWriterWithoutAuthority() throws Exception {
     AlluxioURI uri = new AlluxioURI("alluxio", null, "/CREATE_ALLUXIO_WRITER_WITHOUT_AUTHORITY");
     mThrown.expect(IllegalArgumentException.class);

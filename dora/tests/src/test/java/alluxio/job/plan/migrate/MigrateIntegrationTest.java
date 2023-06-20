@@ -12,6 +12,7 @@
 package alluxio.job.plan.migrate;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -32,6 +33,9 @@ import java.io.File;
 /**
  * Integration test for the migrate job.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jianjian",
+    comment = "job service is deprecated but recycle the test cases")
+@Ignore
 public final class MigrateIntegrationTest extends JobIntegrationTest {
   private static final byte[] TEST_BYTES = "hello".getBytes();
 
@@ -39,8 +43,6 @@ public final class MigrateIntegrationTest extends JobIntegrationTest {
   public TemporaryFolder mFolder = new TemporaryFolder();
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("job master is deprecated in DORA")
   public void migrateFile() throws Exception {
     File ufsMountPoint1 = mFolder.newFolder();
     File ufsMountPoint2 = mFolder.newFolder();
@@ -60,8 +62,6 @@ public final class MigrateIntegrationTest extends JobIntegrationTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("job master is deprecated in DORA")
   public void migrateDirectory() throws Exception {
     File ufsMountPoint1 = mFolder.newFolder();
     File ufsMountPoint2 = mFolder.newFolder();
