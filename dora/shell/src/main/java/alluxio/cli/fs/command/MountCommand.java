@@ -42,6 +42,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 @PublicApi
+@Deprecated
 public final class MountCommand extends AbstractFileSystemCommand {
 
   private static final Option READONLY_OPTION =
