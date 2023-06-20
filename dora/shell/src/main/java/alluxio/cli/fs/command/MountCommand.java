@@ -77,7 +77,8 @@ public final class MountCommand extends AbstractFileSystemCommand {
     AlluxioProperties properties = fsContext.getClusterConf().copyProperties();
     properties.set(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED, false);
     AlluxioConfiguration config = new InstancedConfiguration(properties);
-    mFileSystem = FileSystem.Factory.create(fsContext, FileSystemOptions.create(config));
+    mFileSystem = FileSystem.Factory.create(fsContext,
+        FileSystemOptions.Builder.fromConfig(config).build());
     assert (mFileSystem instanceof BaseFileSystem);
   }
 
