@@ -17,7 +17,6 @@ import alluxio.PositionReader;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.FailedPreconditionRuntimeException;
@@ -26,8 +25,8 @@ import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.databuffer.DataFileChannel;
-
 import alluxio.util.FeatureUtils;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
