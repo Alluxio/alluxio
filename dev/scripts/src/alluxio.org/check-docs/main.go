@@ -14,6 +14,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"log"
 	"os"
@@ -23,6 +24,11 @@ import (
 
 	"bytes"
 	"io"
+)
+
+const (
+	htmlType = ".html"
+	mdType   = ".md"
 )
 
 func main() {
@@ -56,7 +62,7 @@ func (ctx *checkContext) addError(mdFile string, lineNum int, format string, arg
 
 func run() error {
 	// check that script is being run from repo root
-	const docsDir, configYml = "docs", "_config.yml"
+	const docsDir, configYml, menuYml = "docs", "_config.yml", "_data/menu-en.yml"
 	repoRoot, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("could not get current working directory: %v", err)
@@ -75,11 +81,21 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("could not get absolute path of %v: %v", filepath.Join(repoRoot, docsDir), err)
 	}
+	menuPath := filepath.Join(docsPath, menuYml)
+	if _, err := os.Stat(menuPath); os.IsNotExist(err) {
+		return fmt.Errorf("expected to find %s in %s; script should be executed from repository root", menuYml, docsDir)
+	}
 	configPath := filepath.Join(docsPath, configYml)
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		return fmt.Errorf("expected to find %s in %s; script should be executed from repository root", configYml, docsDir)
 	}
-
+	menuListOfURL, err := parseMenuURl(menuPath)
+	if err != nil {
+		return fmt.Errorf("error reading menu-en.yml with message : \n %v", err)
+	}
+	if err := checkUrlMatch(docsPath, menuListOfURL); err != nil {
+		return fmt.Errorf("error matching content of menu-en.yml with acutally list of docs in directory of docs/ with message : \n %v", err)
+	}
 	ctx := &checkContext{
 		docsPath:       docsPath,
 		knownFiles:     StringSet{},
@@ -255,6 +271,93 @@ func getSingleRegexMatch(re *regexp.Regexp, l string) (string, error) {
 		return "", fmt.Errorf("encountered empty named match when parsing line %v", l)
 	}
 	return namedMatch, nil
+}
+
+type Subfile struct {
+	Title string `yaml:"title"`
+	URL   string `yaml:"url"`
+}
+
+type File struct {
+	ButtonTitle string    `yaml:"buttonTitle"`
+	Subfiles    []Subfile `yaml:"subfiles"`
+}
+
+// get url from menuPath with two checks one is the buttonTitle check and the second is the url end checks
+func parseMenuURl(menuPath string) (map[string]struct{}, error) {
+	content, err := ioutil.ReadFile(menuPath)
+	if err != nil {
+		return nil, fmt.Errorf("error reading file at %v with message : \n %v", menuPath, err)
+	}
+	var ret []File
+	if err := yaml.Unmarshal(content, &ret); err != nil {
+		return nil, fmt.Errorf("error unmarshalling config from:\n%v with message : \n %v", string(content), err)
+	}
+	menuMap := map[string]struct{}{}
+	for _, file := range ret {
+		// if buttonTitle have whitespace, the button for list-nav-item in html will not expand
+		if strings.ContainsAny(file.ButtonTitle, " \t\n\r") {
+			return nil, fmt.Errorf("whitespace is not allow in buttonTitle %v, please replace whitespace with _", file.ButtonTitle)
+		}
+		for _, subfile := range file.Subfiles {
+			// the url need to be ended with .html, otherwise the link will not work
+			if strings.HasSuffix(subfile.URL, mdType) {
+				return nil, fmt.Errorf("url for %v is ended with %v, please replace %v with %v", subfile.Title, mdType, mdType, htmlType)
+			}
+			// replace the url ending to .md in order to compare with actually list of docs in directory of docs
+			subfilePath := strings.Replace(subfile.URL, htmlType, mdType, 1)
+			menuMap[subfilePath] = struct{}{}
+		}
+	}
+	return menuMap, nil
+}
+
+func checkUrlMatch(docsPath string, menuListOfURL map[string]struct{}) error {
+	fileList := make(map[string]struct{})
+	// go through files in the docs directory
+	if err := filepath.Walk(docsPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		// only look for files not directory
+		if !info.IsDir() {
+			// get the relativePath which is the latter part of path based on the base path.
+			// For example "en/table/xxxx.md" from "/Users/zijianzhu/enterprise/submodules/alluxio/docs/en/table/xxxx.md"
+			relativePath, err := filepath.Rel(docsPath, path)
+			if err != nil {
+				return fmt.Errorf("error getting the relative path from %v with message: \n %v", path, err)
+			}
+			// only check files in en directory and skip index.html
+			if strings.HasPrefix(relativePath, "en") && info.Name() != "index.html" {
+				relativePath = fmt.Sprintf("/%v", relativePath)
+				fileList[relativePath] = struct{}{}
+			}
+		}
+		return nil
+	}); err != nil {
+		return fmt.Errorf("error walking thorugh %v with message: \n %v", docsPath, err)
+	}
+	// check the diff
+	switch true {
+	case len(menuListOfURL) > len(fileList):
+		result := compareDiff(menuListOfURL, fileList)
+		return fmt.Errorf("error matching menu-en.yml with list of docs in directory of docs, following docs in menu-en.yml are no longer in directory of docs: %v", result)
+	case len(menuListOfURL) < len(fileList):
+		result := compareDiff(fileList, menuListOfURL)
+		return fmt.Errorf("error matching menu-en.yml with list of docs in directory of docs, following docs are not in the menu-en.yml: %v", result)
+	default:
+		return nil
+	}
+	return nil
+}
+func compareDiff(longMap, shortMap map[string]struct{}) []string {
+	var diffList []string
+	for key, _ := range longMap {
+		if _, ok := shortMap[key]; !ok {
+			diffList = append(diffList, key)
+		}
+	}
+	return diffList
 }
 
 type Header struct {
