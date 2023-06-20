@@ -44,7 +44,7 @@ import java.nio.file.Paths;
     PropertyKey.Name.MASTER_SHELL_BACKUP_STATE_LOCK_TRY_DURATION, "3s",
     PropertyKey.Name.MASTER_SHELL_BACKUP_STATE_LOCK_TIMEOUT, "3s",
     PropertyKey.Name.MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE, "TIMEOUT"})
-@Ignore("Master doesn't manage metadata any more")
+@Ignore
 @DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jiacheng",
     comment = "backup no longer exists")
 public final class BackupCommandStateLockingIntegrationTest extends AbstractFsAdminShellTest {

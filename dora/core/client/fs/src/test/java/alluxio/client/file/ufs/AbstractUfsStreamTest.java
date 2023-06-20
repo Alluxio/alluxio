@@ -45,8 +45,9 @@ import java.util.UUID;
  * Add unit tests for streams of {@link UfsBaseFileSystem}.
  */
 @RunWith(Parameterized.class)
-@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu")
-@Ignore("check if this needs to be fixed")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu",
+    comment = "fix the tests here because those APIs are still relevant")
+@Ignore
 public abstract class AbstractUfsStreamTest {
   protected static final int CHUNK_SIZE = 100;
   protected InstancedConfiguration mConf;

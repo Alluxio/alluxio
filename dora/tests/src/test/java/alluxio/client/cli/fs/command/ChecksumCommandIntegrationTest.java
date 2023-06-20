@@ -26,7 +26,7 @@ import org.junit.Test;
 /**
  * Tests checksum command.
  */
-@Ignore("Master no longer manages metadata")
+@Ignore
 @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "Jiacheng",
     comment = "need to check if this command will still exist in Dora")
 public final class ChecksumCommandIntegrationTest extends AbstractFileSystemShellTest {
