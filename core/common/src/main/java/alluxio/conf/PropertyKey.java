@@ -7109,6 +7109,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       dataSizeBuilder(Name.FUSE_MEMORY_CACHE_PAGE_SIZE)
           .setDefaultValue("4MB")
           .setDescription("The page size for Alluxio Fuse memory caching. "
+              + "The maximum value that can be set for this is Integer.MAX_VALUE. "
               + "We recommend not changing this value "
               + "as both excessively large and small values can degrade performance.")
           .setScope(Scope.CLIENT)

@@ -19,6 +19,7 @@ import alluxio.exception.AlluxioException;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.apache.commons.io.IOUtils;
@@ -44,15 +45,38 @@ public class MemoryCacheFileInStream extends FileInStream {
 
   private static final Logger LOG = LoggerFactory.getLogger(MemoryCacheFileInStream.class);
 
-  private static final long CACHE_SIZE = Configuration.getBytes(
-      PropertyKey.FUSE_MEMORY_CACHE_PAGE_SIZE);
+  private static final int PAGE_SIZE;
 
-  private static final Cache<CacheKey, byte[]> CACHE = CacheBuilder.newBuilder()
-      .maximumSize(Configuration.getInt(PropertyKey.FUSE_MEMORY_CACHE_PAGE_COUNT))
-      .concurrencyLevel(Configuration.getInt(PropertyKey.FUSE_MEMORY_CACHE_CONCURRENCY_LEVEL))
-      .expireAfterWrite(Configuration.getLong(PropertyKey.FUSE_MEMORY_CACHE_EXPIRE_MS),
-          TimeUnit.MILLISECONDS)
-      .build();
+  private static final Cache<CacheKey, byte[]> CACHE;
+
+  static {
+    long pageSize = Configuration.getBytes(PropertyKey.FUSE_MEMORY_CACHE_PAGE_SIZE);
+    Preconditions.checkArgument(pageSize <= Integer.MAX_VALUE,
+        PropertyKey.FUSE_MEMORY_CACHE_PAGE_SIZE.getName() + " must be less than "
+            + Integer.MAX_VALUE);
+    PAGE_SIZE = (int) pageSize;
+    LOG.info("The page size of memory cache is set to: " + PAGE_SIZE);
+
+    int pageCount = Configuration.getInt(PropertyKey.FUSE_MEMORY_CACHE_PAGE_COUNT);
+    Preconditions.checkArgument(pageCount > 0,
+        PropertyKey.FUSE_MEMORY_CACHE_PAGE_COUNT.getName() + " must be greater than 0");
+
+    int concurrencyLevel = Configuration.getInt(PropertyKey.FUSE_MEMORY_CACHE_CONCURRENCY_LEVEL);
+    Preconditions.checkArgument(concurrencyLevel > 0,
+        PropertyKey.FUSE_MEMORY_CACHE_CONCURRENCY_LEVEL.getName() + " must be greater than 0");
+
+    long expireMs = Configuration.getLong(PropertyKey.FUSE_MEMORY_CACHE_EXPIRE_MS);
+    Preconditions.checkArgument(expireMs > 0,
+        PropertyKey.FUSE_MEMORY_CACHE_EXPIRE_MS.getName() + " must be greater than 0");
+
+    LOG.info("Building memory cache with pageCount = {}, concurrencyLevel = {}, expireMs = {}",
+        pageCount, concurrencyLevel, expireMs);
+    CACHE = CacheBuilder.newBuilder()
+        .maximumSize(pageCount)
+        .concurrencyLevel(concurrencyLevel)
+        .expireAfterWrite(expireMs, TimeUnit.MILLISECONDS)
+        .build();
+  }
 
   private final URIStatus mStatus;
   private final FileInStream mFileInStream;
@@ -172,7 +196,7 @@ public class MemoryCacheFileInStream extends FileInStream {
   }
 
   private int copyCacheBytes(byte[] dest, int offset, int length) throws IOException {
-    int start = (int) (mPos % CACHE_SIZE);
+    int start = (int) (mPos % PAGE_SIZE);
     long posKey = mPos - start;
     try {
       if (mStatus.getLength() <= mPos) {
@@ -182,7 +206,7 @@ public class MemoryCacheFileInStream extends FileInStream {
           new CacheKey(mStatus.getPath(), mStatus.getLastModificationTimeMs(), posKey),
           () -> {
             mFileInStream.seek(posKey);
-            byte[] data = new byte[(int) Math.min(CACHE_SIZE, mStatus.getLength() - posKey)];
+            byte[] data = new byte[(int) Math.min(PAGE_SIZE, mStatus.getLength() - posKey)];
             IOUtils.readFully(mFileInStream, data);
             return data;
           });
