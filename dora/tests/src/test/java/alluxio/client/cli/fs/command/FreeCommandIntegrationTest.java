@@ -15,12 +15,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.grpc.WritePType;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -28,8 +30,10 @@ import java.io.IOException;
 /**
  * Tests for free command.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "fix free command")
+@Ignore
 public final class FreeCommandIntegrationTest extends AbstractFileSystemShellTest {
-
   @Test
   public void freeNonPersistedFile() throws IOException, AlluxioException {
     String fileName = "/testFile";

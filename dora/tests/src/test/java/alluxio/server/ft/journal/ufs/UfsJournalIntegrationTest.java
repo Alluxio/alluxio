@@ -14,6 +14,7 @@ package alluxio.server.ft.journal.ufs;
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -52,6 +53,7 @@ import alluxio.wire.FileInfo;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -65,6 +67,9 @@ import java.util.Map;
 /**
  * Test master journal, including checkpoint and entry log.
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jiacheng",
+    comment = "journal is deprecated")
 public class UfsJournalIntegrationTest extends BaseIntegrationTest {
 
   @Rule

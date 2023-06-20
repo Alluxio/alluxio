@@ -14,6 +14,7 @@ package alluxio.client.cli.fs.command;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
@@ -24,6 +25,7 @@ import alluxio.grpc.LoadMetadataPType;
 import alluxio.grpc.WritePType;
 import alluxio.util.io.PathUtils;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -31,6 +33,9 @@ import java.io.IOException;
 /**
  * Tests for loadMetadata command.
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "check how to apply to the new use case in dora")
 public final class LoadMetadataCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void loadMetadataDir() throws IOException, AlluxioException {

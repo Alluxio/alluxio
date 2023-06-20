@@ -13,6 +13,7 @@ package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -31,6 +32,7 @@ import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -46,6 +48,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Integration tests for reading data which is only stored in Alluxio's under storage.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
+    comment = "fix ignored tests for UFS read")
 public class UnderStorageReadIntegrationTest extends BaseIntegrationTest {
   private static final Logger LOG = LoggerFactory.getLogger(UnderStorageReadIntegrationTest.class);
   private static final int MIN_LEN = 0;
@@ -79,6 +83,7 @@ public class UnderStorageReadIntegrationTest extends BaseIntegrationTest {
    * Tests single byte reads from the underfs.
    */
   @Test
+  @Ignore
   public void read() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {

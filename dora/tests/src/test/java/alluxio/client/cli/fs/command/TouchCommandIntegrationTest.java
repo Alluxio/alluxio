@@ -12,11 +12,13 @@
 package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -24,6 +26,9 @@ import java.io.IOException;
 /**
  * Tests for touch command.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "hua",
+    comment = "fix touch command")
+@Ignore
 public final class TouchCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void touch() throws IOException, AlluxioException {

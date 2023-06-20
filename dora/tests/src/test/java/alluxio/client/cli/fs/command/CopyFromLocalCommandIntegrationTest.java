@@ -16,6 +16,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.SystemPropertyRule;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.WriteType;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
@@ -33,6 +34,7 @@ import alluxio.util.io.BufferUtils;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -49,6 +51,9 @@ import java.util.concurrent.TimeUnit;
 /**
  * Tests for copyFromLocal command.
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "the command is still relevant")
 public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSystemShellTest {
   /** Rule to create a new temporary folder during each test. */
   @Rule

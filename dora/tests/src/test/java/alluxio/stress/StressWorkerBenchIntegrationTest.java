@@ -14,10 +14,12 @@ package alluxio.stress;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.stress.cli.worker.StressWorkerBench;
 import alluxio.stress.worker.WorkerBenchSummary;
 import alluxio.util.JsonSerializable;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -43,6 +45,9 @@ public class StressWorkerBenchIntegrationTest extends AbstractStressBenchIntegra
   }
 
   @Test
+  @Ignore
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+      comment = "multiple node results is unsupported in DORA")
   public void testForMultipleNodeResults() throws Exception {
     long startTime = System.currentTimeMillis();
     String basePath = sLocalAlluxioClusterResource.get().getMasterURI() + "/stress-worker-base/";

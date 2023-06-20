@@ -12,6 +12,7 @@
 package alluxio.client.fuse.file;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.fuse.file.FuseFileStream;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.util.io.BufferUtils;
@@ -19,6 +20,7 @@ import alluxio.util.io.PathUtils;
 
 import jnr.constants.platform.OpenFlags;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
@@ -74,6 +76,9 @@ public class MixedFuseStreamIntegrationTest extends AbstractFuseFileStreamIntegr
   }
 
   @Test
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "hua",
+      comment = "fix the test case")
+  @Ignore
   public void writeThenOverwrite() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),

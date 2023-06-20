@@ -39,6 +39,7 @@ import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.Sessions;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.DeadlineExceededException;
@@ -81,6 +82,7 @@ import io.grpc.StatusException;
 import io.grpc.stub.StreamObserver;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -109,6 +111,9 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub.class})
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jiacheng",
+    comment = "BlockMaster is deprecated")
 public class BlockWorkerRegisterStreamIntegrationTest {
   private static final long WORKER_ID = 1L;
 

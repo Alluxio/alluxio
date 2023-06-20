@@ -14,6 +14,7 @@ package alluxio.client.file.ufs;
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -40,6 +41,7 @@ import alluxio.util.io.BufferUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -55,6 +57,9 @@ import java.util.Optional;
  * Add unit tests for {@link UfsBaseFileSystem}.
  */
 @RunWith(Parameterized.class)
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu",
+        comment = "check if UfsBaseFS is still relevant and fix the tests if so")
+@Ignore
 public class UfsBaseFileSystemTest {
   private InstancedConfiguration mConf;
   private AlluxioURI mRootUfs;

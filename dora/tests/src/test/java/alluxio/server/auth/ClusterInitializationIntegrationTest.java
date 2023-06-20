@@ -14,6 +14,7 @@ package alluxio.server.auth;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
@@ -30,6 +31,7 @@ import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.master.FsMasterResource;
 import alluxio.testutils.master.MasterTestUtils;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -37,6 +39,9 @@ import org.junit.rules.ExpectedException;
 /**
  * Unit tests for starting a cluster when security is enabled.
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "pending on the perm features in dora")
 public final class ClusterInitializationIntegrationTest extends BaseIntegrationTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();

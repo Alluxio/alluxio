@@ -16,6 +16,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.ConfigurationRule;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.block.BlockMaster;
@@ -26,6 +27,7 @@ import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.CreateBlockOptions;
 import alluxio.worker.block.DefaultBlockWorker;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
@@ -80,6 +82,9 @@ public class WorkerMetadataSyncIntegrationTest {
   }
 
   @Test
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "bowen",
+      comment = "recycle the test case after removing BlockStore")
+  @Ignore
   public void freeBlocks() throws Exception {
     mLocalAlluxioClusterResource.start();
 

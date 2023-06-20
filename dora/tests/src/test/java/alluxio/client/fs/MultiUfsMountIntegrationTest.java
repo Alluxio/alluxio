@@ -12,6 +12,7 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
@@ -39,6 +40,7 @@ import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -48,6 +50,9 @@ import java.util.Map;
 /**
  * Integration tests for mounting multiple UFSes into Alluxio, each with a different configuration.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "check if this feature is still relevant")
+@Ignore
 public final class MultiUfsMountIntegrationTest extends BaseIntegrationTest {
   private static final String MOUNT_POINT1 = "/mnt1";
   private static final String MOUNT_POINT2 = "/mnt2";
