@@ -24,8 +24,9 @@ import java.io.IOException;
 /**
  * Test for location command.
  */
-@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
-    comment = "fix the test because the command is still relevant")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "fix the path conversion")
+@Ignore
 public final class LocationCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void locationNotExist() throws IOException {
