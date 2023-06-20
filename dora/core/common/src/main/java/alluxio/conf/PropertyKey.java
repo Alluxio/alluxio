@@ -7288,7 +7288,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
            .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
            .setScope(Scope.ALL)
            .build();
-
   public static final PropertyKey S3_REST_AUTHENTICATOR_ACCESS_KEY =
           classBuilder(Name.S3_REST_AUTHENTICATOR_ACCESS_KEY)
                   .setDescription("The secret access key of S3 authenticator.")
