@@ -7788,7 +7788,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(true)
           .setDescription("This is the main switch for the Dora architecture, for both client "
               + "and server sides. Make sure this is set to the same value across ALL Alluxio "
-              + "components including clients, workers, proxies etc.")
+              + "components including clients, workers, proxies etc. Note that Alluxio 3 will "
+              + "eventually only support DORA structure, so this property will only serve "
+              + "for a short period for compatibility, and will be removed eventually.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
           .build();
