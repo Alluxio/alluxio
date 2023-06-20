@@ -16,6 +16,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
@@ -134,8 +135,9 @@ public final class LocalCacheFileInStreamIntegrationTest extends BaseIntegration
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("check if this is necessary")
+  @Ignore
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
+      comment = "fix this test")
   public void cacheAndEvict() throws Exception {
     AlluxioURI path = new AlluxioURI(mFilePath);
     FileSystemTestUtils.createByteFile(

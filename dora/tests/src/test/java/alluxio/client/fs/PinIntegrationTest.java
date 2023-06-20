@@ -53,6 +53,7 @@ import java.util.HashSet;
  * Integration tests for the pin operation.
  */
 @PrepareForTest({FileSystemContext.class})
+@Ignore
 @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
     comment = "check if pinning will be kept in dora")
 public final class PinIntegrationTest extends BaseIntegrationTest {

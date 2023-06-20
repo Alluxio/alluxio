@@ -17,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
@@ -50,6 +51,9 @@ import java.util.Arrays;
  * Integration tests for {@link alluxio.client.file.FileOutStream} of under storage type being async
  * persist.
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "fix or remove")
 public final class FileOutStreamAsyncWriteIntegrationTest
     extends AbstractFileOutStreamIntegrationTest {
 
@@ -57,8 +61,6 @@ public final class FileOutStreamAsyncWriteIntegrationTest
   private static final String TINY_BLOCK_SIZE = "16k";
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("async write is unsupported in DORA temporarily")
   public void asyncWrite() throws Exception {
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     FileOutStream os = mFileSystem.createFile(filePath,
@@ -73,8 +75,6 @@ public final class FileOutStreamAsyncWriteIntegrationTest
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("async write is unsupported in DORA temporarily")
   public void asyncWriteWithZeroWaitTime() throws Exception {
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     createTwoBytesFile(filePath, 0);
@@ -86,8 +86,6 @@ public final class FileOutStreamAsyncWriteIntegrationTest
   @Test
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.USER_FILE_PERSIST_ON_RENAME, "true"})
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("async write is unsupported in DORA temporarily")
   public void asyncWriteRenameWithNoAutoPersist() throws Exception {
     AlluxioURI srcPath = new AlluxioURI(PathUtils.uniqPath());
     AlluxioURI dstPath = new AlluxioURI(PathUtils.uniqPath());
@@ -105,8 +103,6 @@ public final class FileOutStreamAsyncWriteIntegrationTest
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("async write is unsupported in DORA temporarily")
   public void asyncWritePersistWithNoAutoPersist() throws Exception {
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     createTwoBytesFile(filePath, Constants.NO_AUTO_PERSIST);
@@ -123,8 +119,6 @@ public final class FileOutStreamAsyncWriteIntegrationTest
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("async write is unsupported in DORA temporarily")
   public void asyncWriteWithPersistWaitTime() throws Exception {
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     createTwoBytesFile(filePath, 2000);
@@ -134,8 +128,6 @@ public final class FileOutStreamAsyncWriteIntegrationTest
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("async write is unsupported in DORA temporarily")
   public void asyncWriteTemporaryPin() throws Exception {
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     FileSystemTestUtils.createByteFile(mFileSystem, filePath, WritePType.ASYNC_THROUGH, 100);
@@ -158,8 +150,6 @@ public final class FileOutStreamAsyncWriteIntegrationTest
       "alluxio.worker.tieredstore.level0.watermark.high.ratio", "0.5",
       "alluxio.worker.tieredstore.level0.watermark.low.ratio", "0.25",
       })
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("async write is unsupported in DORA temporarily")
   public void asyncWriteNoEvictBeforeBlockCommit() throws Exception {
     long writeSize =
         FormatUtils.parseSpaceSize(TINY_WORKER_MEM) - FormatUtils.parseSpaceSize(TINY_BLOCK_SIZE);
@@ -198,8 +188,6 @@ public final class FileOutStreamAsyncWriteIntegrationTest
       PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, TINY_BLOCK_SIZE,
       PropertyKey.Name.USER_FILE_BUFFER_BYTES, "8k"
       })
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("async write is unsupported in DORA temporarily")
   public void asyncWriteNoEvict() throws Exception {
     testLostAsyncBlocks();
   }
@@ -212,8 +200,6 @@ public final class FileOutStreamAsyncWriteIntegrationTest
       PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, TINY_BLOCK_SIZE,
       PropertyKey.Name.USER_FILE_BUFFER_BYTES, "8k"
       })
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("async write is unsupported in DORA temporarily")
   public void asyncPersistNoAutoPersistNoEvict() throws Exception {
     testLostAsyncBlocks();
   }
@@ -268,8 +254,6 @@ public final class FileOutStreamAsyncWriteIntegrationTest
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("async write is unsupported in DORA temporarily")
   public void asyncWriteEmptyFile() throws Exception {
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createFile(filePath, CreateFilePOptions.newBuilder()
