@@ -17,6 +17,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -52,6 +53,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jiacheng",
+    comment = "worker registration will be deprecated")
+@Ignore
 public class WorkerAllMasterRegistrationTest {
   private MultiMasterEmbeddedJournalLocalAlluxioCluster mCluster;
 

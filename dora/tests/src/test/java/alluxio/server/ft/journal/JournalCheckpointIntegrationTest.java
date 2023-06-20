@@ -16,6 +16,7 @@ import static org.junit.Assert.fail;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.RetryHandlingFileSystemMasterClient;
 import alluxio.client.meta.MetaMasterClient;
@@ -45,8 +46,9 @@ import java.io.File;
 /**
  * Tests checkpoints remain consistent with intended master state.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jiacheng",
+    comment = "journal is deprecated")
 public class JournalCheckpointIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mClusterResource =

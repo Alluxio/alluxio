@@ -26,6 +26,7 @@ import static alluxio.stress.cli.RpcBenchPreparationUtils.CAPACITY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.clock.ManualClock;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -92,8 +93,9 @@ import java.util.stream.Collectors;
 /**
  * Integration tests for the server-side logic for the register stream.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Block store is deprecated")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jiacheng",
+    comment = "BlockMaster is deprecated")
 public class BlockMasterRegisterStreamIntegrationTest {
   private BlockMaster mBlockMaster;
   private CoreMasterContext mMasterContext;

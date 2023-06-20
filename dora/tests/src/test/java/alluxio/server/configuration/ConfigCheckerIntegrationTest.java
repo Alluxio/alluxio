@@ -16,6 +16,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.meta.MetaMasterClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -121,8 +122,9 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("check if this needs to be fixed")
+  @Ignore
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+      comment = "revisit HA")
   public void multiNodes() throws Exception {
     PropertyKey key = PropertyKey.UNDERFS_WEB_CONNECTION_TIMEOUT;
     // Prepare properties

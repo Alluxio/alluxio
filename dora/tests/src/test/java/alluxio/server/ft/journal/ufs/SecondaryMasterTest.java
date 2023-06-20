@@ -13,6 +13,7 @@ package alluxio.server.ft.journal.ufs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
 import alluxio.master.journal.JournalType;
@@ -24,6 +25,9 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jiacheng",
+    comment = "secondary master is deprecated")
 public class SecondaryMasterTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mClusterResource =
@@ -35,8 +39,6 @@ public class SecondaryMasterTest extends BaseIntegrationTest {
           .build();
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("master no longer manages metadata")
   public void secondaryShouldCreateCheckpoints() throws Exception {
     FileSystem fs = mClusterResource.get().getClient();
     // Create a bunch of directories to trigger a checkpoint.

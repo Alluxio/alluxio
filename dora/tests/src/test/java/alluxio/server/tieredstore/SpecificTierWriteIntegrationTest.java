@@ -13,6 +13,7 @@ package alluxio.server.tieredstore;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.block.policy.LocalFirstPolicy;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -46,8 +47,9 @@ import java.util.Map;
 /**
  * Integration tests for writing to various storage tiers.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Block store is deprecated in DORA")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "bowen",
+    comment = "tiered store is deprecated")
 public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
   private static final int FILES_PER_TIER = 10;
   private static final String BLOCK_SIZE_BYTES = "1KB";

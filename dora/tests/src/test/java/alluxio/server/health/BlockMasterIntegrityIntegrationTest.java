@@ -12,6 +12,7 @@
 package alluxio.server.health;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.PropertyKey;
@@ -36,6 +37,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.powermock.reflect.Whitebox;
 
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jiacheng",
+    comment = "BlockMaster is deprecated")
 public class BlockMasterIntegrityIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mClusterResource =
@@ -48,8 +52,6 @@ public class BlockMasterIntegrityIntegrationTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("Block store is deprecated")
   public void deleteOrphanedBlocks() throws Exception {
     AlluxioURI uri = new AlluxioURI("/test");
     int len = 10;
@@ -71,8 +73,6 @@ public class BlockMasterIntegrityIntegrationTest {
   @LocalAlluxioClusterResource.Config(confParams = {
       PropertyKey.Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED, "true"
       })
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("Block store is deprecated")
   public void deleteInvalidBlocks() throws Exception {
     AlluxioURI uri = new AlluxioURI("/test");
     int len = 10;
@@ -95,8 +95,6 @@ public class BlockMasterIntegrityIntegrationTest {
       PropertyKey.Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL, "1sec",
       PropertyKey.Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR, "true"
       })
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("Block store is deprecated")
   public void deleteInvalidBlocksPeriodically() throws Exception {
     AlluxioURI uri = new AlluxioURI("/test");
     int len = 10;

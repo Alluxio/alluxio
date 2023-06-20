@@ -11,6 +11,7 @@
 
 package alluxio.server.worker;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.fuse.AbstractFuseIntegrationTest;
@@ -22,8 +23,9 @@ import org.junit.Ignore;
 /**
  * Integration tests for worker embedded Fuse application.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Block store is deprecated in DORA")
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu",
+    comment = "fix fuse on worker")
+@Ignore
 public class WorkerFuseIntegrationTest extends AbstractFuseIntegrationTest {
   @Override
   public void configure() {

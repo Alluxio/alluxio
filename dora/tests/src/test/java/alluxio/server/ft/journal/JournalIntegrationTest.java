@@ -15,6 +15,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
@@ -44,8 +45,9 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Integration tests for implementations of {@link JournalSystem}.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Master no longer manages metadata")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jiacheng",
+    comment = "journal is deprecated")
 public class JournalIntegrationTest {
   private static final Logger LOG = LoggerFactory.getLogger(JournalIntegrationTest.class);
 

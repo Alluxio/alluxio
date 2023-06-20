@@ -14,6 +14,7 @@ package alluxio.server.auth;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
@@ -38,6 +39,9 @@ import org.junit.rules.ExpectedException;
 /**
  * Unit tests for starting a cluster when security is enabled.
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "pending on the perm features in dora")
 public final class ClusterInitializationIntegrationTest extends BaseIntegrationTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -59,8 +63,6 @@ public final class ClusterInitializationIntegrationTest extends BaseIntegrationT
   @Test
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.SECURITY_LOGIN_USERNAME, SUPER_USER})
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("check if this needs to be fixed")
   public void startCluster() throws Exception {
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
     URIStatus status = fs.getStatus(ROOT);
@@ -77,8 +79,6 @@ public final class ClusterInitializationIntegrationTest extends BaseIntegrationT
   @Test
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.SECURITY_LOGIN_USERNAME, SUPER_USER})
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("check if this needs to be fixed")
   public void recoverClusterSuccess() throws Exception {
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
     fs.createFile(new AlluxioURI("/testFile")).close();

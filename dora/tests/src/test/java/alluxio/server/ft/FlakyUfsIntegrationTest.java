@@ -18,6 +18,7 @@ import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.UnderFileSystemFactoryRegistryRule;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
@@ -48,8 +49,9 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.concurrent.ThreadLocalRandom;
 
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("need to fix the test")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "yuyang",
+    comment = "fix the tests")
 public final class FlakyUfsIntegrationTest extends BaseIntegrationTest {
   private static final String LOCAL_UFS_PATH = Files.createTempDir().getAbsolutePath();
   // An under file system which fails 90% of its renames.

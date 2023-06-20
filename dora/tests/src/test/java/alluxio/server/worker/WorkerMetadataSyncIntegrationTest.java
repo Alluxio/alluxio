@@ -16,6 +16,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.ConfigurationRule;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.block.BlockMaster;
@@ -81,8 +82,9 @@ public class WorkerMetadataSyncIntegrationTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("Block store is deprecated")
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "bowen",
+      comment = "recycle the test case after removing BlockStore")
+  @Ignore
   public void freeBlocks() throws Exception {
     mLocalAlluxioClusterResource.start();
 

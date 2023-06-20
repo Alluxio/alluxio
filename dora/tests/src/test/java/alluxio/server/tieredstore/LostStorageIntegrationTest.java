@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.startsWith;
 
 import alluxio.ClientContext;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -58,6 +59,9 @@ import java.util.Map;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({DefaultStorageDir.class})
 @PowerMockIgnore({"javax.*.*", "com.sun.*", "org.xml.*"})
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "bowen",
+    comment = "tiered store is deprecated")
 public class LostStorageIntegrationTest extends BaseIntegrationTest {
   private static final int CAPACITY_BYTES = Constants.KB;
   private static final String SSD_TIER = Constants.MEDIUM_SSD;
@@ -74,8 +78,6 @@ public class LostStorageIntegrationTest extends BaseIntegrationTest {
   private BlockMasterClient mBlockMasterClient = null;
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("check if this needs to be fixed")
   public void reportLostStorageInWorkerRegister() throws Exception {
     File ssdDir = Files.createTempDir();
     String ssdPath = ssdDir.getAbsolutePath();
@@ -103,8 +105,6 @@ public class LostStorageIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("check if this needs to be fixed")
   public void reportLostStorageInHeartbeat() throws Exception {
     File ssdDir = Files.createTempDir();
     String ssdPath = ssdDir.getAbsolutePath();
@@ -122,8 +122,6 @@ public class LostStorageIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("check if this needs to be fixed")
   public void lostStorageWhenRestart() throws Exception {
     File ssdDir = Files.createTempDir();
     String ssdPath = ssdDir.getAbsolutePath();

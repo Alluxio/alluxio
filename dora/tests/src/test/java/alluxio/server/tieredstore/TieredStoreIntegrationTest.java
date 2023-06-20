@@ -13,6 +13,7 @@ package alluxio.server.tieredstore;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
@@ -43,6 +44,9 @@ import org.junit.rules.TemporaryFolder;
 /**
  * Integration tests for {@link alluxio.worker.block.meta.StorageTier}.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "bowen",
+    comment = "tiered store is deprecated")
+@Ignore
 public class TieredStoreIntegrationTest extends BaseIntegrationTest {
   private static final int MEM_CAPACITY_BYTES = 1000;
   private static final WaitForOptions WAIT_OPTIONS =

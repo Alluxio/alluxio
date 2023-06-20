@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.WriteType;
 import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
@@ -57,8 +58,9 @@ import java.util.stream.StreamSupport;
 /**
  * Tests a cluster containing multiple workers.
  */
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("We don't use block store any more in DORA")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "fix the tests")
 public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   private static final int NUM_WORKERS = 4;
   private static final int WORKER_MEMORY_SIZE_BYTES = Constants.MB;

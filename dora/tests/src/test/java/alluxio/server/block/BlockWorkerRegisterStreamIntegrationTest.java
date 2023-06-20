@@ -39,6 +39,7 @@ import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.Sessions;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.DeadlineExceededException;
@@ -110,8 +111,9 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceStub.class})
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("Block store is deprecated")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jiacheng",
+    comment = "BlockMaster is deprecated")
 public class BlockWorkerRegisterStreamIntegrationTest {
   private static final long WORKER_ID = 1L;
 

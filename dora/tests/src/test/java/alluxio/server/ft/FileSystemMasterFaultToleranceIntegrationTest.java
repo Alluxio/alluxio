@@ -17,6 +17,7 @@ import static org.junit.Assert.assertThrows;
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -64,8 +65,9 @@ import java.util.Map;
 import java.util.UUID;
 
 @RunWith(Parameterized.class)
-// TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-@Ignore("fix this test or remove it if it is deprecated")
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "revisit HA")
 public final class FileSystemMasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
   private static final int CLUSTER_WAIT_TIMEOUT_MS = 120 * Constants.SECOND_MS;
   private static final String TEST_USER = "test";

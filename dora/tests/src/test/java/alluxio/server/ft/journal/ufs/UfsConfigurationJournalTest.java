@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystem;
 import alluxio.grpc.MountPOptions;
 import alluxio.master.file.FileSystemMaster;
@@ -38,6 +39,9 @@ import java.util.Map;
 /**
  * Integration test to check ufs configuration is persisted after a restart.
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jiacheng",
+    comment = "journal is deprecated")
 public class UfsConfigurationJournalTest {
   private static final String LOCAL_UFS_PATH = Files.createTempDir().getAbsolutePath();
 
@@ -53,8 +57,6 @@ public class UfsConfigurationJournalTest {
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("check if this is still required")
   public void testOptionsPersisted() throws Exception {
     // Set ufs specific options and other mount flags
     AlluxioURI mountPoint = new AlluxioURI("/mnt");
