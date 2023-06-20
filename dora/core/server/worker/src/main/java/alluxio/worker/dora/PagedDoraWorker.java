@@ -22,7 +22,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheUsage;
-import alluxio.client.file.cache.PageId;
 import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.conf.AlluxioConfiguration;
@@ -340,40 +339,12 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   }
 
   /**
-   * @param fileInfo the FileInfo of this file. Cached pages are identified by PageId
-   * @return true at this moment
+   * Invalidate the given cached File by deleting it from local cache.
+   * @param path the full path of this file
    */
-  public boolean invalidateCachedFile(FileInfo fileInfo) {
-    FileId fileId = FileId.of(new AlluxioURI(fileInfo.getUfsPath()).hash());
-
-    for (PageId page: mCacheManager.getCachedPageIdsByFileId(
-        fileId.toString(), fileInfo.getLength())) {
-      mCacheManager.delete(page);
-    }
-    return true;
-  }
-
-  private boolean invalidateCachedFile(String path) {
-    long pages = 0;
-    try {
-      UfsStatus existingFileStatus = mUfs.getStatus(path);
-      if (existingFileStatus instanceof UfsFileStatus) {
-        pages =
-            (((UfsFileStatus) existingFileStatus).getContentLength() + mPageSize - 1) / mPageSize;
-      }
-    } catch (Exception e) {
-      // It's possible that this file is not found in UFS.
-      // FIXME: If the file is not found in UFS, we need a new API to remove all cached pages
-      // of that file, not based on the pageId. This needs a new API. See below.
-      pages = 10_000L; // 1MB * 10_000 = 10GB
-    }
-    // TODO(bowen) we need a new API to remove all cached pages of a file, not based on the pages.
+  private void invalidateCachedFile(String path) {
     FileId file = FileId.of(new AlluxioURI(path).hash());
-    for (long i = 0; i < pages; i++) {
-      PageId page = new PageId(file.toString(), i);
-      mCacheManager.delete(page);
-    }
-    return true;
+    mCacheManager.deleteFile(file.toString());
   }
 
   @Override
@@ -550,10 +521,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
                 status.asUfsFileStatus().getContentLength());
           } catch (Throwable e) {
             LOG.error("Loading {} failed", status, e);
+            boolean permissionCheckSucceeded = !(e instanceof AccessControlException);
             AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
             errors.add(LoadFileFailure.newBuilder().setUfsStatus(status.toProto())
                 .setCode(t.getStatus().getCode().value())
-                .setRetryable(t.isRetryable())
+                .setRetryable(t.isRetryable() && permissionCheckSucceeded)
                 .setMessage(t.getMessage()).build());
           }
         }, GrpcExecutors.BLOCK_READER_EXECUTOR);
@@ -591,8 +563,10 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     List<RouteFailure> errors = Collections.synchronizedList(new ArrayList<>());
 
     for (Route route : routes) {
-      UnderFileSystem srcUfs = getUnderFileSystem(route.getSrc());
-      UnderFileSystem dstUfs = getUnderFileSystem(route.getDst());
+      UnderFileSystem srcUfs = mUfsManager.getOrAdd(new AlluxioURI(route.getSrc()),
+          UnderFileSystemConfiguration.defaults(mConf));
+      UnderFileSystem dstUfs = mUfsManager.getOrAdd(new AlluxioURI(route.getDst()),
+          UnderFileSystemConfiguration.defaults(mConf));
       String srcRoot = new AlluxioURI(route.getSrc()).getRootPath();
       String dstRoot = new AlluxioURI(route.getDst()).getRootPath();
 
@@ -605,12 +579,15 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             if (readOptions.hasUser()) {
               AuthenticatedClientUser.set(readOptions.getUser());
             }
+            checkCopyPermission(route.getSrc(), route.getDst());
             CopyHandler.copy(route, writeOptions, srcFs, dstFs);
           } catch (Throwable t) {
+            boolean permissionCheckSucceeded = !(t instanceof AccessControlException);
             LOG.error("Failed to copy {} to {}", route.getSrc(), route.getDst(), t);
             AlluxioRuntimeException e = AlluxioRuntimeException.from(t);
             RouteFailure.Builder builder =
-                RouteFailure.newBuilder().setRoute(route).setCode(e.getStatus().getCode().value());
+                RouteFailure.newBuilder().setRoute(route).setCode(e.getStatus().getCode().value())
+                    .setRetryable(e.isRetryable() && permissionCheckSucceeded);
             if (e.getMessage() != null) {
               builder.setMessage(e.getMessage());
             }
@@ -650,6 +627,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             if (readOptions.hasUser()) {
               AuthenticatedClientUser.set(readOptions.getUser());
             }
+            checkMovePermission(route.getSrc(), route.getDst());
             CopyHandler.copy(route, writeOptions, srcFs, dstFs);
             try {
               DeleteHandler.delete(new AlluxioURI(route.getSrc()), srcFs);
@@ -659,10 +637,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             }
           } catch (Throwable t) {
             LOG.error("Failed to move {} to {}", route.getSrc(), route.getDst(), t);
+            boolean permissionCheckSucceeded = !(t instanceof AccessControlException);
             AlluxioRuntimeException e = AlluxioRuntimeException.from(t);
             RouteFailure.Builder builder =
                 RouteFailure.newBuilder().setRoute(route).setCode(e.getStatus().getCode().value())
-                    .setRetryable(true);
+                    .setRetryable(e.isRetryable() && permissionCheckSucceeded);
             if (e.getMessage() != null) {
               builder.setMessage(e.getMessage());
             }
@@ -875,5 +854,19 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   @VisibleForTesting
   UnderFileSystem getUfs() {
     return mUfs;
+  }
+
+  protected void checkCopyPermission(String srcPath, String dstPath)
+      throws AccessControlException, IOException {
+    // No-op
+  }
+
+  protected void checkMovePermission(String srcPath, String dstPath)
+      throws AccessControlException, IOException {
+    // No-op
+  }
+
+  protected DoraOpenFileHandleContainer getOpenFileHandleContainer() {
+    return mOpenFileHandleContainer;
   }
 }

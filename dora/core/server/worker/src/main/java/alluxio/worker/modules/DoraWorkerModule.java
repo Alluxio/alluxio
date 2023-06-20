@@ -27,6 +27,9 @@ import alluxio.worker.dora.DoraUfsManager;
 import alluxio.worker.dora.DoraWorker;
 import alluxio.worker.dora.PagedDoraWorker;
 import alluxio.worker.file.FileSystemMasterClient;
+import alluxio.worker.http.HttpServer;
+import alluxio.worker.http.HttpServerInitializer;
+import alluxio.worker.http.PagedService;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
@@ -60,9 +63,15 @@ public class DoraWorkerModule extends AbstractModule {
       PageMetaStore pageMetaStore = PageMetaStore.create(
           CacheManagerOptions.createForWorker(Configuration.global()));
       bind(PageMetaStore.class).toInstance(pageMetaStore);
-      bind(CacheManager.class).toInstance(
-          CacheManager.Factory.create(Configuration.global(),
-              cacheManagerOptions, pageMetaStore));
+      bind(CacheManager.class).toProvider(() ->
+      {
+        try {
+          return CacheManager.Factory.create(Configuration.global(),
+              cacheManagerOptions, pageMetaStore);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }).in(Scopes.SINGLETON);
 
       long pageSize = Configuration.global().getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
       bind(new TypeLiteral<Long>() {
@@ -70,6 +79,11 @@ public class DoraWorkerModule extends AbstractModule {
     } catch (IOException e) {
       throw new RuntimeException("Failed to create CacheManager", e);
     }
+
+    // HTTP Server
+    bind(PagedService.class).in(Scopes.SINGLETON);
+    bind(HttpServerInitializer.class).in(Scopes.SINGLETON);
+    bind(HttpServer.class).in(Scopes.SINGLETON);
 
     // the following objects are required when using dora
     bind(Worker.class).to(DoraWorker.class).in(Scopes.SINGLETON);

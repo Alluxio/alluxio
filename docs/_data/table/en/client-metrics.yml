@@ -10,12 +10,14 @@ Client.BytesReadLocal:
   'Total number of bytes short-circuit read from worker data storage that collocates with the client'
 Client.BytesReadLocalThroughput:
   'Bytes throughput short-circuit read from worker data storage that collocated with this client'
+Client.BytesWrittenAlluxio:
+  'Total number of bytes write to Alluxio by this client'
 Client.BytesWrittenLocal:
   'Total number of bytes short-circuit written to local storage by this client'
 Client.BytesWrittenLocalThroughput:
   'Bytes throughput short-circuit written to local storage by this client'
 Client.BytesWrittenUfs:
-  'Total number of bytes write to Alluxio UFS by this client'
+  'Total number of bytes write to UFS by this client'
 Client.CacheBytesDiscarded:
   'Total number of bytes discarded when restoring the page store.'
 Client.CacheBytesEvicted:

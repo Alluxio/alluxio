@@ -296,8 +296,3 @@ java -javaagent:./jmx_prometheus_javaagent-0.16.0.jar=8080:config.yaml -jar your
 Metrics will now be accessible at http://localhost:8080/metrics.
 
 `config.yaml` file provides the configuration for jmx_exporter. Empty file can be used for a quick start. For more information, please refer to [jmx_exporter documentation](https://github.com/prometheus/jmx_exporter).
-
-## References
-
-Detailed Alluxio metrics are listed in the [metrics list doc]({{ '/en/reference/Metrics-List.html' | relativize_url }}).
-Metrics stored in leading master is exposed via [`fsadmin report metrics`]({{ '/en/operation/Admin-CLI.html' | relativize_url }}#report).

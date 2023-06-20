@@ -164,6 +164,11 @@ public class CacheManagerWithShadowCache implements CacheManager {
   }
 
   @Override
+  public void deleteFile(String fileId) {
+    mCacheManager.deleteFile(fileId);
+  }
+
+  @Override
   public Optional<CacheUsage> getUsage() {
     return mCacheManager.getUsage();
   }

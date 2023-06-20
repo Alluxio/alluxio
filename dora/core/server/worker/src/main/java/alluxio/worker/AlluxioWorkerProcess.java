@@ -31,6 +31,7 @@ import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.dora.DoraWorker;
+import alluxio.worker.http.HttpServer;
 import alluxio.worker.netty.NettyDataServer;
 
 import com.google.common.collect.ImmutableList;
@@ -67,6 +68,11 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
    * If started (i.e. not null), this server is used to serve local data transfer.
    */
   private DataServer mDomainSocketDataServer;
+
+  /**
+   * HTTP Server provides RESTful API to get/put/append/delete page.
+   */
+  private HttpServer mHttpServer;
 
   /**
    * The worker registry.
@@ -115,7 +121,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       UfsManager ufsManager,
       Worker worker,
       DataServerFactory dataServerFactory,
-      @Nullable NettyDataServer nettyDataServer) {
+      @Nullable NettyDataServer nettyDataServer,
+      @Nullable HttpServer httpServer) {
     try {
       mTieredIdentitiy = requireNonNull(tieredIdentity);
       mUfsManager = requireNonNull(ufsManager);
@@ -159,6 +166,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       } else {
         mNettyDataServer = null;
       }
+
+      mHttpServer = httpServer;
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -239,6 +248,11 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
     // Start serving the web server, this will not block.
     mWebServer.start();
+
+    // Start HTTP Server
+    if (mHttpServer != null) {
+      mHttpServer.start();
+    }
 
     // Start monitor jvm
     if (Configuration.getBoolean(PropertyKey.WORKER_JVM_MONITOR_ENABLED)) {

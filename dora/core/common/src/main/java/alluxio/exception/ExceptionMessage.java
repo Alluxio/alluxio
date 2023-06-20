@@ -114,6 +114,8 @@ public enum ExceptionMessage {
   CANNOT_OVERWRITE_DIRECTORY("{0} already exists. Directories cannot be overwritten with create"),
   CANNOT_OVERWRITE_FILE_WITHOUT_OVERWRITE("{0} already exists. If you want to overwrite the file,"
       + " you need to specify the overwrite option."),
+  CANNOT_COPY_TO_NOT_EXIST_DIRECTORY("{0} is a directory and should be created first."),
+  FILE_TYPE_NOT_MATCH("{0} exists but it's not a directory."),
 
   // block master
   NO_WORKER_FOUND("No worker with workerId {0,number,#} is found"),

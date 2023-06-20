@@ -727,6 +727,11 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
+    public void deleteFile(String fileId) {
+      // no-op
+    }
+
+    @Override
     public Optional<CacheUsage> getUsage() {
       return Optional.of(new Usage());
     }

@@ -170,6 +170,8 @@ alluxio.user.local.writer.chunk.size.bytes:
   'When a client writes to a local worker, the maximum data chunk size.'
 alluxio.user.logging.threshold:
   'Logging a client RPC when it takes more time than the threshold.'
+alluxio.user.master.polling.concurrent:
+  'Whether to concurrently polling the master.'
 alluxio.user.master.polling.timeout:
   'The maximum time for a rpc client to wait for master to respond.'
 alluxio.user.metadata.cache.expiration.time:

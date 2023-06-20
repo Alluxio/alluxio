@@ -175,9 +175,6 @@ $ bin/alluxio fsadmin pathConf add --property alluxio.user.file.writetype.defaul
 All write operations that occur on a path with the prefix `/tmp` prefix will use
 the `THROUGH` write type by default.
 
-See [`fsadmin pathConf`]({{ '/en/operation/Admin-CLI.html' | relativize_url }}#pathconf) on how to
-show, add, update, and remove path defaults.
-
 ## Configuration Sources
 
 Alluxio properties can be configured from multiple sources.

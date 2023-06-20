@@ -41,10 +41,6 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
   public static final String TRANSFER_INIT = "Initiating transfer of leadership to %s";
   public static final String TRANSFER_SUCCESS = "Successfully elected %s as the new leader";
   public static final String TRANSFER_FAILED = "Failed to elect %s as the new leader: %s";
-  public static final String RESET_INIT = "Resetting priorities of masters after %s transfer of "
-      + "leadership";
-  public static final String RESET_SUCCESS = "Quorum priorities were reset to 1";
-  public static final String RESET_FAILED = "Quorum priorities failed to be reset: %s";
 
   /**
    * @param context fsadmin command context
@@ -67,7 +63,6 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
     JournalMasterClient jmClient = mMasterJournalMasterClient;
     String serverAddress = cl.getOptionValue(ADDRESS_OPTION_NAME);
     NetAddress address = QuorumCommand.stringToAddress(serverAddress);
-    boolean success = false;
     try {
       mPrintStream.println(String.format(TRANSFER_INIT, serverAddress));
       String transferId = jmClient.transferLeadership(address);
@@ -84,9 +79,8 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
           GetQuorumInfoPResponse quorumInfo = jmClient.getQuorumInfo();
           Optional<QuorumServerInfo> leadingMasterInfoOpt = quorumInfo.getServerInfoList().stream()
               .filter(QuorumServerInfo::getIsLeader).findFirst();
-          NetAddress leaderAddress = leadingMasterInfoOpt.isPresent()
-              ? leadingMasterInfoOpt.get().getServerAddress() : null;
-          return address.equals(leaderAddress);
+          return leadingMasterInfoOpt.isPresent()
+              && address.equals(leadingMasterInfoOpt.get().getServerAddress());
         } catch (IOException e) {
           return false;
         }
@@ -96,21 +90,11 @@ public class QuorumElectCommand extends AbstractFsAdminCommand {
         throw new Exception(errorMessage.get());
       }
       mPrintStream.println(String.format(TRANSFER_SUCCESS, serverAddress));
-      success = true;
     } catch (Exception e) {
       mPrintStream.println(String.format(TRANSFER_FAILED, serverAddress, e.getMessage()));
+      return -1;
     }
-    // reset priorities regardless of transfer success
-    try {
-      mPrintStream.println(String.format(RESET_INIT, success ? "successful" : "failed"));
-      jmClient.resetPriorities();
-      mPrintStream.println(RESET_SUCCESS);
-    } catch (IOException e) {
-      mPrintStream.println(String.format(RESET_FAILED, e));
-      success = false;
-    }
-
-    return success ? 0 : -1;
+    return 0;
   }
 
   @Override

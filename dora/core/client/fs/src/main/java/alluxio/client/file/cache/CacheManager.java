@@ -252,6 +252,20 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
    *
    * @param pageId page identifier
    * @param pageOffset offset into the page
+   * @param buffer destination buffer to write
+   * @param cacheContext cache related context
+   * @return number of bytes read, 0 if page is not found, -1 on errors
+   */
+  default int get(PageId pageId, int pageOffset, ReadTargetBuffer buffer,
+          CacheContext cacheContext) {
+    throw new UnsupportedOperationException("This method is unsupported. ");
+  }
+
+  /**
+   * Reads a part of a page if the queried page is found in the cache, stores the result in buffer.
+   *
+   * @param pageId page identifier
+   * @param pageOffset offset into the page
    * @param bytesToRead number of bytes to read in this page
    * @param buffer destination buffer to write
    * @param offsetInBuffer offset in the destination buffer to write
@@ -301,6 +315,13 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
   default List<PageId> getCachedPageIdsByFileId(String fileId, long fileLength) {
     throw new UnsupportedOperationException();
   }
+
+  /**
+   * Deletes all pages of the given file.
+   *
+   * @param fileId the file id of the target file
+   */
+  void deleteFile(String fileId);
 
   /**
    * Deletes a page from the cache.
