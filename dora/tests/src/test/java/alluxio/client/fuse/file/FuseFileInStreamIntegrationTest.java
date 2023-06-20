@@ -12,6 +12,7 @@
 package alluxio.client.fuse.file;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
@@ -32,8 +33,9 @@ import java.nio.ByteBuffer;
  */
 public class FuseFileInStreamIntegrationTest extends AbstractFuseFileStreamIntegrationTest {
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("need to be fiexed")
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "hua",
+      comment = "fix the test case")
+  @Ignore
   public void createRead() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
@@ -55,8 +57,9 @@ public class FuseFileInStreamIntegrationTest extends AbstractFuseFileStreamInteg
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("need to be fiexed")
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "hua",
+      comment = "fix the test case")
+  @Ignore
   public void randomRead() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
@@ -71,8 +74,9 @@ public class FuseFileInStreamIntegrationTest extends AbstractFuseFileStreamInteg
   }
 
   @Test (expected = FailedPreconditionRuntimeException.class)
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("need to be fiexed")
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "hua",
+      comment = "fix the test case")
+  @Ignore
   public void write() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);

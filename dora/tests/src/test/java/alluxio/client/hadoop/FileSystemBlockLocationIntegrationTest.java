@@ -11,6 +11,7 @@
 
 package alluxio.client.hadoop;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.Configuration;
 import alluxio.grpc.WritePType;
@@ -32,6 +33,9 @@ import java.net.URI;
 /**
  * Integration tests for {@link FileSystem#getFileBlockLocations(FileStatus, long, long)}.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "bowen",
+    comment = "recycle the test cases after we remove BlockStore")
+@Ignore
 public class FileSystemBlockLocationIntegrationTest extends BaseIntegrationTest {
 
   private static final int BLOCK_SIZE = 1024;
@@ -60,8 +64,6 @@ public class FileSystemBlockLocationIntegrationTest extends BaseIntegrationTest 
    * Test the different situations of different start and len.
    */
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("Block store is deprecated")
   public void basicBlockLocation() throws Exception {
     FileStatus fStatus = sTFS.getFileStatus(new Path("/testFile1"));
 

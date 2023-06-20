@@ -154,7 +154,6 @@ public class BlockInStreamTest {
   }
 
   @Test
-  @Ignore
   public void createShortCircuitDisabled() throws Exception {
     try (Closeable ignored =
         new ConfigurationRule(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, false, mConf)

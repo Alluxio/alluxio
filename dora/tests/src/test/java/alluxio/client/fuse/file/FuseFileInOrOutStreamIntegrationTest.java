@@ -12,6 +12,7 @@
 package alluxio.client.fuse.file;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.file.FuseFileStream;
@@ -45,8 +46,9 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("need to be fixed")
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "hua",
+      comment = "fix the test case")
+  @Ignore
   public void createExistingClose() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
@@ -90,8 +92,9 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
   }
 
   @Test (expected = UnimplementedRuntimeException.class)
-  // TODO(Hua): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("need to be fixed")
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "hua",
+      comment = "fix the test case")
+  @Ignore
   public void createTruncateFlagRead() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
@@ -119,8 +122,10 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
     checkFileInAlluxio(alluxioURI, newFileLength, 0);
   }
 
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("truncate is unsupported now, but we need to fix this latter")
+  @Test
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "hua",
+      comment = "fix the test case")
+  @Ignore
   public void createTruncateZeroWrite() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
@@ -140,8 +145,9 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
   }
 
   @Test
-  // TODO(Hua): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("need to be fixed")
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "hua",
+      comment = "fix the test case")
+  @Ignore
   public void sequentialRead() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
@@ -157,8 +163,9 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("need to be fixed")
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "hua",
+      comment = "fix the test case")
+  @Ignore
   public void randomRead() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
@@ -173,8 +180,9 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
   }
 
   @Test
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("need to be fixed")
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "hua",
+      comment = "fix the test case")
+  @Ignore
   public void sequentialWrite() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
@@ -225,8 +233,9 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
   }
 
   @Test (expected = UnimplementedRuntimeException.class)
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("need to be fixed")
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "hua",
+      comment = "fix the test case")
+  @Ignore
   public void readThenWrite() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
@@ -252,8 +261,9 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
   }
 
   @Test (expected = UnimplementedRuntimeException.class)
-  // TODO(JiamingMai): <TEST_FIX> Fix this test or remove it if it is deprecated
-  @Ignore("truncate is unsupported now, but we need to fix this latter")
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "hua",
+      comment = "fix the test case")
+  @Ignore
   public void readTruncateZero() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
