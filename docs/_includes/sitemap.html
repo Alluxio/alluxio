@@ -9,11 +9,7 @@
     <div id="{{item.buttonTitle}}" class="collapse scrollable-content" >
         {% for files in item.subfiles %}
         <div>
-            {% if files.url == page.url %}
-            <a class="collapse-items" href="{{ files.url }}" >{{ files.title }}</a>
-            {% else %}
             <a class="collapse-items" href="{{site.baseurl}}{{ files.url }}" >{{ files.title }}</a>
-            {% endif %}
         </div>
         {% endfor %}
         {% if item.subitems %}
