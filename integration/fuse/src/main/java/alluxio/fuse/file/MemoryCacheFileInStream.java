@@ -27,11 +27,18 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 /**
- * A class for handling memory caching.
+ * A class for handling memory caching. Using an object pool to reuse byte arrays and reduce JVM
+ * garbage collection frequency is an effective approach. However, it does introduce some issues
+ * that need to be handled carefully. With a 4MB page size, garbage collection does not incur
+ * significant overhead. Therefore, for the current situation, we have decided to prioritize
+ * delivering a functional feature to meet the requirements. This is a reasonable decision because
+ * implementing the functionality is the primary goal, while optimization can be done gradually.
+ * This ensures obtaining efficient system performance without prematurely diving into excessive
+ * optimization work. In subsequent iterations, the issues introduced by the object pool can be
+ * gradually addressed based on needs and performance optimization requirements.
  */
 public class MemoryCacheFileInStream extends FileInStream {
 
@@ -52,7 +59,6 @@ public class MemoryCacheFileInStream extends FileInStream {
   private long mPos;
 
   /**
-   *
    * @param uriStatus
    * @param fileInStream
    * @throws IOException
@@ -96,19 +102,19 @@ public class MemoryCacheFileInStream extends FileInStream {
   }
 
   @Override
-  public int read(byte[] b, int off, int len) throws IOException {
+  public int read(final byte[] b, final int off, final int len) throws IOException {
     int length = Math.min(len, b.length - off);
+    int offset = off;
     int read = 0;
     while (length > 0) {
-      byte[] bytes = getCacheBytes(length);
-      if (bytes.length == 0) {
+      int copyLen = copyCacheBytes(b, offset, length);
+      if (copyLen <= 0) {
         break;
       }
-      int copyLen = Math.min(length, bytes.length);
-      System.arraycopy(bytes, 0, b, off + read, copyLen);
       mPos += copyLen;
       read += copyLen;
       length -= copyLen;
+      offset += copyLen;
     }
     return read == 0 ? -1 : read;
   }
@@ -165,14 +171,14 @@ public class MemoryCacheFileInStream extends FileInStream {
     throw new UnsupportedOperationException();
   }
 
-  private byte[] getCacheBytes(int length) throws IOException {
-    long posKey = (mPos / CACHE_SIZE) * CACHE_SIZE;
+  private int copyCacheBytes(byte[] dest, int offset, int length) throws IOException {
     int start = (int) (mPos % CACHE_SIZE);
+    long posKey = mPos - start;
     try {
       if (mStatus.getLength() <= mPos) {
-        return new byte[0];
+        return -1;
       }
-      byte[] bytes = CACHE.get(
+      byte[] src = CACHE.get(
           new CacheKey(mStatus.getPath(), mStatus.getLastModificationTimeMs(), posKey),
           () -> {
             mFileInStream.seek(posKey);
@@ -180,7 +186,10 @@ public class MemoryCacheFileInStream extends FileInStream {
             IOUtils.readFully(mFileInStream, data);
             return data;
           });
-      return Arrays.copyOfRange(bytes, start, Math.min(bytes.length, start + length));
+      int read = Math.min(src.length - start, length);
+      read = Math.min(read, dest.length - offset);
+      System.arraycopy(src, start, dest, offset, read);
+      return read;
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -196,7 +205,6 @@ public class MemoryCacheFileInStream extends FileInStream {
     private final long mPos;
 
     /**
-     *
      * @param path
      * @param lastModification
      * @param pos
