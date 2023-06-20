@@ -11,10 +11,10 @@
 
 package alluxio.proxy.s3.signature;
 
-import static alluxio.proxy.s3.S3Constants.DATE_FORMATTER;
+import static alluxio.s3.S3Constants.DATE_FORMATTER;
 import static org.junit.Assert.assertEquals;
 
-import alluxio.proxy.s3.S3Exception;
+import alluxio.s3.S3Exception;
 import alluxio.proxy.s3.signature.utils.AwsAuthV4HeaderParserUtils;
 
 import org.junit.Before;

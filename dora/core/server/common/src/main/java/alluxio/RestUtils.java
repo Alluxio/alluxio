@@ -12,7 +12,9 @@
 package alluxio;
 
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.SecurityUtils;
@@ -26,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.Map;
 import javax.annotation.Nullable;
+import javax.security.auth.Subject;
 import javax.ws.rs.core.Response;
 
 /**

@@ -13,6 +13,8 @@ package alluxio.proxy.s3;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.s3.S3ErrorCode;
+import alluxio.s3.S3Exception;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;

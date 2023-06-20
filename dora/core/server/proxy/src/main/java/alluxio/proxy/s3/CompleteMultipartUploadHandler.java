@@ -30,6 +30,10 @@ import alluxio.grpc.S3SyntaxOptions;
 import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.s3.S3Constants;
+import alluxio.s3.S3Error;
+import alluxio.s3.S3ErrorCode;
+import alluxio.s3.S3Exception;
 import alluxio.util.ThreadUtils;
 import alluxio.web.ProxyWebServer;
 

@@ -11,6 +11,8 @@
 
 package alluxio.proxy.s3;
 
+import alluxio.s3.S3ErrorCode;
+import alluxio.s3.S3Exception;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;

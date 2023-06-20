@@ -37,6 +37,10 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.proto.journal.File;
+import alluxio.s3.S3AuditContext;
+import alluxio.s3.S3Constants;
+import alluxio.s3.S3ErrorCode;
+import alluxio.s3.S3Exception;
 import alluxio.util.CommonUtils;
 import alluxio.web.ProxyWebServer;
 

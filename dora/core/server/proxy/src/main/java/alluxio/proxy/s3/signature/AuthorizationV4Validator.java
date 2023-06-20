@@ -11,7 +11,7 @@
 
 package alluxio.proxy.s3.signature;
 
-import static alluxio.proxy.s3.S3Constants.AUTHORIZATION_CHARSET;
+import static alluxio.s3.S3Constants.AUTHORIZATION_CHARSET;
 
 import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.SigningAlgorithm;

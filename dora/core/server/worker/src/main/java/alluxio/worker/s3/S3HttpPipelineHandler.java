@@ -1,0 +1,43 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
+package alluxio.worker.s3;
+
+import alluxio.client.file.FileSystem;
+import alluxio.worker.dora.DoraWorker;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.codec.compression.CompressionOptions;
+import io.netty.handler.codec.http.HttpContentCompressor;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.HttpServerExpectContinueHandler;
+
+public class S3HttpPipelineHandler extends ChannelInitializer<SocketChannel> {
+  private FileSystem mFileSystem;
+  private DoraWorker mDoraWorker;
+
+  public S3HttpPipelineHandler(FileSystem fileSystem, DoraWorker doraWorker) {
+    mFileSystem = fileSystem;
+    mDoraWorker = doraWorker;
+  }
+
+  @Override
+  protected void initChannel(SocketChannel channel) throws Exception {
+    ChannelPipeline pipeline = channel.pipeline();
+    pipeline.addLast(new HttpServerCodec());
+    pipeline.addLast(new HttpContentCompressor((CompressionOptions[]) null));
+    pipeline.addLast(new HttpObjectAggregator(512 * 1024));
+    pipeline.addLast(new HttpServerExpectContinueHandler());
+    pipeline.addLast(new S3HttpHandler(mFileSystem, mDoraWorker));
+  }
+}

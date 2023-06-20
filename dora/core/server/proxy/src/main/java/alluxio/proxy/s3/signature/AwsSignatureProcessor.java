@@ -11,10 +11,10 @@
 
 package alluxio.proxy.s3.signature;
 
-import static alluxio.proxy.s3.S3Constants.S3_SIGN_DATE;
+import static alluxio.s3.S3Constants.S3_SIGN_DATE;
 
-import alluxio.proxy.s3.S3ErrorCode;
-import alluxio.proxy.s3.S3Exception;
+import alluxio.s3.S3ErrorCode;
+import alluxio.s3.S3Exception;
 import alluxio.proxy.s3.S3RestUtils;
 import alluxio.proxy.s3.auth.AwsAuthInfo;
 import alluxio.proxy.s3.signature.utils.AwsAuthV2HeaderParserUtils;

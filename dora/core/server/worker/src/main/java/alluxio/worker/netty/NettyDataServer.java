@@ -11,13 +11,16 @@
 
 package alluxio.worker.netty;
 
+import alluxio.client.file.FileSystem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.network.ChannelType;
 import alluxio.underfs.UfsManager;
 import alluxio.util.network.NettyUtils;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.DataServer;
 import alluxio.worker.dora.DoraWorker;
+import alluxio.worker.s3.S3HttpPipelineHandler;
 
 import com.google.common.base.Throwables;
 import com.google.inject.Inject;
@@ -49,6 +52,7 @@ public class NettyDataServer implements DataServer {
 
   private ServerBootstrap mBootstrap;
   private ChannelFuture mChannelFuture;
+  private ChannelFuture mHttpChannelFuture;
   private final UfsManager mUfsManager;
   private final SocketAddress mSocketAddress;
   private final long mQuietPeriodMs =
@@ -74,6 +78,13 @@ public class NettyDataServer implements DataServer {
         new PipelineHandler(mUfsManager, doraWorker));
     try {
       mChannelFuture = mBootstrap.bind(nettyBindAddress).sync();
+
+      InetSocketAddress proxyBindAddress = NetworkAddressUtils.getBindAddress(
+          NetworkAddressUtils.ServiceType.PROXY_WEB,
+          Configuration.global());
+      FileSystem fileSystem = FileSystem.Factory.create(Configuration.global());
+      mBootstrap.childHandler(new S3HttpPipelineHandler(fileSystem, doraWorker));
+      mHttpChannelFuture = mBootstrap.bind(proxyBindAddress).sync();
     } catch (InterruptedException e) {
       throw Throwables.propagate(e);
     }
@@ -106,7 +117,8 @@ public class NettyDataServer implements DataServer {
 
     boolean completed;
     completed =
-        mChannelFuture.channel().close().awaitUninterruptibly(mTimeoutMs);
+        mChannelFuture.channel().close().awaitUninterruptibly(mTimeoutMs) &&
+            mHttpChannelFuture.channel().close().awaitUninterruptibly(mTimeoutMs);;
     if (!completed) {
       LOG.warn("Closing the channel timed out.");
     }
