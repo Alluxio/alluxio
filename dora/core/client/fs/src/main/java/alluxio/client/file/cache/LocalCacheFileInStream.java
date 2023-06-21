@@ -109,7 +109,7 @@ public class LocalCacheFileInStream extends FileInStream {
     mExternalFileInStreamOpener = fileOpener;
     mCacheManager = cacheManager;
     mStatus = status;
-    mIsDora = FeatureUtils.isDora();
+    mIsDora = FeatureUtils.isDora(conf);
     // Currently quota is only supported when it is set by external systems in status context
     mQuotaEnabled = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED);
     if (mQuotaEnabled && status.getCacheContext() != null) {
