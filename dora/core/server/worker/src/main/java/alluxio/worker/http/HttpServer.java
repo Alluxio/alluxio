@@ -13,8 +13,7 @@ package alluxio.worker.http;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+
 import com.google.common.base.Throwables;
 import com.google.inject.Inject;
 import io.netty.bootstrap.ServerBootstrap;
@@ -28,6 +27,9 @@ import io.netty.handler.logging.LoggingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /**
  * {@link HttpServer} provides Alluxio RESTful API. It is implemented through Netty.
  */
@@ -36,7 +38,7 @@ public final class HttpServer {
   private static final Logger LOG = LoggerFactory.getLogger(HttpServer.class);
   private static final boolean SSL = false;
 
-  private static final int mPort = Configuration.getInt(PropertyKey.WORKER_HTTP_SERVER_PORT);
+  private static final int PORT = Configuration.getInt(PropertyKey.WORKER_HTTP_SERVER_PORT);
 
   private final ExecutorService mHttpServerThreadPool = Executors.newFixedThreadPool(1);
 
@@ -51,13 +53,13 @@ public final class HttpServer {
     mHttpServerInitializer = httpServerInitializer;
   }
 
+  /**
+   * Starts the HTTP server.
+   */
   public void start() {
     mHttpServerThreadPool.submit(this::startHttpServer);
   }
 
-  /**
-   * Starts the HTTP server.
-   */
   private void startHttpServer() {
     // Configure the server.
     EventLoopGroup bossGroup = new NioEventLoopGroup(1);
@@ -70,10 +72,10 @@ public final class HttpServer {
           .handler(new LoggingHandler(LogLevel.INFO))
           .childHandler(mHttpServerInitializer);
 
-      Channel ch = b.bind(mPort).sync().channel();
+      Channel ch = b.bind(PORT).sync().channel();
 
       LOG.info("Open your web browser and navigate to "
-          + (SSL ? "https" : "http") + "://127.0.0.1:" + mPort + '/');
+          + (SSL ? "https" : "http") + "://127.0.0.1:" + PORT + '/');
 
       ch.closeFuture().sync();
     } catch (InterruptedException e) {
