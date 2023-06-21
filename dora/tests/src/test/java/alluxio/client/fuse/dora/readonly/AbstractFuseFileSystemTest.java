@@ -22,7 +22,6 @@ import alluxio.util.io.BufferUtils;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Optional;
 
 public abstract class AbstractFuseFileSystemTest extends AbstractFuseDoraReadOnlyTest {
   protected AlluxioJniFuseFileSystem mFuseFs;
@@ -31,9 +30,13 @@ public abstract class AbstractFuseFileSystemTest extends AbstractFuseDoraReadOnl
 
   @Override
   public void beforeActions() {
+    final FileSystemOptions fileSystemOptions =
+        FileSystemOptions.Builder
+            .fromConf(mContext.getClusterConf())
+            .setUfsFileSystemOptions(mUfsOptions)
+            .build();
     mFuseFs = new AlluxioJniFuseFileSystem(mContext, mFileSystem,
-        FuseOptions.create(Configuration.global(), FileSystemOptions.create(
-            mContext.getClusterConf(), Optional.of(mUfsOptions)), false));
+        FuseOptions.create(Configuration.global(), fileSystemOptions, false));
     mFileStat = FileStat.of(ByteBuffer.allocateDirect(256));
     mFileInfo = new AlluxioFuseUtils.CloseableFuseFileInfo();
   }

@@ -79,6 +79,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   private final DoraCacheClient mDoraClient;
   private final FileSystemContext mFsContext;
   private final boolean mMetadataCacheEnabled;
+  private final boolean mUfsFallbackEnabled;
   private final long mDefaultVirtualBlockSize;
 
   /**
@@ -118,6 +119,8 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     mFsContext = context;
     mMetadataCacheEnabled = context.getClusterConf()
         .getBoolean(PropertyKey.DORA_CLIENT_METADATA_CACHE_ENABLED);
+    mUfsFallbackEnabled = context.getClusterConf()
+        .getBoolean(PropertyKey.DORA_CLIENT_UFS_FALLBACK_ENABLED);
     mDefaultVirtualBlockSize = context.getClusterConf()
         .getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
@@ -140,6 +143,9 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
         if (((StatusRuntimeException) ex).getStatus().getCode() == Status.NOT_FOUND.getCode()) {
           throw new FileDoesNotExistException(ufsFullPath);
         }
+      }
+      if (!mUfsFallbackEnabled) {
+        throw ex;
       }
       UFS_FALLBACK_COUNTER.inc();
       LOG.debug("Dora client get status error ({} times). Fall back to UFS.",
@@ -177,6 +183,9 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
               .build();
       return mDoraClient.getInStream(status, openUfsBlockOptions);
     } catch (RuntimeException ex) {
+      if (!mUfsFallbackEnabled) {
+        throw ex;
+      }
       UFS_FALLBACK_COUNTER.inc();
       LOG.debug("Dora client open file error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), ex);
@@ -233,6 +242,9 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
         if (((StatusRuntimeException) ex).getStatus().getCode() == Status.NOT_FOUND.getCode()) {
           return Collections.emptyList();
         }
+      }
+      if (!mUfsFallbackEnabled) {
+        throw ex;
       }
 
       UFS_FALLBACK_COUNTER.inc();
@@ -296,6 +308,9 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
 
       mDoraClient.createDirectory(ufsFullPath.toString(), mergedOptions);
     } catch (RuntimeException ex) {
+      if (!mUfsFallbackEnabled) {
+        throw ex;
+      }
       UFS_FALLBACK_COUNTER.inc();
       LOG.debug("Dora client createDirectory error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), ex);
@@ -314,6 +329,9 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
 
       mDoraClient.delete(ufsFullPath.toString(), mergedOptions);
     } catch (RuntimeException ex) {
+      if (!mUfsFallbackEnabled) {
+        throw ex;
+      }
       UFS_FALLBACK_COUNTER.inc();
       LOG.debug("Dora client delete error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), ex);
@@ -332,6 +350,9 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
 
       mDoraClient.rename(srcUfsFullPath.toString(), dstUfsFullPath.toString(), mergedOptions);
     } catch (RuntimeException ex) {
+      if (!mUfsFallbackEnabled) {
+        throw ex;
+      }
       UFS_FALLBACK_COUNTER.inc();
       LOG.debug("Dora client rename error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), ex);
