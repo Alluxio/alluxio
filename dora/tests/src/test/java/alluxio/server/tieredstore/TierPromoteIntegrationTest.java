@@ -13,6 +13,7 @@ package alluxio.server.tieredstore;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -30,6 +31,7 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.io.Files;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,6 +42,9 @@ import java.util.Collection;
 import java.util.List;
 
 @RunWith(Parameterized.class)
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "bowen",
+        comment = "tiered store is deprecated")
+@Ignore
 public class TierPromoteIntegrationTest extends BaseIntegrationTest {
   private static final int BLOCKS_PER_TIER = 10;
   private static final String BLOCK_SIZE_BYTES = "1KB";

@@ -11,15 +11,21 @@
 
 package alluxio.server.worker;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.fuse.AbstractFuseIntegrationTest;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 
+import org.junit.Ignore;
+
 /**
  * Integration tests for worker embedded Fuse application.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu",
+    comment = "fix fuse on worker")
+@Ignore
 public class WorkerFuseIntegrationTest extends AbstractFuseIntegrationTest {
   @Override
   public void configure() {

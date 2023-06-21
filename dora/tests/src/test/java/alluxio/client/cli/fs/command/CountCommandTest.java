@@ -14,16 +14,21 @@ package alluxio.client.cli.fs.command;
 import static alluxio.cli.fs.command.CountCommand.COUNT_FORMAT;
 import static org.junit.Assert.assertEquals;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.WritePType;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Tests for count command.
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "the command is still relevant")
 public final class CountCommandTest extends AbstractFileSystemShellTest {
   @Test
   public void countNotExist() throws Exception {

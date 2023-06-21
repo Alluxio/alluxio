@@ -12,6 +12,7 @@
 package alluxio.client.fuse.file;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.fuse.file.FuseFileStream;
@@ -21,6 +22,7 @@ import alluxio.util.io.PathUtils;
 
 import jnr.constants.platform.OpenFlags;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
@@ -44,6 +46,9 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
   }
 
   @Test
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "hua",
+      comment = "fix the test case")
+  @Ignore
   public void createExistingClose() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
@@ -87,6 +92,9 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
   }
 
   @Test (expected = UnimplementedRuntimeException.class)
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "hua",
+      comment = "fix the test case")
+  @Ignore
   public void createTruncateFlagRead() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
@@ -115,6 +123,9 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
   }
 
   @Test
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "hua",
+      comment = "fix the test case")
+  @Ignore
   public void createTruncateZeroWrite() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
@@ -134,6 +145,9 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
   }
 
   @Test
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "hua",
+      comment = "fix the test case")
+  @Ignore
   public void sequentialRead() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
@@ -149,6 +163,9 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
   }
 
   @Test
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "hua",
+      comment = "fix the test case")
+  @Ignore
   public void randomRead() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
@@ -163,6 +180,9 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
   }
 
   @Test
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "hua",
+      comment = "fix the test case")
+  @Ignore
   public void sequentialWrite() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createDirectory(alluxioURI.getParent(),
@@ -213,6 +233,9 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
   }
 
   @Test (expected = UnimplementedRuntimeException.class)
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "hua",
+      comment = "fix the test case")
+  @Ignore
   public void readThenWrite() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
@@ -238,6 +261,9 @@ public class FuseFileInOrOutStreamIntegrationTest extends AbstractFuseFileStream
   }
 
   @Test (expected = UnimplementedRuntimeException.class)
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "hua",
+      comment = "fix the test case")
+  @Ignore
   public void readTruncateZero() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);

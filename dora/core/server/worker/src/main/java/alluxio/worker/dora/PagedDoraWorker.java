@@ -110,6 +110,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.inject.Named;
 
 /**
  * Page store based dora worker.
@@ -160,7 +161,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    */
   @Inject
   public PagedDoraWorker(
-      AtomicReference<Long> workerId,
+      @Named("workerId") AtomicReference<Long> workerId,
       AlluxioConfiguration conf,
       CacheManager cacheManager) {
     super(ExecutorServiceFactories.fixedThreadPool("dora-worker-executor", 5));

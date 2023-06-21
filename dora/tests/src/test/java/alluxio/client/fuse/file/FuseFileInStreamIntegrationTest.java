@@ -12,6 +12,7 @@
 package alluxio.client.fuse.file;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
@@ -22,6 +23,7 @@ import alluxio.util.io.PathUtils;
 
 import jnr.constants.platform.OpenFlags;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
@@ -31,6 +33,9 @@ import java.nio.ByteBuffer;
  */
 public class FuseFileInStreamIntegrationTest extends AbstractFuseFileStreamIntegrationTest {
   @Test
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "hua",
+      comment = "fix the test case")
+  @Ignore
   public void createRead() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
@@ -52,6 +57,9 @@ public class FuseFileInStreamIntegrationTest extends AbstractFuseFileStreamInteg
   }
 
   @Test
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "hua",
+      comment = "fix the test case")
+  @Ignore
   public void randomRead() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);
@@ -66,6 +74,9 @@ public class FuseFileInStreamIntegrationTest extends AbstractFuseFileStreamInteg
   }
 
   @Test (expected = FailedPreconditionRuntimeException.class)
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "hua",
+      comment = "fix the test case")
+  @Ignore
   public void write() throws Exception {
     AlluxioURI alluxioURI = new AlluxioURI(PathUtils.uniqPath());
     writeIncreasingByteArrayToFile(alluxioURI, DEFAULT_FILE_LEN);

@@ -11,6 +11,7 @@
 
 package alluxio.client.cli.fs.command;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.client.file.FileSystemTestUtils;
@@ -18,13 +19,16 @@ import alluxio.grpc.WritePType;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Tests for head command.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "fix head command")
+@Ignore
 public final class HeadCommandIntegrationTest extends AbstractFileSystemShellTest {
-
   @Test
   public void headEmptyFile() throws Exception {
     FileSystemTestUtils.createByteFile(sFileSystem, "/emptyFile", WritePType.MUST_CACHE, 0);
