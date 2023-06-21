@@ -80,7 +80,7 @@ It is also recommended to put all the proxy servers behind a load balancer.
     SignedHeaders=...,
     Signature=...</td>
     <td>There is currently no support for access & secret keys in the Alluxio S3 API.
-    The only supported authentication scheme is the <a href="{{ '/en/security/Security.html#simple' | relativize_url }}">SIMPLE</a>
+    The only supported authentication scheme is the SIMPLE
     authentication type. By default, the user that is used to perform any operations is the user that was used to
     launch the Alluxio proxy process.
     <br/><br/>
