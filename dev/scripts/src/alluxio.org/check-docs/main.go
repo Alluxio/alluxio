@@ -342,6 +342,7 @@ func checkUrlMatch(docsPath, checkPath string, menuListOfURL map[string]struct{}
 			if err != nil {
 				return fmt.Errorf("error getting the relative path from %v with message: \n %v", path, err)
 			}
+			// add `/` in front of relativePath to match the format of path in menu.yml
 			relativePath = fmt.Sprintf("/%v", relativePath)
 			fileList[relativePath] = struct{}{}
 		}
