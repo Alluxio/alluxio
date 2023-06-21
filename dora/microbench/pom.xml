@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-dora</artifactId>
-    <version>301-SNAPSHOT</version>
+    <version>enterprise-3.0.0-1.0-preview-RC0</version>
   </parent>
   <artifactId>alluxio-microbench</artifactId>
   <name>Alluxio Microbenchmarks</name>
