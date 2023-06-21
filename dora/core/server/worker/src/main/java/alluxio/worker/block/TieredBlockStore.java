@@ -91,7 +91,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public class TieredBlockStore implements LocalBlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(TieredBlockStore.class);
   private static final Long REMOVE_BLOCK_TIMEOUT_MS = 60_000L;
-  private static final long FREE_AHEAD_BYTETS =
+  private static final long FREE_AHEAD_BYTES =
       Configuration.getBytes(PropertyKey.WORKER_TIERED_STORE_FREE_AHEAD_BYTES);
   private final BlockMetadataManager mMetaManager;
   private final BlockLockManager mLockManager;
@@ -601,7 +601,7 @@ public class TieredBlockStore implements LocalBlockStore {
         if (options.isEvictionAllowed()) {
           // There is no space left on worker.
           // Free more than requested by configured free-ahead size.
-          long toFreeBytes = options.getSize() + FREE_AHEAD_BYTETS;
+          long toFreeBytes = options.getSize() + FREE_AHEAD_BYTES;
           LOG.debug("Allocation on anyTier failed. Free space for {} bytes on anyTier",
                   toFreeBytes);
           freeSpace(sessionId, options.getSize(), toFreeBytes,
