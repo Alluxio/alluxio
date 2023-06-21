@@ -758,12 +758,13 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       invalidateCachedFile(path);
 
       // TODO(hua) Close the open file handle?
-
-      UfsStatus status = mUfs.getStatus(path);
-      if (status.isFile()) {
-        mUfs.deleteFile(path);
-      } else {
-        mUfs.deleteDirectory(path);
+      if (!options.getAlluxioOnly()) {
+        UfsStatus status = mUfs.getStatus(path);
+        if (status.isFile()) {
+          mUfs.deleteFile(path);
+        } else {
+          mUfs.deleteDirectory(path);
+        }
       }
     } catch (IOException e) {
       throw new RuntimeException(e);
