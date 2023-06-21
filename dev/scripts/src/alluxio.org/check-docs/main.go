@@ -283,6 +283,7 @@ type Subfile struct {
 type File struct {
 	ButtonTitle string    `yaml:"buttonTitle"`
 	Subfiles    []Subfile `yaml:"subfiles"`
+	Subitems    []File    `yaml:"subitems"`
 }
 
 // get url from menuPath with two checks one is the buttonTitle check and the second is the url end checks
@@ -297,7 +298,16 @@ func parseMenuUrl(menuPath string) (map[string]struct{}, error) {
 	}
 	menuMap := map[string]struct{}{}
 	var errMsgs []string
-	for _, file := range ret {
+	checkAndSaveUrl(ret, &menuMap, errMsgs)
+	if len(errMsgs) > 0 {
+		return nil, fmt.Errorf("encountered errors parsing %v:\n%v", menuPath, strings.Join(errMsgs, "\n"))
+	}
+	return menuMap, nil
+}
+
+// recursion function for more levels of docs
+func checkAndSaveUrl(files []File, menuMap *map[string]struct{}, errMsgs []string) {
+	for _, file := range files {
 		// if buttonTitle have whitespace, the button for list-nav-item in html will not expand
 		if strings.ContainsAny(file.ButtonTitle, " \t\n\r") {
 			message := fmt.Sprintf("whitespace is not allow in buttonTitle %v, please replace whitespace with _", file.ButtonTitle)
@@ -311,13 +321,11 @@ func parseMenuUrl(menuPath string) (map[string]struct{}, error) {
 			}
 			// replace the url ending to .md in order to compare with actually list of docs in directory of docs
 			subfilePath := strings.Replace(subfile.URL, htmlType, mdType, 1)
-			menuMap[subfilePath] = struct{}{}
+			(*menuMap)[subfilePath] = struct{}{}
 		}
+		//recall the function until file.subitem is empty
+		checkAndSaveUrl(file.Subitems, menuMap, errMsgs)
 	}
-	if len(errMsgs) > 0 {
-		return nil, fmt.Errorf("encountered errors parsing %v:\n%v", menuPath, strings.Join(errMsgs, "\n"))
-	}
-	return menuMap, nil
 }
 
 // Check menu.yml URLs should match exactly with list of all markdown doc files
@@ -351,7 +359,7 @@ func checkUrlMatch(docsPath, checkPath string, menuListOfURL map[string]struct{}
 	case len(menuListOfURL) < len(fileList):
 		result := compareDiff(fileList, menuListOfURL)
 		return fmt.Errorf("error matching menu.yml with list of docs in directory of docs, following docs are not in the menu.yml: %v", result)
-	case reflect.DeepEqual(menuListOfURL, fileList):
+	case !reflect.DeepEqual(menuListOfURL, fileList):
 		extra := compareDiff(menuListOfURL, fileList)
 		missing := compareDiff(fileList, menuListOfURL)
 		return fmt.Errorf("error matching menu.yml with list of docs in directory of docs,  following docs in menu.yml are no longer in directory of docs: %v and following docs are not in the menu.yml: %v ", extra, missing)
