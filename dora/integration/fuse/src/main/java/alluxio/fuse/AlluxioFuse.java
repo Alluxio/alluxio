@@ -35,7 +35,6 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.user.UserState;
 import alluxio.util.CommonUtils;
-import alluxio.util.FeatureUtils;
 import alluxio.util.JvmPauseMonitor;
 import alluxio.util.network.NetworkAddressUtils;
 

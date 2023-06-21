@@ -15,7 +15,6 @@ import alluxio.Process;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.UfsManager;
-import alluxio.util.FeatureUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.modules.AlluxioWorkerProcessModule;
 import alluxio.worker.modules.BlockWorkerModule;

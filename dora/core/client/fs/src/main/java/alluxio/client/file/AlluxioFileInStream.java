@@ -34,7 +34,6 @@ import alluxio.resource.CloseableResource;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.CommonUtils;
-import alluxio.util.FeatureUtils;
 import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.BlockInfo;

@@ -17,7 +17,6 @@ import alluxio.Sessions;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.underfs.UfsManager;
-import alluxio.util.FeatureUtils;
 import alluxio.worker.WorkerFactory;
 import alluxio.worker.file.FileSystemMasterClient;
 

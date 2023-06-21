@@ -31,7 +31,6 @@ import alluxio.proxy.ProxyProcess;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
-import alluxio.util.FeatureUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;

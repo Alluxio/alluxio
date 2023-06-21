@@ -14,7 +14,6 @@ package alluxio.client.file.options;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.util.FeatureUtils;
 
 import com.google.common.base.Preconditions;
 
