@@ -11,11 +11,15 @@
 
 package alluxio.worker.s3;
 
+import static io.netty.handler.codec.http.HttpHeaderNames.CONNECTION;
+import static io.netty.handler.codec.http.HttpHeaderValues.KEEP_ALIVE;
+import static org.eclipse.jetty.http.HttpHeaderValue.CLOSE;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
+import alluxio.network.netty.FileTransferType;
 import alluxio.s3.S3AuditContext;
 import alluxio.s3.S3Constants;
 import alluxio.s3.S3ErrorCode;
@@ -24,7 +28,6 @@ import alluxio.security.User;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadUtils;
 import alluxio.worker.dora.DoraWorker;
-import alluxio.worker.dora.PagedDoraWorker;
 import javax.annotation.Nullable;
 import javax.security.auth.Subject;
 import java.io.IOException;
@@ -38,10 +41,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpUtil;
+import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +64,7 @@ public class S3NettyHandler {
   private FileSystem mFsClient;
   private DoraWorker mDoraWorker;
   public AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
+  private final FileTransferType mFileTransferType;
 
   public static final Pattern BUCKET_PATH_PATTERN = Pattern.compile("^" + "/[^/]*$");
   public static final Pattern OBJECT_PATH_PATTERN = Pattern.compile("^" + "/[^/]*/.*$");
@@ -80,6 +87,8 @@ public class S3NettyHandler {
     mFsClient = fileSystem;
     mDoraWorker = doraWorker;
     mQueryDecoder = new QueryStringDecoder(request.uri());
+    mFileTransferType = Configuration
+        .getEnum(PropertyKey.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, FileTransferType .class);
   }
 
   /**
@@ -251,6 +260,27 @@ public class S3NettyHandler {
     return auditContext;
   }
 
+  public void processHttpResponse(HttpResponse response) {
+    processHttpResponse(response, true);
+  }
+
+  public void processHttpResponse(HttpResponse response, boolean closeAfterWrite) {
+    boolean keepAlive = HttpUtil.isKeepAlive(mRequest);
+    if (keepAlive) {
+      if (!mRequest.protocolVersion().isKeepAliveDefault()) {
+        response.headers().set(CONNECTION, KEEP_ALIVE);
+      }
+    } else {
+      // Tell the client we're going to close the connection.
+      response.headers().set(CONNECTION, CLOSE);
+    }
+    mContext.write(response);
+    if (closeAfterWrite && !keepAlive) {
+      mContext.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT)
+          .addListener(ChannelFutureListener.CLOSE);
+    }
+  }
+
   /**
    * set S3Task for this S3Handler.
    * @param task
@@ -281,6 +311,22 @@ public class S3NettyHandler {
    */
   public String getObject() {
     return mObject;
+  }
+
+  /**
+   * Get the channel context of this request.
+   * @return ChannelHandlerContext
+   */
+  public ChannelHandlerContext getContext() {
+    return mContext;
+  }
+
+  /**
+   * Get the FileTransferType of the netty server.
+   * @return ChannelHandlerContext
+   */
+  public FileTransferType getFileTransferType() {
+    return mFileTransferType;
   }
 
   /**

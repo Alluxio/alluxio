@@ -33,6 +33,7 @@ import alluxio.s3.S3AuditContext;
 import alluxio.s3.S3Constants;
 import alluxio.s3.S3ErrorCode;
 import alluxio.s3.S3Exception;
+import alluxio.s3.TaggingData;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Preconditions;

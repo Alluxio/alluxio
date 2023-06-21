@@ -79,12 +79,13 @@ public class NettyDataServer implements DataServer {
     try {
       mChannelFuture = mBootstrap.bind(nettyBindAddress).sync();
 
-      InetSocketAddress proxyBindAddress = NetworkAddressUtils.getBindAddress(
-          NetworkAddressUtils.ServiceType.PROXY_WEB,
+      // bind http port
+      InetSocketAddress httpBindAddress = NetworkAddressUtils.getBindAddress(
+          NetworkAddressUtils.ServiceType.WORKER_REST,
           Configuration.global());
       FileSystem fileSystem = FileSystem.Factory.create(Configuration.global());
       mBootstrap.childHandler(new S3HttpPipelineHandler(fileSystem, doraWorker));
-      mHttpChannelFuture = mBootstrap.bind(proxyBindAddress).sync();
+      mHttpChannelFuture = mBootstrap.bind(httpBindAddress).sync();
     } catch (InterruptedException e) {
       throw Throwables.propagate(e);
     }

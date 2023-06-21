@@ -179,6 +179,12 @@ public final class NetworkAddressUtils {
     /**
      * Worker web service (Jetty).
      */
+    WORKER_REST("Alluxio Worker Web service", PropertyKey.WORKER_WEB_HOSTNAME,
+        PropertyKey.WORKER_WEB_BIND_HOST, PropertyKey.WORKER_REST_PORT),
+
+    /**
+     * Worker web service (Jetty).
+     */
     WORKER_WEB("Alluxio Worker Web service", PropertyKey.WORKER_WEB_HOSTNAME,
         PropertyKey.WORKER_WEB_BIND_HOST, PropertyKey.WORKER_WEB_PORT),
 

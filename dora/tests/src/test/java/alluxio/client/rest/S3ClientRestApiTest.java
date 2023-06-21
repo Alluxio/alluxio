@@ -48,7 +48,7 @@ import alluxio.s3.S3Error;
 import alluxio.s3.S3ErrorCode;
 import alluxio.proxy.s3.S3RestServiceHandler;
 import alluxio.proxy.s3.S3RestUtils;
-import alluxio.proxy.s3.TaggingData;
+import alluxio.s3.TaggingData;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;

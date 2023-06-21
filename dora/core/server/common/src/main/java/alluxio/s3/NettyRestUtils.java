@@ -24,6 +24,7 @@ import alluxio.wire.FileInfo;
 import javax.annotation.Nonnull;
 import javax.ws.rs.core.MediaType;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Map;
 import java.util.regex.Pattern;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -179,5 +180,20 @@ public class NettyRestUtils {
     }
     auditContext.setSucceeded(false);
     return toObjectS3Exception(exception, resource);
+  }
+
+  /**
+   * Given xAttr, parses and deserializes the Tagging metadata
+   * into a {@link TaggingData} object. Returns null if no data exists.
+   * @param xAttr the Inode's xAttrs
+   * @return the deserialized {@link TaggingData} object
+   */
+  public static TaggingData deserializeTags(Map<String, byte[]> xAttr)
+      throws IOException {
+    // Fetch the S3 tags from the Inode xAttr
+    if (xAttr == null || !xAttr.containsKey(S3Constants.TAGGING_XATTR_KEY)) {
+      return null;
+    }
+    return TaggingData.deserialize(xAttr.get(S3Constants.TAGGING_XATTR_KEY));
   }
 }

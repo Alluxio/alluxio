@@ -47,24 +47,10 @@ public class S3HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
 
   @Override
   protected void channelRead0(ChannelHandlerContext context, FullHttpRequest request) throws Exception {
-    S3NettyHandler s3Handler = null;
     try {
-      boolean keepAlive = HttpUtil.isKeepAlive(request);
-      s3Handler = S3NettyHandler.createHandler(context, request, mFileSystem, mDoraWorker);
-      HttpResponse response = s3Handler.getS3Task().continueTask();
-
-      if (keepAlive) {
-        if (!request.protocolVersion().isKeepAliveDefault()) {
-          response.headers().set(CONNECTION, KEEP_ALIVE);
-        }
-      } else {
-        // Tell the client we're going to close the connection.
-        response.headers().set(CONNECTION, CLOSE);
-      }
-      ChannelFuture f = context.writeAndFlush(response);
-      if (!keepAlive) {
-        f.addListener(ChannelFutureListener.CLOSE);
-      }
+      S3NettyHandler s3Handler =
+          S3NettyHandler.createHandler(context, request, mFileSystem, mDoraWorker);
+      s3Handler.getS3Task().continueTask();
     } catch (Exception ex) {
       HttpResponse errorResponse = S3ErrorResponse.createNettyErrorResponse(ex, request.uri());
       ChannelFuture f = context.writeAndFlush(errorResponse);

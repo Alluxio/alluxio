@@ -245,7 +245,6 @@ public class S3ErrorResponse {
    */
   private static HttpResponse createNettyErrorResponse(AlluxioStatusException e, String resource) {
     S3ErrorCode s3ErrorCode;
-    // TODO(WYY): we need to handle more exception in the future.
     if (e instanceof alluxio.exception.status.NotFoundException) {
       // 404
       s3ErrorCode = S3ErrorCode.NO_SUCH_KEY;
@@ -272,7 +271,6 @@ public class S3ErrorResponse {
    * @return response Http Response
    */
   private static HttpResponse createNettyErrorResponse(IOException e, String resource) {
-    XmlMapper mapper = new XmlMapper();
     S3ErrorCode s3ErrorCode;
     // TODO(WYY): we need to handle more exception in the future.
     if (e instanceof FileNotFoundException) {
@@ -293,7 +291,6 @@ public class S3ErrorResponse {
    */
   private static HttpResponse createNettyErrorResponse(AlluxioRuntimeException e, String resource) {
     S3ErrorCode s3ErrorCode;
-    // TODO(WYY): we need to handle more exception in the future.
     if (e instanceof NotFoundRuntimeException) {
       // 404
       s3ErrorCode = S3ErrorCode.NO_SUCH_KEY;
@@ -332,16 +329,5 @@ public class S3ErrorResponse {
     } finally {
       LOG.warn("mapper convert exception {} to {}.", message, s3ErrorCode.getStatus().toString());
     }
-  }
-
-  public static HttpResponse createNettyHttpResponse(int statusCode, String content) {
-    ByteBuf contentBuffer =
-        Unpooled.copiedBuffer(content, CharsetUtil.UTF_8);
-    FullHttpResponse resp = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,
-        HttpResponseStatus.valueOf(statusCode),
-        contentBuffer);
-    resp.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain");
-    resp.headers().set(HttpHeaderNames.CONTENT_LENGTH, contentBuffer.readableBytes());
-    return resp;
   }
 }

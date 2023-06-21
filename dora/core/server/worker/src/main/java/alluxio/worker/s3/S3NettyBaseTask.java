@@ -39,7 +39,7 @@ public abstract class S3NettyBaseTask {
    *
    * @return Response object containing common HTTP response properties
    */
-  public abstract HttpResponse continueTask();
+  public abstract void continueTask();
 
   /**
    * Run S3 API logic in a customized async way, e.g. delegate the
