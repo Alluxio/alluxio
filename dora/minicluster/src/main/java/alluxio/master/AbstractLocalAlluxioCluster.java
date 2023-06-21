@@ -242,6 +242,7 @@ public abstract class AbstractLocalAlluxioCluster {
 
     // Creates ufs dir. This must be called before starting UFS with UnderFileSystemCluster.create()
     UnderFileSystemUtils.mkdirIfNotExists(ufs, underfsAddress);
+    UnderFileSystemUtils.mkdirIfNotExists(doraUfs, doraUfsRoot);
 
     // Creates storage dirs for worker
     int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
