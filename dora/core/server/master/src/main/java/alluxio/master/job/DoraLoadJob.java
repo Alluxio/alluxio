@@ -163,16 +163,27 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
         "DoraLoadJob for {} created. {} workers are active",
         path, Preconditions.checkNotNull(Scheduler.getInstance()).getActiveWorkers().size());
 
+    UfsStatus rootUfsStatus = null;
     try {
-      mUfsStatusIterator = mUfs.listStatusIterable(
-          ufsSyncRootUri.toString(), ListOptions.defaults().setRecursive(true), null, 0);
-      if (mUfsStatusIterator == null) {
-        mUfsStatusIterator = Collections.emptyIterator();
+      try {
+        rootUfsStatus = mUfs.getStatus(ufsSyncRootUri.toString());
+      } catch (FileNotFoundException ignored) {
+        // No-op
+      }
+      if (rootUfsStatus != null && rootUfsStatus.isFile()) {
+        rootUfsStatus.setUfsFullPath(ufsSyncRootUri);
+        mUfsStatusIterator = Iterators.singletonIterator(rootUfsStatus);
       } else {
-        mUfsStatusIterator = Iterators.transform(mUfsStatusIterator, (it) -> {
-          it.setUfsFullPath(ufsSyncRootUri.join(it.getName()));
-          return it;
-        });
+        mUfsStatusIterator = mUfs.listStatusIterable(
+            ufsSyncRootUri.toString(), ListOptions.defaults().setRecursive(true), null, 0);
+        if (mUfsStatusIterator == null) {
+          mUfsStatusIterator = Collections.emptyIterator();
+        } else {
+          mUfsStatusIterator = Iterators.transform(mUfsStatusIterator, (it) -> {
+            it.setUfsFullPath(ufsSyncRootUri.join(it.getName()));
+            return it;
+          });
+        }
       }
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -602,6 +613,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
           .newBuilder()
           .setTag(mJobId)
           .setPositionShort(false);
+      mUser.ifPresent(ufsReadOptions::setUser);
       loadFileReqBuilder.setOptions(ufsReadOptions);
       loadFileReqBuilder.setLoadMetadataOnly(mLoadMetadataOnly);
       return workerClient.loadFile(loadFileReqBuilder.build());

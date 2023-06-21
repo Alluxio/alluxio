@@ -59,8 +59,6 @@ the directory usually ends with `etc/hadoop`.)
 In order to communicate with Alluxio, we need to provide Flink programs with the Alluxio Core Client
 jar. We recommend you to download the tarball from
 Alluxio [download page](https://www.alluxio.io/download/).
-Alternatively, advanced users can choose to compile this client jar from the source code
-by following the instructions [here]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}).
 The Alluxio client jar can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
 
 We need to make the Alluxio `jar` file available to Flink, because it contains the configured

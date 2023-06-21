@@ -15,6 +15,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.exception.ExceptionMessage;
 import alluxio.job.JobIntegrationTest;
 import alluxio.job.plan.transform.format.parquet.ParquetSchema;
@@ -22,6 +23,7 @@ import alluxio.job.plan.transform.format.parquet.ParquetTestUtils;
 import alluxio.uri.Authority;
 
 import org.apache.commons.io.FileUtils;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -34,6 +36,9 @@ import java.nio.file.Files;
 /**
  * Unit tests for {@link TableWriter}.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "bowen",
+    comment = "remove if the table module is deprecated")
+@Ignore
 public class TableWriterIntegrationTest extends JobIntegrationTest {
   @Rule
   public TemporaryFolder mTmpFolder = new TemporaryFolder();

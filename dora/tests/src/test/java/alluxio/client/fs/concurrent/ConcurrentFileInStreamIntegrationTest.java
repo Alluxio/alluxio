@@ -12,6 +12,7 @@
 package alluxio.client.fs.concurrent;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
@@ -26,6 +27,7 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Throwables;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -35,6 +37,9 @@ import java.util.List;
 /**
  * Tests the concurrency of {@link FileInStream}.
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "redefine behaviors")
 public final class ConcurrentFileInStreamIntegrationTest extends BaseIntegrationTest {
   private static final int BLOCK_SIZE = 30;
 

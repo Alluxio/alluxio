@@ -15,6 +15,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
@@ -30,6 +31,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -43,6 +45,9 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Integration tests for implementations of {@link JournalSystem}.
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jiacheng",
+    comment = "journal is deprecated")
 public class JournalIntegrationTest {
   private static final Logger LOG = LoggerFactory.getLogger(JournalIntegrationTest.class);
 

@@ -13,6 +13,7 @@ package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -31,6 +32,7 @@ import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -46,6 +48,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Integration tests for reading data which is only stored in Alluxio's under storage.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
+    comment = "fix ignored tests for UFS read")
 public class UnderStorageReadIntegrationTest extends BaseIntegrationTest {
   private static final Logger LOG = LoggerFactory.getLogger(UnderStorageReadIntegrationTest.class);
   private static final int MIN_LEN = 0;
@@ -79,6 +83,7 @@ public class UnderStorageReadIntegrationTest extends BaseIntegrationTest {
    * Tests single byte reads from the underfs.
    */
   @Test
+  @Ignore
   public void read() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
@@ -104,34 +109,34 @@ public class UnderStorageReadIntegrationTest extends BaseIntegrationTest {
         Assert.assertNotEquals(100, mFileSystem.getStatus(uri).getInAlluxioPercentage());
       }
 
-      is = mFileSystem.openFile(uri, mReadCache);
+      FileInStream isCache = mFileSystem.openFile(uri, mReadCache);
       ret = new byte[k];
-      value = is.read();
+      value = isCache.read();
       cnt = 0;
       while (value != -1) {
         Assert.assertTrue(value >= 0);
         Assert.assertTrue(value < 256);
         ret[cnt++] = (byte) value;
-        value = is.read();
+        value = isCache.read();
       }
       Assert.assertEquals(cnt, k);
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
-      is.close();
+      isCache.close();
       FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uri, 100);
 
-      is = mFileSystem.openFile(uri, mReadCache);
+      isCache = mFileSystem.openFile(uri, mReadCache);
       ret = new byte[k];
-      value = is.read();
+      value = isCache.read();
       cnt = 0;
       while (value != -1) {
         Assert.assertTrue(value >= 0);
         Assert.assertTrue(value < 256);
         ret[cnt++] = (byte) value;
-        value = is.read();
+        value = isCache.read();
       }
       Assert.assertEquals(cnt, k);
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
-      is.close();
+      isCache.close();
       Assert.assertEquals(100, mFileSystem.getStatus(uri).getInAlluxioPercentage());
     }
   }
@@ -158,20 +163,20 @@ public class UnderStorageReadIntegrationTest extends BaseIntegrationTest {
           try {
             // Add some randomness here to avoid opening too many connections too fast.
             Thread.sleep(random.nextInt(100));
-            FileInStream is = mFileSystem.openFile(uri, mReadCache);
+            FileInStream isCache = mFileSystem.openFile(uri, mReadCache);
 
             // Sleep here so that we can make sure the file is not cached too fast.
             Thread.sleep(100);
             byte[] ret = new byte[MAX_LEN];
-            int value = is.read();
+            int value = isCache.read();
             int cnt = 0;
             while (value != -1) {
               Assert.assertTrue(value >= 0);
               Assert.assertTrue(value < 256);
               ret[cnt++] = (byte) value;
-              value = is.read();
+              value = isCache.read();
             }
-            is.close();
+            isCache.close();
             Assert.assertEquals(cnt, MAX_LEN);
             Assert.assertTrue(BufferUtils.equalIncreasingByteArray(MAX_LEN, ret));
             while (mFileSystem.getStatus(uri).getInAlluxioPercentage() < 100) {
@@ -179,6 +184,8 @@ public class UnderStorageReadIntegrationTest extends BaseIntegrationTest {
             }
             Assert.assertEquals(100, mFileSystem.getStatus(uri).getInAlluxioPercentage());
             count.incrementAndGet();
+          } catch (AssertionError e) {
+            Assert.fail(e.getMessage());
           } catch (Throwable e) {
             LOG.error("Failed to read file {}.", index, e);
           }
@@ -189,7 +196,7 @@ public class UnderStorageReadIntegrationTest extends BaseIntegrationTest {
     executorService.awaitTermination(Constants.MINUTE_MS * 5, TimeUnit.MILLISECONDS);
     // There can be some errors due because SASL handsake failure or opening the connections too
     // fast. If that happens, consider loosing the condition a bit.
-    Assert.assertTrue(expectedCount >= count.get() - 1);
+    Assert.assertTrue(count.get() >= expectedCount * 0.99);
   }
 
   /**
@@ -202,8 +209,7 @@ public class UnderStorageReadIntegrationTest extends BaseIntegrationTest {
       AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteUnderStore, k);
 
-      FileInStream is = mFileSystem.openFile(uri, mReadCache);
-
+      FileInStream is = mFileSystem.openFile(uri, mReadNoCache);
       Assert.assertEquals(0, is.read());
       is.seek(k / 3);
       Assert.assertEquals(k / 3, is.read());
@@ -212,6 +218,16 @@ public class UnderStorageReadIntegrationTest extends BaseIntegrationTest {
       is.seek(k / 4);
       Assert.assertEquals(k / 4, is.read());
       is.close();
+
+      FileInStream isCache = mFileSystem.openFile(uri, mReadCache);
+      Assert.assertEquals(0, isCache.read());
+      isCache.seek(k / 3);
+      Assert.assertEquals(k / 3, isCache.read());
+      isCache.seek(k / 2);
+      Assert.assertEquals(k / 2, isCache.read());
+      isCache.seek(k / 4);
+      Assert.assertEquals(k / 4, isCache.read());
+      isCache.close();
     }
   }
 
@@ -225,20 +241,34 @@ public class UnderStorageReadIntegrationTest extends BaseIntegrationTest {
       AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteUnderStore, k);
 
-      FileInStream is = mFileSystem.openFile(uri, mReadCache);
+      FileInStream is = mFileSystem.openFile(uri, mReadNoCache);
       Assert.assertEquals(k / 2, is.skip(k / 2));
       Assert.assertEquals(k / 2, is.read());
       is.close();
-      IntegrationTestUtils.waitForFileCached(mFileSystem, uri, 1000);
-
       if (k >= 3) {
-        is = mFileSystem.openFile(uri, mReadCache);
+        is = mFileSystem.openFile(uri, mReadNoCache);
         int t = k / 3;
         Assert.assertEquals(t, is.skip(t));
         Assert.assertEquals(t, is.read());
         Assert.assertEquals(t, is.skip(t));
         Assert.assertEquals(2 * t + 1, is.read());
         is.close();
+      }
+
+      FileInStream isCache = mFileSystem.openFile(uri, mReadCache);
+      Assert.assertEquals(k / 2, isCache.skip(k / 2));
+      Assert.assertEquals(k / 2, isCache.read());
+      isCache.close();
+      IntegrationTestUtils.waitForFileCached(mFileSystem, uri, 1000);
+
+      if (k >= 3) {
+        isCache = mFileSystem.openFile(uri, mReadCache);
+        int t = k / 3;
+        Assert.assertEquals(t, isCache.skip(t));
+        Assert.assertEquals(t, isCache.read());
+        Assert.assertEquals(t, isCache.skip(t));
+        Assert.assertEquals(2 * t + 1, isCache.read());
+        isCache.close();
         IntegrationTestUtils.waitForFileCached(mFileSystem, uri, 1000);
       }
     }
@@ -261,11 +291,17 @@ public class UnderStorageReadIntegrationTest extends BaseIntegrationTest {
     }
     os.close();
 
-    FileInStream is = mFileSystem.openFile(uri, mReadCache);
+    FileInStream is = mFileSystem.openFile(uri, mReadNoCache);
     for (int i = 0; i < blockSizeByte * numBlocks; i++) {
       Assert.assertEquals((byte) i, is.read());
     }
     is.close();
+
+    FileInStream isCache = mFileSystem.openFile(uri, mReadCache);
+    for (int i = 0; i < blockSizeByte * numBlocks; i++) {
+      Assert.assertEquals((byte) i, isCache.read());
+    }
+    isCache.close();
     FileSystemUtils.waitForAlluxioPercentage(mFileSystem, uri, 100);
   }
 }

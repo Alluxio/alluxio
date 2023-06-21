@@ -94,7 +94,7 @@ public class DoraCacheClient {
    */
   public PositionReadFileInStream getInStream(URIStatus status,
       Protocol.OpenUfsBlockOptions ufsOptions) {
-    WorkerNetAddress workerNetAddress = getWorkerNetAddress(status.getPath());
+    WorkerNetAddress workerNetAddress = getWorkerNetAddress(status.toString());
     // Construct the partial read request
     NettyDataReader reader;
     if (mNettyTransEnabled) {
@@ -118,7 +118,7 @@ public class DoraCacheClient {
   public DoraFileOutStream getOutStream(AlluxioURI alluxioPath, FileSystemContext fsContext,
       OutStreamOptions outStreamOptions, FileOutStream ufsOutStream,
       String uuid) throws IOException {
-    WorkerNetAddress workerNetAddress = getWorkerNetAddress(alluxioPath.getPath());
+    WorkerNetAddress workerNetAddress = getWorkerNetAddress(alluxioPath.toString());
     NettyDataWriter writer = NettyDataWriter.create(
         fsContext, workerNetAddress, Long.MAX_VALUE, RequestType.ALLUXIO_BLOCK, outStreamOptions);
     return new DoraFileOutStream(this, writer, alluxioPath,
@@ -138,7 +138,7 @@ public class DoraCacheClient {
   public DoraCachePositionReader createNettyPositionReader(URIStatus status,
       Protocol.OpenUfsBlockOptions ufsOptions,
       CloseableSupplier<PositionReader> externalPositionReader) {
-    WorkerNetAddress workerNetAddress = getWorkerNetAddress(status.getPath());
+    WorkerNetAddress workerNetAddress = getWorkerNetAddress(status.toString());
     // Construct the partial read request
     NettyDataReader reader = createNettyDataReader(workerNetAddress, ufsOptions);
     return new DoraCachePositionReader(reader, status.getLength(), externalPositionReader);

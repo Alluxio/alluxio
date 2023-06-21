@@ -24,8 +24,7 @@ Usage: alluxio [COMMAND]
 
 ## General operations
 
-This section lists usages and examples of general Alluxio operations with the exception of file
-system commands which are covered in the [Admin CLI doc]({{ '/en/operation/Admin-CLI.html' | relativize_url }}).
+This section lists usages and examples of general Alluxio operations
 
 ### format
 
@@ -102,31 +101,9 @@ Data in under storage will not be changed.
 $ ./bin/alluxio formatWorker
 ```
 
-### bootstrapConf
-
-The `bootstrapConf` command generates the bootstrap configuration file
-`${ALLUXIO_HOME}/conf/alluxio-site.properties` with `alluxio.master.hostname`
-set to the passed in value if the configuration file does not exist.
-
-<!-- Generated configuration file is empty except for "alluxio.master.hostname" -->
-
-```console
-$ ./bin/alluxio bootstrapConf <ALLUXIO_MASTER_HOSTNAME>
-```
-
-> Note: This command does not require the Alluxio cluster to be running.
-
 ### fs
 
 See [File System Operations](#file-system-operations).
-
-### fsadmin
-
-The `fsadmin` command is meant for administrators of the Alluxio cluster.
-It provides added tools for diagnostics and troubleshooting.
-For more information see the [Admin CLI main page]({{ '/en/operation/Admin-CLI.html' | relativize_url }}).
-
-> Note: This command requires the Alluxio cluster to be running.
 
 ### getConf
 
@@ -245,179 +222,6 @@ for more examples.
 > If you want to modify the logger level for standby masters,
 > update the `log4j.properties` and restart the process.
 
-### runClass
-
-The `runClass` command runs the main method of an Alluxio class.
-
-For example, to run the multi-mount demo:
-```console
-$ ./bin/alluxio runClass alluxio.examples.MultiMount <HDFS_URL>
-```
-
-### runTest
-
-The `runTest` command runs end-to-end tests on an Alluxio cluster.
-
-The usage is `runTest [--directory <path>] [--operation <operation type>] [--readType <read type>] [--writeType <write type>]`.
-  * `--directory`
-    Alluxio path for the tests working directory.
-    Default: `${ALLUXIO_HOME}`
-  * `--operation`
-    The operation to test, one of BASIC or BASIC_NON_BYTE_BUFFER. By default
-    both operations are tested.
-  * `--readType`
-    The read type to use, one of NO_CACHE, CACHE, CACHE_PROMOTE. By default all readTypes are tested.
-  * `--writeType`
-    The write type to use, one of MUST_CACHE, CACHE_THROUGH, THROUGH, ASYNC_THROUGH. By default all writeTypes are tested.
-
-```console
-$ ./bin/alluxio runTest
-
-$ ./bin/alluxio runTest --operation BASIC --readType CACHE --writeType MUST_CACHE
-```
-
-> Note: This command requires the Alluxio cluster to be running.
-
-### runTests
-
-The `runTests` command runs all the end-to-end tests on an Alluxio cluster to provide a comprehensive sanity check.
-
-This command is equivalent to running [runTest](#runtest) with all the default flag values.
-
-```console
-$ ./bin/alluxio runTests
-```
-
-> Note: This command requires the Alluxio cluster to be running.
-
-### runJournalCrashTest
-
-The `runJournalCrashTest` simulates a failover to test recovery from the journal.
-
-> Note: This command will stop any Alluxio services running on the machine.
-
-### runHmsTests
-
-The `runHmsTests` aims to validate the configuration, connectivity, and permissions of an existing hive metastore
-which is an important component in compute workflows with Alluxio.
-
-* `-h` provides detailed guidance.
-* `-m <hive_metastore_uris>` (required) the full hive metastore uris to connect to an existing hive metastore.
-* `-d <database_name>` the database to run tests against. Use `default` database if not provided.
-* `-t [table_name_1,table_name_2,...]` tables to run tests against. Run tests against five out of all tables in the given database if not provided.
-* `-st <timeout>` socket timeout of hive metastore client in minutes.
-
-```console
-$ ./bin/alluxio runHmsTests -m thrift://<hms_host>:<hms_port> -d tpcds -t store_sales,web_sales
-```
-
-This tool is suggested to run from compute application environments and checks
-* if the given hive metastore uris are valid
-* if the hive metastore client connection can be established with the target server
-* if hive metastore client operations can be run against the given database and tables
-
-> Note: This command does not require the Alluxio cluster to be running.
-
-### runHdfsMountTests
-
-The `runHdfsMountTests` command aims to validate the configuration, connectivity and permissions of an HDFS path.
-It validates various aspects for connecting to HDFS with the given Alluxio configurations and identifies issues
-before the path is mounted to Alluxio.
-This tool will validate a few criteria and return the feedback.
-If a test failed, advice will be given correspondingly on how the user can rectify the setup.
-
-Usage: `runHdfsMountTests [--readonly] [--shared] [--option <key=val>] <hdfsURI>`
-* `--help` provides detailed guidance.
-* `--readonly` specifies the mount point should be readonly in Alluxio.
-* `--shared` specifies the mount point should be accessible for all Alluxio users.
-* `--option <key>=<val>` passes an property to this mount point.
-* `<hdfs-path>` (required) specifies the HDFS path you want to validate (then mount to Alluxio)
-
-The arguments to this command should be consistent to what you give to the
-[Mount command](#mount), in order to validate the setup for the mount.
-
-```console
-# If this is your mount command
-$ bin/alluxio fs mount --readonly --option alluxio.underfs.version=2.7 \
-  --option alluxio.underfs.hdfs.configuration=/etc/hadoop/core-site.xml:/etc/hadoop/hdfs-site.xml \
-  <alluxio-path> hdfs://<hdfs-path>
-
-# Pass the same options to runHdfsMountTests
-$ bin/alluxio runHdfsMountTests --readonly --option alluxio.underfs.version=2.7 \
-  --option alluxio.underfs.hdfs.configuration=/etc/hadoop/core-site.xml:/etc/hadoop/hdfs-site.xml \
-  hdfs://<hdfs-path>
-```
-
-> Note: This command DOES NOT mount the HDFS path to Alluxio.
-> This command does not require the Alluxio cluster to be running.
-
-### runUfsIOTest
-
-The `runUfsIOTest` command measures the read/write IO throughput from Alluxio cluster to the target HDFS.
-
-Usage: `runUfsIOTest --path <hdfs-path> [--io-size <io-size>] [--threads <thread-num>] [--cluster] [--cluster-limit <worker-num>] --java-opt <java-opt>`
-* `-h, --help` provides detailed guidance.
-* `--path <hdfs-path>` (required) specifies the path to write/read temporary data in.
-* `--io-size <io-size>` specifies the amount of data each thread writes/reads. It defaults to "4G".
-* `--threads <thread-num>` specifies the number of threads to concurrently use on each worker. It defaults to 4.
-* `--cluster` specifies the benchmark is run in the Alluxio cluster. If not specified, this benchmark will run locally.
-* `--cluster-limit <worker-num>` specifies how many Alluxio workers to run the benchmark concurrently.
-       If `>0`, it will only run on that number of workers.
-       If `0`, it will run on all available cluster workers.
-       If `<0`, will run on the workers from the end of the worker list.
-       This flag is only used if `--cluster` is enabled.
-       This default to 0.
-* `--java-opt <java-opt>` The java options to add to the command line to for the task.
-       This can be repeated. The options must be quoted and prefixed with a space.
-       For example: `--java-opt " -Xmx4g" --java-opt " -Xms2g"`.
-
-Examples:
-```console
-# This runs the I/O benchmark to HDFS in your process locally
-$ bin/alluxio runUfsIOTest --path hdfs://<hdfs-address>
-
-# This invokes the I/O benchmark to HDFS in the Alluxio cluster
-# 1 worker will be used. 4 threads will be created, each writing then reading 4G of data
-$ bin/alluxio runUfsIOTest --path hdfs://<hdfs-address> --cluster --cluster-limit 1
-
-# This invokes the I/O benchmark to HDFS in the Alluxio cluster
-# 2 workers will be used
-# 2 threads will be created on each worker
-# Each thread is writing then reading 512m of data
-$ bin/alluxio runUfsIOTest --path hdfs://<hdfs-address> --cluster --cluster-limit 2 \
-  --io-size 512m --threads 2
-```
-
-> Note: This command requires the Alluxio cluster to be running.
-
-### runUfsTests
-
-The `runUfsTests` aims to test the integration between Alluxio and the given UFS. UFS tests
-validate the semantics Alluxio expects of the UFS.
-
-Usage: `runUfsTests --path <ufs_path>`
-* `--help` provides detailed guidance.
-* `--path <ufs_path>` (required) the full UFS path to run tests against.
-
-The usage of this command includes:
-* Test if the given UFS credentials are valid before mounting the UFS to an Alluxio cluster.
-* If the given UFS is S3, this test can also be used as a S3 compatibility test to test if the target under filesystem can
-  fulfill the minimum S3 compatibility requirements in order to work well with Alluxio.
-* Validate the contract between Alluxio and the given UFS. This is primarily intended for Alluxio developers.
-  Developers are required to add test coverage for changes to an Alluxio UFS module and run those tests to validate.
-
-```console
-# Run tests against local UFS
-$ ./bin/alluxio runUfsTests --path /local/underfs/path
-
-# Run tests against S3
-$ ./bin/alluxio runUfsTests --path s3://<s3_bucket_name> \
-  -Ds3a.accessKeyId=<access_key> -Ds3a.secretKey=<secret_key> \
-  -Dalluxio.underfs.s3.endpoint=<endpoint_url> -Dalluxio.underfs.s3.disable.dns.buckets=true
-```
-
-> Note: This command does not require the Alluxio cluster to be running.
-
 ### readJournal
 
 The `readJournal` command parses the current journal and outputs a human readable version to the local folder.
@@ -439,20 +243,6 @@ Dumping journal of type EMBEDDED to /Users/alluxio/journal_dump-1602698211916
 ```
 
 > Note: This command requires that the Alluxio cluster is **NOT** running.
-
-### upgradeJournal
-
-The `upgradeJournal` command upgrades an Alluxio journal version 0 (Alluxio version < 1.5.0)
-to an Alluxio journal version 1 (Alluxio version >= 1.5.0).
-
-`-journalDirectoryV0 <arg>` will provide the v0 journal persisted location.\
-It is assumed to be the same as the v1 journal directory if not set.
-
-```console
-$ ./bin/alluxio upgradeJournal
-```
-
-> Note: This command does not require the Alluxio cluster to be running.
 
 ### killAll
 
@@ -512,49 +302,6 @@ The `validateConf` command validates the local Alluxio configuration files, chec
 ```console
 $ ./bin/alluxio validateConf
 ```
-
-> Note: This command does not require the Alluxio cluster to be running.
-
-### validateEnv
-
-Before starting Alluxio, it is recommended to ensure that the system environment is compatible with
-running Alluxio services. The `validateEnv` command runs checks against the system and reports
-any potential problems that may prevent Alluxio from starting properly.
-
-The usage is `validateEnv COMMAND [NAME] [OPTIONS]`
-where `COMMAND` can be one of the following values:
-* `local`: run all validation tasks on the local machine
-* `master`: run master validation tasks on the local machine
-* `worker`: run worker validation tasks on the local machine
-* `all`: run corresponding validation tasks on all master and worker nodes
-* `masters`: run master validation tasks on all master nodes
-* `workers`: run worker validation tasks on all worker nodes
-* `list`: list all validation tasks
-
-```console
-# Runs all validation tasks on the local machine
-$ ./bin/alluxio validateEnv local
-
-# Runs corresponding validation tasks on all master and worker nodes
-$ ./bin/alluxio validateEnv all
-
-# Lists all validation tasks
-$ ./bin/alluxio validateEnv list
-```
-
-For all commands except `list`, `NAME` specifies the leading prefix of any number of tasks.
-If `NAME` is not given, all tasks for the given `COMMAND` will run.
-
-```console
-# Only run validation tasks that check your local system resource limits
-$ ./bin/alluxio validateEnv ulimit
-# Only run the tasks start with "ma", like "master.rpc.port.available" and "master.web.port.available"
-$ ./bin/alluxio validateEnv local ma
-```
-
-`OPTIONS` can be a list of command line options. Each option has the format
-`-<optionName> [optionValue]` For example, `[-hadoopConfDir <arg>]` could set the path to
-server-side hadoop configuration directory when running validating tasks.
 
 > Note: This command does not require the Alluxio cluster to be running.
 
@@ -762,50 +509,6 @@ $ ./bin/alluxio fs copyToLocal /output/part-00000 part-00000
 $ wc -l part-00000
 ```
 
-### count
-
-The `count` command outputs the number of files and folders matching a prefix as well as the total
-size of the files.
-`count` works recursively and accounts for any nested directories and files.
-
-Usage: `count [-h] <dir>`
-* `-h` (optional) print sizes in human readable format (e.g. 1KB 234MB 2GB)
-* `<dir>` file or directory path in the Alluxio filesystem
-
-```console
-$ ./bin/alluxio fs count -h /LICENSE
-File Count               Folder Count             Folder Size
-1                        0                        26.41KB
-```
-
-`count` is best utilized when the user has some predefined naming conventions for their files.
-For example, if data files are stored by their date, `count` can be used to determine the number of
-data files and their total size for any date, month, or year.
-
-### cp
-
-The `cp` command copies a file or directory in the Alluxio file system
-or between the local file system and Alluxio file system.
-
-Scheme `file://` indicates the local file system
-whereas scheme `alluxio://` or no scheme indicates the Alluxio file system.
-
-If the `-R` option is used and the source designates a directory,
-`cp` copies the entire subtree at source to the destination.
-
-Usage: `cp [--thread <num>] [--buffersize <bytes>] [--preserve] <src> <dst>`
-* `--thread <num>` (optional) Number of threads used to copy files in parallel, default value is CPU cores * 2
-* `--buffersize <bytes>` (optional) Read buffer size in bytes, default is 8MB when copying from local and 64MB when copying to local
-* `--preserve` (optional) Preserve file permission attributes when copying files. All ownership, permissions and ACLs will be preserved.
-* `<src>` source file or directory path
-* `<dst>` destination file or directory path
-
-For example, `cp` can be used to copy files between under storage systems.
-
-```console
-$ ./bin/alluxio fs cp /hdfs/file1 /s3/
-```
-
 ### distributedCp
 
 The `distributedCp` command copies a file or directory in the Alluxio file system distributed across workers
@@ -944,127 +647,6 @@ If the source designates a directory, `distributedMv` moves the entire subtree a
 $ ./bin/alluxio fs distributedMv /data/1023 /data/1024
 ```
 
-### du
-
-The `du` command outputs the total size and amount stored in Alluxio of files and folders.
-If a directory is specified, it will display the sizes of all files in this directory.
-
-Usage: `du [-s] [-h] [--memory] [-g] <dir>`
-* `-s` (optional) display the aggregate summary of file lengths being displayed
-* `-h` (optional) print sizes in human readable format (e.g. 1KB 234MB 2GB)
-* `-m,--memory` (optional) display the in memory size and in memory percentage
-* `-g` (optional) display information for In-Alluxio data size under the path, grouped by worker
-* `<dir>` file or directory path in the Alluxio filesystem
-
-```console
-# Shows the size information of all the files in root directory
-$ ./bin/alluxio fs du /
-File Size     In Alluxio       Path
-1337          0 (0%)           /alluxio-site.properties
-4352          4352 (100%)      /testFolder/NOTICE
-26847         0 (0%)           /testDir/LICENSE
-2970          2970 (100%)      /testDir/README.md
-
-# Shows the in memory size information
-$ ./bin/alluxio fs du --memory /
-File Size     In Alluxio       In Memory        Path
-1337          0 (0%)           0 (0%)           /alluxio-site.properties
-4352          4352 (100%)      4352 (100%)      /testFolder/NOTICE
-26847         0 (0%)           0 (0%)           /testDir/LICENSE
-2970          2970 (100%)      2970 (100%)      /testDir/README.md
-
-# Shows the aggregate size information in human-readable format
-./bin/alluxio fs du -h -s /
-File Size     In Alluxio       In Memory        Path
-34.67KB       7.15KB (20%)     7.15KB (20%)     /
-
-# Can be used to detect which folders are taking up the most space
-./bin/alluxio fs du -h -s /\\*
-File Size     In Alluxio       Path
-1337B         0B (0%)          /alluxio-site.properties
-29.12KB       2970B (9%)       /testDir
-4352B         4352B (100%)     /testFolder
-```
-
-### free
-
-The `free` command sends a request to the master to evict all blocks of a file from the Alluxio workers.
-If the argument to `free` is a directory, it will recursively `free` all files.
-This request is not guaranteed to take effect immediately,
-as readers may be currently using the blocks of the file.
-`free` will return immediately after the request is acknowledged by the master.
-Note that files must be already persisted in under storage before being freed or the `free` command will fail.
-Any pinned files cannot be freed unless `-f` option is specified.
-The `free` command does not delete any data from the under storage system,
-only removing the blocks of those files in Alluxio space to reclaim space.
-Metadata is not affected by this operation; a freed file will still show up if an `ls` command is run.
-
-Usage: `free [-f]`
-* `-f` force to free files even pinned
-
-For example, `free` can be used to manually manage Alluxio's data caching.
-
-```console
-$ ./bin/alluxio fs free /unused/data
-```
-
-### getCapacityBytes
-
-The `getCapacityBytes` command returns the maximum number of bytes Alluxio is configured to store.
-
-For example, `getCapacityBytes` can be used to verify if your cluster is set up as expected.
-
-```console
-$ ./bin/alluxio fs getCapacityBytes
-```
-
-### getCmdStatus
-
-The `getCmdStatus` command returns the detailed distributed command status based on a given JOB_CONTROL_ID.
-The detailed status includes:
-1. Successfully loaded or copied file paths.
-2. Statistics on the number of successful and failed file paths.
-3. Failed file paths, logged in a separate csv file.
-
-For example, `getCmdStatus` can be used to check what files are loaded in a distributed command, and how many succeeded or failed.
-
-```console
-$ ./bin/alluxio job getCmdStatus $JOB_CONTROL_ID
-Sample Output:
-Get command status information below:
-Successfully loaded path $FILE_PATH_1
-Successfully loaded path $FILE_PATH_2
-Total completed file count is 2, failed file count is 0
-```
-
-### getfacl
-
-The `getfacl` command returns the ACL entries for a specified file or directory.
-
-For example, `getfacl` can be used to verify that an ACL is changed successfully after a call to `setfacl`.
-
-```console
-$ ./bin/alluxio fs getfacl /testdir/testfile
-```
-
-### getSyncPathList
-
-The `getSyncPathList` command gets all the paths that are under active syncing right now.
-
-```console
-$ ./bin/alluxio fs getSyncPathList
-```
-
-### getUsedBytes
-
-The `getUsedBytes` command returns the number of used bytes in Alluxio.
-
-For example, `getUsedBytes` can be used to monitor the health of the cluster.
-
-```console
-$ ./bin/alluxio fs getUsedBytes
-```
-
 ### head
 
 The `head` command prints the first 1 KB of data in a file to the console.
@@ -1167,17 +749,6 @@ The -F option will force the loading of metadata even if there are existing meta
 $ ./bin/alluxio fs loadMetadata -R -F <path>
 ```
 
-### location
-
-The `location` command returns the addresses of all the Alluxio workers which contain blocks
-belonging to the given file.
-
-For example, `location` can be used to debug data locality when running jobs using a compute framework.
-
-```console
-$ ./bin/alluxio fs location /data/2015/logs-1.txt
-```
-
 ### ls
 
 The `ls` command lists all the immediate children in a directory and displays the file size, last
@@ -1264,48 +835,6 @@ $ ./bin/alluxio fs mkdir /users/Alice
 $ ./bin/alluxio fs mkdir /users/Bob
 ```
 
-### mount
-
-The `mount` command links an under storage path to an Alluxio path,
-where files and folders created in Alluxio space under the path will be backed
-by a corresponding file or folder in the under storage path.
-
-Options:
-
-* `--option <key>=<val>` option passes an property to this mount point, such as S3 credentials
-* `--readonly` option sets the mount point to be readonly in Alluxio
-* `--shared` option sets the permission bits of the mount point to be accessible for all Alluxio users
-
-Note that `--readonly` mounts are useful to prevent accidental write operations.
-If multiple Alluxio satellite clusters mount a remote storage cluster which serves as the central source of truth,
-`--readonly` option could help prevent any write operations on the satellite cluster from wiping out the remote storage.
-
-For example, `mount` can be used to make data in another storage system available in Alluxio.
-
-```console
-$ ./bin/alluxio fs mount /mnt/hdfs hdfs://host1:9000/data/
-$ ./bin/alluxio fs mount --shared --readonly /mnt/hdfs2 hdfs://host2:9000/data/
-$ ./bin/alluxio fs mount \
-  --option s3a.accessKeyId=<accessKeyId> \
-  --option s3a.secretKey=<secretKey> \
-  /mnt/s3 s3://data-bucket/
-```
-
-To connect to the UFS for a mount point, Alluxio looks for the corresponding connector under
-`${ALLUXIO_HOME}/lib/` and will use the first one that supports the path.
-The connector jars look like `lib/alluxio-underfs-hdfs-2.7.1.jar`.
-The logic to decide whether a connector supports a path depends on the `UnderFileSystemFactory` implementation.
-When there are multiple connectors for the same UFS, like 
-`lib/alluxio-underfs-hdfs-2.7.1.jar`, `lib/alluxio-underfs-hdfs-2.7.1-patch1.jar`, `lib/alluxio-underfs-hdfs-2.7.1-patch2.jar`, 
-option `alluxio.underfs.strict.version.match.enabled` can be used to make sure the correct one is picked up.
-For example, if the HDFS is running with 2.7.1-patch1, you can use `alluxio.underfs.version`
-and `alluxio.underfs.strict.version.match.enabled=true` to ensure `lib/alluxio-underfs-hdfs-2.7.1-patch1.jar`
-is used to connect to the target HDFS at `hdfs://ns1/`.
-```
-$ ./bin/alluxio fs mount --option alluxio.underfs.version=2.7.1-patch1 \
-  --option alluxio.underfs.strict.version.match.enabled=true /ns1 hdfs://ns1/
-```
-
 ### mv
 
 The `mv` command moves a file or directory to another path in Alluxio.
@@ -1318,61 +847,6 @@ For example, `mv` can be used to re-organize your files.
 
 ```console
 $ ./bin/alluxio fs mv /data/2014 /data/archives/2014
-```
-
-### needsSync
-
-The `needsSync` command marks a path in Alluxio as needing synchronization with the UFS.
-The next time the path or any child path is accessed by a file system operation the
-metadata for that path will be synchronized with the UFS. Note that the metadata will not
-be synchronized immediately, the synchronization will only happen on each path when it
-is accessed.
-
-Usage `needsSync <path>`
-
-For example, `needsSync` can be used after a set of files have been modified on the UFS
-outside Alluxio and those changes should be visible the next time the files are accessed.
-
-```console
-$ ./bin/alluxio fs needsSync /data
-```
-
-### persist
-
-The `persist` command persists data in Alluxio storage into the under storage system.
-This is a server side data operation and will take time depending on how large the file is.
-After persist is complete, the file in Alluxio will be backed by the file in the under storage,
-and will still be available if the Alluxio blocks are evicted or otherwise lost.
-
-Usage: `persist [-p <parallelism>] [-t <timeout>] [-w <wait time>] <dir>`
-* `-p,--parallelism <parallelism>]` (optional) Number of concurrent persist operations. (Default: 4)
-* `-t,--timeout <timeout>` (optional) Time in milliseconds for a single file persist to time out. (Default: 20 minutes)
-* `-w,--wait <wait time>` (optional) The time to wait in milliseconds before persisting. (Default: 0)
-* `<dir>` file or directory path in the Alluxio filesystem
-
-If you are persisting multiple files, you can use the `--parallelism <#>` option to submit `#` of
-persist commands in parallel. For example, if your folder has 10,000 files, persisting with a
-parallelism factor of 10 will persist 10 files at a time until all 10,000 files are persisted.
-
-For example, `persist` can be used after filtering a series of temporary files for the ones containing useful data.
-
-```console
-$ ./bin/alluxio fs persist /tmp/experimental-logs-2.txt
-```
-
-### pin
-
-The `pin` command marks a file or folder as pinned in Alluxio.
-This is a metadata operation and will not cause any data to be loaded into Alluxio.
-If a file is pinned, any blocks belonging to the file will never be evicted from an Alluxio worker.
-If there are too many pinned files, Alluxio workers may run low on storage space,
-preventing other files from being cached.
-
-For example, `pin` can be used to manually ensure performance
-if the administrator understands the workloads well.
-
-```console
-$ ./bin/alluxio fs pin /data/today
 ```
 
 ### rm
@@ -1427,72 +901,6 @@ Using this example as a guideline, estimate the total additional memory overhead
 Ensure that the leading master has sufficient available heap memory to perform the operation before issuing a large recursive delete command.
 A general good practice is to break deleting a large directory into deleting each individual children directories.
 
-### setfacl
-
-The `setfacl` command modifies the access control list associated with a specified file or directory.
-
-* The`-R` option applies operations to all files and directories recursively.
-* The `set` option fully replaces the ACL while discarding existing entries.
-New ACL must be a comma separated list of entries, and must include user, group,
-and other for compatibility with permission bits.
-* The `-m` option modifies the ACL by adding/overwriting new entries.
-* The `-x` option removes specific ACL entries.
-* The `-b` option removes all ACL entries, except for the base entries.
-* The `-d` option indicates that operations apply to the default ACL
-* The `-k` option removes all the default ACL entries.
-
-For example, `setfacl` can be used to give read and execute permissions to a user named `testuser`.
-
-```console
-$ ./bin/alluxio fs setfacl -m "user:testuser:r-x" /testdir/testfile
-```
-
-### setReplication
-
-The `setReplication` command sets the max and/or min replication level of a file or all files under
-a directory recursively. This is a metadata operation and will not cause any replication to be
-created or removed immediately. The replication level of the target file or directory will be
-changed automatically in background.
-
-* The `--min` option specifies the minimal replication level
-* The `--max` optional specifies the maximal replication level. Specify -1 as the argument of
-`--max` option to indicate no limit of the maximum number of replicas.
-* If the specified path is a directory and `-R` is specified, it will recursively set all files in this directory.
-
-For example, `setReplication` can be used to ensure the replication level of a file has at least
-one copy and at most three copies in Alluxio:
-
-```console
-$ ./bin/alluxio fs setReplication --max 3 --min 1 /foo
-```
-
-### setTtl
-
-The `setTtl` command sets the time-to-live of a file or a directory, in milliseconds.
-If set TTL is run on a directory, the same TTL attributes is set on all its children.
-If a directory's TTL expires, all its children will also expire.
-
-Action parameter `--action` will indicate the action to perform once the file or directory expires.
-**The default action, delete, deletes the file or directory from both Alluxio and the under storage system**,
-whereas the action `free` frees the file from Alluxio even if pinned.
-
-For example, `setTtl` with action `delete` cleans up files the administrator knows are unnecessary after a period of time,
-or with action `free` just remove the contents from Alluxio to make room for more space in Alluxio.
-
-```console
-# After 1 day, delete the file in Alluxio and UFS
-$ ./bin/alluxio fs setTtl /data/good-for-one-day 86400000
-# After 1 day, free the file from Alluxio
-$ ./bin/alluxio fs setTtl --action free /data/good-for-one-day 86400000
-```
-
-### startSync
-
-The `startSync` command starts the automatic syncing process of the specified path.
-
-```console
-$ ./bin/alluxio fs startSync /data/2014
-```
 
 ### stat
 
@@ -1528,14 +936,6 @@ $ ./bin/alluxio fs stat -f %z /data/2015/logs-1.txt
 $ ./bin/alluxio fs stat -fileId 12345678
 ```
 
-### stopSync
-
-The `stopSync` command stops the automatic syncing process of the specified path.
-
-```console
-$ ./bin/alluxio fs stopSync /data/2014
-```
-
 ### tail
 
 The `tail` command outputs the last 1 KB of data in a file to the console.
@@ -1547,88 +947,3 @@ or contains expected values.
 ```console
 $ ./bin/alluxio fs tail /output/part-00000
 ```
-
-### test
-
-The `test` command tests a property of a path,
-returning `0` if the property is true or `1` otherwise.
-
-Options:
-
- * `-d` option tests whether path is a directory.
- * `-e` option tests whether path exists.
- * `-f` option tests whether path is a file.
- * `-s` option tests whether path is not empty.
- * `-z` option tests whether file is zero length.
-
-Examples:
-
-```console
-$ ./bin/alluxio fs test -d /someDir
-$ echo $?
-```
-
-### touch
-
-The `touch` command creates a 0-byte file.
-Files created with `touch` cannot be overwritten and are mostly useful as flags.
-
-For example, `touch` can be used to create a file signifying the completion of analysis on a directory.
-
-```console
-$ ./bin/alluxio fs touch /data/yesterday/_DONE_
-```
-
-### unmount
-
-The `unmount` command disassociates an Alluxio path with an under storage directory.
-Alluxio metadata for the mount point is removed along with any data blocks,
-but the under storage system will retain all metadata and data.
-
-For example, `unmount` can be used to remove an under storage system when the users no longer need
-data from that system.
-
-```console
-$ ./bin/alluxio fs unmount /s3/data
-```
-
-If there are files under the mount point, the `unmount` operation will implicitly delete those files from Alluxio.
-See the [rm command]({{ '/en/operation/User-CLI.html#rm' | relativize_url }}) for how to estimate the memory consumption.
-It is recommended to remove those files in Alluxio first, before the `unmount`.
-
-### unpin
-
-The `unpin` command unmarks a file or directory in Alluxio as pinned.
-This is a metadata operation and will not evict or delete any data blocks.
-Once a file is unpinned, its data blocks can be evicted
-from the various Alluxio workers containing the block.
-
-For example, `unpin` can be used when the administrator knows there is a change in the data access pattern.
-
-```console
-$ ./bin/alluxio fs unpin /data/yesterday/join-table
-```
-
-### unsetTtl
-
-The `unsetTtl` command will remove the TTL attributes of a file or directory in Alluxio.
-This is a metadata operation and will not evict or store blocks in Alluxio.
-The TTL of a file can later be reset with `setTtl`.
-
-For example, `unsetTtl` can be used if a regularly managed file requires manual management.
-
-```console
-$ ./bin/alluxio fs unsetTtl /data/yesterday/data-not-yet-analyzed
-```
-
-### updateMount
-
-The `updateMount` command updates options for a mount point while keeping the Alluxio metadata under the path.
-
-Usage: `updateMount [--readonly] [--shared] [--option <key=val>] <alluxioPath>`
-* `--readonly` (optional) mount point is readonly in Alluxio
-* `--shared` (optional) mount point is shared
-* `--option <key>=<val>` (optional) options for this mount point.
-For security reasons, no options from existing mount point will be inherited.
-* `<alluxioPath>` Directory path in the Alluxio filesystem
-

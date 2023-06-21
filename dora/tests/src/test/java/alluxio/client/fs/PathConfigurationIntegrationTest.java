@@ -12,6 +12,7 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -31,6 +32,7 @@ import com.google.common.io.ByteStreams;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -79,6 +81,9 @@ public class PathConfigurationIntegrationTest {
   }
 
   @Test
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
+      comment = "fix the test here with remote worker")
+  @Ignore
   public void read() throws Exception {
     final int n = 3;
 

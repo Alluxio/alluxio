@@ -91,44 +91,6 @@ is_ram_folder_mounted() {
   return 1
 }
 
-check_mount_mode() {
-  case $1 in
-    Mount);;
-    SudoMount);;
-    NoMount)
-      local tier_alias=$(${BIN}/alluxio getConf alluxio.worker.tieredstore.level0.alias)
-      local tier_path
-      get_ramdisk_array
-      if [[ ${tier_alias} != "MEM" ]]; then
-        # if the top tier is not MEM, skip check
-        return
-      fi
-      for tier_path in "${RAMDISKARRAY[@]}"
-      do
-        is_ram_folder_mounted "${tier_path}"
-        if [[ $? -ne 0 ]]; then
-          echo "ERROR: Ramdisk ${tier_path} is not mounted with mount option NoMount. Use alluxio-mount.sh to mount ramdisk." >&2
-          echo -e "${USAGE}" >&2
-          exit 1
-        fi
-
-        if [[ "${tier_path}" =~ ^"/dev/shm"\/{0,1}$ ]]; then
-          echo "WARNING: Using tmpFS does not guarantee data to be stored in memory."
-          echo "WARNING: Check vmstat for memory statistics (e.g. swapping)."
-        fi
-      done
-      ;;
-    *)
-      if [[ -z $1 ]]; then
-        echo "This command requires a mount mode be specified" >&2
-      else
-        echo "Invalid mount mode: $1" >&2
-      fi
-      echo -e "${USAGE}" >&2
-      exit 1
-  esac
-}
-
 # pass mode as $1
 do_mount() {
   MOUNT_FAILED=0
@@ -443,9 +405,6 @@ main() {
         MOPT="SudoMount"
       else
         shift
-      fi
-      if [[ "${ACTION}" = "worker" ]] || [[ "${ACTION}" = "local" ]]; then
-        check_mount_mode "${MOPT}"
       fi
       ;;
     *)

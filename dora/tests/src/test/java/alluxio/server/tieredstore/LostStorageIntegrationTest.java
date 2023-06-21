@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.startsWith;
 
 import alluxio.ClientContext;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -36,6 +37,7 @@ import alluxio.worker.block.meta.DefaultStorageTier;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,6 +59,9 @@ import java.util.Map;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({DefaultStorageDir.class})
 @PowerMockIgnore({"javax.*.*", "com.sun.*", "org.xml.*"})
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "bowen",
+    comment = "tiered store is deprecated")
 public class LostStorageIntegrationTest extends BaseIntegrationTest {
   private static final int CAPACITY_BYTES = Constants.KB;
   private static final String SSD_TIER = Constants.MEDIUM_SSD;

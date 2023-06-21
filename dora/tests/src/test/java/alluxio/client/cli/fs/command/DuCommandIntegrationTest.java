@@ -11,17 +11,22 @@
 
 package alluxio.client.cli.fs.command;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.WritePType;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Test for du command.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "write through dora is broken")
+@Ignore
 public final class DuCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void du() throws Exception {

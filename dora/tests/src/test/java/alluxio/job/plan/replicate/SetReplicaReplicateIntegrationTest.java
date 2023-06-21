@@ -15,6 +15,7 @@ import static org.mockito.Mockito.mock;
 
 import alluxio.AlluxioURI;
 import alluxio.TestLoggerRule;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
@@ -34,6 +35,7 @@ import alluxio.wire.BlockInfo;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.powermock.reflect.Whitebox;
@@ -41,6 +43,9 @@ import org.powermock.reflect.Whitebox;
 /**
  * Integration tests for replicate functionality of {@link SetReplicaDefinition}.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jianjian",
+    comment = "job service is deprecated but recycle the test cases")
+@Ignore
 public final class SetReplicaReplicateIntegrationTest extends JobIntegrationTest {
 
   @ClassRule

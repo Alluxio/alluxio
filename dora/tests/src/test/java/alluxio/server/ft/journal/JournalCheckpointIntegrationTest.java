@@ -16,6 +16,7 @@ import static org.junit.Assert.fail;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.RetryHandlingFileSystemMasterClient;
 import alluxio.client.meta.MetaMasterClient;
@@ -35,6 +36,7 @@ import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -44,6 +46,9 @@ import java.io.File;
 /**
  * Tests checkpoints remain consistent with intended master state.
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jiacheng",
+    comment = "journal is deprecated")
 public class JournalCheckpointIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mClusterResource =

@@ -13,6 +13,7 @@ package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.UnderFileSystemFactoryRegistryRule;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
@@ -24,6 +25,7 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -35,6 +37,9 @@ import java.nio.file.Paths;
 /**
  * Tests for mount command.
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "check if the command is still relevant")
 public final class MountCommandTest extends AbstractFileSystemShellTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();

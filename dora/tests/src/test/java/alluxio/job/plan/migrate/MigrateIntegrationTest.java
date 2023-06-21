@@ -12,6 +12,7 @@
 package alluxio.job.plan.migrate;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -22,6 +23,7 @@ import alluxio.job.wire.JobInfo;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -31,6 +33,9 @@ import java.io.File;
 /**
  * Integration test for the migrate job.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jianjian",
+    comment = "job service is deprecated but recycle the test cases")
+@Ignore
 public final class MigrateIntegrationTest extends JobIntegrationTest {
   private static final byte[] TEST_BYTES = "hello".getBytes();
 

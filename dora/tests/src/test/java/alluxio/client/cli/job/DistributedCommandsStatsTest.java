@@ -17,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.UnderFileSystemFactoryRegistryRule;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.grpc.WritePType;
 import alluxio.job.plan.load.LoadConfig;
@@ -30,6 +31,7 @@ import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemOptions;
 import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -42,6 +44,9 @@ import java.util.Collections;
  * If the job completes fast enough before the CANCEL operations runs,then the test would fail.
  * The tests compare the job statuses (CANCEL or not) and stat counter values for each status.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "Jianjian",
+    comment = "Job master and job worker no longer exists in dora")
+@Ignore
 public class DistributedCommandsStatsTest extends JobShellTest {
   private static final long SLEEP_MS = Constants.SECOND_MS * 15;
   private static final int TEST_TIMEOUT = 45;

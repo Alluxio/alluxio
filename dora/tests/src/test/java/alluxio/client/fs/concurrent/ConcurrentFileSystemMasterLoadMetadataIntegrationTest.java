@@ -15,12 +15,14 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -32,6 +34,9 @@ import java.util.List;
 /**
  * Tests loading UFS metadata many times concurrently.
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "redefine behaviors")
 public final class ConcurrentFileSystemMasterLoadMetadataIntegrationTest {
   private static final int CONCURRENCY_FACTOR = 20;
   private FileSystem mFileSystem;

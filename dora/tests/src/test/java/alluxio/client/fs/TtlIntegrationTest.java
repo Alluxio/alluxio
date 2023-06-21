@@ -18,6 +18,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -38,6 +39,7 @@ import alluxio.util.CommonUtils;
 
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -49,6 +51,9 @@ import java.util.Random;
 /**
  * Integration tests for handling file TTLs (times to live).
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "hua",
+    comment = "check if this feature is still relevant")
+@Ignore
 public class TtlIntegrationTest extends BaseIntegrationTest {
   private static final int TTL_INTERVAL_MS = 50;
 

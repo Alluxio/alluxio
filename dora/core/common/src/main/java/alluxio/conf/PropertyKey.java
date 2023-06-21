@@ -3944,7 +3944,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_WORKER_REGISTER_LEASE_ENABLED =
       booleanBuilder(Name.MASTER_WORKER_REGISTER_LEASE_ENABLED)
-          .setDefaultValue(true)
+          .setDefaultValue(false)
           .setDescription("Whether workers request for leases before they register. "
               + "The RegisterLease is used by the master to control the concurrency of workers"
               + " that are actively registering.")
@@ -6968,7 +6968,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_SHORT_CIRCUIT_ENABLED =
       booleanBuilder(Name.USER_SHORT_CIRCUIT_ENABLED)
-          .setDefaultValue(true)
+          .setDefaultValue(false)
           .setDescription("The short circuit read/write which allows the clients to "
               + "read/write data without going through Alluxio workers if the data is local "
               + "is enabled if set to true.")
@@ -7729,7 +7729,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   public static final PropertyKey USER_NETTY_DATA_TRANSMISSION_ENABLED =
       booleanBuilder(Name.USER_NETTY_DATA_TRANSMISSION_ENABLED)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .setDescription("Whether to enable Netty data transmission.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.WORKER)
@@ -7792,7 +7792,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   public static final PropertyKey DORA_CLIENT_READ_LOCATION_POLICY_ENABLED =
       booleanBuilder(Name.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .setDescription("Whether to use client side location policy for reading")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
@@ -7800,7 +7800,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   public static final PropertyKey DORA_CLIENT_UFS_ROOT =
       stringBuilder(Name.DORA_CLIENT_UFS_ROOT)
-          .setDefaultValue("/tmp")
+          .setDefaultValue(format("${%s}/underFSStorage", Name.WORK_DIR))
           .setDescription("UFS root for dora client")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
