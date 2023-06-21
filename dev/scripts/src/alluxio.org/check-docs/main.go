@@ -298,7 +298,7 @@ func parseMenuUrl(menuPath string) (map[string]struct{}, error) {
 	}
 	menuMap := map[string]struct{}{}
 	var errMsgs []string
-	checkAndSaveUrl(ret, &menuMap, errMsgs)
+	checkAndSaveUrl(ret, menuMap, errMsgs)
 	if len(errMsgs) > 0 {
 		return nil, fmt.Errorf("encountered errors parsing %v:\n%v", menuPath, strings.Join(errMsgs, "\n"))
 	}
@@ -306,22 +306,20 @@ func parseMenuUrl(menuPath string) (map[string]struct{}, error) {
 }
 
 // recursion function for more levels of docs
-func checkAndSaveUrl(files []File, menuMap *map[string]struct{}, errMsgs []string) {
+func checkAndSaveUrl(files []File, menuMap map[string]struct{}, errMsgs []string) {
 	for _, file := range files {
 		// if buttonTitle have whitespace, the button for list-nav-item in html will not expand
 		if strings.ContainsAny(file.ButtonTitle, " \t\n\r") {
-			message := fmt.Sprintf("whitespace is not allow in buttonTitle %v, please replace whitespace with _", file.ButtonTitle)
-			errMsgs = append(errMsgs, fmt.Sprintf("error msg %v", message))
+			errMsgs = append(errMsgs, fmt.Sprintf("error msg: whitespace is not allow in buttonTitle %v, please replace whitespace with _", file.ButtonTitle))
 		}
 		for _, subfile := range file.Subfiles {
 			// the url need to be ended with .html, otherwise the link will not work
 			if strings.HasSuffix(subfile.URL, mdType) {
-				message := fmt.Sprintf("url for %v is ended with %v, please replace %v with %v", subfile.Title, mdType, mdType, htmlType)
-				errMsgs = append(errMsgs, fmt.Sprintf("error msg %v", message))
+				errMsgs = append(errMsgs, fmt.Sprintf("error msg: docs %v with url %v is ended with %v, please replace %v with %v", subfile.Title, subfile.URL, mdType, mdType, htmlType))
 			}
 			// replace the url ending to .md in order to compare with actually list of docs in directory of docs
 			subfilePath := strings.Replace(subfile.URL, htmlType, mdType, 1)
-			(*menuMap)[subfilePath] = struct{}{}
+			menuMap[subfilePath] = struct{}{}
 		}
 		//recall the function until file.subitem is empty
 		checkAndSaveUrl(file.Subitems, menuMap, errMsgs)
@@ -352,7 +350,7 @@ func checkUrlMatch(docsPath, checkPath string, menuListOfURL map[string]struct{}
 		return fmt.Errorf("error walking thorugh %v with message: \n %v", docsPath, err)
 	}
 	// check the diff
-	switch true {
+	switch {
 	case len(menuListOfURL) > len(fileList):
 		result := compareDiff(menuListOfURL, fileList)
 		return fmt.Errorf("error matching menu.yml with list of docs in directory of docs, following docs in menu.yml are no longer in directory of docs: %v", result)
