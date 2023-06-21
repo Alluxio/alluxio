@@ -339,9 +339,9 @@ public final class Scheduler {
    * @throws UnavailableRuntimeException if the job cannot be submitted because the meta store is
    * not ready
    */
-  public boolean submitJob(Job<?> job) {
+  public synchronized boolean submitJob(Job<?> job) {
     Job<?> existingJob = mExistingJobs.get(job.getDescription());
-    if (existingJob != null && !existingJob.isDone()) {
+    if (existingJob != null && !existingJob.isDone() && mJobToRunningTasks.containsKey(job)) {
       updateExistingJob(job, existingJob);
       return false;
     }
