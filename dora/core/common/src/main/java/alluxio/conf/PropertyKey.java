@@ -7793,7 +7793,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   public static final PropertyKey DORA_CLIENT_UFS_ROOT =
       stringBuilder(Name.DORA_CLIENT_UFS_ROOT)
-          .setDefaultValue("/tmp")
+          .setDefaultValue(format("${%s}/underFSStorage", Name.WORK_DIR))
           .setDescription("UFS root for dora client")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
