@@ -746,9 +746,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     if (handle != null) {
       mOpenFileHandleContainer.remove(path);
       handle.close();
-      handle = null; // no more use of this handle
-
-      invalidateFileMeta(path);
+      Optional<DoraMeta.FileStatus> status = mMetaManager.loadFromUfs(path);
+      if (status.isEmpty()) {
+        throw new FileNotFoundException("Cannot retrieve file metadata of "
+            + path + " when completing the file");
+      }
     }
   }
 

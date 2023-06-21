@@ -76,12 +76,18 @@ public class DoraMetaManager {
 
   /**
    * Gets file meta from UFS and loads it into metastore if exists.
+   * If the file does not exist in the UFS, clean up metadata and data.
+   *
    * @param path the full ufs path
    * @return the file status, or empty optional if not found
    */
   public Optional<FileStatus> loadFromUfs(String path) throws IOException {
     Optional<FileStatus> fileStatus = getFromUfs(path);
-    fileStatus.ifPresent(status -> put(path, status));
+    if (fileStatus.isEmpty()) {
+      removeFromMetaStore(path);
+    } else {
+      put(path, fileStatus.get());
+    }
     return fileStatus;
   }
 
@@ -146,6 +152,7 @@ public class DoraMetaManager {
 
   private void invalidateCachedFile(String path, long length) {
     FileId fileId = FileId.of(AlluxioURI.hash(path));
+    mCacheManager.deleteFile(fileId.toString());
     for (PageId page: mCacheManager.getCachedPageIdsByFileId(fileId.toString(), length)) {
       mCacheManager.delete(page);
     }
