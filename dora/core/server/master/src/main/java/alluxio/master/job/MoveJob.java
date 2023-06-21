@@ -215,6 +215,7 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
    */
   @Override
   public void failJob(AlluxioRuntimeException reason) {
+    LOG.info("Move Job {} fails with status: {}", mJobId, this);
     setJobState(JobState.FAILED, true);
     mFailedReason = Optional.of(reason);
     JOB_MOVE_FAIL.inc();
@@ -222,6 +223,7 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
 
   @Override
   public void setJobSuccess() {
+    LOG.info("Move Job {} succeeds with status {}", mJobId, this);
     setJobState(JobState.SUCCEEDED, true);
     JOB_MOVE_SUCCESS.inc();
   }
@@ -589,11 +591,13 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
     private final AlluxioRuntimeException mFailureReason;
     private final long mFailedFileCount;
     private final Map<String, String> mFailedFilesWithReasons;
+    private final String mJobId;
 
     public MoveProgressReport(MoveJob job, boolean verbose)
     {
       mVerbose = verbose;
       mJobState = job.mState;
+      mJobId = job.mJobId;
       mCheckContent = job.mCheckContent;
       mProcessedFileCount = job.mProcessedFileCount.get();
       mByteCount = job.mMovedByteCount.get();
@@ -645,6 +649,7 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
       StringBuilder progress = new StringBuilder();
       progress.append(
           format("\tSettings:\tcheck-content: %s%n", mCheckContent));
+      progress.append(format("\tJob Id: %s%n", mJobId));
       progress.append(format("\tJob State: %s%s%n", mJobState,
           mFailureReason == null
               ? "" : format(
