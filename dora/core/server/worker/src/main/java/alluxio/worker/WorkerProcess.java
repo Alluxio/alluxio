@@ -49,7 +49,8 @@ public interface WorkerProcess extends Process {
           Configuration.global().getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
       // add modules that need to be injected
       ImmutableList.Builder<Module> modules = ImmutableList.builder();
-      modules.add(FeatureUtils.isDora() ? new DoraWorkerModule() : new BlockWorkerModule());
+      modules.add(Configuration.global().getBoolean(PropertyKey.DORA_ENABLED)
+          ? new DoraWorkerModule() : new BlockWorkerModule());
       modules.add(new GrpcServerModule());
       modules.add(new NettyServerModule(isNettyDataTransmissionEnable));
       modules.add(new AlluxioWorkerProcessModule());

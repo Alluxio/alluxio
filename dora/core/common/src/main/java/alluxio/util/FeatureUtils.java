@@ -11,7 +11,6 @@
 
 package alluxio.util;
 
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.journal.JournalType;
@@ -116,24 +115,5 @@ public final class FeatureUtils {
    */
   public static boolean isPageStoreEnabled() {
     return Configuration.get(PropertyKey.WORKER_BLOCK_STORE_TYPE) == BlockStoreType.PAGE;
-  }
-
-  /**
-   * Utility to check if running on the new DORA architecture(Alluxio 3.x).
-   *
-   * @return true if the architecture is DORA
-   */
-  public static boolean isDora() {
-    return isDora(Configuration.global());
-  }
-
-  /**
-   * Utility to check if running on the new DORA architecture(Alluxio 3.x).
-   *
-   * @param conf the conf to base onload
-   * @return true if the architecture is DORA
-   */
-  public static boolean isDora(AlluxioConfiguration conf) {
-    return conf.getBoolean(PropertyKey.DORA_ENABLED);
   }
 }

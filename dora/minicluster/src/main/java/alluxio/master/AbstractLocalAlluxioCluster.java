@@ -156,7 +156,7 @@ public abstract class AbstractLocalAlluxioCluster {
     mWorkers = new ArrayList<>();
     for (int i = 0; i < mNumWorkers; ++i) {
       // If dora is enabled, automatically setting the worker page store and rocksdb dirs.
-      if ( FeatureUtils.isDora()) {
+      if (Configuration.getBoolean(PropertyKey.DORA_ENABLED)) {
         String pageStoreDir = Configuration.getString(PropertyKey.WORK_DIR) + "/worker" + i;
         Configuration.set(PropertyKey.WORKER_PAGE_STORE_DIRS, pageStoreDir);
         Configuration.set(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR, pageStoreDir);

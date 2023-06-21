@@ -63,7 +63,7 @@ public final class BlockWorkerFactory implements WorkerFactory {
 
   @Override
   public boolean isEnabled() {
-    return !FeatureUtils.isDora();
+    return !Configuration.getBoolean(PropertyKey.DORA_ENABLED);
   }
 
   @Override

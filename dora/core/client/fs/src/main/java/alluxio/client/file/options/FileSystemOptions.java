@@ -36,7 +36,7 @@ public class FileSystemOptions {
    * @return the file system options
    */
   public static FileSystemOptions create(AlluxioConfiguration conf) {
-    if (FeatureUtils.isDora(conf)) {
+    if (conf.getBoolean(PropertyKey.DORA_ENABLED)) {
       return create(conf,
           Optional.of(new UfsFileSystemOptions(conf.getString(PropertyKey.DORA_CLIENT_UFS_ROOT))));
     }
@@ -54,7 +54,7 @@ public class FileSystemOptions {
       Optional<UfsFileSystemOptions> ufsOptions) {
     return new FileSystemOptions(FileSystemUtils.metadataEnabled(conf),
         conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED),
-        FeatureUtils.isDora(conf),
+        conf.getBoolean(PropertyKey.DORA_ENABLED),
         ufsOptions);
   }
 
