@@ -39,6 +39,8 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Mounts a UFS path onto an Alluxio path.
+ *
+ * @deprecated This command no longer works under the new Dora architecture.
  */
 @ThreadSafe
 @PublicApi

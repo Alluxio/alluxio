@@ -60,6 +60,8 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Loads a file or directory in Alluxio space, making it resident in Alluxio.
+ *
+ * @deprecated This command no longer works under the new Dora architecture.
  */
 @ThreadSafe
 @PublicApi
