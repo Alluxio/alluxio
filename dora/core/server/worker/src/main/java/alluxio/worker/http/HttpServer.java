@@ -11,6 +11,9 @@
 
 package alluxio.worker.http;
 
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+
 import com.google.common.base.Throwables;
 import com.google.inject.Inject;
 import io.netty.bootstrap.ServerBootstrap;
@@ -24,14 +27,20 @@ import io.netty.handler.logging.LoggingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /**
  * {@link HttpServer} provides Alluxio RESTful API. It is implemented through Netty.
  */
 public final class HttpServer {
 
   private static final Logger LOG = LoggerFactory.getLogger(HttpServer.class);
-  static final boolean SSL = false;
-  static final int PORT = 28080;
+  private static final boolean SSL = false;
+
+  private static final int PORT = Configuration.getInt(PropertyKey.WORKER_HTTP_SERVER_PORT);
+
+  private final ExecutorService mHttpServerThreadPool = Executors.newFixedThreadPool(1);
 
   private final HttpServerInitializer mHttpServerInitializer;
 
@@ -48,6 +57,10 @@ public final class HttpServer {
    * Starts the HTTP server.
    */
   public void start() {
+    mHttpServerThreadPool.submit(this::startHttpServer);
+  }
+
+  private void startHttpServer() {
     // Configure the server.
     EventLoopGroup bossGroup = new NioEventLoopGroup(1);
     EventLoopGroup workerGroup = new NioEventLoopGroup();
