@@ -145,7 +145,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   protected HdfsUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
-                               Configuration hdfsConf, boolean useLoadingCache) {
+      Configuration hdfsConf, boolean useLoadingCache) {
     super(ufsUri, conf);
 
     // Create the supported HdfsAclProvider if possible.
