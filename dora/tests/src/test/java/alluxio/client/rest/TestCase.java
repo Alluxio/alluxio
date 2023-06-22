@@ -102,7 +102,8 @@ public final class TestCase {
         Collectors.toList()));
     String argParams = j.withKeyValueSeparator("=").join(streams.get(false).stream().collect(
         Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
-    url = String.format("%s?%s%s", url, emptyValParams, argParams);
+    url = String.format("%s?%s&%s", url, emptyValParams, argParams);
+    System.out.println(url);
     return new URL(url);
   }
 
