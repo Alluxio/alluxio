@@ -5,16 +5,30 @@ import alluxio.client.file.cache.CacheManager;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.resource.LockResource;
+import alluxio.wire.WorkerNetAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.GuardedBy;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public interface MembershipManager extends AutoCloseable {
+
+  /**
+   * An idempotent call to register to join the membership.
+   * @param worker
+   * @throws IOException
+   */
+  public void joinMembership(WorkerNetAddress worker) throws IOException;
+  public List<WorkerNetAddress> getAllMembers();
+  public List<WorkerNetAddress> getLiveMembers();
+  public List<WorkerNetAddress> getFailedMembers();
+  public String showAllMembers();
+  public void decommission(WorkerNetAddress worker);
 
   /**
    * Factory class to get or create a MembershipManager.
@@ -41,12 +55,12 @@ public interface MembershipManager extends AutoCloseable {
 
     /**
      * @param conf the Alluxio configuration
-     * @return an instance of {@link CacheManager}
+     * @return an instance of {@link MembershipManager}
      */
     public static MembershipManager create(AlluxioConfiguration conf) throws IOException {
       switch (conf.getEnum(PropertyKey.WORKER_MEMBERSHIP_TYPE, MembershipType.class)) {
         case STATIC:
-//          return new StaticMembershipManager(conf);
+          return new StaticMembershipManager(conf);
         case ETCD:
           return new EtcdMembershipManager(conf);
         default:
@@ -54,5 +68,4 @@ public interface MembershipManager extends AutoCloseable {
       }
     }
   }
-
 }

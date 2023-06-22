@@ -662,6 +662,315 @@ public final class Scheduler {
   }
 
   /**
+   * Constructor.
+   *
+   * @param fsCtx file system context
+   * @param workerProvider   workerProvider
+   * @param jobMetaStore     jobMetaStore
+   */
+  public Scheduler(FileSystemContext fsCtx, WorkerProvider workerProvider,
+      JobMetaStore jobMetaStore) {
+    mFileSystemContext = fsCtx;
+    mJobMetaStore = jobMetaStore;
+    MetricsSystem.registerCachedGaugeIfAbsent(
+        MetricKey.MASTER_JOB_SCHEDULER_RUNNING_COUNT.getName(), mJobToRunningTasks::size);
+    mWorkerInfoHub = new WorkerInfoHub(this, workerProvider);
+    // the scheduler won't be instantiated twice
+    sInstance.compareAndSet(null, this);
+  }
+
+  /**
+   * Get the singleton instance of Scheduler.
+   * getInstance won't be called before constructor.
+   * @return Scheduler instance
+   */
+  public static @Nullable Scheduler getInstance() {
+    return sInstance.get();
+  }
+
+  /**
+   * Start scheduler.
+   */
+  public void start() {
+    if (!mRunning) {
+      retrieveJobs();
+      mSchedulerExecutor = Executors.newSingleThreadScheduledExecutor(
+          ThreadFactoryUtils.build("scheduler", false));
+      mSchedulerExecutor.scheduleAtFixedRate(mWorkerInfoHub::updateWorkers, 0,
+          WORKER_UPDATE_INTERVAL, TimeUnit.MILLISECONDS);
+      mSchedulerExecutor.scheduleWithFixedDelay(this::processJobs, mSchedulerInitialDelay, 2000,
+          TimeUnit.MILLISECONDS);
+      mSchedulerExecutor.scheduleWithFixedDelay(this::cleanupStaleJob, 1, 1, TimeUnit.HOURS);
+      mRunning = true;
+    }
+  }
+
+  /**
+   * Update workers.
+   */
+  public void updateWorkers() {
+    mWorkerInfoHub.updateWorkers();
+  }
+
+  /*
+   TODO(lucy) in future we should remove job automatically, but keep all history jobs in db to help
+   user retrieve all submitted jobs status.
+   */
+
+  private void retrieveJobs() {
+    for (Job<?> job : mJobMetaStore.getJobs()) {
+      mExistingJobs.put(job.getDescription(), job);
+      if (job.isDone()) {
+        mJobToRunningTasks.remove(job);
+      }
+      else {
+        job.initializeJob();
+        mJobToRunningTasks.put(job, new ConcurrentHashSet<>());
+      }
+    }
+  }
+
+  /**
+   * Stop scheduler.
+   */
+  public void stop() {
+    if (mRunning) {
+      mWorkerInfoHub.mActiveWorkers.values().forEach(CloseableResource::close);
+      mWorkerInfoHub.mActiveWorkers = ImmutableMap.of();
+      ThreadUtils.shutdownAndAwaitTermination(mSchedulerExecutor, EXECUTOR_SHUTDOWN_MS);
+      mRunning = false;
+    }
+  }
+
+  /**
+   * Submit a job.
+   * @param job the job
+   * @return true if the job is new, false if the job has already been submitted
+   * @throws ResourceExhaustedRuntimeException if the job cannot be submitted because the scheduler
+   *  is at capacity
+   * @throws UnavailableRuntimeException if the job cannot be submitted because the meta store is
+   * not ready
+   */
+  public boolean submitJob(Job<?> job) {
+    Job<?> existingJob = mExistingJobs.get(job.getDescription());
+    if (existingJob != null && !existingJob.isDone()) {
+      updateExistingJob(job, existingJob);
+      return false;
+    }
+
+    if (mJobToRunningTasks.size() >= CAPACITY) {
+      throw new ResourceExhaustedRuntimeException(
+          "Too many jobs running, please submit later.", true);
+    }
+    mJobMetaStore.updateJob(job);
+    mExistingJobs.put(job.getDescription(), job);
+    job.initializeJob();
+    mJobToRunningTasks.putIfAbsent(job, new ConcurrentHashSet<>());
+    LOG.info(format("start job: %s", job));
+    return true;
+  }
+
+  private void updateExistingJob(Job<?> newJob, Job<?> existingJob) {
+    existingJob.updateJob(newJob);
+    mJobMetaStore.updateJob(existingJob);
+    LOG.debug(format("updated existing job: %s from %s", existingJob, newJob));
+    if (existingJob.getJobState() == JobState.STOPPED) {
+      existingJob.setJobState(JobState.RUNNING, false);
+      mJobToRunningTasks.compute(existingJob, (k, v) -> new ConcurrentHashSet<>());
+      LOG.debug(format("restart existing job: %s", existingJob));
+    }
+  }
+
+  /**
+   * Stop a job.
+   * @param jobDescription job identifier
+   * @return true if the job is stopped, false if the job does not exist or has already finished
+   */
+  public boolean stopJob(JobDescription jobDescription) {
+    Job<?> existingJob = mExistingJobs.get(jobDescription);
+    if (existingJob != null && existingJob.isRunning()) {
+      existingJob.setJobState(JobState.STOPPED, false);
+      mJobMetaStore.updateJob(existingJob);
+      // leftover tasks in mJobToRunningTasks would be removed by scheduling thread.
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Get the job's progress report.
+   * @param jobDescription job identifier
+   * @param format progress report format
+   * @param verbose whether to include details on failed files and failures
+   * @return the progress report
+   * @throws NotFoundRuntimeException if the job does not exist
+   * @throws AlluxioRuntimeException if any other Alluxio exception occurs
+   */
+  public String getJobProgress(
+      JobDescription jobDescription,
+      JobProgressReportFormat format,
+      boolean verbose) {
+    Job<?> job = mExistingJobs.get(jobDescription);
+    if (job == null) {
+      throw new NotFoundRuntimeException(format("%s cannot be found.", jobDescription));
+    }
+    String progress = job.getProgress(format, verbose);
+    return progress;
+  }
+
+  /**
+   * Get the job's state.
+   * @param jobDescription job identifier
+   * @return the job state
+   * @throws NotFoundRuntimeException if the job does not exist
+   */
+  public JobState getJobState(JobDescription jobDescription) {
+    Job<?> job = mExistingJobs.get(jobDescription);
+    if (job == null) {
+      throw new NotFoundRuntimeException(format("%s cannot be found.", jobDescription));
+    }
+    return job.getJobState();
+  }
+
+  /**
+   * @return the file system context
+   */
+  public FileSystemContext getFileSystemContext() {
+    return mFileSystemContext;
+  }
+
+  /**
+   * Get active workers.
+   * @return active workers
+   */
+  @VisibleForTesting
+  public Map<WorkerInfo, CloseableResource<BlockWorkerClient>> getActiveWorkers() {
+    return mWorkerInfoHub.mActiveWorkers;
+  }
+
+  /**
+   * Removes all finished jobs outside the retention time.
+   */
+  @VisibleForTesting
+  public void cleanupStaleJob() {
+    long current = System.currentTimeMillis();
+    mExistingJobs
+        .entrySet().removeIf(job -> !job.getValue().isRunning()
+        && job.getValue().getEndTime().isPresent()
+        && job.getValue().getEndTime().getAsLong() <= (current - Configuration.getMs(
+        PropertyKey.JOB_RETENTION_TIME)));
+  }
+
+  /**
+   * Get jobs.
+   *
+   * @return jobs
+   */
+  @VisibleForTesting
+  public Map<JobDescription, Job<?>> getJobs() {
+    return mExistingJobs;
+  }
+
+  private void processJobs() {
+    if (Thread.currentThread().isInterrupted()) {
+      return;
+    }
+    mJobToRunningTasks.forEach((k, v) -> processJob(k.getDescription(), k));
+  }
+
+  private void processJob(JobDescription jobDescription, Job<?> job) {
+    if (!job.isRunning()) {
+      try {
+        LOG.debug("Job:{}, not running, updating metastore...", MoreObjects.toStringHelper(job)
+            .add("JobId:", job.getJobId())
+            .add("JobState:", job.getJobState())
+            .add("JobDescription", job.getDescription()).toString());
+        mJobMetaStore.updateJob(job);
+      }
+      catch (UnavailableRuntimeException e) {
+        // This should not happen because the scheduler should not be started while master is
+        // still processing journal entries. However, if it does happen, we don't want to throw
+        // exception in a task running on scheduler thead. So just ignore it and hopefully later
+        // retry will work.
+        LOG.error("error writing to journal when processing job", e);
+      }
+      mJobToRunningTasks.remove(job);
+      return;
+    }
+    if (!job.isHealthy()) {
+      job.failJob(new InternalRuntimeException("Job failed because it's not healthy."));
+      return;
+    }
+
+    try {
+      List<Task> tasks;
+      try {
+        Set<WorkerInfo> workers = mWorkerInfoHub.mActiveWorkers.keySet();
+        tasks = (List<Task>) job.getNextTasks(workers);
+      } catch (AlluxioRuntimeException e) {
+        LOG.warn(format("error getting next task for job %s", job), e);
+        if (!e.isRetryable()) {
+          job.failJob(e);
+        }
+        return;
+      }
+      // enqueue the worker task q and kick it start
+      // TODO(lucy) add if worker q is too full tell job to save this task for retry kick-off
+      for (Task task : tasks) {
+        boolean taskEnqueued = getWorkerInfoHub().enqueueTaskForWorker(task.getMyRunningWorker(),
+            task, true);
+        if (!taskEnqueued) {
+          job.onTaskSubmitFailure(task);
+        }
+      }
+      if (mJobToRunningTasks.getOrDefault(job, new ConcurrentHashSet<>()).isEmpty()
+          && job.isCurrentPassDone()) {
+        if (job.needVerification()) {
+          job.initiateVerification();
+        }
+        else {
+          if (job.isHealthy()) {
+            if (job.hasFailure()) {
+              job.failJob(new InternalRuntimeException("Job partially failed."));
+            }
+            else {
+              job.setJobSuccess();
+            }
+          }
+          else {
+            if (job.getJobState() != JobState.FAILED) {
+              job.failJob(
+                  new InternalRuntimeException("Job failed because it exceed healthy threshold."));
+            }
+          }
+        }
+      }
+    } catch (Exception e) {
+      // Unknown exception. This should not happen, but if it happens we don't want to lose the
+      // scheduler thread, thus catching it here. Any exception surfaced here should be properly
+      // handled.
+      LOG.error("Unexpected exception thrown in processJob.", e);
+      job.failJob(new InternalRuntimeException(e));
+    }
+  }
+
+  /**
+   * Get the workerinfo hub.
+   * @return worker info hub
+   */
+  public WorkerInfoHub getWorkerInfoHub() {
+    return mWorkerInfoHub;
+  }
+
+  /**
+   * Get job meta store.
+   * @return jobmetastore
+   */
+  public JobMetaStore getJobMetaStore() {
+    return mJobMetaStore;
+  }
+
+  /**
    * Job/Tasks stats.
    */
   public static class SchedulerStats {

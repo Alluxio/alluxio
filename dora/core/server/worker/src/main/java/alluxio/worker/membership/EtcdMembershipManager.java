@@ -2,9 +2,9 @@ package alluxio.worker.membership;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.AlreadyExistsException;
-import alluxio.membership.EtcdClient;
+import alluxio.membership.AlluxioEtcdClient;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.dora.PagedDoraWorker;
+import alluxio.worker.Worker;
 import io.etcd.jetcd.KeyValue;
 import org.apache.zookeeper.server.ByteBufferInputStream;
 import org.slf4j.Logger;
@@ -26,21 +26,15 @@ import java.util.stream.Collectors;
 public class EtcdMembershipManager implements MembershipManager {
   private static final Logger LOG = LoggerFactory.getLogger(EtcdMembershipManager.class);
   List<MemberSubscriber> mSubscribers = new ArrayList<>();
-  private EtcdClient mEtcdClient;
+  private AlluxioEtcdClient mAlluxioEtcdClient;
   private static String mClusterName = "DefaultClusterName";
   private final AlluxioConfiguration mConf;
   private static String sRingPathFormat = "/DHT/%s/AUTHORIZED/";
 
   public EtcdMembershipManager(AlluxioConfiguration conf) {
     mConf = conf;
-//    mClusterName = conf.getString(PropertyKey.CLUSTER_IDENTIFIER_NAME);
-    mEtcdClient = new EtcdClient(mClusterName);
-    mEtcdClient.connect();
-  }
-
-  @Override
-  public void close() throws Exception {
-
+    mAlluxioEtcdClient = AlluxioEtcdClient.getInstance(conf);
+    mAlluxioEtcdClient.connect();
   }
 
   public interface MemberSubscriber {
@@ -48,13 +42,14 @@ public class EtcdMembershipManager implements MembershipManager {
     public void onChange(); // for future for dissemination protocol-like impl to spread info on any changes of a node.
   }
 
-  public void registerRingAndStartSync(PagedDoraWorker.PagedDoraWorkerServiceEntity ctx) throws IOException {
+  public void joinMembership(WorkerNetAddress wkrAddr) throws IOException {
+    WorkerServiceEntity entity = new WorkerServiceEntity(wkrAddr);
     // 1) register to the ring
-    String pathOnRing = String.format(sRingPathFormat, mClusterName) + ctx.getServiceEntityName();
-    byte[] ret = mEtcdClient.getForPath(pathOnRing);
+    String pathOnRing = String.format(sRingPathFormat, mClusterName) + entity.getServiceEntityName();
+    byte[] ret = mAlluxioEtcdClient.getForPath(pathOnRing);
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     DataOutputStream dos = new DataOutputStream(baos);
-    ctx.serialize(dos);
+    entity.serialize(dos);
     byte[] serializedEntity = baos.toByteArray();
     // If there's existing entry, check if it's me.
     if (ret != null) {
@@ -65,66 +60,73 @@ public class EtcdMembershipManager implements MembershipManager {
       // It's me, go ahead to start heartbeating.
     } else {
       // If haven't created myself onto the ring before, create now.
-      mEtcdClient.createForPath(pathOnRing, Optional.of(serializedEntity));
+      mAlluxioEtcdClient.createForPath(pathOnRing, Optional.of(serializedEntity));
     }
     // 2) start heartbeat
-    mEtcdClient.mServiceDiscovery.registerAndStartSync(ctx);
+    mAlluxioEtcdClient.mServiceDiscovery.registerAndStartSync(entity);
   }
 
-  private void retrieveFullAndLiveMembers(
-      List<PagedDoraWorker.PagedDoraWorkerServiceEntity> authorizedMembers,
-      List<PagedDoraWorker.PagedDoraWorkerServiceEntity> liveMembers) {
+  public List<WorkerNetAddress> getAllMembers() {
+    List<WorkerServiceEntity> registeredWorkers = retrieveFullMembers();
+    return registeredWorkers.stream().map(e -> e.getWorkerNetAddress()).collect(Collectors.toList());
+  }
+
+  private List<WorkerServiceEntity> retrieveFullMembers() {
+    List<WorkerServiceEntity> fullMembers = new ArrayList<>();
     String ringPath = String.format(sRingPathFormat, mClusterName);
-    List<KeyValue> childrenKvs = mEtcdClient.getChildren(ringPath);
+    List<KeyValue> childrenKvs = mAlluxioEtcdClient.getChildren(ringPath);
     for (KeyValue kv : childrenKvs) {
       ByteArrayInputStream bais = new ByteArrayInputStream(kv.getValue().getBytes());
       DataInputStream dis = new DataInputStream(bais);
-      PagedDoraWorker.PagedDoraWorkerServiceEntity entity = new PagedDoraWorker.PagedDoraWorkerServiceEntity();
+      WorkerServiceEntity entity = new WorkerServiceEntity();
       try {
         entity.deserialize(dis);
-        authorizedMembers.add(entity);
+        fullMembers.add(entity);
       } catch (IOException ex) {
-        continue;
+        // Ignore
       }
     }
-    for (Map.Entry<String, ByteBuffer> entry : mEtcdClient.mServiceDiscovery
+    return fullMembers;
+  }
+
+  private List<WorkerServiceEntity> retrieveLiveMembers() {
+    List<WorkerServiceEntity> liveMembers = new ArrayList<>();
+    for (Map.Entry<String, ByteBuffer> entry : mAlluxioEtcdClient.mServiceDiscovery
         .getAllLiveServices().entrySet()) {
       ByteBufferInputStream bbis = new ByteBufferInputStream(entry.getValue());
       DataInputStream dis = new DataInputStream(bbis);
-      PagedDoraWorker.PagedDoraWorkerServiceEntity entity = new PagedDoraWorker.PagedDoraWorkerServiceEntity();
+      WorkerServiceEntity entity = new WorkerServiceEntity();
       try {
         entity.deserialize(dis);
         liveMembers.add(entity);
       } catch (IOException ex) {
-        continue;
+        // Ignore
       }
     }
+    return liveMembers;
   }
 
   public List<WorkerNetAddress> getLiveMembers() {
-    List<PagedDoraWorker.PagedDoraWorkerServiceEntity> registeredWorkers = new ArrayList<>();
-    List<PagedDoraWorker.PagedDoraWorkerServiceEntity> liveWorkers = new ArrayList<>();
-    retrieveFullAndLiveMembers(registeredWorkers, liveWorkers);
+    List<WorkerServiceEntity> registeredWorkers = retrieveFullMembers();
+    List<WorkerServiceEntity> liveWorkers = retrieveLiveMembers();
     liveWorkers.retainAll(registeredWorkers);
     return liveWorkers.stream().map(e -> e.getWorkerNetAddress()).collect(Collectors.toList());
   }
 
   public List<WorkerNetAddress> getFailedMembers() {
-    List<PagedDoraWorker.PagedDoraWorkerServiceEntity> registeredWorkers = new ArrayList<>();
-    List<PagedDoraWorker.PagedDoraWorkerServiceEntity> liveWorkers = new ArrayList<>();
-    retrieveFullAndLiveMembers(registeredWorkers, liveWorkers);
+    List<WorkerServiceEntity> registeredWorkers = retrieveFullMembers();
+    List<WorkerServiceEntity> liveWorkers = retrieveLiveMembers();
     registeredWorkers.removeAll(liveWorkers);
     return registeredWorkers.stream().map(e -> e.getWorkerNetAddress()).collect(Collectors.toList());
   }
 
   public String showAllMembers() {
-    List<PagedDoraWorker.PagedDoraWorkerServiceEntity> registeredWorkers = new ArrayList<>();
-    List<PagedDoraWorker.PagedDoraWorkerServiceEntity> liveWorkers = new ArrayList<>();
-    retrieveFullAndLiveMembers(registeredWorkers, liveWorkers);
+    List<WorkerServiceEntity> registeredWorkers = retrieveFullMembers();
+    List<WorkerServiceEntity> liveWorkers = retrieveLiveMembers();
     String printFormat = "%s\t%s\t%s\n";
     StringBuilder sb = new StringBuilder(
         String.format(printFormat, "WorkerId", "Address", "Status"));
-    for (PagedDoraWorker.PagedDoraWorkerServiceEntity entity : registeredWorkers) {
+    for (WorkerServiceEntity entity : registeredWorkers) {
       String entryLine = String.format(printFormat,
           entity.getServiceEntityName(),
           entity.getWorkerNetAddress().getHost() + ":" + entity.getWorkerNetAddress().getRpcPort(),
@@ -134,6 +136,13 @@ public class EtcdMembershipManager implements MembershipManager {
     return sb.toString();
   }
 
-  public void wipeOutClean() {
+  @Override
+  public void decommission(WorkerNetAddress worker) {
+    // TO BE IMPLEMENTED
+  }
+
+  @Override
+  public void close() throws Exception {
+    mAlluxioEtcdClient.close();
   }
 }

@@ -55,7 +55,6 @@ import alluxio.heartbeat.FixedIntervalSupplier;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
-import alluxio.membership.EtcdClient;
 import alluxio.network.protocol.databuffer.PooledDirectNioByteBuf;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.meta.DoraMeta;
@@ -85,11 +84,12 @@ import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.grpc.GrpcExecutors;
+import alluxio.worker.membership.MembershipManager;
+import alluxio.worker.membership.WorkerServiceEntity;
 import alluxio.worker.task.CopyHandler;
 import alluxio.worker.task.DeleteHandler;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -101,8 +101,6 @@ import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.DataInput;
-import java.io.DataOutput;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.time.Duration;
@@ -131,6 +129,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private final CacheManager mCacheManager;
   private final DoraUfsManager mUfsManager;
   private final DoraMetaManager mMetaManager;
+  private final MembershipManager mMembershipManager;
   private final UfsInputStreamCache mUfsStreamCache;
   private final long mPageSize;
   private final AlluxioConfiguration mConf;
@@ -159,8 +158,10 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   public PagedDoraWorker(
       @Named("workerId") AtomicReference<Long> workerId,
       AlluxioConfiguration conf,
-      CacheManager cacheManager) {
-    this(workerId, conf, cacheManager, new BlockMasterClientPool(),
+      CacheManager cacheManager,
+      MembershipManager membershipManager
+      ) {
+    this(workerId, conf, cacheManager, membershipManager, new BlockMasterClientPool(),
         FileSystemContext.create(conf));
   }
 
@@ -168,6 +169,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       AtomicReference<Long> workerId,
       AlluxioConfiguration conf,
       CacheManager cacheManager,
+      MembershipManager membershipManager
       BlockMasterClientPool blockMasterClientPool,
       FileSystemContext fileSystemContext) {
     super(ExecutorServiceFactories.fixedThreadPool("dora-worker-executor", 5));
@@ -186,6 +188,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     mCacheManager = cacheManager;
     mMetaManager = mResourceCloser.register(
         new DoraMetaManager(this, mCacheManager, mUfs));
+    mMembershipManager = membershipManager;
     mOpenFileHandleContainer = new DoraOpenFileHandleContainer();
 
     mMkdirsRecursive = MkdirsOptions.defaults(mConf).setCreateParent(true);
@@ -215,7 +218,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     super.start(address);
     mAddress = address;
     register();
-    registerNew();
     mOpenFileHandleContainer.start();
 
     // setup worker-master heartbeat
@@ -230,111 +232,17 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
             mConf, ServerUserState.global()));
   }
 
-  public static class PagedDoraWorkerServiceEntity extends EtcdClient.ServiceEntityContext {
-
-    enum State {
-      JOINED,
-      AUTHORIZED,
-      DECOMMISSIONED
-    }
-    WorkerNetAddress mAddress;
-    State mState = State.JOINED;
-    int mGenerationNum = -1;
-
-    public PagedDoraWorkerServiceEntity() {
-
-    }
-
-    public WorkerNetAddress getWorkerNetAddress() {
-      return mAddress;
-    }
-
-    public PagedDoraWorkerServiceEntity(WorkerNetAddress addr) {
-      super(CommonUtils.hashAsStr(addr.dumpMainInfo()));
-      mAddress = addr;
-      mState = State.JOINED;
-      // read from local file to populate state / genNum
-    }
-
-    @Override
-    public String toString() {
-      return MoreObjects.toStringHelper(this)
-          .add("WorkerId", getServiceEntityName())
-          .add("WorkerAddr", mAddress.toString())
-          .add("State", mState.toString())
-          .toString();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (!(o instanceof PagedDoraWorkerServiceEntity)) {
-        return false;
-      }
-      PagedDoraWorkerServiceEntity anotherO = (PagedDoraWorkerServiceEntity)o;
-      return mAddress.equals(anotherO) &&
-          getServiceEntityName().equals(anotherO.getServiceEntityName());
-    }
-
-    @Override
-    public void serialize(DataOutput out) throws IOException {
-      super.serialize(out);
-      out.writeInt(mState.ordinal());
-      out.writeUTF(mAddress.getHost());
-      out.writeInt(mAddress.getRpcPort());
-    }
-
-    @Override
-    public void deserialize(DataInput in) throws IOException {
-      super.deserialize(in);
-      mState = State.values()[in.readInt()];
-      mAddress = new WorkerNetAddress().setHost(in.readUTF())
-              .setRpcPort(in.readInt());
-    }
-  }
-
-  private static String sSystemInfoFilePath =  Configuration.getString(PropertyKey.HOME) + "/SystemInfo.db";
-
   /**
-   * Use etcd for registration and starting
+   * Register to join to the distributed membership.
    * @throws IOException
    */
-  private void registerNew() throws IOException {
-    // create my service entity for servicediscovery
-    java.io.File file = new java.io.File(sSystemInfoFilePath);
-//    WorkerSystemInfo sysInfo = new WorkerSystemInfo();
-//    if (file.exists()) {
-//      FileInputStream fis = new FileInputStream(file);
-//      sysInfo = WorkerSystemInfo.deserialize(fis);
-//    }
-//    // new cluster deployment
-//    if (!sysInfo.mAuthed) {
-//
-//    }
-//    else {
-//      EtcdClient.ServiceDiscoveryRecipe sd = new EtcdClient.ServiceDiscoveryRecipe(new EtcdClient(),
-//          sysInfo.mClusterId, 2L);
-//      sd.registerService(new EtcdClient.ServiceEntityContext());
-    }
-
   private void register() throws IOException {
     Preconditions.checkState(mAddress != null, "worker not started");
     RetryPolicy retry = RetryUtils.defaultWorkerMasterClientRetry();
     while (true) {
-      try (PooledResource<BlockMasterClient> bmc = mBlockMasterClientPool.acquireCloseable()) {
-        mWorkerId.set(bmc.get().getId(mAddress));
-        StorageTierAssoc storageTierAssoc =
-            new DefaultStorageTierAssoc(ImmutableList.of(Constants.MEDIUM_MEM));
-        bmc.get().register(
-            mWorkerId.get(),
-            storageTierAssoc.getOrderedStorageAliases(),
-            ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.GB),
-            ImmutableMap.of(Constants.MEDIUM_MEM, 0L),
-            ImmutableMap.of(),
-            ImmutableMap.of(),
-            Configuration.getConfiguration(Scope.WORKER));
-        LOG.info("Worker registered with worker ID: {}", mWorkerId.get());
-
-        break;
+      try {
+        mMembershipManager.joinMembership(mAddress);
+        mWorkerId.set(CommonUtils.hashAsLong(mAddress.dumpMainInfo()));
       } catch (IOException ioe) {
         if (!retry.attempt()) {
           throw ioe;
@@ -342,6 +250,36 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       }
     }
   }
+
+  private void decommission() {
+
+  }
+
+//  private void register() throws IOException {
+//    Preconditions.checkState(mAddress != null, "worker not started");
+//    RetryPolicy retry = RetryUtils.defaultWorkerMasterClientRetry();
+//    while (true) {
+//      try (PooledResource<BlockMasterClient> bmc = mBlockMasterClientPool.acquireCloseable()) {
+//        mWorkerId.set(bmc.get().getId(mAddress));
+//        StorageTierAssoc storageTierAssoc =
+//            new DefaultStorageTierAssoc(ImmutableList.of(Constants.MEDIUM_MEM));
+//        bmc.get().register(
+//            mWorkerId.get(),
+//            storageTierAssoc.getOrderedStorageAliases(),
+//            ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.GB),
+//            ImmutableMap.of(Constants.MEDIUM_MEM, 0L),
+//            ImmutableMap.of(),
+//            ImmutableMap.of(),
+//            Configuration.getConfiguration(Scope.WORKER));
+//        LOG.info("Worker registered with worker ID: {}", mWorkerId.get());
+//        break;
+//      } catch (IOException ioe) {
+//        if (!retry.attempt()) {
+//          throw ioe;
+//        }
+//      }
+//    }
+//  }
 
   @Override
   public void stop() throws IOException {

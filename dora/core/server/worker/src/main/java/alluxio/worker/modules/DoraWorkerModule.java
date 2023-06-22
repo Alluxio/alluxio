@@ -31,6 +31,7 @@ import alluxio.worker.http.HttpServer;
 import alluxio.worker.http.HttpServerInitializer;
 import alluxio.worker.http.PagedService;
 
+import alluxio.worker.membership.MembershipManager;
 import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
 import com.google.inject.TypeLiteral;
@@ -68,6 +69,14 @@ public class DoraWorkerModule extends AbstractModule {
         try {
           return CacheManager.Factory.create(Configuration.global(),
               cacheManagerOptions, pageMetaStore);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }).in(Scopes.SINGLETON);
+      bind(MembershipManager.class).toProvider(() ->
+      {
+        try {
+          return MembershipManager.Factory.create(Configuration.global());
         } catch (IOException e) {
           throw new RuntimeException(e);
         }

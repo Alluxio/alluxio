@@ -964,5 +964,9 @@ public final class CommonUtils {
     return HASH_FUNCTION.hashString(object, UTF_8).toString();
   }
 
+  public static long hashAsLong(String object) {
+    return HASH_FUNCTION.hashString(object, UTF_8).padToLong();
+  }
+
   private CommonUtils() {} // prevent instantiation
 }

@@ -5516,6 +5516,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .setDefaultValue(MembershipType.ETCD)
           .build();
+  public static final PropertyKey WORKER_MEMBER_STATIC_LIST =
+      listBuilder(Name.WORKER_MEMBER_STATIC_LIST)
+          .setDescription("A list of comma-separated host:port RPC addresses for STATIC"
+              + " type of worker members. " + WORKER_MEMBERSHIP_TYPE + " needs to be set"
+              + " to STATIC first.")
+          .setScope(Scope.ALL)
+          .build();
+
 
   //
   // Proxy related properties
@@ -7638,6 +7646,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("/alluxio/job_leader").build();
 
   //
+  // Membership related properties
+  //
+  public static final PropertyKey ALLUXIO_CLUSTER_NAME =
+      stringBuilder(Name.ALLUXIO_CLUSTER_NAME)
+          .setDefaultValue("DefaultAlluxioCluster").build();
+  public static final PropertyKey ETCD_ENDPOINTS =
+      listBuilder(Name.ETCD_ENDPOINTS)
+          .setDescription(format("A list of comma-separated http://host:port RPC addresses where "
+                  + "the client should look for job masters when using multiple job masters "
+                  + "without Zookeeper. This property is not used "
+                  + "when Zookeeper is enabled, since Zookeeper already stores the job master "
+                  + "addresses. If property is not defined, clients will look for job masters "
+                  + "using [%s]:%s first, then for [%s]:%s.",
+              Name.MASTER_RPC_ADDRESSES, Name.JOB_MASTER_RPC_PORT,
+              Name.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES, Name.JOB_MASTER_RPC_PORT))
+          .setScope(Scope.ALL)
+          .build();
+
+  //
   // JVM Monitor related properties
   //
   public static final PropertyKey JVM_MONITOR_WARN_THRESHOLD_MS =
@@ -9004,7 +9031,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_UFS_INSTREAM_CACHE_MAX_SIZE =
         "alluxio.worker.ufs.instream.cache.max.size";
     public static final String WORKER_WHITELIST = "alluxio.worker.whitelist";
-    public static final String WORKER_MEMBERSHIP_TYPE = "alluxio.worker.membership.type"
+    public static final String WORKER_MEMBERSHIP_TYPE = "alluxio.worker.membership.type";
+    public static final String WORKER_MEMBER_STATIC_LIST = "alluxio.worker.members";
 
     //
     // Proxy related properties
@@ -9491,6 +9519,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     public static final String ZOOKEEPER_JOB_ELECTION_PATH = "alluxio.zookeeper.job.election.path";
     public static final String ZOOKEEPER_JOB_LEADER_PATH = "alluxio.zookeeper.job.leader.path";
+
+    // Membership related properties
+    public static final String ALLUXIO_CLUSTER_NAME = "alluxio.cluster.name";
 
     //
     // JVM Monitor related properties
