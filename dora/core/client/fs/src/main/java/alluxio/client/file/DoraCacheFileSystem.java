@@ -257,8 +257,12 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   @Override
   public FileOutStream createFile(AlluxioURI alluxioPath, CreateFilePOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
-    AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(alluxioPath);
+    if (!(mDelegatedFileSystem instanceof UfsBaseFileSystem)) {
+      throw new UnsupportedOperationException(
+          "Dora does not support `createFile` without direct access to the UFS");
+    }
 
+    AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(alluxioPath);
     try {
       CreateFilePOptions mergedOptions = FileSystemOptionsUtils.createFileDefaults(
           mFsContext.getPathConf(alluxioPath)).toBuilder().mergeFrom(options).build();
@@ -370,6 +374,11 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   @Override
   public boolean exists(AlluxioURI path, ExistsPOptions options)
       throws InvalidPathException, IOException, AlluxioException {
+    if (!(mDelegatedFileSystem instanceof UfsBaseFileSystem)) {
+      throw new UnsupportedOperationException(
+          "Dora does not support `exists` without direct access to the UFS");
+    }
+
     AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
 
     return mDelegatedFileSystem.exists(ufsFullPath, options);
@@ -378,6 +387,11 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   @Override
   public void setAttribute(AlluxioURI path, SetAttributePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
+    if (!(mDelegatedFileSystem instanceof UfsBaseFileSystem)) {
+      throw new UnsupportedOperationException(
+          "Dora does not support `setAttribute` without direct access to the UFS");
+    }
+
     AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
     LOG.warn("Dora Client does not support create/write. This is only for test.");
 
