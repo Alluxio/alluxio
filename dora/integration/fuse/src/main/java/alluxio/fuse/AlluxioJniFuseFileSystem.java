@@ -354,7 +354,12 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(ID_INDEX, fd);
     if (entry == null) {
       LOG.error("Failed to flush {}: Cannot find fd {}", path, fd);
-      return -ErrorCodes.EBADFD();
+      entry = mFileEntries.getFirstByField(PATH_INDEX, path);
+      if (entry == null) {
+        LOG.error("Failed to flush {}: Cannot find path", path);
+        // Do not error out for flush since flush is a noop for now
+        return 0;
+      }
     }
     entry.getFileStream().flush();
     return 0;
