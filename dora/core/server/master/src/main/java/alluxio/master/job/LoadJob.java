@@ -31,7 +31,6 @@ import alluxio.job.JobDescription;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal;
-import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobState;
 import alluxio.scheduler.job.Task;
 import alluxio.util.FormatUtils;
@@ -506,16 +505,6 @@ public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
       // We don't count InterruptedException as task failure
       return true;
     }
-  }
-
-  @Override
-  public void updateJob(Job<?> job) {
-    if (!(job instanceof LoadJob)) {
-      throw new IllegalArgumentException("Job is not a LoadJob: " + job);
-    }
-    LoadJob targetJob = (LoadJob) job;
-    updateBandwidth(targetJob.getBandwidth());
-    setVerificationEnabled(targetJob.isVerificationEnabled());
   }
 
   @Override

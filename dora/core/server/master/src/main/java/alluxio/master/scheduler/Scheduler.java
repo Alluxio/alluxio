@@ -341,8 +341,14 @@ public final class Scheduler {
    */
   public synchronized boolean submitJob(Job<?> job) {
     Job<?> existingJob = mExistingJobs.get(job.getDescription());
-    if (existingJob != null && !existingJob.isDone() && mJobToRunningTasks.containsKey(job)) {
-      updateExistingJob(job, existingJob);
+
+    if (existingJob != null && !existingJob.isDone() ) {
+      if (existingJob.getJobState() == JobState.STOPPED) {
+      existingJob.setJobState(JobState.RUNNING, false);
+      mJobToRunningTasks.compute(existingJob, (k, v) -> new ConcurrentHashSet<>());
+      LOG.debug(format("restart existing job: %s", existingJob));
+      mJobMetaStore.updateJob(existingJob);
+    }
       return false;
     }
 
@@ -350,23 +356,17 @@ public final class Scheduler {
       throw new ResourceExhaustedRuntimeException(
           "Too many jobs running, please submit later.", true);
     }
+    ConcurrentHashSet<Task<?>> result =
+        mJobToRunningTasks.putIfAbsent(job, new ConcurrentHashSet<>());
+    if (result != null) {
+      LOG.warn("There's concurrent submit while job is still in cleaning state");
+      return false;
+    }
     mJobMetaStore.updateJob(job);
     mExistingJobs.put(job.getDescription(), job);
     job.initializeJob();
-    mJobToRunningTasks.putIfAbsent(job, new ConcurrentHashSet<>());
     LOG.info(format("start job: %s", job));
     return true;
-  }
-
-  private void updateExistingJob(Job<?> newJob, Job<?> existingJob) {
-    existingJob.updateJob(newJob);
-    mJobMetaStore.updateJob(existingJob);
-    LOG.debug(format("updated existing job: %s from %s", existingJob, newJob));
-    if (existingJob.getJobState() == JobState.STOPPED) {
-      existingJob.setJobState(JobState.RUNNING, false);
-      mJobToRunningTasks.compute(existingJob, (k, v) -> new ConcurrentHashSet<>());
-      LOG.debug(format("restart existing job: %s", existingJob));
-    }
   }
 
   /**
