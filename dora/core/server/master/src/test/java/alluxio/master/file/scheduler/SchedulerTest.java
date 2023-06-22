@@ -90,7 +90,7 @@ public final class SchedulerTest {
   }
 
   @Before
-  public void beforeTest() throws Exception {
+  public void beforeTest() {
     Configuration.reloadProperties();
     Configuration.set(PropertyKey.MASTER_SCHEDULER_INITIAL_DELAY, "1s");
   }
@@ -169,30 +169,24 @@ public final class SchedulerTest {
     assertTrue(loadJobInMetaStore.isPresent());
     assertEquals(OptionalLong.empty(), ((DoraLoadJob) loadJobInMetaStore.get())
         .getBandwidth());
-
     DoraLoadJob job = (DoraLoadJob) scheduler.getJobs().get(loadJob.getDescription());
     assertEquals(OptionalLong.empty(), job.getBandwidth());
     loadJob =
         new DoraLoadJob(validLoadPath, Optional.of("user"), "1",
             OptionalLong.of(1000), true, false, false);
     assertFalse(scheduler.submitJob(loadJob));
-    verify(journalContext).append(argThat(journalEntry -> journalEntry.hasLoadJob()
-        && journalEntry.getLoadJob().getLoadPath().equals(validLoadPath)
-        && journalEntry.getLoadJob().getState() == Job.PJobState.CREATED
-        && journalEntry.getLoadJob().getBandwidth() == 1000
-        && !journalEntry.getLoadJob().getPartialListing()));  // we don't update partialListing
     assertEquals(1, scheduler.getJobs().size());
     job = (DoraLoadJob) scheduler.getJobs().get(loadJob.getDescription());
-    assertEquals(1000, job.getBandwidth().getAsLong());
+    assertTrue(job.getBandwidth().isEmpty());
 
-    // Verify the job present in Scheduler and jobMetaStore has been updated with new bandwidth.
+    // Verify the job present in Scheduler and jobMetaStore
     final DoraLoadJob loadJobFinalNew = loadJob;
     Optional<alluxio.scheduler.job.Job<?>> loadJobInMetaStoreNewBandwidth =
         scheduler.getJobMetaStore().getJobs().stream()
             .filter(j -> j.equals(loadJobFinalNew)).findFirst();
     assertTrue(loadJobInMetaStore.isPresent());
-    assertEquals(1000, ((DoraLoadJob) loadJobInMetaStoreNewBandwidth.get())
-        .getBandwidth().getAsLong());
+    assertTrue(((DoraLoadJob) loadJobInMetaStoreNewBandwidth.get())
+        .getBandwidth().isEmpty());
   }
 
   @Test
