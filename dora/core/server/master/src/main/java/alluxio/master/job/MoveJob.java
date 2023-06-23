@@ -35,7 +35,6 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Job.FileFilter;
 import alluxio.proto.journal.Journal;
-import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobState;
 import alluxio.scheduler.job.Task;
 import alluxio.util.FormatUtils;
@@ -509,16 +508,6 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
       // We don't count InterruptedException as task failure
       return true;
     }
-  }
-
-  @Override
-  public void updateJob(Job<?> job) {
-    if (!(job instanceof MoveJob)) {
-      throw new IllegalArgumentException("Job is not a MoveJob: " + job);
-    }
-    MoveJob targetJob = (MoveJob) job;
-    updateBandwidth(targetJob.getBandwidth());
-    setVerificationEnabled(targetJob.isVerificationEnabled());
   }
 
   @Override

@@ -267,11 +267,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       if (jobId.isPresent()) {
         System.out.printf("Load '%s' is successfully submitted. JobId: %s%n", path, jobId.get());
       } else {
-        System.out.printf("Load already running for path '%s', updated the job with "
-                + "new bandwidth: %s, verify: %s%n",
-            path,
-            bandwidth.isPresent() ? String.valueOf(bandwidth.getAsLong()) : "unlimited",
-            verify);
+        System.out.printf("Load already running for path '%s' %n", path);
       }
       return 0;
     } catch (StatusRuntimeException e) {
