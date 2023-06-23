@@ -561,6 +561,35 @@ public final class SchedulerTest {
     Configuration.modifiableGlobal().unset(PropertyKey.JOB_RETENTION_TIME);
   }
 
+  // test scheduler start and stop and start again with job meta store change
+  @Test
+  public void testStopScheduler() {
+    String path = "/path/to/load";
+    DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
+    FileSystemContext fileSystemContext = mock(FileSystemContext.class);
+    DefaultWorkerProvider workerProvider =
+        new DefaultWorkerProvider(fsMaster, fileSystemContext);
+    InMemoryJobMetaStore metaStore = new InMemoryJobMetaStore();
+    Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider, metaStore);
+    DoraLoadJob job =
+        new DoraLoadJob(path, Optional.of("user"), "5", OptionalLong.of(100),
+            false, true, false);
+    scheduler.start();
+    scheduler.submitJob(job);
+    assertEquals(1, scheduler.getJobs().size());
+    scheduler.stop();
+    assertEquals(0, scheduler.getJobs().size());
+    assertEquals(1, metaStore.getJobs().size());
+    DoraLoadJob job2 =
+        new DoraLoadJob("new", Optional.of("user"), "6", OptionalLong.of(100),
+            false, true, false);
+    metaStore.updateJob(job2);
+    assertEquals(0, scheduler.getJobs().size());
+    assertEquals(2, metaStore.getJobs().size());
+    scheduler.start();
+    assertEquals(2, scheduler.getJobs().size());
+  }
+
   private class InMemoryJobMetaStore implements JobMetaStore {
     private final Map<String, alluxio.scheduler.job.Job<?>> mExistingJobs = new ConcurrentHashMap();
 
