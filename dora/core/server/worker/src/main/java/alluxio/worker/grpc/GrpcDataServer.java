@@ -133,8 +133,8 @@ public class GrpcDataServer implements DataServer {
   protected GrpcServerBuilder createServerBuilder(String hostName,
       SocketAddress bindAddress, ChannelType type) {
     // Create an executor for Worker RPC server.
-    final Counter clientCounter = MetricsSystem.counter(MetricKey.WORKER_ACTIVE_OPERATIONS.getName());
-//            DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS;
+    final Counter clientCounter =
+        MetricsSystem.counter(MetricKey.WORKER_ACTIVE_OPERATIONS.getName());
     mRPCExecutor = ExecutorServiceBuilder.buildExecutorService(
             ExecutorServiceBuilder.RpcExecutorHost.WORKER, clientCounter);
     MetricsSystem.registerGaugeIfAbsent(MetricKey.WORKER_RPC_QUEUE_LENGTH.getName(),
