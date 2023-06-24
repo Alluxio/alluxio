@@ -110,6 +110,8 @@ public final class ProxyWebServer extends WebServer {
         (long) Configuration.getInt(PropertyKey.PROXY_S3_GLOBAL_READ_RATE_LIMIT_MB) * Constants.MB;
     mGlobalRateLimiter = S3RestUtils.createRateLimiter(rate).orElse(null);
 
+    // As we can determine whether enable the audit log through update the config,
+    // So we need this audit log writer thread all the time.
     mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("PROXY_AUDIT_LOG");
     mAsyncAuditLogWriter.start();
     MetricsSystem.registerGaugeIfAbsent(
