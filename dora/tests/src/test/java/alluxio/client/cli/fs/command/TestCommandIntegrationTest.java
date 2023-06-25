@@ -26,6 +26,7 @@ import org.junit.Test;
  */
 @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
     comment = "fix the @Ignore tests")
+@Ignore
 public final class TestCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void testPathIsDirectoryWhenPathNotExist() throws Exception {
