@@ -21,18 +21,14 @@ import static io.netty.handler.codec.http.HttpHeaderValues.TEXT_PLAIN;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 
 import alluxio.AlluxioURI;
-import alluxio.client.file.DoraCacheFileSystem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.dora.DoraCacheClient;
-import alluxio.client.file.dora.WorkerLocationPolicy;
 import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.status.PermissionDeniedException;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.util.FileSystemOptionsUtils;
+
 import com.google.gson.Gson;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
