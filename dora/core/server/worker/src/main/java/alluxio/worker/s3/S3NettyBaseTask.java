@@ -11,8 +11,6 @@
 
 package alluxio.worker.s3;
 
-import io.netty.handler.codec.http.HttpResponse;
-
 /**
  * S3 Abstract Base task for handling S3 API logic in netty server.
  */
@@ -20,6 +18,11 @@ public abstract class S3NettyBaseTask {
   protected S3NettyHandler mHandler;
   protected OpType mOPType;
 
+  /**
+   * Creates an instance of {@link S3NettyBaseTask}.
+   * @param handler S3NettyHandler
+   * @param OPType op type
+   */
   public S3NettyBaseTask(S3NettyHandler handler, OpType OPType) {
     mHandler = handler;
     mOPType = OPType;
@@ -36,8 +39,6 @@ public abstract class S3NettyBaseTask {
 
   /**
    * Run core S3 API logic from different S3 task.
-   *
-   * @return Response object containing common HTTP response properties
    */
   public abstract void continueTask();
 

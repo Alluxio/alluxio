@@ -184,19 +184,6 @@ public class S3ErrorResponse {
     }
   }
 
-  public static FullHttpResponse convertToFullHttpResponse(Response.Status status, String content) {
-    // 创建 DefaultFullHttpResponse 对象
-    FullHttpResponse httpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,
-        HttpResponseStatus.valueOf(status.getStatusCode()),
-        Unpooled.wrappedBuffer(content.getBytes()));
-
-    // 设置 Content-Type 和 Content-Length 头部
-    httpResponse.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain");
-    httpResponse.headers().set(HttpHeaderNames.CONTENT_LENGTH, httpResponse.content().readableBytes());
-
-    return httpResponse;
-  }
-
   /**
    * Creates an error response using the given exception.
    *

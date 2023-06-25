@@ -12,6 +12,7 @@
 package alluxio.proxy.s3;
 
 import alluxio.s3.S3ErrorResponse;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

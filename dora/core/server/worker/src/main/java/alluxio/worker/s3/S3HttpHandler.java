@@ -11,22 +11,23 @@
 
 package alluxio.worker.s3;
 
-import static io.netty.handler.codec.http.HttpHeaderNames.CONNECTION;
-import static io.netty.handler.codec.http.HttpHeaderValues.KEEP_ALIVE;
-import static org.eclipse.jetty.http.HttpHeaderValue.CLOSE;
 import alluxio.client.file.FileSystem;
+import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.s3.S3ErrorResponse;
 import alluxio.worker.dora.DoraWorker;
+
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.HttpUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Handles S3 HTTP request.
+ */
 public class S3HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
   private static final Logger LOG = LoggerFactory.getLogger(S3HttpHandler.class);
 
@@ -34,9 +35,19 @@ public class S3HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
 
   private final DoraWorker mDoraWorker;
 
-  public S3HttpHandler(FileSystem fileSystem, DoraWorker doraWorker) {
+  private final AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
+
+  /**
+   * Constructs an instance of {@link S3HttpHandler}.
+   * @param fileSystem
+   * @param doraWorker
+   * @param asyncAuditLogWriter
+   */
+  public S3HttpHandler(FileSystem fileSystem, DoraWorker doraWorker,
+                       AsyncUserAccessAuditLogWriter asyncAuditLogWriter) {
     mFileSystem = fileSystem;
     mDoraWorker = doraWorker;
+    mAsyncAuditLogWriter = asyncAuditLogWriter;
   }
 
   //  private final PagedService mPagedService;
@@ -46,10 +57,12 @@ public class S3HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
   }
 
   @Override
-  protected void channelRead0(ChannelHandlerContext context, FullHttpRequest request) throws Exception {
+  protected void channelRead0(ChannelHandlerContext context, FullHttpRequest request)
+      throws Exception {
     try {
       S3NettyHandler s3Handler =
-          S3NettyHandler.createHandler(context, request, mFileSystem, mDoraWorker);
+          S3NettyHandler.createHandler(context, request, mFileSystem, mDoraWorker,
+              mAsyncAuditLogWriter);
       s3Handler.getS3Task().continueTask();
     } catch (Exception ex) {
       HttpResponse errorResponse = S3ErrorResponse.createNettyErrorResponse(ex, request.uri());

@@ -20,9 +20,9 @@ import static alluxio.s3.S3Constants.S3_SIGN_SIGNATURE;
 import static alluxio.s3.S3Constants.S3_SIGN_SIGNED_HEADER;
 import static alluxio.s3.S3Constants.TIME_FORMATTER;
 
-import alluxio.s3.S3Exception;
 import alluxio.proxy.s3.signature.AwsCredential;
 import alluxio.proxy.s3.signature.SignatureInfo;
+import alluxio.s3.S3Exception;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;

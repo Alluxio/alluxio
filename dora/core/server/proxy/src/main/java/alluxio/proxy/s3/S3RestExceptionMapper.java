@@ -12,6 +12,7 @@
 package alluxio.proxy.s3;
 
 import alluxio.s3.S3ErrorResponse;
+
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;

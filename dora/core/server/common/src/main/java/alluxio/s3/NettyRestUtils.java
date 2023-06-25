@@ -14,23 +14,25 @@ package alluxio.s3;
 import static io.netty.handler.codec.http.HttpResponseStatus.ACCEPTED;
 import static io.netty.handler.codec.http.HttpResponseStatus.NO_CONTENT;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
+
 import alluxio.client.file.URIStatus;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.security.authentication.AuthType;
 import alluxio.util.ThreadUtils;
 import alluxio.wire.FileInfo;
-import javax.annotation.Nonnull;
-import javax.ws.rs.core.MediaType;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.Map;
-import java.util.regex.Pattern;
+
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.google.common.annotations.VisibleForTesting;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
@@ -42,9 +44,27 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Map;
+import java.util.regex.Pattern;
+import javax.annotation.Nonnull;
+import javax.ws.rs.core.MediaType;
+
+/**
+ * Utilities for handling S3 REST calls.
+ */
 public class NettyRestUtils {
   private static final Logger LOG = LoggerFactory.getLogger(NettyRestUtils.class);
 
+  /**
+   * Calls the given {@link NettyRestUtils.RestCallable} and handles any exceptions thrown.
+   *
+   * @param <T> the return type of the callable
+   * @param resource the resource (bucket or object) to be operated on
+   * @param callable the callable to call
+   * @return the response object
+   */
   public static <T> HttpResponse call(String resource, RestCallable<T> callable) {
     try {
       T result = callable.call();
@@ -62,8 +82,8 @@ public class NettyRestUtils {
         } else if (NO_CONTENT.equals(result)) {
           return new DefaultFullHttpResponse(version, NO_CONTENT);
         } else {
-            return S3ErrorResponse.createNettyErrorResponse(new S3Exception(
-                "Response status is invalid", resource, S3ErrorCode.INTERNAL_ERROR), resource);
+          return S3ErrorResponse.createNettyErrorResponse(new S3Exception(
+              "Response status is invalid", resource, S3ErrorCode.INTERNAL_ERROR), resource);
         }
       }
       // Need to explicitly encode the string as XML because Jackson will not do it automatically.
@@ -152,7 +172,7 @@ public class NettyRestUtils {
       return e;
     } catch (DirectoryNotEmptyException e) {
       return new S3Exception(e, resource, S3ErrorCode.PRECONDITION_FAILED);
-    } catch (FileDoesNotExistException|FileNotFoundException e) {
+    } catch (FileDoesNotExistException | FileNotFoundException e) {
       if (Pattern.matches(ExceptionMessage.BUCKET_DOES_NOT_EXIST.getMessage(".*"),
           e.getMessage())) {
         return new S3Exception(e, resource, S3ErrorCode.NO_SUCH_BUCKET);
@@ -195,5 +215,79 @@ public class NettyRestUtils {
       return null;
     }
     return TaggingData.deserialize(xAttr.get(S3Constants.TAGGING_XATTR_KEY));
+  }
+
+  /**
+   * Get username from header info from FullHttpRequest.
+   *
+//   * @param authorization
+   * @param request FullHttpRequest
+   * @return user name
+   * @throws S3Exception
+   */
+  public static String getUser(FullHttpRequest request)
+      throws S3Exception {
+    String authorization = request.headers().get("Authorization");
+    //TODO(wyy) support AwsSignatureProcessor
+//    if (S3RestUtils.isAuthenticationEnabled(Configuration.global())) {
+//      return getUserFromSignature(request);
+//    }
+    try {
+      return getUserFromAuthorization(authorization, Configuration.global());
+    } catch (RuntimeException e) {
+      throw new S3Exception(new S3ErrorCode(S3ErrorCode.INTERNAL_ERROR.getCode(),
+          e.getMessage(), S3ErrorCode.INTERNAL_ERROR.getStatus()));
+    }
+  }
+
+  /**
+   * Gets the user from the authorization header string for AWS Signature Version 4.
+   * @param authorization the authorization header string
+   * @param conf the {@link AlluxioConfiguration} Alluxio conf
+   * @return the user
+   */
+  @VisibleForTesting
+  public static String getUserFromAuthorization(String authorization, AlluxioConfiguration conf)
+      throws S3Exception {
+    if (conf.get(PropertyKey.SECURITY_AUTHENTICATION_TYPE) == AuthType.NOSASL) {
+      return null;
+    }
+    if (authorization == null) {
+      throw new S3Exception("The authorization header that you provided is not valid.",
+          S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
+    }
+
+    // Parse the authorization header defined at
+    // https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html
+    // All other authorization types are deprecated or EOL (as of writing)
+    // Example Header value (spaces turned to line breaks):
+    // AWS4-HMAC-SHA256
+    // Credential=AKIAIOSFODNN7EXAMPLE/20130524/us-east-1/s3/aws4_request,
+    // SignedHeaders=host;range;x-amz-date,
+    // Signature=fe5f80f77d5fa3beca038a248ff027d0445342fe2855ddc963176630326f1024
+
+    // We only care about the credential key, so split the header by " " and then take everything
+    // after the "=" and before the first "/"
+    String[] fields = authorization.split(" ");
+    if (fields.length < 2) {
+      throw new S3Exception("The authorization header that you provided is not valid.",
+          S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
+    }
+    String credentials = fields[1];
+    String[] creds = credentials.split("=");
+    // only support version 4 signature
+    if (creds.length < 2 || !StringUtils.equals("Credential", creds[0])
+        || !creds[1].contains("/")) {
+      throw new S3Exception("The authorization header that you provided is not valid.",
+          S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
+    }
+
+    final String user = creds[1].substring(0, creds[1].indexOf("/")).trim();
+    if (user.isEmpty()) {
+      throw new S3Exception("The authorization header that you provided is not valid.",
+          S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
+    }
+
+    return user;
   }
 }

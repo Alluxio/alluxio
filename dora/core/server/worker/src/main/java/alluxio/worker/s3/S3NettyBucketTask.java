@@ -11,5 +11,26 @@
 
 package alluxio.worker.s3;
 
-public class S3NettyBucketTask {
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * S3 Netty Tasks to handle bucket level or global level request.
+ * (only bucket name or no bucket name is provided)
+ */
+public class S3NettyBucketTask extends S3NettyBaseTask {
+  private static final Logger LOG = LoggerFactory.getLogger(S3NettyBucketTask.class);
+
+  /**
+   * Constructs an instance of {@link S3NettyBucketTask}.
+   * @param handler
+   * @param OPType
+   */
+  protected S3NettyBucketTask(S3NettyHandler handler, OpType OPType) {
+    super(handler, OPType);
+  }
+
+  @Override
+  public void continueTask() {
+  }
 }

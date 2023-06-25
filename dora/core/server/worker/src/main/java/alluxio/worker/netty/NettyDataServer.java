@@ -118,8 +118,8 @@ public class NettyDataServer implements DataServer {
 
     boolean completed;
     completed =
-        mChannelFuture.channel().close().awaitUninterruptibly(mTimeoutMs) &&
-            mHttpChannelFuture.channel().close().awaitUninterruptibly(mTimeoutMs);;
+        mChannelFuture.channel().close().awaitUninterruptibly(mTimeoutMs)
+            && mHttpChannelFuture.channel().close().awaitUninterruptibly(mTimeoutMs);
     if (!completed) {
       LOG.warn("Closing the channel timed out.");
     }

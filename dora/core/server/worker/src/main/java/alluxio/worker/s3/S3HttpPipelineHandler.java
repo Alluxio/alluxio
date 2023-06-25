@@ -12,7 +12,9 @@
 package alluxio.worker.s3;
 
 import alluxio.client.file.FileSystem;
+import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.worker.dora.DoraWorker;
+
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -22,10 +24,19 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.HttpServerExpectContinueHandler;
 
+/**
+ * Adds the http server's pipeline into the channel.
+ */
 public class S3HttpPipelineHandler extends ChannelInitializer<SocketChannel> {
   private FileSystem mFileSystem;
   private DoraWorker mDoraWorker;
+  private AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
 
+  /**
+   * Constructs an instance of {@link S3HttpPipelineHandler}.
+   * @param fileSystem AlluxioFileSystem
+   * @param doraWorker dora worker
+   */
   public S3HttpPipelineHandler(FileSystem fileSystem, DoraWorker doraWorker) {
     mFileSystem = fileSystem;
     mDoraWorker = doraWorker;
@@ -38,6 +49,6 @@ public class S3HttpPipelineHandler extends ChannelInitializer<SocketChannel> {
     pipeline.addLast(new HttpContentCompressor((CompressionOptions[]) null));
     pipeline.addLast(new HttpObjectAggregator(512 * 1024));
     pipeline.addLast(new HttpServerExpectContinueHandler());
-    pipeline.addLast(new S3HttpHandler(mFileSystem, mDoraWorker));
+    pipeline.addLast(new S3HttpHandler(mFileSystem, mDoraWorker, mAsyncAuditLogWriter));
   }
 }

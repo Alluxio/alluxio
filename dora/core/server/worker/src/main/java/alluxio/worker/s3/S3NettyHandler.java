@@ -14,12 +14,21 @@ package alluxio.worker.s3;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONNECTION;
 import static io.netty.handler.codec.http.HttpHeaderValues.KEEP_ALIVE;
 import static org.eclipse.jetty.http.HttpHeaderValue.CLOSE;
+
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.AccessControlException;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.network.netty.FileTransferType;
+import alluxio.network.protocol.databuffer.CompositeDataBuffer;
+import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.network.protocol.databuffer.DataFileChannel;
+import alluxio.network.protocol.databuffer.NettyDataBuffer;
+import alluxio.network.protocol.databuffer.NioDataBuffer;
+import alluxio.proto.dataserver.Protocol;
+import alluxio.s3.NettyRestUtils;
 import alluxio.s3.S3AuditContext;
 import alluxio.s3.S3Constants;
 import alluxio.s3.S3ErrorCode;
@@ -27,11 +36,25 @@ import alluxio.s3.S3Exception;
 import alluxio.security.User;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadUtils;
+import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.dora.DoraWorker;
-import javax.annotation.Nullable;
-import javax.security.auth.Subject;
+
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.FileRegion;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpUtil;
+import io.netty.handler.codec.http.LastHttpContent;
+import io.netty.handler.codec.http.QueryStringDecoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.URLDecoder;
+import java.nio.channels.FileChannel;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,17 +64,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.HttpUtil;
-import io.netty.handler.codec.http.LastHttpContent;
-import io.netty.handler.codec.http.QueryStringDecoder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.annotation.Nullable;
+import javax.security.auth.Subject;
 
+/**
+ * S3 Netty Handler - handle http requests from S3 API in Netty.
+ */
 public class S3NettyHandler {
   private static final Logger LOG = LoggerFactory.getLogger(S3NettyHandler.class);
   private String mUser;
@@ -68,6 +86,7 @@ public class S3NettyHandler {
 
   public static final Pattern BUCKET_PATH_PATTERN = Pattern.compile("^" + "/[^/]*$");
   public static final Pattern OBJECT_PATH_PATTERN = Pattern.compile("^" + "/[^/]*/.*$");
+  private static final int PACKET_LENGTH = 8 * 1024;
   String[] mUnsupportedSubResources = {"acl", "policy", "versioning", "cors",
       "encryption", "intelligent-tiering", "inventory", "lifecycle",
       "metrics", "ownershipControls", "replication", "website", "accelerate",
@@ -77,9 +96,20 @@ public class S3NettyHandler {
   Set<String> mUnsupportedSubResourcesSet = new HashSet<>(Arrays.asList(mUnsupportedSubResources));
   Map<String, String> mAmzHeaderMap = new HashMap<>();
 
+  /**
+   * Constructs an instance of {@link S3NettyHandler}.
+   * @param bucket
+   * @param object
+   * @param request
+   * @param ctx
+   * @param fileSystem
+   * @param doraWorker
+   * @param asyncAuditLogWriter
+   */
   public S3NettyHandler(String bucket, String object, FullHttpRequest request,
                         ChannelHandlerContext ctx, FileSystem fileSystem,
-                        DoraWorker doraWorker) {
+                        DoraWorker doraWorker,
+                        AsyncUserAccessAuditLogWriter asyncAuditLogWriter) {
     mBucket = bucket;
     mObject = object;
     mRequest = request;
@@ -88,7 +118,8 @@ public class S3NettyHandler {
     mDoraWorker = doraWorker;
     mQueryDecoder = new QueryStringDecoder(request.uri());
     mFileTransferType = Configuration
-        .getEnum(PropertyKey.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, FileTransferType .class);
+        .getEnum(PropertyKey.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, FileTransferType.class);
+    mAsyncAuditLogWriter = asyncAuditLogWriter;
   }
 
   /**
@@ -96,14 +127,16 @@ public class S3NettyHandler {
    * @param context
    * @param request
    * @param fileSystem
+   * @param doraWorker
+   * @param asyncAuditLogWriter
    * @return A S3Handler
    * @throws Exception
    *
    */
-  public static S3NettyHandler createHandler(ChannelHandlerContext context,
-                                             FullHttpRequest request,
-                                             FileSystem fileSystem,
-                                             DoraWorker doraWorker) throws Exception {
+  public static S3NettyHandler createHandler(ChannelHandlerContext context, FullHttpRequest request,
+                                             FileSystem fileSystem, DoraWorker doraWorker,
+                                             AsyncUserAccessAuditLogWriter asyncAuditLogWriter)
+      throws Exception {
     String path = request.uri();
     Matcher bucketMatcher = BUCKET_PATH_PATTERN.matcher(path);
     Matcher objectMatcher = OBJECT_PATH_PATTERN.matcher(path);
@@ -111,7 +144,6 @@ public class S3NettyHandler {
     String bucket = null;
     String object = null;
     S3NettyHandler handler = null;
-    boolean keepAlive = HttpUtil.isKeepAlive(request);
     try {
       if (bucketMatcher.matches()) {
         pathStr = path.substring(1);
@@ -123,12 +155,14 @@ public class S3NettyHandler {
         object = URLDecoder.decode(
             pathStr.substring(pathStr.indexOf(AlluxioURI.SEPARATOR) + 1), "UTF-8");
       }
-      handler = new S3NettyHandler(bucket, object, request, context, fileSystem, doraWorker);
+      handler = new S3NettyHandler(bucket, object, request, context, fileSystem, doraWorker,
+          asyncAuditLogWriter);
 //      handler.setStopwatch(stopwatch);
       handler.init();
       S3NettyBaseTask task = null;
       if (object != null && !object.isEmpty()) {
         task = S3NettyObjectTask.Factory.create(handler);
+        //TODO(wyy) bucket handler
 //      } else {
 //        task = S3NettyBucketTask.Factory.create(handler);
       }
@@ -146,29 +180,15 @@ public class S3NettyHandler {
    */
   public void init() throws Exception {
     // Do Authentication of the request.
-//    doAuthentication();
+    doAuthentication();
     // Extract x-amz- headers.
     extractAMZHeaders();
     // Reject unsupported subresources.
     rejectUnsupportedResources();
     // Init utils
-//    ServletContext context = getServletContext();
-//    mMetaFS = (FileSystem) context.getAttribute(ProxyWebServer.FILE_SYSTEM_SERVLET_RESOURCE_KEY);
-//    mAsyncAuditLogWriter = (AsyncUserAccessAuditLogWriter) context.getAttribute(
-//        ProxyWebServer.ALLUXIO_PROXY_AUDIT_LOG_WRITER_KEY);
-    // Initiate the S3 API metadata directories
-//    if (!mMetaFS.exists(new AlluxioURI(S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR))) {
-//      mMetaFS.createDirectory(new AlluxioURI(S3RestUtils.MULTIPART_UPLOADS_METADATA_DIR),
-//          CreateDirectoryPOptions.newBuilder()
-//              .setRecursive(true)
-//              .setMode(PMode.newBuilder()
-//                  .setOwnerBits(Bits.ALL).setGroupBits(Bits.ALL)
-//                  .setOtherBits(Bits.NONE)
-//                  .build())
-//              .setWriteType(S3RestUtils.getS3WriteType())
-//              .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
-//              .build());
-//    }
+
+    // TODO(wyy) init directories
+    // Initiate the S3 API MPU metadata directories
   }
 
   /**
@@ -197,23 +217,18 @@ public class S3NettyHandler {
     }
   }
 
-//  /**
-//   * Do S3 request authentication.
-//   * @throws Exception
-//   */
-//  public void doAuthentication() throws Exception {
-//    try {
-//      String authorization = mServletRequest.getHeader("Authorization");
-//      String user = S3RestUtils.getUser(authorization, mServletRequest);
-//      // replace the authorization header value to user
-//      LOG.debug("request origin Authorization Header is: {}, new user header is: {}",
-//          authorization, user);
-//      mUser = user;
-//    } catch (Exception e) {
-//      LOG.warn("exception happened in Authentication.");
-//      throw e;
-//    }
-//  }
+  /**
+   * Do S3 request authentication.
+   * @throws Exception
+   */
+  public void doAuthentication() throws Exception {
+    try {
+      mUser = NettyRestUtils.getUser(mRequest);
+    } catch (Exception e) {
+      LOG.warn("exception happened in Authentication.");
+      throw e;
+    }
+  }
 
   /**
    * Creates a {@link S3AuditContext} instance.
@@ -247,10 +262,11 @@ public class S3NettyHandler {
       } else {
         ugi = "N/A";
       }
+      InetSocketAddress remoteAddress = (InetSocketAddress) mContext.channel().remoteAddress();
       auditContext.setUgi(ugi)
           .setCommand(command)
-//          .setIp(String.format("%s:%s",
-//              mServletRequest.getRemoteAddr(), mServletRequest.getRemotePort()))
+          .setIp(String.format("%s:%s",
+              remoteAddress.getAddress(), remoteAddress.getPort()))
           .setBucket(bucket)
           .setObject(object)
           .setAllowed(true)
@@ -260,10 +276,19 @@ public class S3NettyHandler {
     return auditContext;
   }
 
+  /**
+   * Writes HttpResponse into context channel, After writes context channel will close.
+   * @param response HttpResponse object
+   */
   public void processHttpResponse(HttpResponse response) {
     processHttpResponse(response, true);
   }
 
+  /**
+   * Writes HttpResponse into context channel.
+   * @param response HttpResponse object
+   * @param closeAfterWrite if true, After writes context channel will close
+   */
   public void processHttpResponse(HttpResponse response, boolean closeAfterWrite) {
     boolean keepAlive = HttpUtil.isKeepAlive(mRequest);
     if (keepAlive) {
@@ -279,6 +304,70 @@ public class S3NettyHandler {
       mContext.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT)
           .addListener(ChannelFutureListener.CLOSE);
     }
+  }
+
+  /**
+   * Writes a {@link DataBuffer} into netty channel. It supports zero copy through ByteBuf and
+   * FileRegion.
+   * @param packet DataBuffer packet
+   */
+  public void processTransferResponse(DataBuffer packet) {
+    // Send data to client
+    if (packet instanceof NettyDataBuffer || packet instanceof NioDataBuffer) {
+      ByteBuf buf = (ByteBuf) packet.getNettyOutput();
+      mContext.write(buf);
+    } else if (packet instanceof DataFileChannel) {
+      FileRegion fileRegion = (FileRegion) packet.getNettyOutput();
+      mContext.write(fileRegion);
+    } else if (packet instanceof CompositeDataBuffer) {
+      // add each channel to output
+      List<DataBuffer> dataFileChannels = (List<DataBuffer>) packet.getNettyOutput();
+      for (DataBuffer dataFileChannel : dataFileChannels) {
+        mContext.write(dataFileChannel.getNettyOutput());
+      }
+    } else {
+      throw new IllegalArgumentException("Unexpected payload type");
+    }
+  }
+
+  /**
+   * Writes data into netty channel by copying through ByteBuf.
+   * @param blockReader reader instance
+   * @throws IOException
+   */
+  public void processMappedResponse(BlockReader blockReader) throws IOException {
+    ByteBuf buf = mContext.channel().alloc().buffer(PACKET_LENGTH, PACKET_LENGTH);
+    try {
+      while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
+        mContext.write(buf);
+        buf.clear();
+      }
+    } catch (Exception e) {
+      buf.release();
+      throw e;
+    }
+  }
+
+  /**
+   * Gets a {@link BlockReader} according the ufs full path, offset and length.
+   * @param ufsFullPath UFS full path
+   * @param offset the offset of this reading
+   * @param length the length of this reading
+   * @return a BlockReader
+   * @throws IOException
+   * @throws AccessControlException
+   */
+  public BlockReader openBlock(String ufsFullPath, long offset, long length)
+      throws IOException, AccessControlException {
+    Protocol.OpenUfsBlockOptions options =
+        Protocol.OpenUfsBlockOptions.newBuilder().setUfsPath(ufsFullPath).setMountId(0)
+            .setNoCache(false).setOffsetInFile(offset).setBlockSize(length).build();
+    BlockReader blockReader =
+        mDoraWorker.createFileReader(new AlluxioURI(ufsFullPath).hash(), offset, false, options);
+    if (blockReader.getChannel() instanceof FileChannel) {
+      ((FileChannel) blockReader.getChannel()).position(offset);
+    }
+    return blockReader;
   }
 
   /**

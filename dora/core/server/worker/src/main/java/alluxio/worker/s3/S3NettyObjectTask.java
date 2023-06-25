@@ -12,29 +12,16 @@
 package alluxio.worker.s3;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.client.file.DoraCacheFileSystem;
-import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.OpenFilePOptions;
-import alluxio.metrics.MetricsSystem;
 import alluxio.network.netty.FileTransferType;
-import alluxio.network.protocol.RPCProtoMessage;
-import alluxio.network.protocol.databuffer.CompositeDataBuffer;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
-import alluxio.network.protocol.databuffer.NettyDataBuffer;
-import alluxio.network.protocol.databuffer.NioDataBuffer;
-import alluxio.proto.dataserver.Protocol;
-import alluxio.retry.RetryPolicy;
-import alluxio.retry.TimeoutRetry;
 import alluxio.s3.NettyRestUtils;
 import alluxio.s3.S3AuditContext;
 import alluxio.s3.S3Constants;
@@ -47,16 +34,9 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockReader;
 import alluxio.worker.dora.DoraWorker;
 import alluxio.worker.dora.PagedFileReader;
-import java.io.File;
-import java.io.IOException;
-import java.nio.channels.FileChannel;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+
 import com.google.common.base.Preconditions;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.FileRegion;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponse;
@@ -66,6 +46,14 @@ import io.netty.handler.codec.http.LastHttpContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Date;
+
+/**
+ * S3 Netty Tasks to handle object level request.
+ * (bucket and object name provided in the request)
+ */
 public class S3NettyObjectTask extends S3NettyBaseTask {
   private static final Logger LOG = LoggerFactory.getLogger(S3NettyObjectTask.class);
 
@@ -101,45 +89,11 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
     public static S3NettyObjectTask create(S3NettyHandler handler) {
       switch (handler.getHttpMethod()) {
         case "GET":
-//          return new HeadObjectTask(handler, OpType.HeadObject);
-//          if (handler.getQueryParameter("uploadId") != null) {
-//            return new ListPartsTask(handler, OpType.ListParts);
-//          } else if (handler.getQueryParameter("tagging") != null) {
-//            return new GetObjectTaggingTask(handler, OpType.GetObjectTagging);
-//          } else {
-            return new GetObjectTask(handler, OpType.GetObject);
-//          }
-//        case "PUT":
-//          if (handler.getQueryParameter("tagging") != null) {
-//            return new PutObjectTaggingTask(handler, OpType.PutObjectTagging);
-//          } else if (handler.getQueryParameter("uploadId") != null) {
-//            if (handler.getHeader(S3Constants.S3_COPY_SOURCE_HEADER) != null) {
-//              return new UploadPartTask(handler, OpType.UploadPartCopy);
-//            }
-//            return new UploadPartTask(handler, OpType.UploadPart);
-//          } else {
-//            if (handler.getHeader(S3Constants.S3_COPY_SOURCE_HEADER) != null) {
-//              return new CopyObjectTask(handler, OpType.CopyObject);
-//            }
-//            return new PutObjectTask(handler, OpType.PutObject);
-//          }
+          return new GetObjectTask(handler, OpType.GetObject);
         case "POST":
-//          if (handler.getQueryParameter("uploads") != null) {
-//            return new CreateMultipartUploadTask(handler, OpType.CreateMultipartUpload);
-//          } else if (handler.getQueryParameter("uploadId") != null) {
-//            return new CompleteMultipartUploadTask(handler, OpType.CompleteMultipartUpload);
-//          }
           break;
         case "HEAD":
           return new HeadObjectTask(handler, OpType.HeadObject);
-//        case "DELETE":
-//          if (handler.getQueryParameter("uploadId") != null) {
-//            return new AbortMultipartUploadTask(handler, OpType.AbortMultipartUpload);
-//          } else if (handler.getQueryParameter("tagging") != null) {
-//            return new DeleteObjectTaggingTask(handler, OpType.DeleteObjectTagging);
-//          } else {
-//            return new DeleteObjectTask(handler, OpType.DeleteObject);
-//          }
         default:
           return new S3NettyObjectTask(handler, OpType.Unsupported);
       }
@@ -172,7 +126,8 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
             AlluxioURI ufsFullPath =
                 ((DoraCacheFileSystem) userFs).convertAlluxioPathToUFSPath(objectUri);
             DoraWorker doraWorker = mHandler.getDoraWorker();
-            FileInfo fi = doraWorker.getFileInfo(ufsFullPath.toString(), GetStatusPOptions.getDefaultInstance());
+            FileInfo fi = doraWorker.getFileInfo(ufsFullPath.toString(),
+                GetStatusPOptions.getDefaultInstance());
 //            }
 //            URIStatus status = userFs.getStatus(objectUri);
             if (fi.isFolder() && !mHandler.getObject().endsWith(AlluxioURI.SEPARATOR)) {
@@ -180,7 +135,8 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
             }
             HttpResponse response =
                 new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-            response.headers().set(HttpHeaderNames.LAST_MODIFIED, new Date(fi.getLastModificationTimeMs()));
+            response.headers()
+                .set(HttpHeaderNames.LAST_MODIFIED, new Date(fi.getLastModificationTimeMs()));
             response.headers().set(S3Constants.S3_CONTENT_LENGTH_HEADER,
                 fi.isFolder() ? 0 : fi.getLength());
 
@@ -211,7 +167,6 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
     }
   } // end of HeadObjectTask
 
-
   private static final class GetObjectTask extends S3NettyObjectTask {
 
     private static final long UFS_BLOCK_OPEN_TIMEOUT_MS =
@@ -237,19 +192,22 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
             AlluxioURI ufsFullPath =
                 ((DoraCacheFileSystem) userFs).convertAlluxioPathToUFSPath(objectUri);
             DoraWorker doraWorker = mHandler.getDoraWorker();
-            FileInfo status = doraWorker.getFileInfo(ufsFullPath.toString(), GetStatusPOptions.getDefaultInstance());
+            FileInfo status = doraWorker.getFileInfo(ufsFullPath.toString(),
+                GetStatusPOptions.getDefaultInstance());
             S3RangeSpec s3Range = S3RangeSpec.Factory.create(range);
 
             HttpResponse response =
                 new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-            response.headers().set(HttpHeaderNames.LAST_MODIFIED, new Date(status.getLastModificationTimeMs()));
+            response.headers()
+                .set(HttpHeaderNames.LAST_MODIFIED, new Date(status.getLastModificationTimeMs()));
             response.headers().set(S3Constants.S3_CONTENT_LENGTH_HEADER,
                 status.isFolder() ? 0 : status.getLength());
 
             // Check range
             if (s3Range.isValid()) {
               response.setStatus(HttpResponseStatus.PARTIAL_CONTENT);
-              response.headers().set(S3Constants.S3_ACCEPT_RANGES_HEADER, S3Constants.S3_ACCEPT_RANGES_VALUE);
+              response.headers()
+                  .set(S3Constants.S3_ACCEPT_RANGES_HEADER, S3Constants.S3_ACCEPT_RANGES_VALUE);
               response.headers().set(S3Constants.S3_CONTENT_RANGE_HEADER,
                   s3Range.getRealRange(status.getLength()));
             }
@@ -297,69 +255,34 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
       DataBuffer packet = null;
       long offset = range.getOffset(objectSize);
       long length = range.getLength(objectSize);
+      BlockReader blockReader = mHandler.openBlock(ufsFullPath, offset, length);
+
       try {
-        Protocol.OpenUfsBlockOptions options =
-            Protocol.OpenUfsBlockOptions.newBuilder().setUfsPath(ufsFullPath).setMountId(0)
-                .setNoCache(false).setOffsetInFile(offset).setBlockSize(length)
-                .build();
-        BlockReader blockReader =
-            mHandler.getDoraWorker().createFileReader(new AlluxioURI(ufsFullPath).hash(),
-                offset, false, options);
-        if (blockReader.getChannel() instanceof FileChannel) {
-          ((FileChannel) blockReader.getChannel()).position(offset);
-        }
-
+        // Writes http response to the netty channel before data.
         mHandler.processHttpResponse(response, false);
-
         if (mHandler.getFileTransferType() == FileTransferType.TRANSFER) {
           if (blockReader instanceof LocalFileBlockReader) {
-            packet = new DataFileChannel(new File(((LocalFileBlockReader) blockReader).getFilePath()),
-                offset, length);
+            packet =
+                new DataFileChannel(new File(((LocalFileBlockReader) blockReader).getFilePath()),
+                    offset, length);
           } else if (blockReader instanceof PagedFileReader) {
             PagedFileReader pagedFileReader = (PagedFileReader) blockReader;
             packet =
                 pagedFileReader.getMultipleDataFileChannel(mHandler.getContext().channel(), length);
           }
         } else {
-          int packetLength = 1048576;
-          ByteBuf buf = mHandler.getContext().channel().alloc().buffer(packetLength, packetLength);
-          try {
-            while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
-              mHandler.getContext().write(buf);
-              buf.clear();
-            }
-          } catch (Throwable e) {
-            buf.release();
-            throw e;
-          }
+          mHandler.processMappedResponse(blockReader);
         }
       } catch (Exception e) {
         LOG.error("Failed to read data.", e);
         throw e;
       }
 
-//      mHandler.processHttpResponse(response, false);
       if (packet != null) {
-        // Send data to client
-        if (packet instanceof NettyDataBuffer || packet instanceof NioDataBuffer) {
-          ByteBuf buf = (ByteBuf) packet.getNettyOutput();
-          mHandler.getContext().write(buf);
-        } else if (packet instanceof DataFileChannel) {
-          FileRegion fileRegion = (FileRegion) packet.getNettyOutput();
-          mHandler.getContext().write(fileRegion);
-        } else if (packet instanceof CompositeDataBuffer) {
-          // add each channel to output
-          List<DataBuffer> dataFileChannels = (List<DataBuffer>) packet.getNettyOutput();
-          for (DataBuffer dataFileChannel : dataFileChannels) {
-            mHandler.getContext().write(dataFileChannel.getNettyOutput());
-          }
-        } else {
-          throw new IllegalArgumentException("Unexpected payload type");
-        }
+        mHandler.processTransferResponse(packet);
       }
       mHandler.getContext().writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT)
           .addListener(ChannelFutureListener.CLOSE);
     }
   } // end of GetObjectTask
-
 }
