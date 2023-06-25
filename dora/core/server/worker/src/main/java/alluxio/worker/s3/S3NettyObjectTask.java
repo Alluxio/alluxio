@@ -12,8 +12,11 @@
 package alluxio.worker.s3;
 
 import alluxio.AlluxioURI;
+import alluxio.client.file.DelegatingFileSystem;
 import alluxio.client.file.DoraCacheFileSystem;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemCache;
+import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
@@ -123,11 +126,10 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
             mOPType.name(), user, mHandler.getBucket(), mHandler.getObject())) {
           try {
 //            if (userFs instanceof DoraCacheFileSystem) {
-            AlluxioURI ufsFullPath =
-                ((DoraCacheFileSystem) userFs).convertAlluxioPathToUFSPath(objectUri);
-            DoraWorker doraWorker = mHandler.getDoraWorker();
-            FileInfo fi = doraWorker.getFileInfo(ufsFullPath.toString(),
-                GetStatusPOptions.getDefaultInstance());
+//            AlluxioURI ufsFullPath =
+//                ((DoraCacheFileSystem) userFs).convertAlluxioPathToUFSPath(objectUri);
+//            DoraWorker doraWorker = mHandler.getDoraWorker();
+            URIStatus fi = userFs.getStatus(objectUri);
 //            }
 //            URIStatus status = userFs.getStatus(objectUri);
             if (fi.isFolder() && !mHandler.getObject().endsWith(AlluxioURI.SEPARATOR)) {
@@ -189,11 +191,19 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
         try (S3AuditContext auditContext = mHandler.createAuditContext(
             mOPType.name(), user, mHandler.getBucket(), mHandler.getObject())) {
           try {
-            AlluxioURI ufsFullPath =
-                ((DoraCacheFileSystem) userFs).convertAlluxioPathToUFSPath(objectUri);
+            AlluxioURI ufsFullPath;
+            if (userFs instanceof DoraCacheFileSystem) {
+              ufsFullPath =
+                  ((DoraCacheFileSystem) userFs).convertAlluxioPathToUFSPath(objectUri);
+            } else if (userFs instanceof DelegatingFileSystem) {
+              DoraCacheFileSystem doraUserFs =
+                  (DoraCacheFileSystem) ((DelegatingFileSystem) userFs).getUnderlyingFileSystem();
+              ufsFullPath = doraUserFs.convertAlluxioPathToUFSPath(objectUri);
+            } else {
+              throw new S3Exception(objectPath, S3ErrorCode.INTERNAL_ERROR);
+            }
             DoraWorker doraWorker = mHandler.getDoraWorker();
-            FileInfo status = doraWorker.getFileInfo(ufsFullPath.toString(),
-                GetStatusPOptions.getDefaultInstance());
+            URIStatus status = userFs.getStatus(objectUri);
             S3RangeSpec s3Range = S3RangeSpec.Factory.create(range);
 
             HttpResponse response =

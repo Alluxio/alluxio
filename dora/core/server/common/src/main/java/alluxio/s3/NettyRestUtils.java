@@ -22,7 +22,9 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
 import alluxio.security.authentication.AuthType;
 import alluxio.util.ThreadUtils;
 import alluxio.wire.FileInfo;
@@ -90,7 +92,7 @@ public class NettyRestUtils {
       XmlMapper mapper = new XmlMapper();
       ByteBuf contentBuffer =
           Unpooled.copiedBuffer(mapper.writeValueAsString(result), CharsetUtil.UTF_8);
-      FullHttpResponse resp = new DefaultFullHttpResponse(version, OK, contentBuffer);
+      DefaultFullHttpResponse resp = new DefaultFullHttpResponse(version, OK);
       resp.content().writeBytes(contentBuffer);
       contentBuffer.release();
       resp.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_XML);
@@ -148,7 +150,7 @@ public class NettyRestUtils {
    * @param status The {@link URIStatus} of the object
    * @return the entityTag String, or null if it does not exist
    */
-  public static String getEntityTag(FileInfo status) {
+  public static String getEntityTag(URIStatus status) {
     if (status.getXAttr() == null
         || !status.getXAttr().containsKey(S3Constants.ETAG_XATTR_KEY)) {
       return null;
@@ -161,23 +163,29 @@ public class NettyRestUtils {
    * Convert an exception to instance of {@link S3Exception}.
    *
    * @param exception Exception thrown when process s3 object rest request
-   * @param resource object complete path
+   * @param resource complete bucket path
+   * @param auditContext the audit context for exception
    * @return instance of {@link S3Exception}
    */
-  public static S3Exception toObjectS3Exception(Exception exception, String resource) {
+  public static S3Exception toBucketS3Exception(Exception exception, String resource,
+                                                @Nonnull S3AuditContext auditContext) {
+    if (exception instanceof AccessControlException) {
+      auditContext.setAllowed(false);
+    }
+    auditContext.setSucceeded(false);
     try {
       throw exception;
     } catch (S3Exception e) {
       e.setResource(resource);
       return e;
     } catch (DirectoryNotEmptyException e) {
-      return new S3Exception(e, resource, S3ErrorCode.PRECONDITION_FAILED);
-    } catch (FileDoesNotExistException | FileNotFoundException e) {
-      if (Pattern.matches(ExceptionMessage.BUCKET_DOES_NOT_EXIST.getMessage(".*"),
-          e.getMessage())) {
-        return new S3Exception(e, resource, S3ErrorCode.NO_SUCH_BUCKET);
-      }
-      return new S3Exception(e, resource, S3ErrorCode.NO_SUCH_KEY);
+      return new S3Exception(e, resource, S3ErrorCode.BUCKET_NOT_EMPTY);
+    } catch (FileAlreadyExistsException e) {
+      return new S3Exception(e, resource, S3ErrorCode.BUCKET_ALREADY_EXISTS);
+    } catch (FileDoesNotExistException e) {
+      return new S3Exception(e, resource, S3ErrorCode.NO_SUCH_BUCKET);
+    } catch (InvalidPathException e) {
+      return new S3Exception(e, resource, S3ErrorCode.INVALID_BUCKET_NAME);
     } catch (AccessControlException e) {
       return new S3Exception(e, resource, S3ErrorCode.ACCESS_DENIED_ERROR);
     } catch (Exception e) {
@@ -199,7 +207,24 @@ public class NettyRestUtils {
       auditContext.setAllowed(false);
     }
     auditContext.setSucceeded(false);
-    return toObjectS3Exception(exception, resource);
+    try {
+      throw exception;
+    } catch (S3Exception e) {
+      e.setResource(resource);
+      return e;
+    } catch (DirectoryNotEmptyException e) {
+      return new S3Exception(e, resource, S3ErrorCode.PRECONDITION_FAILED);
+    } catch (FileDoesNotExistException | FileNotFoundException e) {
+      if (Pattern.matches(ExceptionMessage.BUCKET_DOES_NOT_EXIST.getMessage(".*"),
+          e.getMessage())) {
+        return new S3Exception(e, resource, S3ErrorCode.NO_SUCH_BUCKET);
+      }
+      return new S3Exception(e, resource, S3ErrorCode.NO_SUCH_KEY);
+    } catch (AccessControlException e) {
+      return new S3Exception(e, resource, S3ErrorCode.ACCESS_DENIED_ERROR);
+    } catch (Exception e) {
+      return new S3Exception(e, resource, S3ErrorCode.INTERNAL_ERROR);
+    }
   }
 
   /**

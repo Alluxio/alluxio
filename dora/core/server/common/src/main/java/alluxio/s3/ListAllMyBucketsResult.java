@@ -9,9 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.proxy.s3;
+package alluxio.s3;
 
 import alluxio.client.file.URIStatus;
+import alluxio.RestUtils;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -35,7 +36,7 @@ public class ListAllMyBucketsResult {
   public ListAllMyBucketsResult(List<URIStatus> names) {
     mBuckets =
         names.stream().map((uriStatus) -> new Bucket(uriStatus.getName(),
-            S3RestUtils.toS3Date(uriStatus.getCreationTimeMs())))
+            RestUtils.toS3Date(uriStatus.getCreationTimeMs())))
             .collect(Collectors.toList());
   }
 

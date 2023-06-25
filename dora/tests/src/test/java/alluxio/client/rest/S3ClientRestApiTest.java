@@ -39,7 +39,7 @@ import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.proxy.s3.CompleteMultipartUploadRequest;
 import alluxio.proxy.s3.CompleteMultipartUploadResult;
 import alluxio.proxy.s3.InitiateMultipartUploadResult;
-import alluxio.proxy.s3.ListAllMyBucketsResult;
+import alluxio.s3.ListAllMyBucketsResult;
 import alluxio.proxy.s3.ListBucketOptions;
 import alluxio.proxy.s3.ListBucketResult;
 import alluxio.proxy.s3.ListMultipartUploadsResult;

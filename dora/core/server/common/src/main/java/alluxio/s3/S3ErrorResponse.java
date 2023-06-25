@@ -204,7 +204,7 @@ public class S3ErrorResponse {
       ByteBuf contentBuffer =
           Unpooled.copiedBuffer(e.getMessage(), CharsetUtil.UTF_8);
       FullHttpResponse resp = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,
-          HttpResponseStatus.INTERNAL_SERVER_ERROR, contentBuffer);
+          HttpResponseStatus.INTERNAL_SERVER_ERROR);
       resp.content().writeBytes(contentBuffer);
       contentBuffer.release();
       resp.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain");

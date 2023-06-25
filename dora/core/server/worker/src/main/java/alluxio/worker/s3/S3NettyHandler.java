@@ -162,9 +162,8 @@ public class S3NettyHandler {
       S3NettyBaseTask task = null;
       if (object != null && !object.isEmpty()) {
         task = S3NettyObjectTask.Factory.create(handler);
-        //TODO(wyy) bucket handler
-//      } else {
-//        task = S3NettyBucketTask.Factory.create(handler);
+      } else {
+        task = S3NettyBucketTask.Factory.create(handler);
       }
       handler.setS3Task(task);
       return handler;
