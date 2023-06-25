@@ -7930,6 +7930,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
 
+  //
+  // Extra class to be loaded
+  //
+  public static final PropertyKey EXTRA_LOADED_FILESYSTEM_CLASSNAME =
+          classBuilder(Name.EXTRA_LOADED_FILESYSTEM_CLASSNAME)
+                  .setDescription(
+                          "Full name of the class that will be loaded explicit for filesystem.")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+                  .setScope(Scope.ALL)
+                  .build();
   /**
    * @deprecated This key is used for testing. It is always deprecated.
    */
@@ -9572,6 +9582,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     public static final String DORA_UFS_LIST_STATUS_CACHE_NR_DIRS =
         "alluxio.dora.ufs.list.status.cache.nr.dirs";
+
+    //
+    // Extra class to be loaded
+    //
+    public static final String EXTRA_LOADED_FILESYSTEM_CLASSNAME =
+            "alluxio.extra.loaded.filesystem.classname";
 
     private Name() {} // prevent instantiation
   }
