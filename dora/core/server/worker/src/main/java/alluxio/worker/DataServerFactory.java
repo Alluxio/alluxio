@@ -87,12 +87,6 @@ public class DataServerFactory {
       blockWorkerService =
           new DoraWorkerClientServiceHandler((DoraWorker) worker);
     } else {
-//      blockWorkerService =
-//          new BlockWorkerClientServiceHandler(
-//            //TODO(beinan):inject BlockWorker abstraction
-//            (DefaultBlockWorker) worker,
-//            mUfsManager,
-//            true);
       throw new UnsupportedOperationException(worker.getClass().getCanonicalName()
           + " is no longer supported in Alluxio 3.x");
     }

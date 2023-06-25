@@ -69,9 +69,6 @@ public class GrpcDataServer implements DataServer {
   private static final long SHUTDOWN_QUIET_PERIOD =
       Configuration.getMs(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD);
 
-  private static final boolean DORA_WORKER_ENABLED =
-      Configuration.getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED);
-
   private final SocketAddress mSocketAddress;
   private EventLoopGroup mBossGroup;
   private EventLoopGroup mWorkerGroup;
