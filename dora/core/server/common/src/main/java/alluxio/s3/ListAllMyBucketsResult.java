@@ -11,8 +11,8 @@
 
 package alluxio.s3;
 
-import alluxio.client.file.URIStatus;
 import alluxio.RestUtils;
+import alluxio.client.file.URIStatus;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;

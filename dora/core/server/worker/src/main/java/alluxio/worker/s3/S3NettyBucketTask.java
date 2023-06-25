@@ -20,13 +20,15 @@ import alluxio.s3.S3AuditContext;
 import alluxio.s3.S3Constants;
 import alluxio.s3.S3ErrorCode;
 import alluxio.s3.S3Exception;
+
+import io.netty.handler.codec.http.HttpResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import io.netty.handler.codec.http.HttpResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * S3 Netty Tasks to handle bucket level or global level request.
@@ -65,7 +67,7 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
       switch (handler.getHttpMethod()) {
         case "GET":
 //          if (StringUtils.isEmpty(handler.getBucket())) {
-            return new ListBucketsTask(handler, OpType.ListBuckets);
+          return new ListBucketsTask(handler, OpType.ListBuckets);
 //          } else if (handler.getQueryParameter("tagging") != null) {
 //            return new GetBucketTaggingTask(handler, OpType.GetBucketTagging);
 //          } else if (handler.getQueryParameter("uploads") != null) {
