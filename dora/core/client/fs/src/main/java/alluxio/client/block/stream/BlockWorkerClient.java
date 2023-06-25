@@ -27,6 +27,8 @@ import alluxio.grpc.CreateLocalBlockRequest;
 import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.DeletePRequest;
 import alluxio.grpc.DeletePResponse;
+import alluxio.grpc.ExistsPRequest;
+import alluxio.grpc.ExistsPResponse;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GrpcServerAddress;
@@ -48,6 +50,8 @@ import alluxio.grpc.RemoveBlockRequest;
 import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.RenamePRequest;
 import alluxio.grpc.RenamePResponse;
+import alluxio.grpc.SetAttributePRequest;
+import alluxio.grpc.SetAttributePResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
 import alluxio.security.user.UserState;
@@ -266,4 +270,18 @@ public interface BlockWorkerClient extends Closeable {
    * @return a response of this operation
    */
   CreateDirectoryPResponse createDirectory(CreateDirectoryPRequest request);
+
+  /**
+   * Check if a file or dir exists.
+   * @param request the request to do the cechking
+   * @return a response of this operation
+   */
+  ExistsPResponse exists(ExistsPRequest request);
+
+  /**
+   * SetAttribute for a file or dir.
+   * @param request the request to do the operation
+   * @return a response of this operation
+   */
+  SetAttributePResponse setAttribute(SetAttributePRequest request);
 }

@@ -38,6 +38,7 @@ import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.GrpcUtils;
@@ -48,6 +49,7 @@ import alluxio.grpc.Route;
 import alluxio.grpc.RouteFailure;
 import alluxio.grpc.Scope;
 import alluxio.grpc.ServiceType;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UfsReadOptions;
 import alluxio.grpc.WriteOptions;
 import alluxio.heartbeat.FixedIntervalSupplier;
@@ -801,6 +803,40 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       if (!success) {
         throw new RuntimeException(
             new FileAlreadyExistsException(String.format("%s already exists", path)));
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Override
+  public boolean exists(String path, ExistsPOptions options) {
+    try {
+      return mUfs.exists(path);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Override
+  public void setAttribute(String path, SetAttributePOptions options) {
+    try {
+      if (options.hasMode()) {
+        mUfs.setMode(path, ModeUtils.protoToShort(options.getMode()));
+      }
+      if (options.hasOwner() && options.hasGroup()) {
+        mUfs.setOwner(path, options.getOwner(), options.getGroup());
+      } else if (options.hasOwner()) {
+        mUfs.setOwner(path, options.getOwner(), null);
+      } else if (options.hasGroup()) {
+        mUfs.setOwner(path, null, options.getOwner());
+      }
+      // Ignore options.hasRecursive()
+      if (options.hasPinned() || options.hasPersisted()
+          || options.hasReplicationMax() || options.hasReplicationMin()
+          || options.getXattrCount() != 0) {
+        LOG.error("UFS only supports setting mode, owner, and group. Does not support setting {}",
+            options);
       }
     } catch (IOException e) {
       throw new RuntimeException(e);

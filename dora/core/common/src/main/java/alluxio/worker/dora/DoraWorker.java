@@ -16,12 +16,14 @@ import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadFileFailure;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.Route;
 import alluxio.grpc.RouteFailure;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UfsReadOptions;
 import alluxio.grpc.WriteOptions;
 import alluxio.proto.dataserver.Protocol;
@@ -169,4 +171,19 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    */
   void createDirectory(String path, CreateDirectoryPOptions options)
       throws IOException, AccessControlException;
+
+  /**
+   * Check existence of a file or dir.
+   * @param path the path of this file or dir
+   * @param options the options of this operation
+   * @return true if the file or dir exists, false otherwise
+   */
+  boolean exists(String path, ExistsPOptions options);
+
+  /**
+   * Set Attributes for a file or dir.
+   * @param path the pth of this file or dir
+   * @param options the options of this operation
+   */
+  void setAttribute(String path, SetAttributePOptions options);
 }

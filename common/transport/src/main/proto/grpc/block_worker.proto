@@ -71,6 +71,16 @@ service BlockWorker {
    * Creates a directory.
    */
   rpc CreateDirectory(grpc.file.CreateDirectoryPRequest) returns (grpc.file.CreateDirectoryPResponse);
+
+  /**
+   * Checks the existence of a file or directory.
+   */
+  rpc Exists(grpc.file.ExistsPRequest) returns (grpc.file.ExistsPResponse);
+
+  /**
+   * Sets file or directory attributes.
+   */
+  rpc SetAttribute(grpc.file.SetAttributePRequest) returns (grpc.file.SetAttributePResponse);
 }
 
 message UfsStatus {

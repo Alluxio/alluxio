@@ -372,16 +372,41 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       throws InvalidPathException, IOException, AlluxioException {
     AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
 
-    return mDelegatedFileSystem.exists(ufsFullPath, options);
+    try {
+      ExistsPOptions mergedOptions = FileSystemOptionsUtils.existsDefaults(
+          mFsContext.getPathConf(ufsFullPath)).toBuilder().mergeFrom(options).build();
+
+      return mDoraClient.exists(ufsFullPath.toString(), mergedOptions);
+    } catch (RuntimeException ex) {
+      if (!mUfsFallbackEnabled) {
+        throw ex;
+      }
+      UFS_FALLBACK_COUNTER.inc();
+      LOG.debug("Dora client exists error ({} times). Fall back to UFS.",
+          UFS_FALLBACK_COUNTER.getCount(), ex);
+      return mDelegatedFileSystem.exists(ufsFullPath, options);
+    }
   }
 
   @Override
   public void setAttribute(AlluxioURI path, SetAttributePOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
-    LOG.warn("Dora Client does not support create/write. This is only for test.");
 
-    mDelegatedFileSystem.setAttribute(ufsFullPath, options);
+    try {
+      SetAttributePOptions mergedOptions = FileSystemOptionsUtils.setAttributeDefaults(
+          mFsContext.getPathConf(ufsFullPath)).toBuilder().mergeFrom(options).build();
+
+      mDoraClient.setAttribute(ufsFullPath.toString(), mergedOptions);
+    } catch (RuntimeException ex) {
+      if (!mUfsFallbackEnabled) {
+        throw ex;
+      }
+      UFS_FALLBACK_COUNTER.inc();
+      LOG.debug("Dora client setAttribute error ({} times). Fall back to UFS.",
+          UFS_FALLBACK_COUNTER.getCount(), ex);
+      mDelegatedFileSystem.setAttribute(ufsFullPath, options);
+    }
   }
 
   /**
