@@ -34,6 +34,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * thread is done using the client.
  */
 @ThreadSafe
+// TODO(jiacheng): This is not removed because it is used by the PagedDoraWorker.
+//  It shall be removed together with a refactor on the Dora worker refactor on register.
 public class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
   private final Queue<BlockMasterClient> mClientList;
   private final MasterClientContext mMasterContext;
