@@ -30,6 +30,8 @@ public class FuseConstants {
   public static final String FUSE_CHMOD = "Fuse.Chmod";
   public static final String FUSE_CHOWN = "Fuse.Chown";
   public static final String FUSE_TRUNCATE = "Fuse.Truncate";
+  public static final String FUSE_SETXATTR = "Fuse.Setxattr";
+
 
   /**
    * @return the selected FUSE method name for update check
