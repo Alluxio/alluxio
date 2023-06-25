@@ -18,6 +18,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCacheFileSystem;
 import alluxio.client.file.options.FileSystemOptions;
+import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
@@ -157,7 +158,10 @@ public interface FileSystem extends Closeable {
      * @return a new FileSystem instance
      */
     public static FileSystem create(FileSystemContext context) {
-      return create(context, FileSystemOptions.create(context.getClusterConf()));
+      return create(
+          context,
+          FileSystemOptions.Builder.fromConf(context.getClusterConf()).build()
+      );
     }
 
     /**
@@ -168,22 +172,40 @@ public interface FileSystem extends Closeable {
     public static FileSystem create(FileSystemContext context, FileSystemOptions options) {
       AlluxioConfiguration conf = context.getClusterConf();
       checkSortConf(conf);
-      FileSystem fs = options.getUfsFileSystemOptions().isPresent()
-          ? new UfsBaseFileSystem(context, options.getUfsFileSystemOptions().get())
-          : new BaseFileSystem(context);
+      FileSystem fs;
+      if (options.isUfsFallbackEnabled()) {
+        if (options.getUfsFileSystemOptions().isPresent()) {
+          UfsFileSystemOptions ufsOptions = options.getUfsFileSystemOptions().get();
+          LOG.debug("UFS fallback enabled, root UFS address: {}", ufsOptions.getUfsAddress());
+          fs = new UfsBaseFileSystem(context, ufsOptions);
+        } else {
+          // todo(bowen): remove this check when we support arbitrary UFS fallback based on
+          //  the file URI, so no root UFS address is needed
+          LOG.warn("UFS fallback enabled but no root UFS address configured. "
+              + "UFS fallback will not be enabled.");
+          fs = new BaseFileSystem(context);
+        }
+      } else {
+        fs = new BaseFileSystem(context);
+      }
+
       if (options.isDoraCacheEnabled()) {
+        LOG.debug("Dora cache enabled");
         fs = DoraCacheFileSystem.sDoraCacheFileSystemFactory.createAnInstance(fs, context);
       }
       if (options.isMetadataCacheEnabled()) {
+        LOG.debug("Client metadata caching enabled");
         fs = new MetadataCachingFileSystem(fs, context);
       }
       if (options.isDataCacheEnabled()
           && CommonUtils.PROCESS_TYPE.get() == CommonUtils.ProcessType.CLIENT) {
         try {
           CacheManager cacheManager = CacheManager.Factory.get(conf);
+          LOG.debug("Client local data caching enabled");
           return new LocalCacheFileSystem(cacheManager, fs, conf);
         } catch (IOException e) {
-          LOG.error("Fallback without client caching: ", e);
+          LOG.error("Client local data caching enabled but failed to initialize cache manager, "
+              + "continuing without data caching enabled", e);
         }
       }
       return fs;

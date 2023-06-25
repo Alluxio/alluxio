@@ -14,11 +14,17 @@ package alluxio.client.cli.job;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
+
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Tests for getting job status command.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "Jianjian",
+    comment = "Job master and job worker no longer exists in dora")
+@Ignore
 public final class StatCommandTest extends JobShellTest {
   @Test
   public void statTest() throws Exception {

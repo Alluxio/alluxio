@@ -80,7 +80,10 @@ public final class MountCommand extends AbstractFileSystemCommand {
     AlluxioProperties properties = fsContext.getClusterConf().copyProperties();
     properties.set(PropertyKey.DORA_ENABLED, false);
     AlluxioConfiguration config = new InstancedConfiguration(properties);
-    mFileSystem = FileSystem.Factory.create(fsContext, FileSystemOptions.create(config));
+    mFileSystem = FileSystem.Factory.create(fsContext,
+        FileSystemOptions.Builder.fromConf(config)
+            .setUfsFallbackEnabled(false)
+            .build());
     assert (mFileSystem instanceof BaseFileSystem);
   }
 

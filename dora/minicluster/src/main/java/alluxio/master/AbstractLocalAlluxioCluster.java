@@ -34,6 +34,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
+import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.WorkerProcess;
@@ -156,7 +157,7 @@ public abstract class AbstractLocalAlluxioCluster {
     for (int i = 0; i < mNumWorkers; ++i) {
       // If dora is enabled, automatically setting the worker page store and rocksdb dirs.
       if (Configuration.getBoolean(PropertyKey.DORA_ENABLED)) {
-        String pageStoreDir = Configuration.getString(PropertyKey.WORK_DIR) + "/worker" + i;
+        String pageStoreDir = PathUtils.concatPath(mWorkDirectory, "worker" + i);
         Configuration.set(PropertyKey.WORKER_PAGE_STORE_DIRS, pageStoreDir);
         Configuration.set(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR, pageStoreDir);
       }
@@ -226,6 +227,8 @@ public abstract class AbstractLocalAlluxioCluster {
   protected void setupTest() throws IOException {
     UnderFileSystem ufs = UnderFileSystem.Factory.createForRoot(Configuration.global());
     String underfsAddress = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String doraUfsRoot = Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
+    UnderFileSystem doraUfs = UnderFileSystem.Factory.create(doraUfsRoot, Configuration.global());
 
     // Deletes the ufs dir for this test from to avoid permission problems
     // Do not delete the ufs root if the ufs is an object storage.
@@ -233,9 +236,13 @@ public abstract class AbstractLocalAlluxioCluster {
     if (!ufs.isObjectStorage()) {
       UnderFileSystemUtils.deleteDirIfExists(ufs, underfsAddress);
     }
+    if (!doraUfs.isObjectStorage()) {
+      UnderFileSystemUtils.deleteDirIfExists(doraUfs, doraUfsRoot);
+    }
 
     // Creates ufs dir. This must be called before starting UFS with UnderFileSystemCluster.create()
     UnderFileSystemUtils.mkdirIfNotExists(ufs, underfsAddress);
+    UnderFileSystemUtils.mkdirIfNotExists(doraUfs, doraUfsRoot);
 
     // Creates storage dirs for worker
     int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);

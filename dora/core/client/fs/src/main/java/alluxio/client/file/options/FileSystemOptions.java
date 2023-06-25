@@ -17,6 +17,7 @@ import alluxio.conf.PropertyKey;
 
 import com.google.common.base.Preconditions;
 
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -26,35 +27,130 @@ public class FileSystemOptions {
   private final boolean mMetadataCacheEnabled;
   private final boolean mDataCacheEnabled;
   private final boolean mDoraCacheEnabled;
+  private final boolean mUfsFallbackEnabled;
   private final Optional<UfsFileSystemOptions> mUfsFileSystemOptions;
 
   /**
-   * Creates the file system options.
-   *
-   * @param conf alluxio configuration
-   * @return the file system options
+   * Builder for {@link FileSystemOptions}.
    */
-  public static FileSystemOptions create(AlluxioConfiguration conf) {
-    if (conf.getBoolean(PropertyKey.DORA_ENABLED)) {
-      return create(conf,
-          Optional.of(new UfsFileSystemOptions(conf.getString(PropertyKey.DORA_CLIENT_UFS_ROOT))));
-    }
-    return create(conf, Optional.empty());
-  }
+  public static class Builder {
+    private boolean mMetadataCacheEnabled;
+    private boolean mDataCacheEnabled;
+    private boolean mDoraCacheEnabled;
+    private boolean mUfsFallbackEnabled;
+    private Optional<UfsFileSystemOptions> mUfsFileSystemOptions = Optional.empty();
 
-  /**
-   * Creates the file system options.
-   *
-   * @param conf alluxio configuration
-   * @param ufsOptions the options for ufs base file system
-   * @return the file system options
-   */
-  public static FileSystemOptions create(AlluxioConfiguration conf,
-      Optional<UfsFileSystemOptions> ufsOptions) {
-    return new FileSystemOptions(FileSystemUtils.metadataEnabled(conf),
-        conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED),
-        conf.getBoolean(PropertyKey.DORA_ENABLED),
-        ufsOptions);
+    /**
+     * Creates new builder from configuration.
+     *
+     * @param conf configuration
+     * @return new builder with options set to values from configuration
+     */
+    public static Builder fromConf(AlluxioConfiguration conf) {
+      Builder builder = new Builder();
+      builder.setDataCacheEnabled(conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_ENABLED))
+          .setMetadataCacheEnabled(FileSystemUtils.metadataEnabled(conf))
+          .setDoraCacheEnabled(
+              conf.getBoolean(PropertyKey.DORA_ENABLED))
+          .setUfsFallbackEnabled(conf.getBoolean(PropertyKey.DORA_CLIENT_UFS_FALLBACK_ENABLED));
+      if (builder.isUfsFallbackEnabled()) {
+        builder.setUfsFileSystemOptions(
+            new UfsFileSystemOptions(conf.getString(PropertyKey.DORA_CLIENT_UFS_ROOT)));
+      }
+      return builder;
+    }
+
+    /**
+     * @return whether client metadata cache is enabled
+     */
+    public boolean isMetadataCacheEnabled() {
+      return mMetadataCacheEnabled;
+    }
+
+    /**
+     * @param metadataCacheEnabled whether client metadata cache is enabled
+     * @return this
+     */
+    public Builder setMetadataCacheEnabled(boolean metadataCacheEnabled) {
+      mMetadataCacheEnabled = metadataCacheEnabled;
+      return this;
+    }
+
+    /**
+     * @return whether client local data cache is enabled
+     */
+    public boolean isDataCacheEnabled() {
+      return mDataCacheEnabled;
+    }
+
+    /**
+     * @param dataCacheEnabled whether client local data cache is enabled
+     * @return this
+     */
+    public Builder setDataCacheEnabled(boolean dataCacheEnabled) {
+      mDataCacheEnabled = dataCacheEnabled;
+      return this;
+    }
+
+    /**
+     * @return whether dora worker cache is enabled
+     */
+    public boolean isDoraCacheEnabled() {
+      return mDoraCacheEnabled;
+    }
+
+    /**
+     * @param doraCacheEnabled whether dora worker cache is enabled
+     * @return this
+     */
+    public Builder setDoraCacheEnabled(boolean doraCacheEnabled) {
+      mDoraCacheEnabled = doraCacheEnabled;
+      return this;
+    }
+
+    /**
+     * @return Whether UFS fallback is enabled
+     */
+    public boolean isUfsFallbackEnabled() {
+      return mUfsFallbackEnabled;
+    }
+
+    /**
+     * @param ufsFallbackEnabled whether UFS fallback is enabled
+     * @return this
+     */
+    public Builder setUfsFallbackEnabled(boolean ufsFallbackEnabled) {
+      mUfsFallbackEnabled = ufsFallbackEnabled;
+      return this;
+    }
+
+    /**
+     * @return UFS file system options
+     */
+    public Optional<UfsFileSystemOptions> getUfsFileSystemOptions() {
+      return mUfsFileSystemOptions;
+    }
+
+    /**
+     * @param ufsFileSystemOptions UFS file system options
+     * @return this
+     */
+    public Builder setUfsFileSystemOptions(UfsFileSystemOptions ufsFileSystemOptions) {
+      mUfsFileSystemOptions = Optional.of(Objects.requireNonNull(ufsFileSystemOptions));
+      return this;
+    }
+
+    /**
+     * @return a new {@link FileSystemOptions} object
+     */
+    public FileSystemOptions build() {
+      return new FileSystemOptions(
+          mMetadataCacheEnabled,
+          mDataCacheEnabled,
+          mDoraCacheEnabled,
+          mUfsFallbackEnabled,
+          mUfsFileSystemOptions);
+    }
   }
 
   /**
@@ -68,11 +164,13 @@ public class FileSystemOptions {
   private FileSystemOptions(boolean metadataCacheEnabled,
       boolean dataCacheEnabled,
       boolean doraCacheEnabled,
+      boolean ufsFallbackEnabled,
       Optional<UfsFileSystemOptions> ufsFileSystemOptions) {
     mUfsFileSystemOptions = Preconditions.checkNotNull(ufsFileSystemOptions);
     mMetadataCacheEnabled = metadataCacheEnabled;
     mDataCacheEnabled = dataCacheEnabled;
     mDoraCacheEnabled = doraCacheEnabled;
+    mUfsFallbackEnabled = ufsFallbackEnabled;
   }
 
   /**
@@ -101,6 +199,13 @@ public class FileSystemOptions {
    */
   public boolean isDoraCacheEnabled() {
     return mDoraCacheEnabled;
+  }
+
+  /**
+   * @return whether client UFS fallback is enabled
+   */
+  public boolean isUfsFallbackEnabled() {
+    return mUfsFallbackEnabled;
   }
 }
 

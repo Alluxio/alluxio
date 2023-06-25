@@ -250,7 +250,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     mWebServer.start();
 
     // Start HTTP Server
-    if (mHttpServer != null) {
+    if (mHttpServer != null && Configuration.getBoolean(PropertyKey.WORKER_HTTP_SERVER_ENABLED)) {
       mHttpServer.start();
     }
 
