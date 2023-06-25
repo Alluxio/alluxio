@@ -92,6 +92,14 @@ public interface FileSystem extends Closeable {
    * {@link Factory#create} methods will always guarantee returning a new FileSystem.
    */
   class Factory {
+
+    static {
+      // If the extra loaded class name is set, try to load it.
+      if (Configuration.global().isSet(PropertyKey.EXTRA_LOADED_FILESYSTEM_CLASSNAME)) {
+        Configuration.global().getClass(PropertyKey.EXTRA_LOADED_FILESYSTEM_CLASSNAME);
+      }
+    }
+
     private static final Logger LOG = LoggerFactory.getLogger(Factory.class);
     private static final AtomicBoolean CONF_LOGGED = new AtomicBoolean(false);
 
