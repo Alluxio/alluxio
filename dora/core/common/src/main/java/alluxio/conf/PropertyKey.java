@@ -7806,6 +7806,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "components including clients, workers, proxies etc. Note that Alluxio 3 will "
               + "eventually only support DORA structure, so this property will only serve "
               + "for a short period for compatibility, and will be removed eventually.")
+          .setAlias("alluxio.dora.client.read.location.policy.enabled")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
           .build();
