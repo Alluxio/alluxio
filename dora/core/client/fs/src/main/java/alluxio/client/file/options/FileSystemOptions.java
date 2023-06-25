@@ -53,10 +53,9 @@ public class FileSystemOptions {
           .setDoraCacheEnabled(
               conf.getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED))
           .setUfsFallbackEnabled(conf.getBoolean(PropertyKey.DORA_CLIENT_UFS_FALLBACK_ENABLED));
-      if (builder.isUfsFallbackEnabled()) {
-        builder.setUfsFileSystemOptions(
-            new UfsFileSystemOptions(conf.getString(PropertyKey.DORA_CLIENT_UFS_ROOT)));
-      }
+      //TODO(bowen): ufs root is required temporarily even though ufs fall back is disabled
+      builder.setUfsFileSystemOptions(
+          new UfsFileSystemOptions(conf.getString(PropertyKey.DORA_CLIENT_UFS_ROOT)));
       return builder;
     }
 
