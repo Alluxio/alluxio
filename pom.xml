@@ -947,6 +947,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
+<!--          Update the version here?          -->
           <version>3.8.1</version>
           <configuration>
             <source>${java.version}</source>
@@ -960,6 +961,7 @@
               <arg>--add-exports=java.base/jdk.internal.misc=ALL-UNNAMED</arg>
               <arg>--add-exports=java.management/sun.management=ALL-UNNAMED</arg>
             </compilerArgs>
+            <forceJavacCompilerUse>true</forceJavacCompilerUse>
           </configuration>
         </plugin>
         <plugin>
