@@ -1,0 +1,266 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
+package alluxio.client.file;
+
+import alluxio.AlluxioURI;
+import alluxio.PositionReader;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.DirectoryNotEmptyException;
+import alluxio.exception.FileAlreadyExistsException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.FileIncompleteException;
+import alluxio.exception.InvalidPathException;
+import alluxio.exception.OpenDirectoryException;
+import alluxio.grpc.CheckAccessPOptions;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.ExistsPOptions;
+import alluxio.grpc.FreePOptions;
+import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.JobProgressReportFormat;
+import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.ListStatusPartialPOptions;
+import alluxio.grpc.MountPOptions;
+import alluxio.grpc.OpenFilePOptions;
+import alluxio.grpc.RenamePOptions;
+import alluxio.grpc.ScheduleAsyncPersistencePOptions;
+import alluxio.grpc.SetAclAction;
+import alluxio.grpc.SetAclPOptions;
+import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.UnmountPOptions;
+import alluxio.job.JobDescription;
+import alluxio.job.JobRequest;
+import alluxio.security.authorization.AclEntry;
+import alluxio.wire.BlockLocationInfo;
+import alluxio.wire.MountPointInfo;
+import alluxio.wire.SyncPointInfo;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Consumer;
+import javax.annotation.concurrent.ThreadSafe;
+
+/**
+ * A no-op file system implementation where every operation throws
+ * {@link UnsupportedOperationException}.
+ */
+@ThreadSafe
+public final class NoOpFileSystem implements FileSystem {
+  private volatile boolean mClosed = false;
+
+  @Override
+  public boolean isClosed() {
+    return mClosed;
+  }
+
+  @Override
+  public void checkAccess(AlluxioURI path, CheckAccessPOptions options)
+      throws InvalidPathException, IOException, AlluxioException {
+    throw new UnsupportedOperationException("checkAccess");
+  }
+
+  @Override
+  public void createDirectory(AlluxioURI path, CreateDirectoryPOptions options)
+      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
+    throw new UnsupportedOperationException("createDirectory");
+  }
+
+  @Override
+  public FileOutStream createFile(AlluxioURI path, CreateFilePOptions options)
+      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
+    throw new UnsupportedOperationException("createFile");
+  }
+
+  @Override
+  public void delete(AlluxioURI path, DeletePOptions options)
+      throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
+    throw new UnsupportedOperationException("delete");
+  }
+
+  @Override
+  public boolean exists(AlluxioURI path, ExistsPOptions options)
+      throws InvalidPathException, IOException, AlluxioException {
+    throw new UnsupportedOperationException("exists");
+  }
+
+  @Override
+  public void free(AlluxioURI path, FreePOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    throw new UnsupportedOperationException("free");
+  }
+
+  @Override
+  public List<BlockLocationInfo> getBlockLocations(URIStatus status)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    throw new UnsupportedOperationException("getBlockLocations");
+  }
+
+  @Override
+  public AlluxioConfiguration getConf() {
+    throw new UnsupportedOperationException("getConf");
+  }
+
+  @Override
+  public URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    throw new UnsupportedOperationException("getStatus");
+  }
+
+  @Override
+  public void iterateStatus(AlluxioURI path, ListStatusPOptions options,
+      Consumer<? super URIStatus> action)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    throw new UnsupportedOperationException("iterateStatus");
+  }
+
+  @Override
+  public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    throw new UnsupportedOperationException("listStatus");
+  }
+
+  @Override
+  public ListStatusPartialResult listStatusPartial(AlluxioURI path,
+      ListStatusPartialPOptions options) throws AlluxioException, IOException {
+    throw new UnsupportedOperationException("listStatusPartial");
+  }
+
+  @Override
+  public void loadMetadata(AlluxioURI path, ListStatusPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    throw new UnsupportedOperationException("loadMetadata");
+  }
+
+  @Override
+  public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountPOptions options)
+      throws IOException, AlluxioException {
+    throw new UnsupportedOperationException("mount");
+  }
+
+  @Override
+  public void updateMount(AlluxioURI alluxioPath, MountPOptions options)
+      throws IOException, AlluxioException {
+    throw new UnsupportedOperationException("updateMount");
+  }
+
+  @Override
+  public Map<String, MountPointInfo> getMountTable(boolean checkUfs)
+      throws IOException, AlluxioException {
+    throw new UnsupportedOperationException("getMountTable");
+  }
+
+  @Override
+  public List<SyncPointInfo> getSyncPathList() throws IOException, AlluxioException {
+    throw new UnsupportedOperationException("getSyncPathList");
+  }
+
+  @Override
+  public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
+      throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
+      IOException, AlluxioException {
+    throw new UnsupportedOperationException("openFile");
+  }
+
+  @Override
+  public FileInStream openFile(URIStatus status, OpenFilePOptions options)
+      throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
+      IOException, AlluxioException {
+    throw new UnsupportedOperationException("openFile");
+  }
+
+  @Override
+  public PositionReader openPositionRead(AlluxioURI path, OpenFilePOptions options) {
+    throw new UnsupportedOperationException("openPositionRead");
+  }
+
+  @Override
+  public PositionReader openPositionRead(URIStatus status, OpenFilePOptions options) {
+    throw new UnsupportedOperationException("openPositionRead");
+  }
+
+  @Override
+  public void persist(AlluxioURI path, ScheduleAsyncPersistencePOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    throw new UnsupportedOperationException("persist");
+  }
+
+  @Override
+  public void rename(AlluxioURI src, AlluxioURI dst, RenamePOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    throw new UnsupportedOperationException("rename");
+  }
+
+  @Override
+  public AlluxioURI reverseResolve(AlluxioURI ufsUri) throws IOException, AlluxioException {
+    throw new UnsupportedOperationException("reverseResolve");
+  }
+
+  @Override
+  public void setAcl(AlluxioURI path, SetAclAction action, List<AclEntry> entries,
+      SetAclPOptions options) throws FileDoesNotExistException, IOException, AlluxioException {
+    throw new UnsupportedOperationException("setAcl");
+  }
+
+  @Override
+  public void startSync(AlluxioURI path)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    throw new UnsupportedOperationException("startSync");
+  }
+
+  @Override
+  public void stopSync(AlluxioURI path)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    throw new UnsupportedOperationException("stopSync");
+  }
+
+  @Override
+  public void setAttribute(AlluxioURI path, SetAttributePOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    throw new UnsupportedOperationException("setAttribute");
+  }
+
+  @Override
+  public void unmount(AlluxioURI path, UnmountPOptions options)
+      throws IOException, AlluxioException {
+    throw new UnsupportedOperationException("unmount");
+  }
+
+  @Override
+  public void needsSync(AlluxioURI path) throws IOException, AlluxioException {
+    throw new UnsupportedOperationException("needsSync");
+  }
+
+  @Override
+  public Optional<String> submitJob(JobRequest jobRequest) {
+    throw new UnsupportedOperationException("submitJob");
+  }
+
+  @Override
+  public boolean stopJob(JobDescription jobDescription) {
+    throw new UnsupportedOperationException("stopJob");
+  }
+
+  @Override
+  public String getJobProgress(JobDescription jobDescription, JobProgressReportFormat format,
+      boolean verbose) {
+    throw new UnsupportedOperationException("getJobProgress");
+  }
+
+  @Override
+  public void close() {
+    mClosed = true;
+  }
+}

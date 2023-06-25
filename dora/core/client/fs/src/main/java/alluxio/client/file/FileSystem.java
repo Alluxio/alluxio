@@ -191,10 +191,10 @@ public interface FileSystem extends Closeable {
           //  the file URI, so no root UFS address is needed
           LOG.warn("UFS fallback enabled but no root UFS address configured. "
               + "UFS fallback will not be enabled.");
-          fs = new BaseFileSystem(context);
+          fs = new NoOpFileSystem();
         }
       } else {
-        fs = new BaseFileSystem(context);
+        fs = new NoOpFileSystem();
       }
 
       if (options.isDoraCacheEnabled()) {
