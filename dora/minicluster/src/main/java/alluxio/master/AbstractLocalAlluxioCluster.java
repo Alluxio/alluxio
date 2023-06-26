@@ -169,15 +169,10 @@ public abstract class AbstractLocalAlluxioCluster {
         } catch (InterruptedException e) {
           // this is expected
         } catch (Exception e) {
-          if (e instanceof RuntimeException && e.getCause() instanceof InterruptedException) {
-            System.out.println("foobar");
-            // Expected; No-op
-          } else {
-            // Log the exception as the RuntimeException will be caught and handled silently by
-            // JUnit
-            LOG.error("Start worker error", e);
-            throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
-          }
+          // Log the exception as the RuntimeException will be caught and handled silently by
+          // JUnit
+          LOG.error("Start worker error", e);
+          throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
         }
       };
       Thread thread = new Thread(runWorker);

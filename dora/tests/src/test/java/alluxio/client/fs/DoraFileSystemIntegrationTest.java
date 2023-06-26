@@ -30,7 +30,6 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.journal.JournalType;
-import alluxio.proto.client.Cache;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
@@ -42,7 +41,6 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import org.gaul.s3proxy.junit.S3ProxyRule;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -52,7 +50,6 @@ import java.io.IOException;
 /**
  * Integration tests for Alluxio Client (reuse the {@link LocalAlluxioCluster}).
  */
-@Ignore
 public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
   @Rule
   public S3ProxyRule mS3Proxy = S3ProxyRule.builder()
@@ -81,10 +78,10 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS, true)
           .setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, "s3://" + TEST_BUCKET)
           .setProperty(PropertyKey.DORA_CLIENT_UFS_ROOT, "s3://" + TEST_BUCKET)
-          .setProperty(PropertyKey.WORKER_HTTP_SERVER_ENABLED)
+          .setProperty(PropertyKey.WORKER_HTTP_SERVER_ENABLED, false)
           .setProperty(PropertyKey.S3A_ACCESS_KEY, mS3Proxy.getAccessKey())
           .setProperty(PropertyKey.S3A_SECRET_KEY, mS3Proxy.getSecretKey())
-          .setNumWorkers(1)
+          .setNumWorkers(2)
           .setStartCluster(false)
           .build();
 
@@ -130,7 +127,9 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
     fos.close();
 
     mS3Client.deleteObject(TEST_BUCKET, TEST_FILE);
-    assertNotNull(mFileSystem.getStatus(TEST_FILE_URI));
+    assertNotNull(mFileSystem.getStatus(TEST_FILE_URI, GetStatusPOptions.newBuilder()
+        .setCommonOptions(optionNoSync())
+        .build()));
     try (FileInStream fis = mFileSystem.openFile(TEST_FILE_URI,
         OpenFilePOptions.newBuilder().setCommonOptions(optionNoSync()).build())) {
       String content = new String(fis.readAllBytes());
@@ -142,7 +141,8 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
             .setCommonOptions(optionSync()).build()));
 
     assertThrows(FileDoesNotExistException.class, () ->
-        mFileSystem.openFile(TEST_FILE_URI));
+        mFileSystem.getStatus(TEST_FILE_URI, GetStatusPOptions.newBuilder()
+            .setCommonOptions(optionNoSync()).build()));
   }
 
   /**
@@ -158,7 +158,9 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
     fos.close();
 
     mS3Client.putObject(TEST_BUCKET, TEST_FILE, UPDATED_TEST_CONTENT);
-    assertNotNull(mFileSystem.getStatus(TEST_FILE_URI));
+    assertNotNull(mFileSystem.getStatus(TEST_FILE_URI, GetStatusPOptions.newBuilder()
+        .setCommonOptions(optionNoSync())
+        .build()));
 
     try (FileInStream fis = mFileSystem.openFile(TEST_FILE_URI,
         OpenFilePOptions.newBuilder().setCommonOptions(optionNoSync()).build())) {
@@ -168,7 +170,8 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
 
     mFileSystem.getStatus(TEST_FILE_URI, GetStatusPOptions.newBuilder()
         .setCommonOptions(optionSync()).build());
-    try (FileInStream fis = mFileSystem.openFile(TEST_FILE_URI)) {
+    try (FileInStream fis = mFileSystem.openFile(TEST_FILE_URI,
+        OpenFilePOptions.newBuilder().setCommonOptions(optionNoSync()).build())) {
       String content = new String(fis.readAllBytes());
       assertEquals(UPDATED_TEST_CONTENT, content);
     }
