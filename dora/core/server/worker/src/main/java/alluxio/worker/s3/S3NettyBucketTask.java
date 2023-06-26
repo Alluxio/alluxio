@@ -26,7 +26,6 @@ import alluxio.s3.S3Constants;
 import alluxio.s3.S3ErrorCode;
 import alluxio.s3.S3Exception;
 
-import javax.ws.rs.core.Response;
 import io.netty.handler.codec.http.HttpResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -141,6 +140,7 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
       mHandler.processHttpResponse(response);
     }
   } // end of ListBucketsTask
+
   private static class ListObjectsTask extends S3NettyBucketTask {
     protected ListObjectsTask(S3NettyHandler handler, OpType opType) {
       super(handler, opType);
@@ -246,5 +246,4 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
       mHandler.processHttpResponse(response);
     }
   } // end of ListObjectsTask
-
 }
