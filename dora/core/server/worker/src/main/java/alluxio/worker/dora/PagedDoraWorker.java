@@ -837,6 +837,10 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     }
   }
 
+  /**
+   * Set attribute for this file/dir.
+   * Please note, at this moment, the options::recursive is ignored. TODO(hua)
+   */
   @Override
   public void setAttribute(String path, SetAttributePOptions options) {
     try {
@@ -851,10 +855,13 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         mUfs.setOwner(path, null, options.getOwner());
       }
       // TODO(Yimin) Update the local metadata cache if UFS metadata is updated.
+
+      // options.hasRecursive() is ignored.
       if (options.hasPinned() || options.hasPersisted()
           || options.hasReplicationMax() || options.hasReplicationMin()
           || options.getXattrCount() != 0) {
-        LOG.error("UFS only supports setting mode, owner, and group. Does not support setting {}",
+        LOG.error("UFS only supports setting mode, owner, and group. The other settings are "
+            + "ignored (and no error is returned): {}",
             options);
       }
     } catch (IOException e) {
