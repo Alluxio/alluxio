@@ -7798,10 +7798,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "reads and block writes) to wait for a response from the data server.")
           .build();
 
-  public static final PropertyKey DORA_CLIENT_READ_LOCATION_POLICY_ENABLED =
-      booleanBuilder(Name.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED)
+  public static final PropertyKey DORA_ENABLED =
+      booleanBuilder(Name.DORA_ENABLED)
           .setDefaultValue(true)
-          .setDescription("Whether to use client side location policy for reading")
+          .setDescription("This is the main switch for the Dora architecture, for both client "
+              + "and server sides. Make sure this is set to the same value across ALL Alluxio "
+              + "components including clients, workers, proxies etc. Note that Alluxio 3 will "
+              + "eventually only support DORA structure, so this property will only serve "
+              + "for a short period for compatibility, and will be removed eventually.")
+          .setAlias("alluxio.dora.client.read.location.policy.enabled")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
           .build();
@@ -7818,7 +7823,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       stringBuilder(Name.DORA_CLIENT_UFS_ROOT)
           .setDefaultValue(format("${%s}/underFSStorage", Name.WORK_DIR))
           .setDescription("UFS root for dora client when "
-              + Name.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED
+              + Name.DORA_ENABLED
               + " is enabled, to resolve a relative Alluxio URI")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
@@ -9546,8 +9551,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
         "alluxio.user.network.netty.reader.buffer.size.packets";
 
-    public static final String DORA_CLIENT_READ_LOCATION_POLICY_ENABLED =
-        "alluxio.dora.client.read.location.policy.enabled";
+    public static final String DORA_ENABLED =
+        "alluxio.dora.enabled";
     public static final String DORA_CLIENT_UFS_FALLBACK_ENABLED =
         "alluxio.dora.client.ufs.fallback.enabled";
     public static final String DORA_CLIENT_UFS_ROOT = "alluxio.dora.client.ufs.root";

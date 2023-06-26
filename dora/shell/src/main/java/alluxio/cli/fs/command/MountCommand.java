@@ -39,9 +39,12 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Mounts a UFS path onto an Alluxio path.
+ *
+ * @deprecated This command no longer works under the new Dora architecture.
  */
 @ThreadSafe
 @PublicApi
+@Deprecated
 public final class MountCommand extends AbstractFileSystemCommand {
 
   private static final Option READONLY_OPTION =
@@ -75,7 +78,7 @@ public final class MountCommand extends AbstractFileSystemCommand {
   public MountCommand(FileSystemContext fsContext) {
     super(fsContext);
     AlluxioProperties properties = fsContext.getClusterConf().copyProperties();
-    properties.set(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED, false);
+    properties.set(PropertyKey.DORA_ENABLED, false);
     AlluxioConfiguration config = new InstancedConfiguration(properties);
     mFileSystem = FileSystem.Factory.create(fsContext,
         FileSystemOptions.Builder.fromConf(config)
@@ -97,6 +100,8 @@ public final class MountCommand extends AbstractFileSystemCommand {
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
+    System.out.println("The mount command is deprecated under the new  DORA architecture. "
+        + "Please only use it when the cluster has " + PropertyKey.DORA_ENABLED + "=false");
     String[] args = cl.getArgs();
     if (args.length == 0) {
       Map<String, MountPointInfo> mountTable = mFileSystem.getMountTable();
