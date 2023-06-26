@@ -13,7 +13,6 @@ package alluxio.client.file;
 
 import alluxio.AlluxioURI;
 import alluxio.CloseableSupplier;
-import alluxio.Constants;
 import alluxio.PositionReader;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.ReadType;
@@ -281,20 +280,14 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       FileOutStream doraOutStream = mDoraClient.getOutStream(ufsFullPath, mFsContext,
           outStreamOptions, ufsOutStream, uuid);
 
-      if (Constants.ENABLE_DORA_WRITE) {
-        return doraOutStream;
-      } else {
-        doraOutStream.close();
-        return ufsOutStream;
-      }
+      return doraOutStream;
     } catch (Exception e) {
       // TODO(JiamingMai): delete the file
       // delete(alluxioPath);
       UFS_FALLBACK_COUNTER.inc();
       LOG.debug("Dora client CreateFile error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), e);
-      //return mDelegatedFileSystem.createFile(ufsFullPath, options);
-      throw e;
+      return mDelegatedFileSystem.createFile(ufsFullPath, options);
     }
   }
 
