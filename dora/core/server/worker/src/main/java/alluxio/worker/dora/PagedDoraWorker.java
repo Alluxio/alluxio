@@ -811,6 +811,25 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   @Override
   public boolean exists(String path, ExistsPOptions options) {
+    long syncIntervalMs = options.hasCommonOptions()
+        ? (options.getCommonOptions().hasSyncIntervalMs()
+        ? options.getCommonOptions().getSyncIntervalMs() : -1) :
+        -1;
+
+    Optional<DoraMeta.FileStatus> status = mMetaManager.getFromMetaStore(path);
+    if (status.isPresent()) { // metadata exists.
+      if (syncIntervalMs >= 0) {
+        if (System.nanoTime() - status.get().getTs() < syncIntervalMs * Constants.MS_NANO) {
+          // metadata exists and is not out-of-date.
+          return true;
+        }
+      } else {
+        // metadata exists and client does not require to check cache validity.
+        return true;
+      }
+    }
+
+    // TODO(Yimin) Load/reload metadata from UFS
     try {
       return mUfs.exists(path);
     } catch (IOException e) {
@@ -831,7 +850,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       } else if (options.hasGroup()) {
         mUfs.setOwner(path, null, options.getOwner());
       }
-      // Ignore options.hasRecursive()
+      // TODO(Yimin) Update the local metadata cache if UFS metadata is updated.
       if (options.hasPinned() || options.hasPersisted()
           || options.hasReplicationMax() || options.hasReplicationMin()
           || options.getXattrCount() != 0) {
