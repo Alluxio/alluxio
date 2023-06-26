@@ -477,8 +477,12 @@ public class S3NettyHandler {
    * @param queryParam
    * @return query parameter value
    */
-  public List<String> getQueryParameter(String queryParam) {
-    return mQueryDecoder.parameters().get(queryParam);
+  public String getQueryParameter(String queryParam) {
+    if (mQueryDecoder.parameters().get(queryParam) != null) {
+      return mQueryDecoder.parameters().get(queryParam).get(0);
+    } else {
+      return null;
+    }
   }
 
   /**

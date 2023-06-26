@@ -15,6 +15,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.ACCEPTED;
 import static io.netty.handler.codec.http.HttpResponseStatus.NO_CONTENT;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 
+import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
@@ -155,6 +156,17 @@ public class NettyRestUtils {
     }
     return new String(status.getXAttr().get(S3Constants.ETAG_XATTR_KEY),
         S3Constants.XATTR_STR_CHARSET);
+  }
+
+  /**
+   * Format bucket path.
+   *
+   * @param bucketPath bucket path
+   * @return bucket path after format
+   */
+  public static String parsePath(String bucketPath) {
+    // Normalize the bucket by replacing ":" with "/"
+    return bucketPath.replace(S3Constants.BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
   }
 
   /**
