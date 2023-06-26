@@ -16,6 +16,7 @@ import static io.netty.handler.codec.http.HttpHeaderValues.KEEP_ALIVE;
 import static org.eclipse.jetty.http.HttpHeaderValue.CLOSE;
 
 import alluxio.AlluxioURI;
+import alluxio.client.file.DoraCacheFileSystem;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -500,5 +501,18 @@ public class S3NettyHandler {
     // Use local conf to create filesystem rather than fs.getConf()
     // due to fs conf will be changed by merged cluster conf.
     return FileSystem.Factory.get(subject, Configuration.global());
+  }
+
+  /**
+   * Gets UFS full path from Alluxio path.
+   * @param objectPath the Alluxio path
+   * @return UfsBaseFileSystem based full path
+   */
+  public AlluxioURI getUfsPath(AlluxioURI objectPath) throws S3Exception {
+    if (mFsClient instanceof DoraCacheFileSystem) {
+      return ((DoraCacheFileSystem) mFsClient).convertAlluxioPathToUFSPath(objectPath);
+    } else {
+      throw new S3Exception(objectPath.toString(), S3ErrorCode.INTERNAL_ERROR);
+    }
   }
 }

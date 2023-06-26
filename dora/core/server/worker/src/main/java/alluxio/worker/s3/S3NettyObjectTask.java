@@ -30,6 +30,9 @@ import alluxio.s3.S3ErrorCode;
 import alluxio.s3.S3Exception;
 import alluxio.s3.S3RangeSpec;
 import alluxio.s3.TaggingData;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.BlockLocationInfo;
+import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockReader;
 import alluxio.worker.dora.DoraWorker;
@@ -48,6 +51,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Date;
 
 /**
@@ -122,13 +126,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
         try (S3AuditContext auditContext = mHandler.createAuditContext(
             mOPType.name(), user, mHandler.getBucket(), mHandler.getObject())) {
           try {
-//            if (userFs instanceof DoraCacheFileSystem) {
-//            AlluxioURI ufsFullPath =
-//                ((DoraCacheFileSystem) userFs).convertAlluxioPathToUFSPath(objectUri);
-//            DoraWorker doraWorker = mHandler.getDoraWorker();
             URIStatus fi = userFs.getStatus(objectUri);
-//            }
-//            URIStatus status = userFs.getStatus(objectUri);
             if (fi.isFolder() && !mHandler.getObject().endsWith(AlluxioURI.SEPARATOR)) {
               throw new FileDoesNotExistException(fi.getPath() + " is a directory");
             }
@@ -188,21 +186,30 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
         try (S3AuditContext auditContext = mHandler.createAuditContext(
             mOPType.name(), user, mHandler.getBucket(), mHandler.getObject())) {
           try {
-            AlluxioURI ufsFullPath;
-            if (userFs instanceof DoraCacheFileSystem) {
-              ufsFullPath =
-                  ((DoraCacheFileSystem) userFs).convertAlluxioPathToUFSPath(objectUri);
-            } else if (userFs instanceof DelegatingFileSystem) {
-              DoraCacheFileSystem doraUserFs =
-                  (DoraCacheFileSystem) ((DelegatingFileSystem) userFs).getUnderlyingFileSystem();
-              ufsFullPath = doraUserFs.convertAlluxioPathToUFSPath(objectUri);
-            } else {
-              throw new S3Exception(objectPath, S3ErrorCode.INTERNAL_ERROR);
-            }
-            DoraWorker doraWorker = mHandler.getDoraWorker();
+            // TODO(wyy) find the appropriate worker according to the ufs path
             URIStatus status = userFs.getStatus(objectUri);
             S3RangeSpec s3Range = S3RangeSpec.Factory.create(range);
+            if (!status.isFolder() && status.getLength() > 0) {
+              BlockLocationInfo locationInfo = userFs.getBlockLocations(status).get(0);
+              WorkerNetAddress workerNetAddress = locationInfo.getLocations().get(0);
+              String currentHost =
+                  NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC,
+                      Configuration.global());
+              if (!workerNetAddress.getHost().equals(currentHost)) {
+                final URI uri =
+                    new URI("http", null, workerNetAddress.getHost(),
+                        Configuration.getInt(PropertyKey.WORKER_REST_PORT),
+                        "/" + objectPath, null, null);
+                LOG.warn("redirect to the uri [{}]", uri);
+                HttpResponse response =
+                    new DefaultHttpResponse(HttpVersion.HTTP_1_1,
+                        HttpResponseStatus.TEMPORARY_REDIRECT);
+                response.headers().set(HttpHeaderNames.LOCATION, uri.toString());
+                return response;
+              }
+            }
 
+            AlluxioURI ufsFullPath = mHandler.getUfsPath(objectUri);
             HttpResponse response =
                 new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
             response.headers()
@@ -240,7 +247,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
                 response.headers().set(S3Constants.S3_TAGGING_COUNT_HEADER, taggingCount);
               }
             }
-            if (status.isFolder() && status.getLength() > 0) {
+            if (!status.isFolder() && status.getLength() > 0) {
               processGetObject(ufsFullPath.toString(), s3Range, status.getLength(), response);
             } else {
               mHandler.processHttpResponse(response, false);
