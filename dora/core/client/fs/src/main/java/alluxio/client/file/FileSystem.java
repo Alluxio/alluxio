@@ -172,6 +172,15 @@ public interface FileSystem extends Closeable {
     }
 
     /**
+     * Creates a legacy file system that connects to the alluxio master.
+     * @param context the FileSystemContext to use with the FileSystem
+     * @return a new FileSystem instance
+     */
+    public static FileSystem createLegacy(FileSystemContext context) {
+      return new BaseFileSystem(context);
+    }
+
+    /**
      * @param context the FileSystemContext to use with the FileSystem
      * @param options the FileSystemOptions
      * @return a new FileSystem instance
