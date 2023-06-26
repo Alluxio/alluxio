@@ -182,6 +182,8 @@ public final class LoadCommand extends AbstractFileSystemCommand {
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
+    System.out.println("The load command is deprecated under the new  DORA architecture. "
+        + "Please only use it when the cluster has " + PropertyKey.DORA_ENABLED + "=false");
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
     if (isOldFormat(cl)) {
