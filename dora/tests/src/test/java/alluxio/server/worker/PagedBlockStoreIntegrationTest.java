@@ -37,10 +37,9 @@ public class PagedBlockStoreIntegrationTest extends BaseIntegrationTest {
 
   @Rule
   public LocalAlluxioClusterResource mLocalCluster = new LocalAlluxioClusterResource.Builder()
-      // page store in worker does not support short circuit
-      .setProperty(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED, true)
       .setProperty(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false)
       .setProperty(PropertyKey.DORA_CLIENT_UFS_ROOT, mUfsPath)
+      // page store in worker does not support short circuit
       .setProperty(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, false)
       .setProperty(PropertyKey.WORKER_BLOCK_STORE_TYPE, BlockStoreType.PAGE)
       .setProperty(PropertyKey.WORKER_PAGE_STORE_SIZES, ImmutableList.of(Constants.MB))

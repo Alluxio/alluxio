@@ -102,7 +102,7 @@ public class DoraCacheClient {
    */
   public PositionReadFileInStream getInStream(URIStatus status,
       Protocol.OpenUfsBlockOptions ufsOptions) {
-    WorkerNetAddress workerNetAddress = getWorkerNetAddress(status.toString());
+    WorkerNetAddress workerNetAddress = getWorkerNetAddress(status.getUfsPath());
     // Construct the partial read request
     NettyDataReader reader;
     if (mNettyTransEnabled) {

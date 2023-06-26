@@ -44,13 +44,12 @@ public interface WorkerProcess extends Process {
      */
     public static WorkerProcess create() {
       // read configurations
-      boolean isDoraEnable = Configuration.global()
-          .getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED);
       boolean isNettyDataTransmissionEnable =
           Configuration.global().getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
       // add modules that need to be injected
       ImmutableList.Builder<Module> modules = ImmutableList.builder();
-      modules.add(isDoraEnable ? new DoraWorkerModule() : new BlockWorkerModule());
+      modules.add(Configuration.global().getBoolean(PropertyKey.DORA_ENABLED)
+          ? new DoraWorkerModule() : new BlockWorkerModule());
       modules.add(new GrpcServerModule());
       modules.add(new NettyServerModule(isNettyDataTransmissionEnable));
       modules.add(new AlluxioWorkerProcessModule());
