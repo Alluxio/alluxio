@@ -18,7 +18,6 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCacheFileSystem;
 import alluxio.client.file.options.FileSystemOptions;
-import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
@@ -92,6 +91,14 @@ public interface FileSystem extends Closeable {
    * {@link Factory#create} methods will always guarantee returning a new FileSystem.
    */
   class Factory {
+
+    static {
+      // If the extra loaded class name is set, try to load it.
+      if (Configuration.global().isSet(PropertyKey.EXTRA_LOADED_FILESYSTEM_CLASSNAME)) {
+        Configuration.global().getClass(PropertyKey.EXTRA_LOADED_FILESYSTEM_CLASSNAME);
+      }
+    }
+
     private static final Logger LOG = LoggerFactory.getLogger(Factory.class);
     private static final AtomicBoolean CONF_LOGGED = new AtomicBoolean(false);
 
@@ -172,22 +179,9 @@ public interface FileSystem extends Closeable {
     public static FileSystem create(FileSystemContext context, FileSystemOptions options) {
       AlluxioConfiguration conf = context.getClusterConf();
       checkSortConf(conf);
-      FileSystem fs;
-      if (options.isUfsFallbackEnabled()) {
-        if (options.getUfsFileSystemOptions().isPresent()) {
-          UfsFileSystemOptions ufsOptions = options.getUfsFileSystemOptions().get();
-          LOG.debug("UFS fallback enabled, root UFS address: {}", ufsOptions.getUfsAddress());
-          fs = new UfsBaseFileSystem(context, ufsOptions);
-        } else {
-          // todo(bowen): remove this check when we support arbitrary UFS fallback based on
-          //  the file URI, so no root UFS address is needed
-          LOG.warn("UFS fallback enabled but no root UFS address configured. "
-              + "UFS fallback will not be enabled.");
-          fs = new BaseFileSystem(context);
-        }
-      } else {
-        fs = new BaseFileSystem(context);
-      }
+      FileSystem fs = options.getUfsFileSystemOptions().isPresent()
+          ? new UfsBaseFileSystem(context, options.getUfsFileSystemOptions().get())
+          : new BaseFileSystem(context);
 
       if (options.isDoraCacheEnabled()) {
         LOG.debug("Dora cache enabled");

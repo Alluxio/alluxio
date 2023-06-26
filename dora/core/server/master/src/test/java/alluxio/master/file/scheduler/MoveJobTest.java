@@ -131,6 +131,7 @@ public class MoveJobTest {
     List<Route> nextRoutes = job.getNextRoutes(25);
     job.addMovedBytes(640 * Constants.MB);
     String expectedTextReport = "\tSettings:\tcheck-content: false\n"
+        + "\tJob Id: 1\n"
         + "\tJob State: RUNNING\n"
         + "\tFiles Processed: 25\n"
         + "\tBytes Moved: 640.00MB out of 31.25GB\n"
@@ -141,7 +142,8 @@ public class MoveJobTest {
     String expectedJsonReport = "{\"mVerbose\":false,\"mJobState\":\"RUNNING\","
         + "\"mCheckContent\":false,\"mProcessedFileCount\":25,"
         + "\"mByteCount\":671088640,\"mTotalByteCount\":33554432000,"
-        + "\"mFailurePercentage\":0.0,\"mFailedFileCount\":0,\"mFailedFilesWithReasons\":{}}";
+        + "\"mFailurePercentage\":0.0,\"mFailedFileCount\":0,"
+        + "\"mFailedFilesWithReasons\":{},\"mJobId\":\"1\"}";
     assertEquals(expectedJsonReport, job.getProgress(JobProgressReportFormat.JSON, false));
     job.addFailure(nextRoutes.get(0).getSrc(), "Test error 1", 2);
     job.addFailure(nextRoutes.get(4).getSrc(), "Test error 2", 2);
@@ -149,6 +151,7 @@ public class MoveJobTest {
     job.failJob(new InternalRuntimeException("test"));
     assertEquals(JobState.FAILED, job.getJobState());
     String expectedTextReportWithError = "\tSettings:\tcheck-content: false\n"
+        + "\tJob Id: 1\n"
         + "\tJob State: FAILED (alluxio.exception.runtime.InternalRuntimeException: test)\n"
         + "\tFiles Processed: 25\n"
         + "\tBytes Moved: 640.00MB out of 31.25GB\n"
