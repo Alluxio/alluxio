@@ -92,7 +92,7 @@ public class MetricsHeartbeatContext {
   }
 
   private synchronized void heartbeat() {
-    mClientMasterSync.heartbeat();
+//    mClientMasterSync.heartbeat();
   }
 
   /**

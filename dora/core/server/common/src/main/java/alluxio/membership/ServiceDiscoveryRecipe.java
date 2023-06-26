@@ -52,7 +52,7 @@ public class ServiceDiscoveryRecipe {
   }
 
   private String getRegisterPathPrefix() {
-    return String.format("%s/%s/", BASE_PATH, mClusterIdentifier);
+    return String.format("%s/%s", BASE_PATH, mClusterIdentifier);
   }
 
   @GuardedBy("ServiceDiscoveryRecipe#mRegisterLock")

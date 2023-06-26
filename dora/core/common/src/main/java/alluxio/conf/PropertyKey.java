@@ -7653,14 +7653,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("DefaultAlluxioCluster").build();
   public static final PropertyKey ETCD_ENDPOINTS =
       listBuilder(Name.ETCD_ENDPOINTS)
-          .setDescription(format("A list of comma-separated http://host:port RPC addresses where "
-                  + "the client should look for job masters when using multiple job masters "
-                  + "without Zookeeper. This property is not used "
-                  + "when Zookeeper is enabled, since Zookeeper already stores the job master "
-                  + "addresses. If property is not defined, clients will look for job masters "
-                  + "using [%s]:%s first, then for [%s]:%s.",
-              Name.MASTER_RPC_ADDRESSES, Name.JOB_MASTER_RPC_PORT,
-              Name.JOB_MASTER_EMBEDDED_JOURNAL_ADDRESSES, Name.JOB_MASTER_RPC_PORT))
+          .setDescription("A list of comma-separated http://host:port addresses of "
+                  + "etcd cluster (e.g. http://localhost:2379,http://etcd1:2379)")
           .setScope(Scope.ALL)
           .build();
 
@@ -9522,6 +9516,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     // Membership related properties
     public static final String ALLUXIO_CLUSTER_NAME = "alluxio.cluster.name";
+    public static final String ETCD_ENDPOINTS = "alluxio.etcd.endpoints";
 
     //
     // JVM Monitor related properties

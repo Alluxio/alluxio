@@ -22,6 +22,7 @@ public class StaticMembershipManager implements MembershipManager {
   public StaticMembershipManager(AlluxioConfiguration conf) {
     mConf = conf;
     List<String> configuredMembers = conf.getList(PropertyKey.WORKER_MEMBER_STATIC_LIST);
+    // user conf/workers, use default port
     mMembers = parseWorkerAddresses(configuredMembers);
   }
 
@@ -42,7 +43,7 @@ public class StaticMembershipManager implements MembershipManager {
   }
 
   @Override
-  public void joinMembership(WorkerNetAddress worker) throws IOException {
+  public void join(WorkerNetAddress worker) throws IOException {
 
   }
 

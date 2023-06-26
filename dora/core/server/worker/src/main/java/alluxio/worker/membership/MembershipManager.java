@@ -23,7 +23,7 @@ public interface MembershipManager extends AutoCloseable {
    * @param worker
    * @throws IOException
    */
-  public void joinMembership(WorkerNetAddress worker) throws IOException;
+  public void join(WorkerNetAddress worker) throws IOException;
   public List<WorkerNetAddress> getAllMembers();
   public List<WorkerNetAddress> getLiveMembers();
   public List<WorkerNetAddress> getFailedMembers();

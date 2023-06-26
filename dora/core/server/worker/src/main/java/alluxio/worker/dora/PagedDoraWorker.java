@@ -241,7 +241,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     RetryPolicy retry = RetryUtils.defaultWorkerMasterClientRetry();
     while (true) {
       try {
-        mMembershipManager.joinMembership(mAddress);
+        mMembershipManager.join(mAddress);
         mWorkerId.set(CommonUtils.hashAsLong(mAddress.dumpMainInfo()));
       } catch (IOException ioe) {
         if (!retry.attempt()) {

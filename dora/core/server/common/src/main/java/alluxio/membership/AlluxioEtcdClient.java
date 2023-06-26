@@ -1,6 +1,7 @@
 package alluxio.membership;
 
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.resource.LockResource;
 import alluxio.retry.ExponentialBackoffRetry;
@@ -64,6 +65,9 @@ public class AlluxioEtcdClient implements Closeable {
   public final ServiceDiscoveryRecipe mServiceDiscovery;
   public String[] mEndpoints = new String[0];
   private final Closer mCloser = Closer.create();
+  // only watch for children change(add/remove) for given parent path
+  private ConcurrentHashMap<String, Watch.Watcher> mRegisteredWatchers =
+      new ConcurrentHashMap<>();
 
   public AlluxioEtcdClient(AlluxioConfiguration conf) {
     String clusterName = conf.getString(PropertyKey.ALLUXIO_CLUSTER_NAME);
@@ -94,9 +98,6 @@ public class AlluxioEtcdClient implements Closeable {
     mConnected.set(false);
     // create client using endpoints
     Client client = Client.builder().endpoints(mEndpoints)
-//        .endpoints(
-//        "http://localhost:2379" //, "http://etcd1:2379", "http://etcd2:2379"
-//        )
         .build();
     if (mConnected.compareAndSet(false, true)) {
       mClient = client;
@@ -185,10 +186,6 @@ public class AlluxioEtcdClient implements Closeable {
       return getResponse.getKvs();
     }, new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES));
   }
-
-  // only watch for children change(add/remove) for given parent path
-  private ConcurrentHashMap<String, Watch.Watcher> mRegisteredWatchers =
-      new ConcurrentHashMap<>();
 
   private void addListenerInternal(
       String parentPath, StateListener listener, WatchType watchType) {
@@ -363,43 +360,6 @@ public class AlluxioEtcdClient implements Closeable {
     mCloser.close();
   }
 
-//  public static class TestService extends ServiceEntityContext {
-//    AtomicReference<Long> mWorkerId;
-//    WorkerNetAddress mAddress;
-//    Long mLeaseId = -1L;
-//
-//    public TestService(String id) {
-//      super(id);
-//    }
-//
-//    public String toString() {
-//      return MoreObjects.toStringHelper(this)
-//          .add("WorkerId", mWorkerId.get())
-//          .add("WorkerAddr", mAddress.toString())
-//          .add("LeaseId", mLeaseId)
-//          .toString();
-//    }
-//  }
-
-//  public static void testServiceDiscovery(EtcdClient etcdClient) {
-//    try {
-//      String clusterId = UUID.randomUUID().toString();
-//      ServiceDiscoveryRecipe sd = new ServiceDiscoveryRecipe(etcdClient,
-//          clusterId, 2L);
-//      TestService service = new TestService("worker-0");
-//      service.mWorkerId = new AtomicReference<Long>(12L);
-//      System.out.println("registering  service," + service);
-//      sd.registerAndStartSync(service);
-//      sd.getAllLiveServices();
-//      Thread.sleep(30000);
-//      System.out.println("unregistering  service," + service);
-//      sd.unregisterService(service.getServiceEntityName());
-//      System.out.println("finished main.");
-//    } catch (Exception e) {
-//      throw new RuntimeException(e);
-//    }
-//  }
-
   public static void testBarrier(AlluxioEtcdClient alluxioEtcdClient) {
     try {
       BarrierRecipe barrierRecipe = new BarrierRecipe(alluxioEtcdClient, "/barrier-test",
@@ -428,7 +388,7 @@ public class AlluxioEtcdClient implements Closeable {
 
   public static void main(String[] args) {
     BasicConfigurator.configure();
-    AlluxioEtcdClient alluxioEtcdClient = new AlluxioEtcdClient("Default");
+    AlluxioEtcdClient alluxioEtcdClient = new AlluxioEtcdClient(Configuration.global());
     alluxioEtcdClient.connect();
 //    testServiceDiscovery(etcdClient);
 //    testBarrier(etcdClient);
@@ -473,9 +433,9 @@ public class AlluxioEtcdClient implements Closeable {
     LOG.info("[LUCY] main done.");
   }
 
-  private static void init() {
-    PropertyConfigurator.configure("/Users/lucyge/Documents/github/alluxio/conf/log4j.properties");
-    Properties props = new Properties();
-    props.setProperty(PropertyKey.LOGGER_TYPE.toString(), "Console");
-  }
+//  private static void init() {
+//    PropertyConfigurator.configure("/Users/lucyge/Documents/github/alluxio/conf/log4j.properties");
+//    Properties props = new Properties();
+//    props.setProperty(PropertyKey.LOGGER_TYPE.toString(), "Console");
+//  }
 }

@@ -1,6 +1,7 @@
 package alluxio.worker.membership;
 
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.membership.AlluxioEtcdClient;
 import alluxio.wire.WorkerNetAddress;
@@ -25,24 +26,18 @@ import java.util.stream.Collectors;
 
 public class EtcdMembershipManager implements MembershipManager {
   private static final Logger LOG = LoggerFactory.getLogger(EtcdMembershipManager.class);
-  List<MemberSubscriber> mSubscribers = new ArrayList<>();
   private AlluxioEtcdClient mAlluxioEtcdClient;
-  private static String mClusterName = "DefaultClusterName";
+  private static String mClusterName;
   private final AlluxioConfiguration mConf;
   private static String sRingPathFormat = "/DHT/%s/AUTHORIZED/";
 
   public EtcdMembershipManager(AlluxioConfiguration conf) {
     mConf = conf;
+    mClusterName = conf.getString(PropertyKey.ALLUXIO_CLUSTER_NAME);
     mAlluxioEtcdClient = AlluxioEtcdClient.getInstance(conf);
-    mAlluxioEtcdClient.connect();
   }
 
-  public interface MemberSubscriber {
-    public void onViewChange(); // get notified with add/remove nodes
-    public void onChange(); // for future for dissemination protocol-like impl to spread info on any changes of a node.
-  }
-
-  public void joinMembership(WorkerNetAddress wkrAddr) throws IOException {
+  public void join(WorkerNetAddress wkrAddr) throws IOException {
     WorkerServiceEntity entity = new WorkerServiceEntity(wkrAddr);
     // 1) register to the ring
     String pathOnRing = String.format(sRingPathFormat, mClusterName) + entity.getServiceEntityName();
