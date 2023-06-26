@@ -27,7 +27,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -109,9 +108,13 @@ public class UpdateCheckerTest {
   }
 
   private UpdateChecker getUpdateCheckerWithUfs(String ufsAddress) {
-    return UpdateChecker.create(FuseOptions.create(Configuration.global(),
-        FileSystemOptions.create(Configuration.global(),
-            Optional.of(new UfsFileSystemOptions(ufsAddress))), false));
+    final FileSystemOptions fileSystemOptions =
+        FileSystemOptions.Builder
+            .fromConf(Configuration.global())
+            .setUfsFileSystemOptions(new UfsFileSystemOptions(ufsAddress))
+            .build();
+    return UpdateChecker.create(
+        FuseOptions.create(Configuration.global(), fileSystemOptions, false));
   }
 
   private UpdateChecker getUpdateCheckerWithMountOptions(String mountOptions) {

@@ -128,7 +128,7 @@ public class AlluxioFileInStream extends FileInStream {
       AlluxioConfiguration conf = mContext.getPathConf(new AlluxioURI(status.getPath()));
       mPassiveCachingEnabled = conf.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
       mNettyTransEnabled = conf.getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
-      mDoraEnabled = conf.getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED);
+      mDoraEnabled = conf.getBoolean(PropertyKey.DORA_ENABLED);
       final Duration blockReadRetryMaxDuration =
           conf.getDuration(PropertyKey.USER_BLOCK_READ_RETRY_MAX_DURATION);
       final Duration blockReadRetrySleepBase =

@@ -759,7 +759,12 @@ public class LocalCacheManager implements CacheManager {
   }
 
   private boolean restore(PageStoreDir pageStoreDir) {
+    long restoredPages = mPageMetaStore.numPages();
+    long restoredBytes = mPageMetaStore.bytes();
+    long discardPages = Metrics.PAGE_DISCARDED.getCount();
+    long discardBytes = Metrics.BYTE_DISCARDED.getCount();
     LOG.info("Restoring PageStoreDir ({})", pageStoreDir.getRootPath());
+
     if (!Files.exists(pageStoreDir.getRootPath())) {
       LOG.error("Failed to restore PageStore: Directory {} does not exist",
           pageStoreDir.getRootPath());
@@ -777,8 +782,9 @@ public class LocalCacheManager implements CacheManager {
     }
     LOG.info("PageStore ({}) restored with {} pages ({} bytes), "
             + "discarded {} pages ({} bytes)",
-        pageStoreDir.getRootPath(), mPageMetaStore.numPages(), mPageMetaStore.bytes(),
-        Metrics.PAGE_DISCARDED.getCount(), Metrics.BYTE_DISCARDED);
+        pageStoreDir.getRootPath(), mPageMetaStore.numPages() - restoredPages,
+        mPageMetaStore.bytes() - restoredBytes, Metrics.PAGE_DISCARDED.getCount() - discardPages,
+        Metrics.BYTE_DISCARDED.getCount() - discardBytes);
     return true;
   }
 

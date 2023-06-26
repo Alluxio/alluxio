@@ -7728,6 +7728,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
 
+  public static final PropertyKey WORKER_HTTP_SERVER_ENABLED =
+      booleanBuilder(Name.WORKER_HTTP_SERVER_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Whether to enable worker HTTP server.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.WORKER)
+          .build();
+
+  public static final PropertyKey WORKER_HTTP_SERVER_PORT =
+      intBuilder(Name.WORKER_HTTP_SERVER_PORT)
+          .setDefaultValue(28080)
+          .setDescription("The port Alluxio's worker's HTTP server runs on.")
+          .setScope(Scope.WORKER)
+          .build();
+
   public static final PropertyKey USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX =
       intBuilder(Name.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX)
           .setDefaultValue(1024)
@@ -7783,18 +7798,33 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "reads and block writes) to wait for a response from the data server.")
           .build();
 
-  public static final PropertyKey DORA_CLIENT_READ_LOCATION_POLICY_ENABLED =
-      booleanBuilder(Name.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED)
+  public static final PropertyKey DORA_ENABLED =
+      booleanBuilder(Name.DORA_ENABLED)
           .setDefaultValue(true)
-          .setDescription("Whether to use client side location policy for reading")
+          .setDescription("This is the main switch for the Dora architecture, for both client "
+              + "and server sides. Make sure this is set to the same value across ALL Alluxio "
+              + "components including clients, workers, proxies etc. Note that Alluxio 3 will "
+              + "eventually only support DORA structure, so this property will only serve "
+              + "for a short period for compatibility, and will be removed eventually.")
+          .setAlias("alluxio.dora.client.read.location.policy.enabled")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
           .build();
-
+  public static final PropertyKey DORA_CLIENT_UFS_FALLBACK_ENABLED =
+      booleanBuilder(Name.DORA_CLIENT_UFS_FALLBACK_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Whether the client falls back to the UFS to perform IO operations "
+              + "directly when Alluxio workers are not available. If enabled, "
+              + Name.DORA_CLIENT_UFS_ROOT + " should also be specified to resolve UFS paths.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey DORA_CLIENT_UFS_ROOT =
       stringBuilder(Name.DORA_CLIENT_UFS_ROOT)
-          .setDefaultValue("/tmp")
-          .setDescription("UFS root for dora client")
+          .setDefaultValue(format("${%s}/underFSStorage", Name.WORK_DIR))
+          .setDescription("UFS root for dora client when "
+              + Name.DORA_ENABLED
+              + " is enabled, to resolve a relative Alluxio URI")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.ALL)
           .build();
@@ -7905,6 +7935,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
 
+  //
+  // Extra class to be loaded
+  //
+  public static final PropertyKey EXTRA_LOADED_FILESYSTEM_CLASSNAME =
+          classBuilder(Name.EXTRA_LOADED_FILESYSTEM_CLASSNAME)
+                  .setDescription(
+                          "Full name of the class that will be loaded explicit for filesystem.")
+                  .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+                  .setScope(Scope.ALL)
+                  .build();
   /**
    * @deprecated This key is used for testing. It is always deprecated.
    */
@@ -9494,6 +9534,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_NETTY_DATA_TRANSMISSION_ENABLED =
         "alluxio.user.netty.data.transmission.enabled";
 
+    public static final String WORKER_HTTP_SERVER_ENABLED =
+        "alluxio.worker.http.server.enabled";
+
+    public static final String WORKER_HTTP_SERVER_PORT =
+        "alluxio.worker.http.server.port";
+
     public static final String USER_NETWORK_NETTY_CHANNEL_POOL_DISABLED =
         "alluxio.user.network.netty.channel.pool.disabled";
 
@@ -9505,9 +9551,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
         "alluxio.user.network.netty.reader.buffer.size.packets";
 
-    public static final String DORA_CLIENT_READ_LOCATION_POLICY_ENABLED =
-        "alluxio.dora.client.read.location.policy.enabled";
-
+    public static final String DORA_ENABLED =
+        "alluxio.dora.enabled";
+    public static final String DORA_CLIENT_UFS_FALLBACK_ENABLED =
+        "alluxio.dora.client.ufs.fallback.enabled";
     public static final String DORA_CLIENT_UFS_ROOT = "alluxio.dora.client.ufs.root";
     public static final String DORA_CLIENT_METADATA_CACHE_ENABLED
         = "alluxio.dora.client.metadata.cache.enabled";
@@ -9540,6 +9587,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     public static final String DORA_UFS_LIST_STATUS_CACHE_NR_DIRS =
         "alluxio.dora.ufs.list.status.cache.nr.dirs";
+
+    //
+    // Extra class to be loaded
+    //
+    public static final String EXTRA_LOADED_FILESYSTEM_CLASSNAME =
+            "alluxio.extra.loaded.filesystem.classname";
 
     private Name() {} // prevent instantiation
   }

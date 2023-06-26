@@ -38,7 +38,6 @@ import org.junit.runners.Parameterized;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -78,9 +77,13 @@ public abstract class AbstractUfsStreamTest {
     String ufs = AlluxioTestDirectory.createTemporaryDirectory("ufsInStream").toString();
     mRootUfs = new AlluxioURI(ufs);
     UnderFileSystemFactoryRegistry.register(new LocalUnderFileSystemFactory());
+    final FileSystemOptions fileSystemOptions =
+        FileSystemOptions.Builder
+            .fromConf(mConf)
+            .setUfsFileSystemOptions(new UfsFileSystemOptions(ufs))
+            .build();
     mFileSystem = FileSystem.Factory.create(FileSystemContext.create(
-        ClientContext.create(mConf)), FileSystemOptions.create(mConf,
-        Optional.of(new UfsFileSystemOptions(ufs))));
+        ClientContext.create(mConf)), fileSystemOptions);
   }
 
   @After

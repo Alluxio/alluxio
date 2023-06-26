@@ -40,7 +40,6 @@ import alluxio.util.ThreadUtils;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -92,162 +91,6 @@ public final class Scheduler {
   private volatile boolean mRunning = false;
   private final FileSystemContext mFileSystemContext;
   private final WorkerInfoHub mWorkerInfoHub;
-
-  /**
-   * Worker information hub.
-   */
-  @SuppressFBWarnings(value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE",
-      justification = "Already performed null check")
-  public class WorkerInfoHub {
-    public Map<WorkerInfo, CloseableResource<BlockWorkerClient>> mActiveWorkers = ImmutableMap.of();
-    private final WorkerProvider mWorkerProvider;
-
-    /**
-     * Constructor.
-     * @param scheduler scheduler
-     * @param workerProvider worker provider
-     */
-    public WorkerInfoHub(Scheduler scheduler, WorkerProvider workerProvider) {
-      mWorkerProvider = workerProvider;
-    }
-
-    private final Map<WorkerInfo, PriorityBlockingQueue<Task>> mWorkerToTaskQ
-        = new ConcurrentHashMap<>();
-
-    /**
-     * Enqueue task for worker.
-     * @param workerInfo the worker
-     * @param task the task
-     * @param kickStartTask kick-start task
-     * @return whether the task is enqueued successfully
-     */
-    public boolean enqueueTaskForWorker(@Nullable WorkerInfo workerInfo, Task task,
-        boolean kickStartTask) {
-      if (workerInfo == null) {
-        return false;
-      }
-      PriorityBlockingQueue workerTaskQ = mWorkerToTaskQ
-          .computeIfAbsent(workerInfo, k -> new PriorityBlockingQueue<>());
-      if (!workerTaskQ.offer(task)) {
-        return false;
-      }
-      CloseableResource<BlockWorkerClient> blkWorkerClientResource = mActiveWorkers.get(workerInfo);
-      if (blkWorkerClientResource == null) {
-        LOG.warn("Didn't find corresponding BlockWorkerClient for workerInfo:{}",
-            workerInfo);
-        return false;
-      }
-      if (kickStartTask) {
-        // track running tasks of a job
-        ConcurrentHashSet<Task<?>> tasks = mJobToRunningTasks.computeIfAbsent(task.getJob(),
-                j -> new ConcurrentHashSet<>());
-        tasks.add(task);
-        task.execute(blkWorkerClientResource.get(), workerInfo);
-        task.getResponseFuture().addListener(() -> {
-          Job job = task.getJob();
-          try {
-            job.processResponse(task); // retry on failure logic inside
-            // TODO(lucy) currently processJob is only called in the single
-            // threaded scheduler thread context, in future once tasks are
-            // completed, they should be able to call processJob to resume
-            // their own job to schedule next set of tasks to run.
-          } catch (Exception e) {
-            // Unknown exception. This should not happen, but if it happens we don't
-            // want to lose the worker thread, thus catching it here. Any exception
-            // surfaced here should be properly handled.
-            LOG.error("Unexpected exception thrown in response future listener.", e);
-            job.failJob(new InternalRuntimeException(e));
-          } finally {
-            // whether task succeed or fail, remove it from q,
-            workerTaskQ.remove(task);
-            ConcurrentHashSet<Task<?>> runningTaskSet = mJobToRunningTasks.get(job);
-            runningTaskSet.remove(task);
-          }
-        }, mSchedulerExecutor);
-      }
-      return true;
-    }
-
-    /**
-     * Removes task from worker queue.
-     * @param task the task
-     * @return true if task exists and is removed, false otherwise
-     */
-    public boolean removeTaskFromWorkerQ(Task task) {
-      WorkerInfo workerInfo = task.getMyRunningWorker();
-      if (mWorkerToTaskQ.containsKey(workerInfo)) {
-        return false;
-      }
-      PriorityBlockingQueue<Task> pq = mWorkerToTaskQ.get(workerInfo);
-      return pq.remove(task);
-    }
-
-    /**
-     * @return the worker to task queue
-     */
-    public Map<WorkerInfo, PriorityBlockingQueue<Task>> getWorkerToTaskQ() {
-      return mWorkerToTaskQ;
-    }
-
-    /**
-     * Refresh active workers.
-     */
-    @VisibleForTesting
-    public void updateWorkers() {
-      if (Thread.currentThread().isInterrupted()) {
-        return;
-      }
-      Set<WorkerInfo> workerInfos;
-      try {
-        try {
-          workerInfos = ImmutableSet.copyOf(mWorkerProvider.getWorkerInfos());
-        } catch (AlluxioRuntimeException e) {
-          LOG.warn("Failed to get worker info, using existing worker infos of {} workers",
-              mActiveWorkers.size());
-          return;
-        }
-        if (workerInfos.size() == mActiveWorkers.size()
-            && workerInfos.containsAll(mActiveWorkers.keySet())) {
-          return;
-        }
-
-        ImmutableMap.Builder<WorkerInfo, CloseableResource<BlockWorkerClient>> updatedWorkers =
-            ImmutableMap.builder();
-        for (WorkerInfo workerInfo : workerInfos) {
-          try {
-            if (mActiveWorkers.get(workerInfo) != null) {
-              CloseableResource<BlockWorkerClient> workerClient = Preconditions.checkNotNull(
-                  mActiveWorkers.get(workerInfo));
-              updatedWorkers.put(workerInfo, workerClient);
-            } else {
-              updatedWorkers.put(workerInfo, mWorkerProvider.getWorkerClient(
-                  workerInfo.getAddress()));
-            }
-          } catch (AlluxioRuntimeException e) {
-            LOG.warn("Updating worker {} address failed", workerInfo.getAddress(), e);
-            // skip the worker if we cannot obtain a client
-          }
-        }
-        // Close clients connecting to lost workers
-        for (Map.Entry<WorkerInfo, CloseableResource<BlockWorkerClient>> entry :
-            mActiveWorkers.entrySet()) {
-          WorkerInfo workerInfo = entry.getKey();
-          if (!workerInfos.contains(workerInfo)) {
-            CloseableResource<BlockWorkerClient> resource = entry.getValue();
-            resource.close();
-            LOG.debug("Closed BlockWorkerClient to lost worker {}", workerInfo);
-          }
-        }
-        // Build the clients to the current active worker list
-        mActiveWorkers = updatedWorkers.build();
-      } catch (Exception e) {
-        // Unknown exception. This should not happen, but if it happens we don't want to lose the
-        // scheduler thread, thus catching it here. Any exception surfaced here should be properly
-        // handled.
-        LOG.error("Unexpected exception thrown in updateWorkers.", e);
-      }
-    }
-  }
 
   /**
    * Constructor.
@@ -339,34 +182,35 @@ public final class Scheduler {
    * @throws UnavailableRuntimeException if the job cannot be submitted because the meta store is
    * not ready
    */
-  public boolean submitJob(Job<?> job) {
+  public synchronized boolean submitJob(Job<?> job) {
     Job<?> existingJob = mExistingJobs.get(job.getDescription());
     if (existingJob != null && !existingJob.isDone()) {
-      updateExistingJob(job, existingJob);
+      mJobToRunningTasks.compute(existingJob, (k, v) -> {
+        if (k.getJobState() == JobState.STOPPED) {
+          k.setJobState(JobState.RUNNING, true);
+          LOG.debug(format("restart existing job: %s", existingJob));
+          return new ConcurrentHashSet<>();
+        }
+        return v;
+      });
       return false;
     }
 
     if (mJobToRunningTasks.size() >= CAPACITY) {
-      throw new ResourceExhaustedRuntimeException(
-          "Too many jobs running, please submit later.", true);
+      throw new ResourceExhaustedRuntimeException("Too many jobs running, please submit later.",
+          true);
+    }
+    ConcurrentHashSet<Task<?>> result =
+        mJobToRunningTasks.putIfAbsent(job, new ConcurrentHashSet<>());
+    if (result != null) {
+      LOG.warn("There's concurrent submit while job is still in cleaning state");
+      return false;
     }
     mJobMetaStore.updateJob(job);
     mExistingJobs.put(job.getDescription(), job);
     job.initializeJob();
-    mJobToRunningTasks.putIfAbsent(job, new ConcurrentHashSet<>());
     LOG.info(format("start job: %s", job));
     return true;
-  }
-
-  private void updateExistingJob(Job<?> newJob, Job<?> existingJob) {
-    existingJob.updateJob(newJob);
-    mJobMetaStore.updateJob(existingJob);
-    LOG.debug(format("updated existing job: %s from %s", existingJob, newJob));
-    if (existingJob.getJobState() == JobState.STOPPED) {
-      existingJob.setJobState(JobState.RUNNING, false);
-      mJobToRunningTasks.compute(existingJob, (k, v) -> new ConcurrentHashSet<>());
-      LOG.debug(format("restart existing job: %s", existingJob));
-    }
   }
 
   /**
@@ -377,8 +221,7 @@ public final class Scheduler {
   public boolean stopJob(JobDescription jobDescription) {
     Job<?> existingJob = mExistingJobs.get(jobDescription);
     if (existingJob != null && existingJob.isRunning()) {
-      existingJob.setJobState(JobState.STOPPED, false);
-      mJobMetaStore.updateJob(existingJob);
+      existingJob.setJobState(JobState.STOPPED, true);
       // leftover tasks in mJobToRunningTasks would be removed by scheduling thread.
       return true;
     }
@@ -421,13 +264,6 @@ public final class Scheduler {
   }
 
   /**
-   * @return the file system context
-   */
-  public FileSystemContext getFileSystemContext() {
-    return mFileSystemContext;
-  }
-
-  /**
    * Get active workers.
    * @return active workers
    */
@@ -463,28 +299,21 @@ public final class Scheduler {
     if (Thread.currentThread().isInterrupted()) {
       return;
     }
-    mJobToRunningTasks.forEach((k, v) -> processJob(k.getDescription(), k));
+    mJobToRunningTasks.forEach((k, v) -> processJob(k));
   }
 
-  private void processJob(JobDescription jobDescription, Job<?> job) {
-    if (!job.isRunning()) {
-      try {
-        LOG.debug("Job:{}, not running, updating metastore...", MoreObjects.toStringHelper(job)
-            .add("JobId:", job.getJobId())
-            .add("JobState:", job.getJobState())
-            .add("JobDescription", job.getDescription()).toString());
-        mJobMetaStore.updateJob(job);
+  private void processJob(Job<?> job) {
+    ConcurrentHashSet<Task<?>> runningTasks = mJobToRunningTasks.compute(job, (k, v) -> {
+      if (!k.isRunning()) {
+        return null;
       }
-      catch (UnavailableRuntimeException e) {
-        // This should not happen because the scheduler should not be started while master is
-        // still processing journal entries. However, if it does happen, we don't want to throw
-        // exception in a task running on scheduler thead. So just ignore it and hopefully later
-        // retry will work.
-        LOG.error("error writing to journal when processing job", e);
-      }
-      mJobToRunningTasks.remove(job);
+      return v;
+    });
+    // job is not running anymore
+    if (runningTasks == null) {
       return;
     }
+
     if (!job.isHealthy()) {
       job.failJob(new InternalRuntimeException("Job failed because it's not healthy."));
       return;
@@ -511,34 +340,40 @@ public final class Scheduler {
           job.onTaskSubmitFailure(task);
         }
       }
-      if (mJobToRunningTasks.getOrDefault(job, new ConcurrentHashSet<>()).isEmpty()
-          && job.isCurrentPassDone()) {
-        if (job.needVerification()) {
-          job.initiateVerification();
+      mJobToRunningTasks.compute(job, (k, v) -> {
+        if ((v == null || v.isEmpty()) && k.isCurrentPassDone()) {
+          checkAndSetJobStatus(k);
         }
-        else {
-          if (job.isHealthy()) {
-            if (job.hasFailure()) {
-              job.failJob(new InternalRuntimeException("Job partially failed."));
-            }
-            else {
-              job.setJobSuccess();
-            }
-          }
-          else {
-            if (job.getJobState() != JobState.FAILED) {
-              job.failJob(
-                  new InternalRuntimeException("Job failed because it exceed healthy threshold."));
-            }
-          }
-        }
-      }
+        return v;
+      });
     } catch (Exception e) {
       // Unknown exception. This should not happen, but if it happens we don't want to lose the
       // scheduler thread, thus catching it here. Any exception surfaced here should be properly
       // handled.
       LOG.error("Unexpected exception thrown in processJob.", e);
       job.failJob(new InternalRuntimeException(e));
+    }
+  }
+
+  private static void checkAndSetJobStatus(Job<?> job) {
+    if (job.needVerification()) {
+      job.initiateVerification();
+    }
+    else {
+      if (job.isHealthy()) {
+        if (job.hasFailure()) {
+          job.failJob(new InternalRuntimeException("Job partially failed."));
+        }
+        else {
+          job.setJobSuccess();
+        }
+      }
+      else {
+        if (job.getJobState() != JobState.FAILED) {
+          job.failJob(
+              new InternalRuntimeException("Job failed because it exceed healthy threshold."));
+        }
+      }
     }
   }
 
@@ -556,6 +391,167 @@ public final class Scheduler {
    */
   public JobMetaStore getJobMetaStore() {
     return mJobMetaStore;
+  }
+
+  /**
+   * Worker information hub.
+   */
+  @SuppressFBWarnings(value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE",
+      justification = "Already performed null check")
+  public class WorkerInfoHub {
+    public Map<WorkerInfo, CloseableResource<BlockWorkerClient>> mActiveWorkers = ImmutableMap.of();
+    private final WorkerProvider mWorkerProvider;
+
+    /**
+     * Constructor.
+     * @param scheduler scheduler
+     * @param workerProvider worker provider
+     */
+    public WorkerInfoHub(Scheduler scheduler, WorkerProvider workerProvider) {
+      mWorkerProvider = workerProvider;
+    }
+
+    private final Map<WorkerInfo, PriorityBlockingQueue<Task>> mWorkerToTaskQ
+        = new ConcurrentHashMap<>();
+
+    /**
+     * Enqueue task for worker.
+     * @param workerInfo the worker
+     * @param task the task
+     * @param kickStartTask kick-start task
+     * @return whether the task is enqueued successfully
+     */
+    public boolean enqueueTaskForWorker(@Nullable WorkerInfo workerInfo, Task task,
+        boolean kickStartTask) {
+      if (workerInfo == null) {
+        return false;
+      }
+      PriorityBlockingQueue workerTaskQ = mWorkerToTaskQ
+          .computeIfAbsent(workerInfo, k -> new PriorityBlockingQueue<>());
+      if (!workerTaskQ.offer(task)) {
+        return false;
+      }
+      CloseableResource<BlockWorkerClient> blkWorkerClientResource = mActiveWorkers.get(workerInfo);
+      if (blkWorkerClientResource == null) {
+        LOG.warn("Didn't find corresponding BlockWorkerClient for workerInfo:{}",
+            workerInfo);
+        return false;
+      }
+      if (kickStartTask) {
+        // track running tasks of a job
+        ConcurrentHashSet<Task<?>> tasks = mJobToRunningTasks.computeIfAbsent(task.getJob(),
+                j -> new ConcurrentHashSet<>());
+        tasks.add(task);
+        task.execute(blkWorkerClientResource.get(), workerInfo);
+        task.getResponseFuture().addListener(() -> {
+          Job job = task.getJob();
+          try {
+            job.processResponse(task); // retry on failure logic inside
+            // TODO(lucy) currently processJob is only called in the single
+            // threaded scheduler thread context, in future once tasks are
+            // completed, they should be able to call processJob to resume
+            // their own job to schedule next set of tasks to run.
+          } catch (Exception e) {
+            // Unknown exception. This should not happen, but if it happens we don't
+            // want to lose the worker thread, thus catching it here. Any exception
+            // surfaced here should be properly handled.
+            LOG.error("Unexpected exception thrown in response future listener.", e);
+            job.failJob(new InternalRuntimeException(e));
+          } finally {
+            // whether task succeed or fail, remove it from q,
+            workerTaskQ.remove(task);
+            mJobToRunningTasks.compute(job, (k, v) -> {
+              if (v == null) {
+                return null;
+              }
+              v.remove(task);
+              return v;
+            });
+          }
+        }, mSchedulerExecutor);
+      }
+      return true;
+    }
+
+    /**
+     * Removes task from worker queue.
+     * @param task the task
+     * @return true if task exists and is removed, false otherwise
+     */
+    public boolean removeTaskFromWorkerQ(Task task) {
+      WorkerInfo workerInfo = task.getMyRunningWorker();
+      if (mWorkerToTaskQ.containsKey(workerInfo)) {
+        return false;
+      }
+      PriorityBlockingQueue<Task> pq = mWorkerToTaskQ.get(workerInfo);
+      return pq.remove(task);
+    }
+
+    /**
+     * @return the worker to task queue
+     */
+    public Map<WorkerInfo, PriorityBlockingQueue<Task>> getWorkerToTaskQ() {
+      return mWorkerToTaskQ;
+    }
+
+    /**
+     * Refresh active workers.
+     */
+    @VisibleForTesting
+    public void updateWorkers() {
+      if (Thread.currentThread().isInterrupted()) {
+        return;
+      }
+      Set<WorkerInfo> workerInfos;
+      try {
+        try {
+          workerInfos = ImmutableSet.copyOf(mWorkerProvider.getWorkerInfos());
+        } catch (AlluxioRuntimeException e) {
+          LOG.warn("Failed to get worker info, using existing worker infos of {} workers",
+              mActiveWorkers.size());
+          return;
+        }
+        if (workerInfos.size() == mActiveWorkers.size()
+            && workerInfos.containsAll(mActiveWorkers.keySet())) {
+          return;
+        }
+
+        ImmutableMap.Builder<WorkerInfo, CloseableResource<BlockWorkerClient>> updatedWorkers =
+            ImmutableMap.builder();
+        for (WorkerInfo workerInfo : workerInfos) {
+          try {
+            if (mActiveWorkers.get(workerInfo) != null) {
+              CloseableResource<BlockWorkerClient> workerClient = Preconditions.checkNotNull(
+                  mActiveWorkers.get(workerInfo));
+              updatedWorkers.put(workerInfo, workerClient);
+            } else {
+              updatedWorkers.put(workerInfo, mWorkerProvider.getWorkerClient(
+                  workerInfo.getAddress()));
+            }
+          } catch (AlluxioRuntimeException e) {
+            LOG.warn("Updating worker {} address failed", workerInfo.getAddress(), e);
+            // skip the worker if we cannot obtain a client
+          }
+        }
+        // Close clients connecting to lost workers
+        for (Map.Entry<WorkerInfo, CloseableResource<BlockWorkerClient>> entry :
+            mActiveWorkers.entrySet()) {
+          WorkerInfo workerInfo = entry.getKey();
+          if (!workerInfos.contains(workerInfo)) {
+            CloseableResource<BlockWorkerClient> resource = entry.getValue();
+            resource.close();
+            LOG.debug("Closed BlockWorkerClient to lost worker {}", workerInfo);
+          }
+        }
+        // Build the clients to the current active worker list
+        mActiveWorkers = updatedWorkers.build();
+      } catch (Exception e) {
+        // Unknown exception. This should not happen, but if it happens we don't want to lose the
+        // scheduler thread, thus catching it here. Any exception surfaced here should be properly
+        // handled.
+        LOG.error("Unexpected exception thrown in updateWorkers.", e);
+      }
+    }
   }
 
   /**
