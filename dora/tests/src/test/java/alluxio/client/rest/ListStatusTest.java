@@ -23,13 +23,11 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.Bits;
-import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.PMode;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.contexts.GetStatusContext;
 import alluxio.proxy.s3.ListBucketOptions;
 import alluxio.proxy.s3.ListBucketResult;
 import alluxio.proxy.s3.S3Error;
@@ -60,15 +58,7 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.HttpMethod;
 
 public class ListStatusTest {
-  private static final int DATA_SIZE = 16 * Constants.KB;
-  // cannot be too large, since all block streams are open until file is closed, and may run out of
-  // block worker clients.
-  private static final int LARGE_DATA_SIZE = 256 * Constants.KB;
 
-  private static final GetStatusContext GET_STATUS_CONTEXT = GetStatusContext.defaults();
-  private static final XmlMapper XML_MAPPER = new XmlMapper();
-
-  private static final String TEST_USER_NAME = "testuser";
   protected static final Map<String, String> NO_PARAMS = ImmutableMap.of();
 
   protected String mHostname;
@@ -114,15 +104,7 @@ public class ListStatusTest {
     Mode mode = ModeParser.parse("777");
     SetAttributePOptions options =
         SetAttributePOptions.newBuilder().setMode(mode.toProto()).build();
-//    createDirectoryPOptions
-    CreateDirectoryPOptions directoryPOptions =
-        CreateDirectoryPOptions.newBuilder()
-            .setMode(PMode.newBuilder()
-                .setOwnerBits(Bits.ALL)
-                .setGroupBits(Bits.ALL)
-                .setOtherBits(Bits.NONE))
-            .setWriteType(S3RestUtils.getS3WriteType())
-            .build();
+
     CreateFilePOptions filePOptions =
         CreateFilePOptions.newBuilder()
             .setRecursive(true)
@@ -153,6 +135,9 @@ public class ListStatusTest {
     mFileSystem.createFile(new AlluxioURI("/bucket/folder0/file1"), filePOptions);
   }
 
+  /**
+   * Lists objects without parameters.
+   */
   @Test
   public void listWithoutParams() throws Exception {
     //empty parameters
@@ -176,6 +161,9 @@ public class ListStatusTest {
         .runAndCheckResult(expected);
   }
 
+  /**
+   * Lists objects(v2) without parameters.
+   */
   @Test
   public void listWithoutParamsV2() throws Exception {
     //empty parameters
@@ -203,6 +191,9 @@ public class ListStatusTest {
         .runAndCheckResult(expected);
   }
 
+  /**
+   * Lists objects with parameter delimiter="/".
+   */
   @Test
   public void listWithDelimiter() throws Exception {
     //parameters with delimiter="/"
@@ -221,17 +212,17 @@ public class ListStatusTest {
 
     Map<String, String> parameters = new HashMap<>();
     parameters.put("delimiter", AlluxioURI.SEPARATOR);  //parameters with delimiter="/"
-//    parameters.put("prefix", "");
-//    parameters.put("list-type", "");
     new TestCase(mHostname, mPort, mBaseUri,
         "bucket", parameters, HttpMethod.GET,
         getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
         .runAndCheckResult(expected);
   }
 
+  /**
+   * Lists objects(v2) with delimiter="/".
+   */
   @Test
   public void listWithDelimiterV2() throws Exception {
-    //parameters with delimiter="/"
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
         ListStatusPOptions.newBuilder().setRecursive(true).build());
     ListBucketResult expected = new ListBucketResult("bucket", statuses,
@@ -255,11 +246,13 @@ public class ListStatusTest {
         .runAndCheckResult(expected);
   }
 
+  /**
+   * Lists objects with prefix="folder0".
+   */
   @Test
   public void listWithPrefix() throws Exception {
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
         ListStatusPOptions.newBuilder().setRecursive(true).build());
-    //parameters with prefix="folder0"
 //    TODO(dongxinran): alluxio s3 service response is wrong when prefix is 'folder0/'
     ListBucketResult expected = new ListBucketResult("bucket", statuses,
         ListBucketOptions.defaults().setPrefix("folder0"));
@@ -279,11 +272,13 @@ public class ListStatusTest {
         .runAndCheckResult(expected);
   }
 
+  /**
+   * Lists objects with empty prefix.
+   */
   @Test
   public void listWithEmptyPrefix() throws Exception {
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
         ListStatusPOptions.newBuilder().setRecursive(true).build());
-    //parameters with prefix="folder0"
 //    TODO(dongxinran): alluxio s3 service response is wrong when prefix is 'folder0/'
     ListBucketResult expected = new ListBucketResult("bucket", statuses,
         ListBucketOptions.defaults().setPrefix(""));
@@ -300,6 +295,9 @@ public class ListStatusTest {
         .runAndCheckResult(expected);
   }
 
+  /**
+   * Lists objects with non-existent prefix.
+   */
   @Test
   public void listWithNonExistentPrefix() throws Exception {
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
@@ -320,6 +318,9 @@ public class ListStatusTest {
         .runAndCheckResult(expected);
   }
 
+  /**
+   * Lists objects(v2) with prefix="folder".
+   */
   @Test
   public void listWithPrefixV2() throws Exception {
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
@@ -344,11 +345,13 @@ public class ListStatusTest {
         .runAndCheckResult(expected);
   }
 
+  /**
+   * Lists objects with empty prefix.
+   */
   @Test
   public void listWithEmptyPrefixV2() throws Exception {
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
         ListStatusPOptions.newBuilder().setRecursive(true).build());
-    //parameters with prefix=""
     ListBucketResult expected = new ListBucketResult("bucket", statuses,
         ListBucketOptions.defaults().setListType(2).setPrefix(""));
 
@@ -366,6 +369,9 @@ public class ListStatusTest {
         .runAndCheckResult(expected);
   }
 
+  /**
+   * Lists objects(v2) with non-existent prefix.
+   */
   @Test
   public void listWithNonExistentPrefixV2() throws Exception {
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
@@ -387,6 +393,9 @@ public class ListStatusTest {
         .runAndCheckResult(expected);
   }
 
+  /**
+   * Lists objects with prefix="f" and delimiter="/".
+   */
   @Test
   public void listWithPrefixAndDelimiter() throws Exception {
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
@@ -411,6 +420,9 @@ public class ListStatusTest {
         .runAndCheckResult(expected);
   }
 
+  /**
+   * Lists objects with prefix="f" and max-keys="3".
+   */
   @Test
   public void listWithPrefixAndMaxKeys() throws Exception {
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
@@ -437,6 +449,9 @@ public class ListStatusTest {
         .runAndCheckResult(expected);
   }
 
+  /**
+   * Lists objects(v2) with prefix="folder" and delimiter="/".
+   */
   @Test
   public void listWithPrefixAndDelimiterV2() throws Exception {
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
@@ -461,6 +476,9 @@ public class ListStatusTest {
         .runAndCheckResult(expected);
   }
 
+  /**
+   * Lists objects(v2) with prefix="folder" and max-keys="3".
+   */
   @Test
   public void listWithPrefixAndMaxKeysV2() throws Exception {
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
@@ -489,6 +507,9 @@ public class ListStatusTest {
         .runAndCheckResult(expected);
   }
 
+  /**
+   * Lists objects(v2) with marker="file1".
+   */
   @Test
   public void listWithMarker() throws Exception {
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
@@ -513,6 +534,9 @@ public class ListStatusTest {
         .runAndCheckResult(expected);
   }
 
+  /**
+   * Lists objects with prefix="folder0/f" and marker="abc".
+   */
   @Test
   public void listWithPrefixAndMarker() throws Exception {
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
@@ -537,6 +561,9 @@ public class ListStatusTest {
         .runAndCheckResult(expected);
   }
 
+  /**
+   * Lists objects with start-after="fa" and prefix="folder0".
+   */
   @Test
   public void listWithPrefixAndStartAfter() throws Exception {
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
@@ -564,6 +591,9 @@ public class ListStatusTest {
         .runAndCheckResult(expected);
   }
 
+  /**
+   * Lists objects with continuation-token="file0".
+   */
   @Test
   public void listWithContinuationToken() throws Exception {
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
@@ -590,6 +620,9 @@ public class ListStatusTest {
         .runAndCheckResult(expected2);
   }
 
+  /**
+   * Lists objects(v2) with start-after="file0".
+   */
   @Test
   public void listWithStartAfter() throws Exception {
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
@@ -617,9 +650,12 @@ public class ListStatusTest {
         .runAndCheckResult(expected);
   }
 
+  /**
+   * Lists objects with marker="file1" and delimiter="/".
+   */
   @Test
   public void listWithMarkerAndDelimiter() throws Exception {
-    //parameters with list-type=2 marker="file1"
+
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
         ListStatusPOptions.newBuilder().setRecursive(true).build());
     ListBucketResult expected = new ListBucketResult("bucket", statuses,
@@ -641,6 +677,9 @@ public class ListStatusTest {
         .runAndCheckResult(expected);
   }
 
+  /**
+   * Lists objects(v2) with continuation-token="file0" and delimiter="/".
+   */
   @Test
   public void listWithContinuationTokenAndDelimiter() throws Exception {
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
@@ -669,9 +708,11 @@ public class ListStatusTest {
         .runAndCheckResult(expected2);
   }
 
+  /**
+   * Lists objects(v2) with start-after="file0" and delimiter="/".
+   */
   @Test
   public void listWithStartAfterAndDelimiter() throws Exception {
-    //parameters with list-type=2 start-after="file0"
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
         ListStatusPOptions.newBuilder().setRecursive(true).build());
 
@@ -697,6 +738,9 @@ public class ListStatusTest {
         .runAndCheckResult(expected);
   }
 
+  /**
+   * Lists objects with max-keys="10". The number of requested objects is not more than 10.
+   */
   @Test
   public void listNotTruncatedObjectsWithMaxKeys() throws Exception {
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
@@ -718,6 +762,9 @@ public class ListStatusTest {
         .runAndCheckResult(expected);
   }
 
+  /**
+   * Lists objects(v2) with max-keys="10". The number of requested objects is not more than 10.
+   */
   @Test
   public void listNotTruncatedObjectsWithMaxKeysV2() throws Exception {
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
@@ -741,6 +788,9 @@ public class ListStatusTest {
         .runAndCheckResult(expected);
   }
 
+  /**
+   * Lists objects with max-keys="3". The number of requested objects is more than 3.
+   */
   @Test
   public void listTruncatedObjectsWithMaxKeys() throws Exception {
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
@@ -764,6 +814,9 @@ public class ListStatusTest {
         .runAndCheckResult(expected);
   }
 
+  /**
+   * Lists objects(v2) with max-keys="3". The number of requested objects is more than 3.
+   */
   @Test
   public void listTruncatedObjectsWithMaxKeysV2() throws Exception {
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
@@ -790,6 +843,9 @@ public class ListStatusTest {
         .runAndCheckResult(expected);
   }
 
+  /**
+   * Lists objects with max-keys="4" and marker="file0".
+   */
   @Test
   public void listWithMaxKeysAndMarker() throws Exception {
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
@@ -817,6 +873,9 @@ public class ListStatusTest {
         .runAndCheckResult(expected);
   }
 
+  /**
+   * Lists objects(v2) with max-keys="4" and start-after="folder0/file0".
+   */
   @Test
   public void listWithMaxKeysAndStartAfter() throws Exception {
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
@@ -844,6 +903,9 @@ public class ListStatusTest {
         .runAndCheckResult(expected);
   }
 
+  /**
+   * Lists objects with max-keys="4" and delimiter="/".
+   */
   @Test
   public void listWithMaxKeysAndDelimiter() throws Exception {
 
@@ -870,6 +932,9 @@ public class ListStatusTest {
         .runAndCheckResult(expected);
   }
 
+  /**
+   * Lists objects(v2) with max-keys="3" and delimiter="/".
+   */
   @Test
   public void listWithMaxKeysAndDelimiterV2() throws Exception {
 
@@ -899,12 +964,18 @@ public class ListStatusTest {
         .runAndCheckResult(expected);
   }
 
+  /**
+   * Lists objects without authorization.
+   */
   @Test
   public void listBucketUnauthorized() throws Exception {
 //  TODO(dongxinran): this unit test will be completed after
 //   setAttribute of createDirecotory is fixed.
   }
 
+  /**
+   * Lists objects in a non-existent bucket.
+   */
   @Test
   public void listNonExistentBucket() throws Exception {
 //    the bucket name should never be used in other unit tests
