@@ -63,7 +63,8 @@ public class S3HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
       S3NettyHandler s3Handler =
           S3NettyHandler.createHandler(context, request, mFileSystem, mDoraWorker,
               mAsyncAuditLogWriter);
-      s3Handler.getS3Task().continueTask();
+      HttpResponse response = s3Handler.getS3Task().continueTask();
+      s3Handler.processHttpResponse(response);
     } catch (Exception ex) {
       HttpResponse errorResponse = S3ErrorResponse.createNettyErrorResponse(ex, request.uri());
       ChannelFuture f = context.writeAndFlush(errorResponse);

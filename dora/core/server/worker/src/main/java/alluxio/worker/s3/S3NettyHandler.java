@@ -44,6 +44,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.FileRegion;
+import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpUtil;
@@ -291,13 +292,13 @@ public class S3NettyHandler {
    */
   public void processHttpResponse(HttpResponse response, boolean closeAfterWrite) {
     boolean keepAlive = HttpUtil.isKeepAlive(mRequest);
-    if (keepAlive) {
-      if (!mRequest.protocolVersion().isKeepAliveDefault()) {
+    if (response != null) {
+      if (keepAlive) {
         response.headers().set(CONNECTION, KEEP_ALIVE);
+      } else {
+        // Tell the client we're going to close the connection.
+        response.headers().set(CONNECTION, CLOSE);
       }
-    } else {
-      // Tell the client we're going to close the connection.
-      response.headers().set(CONNECTION, CLOSE);
     }
     mContext.write(response);
     if (closeAfterWrite && !keepAlive) {
@@ -335,15 +336,18 @@ public class S3NettyHandler {
    * @param blockReader reader instance
    * @throws IOException
    */
-  public void processMappedResponse(BlockReader blockReader) throws IOException {
-    ByteBuf buf = mContext.channel().alloc().buffer(PACKET_LENGTH, PACKET_LENGTH);
+  public void processMappedResponse(BlockReader blockReader, long objectSize) throws IOException {
+    int packetSize = PACKET_LENGTH;
+    if (objectSize < (long) PACKET_LENGTH) {
+      packetSize = (int) objectSize;
+    }
+    ByteBuf buf = mContext.channel().alloc().buffer(packetSize, packetSize);
     try {
       while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
-        mContext.write(buf);
-        buf.clear();
+        mContext.write(new DefaultHttpContent(buf));
+        buf = mContext.channel().alloc().buffer(packetSize, packetSize);
       }
     } catch (Exception e) {
-      buf.release();
       throw e;
     }
   }

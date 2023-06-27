@@ -66,11 +66,10 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
   }
 
   @Override
-  public void continueTask() {
-    HttpResponse response = NettyRestUtils.call(mHandler.getBucket(), () -> {
+  public HttpResponse continueTask() {
+    return NettyRestUtils.call(mHandler.getBucket(), () -> {
       throw new S3Exception(S3ErrorCode.NOT_IMPLEMENTED);
     });
-    mHandler.processHttpResponse(response);
   }
 
   /**
@@ -112,8 +111,8 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
     }
 
     @Override
-    public void continueTask() {
-      HttpResponse httpResponse = NettyRestUtils.call(getObjectTaskResource(), () -> {
+    public HttpResponse continueTask() {
+      return NettyRestUtils.call(getObjectTaskResource(), () -> {
         Preconditions.checkNotNull(mHandler.getBucket(), "required 'bucket' parameter is missing");
         Preconditions.checkNotNull(mHandler.getObject(), "required 'object' parameter is missing");
 
@@ -160,7 +159,6 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
           }
         }
       });
-      mHandler.processHttpResponse(httpResponse);
     }
   } // end of HeadObjectTask
 
@@ -174,8 +172,8 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
     }
 
     @Override
-    public void continueTask() {
-      HttpResponse httpResponse = NettyRestUtils.call(getObjectTaskResource(), () -> {
+    public HttpResponse continueTask() {
+      return NettyRestUtils.call(getObjectTaskResource(), () -> {
         final String range = mHandler.getHeaderOrDefault("Range", null);
         final String user = mHandler.getUser();
         final FileSystem userFs = mHandler.createFileSystemForUser(user);
@@ -252,16 +250,12 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
             } else {
               mHandler.processHttpResponse(response, false);
             }
-            return response;
+            return null;
           } catch (Exception e) {
             throw NettyRestUtils.toObjectS3Exception(e, objectPath, auditContext);
           }
         }
       });
-      if (mHandler.getContext().channel().isOpen()) {
-        // only process error http response here
-        mHandler.processHttpResponse(httpResponse);
-      }
     }
 
     public void processGetObject(String ufsFullPath, S3RangeSpec range, long objectSize,
@@ -285,7 +279,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
                 pagedFileReader.getMultipleDataFileChannel(mHandler.getContext().channel(), length);
           }
         } else {
-          mHandler.processMappedResponse(blockReader);
+          mHandler.processMappedResponse(blockReader, objectSize);
         }
       } catch (Exception e) {
         LOG.error("Failed to read data.", e);
@@ -295,8 +289,8 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
       if (packet != null) {
         mHandler.processTransferResponse(packet);
       }
-      mHandler.getContext().writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT)
-          .addListener(ChannelFutureListener.CLOSE);
+//      mHandler.getContext().writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT)
+//          .addListener(ChannelFutureListener.CLOSE);
     }
   } // end of GetObjectTask
 }

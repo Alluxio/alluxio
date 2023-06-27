@@ -53,11 +53,10 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
   }
 
   @Override
-  public void continueTask() {
-    HttpResponse response = NettyRestUtils.call(mHandler.getBucket(), () -> {
+  public HttpResponse continueTask() {
+    return NettyRestUtils.call(mHandler.getBucket(), () -> {
       throw new S3Exception(S3ErrorCode.NOT_IMPLEMENTED);
     });
-    mHandler.processHttpResponse(response);
   }
 
   /**
@@ -116,8 +115,8 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
     }
 
     @Override
-    public void continueTask() {
-      HttpResponse response = NettyRestUtils.call(S3Constants.EMPTY, () -> {
+    public HttpResponse continueTask() {
+      return NettyRestUtils.call(S3Constants.EMPTY, () -> {
         final String user = mHandler.getUser();
 
         List<URIStatus> objects = new ArrayList<>();
@@ -137,7 +136,6 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
           return new ListAllMyBucketsResult(buckets);
         }
       });
-      mHandler.processHttpResponse(response);
     }
   } // end of ListBucketsTask
 
@@ -177,8 +175,8 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
       return normalizedBucket + normalizedPrefix;
     }
 
-    public void continueTask() {
-      HttpResponse response = NettyRestUtils.call(mHandler.getBucket(), () -> {
+    public HttpResponse continueTask() {
+      return NettyRestUtils.call(mHandler.getBucket(), () -> {
         String path = NettyRestUtils.parsePath(AlluxioURI.SEPARATOR + mHandler.getBucket());
         final String user = mHandler.getUser();
         final FileSystem userFs = mHandler.createFileSystemForUser(user);
@@ -243,7 +241,6 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
               listBucketOptions);
         } // end try-with-resources block
       });
-      mHandler.processHttpResponse(response);
     }
   } // end of ListObjectsTask
 }
