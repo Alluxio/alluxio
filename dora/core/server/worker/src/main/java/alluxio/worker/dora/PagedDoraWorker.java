@@ -157,6 +157,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   /**
    * Constructor.
+   *
    * @param workerId
    * @param conf
    * @param cacheManager
@@ -342,6 +343,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   /**
    * Invalidate the given cached File by deleting it from local cache.
+   *
    * @param path the full path of this file
    */
   private void invalidateCachedFile(String path) {
@@ -352,7 +354,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   @Override
   public FileInfo getFileInfo(String ufsFullPath, GetStatusPOptions options)
       throws IOException, AccessControlException {
-    alluxio.grpc.FileInfo fi = getGrpcFileInfo(ufsFullPath, options);
+    long syncIntervalMs = options.hasCommonOptions()
+        ? (options.getCommonOptions().hasSyncIntervalMs()
+        ? options.getCommonOptions().getSyncIntervalMs() : -1) :
+        -1;
+    alluxio.grpc.FileInfo fi = getGrpcFileInfo(ufsFullPath, syncIntervalMs);
     int cachedPercentage = getCachedPercentage(fi, ufsFullPath);
 
     return GrpcUtils.fromProto(fi)
@@ -360,13 +366,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         .setInMemoryPercentage(cachedPercentage);
   }
 
-  protected alluxio.grpc.FileInfo getGrpcFileInfo(String ufsFullPath, GetStatusPOptions options)
+  protected alluxio.grpc.FileInfo getGrpcFileInfo(String ufsFullPath, long syncIntervalMs)
       throws IOException {
-    long syncIntervalMs = options.hasCommonOptions()
-        ? (options.getCommonOptions().hasSyncIntervalMs()
-          ? options.getCommonOptions().getSyncIntervalMs() : -1) :
-        -1;
-
     Optional<DoraMeta.FileStatus> status = mMetaManager.getFromMetaStore(ufsFullPath);
     boolean shouldLoad = status.isEmpty();
     if (syncIntervalMs >= 0 && status.isPresent()) {
@@ -405,6 +406,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   /**
    * Build FileInfo from UfsStatus and UFS full Path.
+   *
    * @param status
    * @param ufsFullPath
    * @return a FileInfo
@@ -455,6 +457,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   /**
    * Build FileStatus from UfsStatus and UFS full Path.
+   *
    * @param status the ufs status
    * @param ufsFullPath the full ufs path
    * @return the file status
@@ -541,8 +544,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       throws AccessControlException, IOException {
     Protocol.OpenUfsBlockOptions options =
         Protocol.OpenUfsBlockOptions.newBuilder().setUfsPath(ufsPath).setMountId(mountId)
-                                    .setNoCache(false).setOffsetInFile(0).setBlockSize(length)
-                                    .build();
+            .setNoCache(false).setOffsetInFile(0).setBlockSize(length)
+            .build();
     String fileId = new AlluxioURI(ufsPath).hash();
     ByteBuf buf = PooledDirectNioByteBuf.allocate((int) (4 * mPageSize));
     try (BlockReader fileReader = createFileReader(fileId, 0, false, options)) {
@@ -552,15 +555,14 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       }
     } catch (IOException | AccessControlException e) {
       throw AlluxioRuntimeException.from(e);
-    }
-    finally {
+    } finally {
       buf.release();
     }
   }
 
   @Override
   public ListenableFuture<List<RouteFailure>> copy(List<Route> routes, UfsReadOptions readOptions,
-      WriteOptions writeOptions) {
+                                                   WriteOptions writeOptions) {
     List<ListenableFuture<Void>> futures = new ArrayList<>();
     List<RouteFailure> errors = Collections.synchronizedList(new ArrayList<>());
 
@@ -574,8 +576,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
       try (FileSystem srcFs = new UfsBaseFileSystem(mFsContext, new UfsFileSystemOptions(srcRoot),
           new UfsManager.UfsClient(() -> srcUfs, new AlluxioURI(srcRoot)));
-          FileSystem dstFs = new UfsBaseFileSystem(mFsContext, new UfsFileSystemOptions(dstRoot),
-              new UfsManager.UfsClient(() -> dstUfs, new AlluxioURI(dstRoot)))) {
+           FileSystem dstFs = new UfsBaseFileSystem(mFsContext, new UfsFileSystemOptions(dstRoot),
+               new UfsManager.UfsClient(() -> dstUfs, new AlluxioURI(dstRoot)))) {
         ListenableFuture<Void> future = Futures.submit(() -> {
           try {
             if (readOptions.hasUser()) {
@@ -620,9 +622,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       String srcRoot = new AlluxioURI(route.getSrc()).getRootPath();
       String dstRoot = new AlluxioURI(route.getDst()).getRootPath();
       try (FileSystem srcFs = new UfsBaseFileSystem(mFsContext, new UfsFileSystemOptions(srcRoot),
-              new UfsManager.UfsClient(() -> srcUfs, new AlluxioURI(srcRoot)));
+          new UfsManager.UfsClient(() -> srcUfs, new AlluxioURI(srcRoot)));
            FileSystem dstFs = new UfsBaseFileSystem(mFsContext, new UfsFileSystemOptions(dstRoot),
-                   new UfsManager.UfsClient(() -> dstUfs, new AlluxioURI(dstRoot)))) {
+               new UfsManager.UfsClient(() -> dstUfs, new AlluxioURI(dstRoot)))) {
         ListenableFuture<Void> future = Futures.submit(() -> {
           Boolean deleteFailure = false;
           try {
@@ -706,13 +708,13 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       String owner = createOption.getOwner() != null ? createOption.getOwner() : "";
       String group = createOption.getGroup() != null ? createOption.getGroup() : "";
       UfsStatus status = new UfsFileStatus(new AlluxioURI(path).toString(),
-                                            "",
-                                            0,
-                                            System.currentTimeMillis(),
-                                            owner,
-                                            group,
-                                            createOption.getMode().toShort(),
-                                            64L * 1024 * 1024);
+          "",
+          0,
+          System.currentTimeMillis(),
+          owner,
+          group,
+          createOption.getMode().toShort(),
+          64L * 1024 * 1024);
       info = buildFileInfoFromUfsStatus(status, path);
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -812,30 +814,15 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   }
 
   @Override
-  public boolean exists(String path, ExistsPOptions options) {
+  public boolean exists(String path, ExistsPOptions options) throws IOException {
     long syncIntervalMs = options.hasCommonOptions()
         ? (options.getCommonOptions().hasSyncIntervalMs()
         ? options.getCommonOptions().getSyncIntervalMs() : -1) :
         -1;
-
-    Optional<DoraMeta.FileStatus> status = mMetaManager.getFromMetaStore(path);
-    if (status.isPresent()) { // metadata exists.
-      if (syncIntervalMs >= 0) {
-        if (System.nanoTime() - status.get().getTs() < syncIntervalMs * Constants.MS_NANO) {
-          // metadata exists and is not out-of-date.
-          return true;
-        }
-      } else {
-        // metadata exists and client does not require to check cache validity.
-        return true;
-      }
-    }
-
-    // TODO(Yimin) Load/reload metadata from UFS
     try {
-      return mUfs.exists(path);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+      return getGrpcFileInfo(path, syncIntervalMs) != null;
+    } catch (FileNotFoundException e) {
+      return false;
     }
   }
 
@@ -844,31 +831,26 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    * Please note, at this moment, the options::recursive is ignored. TODO(hua)
    */
   @Override
-  public void setAttribute(String path, SetAttributePOptions options) {
-    try {
-      if (options.hasMode()) {
-        mUfs.setMode(path, ModeUtils.protoToShort(options.getMode()));
-      }
-      if (options.hasOwner() && options.hasGroup()) {
-        mUfs.setOwner(path, options.getOwner(), options.getGroup());
-      } else if (options.hasOwner()) {
-        mUfs.setOwner(path, options.getOwner(), null);
-      } else if (options.hasGroup()) {
-        mUfs.setOwner(path, null, options.getOwner());
-      }
-      // TODO(Yimin) Update the local metadata cache if UFS metadata is updated.
-
-      // options.hasRecursive() is ignored.
-      if (options.hasPinned() || options.hasPersisted()
-          || options.hasReplicationMax() || options.hasReplicationMin()
-          || options.getXattrCount() != 0) {
-        LOG.error("UFS only supports setting mode, owner, and group. The other settings are "
-            + "ignored (and no error is returned): {}",
-            options);
-      }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+  public void setAttribute(String path, SetAttributePOptions options) throws IOException {
+    if (options.hasPinned() || options.hasPersisted()
+        || options.hasReplicationMax() || options.hasReplicationMin()
+        || options.getXattrCount() != 0) {
+      LOG.warn("UFS only supports setting mode, owner, and group. The other settings are "
+              + "ignored (and no error is returned): {}",
+          options);
     }
+
+    if (options.hasMode()) {
+      mUfs.setMode(path, ModeUtils.protoToShort(options.getMode()));
+    }
+    if (options.hasOwner() && options.hasGroup()) {
+      mUfs.setOwner(path, options.getOwner(), options.getGroup());
+    } else if (options.hasOwner()) {
+      mUfs.setOwner(path, options.getOwner(), null);
+    } else if (options.hasGroup()) {
+      mUfs.setOwner(path, null, options.getGroup());
+    }
+    mMetaManager.loadFromUfs(path);
   }
 
   @Override
