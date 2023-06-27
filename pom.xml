@@ -960,6 +960,7 @@
               <arg>--add-exports=java.base/jdk.internal.misc=ALL-UNNAMED</arg>
               <arg>--add-exports=java.management/sun.management=ALL-UNNAMED</arg>
             </compilerArgs>
+            <forceJavacCompilerUse>true</forceJavacCompilerUse>
           </configuration>
         </plugin>
         <plugin>
