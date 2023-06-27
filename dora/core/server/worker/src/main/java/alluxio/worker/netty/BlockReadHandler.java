@@ -60,7 +60,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
   public BlockReadHandler(ExecutorService executorService, BlockWorker blockWorker,
                           Channel channel, FileTransferType fileTransferType) {
     super(executorService, channel, BlockReadRequest.class,
-        new BlockPackerReaderFactory(blockWorker, fileTransferType));
+        new BlockPacketReaderFactory(blockWorker, fileTransferType));
   }
 
   @Override
@@ -115,9 +115,9 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
   }
 
   /**
-   * BlockPackerReaderFactory.
+   * BlockPacketReaderFactory.
    */
-  public static class BlockPackerReaderFactory
+  public static class BlockPacketReaderFactory
       implements PacketReader.Factory<BlockReadRequest, BlockPacketReader> {
     /**
      * An object storing the mapping of tier aliases to ordinals.
@@ -134,7 +134,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
      * @param blockWorker block worker
      * @param transferType transfer type
      */
-    public BlockPackerReaderFactory(BlockWorker blockWorker, FileTransferType transferType) {
+    public BlockPacketReaderFactory(BlockWorker blockWorker, FileTransferType transferType) {
       mWorker = blockWorker;
       mTransferType = transferType;
     }
