@@ -26,10 +26,9 @@ import (
 )
 
 const (
-	binSuffix      = "-bin"
-	clientJarPathF = "client/alluxio-%v-client.jar"
-	tarGzExt       = ".tar.gz"
-	webuiBuildDir  = "build"
+	binSuffix     = "-bin"
+	tarGzExt      = ".tar.gz"
+	webuiBuildDir = "build"
 )
 
 var webUiDirs = []string{
@@ -99,8 +98,9 @@ func buildTarball(opts *buildOpts) error {
 			}
 		}
 		// mock creation of client, assembly, and lib jars
-		mockFiles := []string{
-			fmt.Sprintf(clientJarPathF, alluxioVersion),
+		var mockFiles []string
+		if opts.tarball.ClientJarName != "" {
+			mockFiles = append(mockFiles, opts.tarball.clientJarPath(alluxioVersion))
 		}
 		for _, info := range assembledJars {
 			mockFiles = append(mockFiles, fmt.Sprintf(info.generatedJarPath, alluxioVersion))
