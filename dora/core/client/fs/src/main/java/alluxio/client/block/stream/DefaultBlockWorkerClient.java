@@ -33,6 +33,8 @@ import alluxio.grpc.DataMessageMarshaller;
 import alluxio.grpc.DataMessageMarshallerProvider;
 import alluxio.grpc.DeletePRequest;
 import alluxio.grpc.DeletePResponse;
+import alluxio.grpc.ExistsPRequest;
+import alluxio.grpc.ExistsPResponse;
 import alluxio.grpc.FreeWorkerRequest;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
@@ -59,6 +61,8 @@ import alluxio.grpc.RemoveBlockRequest;
 import alluxio.grpc.RemoveBlockResponse;
 import alluxio.grpc.RenamePRequest;
 import alluxio.grpc.RenamePResponse;
+import alluxio.grpc.SetAttributePRequest;
+import alluxio.grpc.SetAttributePResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
 import alluxio.resource.AlluxioResourceLeakDetectorFactory;
@@ -389,5 +393,17 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
   public CreateDirectoryPResponse createDirectory(CreateDirectoryPRequest request) {
     return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
         .createDirectory(request);
+  }
+
+  @Override
+  public ExistsPResponse exists(ExistsPRequest request) {
+    return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
+        .exists(request);
+  }
+
+  @Override
+  public SetAttributePResponse setAttribute(SetAttributePRequest request) {
+    return mRpcBlockingStub.withDeadlineAfter(mRpcTimeoutMs, TimeUnit.MILLISECONDS)
+        .setAttribute(request);
   }
 }
