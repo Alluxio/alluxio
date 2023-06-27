@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>enterprise-3.0.0-1.0-preview-RC1</version>
+    <version>enterprise-3.0.0-1.0-preview-RC2</version>
   </parent>
   <artifactId>alluxio-underfs-cos</artifactId>
   <name>Alluxio Under File System - Tencent Cloud COS</name>
