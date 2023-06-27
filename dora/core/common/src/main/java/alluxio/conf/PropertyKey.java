@@ -5516,10 +5516,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .setDefaultValue(MembershipType.ETCD)
           .build();
-  public static final PropertyKey WORKER_MEMBER_STATIC_LIST =
-      listBuilder(Name.WORKER_MEMBER_STATIC_LIST)
-          .setDescription("A list of comma-separated host:port RPC addresses for STATIC"
-              + " type of worker members. " + WORKER_MEMBERSHIP_TYPE + " needs to be set"
+  public static final PropertyKey WORKER_MEMBER_STATIC_CONFIG_FILE =
+      listBuilder(Name.WORKER_MEMBER_STATIC_CONFIG_FILE)
+          .setDescription("Config file configuring list of worker hostnames/IPs for the cluster. "
+              + WORKER_MEMBERSHIP_TYPE + " needs to be set"
               + " to STATIC first.")
           .setScope(Scope.ALL)
           .build();
@@ -9026,7 +9026,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.ufs.instream.cache.max.size";
     public static final String WORKER_WHITELIST = "alluxio.worker.whitelist";
     public static final String WORKER_MEMBERSHIP_TYPE = "alluxio.worker.membership.type";
-    public static final String WORKER_MEMBER_STATIC_LIST = "alluxio.worker.members";
+    public static final String WORKER_MEMBER_STATIC_CONFIG_FILE = "alluxio.worker.static.config.file";
 
     //
     // Proxy related properties

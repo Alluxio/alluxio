@@ -1,9 +1,7 @@
 package alluxio.membership;
 
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.status.AlreadyExistsException;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
 import io.etcd.jetcd.KeyValue;

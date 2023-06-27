@@ -31,7 +31,7 @@ import alluxio.worker.http.HttpServer;
 import alluxio.worker.http.HttpServerInitializer;
 import alluxio.worker.http.PagedService;
 
-import alluxio.worker.membership.MembershipManager;
+import alluxio.membership.MembershipManager;
 import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
 import com.google.inject.TypeLiteral;

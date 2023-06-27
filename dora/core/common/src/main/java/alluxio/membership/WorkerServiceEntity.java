@@ -1,7 +1,5 @@
-package alluxio.worker.membership;
+package alluxio.membership;
 
-import alluxio.membership.ISerializer;
-import alluxio.membership.ServiceEntity;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 import com.google.common.base.MoreObjects;

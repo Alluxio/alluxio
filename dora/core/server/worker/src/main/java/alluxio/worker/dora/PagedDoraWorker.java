@@ -15,9 +15,7 @@ import static alluxio.client.file.cache.CacheUsage.PartitionDescriptor.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.DefaultStorageTierAssoc;
 import alluxio.Server;
-import alluxio.StorageTierAssoc;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.cache.CacheManager;
@@ -46,7 +44,6 @@ import alluxio.grpc.LoadFileFailure;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.Route;
 import alluxio.grpc.RouteFailure;
-import alluxio.grpc.Scope;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UfsReadOptions;
@@ -84,8 +81,7 @@ import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.grpc.GrpcExecutors;
-import alluxio.worker.membership.MembershipManager;
-import alluxio.worker.membership.WorkerServiceEntity;
+import alluxio.membership.MembershipManager;
 import alluxio.worker.task.CopyHandler;
 import alluxio.worker.task.DeleteHandler;
 

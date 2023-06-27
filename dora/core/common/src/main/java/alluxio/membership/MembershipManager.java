@@ -1,11 +1,10 @@
-package alluxio.worker.membership;
+package alluxio.membership;
 
 import alluxio.MembershipType;
-import alluxio.client.file.cache.CacheManager;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.resource.LockResource;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.wire.WorkerInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,12 +22,12 @@ public interface MembershipManager extends AutoCloseable {
    * @param worker
    * @throws IOException
    */
-  public void join(WorkerNetAddress worker) throws IOException;
-  public List<WorkerNetAddress> getAllMembers();
-  public List<WorkerNetAddress> getLiveMembers();
-  public List<WorkerNetAddress> getFailedMembers();
+  public void join(WorkerInfo worker) throws IOException;
+  public List<WorkerInfo> getAllMembers();
+  public List<WorkerInfo> getLiveMembers();
+  public List<WorkerInfo> getFailedMembers();
   public String showAllMembers();
-  public void decommission(WorkerNetAddress worker);
+  public void decommission(WorkerInfo worker);
 
   /**
    * Factory class to get or create a MembershipManager.

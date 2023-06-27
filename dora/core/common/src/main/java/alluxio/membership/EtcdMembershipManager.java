@@ -1,11 +1,9 @@
-package alluxio.worker.membership;
+package alluxio.membership;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlreadyExistsException;
-import alluxio.membership.AlluxioEtcdClient;
-import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.Worker;
+import alluxio.wire.WorkerInfo;
 import io.etcd.jetcd.KeyValue;
 import org.apache.zookeeper.server.ByteBufferInputStream;
 import org.slf4j.Logger;
@@ -37,8 +35,8 @@ public class EtcdMembershipManager implements MembershipManager {
     mAlluxioEtcdClient = AlluxioEtcdClient.getInstance(conf);
   }
 
-  public void join(WorkerNetAddress wkrAddr) throws IOException {
-    WorkerServiceEntity entity = new WorkerServiceEntity(wkrAddr);
+  public void join(WorkerInfo wkrAddr) throws IOException {
+    WorkerServiceEntity entity = new WorkerServiceEntity(wkrAddr.getAddress());
     // 1) register to the ring
     String pathOnRing = String.format(sRingPathFormat, mClusterName) + entity.getServiceEntityName();
     byte[] ret = mAlluxioEtcdClient.getForPath(pathOnRing);
@@ -61,9 +59,11 @@ public class EtcdMembershipManager implements MembershipManager {
     mAlluxioEtcdClient.mServiceDiscovery.registerAndStartSync(entity);
   }
 
-  public List<WorkerNetAddress> getAllMembers() {
+  public List<WorkerInfo> getAllMembers() {
     List<WorkerServiceEntity> registeredWorkers = retrieveFullMembers();
-    return registeredWorkers.stream().map(e -> e.getWorkerNetAddress()).collect(Collectors.toList());
+    return registeredWorkers.stream()
+        .map(e -> new WorkerInfo().setAddress(e.getWorkerNetAddress()))
+        .collect(Collectors.toList());
   }
 
   private List<WorkerServiceEntity> retrieveFullMembers() {
@@ -101,18 +101,22 @@ public class EtcdMembershipManager implements MembershipManager {
     return liveMembers;
   }
 
-  public List<WorkerNetAddress> getLiveMembers() {
+  public List<WorkerInfo> getLiveMembers() {
     List<WorkerServiceEntity> registeredWorkers = retrieveFullMembers();
     List<WorkerServiceEntity> liveWorkers = retrieveLiveMembers();
     liveWorkers.retainAll(registeredWorkers);
-    return liveWorkers.stream().map(e -> e.getWorkerNetAddress()).collect(Collectors.toList());
+    return liveWorkers.stream()
+        .map(e -> new WorkerInfo().setAddress(e.getWorkerNetAddress()))
+        .collect(Collectors.toList());
   }
 
-  public List<WorkerNetAddress> getFailedMembers() {
+  public List<WorkerInfo> getFailedMembers() {
     List<WorkerServiceEntity> registeredWorkers = retrieveFullMembers();
     List<WorkerServiceEntity> liveWorkers = retrieveLiveMembers();
     registeredWorkers.removeAll(liveWorkers);
-    return registeredWorkers.stream().map(e -> e.getWorkerNetAddress()).collect(Collectors.toList());
+    return registeredWorkers.stream()
+        .map(e -> new WorkerInfo().setAddress(e.getWorkerNetAddress()))
+        .collect(Collectors.toList());
   }
 
   public String showAllMembers() {
@@ -132,7 +136,7 @@ public class EtcdMembershipManager implements MembershipManager {
   }
 
   @Override
-  public void decommission(WorkerNetAddress worker) {
+  public void decommission(WorkerInfo worker) {
     // TO BE IMPLEMENTED
   }
 
