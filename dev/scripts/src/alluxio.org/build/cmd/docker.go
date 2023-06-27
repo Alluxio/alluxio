@@ -24,7 +24,8 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"alluxio.org/build/artifact"
-	"alluxio.org/command"
+	"alluxio.org/common/command"
+	"alluxio.org/common/repo"
 )
 
 const (
@@ -109,7 +110,7 @@ func DockerF(args []string) error {
 		return artifact.WriteToFile(opts.artifactOutput)
 	}
 
-	dockerWs := filepath.Join(findRepoRoot(), "integration", "docker")
+	dockerWs := filepath.Join(repo.FindRepoRoot(), "integration", "docker")
 	tmpTarballPath := filepath.Join(dockerWs, tempAlluxioTarballName)
 
 	// create alluxio tarball and place directly in docker workdir
@@ -144,7 +145,7 @@ func (i *DockerImage) init(alluxioVersion string) {
 }
 
 func (i *DockerImage) build(opts *dockerBuildOpts, save bool) error {
-	dockerWs := filepath.Join(findRepoRoot(), i.BuildDir)
+	dockerWs := filepath.Join(repo.FindRepoRoot(), i.BuildDir)
 	if i.Dependency != "" {
 		dep, ok := opts.dockerImages[i.Dependency]
 		if !ok {
@@ -169,7 +170,7 @@ func (i *DockerImage) build(opts *dockerBuildOpts, save bool) error {
 	}
 	for _, c := range cmds {
 		log.Printf("Running: %v", c)
-		if out, err := command.New(c).WithDir(findRepoRoot()).CombinedOutput(); err != nil {
+		if out, err := command.New(c).WithDir(repo.FindRepoRoot()).CombinedOutput(); err != nil {
 			return stacktrace.Propagate(err, "error from running cmd: %v", string(out))
 		}
 	}

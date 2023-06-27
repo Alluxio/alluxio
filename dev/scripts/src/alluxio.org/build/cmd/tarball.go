@@ -21,7 +21,7 @@ import (
 
 	"github.com/palantir/stacktrace"
 
-	"alluxio.org/command"
+	"alluxio.org/common/command"
 )
 
 type assembledJarsInfo struct {

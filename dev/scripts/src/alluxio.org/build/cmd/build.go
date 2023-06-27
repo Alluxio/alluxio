@@ -22,7 +22,8 @@ import (
 	"github.com/palantir/stacktrace"
 
 	"alluxio.org/build/artifact"
-	"alluxio.org/command"
+	"alluxio.org/common/command"
+	"alluxio.org/common/repo"
 )
 
 const (
@@ -68,11 +69,11 @@ func TarballF(args []string) error {
 
 func buildTarball(opts *buildOpts) error {
 	// prepare repository
-	repoRoot := findRepoRoot()
+	repoRoot := repo.FindRepoRoot()
 	repoBuildDir := repoRoot
 	if !opts.skipRepoCopy {
 		// create temporary copy of repository to build from
-		tempDir, err := copyRepoToTempDir(repoRoot)
+		tempDir, err := repo.CopyRepoToTempDir(repoRoot)
 		if tempDir == "" {
 			defer os.RemoveAll(tempDir)
 			log.Printf("Preparing temp repo dir at %v", tempDir)
