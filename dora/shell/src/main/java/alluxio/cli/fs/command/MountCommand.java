@@ -72,7 +72,7 @@ public final class MountCommand extends AbstractFileSystemCommand {
    */
   public MountCommand(FileSystemContext fsContext) {
     super(fsContext);
-    mFileSystem = new BaseFileSystem(fsContext);
+    mFileSystem = FileSystem.Factory.createLegacy(fsContext);
   }
 
   @Override
