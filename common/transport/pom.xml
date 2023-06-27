@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-common</artifactId>
-    <version>301-SNAPSHOT</version>
+    <version>enterprise-2.11.0-1.0-RC1</version>
   </parent>
   <artifactId>alluxio-core-transport</artifactId>
   <packaging>jar</packaging>
@@ -144,7 +144,7 @@
         <executions>
           <execution>
             <goals>
-              <!-- TODO(binfan): re-enabled this check after 301-SNAPSHOT is released -->
+              <!-- TODO(binfan): re-enabled this check after enterprise-2.11.0-1.0-RC1 is released -->
               <!-- <goal>backwards-compatibility-check</goal> -->
             </goals>
           </execution>

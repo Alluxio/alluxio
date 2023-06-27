@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-job</artifactId>
-    <version>301-SNAPSHOT</version>
+    <version>enterprise-2.11.0-1.0-RC1</version>
   </parent>
   <artifactId>alluxio-job-server</artifactId>
   <packaging>jar</packaging>
