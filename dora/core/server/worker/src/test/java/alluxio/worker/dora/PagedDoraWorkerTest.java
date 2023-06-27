@@ -406,6 +406,9 @@ public class PagedDoraWorkerTest {
     File f = mTestFolder.newFile();
     Files.write(f.toPath(), fileContent.getBytes());
 
+    mWorker.setAttribute(f.getPath(), SetAttributePOptions.newBuilder()
+        .setMode(new Mode((short) 0444).toProto()).build());
+
     loadFileData(f.getPath());
 
     var result = mWorker.getFileInfo(f.getPath(), GetStatusPOptions.getDefaultInstance());
@@ -413,7 +416,7 @@ public class PagedDoraWorkerTest {
         mCacheManager.getCachedPageIdsByFileId(
             new AlluxioURI(f.getPath()).hash(), fileContent.length());
     assertEquals(1, cachedPages.size());
-    assertEquals(0664, result.getMode());
+    assertEquals(0444, result.getMode());
 
     mWorker.setAttribute(f.getPath(), SetAttributePOptions.newBuilder()
         .setMode(new Mode((short) 0777).toProto()).build());
