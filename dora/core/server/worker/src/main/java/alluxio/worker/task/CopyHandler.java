@@ -18,6 +18,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
@@ -81,10 +82,7 @@ public final class CopyHandler {
       throw AlluxioRuntimeException.from(e);
     }
     if (dstStatus != null && !writeOptions.getOverwrite()) {
-      // skip the file if it already exists
-      LOG.debug("File " + route.getDst()
-          + " is already persisted in UFS, to overwrite the file, please set the overwrite flag");
-      return;
+      throw new FailedPreconditionRuntimeException("File " + route.getDst() + " is already in UFS");
     }
 
     if (dstStatus != null && (dstStatus.isFolder() != sourceStatus.isFolder())) {
