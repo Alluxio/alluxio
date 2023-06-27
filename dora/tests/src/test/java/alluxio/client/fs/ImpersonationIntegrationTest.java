@@ -13,6 +13,7 @@ package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -31,6 +32,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -45,6 +47,9 @@ import javax.security.auth.Subject;
 /**
  * Integration tests for user impersonation.
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "pending security features in dora")
 public final class ImpersonationIntegrationTest extends BaseIntegrationTest {
   private static final String IMPERSONATION_USER = "impersonation_user";
   private static final String IMPERSONATION_GROUP1 = "impersonation_group1";

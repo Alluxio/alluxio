@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 
 import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.WriteType;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
@@ -62,6 +63,7 @@ import com.google.common.collect.Sets;
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -89,6 +91,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class})
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "recycle the applicable test cases after we remove BlockStore")
 public final class BlockStoreClientTest {
 
   private static final InstancedConfiguration S_CONF = Configuration.copyGlobal();
@@ -191,6 +195,7 @@ public final class BlockStoreClientTest {
   }
 
   @Test
+  @Ignore
   public void getOutStreamUsingLocationPolicy() {
     OutStreamOptions options =
         OutStreamOptions.defaults(mContext).setWriteType(WriteType.MUST_CACHE)
@@ -201,6 +206,7 @@ public final class BlockStoreClientTest {
   }
 
   @Test
+  @Ignore
   public void getOutStreamMissingLocationPolicy() {
     OutStreamOptions options =
         OutStreamOptions.defaults(mContext).setBlockSizeBytes(BLOCK_LENGTH)
@@ -212,6 +218,7 @@ public final class BlockStoreClientTest {
   }
 
   @Test
+  @Ignore
   public void getOutStreamNoWorker() {
     OutStreamOptions options =
         OutStreamOptions
@@ -227,6 +234,7 @@ public final class BlockStoreClientTest {
   }
 
   @Test
+  @Ignore
   public void getOutStreamLocal() throws Exception {
     File file = File.createTempFile("test", ".tmp");
     CreateLocalBlockResponse response = CreateLocalBlockResponse.newBuilder()
@@ -248,6 +256,7 @@ public final class BlockStoreClientTest {
   }
 
   @Test
+  @Ignore
   public void getOutStreamRemote() throws Exception {
     WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1");
     WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2");
@@ -262,6 +271,7 @@ public final class BlockStoreClientTest {
   }
 
   @Test
+  @Ignore
   public void getOutStreamWithReplicated() throws Exception {
     File file = File.createTempFile("test", ".tmp");
     CreateLocalBlockResponse response = CreateLocalBlockResponse.newBuilder()
@@ -288,6 +298,7 @@ public final class BlockStoreClientTest {
   }
 
   @Test
+  @Ignore
   public void getInStreamUfsMockLocaltion() throws Exception {
     try (Closeable ignored = new ConfigurationRule(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY,
         MockBlockLocationPolicyTest.class.getTypeName(), S_CONF).toResource()) {
@@ -314,6 +325,7 @@ public final class BlockStoreClientTest {
   }
 
   @Test
+  @Ignore
   public void getInStreamUfsLocalFirst() throws Exception {
     WorkerNetAddress remote = new WorkerNetAddress().setHost("remote");
     WorkerNetAddress local = new WorkerNetAddress().setHost(WORKER_HOSTNAME_LOCAL);
@@ -335,6 +347,7 @@ public final class BlockStoreClientTest {
   }
 
   @Test
+  @Ignore
   public void getInStreamNoWorkers() throws Exception {
     URIStatus dummyStatus =
         new URIStatus(new FileInfo().setPersisted(true).setBlockIds(Collections.singletonList(0L)));
@@ -349,6 +362,7 @@ public final class BlockStoreClientTest {
   }
 
   @Test
+  @Ignore
   public void getInStreamMissingBlock() throws Exception {
     URIStatus dummyStatus = new URIStatus(
         new FileInfo().setPersisted(false).setBlockIds(Collections.singletonList(0L)));
@@ -362,6 +376,7 @@ public final class BlockStoreClientTest {
   }
 
   @Test
+  @Ignore
   public void getInStreamLocal() throws Exception {
     WorkerNetAddress remote = new WorkerNetAddress().setHost("remote");
     WorkerNetAddress local = new WorkerNetAddress().setHost(WORKER_HOSTNAME_LOCAL);
@@ -390,6 +405,7 @@ public final class BlockStoreClientTest {
   }
 
   @Test
+  @Ignore
   public void getInStreamRemote() throws Exception {
     WorkerNetAddress remote1 = new WorkerNetAddress().setHost("remote1");
     WorkerNetAddress remote2 = new WorkerNetAddress().setHost("remote2");
@@ -411,6 +427,7 @@ public final class BlockStoreClientTest {
   }
 
   @Test
+  @Ignore
   public void getInStreamProcessLocal() throws Exception {
     WorkerNetAddress remote = new WorkerNetAddress().setHost("remote");
     WorkerNetAddress local = new WorkerNetAddress().setHost(WORKER_HOSTNAME_LOCAL);
@@ -432,6 +449,7 @@ public final class BlockStoreClientTest {
   }
 
   @Test
+  @Ignore
   public void getInStreamUfsProcessLocal() throws Exception {
     WorkerNetAddress remote = new WorkerNetAddress().setHost("remote");
     WorkerNetAddress local = new WorkerNetAddress().setHost(WORKER_HOSTNAME_LOCAL);
@@ -458,6 +476,7 @@ public final class BlockStoreClientTest {
   }
 
   @Test
+  @Ignore
   public void getInStreamInAlluxioOnlyFallbackToAvailableWorker() throws Exception {
     int workerCount = 4;
     boolean persisted = false;
@@ -471,6 +490,7 @@ public final class BlockStoreClientTest {
   }
 
   @Test
+  @Ignore
   public void getInStreamPersistedAndInAlluxioFallbackToUFS() throws Exception {
     int workerCount = 3;
     boolean persisted = true;
@@ -483,6 +503,7 @@ public final class BlockStoreClientTest {
   }
 
   @Test
+  @Ignore
   public void getInStreamPersistedFallbackToLeastRecentlyFailed() throws Exception {
     int workerCount = 3;
     boolean persisted = true;
@@ -496,6 +517,7 @@ public final class BlockStoreClientTest {
   }
 
   @Test
+  @Ignore
   public void getInStreamInAlluxioOnlyFallbackToLeastRecentlyFailed() throws Exception {
     int workerCount = 5;
     boolean persisted = false;
@@ -511,6 +533,7 @@ public final class BlockStoreClientTest {
   }
 
   @Test
+  @Ignore
   public void getInStreamInAlluxioWhenCreateStreamIsFailed() throws Exception {
     int workerCount = 5;
     boolean persisted = false;

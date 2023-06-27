@@ -21,11 +21,11 @@ The common configuration contains constants shared by different components.
 
 <table class="table table-striped">
 <tr><th>Property Name</th><th>Default</th><th>Description</th></tr>
-{% for item in site.data.table.common-configuration %}
+{% for item in site.data.generated.common-configuration %}
   <tr>
     <td><a class="anchor" name="{{ item.propertyName }}"></a> {{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.common-configuration[item.propertyName] }}</td>
+    <td>{{ site.data.generated.en.common-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
@@ -37,11 +37,11 @@ the port number.
 
 <table class="table table-striped">
 <tr><th>Property Name</th><th>Default</th><th>Description</th></tr>
-{% for item in site.data.table.master-configuration %}
+{% for item in site.data.generated.master-configuration %}
   <tr>
     <td><a class="anchor" name="{{ item.propertyName }}"></a> {{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.master-configuration[item.propertyName] }}</td>
+    <td>{{ site.data.generated.en.master-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
@@ -53,11 +53,11 @@ the port number.
 
 <table class="table table-striped">
 <tr><th>Property Name</th><th>Default</th><th>Description</th></tr>
-{% for item in site.data.table.worker-configuration %}
+{% for item in site.data.generated.worker-configuration %}
   <tr>
     <td><a class="anchor" name="{{ item.propertyName }}"></a> {{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.worker-configuration[item.propertyName] }}</td>
+    <td>{{ site.data.generated.en.worker-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
@@ -68,11 +68,11 @@ The user configuration specifies values regarding file system access.
 
 <table class="table table-striped">
 <tr><th>Property Name</th><th>Default</th><th>Description</th></tr>
-{% for item in site.data.table.user-configuration %}
+{% for item in site.data.generated.user-configuration %}
   <tr>
     <td><a class="anchor" name="{{ item.propertyName }}"></a> {{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.user-configuration[item.propertyName] }}</td>
+    <td>{{ site.data.generated.en.user-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
@@ -84,11 +84,11 @@ authentication and file permission. Settings for authentication take effect for 
 user. Settings for file permission only take effect for master.
 <table class="table table-striped">
 <tr><th>Property Name</th><th>Default</th><th>Description</th></tr>
-{% for item in site.data.table.security-configuration %}
+{% for item in site.data.generated.security-configuration %}
   <tr>
     <td><a class="anchor" name="{{ item.propertyName }}"></a> {{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.security-configuration[item.propertyName] }}</td>
+    <td>{{ site.data.generated.en.security-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>

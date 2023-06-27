@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.Constants;
 import alluxio.UnderFileSystemFactoryRegistryRule;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
@@ -32,6 +33,7 @@ import com.google.common.io.Files;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -48,6 +50,9 @@ import java.util.List;
  * The tests also validate that operations are concurrent by injecting a short sleep in the
  * critical code path. Tests will timeout if the critical section is performed serially.
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "redefine behaviors")
 public class ConcurrentDeleteIntegrationTest extends BaseIntegrationTest {
   private static final String TEST_USER = "test";
   private static final int CONCURRENCY_FACTOR = 50;

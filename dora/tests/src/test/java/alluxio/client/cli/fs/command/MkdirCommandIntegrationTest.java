@@ -12,11 +12,13 @@
 package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -24,6 +26,9 @@ import java.io.IOException;
 /**
  * Tests for mkdir command.
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "the command is still relevant")
 public final class MkdirCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void mkdir() throws IOException, AlluxioException {

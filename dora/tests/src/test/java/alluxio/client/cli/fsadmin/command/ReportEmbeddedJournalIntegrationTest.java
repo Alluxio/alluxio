@@ -12,6 +12,7 @@
 package alluxio.client.cli.fsadmin.command;
 
 import alluxio.ProjectConstants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -20,6 +21,7 @@ import alluxio.util.network.NetworkAddressUtils;
 
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 @LocalAlluxioClusterResource.ServerConfig(
@@ -31,6 +33,9 @@ public class ReportEmbeddedJournalIntegrationTest  extends AbstractFsAdminShellT
   static final String JOURNAL_PORT = "0";
 
   @Test
+  @Ignore
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jiacheng",
+      comment = "journal no longer exists in dora")
   public void reportSummary() {
     int ret = mFsAdminShell.run("report", "summary");
     Assert.assertEquals(0, ret);

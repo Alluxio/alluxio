@@ -32,7 +32,6 @@ import alluxio.master.scheduler.Scheduler;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal;
-import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobState;
 import alluxio.scheduler.job.Task;
 import alluxio.underfs.UfsFileStatus;
@@ -163,16 +162,27 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
         "DoraLoadJob for {} created. {} workers are active",
         path, Preconditions.checkNotNull(Scheduler.getInstance()).getActiveWorkers().size());
 
+    UfsStatus rootUfsStatus = null;
     try {
-      mUfsStatusIterator = mUfs.listStatusIterable(
-          ufsSyncRootUri.toString(), ListOptions.defaults().setRecursive(true), null, 0);
-      if (mUfsStatusIterator == null) {
-        mUfsStatusIterator = Collections.emptyIterator();
+      try {
+        rootUfsStatus = mUfs.getStatus(ufsSyncRootUri.toString());
+      } catch (FileNotFoundException ignored) {
+        // No-op
+      }
+      if (rootUfsStatus != null && rootUfsStatus.isFile()) {
+        rootUfsStatus.setUfsFullPath(ufsSyncRootUri);
+        mUfsStatusIterator = Iterators.singletonIterator(rootUfsStatus);
       } else {
-        mUfsStatusIterator = Iterators.transform(mUfsStatusIterator, (it) -> {
-          it.setUfsFullPath(ufsSyncRootUri.join(it.getName()));
-          return it;
-        });
+        mUfsStatusIterator = mUfs.listStatusIterable(
+            ufsSyncRootUri.toString(), ListOptions.defaults().setRecursive(true), null, 0);
+        if (mUfsStatusIterator == null) {
+          mUfsStatusIterator = Collections.emptyIterator();
+        } else {
+          mUfsStatusIterator = Iterators.transform(mUfsStatusIterator, (it) -> {
+            it.setUfsFullPath(ufsSyncRootUri.join(it.getName()));
+            return it;
+          });
+        }
       }
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -531,15 +541,6 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       // We don't count InterruptedException as task failure
       return true;
     }
-  }
-
-  @Override
-  public void updateJob(Job<?> job) {
-    if (!(job instanceof DoraLoadJob)) {
-      throw new IllegalArgumentException("Job is not a DoraLoadJob: " + job);
-    }
-    DoraLoadJob targetJob = (DoraLoadJob) job;
-    updateBandwidth(targetJob.getBandwidth());
   }
 
   @Override

@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 
 import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
@@ -39,6 +40,7 @@ import alluxio.worker.block.BlockWorker;
 import io.grpc.stub.ClientCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
@@ -57,6 +59,9 @@ import java.util.Optional;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({NettyUtils.class})
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "bowen",
+    comment = "recycle the test cases after we remove BlockStore")
+@Ignore
 public class BlockInStreamTest {
   private FileSystemContext mMockContext;
   private BlockInfo mInfo;

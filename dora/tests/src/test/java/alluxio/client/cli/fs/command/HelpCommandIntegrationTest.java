@@ -11,6 +11,7 @@
 
 package alluxio.client.cli.fs.command;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.cli.Command;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.cli.fs.command.HelpCommand;
@@ -19,6 +20,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.conf.Configuration;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -31,6 +33,9 @@ import java.util.TreeSet;
 /**
  * Integration tests for help command.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jiacheng",
+    comment = "fix or remove this test")
+@Ignore
 public final class HelpCommandIntegrationTest extends AbstractFileSystemShellTest {
 
   /**

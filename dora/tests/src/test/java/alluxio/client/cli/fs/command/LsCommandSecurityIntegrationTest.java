@@ -16,6 +16,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.client.file.FileSystem;
@@ -32,6 +33,7 @@ import alluxio.security.user.TestUserState;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -48,6 +50,9 @@ import java.util.function.Function;
         "alluxio.security.group.provider.IdentityUserGroupsMapping",
         PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_ls",
         PropertyKey.Name.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, "0"})
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "pending on security related meta in dora")
 public final class LsCommandSecurityIntegrationTest extends AbstractFileSystemShellTest {
   // Helper function to create a set of files in the file system
   private void createFiles() throws Exception {

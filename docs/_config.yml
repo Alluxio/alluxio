@@ -30,62 +30,6 @@ defaults:
       languageName: English
       languagePriority: 0
 
-# These are the ordered category names
-categoryList:
-  - Overview
-  - Core Services
-  - Install Alluxio
-  - Presto SDK
-  - FUSE SDK
-  - Kubernetes
-  - Cloud Native
-  - Compute Integrations
-  - Storage Integrations
-  - Security
-  - Operations
-  - Administration
-  - Solutions
-  - Client APIs
-  - Contributor Resources
-  - Reference
-
-# Each language has a particular version of category names
-# When supporting a new language version, do not change the 'group' attribute in .md page files
-# Instead, just add the group name of that language below
-categoryInfo:
-  Overview:
-    en: Overview
-  Core Services:
-    en: Core Services
-  Install Alluxio:
-    en: Install Alluxio
-  Presto SDK:
-    en: Presto SDK
-  FUSE SDK:
-    en: FUSE SDK
-  Kubernetes:
-    en: Kubernetes
-  Cloud Native:
-    en: Cloud Native
-  Compute Integrations:
-    en: Compute Integrations
-  Storage Integrations:
-    en: Storage Integrations
-  Security:
-    en: Security
-  Operations:
-    en: Operations
-  Administration:
-    en: Administration
-  Solutions:
-    en: Solutions
-  Client APIs:
-    en: Client APIs
-  Contributor Resources:
-    en: Contributor Resources
-  Reference:
-    en: Reference
-
 # For no baseurl, leave blank
 # Anything other than blank: this should always START with a '/' and NEVER end with a '/' character
 baseurl:

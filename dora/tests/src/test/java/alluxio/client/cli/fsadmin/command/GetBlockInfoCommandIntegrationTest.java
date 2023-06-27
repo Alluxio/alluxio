@@ -14,6 +14,7 @@ package alluxio.client.cli.fsadmin.command;
 import static org.hamcrest.CoreMatchers.containsString;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
@@ -22,6 +23,7 @@ import alluxio.grpc.WritePType;
 import alluxio.master.block.BlockId;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -29,6 +31,9 @@ import java.io.IOException;
 /**
  * Tests for getBlockInfo command.
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "bowen",
+    comment = "Block API will be deprecated and replaced by a Page API")
 public final class GetBlockInfoCommandIntegrationTest extends AbstractFsAdminShellTest {
   @Test
   public void invalidId() {

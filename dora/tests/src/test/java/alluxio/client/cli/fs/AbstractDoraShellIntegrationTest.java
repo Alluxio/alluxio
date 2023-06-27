@@ -46,7 +46,6 @@ public abstract class AbstractDoraShellIntegrationTest extends BaseIntegrationTe
         .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)
         .setProperty(PropertyKey.USER_FILE_RESERVED_BYTES, SIZE_BYTES / 2)
         .setProperty(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED, true)
-        .setProperty(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED, true)
         .setProperty(PropertyKey.WORKER_BLOCK_STORE_TYPE, "PAGE")
         .setProperty(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, Constants.KB)
         .setProperty(PropertyKey.WORKER_PAGE_STORE_SIZES, "1GB")

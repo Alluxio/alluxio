@@ -126,11 +126,11 @@ public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
   public void setJobState(JobState state, boolean journalUpdate) {
     LOG.debug("Change JobState to {} for job {}, journalUpdate:{}", state, this, journalUpdate);
     mState = state;
-    if (journalUpdate) {
-      Scheduler.getInstance().getJobMetaStore().updateJob(this);
-    }
     if (!isRunning()) {
       mEndTime = OptionalLong.of(System.currentTimeMillis());
+    }
+    if (journalUpdate) {
+      Scheduler.getInstance().getJobMetaStore().updateJob(this);
     }
   }
 

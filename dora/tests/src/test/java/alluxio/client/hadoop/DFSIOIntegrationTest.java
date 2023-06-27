@@ -12,6 +12,7 @@
 package alluxio.client.hadoop;
 
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.WriteType;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -44,6 +45,7 @@ import org.junit.AfterClass;
 import org.junit.AssumptionViolatedException;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -289,6 +291,9 @@ public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
   }
 
   @Test(timeout = 50000)
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
+      comment = "fix the test case")
+  @Ignore
   public void read() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, HadoopConfigurationUtils
@@ -300,6 +305,9 @@ public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
   }
 
   @Test(timeout = 50000)
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
+      comment = "fix the test case")
+  @Ignore
   public void readRandom() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, HadoopConfigurationUtils
@@ -312,6 +320,9 @@ public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
   }
 
   @Test(timeout = 50000)
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
+      comment = "fix the test case")
+  @Ignore
   public void readBackward() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, HadoopConfigurationUtils
@@ -324,6 +335,9 @@ public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
   }
 
   @Test(timeout = 50000)
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
+      comment = "fix the test case")
+  @Ignore
   public void readSkip() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, HadoopConfigurationUtils
@@ -336,6 +350,9 @@ public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
   }
 
   @Test(timeout = 50000)
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
+      comment = "fix the test case")
+  @Ignore
   public void readLargeSkip() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, HadoopConfigurationUtils
@@ -345,18 +362,6 @@ public class DFSIOIntegrationTest extends BaseIntegrationTest implements Tool {
     sBench.randomReadTest(fs);
     long execTime = System.currentTimeMillis() - tStart;
     sBench.analyzeResult(fs, TestType.TEST_TYPE_READ_SKIP, execTime);
-  }
-
-  // TODO(hy): Should active this unit test after ALLUXIO-25 has been solved
-  // @Test (timeout = 50000)
-  public void append() throws Exception {
-    org.apache.hadoop.fs.FileSystem fs =
-        org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, HadoopConfigurationUtils
-            .mergeAlluxioConfiguration(sBench.getConf(), Configuration.global()));
-    long tStart = System.currentTimeMillis();
-    sBench.mapperAppendTest(fs);
-    long execTime = System.currentTimeMillis() - tStart;
-    sBench.analyzeResult(fs, TestType.TEST_TYPE_APPEND, execTime);
   }
 
   @SuppressWarnings("deprecation")

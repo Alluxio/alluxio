@@ -26,6 +26,7 @@ import static alluxio.stress.cli.RpcBenchPreparationUtils.CAPACITY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.clock.ManualClock;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -69,6 +70,7 @@ import com.google.common.collect.Maps;
 import io.grpc.stub.StreamObserver;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -91,6 +93,9 @@ import java.util.stream.Collectors;
 /**
  * Integration tests for the server-side logic for the register stream.
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jiacheng",
+    comment = "BlockMaster is deprecated")
 public class BlockMasterRegisterStreamIntegrationTest {
   private BlockMaster mBlockMaster;
   private CoreMasterContext mMasterContext;

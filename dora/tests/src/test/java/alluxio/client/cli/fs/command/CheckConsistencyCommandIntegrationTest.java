@@ -16,6 +16,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.Configuration;
@@ -26,6 +27,7 @@ import alluxio.grpc.WritePType;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -36,6 +38,9 @@ import java.util.List;
 /**
  * Integration tests for checkConsistency command.
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "Jiacheng",
+    comment = "need to check if this command will still exist in Dora")
 public class CheckConsistencyCommandIntegrationTest extends AbstractFileSystemShellTest {
   /**
    * Tests the check consistency shell command correctly identifies a consistent subtree.

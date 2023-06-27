@@ -14,6 +14,7 @@ package alluxio.client.fs;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -35,6 +36,7 @@ import org.apache.commons.io.IOUtils;
 import org.gaul.s3proxy.junit.S3ProxyRule;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -42,6 +44,9 @@ import org.junit.rules.ExpectedException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "yuyang",
+    comment = "the API should be validated")
 public class FileSystemS3UfsIntegrationTest extends BaseIntegrationTest {
   private static final String TEST_CONTENT = "TestContents";
   private static final String TEST_FILE = "test_file";
