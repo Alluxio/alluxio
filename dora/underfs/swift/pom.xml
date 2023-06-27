@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>enterprise-3.0.0-1.0-preview-RC0</version>
+    <version>enterprise-3.0.0-1.0-preview-RC1</version>
   </parent>
   <artifactId>alluxio-underfs-swift</artifactId>
   <name>Alluxio Under File System - Swift</name>

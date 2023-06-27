@@ -15,7 +15,7 @@
   <parent>
     <artifactId>alluxio-assembly</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>enterprise-3.0.0-1.0-preview-RC0</version>
+    <version>enterprise-3.0.0-1.0-preview-RC1</version>
   </parent>
   <artifactId>alluxio-assembly-server</artifactId>
   <packaging>jar</packaging>
