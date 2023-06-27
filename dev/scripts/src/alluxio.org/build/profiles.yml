@@ -19,6 +19,7 @@ default:
       - client
       - server
       - fuseBundled
+    clientJarName: alluxio-${VERSION}-client.jar
     emptyDirList:
       - underFSStorage
     fileList:
@@ -62,7 +63,6 @@ fuse:
   pluginModules: fuse
   targetName: alluxio-fuse-${VERSION}.tar.gz
   tarball:
-    skipCopyClientJar: true
     skipCopyWebUi: true
     assemblyJars:
       - fuseStandalone
