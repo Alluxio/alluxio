@@ -193,7 +193,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
 
   @Override
   public void channelUnregistered(ChannelHandlerContext ctx) {
-    pushAbortPacket(ctx.channel(), new Error(new InternalException("channel unregistered"), false));
+    //pushAbortPacket(ctx.channel(), new Error(new InternalException("channel unregistered"), false));
     ctx.fireChannelUnregistered();
   }
 
