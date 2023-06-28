@@ -93,7 +93,6 @@ public class RocksDBDoraMetaStore implements DoraMetaStore {
             .setMaxOpenFiles(-1);
 
     List<ColumnFamilyDescriptor> columns = new ArrayList<>();
-    // TODO(jiacheng): where is this HashLinkedListMemTableConfig handle closed?
     columns.add(new ColumnFamilyDescriptor(DORA_META_FILE_STATUS_COLUMN.getBytes(),
             new ColumnFamilyOptions()
                     .setMemTableConfig(new HashLinkedListMemTableConfig())
