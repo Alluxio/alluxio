@@ -15,7 +15,6 @@ import static alluxio.master.metastore.rocks.RocksStoreTestUtils.waitForReaders;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;

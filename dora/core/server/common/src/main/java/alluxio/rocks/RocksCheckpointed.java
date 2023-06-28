@@ -15,8 +15,8 @@ import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.ErrorType;
 import alluxio.master.journal.checkpoint.CheckpointInputStream;
 import alluxio.master.journal.checkpoint.Checkpointed;
-
 import alluxio.master.metastore.rocks.RocksExclusiveLockHandle;
+
 import io.grpc.Status;
 import org.rocksdb.RocksDBException;
 
