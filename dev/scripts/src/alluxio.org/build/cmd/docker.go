@@ -103,7 +103,7 @@ func DockerF(args []string) error {
 			opts.outputDir,
 			image.TargetName,
 			alluxioVersion,
-			map[string]string{"image": opts.image})
+			map[string]string{"docker:tag": image.Tag})
 		if err != nil {
 			return stacktrace.Propagate(err, "error adding artifact")
 		}
