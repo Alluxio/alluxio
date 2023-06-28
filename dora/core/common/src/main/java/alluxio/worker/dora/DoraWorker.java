@@ -178,12 +178,13 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    * @param options the options of this operation
    * @return true if the file or dir exists, false otherwise
    */
-  boolean exists(String path, ExistsPOptions options);
+  boolean exists(String path, ExistsPOptions options)
+      throws IOException;
 
   /**
    * Set Attributes for a file or dir.
    * @param path the pth of this file or dir
    * @param options the options of this operation
    */
-  void setAttribute(String path, SetAttributePOptions options);
+  void setAttribute(String path, SetAttributePOptions options) throws IOException;
 }
