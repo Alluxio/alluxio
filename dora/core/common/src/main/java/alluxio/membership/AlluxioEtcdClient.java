@@ -134,7 +134,7 @@ public class AlluxioEtcdClient implements Closeable {
   private static final int MAX_RETRY_SLEEP_IN_MS = 500;
 
   public Lease createLease(long ttlInSec, long timeout, TimeUnit timeUnit) {
-    return RetryUtils.retryCallable(String.format("Creating Lease ttl:{}", ttlInSec), () -> {
+    return RetryUtils.retryCallable(String.format("Creating Lease ttl:%s", ttlInSec), () -> {
       CompletableFuture<LeaseGrantResponse> leaseGrantFut =
           getEtcdClient().getLeaseClient().grant(ttlInSec, timeout, timeUnit);
       long leaseId;
@@ -150,7 +150,7 @@ public class AlluxioEtcdClient implements Closeable {
   }
 
   public void revokeLease(Lease lease) {
-    RetryUtils.retryCallable(String.format("Revoking Lease:{}", lease), () -> {
+    RetryUtils.retryCallable(String.format("Revoking Lease:%s", lease.toString()), () -> {
       CompletableFuture<LeaseRevokeResponse> leaseRevokeFut =
           getEtcdClient().getLeaseClient().revoke(lease.mLeaseId);
       long leaseId;
@@ -163,7 +163,7 @@ public class AlluxioEtcdClient implements Closeable {
     Preconditions.checkState(!StringUtil.isNullOrEmpty(parentPath));
     Preconditions.checkState(!StringUtil.isNullOrEmpty(childPath));
     RetryUtils.retryCallable(
-        String.format("Adding child, parentPath:{}, childPath:{}",parentPath, childPath),
+        String.format("Adding child, parentPath:%s, childPath:%s", parentPath, childPath),
         () -> {
           String fullPath = parentPath + childPath;
           PutResponse putResponse = mClient.getKVClient().put(ByteSequence.from(fullPath, StandardCharsets.UTF_8),
@@ -175,7 +175,7 @@ public class AlluxioEtcdClient implements Closeable {
   }
 
   public List<KeyValue> getChildren(String parentPath) {
-    return RetryUtils.retryCallable(String.format("Getting children for path:{}", parentPath), () -> {
+    return RetryUtils.retryCallable(String.format("Getting children for path:%s", parentPath), () -> {
       Preconditions.checkState(!StringUtil.isNullOrEmpty(parentPath));
       GetResponse getResponse = mClient.getKVClient().get(ByteSequence.from(parentPath, StandardCharsets.UTF_8),
           GetOption.newBuilder().isPrefix(true).build())
@@ -271,7 +271,7 @@ public class AlluxioEtcdClient implements Closeable {
 
   // get latest value attached to the key
   public byte[] getForPath(String path) throws IOException {
-    return RetryUtils.retryCallable(String.format("Get for path:{}", path), () -> {
+    return RetryUtils.retryCallable(String.format("Get for path:%s", path), () -> {
       byte[] ret = null;
       try {
         CompletableFuture<GetResponse> getResponse =
@@ -289,7 +289,7 @@ public class AlluxioEtcdClient implements Closeable {
   }
 
   public boolean checkExistsForPath(String path) {
-    return RetryUtils.retryCallable(String.format("Get for path:{}", path), () -> {
+    return RetryUtils.retryCallable(String.format("Get for path:%s", path), () -> {
       boolean exist = false;
       try {
         CompletableFuture<GetResponse> getResponse =
@@ -304,7 +304,7 @@ public class AlluxioEtcdClient implements Closeable {
   }
 
   public void createForPath(String path, Optional<byte[]> value) throws IOException {
-    RetryUtils.retryCallable(String.format("Get for path:{}, value size:{}",
+    RetryUtils.retryCallable(String.format("Get for path:%s, value size:%s",
         path, (value.isEmpty() ? "null" : value.get().length)), () -> {
       try {
         mClient.getKVClient().put(ByteSequence.from(path, StandardCharsets.UTF_8)
@@ -318,7 +318,7 @@ public class AlluxioEtcdClient implements Closeable {
   }
 
   public void deleteForPath(String path) {
-    RetryUtils.retryCallable(String.format("Delete for path:{}", path), () -> {
+    RetryUtils.retryCallable(String.format("Delete for path:%s", path), () -> {
       try {
         mClient.getKVClient().delete(ByteSequence.from(path, StandardCharsets.UTF_8))
             .get();

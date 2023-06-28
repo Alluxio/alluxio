@@ -221,12 +221,14 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     // the heartbeat is only used to notify the aliveness of this worker, so that clients
     // can get the latest worker list from master.
     // TODO(bowen): once we set up a worker discovery service in place of master, remove this
+    /*
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC,
             mResourceCloser.register(new BlockMasterSync()),
             () -> new FixedIntervalSupplier(Configuration.getMs(
                 PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)),
             mConf, ServerUserState.global()));
+     */
   }
 
   /**
@@ -240,6 +242,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       try {
         mMembershipManager.join(new WorkerInfo().setAddress(mAddress));
         mWorkerId.set(CommonUtils.hashAsLong(mAddress.dumpMainInfo()));
+        break;
       } catch (IOException ioe) {
         if (!retry.attempt()) {
           throw ioe;

@@ -11,6 +11,7 @@
 
 package alluxio.util;
 
+import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -32,6 +33,7 @@ import com.google.protobuf.ByteString;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.netty.channel.Channel;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +45,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -961,6 +965,13 @@ public final class CommonUtils {
   }
 
   public static String hashAsStr(String object) {
+    try {
+      MessageDigest md = MessageDigest.getInstance("MD5");
+      md.update(object.getBytes());
+      return Hex.encodeHexString(md.digest()).toLowerCase();
+    } catch (NoSuchAlgorithmException e) {
+      /* No actions. Continue with other hash method. */
+    }
     return HASH_FUNCTION.hashString(object, UTF_8).toString();
   }
 

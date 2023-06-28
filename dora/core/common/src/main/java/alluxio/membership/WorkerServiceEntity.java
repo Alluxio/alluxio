@@ -1,5 +1,6 @@
 package alluxio.membership;
 
+import alluxio.grpc.GrpcUtils;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 import com.google.common.base.MoreObjects;
@@ -56,14 +57,17 @@ public class WorkerServiceEntity extends ServiceEntity {
   public void serialize(DataOutputStream dos) throws IOException {
     super.serialize(dos);
     dos.writeInt(mState.ordinal());
-    dos.writeUTF(mAddress.getHost());
-    dos.writeInt(mAddress.getRpcPort());
+    byte[] serializedArr = GrpcUtils.toProto(mAddress).toByteArray();
+    dos.writeInt(serializedArr.length);
+    dos.write(serializedArr);
   }
 
   public void deserialize(DataInputStream dis) throws IOException {
     super.deserialize(dis);
     mState = State.values()[dis.readInt()];
-    mAddress = new WorkerNetAddress().setHost(dis.readUTF())
-        .setRpcPort(dis.readInt());
+    int byteArrLen = dis.readInt();
+    byte[] byteArr = new byte[byteArrLen];
+    dis.read(byteArr, 0, byteArrLen);
+    mAddress = GrpcUtils.fromProto(alluxio.grpc.WorkerNetAddress.parseFrom(byteArr));
   }
 }
