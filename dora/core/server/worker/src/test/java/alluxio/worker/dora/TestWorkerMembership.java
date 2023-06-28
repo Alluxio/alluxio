@@ -1,13 +1,21 @@
 package alluxio.worker.dora;
 
 
+import alluxio.client.file.cache.CacheManager;
+import alluxio.client.file.cache.CacheManagerOptions;
+import alluxio.client.file.cache.PageMetaStore;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
+import alluxio.membership.MembershipManager;
 import com.google.common.io.Closer;
 import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.ToxiproxyContainer;
@@ -17,6 +25,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 //@Testcontainers
 public class TestWorkerMembership {
@@ -48,9 +57,27 @@ public class TestWorkerMembership {
           .withNetwork(network)
           .withNetworkAliases("toxiproxy");
 
+  private PagedDoraWorker mWorker;
+  @Rule
+  public TemporaryFolder mTestFolder = new TemporaryFolder();
+
   @Before
-  public void beforeEach() {
+  public void beforeEach() throws Exception {
     etcdProxy = toxiproxy.getProxy(etcd, ETCD_PORT);
+
+//    Configuration.set(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR,
+//        mTestFolder.newFolder("rocks"));
+//    CacheManagerOptions cacheManagerOptions =
+//        CacheManagerOptions.createForWorker(Configuration.global());
+//
+//    PageMetaStore pageMetaStore =
+//        PageMetaStore.create(CacheManagerOptions.createForWorker(Configuration.global()));
+//    mCacheManager =
+//        CacheManager.Factory.create(Configuration.global(), cacheManagerOptions, pageMetaStore);
+//    mMembershipManager =
+//        MembershipManager.Factory.create(Configuration.global());
+//    mWorker = new PagedDoraWorker(new AtomicReference<>(1L),
+//        Configuration.global(), mCacheManager, mMembershipManager);
   }
 
   private List<URI> getClientEndpoints() {
@@ -89,10 +116,8 @@ public class TestWorkerMembership {
   public void testJetcd() {
     Client client = Client.builder()
         .endpoints(
-        "http://localhost:2379", "http://etcd1:2379", "http://etcd2:2379"
+        "http://localhost:2379" //, "http://etcd1:2379", "http://etcd2:2379"
         ).build();
-    client.getKVClient().put(ByteSequence.from("k1", StandardCharsets.UTF_8),
-        ByteSequence.from("v1", StandardCharsets.UTF_8));
   }
 
   @Test

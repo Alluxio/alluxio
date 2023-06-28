@@ -32,6 +32,8 @@ public interface WorkerProvider {
    */
   List<WorkerInfo> getWorkerInfos();
 
+  List<WorkerInfo> getLiveWorkerInfos();
+
   /**
    * Gets a worker client.
    *

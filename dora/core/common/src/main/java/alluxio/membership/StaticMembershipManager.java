@@ -6,7 +6,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.dora.PagedDoraWorker;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -42,11 +41,12 @@ public class StaticMembershipManager implements MembershipManager {
     if (!file.exists()) {
       throw new FileNotFoundException("Not found for static worker config file:" + configFile);
     }
-    Scanner scanner = new Scanner(new File("filename"));
+    Scanner scanner = new Scanner(file);
     while (scanner.hasNextLine()) {
       String addr = scanner.nextLine();
       addr.trim();
       WorkerNetAddress workerNetAddress = new WorkerNetAddress()
+          .setHost(addr)
           .setContainerHost(Configuration.global()
               .getOrDefault(PropertyKey.WORKER_CONTAINER_HOSTNAME, ""))
           .setRpcPort(conf.getInt(PropertyKey.WORKER_RPC_PORT))
@@ -59,7 +59,17 @@ public class StaticMembershipManager implements MembershipManager {
 
   @Override
   public void join(WorkerInfo worker) throws IOException {
-    // NO OP
+    // correct with the actual worker addr,
+    // same settings such as ports will be applied to other members
+    WorkerNetAddress addr = worker.getAddress();
+    mMembers.stream().forEach(m -> m.getAddress()
+        .setRpcPort(addr.getRpcPort())
+        .setDataPort(addr.getDataPort())
+        .setDomainSocketPath(addr.getDomainSocketPath())
+        .setTieredIdentity(addr.getTieredIdentity())
+        .setNettyDataPort(addr.getNettyDataPort())
+        .setWebPort(addr.getWebPort())
+        .setSecureRpcPort(addr.getSecureRpcPort()));
   }
 
   @Override

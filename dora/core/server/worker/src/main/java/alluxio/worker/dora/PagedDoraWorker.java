@@ -74,6 +74,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.ModeUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.wire.FileInfo;
+import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
 import alluxio.worker.block.BlockMasterClient;
@@ -237,7 +238,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     RetryPolicy retry = RetryUtils.defaultWorkerMasterClientRetry();
     while (true) {
       try {
-        mMembershipManager.join(mAddress);
+        mMembershipManager.join(new WorkerInfo().setAddress(mAddress));
         mWorkerId.set(CommonUtils.hashAsLong(mAddress.dumpMainInfo()));
       } catch (IOException ioe) {
         if (!retry.attempt()) {

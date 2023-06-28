@@ -55,6 +55,11 @@ public class DefaultWorkerProvider implements WorkerProvider {
   }
 
   @Override
+  public List<WorkerInfo> getLiveWorkerInfos() {
+    return getWorkerInfos();
+  }
+
+  @Override
   public CloseableResource<BlockWorkerClient> getWorkerClient(WorkerNetAddress address) {
     try {
       return mContext.acquireBlockWorkerClient(address);

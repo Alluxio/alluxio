@@ -5517,8 +5517,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(MembershipType.ETCD)
           .build();
   public static final PropertyKey WORKER_MEMBER_STATIC_CONFIG_FILE =
-      listBuilder(Name.WORKER_MEMBER_STATIC_CONFIG_FILE)
-          .setDescription("Config file configuring list of worker hostnames/IPs for the cluster. "
+      stringBuilder(Name.WORKER_MEMBER_STATIC_CONFIG_FILE)
+          .setDescription("Path of the config file configuring list"
+              + "of worker hostnames/IPs for the cluster. "
               + WORKER_MEMBERSHIP_TYPE + " needs to be set"
               + " to STATIC first.")
           .setScope(Scope.ALL)
