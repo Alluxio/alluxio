@@ -432,6 +432,7 @@ public class PagedDoraWorkerTest {
     assertEquals(0777, result.getMode());
 
     assertTrue(f.delete());
+    // The target file is already deleted. setAttribute() should throw an exception.
     assertThrows(Exception.class, () ->
         mWorker.setAttribute(f.getPath(), SetAttributePOptions.newBuilder()
         .setMode(new Mode((short) 777).toProto()).build()));

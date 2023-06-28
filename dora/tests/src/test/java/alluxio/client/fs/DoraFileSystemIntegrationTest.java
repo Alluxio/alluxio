@@ -146,7 +146,7 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
   }
 
   /**
-   * Writes a file through alluxio into UFS. Deletes the file from UFS.
+   * Writes a file through alluxio into UFS, then updates the file from UFS.
    * Read the file with sync interval setting to -1 should give the cached file.
    * Read the file with sync interval setting to 0 should return the updated file content.
    */
@@ -168,8 +168,12 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
       assertEquals(TEST_CONTENT, content);
     }
 
+    // This will update/sync metadata from UFS
     mFileSystem.getStatus(TEST_FILE_URI, GetStatusPOptions.newBuilder()
         .setCommonOptions(optionSync()).build());
+
+    // metadata is already updated. Even though we are not going to sync metadata in Read(),
+    // it should get the latest content.
     try (FileInStream fis = mFileSystem.openFile(TEST_FILE_URI,
         OpenFilePOptions.newBuilder().setCommonOptions(optionNoSync()).build())) {
       String content = new String(fis.readAllBytes());

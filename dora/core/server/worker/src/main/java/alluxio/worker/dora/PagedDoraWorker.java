@@ -576,8 +576,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
       try (FileSystem srcFs = new UfsBaseFileSystem(mFsContext, new UfsFileSystemOptions(srcRoot),
           new UfsManager.UfsClient(() -> srcUfs, new AlluxioURI(srcRoot)));
-           FileSystem dstFs = new UfsBaseFileSystem(mFsContext, new UfsFileSystemOptions(dstRoot),
-               new UfsManager.UfsClient(() -> dstUfs, new AlluxioURI(dstRoot)))) {
+          FileSystem dstFs = new UfsBaseFileSystem(mFsContext, new UfsFileSystemOptions(dstRoot),
+              new UfsManager.UfsClient(() -> dstUfs, new AlluxioURI(dstRoot)))) {
         ListenableFuture<Void> future = Futures.submit(() -> {
           try {
             if (readOptions.hasUser()) {
@@ -708,13 +708,13 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       String owner = createOption.getOwner() != null ? createOption.getOwner() : "";
       String group = createOption.getGroup() != null ? createOption.getGroup() : "";
       UfsStatus status = new UfsFileStatus(new AlluxioURI(path).toString(),
-          "",
-          0,
-          System.currentTimeMillis(),
-          owner,
-          group,
-          createOption.getMode().toShort(),
-          64L * 1024 * 1024);
+                                "",
+                                0,
+                                System.currentTimeMillis(),
+                                owner,
+                                group,
+                                createOption.getMode().toShort(),
+                                64L * 1024 * 1024);
       info = buildFileInfoFromUfsStatus(status, path);
     } catch (IOException e) {
       throw new RuntimeException(e);
