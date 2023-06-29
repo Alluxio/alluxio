@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-integration</artifactId>
-    <version>enterprise-3.0.0-1.0-preview-RC2</version>
+    <version>enterprise-3.0.0-1.0-preview</version>
   </parent>
   <artifactId>alluxio-integration-fuse</artifactId>
   <name>Alluxio Integration - FUSE</name>

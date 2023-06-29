@@ -15,7 +15,7 @@
   <parent>
     <artifactId>alluxio-integration-jnifuse</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>enterprise-3.0.0-1.0-preview-RC2</version>
+    <version>enterprise-3.0.0-1.0-preview</version>
   </parent>
 
   <artifactId>alluxio-integration-jnifuse-fs</artifactId>

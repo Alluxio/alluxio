@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-dora</artifactId>
-    <version>enterprise-3.0.0-1.0-preview-RC2</version>
+    <version>enterprise-3.0.0-1.0-preview</version>
   </parent>
   <artifactId>alluxio-core</artifactId>
   <packaging>pom</packaging>
