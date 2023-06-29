@@ -984,14 +984,15 @@ public class ListStatusTest {
     assertEquals("file0", expected.getContents().get(0).getKey());
     assertEquals("file1", expected.getContents().get(1).getKey());
     assertEquals(ListBucketResult.encodeToken("file1"), priorContinuationToken);
+
     assertEquals(priorContinuationToken, expected2.getContinuationToken());
     assertEquals(4, expected2.getKeyCount().intValue());
     assertEquals(4, expected2.getContents().size());
-    assertEquals("folder0/", expected.getContents().get(0).getKey());
-    assertEquals("folder0/file0", expected.getContents().get(1).getKey());
-    assertEquals("folder0/file1", expected.getContents().get(2).getKey());
-    assertEquals("folder1/", expected.getContents().get(3).getKey());
-    assertNull(expected.getCommonPrefixes());
+    assertEquals("folder0/", expected2.getContents().get(0).getKey());
+    assertEquals("folder0/file0", expected2.getContents().get(1).getKey());
+    assertEquals("folder0/file1", expected2.getContents().get(2).getKey());
+    assertEquals("folder1/", expected2.getContents().get(3).getKey());
+    assertNull(expected2.getCommonPrefixes());
 
     Map<String, String> parameters = new HashMap<>();
     parameters.put("list-type", "2");
