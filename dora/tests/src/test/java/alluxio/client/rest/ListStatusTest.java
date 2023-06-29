@@ -592,7 +592,7 @@ public class ListStatusTest {
   }
 
   /**
-   * Lists objects(v2) with continuation-token="file0".
+   * Lists objects(v2) with continuation-token=encodeToken("file0")
    */
   @Test
   public void listWithContinuationToken() throws Exception {
@@ -678,7 +678,7 @@ public class ListStatusTest {
   }
 
   /**
-   * Lists objects(v2) with continuation-token="file0" and delimiter="/".
+   * Lists objects(v2) with continuation-token=encodeToken("file0") and delimiter="/".
    */
   @Test
   public void listWithContinuationTokenAndDelimiter() throws Exception {
@@ -961,6 +961,46 @@ public class ListStatusTest {
         "bucket", parameters, HttpMethod.GET,
         getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
         .runAndCheckResult(expected);
+  }
+
+  /**
+   * Lists objects(v2) with prefix="folder" and continuation-token=encodeToken("file1").
+   */
+  @Test
+  public void listWithPrefixAndContinuationToken() throws Exception {
+  //    Gets a continuation-token which equals to encodeToken("file1").
+    List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
+        ListStatusPOptions.newBuilder().setRecursive(true).build());
+    ListBucketResult expected = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults().setListType(2).setMaxKeys(2));
+    String priorContinuationToken = expected.getNextContinuationToken();
+    ListBucketResult expected2 = new ListBucketResult("bucket", statuses,
+        ListBucketOptions.defaults()
+            .setListType(2).setContinuationToken(priorContinuationToken)
+            .setPrefix("folder"));
+
+    assertTrue(expected.isTruncated());
+    assertEquals(2, expected.getKeyCount().intValue());
+    assertEquals("file0", expected.getContents().get(0).getKey());
+    assertEquals("file1", expected.getContents().get(1).getKey());
+    assertEquals(ListBucketResult.encodeToken("file1"), priorContinuationToken);
+    assertEquals(priorContinuationToken, expected2.getContinuationToken());
+    assertEquals(4, expected2.getKeyCount().intValue());
+    assertEquals(4, expected2.getContents().size());
+    assertEquals("folder0/", expected.getContents().get(0).getKey());
+    assertEquals("folder0/file0", expected.getContents().get(1).getKey());
+    assertEquals("folder0/file1", expected.getContents().get(2).getKey());
+    assertEquals("folder1/", expected.getContents().get(3).getKey());
+    assertNull(expected.getCommonPrefixes());
+
+    Map<String, String> parameters = new HashMap<>();
+    parameters.put("list-type", "2");
+    parameters.put("prefix", "folder");
+    parameters.put("continuation-token", priorContinuationToken);
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .runAndCheckResult(expected2);
   }
 
   /**
