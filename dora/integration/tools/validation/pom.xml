@@ -27,7 +27,6 @@
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.parent.parent.basedir}/build</build.path>
     <failIfNoTests>false</failIfNoTests>
-    <lib.jar.name>${project.artifactId}-${project.version}.jar</lib.jar.name>
   </properties>
 
   <dependencies>
@@ -79,18 +78,23 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>com.coderplus.maven.plugins</groupId>
-        <artifactId>copy-rename-maven-plugin</artifactId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <groupId>org.codehaus.mojo</groupId>
+        <inherited>false</inherited>
         <executions>
           <execution>
-            <id>copy-and-rename-file</id>
+            <id>copy-lib-jars-selectively</id>
             <phase>install</phase>
             <goals>
-              <goal>copy</goal>
+              <goal>exec</goal>
             </goals>
             <configuration>
-              <sourceFile>${basedir}/target/${project.artifactId}-${project.version}.jar</sourceFile>
-              <destinationFile>${project.parent.parent.parent.parent.basedir}/lib/${lib.jar.name}</destinationFile>
+              <executable>${build.path}/lib/copy_jars.sh</executable>
+              <arguments>
+                <argument>${project.artifactId}</argument>
+                <argument>${basedir}/target/${project.artifactId}-${project.version}.jar</argument>
+                <argument>${basedir}/../../../../lib/${project.artifactId}-${project.version}.jar</argument>
+              </arguments>
             </configuration>
           </execution>
         </executions>

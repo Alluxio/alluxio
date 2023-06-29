@@ -1,0 +1,1 @@
+Jars that are listed by the included list defined in build/lib/copy_jars.sh will be copied to this directory.
