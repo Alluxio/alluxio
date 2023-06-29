@@ -11,7 +11,7 @@
 
 package alluxio.job;
 
-import alluxio.grpc.CopyJobPOptions;
+import alluxio.grpc.MoveJobPOptions;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
@@ -20,24 +20,24 @@ import com.google.common.base.Preconditions;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The request of copying files.
+ * The request of moving files.
  */
 @ThreadSafe
-public class CopyJobRequest implements JobRequest {
-  private static final String TYPE = "copy";
+public class MoveJobRequest implements JobRequest {
+  private static final String TYPE = "move";
   private static final long serialVersionUID = -8565405317284410500L;
   private final String mDst;
-  private final CopyJobPOptions mOptions;
+  private final MoveJobPOptions mOptions;
   private final String mSrc;
 
   /**
    * @param src the source file path
    * @param dst the destination file path
-   * @param options copy job options
+   * @param options move job options
    **/
-  public CopyJobRequest(@JsonProperty("src") String src,
-      @JsonProperty("dst") String dst,
-      @JsonProperty("copyJobPOptions") CopyJobPOptions options) {
+  public MoveJobRequest(@JsonProperty("src") String src,
+                        @JsonProperty("dst") String dst,
+                        @JsonProperty("moveJobPOptions") MoveJobPOptions options) {
     mSrc = Preconditions.checkNotNull(src, "The source path cannot be null");
     mDst = Preconditions.checkNotNull(dst, "The destination path cannot be null");
     mOptions = Preconditions.checkNotNull(options, "The job options cannot be null");
@@ -50,7 +50,7 @@ public class CopyJobRequest implements JobRequest {
     return mSrc;
   }
 
-    /**
+  /**
    * @return the file path
    */
   public String getDst() {
@@ -60,7 +60,7 @@ public class CopyJobRequest implements JobRequest {
   /**
    * @return job options
    */
-  public CopyJobPOptions getOptions() {
+  public MoveJobPOptions getOptions() {
     return mOptions;
   }
 

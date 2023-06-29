@@ -643,6 +643,15 @@ message CopyJobPOptions {
   optional bool check_content = 6;
 }
 
+message MoveJobPOptions {
+  optional int64 bandwidth = 1;
+  optional bool verify = 2;
+  optional bool partialListing = 3;
+  optional bool overwrite = 4;
+  optional WritePType writeType = 5;
+  optional bool check_content = 6;
+}
+
 message StopJobPRequest {
   required JobDescription jobDescription = 1;
 }
