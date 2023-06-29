@@ -592,7 +592,7 @@ public class ListStatusTest {
   }
 
   /**
-   * Lists objects(v2) with continuation-token=encodeToken("file0")
+   * Lists objects(v2) with continuation-token=encodeToken("file0").
    */
   @Test
   public void listWithContinuationToken() throws Exception {
