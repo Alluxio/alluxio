@@ -155,10 +155,7 @@ public class ListStatusTest {
     assertEquals("folder1/", expected.getContents().get(5).getKey());
     assertNull(expected.getCommonPrefixes());
 
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", NO_PARAMS, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
+    listStatusRestCall(NO_PARAMS, expected);
   }
 
   /**
@@ -185,10 +182,7 @@ public class ListStatusTest {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("list-type", "2");
 
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
+    listStatusRestCall(parameters, expected);
   }
 
   /**
@@ -211,10 +205,7 @@ public class ListStatusTest {
 
     Map<String, String> parameters = new HashMap<>();
     parameters.put("delimiter", AlluxioURI.SEPARATOR);  //parameters with delimiter="/"
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
+    listStatusRestCall(parameters, expected);
   }
 
   /**
@@ -239,10 +230,7 @@ public class ListStatusTest {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("list-type", "2");
     parameters.put("delimiter", AlluxioURI.SEPARATOR);  //parameters with delimiter="/"
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
+    listStatusRestCall(parameters, expected);
   }
 
   /**
@@ -265,10 +253,7 @@ public class ListStatusTest {
 
     Map<String, String> parameters = new HashMap<>();
     parameters.put("prefix", "folder0");
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
+    listStatusRestCall(parameters, expected);
   }
 
   /**
@@ -288,10 +273,7 @@ public class ListStatusTest {
 
     Map<String, String> parameters = new HashMap<>();
     parameters.put("prefix", "");
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
+    listStatusRestCall(parameters, expected);
   }
 
   /**
@@ -311,10 +293,7 @@ public class ListStatusTest {
 
     Map<String, String> parameters = new HashMap<>();
     parameters.put("prefix", "aa");
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
+    listStatusRestCall(parameters, expected);
   }
 
   /**
@@ -338,10 +317,7 @@ public class ListStatusTest {
     parameters.put("list-type", "2");
     parameters.put("prefix", "folder");
 
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
+    listStatusRestCall(parameters, expected);
   }
 
   /**
@@ -362,10 +338,7 @@ public class ListStatusTest {
     parameters.put("list-type", "2");
     parameters.put("prefix", "");
 
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
+    listStatusRestCall(parameters, expected);
   }
 
   /**
@@ -386,10 +359,7 @@ public class ListStatusTest {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("list-type", "2");
     parameters.put("prefix", "file1/");
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
+    listStatusRestCall(parameters, expected);
   }
 
   /**
@@ -414,10 +384,7 @@ public class ListStatusTest {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("prefix", "f");
     parameters.put("delimiter", AlluxioURI.SEPARATOR);
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
+    listStatusRestCall(parameters, expected);
   }
 
   /**
@@ -443,10 +410,7 @@ public class ListStatusTest {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("prefix", "f");
     parameters.put("max-keys", "3");
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
+    listStatusRestCall(parameters, expected);
   }
 
   /**
@@ -471,10 +435,7 @@ public class ListStatusTest {
     parameters.put("list-type", "2");
     parameters.put("prefix", "folder");
     parameters.put("delimiter", AlluxioURI.SEPARATOR);  //parameters with delimiter="/"
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
+    listStatusRestCall(parameters, expected);
   }
 
   /**
@@ -501,10 +462,7 @@ public class ListStatusTest {
     parameters.put("list-type", "2");
     parameters.put("prefix", "folder");
     parameters.put("max-keys", "2");
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
+    listStatusRestCall(parameters, expected);
   }
 
   /**
@@ -528,10 +486,7 @@ public class ListStatusTest {
 
     Map<String, String> parameters = new HashMap<>();
     parameters.put("marker", "file1");
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
+    listStatusRestCall(parameters, expected);
   }
 
   /**
@@ -555,10 +510,7 @@ public class ListStatusTest {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("marker", "abc");
     parameters.put("prefix", "folder0/f");
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
+    listStatusRestCall(parameters, expected);
   }
 
   /**
@@ -585,10 +537,7 @@ public class ListStatusTest {
     parameters.put("list-type", "2");
     parameters.put("start-after", "fa");
     parameters.put("prefix", "folder0");
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
+    listStatusRestCall(parameters, expected);
   }
 
   /**
@@ -614,10 +563,8 @@ public class ListStatusTest {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("list-type", "2");
     parameters.put("continuation-token", priorContinuationToken);
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected2);
+
+    listStatusRestCall(parameters, expected2);
   }
 
   /**
@@ -644,10 +591,7 @@ public class ListStatusTest {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("list-type", "2");
     parameters.put("start-after", "file0");
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
+    listStatusRestCall(parameters, expected);
   }
 
   /**
@@ -671,10 +615,7 @@ public class ListStatusTest {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("marker", "file1");
     parameters.put("delimiter", AlluxioURI.SEPARATOR);
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
+    listStatusRestCall(parameters, expected);
   }
 
   /**
@@ -702,10 +643,7 @@ public class ListStatusTest {
     parameters.put("list-type", "2");
     parameters.put("delimiter", AlluxioURI.SEPARATOR);
     parameters.put("continuation-token", priorContinuationToken);
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected2);
+    listStatusRestCall(parameters, expected2);
   }
 
   /**
@@ -732,10 +670,7 @@ public class ListStatusTest {
     parameters.put("list-type", "2");
     parameters.put("start-after", "file0");
     parameters.put("delimiter", AlluxioURI.SEPARATOR);
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
+    listStatusRestCall(parameters, expected);
   }
 
   /**
@@ -756,10 +691,7 @@ public class ListStatusTest {
 
     Map<String, String> parameters = new HashMap<>();
     parameters.put("max-keys", "10");
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
+    listStatusRestCall(parameters, expected);
   }
 
   /**
@@ -782,10 +714,7 @@ public class ListStatusTest {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("list-type", "2");
     parameters.put("max-keys", "10");
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
+    listStatusRestCall(parameters, expected);
   }
 
   /**
@@ -808,10 +737,7 @@ public class ListStatusTest {
 
     Map<String, String> parameters = new HashMap<>();
     parameters.put("max-keys", "3");
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
+    listStatusRestCall(parameters, expected);
   }
 
   /**
@@ -837,10 +763,7 @@ public class ListStatusTest {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("list-type", "2");
     parameters.put("max-keys", "3");
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
+    listStatusRestCall(parameters, expected);
   }
 
   /**
@@ -867,10 +790,7 @@ public class ListStatusTest {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("max-keys", "4");
     parameters.put("marker", "file0");
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
+    listStatusRestCall(parameters, expected);
   }
 
   /**
@@ -897,10 +817,7 @@ public class ListStatusTest {
     parameters.put("list-type", "2");
     parameters.put("max-keys", "4");
     parameters.put("start-after", "folder0/file0");
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
+    listStatusRestCall(parameters, expected);
   }
 
   /**
@@ -925,10 +842,7 @@ public class ListStatusTest {
     Map<String, String> parameters = new HashMap<>();
     parameters.put("max-keys", "3");
     parameters.put("delimiter", AlluxioURI.SEPARATOR);
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
+    listStatusRestCall(parameters, expected);
   }
 
   /**
@@ -957,10 +871,7 @@ public class ListStatusTest {
     parameters.put("list-type", "2");
     parameters.put("max-keys", "3");
     parameters.put("delimiter", AlluxioURI.SEPARATOR);
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
+    listStatusRestCall(parameters, expected);
   }
 
   /**
@@ -998,10 +909,8 @@ public class ListStatusTest {
     parameters.put("list-type", "2");
     parameters.put("prefix", "folder");
     parameters.put("continuation-token", priorContinuationToken);
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected2);
+
+    listStatusRestCall(parameters, expected2);
   }
 
   /**
@@ -1039,12 +948,15 @@ public class ListStatusTest {
   }
 
   private TestCaseOptions getDefaultOptionsWithAuth() {
-    return getDefaultOptionsWithAuth("testuser");
+    return TestCaseOptions.defaults().setAuthorization("AWS4-HMAC-SHA256 Credential=testuser/...")
+        .setContentType(TestCaseOptions.XML_CONTENT_TYPE);
   }
 
-  private TestCaseOptions getDefaultOptionsWithAuth(@NotNull String user) {
-    TestCaseOptions options = TestCaseOptions.defaults();
-    options.setAuthorization("AWS4-HMAC-SHA256 Credential=" + user + "/20220830");
-    return options;
+  private void listStatusRestCall(Map<String, String> parameters, ListBucketResult expected)
+      throws Exception {
+    new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", parameters, HttpMethod.GET,
+        getDefaultOptionsWithAuth())
+        .runAndCheckResult(expected);
   }
 }
