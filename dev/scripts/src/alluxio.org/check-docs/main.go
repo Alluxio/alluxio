@@ -328,7 +328,10 @@ func checkAndSaveUrl(files []File, menuMap map[string]struct{}, errMsgs []string
 
 // Check menu.yml URLs should match exactly with list of all markdown doc files
 func checkUrlMatch(docsPath, checkPath string, menuListOfURL map[string]struct{}) error {
+	// map for  all path of markdown file that actually in the directory of check path.
 	fileList := make(map[string]struct{})
+	// map for  all name of markdown file that actually in the directory of check path.
+	fileNameMap := make(map[string]string)
 	// go through files in the docs directory
 	if err := filepath.Walk(filepath.Join(docsPath, checkPath), func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -345,6 +348,12 @@ func checkUrlMatch(docsPath, checkPath string, menuListOfURL map[string]struct{}
 			// add `/` in front of relativePath to match the format of path in menu.yml
 			relativePath = fmt.Sprintf("/%v", relativePath)
 			fileList[relativePath] = struct{}{}
+			fileName := info.Name()
+			if path, ok := fileNameMap[fileName]; ok {
+				return fmt.Errorf("error having duplicate file name, the file %v at %v has the same name with file %v at %v", fileName, relativePath, fileName, path)
+			} else {
+				fileNameMap[fileName] = relativePath
+			}
 		}
 		return nil
 	}); err != nil {
