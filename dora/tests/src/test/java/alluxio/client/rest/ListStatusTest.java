@@ -196,7 +196,6 @@ public class ListStatusTest {
    */
   @Test
   public void listWithDelimiter() throws Exception {
-    //parameters with delimiter="/"
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
         ListStatusPOptions.newBuilder().setRecursive(true).build());
     ListBucketResult expected = new ListBucketResult("bucket", statuses,
@@ -346,7 +345,7 @@ public class ListStatusTest {
   }
 
   /**
-   * Lists objects with empty prefix.
+   * Lists objects(v2) with empty prefix.
    */
   @Test
   public void listWithEmptyPrefixV2() throws Exception {
@@ -404,6 +403,7 @@ public class ListStatusTest {
         ListBucketOptions.defaults().setPrefix("f").setDelimiter(AlluxioURI.SEPARATOR));
 
     assertEquals("f", expected.getPrefix());
+    assertEquals(AlluxioURI.SEPARATOR, expected.getDelimiter());
     assertEquals(2, expected.getCommonPrefixes().size());
     assertEquals("folder0/", expected.getCommonPrefixes().get(0).getPrefix());
     assertEquals("folder1/", expected.getCommonPrefixes().get(1).getPrefix());
@@ -413,7 +413,7 @@ public class ListStatusTest {
 
     Map<String, String> parameters = new HashMap<>();
     parameters.put("prefix", "f");
-    parameters.put("delimiter", AlluxioURI.SEPARATOR);  //parameters with delimiter="/"
+    parameters.put("delimiter", AlluxioURI.SEPARATOR);
     new TestCase(mHostname, mPort, mBaseUri,
         "bucket", parameters, HttpMethod.GET,
         getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
@@ -461,6 +461,7 @@ public class ListStatusTest {
             .setDelimiter(AlluxioURI.SEPARATOR));
 
     assertEquals("folder", expected.getPrefix());
+    assertEquals(AlluxioURI.SEPARATOR, expected.getDelimiter());
     assertEquals(2, expected.getCommonPrefixes().size());
     assertEquals("folder0/", expected.getCommonPrefixes().get(0).getPrefix());
     assertEquals("folder1/", expected.getCommonPrefixes().get(1).getPrefix());
@@ -477,30 +478,29 @@ public class ListStatusTest {
   }
 
   /**
-   * Lists objects(v2) with prefix="folder" and max-keys="3".
+   * Lists objects(v2) with prefix="folder" and max-keys="2".
    */
   @Test
   public void listWithPrefixAndMaxKeysV2() throws Exception {
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
         ListStatusPOptions.newBuilder().setRecursive(true).build());
     ListBucketResult expected = new ListBucketResult("bucket", statuses,
-        ListBucketOptions.defaults().setListType(2).setPrefix("folder").setMaxKeys(3));
+        ListBucketOptions.defaults().setListType(2).setPrefix("folder").setMaxKeys(2));
 
     assertTrue(expected.isTruncated());
     assertEquals("folder", expected.getPrefix());
-    assertEquals(3, expected.getMaxKeys());
-    assertEquals(3, expected.getKeyCount().intValue());
+    assertEquals(2, expected.getMaxKeys());
+    assertEquals(2, expected.getKeyCount().intValue());
     assertEquals("folder0/", expected.getContents().get(0).getKey());
     assertEquals("folder0/file0", expected.getContents().get(1).getKey());
-    assertEquals("folder0/file1", expected.getContents().get(2).getKey());
-    assertEquals(ListBucketResult.encodeToken("folder0/file1"),
+    assertEquals(ListBucketResult.encodeToken("folder0/file0"),
         expected.getNextContinuationToken());
     assertNull(expected.getCommonPrefixes());
 
     Map<String, String> parameters = new HashMap<>();
     parameters.put("list-type", "2");
     parameters.put("prefix", "folder");
-    parameters.put("max-keys", "3");
+    parameters.put("max-keys", "2");
     new TestCase(mHostname, mPort, mBaseUri,
         "bucket", parameters, HttpMethod.GET,
         getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
@@ -508,7 +508,7 @@ public class ListStatusTest {
   }
 
   /**
-   * Lists objects(v2) with marker="file1".
+   * Lists objects with marker="file1".
    */
   @Test
   public void listWithMarker() throws Exception {
@@ -562,13 +562,13 @@ public class ListStatusTest {
   }
 
   /**
-   * Lists objects with start-after="fa" and prefix="folder0".
+   * Lists objects(v2) with start-after="fa" and prefix="folder0".
    */
   @Test
   public void listWithPrefixAndStartAfter() throws Exception {
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
         ListStatusPOptions.newBuilder().setRecursive(true).build());
-//    TODO(xinran): alluxio s3 service responses wrongly when prefix is 'folder0/'
+//    TODO(dongxinran): alluxio s3 service response is wrong when prefix is 'folder0/'
     ListBucketResult expected = new ListBucketResult("bucket", statuses,
         ListBucketOptions.defaults().setPrefix("folder0").setStartAfter("fa").setListType(2));
 
@@ -592,7 +592,7 @@ public class ListStatusTest {
   }
 
   /**
-   * Lists objects with continuation-token="file0".
+   * Lists objects(v2) with continuation-token="file0".
    */
   @Test
   public void listWithContinuationToken() throws Exception {
@@ -739,7 +739,7 @@ public class ListStatusTest {
   }
 
   /**
-   * Lists objects with max-keys="10". The number of requested objects is not more than 10.
+   * Lists objects with max-keys="10". The requested objects is not truncated.
    */
   @Test
   public void listNotTruncatedObjectsWithMaxKeys() throws Exception {
@@ -763,7 +763,7 @@ public class ListStatusTest {
   }
 
   /**
-   * Lists objects(v2) with max-keys="10". The number of requested objects is not more than 10.
+   * Lists objects(v2) with max-keys="10". The requested objects is not truncated.
    */
   @Test
   public void listNotTruncatedObjectsWithMaxKeysV2() throws Exception {
@@ -789,7 +789,7 @@ public class ListStatusTest {
   }
 
   /**
-   * Lists objects with max-keys="3". The number of requested objects is more than 3.
+   * Lists objects with max-keys="3". The requested objects is truncated.
    */
   @Test
   public void listTruncatedObjectsWithMaxKeys() throws Exception {
@@ -815,7 +815,7 @@ public class ListStatusTest {
   }
 
   /**
-   * Lists objects(v2) with max-keys="3". The number of requested objects is more than 3.
+   * Lists objects(v2) with max-keys="3". The requested objects is truncated.
    */
   @Test
   public void listTruncatedObjectsWithMaxKeysV2() throws Exception {
@@ -904,11 +904,10 @@ public class ListStatusTest {
   }
 
   /**
-   * Lists objects with max-keys="4" and delimiter="/".
+   * Lists objects with max-keys="3" and delimiter="/".
    */
   @Test
   public void listWithMaxKeysAndDelimiter() throws Exception {
-
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
         ListStatusPOptions.newBuilder().setRecursive(true).build());
     ListBucketResult expected = new ListBucketResult("bucket", statuses,
@@ -978,9 +977,13 @@ public class ListStatusTest {
    */
   @Test
   public void listNonExistentBucket() throws Exception {
-//    the bucket name should never be used in other unit tests
-//    to ensure the bucket path cache doesn't have this bucket name
+    //    Ensures the bucket doesn't exist.
     String bucketName = "non_existent_bucket";
+    List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/non_existent_bucket"),
+        ListStatusPOptions.newBuilder().setRecursive(true).build());
+    ListBucketResult expected = new ListBucketResult(bucketName, statuses,
+        ListBucketOptions.defaults());
+    assertEquals(0, expected.getContents().size());
 
     // Verify 404 HTTP status & NoSuchBucket S3 error code
     HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
