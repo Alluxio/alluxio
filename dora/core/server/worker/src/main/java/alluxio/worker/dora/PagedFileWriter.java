@@ -46,6 +46,11 @@ public class PagedFileWriter extends BlockWriter {
   }
 
   @Override
+  public void abort() {
+    mCacheManager.deleteTempFile(mFileId);
+  }
+
+  @Override
   public void commitFile() {
     mCacheManager.commitFile(mFileId);
   }

@@ -46,6 +46,10 @@ public class PagedBlockWriter extends BlockWriter {
   }
 
   @Override
+  public void abort() {
+  }
+
+  @Override
   public long append(ByteBuffer inputBuf) {
     long bytesWritten = 0;
     while (inputBuf.hasRemaining()) {

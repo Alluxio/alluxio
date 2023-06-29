@@ -21,7 +21,6 @@ import alluxio.resource.LockResource;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +41,6 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
   @GuardedBy("mTempFileIdSetLock")
   private final Set<String> mTempFileIdSet = new HashSet<>();
 
-  // TODO(JiamingMai): is HashMap enough?
   private final Map<String, List<PageInfo>> mTempFileToPageInfoListMap = new ConcurrentHashMap<>();
 
   private final Path mRootPath;

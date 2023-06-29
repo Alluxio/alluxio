@@ -46,14 +46,18 @@ import javax.annotation.concurrent.ThreadSafe;
 public class DoraFileOutStream extends FileOutStream {
   private static final Logger LOG = LoggerFactory.getLogger(DoraFileOutStream.class);
 
-  /** Used to manage closeable resources. */
+  /**
+   * Used to manage closeable resources.
+   */
   private final Closer mCloser;
   private final AlluxioStorageType mAlluxioStorageType;
   private final UnderStorageType mUnderStorageType;
   private final FileSystemContext mContext;
   private final NettyDataWriter mNettyDataWriter;
 
-  /** Stream to the file in the under storage, null if not writing to the under storage. */
+  /**
+   * Stream to the file in the under storage, null if not writing to the under storage.
+   */
   private final FileOutStream mUnderStorageOutputStream;
 
   private final OutStreamOptions mOptions;
@@ -71,16 +75,17 @@ public class DoraFileOutStream extends FileOutStream {
   /**
    * Creates a new file output stream.
    *
-   * @param doraClient the dora client for requesting dora worker
-   * @param dataWriter the netty data writer which is used for transferring data with netty
-   * @param path the file path
-   * @param options the client options
-   * @param context the file system context
+   * @param doraClient   the dora client for requesting dora worker
+   * @param dataWriter   the netty data writer which is used for transferring data with netty
+   * @param path         the file path
+   * @param options      the client options
+   * @param context      the file system context
    * @param ufsOutStream the UfsOutStream for writing data to UFS
-   * @param uuid the UUID of a certain OutStream
+   * @param uuid         the UUID of a certain OutStream
    */
   public DoraFileOutStream(DoraCacheClient doraClient, NettyDataWriter dataWriter, AlluxioURI path,
-      OutStreamOptions options, FileSystemContext context,  FileOutStream ufsOutStream, String uuid)
+                           OutStreamOptions options, FileSystemContext context,
+                           FileOutStream ufsOutStream, String uuid)
       throws IOException {
     mDoraClient = doraClient;
     mNettyDataWriter = dataWriter;
@@ -124,7 +129,7 @@ public class DoraFileOutStream extends FileOutStream {
       return;
     }
     try (Timer.Context ctx = MetricsSystem
-            .uniformTimer(MetricKey.CLOSE_ALLUXIO_OUTSTREAM_LATENCY.getName()).time()) {
+        .uniformTimer(MetricKey.CLOSE_ALLUXIO_OUTSTREAM_LATENCY.getName()).time()) {
       try {
         if (mAlluxioStorageType.isStore()) {
           if (mCanceled) {
@@ -203,34 +208,60 @@ public class DoraFileOutStream extends FileOutStream {
   }
 
   private void writeInternal(int b) throws IOException {
-    if (mWriteToAlluxio) {
-      Integer intVal = b;
-      byte[] bytes = new byte[]{intVal.byteValue()};
-      mNettyDataWriter.writeChunk(bytes, 0, 1);
-      Metrics.BYTES_WRITTEN_ALLUXIO.inc();
-    }
+    try {
+      if (mWriteToAlluxio) {
+        Integer intVal = b;
+        byte[] bytes = new byte[] {intVal.byteValue()};
+        mNettyDataWriter.writeChunk(bytes, 0, 1);
+        Metrics.BYTES_WRITTEN_ALLUXIO.inc();
+      }
 
-    if (mUnderStorageType.isSyncPersist()) {
-      mUnderStorageOutputStream.write(b);
-      Metrics.BYTES_WRITTEN_UFS.inc();
+      if (mUnderStorageType.isSyncPersist()) {
+        mUnderStorageOutputStream.write(b);
+        Metrics.BYTES_WRITTEN_UFS.inc();
+      }
+      mBytesWritten++;
+    } catch (IOException e) {
+      Throwable throwable = mNettyDataWriter.getPacketWriteException();
+      if (throwable != null) {
+        if (e.getMessage() != null) {
+          throw new IOException(throwable.getMessage() + " " + e.getMessage());
+        } else {
+          throw new IOException(throwable.getMessage());
+        }
+      } else {
+        throw e;
+      }
     }
-    mBytesWritten++;
   }
 
   private void writeInternal(byte[] b, int off, int len) throws IOException {
-    Preconditions.checkArgument(b != null, PreconditionMessage.ERR_WRITE_BUFFER_NULL);
-    Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
-        PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
+    try {
+      Preconditions.checkArgument(b != null, PreconditionMessage.ERR_WRITE_BUFFER_NULL);
+      Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
+          PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
 
-    if (mWriteToAlluxio) {
-      mNettyDataWriter.writeChunk(b, off, len);
-      Metrics.BYTES_WRITTEN_ALLUXIO.inc(len);
+      if (mWriteToAlluxio) {
+        mNettyDataWriter.writeChunk(b, off, len);
+        Metrics.BYTES_WRITTEN_ALLUXIO.inc(len);
+      }
+      if (mUnderStorageType.isSyncPersist()) {
+        mUnderStorageOutputStream.write(b, off, len);
+        Metrics.BYTES_WRITTEN_UFS.inc(len);
+      }
+      mBytesWritten += len;
+    } catch (IOException e) {
+      Throwable throwable = mNettyDataWriter.getPacketWriteException();
+      if (throwable != null) {
+        if (e.getMessage() != null) {
+          throw new IOException(throwable.getMessage() + " " + e.getMessage());
+        } else {
+          throw new IOException(throwable.getMessage());
+        }
+      } else {
+        throw e;
+      }
     }
-    if (mUnderStorageType.isSyncPersist()) {
-      mUnderStorageOutputStream.write(b, off, len);
-      Metrics.BYTES_WRITTEN_UFS.inc(len);
-    }
-    mBytesWritten += len;
   }
 
   /**
@@ -246,6 +277,7 @@ public class DoraFileOutStream extends FileOutStream {
     private static final Counter BYTES_WRITTEN_UFS =
         MetricsSystem.counter(MetricKey.CLIENT_BYTES_WRITTEN_UFS.getName());
 
-    private Metrics() {} // prevent instantiation
+    private Metrics() {
+    } // prevent instantiation
   }
 }
