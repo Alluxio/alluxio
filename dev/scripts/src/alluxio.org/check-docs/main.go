@@ -328,7 +328,10 @@ func checkAndSaveUrl(files []File, menuMap map[string]struct{}, errMsgs []string
 
 // Check menu.yml URLs should match exactly with list of all markdown doc files
 func checkUrlMatch(docsPath, checkPath string, menuListOfURL map[string]struct{}) error {
-	fileList := make(map[string]struct{})
+	// set of markdown file paths
+	filePaths := make(map[string]struct{})
+	// map of markdown file name -> file path, to detect duplicate file names
+	fileNameMap := make(map[string]string)
 	// go through files in the docs directory
 	if err := filepath.Walk(filepath.Join(docsPath, checkPath), func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -344,7 +347,13 @@ func checkUrlMatch(docsPath, checkPath string, menuListOfURL map[string]struct{}
 			}
 			// add `/` in front of relativePath to match the format of path in menu.yml
 			relativePath = fmt.Sprintf("/%v", relativePath)
-			fileList[relativePath] = struct{}{}
+			filePaths[relativePath] = struct{}{}
+			fileName := info.Name()
+			if path, ok := fileNameMap[fileName]; ok {
+				return fmt.Errorf("error having duplicate file name, the file %v at %v has the same name with file %v at %v", fileName, relativePath, fileName, path)
+			} else {
+				fileNameMap[fileName] = relativePath
+			}
 		}
 		return nil
 	}); err != nil {
@@ -352,15 +361,15 @@ func checkUrlMatch(docsPath, checkPath string, menuListOfURL map[string]struct{}
 	}
 	// check the diff
 	switch {
-	case len(menuListOfURL) > len(fileList):
-		result := compareDiff(menuListOfURL, fileList)
+	case len(menuListOfURL) > len(filePaths):
+		result := compareDiff(menuListOfURL, filePaths)
 		return fmt.Errorf("error matching menu.yml with list of docs in directory of docs, following docs in menu.yml are no longer in directory of docs: %v", result)
-	case len(menuListOfURL) < len(fileList):
-		result := compareDiff(fileList, menuListOfURL)
+	case len(menuListOfURL) < len(filePaths):
+		result := compareDiff(filePaths, menuListOfURL)
 		return fmt.Errorf("error matching menu.yml with list of docs in directory of docs, following docs are not in the menu.yml: %v", result)
-	case !reflect.DeepEqual(menuListOfURL, fileList):
-		extra := compareDiff(menuListOfURL, fileList)
-		missing := compareDiff(fileList, menuListOfURL)
+	case !reflect.DeepEqual(menuListOfURL, filePaths):
+		extra := compareDiff(menuListOfURL, filePaths)
+		missing := compareDiff(filePaths, menuListOfURL)
 		return fmt.Errorf("error matching menu.yml with list of docs in directory of docs,  following docs in menu.yml are no longer in directory of docs: %v and following docs are not in the menu.yml: %v ", extra, missing)
 	default:
 		return nil
