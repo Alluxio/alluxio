@@ -54,7 +54,6 @@ import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.validation.constraints.NotNull;
 import javax.ws.rs.HttpMethod;
 
 public class ListStatusTest {
