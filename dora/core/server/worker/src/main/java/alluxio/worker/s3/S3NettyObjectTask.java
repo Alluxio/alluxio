@@ -188,7 +188,8 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
             URIStatus status = userFs.getStatus(objectUri);
             S3RangeSpec s3Range = S3RangeSpec.Factory.create(range);
             if (!status.isFolder() && status.getLength() > 0) {
-              BlockLocationInfo locationInfo = userFs.getBlockLocations(status).get(0);
+              BlockLocationInfo locationInfo =
+                  mHandler.getFsClient().getBlockLocations(status).get(0);
               WorkerNetAddress workerNetAddress = locationInfo.getLocations().get(0);
               String currentHost =
                   NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC,
@@ -265,9 +266,9 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
       long length = range.getLength(objectSize);
       BlockReader blockReader = mHandler.openBlock(ufsFullPath, offset, length);
 
+      // Writes http response to the netty channel before data.
+      mHandler.processHttpResponse(response, false);
       try {
-        // Writes http response to the netty channel before data.
-        mHandler.processHttpResponse(response, false);
         if (mHandler.getFileTransferType() == FileTransferType.TRANSFER) {
           if (blockReader instanceof LocalFileBlockReader) {
             packet =
@@ -278,6 +279,9 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
             packet =
                 pagedFileReader.getMultipleDataFileChannel(mHandler.getContext().channel(), length);
           }
+          if (packet != null) {
+            mHandler.processTransferResponse(packet);
+          }
         } else {
           mHandler.processMappedResponse(blockReader, objectSize);
         }
@@ -285,12 +289,6 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
         LOG.error("Failed to read data.", e);
         throw e;
       }
-
-      if (packet != null) {
-        mHandler.processTransferResponse(packet);
-      }
-//      mHandler.getContext().writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT)
-//          .addListener(ChannelFutureListener.CLOSE);
     }
   } // end of GetObjectTask
 }
