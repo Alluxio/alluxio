@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-dora</artifactId>
-    <version>enterprise-2.11.0-1.0-RC2</version>
+    <version>enterprise-2.11.0-1.0</version>
   </parent>
   <artifactId>alluxio-examples</artifactId>
   <packaging>jar</packaging>

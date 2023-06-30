@@ -15,7 +15,7 @@
   <parent>
     <artifactId>alluxio-core</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>enterprise-2.11.0-1.0-RC2</version>
+    <version>enterprise-2.11.0-1.0</version>
   </parent>
   <artifactId>alluxio-core-client</artifactId>
   <packaging>pom</packaging>

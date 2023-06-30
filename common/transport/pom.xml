@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-common</artifactId>
-    <version>enterprise-2.11.0-1.0-RC2</version>
+    <version>enterprise-2.11.0-1.0</version>
   </parent>
   <artifactId>alluxio-core-transport</artifactId>
   <packaging>jar</packaging>
@@ -144,7 +144,7 @@
         <executions>
           <execution>
             <goals>
-              <!-- TODO(binfan): re-enabled this check after enterprise-2.11.0-1.0-RC2 is released -->
+              <!-- TODO(binfan): re-enabled this check after enterprise-2.11.0-1.0 is released -->
               <!-- <goal>backwards-compatibility-check</goal> -->
             </goals>
           </execution>
