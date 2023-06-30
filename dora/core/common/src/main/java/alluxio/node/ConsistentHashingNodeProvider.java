@@ -45,6 +45,15 @@ public class ConsistentHashingNodeProvider<T> implements NodeProvider {
   private volatile long mLastUpdatedTimestamp = 0L;
   private final AtomicBoolean mNeedUpdate = new AtomicBoolean(false);
 
+  /**
+   *
+   * @param nodes              the nodes to select
+   * @param numVirtualNodes    number of virtual nodes
+   * @param identifierFunction the function to provide identifier
+   * @param nodeUpdateFunction the function to check whether should update node
+   * @return the instance of the {@link ConsistentHashingNodeProvider}
+   * @param <T> the type of node
+   */
   public static <T> ConsistentHashingNodeProvider create(List<T> nodes, int numVirtualNodes,
       Function<T, String> identifierFunction,
       Function<Pair<List<T>, List<T>>, Boolean> nodeUpdateFunction) {
@@ -56,7 +65,7 @@ public class ConsistentHashingNodeProvider<T> implements NodeProvider {
     return consistentHashingNodeProvider;
   }
 
-  public ConsistentHashingNodeProvider(int virtualNodes, Function<T, String> identifierFunction,
+  private ConsistentHashingNodeProvider(int virtualNodes, Function<T, String> identifierFunction,
       Function<Pair<T, T>, Boolean> nodeUpdateFunction) {
     mVirtualNodes = virtualNodes;
     mIdentifierFunction = identifierFunction;
@@ -64,13 +73,13 @@ public class ConsistentHashingNodeProvider<T> implements NodeProvider {
   }
 
   @Override
-  public List<T> get(Object key, int count) {
+  public List<T> get(Object identifier, int count) {
     if (count > mVirtualNodes) {
       count = mVirtualNodes;
     }
     ImmutableList.Builder<T> nodes = ImmutableList.builder();
     Set<T> unique = new HashSet<>();
-    int hashKey = HASH_FUNCTION.hashString(format("%s", key), UTF_8).asInt();
+    int hashKey = HASH_FUNCTION.hashString(format("%s", identifier  ), UTF_8).asInt();
     Map.Entry<Integer, T> entry = mActiveNodesByConsistentHashing.ceilingEntry(hashKey);
     T candidate;
     SortedMap<Integer, T> nextEntries;
@@ -80,7 +89,8 @@ public class ConsistentHashingNodeProvider<T> implements NodeProvider {
     }
     else {
       candidate = mActiveNodesByConsistentHashing.firstEntry().getValue();
-      nextEntries = mActiveNodesByConsistentHashing.tailMap(mActiveNodesByConsistentHashing.firstKey(), false);
+      nextEntries = mActiveNodesByConsistentHashing.tailMap(
+          mActiveNodesByConsistentHashing.firstKey(), false);
     }
     unique.add(candidate);
     nodes.add(candidate);

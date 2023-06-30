@@ -11,6 +11,9 @@
 
 package alluxio.node;
 
+/**
+ * Enum representing the node selection hash strategy.
+ */
 public enum NodeSelectionHashStrategy {
   MODULAR_HASHING,
   CONSISTENT_HASHING

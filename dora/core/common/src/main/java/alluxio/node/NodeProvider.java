@@ -19,9 +19,24 @@ import alluxio.conf.AlluxioConfiguration;
 import java.util.List;
 import java.util.function.Function;
 
+/**
+ * An interface for provide nodes.
+ * @param <T> the type of node
+ */
 public interface NodeProvider<T> {
+
+  /**
+   * @param identifier   an unique identifier used to obtain the nodes
+   * @param count        how many desirable nodes to be returned
+   * @return a list of the chosen nodes by specific hash function
+   */
   List<T> get(Object identifier, int count);
 
+  /**
+   * Refresh the nodes.
+   *
+   * @param nodes the new nodes
+   */
   void refresh(List<T> nodes);
 
   class Factory {

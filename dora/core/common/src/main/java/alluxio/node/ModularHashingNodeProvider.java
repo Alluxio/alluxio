@@ -12,34 +12,42 @@
 package alluxio.node;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * The modular hashing node provider implementation.
+ * @param <T>
+ */
 public class ModularHashingNodeProvider<T> implements NodeProvider {
-  private List<T> mSortedCandidates;
+  private List<T> mLastNodes;
 
-  public ModularHashingNodeProvider(List<T> sortedCandidates) {
-    mSortedCandidates = sortedCandidates;
+  /**
+   * Constructs a new {@link ModularHashingNodeProvider}.
+   *
+   * @param nodes the nodes to select
+   */
+  public ModularHashingNodeProvider(List<T> nodes) {
+    mLastNodes = nodes;
   }
 
   @Override
   public List<T> get(Object identifier, int count) {
-    if (mSortedCandidates == null || mSortedCandidates.isEmpty()) {
+    if (mLastNodes == null || mLastNodes.isEmpty()) {
       return Collections.emptyList();
     }
-    int size = mSortedCandidates.size();
+    int size = mLastNodes.size();
     int mod = identifier.hashCode() % size;
     int position = mod < 0 ? mod + size : mod;
     List<T> chosenCandidates = new ArrayList<>();
-    for (int i = 0; i < count && i < mSortedCandidates.size(); i++) {
-      chosenCandidates.add(mSortedCandidates.get((position + i) % size));
+    for (int i = 0; i < count && i < mLastNodes.size(); i++) {
+      chosenCandidates.add(mLastNodes.get((position + i) % size));
     }
     return chosenCandidates;
   }
 
   @Override
   public void refresh(List nodes) {
-    mSortedCandidates = nodes;
+    mLastNodes = nodes;
   }
 }

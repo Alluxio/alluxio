@@ -12,10 +12,8 @@
 package alluxio.client.file.dora;
 
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.conf.Configuration;
 import alluxio.node.ConsistentHashingNodeProvider;
 import alluxio.node.NodeProvider;
-import alluxio.node.NodeSelectionHashStrategy;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableList;
@@ -35,16 +33,6 @@ public class WorkerLocationPolicy {
           new ArrayList<BlockWorkerInfo>(), 2000,
           workerInfo -> workerInfo.getNetAddress().dumpMainInfo(),
           pair -> isWorkerInfoUpdated(pair.getFirst(), pair.getSecond()));
-  private final int mNumVirtualNodes;
-
-  /**
-   * Constructs a new {@link WorkerLocationPolicy}.
-   *
-   * @param numVirtualNodes number of virtual nodes
-   */
-  public WorkerLocationPolicy(int numVirtualNodes) {
-    mNumVirtualNodes = numVirtualNodes;
-  }
 
   /**
    *
