@@ -11,13 +11,7 @@
 
 package alluxio.node;
 
-import static java.lang.String.format;
-
-import alluxio.collections.Pair;
-import alluxio.conf.AlluxioConfiguration;
-
 import java.util.List;
-import java.util.function.Function;
 
 /**
  * An interface for provide nodes.
@@ -38,25 +32,4 @@ public interface NodeProvider<T> {
    * @param nodes the new nodes
    */
   void refresh(List<T> nodes);
-
-  class Factory {
-    public static <T> NodeProvider createActiveNodeProvider(
-        AlluxioConfiguration alluxioConfiguration,
-        NodeSelectionHashStrategy nodeSelectionHashStrategy,
-        List<T> activeNodes,
-        Function<T, String> identifierFunction,
-        Function<Pair<List<T>, List<T>>, Boolean> nodeUpdateFunction) {
-      switch (nodeSelectionHashStrategy) {
-        case MODULAR_HASHING:
-          return new ModularHashingNodeProvider(activeNodes);
-        case CONSISTENT_HASHING:
-          int minVirtualNodeCount = 2000;
-          return ConsistentHashingNodeProvider.create(activeNodes, minVirtualNodeCount,
-              identifierFunction, nodeUpdateFunction);
-        default:
-          throw new IllegalArgumentException(
-              format("Unknown NodeSelectionHashStrategy: %s", nodeSelectionHashStrategy));
-      }
-    }
-  }
 }

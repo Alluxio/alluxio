@@ -17,9 +17,9 @@ import java.util.List;
 
 /**
  * The modular hashing node provider implementation.
- * @param <T>
+ * @param <T> the type of node
  */
-public class ModularHashingNodeProvider<T> implements NodeProvider {
+public class ModularHashingNodeProvider<T> implements NodeProvider<T> {
   private List<T> mLastNodes;
 
   /**
@@ -47,7 +47,7 @@ public class ModularHashingNodeProvider<T> implements NodeProvider {
   }
 
   @Override
-  public void refresh(List nodes) {
+  public void refresh(List<T> nodes) {
     mLastNodes = nodes;
   }
 }

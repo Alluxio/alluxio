@@ -34,7 +34,11 @@ import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
-public class ConsistentHashingNodeProvider<T> implements NodeProvider {
+/**
+ * The consistent hashing node provider implementation.
+ * @param <T> the type of node
+ */
+public class ConsistentHashingNodeProvider<T> implements NodeProvider<T> {
   private static final HashFunction HASH_FUNCTION = murmur3_32_fixed();
   private static final long UPDATE_INTERVAL_MS = Constants.MINUTE_MS;
   private final Function<T, String> mIdentifierFunction;
@@ -79,7 +83,7 @@ public class ConsistentHashingNodeProvider<T> implements NodeProvider {
     }
     ImmutableList.Builder<T> nodes = ImmutableList.builder();
     Set<T> unique = new HashSet<>();
-    int hashKey = HASH_FUNCTION.hashString(format("%s", identifier  ), UTF_8).asInt();
+    int hashKey = HASH_FUNCTION.hashString(format("%s", identifier), UTF_8).asInt();
     Map.Entry<Integer, T> entry = mActiveNodesByConsistentHashing.ceilingEntry(hashKey);
     T candidate;
     SortedMap<Integer, T> nextEntries;
@@ -111,7 +115,7 @@ public class ConsistentHashingNodeProvider<T> implements NodeProvider {
   }
 
   @Override
-  public void refresh(List nodes) {
+  public void refresh(List<T> nodes) {
     // check if we need to update worker info
     if (mLastUpdatedTimestamp <= 0L
         || System.currentTimeMillis() - mLastUpdatedTimestamp > UPDATE_INTERVAL_MS) {
