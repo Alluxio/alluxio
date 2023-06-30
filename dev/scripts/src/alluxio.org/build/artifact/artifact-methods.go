@@ -19,7 +19,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"gopkg.in/yaml.v3"
 
-	"alluxio.org/command"
+	"alluxio.org/common/command"
 )
 
 func NewArtifact(artifactType ArtifactType, outputDir, targetName, version string, metadata map[string]string) (*Artifact, error) {

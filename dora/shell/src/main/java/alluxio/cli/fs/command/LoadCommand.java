@@ -22,12 +22,9 @@ import alluxio.client.file.BaseFileSystem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.FileSystemOptions;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.AlluxioProperties;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
@@ -60,9 +57,12 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Loads a file or directory in Alluxio space, making it resident in Alluxio.
+ *
+ * @deprecated This command no longer works under the new Dora architecture.
  */
 @ThreadSafe
 @PublicApi
+@Deprecated
 public final class LoadCommand extends AbstractFileSystemCommand {
   private static final JobProgressReportFormat DEFAULT_FORMAT = JobProgressReportFormat.TEXT;
   private static final String JOB_TYPE = "load";
@@ -147,11 +147,8 @@ public final class LoadCommand extends AbstractFileSystemCommand {
    */
   public LoadCommand(FileSystemContext fsContext) {
     super(fsContext);
-    AlluxioProperties properties = fsContext.getClusterConf().copyProperties();
-    properties.set(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED, false);
-    AlluxioConfiguration config = new InstancedConfiguration(properties);
-    mFileSystem = FileSystem.Factory.create(fsContext, FileSystemOptions.create(config));
-    assert (mFileSystem instanceof BaseFileSystem);
+    mFileSystem = FileSystem.Factory.createLegacy(fsContext);
+    Preconditions.checkArgument(mFileSystem instanceof BaseFileSystem);
   }
 
   @Override
@@ -176,6 +173,8 @@ public final class LoadCommand extends AbstractFileSystemCommand {
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
+    System.out.println("The load command is deprecated under the new  DORA architecture. "
+        + "Please only use it when the cluster has " + PropertyKey.DORA_ENABLED + "=false");
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
     if (isOldFormat(cl)) {
@@ -264,11 +263,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       if (jobId.isPresent()) {
         System.out.printf("Load '%s' is successfully submitted. JobId: %s%n", path, jobId.get());
       } else {
-        System.out.printf("Load already running for path '%s', updated the job with "
-                + "new bandwidth: %s, verify: %s%n",
-            path,
-            bandwidth.isPresent() ? String.valueOf(bandwidth.getAsLong()) : "unlimited",
-            verify);
+        System.out.printf("Load already running for path '%s' %n", path);
       }
       return 0;
     } catch (StatusRuntimeException e) {

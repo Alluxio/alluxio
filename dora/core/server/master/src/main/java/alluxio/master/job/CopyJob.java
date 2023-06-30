@@ -34,7 +34,6 @@ import alluxio.job.JobDescription;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal;
-import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobState;
 import alluxio.scheduler.job.Task;
 import alluxio.util.FormatUtils;
@@ -213,12 +212,14 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     setJobState(JobState.FAILED, true);
     mFailedReason = Optional.of(reason);
     JOB_COPY_FAIL.inc();
+    LOG.info("Copy Job {} fails with status: {}", mJobId, this);
   }
 
   @Override
   public void setJobSuccess() {
     setJobState(JobState.SUCCEEDED, true);
     JOB_COPY_SUCCESS.inc();
+    LOG.info("Copy Job {} succeeds with status {}", mJobId, this);
   }
 
   /**
@@ -496,16 +497,6 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
       // We don't count InterruptedException as task failure
       return true;
     }
-  }
-
-  @Override
-  public void updateJob(Job<?> job) {
-    if (!(job instanceof CopyJob)) {
-      throw new IllegalArgumentException("Job is not a CopyJob: " + job);
-    }
-    CopyJob targetJob = (CopyJob) job;
-    updateBandwidth(targetJob.getBandwidth());
-    setVerificationEnabled(targetJob.isVerificationEnabled());
   }
 
   @Override

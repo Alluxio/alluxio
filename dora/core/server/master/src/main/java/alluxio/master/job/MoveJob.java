@@ -35,7 +35,6 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Job.FileFilter;
 import alluxio.proto.journal.Journal;
-import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobState;
 import alluxio.scheduler.job.Task;
 import alluxio.util.FormatUtils;
@@ -218,12 +217,14 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
     setJobState(JobState.FAILED, true);
     mFailedReason = Optional.of(reason);
     JOB_MOVE_FAIL.inc();
+    LOG.info("Move Job {} fails with status: {}", mJobId, this);
   }
 
   @Override
   public void setJobSuccess() {
     setJobState(JobState.SUCCEEDED, true);
     JOB_MOVE_SUCCESS.inc();
+    LOG.info("Move Job {} succeeds with status {}", mJobId, this);
   }
 
   /**
@@ -512,16 +513,6 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
   }
 
   @Override
-  public void updateJob(Job<?> job) {
-    if (!(job instanceof MoveJob)) {
-      throw new IllegalArgumentException("Job is not a MoveJob: " + job);
-    }
-    MoveJob targetJob = (MoveJob) job;
-    updateBandwidth(targetJob.getBandwidth());
-    setVerificationEnabled(targetJob.isVerificationEnabled());
-  }
-
-  @Override
   public boolean hasFailure() {
     return !mFailedFiles.isEmpty();
   }
@@ -589,11 +580,13 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
     private final AlluxioRuntimeException mFailureReason;
     private final long mFailedFileCount;
     private final Map<String, String> mFailedFilesWithReasons;
+    private final String mJobId;
 
     public MoveProgressReport(MoveJob job, boolean verbose)
     {
       mVerbose = verbose;
       mJobState = job.mState;
+      mJobId = job.mJobId;
       mCheckContent = job.mCheckContent;
       mProcessedFileCount = job.mProcessedFileCount.get();
       mByteCount = job.mMovedByteCount.get();
@@ -645,6 +638,7 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
       StringBuilder progress = new StringBuilder();
       progress.append(
           format("\tSettings:\tcheck-content: %s%n", mCheckContent));
+      progress.append(format("\tJob Id: %s%n", mJobId));
       progress.append(format("\tJob State: %s%s%n", mJobState,
           mFailureReason == null
               ? "" : format(

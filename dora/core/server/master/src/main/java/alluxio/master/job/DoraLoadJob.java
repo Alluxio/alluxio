@@ -32,7 +32,6 @@ import alluxio.master.scheduler.Scheduler;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal;
-import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobState;
 import alluxio.scheduler.job.Task;
 import alluxio.underfs.UfsFileStatus;
@@ -310,12 +309,14 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     setJobState(JobState.FAILED, true);
     mFailedReason = Optional.of(reason);
     JOB_LOAD_FAIL.inc();
+    LOG.info("Load Job {} fails with status: {}", mJobId, this);
   }
 
   @Override
   public void setJobSuccess() {
     setJobState(JobState.SUCCEEDED, true);
     JOB_LOAD_SUCCESS.inc();
+    LOG.info("Load Job {} succeeds with status {}", mJobId, this);
   }
 
   /**
@@ -542,15 +543,6 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       // We don't count InterruptedException as task failure
       return true;
     }
-  }
-
-  @Override
-  public void updateJob(Job<?> job) {
-    if (!(job instanceof DoraLoadJob)) {
-      throw new IllegalArgumentException("Job is not a DoraLoadJob: " + job);
-    }
-    DoraLoadJob targetJob = (DoraLoadJob) job;
-    updateBandwidth(targetJob.getBandwidth());
   }
 
   @Override

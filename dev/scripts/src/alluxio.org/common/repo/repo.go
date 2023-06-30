@@ -9,9 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package cmd
+package repo
 
 import (
+	"alluxio.org/common/command"
 	"io/ioutil"
 	"log"
 	"path/filepath"
@@ -19,8 +20,6 @@ import (
 	"sync"
 
 	"github.com/palantir/stacktrace"
-
-	"alluxio.org/command"
 )
 
 var (
@@ -28,10 +27,10 @@ var (
 	repoRootOnce sync.Once
 )
 
-func findRepoRoot() string {
+func FindRepoRoot() string {
 	repoRootOnce.Do(func() {
 		// navigate 7 parent directories to reach repo root,
-		// assuming this go file is located in <repoRoot>/dev/scripts/src/alluxio.org/build/cmd/repo.go
+		// assuming this go file is located in <repoRoot>/dev/scripts/src/alluxio.org/common/repo/repo.go
 		const repoRootDepth = 7
 		_, r, _, ok := runtime.Caller(0)
 		if !ok {
@@ -46,7 +45,7 @@ func findRepoRoot() string {
 	return root
 }
 
-func copyRepoToTempDir(repoRoot string) (string, error) {
+func CopyRepoToTempDir(repoRoot string) (string, error) {
 	// create temp directory and copy repo contents
 	tmpDir, err := ioutil.TempDir("", "alluxio")
 	if err != nil {

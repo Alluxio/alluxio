@@ -12,7 +12,6 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.file.dora.DoraCacheClient;
@@ -154,14 +153,12 @@ public class DoraFileOutStream extends FileOutStream {
         } catch (Exception e) {
           // Ignore;
         } finally {
-          if (Constants.ENABLE_DORA_WRITE) {
-            // Only close this output stream when write is enabled.
-            // Otherwise this outputStream is used by client/ufs direct write.
-            try {
-              mUnderStorageOutputStream.close();
-            } catch (Exception e) {
-              // Ignore;
-            }
+          // Only close this output stream when write is enabled.
+          // Otherwise this outputStream is used by client/ufs direct write.
+          try {
+            mUnderStorageOutputStream.close();
+          } catch (Exception e) {
+            // Ignore;
           }
         }
       }

@@ -31,7 +31,6 @@
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
          properly from sub-project directories -->
     <build.path>${project.parent.parent.parent.parent.basedir}/build</build.path>
-    <lib.jar.name>${project.artifactId}-${project.version}.jar</lib.jar.name>
   </properties>
 
   <dependencies>
@@ -82,19 +81,6 @@
             </configuration>
           </execution>
         </executions>
-      </plugin>
-      <plugin>
-        <artifactId>maven-clean-plugin</artifactId>
-        <configuration>
-          <filesets>
-            <fileset>
-              <directory>${basedir}/../../../../lib</directory>
-              <includes>
-                <include>**/${project.artifactId}-*.jar</include>
-              </includes>
-            </fileset>
-          </filesets>
-        </configuration>
       </plugin>
     </plugins>
   </build>
