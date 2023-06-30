@@ -102,7 +102,6 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
   // Job states
   private final LinkedList<Route> mRetryRoutes = new LinkedList<>();
   private final Map<String, String> mFailedFiles = new HashMap<>();
-  private final long mStartTime;
   private final AtomicLong mProcessedFileCount = new AtomicLong();
   private final AtomicLong mCopiedByteCount = new AtomicLong();
   private final AtomicLong mTotalByteCount = new AtomicLong();
@@ -111,7 +110,6 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
   private Optional<AlluxioRuntimeException> mFailedReason = Optional.empty();
   private final Iterable<FileInfo> mFileIterable;
   private Optional<Iterator<FileInfo>> mFileIterator = Optional.empty();
-  private OptionalLong mEndTime = OptionalLong.empty();
 
   /**
    * Constructor.
@@ -139,7 +137,6 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     mBandwidth = bandwidth;
     mUsePartialListing = usePartialListing;
     mVerificationEnabled = verificationEnabled;
-    mStartTime = System.currentTimeMillis();
     mState = JobState.RUNNING;
     mFileIterable = fileIterable;
     mOverwrite = overwrite;
