@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-table-server</artifactId>
-    <version>enterprise-3.0.0-1.0-preview</version>
+    <version>3.0.0-1.0-preview</version>
   </parent>
   <artifactId>alluxio-table-server-common</artifactId>
   <packaging>jar</packaging>

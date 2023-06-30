@@ -15,7 +15,7 @@
   <parent>
       <artifactId>alluxio-table</artifactId>
       <groupId>org.alluxio</groupId>
-      <version>enterprise-3.0.0-1.0-preview</version>
+      <version>3.0.0-1.0-preview</version>
   </parent>
   <name>Alluxio Table - Shell</name>
   <artifactId>alluxio-table-shell</artifactId>
