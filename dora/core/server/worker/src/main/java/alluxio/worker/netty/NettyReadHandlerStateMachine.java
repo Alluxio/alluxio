@@ -368,7 +368,7 @@ public class NettyReadHandlerStateMachine<ReqT extends ReadRequest> {
     public final TriggerWithParameters2<RequestContext, ChannelEvent, TriggerEvent>
         mUnexpectedClientMessageDuringReq;
     public final TriggerWithParameters1<ReqT, TriggerEvent> mRequestReceived;
-    public final TriggerWithParameters1<IOException, TriggerEvent> mPacketReaderCreationError;
+    public final TriggerWithParameters1<Exception, TriggerEvent> mPacketReaderCreationError;
     public final TriggerWithParameters2<RequestContext, DataBuffer, TriggerEvent> mDataAvailable;
     public final TriggerWithParameters1<RequestContext, TriggerEvent> mOutputLengthFulfilled;
     public final TriggerWithParameters1<RequestContext, TriggerEvent> mOutputLengthNotFulfilled;
@@ -406,7 +406,7 @@ public class NettyReadHandlerStateMachine<ReqT extends ReadRequest> {
           config.setTriggerParameters(TriggerEvent.REQUEST_RECEIVED, requestType);
       mPacketReaderCreationError =
           config.setTriggerParameters(TriggerEvent.PACKET_READER_CREATION_ERROR,
-              IOException.class);
+              Exception.class);
       mDataAvailable = config.setTriggerParameters(TriggerEvent.DATA_AVAILABLE,
           RequestContext.class, DataBuffer.class);
       mOutputLengthFulfilled =
@@ -632,7 +632,7 @@ public class NettyReadHandlerStateMachine<ReqT extends ReadRequest> {
     final PacketReader<ReqT> packetReader;
     try {
       packetReader = mPacketReaderFactory.create(request);
-    } catch (IOException e) {
+    } catch (Exception e) {
       LOG.error("Failed to create packet reader", e);
       fireNext(mTriggerEventsWithParam.mPacketReaderCreationError, e);
       return;
@@ -653,8 +653,12 @@ public class NettyReadHandlerStateMachine<ReqT extends ReadRequest> {
       packet = packetReader.getDataBuffer(mChannel, requestContext.positionRead(), packetSize);
     } catch (Exception e) {
       LOG.error("Failed to read data.", e);
-      IOException ioException = new IOException("Failed to read data from data store", e);
-      fireNext(mTriggerEventsWithParam.mReadDataError, requestContext, ioException);
+      if (!(e instanceof IOException)) {
+        IOException ioException = new IOException("Failed to read data from data store", e);
+        fireNext(mTriggerEventsWithParam.mReadDataError, requestContext, ioException);
+      } else {
+        fireNext(mTriggerEventsWithParam.mReadDataError, requestContext, (IOException) e);
+      }
       return;
     }
     if (packet.readableBytes() == 0) {
@@ -851,7 +855,7 @@ public class NettyReadHandlerStateMachine<ReqT extends ReadRequest> {
     }
   }
 
-  private void replyPacketReaderCreationError(IOException cause,
+  private void replyPacketReaderCreationError(Exception cause,
       Transition<State, TriggerEvent> transition) {
     String errorMessage = String.format("Failed to create packet reader: %s", cause);
     RPCProtoMessage errorResponse =
@@ -905,6 +909,8 @@ public class NettyReadHandlerStateMachine<ReqT extends ReadRequest> {
       Transition<State, TriggerEvent> transition) {
     LOG.warn("Server error occurred when server was in state {}, triggered by {}. Error: {}",
         transition.getSource(), transition.getTrigger(), throwable.getMessage());
+    LOG.debug("Server error occurred when server was in state {}, triggered by {}.",
+        transition.getSource(), transition.getTrigger(), throwable);
     RPCProtoMessage errorResponse =
         RPCProtoMessage.createResponse(AlluxioStatusException.fromThrowable(throwable));
     Throwable error = syncReplyMessage(errorResponse);
