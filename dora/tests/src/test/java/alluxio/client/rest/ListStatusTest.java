@@ -55,6 +55,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.Response;
 
 public class ListStatusTest {
 
@@ -922,28 +923,41 @@ public class ListStatusTest {
   }
 
   /**
-   * Lists objects in a non-existent bucket.
+   * Heads a non-existent bucket and lists objects in a non-existent bucket.
    */
   @Test
-  public void listNonExistentBucket() throws Exception {
-    //    Ensures the bucket doesn't exist.
+  public void headAndListNonExistentBucket() throws Exception {
+    // Heads a non-existent bucket.
     String bucketName = "non_existent_bucket";
-    List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/non_existent_bucket"),
-        ListStatusPOptions.newBuilder().setRecursive(true).build());
-    ListBucketResult expected = new ListBucketResult(bucketName, statuses,
-        ListBucketOptions.defaults());
-    assertEquals(0, expected.getContents().size());
-
-    // Verify 404 HTTP status & NoSuchBucket S3 error code
     HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
+        bucketName, NO_PARAMS, HttpMethod.HEAD,
+        getDefaultOptionsWithAuth()).execute();
+    // Verifies 404 status will be returned by head non-existent bucket.
+    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), connection.getResponseCode());
+
+    // Lists objects in a non-existent bucket.
+    HttpURLConnection connection2 = new TestCase(mHostname, mPort, mBaseUri,
         bucketName, NO_PARAMS, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        getDefaultOptionsWithAuth())
         .execute();
-    Assert.assertEquals(404, connection.getResponseCode());
+    // Verify 404 HTTP status & NoSuchBucket S3 error code
+    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), connection2.getResponseCode());
     S3Error response =
-        new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
+        new XmlMapper().readerFor(S3Error.class).readValue(connection2.getErrorStream());
     Assert.assertEquals(bucketName, response.getResource());
     Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_BUCKET, response.getCode());
+  }
+
+  /**
+   * Heads objects in a bucket.
+   */
+  @Test
+  public void headBucket() throws Exception {
+    HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
+        "bucket", NO_PARAMS, HttpMethod.HEAD,
+        getDefaultOptionsWithAuth()).execute();
+
+    Assert.assertEquals(Response.Status.OK.getStatusCode(), connection.getResponseCode());
   }
 
   private TestCaseOptions getDefaultOptionsWithAuth() {
