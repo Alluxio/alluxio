@@ -51,8 +51,7 @@ public class JournalCopyJobFactory implements JobFactory {
     UnderFileSystem ufs = mFs.getUfsManager().getOrAdd(new AlluxioURI(mJobEntry.getSrc()),
         UnderFileSystemConfiguration.defaults(Configuration.global()));
     Iterable<FileInfo> fileIterator =
-        new UfsFileIterable(ufs, mJobEntry.getSrc(), user, mJobEntry.getPartialListing(),
-            FileInfo::isCompleted);
+        new UfsFileIterable(ufs, mJobEntry.getSrc(), user, FileInfo::isCompleted);
     AbstractJob<?> job = getCopyJob(user, fileIterator);
     job.setJobState(JobState.fromProto(mJobEntry.getState()), false);
     if (mJobEntry.hasEndTime()) {
