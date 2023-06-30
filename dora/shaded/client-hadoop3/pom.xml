@@ -15,7 +15,7 @@
   <parent>
     <artifactId>alluxio-shaded</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>enterprise-2.11.0-1.0-RC1</version>
+    <version>enterprise-2.11.0-1.0-RC2</version>
   </parent>
   <artifactId>alluxio-shaded-hadoop3-client</artifactId>
   <packaging>jar</packaging>

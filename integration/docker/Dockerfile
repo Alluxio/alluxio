@@ -11,7 +11,7 @@
 
 # We have to do an ADD to put the tarball into extractor, then do a COPY with chown into final
 # ADD then chown in two steps will double the image size
-#   See - https://stackoverflow.com/questions/enterprise-2.11.0-1.0-RC185621/why-does-chown-increase-size-of-docker-image
+#   See - https://stackoverflow.com/questions/enterprise-2.11.0-1.0-RC285621/why-does-chown-increase-size-of-docker-image
 #       - https://github.com/moby/moby/issues/5505
 #       - https://github.com/moby/moby/issues/6119
 # ADD with chown doesn't chown the files inside tarball
