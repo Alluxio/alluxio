@@ -27,6 +27,7 @@ import alluxio.s3.S3ErrorCode;
 import alluxio.s3.S3Exception;
 
 import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,10 +92,10 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
 //            return new DeleteObjectsTask(handler, OpType.DeleteObjects);
 //          }
 //          break;
-//        case "HEAD":
-//          if (!StringUtils.isEmpty(handler.getBucket())) {
-//            return new HeadBucketTask(handler, OpType.HeadBucket);
-//          }
+        case "HEAD":
+          if (!StringUtils.isEmpty(handler.getBucket())) {
+            return new HeadBucketTask(handler, OpType.HeadBucket);
+          }
 //          break;
 //        case "DELETE":
 //          if (handler.getQueryParameter("tagging") != null) {
@@ -243,4 +244,26 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
       });
     }
   } // end of ListObjectsTask
+
+  private static class HeadBucketTask extends S3NettyBucketTask {
+    protected HeadBucketTask(S3NettyHandler handler, OpType opType) {
+      super(handler, opType);
+    }
+
+    @Override
+    public HttpResponse continueTask() {
+      return NettyRestUtils.call(mHandler.getBucket(), () -> {
+        String bucketPath = NettyRestUtils.parsePath(AlluxioURI.SEPARATOR + mHandler.getBucket());
+        final String user = mHandler.getUser();
+        final FileSystem userFs = mHandler.createFileSystemForUser(user);
+
+        try (S3AuditContext auditContext = mHandler.createAuditContext(
+            mOPType.name(), user, mHandler.getBucket(), null)) {
+          mHandler.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext);
+        }
+        return HttpResponseStatus.OK;
+      });
+    }
+  } // end of HeadBucketTask
+
 }

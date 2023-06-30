@@ -69,7 +69,7 @@ public class NettyRestUtils {
   public static <T> HttpResponse call(String resource, RestCallable<T> callable) {
     try {
       T result = callable.call();
-      HttpVersion version = HttpVersion.HTTP_1_0;
+      HttpVersion version = HttpVersion.HTTP_1_1;
       if (result == null) {
         return new DefaultFullHttpResponse(version, OK);
       } else if (result instanceof HttpResponse) {

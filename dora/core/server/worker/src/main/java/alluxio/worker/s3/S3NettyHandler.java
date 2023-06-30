@@ -18,9 +18,12 @@ import static org.eclipse.jetty.http.HttpHeaderValue.CLOSE;
 import alluxio.AlluxioURI;
 import alluxio.client.file.DoraCacheFileSystem;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.network.netty.FileTransferType;
 import alluxio.network.protocol.databuffer.CompositeDataBuffer;
@@ -151,7 +154,7 @@ public class S3NettyHandler {
         pathStr = path.substring(1);
         bucket = URLDecoder.decode(pathStr, "UTF-8");
       } else if (objectMatcher.matches()) {
-        pathStr = path.substring(1);
+        pathStr = java.net.URI.create(path.substring(1)).getPath();
         bucket = URLDecoder.decode(
             pathStr.substring(0, pathStr.indexOf(AlluxioURI.SEPARATOR)), "UTF-8");
         object = URLDecoder.decode(
@@ -291,17 +294,18 @@ public class S3NettyHandler {
    * @param closeAfterWrite if true, After writes context channel will close
    */
   public void processHttpResponse(HttpResponse response, boolean closeAfterWrite) {
-    boolean keepAlive = HttpUtil.isKeepAlive(mRequest);
-    if (response != null) {
-      if (keepAlive) {
-        response.headers().set(CONNECTION, KEEP_ALIVE);
-      } else {
-        // Tell the client we're going to close the connection.
-        response.headers().set(CONNECTION, CLOSE);
-      }
-    }
+    // TODO(wyy) just skip the keep-alive part now and fix it later
+//    boolean keepAlive = HttpUtil.isKeepAlive(mRequest);
+//    if (closeAfterWrite && response != null) {
+//      if (keepAlive) {
+//        response.headers().set(CONNECTION, KEEP_ALIVE);
+//      } else {
+//        // Tell the client we're going to close the connection.
+//        response.headers().set(CONNECTION, CLOSE);
+//      }
+//    }
     mContext.write(response);
-    if (closeAfterWrite && !keepAlive) {
+    if (closeAfterWrite) {
       mContext.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT)
           .addListener(ChannelFutureListener.CLOSE);
     }
@@ -447,6 +451,14 @@ public class S3NettyHandler {
   }
 
   /**
+   * get HTTP content of this request.
+   * @return HTTP content
+   */
+  public ByteBuf getRequestContent() {
+    return mRequest.content();
+  }
+
+  /**
    * get HTTP verb of this request.
    * @return HTTP Verb
    */
@@ -517,6 +529,29 @@ public class S3NettyHandler {
       return ((DoraCacheFileSystem) mFsClient).convertAlluxioPathToUFSPath(objectPath);
     } else {
       throw new S3Exception(objectPath.toString(), S3ErrorCode.INTERNAL_ERROR);
+    }
+  }
+
+
+
+  /**
+   * Check if a path in alluxio is a directory.
+   *
+   * @param fs instance of {@link FileSystem}
+   * @param bucketPath bucket complete path
+   * @param auditContext the audit context for exception
+   */
+  public static void checkPathIsAlluxioDirectory(FileSystem fs, String bucketPath,
+                                          @Nullable S3AuditContext auditContext)
+      throws S3Exception {
+    try {
+      URIStatus status = fs.getStatus(new AlluxioURI(bucketPath));
+      if (!status.isFolder()) {
+        throw new FileDoesNotExistException(
+            ExceptionMessage.BUCKET_DOES_NOT_EXIST.getMessage(bucketPath));
+      }
+    } catch (Exception e) {
+      throw NettyRestUtils.toBucketS3Exception(e, bucketPath, auditContext);
     }
   }
 }
