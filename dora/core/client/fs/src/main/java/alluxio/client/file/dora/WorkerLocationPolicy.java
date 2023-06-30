@@ -11,31 +11,30 @@
 
 package alluxio.client.file.dora;
 
-import static com.google.common.hash.Hashing.murmur3_32_fixed;
-import static java.lang.Math.ceil;
-import static java.lang.String.format;
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.conf.Configuration;
+import alluxio.node.ConsistentHashingNodeProvider;
+import alluxio.node.NodeProvider;
+import alluxio.node.NodeSelectionHashStrategy;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.hash.HashFunction;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.NavigableMap;
 import java.util.Set;
-import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
  * An impl of WorkerLocationPolicy.
  */
 public class WorkerLocationPolicy {
-  private static final ConsistentHashProvider HASH_PROVIDER = new ConsistentHashProvider();
+  private static final NodeProvider<BlockWorkerInfo> HASH_PROVIDER =
+      ConsistentHashingNodeProvider.create(
+          new ArrayList<BlockWorkerInfo>(), 2000,
+          workerInfo -> workerInfo.getNetAddress().dumpMainInfo(),
+          pair -> isWorkerInfoUpdated(pair.getFirst(), pair.getSecond()));
   private final int mNumVirtualNodes;
 
   /**
@@ -60,83 +59,19 @@ public class WorkerLocationPolicy {
     if (blockWorkerInfos.size() == 0) {
       return ImmutableList.of();
     }
-    HASH_PROVIDER.refresh(blockWorkerInfos, mNumVirtualNodes);
-    return HASH_PROVIDER.getMultiple(fileId, count);
+    HASH_PROVIDER.refresh(blockWorkerInfos);
+    return HASH_PROVIDER.get(fileId, count);
   }
 
-  private static class ConsistentHashProvider {
-    private static final HashFunction HASH_FUNCTION = murmur3_32_fixed();
-    private static final int MAX_ATTEMPTS = 100;
-    private List<BlockWorkerInfo> mLastWorkerInfos = ImmutableList.of();
-    private NavigableMap<Integer, BlockWorkerInfo> mActiveNodesByConsistentHashing;
-
-    private volatile long mLastUpdatedTimestamp = 0L;
-
-    private final AtomicBoolean mNeedUpdate = new AtomicBoolean(false);
-
-    private static final long WORKER_INFO_UPDATE_INTERVAL_MS = 1000L;
-
-    public void refresh(List<BlockWorkerInfo> workerInfos, int numVirtualNodes) {
-      // check if we need to update worker info
-      if (mLastUpdatedTimestamp <= 0L
-          || System.currentTimeMillis() - mLastUpdatedTimestamp > WORKER_INFO_UPDATE_INTERVAL_MS) {
-        mNeedUpdate.set(true);
-      }
-      // update worker info if needed
-      if (mNeedUpdate.compareAndSet(true, false)) {
-        if (isWorkerInfoUpdated(workerInfos, mLastWorkerInfos)) {
-          build(workerInfos, numVirtualNodes);
-        }
-        mLastUpdatedTimestamp = System.currentTimeMillis();
-      }
+  private static boolean isWorkerInfoUpdated(Collection<BlockWorkerInfo> workerInfoList,
+      Collection<BlockWorkerInfo> anotherWorkerInfoList) {
+    if (workerInfoList == anotherWorkerInfoList) {
+      return false;
     }
-
-    private boolean isWorkerInfoUpdated(List<BlockWorkerInfo> workerInfoList,
-                                        List<BlockWorkerInfo> anotherWorkerInfoList) {
-      if (workerInfoList == anotherWorkerInfoList) {
-        return false;
-      }
-      Set<WorkerNetAddress> workerAddressSet = workerInfoList.stream()
-          .map(info -> info.getNetAddress()).collect(Collectors.toSet());
-      Set<WorkerNetAddress> anotherWorkerAddressSet = anotherWorkerInfoList.stream()
-          .map(info -> info.getNetAddress()).collect(Collectors.toSet());
-      return !workerAddressSet.equals(anotherWorkerAddressSet);
-    }
-
-    public List<BlockWorkerInfo> getMultiple(String key, int count) {
-      Set<BlockWorkerInfo> workers = new HashSet<>();
-      int attempts = 0;
-      while (workers.size() < count && attempts < MAX_ATTEMPTS) {
-        attempts++;
-        workers.add(get(key, attempts));
-      }
-      return ImmutableList.copyOf(workers);
-    }
-
-    public BlockWorkerInfo get(String key, int index) {
-      int hashKey = HASH_FUNCTION.hashString(format("%s%d", key, index), UTF_8).asInt();
-      Map.Entry<Integer, BlockWorkerInfo> entry =
-          mActiveNodesByConsistentHashing.ceilingEntry(hashKey);
-      if (entry != null) {
-        return mActiveNodesByConsistentHashing.ceilingEntry(hashKey).getValue();
-      } else {
-        return mActiveNodesByConsistentHashing.firstEntry().getValue();
-      }
-    }
-
-    private void build(List<BlockWorkerInfo> workerInfos, int numVirtualNodes) {
-      NavigableMap<Integer, BlockWorkerInfo> activeNodesByConsistentHashing = new TreeMap<>();
-      int weight = (int) ceil(1.0 * numVirtualNodes / workerInfos.size());
-      for (BlockWorkerInfo workerInfo : workerInfos) {
-        for (int i = 0; i < weight; i++) {
-          activeNodesByConsistentHashing.put(
-              HASH_FUNCTION.hashString(format("%s%d", workerInfo.getNetAddress().dumpMainInfo(), i),
-                  UTF_8).asInt(),
-              workerInfo);
-        }
-      }
-      mLastWorkerInfos = workerInfos;
-      mActiveNodesByConsistentHashing = activeNodesByConsistentHashing;
-    }
+    Set<WorkerNetAddress> workerAddressSet = workerInfoList.stream()
+        .map(info -> info.getNetAddress()).collect(Collectors.toSet());
+    Set<WorkerNetAddress> anotherWorkerAddressSet = anotherWorkerInfoList.stream()
+        .map(info -> info.getNetAddress()).collect(Collectors.toSet());
+    return !workerAddressSet.equals(anotherWorkerAddressSet);
   }
 }
