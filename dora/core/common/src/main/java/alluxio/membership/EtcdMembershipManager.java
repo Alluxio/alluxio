@@ -59,7 +59,7 @@ public class EtcdMembershipManager implements MembershipManager {
     mAlluxioEtcdClient.mServiceDiscovery.registerAndStartSync(entity);
   }
 
-  public List<WorkerInfo> getAllMembers() {
+  public List<WorkerInfo> getAllMembers() throws IOException {
     List<WorkerServiceEntity> registeredWorkers = retrieveFullMembers();
     return registeredWorkers.stream()
         .map(e -> new WorkerInfo().setAddress(e.getWorkerNetAddress()))
@@ -101,19 +101,19 @@ public class EtcdMembershipManager implements MembershipManager {
     return liveMembers;
   }
 
-  public List<WorkerInfo> getLiveMembers() {
-    List<WorkerServiceEntity> registeredWorkers = retrieveFullMembers();
+  public List<WorkerInfo> getLiveMembers() throws IOException {
     List<WorkerServiceEntity> liveWorkers = retrieveLiveMembers();
-    liveWorkers.retainAll(registeredWorkers);
     return liveWorkers.stream()
         .map(e -> new WorkerInfo().setAddress(e.getWorkerNetAddress()))
         .collect(Collectors.toList());
   }
 
-  public List<WorkerInfo> getFailedMembers() {
+  public List<WorkerInfo> getFailedMembers() throws IOException {
     List<WorkerServiceEntity> registeredWorkers = retrieveFullMembers();
-    List<WorkerServiceEntity> liveWorkers = retrieveLiveMembers();
-    registeredWorkers.removeAll(liveWorkers);
+    List<String> liveWorkers = retrieveLiveMembers()
+        .stream().map(e -> e.getServiceEntityName())
+        .collect(Collectors.toList());
+    registeredWorkers.removeIf(e -> liveWorkers.contains(e.getServiceEntityName()));
     return registeredWorkers.stream()
         .map(e -> new WorkerInfo().setAddress(e.getWorkerNetAddress()))
         .collect(Collectors.toList());
@@ -136,7 +136,13 @@ public class EtcdMembershipManager implements MembershipManager {
   }
 
   @Override
-  public void decommission(WorkerInfo worker) {
+  public void stopHeartBeat(WorkerInfo worker) throws IOException {
+    WorkerServiceEntity entity = new WorkerServiceEntity(worker.getAddress());
+    mAlluxioEtcdClient.mServiceDiscovery.unregisterService(entity.getServiceEntityName());
+  }
+
+  @Override
+  public void decommission(WorkerInfo worker) throws IOException {
     // TO BE IMPLEMENTED
   }
 

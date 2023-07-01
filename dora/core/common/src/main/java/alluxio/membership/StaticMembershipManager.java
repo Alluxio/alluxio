@@ -73,18 +73,18 @@ public class StaticMembershipManager implements MembershipManager {
   }
 
   @Override
-  public List<WorkerInfo> getAllMembers() {
+  public List<WorkerInfo> getAllMembers() throws IOException {
     return mMembers;
   }
 
   @Override
-  public List<WorkerInfo> getLiveMembers() {
+  public List<WorkerInfo> getLiveMembers() throws IOException {
     // No op for static type membership manager
     return mMembers;
   }
 
   @Override
-  public List<WorkerInfo> getFailedMembers() {
+  public List<WorkerInfo> getFailedMembers() throws IOException {
     // No op for static type membership manager
     return Collections.emptyList();
   }
@@ -94,18 +94,27 @@ public class StaticMembershipManager implements MembershipManager {
     String printFormat = "%s\t%s\t%s\n";
     StringBuilder sb = new StringBuilder(
         String.format(printFormat, "WorkerId", "Address", "Status"));
-    for (WorkerInfo worker : getAllMembers()) {
-      String entryLine = String.format(printFormat,
-          CommonUtils.hashAsStr(worker.getAddress().dumpMainInfo()),
-          worker.getAddress().getHost() + ":" + worker.getAddress().getRpcPort(),
-          "N/A");
-      sb.append(entryLine);
+    try {
+      for (WorkerInfo worker : getAllMembers()) {
+        String entryLine = String.format(printFormat,
+            CommonUtils.hashAsStr(worker.getAddress().dumpMainInfo()),
+            worker.getAddress().getHost() + ":" + worker.getAddress().getRpcPort(),
+            "N/A");
+        sb.append(entryLine);
+      }
+    } catch (IOException ex) {
+      // IGNORE
     }
     return sb.toString();
   }
 
   @Override
-  public void decommission(WorkerInfo worker) {
+  public void stopHeartBeat(WorkerInfo worker) throws IOException {
+    // NOTHING TO DO
+  }
+
+  @Override
+  public void decommission(WorkerInfo worker) throws IOException {
     mMembers.remove(worker);
   }
 

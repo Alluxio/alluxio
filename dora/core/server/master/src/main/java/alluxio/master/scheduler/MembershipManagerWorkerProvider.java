@@ -28,12 +28,20 @@ public class MembershipManagerWorkerProvider implements WorkerProvider {
 
   @Override
   public List<WorkerInfo> getWorkerInfos() {
-    return mMembershipManager.getAllMembers();
+    try {
+      return mMembershipManager.getAllMembers();
+    } catch (IOException ex) {
+      throw AlluxioRuntimeException.from(ex);
+    }
   }
 
   @Override
   public List<WorkerInfo> getLiveWorkerInfos() {
-    return mMembershipManager.getLiveMembers();
+    try {
+      return mMembershipManager.getLiveMembers();
+    } catch (IOException ex) {
+      throw AlluxioRuntimeException.from(ex);
+    }
   }
 
   @Override

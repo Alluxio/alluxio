@@ -23,11 +23,12 @@ public interface MembershipManager extends AutoCloseable {
    * @throws IOException
    */
   public void join(WorkerInfo worker) throws IOException;
-  public List<WorkerInfo> getAllMembers();
-  public List<WorkerInfo> getLiveMembers();
-  public List<WorkerInfo> getFailedMembers();
+  public List<WorkerInfo> getAllMembers() throws IOException;
+  public List<WorkerInfo> getLiveMembers() throws IOException;
+  public List<WorkerInfo> getFailedMembers() throws IOException;
   public String showAllMembers();
-  public void decommission(WorkerInfo worker);
+  public void stopHeartBeat(WorkerInfo worker) throws IOException;
+  public void decommission(WorkerInfo worker) throws IOException;
 
   /**
    * Factory class to get or create a MembershipManager.
