@@ -208,31 +208,9 @@ public class DoraFileOutStream extends FileOutStream {
   }
 
   private void writeInternal(int b) throws IOException {
-    try {
-      if (mWriteToAlluxio) {
-        Integer intVal = b;
-        byte[] bytes = new byte[] {intVal.byteValue()};
-        mNettyDataWriter.writeChunk(bytes, 0, 1);
-        Metrics.BYTES_WRITTEN_ALLUXIO.inc();
-      }
-
-      if (mUnderStorageType.isSyncPersist()) {
-        mUnderStorageOutputStream.write(b);
-        Metrics.BYTES_WRITTEN_UFS.inc();
-      }
-      mBytesWritten++;
-    } catch (IOException e) {
-      Throwable throwable = mNettyDataWriter.getPacketWriteException();
-      if (throwable != null) {
-        if (e.getMessage() != null) {
-          throw new IOException(throwable.getMessage() + " " + e.getMessage());
-        } else {
-          throw new IOException(throwable.getMessage());
-        }
-      } else {
-        throw e;
-      }
-    }
+    Integer intVal = b;
+    byte[] bytes = new byte[] {intVal.byteValue()};
+    writeInternal(bytes, 0, 1);
   }
 
   private void writeInternal(byte[] b, int off, int len) throws IOException {
@@ -243,6 +221,7 @@ public class DoraFileOutStream extends FileOutStream {
 
       if (mWriteToAlluxio) {
         mNettyDataWriter.writeChunk(b, off, len);
+
         Metrics.BYTES_WRITTEN_ALLUXIO.inc(len);
       }
       if (mUnderStorageType.isSyncPersist()) {
@@ -251,16 +230,15 @@ public class DoraFileOutStream extends FileOutStream {
       }
       mBytesWritten += len;
     } catch (IOException e) {
+      StringBuffer exceptionMsg = new StringBuffer();
       Throwable throwable = mNettyDataWriter.getPacketWriteException();
       if (throwable != null) {
-        if (e.getMessage() != null) {
-          throw new IOException(throwable.getMessage() + " " + e.getMessage());
-        } else {
-          throw new IOException(throwable.getMessage());
-        }
-      } else {
-        throw e;
+        exceptionMsg.append(throwable.getMessage() + " ");
       }
+      if (e.getMessage() != null) {
+        exceptionMsg.append(e.getMessage());
+      }
+      throw new IOException(exceptionMsg.toString());
     }
   }
 

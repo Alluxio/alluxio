@@ -97,19 +97,19 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
 
   @Override
   public void deleteTempPage(PageInfo pageInfo) {
-    if (mTempFileToPageInfoListMap.containsKey(pageInfo.getPageId().getFileId())) {
+    String fileId = pageInfo.getPageId().getFileId();
+    if (mTempFileToPageInfoListMap.containsKey(fileId)) {
       List<PageInfo> pageInfoList =
-          mTempFileToPageInfoListMap.get(pageInfo.getPageId().getFileId());
+          mTempFileToPageInfoListMap.get(fileId);
       if (pageInfoList != null && pageInfoList.contains(pageInfo)) {
         pageInfoList.remove(pageInfo);
         if (pageInfoList.isEmpty()) {
-          mTempFileToPageInfoListMap.remove(pageInfo.getPageId().getFileId());
+          mTempFileToPageInfoListMap.remove(fileId);
+          try (LockResource lock = new LockResource(mTempFileIdSetLock.readLock())) {
+            mTempFileIdSet.remove(fileId);
+          }
         }
       }
-    }
-
-    try (LockResource lock = new LockResource(mTempFileIdSetLock.readLock())) {
-      mTempFileIdSet.remove(pageInfo.getPageId().getFileId());
     }
     mBytesUsed.addAndGet(-pageInfo.getPageSize());
   }
