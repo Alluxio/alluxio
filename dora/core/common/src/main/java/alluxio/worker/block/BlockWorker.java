@@ -40,6 +40,8 @@ import java.util.concurrent.CompletableFuture;
 /**
  * A block worker in the Alluxio system.
  */
+// TODO(jiacheng): This class is not removed yet because it is still used by client code
+//  like FileSystemContext. It should be removed with the client side Block API code.
 public interface BlockWorker extends DataWorker, SessionCleanable {
   /**
    * Aborts the temporary block created by the session.
