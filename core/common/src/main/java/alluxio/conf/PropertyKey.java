@@ -6949,6 +6949,24 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey FUSE_AUTH_POLICY_SYSTEM_CACHE_USER_GROUP_SIZE =
+      intBuilder(Name.FUSE_AUTH_POLICY_SYSTEM_CACHE_USER_GROUP_SIZE)
+          .setDefaultValue(1000)
+          .setDescription("The max size of user and group cache for system auth policy. "
+              + "Only valid if the " + Name.FUSE_AUTH_POLICY_CLASS
+              + " is alluxio.fuse.auth.SystemUserGroupAuthPolicy")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey FUSE_AUTH_POLICY_SYSTEM_CACHE_USER_GROUP_EXPIRE_TIME =
+      durationBuilder(Name.FUSE_AUTH_POLICY_SYSTEM_CACHE_USER_GROUP_EXPIRE_TIME)
+          .setDefaultValue("30min")
+          .setDescription("The expired time of user and group cache for system auth policy. "
+              + "Only valid if the " + Name.FUSE_AUTH_POLICY_CLASS
+              + " is alluxio.fuse.auth.SystemUserGroupAuthPolicy")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey FUSE_CACHED_PATHS_MAX =
       intBuilder(Name.FUSE_CACHED_PATHS_MAX)
           .setDefaultValue(500)
@@ -9083,6 +9101,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.fuse.auth.policy.custom.user";
     public static final String FUSE_AUTH_POLICY_CUSTOM_GROUP =
         "alluxio.fuse.auth.policy.custom.group";
+    public static final String FUSE_AUTH_POLICY_SYSTEM_CACHE_USER_GROUP_SIZE =
+        "alluxio.fuse.auth.policy.system.cache.user.group.size";
+    public static final String FUSE_AUTH_POLICY_SYSTEM_CACHE_USER_GROUP_EXPIRE_TIME =
+        "alluxio.fuse.auth.policy.system.cache.user.group.expire.time";
     public static final String FUSE_CACHED_PATHS_MAX = "alluxio.fuse.cached.paths.max";
     public static final String FUSE_DEBUG_ENABLED = "alluxio.fuse.debug.enabled";
     public static final String FUSE_FS_NAME = "alluxio.fuse.fs.name";
