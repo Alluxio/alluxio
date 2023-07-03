@@ -81,10 +81,13 @@ public final class CopyHandler {
     } catch (Exception e) {
       throw AlluxioRuntimeException.from(e);
     }
-    if (dstStatus != null && !writeOptions.getOverwrite()) {
+    if (dstStatus != null && dstStatus.isFolder() && sourceStatus.isFolder()) {
+      // skip copy if it's already a folder there
+      return;
+    }
+    if (dstStatus != null && !dstStatus.isFolder() && !writeOptions.getOverwrite()) {
       throw new FailedPreconditionRuntimeException("File " + route.getDst() + " is already in UFS");
     }
-
     if (dstStatus != null && (dstStatus.isFolder() != sourceStatus.isFolder())) {
       throw new InvalidArgumentRuntimeException(
           "Can't replace target because type is not compatible. Target is " + dstStatus
