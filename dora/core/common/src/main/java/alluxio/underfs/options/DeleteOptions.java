@@ -24,6 +24,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class DeleteOptions {
+  public static final DeleteOptions NON_RECURSIVE = defaults();
+  public static final DeleteOptions RECURSIVE = defaults().setRecursive(true);
+
   // Whether to delete a directory with children
   private boolean mRecursive;
 
