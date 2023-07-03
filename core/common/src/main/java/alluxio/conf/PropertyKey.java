@@ -7081,6 +7081,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "will drop the metadata cache of path '/mnt/alluxio-fuse/path/to/be/cleaned/'")
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey FUSE_SET_USER_GROUP_AFTER_NEW_FILE_CLOSED =
+      booleanBuilder(Name.FUSE_SET_USER_GROUP_AFTER_NEW_FILE_CLOSED)
+          .setDefaultValue(false)
+          .setDescription("Whether the owner and group are set only after the new file is closed "
+              + "when writing new data to the Alluxio cluster via FUSE. "
+              + "This is crucial for maintaining consistency "
+              + "between the owner of the UFS and Alluxio files, "
+              + "especially when the write type is CACHE_THROUGH or THROUGH.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.CLIENT)
+          .build();
+
   //
   // Standalone FUSE process related properties
   //
@@ -9104,6 +9116,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.fuse.user.group.translation.enabled";
     public static final String FUSE_SPECIAL_COMMAND_ENABLED =
         "alluxio.fuse.special.command.enabled";
+    public static final String FUSE_SET_USER_GROUP_AFTER_NEW_FILE_CLOSED =
+        "alluxio.fuse.set.user.group.after.new.file.closed";
     //
     // Standalone FUSE process related properties
     //
