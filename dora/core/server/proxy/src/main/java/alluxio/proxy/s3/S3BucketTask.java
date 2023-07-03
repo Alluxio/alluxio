@@ -304,10 +304,6 @@ public class S3BucketTask extends S3BaseTask {
                   .setRecursive(true).build();
               children = userFs.listStatus(new AlluxioURI(path), options);
             }
-          } catch (FileDoesNotExistException e) {
-            // Since we've called S3RestUtils.checkPathIsAlluxioDirectory() on the bucket path
-            // already, this indicates that the prefix was unable to be found in the Alluxio FS
-            children = new ArrayList<>();
           } catch (IOException | AlluxioException e) {
             auditContext.setSucceeded(false);
             throw S3RestUtils.toBucketS3Exception(e, mHandler.getBucket());

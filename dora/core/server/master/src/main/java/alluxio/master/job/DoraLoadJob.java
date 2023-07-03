@@ -309,12 +309,14 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     setJobState(JobState.FAILED, true);
     mFailedReason = Optional.of(reason);
     JOB_LOAD_FAIL.inc();
+    LOG.info("Load Job {} fails with status: {}", mJobId, this);
   }
 
   @Override
   public void setJobSuccess() {
     setJobState(JobState.SUCCEEDED, true);
     JOB_LOAD_SUCCESS.inc();
+    LOG.info("Load Job {} succeeds with status {}", mJobId, this);
   }
 
   /**

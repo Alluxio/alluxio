@@ -169,6 +169,9 @@ public final class Scheduler {
       mWorkerInfoHub.mActiveWorkers.values().forEach(CloseableResource::close);
       mWorkerInfoHub.mActiveWorkers = ImmutableMap.of();
       ThreadUtils.shutdownAndAwaitTermination(mSchedulerExecutor, EXECUTOR_SHUTDOWN_MS);
+      mExistingJobs.clear();
+      mJobToRunningTasks.clear();
+      mWorkerInfoHub.mWorkerToTaskQ.clear();
       mRunning = false;
     }
   }

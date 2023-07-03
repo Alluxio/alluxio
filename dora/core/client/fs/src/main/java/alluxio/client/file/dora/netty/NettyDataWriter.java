@@ -260,7 +260,10 @@ public class NettyDataWriter implements DataWriter {
       mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(writeRequest), dataBuffer))
           .addListener(new WriteListener(offset + len)).sync();
     } catch (InterruptedException e) {
-      // ignore
+      if (mPacketWriteException != null) {
+        Throwables.propagateIfPossible(mPacketWriteException, IOException.class);
+        throw AlluxioStatusException.fromCheckedException(mPacketWriteException);
+      }
     }
   }
 
@@ -417,6 +420,14 @@ public class NettyDataWriter implements DataWriter {
     } else {
       mPacketWriteException.addSuppressed(e);
     }
+  }
+
+  /**
+   * Get the exception object that created during packet writing.
+   * @return the exception object
+   */
+  public Throwable getPacketWriteException() {
+    return mPacketWriteException;
   }
 
   /**

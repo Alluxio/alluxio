@@ -20,6 +20,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type Profile struct {
@@ -32,13 +33,17 @@ type Profile struct {
 }
 
 type TarballOpts struct {
-	SkipCopyClientJar bool `yaml:"skipCopyClientJar"`
-	SkipCopyWebUi     bool `yaml:"skipCopyWebUi"`
+	SkipCopyWebUi bool `yaml:"skipCopyWebUi"`
 
-	AssemblyJars []string          `yaml:"assemblyJars"`
-	EmptyDirList []string          `yaml:"emptyDirList"`
-	FileList     []string          `yaml:"fileList"`
-	Symlinks     map[string]string `yaml:"symlinks"`
+	AssemblyJars  []string          `yaml:"assemblyJars"`
+	ClientJarName string            `yaml:"clientJarName"` // skip copying client jar if empty
+	EmptyDirList  []string          `yaml:"emptyDirList"`
+	FileList      []string          `yaml:"fileList"`
+	Symlinks      map[string]string `yaml:"symlinks"`
+}
+
+func (t *TarballOpts) clientJarPath(alluxioVersion string) string {
+	return filepath.Join("client", strings.ReplaceAll(t.ClientJarName, versionPlaceholder, alluxioVersion))
 }
 
 func (p *Profile) updateFromFlags(targetName, mvnArgs, libModules, pluginModules string) {

@@ -838,6 +838,15 @@ public class LocalCacheManager implements CacheManager {
   }
 
   @Override
+  public void deleteTempFile(String fileId) {
+    Set<PageInfo> pages;
+    try (LockResource r = new LockResource(mPageMetaStore.getLock().readLock())) {
+      pages = mPageMetaStore.getAllPagesByFileId(fileId);
+    }
+    pages.forEach(page -> delete(page.getPageId(), true));
+  }
+
+  @Override
   public void invalidate(Predicate<PageInfo> predicate) {
     mPageStoreDirs.forEach(dir -> {
       try {

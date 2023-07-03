@@ -42,8 +42,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 public final class MetricsDocGenerator {
   private static final Logger LOG = LoggerFactory.getLogger(MetricsDocGenerator.class);
-  private static final String CSV_FILE_DIR = "docs/_data/table/";
-  private static final String YML_FILE_DIR = "docs/_data/table/en/";
+  private static final String CSV_FILE_DIR = "docs/_data/generated/";
+  private static final String YML_FILE_DIR = "docs/_data/generated/en/";
   private static final String CSV_SUFFIX = "csv";
   private static final String YML_SUFFIX = "yml";
   private static final String CSV_FILE_HEADER = "metricName,metricType";

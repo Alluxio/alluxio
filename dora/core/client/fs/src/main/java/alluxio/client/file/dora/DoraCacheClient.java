@@ -29,6 +29,9 @@ import alluxio.client.file.dora.netty.NettyDataWriter;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.AlluxioException;
+import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
 import alluxio.exception.status.PermissionDeniedException;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CompleteFilePRequest;
@@ -39,6 +42,9 @@ import alluxio.grpc.CreateFilePRequest;
 import alluxio.grpc.CreateFilePResponse;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.DeletePRequest;
+import alluxio.grpc.ExistsPOptions;
+import alluxio.grpc.ExistsPRequest;
+import alluxio.grpc.ExistsPResponse;
 import alluxio.grpc.FileInfo;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.GetStatusPRequest;
@@ -49,6 +55,8 @@ import alluxio.grpc.ReadRequest;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.RenamePRequest;
 import alluxio.grpc.RequestType;
+import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.SetAttributePRequest;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.wire.WorkerNetAddress;
@@ -94,7 +102,7 @@ public class DoraCacheClient {
    */
   public PositionReadFileInStream getInStream(URIStatus status,
       Protocol.OpenUfsBlockOptions ufsOptions) {
-    WorkerNetAddress workerNetAddress = getWorkerNetAddress(status.toString());
+    WorkerNetAddress workerNetAddress = getWorkerNetAddress(status.getUfsPath());
     // Construct the partial read request
     NettyDataReader reader;
     if (mNettyTransEnabled) {
@@ -319,6 +327,52 @@ public class DoraCacheClient {
           .build();
       client.get().createDirectory(request);
       return;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Check existence of a file or dir.
+   * @param path the path of the file or dir
+   * @param options the option of this operation
+   * @return true if the file/dir exists, false otherwise
+   * @throws InvalidPathException
+   * @throws IOException
+   * @throws AlluxioException
+   */
+  public boolean exists(String path, ExistsPOptions options)
+      throws InvalidPathException, IOException, AlluxioException {
+    try (CloseableResource<BlockWorkerClient> client =
+             mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
+      ExistsPRequest request = ExistsPRequest.newBuilder()
+          .setPath(path)
+          .setOptions(options)
+          .build();
+      ExistsPResponse response = client.get().exists(request);
+      return response.getExists();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Set attributes for a file or dir.
+   * @param path the path of the file or dir
+   * @param options the option of this operation
+   * @throws FileDoesNotExistException
+   * @throws IOException
+   * @throws AlluxioException
+   */
+  public void setAttribute(String path, SetAttributePOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    try (CloseableResource<BlockWorkerClient> client =
+             mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
+      SetAttributePRequest request = SetAttributePRequest.newBuilder()
+          .setPath(path)
+          .setOptions(options)
+          .build();
+      client.get().setAttribute(request);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

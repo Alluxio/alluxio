@@ -14,6 +14,7 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
+import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
@@ -35,6 +36,7 @@ public final class UnmountCommand extends AbstractFileSystemCommand {
    */
   public UnmountCommand(FileSystemContext fsContext) {
     super(fsContext);
+    mFileSystem = FileSystem.Factory.createLegacy(fsContext);
   }
 
   @Override

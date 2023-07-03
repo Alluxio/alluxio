@@ -22,12 +22,9 @@ import alluxio.client.file.BaseFileSystem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.FileSystemOptions;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.AlluxioProperties;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
@@ -150,14 +147,8 @@ public final class LoadCommand extends AbstractFileSystemCommand {
    */
   public LoadCommand(FileSystemContext fsContext) {
     super(fsContext);
-    AlluxioProperties properties = fsContext.getClusterConf().copyProperties();
-    properties.set(PropertyKey.DORA_ENABLED, false);
-    AlluxioConfiguration config = new InstancedConfiguration(properties);
-    mFileSystem = FileSystem.Factory.create(fsContext,
-        FileSystemOptions.Builder.fromConf(config)
-            .setUfsFallbackEnabled(false)
-            .build());
-    assert (mFileSystem instanceof BaseFileSystem);
+    mFileSystem = FileSystem.Factory.createLegacy(fsContext);
+    Preconditions.checkArgument(mFileSystem instanceof BaseFileSystem);
   }
 
   @Override
