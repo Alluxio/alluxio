@@ -14,16 +14,14 @@ package alluxio.worker.dora;
 import alluxio.AlluxioURI;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.PageId;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
 import alluxio.file.FileId;
+import alluxio.grpc.FileInfo;
 import alluxio.proto.meta.DoraMeta;
 import alluxio.proto.meta.DoraMeta.FileStatus;
-import alluxio.underfs.Fingerprint;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 
-import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -40,8 +38,6 @@ public class DoraMetaManager {
   private final CacheManager mCacheManager;
   private final PagedDoraWorker mDoraWorker;
   private final UnderFileSystem mUfs;
-  private boolean mPopulateMetadataFingerprint =
-      Configuration.getBoolean(PropertyKey.DORA_WORKER_POPULATE_METADATA_FINGERPRINT);
 
   /**
    * Creates a dora meta manager.
@@ -113,24 +109,7 @@ public class DoraMetaManager {
       mMetastore.putDoraMeta(path, meta);
       return;
     }
-    if (mPopulateMetadataFingerprint) {
-      Fingerprint originalFingerprint =
-          Fingerprint.parse(status.get().getFileInfo().getUfsFingerprint());
-      if (originalFingerprint == null) {
-        originalFingerprint = Fingerprint.INVALID_FINGERPRINT;
-      }
-      Fingerprint newFingerprint =
-          Fingerprint.parse(meta.getFileInfo().getUfsFingerprint());
-      if (newFingerprint == null) {
-        newFingerprint = Fingerprint.INVALID_FINGERPRINT;
-      }
-      boolean contentMatched = originalFingerprint.isValid()
-          && newFingerprint.isValid()
-          && originalFingerprint.matchContent(newFingerprint);
-      if (!contentMatched) {
-        invalidateCachedFile(path, status.get().getFileInfo().getLength());
-      }
-    } else {
+    if (shouldInvalidatePageCache(status.get().getFileInfo(), meta.getFileInfo())) {
       invalidateCachedFile(path, status.get().getFileInfo().getLength());
     }
     mMetastore.putDoraMeta(path, meta);
@@ -158,8 +137,22 @@ public class DoraMetaManager {
     }
   }
 
-  @VisibleForTesting
-  void setPopulateMetadataFingerprint(boolean value) {
-    mPopulateMetadataFingerprint = value;
+  /**
+   * @param origin the origin file info from metastore
+   * @param updated the updated file into to add to the metastore
+   * @return true if the page cache (if any) should be invalidated, otherwise false
+   */
+  private boolean shouldInvalidatePageCache(FileInfo origin, FileInfo updated) {
+    if (!mUfs.getUnderFSType().equals(origin.getUfsName())) {
+      return true;
+    }
+    if (origin.getFolder() != updated.getFolder()) {
+      return true;
+    }
+    // Keep the page cache in the most conservative way.
+    // If content hash not set, page cache will be cleared.
+    return Strings.isNullOrEmpty(origin.getContentHash())
+        || Strings.isNullOrEmpty(updated.getContentHash())
+        || !origin.getContentHash().equals(updated.getContentHash());
   }
 }

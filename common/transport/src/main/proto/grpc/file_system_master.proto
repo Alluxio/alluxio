@@ -400,6 +400,8 @@ message FileInfo {
   optional int64 lastAccessTimeMs = 31;
   map<string, bytes> xattr = 32;
   repeated string mediumType = 33;
+  optional string contentHash = 34;
+  optional string ufsName = 35;
 }
 
 message GetFilePathPResponse {

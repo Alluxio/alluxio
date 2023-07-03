@@ -74,6 +74,8 @@ public final class FileInfo implements Serializable {
   private AccessControlList mAcl = AccessControlList.EMPTY_ACL;
   private DefaultAccessControlList mDefaultAcl = DefaultAccessControlList.EMPTY_DEFAULT_ACL;
   private Map<String, byte[]> mXAttr;
+  private String mUfsName;
+  private String mContentHash;
 
   /**
    * Creates a new instance of {@link FileInfo}.
@@ -334,6 +336,22 @@ public final class FileInfo implements Serializable {
   @Nullable
   public Map<String, byte[]> getXAttr() {
     return mXAttr;
+  }
+
+  /**
+   * @return the ufs name
+   */
+  @Nullable
+  public String getUfsName() {
+    return mUfsName;
+  }
+
+  /**
+   * @return the content hash
+   */
+  @Nullable
+  public String getContentHash() {
+    return mContentHash;
   }
 
   /**
@@ -643,6 +661,24 @@ public final class FileInfo implements Serializable {
     return this;
   }
 
+  /**
+   * @param ufsName the ufs name
+   * @return the updated {@link FileInfo}
+   */
+  public FileInfo setUfsName(String ufsName) {
+    mUfsName = ufsName;
+    return this;
+  }
+
+  /**
+   * @param contentHash the content hash
+   * @return the updated {@link FileInfo}
+   */
+  public FileInfo setContentHash(String contentHash) {
+    mContentHash = contentHash;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -668,7 +704,9 @@ public final class FileInfo implements Serializable {
         && mUfsFingerprint.equals(that.mUfsFingerprint)
         && Objects.equal(mAcl, that.mAcl)
         && Objects.equal(mDefaultAcl, that.mDefaultAcl)
-        && Objects.equal(mMediumTypes, that.mMediumTypes);
+        && Objects.equal(mMediumTypes, that.mMediumTypes)
+        && Objects.equal(mContentHash, that.mContentHash)
+        && Objects.equal(mUfsName, that.mUfsName);
   }
 
   @Override
@@ -677,7 +715,8 @@ public final class FileInfo implements Serializable {
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
         mInMemoryPercentage, mLastModificationTimeMs, mLastAccessTimeMs, mTtl, mOwner, mGroup,
         mMode, mReplicationMax, mReplicationMin, mPersistenceState, mMountPoint, mFileBlockInfoList,
-        mTtlAction, mInAlluxioPercentage, mUfsFingerprint, mAcl, mDefaultAcl, mMediumTypes);
+        mTtlAction, mInAlluxioPercentage, mUfsFingerprint, mAcl, mDefaultAcl, mMediumTypes,
+        mUfsName, mContentHash);
   }
 
   @Override
@@ -701,6 +740,8 @@ public final class FileInfo implements Serializable {
         .add("ufsFingerprint", mUfsFingerprint)
         .add("acl", mAcl.toString())
         .add("defaultAcl", mDefaultAcl.toString())
+        .add("ufsName", mUfsName)
+        .add("contentHash", mContentHash)
         .add("xattr", "[" + (mXAttr == null ? null : mXAttr.entrySet().stream()
             .map(entry -> entry.getKey() + ":"
                 + (entry.getValue() == null ? null : new String(entry.getValue())))

@@ -65,7 +65,6 @@ import alluxio.retry.RetryUtils;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.security.user.ServerUserState;
-import alluxio.underfs.Fingerprint;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsInputStreamCache;
 import alluxio.underfs.UfsManager;
@@ -419,6 +418,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     }
 
     alluxio.grpc.FileInfo.Builder infoBuilder = alluxio.grpc.FileInfo.newBuilder()
+        .setUfsName(mUfs.getUnderFSType())
         .setFileId(ufsFullPath.hashCode())
         .setName(filename)
         .setPath(relativePath)
@@ -427,14 +427,16 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         .setFolder(status.isDirectory())
         .setOwner(status.getOwner())
         .setGroup(status.getGroup())
-        .setCompleted(true);
+        .setCompleted(true)
+        .setPersisted(true);
     if (status instanceof UfsFileStatus) {
       UfsFileStatus fileStatus = (UfsFileStatus) status;
       infoBuilder.setLength(fileStatus.getContentLength())
           .setLastModificationTimeMs(status.getLastModifiedTime())
           .setBlockSizeBytes(fileStatus.getBlockSize());
-      if (mPopulateMetadataFingerprint) {
-        infoBuilder.setUfsFingerprint(Fingerprint.create(filename, status).serialize());
+      String contentHash = ((UfsFileStatus) status).getContentHash();
+      if (contentHash != null) {
+        infoBuilder.setContentHash(contentHash);
       }
 
       // get cached percentage
@@ -889,12 +891,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     public void close() {
       // do nothing
     }
-  }
-
-  @VisibleForTesting
-  void setPopulateMetadataFingerprint(boolean value) {
-    mPopulateMetadataFingerprint = value;
-    mMetaManager.setPopulateMetadataFingerprint(value);
   }
 
   @VisibleForTesting

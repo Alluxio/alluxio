@@ -257,7 +257,9 @@ public final class GrpcUtils {
                 : DefaultAccessControlList.EMPTY_DEFAULT_ACL)
         .setReplicationMax(pInfo.getReplicationMax()).setReplicationMin(pInfo.getReplicationMin())
         .setXAttr(pInfo.getXattrMap().entrySet().stream().collect(Collectors.toMap(Map
-            .Entry::getKey, e -> e.getValue().toByteArray())));
+            .Entry::getKey, e -> e.getValue().toByteArray())))
+        .setUfsName(pInfo.getUfsName())
+        .setContentHash(pInfo.getContentHash());
     return fileInfo;
   }
 
