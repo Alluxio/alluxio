@@ -65,6 +65,7 @@ import alluxio.retry.RetryUtils;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.security.user.ServerUserState;
+import alluxio.underfs.CachedUnderFileSystem;
 import alluxio.underfs.Fingerprint;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsInputStreamCache;
@@ -131,7 +132,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private final long mPageSize;
   private final AlluxioConfiguration mConf;
   private final BlockMasterClientPool mBlockMasterClientPool;
-  private final String mRootUFS;
   private FileSystemContext mFsContext;
   private boolean mPopulateMetadataFingerprint =
       Configuration.getBoolean(PropertyKey.DORA_WORKER_POPULATE_METADATA_FINGERPRINT);
@@ -170,13 +170,10 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     super(ExecutorServiceFactories.fixedThreadPool("dora-worker-executor", 5));
     mWorkerId = workerId;
     mConf = conf;
-    mRootUFS = Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
     mUfsManager = mResourceCloser.register(new DoraUfsManager());
     mFsContext = mResourceCloser.register(FileSystemContext.create(mConf));
     mUfsStreamCache = new UfsInputStreamCache();
-    mUfs = UnderFileSystem.Factory.create(
-        mRootUFS,
-        UnderFileSystemConfiguration.defaults(Configuration.global()));
+    mUfs = CachedUnderFileSystem.create();
     mListStatusCache = CacheBuilder.newBuilder()
         .maximumSize(Configuration.getInt(PropertyKey.DORA_UFS_LIST_STATUS_CACHE_NR_DIRS))
         .expireAfterWrite(Configuration.getDuration(PropertyKey.DORA_UFS_LIST_STATUS_CACHE_TTL))
@@ -412,16 +409,12 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    * @return a FileInfo
    */
   public alluxio.grpc.FileInfo buildFileInfoFromUfsStatus(UfsStatus status, String ufsFullPath) {
-    String filename = new AlluxioURI(ufsFullPath).getName();
-    String relativePath = CommonUtils.stripPrefixIfPresent(ufsFullPath, mRootUFS);
-    if (!relativePath.startsWith(AlluxioURI.SEPARATOR)) {
-      relativePath = AlluxioURI.SEPARATOR + relativePath;
-    }
-
+    AlluxioURI uri = new AlluxioURI(ufsFullPath);
+    String filename = uri.getName();
     alluxio.grpc.FileInfo.Builder infoBuilder = alluxio.grpc.FileInfo.newBuilder()
         .setFileId(ufsFullPath.hashCode())
         .setName(filename)
-        .setPath(relativePath)
+        .setPath(uri.getPath())
         .setUfsPath(ufsFullPath)
         .setMode(status.getMode())
         .setFolder(status.isDirectory())
