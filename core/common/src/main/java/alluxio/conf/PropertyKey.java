@@ -6229,6 +6229,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_CLIENT_CACHE_IDENTIFIER_INCLUDE_MTIME =
+      booleanBuilder(Name.USER_CLIENT_CACHE_IDENTIFIER_INCLUDE_MTIME)
+          .setDefaultValue(false)
+          .setDescription("If this is enabled, client-side cache will include modification time "
+              + "while calculating the identifier of a file.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
 
   public static final PropertyKey USER_CLIENT_REPORT_VERSION_ENABLED =
       booleanBuilder(Name.USER_CLIENT_REPORT_VERSION_ENABLED)
@@ -8879,6 +8887,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.timeout.duration";
     public static final String USER_CLIENT_CACHE_TIMEOUT_THREADS =
         "alluxio.user.client.cache.timeout.threads";
+    public static final String USER_CLIENT_CACHE_IDENTIFIER_INCLUDE_MTIME =
+        "alluxio.user.client.cache.include.mtime";
     public static final String USER_CLIENT_REPORT_VERSION_ENABLED =
         "alluxio.user.client.report.version.enabled";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
