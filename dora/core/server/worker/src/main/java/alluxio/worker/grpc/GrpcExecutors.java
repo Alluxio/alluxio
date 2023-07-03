@@ -284,18 +284,22 @@ public final class GrpcExecutors {
 
     @Override
     public void shutdown() {
-      long operationCount = mClientCounter.getCount();
-      if (operationCount > 0) {
-        LOG.warn("{} operations have not completed at shutdown()", operationCount);
+      if (mTracked) {
+        long operationCount = mClientCounter.getCount();
+        if (operationCount > 0) {
+          LOG.warn("{} operations have not completed at shutdown()", operationCount);
+        }
       }
       mDelegate.shutdown();
     }
 
     @Override
     public List<Runnable> shutdownNow() {
-      long operationCount = mClientCounter.getCount();
-      if (operationCount > 0) {
-        LOG.warn("{} operations have not completed at shutdownNow()", operationCount);
+      if (mTracked) {
+        long operationCount = mClientCounter.getCount();
+        if (operationCount > 0) {
+          LOG.warn("{} operations have not completed at shutdownNow()", operationCount);
+        }
       }
       return mDelegate.shutdownNow();
     }
