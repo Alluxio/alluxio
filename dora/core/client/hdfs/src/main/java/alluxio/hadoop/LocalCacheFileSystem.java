@@ -23,6 +23,7 @@ import alluxio.client.file.cache.LocalCacheFileInStream;
 import alluxio.client.file.cache.filter.CacheFilter;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
+import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricsConfig;
 import alluxio.metrics.MetricsSystem;
 import alluxio.wire.FileInfo;
@@ -133,8 +134,15 @@ public class LocalCacheFileSystem extends org.apache.hadoop.fs.FileSystem {
         .setGroup(externalFileStatus.getGroup());
     // FilePath is a unique identifier for a file, however it can be a long string
     // hence using md5 hash of the file path as the identifier in the cache.
-    CacheContext context = CacheContext.defaults().setCacheIdentifier(
-        md5().hashString(externalFileStatus.getPath().toString(), UTF_8).toString());
+    String cacheIdentifier;
+    if (mAlluxioConf.getBoolean(PropertyKey.USER_CLIENT_CACHE_IDENTIFIER_INCLUDE_MTIME)) {
+      // include mtime to avoid consistency issues if the file may update
+      cacheIdentifier = md5().hashString(externalFileStatus.getPath().toString()
+          + externalFileStatus.getModificationTime(), UTF_8).toString();
+    } else {
+      cacheIdentifier = md5().hashString(externalFileStatus.getPath().toString(), UTF_8).toString();
+    }
+    CacheContext context = CacheContext.defaults().setCacheIdentifier(cacheIdentifier);
     URIStatus status = new URIStatus(info, context);
     return open(status, bufferSize);
   }
