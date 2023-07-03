@@ -17,6 +17,8 @@ import alluxio.util.io.PathUtils;
 /**
  * Block related utils methods.
  */
+// TODO(jiacheng): This class is not removed yet because it is still used by FSMaster.
+//  It should be removed with the master side Block API code.
 public final class BlockUtils {
   /** Magic number to write UFS block to UFS. */
   private static final long MAGIC_NUMBER = 0x1D91AC0E01AB0165L;

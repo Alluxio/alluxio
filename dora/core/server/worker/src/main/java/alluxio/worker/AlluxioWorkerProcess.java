@@ -29,7 +29,6 @@ import alluxio.web.WebServer;
 import alluxio.web.WorkerWebServer;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.block.BlockWorker;
 import alluxio.worker.dora.DoraWorker;
 import alluxio.worker.http.HttpServer;
 import alluxio.worker.netty.NettyDataServer;
@@ -131,13 +130,14 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       mRpcConnectAddress = requireNonNull(dataServerFactory.getConnectAddress());
       mStartTimeMs = System.currentTimeMillis();
       List<Callable<Void>> callables = ImmutableList.of(() -> {
-        if (worker instanceof BlockWorker) {
-          mRegistry.add(BlockWorker.class, worker);
-        } else if (worker instanceof DoraWorker) {
+        if (worker instanceof DoraWorker) {
           mRegistry.add(DoraWorker.class, worker);
+          mRegistry.addAlias(DataWorker.class, worker);
+          return null;
+        } else {
+          throw new UnsupportedOperationException(worker.getClass().getCanonicalName()
+              + " is no longer supported in Alluxio 3.x");
         }
-        mRegistry.addAlias(DataWorker.class, worker);
-        return null;
       });
       CommonUtils.invokeAll(callables,
           Configuration.getMs(PropertyKey.WORKER_STARTUP_TIMEOUT));

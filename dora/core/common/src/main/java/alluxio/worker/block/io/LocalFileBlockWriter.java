@@ -59,6 +59,10 @@ public class LocalFileBlockWriter extends BlockWriter {
   }
 
   @Override
+  public void abort() {
+  }
+
+  @Override
   public long append(ByteBuffer inputBuf) {
     long bytesWritten;
 

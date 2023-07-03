@@ -292,6 +292,11 @@ public final class CacheManagerWithShadowCacheTest {
     }
 
     @Override
+    public void deleteTempFile(String fileId) {
+      // no-op
+    }
+
+    @Override
     public Optional<CacheUsage> getUsage() {
       return Optional.empty();
     }

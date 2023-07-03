@@ -21,6 +21,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * The internal representation of a block read request.
  */
 @ThreadSafe
+// TODO(jiacheng): This is not removed because it is used by the FileReadHandler.
+//  It shall be removed together with a refactor on the Dora worker refactor.
 public final class BlockReadRequest extends ReadRequest {
   private final Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
   private final boolean mPromote;

@@ -28,8 +28,10 @@ import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.LoadFileFailure;
 import alluxio.grpc.Route;
 import alluxio.grpc.RouteFailure;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UfsReadOptions;
 import alluxio.grpc.WriteOptions;
+import alluxio.security.authorization.Mode;
 import alluxio.underfs.Fingerprint;
 import alluxio.underfs.UfsStatus;
 import alluxio.util.io.BufferUtils;
@@ -386,6 +388,54 @@ public class PagedDoraWorkerTest {
       TimeoutException {
     testGetFileInfo(true);
     testGetFileInfoDir(true);
+  }
+
+  @Test
+  public void testSetAttributePopulateFingerprint() throws Exception {
+    testSetAttribute(true);
+  }
+
+  @Test
+  public void testSetAttributeNoFingerprint() throws Exception {
+    testSetAttribute(false);
+  }
+
+  private void testSetAttribute(boolean populateFingerprint) throws Exception {
+    mWorker.setPopulateMetadataFingerprint(populateFingerprint);
+    String fileContent = "foobar";
+    File f = mTestFolder.newFile();
+    Files.write(f.toPath(), fileContent.getBytes());
+
+    mWorker.setAttribute(f.getPath(), SetAttributePOptions.newBuilder()
+        .setMode(new Mode((short) 0444).toProto()).build());
+
+    loadFileData(f.getPath());
+
+    var result = mWorker.getFileInfo(f.getPath(), GetStatusPOptions.getDefaultInstance());
+    List<PageId> cachedPages =
+        mCacheManager.getCachedPageIdsByFileId(
+            new AlluxioURI(f.getPath()).hash(), fileContent.length());
+    assertEquals(1, cachedPages.size());
+    assertEquals(0444, result.getMode());
+
+    mWorker.setAttribute(f.getPath(), SetAttributePOptions.newBuilder()
+        .setMode(new Mode((short) 0777).toProto()).build());
+    result = mWorker.getFileInfo(f.getPath(), GetStatusPOptions.getDefaultInstance());
+    cachedPages =
+        mCacheManager.getCachedPageIdsByFileId(
+            new AlluxioURI(f.getPath()).hash(), fileContent.length());
+    // If fingerprint is populated, the data cache won't be invalidated after the MODE update,
+    // as we know the content part does not change.
+    // Otherwise, the data cache will be invalidated, and we will get 0 page.
+    int expectedPages = populateFingerprint ? 1 : 0;
+    assertEquals(expectedPages, cachedPages.size());
+    assertEquals(0777, result.getMode());
+
+    assertTrue(f.delete());
+    // The target file is already deleted. setAttribute() should throw an exception.
+    assertThrows(Exception.class, () ->
+        mWorker.setAttribute(f.getPath(), SetAttributePOptions.newBuilder()
+        .setMode(new Mode((short) 777).toProto()).build()));
   }
 
   private void testGetFileInfo(boolean populateFingerprint)

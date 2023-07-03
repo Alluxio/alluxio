@@ -13,6 +13,7 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
+import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
@@ -65,6 +66,7 @@ public final class UpdateMountCommand extends AbstractFileSystemCommand {
    */
   public UpdateMountCommand(FileSystemContext fsContext) {
     super(fsContext);
+    mFileSystem = FileSystem.Factory.createLegacy(fsContext);
   }
 
   @Override

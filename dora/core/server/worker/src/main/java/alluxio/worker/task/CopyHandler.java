@@ -106,8 +106,8 @@ public final class CopyHandler {
       if (!checkLengthAndContentHash(sourceStatus, dst, dstFs, copiedLength)) {
         try {
           dstFs.delete(dst);
-        } catch (AlluxioException | IOException e) {
-          LOG.debug("Failed to delete dst file {}", dst, e);
+        } catch (Exception e) {
+          LOG.warn("Failed to delete dst file {} after content mismatch", dst, e);
         }
         throw new AlluxioRuntimeException(Status.FAILED_PRECONDITION, String.format(
             "Copied file %s does not match source %s, there might be concurrent updates to src",

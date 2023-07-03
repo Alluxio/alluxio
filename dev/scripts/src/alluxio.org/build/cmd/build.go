@@ -22,14 +22,14 @@ import (
 	"github.com/palantir/stacktrace"
 
 	"alluxio.org/build/artifact"
-	"alluxio.org/command"
+	"alluxio.org/common/command"
+	"alluxio.org/common/repo"
 )
 
 const (
-	binSuffix      = "-bin"
-	clientJarPathF = "client/alluxio-%v-client.jar"
-	tarGzExt       = ".tar.gz"
-	webuiBuildDir  = "build"
+	binSuffix     = "-bin"
+	tarGzExt      = ".tar.gz"
+	webuiBuildDir = "build"
 )
 
 var webUiDirs = []string{
@@ -69,11 +69,11 @@ func TarballF(args []string) error {
 
 func buildTarball(opts *buildOpts) error {
 	// prepare repository
-	repoRoot := findRepoRoot()
+	repoRoot := repo.FindRepoRoot()
 	repoBuildDir := repoRoot
 	if !opts.skipRepoCopy {
 		// create temporary copy of repository to build from
-		tempDir, err := copyRepoToTempDir(repoRoot)
+		tempDir, err := repo.CopyRepoToTempDir(repoRoot)
 		if tempDir == "" {
 			defer os.RemoveAll(tempDir)
 			log.Printf("Preparing temp repo dir at %v", tempDir)
@@ -99,8 +99,9 @@ func buildTarball(opts *buildOpts) error {
 			}
 		}
 		// mock creation of client, assembly, and lib jars
-		mockFiles := []string{
-			fmt.Sprintf(clientJarPathF, alluxioVersion),
+		var mockFiles []string
+		if opts.tarball.ClientJarName != "" {
+			mockFiles = append(mockFiles, opts.tarball.clientJarPath(alluxioVersion))
 		}
 		for _, info := range assembledJars {
 			mockFiles = append(mockFiles, fmt.Sprintf(info.generatedJarPath, alluxioVersion))

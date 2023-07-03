@@ -21,7 +21,7 @@ import (
 
 	"github.com/palantir/stacktrace"
 
-	"alluxio.org/command"
+	"alluxio.org/common/command"
 )
 
 type assembledJarsInfo struct {
@@ -77,9 +77,9 @@ func collectTarballContents(opts *buildOpts, repoBuildDir, dstDir, alluxioVersio
 			return stacktrace.Propagate(err, "error copying file %v", f)
 		}
 	}
-	if !opts.tarball.SkipCopyClientJar {
+	if opts.tarball.ClientJarName != "" {
 		// copy client jar
-		clientJarPath := fmt.Sprintf(clientJarPathF, alluxioVersion)
+		clientJarPath := opts.tarball.clientJarPath(alluxioVersion)
 		if err := copyFileForTarball(filepath.Join(repoBuildDir, clientJarPath), filepath.Join(dstDir, clientJarPath)); err != nil {
 			return stacktrace.Propagate(err, "error copying file %v", clientJarPath)
 		}

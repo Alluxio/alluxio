@@ -19,11 +19,11 @@ alluxio:
   buildDir: integration/docker
   dockerfile: integration/docker/Dockerfile
   tag: alluxio/alluxio:${VERSION}
-  targetName: alluxio-${VERSION}.tar
+  targetName: alluxio-${VERSION}-docker.tar
   dependency: alluxio-base
 alluxio-dev:
   buildDir: integration/docker
   dockerfile: integration/docker/Dockerfile-dev
   tag: alluxio/alluxio-dev:${VERSION}
-  targetName: alluxio-dev-${VERSION}.tar
+  targetName: alluxio-dev-${VERSION}-docker.tar
   dependency: alluxio

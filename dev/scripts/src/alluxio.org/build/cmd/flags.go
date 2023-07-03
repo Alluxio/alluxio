@@ -18,6 +18,8 @@ import (
 	"strings"
 
 	"github.com/palantir/stacktrace"
+
+	"alluxio.org/common/repo"
 )
 
 const (
@@ -67,7 +69,7 @@ func parseTarballFlags(cmd *flag.FlagSet, args []string) (*buildOpts, error) {
 
 	// common flags
 	cmd.StringVar(&opts.artifactOutput, "artifact", "", "If set, writes object representing the tarball to YAML output file")
-	cmd.StringVar(&opts.outputDir, "outputDir", findRepoRoot(), "Set output dir for generated tarball")
+	cmd.StringVar(&opts.outputDir, "outputDir", repo.FindRepoRoot(), "Set output dir for generated tarball")
 	cmd.BoolVar(&opts.dryRun, "dryRun", false, "If set, writes placeholder files instead of running maven commands to mock the final state of the build directory to be packaged as a tarball")
 	cmd.StringVar(&opts.modulesFile, "modulesFile", defaultModulesFilePath, "Path to modules.yml file")
 	cmd.StringVar(&opts.profilesFile, "profilesFile", defaultProfilesFilePath, "Path to profiles.yml file")

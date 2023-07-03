@@ -19,11 +19,9 @@ import alluxio.exception.status.PermissionDeniedException;
 import alluxio.network.netty.FileTransferType;
 import alluxio.network.protocol.databuffer.CompositeDataBuffer;
 import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.block.io.BlockReader;
-import alluxio.worker.block.io.LocalFileBlockReader;
 import alluxio.worker.dora.DoraWorker;
 import alluxio.worker.dora.PagedFileReader;
 
@@ -32,7 +30,6 @@ import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.ExecutorService;
@@ -146,14 +143,14 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequest> {
     @Override
     public DataBuffer getDataBuffer(Channel channel, long offset, int len) throws Exception {
       if (mTransferType == FileTransferType.TRANSFER) {
-        if (mReader instanceof LocalFileBlockReader) {
-          return new DataFileChannel(new File(((LocalFileBlockReader) mReader).getFilePath()),
-              offset, len);
-        } else if (mReader instanceof PagedFileReader) {
+        if (mReader instanceof PagedFileReader) {
           PagedFileReader pagedFileReader = (PagedFileReader) mReader;
           CompositeDataBuffer compositeDataBuffer =
               pagedFileReader.getMultipleDataFileChannel(channel, len);
           return compositeDataBuffer;
+        } else {
+          throw new UnsupportedOperationException(mReader.getClass().getCanonicalName()
+              + "is no longer supported in Alluxio 3.x");
         }
       }
       return getDataBufferByCopying(channel, len);

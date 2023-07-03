@@ -52,8 +52,39 @@
         <artifactId>maven-shade-plugin</artifactId>
       </plugin>
       <plugin>
-        <groupId>com.coderplus.maven.plugins</groupId>
-        <artifactId>copy-rename-maven-plugin</artifactId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <groupId>org.codehaus.mojo</groupId>
+        <inherited>false</inherited>
+        <executions>
+          <execution>
+            <id>copy-lib-jars-selectively</id>
+            <phase>install</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${build.path}/lib/copy_jars.sh</executable>
+              <arguments>
+                <argument>${project.artifactId}</argument>
+                <argument>${basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar</argument>
+                <argument>${basedir}/../../../lib/${project.artifactId}-${project.version}.jar</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>${basedir}/../../../lib</directory>
+              <includes>
+                <include>**/${project.artifactId}-*.jar</include>
+              </includes>
+            </fileset>
+          </filesets>
+        </configuration>
       </plugin>
     </plugins>
   </build>

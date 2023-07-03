@@ -89,7 +89,7 @@
     buttonTitle: FUSE_SDK
     subfiles:
       - title: FUSE SDK
-        url: /en/fuse-sdk/Overview.html
+        url: /en/fuse-sdk/Overview-Fuse-Sdk.html
       - title: Local Cache Quick Start
         url: /en/fuse-sdk/Local-Cache-Quick-Start.html
       - title: FUSE SDK on Dora Quick Start

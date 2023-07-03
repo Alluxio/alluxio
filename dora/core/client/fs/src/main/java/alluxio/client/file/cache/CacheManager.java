@@ -324,6 +324,13 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
   void deleteFile(String fileId);
 
   /**
+   * Deletes all temporary pages of the given file.
+   *
+   * @param fileId the file id of the target file
+   */
+  void deleteTempFile(String fileId);
+
+  /**
    * Deletes a page from the cache.
    *
    * @param pageId page identifier

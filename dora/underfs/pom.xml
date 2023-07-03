@@ -46,7 +46,6 @@
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
          properly from sub-project directories -->
     <build.path>${project.parent.parent.basedir}/build</build.path>
-    <lib.jar.name>${project.artifactId}-${project.version}.jar</lib.jar.name>
   </properties>
 
   <dependencies>
@@ -116,36 +115,6 @@
               </configuration>
             </execution>
           </executions>
-        </plugin>
-        <plugin>
-          <groupId>com.coderplus.maven.plugins</groupId>
-          <artifactId>copy-rename-maven-plugin</artifactId>
-          <executions>
-            <execution>
-              <id>copy-and-rename-file</id>
-              <phase>install</phase>
-              <goals>
-                <goal>copy</goal>
-              </goals>
-              <configuration>
-                <sourceFile>${basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar</sourceFile>
-                <destinationFile>${project.parent.parent.parent.basedir}/lib/${lib.jar.name}</destinationFile>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
-        <plugin>
-          <artifactId>maven-clean-plugin</artifactId>
-          <configuration>
-            <filesets>
-              <fileset>
-                <directory>${basedir}/../../../lib</directory>
-                <includes>
-                  <include>**/${project.artifactId}-*.jar</include>
-                </includes>
-              </fileset>
-            </filesets>
-          </configuration>
         </plugin>
       </plugins>
     </pluginManagement>
