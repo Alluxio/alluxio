@@ -20,8 +20,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.heartbeat.HeartbeatContext;
-import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.master.MasterClientContext;
 import alluxio.master.NoopMaster;
 import alluxio.master.PortRegistry;
@@ -32,17 +30,13 @@ import alluxio.util.CommonUtils;
 import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.URIUtils;
 import alluxio.util.WaitForOptions;
-import alluxio.worker.block.BlockHeartbeatReporter;
-import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Throwables;
-import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -103,36 +97,6 @@ public final class IntegrationTestUtils {
         throw Throwables.propagate(e);
       }
     }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
-  }
-
-  /**
-   * Triggers two heartbeats to wait for a given list of blocks to be removed from both master and
-   * worker.
-   * Blocks until the master and block are in sync with the state of the blocks.
-   *
-   * @param bw the block worker that will remove the blocks
-   * @param blockIds a list of blockIds to be removed
-   */
-  public static void waitForBlocksToBeFreed(final BlockWorker bw, final Long... blockIds)
-      throws TimeoutException {
-    try {
-      // Execute 1st heartbeat from worker.
-      HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
-
-      // Waiting for the blocks to be added into the heartbeat reportor, so that they will be
-      // removed from master in the next heartbeat.
-      CommonUtils.waitFor("blocks to be removed", () -> {
-        BlockHeartbeatReporter reporter = Whitebox.getInternalState(bw, "mHeartbeatReporter");
-        List<Long> blocksToRemove = Whitebox.getInternalState(reporter, "mRemovedBlocks");
-        return blocksToRemove.containsAll(Arrays.asList(blockIds));
-      }, WaitForOptions.defaults().setTimeoutMs(100 * Constants.SECOND_MS));
-
-      // Execute 2nd heartbeat from worker.
-      HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new RuntimeException(e);
-    }
   }
 
   /**
