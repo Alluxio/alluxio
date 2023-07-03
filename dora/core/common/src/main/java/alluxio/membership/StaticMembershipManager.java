@@ -3,13 +3,19 @@ package alluxio.membership;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.grpc.GrpcServer;
+import alluxio.network.ChannelType;
 import alluxio.util.CommonUtils;
+import alluxio.util.network.NettyUtils;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.DataWorker;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -51,6 +57,20 @@ public class StaticMembershipManager implements MembershipManager {
               .getOrDefault(PropertyKey.WORKER_CONTAINER_HOSTNAME, ""))
           .setRpcPort(conf.getInt(PropertyKey.WORKER_RPC_PORT))
           .setWebPort(conf.getInt(PropertyKey.WORKER_WEB_PORT));
+      //data port, these are initialized from configuration for client to deduce the
+      //workeraddr related info, on worker side, it will be corrected by join().
+      InetSocketAddress inetAddr;
+      if (Configuration.global().getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED))  {
+        inetAddr = NetworkAddressUtils.getBindAddress(
+            NetworkAddressUtils.ServiceType.WORKER_DATA,
+            Configuration.global());
+        workerNetAddress.setNettyDataPort(inetAddr.getPort());
+      } else {
+        inetAddr = NetworkAddressUtils.getConnectAddress(
+            NetworkAddressUtils.ServiceType.WORKER_RPC,
+            Configuration.global());
+      }
+      workerNetAddress.setDataPort(inetAddr.getPort());
       workerAddrs.add(workerNetAddress);
     }
     return workerAddrs.stream()
