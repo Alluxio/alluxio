@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.grpc.WritePType;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.cli.AbstractStressBench;
@@ -26,6 +27,8 @@ import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import com.google.common.collect.ImmutableList;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -138,7 +141,9 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       FileSystem prepareFs = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
 
       if (!mParameters.mSkipCreation) {
-        prepareFs.delete(path, true);
+        if (prepareFs.exists(path)) {
+          prepareFs.delete(path, true);
+        }
         prepareFs.mkdirs(path);
         byte[] buffer = new byte[(int) FormatUtils.parseSpaceSize(mParameters.mBufferSize)];
         Arrays.fill(buffer, (byte) 'A');
