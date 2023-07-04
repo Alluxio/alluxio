@@ -28,6 +28,7 @@ public final class FuseFileEntry<T extends FuseFileStream>
   private final long mId;
   private final String mPath;
   private final T mFileStream;
+  private int mCount;
 
   /**
    * Constructs a new {@link FuseFileEntry} for an Alluxio file.
@@ -35,14 +36,16 @@ public final class FuseFileEntry<T extends FuseFileStream>
    * @param id the id of the file
    * @param path the path of the file
    * @param fileStream the in/out stream of the file
+   * @param count the referring count to the fd
    */
-  public FuseFileEntry(long id, String path, T fileStream) {
+  public FuseFileEntry(long id, String path, T fileStream, int count) {
     Preconditions.checkArgument(id >= 0, "id should not be negative");
     Preconditions.checkArgument(path != null && !path.isEmpty(),
         "path should not be null or empty");
     mFileStream = Preconditions.checkNotNull(fileStream, "file stream cannot be null");
     mId = id;
     mPath = path;
+    mCount = count;
   }
 
   /**
@@ -74,5 +77,20 @@ public final class FuseFileEntry<T extends FuseFileStream>
   @Override
   public void close() throws IOException {
     mFileStream.close();
+  }
+
+  /**
+   *
+   * @return the referring count to the fd
+   */
+  public int getCount() {
+    return mCount;
+  }
+
+  /**
+   * @param count the referring count to the fd
+   */
+  public void setCount(int count) {
+    mCount = count;
   }
 }
