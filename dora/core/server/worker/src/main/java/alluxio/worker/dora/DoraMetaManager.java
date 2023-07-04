@@ -18,6 +18,7 @@ import alluxio.file.FileId;
 import alluxio.grpc.FileInfo;
 import alluxio.proto.meta.DoraMeta;
 import alluxio.proto.meta.DoraMeta.FileStatus;
+import alluxio.underfs.Fingerprint;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 
@@ -99,20 +100,20 @@ public class DoraMetaManager {
   /**
    * Puts meta of a file into the metastore, and invalidates the file data cache.
    * @param path the full ufs path
-   * @param meta the file meta
+   * @param status the file meta
    */
-  public void put(String path, FileStatus meta) {
-    Optional<FileStatus> status = mMetastore.getDoraMeta(path);
-    if (status.isEmpty()
-        || status.get().getFileInfo().getFolder()
-        || status.get().getFileInfo().getLength() == 0) {
-      mMetastore.putDoraMeta(path, meta);
+  public void put(String path, FileStatus status) {
+    Optional<FileStatus> existingStatus = mMetastore.getDoraMeta(path);
+    if (existingStatus.isEmpty()
+        || existingStatus.get().getFileInfo().getFolder()
+        || existingStatus.get().getFileInfo().getLength() == 0) {
+      mMetastore.putDoraMeta(path, status);
       return;
     }
-    if (shouldInvalidatePageCache(status.get().getFileInfo(), meta.getFileInfo())) {
-      invalidateCachedFile(path, status.get().getFileInfo().getLength());
+    if (shouldInvalidatePageCache(existingStatus.get().getFileInfo(), status.getFileInfo())) {
+      invalidateCachedFile(path, existingStatus.get().getFileInfo().getLength());
     }
-    mMetastore.putDoraMeta(path, meta);
+    mMetastore.putDoraMeta(path, status);
   }
 
   /**
@@ -138,12 +139,19 @@ public class DoraMetaManager {
   }
 
   /**
+   * Decides if the page cache should be invalidated if the file metadata is updated.
+   * Similar to {@link alluxio.underfs.Fingerprint#matchContent(Fingerprint)},
+   * if the update metadata matches any of the following, we consider the page cache
+   * should be invalidated:
+   * 1. the file type changed (from file to directory or directory to file)
+   * 2. the ufs type changed (e.g. from s3 to hdfs)
+   * 3. the file content does not match or is null
    * @param origin the origin file info from metastore
    * @param updated the updated file into to add to the metastore
    * @return true if the page cache (if any) should be invalidated, otherwise false
    */
   private boolean shouldInvalidatePageCache(FileInfo origin, FileInfo updated) {
-    if (!mUfs.getUnderFSType().equals(origin.getUfsName())) {
+    if (!mUfs.getUnderFSType().equals(origin.getUfsType())) {
       return true;
     }
     if (origin.getFolder() != updated.getFolder()) {

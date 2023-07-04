@@ -74,8 +74,8 @@ public final class FileInfo implements Serializable {
   private AccessControlList mAcl = AccessControlList.EMPTY_ACL;
   private DefaultAccessControlList mDefaultAcl = DefaultAccessControlList.EMPTY_DEFAULT_ACL;
   private Map<String, byte[]> mXAttr;
-  private String mUfsName;
-  private String mContentHash;
+  private String mUfsType = "";
+  private String mContentHash = "s";
 
   /**
    * Creates a new instance of {@link FileInfo}.
@@ -342,8 +342,8 @@ public final class FileInfo implements Serializable {
    * @return the ufs name
    */
   @Nullable
-  public String getUfsName() {
-    return mUfsName;
+  public String getUfsType() {
+    return mUfsType;
   }
 
   /**
@@ -662,11 +662,11 @@ public final class FileInfo implements Serializable {
   }
 
   /**
-   * @param ufsName the ufs name
+   * @param ufsType the ufs name
    * @return the updated {@link FileInfo}
    */
-  public FileInfo setUfsName(String ufsName) {
-    mUfsName = ufsName;
+  public FileInfo setUfsType(String ufsType) {
+    mUfsType = ufsType;
     return this;
   }
 
@@ -706,7 +706,7 @@ public final class FileInfo implements Serializable {
         && Objects.equal(mDefaultAcl, that.mDefaultAcl)
         && Objects.equal(mMediumTypes, that.mMediumTypes)
         && Objects.equal(mContentHash, that.mContentHash)
-        && Objects.equal(mUfsName, that.mUfsName);
+        && Objects.equal(mUfsType, that.mUfsType);
   }
 
   @Override
@@ -716,7 +716,7 @@ public final class FileInfo implements Serializable {
         mInMemoryPercentage, mLastModificationTimeMs, mLastAccessTimeMs, mTtl, mOwner, mGroup,
         mMode, mReplicationMax, mReplicationMin, mPersistenceState, mMountPoint, mFileBlockInfoList,
         mTtlAction, mInAlluxioPercentage, mUfsFingerprint, mAcl, mDefaultAcl, mMediumTypes,
-        mUfsName, mContentHash);
+        mUfsType, mContentHash);
   }
 
   @Override
@@ -740,7 +740,7 @@ public final class FileInfo implements Serializable {
         .add("ufsFingerprint", mUfsFingerprint)
         .add("acl", mAcl.toString())
         .add("defaultAcl", mDefaultAcl.toString())
-        .add("ufsName", mUfsName)
+        .add("ufsName", mUfsType)
         .add("contentHash", mContentHash)
         .add("xattr", "[" + (mXAttr == null ? null : mXAttr.entrySet().stream()
             .map(entry -> entry.getKey() + ":"

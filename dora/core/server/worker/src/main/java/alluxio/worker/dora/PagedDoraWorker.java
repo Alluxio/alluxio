@@ -416,7 +416,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     }
 
     alluxio.grpc.FileInfo.Builder infoBuilder = alluxio.grpc.FileInfo.newBuilder()
-        .setUfsName(mUfs.getUnderFSType())
+        .setUfsType(mUfs.getUnderFSType())
         .setFileId(ufsFullPath.hashCode())
         .setName(filename)
         .setPath(relativePath)
