@@ -26,7 +26,7 @@ public final class RuntimeConstants {
   public static final String VERSION = ProjectConstants.VERSION;
 
   static {
-    if (VERSION.endsWith("SNAPSHOT") || !VERSION.contains("\\.")) {
+    if (VERSION.endsWith("SNAPSHOT")) {
       ALLUXIO_DOCS_URL = "https://docs.alluxio.io/os/user/edge";
       ALLUXIO_JAVADOC_URL = "https://docs.alluxio.io/os/javadoc/edge";
     } else {
