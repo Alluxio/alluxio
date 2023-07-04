@@ -123,5 +123,29 @@ public interface FuseFileStream extends AutoCloseable {
               uri, flags, mode);
       }
     }
+
+    /**
+     * Check if the stream matches the flags&mode.
+     * @param stream the existing stream
+     * @param flags the create/open flags
+     * @param mode the create file mode, -1 if not set
+     * @return match or not
+     */
+    public boolean isStreamTypeMatch(FuseFileStream stream, int flags, long mode) {
+      switch (OpenFlags.valueOf(flags & O_ACCMODE.intValue())) {
+        case O_RDONLY:
+          if (mPositionReadEnabled) {
+            return (stream instanceof FusePositionReader);
+          }
+          return (stream instanceof FuseFileInStream);
+        case O_WRONLY:
+          return (stream instanceof FuseFileOutStream);
+        default:
+          if (mPositionReadEnabled) {
+            return (stream instanceof FusePositionReadOrOutStream);
+          }
+          return (stream instanceof FuseFileInOrOutStream);
+      }
+    }
   }
 }
