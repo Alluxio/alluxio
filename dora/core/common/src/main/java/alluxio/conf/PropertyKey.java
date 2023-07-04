@@ -3617,9 +3617,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_UPDATE_CHECK_ENABLED =
       booleanBuilder(Name.MASTER_UPDATE_CHECK_ENABLED)
-          .setDefaultValue(Boolean.parseBoolean(ProjectConstants.UPDATE_CHECK_ENABLED))
-          .setDescription("Whether to check for update availability.")
+          .setDefaultValue(true)
+          .setDescription("Whether to check for update availability")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setIsHidden(true)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_UPDATE_CHECK_INTERVAL =
@@ -3627,6 +3628,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("7day")
           .setDescription("The interval to check for update availability.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setIsHidden(true)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_UNSAFE_DIRECT_PERSIST_OBJECT_ENABLED =
