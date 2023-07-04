@@ -75,7 +75,7 @@ public final class FileInfo implements Serializable {
   private DefaultAccessControlList mDefaultAcl = DefaultAccessControlList.EMPTY_DEFAULT_ACL;
   private Map<String, byte[]> mXAttr;
   private String mUfsType = "";
-  private String mContentHash = "s";
+  private String mContentHash = "";
 
   /**
    * Creates a new instance of {@link FileInfo}.
