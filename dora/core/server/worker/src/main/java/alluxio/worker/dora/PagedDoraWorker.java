@@ -30,6 +30,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.file.FileId;
 import alluxio.grpc.Command;
@@ -771,6 +772,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
       // TODO(hua) Close the open file handle?
 
+      // By being a cache, Dora assume the file exists in UFS when a delete is issued
+      // So if the file does not exist in UFS, an IOException will be thrown here
       UfsStatus status = mUfs.getStatus(path);
       if (status.isFile()) {
         mUfs.deleteFile(path);
