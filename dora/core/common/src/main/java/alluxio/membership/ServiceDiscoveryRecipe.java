@@ -1,7 +1,9 @@
 package alluxio.membership;
 
 import alluxio.exception.status.AlreadyExistsException;
+
 import com.google.common.base.Preconditions;
+
 import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
 import io.etcd.jetcd.KeyValue;
@@ -17,7 +19,6 @@ import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.GuardedBy;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -33,7 +34,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
+import javax.annotation.concurrent.GuardedBy;
 
+/**
+ * ServiceDiscoveryRecipe for etcd, to track health status
+ * of all registered services.
+ */
 public class ServiceDiscoveryRecipe {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioEtcdClient.class);
   private static final String BASE_PATH = "/ServiceDiscovery";
@@ -42,6 +48,7 @@ public class ServiceDiscoveryRecipe {
   String mClusterIdentifier = "";
   private final ReentrantLock mRegisterLock = new ReentrantLock();
   final ConcurrentHashMap<String, ServiceEntity> mRegisteredServices = new ConcurrentHashMap<>();
+
   public ServiceDiscoveryRecipe(AlluxioEtcdClient client, String clusterIdentifier) {
     mAlluxioEtcdClient = client;
     mAlluxioEtcdClient.connect();
@@ -49,6 +56,10 @@ public class ServiceDiscoveryRecipe {
     mClusterIdentifier = clusterIdentifier;
   }
 
+  /**
+   * Get register path prefix
+   * @return register path prefix
+   */
   private String getRegisterPathPrefix() {
     return String.format("%s/%s", BASE_PATH, mClusterIdentifier);
   }
@@ -57,7 +68,8 @@ public class ServiceDiscoveryRecipe {
   public void registerAndStartSync(ServiceEntity service) throws IOException {
     LOG.info("registering service : {}", service);
     if (mRegisteredServices.containsKey(service.mServiceEntityName)) {
-      throw new AlreadyExistsException("Service " + service.mServiceEntityName + " already registerd.");
+      throw new AlreadyExistsException("Service " + service.mServiceEntityName
+          + " already registerd.");
     }
     String path = service.mServiceEntityName;
     String fullPath = getRegisterPathPrefix() + "/" + path;
@@ -69,8 +81,10 @@ public class ServiceDiscoveryRecipe {
       DataOutputStream dos = new DataOutputStream(baos);
       service.serialize(dos);
       ByteSequence valToPut = ByteSequence.from(baos.toByteArray());
-      CompletableFuture<TxnResponse> txnResponseFut = txn.If(new Cmp(keyToPut, Cmp.Op.EQUAL, CmpTarget.version(0L)))
-          .Then(Op.put(keyToPut, valToPut, PutOption.newBuilder().withLeaseId(lease.mLeaseId).build()))
+      CompletableFuture<TxnResponse> txnResponseFut = txn.If(
+          new Cmp(keyToPut, Cmp.Op.EQUAL, CmpTarget.version(0L)))
+          .Then(Op.put(keyToPut, valToPut, PutOption.newBuilder()
+              .withLeaseId(lease.mLeaseId).build()))
           .Then(Op.get(keyToPut, GetOption.DEFAULT))
           .Else(Op.get(keyToPut, GetOption.DEFAULT))
           .commit();
@@ -80,13 +94,14 @@ public class ServiceDiscoveryRecipe {
           r -> kvs.addAll(r.getKvs())).collect(Collectors.toList());
       if (!txnResponse.isSucceeded()) {
         if (!kvs.isEmpty()) {
-          throw new AlreadyExistsException("Some process already registered same service and syncing,"
-              + "this should not happen");
+          throw new AlreadyExistsException("Same service already registered"
+              + ", this should not happen");
         }
         throw new IOException("Failed to register service:" + service.toString());
       }
       Preconditions.checkState(!kvs.isEmpty(), "No such service entry found.");
-      long latestRevision = kvs.stream().mapToLong(kv -> kv.getModRevision()).max().getAsLong();
+      long latestRevision = kvs.stream().mapToLong(kv -> kv.getModRevision())
+          .max().getAsLong();
       service.mRevision = latestRevision;
       service.mLease = lease;
       startHeartBeat(service);
@@ -132,7 +147,8 @@ public class ServiceDiscoveryRecipe {
       ByteSequence valToPut = ByteSequence.from(service.toString(), StandardCharsets.UTF_8);
       CompletableFuture<TxnResponse> txnResponseFut = txn
           .If(new Cmp(keyToPut, Cmp.Op.EQUAL, CmpTarget.modRevision(service.mRevision)))
-          .Then(Op.put(keyToPut, valToPut, PutOption.newBuilder().withLeaseId(service.mLease.mLeaseId).build()))
+          .Then(Op.put(keyToPut, valToPut, PutOption.newBuilder()
+              .withLeaseId(service.mLease.mLeaseId).build()))
           .Then(Op.get(keyToPut, GetOption.DEFAULT))
           .commit();
       TxnResponse txnResponse = txnResponseFut.get();
@@ -156,9 +172,11 @@ public class ServiceDiscoveryRecipe {
 
   class RetryKeepAliveObserver implements StreamObserver<LeaseKeepAliveResponse> {
     public ServiceEntity mService;
+
     public RetryKeepAliveObserver(ServiceEntity service) {
       mService = service;
     }
+
     @Override
     public void onNext(LeaseKeepAliveResponse value) {
       // NO-OP
@@ -178,6 +196,10 @@ public class ServiceDiscoveryRecipe {
     }
   }
 
+  /**
+   * Get all healthy service list.
+   * @return return service name to service entity serialized value
+   */
   public Map<String, ByteBuffer> getAllLiveServices() {
     String clusterPath = getRegisterPathPrefix();
     Map<String, ByteBuffer> ret = new HashMap<>();

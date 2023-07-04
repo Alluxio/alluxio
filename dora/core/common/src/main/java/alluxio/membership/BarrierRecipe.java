@@ -24,6 +24,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * DistributedBarrierRecipe for etcd. (WIP)
+ */
 public class BarrierRecipe {
   private static final Logger LOG = LoggerFactory.getLogger(BarrierRecipe.class);
   Client mClient;
@@ -32,7 +35,8 @@ public class BarrierRecipe {
   String mBarrierPath;
   String mNewBarrierPath = "/new-barrier";
   CountDownLatch mLatch = new CountDownLatch(1);
-  public BarrierRecipe(AlluxioEtcdClient client, String barrierPath, String clusterIdentifier, long leaseTtlSec) {
+  public BarrierRecipe(AlluxioEtcdClient client, String barrierPath,
+                       String clusterIdentifier, long leaseTtlSec) {
     client.connect();
     mClient = client.getEtcdClient();
     mClusterIdentifier = clusterIdentifier;
@@ -40,6 +44,10 @@ public class BarrierRecipe {
     mBarrierPath = barrierPath;
   }
 
+  /**
+   * Set the barrier, create the corresponding kv pair on etcd.
+   * @throws IOException
+   */
   public void setBarrier() throws IOException {
     try {
       Txn txn = mClient.getKVClient().txn();
@@ -57,6 +65,10 @@ public class BarrierRecipe {
     }
   }
 
+  /**
+   * Remove the barrier path.
+   * @throws IOException
+   */
   public void removeBarrier() throws IOException {
     try {
       GetResponse getResp = mClient.getKVClient().get(ByteSequence.from(mBarrierPath, StandardCharsets.UTF_8)).get();
@@ -78,9 +90,13 @@ public class BarrierRecipe {
     }
   }
 
+  /**
+   * Wait on barrier, waiting for the path to get deleted.
+   */
   public void waitOnBarrierInternal() {
     try {
-      Watch.Watcher watcher = mClient.getWatchClient().watch(ByteSequence.EMPTY, WatchOption.newBuilder().build(), new Watch.Listener() {
+      Watch.Watcher watcher = mClient.getWatchClient().watch(
+          ByteSequence.EMPTY, WatchOption.newBuilder().build(), new Watch.Listener() {
         @Override
         public void onNext(WatchResponse response) {
           WatchEvent event = response.getEvents().get(0);
@@ -100,7 +116,8 @@ public class BarrierRecipe {
           WatchOption.DEFAULT, watchResponse -> {
             for (WatchEvent event : watchResponse.getEvents()) {
               if (event.getEventType() == WatchEvent.EventType.DELETE &&
-                  event.getKeyValue().getKey().equals(ByteSequence.from(mBarrierPath, StandardCharsets.UTF_8))) {
+                  event.getKeyValue().getKey().equals(
+                      ByteSequence.from(mBarrierPath, StandardCharsets.UTF_8))) {
                 LOG.info("Delete event observed on path {}", mBarrierPath);
                 mLatch.countDown();
               }
@@ -113,12 +130,21 @@ public class BarrierRecipe {
     LOG.info("Barrier wait done.");
   }
 
-  // wait forever
+  /**
+   * Wait on barrier with no time restraint.
+   * @throws InterruptedException
+   */
   public void waitOnBarrier() throws InterruptedException {
     waitOnBarrierInternal();
     mLatch.await();
   }
 
+  /**
+   * Wait on barrier with a given timeout.
+   * @param time
+   * @param timeUnit
+   * @throws InterruptedException
+   */
   public void waitOnBarrier(long time, TimeUnit timeUnit) throws InterruptedException {
     waitOnBarrierInternal();
     mLatch.await(time, timeUnit);

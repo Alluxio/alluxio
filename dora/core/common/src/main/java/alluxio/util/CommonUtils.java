@@ -11,7 +11,9 @@
 
 package alluxio.util;
 
-import alluxio.AlluxioURI;
+import static com.google.common.hash.Hashing.murmur3_32_fixed;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -73,10 +75,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
-
-import static com.google.common.hash.Hashing.murmur3_32_fixed;
-import static java.lang.String.format;
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Common utilities shared by all components in Alluxio.

@@ -1,8 +1,6 @@
 package alluxio.server.membership;
 
 import alluxio.MembershipType;
-import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.file.FileSystemContext;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.membership.AlluxioEtcdClient;
@@ -12,17 +10,10 @@ import alluxio.membership.StaticMembershipManager;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
-import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
-import com.google.common.collect.Streams;
-import org.apache.commons.configuration2.BaseConfiguration;
-import org.apache.hadoop.io.DataOutputOutputStream;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.yarn.util.timeline.TimelineUtils;
-import org.apache.log4j.PropertyConfigurator;
-import org.bouncycastle.util.Arrays;
+import eu.rekawek.toxiproxy.model.ToxicDirection;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
@@ -35,37 +26,24 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.ToxiproxyContainer;
 
-import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Properties;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class MembershipManagerTest {
   private static final Network network = Network.newNetwork();
   private static final int ETCD_PORT = 2379;
-
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
   private static ToxiproxyContainer.ContainerProxy etcdProxy;
-
-  @AfterClass
-  public static void afterAll() {
-    network.close();
-  }
 
   @ClassRule
   public static final GenericContainer<?> etcd =
@@ -95,42 +73,15 @@ public class MembershipManagerTest {
     ));
   }
 
-  public static class EtcdReservedPorts {
-    private int mPeerPort;
-    private int mClientPort;
-    private static AtomicInteger sPeerPortGenerator = new AtomicInteger(2380);
-    private static AtomicInteger sClientPortGenerator = new AtomicInteger(2379);
 
-    public static List<EtcdReservedPorts> allocate(int numOfEtcdInstances) throws IOException {
-      int[] allowedNumOfInstances = {3, 5, 7};
-      if (!Arrays.contains(allowedNumOfInstances, numOfEtcdInstances)) {
-        throw new IOException("Num of instance:" + numOfEtcdInstances + " not allowed. Pick from {3,5,7}");
-      }
-      List<EtcdReservedPorts> ports = new ArrayList<>();
-      for (int i = 0; i < numOfEtcdInstances; i++) {
-        ports.add(new EtcdReservedPorts(sPeerPortGenerator.getAndAdd(1000),
-            sClientPortGenerator.getAndAdd(1000)));
-      }
-      return ports;
-    }
-
-    public EtcdReservedPorts(int peerPort, int clientPort) {
-      mPeerPort = peerPort;
-      mClientPort = clientPort;
-    }
-
-    public int getPeerPort() {
-      return mPeerPort;
-    }
-
-    public int getClientPort() {
-      return mClientPort;
-    }
+  @BeforeClass
+  public static void before() throws Exception {
+    etcdProxy = toxiproxy.getProxy(etcd, ETCD_PORT);
   }
 
-  @Before
-  public void before() throws Exception {
-    etcdProxy = toxiproxy.getProxy(etcd, ETCD_PORT);
+  @AfterClass
+  public static void afterAll() {
+    network.close();
   }
 
 
@@ -141,7 +92,18 @@ public class MembershipManagerTest {
     Properties props = new Properties();
     props.setProperty(PropertyKey.LOGGER_TYPE.toString(), "Console");
   }
- */
+*/
+
+//  @Test
+//  public void testBasics() throws IOException {
+//    Configuration.set(PropertyKey.ETCD_ENDPOINTS, getProxiedClientEndpoints());
+//    AlluxioEtcdClient etcdClient = AlluxioEtcdClient.getInstance(Configuration.global());
+//
+//    etcdProxy.toxics()
+//        .latency("latency", ToxicDirection.UPSTREAM, 10000);
+//    etcdClient.createForPath("/Lucy", Optional.of("LucyValue".getBytes()));
+//    System.out.println(new String(etcdClient.getForPath("/Lucy")));
+//  }
 
   @Test
   public void testEtcdMembership() throws Exception {
@@ -173,13 +135,14 @@ public class MembershipManagerTest {
     Assert.assertEquals(allMembers, wkrs);
 
     membershipManager.stopHeartBeat(wkr2);
+    Configuration.set(PropertyKey.ETCD_ENDPOINTS, getClientEndpoints());
     CommonUtils.waitFor("Service's lease close and service key got deleted.",
         () -> {
           try {
             return membershipManager.getFailedMembers().size() > 0;
           } catch (IOException e) {
             throw new RuntimeException(
-            String.format("Unexpected error while getting backup status: %s", e));
+            String.format("Unexpected error while getting failed members: %s", e));
           }
         }, WaitForOptions.defaults().setTimeoutMs(TimeUnit.SECONDS.toMillis(10)));
     List<WorkerInfo> expectedFailedList = new ArrayList<>();
@@ -194,8 +157,55 @@ public class MembershipManagerTest {
     Assert.assertEquals(expectedLiveMembers, actualLiveMembers);
   }
 
+  public MembershipManager getHealthyEtcdMemberMgr() throws IOException {
+    Configuration.set(PropertyKey.WORKER_MEMBERSHIP_TYPE, MembershipType.ETCD);
+    Configuration.set(PropertyKey.ETCD_ENDPOINTS, getClientEndpoints());
+    AlluxioEtcdClient alluxioEtcdClient = new AlluxioEtcdClient(Configuration.global());
+    return new EtcdMembershipManager(Configuration.global(), alluxioEtcdClient);
+  }
+
   @Test
-  public void testStaticMembership() throws IOException, InterruptedException, TimeoutException {
+  public void testFlakyNetwork() throws Exception {
+    Configuration.set(PropertyKey.WORKER_MEMBERSHIP_TYPE, MembershipType.ETCD);
+    Configuration.set(PropertyKey.ETCD_ENDPOINTS, getProxiedClientEndpoints());
+    MembershipManager membershipManager = MembershipManager.Factory.create(Configuration.global());
+    Assert.assertTrue(membershipManager instanceof EtcdMembershipManager);
+    TieredIdentity ti = TieredIdentityFactory.localIdentity(Configuration.global());
+    WorkerInfo wkr1 = new WorkerInfo().setAddress(new WorkerNetAddress()
+        .setHost("worker1").setContainerHost("containerhostname1")
+        .setRpcPort(1000).setDataPort(1001).setWebPort(1011)
+        .setDomainSocketPath("/var/lib/domain.sock").setTieredIdentity(ti));
+    membershipManager.join(wkr1);
+    CommonUtils.waitFor("Worker1 joined",
+        () -> {
+          try {
+            return !membershipManager.getLiveMembers().isEmpty();
+          } catch (IOException e) {
+            throw new RuntimeException(
+                String.format("Unexpected error while getting live members: %s", e));
+          }
+        }, WaitForOptions.defaults().setTimeoutMs(TimeUnit.SECONDS.toMillis(10)));
+
+    MembershipManager healthyMgr = getHealthyEtcdMemberMgr();
+    System.out.println(healthyMgr.showAllMembers());
+    etcdProxy.toxics()
+        .latency("latency", ToxicDirection.UPSTREAM, 10000);
+    CommonUtils.waitFor("Worker1 network errored",
+        () -> {
+          try {
+            return !healthyMgr.getFailedMembers().isEmpty();
+          } catch (IOException e) {
+            throw new RuntimeException(
+                String.format("Unexpected error while getting failed members: %s", e));
+          }
+        }, WaitForOptions.defaults().setTimeoutMs(TimeUnit.SECONDS.toMillis(10)));
+    System.out.println(healthyMgr.showAllMembers());
+    etcdProxy.toxics().get("latency").remove();
+  }
+
+
+  @Test
+  public void testStaticMembership() throws Exception {
     File file = mFolder.newFile();
     PrintStream ps = new PrintStream(file);
     ps.println("worker1");

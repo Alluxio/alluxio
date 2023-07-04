@@ -3,18 +3,28 @@ package alluxio.membership;
 import alluxio.grpc.GrpcUtils;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
+
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+/**
+ * Entity class including all the information to register to Etcd
+ * when using EtcdMembershipManager
+ */
 public class WorkerServiceEntity extends ServiceEntity {
+  /**
+   * Membership state of the worker
+   */
   enum State {
     JOINED,
     AUTHORIZED,
     DECOMMISSIONED
   }
+
   WorkerNetAddress mAddress;
   State mState = State.JOINED;
   int mGenerationNum = -1;
@@ -50,10 +60,20 @@ public class WorkerServiceEntity extends ServiceEntity {
       return false;
     }
     WorkerServiceEntity anotherO = (WorkerServiceEntity) o;
-    return mAddress.equals(anotherO) &&
-        getServiceEntityName().equals(anotherO.getServiceEntityName());
+    return mAddress.equals(anotherO)
+        && getServiceEntityName().equals(anotherO.getServiceEntityName());
   }
 
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mAddress, mServiceEntityName);
+  }
+
+  /**
+   * Serialize the WorkerServiceEntity object.
+   * @param dos
+   * @throws IOException
+   */
   public void serialize(DataOutputStream dos) throws IOException {
     super.serialize(dos);
     dos.writeInt(mState.ordinal());
@@ -62,6 +82,11 @@ public class WorkerServiceEntity extends ServiceEntity {
     dos.write(serializedArr);
   }
 
+  /**
+   * Deserialize to WorkerServiceEntity object.
+   * @param dis
+   * @throws IOException
+   */
   public void deserialize(DataInputStream dis) throws IOException {
     super.deserialize(dis);
     mState = State.values()[dis.readInt()];

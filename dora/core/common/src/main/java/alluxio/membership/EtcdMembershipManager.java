@@ -30,9 +30,13 @@ public class EtcdMembershipManager implements MembershipManager {
   private static String sRingPathFormat = "/DHT/%s/AUTHORIZED/";
 
   public EtcdMembershipManager(AlluxioConfiguration conf) {
+    this(conf, AlluxioEtcdClient.getInstance(conf));
+  }
+
+  public EtcdMembershipManager(AlluxioConfiguration conf, AlluxioEtcdClient alluxioEtcdClient) {
     mConf = conf;
     mClusterName = conf.getString(PropertyKey.ALLUXIO_CLUSTER_NAME);
-    mAlluxioEtcdClient = AlluxioEtcdClient.getInstance(conf);
+    mAlluxioEtcdClient = alluxioEtcdClient;
   }
 
   public void join(WorkerInfo wkrAddr) throws IOException {
@@ -121,7 +125,8 @@ public class EtcdMembershipManager implements MembershipManager {
 
   public String showAllMembers() {
     List<WorkerServiceEntity> registeredWorkers = retrieveFullMembers();
-    List<WorkerServiceEntity> liveWorkers = retrieveLiveMembers();
+    List<String> liveWorkers = retrieveLiveMembers().stream().map(w -> w.getServiceEntityName())
+        .collect(Collectors.toList());
     String printFormat = "%s\t%s\t%s\n";
     StringBuilder sb = new StringBuilder(
         String.format(printFormat, "WorkerId", "Address", "Status"));
@@ -129,7 +134,7 @@ public class EtcdMembershipManager implements MembershipManager {
       String entryLine = String.format(printFormat,
           entity.getServiceEntityName(),
           entity.getWorkerNetAddress().getHost() + ":" + entity.getWorkerNetAddress().getRpcPort(),
-          liveWorkers.contains(entity) ? "ONLINE" : "OFFLINE");
+          liveWorkers.contains(entity.getServiceEntityName()) ? "ONLINE" : "OFFLINE");
       sb.append(entryLine);
     }
     return sb.toString();

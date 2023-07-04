@@ -5525,7 +5525,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.ALL)
           .build();
 
-
   //
   // Proxy related properties
   //
@@ -9027,7 +9026,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.ufs.instream.cache.max.size";
     public static final String WORKER_WHITELIST = "alluxio.worker.whitelist";
     public static final String WORKER_MEMBERSHIP_TYPE = "alluxio.worker.membership.type";
-    public static final String WORKER_MEMBER_STATIC_CONFIG_FILE = "alluxio.worker.static.config.file";
+    public static final String WORKER_MEMBER_STATIC_CONFIG_FILE =
+        "alluxio.worker.static.config.file";
 
     //
     // Proxy related properties
