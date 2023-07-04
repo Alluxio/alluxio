@@ -169,6 +169,7 @@
     <test.output.redirect>true</test.output.redirect>
     <update.check.auth.string>YWxsdXhpbzp0YWNoeW9u</update.check.auth.string>
     <update.check.configurable>true</update.check.configurable>
+    <update.check.enabled>true</update.check.enabled>
     <update.check.host>https://diagnostics.alluxio.io</update.check.host>
     <findbugs.skip>false</findbugs.skip>
     <create.dependency.reduced.pom>false</create.dependency.reduced.pom>

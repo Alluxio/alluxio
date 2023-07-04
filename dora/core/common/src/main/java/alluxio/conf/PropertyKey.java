@@ -3617,7 +3617,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_UPDATE_CHECK_ENABLED =
       booleanBuilder(Name.MASTER_UPDATE_CHECK_ENABLED)
-          .setDefaultValue(true)
+          .setDefaultValue(Boolean.parseBoolean(ProjectConstants.UPDATE_CHECK_ENABLED))
           .setDescription("Whether to check for update availability")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setIsHidden(true)

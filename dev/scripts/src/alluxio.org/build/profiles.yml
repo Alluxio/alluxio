@@ -57,6 +57,102 @@ default:
       - libexec/alluxio-config.sh
       - libexec/version.sh
       - LICENSE
+default-release:
+  mvnArgs: "-Dupdate.check.configurable=false"
+  libModules: default
+  pluginModules: default
+  targetName: alluxio-${VERSION}-bin.tar.gz
+  tarball:
+    assemblyJars:
+      - client
+      - server
+      - fuseBundled
+    clientJarName: alluxio-${VERSION}-client.jar
+    emptyDirList:
+      - underFSStorage
+    fileList:
+      - bin/alluxio
+      - bin/alluxio-common.sh
+      - bin/alluxio-masters.sh
+      - bin/alluxio-monitor.sh
+      - bin/alluxio-mount.sh
+      - bin/alluxio-start.sh
+      - bin/alluxio-stop.sh
+      - bin/alluxio-workers.sh
+      - bin/launch-process
+      - conf/alluxio-env.sh.template
+      - conf/alluxio-site.properties.template
+      - conf/core-site.xml.template
+      - conf/log4j.properties
+      - conf/masters
+      - conf/metrics.properties.template
+      - conf/rocks-inode-bloom.ini.template
+      - conf/rocks-block-bloom.ini.template
+      - conf/rocks-inode.ini.template
+      - conf/rocks-block.ini.template
+      - conf/workers
+      - dora/integration/fuse/bin/alluxio-fuse
+      - integration/docker/Dockerfile
+      - integration/docker/Dockerfile-base
+      - integration/docker/Dockerfile-dev
+      - integration/docker/entrypoint.sh
+      - integration/metrics/docker-compose-master.yaml
+      - integration/metrics/docker-compose-worker.yaml
+      - integration/metrics/otel-agent-config.yaml
+      - integration/metrics/otel-agent-config-worker.yaml
+      - integration/metrics/otel-collector-config.yaml
+      - integration/metrics/prometheus.yaml
+      - libexec/alluxio-config.sh
+      - libexec/version.sh
+      - LICENSE
+default-testing:
+  mvnArgs: "-Dupdate.check.enabled=false"
+  libModules: default
+  pluginModules: default
+  targetName: alluxio-${VERSION}-bin.tar.gz
+  tarball:
+    assemblyJars:
+      - client
+      - server
+      - fuseBundled
+    clientJarName: alluxio-${VERSION}-client.jar
+    emptyDirList:
+      - underFSStorage
+    fileList:
+      - bin/alluxio
+      - bin/alluxio-common.sh
+      - bin/alluxio-masters.sh
+      - bin/alluxio-monitor.sh
+      - bin/alluxio-mount.sh
+      - bin/alluxio-start.sh
+      - bin/alluxio-stop.sh
+      - bin/alluxio-workers.sh
+      - bin/launch-process
+      - conf/alluxio-env.sh.template
+      - conf/alluxio-site.properties.template
+      - conf/core-site.xml.template
+      - conf/log4j.properties
+      - conf/masters
+      - conf/metrics.properties.template
+      - conf/rocks-inode-bloom.ini.template
+      - conf/rocks-block-bloom.ini.template
+      - conf/rocks-inode.ini.template
+      - conf/rocks-block.ini.template
+      - conf/workers
+      - dora/integration/fuse/bin/alluxio-fuse
+      - integration/docker/Dockerfile
+      - integration/docker/Dockerfile-base
+      - integration/docker/Dockerfile-dev
+      - integration/docker/entrypoint.sh
+      - integration/metrics/docker-compose-master.yaml
+      - integration/metrics/docker-compose-worker.yaml
+      - integration/metrics/otel-agent-config.yaml
+      - integration/metrics/otel-agent-config-worker.yaml
+      - integration/metrics/otel-collector-config.yaml
+      - integration/metrics/prometheus.yaml
+      - libexec/alluxio-config.sh
+      - libexec/version.sh
+      - LICENSE
 fuse:
   mvnArgs: ""
   libModules: fuse

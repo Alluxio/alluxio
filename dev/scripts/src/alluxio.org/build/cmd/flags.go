@@ -79,7 +79,6 @@ func parseTarballFlags(cmd *flag.FlagSet, args []string) (*buildOpts, error) {
 	// profile specific flags
 	// all default values are set to empty strings to be able to check if the user provided any input, which would override the profile's corresponding predefined value
 	var flagProfile, flagTargetName, flagMvnArgs, flagLibModules, flagPluginModules string
-	var flagDisableTelemetry bool
 	cmd.StringVar(&flagProfile, "profile", defaultProfile, "Tarball profile to build; list available profiles with the profiles command")
 	cmd.StringVar(&flagMvnArgs, "mvnArgs", "", `Comma-separated list of additional Maven arguments to build with, e.g. -mvnArgs "-Pspark,-Dhadoop.version=2.2.0"`)
 	cmd.StringVar(&flagLibModules, "libModules", "",
@@ -87,8 +86,6 @@ func parseTarballFlags(cmd *flag.FlagSet, args []string) (*buildOpts, error) {
 	cmd.StringVar(&flagPluginModules, "pluginModules", "",
 		fmt.Sprintf("Either a plugin modules bundle name or a comma-separated list of plugin modules to compile into the tarball; list available plugin modules and plugin module bundles with the plugins command"))
 	cmd.StringVar(&flagTargetName, "target", "", "Name for the generated tarball; use '${VERSION}' as a placeholder for the version string")
-	// TODO(jason): remove this flag after it can be handled via config
-	cmd.BoolVar(&flagDisableTelemetry, "disableTelemetry", false, "Set true to disable Telemetry")
 
 	// parse and set finalized values into buildOpts
 	if err := cmd.Parse(args); err != nil {
@@ -106,12 +103,6 @@ func parseTarballFlags(cmd *flag.FlagSet, args []string) (*buildOpts, error) {
 			names = append(names, n)
 		}
 		return nil, stacktrace.NewError("unknown profile value %v among possible profiles %v", flagProfile, names)
-	}
-	if flagDisableTelemetry {
-		if len(flagMvnArgs) > 0 {
-			flagMvnArgs += ","
-		}
-		flagMvnArgs += "-Dupdate.check.enabled=false"
 	}
 	prof.updateFromFlags(flagTargetName, flagMvnArgs, flagLibModules, flagPluginModules)
 
