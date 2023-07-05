@@ -117,6 +117,7 @@ public abstract class Benchmark<T extends TaskResult> {
 
     commandArgs.addAll(mBaseParameters.mJavaOpts.stream().map(String::trim)
         .collect(Collectors.toList()));
+    LOG.info("Generated job config command args: {}", commandArgs);
     String className = this.getClass().getCanonicalName();
     long startDelay = FormatUtils.parseTimeSize(mBaseParameters.mClusterStartDelay);
     return new StressBenchConfig(className, commandArgs, startDelay, mBaseParameters.mClusterLimit);

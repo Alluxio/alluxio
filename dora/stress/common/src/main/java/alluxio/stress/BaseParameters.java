@@ -27,6 +27,7 @@ public final class BaseParameters {
   public static final String CLUSTER_START_DELAY_FLAG = "--cluster-start-delay";
   public static final String DISTRIBUTED_FLAG = "--distributed";
   public static final String ID_FLAG = "--id";
+  public static final String INDEX_FLAG = "--index";
   public static final String IN_PROCESS_FLAG = "--in-process";
   public static final String JAVA_OPT_FLAG = "--java-opt";
   public static final String START_MS_FLAG = "--start-ms";
@@ -75,6 +76,11 @@ public final class BaseParameters {
       description = "Any string to uniquely identify this invocation", hidden = true)
   public String mId = DEFAULT_TASK_ID;
 
+  @Parameter(names = {INDEX_FLAG},
+      description = "A number to indicate the index of the job worker among all. "
+          + "This is used to calculate the target subtasks.", hidden = true)
+  public String mIndex = DEFAULT_TASK_ID;
+
   @Parameter(names = {DISTRIBUTED_FLAG},
       description = "If true, this is a distributed task, not a local task. This is "
           + "automatically added for a cluster job.",
@@ -114,6 +120,11 @@ public final class BaseParameters {
     if (!mId.equals(DEFAULT_TASK_ID)) {
       res.add(ID_FLAG);
       res.add(mId);
+    }
+
+    if (!mIndex.equals(DEFAULT_TASK_ID)) {
+      res.add(INDEX_FLAG);
+      res.add(mIndex);
     }
 
     if (!mJavaOpts.isEmpty()) {

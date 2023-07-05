@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -88,14 +89,21 @@ public final class StressBenchDefinition
     }
     workerList = workerList.subList(0, clusterLimit);
 
+    int index = 0;
     for (WorkerInfo worker : workerList) {
       LOG.info("Generating job for worker {}", worker.getId());
-      ArrayList<String> args = new ArrayList<>(2);
+      ArrayList<String> args = new ArrayList<>(4);
       // Add the worker hostname + worker id as the unique task id for each distributed task.
       // The worker id is used since there may be multiple workers on a single host.
       args.add(BaseParameters.ID_FLAG);
       args.add(worker.getAddress().getHost() + "-" + worker.getId());
+      args.add(BaseParameters.INDEX_FLAG);
+      args.add(Integer.toString(index));
+//      // TODO(jiacheng): Do I need it here?
+//      args.add(BaseParameters.CLUSTER_LIMIT_FLAG);
+//      args.add(Integer.toString(clusterLimit));
       result.add(new Pair<>(worker, args));
+      index++;
     }
     return result;
   }
@@ -170,6 +178,7 @@ public final class StressBenchDefinition
 
     command.addAll(commandArgs);
     command.addAll(args);
+    LOG.info("Running command {}", Arrays.toString(command.toArray(new String[0])));
     return ShellUtils.execCommand(command.toArray(new String[0]));
   }
 
