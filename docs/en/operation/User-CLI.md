@@ -278,10 +278,6 @@ Supplying neither flag will default to generating both docs.
 
 > Note: This command does not require the Alluxio cluster to be running.
 
-### table
-
-See [Table Operations](#table-operations).
-
 ### version
 
 The `version` command prints Alluxio version.

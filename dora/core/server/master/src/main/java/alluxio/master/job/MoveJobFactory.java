@@ -59,7 +59,7 @@ public class MoveJobFactory implements JobFactory {
         UnderFileSystemConfiguration.defaults(Configuration.global()));
     Iterable<FileInfo> fileIterator = new UfsFileIterable(ufs, src, Optional
         .ofNullable(AuthenticatedClientUser.getOrNull())
-        .map(User::getName), partialListing, FileInfo::isCompleted);
+        .map(User::getName), FileInfo::isCompleted);
     Optional<String> user = Optional
         .ofNullable(AuthenticatedClientUser.getOrNull())
         .map(User::getName);

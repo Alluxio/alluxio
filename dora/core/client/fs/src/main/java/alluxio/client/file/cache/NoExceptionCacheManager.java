@@ -213,6 +213,15 @@ public class NoExceptionCacheManager implements CacheManager {
   }
 
   @Override
+  public void deleteTempFile(String fileId) {
+    try {
+      mCacheManager.deleteTempFile(fileId);
+    } catch (Exception e) {
+      LOG.error("Failed to deleteFile for {}", fileId, e);
+    }
+  }
+
+  @Override
   public Optional<CacheUsage> getUsage() {
     return mCacheManager.getUsage();
   }

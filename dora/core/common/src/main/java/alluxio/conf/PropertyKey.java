@@ -4191,7 +4191,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_BLOCK_STORE_TYPE =
       enumBuilder(Name.WORKER_BLOCK_STORE_TYPE, BlockStoreType.class)
-          .setDefaultValue(BlockStoreType.FILE)
+          .setDefaultValue(BlockStoreType.PAGE)
           .setDescription("The implementation of LocalBlockStore that can be instantiated.")
           .setScope(Scope.WORKER)
           .build();
@@ -7927,17 +7927,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey DORA_WORKER_POPULATE_METADATA_FINGERPRINT =
-      booleanBuilder(Name.DORA_WORKER_POPULATE_METADATA_FINGERPRINT)
-          .setDescription("Populate the fingerprint for file metadata fetched from UFS "
-              + "If set, when the file metadata is updated, the fingerprints will be compared. "
-              + "If the file metadata is updated but the data part does not change, "
-              + "we can skip invalidating the page cache, at the expense of having extra overhead "
-              + "on computing the fingerprint for UFS files.")
-          .setDefaultValue(false)
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
 
   public static final PropertyKey DORA_UFS_LIST_STATUS_CACHE_TTL =
       durationBuilder(Name.DORA_UFS_LIST_STATUS_CACHE_TTL)
@@ -9601,9 +9590,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.dora.worker.metastore.rocksdb.block.index";
     public static final String DORA_WORKER_METASTORE_ROCKSDB_INDEX =
         "alluxio.dora.worker.metastore.rocksdb.index";
-
-    public static final String DORA_WORKER_POPULATE_METADATA_FINGERPRINT =
-        "alluxio.dora.worker.populate.metadata.fingerprint";
 
     public static final String DORA_UFS_LIST_STATUS_CACHE_TTL =
         "alluxio.dora.ufs.list.status.cache.ttl";
