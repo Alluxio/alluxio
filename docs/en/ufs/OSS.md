@@ -96,3 +96,26 @@ $ ./bin/alluxio fs mount --option fs.oss.accessKeyId=<OSS_ACCESS_KEY_ID> \
   --option fs.oss.endpoint=<OSS_ENDPOINT> \
   /oss oss://<OSS_BUCKET>/<OSS_DIRECTORY>/
 ```
+
+### [Experimental] OSS multipart upload
+
+The default upload method uploads one file completely from start to end in one go. We use multipart-upload method to upload one file by multiple parts, every part will be uploaded in one thread. It won't generate any temporary files while uploading.
+
+To enable OSS multipart upload, you need to modify `conf/alluxio-site.properties` to include:
+
+```
+alluxio.underfs.oss.multipart.upload.enabled=true
+```
+
+There are other parameters you can specify in `conf/alluxio-site.properties` to make the process faster and better.
+
+```properties
+# Timeout for uploading part when using multipart upload.
+alluxio.underfs.object.store.multipart.upload.timeout
+
+# Thread pool size for OSS multipart upload.
+alluxio.underfs.oss.multipart.upload.threads
+
+# Multipart upload partition size for OSS. The default partition size is 64MB. 
+alluxio.underfs.oss.multipart.upload.partition.size
+```
