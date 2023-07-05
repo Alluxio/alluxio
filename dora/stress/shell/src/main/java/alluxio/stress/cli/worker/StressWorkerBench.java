@@ -57,6 +57,7 @@ import static alluxio.stress.BaseParameters.DEFAULT_TASK_ID;
 public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult,
     WorkerBenchParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(StressWorkerBench.class);
+  private static final long DUMMY_BLOCK_SIZE = 64 * Constants.MB;
 
   private FileSystem[] mCachedFs;
   private Path[] mFilePaths;
@@ -75,6 +76,12 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     mParameters = new WorkerBenchParameters();
   }
 
+  /***
+   * mClusterLimit is the number of job workers to run test on, if running in local mode then
+   * this equals 1.
+   * mThreads is the number of thread per job worker.
+   * We allocate one file for each thread, so total mClusterLimit * mThreads files.
+   */
   private int getTotalFileNumber() {
     int clusterSize = mBaseParameters.mClusterLimit;
     int threads = mParameters.mThreads;
@@ -118,20 +125,14 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     validateParams();
     Path basePath = new Path(mParameters.mBasePath);
     int fileSize = (int) FormatUtils.parseSpaceSize(mParameters.mFileSize);
-    // TODO(jiacheng): Code here will execute on the job workers too, if that;s not desired,
-    //  move into the if branch
     // numFiles is the total number of files, to be read by all workers
     // clusterSize is the number of job workers to run test on
     // clients is the number of AlluxioFS instances on each job worker
     // threads is the number of thread per client
-    // so total clusterSize * clients * threads read numFiles
-    // TODO(jiacheng): Using this here means this param becomes crucial
+    // so total clusterSize * threads read numFiles
     int clusterSize = mBaseParameters.mClusterLimit;
-    int clients = mParameters.mClients;
     int threads = mParameters.mThreads;
     int numFiles = getTotalFileNumber();
-    LOG.info("Total {} * {} * {} = {} files in the test",
-        clusterSize, clients, threads, numFiles);
 
     // Generate the file paths using the same heuristics so all nodes have the same set of paths
     // and offsets
@@ -144,13 +145,12 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     if (mParameters.mIsRandom) {
       rand = new Random(mParameters.mRandomSeed);
     }
-    // TODO(jiacheng): get rid of the numFiles param and simply calculate
     for (int i = 0; i < clusterSize; i++) {
       for (int j = 0; j < threads; j++) {
         Path filePath = calculateFilePath(basePath, i, j);
-        int index = i * j + j;
+        int index = i * threads + j;
         mFilePaths[index] = filePath;
-        // TODO(jiacheng): re-check this randomness later
+        // TODO(jiacheng): do we want a new randomness for every read?
         if (mParameters.mIsRandom) {
           int randomMin = (int) FormatUtils.parseSpaceSize(mParameters.mRandomMinReadLength);
           int randomMax = (int) FormatUtils.parseSpaceSize(mParameters.mRandomMaxReadLength);
@@ -163,6 +163,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
         }
       }
     }
+    LOG.info("{} file paths generated", mFilePaths.length);
 
     // Generate test files if necessary
     if (mBaseParameters.mDistributed){
@@ -178,7 +179,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
         hdfsConf.set(PropertyKey.Name.USER_FILE_DELETE_UNCHECKED, "true");
         hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, mParameters.mWriteType);
         FileSystem prepareFs = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
-        prepareTestFiles(basePath, fileSize, numFiles, prepareFs);
+        prepareTestFiles(basePath, fileSize, prepareFs);
       }
     }
 
@@ -200,7 +201,8 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     }
   }
 
-  private void prepareTestFiles(Path basePath, int fileSize, int numFiles, FileSystem prepareFs) throws IOException {
+  private void prepareTestFiles(Path basePath, int fileSize, FileSystem prepareFs) throws IOException {
+    int numFiles = mFilePaths.length;
     LOG.info("Preparing {} test files under {}", numFiles, basePath);
     if (prepareFs.exists(basePath)) {
       LOG.info("The base path exists, delete it first.");
@@ -210,7 +212,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     LOG.info("Creating the new base path directory");
     prepareFs.mkdirs(basePath);
     LOG.info("Empty base path directory created");
-    // TODO(jiacheng): Is this buffer size still applicable?
+
     byte[] buffer = new byte[(int) FormatUtils.parseSpaceSize(mParameters.mBufferSize)];
     Arrays.fill(buffer, (byte) 'A');
 
@@ -220,10 +222,9 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
         LOG.info("{} files created", i);
       }
       Path filePath = mFilePaths[i];
+      LOG.info("Creating file {}", filePath);
       try (FSDataOutputStream mOutStream = prepareFs
-              // TODO(jiacheng): this is using the block size, should use page size?
-          .create(filePath, false, buffer.length, (short) 1,
-              FormatUtils.parseSpaceSize(mParameters.mBlockSize))) {
+          .create(filePath, false, buffer.length, (short) 1, DUMMY_BLOCK_SIZE)) {
         while (true) {
           int bytesToWrite = (int) Math.min(fileSize - mOutStream.getPos(), buffer.length);
           if (bytesToWrite == 0) {
@@ -239,7 +240,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
   @Override
   @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public WorkerBenchTaskResult runLocal() throws Exception {
-    // TODO(jiacheng): Based on the worker ID, can it deduce the range of files to handle?
     LOG.info("Worker ID is {}, index is {}", mBaseParameters.mId, mBaseParameters.mIndex);
     LOG.info("Total {} workers in the cluster", mBaseParameters.mClusterLimit);
     // If running in this one process, do all the work
@@ -286,12 +286,19 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     service.shutdownNow();
     service.awaitTermination(30, TimeUnit.SECONDS);
 
-    // TODO(jiacheng): If there's extra output on the job workers, json deser will be messed up
     return context.getResult();
   }
 
   @Override
   public void validateParams() throws Exception {
+    if (mBaseParameters.mClusterLimit <= 0) {
+      throw new IllegalStateException("--cluster-limit cannot be " + mBaseParameters.mClusterLimit
+          + " in StressWorkerBench. It should be a positive number. Use 1 if running in local mode");
+    }
+    if (mParameters.mThreads <= 0) {
+      throw new IllegalStateException("Thread number cannot be " + mParameters.mThreads
+          + " in StressWorkerBench. It should be a positive number.");
+    }
     if (mParameters.mFree && WritePType.MUST_CACHE.name().equals(mParameters.mWriteType)) {
       throw new IllegalStateException(String.format("%s cannot be %s when %s option provided",
               FileSystemParameters.WRITE_TYPE_OPTION_NAME, WritePType.MUST_CACHE, "--free"));
