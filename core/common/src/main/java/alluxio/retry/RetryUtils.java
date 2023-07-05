@@ -68,11 +68,11 @@ public final class RetryUtils {
    * @return callable result
    */
   public static <V> V retryCallable(String description, Callable<V> f, RetryPolicy policy) {
-    Exception cause = null;
+    Throwable cause = null;
     while (policy.attempt()) {
       try {
         return f.call();
-      } catch (Exception e) {
+      } catch (Throwable e) {
         LOG.warn("Failed to {} (attempt {}): {}", description, policy.getAttemptCount(),
             e.toString());
         if (e instanceof AlluxioRuntimeException && !((AlluxioRuntimeException) e).isRetryable()) {
@@ -80,6 +80,9 @@ public final class RetryUtils {
         }
         cause = e;
       }
+    }
+    if (cause instanceof Error) {
+      throw AlluxioRuntimeException.from((Error) cause);
     }
     throw AlluxioRuntimeException.from(cause);
   }

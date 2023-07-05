@@ -331,7 +331,15 @@ public class MonoBlockStore implements BlockStore {
         handleException(e, block, errors, sessionId);
         continue;
       }
-      ByteBuffer buf = NioDirectBufferPool.acquire((int) blockSize);
+      ByteBuffer buf;
+      try {
+        buf = RetryUtils.retryCallable("acquire buffer",
+            () -> NioDirectBufferPool.acquire((int) blockSize),
+                new ExponentialBackoffRetry(1000, 5000, 5));
+      } catch (Exception e) {
+        handleException(e, block, errors, sessionId);
+        continue;
+      }
       CompletableFuture<Void> future = RetryUtils.retryCallable("read from ufs",
               () -> manager.read(buf, block.getOffsetInFile(), blockSize, blockId,
                   block.getUfsPath(), options),
