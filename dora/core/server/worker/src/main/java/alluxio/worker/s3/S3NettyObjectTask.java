@@ -14,6 +14,7 @@ package alluxio.worker.s3;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PositionReader;
+import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -113,9 +114,6 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
         case "GET":
           return new GetObjectTask(handler, OpType.GetObject);
         case "PUT":
-//          if (handler.getHeader(S3Constants.S3_COPY_SOURCE_HEADER) != null) {
-//            return new CopyObjectTask(handler, OpType.CopyObject);
-//          }
           return new PutObjectTask(handler, OpType.PutObject);
         case "POST":
           break;
@@ -261,14 +259,15 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
             }
 
             // Check if the object had a specified "Content-Type"
-            // TODO(wyy) not support xattr, it may not works.
+            // TODO(wyy) not support xattr, only return octet-stream.
             response.headers().set(S3Constants.S3_CONTENT_TYPE_HEADER,
-                NettyRestUtils.deserializeContentType(status.getXAttr()));
+                MediaType.APPLICATION_OCTET_STREAM_TYPE);
             response.headers()
                 .set(HttpHeaderNames.CONTENT_ENCODING, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             // Check if object had tags, if so we need to return the count
             // in the header "x-amz-tagging-count"
+            // TODO(wyy) not support xattr and tagging
             TaggingData tagData = NettyRestUtils.deserializeTags(status.getXAttr());
             if (tagData != null) {
               int taggingCount = tagData.getTagMap().size();
@@ -545,8 +544,9 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
                       .setOwnerBits(Bits.ALL)
                       .setGroupBits(Bits.ALL)
                       .setOtherBits(Bits.NONE).build())
-                  // TODO(wyy) write type
-//                  .setWriteType(S3RestUtils.getS3WriteType())
+                  .setWriteType(Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT,
+                      WriteType.class).toProto())
+                  // TODO(wyy) not support xattr and tagging now
 //                  .putAllXattr(xattrMap).setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
                   .setOverwrite(true)
                   .setCheckS3BucketPath(true)

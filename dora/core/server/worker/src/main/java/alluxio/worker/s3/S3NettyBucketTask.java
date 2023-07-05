@@ -184,9 +184,8 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
 
         try (S3AuditContext auditContext = mHandler.createAuditContext(
             mOPType.name(), user, mHandler.getBucket(), null)) {
-          // TODO(wyy) checkPathIsAlluxioDirectory
-//          S3RestUtils.checkPathIsAlluxioDirectory(userFs, path, auditContext,
-//              mHandler.BUCKET_PATH_CACHE);
+          // TODO(wyy) checkPathIsAlluxioDirectory in cache
+          S3NettyHandler.checkPathIsAlluxioDirectory(userFs, path, auditContext);
           String markerParam = mHandler.getQueryParameter("marker");
           String maxKeysParam = mHandler.getQueryParameter("max-keys");
           String prefixParam = mHandler.getQueryParameter("prefix");

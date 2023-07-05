@@ -42,13 +42,16 @@ import alluxio.util.ThreadUtils;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.dora.DoraWorker;
 
+import com.google.common.base.Stopwatch;
 import com.google.protobuf.ByteString;
 import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.FileRegion;
 import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http.QueryStringDecoder;
@@ -66,8 +69,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.security.auth.Subject;
 
@@ -80,11 +85,13 @@ public class S3NettyHandler {
   private final String mBucket;
   private final String mObject;
   private final FullHttpRequest mRequest;
+  private HttpResponse mResponse;
   private final ChannelHandlerContext mContext;
   private final QueryStringDecoder mQueryDecoder;
   private S3NettyBaseTask mS3Task;
   private FileSystem mFsClient;
   private DoraWorker mDoraWorker;
+  private Stopwatch mStopwatch;
   public AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
   private final FileTransferType mFileTransferType;
 
@@ -142,6 +149,7 @@ public class S3NettyHandler {
                                              AsyncUserAccessAuditLogWriter asyncAuditLogWriter)
       throws Exception {
     String path = request.uri();
+    Stopwatch stopwatch = Stopwatch.createStarted();
     Matcher bucketMatcher = BUCKET_PATH_PATTERN.matcher(path);
     Matcher objectMatcher = OBJECT_PATH_PATTERN.matcher(path);
     String pathStr = path;
@@ -150,7 +158,7 @@ public class S3NettyHandler {
     S3NettyHandler handler = null;
     try {
       if (bucketMatcher.matches()) {
-        pathStr = path.substring(1);
+        pathStr = java.net.URI.create(path.substring(1)).getPath();
         bucket = URLDecoder.decode(pathStr, "UTF-8");
       } else if (objectMatcher.matches()) {
         pathStr = java.net.URI.create(path.substring(1)).getPath();
@@ -161,8 +169,7 @@ public class S3NettyHandler {
       }
       handler = new S3NettyHandler(bucket, object, request, context, fileSystem, doraWorker,
           asyncAuditLogWriter);
-      // TODO(wyy) stopWatch?
-//      handler.setStopwatch(stopwatch);
+      handler.setStopwatch(stopwatch);
       handler.init();
       S3NettyBaseTask task = null;
       if (object != null && !object.isEmpty()) {
@@ -295,11 +302,12 @@ public class S3NettyHandler {
    */
   public void processHttpResponse(HttpResponse response, boolean closeAfterWrite) {
     if (response != null) {
+      setResponse(response);
       mContext.write(response);
     }
     if (closeAfterWrite) {
       mContext.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT)
-          .addListener(ChannelFutureListener.CLOSE);
+          .addListener(new S3NettyFutureListener(this));
     }
   }
 
@@ -379,6 +387,14 @@ public class S3NettyHandler {
   }
 
   /**
+   * set FullHttpResponse for this request.
+   * @param response
+   */
+  public void setResponse(HttpResponse response) {
+    mResponse = response;
+  }
+
+  /**
    * Get the user name of this request.
    * @return user name
    */
@@ -443,6 +459,22 @@ public class S3NettyHandler {
   }
 
   /**
+   * get HTTP request.
+   * @return HTTP request
+   */
+  public FullHttpRequest getRequest() {
+    return mRequest;
+  }
+
+  /**
+   * get HTTP response.
+   * @return HTTP response
+   */
+  public HttpResponse getResponse() {
+    return mResponse;
+  }
+
+  /**
    * get HTTP content of this request.
    * @return HTTP content
    */
@@ -495,6 +527,22 @@ public class S3NettyHandler {
   }
 
   /**
+   * Get Stopwatch object used for recording this request's latency.
+   * @return Stopwatch object
+   */
+  public Stopwatch getStopwatch() {
+    return mStopwatch;
+  }
+
+  /**
+   * Set the Stopwatch object used for recording this request's latency.
+   * @param stopwatch
+   */
+  public void setStopwatch(Stopwatch stopwatch) {
+    mStopwatch = stopwatch;
+  }
+
+  /**
    * @param user the {@link Subject} name of the filesystem user
    * @return A {@link FileSystem} with the subject set to the provided user
    */
@@ -523,8 +571,6 @@ public class S3NettyHandler {
       throw new S3Exception(objectPath.toString(), S3ErrorCode.INTERNAL_ERROR);
     }
   }
-
-
 
   /**
    * Check if a path in alluxio is a directory.
@@ -562,5 +608,55 @@ public class S3NettyHandler {
             ByteString.copyFrom(entityTag, S3Constants.XATTR_STR_CHARSET))
         .setXattrUpdateStrategy(File.XAttrUpdateStrategy.UNION_REPLACE)
         .build());
+  }
+
+  /**
+   * Log the access of every single http request.
+   * @param request
+   * @param response
+   * @param stopWatch
+   * @param opType
+   */
+  public static void logAccess(HttpRequest request, HttpResponse response,
+                               Stopwatch stopWatch, S3NettyBaseTask.OpType opType) {
+    String contentLenStr = "None";
+    if (request.headers().get("x-amz-decoded-content-length") != null) {
+      contentLenStr = request.headers().get("x-amz-decoded-content-length");
+    } else if (request.headers().get("Content-Length") != null) {
+      contentLenStr = request.headers().get("Content-Length");
+    }
+    String accessLog = String.format("[ACCESSLOG] %s Request:%s - Status:%d "
+            + "- ContentLength:%s - Elapsed(ms):%d",
+        (opType == null ? "" : opType), request.uri(), response.status().code(),
+        contentLenStr, stopWatch.elapsed(TimeUnit.MILLISECONDS));
+    if (LOG.isDebugEnabled()) {
+      String requestHeaders = request.headers().entries().stream()
+          .map(x -> x.getKey() + ":" + x.getValue())
+          .collect(Collectors.joining("\n"));
+      String responseHeaders = response.headers().entries().stream()
+          .map(x -> x.getKey() + ":" + x.getValue())
+          .collect(Collectors.joining("\n"));
+      String moreInfoStr = String.format("%n[RequestHeader]:%n%s%n[ResponseHeader]:%n%s",
+          requestHeaders, responseHeaders);
+      LOG.debug(accessLog + " " + moreInfoStr);
+    } else {
+      LOG.info(accessLog);
+    }
+  }
+
+  class S3NettyFutureListener implements ChannelFutureListener {
+    private S3NettyHandler mHandler;
+
+    S3NettyFutureListener(S3NettyHandler s3NettyHandler) {
+      mHandler = s3NettyHandler;
+    }
+
+    @Override
+    public void operationComplete(ChannelFuture future) {
+      S3NettyHandler.logAccess(mHandler.getRequest(), mHandler.getResponse(),
+          mHandler.getStopwatch(), mHandler.getS3Task() != null
+              ? mHandler.getS3Task().getOPType() : S3NettyBaseTask.OpType.Unknown);
+      future.channel().close();
+    }
   }
 }
