@@ -291,8 +291,21 @@ public class LocalCacheFileInStream extends FileInStream {
 
   @Override
   public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
-    return readInternal(new ByteArrayTargetBuffer(b, off), off, len, ReadType.READ_INTO_BYTE_ARRAY,
-        pos, true);
+    try {
+      return readInternal(new ByteArrayTargetBuffer(b, off), off, len,
+          ReadType.READ_INTO_BYTE_ARRAY, pos, true);
+    } catch (IOException | RuntimeException e) {
+      LOG.warn("Failed to read from Alluxio's page cache.", e);
+      if (mExternalFileInStream == null) {
+        try {
+          mExternalFileInStream = mExternalFileInStreamOpener.open(mStatus);
+        } catch (AlluxioException ex) {
+          throw new IOException(ex);
+        }
+        mCloser.register(mExternalFileInStream);
+      }
+      return mExternalFileInStream.positionedRead(pos, b, off, len);
+    }
   }
 
   @Override
