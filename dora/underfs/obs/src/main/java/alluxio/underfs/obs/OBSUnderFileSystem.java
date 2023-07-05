@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PositionReader;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UfsFileStatus;
@@ -160,6 +159,11 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   public String getUnderFSType() {
     return "obs";
+  }
+
+  @Override
+  public PositionReader openPositionRead(String path, long fileLength) {
+    return new OBSPositionReader(mClient, mBucketName, stripPrefixIfPresent(path), fileLength);
   }
 
   // No ACL integration currently, no-op
@@ -401,11 +405,6 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
       LOG.warn("Failed to get Object {}", pathKey, e);
       return false;
     }
-  }
-
-  @Override
-  public PositionReader openPositionRead(String path, long fileLength) {
-    throw new UnimplementedRuntimeException("Position read is not implemented");
   }
 
   // No ACL integration currently, returns default empty value
