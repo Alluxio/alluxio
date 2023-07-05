@@ -7920,17 +7920,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey DORA_WORKER_POPULATE_METADATA_FINGERPRINT =
-      booleanBuilder(Name.DORA_WORKER_POPULATE_METADATA_FINGERPRINT)
-          .setDescription("Populate the fingerprint for file metadata fetched from UFS "
-              + "If set, when the file metadata is updated, the fingerprints will be compared. "
-              + "If the file metadata is updated but the data part does not change, "
-              + "we can skip invalidating the page cache, at the expense of having extra overhead "
-              + "on computing the fingerprint for UFS files.")
-          .setDefaultValue(false)
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
 
   public static final PropertyKey DORA_UFS_LIST_STATUS_CACHE_TTL =
       durationBuilder(Name.DORA_UFS_LIST_STATUS_CACHE_TTL)
@@ -7940,10 +7929,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
 
-  public static final PropertyKey DORA_UFS_LIST_STATUS_CACHE_NR_DIRS =
-      intBuilder(Name.DORA_UFS_LIST_STATUS_CACHE_NR_DIRS)
-          .setDefaultValue(50)
-          .setDescription("Number of the file/dir cache of UFS list status results")
+  public static final PropertyKey DORA_UFS_LIST_STATUS_CACHE_NR_FILES =
+      intBuilder(Name.DORA_UFS_LIST_STATUS_CACHE_NR_FILES)
+          .setDefaultValue(100000)
+          .setDescription("Number of the file ufs statuses of UFS listing cache. "
+              + "The more files a directory contain, the more weight it is counted "
+              + "when the cache capacity is calculated.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.WORKER)
           .build();
@@ -9594,14 +9585,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String DORA_WORKER_METASTORE_ROCKSDB_INDEX =
         "alluxio.dora.worker.metastore.rocksdb.index";
 
-    public static final String DORA_WORKER_POPULATE_METADATA_FINGERPRINT =
-        "alluxio.dora.worker.populate.metadata.fingerprint";
-
     public static final String DORA_UFS_LIST_STATUS_CACHE_TTL =
         "alluxio.dora.ufs.list.status.cache.ttl";
 
-    public static final String DORA_UFS_LIST_STATUS_CACHE_NR_DIRS =
-        "alluxio.dora.ufs.list.status.cache.nr.dirs";
+    public static final String DORA_UFS_LIST_STATUS_CACHE_NR_FILES =
+        "alluxio.dora.ufs.list.status.cache.nr.files";
 
     //
     // Extra class to be loaded
