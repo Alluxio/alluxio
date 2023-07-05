@@ -45,7 +45,7 @@ import alluxio.underfs.UfsStatus;
 import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Strings;
-import alluxio.worker.membership.MembershipManager;
+import alluxio.membership.MembershipManager;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.junit.After;
 import org.junit.Assert;
