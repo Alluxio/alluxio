@@ -27,6 +27,7 @@ import alluxio.grpc.Bits;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.PMode;
 import alluxio.network.netty.FileTransferType;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -38,6 +39,7 @@ import alluxio.s3.S3ErrorCode;
 import alluxio.s3.S3Exception;
 import alluxio.s3.S3RangeSpec;
 import alluxio.s3.TaggingData;
+import alluxio.underfs.Fingerprint;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -45,6 +47,7 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockReader;
 import alluxio.worker.dora.PagedFileReader;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import com.google.common.base.Preconditions;
 import com.google.common.io.BaseEncoding;
@@ -166,7 +169,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
             }
 
             // Check if the object had a specified "Content-Type"
-            response.headers().set(HttpHeaderNames.CONTENT_TYPE,
+            response.headers().set(S3Constants.S3_CONTENT_TYPE_HEADER,
                 NettyRestUtils.deserializeContentType(fi.getXAttr()));
             return response;
           } catch (FileDoesNotExistException e) {
@@ -205,8 +208,9 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
         try (S3AuditContext auditContext = mHandler.createAuditContext(
             mOPType.name(), user, mHandler.getBucket(), mHandler.getObject())) {
           try {
-            // TODO(wyy) find the appropriate worker according to the ufs path
-            URIStatus status = userFs.getStatus(objectUri);
+            URIStatus status = userFs.getStatus(objectUri,
+                GetStatusPOptions.getDefaultInstance().toBuilder().setIncludeRealContentHash(true)
+                    .build());
             S3RangeSpec s3Range = S3RangeSpec.Factory.create(range);
             if (!status.isFolder() && status.getLength() > 0) {
               BlockLocationInfo locationInfo =
@@ -219,7 +223,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
                 final URI uri =
                     new URI("http", null, workerNetAddress.getHost(),
                         Configuration.getInt(PropertyKey.WORKER_REST_PORT),
-                        "/" + objectPath, null, null);
+                        objectPath, null, null);
                 LOG.warn("redirect to the uri [{}]", uri);
                 HttpResponse response =
                     new DefaultHttpResponse(HttpVersion.HTTP_1_1,
@@ -247,16 +251,21 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
             }
 
             // Check for the object's ETag
-            String entityTag = NettyRestUtils.getEntityTag(status);
-            if (entityTag != null) {
-              response.headers().set(S3Constants.S3_ETAG_HEADER, entityTag);
+            // TODO(wyy) this is the temporary solution to get ETag of the object.
+            Fingerprint fingerprint = Fingerprint.parse(status.getUfsFingerprint());
+            String contentHash = fingerprint.getTag(Fingerprint.Tag.CONTENT_HASH);
+            if (contentHash != null) {
+              response.headers().set(S3Constants.S3_ETAG_HEADER, contentHash);
             } else {
               LOG.debug("Failed to find ETag for object: " + objectPath);
             }
 
             // Check if the object had a specified "Content-Type"
-            response.headers().set(HttpHeaderNames.CONTENT_TYPE,
+            // TODO(wyy) not support xattr, it may not works.
+            response.headers().set(S3Constants.S3_CONTENT_TYPE_HEADER,
                 NettyRestUtils.deserializeContentType(status.getXAttr()));
+            response.headers()
+                .set(HttpHeaderNames.CONTENT_ENCODING, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             // Check if object had tags, if so we need to return the count
             // in the header "x-amz-tagging-count"
@@ -380,8 +389,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
 
         String entityTag = Hex.encodeHexString(digest);
         // persist the ETag via xAttr
-        // TODO(wyy) persist the ETag via xAttr after supporting sexXattr
-//        NettyRestUtils.setEntityTag(userFs, objectUri, entityTag);
+        S3NettyHandler.setEntityTag(userFs, objectUri, entityTag);
 
         HttpResponse response =
             new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
@@ -471,18 +479,18 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
           long length = s3Range.getLength(status.getLength());
 
           byte[] buffer = new byte[8 * Constants.MB];
-          // TODO(wyy) fix the length
-          while (offset < length &&
+          int read = 0;
+          // TODO(wyy) fix the length (not works right now)
+          while (read < length &&
               -1 != (n = positionReader.read(offset, buffer, buffer.length))) {
             digestOut.write(buffer, 0, n);
             offset += n;
+            read += n;
           }
-//          IOUtils.copyLarge(ris, digestOut, new byte[8 * Constants.MB]);
           byte[] digest = md5.digest();
           String entityTag = Hex.encodeHexString(digest);
           // persist the ETag via xAttr
-          // TODO(wyy) persist the ETag via xAttr after supporting sexXattr
-//        NettyRestUtils.setEntityTag(userFs, objectUri, entityTag);
+          S3NettyHandler.setEntityTag(userFs, objectUri, entityTag);
           return entityTag;
         } catch (IOException e) {
           try {

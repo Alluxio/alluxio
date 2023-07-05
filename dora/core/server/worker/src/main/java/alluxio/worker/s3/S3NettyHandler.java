@@ -11,10 +11,6 @@
 
 package alluxio.worker.s3;
 
-import static io.netty.handler.codec.http.HttpHeaderNames.CONNECTION;
-import static io.netty.handler.codec.http.HttpHeaderValues.KEEP_ALIVE;
-import static org.eclipse.jetty.http.HttpHeaderValue.CLOSE;
-
 import alluxio.AlluxioURI;
 import alluxio.client.file.DoraCacheFileSystem;
 import alluxio.client.file.FileSystem;
@@ -22,8 +18,10 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.network.netty.FileTransferType;
 import alluxio.network.protocol.databuffer.CompositeDataBuffer;
@@ -32,6 +30,7 @@ import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
 import alluxio.network.protocol.databuffer.NioDataBuffer;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.proto.journal.File;
 import alluxio.s3.NettyRestUtils;
 import alluxio.s3.S3AuditContext;
 import alluxio.s3.S3Constants;
@@ -43,6 +42,7 @@ import alluxio.util.ThreadUtils;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.dora.DoraWorker;
 
+import com.google.protobuf.ByteString;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -50,7 +50,6 @@ import io.netty.channel.FileRegion;
 import io.netty.handler.codec.http.DefaultHttpContent;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import org.slf4j.Logger;
@@ -162,6 +161,7 @@ public class S3NettyHandler {
       }
       handler = new S3NettyHandler(bucket, object, request, context, fileSystem, doraWorker,
           asyncAuditLogWriter);
+      // TODO(wyy) stopWatch?
 //      handler.setStopwatch(stopwatch);
       handler.init();
       S3NettyBaseTask task = null;
@@ -294,17 +294,9 @@ public class S3NettyHandler {
    * @param closeAfterWrite if true, After writes context channel will close
    */
   public void processHttpResponse(HttpResponse response, boolean closeAfterWrite) {
-    // TODO(wyy) just skip the keep-alive part now and fix it later
-//    boolean keepAlive = HttpUtil.isKeepAlive(mRequest);
-//    if (closeAfterWrite && response != null) {
-//      if (keepAlive) {
-//        response.headers().set(CONNECTION, KEEP_ALIVE);
-//      } else {
-//        // Tell the client we're going to close the connection.
-//        response.headers().set(CONNECTION, CLOSE);
-//      }
-//    }
-    mContext.write(response);
+    if (response != null) {
+      mContext.write(response);
+    }
     if (closeAfterWrite) {
       mContext.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT)
           .addListener(ChannelFutureListener.CLOSE);
@@ -553,5 +545,22 @@ public class S3NettyHandler {
     } catch (Exception e) {
       throw NettyRestUtils.toBucketS3Exception(e, bucketPath, auditContext);
     }
+  }
+
+  /**
+   * This helper method is used to set the ETag xAttr on an object.
+   * @param fs The {@link FileSystem} used to make the gRPC request
+   * @param objectUri The {@link AlluxioURI} for the object to update
+   * @param entityTag The entity tag of the object (MD5 checksum of the object contents)
+   * @throws IOException
+   * @throws AlluxioException
+   */
+  public static void setEntityTag(FileSystem fs, AlluxioURI objectUri, String entityTag)
+      throws IOException, AlluxioException {
+    fs.setAttribute(objectUri, SetAttributePOptions.newBuilder()
+        .putXattr(S3Constants.ETAG_XATTR_KEY,
+            ByteString.copyFrom(entityTag, S3Constants.XATTR_STR_CHARSET))
+        .setXattrUpdateStrategy(File.XAttrUpdateStrategy.UNION_REPLACE)
+        .build());
   }
 }

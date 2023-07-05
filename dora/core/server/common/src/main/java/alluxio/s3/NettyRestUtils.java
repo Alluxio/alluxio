@@ -71,7 +71,7 @@ public class NettyRestUtils {
       T result = callable.call();
       HttpVersion version = HttpVersion.HTTP_1_1;
       if (result == null) {
-        return new DefaultFullHttpResponse(version, OK);
+        return null;
       } else if (result instanceof HttpResponse) {
         return (HttpResponse) result;
       }
