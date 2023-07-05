@@ -14,6 +14,7 @@ import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 import eu.rekawek.toxiproxy.model.ToxicDirection;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
@@ -30,10 +31,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -44,6 +45,14 @@ public class MembershipManagerTest {
   public TemporaryFolder mFolder = new TemporaryFolder();
 
   private static ToxiproxyContainer.ContainerProxy etcdProxy;
+
+  //Add for logging for debugging purpose
+//  @BeforeClass
+//  public static void init() {
+//    PropertyConfigurator.configure("/Users/lucyge/Documents/github/alluxio/conf/log4j.properties");
+//    Properties props = new Properties();
+//    props.setProperty(PropertyKey.LOGGER_TYPE.toString(), "Console");
+//  }
 
   @ClassRule
   public static final GenericContainer<?> etcd =
@@ -61,21 +70,20 @@ public class MembershipManagerTest {
           .withNetwork(network)
           .withNetworkAliases("toxiproxy");
 
-  private List<String> getClientEndpoints() {
+  private static List<String> getClientEndpoints() {
     return List.of("https://" + etcd.getHost() +
         ":" + etcd.getMappedPort(ETCD_PORT));
   }
 
-  private List<URI> getProxiedClientEndpoints() {
+  private static List<URI> getProxiedClientEndpoints() {
     return List.of(URI.create(
         "https://" + etcdProxy.getContainerIpAddress() +
             ":" + etcdProxy.getProxyPort()
     ));
   }
 
-
   @BeforeClass
-  public static void before() throws Exception {
+  public static void beforeAll() throws Exception {
     etcdProxy = toxiproxy.getProxy(etcd, ETCD_PORT);
   }
 
@@ -84,26 +92,24 @@ public class MembershipManagerTest {
     network.close();
   }
 
-
-/* Add for logging for debugging purpose
-  @BeforeClass
-  public static void init() {
-    PropertyConfigurator.configure("github/alluxio/conf/log4j.properties");
-    Properties props = new Properties();
-    props.setProperty(PropertyKey.LOGGER_TYPE.toString(), "Console");
+  @Before
+  public void before() {
+    List<String> strs = getHealthyAlluxioEtcdClient().getChildren("/")
+        .stream().map(kv -> kv.getKey().toString(StandardCharsets.UTF_8))
+        .collect(Collectors.toList());
+    System.out.println("Before, all kvs on etcd:" + strs);
   }
-*/
 
-//  @Test
-//  public void testBasics() throws IOException {
-//    Configuration.set(PropertyKey.ETCD_ENDPOINTS, getProxiedClientEndpoints());
-//    AlluxioEtcdClient etcdClient = AlluxioEtcdClient.getInstance(Configuration.global());
-//
-//    etcdProxy.toxics()
-//        .latency("latency", ToxicDirection.UPSTREAM, 10000);
-//    etcdClient.createForPath("/Lucy", Optional.of("LucyValue".getBytes()));
-//    System.out.println(new String(etcdClient.getForPath("/Lucy")));
-//  }
+  @After
+  public void after() throws IOException {
+    // Wipe out clean all etcd kv pairs
+    getHealthyAlluxioEtcdClient().deleteForPath("/", true);
+    AlluxioEtcdClient.getInstance(Configuration.global()).mServiceDiscovery.unregisterAll();
+    List<String> strs = getHealthyAlluxioEtcdClient().getChildren("/")
+        .stream().map(kv -> kv.getKey().toString(StandardCharsets.UTF_8))
+        .collect(Collectors.toList());
+    System.out.println("After, all kvs on etcd:" + strs);
+  }
 
   @Test
   public void testEtcdMembership() throws Exception {
@@ -157,11 +163,14 @@ public class MembershipManagerTest {
     Assert.assertEquals(expectedLiveMembers, actualLiveMembers);
   }
 
-  public MembershipManager getHealthyEtcdMemberMgr() throws IOException {
+  public AlluxioEtcdClient getHealthyAlluxioEtcdClient() {
     Configuration.set(PropertyKey.WORKER_MEMBERSHIP_TYPE, MembershipType.ETCD);
     Configuration.set(PropertyKey.ETCD_ENDPOINTS, getClientEndpoints());
-    AlluxioEtcdClient alluxioEtcdClient = new AlluxioEtcdClient(Configuration.global());
-    return new EtcdMembershipManager(Configuration.global(), alluxioEtcdClient);
+    return new AlluxioEtcdClient(Configuration.global());
+  }
+
+  public MembershipManager getHealthyEtcdMemberMgr() throws IOException {
+    return new EtcdMembershipManager(Configuration.global(), getHealthyAlluxioEtcdClient());
   }
 
   @Test
@@ -187,7 +196,7 @@ public class MembershipManagerTest {
         }, WaitForOptions.defaults().setTimeoutMs(TimeUnit.SECONDS.toMillis(10)));
 
     MembershipManager healthyMgr = getHealthyEtcdMemberMgr();
-    System.out.println(healthyMgr.showAllMembers());
+    System.out.println("All Node Status:\n" + healthyMgr.showAllMembers());
     etcdProxy.toxics()
         .latency("latency", ToxicDirection.UPSTREAM, 10000);
     CommonUtils.waitFor("Worker1 network errored",
@@ -199,10 +208,19 @@ public class MembershipManagerTest {
                 String.format("Unexpected error while getting failed members: %s", e));
           }
         }, WaitForOptions.defaults().setTimeoutMs(TimeUnit.SECONDS.toMillis(10)));
-    System.out.println(healthyMgr.showAllMembers());
+    System.out.println("All Node Status:\n" + healthyMgr.showAllMembers());
     etcdProxy.toxics().get("latency").remove();
+    CommonUtils.waitFor("Worker1 network recovered",
+        () -> {
+          try {
+            return healthyMgr.getFailedMembers().isEmpty();
+          } catch (IOException e) {
+            throw new RuntimeException(
+                String.format("Unexpected error while getting failed members: %s", e));
+          }
+        }, WaitForOptions.defaults().setTimeoutMs(TimeUnit.SECONDS.toMillis(10)));
+    System.out.println("All Node Status:\n" + healthyMgr.showAllMembers());
   }
-
 
   @Test
   public void testStaticMembership() throws Exception {

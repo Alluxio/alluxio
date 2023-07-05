@@ -2,6 +2,8 @@ package alluxio.membership;
 
 import alluxio.exception.status.AlreadyExistsException;
 
+import alluxio.resource.LockResource;
+import alluxio.util.ThreadFactoryUtils;
 import com.google.common.base.Preconditions;
 
 import io.etcd.jetcd.ByteSequence;
@@ -15,6 +17,7 @@ import io.etcd.jetcd.op.CmpTarget;
 import io.etcd.jetcd.op.Op;
 import io.etcd.jetcd.options.GetOption;
 import io.etcd.jetcd.options.PutOption;
+import io.etcd.jetcd.support.CloseableClient;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +35,9 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.GuardedBy;
@@ -45,6 +51,7 @@ public class ServiceDiscoveryRecipe {
   private static final String BASE_PATH = "/ServiceDiscovery";
   Client mClient;
   AlluxioEtcdClient mAlluxioEtcdClient;
+  ScheduledExecutorService mExecutor;
   String mClusterIdentifier = "";
   private final ReentrantLock mRegisterLock = new ReentrantLock();
   final ConcurrentHashMap<String, ServiceEntity> mRegisteredServices = new ConcurrentHashMap<>();
@@ -54,6 +61,11 @@ public class ServiceDiscoveryRecipe {
     mAlluxioEtcdClient.connect();
     mClient = client.getEtcdClient();
     mClusterIdentifier = clusterIdentifier;
+    mExecutor = Executors.newSingleThreadScheduledExecutor(
+        ThreadFactoryUtils.build("service-discovery-checker", false));
+    mExecutor.scheduleWithFixedDelay(this::checkAllForReconnect,
+        AlluxioEtcdClient.sDefaultLeaseTTLInSec, AlluxioEtcdClient.sDefaultLeaseTTLInSec,
+        TimeUnit.SECONDS);
   }
 
   /**
@@ -64,6 +76,57 @@ public class ServiceDiscoveryRecipe {
     return String.format("%s/%s", BASE_PATH, mClusterIdentifier);
   }
 
+  /**
+   * Apply for a new lease for given ServiceEntity.
+   * @param service
+   * @throws IOException
+   */
+  private void newLeaseInternal(ServiceEntity service) throws IOException {
+    try(LockResource lockResource = new LockResource(service.mLock)) {
+      if (service.mLease != null && !mAlluxioEtcdClient.isLeaseExpired(service.mLease)) {
+        LOG.info("Lease attached with service:{} is not expired, bail from here.");
+        return;
+      }
+      String path = service.mServiceEntityName;
+      String fullPath = getRegisterPathPrefix() + "/" + path;
+      try {
+        AlluxioEtcdClient.Lease lease = mAlluxioEtcdClient.createLease();
+        Txn txn = mClient.getKVClient().txn();
+        ByteSequence keyToPut = ByteSequence.from(fullPath, StandardCharsets.UTF_8);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        DataOutputStream dos = new DataOutputStream(baos);
+        service.serialize(dos);
+        ByteSequence valToPut = ByteSequence.from(baos.toByteArray());
+        CompletableFuture<TxnResponse> txnResponseFut = txn.If(
+                new Cmp(keyToPut, Cmp.Op.EQUAL, CmpTarget.version(0L)))
+            .Then(Op.put(keyToPut, valToPut, PutOption.newBuilder()
+                .withLeaseId(lease.mLeaseId).build()))
+            .Then(Op.get(keyToPut, GetOption.DEFAULT))
+            .Else(Op.get(keyToPut, GetOption.DEFAULT))
+            .commit();
+        TxnResponse txnResponse = txnResponseFut.get();
+        List<KeyValue> kvs = new ArrayList<>();
+        txnResponse.getGetResponses().stream().map(
+            r -> kvs.addAll(r.getKvs())).collect(Collectors.toList());
+        if (!txnResponse.isSucceeded()) {
+          if (!kvs.isEmpty()) {
+            throw new AlreadyExistsException("Same service kv pair is there but "
+                + "attached lease is expired, this should not happen");
+          }
+          throw new IOException("Failed to new a lease for service:" + service.toString());
+        }
+        Preconditions.checkState(!kvs.isEmpty(), "No such service entry found.");
+        long latestRevision = kvs.stream().mapToLong(kv -> kv.getModRevision())
+            .max().getAsLong();
+        service.mRevision = latestRevision;
+        service.mLease = lease;
+        startHeartBeat(service);
+      } catch (ExecutionException | InterruptedException ex) {
+        throw new IOException("Exception in new-ing lease for service:" + service, ex);
+      }
+    }
+  }
+
   @GuardedBy("ServiceDiscoveryRecipe#mRegisterLock")
   public void registerAndStartSync(ServiceEntity service) throws IOException {
     LOG.info("registering service : {}", service);
@@ -71,46 +134,8 @@ public class ServiceDiscoveryRecipe {
       throw new AlreadyExistsException("Service " + service.mServiceEntityName
           + " already registerd.");
     }
-    String path = service.mServiceEntityName;
-    String fullPath = getRegisterPathPrefix() + "/" + path;
-    try {
-      AlluxioEtcdClient.Lease lease = mAlluxioEtcdClient.createLease();
-      Txn txn = mClient.getKVClient().txn();
-      ByteSequence keyToPut = ByteSequence.from(fullPath, StandardCharsets.UTF_8);
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      DataOutputStream dos = new DataOutputStream(baos);
-      service.serialize(dos);
-      ByteSequence valToPut = ByteSequence.from(baos.toByteArray());
-      CompletableFuture<TxnResponse> txnResponseFut = txn.If(
-          new Cmp(keyToPut, Cmp.Op.EQUAL, CmpTarget.version(0L)))
-          .Then(Op.put(keyToPut, valToPut, PutOption.newBuilder()
-              .withLeaseId(lease.mLeaseId).build()))
-          .Then(Op.get(keyToPut, GetOption.DEFAULT))
-          .Else(Op.get(keyToPut, GetOption.DEFAULT))
-          .commit();
-      TxnResponse txnResponse = txnResponseFut.get();
-      List<KeyValue> kvs = new ArrayList<>();
-      txnResponse.getGetResponses().stream().map(
-          r -> kvs.addAll(r.getKvs())).collect(Collectors.toList());
-      if (!txnResponse.isSucceeded()) {
-        if (!kvs.isEmpty()) {
-          throw new AlreadyExistsException("Same service already registered"
-              + ", this should not happen");
-        }
-        throw new IOException("Failed to register service:" + service.toString());
-      }
-      Preconditions.checkState(!kvs.isEmpty(), "No such service entry found.");
-      long latestRevision = kvs.stream().mapToLong(kv -> kv.getModRevision())
-          .max().getAsLong();
-      service.mRevision = latestRevision;
-      service.mLease = lease;
-      startHeartBeat(service);
-      mRegisteredServices.put(service.mServiceEntityName, service);
-    } catch (ExecutionException ex) {
-      throw new IOException("ExecutionException in registering service:" + service, ex);
-    } catch (InterruptedException ex) {
-      LOG.info("InterruptedException caught, bail.");
-    }
+    newLeaseInternal(service);
+    mRegisteredServices.put(service.mServiceEntityName, service);
   }
 
   @GuardedBy("ServiceDiscoveryRecipe#mRegisterLock")
@@ -125,6 +150,16 @@ public class ServiceDiscoveryRecipe {
     }
   }
 
+  public void unregisterAll() {
+    for (Map.Entry<String, ServiceEntity> entry : mRegisteredServices.entrySet()) {
+      try {
+        unregisterService(entry.getKey());
+      } catch (IOException ex) {
+        LOG.info("Unregister all services failed unregistering for:{}.", entry.getKey(), ex);
+      }
+    }
+  }
+
   public ByteBuffer getRegisteredServiceDetail(String serviceEntityName)
       throws IOException {
     String fullPath = getRegisterPathPrefix() + "/" + serviceEntityName;
@@ -132,6 +167,13 @@ public class ServiceDiscoveryRecipe {
     return ByteBuffer.wrap(val);
   }
 
+  /**
+   * Update the service value with new value.
+   * TODO(lucy) we need to handle the cases where txn failed bcos of
+   * lease expiration.
+   * @param service
+   * @throws IOException
+   */
   @GuardedBy("ServiceDiscoveryRecipe#mRegisterLock")
   public void updateService(ServiceEntity service) throws IOException {
     LOG.info("Updating service : {}", service);
@@ -166,9 +208,16 @@ public class ServiceDiscoveryRecipe {
   }
 
   private void startHeartBeat(ServiceEntity service) {
-    service.setKeepAliveClient(mClient.getLeaseClient()
-        .keepAlive(service.mLease.mLeaseId, new RetryKeepAliveObserver(service)));
+    try {
+      CloseableClient keepAliveClient = mClient.getLeaseClient()
+          .keepAlive(service.mLease.mLeaseId, new RetryKeepAliveObserver(service));
+      service.setKeepAliveClient(keepAliveClient);
+    } catch (Throwable th) {
+      LOG.error("exception in opening keepalive client for service:{}",
+          service.getServiceEntityName(), th);
+    }
   }
+
 
   class RetryKeepAliveObserver implements StreamObserver<LeaseKeepAliveResponse> {
     public ServiceEntity mService;
@@ -180,19 +229,21 @@ public class ServiceDiscoveryRecipe {
     @Override
     public void onNext(LeaseKeepAliveResponse value) {
       // NO-OP
+      LOG.debug("onNext keepalive response:id:{}:ttl:{}", value.getID(), value.getTTL());
     }
 
     @Override
     public void onError(Throwable t) {
-      LOG.error("onError for Lease for service:{}, leaseId:{}, try starting new keepalive client..",
+      LOG.error("onError for Lease for service:{}, leaseId:{}. Setting status to reconnect",
           mService, mService.mLease.mLeaseId, t);
-      startHeartBeat(mService);
+      mService.mNeedReconnect.compareAndSet(false, true);
     }
 
     @Override
     public void onCompleted() {
-      LOG.info("onCompleted for Lease for service:{}, leaseId:{}",
+      LOG.info("onCompleted for Lease for service:{}, leaseId:{}. Setting status to reconnect",
           mService, mService.mLease.mLeaseId);
+      mService.mNeedReconnect.compareAndSet(false, true);
     }
   }
 
@@ -209,5 +260,27 @@ public class ServiceDiscoveryRecipe {
           ByteBuffer.wrap(kv.getValue().getBytes()));
     }
     return ret;
+  }
+
+  /**
+   * Periodically check if any ServiceEntity's lease got expired and needs
+   * renew the lease with new keepalive client.
+   */
+  private void checkAllForReconnect() {
+    // No need for lock over all services, just individual ServiceEntity is enough
+    for (Map.Entry<String, ServiceEntity> entry : mRegisteredServices.entrySet()) {
+      ServiceEntity entity = entry.getValue();
+      try (LockResource lockResource = new LockResource(entry.getValue().mLock)) {
+        if (entity.mNeedReconnect.get()) {
+          try {
+            LOG.info("Start reconnect for service:{}", entity.getServiceEntityName());
+            newLeaseInternal(entity);
+            entity.mNeedReconnect.set(false);
+          } catch (IOException e) {
+            LOG.info("Failed trying to new the lease for service:{}", entity, e);
+          }
+        }
+      }
+    }
   }
 }

@@ -6,6 +6,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.resource.LockResource;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
+import alluxio.util.executor.ExecutorServiceFactory;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
@@ -19,10 +21,13 @@ import io.etcd.jetcd.kv.PutResponse;
 import io.etcd.jetcd.kv.TxnResponse;
 import io.etcd.jetcd.lease.LeaseGrantResponse;
 import io.etcd.jetcd.lease.LeaseRevokeResponse;
+import io.etcd.jetcd.lease.LeaseTimeToLiveResponse;
 import io.etcd.jetcd.op.Cmp;
 import io.etcd.jetcd.op.CmpTarget;
 import io.etcd.jetcd.op.Op;
+import io.etcd.jetcd.options.DeleteOption;
 import io.etcd.jetcd.options.GetOption;
+import io.etcd.jetcd.options.LeaseOption;
 import io.etcd.jetcd.options.PutOption;
 import io.etcd.jetcd.options.WatchOption;
 import io.etcd.jetcd.watch.WatchEvent;
@@ -44,6 +49,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -159,6 +165,30 @@ public class AlluxioEtcdClient implements Closeable {
     }, new ExponentialBackoffRetry(100, 500, RETRY_TIMES));
   }
 
+  /**
+   * Check with etcd if a lease is already expired.
+   * @param lease
+   * @return lease expired
+   */
+  public boolean isLeaseExpired(Lease lease) {
+    return RetryUtils.retryCallable(
+        String.format("Checking IsLeaseExpired, lease:%s",lease.toString()),
+        () -> {
+          LeaseTimeToLiveResponse leaseResp = mClient.getLeaseClient()
+              .timeToLive(lease.mLeaseId, LeaseOption.DEFAULT)
+              .get();
+          return leaseResp.getTTl() <= 0;
+        }, new ExponentialBackoffRetry(100, 500, RETRY_TIMES));
+  }
+
+  /**
+   * Create a childPath with value to a parentPath.
+   * e.g. create "lower_path" under path /upper_path/ to form a
+   * kv pair of /upper_path/lower_path with a given value.
+   * @param parentPath
+   * @param childPath
+   * @param value
+   */
   public void addChildren(String parentPath, String childPath, byte[] value) {
     Preconditions.checkState(!StringUtil.isNullOrEmpty(parentPath));
     Preconditions.checkState(!StringUtil.isNullOrEmpty(childPath));
@@ -174,6 +204,13 @@ public class AlluxioEtcdClient implements Closeable {
         new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, 0));
   }
 
+  /**
+   * Get list of children path kv pairs from a given parentPath
+   * e.g. get [/upper/lower1 - val1, /upper/lower2 - val2]
+   * under parent path /upper/
+   * @param parentPath parentPath ends with /
+   * @return
+   */
   public List<KeyValue> getChildren(String parentPath) {
     return RetryUtils.retryCallable(String.format("Getting children for path:%s", parentPath), () -> {
       Preconditions.checkState(!StringUtil.isNullOrEmpty(parentPath));
@@ -317,10 +354,11 @@ public class AlluxioEtcdClient implements Closeable {
     }, new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES));
   }
 
-  public void deleteForPath(String path) {
+  public void deleteForPath(String path, boolean recursive) {
     RetryUtils.retryCallable(String.format("Delete for path:%s", path), () -> {
       try {
-        mClient.getKVClient().delete(ByteSequence.from(path, StandardCharsets.UTF_8))
+        mClient.getKVClient().delete(ByteSequence.from(path, StandardCharsets.UTF_8)
+                , DeleteOption.newBuilder().isPrefix(recursive).build())
             .get();
       } catch (ExecutionException | InterruptedException ex) {
         throw new IOException("Error deleting path:" + path, ex);
@@ -356,83 +394,4 @@ public class AlluxioEtcdClient implements Closeable {
     }
     mCloser.close();
   }
-
-  public static void testBarrier(AlluxioEtcdClient alluxioEtcdClient) {
-    try {
-      BarrierRecipe barrierRecipe = new BarrierRecipe(alluxioEtcdClient, "/barrier-test",
-          "cluster1", 2L);
-      LOG.info("Setting barrier.");
-      barrierRecipe.setBarrier();
-      Thread t = new Thread(() -> {
-        try {
-          LOG.info("start waiting on barrier...");
-          barrierRecipe.waitOnBarrier();
-          LOG.info("wait on barrier done.");
-        } catch (InterruptedException e) {
-          LOG.info("wait on barrier ex:", e);
-          throw new RuntimeException(e);
-        }
-      });
-      t.start();
-      Thread.sleep(3000);
-      LOG.info("Removing barrier.");
-      barrierRecipe.removeBarrier();
-      t.join();
-    } catch (Exception ex) {
-      ex.printStackTrace();
-    }
-  }
-
-  public static void main(String[] args) {
-    BasicConfigurator.configure();
-    AlluxioEtcdClient alluxioEtcdClient = new AlluxioEtcdClient(Configuration.global());
-    alluxioEtcdClient.connect();
-//    testServiceDiscovery(etcdClient);
-//    testBarrier(etcdClient);
-
-    try {
-//      etcdClient.mClient.getWatchClient().watch(ByteSequence.from("/lucy1", StandardCharsets.UTF_8),
-//          WatchOption.newBuilder().withRevision(70L).build(), watchResponse -> {
-//            for (WatchEvent event : watchResponse.getEvents()) {
-//              if (event.getEventType() == WatchEvent.EventType.PUT) {
-//                LOG.info("PUT event observed on path {}, createrevision:{}, modifyrevision:{}, version:{}",
-//                    "/lucy1", event.getKeyValue().getCreateRevision(), event.getKeyValue().getModRevision()
-//                    , event.getKeyValue().getVersion());
-//              }
-//            }
-//          });
-//      GetResponse resp = etcdClient.mClient.getKVClient()
-//          .get(ByteSequence.from("/lucy", StandardCharsets.UTF_8)).get();
-//      for (KeyValue kv : resp.getKvs()) {
-//        LOG.info("[LUCY]k:{}:v:{}:version:{}:createVersion:{}:modifyVersion:{}:lease:{}",
-//            kv.getKey().toString(StandardCharsets.UTF_8), kv.getValue().toString(StandardCharsets.UTF_8),
-//            kv.getVersion(), kv.getCreateRevision(), kv.getModRevision(), kv.getLease());
-//      }
-      String fullPath = "/lucytest0612";
-      Txn txn = alluxioEtcdClient.mClient.getKVClient().txn();
-      ByteSequence keyToPut = ByteSequence.from(fullPath, StandardCharsets.UTF_8);
-      ByteSequence valToPut = ByteSequence.from("abc", StandardCharsets.UTF_8);
-      CompletableFuture<TxnResponse> txnResponseFut = txn.If(new Cmp(keyToPut, Cmp.Op.EQUAL, CmpTarget.modRevision(78L)))
-          .Then(Op.put(keyToPut, valToPut, PutOption.newBuilder().build()))
-          .Then(Op.get(keyToPut, GetOption.DEFAULT))
-          .Else(Op.get(keyToPut, GetOption.DEFAULT))
-          .commit();
-      TxnResponse resp = txnResponseFut.get();
-      LOG.info("resp.isSucceeded:{}", resp.isSucceeded());
-      List<KeyValue> kvs = new ArrayList<>();
-      resp.getGetResponses().stream().map(r -> kvs.addAll(r.getKvs())).collect(Collectors.toList());
-      List<String> outputs = kvs.stream().map(kv -> kv.getKey().toString(StandardCharsets.UTF_8) + ":"
-          + kv.getValue().toString(StandardCharsets.UTF_8) + "[" + kv.getModRevision() + "]").collect(Collectors.toList());
-      LOG.info("resp kv:{}", outputs);
-    } catch(Exception ex) {
-      ex.printStackTrace();
-    }
-    LOG.info("[LUCY] main done.");
-  }
-
-//  private static void init() {
-//    PropertyConfigurator.configure("/Users/lucyge/Documents/github/alluxio/conf/log4j.properties");
-//    Properties props = new Properties();
-//    props.setProperty(PropertyKey.LOGGER_TYPE.toString(), "Console");
-//  }
 }

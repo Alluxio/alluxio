@@ -6,6 +6,8 @@ import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Base Entity class including information to register to Etcd
@@ -17,6 +19,8 @@ public class ServiceEntity implements Closeable {
   protected String mServiceEntityName; // unique service alias
   // revision number of kv pair of registered entity on etcd, used for CASupdate
   protected long mRevision;
+  public final ReentrantLock mLock = new ReentrantLock();
+  public AtomicBoolean mNeedReconnect = new AtomicBoolean(false);
 
   /**
    * CTOR for ServiceEntity.

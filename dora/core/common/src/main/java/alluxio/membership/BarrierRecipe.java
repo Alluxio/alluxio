@@ -149,4 +149,34 @@ public class BarrierRecipe {
     waitOnBarrierInternal();
     mLatch.await(time, timeUnit);
   }
+
+  /**
+   * TEMPORARY simple barrier test - WIP
+   * @param alluxioEtcdClient
+   */
+  public static void testBarrier(AlluxioEtcdClient alluxioEtcdClient) {
+    try {
+      BarrierRecipe barrierRecipe = new BarrierRecipe(alluxioEtcdClient, "/barrier-test",
+          "cluster1", 2L);
+      LOG.info("Setting barrier.");
+      barrierRecipe.setBarrier();
+      Thread t = new Thread(() -> {
+        try {
+          LOG.info("start waiting on barrier...");
+          barrierRecipe.waitOnBarrier();
+          LOG.info("wait on barrier done.");
+        } catch (InterruptedException e) {
+          LOG.info("wait on barrier ex:", e);
+          throw new RuntimeException(e);
+        }
+      });
+      t.start();
+      Thread.sleep(3000);
+      LOG.info("Removing barrier.");
+      barrierRecipe.removeBarrier();
+      t.join();
+    } catch (Exception ex) {
+      ex.printStackTrace();
+    }
+  }
 }
