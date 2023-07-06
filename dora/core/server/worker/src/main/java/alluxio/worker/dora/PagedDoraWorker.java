@@ -71,6 +71,8 @@ import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.DeleteOptions;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.ModeUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -114,6 +116,7 @@ import javax.inject.Named;
  */
 public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private static final Logger LOG = LoggerFactory.getLogger(PagedDoraWorker.class);
+  public static final long DUMMY_BLOCK_SIZE = 64L * 1024 * 1024;
   // for now Dora Worker does not support Alluxio <-> UFS mapping,
   // and assumes all UFS paths belong to the same UFS.
   private static final int MOUNT_POINT = 1;
@@ -128,6 +131,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private final BlockMasterClientPool mBlockMasterClientPool;
   private final String mRootUFS;
   private FileSystemContext mFsContext;
+  private MkdirsOptions mMkdirsRecursive;
+  private MkdirsOptions mMkdirsNonRecursive;
 
   private WorkerNetAddress mAddress;
 
@@ -164,6 +169,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     mMetaManager = mResourceCloser.register(
         new DoraMetaManager(this, mCacheManager, mUfs));
     mOpenFileHandleContainer = new DoraOpenFileHandleContainer();
+
+    mMkdirsRecursive = MkdirsOptions.defaults(mConf).setCreateParent(true);
+    mMkdirsNonRecursive = MkdirsOptions.defaults(mConf).setCreateParent(false);
   }
 
   @Override
@@ -259,7 +267,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         ? (options.getCommonOptions().hasSyncIntervalMs()
         ? options.getCommonOptions().getSyncIntervalMs() : -1) :
         -1;
-
     boolean isRecursive = options.getRecursive();
     final Optional<ListStatusResult> resultFromCache = mMetaManager.listCached(path, isRecursive);
 
@@ -592,8 +599,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   @Override
   public OpenFileHandle createFile(String path, CreateFilePOptions options)
-      throws AccessControlException, IOException { // Lock is needed.
-    //OutputStream outStream;
+      throws AccessControlException, IOException {
+    // TODO(yuyang): Lock is needed.
     alluxio.grpc.FileInfo info;
     OpenFileHandle existingHandle = mOpenFileHandleContainer.find(path);
     if (existingHandle != null) {
@@ -626,21 +633,17 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         mMetaManager.removeFromMetaStore(path);
       }
 
-      // Open UFS OutputStream and use it in write operation.
-      // We are writing UFS from client. No need of this outStream at this moment.
-      //outStream = mUfs.create(path, createOption);
-
       // Prepare a "fake" UfsStatus here. Please prepare more fields here.
       String owner = createOption.getOwner() != null ? createOption.getOwner() : "";
       String group = createOption.getGroup() != null ? createOption.getGroup() : "";
       UfsStatus status = new UfsFileStatus(new AlluxioURI(path).toString(),
                                 "",
                                 0,
-                                System.currentTimeMillis(),
+                                CommonUtils.getCurrentMs(),
                                 owner,
                                 group,
                                 createOption.getMode().toShort(),
-                                64L * 1024 * 1024);
+                                DUMMY_BLOCK_SIZE);
       info = buildFileInfoFromUfsStatus(status, path);
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -677,11 +680,17 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
       // TODO(hua) Close the open file handle?
       if (!options.getAlluxioOnly()) {
+        // By being a cache, Dora assume the file exists in UFS when a delete is issued
+        // So if the file does not exist in UFS, an IOException will be thrown here
         UfsStatus status = mUfs.getStatus(path);
         if (status.isFile()) {
           mUfs.deleteFile(path);
         } else {
-          mUfs.deleteDirectory(path);
+          if (options.hasRecursive() && options.getRecursive()) {
+            mUfs.deleteDirectory(path, DeleteOptions.RECURSIVE);
+          } else {
+            mUfs.deleteDirectory(path, DeleteOptions.NON_RECURSIVE);
+          }
         }
       }
     } catch (IOException e) {
@@ -711,7 +720,12 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   public void createDirectory(String path, CreateDirectoryPOptions options)
       throws IOException, AccessControlException {
     try {
-      boolean success = mUfs.mkdirs(path);
+      boolean success;
+      if (options.hasRecursive() && options.getRecursive()) {
+        success = mUfs.mkdirs(path, mMkdirsRecursive);
+      } else {
+        success = mUfs.mkdirs(path, mMkdirsNonRecursive);
+      }
       mMetaManager.loadFromUfs(path);
       mMetaManager.invalidateListingCacheOfParent(path);
       if (!success) {
