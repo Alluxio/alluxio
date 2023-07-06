@@ -11,11 +11,11 @@
 
 package alluxio.stress.cli.worker;
 
-import alluxio.AlluxioURI;
+import static alluxio.stress.BaseParameters.DEFAULT_TASK_ID;
+
 import alluxio.Constants;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.grpc.WritePType;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.cli.AbstractStressBench;
@@ -27,8 +27,6 @@ import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import com.google.common.collect.ImmutableList;
-import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -47,8 +45,6 @@ import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-
-import static alluxio.stress.BaseParameters.DEFAULT_TASK_ID;
 
 /**
  * Single node stress test.
@@ -350,7 +346,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     private final WorkerBenchTaskResult mResult;
     private final boolean mIsRandomReed;
 
-    private final FSDataInputStream[] mInStreams = new FSDataInputStream[mFilePaths.length];
+    private FSDataInputStream mInStream;
 
     @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     private BenchThread(BenchContext context, int targetFileIndex, FileSystem fs) {
@@ -373,9 +369,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
         LOG.error(Thread.currentThread().getName() + ": failed", e);
         mResult.addErrorMessage(e.getMessage());
       } finally {
-        for (int i = 0; i < mInStreams.length; i++) {
-          closeInStream(i);
-        }
+        closeInStream();
       }
 
       // Update local thread end time
@@ -403,7 +397,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       while (!Thread.currentThread().isInterrupted()
           && CommonUtils.getCurrentMs() < mContext.getEndMs()) {
         // Keep reading the same file
-        int ioBytes = applyOperation(mTargetFileIndex);
+        int ioBytes = applyOperation();
         long currentMs = CommonUtils.getCurrentMs();
         // Start recording after the warmup
         if (currentMs > recordMs) {
@@ -416,25 +410,24 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
 
     /**
      * Read the file by the offset and length based on the given index.
-     * @param i the index of the path, offset and length of the target file
      * @return the actual red byte number
      */
-    private int applyOperation(int i) throws IOException {
-      Path filePath = mFilePaths[i];
-      int offset = mOffsets[i];
-      int length = mLengths[i];
+    private int applyOperation() throws IOException {
+      Path filePath = mFilePaths[mTargetFileIndex];
+      int offset = mOffsets[mTargetFileIndex];
+      int length = mLengths[mTargetFileIndex];
 
-      if (mInStreams[i] == null) {
-        mInStreams[i] = mFs.open(filePath);
+      if (mInStream == null) {
+        mInStream = mFs.open(filePath);
       }
 
       int bytesRead = 0;
       if (mIsRandomReed) {
         while (length > 0) {
-          int actualReadLength = mInStreams[i]
+          int actualReadLength = mInStream
               .read(offset, mBuffer, 0, mBuffer.length);
           if (actualReadLength < 0) {
-            closeInStream(i);
+            closeInStream();
             break;
           } else {
             bytesRead += actualReadLength;
@@ -442,12 +435,13 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
             offset += actualReadLength;
           }
         }
+        closeInStream();
       } else {
         while (true) {
-          int actualReadLength = mInStreams[i].read(mBuffer);
+          int actualReadLength = mInStream.read(mBuffer);
           if (actualReadLength < 0) {
-            closeInStream(i);
-            mInStreams[i] = mFs.open(filePath);
+            closeInStream();
+            mInStream = mFs.open(filePath);
             break;
           } else {
             bytesRead += actualReadLength;
@@ -457,15 +451,15 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       return bytesRead;
     }
 
-    private void closeInStream(int i) {
+    private void closeInStream() {
       try {
-        if (mInStreams[i] != null) {
-          mInStreams[i].close();
+        if (mInStream != null) {
+          mInStream.close();
         }
       } catch (IOException e) {
         mResult.addErrorMessage(e.getMessage());
       } finally {
-        mInStreams[i] = null;
+        mInStream = null;
       }
     }
   }
