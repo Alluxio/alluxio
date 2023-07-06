@@ -1,7 +1,7 @@
 ---
 layout: global
 title: Quick Start Guide
-group: Overview
+# group: Overview
 priority: 1
 ---
 

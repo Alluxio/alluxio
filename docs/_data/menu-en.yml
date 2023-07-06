@@ -12,8 +12,8 @@
         url: /en/overview/Introduction.html # change folder name
       - title: DORA Architecture
         url: /en/overview/Dora-Architecture.html
-      # - title: Moving from Alluxio 2.x to Dora
-      #   url: /en/overview/Why-Dora.html
+      - title: Moving from Alluxio 2.x to Dora # i want to delete this file, can we make it a blog instead?
+        url: /en/overview/Why-Dora.html
       - title: Glossary
         url: /en/overview/Glossary.html
 
@@ -42,8 +42,8 @@
   - title: Kubernetes
     buttonTitle: Kubernetes
     subfiles:
-      - title: Deploy Alluxio on K8s
-        url: /en/kubernetes/Deploy-Alluxio-On-Kubernetes.html
+      - title: Install Alluxio on K8s
+        url: /en/kubernetes/Install-Alluxio-On-Kubernetes.html
       - title: Metrics System on K8s
         url: /en/kubernetes/Metrics-On-Kubernetes.html
   
