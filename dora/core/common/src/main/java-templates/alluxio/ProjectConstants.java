@@ -21,8 +21,8 @@ public final class ProjectConstants {
   public static final String REVISION = "${git.revision}";
   /* Hadoop version, specified in maven property. **/
   public static final String HADOOP_VERSION = "${hadoop.version}";
-  /* Whether update check is enabled. **/
-  public static final String UPDATE_CHECK_ENABLED = "${update.check.enabled}";
+  /* Whether update check is configurable. **/
+  public static final String UPDATE_CHECK_CONFIGURABLE = "${update.check.configurable}";
   /* Update check host. **/
   public static final String UPDATE_CHECK_HOST = "${update.check.host}";
   /* Update check auth string. **/
