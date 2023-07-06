@@ -30,7 +30,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
-import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
@@ -73,7 +72,6 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
-import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.ModeUtils;
@@ -688,7 +686,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         if (status.isFile()) {
           mUfs.deleteFile(path);
         } else {
-          // TODO(jiacheng): Add UT for this
           if (options.hasRecursive() && options.getRecursive()) {
             mUfs.deleteDirectory(path, DeleteOptions.RECURSIVE);
           } else {
