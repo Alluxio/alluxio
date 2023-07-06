@@ -378,7 +378,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         "Fuse.Release", "path=%s,fd=%s", path, fd);
   }
 
-  private int releaseInternal(String path, long fd) {
+  private synchronized int releaseInternal(String path, long fd) {
     FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(ID_INDEX, fd);
     if (entry == null) {
       LOG.error("Failed to release {}: Cannot find fd {}", path, fd);
