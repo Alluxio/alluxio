@@ -5849,7 +5849,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_CONF_CLUSTER_DEFAULT_ENABLED =
       booleanBuilder(Name.USER_CONF_CLUSTER_DEFAULT_ENABLED)
-          .setDefaultValue(true)
+          .setDefaultValue(false)
           .setDescription("When this property is true, an Alluxio client will load the default "
               + "values of cluster-wide configuration and path-specific configuration set by "
               + "Alluxio master.")
