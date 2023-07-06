@@ -5952,6 +5952,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_FILE_METADATA_LOAD_REAL_CONTENT_HASH =
+      booleanBuilder(Name.USER_FILE_METADATA_LOAD_REAL_CONTENT_HASH)
+          .setDefaultValue(false)
+          .setDescription("Whether to get real content hash of file when the file is loaded "
+              + "from UFS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey USER_FILE_PASSIVE_CACHE_ENABLED =
       booleanBuilder(Name.USER_FILE_PASSIVE_CACHE_ENABLED)
           .setDefaultValue(true)
@@ -9192,6 +9200,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.metadata.load.type";
     public static final String USER_FILE_METADATA_SYNC_INTERVAL =
         "alluxio.user.file.metadata.sync.interval";
+    public static final String USER_FILE_METADATA_LOAD_REAL_CONTENT_HASH =
+        "alluxio.user.file.metadata.real.content.hash";
     public static final String USER_FILE_PASSIVE_CACHE_ENABLED =
         "alluxio.user.file.passive.cache.enabled";
     public static final String USER_FILE_READ_TYPE_DEFAULT = "alluxio.user.file.readtype.default";
