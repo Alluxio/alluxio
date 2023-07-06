@@ -12,7 +12,11 @@
 package alluxio.worker.s3;
 
 import alluxio.client.file.FileSystem;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
+import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.worker.dora.DoraWorker;
 
 import io.netty.channel.ChannelInitializer;
@@ -28,9 +32,9 @@ import io.netty.handler.codec.http.HttpServerExpectContinueHandler;
  * Adds the http server's pipeline into the channel.
  */
 public class S3HttpPipelineHandler extends ChannelInitializer<SocketChannel> {
-  private FileSystem mFileSystem;
-  private DoraWorker mDoraWorker;
-  private AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
+  private final FileSystem mFileSystem;
+  private final DoraWorker mDoraWorker;
+  private AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter = null;
 
   /**
    * Constructs an instance of {@link S3HttpPipelineHandler}.
@@ -40,6 +44,14 @@ public class S3HttpPipelineHandler extends ChannelInitializer<SocketChannel> {
   public S3HttpPipelineHandler(FileSystem fileSystem, DoraWorker doraWorker) {
     mFileSystem = fileSystem;
     mDoraWorker = doraWorker;
+    if (Configuration.getBoolean(PropertyKey.WORKER_S3_AUDIT_LOGGING_ENABLED)) {
+      mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("NETTY_S3_AUDIT_LOG");
+      mAsyncAuditLogWriter.start();
+      MetricsSystem.registerGaugeIfAbsent(
+          MetricKey.PROXY_AUDIT_LOG_ENTRIES_SIZE.getName(),
+          () -> mAsyncAuditLogWriter != null
+              ? mAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
+    }
   }
 
   @Override

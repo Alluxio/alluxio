@@ -5279,6 +5279,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_S3_AUDIT_LOGGING_ENABLED =
+      booleanBuilder(Name.WORKER_S3_LOGGING_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Set to true to enable woker netty s3 audit.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS =
       durationBuilder(Name.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS)
           .setAlias("alluxio.worker.ufs.block.open.timeout.ms")
@@ -8994,6 +9001,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_WEB_HOSTNAME = "alluxio.worker.web.hostname";
     public static final String WORKER_WEB_PORT = "alluxio.worker.web.port";
     public static final String WORKER_REST_PORT = "alluxio.worker.rest.port";
+    public static final String WORKER_S3_LOGGING_ENABLED =
+        "alluxio.worker.s3.audit.logging.enabled";
     public static final String WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS =
         "alluxio.worker.ufs.block.open.timeout";
     public static final String WORKER_UFS_INSTREAM_CACHE_EXPIRATION_TIME =
