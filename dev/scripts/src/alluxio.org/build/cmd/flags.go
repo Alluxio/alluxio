@@ -41,7 +41,6 @@ var SubCmdNames = []string{
 }
 
 const (
-	defaultProfile          = "default"
 	defaultModulesFilePath  = "src/alluxio.org/build/modules.yml"
 	defaultProfilesFilePath = "src/alluxio.org/build/profiles.yml"
 
@@ -79,7 +78,7 @@ func parseTarballFlags(cmd *flag.FlagSet, args []string) (*buildOpts, error) {
 	// profile specific flags
 	// all default values are set to empty strings to be able to check if the user provided any input, which would override the profile's corresponding predefined value
 	var flagProfile, flagTargetName, flagMvnArgs, flagLibModules, flagPluginModules string
-	cmd.StringVar(&flagProfile, "profile", defaultProfile, "Tarball profile to build; list available profiles with the profiles command")
+	cmd.StringVar(&flagProfile, "profile", "", "Tarball profile to build; list available profiles with the profiles command")
 	cmd.StringVar(&flagMvnArgs, "mvnArgs", "", `Comma-separated list of additional Maven arguments to build with, e.g. -mvnArgs "-Pspark,-Dhadoop.version=2.2.0"`)
 	cmd.StringVar(&flagLibModules, "libModules", "",
 		fmt.Sprintf("Either a lib modules bundle name or a comma-separated list of lib modules to compile into the tarball; list available lib modules and lib module bundles with the plugins command"))
@@ -92,14 +91,18 @@ func parseTarballFlags(cmd *flag.FlagSet, args []string) (*buildOpts, error) {
 		return nil, stacktrace.Propagate(err, "error parsing flags")
 	}
 	// select profile to define defaults for profile specific flags, then overwrite value if corresponding flag is set
-	profs, err := loadProfiles(opts.profilesFile)
+	profsYaml, err := loadProfiles(opts.profilesFile)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "error loading profiles")
 	}
-	prof, ok := profs[flagProfile]
+	// use profiles.yml default if flag wasn't set
+	if flagProfile == "" {
+		flagProfile = profsYaml.DefaultName
+	}
+	prof, ok := profsYaml.Profiles[flagProfile]
 	if !ok {
 		var names []string
-		for n := range profs {
+		for n := range profsYaml.Profiles {
 			names = append(names, n)
 		}
 		return nil, stacktrace.NewError("unknown profile value %v among possible profiles %v", flagProfile, names)
