@@ -5514,7 +5514,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "Choose ETCD for using etcd for membership management")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
-          .setDefaultValue(MembershipType.ETCD)
           .build();
   public static final PropertyKey WORKER_MEMBER_STATIC_CONFIG_FILE =
       stringBuilder(Name.WORKER_MEMBER_STATIC_CONFIG_FILE)
