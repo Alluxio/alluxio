@@ -249,9 +249,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
             }
 
             // Check for the object's ETag
-            // TODO(wyy) this is the temporary solution to get ETag of the object.
-            Fingerprint fingerprint = Fingerprint.parse(status.getUfsFingerprint());
-            String contentHash = fingerprint.getTag(Fingerprint.Tag.CONTENT_HASH);
+            String contentHash = status.getFileInfo().getContentHash();
             if (contentHash != null) {
               response.headers().set(S3Constants.S3_ETAG_HEADER, contentHash);
             } else {
@@ -352,7 +350,6 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
         // the encoding type.
         boolean isChunkedEncoding = decodedLengthHeader != null;
         long toRead;
-//        InputStream readStream = mHandler.getInputStream();
         ByteBuf buf = mHandler.getRequestContent();
         InputStream readStream = new ByteBufInputStream(buf);
         // TODO(wyy) support chunked encoding later
