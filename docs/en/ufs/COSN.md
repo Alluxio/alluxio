@@ -20,8 +20,6 @@ In preparation for using COS with Alluxio, create a new bucket or use an existin
 You should also note the directory you want to use in that bucket, either by creating a new directory in the bucket or using an existing one.
 For the purposes of this guide, the COS Bucket name is called `COSN_ALLUXIO_BUCKET`, the directory in that bucket is called `COSN_DATA`, and COS Bucket region is called `COSN_REGION` which specifies the region of your bucket.
 
-## Basic Setup
-
 ### Root Mount Point
 
 Create `conf/alluxio-site.properties` and `conf/core-site.xml` if they do not exist.

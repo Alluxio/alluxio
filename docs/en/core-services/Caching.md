@@ -6,7 +6,6 @@ group: Core Services
 priority: 1
 ---
 
-
 ## Alluxio Storage Overview
 
 The purpose of this documentation is to introduce users to the concepts behind Alluxio storage and
@@ -48,6 +47,8 @@ Alluxio does not need to keep copies of data that are not being used.
 Alluxio also supports tiered storage configurations such as memory, SSD, and HDD tiers which can
 make the storage system media aware.
 This enables decreased fetching latencies similar to how L1/L2 CPU caches operate.
+<br />
+<br />
 
 ## Dora Cache overview
 
@@ -93,6 +94,8 @@ metadata requests afterwards.
 Currently, the Dora architecture is geared towards immutable and read-only use cases only. This assumes the metadata
 of the files in the UFS do not change over time, so that the cached metadata do not have to be invalidated. In the
 future, we'd like to explore certain use cases where invalidation of metadata is needed but is relatively rare.
+<br />
+<br />
 
 ## Configuring Alluxio Storage
 
@@ -134,3 +137,8 @@ To enable the asynchronous writes for paging store:
 alluxio.worker.page.store.async.write.enabled=true
 ```
 You might find this property helpful if you notice performance degradation when there are a lot of cache misses.
+
+<iframe width="425" height="239" src="https://www.youtube.com/embed/cO7ymRFnPyM" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
+<iframe width="425" height="239" src="https://www.youtube.com/embed/7UY_iE_Ha_k" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+<br />

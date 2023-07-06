@@ -24,6 +24,8 @@ and physical storage. When the data path in persistent under storage is hidden
 from Spark, changes to under storage can be independent from application logic;
 meanwhile, as a near-compute cache, Alluxio can still provide compute frameworks
 data-locality.
+<br />
+<br />
 
 ## Prerequisites
 
@@ -37,6 +39,8 @@ Note that Alluxio supports many other under storage systems in addition to HDFS.
 This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`
 in the tarball distribution downloaded from Alluxio
 [download page](https://www.alluxio.io/download).
+<br />
+<br />
 
 ## Basic Setup
 
@@ -53,6 +57,7 @@ Also, make sure the client jar is copied to **every node running Spark**.
 spark.driver.extraClassPath   {{site.ALLUXIO_CLIENT_JAR_PATH}}
 spark.executor.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
+<br />
 
 ## Examples: Use Alluxio as Input and Output
 
@@ -110,6 +115,8 @@ There should be an output directory `Output_HDFS` which contains the doubled
 content of the input file `Input_HDFS`.
 Also, the input file `Input_HDFS` now will be 100% loaded in the Alluxio file
 system space.
+<br />
+<br />
 
 ## Advanced Setup
 
@@ -163,6 +170,8 @@ To customize Alluxio client-side properties for a Spark job, see
 Note that in client mode you need to set `--driver-java-options "-Dalluxio.user.file.writetype.default=CACHE_THROUGH"`
 instead of `--conf spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH`
 (see [explanation](https://spark.apache.org/docs/2.3.2/configuration.html)).
+<br />
+<br />
 
 ## Advanced Usage
 
@@ -235,6 +244,8 @@ df = spark.read.parquet("alluxio://localhost:19998/data.parquet")
 
 See the blog article
 "[Effective Spark DataFrames with Alluxio](https://www.alluxio.io/resources/whitepapers/effective-spark-dataframes-with-alluxio/)".
+<br />
+<br />
 
 ## Troubleshooting
 
@@ -330,7 +341,7 @@ append the `alluxio` package to the configuration parameter
 the main classloader.
 For example, the parameter may be set in `spark/conf/spark-defaults.conf`:
 
-```bash
+```properties
 spark.sql.hive.metastore.sharedPrefixes=com.mysql.jdbc,org.postgresql,com.microsoft.sqlserver,oracle.jdbc,alluxio
 ```
 

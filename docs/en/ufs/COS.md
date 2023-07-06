@@ -6,7 +6,6 @@ group: Storage Integrations
 priority: 0
 ---
 
-
 This guide describes the instructions to configure [COS](https://cloud.tencent.com/product/cos) as Alluxio's
 under storage system.
 

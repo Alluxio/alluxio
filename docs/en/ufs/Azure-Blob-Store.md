@@ -39,14 +39,14 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 
 Specify the underfs address by modifying `conf/alluxio-site.properties` to include:
 
-```
+```properties
 alluxio.dora.client.ufs.root=wasbs://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.blob.core.windows.net/<AZURE_DIRECTORY>/
 ```
 
 Specify credentials for the Azure account of the root mount point by adding the following
 properties in `conf/alluxio-site.properties`:
 
-```
+```properties
 fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<YOUR ACCESS KEY>
 ```
 
@@ -54,9 +54,9 @@ fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<YOUR ACCESS KEY>
 
 Start up Alluxio locally to see that everything works.
 
-```
-./bin/alluxio format
-./bin/alluxio-start.sh local
+```console
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
 ```
 
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
@@ -64,8 +64,8 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 
 Run a simple example program:
 
-```
-./bin/alluxio runTests
+```console
+$ ./bin/alluxio runTests
 ```
 
 Visit your container `<AZURE_CONTAINER>` to verify the files and directories created by Alluxio exist. For this test, you should see files named like:
@@ -76,13 +76,14 @@ Visit your container `<AZURE_CONTAINER>` to verify the files and directories cre
 
 To stop Alluxio, you can run:
 
-```
-./bin/alluxio-stop.sh local
+``` console
+$ ./bin/alluxio-stop.sh local
 ```
 
 ## FAQ
 ### What should I do if I get http not support error?
 If you mount the Blob and configure the Blob path start with `wasb://`, you may see the error as follows:
+
 ```
 alluxio.exception.AlluxioException: com.microsoft.azure.storage.StorageException: The account being accessed does not support http.
 ```
