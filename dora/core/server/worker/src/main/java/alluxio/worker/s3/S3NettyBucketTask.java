@@ -96,7 +96,7 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
           if (!StringUtils.isEmpty(handler.getBucket())) {
             return new HeadBucketTask(handler, OpType.HeadBucket);
           }
-//          break;
+          break;
 //        case "DELETE":
 //          if (handler.getQueryParameter("tagging") != null) {
 //            return new DeleteBucketTaggingTask(handler, OpType.DeleteBucketTagging);
@@ -264,5 +264,4 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
       });
     }
   } // end of HeadBucketTask
-
 }

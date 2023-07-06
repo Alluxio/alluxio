@@ -12,8 +12,6 @@
 package alluxio.worker.s3;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
-import alluxio.PositionReader;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -40,7 +38,6 @@ import alluxio.s3.S3ErrorCode;
 import alluxio.s3.S3Exception;
 import alluxio.s3.S3RangeSpec;
 import alluxio.s3.TaggingData;
-import alluxio.underfs.Fingerprint;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -48,17 +45,13 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.LocalFileBlockReader;
 import alluxio.worker.dora.PagedFileReader;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import com.google.common.base.Preconditions;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.ByteStreams;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
@@ -73,6 +66,8 @@ import java.net.URI;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.util.Date;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 /**
  * S3 Netty Tasks to handle object level request.
@@ -431,76 +426,6 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
       return Response.ok().build();
     }
 
-    /**
-     * Common func for copy from a source path to target path.
-     * @param userFs
-     * @param auditContext
-     * @param targetPath
-     * @param sourcePath
-     * @param copyFilePOption
-     * @return entityTag(Etag)
-     * @throws S3Exception
-     */
-    public String copyObject(FileSystem userFs, S3AuditContext auditContext,
-                             String targetPath, String sourcePath,
-                             CreateFilePOptions copyFilePOption)
-        throws S3Exception {
-      AlluxioURI objectUri = new AlluxioURI(targetPath);
-      if (sourcePath.equals(targetPath)) {
-        // do not need to copy a file to itself, unless we are changing file attributes
-        // TODO(czhu): support changing metadata via CopyObject to self,
-        //  verify for UploadPartCopy
-        auditContext.setSucceeded(false);
-        throw new S3Exception("Copying an object to itself invalid.",
-            targetPath, S3ErrorCode.INVALID_REQUEST);
-      }
-      URIStatus status;
-      try {
-        status = userFs.getStatus(new AlluxioURI(sourcePath));
-      }  catch (Exception e) {
-        throw NettyRestUtils.toObjectS3Exception(e, targetPath, auditContext);
-      }
-      final String range = mHandler.getHeaderOrDefault(S3Constants.S3_COPY_SOURCE_RANGE, null);
-      S3RangeSpec s3Range = S3RangeSpec.Factory.create(range);
-
-      try (PositionReader positionReader = userFs.openPositionRead(new AlluxioURI(sourcePath));
-           FileOutStream out = userFs.createFile(objectUri, copyFilePOption)) {
-        MessageDigest md5 = MessageDigest.getInstance("MD5");
-        try (DigestOutputStream digestOut = new DigestOutputStream(out, md5)) {
-
-
-          long count = 0;
-          int n;
-          long offset = s3Range.getOffset(status.getLength());
-          long length = s3Range.getLength(status.getLength());
-
-          byte[] buffer = new byte[8 * Constants.MB];
-          int read = 0;
-          // TODO(wyy) fix the length (not works right now)
-          while (read < length &&
-              -1 != (n = positionReader.read(offset, buffer, buffer.length))) {
-            digestOut.write(buffer, 0, n);
-            offset += n;
-            read += n;
-          }
-          byte[] digest = md5.digest();
-          String entityTag = Hex.encodeHexString(digest);
-          // persist the ETag via xAttr
-          S3NettyHandler.setEntityTag(userFs, objectUri, entityTag);
-          return entityTag;
-        } catch (IOException e) {
-          try {
-            out.cancel();
-          } catch (Throwable t2) {
-            e.addSuppressed(t2);
-          }
-          throw e;
-        }
-      } catch (Exception e) {
-        throw NettyRestUtils.toObjectS3Exception(e, targetPath, auditContext);
-      }
-    }
-
     @Override
     public HttpResponse continueTask() {
       return NettyRestUtils.call(getObjectTaskResource(), () -> {
@@ -528,7 +453,8 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
 //          // Populate the xattr Map with the metadata tags if provided
 //          Map<String, ByteString> xattrMap = new HashMap<>();
 //          final String taggingHeader = mHandler.getHeader(S3Constants.S3_TAGGING_HEADER);
-//          NettyRestUtils.populateTaggingInXAttr(xattrMap, taggingHeader, auditContext, objectPath);
+//          NettyRestUtils.populateTaggingInXAttr(xattrMap, taggingHeader,
+//          auditContext, objectPath);
 //
 //          // populate the xAttr map with the "Content-Type" header
 //          final String contentTypeHeader = mHandler.getHeader(S3Constants.S3_CONTENT_TYPE_HEADER);

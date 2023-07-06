@@ -338,6 +338,7 @@ public class S3NettyHandler {
   /**
    * Writes data into netty channel by copying through ByteBuf.
    * @param blockReader reader instance
+   * @param objectSize size of the object
    * @throws IOException
    */
   public void processMappedResponse(BlockReader blockReader, long objectSize) throws IOException {

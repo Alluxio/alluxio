@@ -41,6 +41,8 @@ public abstract class S3NettyBaseTask {
 
   /**
    * Run core S3 API logic from different S3 task.
+   *
+   * @return HttpResponse (S3 Http response)
    */
   public abstract HttpResponse continueTask();
 
