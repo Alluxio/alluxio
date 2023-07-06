@@ -5,5 +5,6 @@ package alluxio;
  */
 public enum MembershipType {
   STATIC,
-  ETCD
+  ETCD,
+  NONE
 }

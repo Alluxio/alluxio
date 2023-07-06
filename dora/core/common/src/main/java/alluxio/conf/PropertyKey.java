@@ -5508,7 +5508,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_MEMBERSHIP_TYPE =
       enumBuilder(Name.WORKER_MEMBERSHIP_TYPE, MembershipType.class)
-          .setDefaultValue(MembershipType.ETCD.name())
+          .setDefaultValue(MembershipType.NONE.name())
           .setDescription("Type of membership configuration for workers."
               + "Choose STATIC for pre-configured members."
               + "Choose ETCD for using etcd for membership management")

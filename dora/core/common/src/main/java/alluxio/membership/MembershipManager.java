@@ -102,6 +102,8 @@ public interface MembershipManager extends AutoCloseable {
           return new StaticMembershipManager(conf);
         case ETCD:
           return new EtcdMembershipManager(conf);
+        case NONE:
+          return new NoOpMembershipManager();
         default:
           throw new IOException("Unrecognized Membership Type.");
       }
