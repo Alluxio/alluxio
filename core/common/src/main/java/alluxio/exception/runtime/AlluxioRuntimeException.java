@@ -200,7 +200,7 @@ public class AlluxioRuntimeException extends RuntimeException {
    */
   public static AlluxioRuntimeException from(Error e) {
     if (e instanceof OutOfMemoryError) {
-      return new ResourceExhaustedRuntimeException("Out of memory", e, true);
+      return new ResourceExhaustedRuntimeException("Out of memory", e, false);
     }
     return new UnknownRuntimeException(e);
   }
