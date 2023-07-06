@@ -181,11 +181,16 @@ public class MembershipManagerTest {
     Assert.assertTrue(membershipManager instanceof EtcdMembershipManager);
     TieredIdentity ti = TieredIdentityFactory.localIdentity(Configuration.global());
     WorkerInfo wkr1 = new WorkerInfo().setAddress(new WorkerNetAddress()
-        .setHost("worker1").setContainerHost("containerhostname1")
-        .setRpcPort(1000).setDataPort(1001).setWebPort(1011)
+        .setHost("worker-1").setContainerHost("containerhostname1")
+        .setRpcPort(29999).setDataPort(29997).setWebPort(30000)
+        .setDomainSocketPath("/var/lib/domain.sock").setTieredIdentity(ti));
+    WorkerInfo wkr2 = new WorkerInfo().setAddress(new WorkerNetAddress()
+        .setHost("worker-2").setContainerHost("containerhostname2")
+        .setRpcPort(29999).setDataPort(29997).setWebPort(30000)
         .setDomainSocketPath("/var/lib/domain.sock").setTieredIdentity(ti));
     membershipManager.join(wkr1);
-    CommonUtils.waitFor("Worker1 joined",
+    membershipManager.join(wkr2);
+    CommonUtils.waitFor("Workers joined",
         () -> {
           try {
             return !membershipManager.getLiveMembers().isEmpty();
@@ -197,9 +202,10 @@ public class MembershipManagerTest {
 
     MembershipManager healthyMgr = getHealthyEtcdMemberMgr();
     System.out.println("All Node Status:\n" + healthyMgr.showAllMembers());
+    System.out.println("Induce 10 sec latency upstream to etcd...");
     etcdProxy.toxics()
         .latency("latency", ToxicDirection.UPSTREAM, 10000);
-    CommonUtils.waitFor("Worker1 network errored",
+    CommonUtils.waitFor("Workers network errored",
         () -> {
           try {
             return !healthyMgr.getFailedMembers().isEmpty();
@@ -209,8 +215,9 @@ public class MembershipManagerTest {
           }
         }, WaitForOptions.defaults().setTimeoutMs(TimeUnit.SECONDS.toMillis(10)));
     System.out.println("All Node Status:\n" + healthyMgr.showAllMembers());
+    System.out.println("Remove latency toxics...");
     etcdProxy.toxics().get("latency").remove();
-    CommonUtils.waitFor("Worker1 network recovered",
+    CommonUtils.waitFor("Workers network recovered",
         () -> {
           try {
             return healthyMgr.getFailedMembers().isEmpty();
