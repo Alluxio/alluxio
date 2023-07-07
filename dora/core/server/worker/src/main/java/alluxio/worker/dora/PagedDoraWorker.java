@@ -645,6 +645,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     if (options.hasMode()) {
       createOption.setMode(new Mode(ModeUtils.protoToShort(options.getMode())));
     }
+    if (options.hasRecursive() && options.getRecursive()) {
+      createOption.setCreateParent(true);
+    }
 
     try {
       // Check if the target file already exists. If yes, return by throwing error.

@@ -59,7 +59,6 @@ public class DoraFileOutStream extends FileOutStream {
 
   private boolean mCanceled;
   private boolean mClosed;
-  private boolean mWriteToAlluxio;
 
   protected final AlluxioURI mUri;
 
@@ -97,7 +96,6 @@ public class DoraFileOutStream extends FileOutStream {
       mOptions = options;
       mClosed = false;
       mCanceled = false;
-      mWriteToAlluxio = mAlluxioStorageType.isStore();
       mBytesWritten = 0;
     } catch (Throwable t) {
       throw CommonUtils.closeAndRethrow(mCloser, t);
@@ -118,12 +116,10 @@ public class DoraFileOutStream extends FileOutStream {
     try (Timer.Context ctx = MetricsSystem
         .uniformTimer(MetricKey.CLOSE_ALLUXIO_OUTSTREAM_LATENCY.getName()).time()) {
       try {
-        if (mAlluxioStorageType.isStore()) {
-          if (mCanceled) {
-            mNettyDataWriter.cancel();
-          } else {
-            mNettyDataWriter.flush();
-          }
+        if (mCanceled) {
+          mNettyDataWriter.cancel();
+        } else {
+          mNettyDataWriter.flush();
         }
       } catch (Exception e) {
         // Ignore.
@@ -183,10 +179,8 @@ public class DoraFileOutStream extends FileOutStream {
       Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
           PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
 
-      if (mWriteToAlluxio) {
-        mNettyDataWriter.writeChunk(b, off, len);
-        Metrics.BYTES_WRITTEN_ALLUXIO.inc(len);
-      }
+      mNettyDataWriter.writeChunk(b, off, len);
+      Metrics.BYTES_WRITTEN_ALLUXIO.inc(len);
       mBytesWritten += len;
     } catch (IOException e) {
       StringBuffer exceptionMsg = new StringBuffer();
