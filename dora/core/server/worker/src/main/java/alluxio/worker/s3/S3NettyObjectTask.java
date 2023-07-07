@@ -31,6 +31,7 @@ import alluxio.grpc.PMode;
 import alluxio.network.netty.FileTransferType;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
+import alluxio.s3.ChunkedEncodingInputStream;
 import alluxio.s3.NettyRestUtils;
 import alluxio.s3.S3AuditContext;
 import alluxio.s3.S3Constants;
@@ -347,13 +348,12 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
         long toRead;
         ByteBuf buf = mHandler.getRequestContent();
         InputStream readStream = new ByteBufInputStream(buf);
-        // TODO(wyy) support chunked encoding later
-//        if (isChunkedEncoding) {
-//          toRead = Long.parseLong(decodedLengthHeader);
-//          readStream = new ChunkedEncodingInputStream(readStream);
-//        } else {
-        toRead = Long.parseLong(contentLength);
-//        }
+        if (isChunkedEncoding) {
+          toRead = Long.parseLong(decodedLengthHeader);
+          readStream = new ChunkedEncodingInputStream(readStream);
+        } else {
+          toRead = Long.parseLong(contentLength);
+        }
         FileOutStream os = userFs.createFile(objectUri, createFilePOptions);
         try (DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5)) {
           long read = ByteStreams.copy(ByteStreams.limit(readStream, toRead),

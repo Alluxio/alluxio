@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.proxy.s3;
+package alluxio.s3;
 
 import java.io.FilterInputStream;
 import java.io.IOException;
@@ -38,7 +38,7 @@ public class ChunkedEncodingInputStream extends FilterInputStream {
    * @param in the underlying input stream, or <code>null</code> if
    *           this instance is to be created without an underlying stream.
    */
-  protected ChunkedEncodingInputStream(InputStream in) {
+  public ChunkedEncodingInputStream(InputStream in) {
     super(in);
   }
 
