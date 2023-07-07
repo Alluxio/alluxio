@@ -746,7 +746,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
         LOG.error("Failed to update property {} to {}", entry.getKey(), entry.getValue(), e);
       }
     }
-    LOG.debug("Update {} properties, succeed {}.", propertiesMap.size(), changedProperties.size());
+    LOG.debug("Updating {} properties, {} succeed.", propertiesMap.size(), changedProperties.size());
     if (changedProperties.size() > 0) {
       ReconfigurableRegistry.update(changedProperties);
     }
