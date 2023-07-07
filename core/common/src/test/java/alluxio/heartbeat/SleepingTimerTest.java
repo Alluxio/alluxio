@@ -120,7 +120,7 @@ public final class SleepingTimerTest {
     long tickCountInit = tickCount.get();
     // scale in the interval
     interval.set(oldInterval / 5);
-    stimer.update();
+    stimer.update(null);
     Thread.sleep(oldInterval);
     long newTickCount = tickCount.get();
     Assert.assertTrue("current tickCount = "
