@@ -259,8 +259,11 @@ public class JobMaster extends AbstractMaster implements NoopJournaled {
               () -> new FixedIntervalSupplier(
                   Configuration.getMs(PropertyKey.JOB_MASTER_LOST_MASTER_INTERVAL)),
               Configuration.global(), mMasterContext.getUserState()));
-      // As we can determine whether enable the audit log through update the config,
-      // So we need this audit log writer thread all the time.
+      /**
+       * As we can determine whether enable the audit log through update the config,
+       * and check it in {@link #createAuditContext},
+       * so we need this audit log writer thread all the time.
+       */
       mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("JOB_MASTER_AUDIT_LOG");
       mAsyncAuditLogWriter.start();
       MetricsSystem.registerGaugeIfAbsent(
