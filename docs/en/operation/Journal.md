@@ -6,8 +6,6 @@ group: Operations
 priority: 5
 ---
 
-* Table of Contents
-{:toc}
 
 Alluxio keeps the history of all metadata related changes, such as creating files or renaming directories,
 in edit logs referred to as "journal".

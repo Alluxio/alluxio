@@ -6,8 +6,6 @@ group: Storage Integrations
 priority: 2
 ---
 
-* Table of Contents
-{:toc}
 
 This guide describes how to configure Alluxio with [Google Cloud Storage (GCS)](https://cloud.google.com/storage/)
 as the under storage system.

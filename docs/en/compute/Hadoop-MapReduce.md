@@ -9,8 +9,6 @@ priority: 1
 This guide describes how to configure Alluxio with Apache Hadoop MapReduce, so that your
 MapReduce programs can read+write data stored in Alluxio.
 
-* Table of Contents
-{:toc}
 
 ## Prerequisites
 

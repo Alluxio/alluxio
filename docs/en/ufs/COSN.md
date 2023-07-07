@@ -6,8 +6,6 @@ group: Storage Integrations
 priority: 5
 ---
 
-* Table of Contents
-{:toc}
 
 This guide describes how to configure Alluxio with Tencent [COS](https://cloud.tencent.com/product/cos) (Cloud Object Storage) as the under storage system.
 Tencent Cloud Object Storage (COS) is a distributed storage service offered by Tencent Cloud for unstructured data and accessible via HTTP/HTTPS protocols.
