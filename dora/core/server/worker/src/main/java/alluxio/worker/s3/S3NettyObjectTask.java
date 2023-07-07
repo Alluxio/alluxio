@@ -245,7 +245,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
             }
 
             // Check for the object's ETag
-            String contentHash = status.getFileInfo().getContentHash();
+            String contentHash = NettyRestUtils.getEntityTag(status);
             if (contentHash != null) {
               response.headers().set(S3Constants.S3_ETAG_HEADER, contentHash);
             } else {
@@ -440,9 +440,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
 
         try (S3AuditContext auditContext =
                  mHandler.createAuditContext(mOPType.name(), user, bucket, object)) {
-          // TODO(wyy) checkPathIsAlluxioDirectory
-//          S3RestUtils.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext,
-//              mHandler.BUCKET_PATH_CACHE);
+          S3NettyHandler.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext);
           String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
 
           if (objectPath.endsWith(AlluxioURI.SEPARATOR)) {

@@ -150,12 +150,12 @@ public class NettyRestUtils {
    * @return the entityTag String, or null if it does not exist
    */
   public static String getEntityTag(URIStatus status) {
-    if (status.getXAttr() == null
-        || !status.getXAttr().containsKey(S3Constants.ETAG_XATTR_KEY)) {
+    String contenthash = status.getFileInfo().getContentHash();
+    if (StringUtils.isNotEmpty(contenthash)) {
+      return contenthash;
+    } else {
       return null;
     }
-    return new String(status.getXAttr().get(S3Constants.ETAG_XATTR_KEY),
-        S3Constants.XATTR_STR_CHARSET);
   }
 
   /**

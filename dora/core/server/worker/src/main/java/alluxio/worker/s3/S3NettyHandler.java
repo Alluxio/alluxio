@@ -584,6 +584,7 @@ public class S3NettyHandler {
                                           @Nullable S3AuditContext auditContext)
       throws S3Exception {
     try {
+      // TODO(wyy) check bucket is alluxio directory in cache first
       URIStatus status = fs.getStatus(new AlluxioURI(bucketPath));
       if (!status.isFolder()) {
         throw new FileDoesNotExistException(
