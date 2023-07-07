@@ -20,7 +20,6 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.GrpcDataReader;
 import alluxio.client.file.DoraFileOutStream;
-import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.PositionReadFileInStream;
 import alluxio.client.file.URIStatus;

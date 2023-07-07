@@ -77,7 +77,9 @@ public class PagedFileWriter extends BlockWriter {
   @Override
   public long append(ByteBuf buf) throws IOException {
     long bytesWritten = 0;
-    System.out.println("Writing @" + mPosition + "len=" + buf.readableBytes());
+    LOG.debug("Writing @" + mPosition + "len=" + buf.readableBytes());
+    DoraOpenFileHandleContainer openFileHandleContainer = mWorker.getOpenFileHandleContainer();
+    OpenFileHandle handle = openFileHandleContainer.find(mUfsPath);
 
     while (buf.readableBytes() > 0) {
       PageId pageId = getPageId(bytesWritten);
@@ -89,21 +91,19 @@ public class PagedFileWriter extends BlockWriter {
         throw new IOException("Append failed for file " + mFileId);
       }
       bytesWritten += bytesLeftInPage;
-    }
 
-    // Now writes data to UFS.
-    DoraOpenFileHandleContainer openFileHandleContainer = mWorker.getOpenFileHandleContainer();
-    OpenFileHandle handle = openFileHandleContainer.find(mUfsPath);
-    if (handle != null) {
-      OutputStream outputStream = Preconditions.checkNotNull(handle.getOutStream());
-      outputStream.write(buf.array());
-    } else {
-      throw new IOException("Can not write data to UFS for " + mUfsPath + "@" + mPosition);
+      // Now writes data to UFS.
+      if (handle != null) {
+        OutputStream outputStream = Preconditions.checkNotNull(handle.getOutStream());
+        outputStream.write(page);
+      } else {
+        throw new IOException("Cannot write data to UFS for " + mUfsPath + " @" + mPosition);
+      }
     }
 
     // data is written to local cache and UFS. Update Position.
     mPosition += bytesWritten;
-    System.out.println("after write " + bytesWritten + " bytes. New pos = " + mPosition);
+    LOG.debug("after write " + bytesWritten + " bytes. New pos = " + mPosition);
     return bytesWritten;
   }
 

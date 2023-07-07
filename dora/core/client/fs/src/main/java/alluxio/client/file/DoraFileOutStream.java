@@ -99,7 +99,6 @@ public class DoraFileOutStream extends FileOutStream {
       mCanceled = false;
       mWriteToAlluxio = mAlluxioStorageType.isStore();
       mBytesWritten = 0;
-
     } catch (Throwable t) {
       throw CommonUtils.closeAndRethrow(mCloser, t);
     }
@@ -187,7 +186,6 @@ public class DoraFileOutStream extends FileOutStream {
       if (mWriteToAlluxio) {
         mNettyDataWriter.writeChunk(b, off, len);
         Metrics.BYTES_WRITTEN_ALLUXIO.inc(len);
-        System.out.println("Writing @" + off + " len=" + len);
       }
       mBytesWritten += len;
     } catch (IOException e) {
