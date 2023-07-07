@@ -13,6 +13,7 @@ package alluxio.client.block;
 
 import alluxio.annotation.PublicApi;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.dora.WorkerIdentity;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
@@ -26,6 +27,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class BlockWorkerInfo {
   private final WorkerNetAddress mNetAddress;
+  private final WorkerIdentity mIdentity;
   private final long mCapacityBytes;
   private final long mUsedBytes;
 
@@ -38,6 +40,7 @@ public final class BlockWorkerInfo {
    */
   public BlockWorkerInfo(WorkerNetAddress netAddress, long capacityBytes, long usedBytes) {
     mNetAddress = Preconditions.checkNotNull(netAddress, "netAddress");
+    mIdentity = WorkerIdentity.definedByNetAddress(netAddress);
     mCapacityBytes = capacityBytes;
     mUsedBytes = usedBytes;
   }
@@ -47,6 +50,13 @@ public final class BlockWorkerInfo {
    */
   public WorkerNetAddress getNetAddress() {
     return mNetAddress;
+  }
+
+  /**
+   * @return the identity of the worker
+   */
+  public WorkerIdentity getIdentity() {
+    return mIdentity;
   }
 
   /**

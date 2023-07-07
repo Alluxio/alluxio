@@ -13,14 +13,14 @@ package alluxio.client.file.dora;
 
 import static com.google.common.hash.Hashing.murmur3_32_fixed;
 import static java.lang.Math.ceil;
-import static java.lang.String.format;
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.dora.WorkerIdentity;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hasher;
 
 import java.util.HashSet;
 import java.util.List;
@@ -114,7 +114,8 @@ public class WorkerLocationPolicy {
     }
 
     public BlockWorkerInfo get(String key, int index) {
-      int hashKey = HASH_FUNCTION.hashString(format("%s%d", key, index), UTF_8).asInt();
+      Hasher hasher = HASH_FUNCTION.newHasher();
+      int hashKey = hasher.putUnencodedChars(key).putInt(index).hash().asInt();
       Map.Entry<Integer, BlockWorkerInfo> entry =
           mActiveNodesByConsistentHashing.ceilingEntry(hashKey);
       if (entry != null) {
@@ -129,10 +130,10 @@ public class WorkerLocationPolicy {
       int weight = (int) ceil(1.0 * numVirtualNodes / workerInfos.size());
       for (BlockWorkerInfo workerInfo : workerInfos) {
         for (int i = 0; i < weight; i++) {
-          activeNodesByConsistentHashing.put(
-              HASH_FUNCTION.hashString(format("%s%d", workerInfo.getNetAddress().dumpMainInfo(), i),
-                  UTF_8).asInt(),
-              workerInfo);
+          Hasher hasher = HASH_FUNCTION.newHasher();
+          hasher.putObject(workerInfo.getIdentity(), WorkerIdentity.Funnel.INSTANCE)
+              .putInt(i);
+          activeNodesByConsistentHashing.put(hasher.hash().asInt(), workerInfo);
         }
       }
       mLastWorkerInfos = workerInfos;
