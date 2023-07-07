@@ -239,7 +239,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     Preconditions.checkState(mAddress != null, "worker not started");
     RetryPolicy retry = RetryUtils.defaultWorkerMasterClientRetry();
     while (true) {
-      try {
+      try (PooledResource<BlockMasterClient> bmc = mBlockMasterClientPool.acquireCloseable()) {
+        bmc.get().connect(); // TODO(lucy) this is necessary here for MASTER web to be opened for some reason
         mMembershipManager.join(new WorkerInfo().setAddress(mAddress));
         mWorkerId.set(CommonUtils.hashAsLong(mAddress.dumpMainInfo()));
         break;
