@@ -101,6 +101,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -427,7 +428,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   @Override
   public BlockWriter createFileWriter(String fileId, String ufsPath)
       throws AccessControlException, IOException {
-    return new PagedFileWriter(mCacheManager, fileId, mPageSize);
+    return new PagedFileWriter(this, ufsPath, mCacheManager, fileId, mPageSize);
   }
 
   @Override
@@ -672,8 +673,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+    OutputStream outStream = mUfs.create(path, createOption);
 
-    OpenFileHandle handle = new OpenFileHandle(path, info, null);
+    OpenFileHandle handle = new OpenFileHandle(path, info, outStream);
     //add to map.
     mOpenFileHandleContainer.add(path, handle);
 

@@ -55,11 +55,6 @@ public class DoraFileOutStream extends FileOutStream {
   private final FileSystemContext mContext;
   private final NettyDataWriter mNettyDataWriter;
 
-  /**
-   * Stream to the file in the under storage, null if not writing to the under storage.
-   */
-  private final FileOutStream mUnderStorageOutputStream;
-
   private final OutStreamOptions mOptions;
 
   private boolean mCanceled;
@@ -80,12 +75,11 @@ public class DoraFileOutStream extends FileOutStream {
    * @param path         the file path
    * @param options      the client options
    * @param context      the file system context
-   * @param ufsOutStream the UfsOutStream for writing data to UFS
    * @param uuid         the UUID of a certain OutStream
    */
   public DoraFileOutStream(DoraCacheClient doraClient, NettyDataWriter dataWriter, AlluxioURI path,
                            OutStreamOptions options, FileSystemContext context,
-                           FileOutStream ufsOutStream, String uuid)
+                           String uuid)
       throws IOException {
     mDoraClient = doraClient;
     mNettyDataWriter = dataWriter;
@@ -106,12 +100,6 @@ public class DoraFileOutStream extends FileOutStream {
       mWriteToAlluxio = mAlluxioStorageType.isStore();
       mBytesWritten = 0;
 
-      if (mUnderStorageType.isSyncPersist()) {
-        // Write is through to the under storage, create mUnderStorageOutputStream.
-        mUnderStorageOutputStream = ufsOutStream;
-      } else {
-        mUnderStorageOutputStream = null;
-      }
     } catch (Throwable t) {
       throw CommonUtils.closeAndRethrow(mCloser, t);
     }
@@ -148,26 +136,6 @@ public class DoraFileOutStream extends FileOutStream {
         }
       }
 
-      if (mUnderStorageType.isSyncPersist()) {
-        try {
-          if (mCanceled) {
-            mUnderStorageOutputStream.cancel();
-          } else {
-            mUnderStorageOutputStream.flush();
-          }
-        } catch (Exception e) {
-          // Ignore;
-        } finally {
-          // Only close this output stream when write is enabled.
-          // Otherwise this outputStream is used by client/ufs direct write.
-          try {
-            mUnderStorageOutputStream.close();
-          } catch (Exception e) {
-            // Ignore;
-          }
-        }
-      }
-
       CompleteFilePOptions options = CompleteFilePOptions.newBuilder()
           .setUfsLength(mNettyDataWriter.pos())
           .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().build())
@@ -186,9 +154,6 @@ public class DoraFileOutStream extends FileOutStream {
   @Override
   public void flush() throws IOException {
     mNettyDataWriter.flush();
-    if (mUnderStorageType.isSyncPersist()) {
-      mUnderStorageOutputStream.flush();
-    }
   }
 
   @Override
@@ -221,12 +186,8 @@ public class DoraFileOutStream extends FileOutStream {
 
       if (mWriteToAlluxio) {
         mNettyDataWriter.writeChunk(b, off, len);
-
         Metrics.BYTES_WRITTEN_ALLUXIO.inc(len);
-      }
-      if (mUnderStorageType.isSyncPersist()) {
-        mUnderStorageOutputStream.write(b, off, len);
-        Metrics.BYTES_WRITTEN_UFS.inc(len);
+        System.out.println("Writing @" + off + " len=" + len);
       }
       mBytesWritten += len;
     } catch (IOException e) {

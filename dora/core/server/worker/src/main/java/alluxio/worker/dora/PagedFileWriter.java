@@ -17,12 +17,14 @@ import alluxio.client.file.cache.PageId;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.worker.block.io.BlockWriter;
 
+import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
@@ -38,11 +40,18 @@ public class PagedFileWriter extends BlockWriter {
   private final long mPageSize;
   private long mPosition;
 
-  PagedFileWriter(CacheManager cacheManager, String fileId, long pageSize) {
+  private final PagedDoraWorker mWorker;
+
+  private final String mUfsPath;
+
+  PagedFileWriter(PagedDoraWorker worker, String ufsPath,
+                  CacheManager cacheManager, String fileId, long pageSize) {
+    mWorker = Preconditions.checkNotNull(worker);
     mTempCacheContext = CacheContext.defaults().setTemporary(true);
-    mCacheManager = cacheManager;
-    mFileId = fileId;
+    mCacheManager = Preconditions.checkNotNull(cacheManager);
+    mFileId = Preconditions.checkNotNull(fileId);
     mPageSize = pageSize;
+    mUfsPath = Preconditions.checkNotNull(ufsPath);
   }
 
   @Override
@@ -68,6 +77,8 @@ public class PagedFileWriter extends BlockWriter {
   @Override
   public long append(ByteBuf buf) throws IOException {
     long bytesWritten = 0;
+    System.out.println("Writing @" + mPosition + "len=" + buf.readableBytes());
+
     while (buf.readableBytes() > 0) {
       PageId pageId = getPageId(bytesWritten);
       int currentPageOffset = getCurrentPageOffset(bytesWritten);
@@ -79,7 +90,20 @@ public class PagedFileWriter extends BlockWriter {
       }
       bytesWritten += bytesLeftInPage;
     }
+
+    // Now writes data to UFS.
+    DoraOpenFileHandleContainer openFileHandleContainer = mWorker.getOpenFileHandleContainer();
+    OpenFileHandle handle = openFileHandleContainer.find(mUfsPath);
+    if (handle != null) {
+      OutputStream outputStream = Preconditions.checkNotNull(handle.getOutStream());
+      outputStream.write(buf.array());
+    } else {
+      throw new IOException("Can not write data to UFS for " + mUfsPath + "@" + mPosition);
+    }
+
+    // data is written to local cache and UFS. Update Position.
     mPosition += bytesWritten;
+    System.out.println("after write " + bytesWritten + " bytes. New pos = " + mPosition);
     return bytesWritten;
   }
 
