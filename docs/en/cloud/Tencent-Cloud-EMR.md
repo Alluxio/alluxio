@@ -16,8 +16,8 @@ The out-of-the-box Alluxio service provided on Tencent Cloud EMR can help custom
 
 
 ## Prerequisites
-- Hadoop Standard version of Tencent Cloud EMR >= 2.1.0
-- Hadoop TianQiong version of Tencent Cloud EMR >= 1.0
+- Hadoop Standard 2.x version of Tencent Cloud EMR >= EMR-v2.3.0
+- Hadoop Standard 3.x version of Tencent Cloud EMR >= EMR-v3.2.0
 - For the specific Alluxio version supported in EMR, please refer to [Component Version supported Tencent Cloud EMR](https://intl.cloud.tencent.com/document/product/1026/31095).
 
 ## Create EMR cluster based on Alluxio
