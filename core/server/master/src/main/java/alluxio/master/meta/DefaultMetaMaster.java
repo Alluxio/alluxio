@@ -156,7 +156,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   /** Path level properties. */
   private final PathProperties mPathProperties;
 
-  /** Persisted state for MetaMaster. */
+  /** Persisted state for {@link MetaMaster}. */
   private final State mState;
 
   /** Value to be used for the cluster ID when not assigned. */
@@ -169,7 +169,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
   private final JournalSpaceMonitor mJournalSpaceMonitor;
 
   /**
-   * Journaled state for MetaMaster.
+   * Journaled state for {@link MetaMaster}.
    */
   @NotThreadSafe
   public static final class State implements alluxio.master.journal.Journaled {
@@ -627,6 +627,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
   @Override
   public MetaCommand masterHeartbeat(long masterId, MasterHeartbeatPOptions options) {
+    LOG.debug("A heartbeat request was received from Standby master: {}.", masterId);
     MasterInfo master = mMasters.getFirstByField(ID_INDEX, masterId);
     if (master == null) {
       LOG.warn("Could not find master id: {} for heartbeat.", masterId);

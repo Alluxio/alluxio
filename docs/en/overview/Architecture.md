@@ -309,7 +309,7 @@ If you are writing replica with `ASYNC_THROUGH` and all worker with the copies c
 ### Write to UFS Only (`THROUGH`)
 
 With `THROUGH`, data is written to under storage synchronously without being cached to Alluxio
-workers. This write type ensures that data will be persisted after the write completes, but the
+workers. This write type ensures that data will be persisted before the write completes, but the
 speed is limited by the under storage throughput.
 
 ### Data consistency

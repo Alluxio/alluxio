@@ -13,7 +13,7 @@ package alluxio.heartbeat;
 
 import alluxio.conf.PropertyKey;
 import alluxio.time.Sleeper;
-import alluxio.time.ThreadSleeper;
+import alluxio.time.SteppingThreadSleeper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +48,7 @@ public class SleepingTimer implements HeartbeatTimer {
   public SleepingTimer(String threadName, Clock clock,
       Supplier<SleepIntervalSupplier> intervalSupplierSupplier) {
     this(threadName, LoggerFactory.getLogger(SleepingTimer.class),
-        clock, ThreadSleeper.INSTANCE, intervalSupplierSupplier);
+        clock, SteppingThreadSleeper.INSTANCE, intervalSupplierSupplier);
   }
 
   /**
@@ -77,10 +77,9 @@ public class SleepingTimer implements HeartbeatTimer {
    */
   @Override
   public long tick() throws InterruptedException {
-    long nextInterval = mIntervalSupplier.getNextInterval(mPreviousTickedMs, mClock.millis());
-    if (nextInterval > 0) {
-      mSleeper.sleep(Duration.ofMillis(nextInterval));
-    }
+    long now = mClock.millis();
+    mSleeper.sleep(
+        () -> Duration.ofMillis(mIntervalSupplier.getNextInterval(mPreviousTickedMs, now)));
     mPreviousTickedMs = mClock.millis();
     return mIntervalSupplier.getRunLimit(mPreviousTickedMs);
   }
