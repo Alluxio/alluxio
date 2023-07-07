@@ -156,14 +156,14 @@ public final class HeartbeatThread implements Runnable {
       while (!Thread.interrupted()) {
         // TODO(peis): Fix this. The current implementation consumes one thread even when ticking.
         mStatus = Status.WAITING;
-        mStartTickTime = System.currentTimeMillis();
+        mStartTickTime = CommonUtils.getCurrentMs();
         long limitTime = mTimer.tick();
         mStatus = Status.RUNNING;
-        mStartHeartbeatTime = System.currentTimeMillis();
+        mStartHeartbeatTime = CommonUtils.getCurrentMs();
         LOG.debug("{} #{} will run limited in {}s", mThreadName, mCounter.get(),
             limitTime / Constants.SECOND_MS);
         mExecutor.heartbeat(limitTime);
-        long endHeartbeatTime = System.currentTimeMillis();
+        long endHeartbeatTime = CommonUtils.getCurrentMs();
         mPreviousReport = String.format("#%d [%s - %s - %s] ticked(s) %d, run(s) %d.",
             mCounter.get(),
             CommonUtils.convertMsToDate(mStartTickTime, DATE_PATTERN),

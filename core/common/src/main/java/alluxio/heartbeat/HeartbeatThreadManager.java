@@ -13,12 +13,12 @@ package alluxio.heartbeat;
 
 import alluxio.wire.HeartbeatThreadInfo;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
@@ -27,9 +27,9 @@ import java.util.concurrent.Future;
  */
 public class HeartbeatThreadManager {
   private static final Map<String, HeartbeatThread> HEARTBEAT_THREAD_MAP
-      = new ConcurrentHashMap<>();
+      = new HashMap<>();
   private static final Map<Object, List<HeartbeatThread>> HEARTBEAT_THREAD_INDEX_MAP
-      = new ConcurrentHashMap<>();
+      = new HashMap<>();
 
   /**
    * Add a heartbeat thread.
@@ -38,11 +38,9 @@ public class HeartbeatThreadManager {
    * @param heartbeatThread the heartbeat thread
    */
   public static synchronized void register(Object key, HeartbeatThread heartbeatThread) {
-    List<HeartbeatThread> list = HEARTBEAT_THREAD_INDEX_MAP.get(key);
-    if (list == null) {
-      list = new LinkedList<>();
-      HEARTBEAT_THREAD_INDEX_MAP.put(key, list);
-    }
+    List<HeartbeatThread> list =
+        HEARTBEAT_THREAD_INDEX_MAP.computeIfAbsent(key, (k) -> new LinkedList<>());
+    list.add(heartbeatThread);
     HEARTBEAT_THREAD_MAP.put(heartbeatThread.getThreadName(), heartbeatThread);
   }
 
