@@ -22,6 +22,7 @@ import alluxio.proto.meta.DoraMeta.FileStatus;
 import alluxio.underfs.Fingerprint;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.GetStatusOptions;
 import alluxio.underfs.options.ListOptions;
 
 import com.github.benmanes.caffeine.cache.Cache;
@@ -49,6 +50,8 @@ public class DoraMetaManager implements Closeable {
 
   private final long mListingCacheCapacity
       = Configuration.getInt(PropertyKey.DORA_UFS_LIST_STATUS_CACHE_NR_FILES);
+  private final boolean mGetRealContentHash
+      = Configuration.getBoolean(PropertyKey.USER_FILE_METADATA_LOAD_REAL_CONTENT_HASH);
   private final Cache<String, ListStatusResult> mListStatusCache = mListingCacheCapacity == 0
       ? null
       : Caffeine.newBuilder()
@@ -83,7 +86,8 @@ public class DoraMetaManager implements Closeable {
    */
   public Optional<FileStatus> getFromUfs(String path) throws IOException {
     try {
-      UfsStatus status = mUfs.getStatus(path);
+      UfsStatus status = mUfs.getStatus(path,
+          GetStatusOptions.defaults().setIncludeRealContentHash(mGetRealContentHash));
       DoraMeta.FileStatus fs = mDoraWorker.buildFileStatusFromUfsStatus(status, path);
       return Optional.ofNullable(fs);
     } catch (FileNotFoundException e) {
