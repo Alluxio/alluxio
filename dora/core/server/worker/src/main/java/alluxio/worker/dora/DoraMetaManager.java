@@ -104,7 +104,7 @@ public class DoraMetaManager implements Closeable {
    */
   public Optional<FileStatus> loadFromUfs(String path) throws IOException {
     Optional<FileStatus> fileStatus = getFromUfs(path);
-    if (fileStatus.isEmpty()) {
+    if (!fileStatus.isPresent()) {
       removeFromMetaStore(path);
     } else {
       put(path, fileStatus.get());
@@ -129,7 +129,7 @@ public class DoraMetaManager implements Closeable {
    */
   public void put(String path, FileStatus status) {
     Optional<FileStatus> existingStatus = mMetaStore.getDoraMeta(path);
-    if (existingStatus.isEmpty()
+    if (!existingStatus.isPresent()
         || existingStatus.get().getFileInfo().getFolder()
         || existingStatus.get().getFileInfo().getLength() == 0) {
       mMetaStore.putDoraMeta(path, status);
