@@ -104,7 +104,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 import javax.inject.Named;
@@ -422,6 +424,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     return new PagedFileWriter(mCacheManager, fileId, mPageSize);
   }
 
+  private Random mRandom = new Random();
   @Override
   public ListenableFuture<List<LoadFileFailure>> load(
       boolean loadData, List<UfsStatus> ufsStatuses, UfsReadOptions options)
@@ -443,25 +446,39 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       // These two need UFS api support and cannot be achieved in a generic UFS interface.
       // We may be able to solve this by providing specific implementations for certain UFSes
       // in the future.
+      if (mRandom.nextInt() % 2 == 0) {
+        LOG.warn("LUCYDEBUG: throwing new reject exception");
+        throw new RejectedExecutionException("LUCY exception");
+      }
+      LOG.warn("LUCYDEBUG:not throwing new reject exception");
       if (loadData && status.isFile() && (status.asUfsFileStatus().getContentLength() > 0)) {
-        ListenableFuture<Void> loadFuture = Futures.submit(() -> {
-          try {
-            if (options.hasUser()) {
-              AuthenticatedClientUser.set(options.getUser());
+        try {
+          ListenableFuture<Void> loadFuture = Futures.submit(() -> {
+            try {
+              if (options.hasUser()) {
+                AuthenticatedClientUser.set(options.getUser());
+              }
+              loadData(status.getUfsFullPath().toString(), 0,
+                  status.asUfsFileStatus().getContentLength());
+            } catch (Throwable e) {
+              LOG.error("Loading {} failed", status, e);
+              boolean permissionCheckSucceeded = !(e instanceof AccessControlException);
+              AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
+              errors.add(LoadFileFailure.newBuilder().setUfsStatus(status.toProto())
+                  .setCode(t.getStatus().getCode().value())
+                  .setRetryable(t.isRetryable() && permissionCheckSucceeded)
+                  .setMessage(t.getMessage()).build());
             }
-            loadData(status.getUfsFullPath().toString(), 0,
-                status.asUfsFileStatus().getContentLength());
-          } catch (Throwable e) {
-            LOG.error("Loading {} failed", status, e);
-            boolean permissionCheckSucceeded = !(e instanceof AccessControlException);
-            AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
-            errors.add(LoadFileFailure.newBuilder().setUfsStatus(status.toProto())
-                .setCode(t.getStatus().getCode().value())
-                .setRetryable(t.isRetryable() && permissionCheckSucceeded)
-                .setMessage(t.getMessage()).build());
-          }
-        }, GrpcExecutors.BLOCK_READER_EXECUTOR);
-        futures.add(loadFuture);
+          }, GrpcExecutors.BLOCK_READER_EXECUTOR);
+          futures.add(loadFuture);
+        } catch (RejectedExecutionException ex) {
+          LOG.warn("LUCYDEBUG:RejectedExecutionException thrown.");
+//          AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
+//          errors.add(LoadFileFailure.newBuilder().setUfsStatus(status.toProto())
+//              .setCode(t.getStatus().getCode().value())
+//              .setRetryable(t.isRetryable() && permissionCheckSucceeded)
+//              .setMessage(t.getMessage()).build());
+        }
       }
     }
     return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.BLOCK_READER_EXECUTOR);

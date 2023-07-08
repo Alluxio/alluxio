@@ -39,6 +39,7 @@ import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.ThreadUtils;
 import alluxio.wire.WorkerInfo;
 
+import alluxio.wire.WorkerNetAddress;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
@@ -50,11 +51,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
@@ -129,7 +136,7 @@ public final class Scheduler {
           ThreadFactoryUtils.build("scheduler", false));
       mSchedulerExecutor.scheduleAtFixedRate(mWorkerInfoHub::updateWorkers, 0,
           WORKER_UPDATE_INTERVAL, TimeUnit.MILLISECONDS);
-      mSchedulerExecutor.scheduleWithFixedDelay(this::processJobs, mSchedulerInitialDelay, 2000,
+      mSchedulerExecutor.scheduleWithFixedDelay(this::processJobs, 1000, 2000,
           TimeUnit.MILLISECONDS);
       mSchedulerExecutor.scheduleWithFixedDelay(this::cleanupStaleJob, 1, 1, TimeUnit.HOURS);
       mRunning = true;
@@ -302,6 +309,8 @@ public final class Scheduler {
     if (Thread.currentThread().isInterrupted()) {
       return;
     }
+    // kickstart the head task from each q of the worker if it's not running
+    mWorkerInfoHub.kickStartTasks();
     mJobToRunningTasks.forEach((k, v) -> processJob(k));
   }
 
@@ -396,6 +405,63 @@ public final class Scheduler {
     return mJobMetaStore;
   }
 
+  public class FlowControlQueue<E> extends PriorityBlockingQueue<E> {
+    private AtomicBoolean mOverloaded = new AtomicBoolean(false);
+    private AtomicInteger mLen = new AtomicInteger(0);
+    private final int mCapacity;
+
+    public FlowControlQueue(int capacity) {
+      mCapacity = capacity;
+    }
+
+    public void setOverload() {
+      LOG.warn("set overloaded.");
+      mOverloaded.compareAndSet(false, true);
+    }
+
+    public void removeOverload() {
+      mOverloaded.compareAndSet(true, true);
+    }
+
+    @Override
+    public boolean offer(E e) {
+      if (mOverloaded.get()) {
+        return false;
+      }
+      if (mLen.incrementAndGet() > mCapacity) {
+        mLen.decrementAndGet();
+        return false;
+      }
+      return super.offer(e);
+    }
+
+    @Override
+    public E poll() {
+      E e = super.poll();
+      mLen.decrementAndGet();
+      removeOverload();
+      return e;
+    }
+  }
+
+  /**
+   * Util class here for tracking unique identity of a worker as
+   * WorkerInfo class uses constantly changing field such as
+   * mLastContactSec for equals(), which can't be served as key
+   * class in map.
+   */
+  private class WorkerInfoIdentity {
+    public final WorkerInfo mWorkerInfo;
+    public WorkerInfoIdentity(WorkerInfo workerInfo) {
+      mWorkerInfo = workerInfo;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+
+    }
+  }
+
   /**
    * Worker information hub.
    */
@@ -404,6 +470,7 @@ public final class Scheduler {
   public class WorkerInfoHub {
     public Map<WorkerInfo, CloseableResource<BlockWorkerClient>> mActiveWorkers = ImmutableMap.of();
     private final WorkerProvider mWorkerProvider;
+    private final int MAX_TASK_PER_WORKER = 10;
 
     /**
      * Constructor.
@@ -414,37 +481,26 @@ public final class Scheduler {
       mWorkerProvider = workerProvider;
     }
 
-    private final Map<WorkerInfo, PriorityBlockingQueue<Task>> mWorkerToTaskQ
+    private final Map<WorkerInfo, FlowControlQueue<Task>> mWorkerToTaskQ
         = new ConcurrentHashMap<>();
 
-    /**
-     * Enqueue task for worker.
-     * @param workerInfo the worker
-     * @param task the task
-     * @param kickStartTask kick-start task
-     * @return whether the task is enqueued successfully
-     */
-    public boolean enqueueTaskForWorker(@Nullable WorkerInfo workerInfo, Task task,
-        boolean kickStartTask) {
-      if (workerInfo == null) {
-        return false;
-      }
-      PriorityBlockingQueue workerTaskQ = mWorkerToTaskQ
-          .computeIfAbsent(workerInfo, k -> new PriorityBlockingQueue<>());
-      if (!workerTaskQ.offer(task)) {
-        return false;
-      }
-      CloseableResource<BlockWorkerClient> blkWorkerClientResource = mActiveWorkers.get(workerInfo);
-      if (blkWorkerClientResource == null) {
-        LOG.warn("Didn't find corresponding BlockWorkerClient for workerInfo:{}",
-            workerInfo);
-        return false;
-      }
-      if (kickStartTask) {
-        // track running tasks of a job
-        ConcurrentHashSet<Task<?>> tasks = mJobToRunningTasks.computeIfAbsent(task.getJob(),
-                j -> new ConcurrentHashSet<>());
-        tasks.add(task);
+    public void kickStartTasks() {
+      // Kick off one task for each worker
+      mWorkerToTaskQ.forEach((workerInfo, tasksQ) -> {
+        LOG.warn("Kick start task for worker:{}, taskQ size:{}", workerInfo.getAddress().getHost(),
+            tasksQ.size());
+        CloseableResource<BlockWorkerClient> blkWorkerClientResource = mActiveWorkers.get(workerInfo);
+        if (blkWorkerClientResource == null) {
+          LOG.warn("Didn't find corresponding BlockWorkerClient for workerInfo:{}",
+              workerInfo);
+          return;
+        }
+        Task task = tasksQ.peek();
+        // only make sure 1 task is running at the time
+        if (task == null || task.getResponseFuture() != null) {
+          LOG.warn("head task is {}", (task == null) ? "NULL" : "already running" );
+          return;
+        }
         task.execute(blkWorkerClientResource.get(), workerInfo);
         task.getResponseFuture().addListener(() -> {
           Job job = task.getJob();
@@ -461,8 +517,7 @@ public final class Scheduler {
             LOG.error("Unexpected exception thrown in response future listener.", e);
             job.failJob(new InternalRuntimeException(e));
           } finally {
-            // whether task succeed or fail, remove it from q,
-            workerTaskQ.remove(task);
+            tasksQ.remove(task);
             mJobToRunningTasks.compute(job, (k, v) -> {
               if (v == null) {
                 return null;
@@ -472,7 +527,69 @@ public final class Scheduler {
             });
           }
         }, mSchedulerExecutor);
+      });
+    }
+
+    /**
+     * Enqueue task for worker.
+     * @param workerInfo the worker
+     * @param task the task
+     * @param kickStartTask kick-start task
+     * @return whether the task is enqueued successfully
+     */
+    public boolean enqueueTaskForWorker(@Nullable WorkerInfo workerInfo, Task task,
+        boolean kickStartTask) {
+      if (workerInfo == null) {
+        return false;
       }
+      FlowControlQueue workerTaskQ = mWorkerToTaskQ
+          .computeIfAbsent(workerInfo, k -> new FlowControlQueue<>(MAX_TASK_PER_WORKER));
+      if (!workerTaskQ.offer(task)) {
+        LOG.warn("Offer task:{} failed.", task.getTaskId());
+        return false;
+      }
+//      CloseableResource<BlockWorkerClient> blkWorkerClientResource = mActiveWorkers.get(workerInfo);
+//      if (blkWorkerClientResource == null) {
+//        LOG.warn("Didn't find corresponding BlockWorkerClient for workerInfo:{}",
+//            workerInfo);
+//        return false;
+//      }
+      ConcurrentHashSet<Task<?>> tasks = mJobToRunningTasks.computeIfAbsent(task.getJob(),
+          j -> new ConcurrentHashSet<>());
+      tasks.add(task);
+//      if (kickStartTask) {
+//        // track running tasks of a job
+//        ConcurrentHashSet<Task<?>> tasks = mJobToRunningTasks.computeIfAbsent(task.getJob(),
+//                j -> new ConcurrentHashSet<>());
+//        tasks.add(task);
+//        task.execute(blkWorkerClientResource.get(), workerInfo);
+//        task.getResponseFuture().addListener(() -> {
+//          Job job = task.getJob();
+//          try {
+//            job.processResponse(task); // retry on failure logic inside
+//            // TODO(lucy) currently processJob is only called in the single
+//            // threaded scheduler thread context, in future once tasks are
+//            // completed, they should be able to call processJob to resume
+//            // their own job to schedule next set of tasks to run.
+//          } catch (Exception e) {
+//            // Unknown exception. This should not happen, but if it happens we don't
+//            // want to lose the worker thread, thus catching it here. Any exception
+//            // surfaced here should be properly handled.
+//            LOG.error("Unexpected exception thrown in response future listener.", e);
+//            job.failJob(new InternalRuntimeException(e));
+//          } finally {
+//            // whether task succeed or fail, remove it from q,
+//            workerTaskQ.remove(task);
+//            mJobToRunningTasks.compute(job, (k, v) -> {
+//              if (v == null) {
+//                return null;
+//              }
+//              v.remove(task);
+//              return v;
+//            });
+//          }
+//        }, mSchedulerExecutor);
+//      }
       return true;
     }
 
@@ -486,14 +603,14 @@ public final class Scheduler {
       if (mWorkerToTaskQ.containsKey(workerInfo)) {
         return false;
       }
-      PriorityBlockingQueue<Task> pq = mWorkerToTaskQ.get(workerInfo);
+      FlowControlQueue<Task> pq = mWorkerToTaskQ.get(workerInfo);
       return pq.remove(task);
     }
 
     /**
      * @return the worker to task queue
      */
-    public Map<WorkerInfo, PriorityBlockingQueue<Task>> getWorkerToTaskQ() {
+    public Map<WorkerInfo, FlowControlQueue<Task>> getWorkerToTaskQ() {
       return mWorkerToTaskQ;
     }
 

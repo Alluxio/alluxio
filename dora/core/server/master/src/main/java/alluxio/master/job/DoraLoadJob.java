@@ -56,6 +56,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 import com.google.common.util.concurrent.ListenableFuture;
+import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -205,6 +206,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       String path = mRetryFiles.poll();
       try {
         UfsStatus uriStatus = mUfs.getStatus(path);
+        uriStatus.setUfsFullPath(new AlluxioURI(path));
         batchBuilder.add(uriStatus);
         ++filesToLoad;
       } catch (IOException e) {
@@ -235,13 +237,15 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     for (UfsStatus ufsStatus : batchBuilder.build()) {
       // NOTE: active workers may not reflect all workers at start up,
       // but hash based policy will deterministically only among current recognized active workers
-      WorkerInfo pickedWorker = mWorkerAssignPolicy.pickAWorker(
-          ufsStatus.getUfsFullPath().toString(),
-          Scheduler.getInstance().getActiveWorkers().keySet());
-      if (pickedWorker == null) {
-        mRetryFiles.offer(ufsStatus.getUfsFullPath().toString());
-        continue;
-      }
+      try {
+        WorkerInfo pickedWorker = mWorkerAssignPolicy.pickAWorker(
+            ufsStatus.getUfsFullPath().toString(),
+            Scheduler.getInstance().getActiveWorkers().keySet());
+        if (pickedWorker == null) {
+          mRetryFiles.offer(ufsStatus.getUfsFullPath().toString());
+          continue;
+        }
+
       List<DoraLoadTask> tasks = workerToTaskMap.computeIfAbsent(pickedWorker,
           w -> new ArrayList<>());
       DoraLoadTask task;
@@ -260,6 +264,9 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
           mTotalByteCount.addAndGet(ufsStatus.asUfsFileStatus().getContentLength());
         }
         mProcessingFileCount.addAndGet(1);
+      }
+      } catch (NullPointerException ex) {
+        LOG.info("LUCYDEBUG");
       }
     }
     if (workerToTaskMap.isEmpty()) {
@@ -419,11 +426,13 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 
   @Override
   public void onTaskSubmitFailure(Task<?> task) {
+    LOG.warn("onTaskSubmitFailure:taskid:{}", task.getTaskId());
     if (!(task instanceof DoraLoadTask)) {
       throw new IllegalArgumentException("Task is not a DoraLoadTask: " + task);
     }
+    // Just add to retry without counting towards failure count.
     ((DoraLoadTask) task).mFilesToLoad.forEach(
-        it -> addFilesToRetry(it.getUfsFullPath().toString()));
+        it -> mRetryFiles.offer(it.getUfsFullPath().toString()));
   }
 
   @Override
@@ -520,11 +529,17 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     catch (ExecutionException e) {
       LOG.warn("exception when trying to get load response.", e.getCause());
       for (UfsStatus ufsStatus : doraLoadTask.getFilesToLoad()) {
+        AlluxioRuntimeException exception = AlluxioRuntimeException.from(e.getCause());
         if (isHealthy()) {
           addFilesToRetry(ufsStatus.getUfsFullPath().toString());
+          // Threadpool overload exception in worker, don't treat it as failure
+          if (exception.getStatus().equals(Status.RESOURCE_EXHAUSTED)) {
+            LOG.warn("Worker:{} overloaded.");
+            Scheduler.getInstance().getWorkerInfoHub().getWorkerToTaskQ()
+                .get(doraLoadTask.getMyRunningWorker()).setOverload();
+          }
         }
         else {
-          AlluxioRuntimeException exception = AlluxioRuntimeException.from(e.getCause());
           addFileFailure(ufsStatus.getUfsFullPath().toString(),
               exception.getMessage(), exception.getStatus().getCode()
               .value());
