@@ -1184,6 +1184,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
+  public static final PropertyKey UNDERFS_HDFS_TRASH_ENABLE =
+      booleanBuilder(Name.UNDERFS_HDFS_TRASH_ENABLE)
+          .setDefaultValue(false)
+          .setDescription("Whether to enable the HDFS trash feature, "
+              + "it is important to note that after enabling this configuration, "
+              + "you need to set the relevant trash configurations (such as 'fs.trash.interval') "
+              + "in 'hdfs-site.xml' in order to truly use the HDFS trash functionality.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey UNDERFS_IO_THREADS =
       intBuilder(Name.UNDERFS_IO_THREADS)
           .setDefaultSupplier(() -> Math.max(4, 3 * Runtime.getRuntime().availableProcessors()),
@@ -7835,6 +7845,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";
     public static final String UNDERFS_OZONE_PREFIXES = "alluxio.underfs.ozone.prefixes";
     public static final String UNDERFS_HDFS_REMOTE = "alluxio.underfs.hdfs.remote";
+    public static final String UNDERFS_HDFS_TRASH_ENABLE = "alluxio.underfs.hdfs.trash.enable";
     public static final String UNDERFS_IO_THREADS = "alluxio.underfs.io.threads";
     public static final String UNDERFS_LOCAL_SKIP_BROKEN_SYMLINKS =
         "alluxio.underfs.local.skip.broken.symlinks";
