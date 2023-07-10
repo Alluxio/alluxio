@@ -75,7 +75,8 @@ import javax.annotation.concurrent.ThreadSafe;
  *  5. One worker would have one task running for one job description at a time.DoraLoadJob.java
  */
 @ThreadSafe
-public final class Scheduler implements Serializable {
+@SuppressFBWarnings({"SE_NO_SERIALVERSIONID"})
+public final class Scheduler {
 
   private static final Logger LOG = LoggerFactory.getLogger(Scheduler.class);
   private static final int CAPACITY = 100;

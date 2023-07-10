@@ -482,6 +482,8 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     return (mEndTime.orElse(System.currentTimeMillis()) - mStartTime) / 1000;
   }
 
+
+  @SuppressFBWarnings({"BC_UNCONFIRMED_CAST_OF_RETURN_VALUE"})
   @Override
   public boolean processResponse(DoraLoadTask doraLoadTask) {
     try {
@@ -524,7 +526,6 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     }
     catch (ExecutionException e) {
       LOG.warn("exception when trying to get load response.", e.getCause());
-      @SuppressFBWarnings({"BC_UNCONFIRMED_CAST_OF_RETURN_VALUE"})
       boolean workerOverload = (e.getCause() instanceof StatusRuntimeException)
           && ((StatusRuntimeException) e.getCause()).getStatus().getCode()
           .equals(Status.Code.RESOURCE_EXHAUSTED);
