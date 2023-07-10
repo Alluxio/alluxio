@@ -179,8 +179,8 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
     FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(PATH_INDEX, path);
     // use the same fd for concurrent reads, please check
     // https://github.com/Alluxio/alluxio/issues/17025 for details
-    if ((entry != null) && mStreamFactory.isStreamTypeMatch(
-        entry.getFileStream(), fi.flags.get(), mode)) {
+    if ((entry != null) && mStreamFactory.isReadStream(entry.getFileStream())
+        && mStreamFactory.isStreamTypeMatch(entry.getFileStream(), fi.flags.get())) {
       fi.fh.set(entry.getId());
       entry.setCount(entry.getCount() + 1);
       return 0;
