@@ -72,9 +72,10 @@ public class InodeDirectoryIdGenerator implements Journaled {
   /**
    * @return the next directory id
    */
-  public synchronized long peekDirectoryId() {
-    long containerId = mNextDirectoryId.getContainerId();
-    long sequenceNumber = mNextDirectoryId.getSequenceNumber();
+  public long peekDirectoryId() {
+    DirectoryId directoryId = mNextDirectoryId;
+    long containerId = directoryId.getContainerId();
+    long sequenceNumber = directoryId.getSequenceNumber();
     return BlockId.createBlockId(containerId, sequenceNumber);
   }
 

@@ -20,8 +20,8 @@ import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.UniqueBlockingQueue;
-import alluxio.worker.block.DefaultBlockWorker;
 
+import com.codahale.metrics.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -160,10 +160,14 @@ public final class GrpcExecutors {
   private static class ImpersonateThreadPoolExecutor extends AbstractExecutorService {
     private final ExecutorService mDelegate;
     private final boolean mTracked;
+    private Counter mClientCounter;
 
     public ImpersonateThreadPoolExecutor(ExecutorService service, boolean tracked) {
       mDelegate = service;
       mTracked = tracked;
+      if (tracked) {
+        mClientCounter = MetricsSystem.counter(MetricKey.WORKER_ACTIVE_OPERATIONS.getName());
+      }
     }
 
     @Override
@@ -172,7 +176,7 @@ public final class GrpcExecutors {
       User proxyUser = AuthenticatedClientUser.getOrNull();
       mDelegate.execute(() -> {
         if (mTracked) {
-          DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS.inc();
+          mClientCounter.inc();
         }
         try {
 //          SleepUtils.sleepMs(1000);
@@ -180,7 +184,7 @@ public final class GrpcExecutors {
           command.run();
         } finally {
           if (mTracked) {
-            DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS.dec();
+            mClientCounter.dec();
           }
           AuthenticatedClientUser.remove();
         }
@@ -193,7 +197,7 @@ public final class GrpcExecutors {
       User proxyUser = AuthenticatedClientUser.getOrNull();
       return mDelegate.submit(() -> {
         if (mTracked) {
-          DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS.inc();
+          mClientCounter.inc();
         }
         try {
 //          SleepUtils.sleepMs(1000);
@@ -201,7 +205,7 @@ public final class GrpcExecutors {
           return task.call();
         } finally {
           if (mTracked) {
-            DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS.dec();
+            mClientCounter.dec();
           }
           AuthenticatedClientUser.remove();
         }
@@ -214,7 +218,7 @@ public final class GrpcExecutors {
       User proxyUser = AuthenticatedClientUser.getOrNull();
       return mDelegate.submit(() -> {
         if (mTracked) {
-          DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS.inc();
+          mClientCounter.inc();
         }
         try {
 //          SleepUtils.sleepMs(1000);
@@ -222,7 +226,7 @@ public final class GrpcExecutors {
           task.run();
         } finally {
           if (mTracked) {
-            DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS.dec();
+            mClientCounter.dec();
           }
           AuthenticatedClientUser.remove();
         }
@@ -235,7 +239,7 @@ public final class GrpcExecutors {
       User proxyUser = AuthenticatedClientUser.getOrNull();
       return mDelegate.submit(() -> {
         if (mTracked) {
-          DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS.inc();
+          mClientCounter.inc();
         }
         try {
 //          SleepUtils.sleepMs(1000);
@@ -243,7 +247,7 @@ public final class GrpcExecutors {
           task.run();
         } finally {
           if (mTracked) {
-            DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS.dec();
+            mClientCounter.dec();
           }
           AuthenticatedClientUser.remove();
         }
@@ -280,18 +284,22 @@ public final class GrpcExecutors {
 
     @Override
     public void shutdown() {
-      long operationCount = DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS.getCount();
-      if (operationCount > 0) {
-        LOG.warn("{} operations have not completed at shutdown()", operationCount);
+      if (mTracked) {
+        long operationCount = mClientCounter.getCount();
+        if (operationCount > 0) {
+          LOG.warn("{} operations have not completed at shutdown()", operationCount);
+        }
       }
       mDelegate.shutdown();
     }
 
     @Override
     public List<Runnable> shutdownNow() {
-      long operationCount = DefaultBlockWorker.Metrics.WORKER_ACTIVE_OPERATIONS.getCount();
-      if (operationCount > 0) {
-        LOG.warn("{} operations have not completed at shutdownNow()", operationCount);
+      if (mTracked) {
+        long operationCount = mClientCounter.getCount();
+        if (operationCount > 0) {
+          LOG.warn("{} operations have not completed at shutdownNow()", operationCount);
+        }
       }
       return mDelegate.shutdownNow();
     }

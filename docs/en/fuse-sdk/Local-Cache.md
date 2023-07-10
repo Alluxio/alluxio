@@ -22,7 +22,7 @@ Alluxio FUSE can provide two kinds of metadata/data cache, the kernel cache and 
 
 The following illustration shows the layers of data provider — FUSE kernel cache, FUSE userspace cache, and the persistent data storage (the mounted UFS path).
 
-![POSIX LOCAL CACHE](https://github.com/Alluxio/alluxio/blob/dora/docs/img/posix-local-cache.png)
+![POSIX LOCAL CACHE]({{ '/img/posix-local-cache.png' | relativize_url }})
 
 Since FUSE kernel cache and userspace cache both provide caching capability, although they can be enabled at the same time,
 it is recommended to choose only one of them to avoid double memory consumption.

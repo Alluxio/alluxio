@@ -70,7 +70,7 @@ public final class MockFileInStream extends FileInStream {
   @Override
   public int positionedRead(long position, byte[] buffer, int offset, int length)
       throws IOException {
-    throw new UnsupportedOperationException("positionedRead not implemented for mock FileInStream");
+    return length;
   }
 
   @Override

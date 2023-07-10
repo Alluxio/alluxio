@@ -63,6 +63,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * <p/>
  */
 @ThreadSafe
+// TODO(jiacheng): This is not removed because it is used by the PagedDoraWorker.
+//  It shall be removed together with a refactor on the Dora worker refactor on register.
 public class BlockMasterClient extends AbstractMasterClient {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMasterClient.class);
   public BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceBlockingStub mClient = null;

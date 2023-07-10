@@ -3618,8 +3618,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_UPDATE_CHECK_ENABLED =
       booleanBuilder(Name.MASTER_UPDATE_CHECK_ENABLED)
           .setDefaultValue(Boolean.parseBoolean(ProjectConstants.UPDATE_CHECK_ENABLED))
-          .setDescription("Whether to check for update availability.")
+          .setDescription("Whether to check for update availability")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setIsHidden(true)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_UPDATE_CHECK_INTERVAL =
@@ -3627,6 +3628,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("7day")
           .setDescription("The interval to check for update availability.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setIsHidden(true)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_UNSAFE_DIRECT_PERSIST_OBJECT_ENABLED =
@@ -4191,7 +4193,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_BLOCK_STORE_TYPE =
       enumBuilder(Name.WORKER_BLOCK_STORE_TYPE, BlockStoreType.class)
-          .setDefaultValue(BlockStoreType.FILE)
+          .setDefaultValue(BlockStoreType.PAGE)
           .setDescription("The implementation of LocalBlockStore that can be instantiated.")
           .setScope(Scope.WORKER)
           .build();
@@ -5949,6 +5951,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "configuration of \"alluxio.user.file.metadata.load.type\" will be ignored.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_FILE_METADATA_LOAD_REAL_CONTENT_HASH =
+      booleanBuilder(Name.USER_FILE_METADATA_LOAD_REAL_CONTENT_HASH)
+          .setDefaultValue(false)
+          .setDescription("Whether to get real content hash of file when the file is loaded "
+              + "from UFS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey USER_FILE_PASSIVE_CACHE_ENABLED =
       booleanBuilder(Name.USER_FILE_PASSIVE_CACHE_ENABLED)
@@ -7920,17 +7930,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey DORA_WORKER_POPULATE_METADATA_FINGERPRINT =
-      booleanBuilder(Name.DORA_WORKER_POPULATE_METADATA_FINGERPRINT)
-          .setDescription("Populate the fingerprint for file metadata fetched from UFS "
-              + "If set, when the file metadata is updated, the fingerprints will be compared. "
-              + "If the file metadata is updated but the data part does not change, "
-              + "we can skip invalidating the page cache, at the expense of having extra overhead "
-              + "on computing the fingerprint for UFS files.")
-          .setDefaultValue(false)
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
 
   public static final PropertyKey DORA_UFS_LIST_STATUS_CACHE_TTL =
       durationBuilder(Name.DORA_UFS_LIST_STATUS_CACHE_TTL)
@@ -7940,10 +7939,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
 
-  public static final PropertyKey DORA_UFS_LIST_STATUS_CACHE_NR_DIRS =
-      intBuilder(Name.DORA_UFS_LIST_STATUS_CACHE_NR_DIRS)
-          .setDefaultValue(50)
-          .setDescription("Number of the file/dir cache of UFS list status results")
+  public static final PropertyKey DORA_UFS_LIST_STATUS_CACHE_NR_FILES =
+      intBuilder(Name.DORA_UFS_LIST_STATUS_CACHE_NR_FILES)
+          .setDefaultValue(100000)
+          .setDescription("Number of the file ufs statuses of UFS listing cache. "
+              + "The more files a directory contain, the more weight it is counted "
+              + "when the cache capacity is calculated.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.WORKER)
           .build();
@@ -9199,6 +9200,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.metadata.load.type";
     public static final String USER_FILE_METADATA_SYNC_INTERVAL =
         "alluxio.user.file.metadata.sync.interval";
+    public static final String USER_FILE_METADATA_LOAD_REAL_CONTENT_HASH =
+        "alluxio.user.file.metadata.real.content.hash";
     public static final String USER_FILE_PASSIVE_CACHE_ENABLED =
         "alluxio.user.file.passive.cache.enabled";
     public static final String USER_FILE_READ_TYPE_DEFAULT = "alluxio.user.file.readtype.default";
@@ -9594,14 +9597,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String DORA_WORKER_METASTORE_ROCKSDB_INDEX =
         "alluxio.dora.worker.metastore.rocksdb.index";
 
-    public static final String DORA_WORKER_POPULATE_METADATA_FINGERPRINT =
-        "alluxio.dora.worker.populate.metadata.fingerprint";
-
     public static final String DORA_UFS_LIST_STATUS_CACHE_TTL =
         "alluxio.dora.ufs.list.status.cache.ttl";
 
-    public static final String DORA_UFS_LIST_STATUS_CACHE_NR_DIRS =
-        "alluxio.dora.ufs.list.status.cache.nr.dirs";
+    public static final String DORA_UFS_LIST_STATUS_CACHE_NR_FILES =
+        "alluxio.dora.ufs.list.status.cache.nr.files";
 
     //
     // Extra class to be loaded

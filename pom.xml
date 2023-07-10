@@ -128,6 +128,7 @@
     <awssdk.version>2.20.56</awssdk.version>
     <build.path>build</build.path>
     <catalyst.version>1.2.1</catalyst.version>
+    <caffeine.version>3.1.6</caffeine.version>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
     <grpc.version>1.54.1</grpc.version>
     <gson.version>2.8.9</gson.version>
@@ -167,6 +168,7 @@
     <surefire.rerunFailingTestsCount>1</surefire.rerunFailingTestsCount>
     <test.output.redirect>true</test.output.redirect>
     <update.check.auth.string>YWxsdXhpbzp0YWNoeW9u</update.check.auth.string>
+    <update.check.configurable>true</update.check.configurable>
     <update.check.enabled>true</update.check.enabled>
     <update.check.host>https://diagnostics.alluxio.io</update.check.host>
     <findbugs.skip>false</findbugs.skip>
@@ -247,6 +249,11 @@
         <groupId>com.fasterxml.jackson.dataformat</groupId>
         <artifactId>jackson-dataformat-xml</artifactId>
         <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.ben-manes.caffeine</groupId>
+        <artifactId>caffeine</artifactId>
+        <version>3.1.6</version>
       </dependency>
       <dependency>
         <groupId>com.github.serceman</groupId>

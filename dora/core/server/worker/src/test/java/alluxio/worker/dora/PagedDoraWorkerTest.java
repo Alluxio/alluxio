@@ -12,6 +12,9 @@
 package alluxio.worker.dora;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
@@ -23,8 +26,14 @@ import alluxio.client.file.cache.PageMetaStore;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
+import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.FileInfo;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadFileFailure;
 import alluxio.grpc.Route;
 import alluxio.grpc.RouteFailure;
@@ -32,11 +41,10 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UfsReadOptions;
 import alluxio.grpc.WriteOptions;
 import alluxio.security.authorization.Mode;
-import alluxio.underfs.Fingerprint;
 import alluxio.underfs.UfsStatus;
 import alluxio.util.io.BufferUtils;
 
-import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.junit.After;
 import org.junit.Assert;
@@ -169,7 +177,7 @@ public class PagedDoraWorkerTest {
         mWorker.copy(Collections.singletonList(route), null, writeOptions);
     List<RouteFailure> failures = copy.get();
     assertEquals(1, failures.size());
-    Assert.assertFalse(b.exists());
+    assertFalse(b.exists());
   }
 
   @Test
@@ -267,7 +275,7 @@ public class PagedDoraWorkerTest {
     List<RouteFailure> failures = move.get();
     assertEquals(0, failures.size());
     Assert.assertTrue(b.exists());
-    Assert.assertFalse(a.exists());
+    assertFalse(a.exists());
     try (InputStream in = Files.newInputStream(b.toPath())) {
       byte[] readBuffer = new byte[length];
       while (in.read(readBuffer) != -1) {
@@ -295,7 +303,7 @@ public class PagedDoraWorkerTest {
         mWorker.move(Collections.singletonList(route), null, writeOptions);
     List<RouteFailure> failures = move.get();
     assertEquals(1, failures.size());
-    Assert.assertFalse(b.exists());
+    assertFalse(b.exists());
   }
 
   @Test
@@ -318,7 +326,7 @@ public class PagedDoraWorkerTest {
     assertEquals(0, failures.size());
     Assert.assertTrue(b.exists());
     Assert.assertTrue(b.isDirectory());
-    Assert.assertFalse(a.exists());
+    assertFalse(a.exists());
   }
 
   @Test
@@ -363,9 +371,9 @@ public class PagedDoraWorkerTest {
     Assert.assertTrue(b.isDirectory());
     Assert.assertTrue(dstD.exists());
     Assert.assertTrue(dstD.isDirectory());
-    Assert.assertFalse(a.exists());
-    Assert.assertFalse(c.exists());
-    Assert.assertFalse(d.exists());
+    assertFalse(a.exists());
+    assertFalse(c.exists());
+    assertFalse(d.exists());
     try (InputStream in = Files.newInputStream(dstC.toPath())) {
       byte[] readBuffer = new byte[length];
       while (in.read(readBuffer) != -1) {
@@ -375,33 +383,7 @@ public class PagedDoraWorkerTest {
   }
 
   @Test
-  public void testGetFileInfoNoFingerprint()
-      throws AccessControlException, IOException, ExecutionException, InterruptedException,
-      TimeoutException {
-    testGetFileInfo(false);
-    testGetFileInfoDir(false);
-  }
-
-  @Test
-  public void testGetFileInfoPopulateFingerprint()
-      throws AccessControlException, IOException, ExecutionException, InterruptedException,
-      TimeoutException {
-    testGetFileInfo(true);
-    testGetFileInfoDir(true);
-  }
-
-  @Test
-  public void testSetAttributePopulateFingerprint() throws Exception {
-    testSetAttribute(true);
-  }
-
-  @Test
-  public void testSetAttributeNoFingerprint() throws Exception {
-    testSetAttribute(false);
-  }
-
-  private void testSetAttribute(boolean populateFingerprint) throws Exception {
-    mWorker.setPopulateMetadataFingerprint(populateFingerprint);
+  public void testSetAttribute() throws Exception {
     String fileContent = "foobar";
     File f = mTestFolder.newFile();
     Files.write(f.toPath(), fileContent.getBytes());
@@ -424,11 +406,10 @@ public class PagedDoraWorkerTest {
     cachedPages =
         mCacheManager.getCachedPageIdsByFileId(
             new AlluxioURI(f.getPath()).hash(), fileContent.length());
-    // If fingerprint is populated, the data cache won't be invalidated after the MODE update,
-    // as we know the content part does not change.
+    // The data cache won't be invalidated after the MODE update,
+    // as we know the content part does not change, by comparing the content hash.
     // Otherwise, the data cache will be invalidated, and we will get 0 page.
-    int expectedPages = populateFingerprint ? 1 : 0;
-    assertEquals(expectedPages, cachedPages.size());
+    assertEquals(1, cachedPages.size());
     assertEquals(0777, result.getMode());
 
     assertTrue(f.delete());
@@ -438,10 +419,10 @@ public class PagedDoraWorkerTest {
         .setMode(new Mode((short) 777).toProto()).build()));
   }
 
-  private void testGetFileInfo(boolean populateFingerprint)
+  @Test
+  public void testGetFileInfo()
       throws AccessControlException, IOException, ExecutionException, InterruptedException,
       TimeoutException {
-    mWorker.setPopulateMetadataFingerprint(populateFingerprint);
     String fileContent = "foobar";
     String updatedFileContent = "foobarbaz";
     File f = mTestFolder.newFile();
@@ -453,10 +434,7 @@ public class PagedDoraWorkerTest {
             new AlluxioURI(f.getPath()).hash(), fileContent.length());
     assertEquals(fileContent.length(), result.getLength());
     assertEquals(0, cachedPages.size());
-    if (populateFingerprint) {
-      assertTrue(
-          Preconditions.checkNotNull(Fingerprint.parse(result.getUfsFingerprint())).isValid());
-    }
+    assertFalse(Strings.isNullOrEmpty(result.getContentHash()));
 
     loadFileData(f.getPath());
 
@@ -472,7 +450,7 @@ public class PagedDoraWorkerTest {
     cachedPages =
         mCacheManager.getCachedPageIdsByFileId(
             new AlluxioURI(f.getPath()).hash(), fileContent.length());
-    assertEquals(populateFingerprint ? 1 : 0, cachedPages.size());
+    assertEquals(1, cachedPages.size());
     assertEquals(fileContent.length(), result.getLength());
 
     assertTrue(f.delete());
@@ -485,10 +463,7 @@ public class PagedDoraWorkerTest {
             new AlluxioURI(f.getPath()).hash(), updatedFileContent.length());
     assertEquals(0, cachedPages.size());
     assertEquals(updatedFileContent.length(), result.getLength());
-    if (populateFingerprint) {
-      assertTrue(
-          Preconditions.checkNotNull(Fingerprint.parse(result.getUfsFingerprint())).isValid());
-    }
+    assertFalse(Strings.isNullOrEmpty(result.getContentHash()));
 
     assertTrue(f.delete());
     result = mWorker.getFileInfo(f.getPath(), GetStatusPOptions.getDefaultInstance());
@@ -500,9 +475,9 @@ public class PagedDoraWorkerTest {
             FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0)).build()));
   }
 
-  private void testGetFileInfoDir(boolean populateFingerprint)
+  @Test
+  public void testGetFileInfoDir()
       throws AccessControlException, IOException {
-    mWorker.setPopulateMetadataFingerprint(populateFingerprint);
     File f = mTestFolder.newFolder();
 
     var result = mWorker.getFileInfo(f.getPath(), GetStatusPOptions.getDefaultInstance());
@@ -510,6 +485,119 @@ public class PagedDoraWorkerTest {
 
     result = mWorker.getFileInfo(f.getPath(), GET_STATUS_OPTIONS_MUST_SYNC);
     assertTrue(result.isFolder());
+  }
+
+  @Test
+  public void testCreateDeleteFile() throws Exception {
+    File testDir = mTestFolder.newFolder("testDir");
+    testDir.mkdirs();
+    File testFile = new File(testDir, "a");
+    int fileLength = 1024;
+    createDummyFile(testFile, fileLength);
+
+    assertTrue(testFile.exists());
+    alluxio.wire.FileInfo fileInfo = mWorker.getFileInfo(testFile.getPath(),
+        GetStatusPOptions.getDefaultInstance());
+    assertEquals(fileInfo.getLength(), fileLength);
+
+    mWorker.delete(testFile.getPath(), DeletePOptions.getDefaultInstance());
+    assertThrows(FileNotFoundException.class, () -> {
+      mWorker.getFileInfo(testFile.getPath(), GetStatusPOptions.getDefaultInstance());
+    });
+    assertFalse(testFile.exists());
+  }
+
+  @Test
+  public void testCreateDeleteDirectory() throws Exception {
+    File testBaseDir = mTestFolder.newFolder("testBaseDir");
+    // Prepare the base dir in UFS because we create the dir without recursive=true
+    testBaseDir.mkdirs();
+    File testDir = new File(testBaseDir, "testDir");
+    mWorker.createDirectory(testDir.getPath(), CreateDirectoryPOptions.getDefaultInstance());
+    // The test dir should be created by Alluxio in UFS
+    assertTrue(testDir.exists());
+    alluxio.wire.FileInfo fileInfo = mWorker.getFileInfo(testDir.getPath(),
+        GetStatusPOptions.getDefaultInstance());
+    assertTrue(fileInfo.isFolder());
+
+    mWorker.delete(testDir.getPath(), DeletePOptions.getDefaultInstance());
+    assertThrows(FileNotFoundException.class, () -> {
+      mWorker.getFileInfo(testDir.getPath(), GetStatusPOptions.getDefaultInstance());
+    });
+  }
+
+  @Test
+  public void testRecursiveCreateDeleteDirectory() throws Exception {
+    File testBaseDir = mTestFolder.newFolder("testDir");
+    File testDir = new File(testBaseDir, "a");
+    File testNestedDir = new File(testDir, "b");
+    // Through Alluxio, create the nested path recursively
+    mWorker.createDirectory(testNestedDir.getPath(),
+        CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
+    // Both directories should be created by Alluxio
+    assertTrue(testNestedDir.exists());
+    assertTrue(testDir.exists());
+    alluxio.wire.FileInfo nestedDirInfo = mWorker.getFileInfo(testNestedDir.getPath(),
+        GetStatusPOptions.getDefaultInstance());
+    assertTrue(nestedDirInfo.isFolder());
+
+    // Can create files under the nested dir, meaning the dir is created in UFS
+    File testFile = new File(testNestedDir, "testFile");
+    createDummyFile(testFile, 1024);
+    alluxio.wire.FileInfo nestedFileInfo = mWorker.getFileInfo(testFile.getPath(),
+        GetStatusPOptions.getDefaultInstance());
+    assertEquals(nestedFileInfo.getLength(), 1024);
+
+    // Delete the dir (containing nested files), the dir and nested files should all be gone
+    mWorker.delete(testNestedDir.getPath(), DeletePOptions.newBuilder().setRecursive(true).build());
+    assertThrows(FileNotFoundException.class, () -> {
+      mWorker.getFileInfo(testNestedDir.getPath(), GetStatusPOptions.getDefaultInstance());
+    });
+
+    assertThrows(FileNotFoundException.class, () -> {
+      // https://github.com/Alluxio/alluxio/issues/17741
+      // Children under a recursively deleted directory may exist in cache for a while
+      // So we need to manually ignore the cache
+      mWorker.getFileInfo(testFile.getPath(), GET_STATUS_OPTIONS_MUST_SYNC);
+    });
+  }
+
+  @Test
+  public void testListCacheConsistency()
+      throws IOException, AccessControlException, ExecutionException, InterruptedException,
+      TimeoutException {
+    String fileContent = "foobar";
+    File rootFolder = mTestFolder.newFolder("root");
+    String rootPath = rootFolder.getAbsolutePath();
+    File f = mTestFolder.newFile("root/f");
+    Files.write(f.toPath(), fileContent.getBytes());
+
+    UfsStatus[] listResult =
+        mWorker.listStatus(rootPath, ListStatusPOptions.newBuilder().setRecursive(false).build());
+    assertNotNull(listResult);
+    assertEquals(1, listResult.length);
+
+    FileInfo fileInfo = mWorker.getGrpcFileInfo(f.getPath(), 0);
+    loadFileData(f.getPath());
+    assertNotNull(fileInfo);
+
+    // Assert that page cache, metadata cache & list cache all cached data properly
+    assertTrue(mWorker.getMetaManager().getFromMetaStore(f.getPath()).isPresent());
+    assertSame(listResult,
+        mWorker.getMetaManager().listCached(rootPath, false).get().mUfsStatuses);
+    List<PageId> cachedPages =
+        mCacheManager.getCachedPageIdsByFileId(
+            new AlluxioURI(f.getPath()).hash(), fileContent.length());
+    assertEquals(1, cachedPages.size());
+
+    mWorker.delete(f.getAbsolutePath(), DeletePOptions.getDefaultInstance());
+    // Assert that page cache, metadata cache & list cache all removed stale data
+    assertTrue(mWorker.getMetaManager().getFromMetaStore(f.getPath()).isEmpty());
+    assertTrue(mWorker.getMetaManager().listCached(rootPath, false).isEmpty());
+    cachedPages =
+        mCacheManager.getCachedPageIdsByFileId(
+            new AlluxioURI(f.getPath()).hash(), fileContent.length());
+    assertEquals(0, cachedPages.size());
   }
 
   private void loadFileData(String path)
@@ -523,5 +611,16 @@ public class PagedDoraWorkerTest {
                 .build());
     List<LoadFileFailure> fileFailures = load.get(30, TimeUnit.SECONDS);
     assertEquals(0, fileFailures.size());
+  }
+
+  private void createDummyFile(File testFile, int length) throws Exception {
+    OpenFileHandle handle = mWorker.createFile(testFile.getPath(),
+        CreateFilePOptions.getDefaultInstance());
+    // create file and write some data directly to this file in UFS.
+    byte[] buffer = BufferUtils.getIncreasingByteArray(length);
+    BufferUtils.writeBufferToFile(testFile.getAbsolutePath(), buffer);
+
+    mWorker.completeFile(testFile.getPath(), CompleteFilePOptions.getDefaultInstance(),
+        handle.getUUID().toString());
   }
 }
