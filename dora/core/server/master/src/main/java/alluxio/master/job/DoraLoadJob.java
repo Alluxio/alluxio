@@ -15,7 +15,6 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
 import alluxio.AlluxioURI;
-import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -98,7 +97,6 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   private static final int RETRY_BLOCK_CAPACITY = 1000;
   private static final double RETRY_THRESHOLD = 0.8 * RETRY_BLOCK_CAPACITY;
   private static final int BATCH_SIZE = Configuration.getInt(PropertyKey.JOB_BATCH_SIZE);
-  private static final int MAX_FILES_PER_TASK = 100; // TODO(lucy) make it configurable
 
   /* TODO(lucy) add logic to detect loaded files, as currently each file loaded
      status is on each dora worker, so the decision to load or not delegates to
@@ -199,6 +197,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
    */
   public List<DoraLoadTask> prepareNextTasks() {
     LOG.debug("Preparing next set of tasks for jobId:{}", mJobId);
+    int workerNum = Scheduler.getInstance().getActiveWorkers().size();
     ImmutableList.Builder<UfsStatus> batchBuilder = ImmutableList.builder();
     int i = 0;
     int startRetryListSize = mRetryFiles.size();
@@ -222,7 +221,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
         }
       }
     }
-    while (filesToLoad < BATCH_SIZE && mUfsStatusIterator.hasNext()) {
+    while (filesToLoad < BATCH_SIZE * workerNum && mUfsStatusIterator.hasNext()) {
       try {
         UfsStatus ufsStatus = mUfsStatusIterator.next();
         batchBuilder.add(ufsStatus);
@@ -235,10 +234,12 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       }
     }
 
-    Map<WorkerInfo, List<DoraLoadTask>> workerToTaskMap = new HashMap<>();
+    Map<WorkerInfo, DoraLoadTask> workerToTaskMap = new HashMap<>();
     for (UfsStatus ufsStatus : batchBuilder.build()) {
       // NOTE: active workers may not reflect all workers at start up,
-      // but hash based policy will deterministically only among current recognized active workers
+      // but hash based policy will deterministically pick only among
+      // current recognized active workers -> will change in future
+      // once membership module is ready to tell all registered workers
       WorkerInfo pickedWorker = mWorkerAssignPolicy.pickAWorker(
           ufsStatus.getUfsFullPath().toString(),
           Scheduler.getInstance().getActiveWorkers());
@@ -246,19 +247,13 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
         mRetryFiles.offer(ufsStatus.getUfsFullPath().toString());
         continue;
       }
-
-      List<DoraLoadTask> tasks = workerToTaskMap.computeIfAbsent(pickedWorker,
-          w -> new ArrayList<>());
-      DoraLoadTask task;
-      if (!tasks.isEmpty()
-          && tasks.get(tasks.size() - 1).mFilesToLoad.size() < MAX_FILES_PER_TASK) {
-        task = tasks.get(tasks.size() - 1);
-      } else {
-        task = new DoraLoadTask();
-        task.setMyRunningWorker(pickedWorker);
-        task.setJob(this);
-        tasks.add(task);
-      }
+      DoraLoadTask task = workerToTaskMap.computeIfAbsent(pickedWorker,
+          w -> {
+            DoraLoadTask t = new DoraLoadTask();
+            t.setMyRunningWorker(pickedWorker);
+            t.setJob(this);
+            return t;
+          });
       task.mFilesToLoad.add(ufsStatus);
       if (ufsStatus.isFile()) {
         if (!mLoadMetadataOnly) {
@@ -270,7 +265,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     if (workerToTaskMap.isEmpty()) {
       return Collections.unmodifiableList(new ArrayList<>());
     }
-    List<DoraLoadTask> tasks = workerToTaskMap.values().stream().flatMap(List::stream)
+    List<DoraLoadTask> tasks = workerToTaskMap.values().stream()
         .collect(Collectors.toList());
     LOG.debug("prepared tasks:{}", tasks);
     return tasks;
@@ -482,7 +477,6 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     return (mEndTime.orElse(System.currentTimeMillis()) - mStartTime) / 1000;
   }
 
-  @SuppressFBWarnings({"BC_UNCONFIRMED_CAST_OF_RETURN_VALUE"})
   @Override
   public boolean processResponse(DoraLoadTask doraLoadTask) {
     try {
@@ -525,12 +519,9 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     }
     catch (ExecutionException e) {
       LOG.warn("exception when trying to get load response.", e.getCause());
-      boolean workerOverload = (e.getCause() instanceof StatusRuntimeException)
-          && ((StatusRuntimeException) e.getCause()).getStatus().getCode()
-          .equals(Status.Code.RESOURCE_EXHAUSTED);
       for (UfsStatus ufsStatus : doraLoadTask.getFilesToLoad()) {
         AlluxioRuntimeException exception = AlluxioRuntimeException.from(e.getCause());
-        if (isHealthy() || workerOverload) {
+        if (isHealthy()) {
           addFilesToRetry(ufsStatus.getUfsFullPath().toString());
         } else {
           addFileFailure(ufsStatus.getUfsFullPath().toString(),

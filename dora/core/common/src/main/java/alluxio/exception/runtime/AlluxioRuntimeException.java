@@ -130,9 +130,6 @@ public class AlluxioRuntimeException extends RuntimeException {
    * @return alluxio runtime exception
    */
   public static AlluxioRuntimeException from(Throwable t) {
-    if (t instanceof RejectedExecutionException) {
-      return from((RejectedExecutionException) t);
-    }
     if (t instanceof AlluxioRuntimeException) {
       return (AlluxioRuntimeException) t;
     }
@@ -154,6 +151,9 @@ public class AlluxioRuntimeException extends RuntimeException {
    * @return alluxio runtime exception
    */
   public static AlluxioRuntimeException from(RuntimeException t) {
+    if (t instanceof RejectedExecutionException) {
+      return from((RejectedExecutionException) t);
+    }
     if (t instanceof IllegalArgumentException) {
       return new InvalidArgumentRuntimeException(t);
     }

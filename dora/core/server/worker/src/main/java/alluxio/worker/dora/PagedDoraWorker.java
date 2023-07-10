@@ -466,6 +466,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
           futures.add(loadFuture);
         } catch (RejectedExecutionException ex) {
           LOG.warn("BlockDataReaderExecutor overloaded.");
+          AlluxioRuntimeException t = AlluxioRuntimeException.from(ex);
+          errors.add(LoadFileFailure.newBuilder().setUfsStatus(status.toProto())
+              .setCode(t.getStatus().getCode().value())
+              .setRetryable(true)
+              .setMessage(t.getMessage()).build());
           throw ex;
         }
       }
@@ -534,6 +539,13 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         futures.add(future);
       } catch (IOException e) {
         // ignore close error
+      } catch (RejectedExecutionException e) {
+        LOG.warn("BlockDataWriterExecutor overloaded.");
+        AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
+        RouteFailure.Builder builder =
+            RouteFailure.newBuilder().setRoute(route).setCode(t.getStatus().getCode().value())
+                .setRetryable(true);
+        errors.add(builder.build());
       }
     }
     return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
@@ -591,6 +603,13 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         futures.add(future);
       } catch (IOException e) {
         // ignore close error
+      } catch (RejectedExecutionException e) {
+        LOG.warn("BlockDataWriterExecutor overloaded.");
+        AlluxioRuntimeException t = AlluxioRuntimeException.from(e);
+        RouteFailure.Builder builder =
+            RouteFailure.newBuilder().setRoute(route).setCode(t.getStatus().getCode().value())
+                .setRetryable(true);
+        errors.add(builder.build());
       }
     }
     return Futures.whenAllComplete(futures).call(() -> errors, GrpcExecutors.BLOCK_WRITER_EXECUTOR);
