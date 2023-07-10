@@ -71,7 +71,7 @@ import javax.annotation.concurrent.ThreadSafe;
  *  2. The scheduler will pull the task from the job and assign the task to a worker.
  *  3. The worker will execute the task and report the result to the job.
  *  4. The job will update the progress. And schedule the next task if the job is not done.
- *  5. One worker would have one task running for one job description at a time.DoraLoadJob.java
+ *  5. One worker would have one task running for one job description at a time.
  */
 @ThreadSafe
 @SuppressFBWarnings({"SE_NO_SERIALVERSIONID"})
@@ -308,9 +308,9 @@ public final class Scheduler {
     if (Thread.currentThread().isInterrupted()) {
       return;
     }
+    mJobToRunningTasks.forEach((k, v) -> processJob(k));
     // kickstart the head task from each q of the worker if it's not running
     mWorkerInfoHub.kickStartTasks();
-    mJobToRunningTasks.forEach((k, v) -> processJob(k));
   }
 
   private void processJob(Job<?> job) {
@@ -529,7 +529,7 @@ public final class Scheduler {
         CloseableResource<BlockWorkerClient> blkWorkerClientResource
             = mActiveWorkers.get(workerInfo);
         if (blkWorkerClientResource == null) {
-          LOG.debug("Didn't find corresponding BlockWorkerClient for workerInfo:{}",
+          LOG.warn("Didn't find corresponding BlockWorkerClient for workerInfo:{}",
               workerInfo);
           return;
         }

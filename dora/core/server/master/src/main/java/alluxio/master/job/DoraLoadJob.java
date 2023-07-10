@@ -191,11 +191,12 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   /**
    * Prepare next set of tasks waiting to be kicked off.
    * it is made sure only one thread should be calling this.
+   * @param workers
    * @return list of DoraLoadTask
    */
-  public List<DoraLoadTask> prepareNextTasks() {
+  private List<DoraLoadTask> prepareNextTasks(Collection<WorkerInfo> workers) {
     LOG.debug("Preparing next set of tasks for jobId:{}", mJobId);
-    int workerNum = Scheduler.getInstance().getActiveWorkers().size();
+    int workerNum = workers.size();
     ImmutableList.Builder<UfsStatus> batchBuilder = ImmutableList.builder();
     int i = 0;
     int startRetryListSize = mRetryFiles.size();
@@ -239,8 +240,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       // current recognized active workers -> will change in future
       // once membership module is ready to tell all registered workers
       WorkerInfo pickedWorker = mWorkerAssignPolicy.pickAWorker(
-          ufsStatus.getUfsFullPath().toString(),
-          Scheduler.getInstance().getActiveWorkers());
+          ufsStatus.getUfsFullPath().toString(), workers);
       if (pickedWorker == null) {
         mRetryFiles.offer(ufsStatus.getUfsFullPath().toString());
         continue;
@@ -415,7 +415,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
           it.remove();
           return Collections.unmodifiableList(list);
         }
-        list = prepareNextTasks();
+        list = prepareNextTasks(workers);
         return Collections.unmodifiableList(list);
       } finally {
         mPreparingTasks.compareAndSet(true, false);

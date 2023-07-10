@@ -121,7 +121,7 @@ public class AlluxioRuntimeException extends RuntimeException {
    */
   public static AlluxioRuntimeException from(RejectedExecutionException ex) {
     return new AlluxioRuntimeException(Status.RESOURCE_EXHAUSTED, "StageOverload",
-        ex, ErrorType.Internal, true);
+        ex, ErrorType.User, true);
   }
 
   /**
