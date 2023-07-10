@@ -227,7 +227,11 @@ public class DoraMetaManager implements Closeable {
           throw new RuntimeException(e);
         }
       });
-      return Optional.ofNullable(cached.mUfsStatuses);
+      if (cached == null) {
+        return Optional.empty();
+      } else {
+        return Optional.ofNullable(cached.mUfsStatuses);
+      }
     } catch (RuntimeException e) {
       Throwable cause = e.getCause();
       if (cause instanceof IOException) {

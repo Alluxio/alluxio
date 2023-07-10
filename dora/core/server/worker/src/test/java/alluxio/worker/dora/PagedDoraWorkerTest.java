@@ -595,8 +595,8 @@ public class PagedDoraWorkerTest {
 
     mWorker.delete(f.getAbsolutePath(), DeletePOptions.getDefaultInstance());
     // Assert that page cache, metadata cache & list cache all removed stale data
-    assertTrue(mWorker.getMetaManager().getFromMetaStore(f.getPath()).isEmpty());
-    assertTrue(mWorker.getMetaManager().listCached(rootPath, false).isEmpty());
+    assertFalse(mWorker.getMetaManager().getFromMetaStore(f.getPath()).isPresent());
+    assertFalse(mWorker.getMetaManager().listCached(rootPath, false).isPresent());
     cachedPages =
         mCacheManager.getCachedPageIdsByFileId(
             new AlluxioURI(f.getPath()).hash(), fileContent.length());
