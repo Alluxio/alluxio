@@ -48,7 +48,6 @@ import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -135,7 +134,7 @@ public final class Scheduler {
           ThreadFactoryUtils.build("scheduler", false));
       mSchedulerExecutor.scheduleAtFixedRate(mWorkerInfoHub::updateWorkers, 0,
           WORKER_UPDATE_INTERVAL, TimeUnit.MILLISECONDS);
-      mSchedulerExecutor.scheduleWithFixedDelay(this::processJobs, 1000, 2000,
+      mSchedulerExecutor.scheduleWithFixedDelay(this::processJobs, mSchedulerInitialDelay, 2000,
           TimeUnit.MILLISECONDS);
       mSchedulerExecutor.scheduleWithFixedDelay(this::cleanupStaleJob, 1, 1, TimeUnit.HOURS);
       mRunning = true;
@@ -345,7 +344,6 @@ public final class Scheduler {
         return;
       }
       // enqueue the worker task q
-      // TODO(lucy) add if worker q is too full tell job to save this task for retry kick-off
       for (Task task : tasks) {
         boolean taskEnqueued = getWorkerInfoHub().enqueueTaskForWorker(
             task.getMyRunningWorker(), task);
@@ -437,7 +435,9 @@ public final class Scheduler {
     @Override
     public E poll() {
       E e = super.poll();
-      mLen.decrementAndGet();
+      if (e != null) {
+        mLen.decrementAndGet();
+      }
       return e;
     }
 
@@ -447,7 +447,7 @@ public final class Scheduler {
       if (removed) {
         mLen.decrementAndGet();
       }
-      return true;
+      return removed;
     }
   }
 

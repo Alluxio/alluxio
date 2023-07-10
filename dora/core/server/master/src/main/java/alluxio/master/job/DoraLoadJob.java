@@ -482,7 +482,6 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     return (mEndTime.orElse(System.currentTimeMillis()) - mStartTime) / 1000;
   }
 
-
   @SuppressFBWarnings({"BC_UNCONFIRMED_CAST_OF_RETURN_VALUE"})
   @Override
   public boolean processResponse(DoraLoadTask doraLoadTask) {
