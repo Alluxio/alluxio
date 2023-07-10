@@ -70,7 +70,7 @@ public class WorkerLocationPolicy {
     private static final int MAX_ATTEMPTS = 100;
     private volatile List<BlockWorkerInfo> mLastWorkerInfos = ImmutableList.of();
     private final AtomicReference<NavigableMap<Integer, BlockWorkerInfo>>
-        mActiveNodesByConsistentHashing = new AtomicReference<>();
+        mActiveNodesByConsistentHashing = new AtomicReference<>(new TreeMap<>());
 
     private volatile long mLastUpdatedTimestamp = 0L;
 
