@@ -113,6 +113,12 @@ public class AlluxioRuntimeException extends RuntimeException {
         .asRuntimeException(getMetadata());
   }
 
+  /**
+   * Wrap a RejectedExecutionException with io.grpc RESOURCE_EXHAUSTED
+   * exception.
+   * @param ex
+   * @return AlluxioRuntimeException
+   */
   public static AlluxioRuntimeException from(RejectedExecutionException ex) {
     return new AlluxioRuntimeException(Status.RESOURCE_EXHAUSTED, "StageOverload",
         ex, ErrorType.Internal, true);

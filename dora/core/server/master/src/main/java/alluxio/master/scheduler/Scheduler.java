@@ -48,6 +48,7 @@ import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,13 +72,14 @@ import javax.annotation.concurrent.ThreadSafe;
  *  2. The scheduler will pull the task from the job and assign the task to a worker.
  *  3. The worker will execute the task and report the result to the job.
  *  4. The job will update the progress. And schedule the next task if the job is not done.
- *  5. One worker would have one task running for one job description at a time.
+ *  5. One worker would have one task running for one job description at a time.DoraLoadJob.java
  */
 @ThreadSafe
-public final class Scheduler {
+public final class Scheduler implements Serializable {
 
   private static final Logger LOG = LoggerFactory.getLogger(Scheduler.class);
   private static final int CAPACITY = 100;
+  private static final int MAX_TASK_PER_WORKER = 10;
   private static final long WORKER_UPDATE_INTERVAL = Configuration.getMs(
       PropertyKey.MASTER_WORKER_INFO_CACHE_REFRESH_TIME);
   private final long mSchedulerInitialDelay = Configuration.getMs(
@@ -345,7 +347,7 @@ public final class Scheduler {
       // TODO(lucy) add if worker q is too full tell job to save this task for retry kick-off
       for (Task task : tasks) {
         boolean taskEnqueued = getWorkerInfoHub().enqueueTaskForWorker(
-            task.getMyRunningWorker(),task);
+            task.getMyRunningWorker(), task);
         if (!taskEnqueued) {
           job.onTaskSubmitFailure(task);
         }
@@ -407,11 +409,16 @@ public final class Scheduler {
    * Bounded priority queue impl.
    * @param <E>
    */
+  @SuppressFBWarnings({"SE_BAD_FIELD_INNER_CLASS", "SE_NO_SERIALVERSIONID"})
   public class BoundedPriorityBlockingQueue<E> extends PriorityBlockingQueue<E> {
 
     private AtomicInteger mLen = new AtomicInteger(0);
     private final int mCapacity;
 
+    /**
+     * Constructor for Bounded priority queue with a max capacity.
+     * @param capacity
+     */
     public BoundedPriorityBlockingQueue(int capacity) {
       mCapacity = capacity;
     }
@@ -451,6 +458,11 @@ public final class Scheduler {
    */
   public static class WorkerInfoIdentity {
     public final WorkerInfo mWorkerInfo;
+
+    /**
+     * Constructor for WorkerInfoIdentity from WorkerInfo.
+     * @param workerInfo
+     */
     public WorkerInfoIdentity(WorkerInfo workerInfo) {
       mWorkerInfo = workerInfo;
     }
@@ -491,7 +503,6 @@ public final class Scheduler {
     public Map<WorkerInfoIdentity, CloseableResource<BlockWorkerClient>>
         mActiveWorkers = ImmutableMap.of();
     private final WorkerProvider mWorkerProvider;
-    private final int MAX_TASK_PER_WORKER = 10;
 
     /**
      * Constructor.
@@ -505,13 +516,17 @@ public final class Scheduler {
     private final Map<WorkerInfoIdentity, BoundedPriorityBlockingQueue<Task>> mWorkerToTaskQ
         = new ConcurrentHashMap<>();
 
+    /**
+     * Kick stark tasks for each worker task q.
+     */
     public void kickStartTasks() {
       // Kick off one task for each worker
       mWorkerToTaskQ.forEach((workerInfo, tasksQ) -> {
         LOG.debug("Kick start task for worker:{}, taskQ size:{}",
             workerInfo.mWorkerInfo.getAddress().getHost(),
             tasksQ.size());
-        CloseableResource<BlockWorkerClient> blkWorkerClientResource = mActiveWorkers.get(workerInfo);
+        CloseableResource<BlockWorkerClient> blkWorkerClientResource
+            = mActiveWorkers.get(workerInfo);
         if (blkWorkerClientResource == null) {
           LOG.debug("Didn't find corresponding BlockWorkerClient for workerInfo:{}",
               workerInfo);
@@ -520,7 +535,7 @@ public final class Scheduler {
         Task task = tasksQ.peek();
         // only make sure 1 task is running at the time
         if (task == null || task.getResponseFuture() != null) {
-          LOG.debug("head task is {}", (task == null) ? "NULL" : "already running" );
+          LOG.debug("head task is {}", (task == null) ? "NULL" : "already running");
           return;
         }
         task.execute(blkWorkerClientResource.get(), workerInfo.mWorkerInfo);
