@@ -13,7 +13,6 @@ package alluxio.client.rest;
 
 import alluxio.Constants;
 import alluxio.client.WriteType;
-import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
 import alluxio.master.journal.JournalType;
 import alluxio.proxy.s3.S3Error;
@@ -40,6 +39,8 @@ import javax.ws.rs.core.Response;
 
 public class CreateBucketTest extends RestApiTest {
 
+  private static final String TEST_BUCKET = "test-bucket";
+  private AmazonS3 mS3Client = null;
   @Rule
   public S3ProxyRule mS3Proxy = S3ProxyRule.builder()
       .withBlobStoreProvider("transient")
@@ -75,15 +76,9 @@ public class CreateBucketTest extends RestApiTest {
           .setStartCluster(false)
           .build();
 
-  private static final String TEST_BUCKET = "test-bucket";
-
-  private FileSystem mFileSystem = null;
-  private AmazonS3 mS3Client = null;
-
   @Before
   public void before() throws Exception {
     mLocalAlluxioClusterResource.start();
-    mFileSystem = mLocalAlluxioClusterResource.get().getClient();
 
     mS3Client = AmazonS3ClientBuilder
         .standard()
@@ -96,10 +91,8 @@ public class CreateBucketTest extends RestApiTest {
                 Regions.US_WEST_2.getName()))
         .build();
     mS3Client.createBucket(TEST_BUCKET);
-    mFileSystem = mLocalAlluxioClusterResource.get().getClient();
     mHostname = mLocalAlluxioClusterResource.get().getHostname();
     mPort = mLocalAlluxioClusterResource.get().getProxyProcess().getWebLocalPort();
-    mFileSystem = mLocalAlluxioClusterResource.get().getClient();
     mBaseUri = String.format("/api/v1/s3");
   }
 
@@ -108,6 +101,9 @@ public class CreateBucketTest extends RestApiTest {
     mS3Client = null;
   }
 
+  /**
+   * Creates a bucket.
+   */
   @Test
   public void createBucket() throws Exception {
     String bucketName = "bucket";
@@ -118,6 +114,9 @@ public class CreateBucketTest extends RestApiTest {
         headBucketRestCall(bucketName).getResponseCode());
   }
 
+  /**
+   * Creates an existent bucket.
+   */
   @Test
   public void createExistentBucket() throws Exception {
     String bucketName = "bucket";
