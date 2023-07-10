@@ -1190,7 +1190,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Whether to enable the HDFS trash feature, "
               + "it is important to note that after enabling this configuration, "
               + "you need to set the relevant trash configurations (such as 'fs.trash.interval') "
-              + "in 'hdfs-site.xml' in order to truly use the HDFS trash functionality.")
+              + "in 'hdfs-site.xml' and 'core-ste.xml' "
+              + "in order to truly use the HDFS trash functionality.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
