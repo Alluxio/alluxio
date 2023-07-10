@@ -8,8 +8,6 @@ priority: 0
 
 This guide describes how to clone the Alluxio repository, compile the source code, and run tests in your environment.
 
-* Table of Contents
-{:toc}
 
 ## Required Software
 

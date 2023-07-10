@@ -6,8 +6,6 @@ group: Operations
 priority: 1
 ---
 
-* Table of Contents
-{:toc}
 
 Alluxio's command line interface provides users with basic file system operations. You can invoke
 the following command line utility to get all the subcommands:

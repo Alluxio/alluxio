@@ -6,8 +6,6 @@ group: Storage Integrations
 priority: 10
 ---
 
-* Table of Contents
-{:toc}
 
 This guide describes how to configure Alluxio with Ceph Object Storage as the under storage system. Alluxio supports
 two different clients APIs to connect to [Ceph Object Storage](http://ceph.com/ceph-storage/object-storage/)

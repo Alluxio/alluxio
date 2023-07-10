@@ -6,8 +6,6 @@ group: Storage Integrations
 priority: 2
 ---
 
-* Table of Contents
-{:toc}
 
 This guide describes how to configure Alluxio with [Azure Data Lake Storage Gen1](https://docs.microsoft.com/en-in/azure/data-lake-store/data-lake-store-overview) as the under storage system.
 
