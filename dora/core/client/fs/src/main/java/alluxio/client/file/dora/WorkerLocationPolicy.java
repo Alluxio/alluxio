@@ -29,6 +29,7 @@ import java.util.NavigableMap;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -67,8 +68,9 @@ public class WorkerLocationPolicy {
   private static class ConsistentHashProvider {
     private static final HashFunction HASH_FUNCTION = murmur3_32_fixed();
     private static final int MAX_ATTEMPTS = 100;
-    private List<BlockWorkerInfo> mLastWorkerInfos = ImmutableList.of();
-    private NavigableMap<Integer, BlockWorkerInfo> mActiveNodesByConsistentHashing;
+    private volatile List<BlockWorkerInfo> mLastWorkerInfos = ImmutableList.of();
+    private final AtomicReference<NavigableMap<Integer, BlockWorkerInfo>>
+        mActiveNodesByConsistentHashing = new AtomicReference<>();
 
     private volatile long mLastUpdatedTimestamp = 0L;
 
@@ -115,12 +117,12 @@ public class WorkerLocationPolicy {
 
     public BlockWorkerInfo get(String key, int index) {
       int hashKey = HASH_FUNCTION.hashString(format("%s%d", key, index), UTF_8).asInt();
-      Map.Entry<Integer, BlockWorkerInfo> entry =
-          mActiveNodesByConsistentHashing.ceilingEntry(hashKey);
+      NavigableMap<Integer, BlockWorkerInfo> map = mActiveNodesByConsistentHashing.get();
+      Map.Entry<Integer, BlockWorkerInfo> entry = map.ceilingEntry(hashKey);
       if (entry != null) {
-        return mActiveNodesByConsistentHashing.ceilingEntry(hashKey).getValue();
+        return entry.getValue();
       } else {
-        return mActiveNodesByConsistentHashing.firstEntry().getValue();
+        return map.firstEntry().getValue();
       }
     }
 
@@ -136,7 +138,7 @@ public class WorkerLocationPolicy {
         }
       }
       mLastWorkerInfos = workerInfos;
-      mActiveNodesByConsistentHashing = activeNodesByConsistentHashing;
+      mActiveNodesByConsistentHashing.set(activeNodesByConsistentHashing);
     }
   }
 }
