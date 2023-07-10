@@ -6,8 +6,6 @@ group: Storage Integrations
 priority: 10
 ---
 
-* Table of Contents
-{:toc}
 
 This guide describes how to configure Alluxio with [MinIO](https://min.io/) as the
 under storage system.

@@ -5,8 +5,6 @@ group: Reference
 priority: 1
 ---
 
-* Table of Contents
-{:toc}
 
 There are two types of metrics in Alluxio, cluster-wide aggregated metrics, and per-process detailed metrics.
 

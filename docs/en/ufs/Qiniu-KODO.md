@@ -6,8 +6,6 @@ group: Storage Integrations
 priority: 4
 ---
 
-* Table of Contents
-{:toc}
 
 This guide describes how to configure Alluxio with
 [Qiniu Kodo](https://www.qiniu.com/products/kodo) as the under storage system. Qiniu Object Storage

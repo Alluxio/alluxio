@@ -6,8 +6,6 @@ group: Storage Integrations
 priority: 2
 ---
 
-* Table of Contents
-{:toc}
 
 This guide describes how to configure Alluxio with [Azure Blob
 Store](https://azure.microsoft.com/en-in/services/storage/blobs/) as the under storage system.

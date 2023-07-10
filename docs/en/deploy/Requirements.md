@@ -6,8 +6,6 @@ group: Install Alluxio
 priority: 9
 ---
 
-* Table of Contents
-{:toc}
 
 ## General Requirements
 

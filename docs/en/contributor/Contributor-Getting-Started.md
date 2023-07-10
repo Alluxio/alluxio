@@ -10,8 +10,6 @@ We warmly welcome you to the Alluxio community. We are excited for your contribu
 engagement with our project! This guide aims to give you step by step instructions on how
 to get started becoming a contributor to the Alluxio open source project.
 
-* Table of Contents
-{:toc}
 
 ## Prerequisites
 

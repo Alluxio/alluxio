@@ -5,8 +5,6 @@ group: Presto SDK
 priority: 1
 ---
 
-* Table of Contents
-  {:toc}
 
 Presto provides an SDK way to combined with Alluxio.
 With the SDK, hot data that need to be scanned frequently

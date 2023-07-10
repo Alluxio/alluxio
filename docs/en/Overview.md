@@ -5,8 +5,6 @@ group: Overview
 priority: 1
 ---
 
-* Table of Contents
-{:toc}
 
 ## What is Alluxio
 

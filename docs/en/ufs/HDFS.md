@@ -6,8 +6,6 @@ group: Storage Integrations
 priority: 1
 ---
 
-* Table of Contents
-{:toc}
 
 This guide describes the instructions to configure
 [HDFS](https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HdfsUserGuide.html)

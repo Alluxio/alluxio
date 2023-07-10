@@ -6,8 +6,6 @@ group: Storage Integrations
 priority: 11
 ---
 
-* Table of Contents
-{:toc}
 
 This guide describes how to configure Alluxio with CephFS as the under storage system. Alluxio supports
 two different implementations of under storage system for [CephFS](https://docs.ceph.com/en/latest/cephfs/):
