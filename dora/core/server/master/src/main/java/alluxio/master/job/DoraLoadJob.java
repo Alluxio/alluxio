@@ -57,6 +57,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 import com.google.common.util.concurrent.ListenableFuture;
 import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -240,7 +241,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       try {
         WorkerInfo pickedWorker = mWorkerAssignPolicy.pickAWorker(
             ufsStatus.getUfsFullPath().toString(),
-            Scheduler.getInstance().getActiveWorkers().keySet());
+            Scheduler.getInstance().getActiveWorkers());
         if (pickedWorker == null) {
           mRetryFiles.offer(ufsStatus.getUfsFullPath().toString());
           continue;
@@ -398,7 +399,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   @Override
   public boolean isCurrentPassDone() {
     return !mUfsStatusIterator.hasNext() && mRetryFiles.isEmpty()
-        && mTaskList.isEmpty();
+        && mRetryTaskList.isEmpty();
   }
 
   @Override
@@ -415,6 +416,15 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     List<DoraLoadTask> list = new ArrayList<>();
     if (mPreparingTasks.compareAndSet(false, true)) {
       try {
+        Iterator<DoraLoadTask> it = mRetryTaskList.iterator();
+        if (it.hasNext()) {
+          DoraLoadTask task = it.next();
+          LOG.debug("Re-submit retried DoraLoadTask:{} in getNextTasks.",
+              task.getTaskId());
+          list.add(task);
+          it.remove();
+          return Collections.unmodifiableList(list);
+        }
         list = prepareNextTasks();
         return Collections.unmodifiableList(list);
       } finally {
@@ -426,13 +436,14 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 
   @Override
   public void onTaskSubmitFailure(Task<?> task) {
-    LOG.warn("onTaskSubmitFailure:taskid:{}", task.getTaskId());
-    if (!(task instanceof DoraLoadTask)) {
-      throw new IllegalArgumentException("Task is not a DoraLoadTask: " + task);
-    }
-    // Just add to retry without counting towards failure count.
-    ((DoraLoadTask) task).mFilesToLoad.forEach(
-        it -> mRetryFiles.offer(it.getUfsFullPath().toString()));
+    super.onTaskSubmitFailure(task);
+//    LOG.warn("onTaskSubmitFailure:taskid:{}", task.getTaskId());
+//    if (!(task instanceof DoraLoadTask)) {
+//      throw new IllegalArgumentException("Task is not a DoraLoadTask: " + task);
+//    }
+//    // Just add to retry without counting towards failure count.
+//    ((DoraLoadTask) task).mFilesToLoad.forEach(
+//        it -> mRetryFiles.offer(it.getUfsFullPath().toString()));
   }
 
   @Override
@@ -528,18 +539,22 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     }
     catch (ExecutionException e) {
       LOG.warn("exception when trying to get load response.", e.getCause());
+      boolean workerOverload = (e.getCause() instanceof StatusRuntimeException)
+          && ((StatusRuntimeException)e.getCause()).getStatus().getCode()
+          .equals(Status.Code.RESOURCE_EXHAUSTED);
+      // Threadpool overload exception in worker, don't treat it as failure
+//      if (workerOverload) {
+//        LOG.warn("Worker:{} overloaded.",
+//            new Scheduler.WorkerInfoIdentity(doraLoadTask.getMyRunningWorker()));
+//        Scheduler.getInstance().getWorkerInfoHub().getWorkerToTaskQ()
+//            .get(new Scheduler.WorkerInfoIdentity(doraLoadTask.getMyRunningWorker()))
+//            .setOverload();
+//      }
       for (UfsStatus ufsStatus : doraLoadTask.getFilesToLoad()) {
         AlluxioRuntimeException exception = AlluxioRuntimeException.from(e.getCause());
-        if (isHealthy()) {
+        if (isHealthy() || workerOverload) {
           addFilesToRetry(ufsStatus.getUfsFullPath().toString());
-          // Threadpool overload exception in worker, don't treat it as failure
-          if (exception.getStatus().equals(Status.RESOURCE_EXHAUSTED)) {
-            LOG.warn("Worker:{} overloaded.");
-            Scheduler.getInstance().getWorkerInfoHub().getWorkerToTaskQ()
-                .get(doraLoadTask.getMyRunningWorker()).setOverload();
-          }
-        }
-        else {
+        } else {
           addFileFailure(ufsStatus.getUfsFullPath().toString(),
               exception.getMessage(), exception.getStatus().getCode()
               .value());

@@ -282,6 +282,14 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
    */
   public List<CopyTask> getNextTasks(Collection<WorkerInfo> workers) {
     List<CopyTask> tasks = new ArrayList<>();
+    Iterator<CopyTask> it = mRetryTaskList.iterator();
+    if (it.hasNext()) {
+      CopyTask task = it.next();
+      LOG.debug("Re-submit retried CopyTask:{} in getNextTasks.", task.getTaskId());
+      tasks.add(task);
+      it.remove();
+      return Collections.unmodifiableList(tasks);
+    }
     List<Route> routes = getNextRoutes(BATCH_SIZE);
     if (routes.isEmpty()) {
       return Collections.unmodifiableList(tasks);
@@ -291,18 +299,6 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     copyTask.setMyRunningWorker(workerInfo);
     tasks.add(copyTask);
     return Collections.unmodifiableList(tasks);
-  }
-
-  /**
-   * Define how to process task that gets rejected when scheduler tried to kick off.
-   * For CopyJob
-   * @param task
-   */
-  public void onTaskSubmitFailure(Task<?> task) {
-    if (!(task instanceof CopyTask)) {
-      throw new IllegalArgumentException("Task is not a CopyTask: " + task);
-    }
-    ((CopyTask) task).mRoutes.forEach(this::addToRetry);
   }
 
   /**

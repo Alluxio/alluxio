@@ -287,6 +287,14 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
    */
   public List<MoveTask> getNextTasks(Collection<WorkerInfo> workers) {
     List<MoveTask> tasks = new ArrayList<>();
+    Iterator<MoveTask> it = mRetryTaskList.iterator();
+    if (it.hasNext()) {
+      MoveTask task = it.next();
+      LOG.debug("Re-submit retried MoveTask:{} in getNextTasks.", task.getTaskId());
+      tasks.add(task);
+      it.remove();
+      return Collections.unmodifiableList(tasks);
+    }
     List<Route> routes = getNextRoutes(BATCH_SIZE);
     if (routes.isEmpty()) {
       return Collections.unmodifiableList(tasks);
@@ -296,14 +304,6 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
     moveTask.setMyRunningWorker(workerInfo);
     tasks.add(moveTask);
     return Collections.unmodifiableList(tasks);
-  }
-
-  @Override
-  public void onTaskSubmitFailure(Task<?> task) {
-    if (!(task instanceof MoveJob.MoveTask)) {
-      throw new IllegalArgumentException("Task is not a MoveTask: " + task);
-    }
-    ((MoveJob.MoveTask) task).mRoutes.forEach(this::addToRetry);
   }
 
   /**
