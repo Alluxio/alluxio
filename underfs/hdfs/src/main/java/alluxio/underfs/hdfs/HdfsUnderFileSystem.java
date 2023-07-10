@@ -44,7 +44,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import java.util.Optional;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -73,6 +72,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Stack;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
@@ -833,11 +833,11 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     while (retryPolicy.attempt()) {
       try {
         Path hdfsPath = new Path(path);
-        if (!mTrashEnable){
+        if (!mTrashEnable) {
           return hdfs.delete(hdfsPath, recursive);
         }
         Optional<Trash> trash = getTrash(hdfs);
-        if (!trash.isPresent()){
+        if (!trash.isPresent()) {
           return hdfs.delete(hdfsPath, recursive);
         }
         // move to trash
