@@ -20,6 +20,7 @@ import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.hash.HashFunction;
 
@@ -60,7 +61,7 @@ public class WorkerLocationPolicy {
   public List<BlockWorkerInfo> getPreferredWorkers(List<BlockWorkerInfo> blockWorkerInfos,
                                                    String fileId,
                                                    int count) {
-    if (blockWorkerInfos.size() == 0) {
+    if (blockWorkerInfos.isEmpty()) {
       return ImmutableList.of();
     }
     HASH_PROVIDER.refresh(blockWorkerInfos, mNumVirtualNodes);
@@ -85,6 +86,8 @@ public class WorkerLocationPolicy {
      * virtual nodes.
      */
     public void refresh(List<BlockWorkerInfo> workerInfos, int numVirtualNodes) {
+      Preconditions.checkArgument(!workerInfos.isEmpty(),
+          "cannot refresh hash provider with empty worker list");
       // When the active nodes map does not exist, the hash provider is not initialized yet.
       // let one caller initialize the map while blocking all others.
       if (mActiveNodesByConsistentHashing == null) {
@@ -166,6 +169,7 @@ public class WorkerLocationPolicy {
 
     private static NavigableMap<Integer, BlockWorkerInfo> build(
         List<BlockWorkerInfo> workerInfos, int numVirtualNodes) {
+      Preconditions.checkArgument(!workerInfos.isEmpty(), "worker list is empty");
       NavigableMap<Integer, BlockWorkerInfo> activeNodesByConsistentHashing = new TreeMap<>();
       int weight = (int) ceil(1.0 * numVirtualNodes / workerInfos.size());
       for (BlockWorkerInfo workerInfo : workerInfos) {
