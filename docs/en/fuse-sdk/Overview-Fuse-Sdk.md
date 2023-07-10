@@ -9,8 +9,6 @@ The Alluxio POSIX API is a feature that allows mounting training datasets
 in specific storage services (e.g. S3, HDFS) to the local filesystem
 and provides caching capabilities to speed up I/O access to frequently used data.
 
-* Table of Contents
-  {:toc}
 
 ## Local Cache vs Distributed Cache
 

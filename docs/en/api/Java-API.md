@@ -25,9 +25,6 @@ By setting up an Alluxio Proxy, users can also interact with Alluxio through
 This is mainly for admin actions not supported by S3 API. For example, mount and unmount operations.
 The REST API is currently used for the Go and Python language bindings.
 
-* Table of Contents
-{:toc}
-
 ## Java Client
 
 Alluxio provides access to data through a file system interface. Files in Alluxio offer write-once

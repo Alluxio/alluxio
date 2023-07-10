@@ -6,8 +6,6 @@ group: Storage Integrations
 priority: 10
 ---
 
-* Table of Contents
-{:toc}
 
 This guide describes how to configure [Aliyun OSS](https://intl.aliyun.com/product/oss) as Alluxio's under storage system. 
 Object Storage Service (OSS) is a massive, secure and highly reliable cloud storage service provided by Aliyun.

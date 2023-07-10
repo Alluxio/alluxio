@@ -5,8 +5,6 @@ group: Operations
 priority: 0
 ---
 
-* Table of Contents
-{:toc}
 
 An Alluxio cluster can be configured by setting the values of Alluxio
 [configuration properties]({{ '/en/reference/Properties-List.html' | relativize_url }}) within

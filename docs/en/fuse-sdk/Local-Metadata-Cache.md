@@ -5,8 +5,6 @@ group: FUSE SDK
 priority: 5
 ---
 
-* Table of Contents
-  {:toc}
 
 # Local Metadata Cache
 

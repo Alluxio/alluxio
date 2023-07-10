@@ -6,8 +6,6 @@ group: Contributor Resources
 priority: 3
 ---
 
-* Table of Contents
-{:toc}
 
 ## IDE
 

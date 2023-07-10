@@ -5,8 +5,6 @@ group: FUSE SDK
 priority: 3
 ---
 
-* Table of Contents
-  {:toc}
 
 ![POSIX LOCAL CACHE]({{ '/img/posix-distributed-cache.png' | relativize_url }})
 
