@@ -20,6 +20,7 @@ import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.hash.HashFunction;
@@ -38,7 +39,8 @@ import javax.annotation.Nullable;
  * An impl of WorkerLocationPolicy.
  */
 public class WorkerLocationPolicy {
-  private static final ConsistentHashProvider HASH_PROVIDER = new ConsistentHashProvider();
+  private static final ConsistentHashProvider HASH_PROVIDER =
+      new ConsistentHashProvider(100, Constants.SECOND_MS);
   private final int mNumVirtualNodes;
 
   /**
@@ -67,16 +69,21 @@ public class WorkerLocationPolicy {
     return HASH_PROVIDER.getMultiple(fileId, count);
   }
 
-  private static class ConsistentHashProvider {
+  static class ConsistentHashProvider {
     private static final HashFunction HASH_FUNCTION = murmur3_32_fixed();
-    private static final int MAX_ATTEMPTS = 100;
-    private static final long WORKER_INFO_UPDATE_INTERVAL_NS = Constants.SECOND_NANO;
+    private final int mMaxAttempts;
+    private final long mWorkerInfoUpdateIntervalNs;
+    private final AtomicLong mLastUpdatedTimestamp = new AtomicLong(System.nanoTime());
     private volatile List<BlockWorkerInfo> mLastWorkerInfos = ImmutableList.of();
     // Lazily initialized, can only be null before the first call to refresh
     @Nullable
     private volatile NavigableMap<Integer, BlockWorkerInfo> mActiveNodesByConsistentHashing;
     // Must use System.nanoTime to ensure monotonic increment
-    private final AtomicLong mLastUpdatedTimestamp = new AtomicLong(System.nanoTime());
+
+    public ConsistentHashProvider(int maxAttempts, long workerListTtlMs) {
+      mMaxAttempts = maxAttempts;
+      mWorkerInfoUpdateIntervalNs = workerListTtlMs * Constants.MS_NANO;
+    }
 
     /**
      * Initializes or refreshes the worker list using the given list of workers and number of
@@ -89,7 +96,7 @@ public class WorkerLocationPolicy {
       // check if the worker list has expired
       long lastUpdateTs = mLastUpdatedTimestamp.get();
       long currentTs = System.nanoTime();
-      if (currentTs - lastUpdateTs > WORKER_INFO_UPDATE_INTERVAL_NS) {
+      if (currentTs - lastUpdateTs > mWorkerInfoUpdateIntervalNs) {
         // use CAS to only allow one thread to actually update the timestamp
         boolean casUpdated = mLastUpdatedTimestamp.compareAndSet(lastUpdateTs, currentTs);
         // thread safety is valid provided that build() takes less than
@@ -138,7 +145,7 @@ public class WorkerLocationPolicy {
     public List<BlockWorkerInfo> getMultiple(String key, int count) {
       Set<BlockWorkerInfo> workers = new HashSet<>();
       int attempts = 0;
-      while (workers.size() < count && attempts < MAX_ATTEMPTS) {
+      while (workers.size() < count && attempts < mMaxAttempts) {
         attempts++;
         workers.add(get(key, attempts));
       }
@@ -146,8 +153,12 @@ public class WorkerLocationPolicy {
     }
 
     public BlockWorkerInfo get(String key, int index) {
+      return get(mActiveNodesByConsistentHashing, key, index);
+    }
+
+    @VisibleForTesting
+    static BlockWorkerInfo get(NavigableMap<Integer, BlockWorkerInfo> map, String key, int index) {
       int hashKey = HASH_FUNCTION.hashString(format("%s%d", key, index), UTF_8).asInt();
-      NavigableMap<Integer, BlockWorkerInfo> map = mActiveNodesByConsistentHashing;
       if (map == null) {
         throw new IllegalStateException("Hash provider is not properly initialized");
       }
@@ -163,7 +174,18 @@ public class WorkerLocationPolicy {
       }
     }
 
-    private static NavigableMap<Integer, BlockWorkerInfo> build(
+    @VisibleForTesting
+    List<BlockWorkerInfo> getLastWorkerInfos() {
+      return mLastWorkerInfos;
+    }
+
+    @VisibleForTesting
+    NavigableMap<Integer, BlockWorkerInfo> getActiveNodesMap() {
+      return mActiveNodesByConsistentHashing;
+    }
+
+    @VisibleForTesting
+    static NavigableMap<Integer, BlockWorkerInfo> build(
         List<BlockWorkerInfo> workerInfos, int numVirtualNodes) {
       Preconditions.checkArgument(!workerInfos.isEmpty(), "worker list is empty");
       NavigableMap<Integer, BlockWorkerInfo> activeNodesByConsistentHashing = new TreeMap<>();
