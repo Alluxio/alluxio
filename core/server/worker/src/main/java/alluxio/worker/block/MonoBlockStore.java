@@ -345,14 +345,14 @@ public class MonoBlockStore implements BlockStore {
           .thenRun(() -> {
             try {
               blockWriter.close();
+              NioDirectBufferPool.release(buf);
             } catch (IOException e) {
               throw AlluxioRuntimeException.from(e);
-            } finally {
-              NioDirectBufferPool.release(buf);
             }
           })
           .thenRun(() -> commitBlock(sessionId, blockId, false))
           .exceptionally(t -> {
+            NioDirectBufferPool.release(buf);
             handleException(t.getCause(), block, errors, sessionId);
             return null;
           });
