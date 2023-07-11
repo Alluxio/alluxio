@@ -393,7 +393,8 @@ public class PagedDoraWorkerTest {
 
     loadFileData(f.getPath());
 
-    var result = mWorker.getFileInfo(f.getPath(), GetStatusPOptions.getDefaultInstance());
+    alluxio.wire.FileInfo result =
+        mWorker.getFileInfo(f.getPath(), GetStatusPOptions.getDefaultInstance());
     List<PageId> cachedPages =
         mCacheManager.getCachedPageIdsByFileId(
             new AlluxioURI(f.getPath()).hash(), fileContent.length());
@@ -428,7 +429,8 @@ public class PagedDoraWorkerTest {
     File f = mTestFolder.newFile();
     Files.write(f.toPath(), fileContent.getBytes());
 
-    var result = mWorker.getFileInfo(f.getPath(), GetStatusPOptions.getDefaultInstance());
+    alluxio.wire.FileInfo result =
+        mWorker.getFileInfo(f.getPath(), GetStatusPOptions.getDefaultInstance());
     List<PageId> cachedPages =
         mCacheManager.getCachedPageIdsByFileId(
             new AlluxioURI(f.getPath()).hash(), fileContent.length());
@@ -480,7 +482,8 @@ public class PagedDoraWorkerTest {
       throws AccessControlException, IOException {
     File f = mTestFolder.newFolder();
 
-    var result = mWorker.getFileInfo(f.getPath(), GetStatusPOptions.getDefaultInstance());
+    alluxio.wire.FileInfo result =
+        mWorker.getFileInfo(f.getPath(), GetStatusPOptions.getDefaultInstance());
     assertTrue(result.isFolder());
 
     result = mWorker.getFileInfo(f.getPath(), GET_STATUS_OPTIONS_MUST_SYNC);
@@ -592,8 +595,8 @@ public class PagedDoraWorkerTest {
 
     mWorker.delete(f.getAbsolutePath(), DeletePOptions.getDefaultInstance());
     // Assert that page cache, metadata cache & list cache all removed stale data
-    assertTrue(mWorker.getMetaManager().getFromMetaStore(f.getPath()).isEmpty());
-    assertTrue(mWorker.getMetaManager().listCached(rootPath, false).isEmpty());
+    assertFalse(mWorker.getMetaManager().getFromMetaStore(f.getPath()).isPresent());
+    assertFalse(mWorker.getMetaManager().listCached(rootPath, false).isPresent());
     cachedPages =
         mCacheManager.getCachedPageIdsByFileId(
             new AlluxioURI(f.getPath()).hash(), fileContent.length());
