@@ -14,21 +14,37 @@ package alluxio.worker.http;
 import io.netty.channel.FileRegion;
 import io.netty.handler.codec.http.HttpResponse;
 
+/**
+ * Http response context for wrapping useful information.
+ */
 public class HttpResponseContext {
 
   private final HttpResponse mHttpResponse;
 
   private final FileRegion mFileRegion;
 
+  /**
+   * Http response context for wrapping useful information.
+   * @param httpResponse the http response to client
+   * @param fileRegion the file region to read from the worker side
+   */
   public HttpResponseContext(HttpResponse httpResponse, FileRegion fileRegion) {
     mHttpResponse = httpResponse;
     mFileRegion = fileRegion;
   }
 
+  /**
+   * Get the http response.
+   * @return the http response
+   */
   public HttpResponse getHttpResponse() {
     return mHttpResponse;
   }
 
+  /**
+   * Get the file region to read from the worker side.
+   * @return the file region
+   */
   public FileRegion getFileRegion() {
     return mFileRegion;
   }
