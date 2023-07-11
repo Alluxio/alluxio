@@ -132,7 +132,7 @@ public final class ImpersonationAuthenticator implements Reconfigurable {
   private void loadImpersonationUser(AlluxioConfiguration conf) {
     Map<String, Set<String>> impersonationGroups = new HashMap<>();
     Map<String, Set<String>> impersonationUsers = new HashMap<>();
-    for (PropertyKey key : conf.keySet()) {
+    for (PropertyKey key : conf.userKeySet()) {
       // Process impersonation groups
       Matcher matcher =
           PropertyKey.Template.MASTER_IMPERSONATION_GROUPS_OPTION.match(key.getName());
