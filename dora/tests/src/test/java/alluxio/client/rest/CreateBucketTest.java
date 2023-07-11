@@ -34,7 +34,6 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.net.HttpURLConnection;
-import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response;
 
 public class CreateBucketTest extends RestApiTest {
@@ -105,11 +104,12 @@ public class CreateBucketTest extends RestApiTest {
    * Creates a bucket.
    */
   @Test
-  public void createBucket() throws Exception {
+  public void createAndHeadBucket() throws Exception {
     String bucketName = "bucket";
     Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(),
         headBucketRestCall(bucketName).getResponseCode());
-    createBucketRestCall(bucketName);
+    Assert.assertEquals(Response.Status.OK.getStatusCode(),
+        createBucketRestCall(bucketName).getResponseCode());
     Assert.assertEquals(Response.Status.OK.getStatusCode(),
         headBucketRestCall(bucketName).getResponseCode());
   }
@@ -123,12 +123,11 @@ public class CreateBucketTest extends RestApiTest {
 //    Ensures this bucket exists.
     if (headBucketRestCall(bucketName).getResponseCode()
         == Response.Status.NOT_FOUND.getStatusCode()) {
-      createBucketRestCall(bucketName);
+      Assert.assertEquals(Response.Status.OK.getStatusCode(),
+          createBucketRestCall(bucketName).getResponseCode());
     }
 
-    HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
-        bucketName, NO_PARAMS, HttpMethod.PUT,
-        getDefaultOptionsWithAuth()).execute();
+    HttpURLConnection connection = createBucketRestCall(bucketName);
     Assert.assertEquals(Response.Status.CONFLICT.getStatusCode(), connection.getResponseCode());
     S3Error response =
         new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
@@ -145,12 +144,12 @@ public class CreateBucketTest extends RestApiTest {
 //    Ensures this bucket exists.
     if (headBucketRestCall(bucketName, "user0").getResponseCode()
         == Response.Status.NOT_FOUND.getStatusCode()) {
-      createBucketRestCall(bucketName, "user0");
+      Assert.assertEquals(Response.Status.OK.getStatusCode(),
+          createBucketRestCall(bucketName, "user0").getResponseCode());
     }
 
-    HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
-        bucketName, NO_PARAMS, HttpMethod.PUT,
-        getDefaultOptionsWithAuth("user1")).execute();
+    HttpURLConnection connection = createBucketRestCall(bucketName, "user1");
+
     Assert.assertEquals(Response.Status.CONFLICT.getStatusCode(), connection.getResponseCode());
     S3Error response =
         new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());

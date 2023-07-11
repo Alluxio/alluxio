@@ -34,7 +34,7 @@ public abstract class RestApiTest extends BaseIntegrationTest {
       throws Exception {
     return new TestCase(mHostname, mPort, mBaseUri,
         bucket, NO_PARAMS, HttpMethod.PUT,
-        getDefaultOptionsWithAuth(user)).executeAndAssertSuccess();
+        getDefaultOptionsWithAuth(user)).execute();
   }
 
   protected HttpURLConnection createBucketRestCall(String bucket) throws Exception {
@@ -48,16 +48,16 @@ public abstract class RestApiTest extends BaseIntegrationTest {
         getDefaultOptionsWithAuth(user)).execute();
   }
 
+  protected HttpURLConnection headBucketRestCall(String bucket) throws Exception {
+    return headBucketRestCall(bucket, TEST_USER_NAME);
+  }
+
   protected void listStatusRestCall(Map<String, String> parameters, ListBucketResult expected)
       throws Exception {
     new TestCase(mHostname, mPort, mBaseUri,
         TEST_BUCKET_NAME, parameters, HttpMethod.GET,
         getDefaultOptionsWithAuth())
         .runAndCheckResult(expected);
-  }
-
-  protected HttpURLConnection headBucketRestCall(String bucket) throws Exception {
-    return headBucketRestCall(bucket, TEST_USER_NAME);
   }
 
   protected TestCaseOptions getDefaultOptionsWithAuth(@NotNull String user) {
