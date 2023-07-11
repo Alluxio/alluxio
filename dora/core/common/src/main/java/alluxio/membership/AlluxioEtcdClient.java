@@ -229,6 +229,10 @@ public class AlluxioEtcdClient implements Closeable {
     }
     WatchOption.Builder watchOptBuilder = WatchOption.newBuilder();
     switch (watchType) {
+      /* e.g. Given the parentPath '/parent/',
+      give query-like syntax equivalent to:
+        select * with value < '/parent.' ('.' the char before '/' in ASCII)
+      which includes all keys prefixed with '/parent/' */
       case CHILDREN:
         String keyRangeEnd = parentPath.substring(0, parentPath.length() - 1)
             + (char)(parentPath.charAt(parentPath.length() - 1) + 1);

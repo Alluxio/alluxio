@@ -75,10 +75,10 @@ public class EtcdMembershipManager implements MembershipManager {
     String ringPath = String.format(sRingPathFormat, mClusterName);
     List<KeyValue> childrenKvs = mAlluxioEtcdClient.getChildren(ringPath);
     for (KeyValue kv : childrenKvs) {
-      ByteArrayInputStream bais = new ByteArrayInputStream(kv.getValue().getBytes());
-      DataInputStream dis = new DataInputStream(bais);
-      WorkerServiceEntity entity = new WorkerServiceEntity();
-      try {
+      try (ByteArrayInputStream bais =
+               new ByteArrayInputStream(kv.getValue().getBytes())){
+        DataInputStream dis = new DataInputStream(bais);
+        WorkerServiceEntity entity = new WorkerServiceEntity();
         entity.deserialize(dis);
         fullMembers.add(entity);
       } catch (IOException ex) {
@@ -92,10 +92,10 @@ public class EtcdMembershipManager implements MembershipManager {
     List<WorkerServiceEntity> liveMembers = new ArrayList<>();
     for (Map.Entry<String, ByteBuffer> entry : mAlluxioEtcdClient.mServiceDiscovery
         .getAllLiveServices().entrySet()) {
-      ByteBufferInputStream bbis = new ByteBufferInputStream(entry.getValue());
-      DataInputStream dis = new DataInputStream(bbis);
-      WorkerServiceEntity entity = new WorkerServiceEntity();
-      try {
+      try (ByteBufferInputStream bbis =
+               new ByteBufferInputStream(entry.getValue())) {
+        DataInputStream dis = new DataInputStream(bbis);
+        WorkerServiceEntity entity = new WorkerServiceEntity();
         entity.deserialize(dis);
         liveMembers.add(entity);
       } catch (IOException ex) {

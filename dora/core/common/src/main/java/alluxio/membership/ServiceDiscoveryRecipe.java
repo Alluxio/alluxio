@@ -49,7 +49,6 @@ import javax.annotation.concurrent.GuardedBy;
 public class ServiceDiscoveryRecipe {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioEtcdClient.class);
   private static final String BASE_PATH = "/ServiceDiscovery";
-  Client mClient;
   AlluxioEtcdClient mAlluxioEtcdClient;
   ScheduledExecutorService mExecutor;
   String mClusterIdentifier = "";
@@ -59,7 +58,6 @@ public class ServiceDiscoveryRecipe {
   public ServiceDiscoveryRecipe(AlluxioEtcdClient client, String clusterIdentifier) {
     mAlluxioEtcdClient = client;
     mAlluxioEtcdClient.connect();
-    mClient = client.getEtcdClient();
     mClusterIdentifier = clusterIdentifier;
     mExecutor = Executors.newSingleThreadScheduledExecutor(
         ThreadFactoryUtils.build("service-discovery-checker", false));
@@ -89,11 +87,10 @@ public class ServiceDiscoveryRecipe {
       }
       String path = service.mServiceEntityName;
       String fullPath = getRegisterPathPrefix() + "/" + path;
-      try {
+      try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
         AlluxioEtcdClient.Lease lease = mAlluxioEtcdClient.createLease();
-        Txn txn = mClient.getKVClient().txn();
+        Txn txn = mAlluxioEtcdClient.getEtcdClient().getKVClient().txn();
         ByteSequence keyToPut = ByteSequence.from(fullPath, StandardCharsets.UTF_8);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(baos);
         service.serialize(dos);
         ByteSequence valToPut = ByteSequence.from(baos.toByteArray());
@@ -184,7 +181,7 @@ public class ServiceDiscoveryRecipe {
     }
     String fullPath = getRegisterPathPrefix() + "/" + service.mServiceEntityName;
     try {
-      Txn txn = mClient.getKVClient().txn();
+      Txn txn = mAlluxioEtcdClient.getEtcdClient().getKVClient().txn();
       ByteSequence keyToPut = ByteSequence.from(fullPath, StandardCharsets.UTF_8);
       ByteSequence valToPut = ByteSequence.from(service.toString(), StandardCharsets.UTF_8);
       CompletableFuture<TxnResponse> txnResponseFut = txn
@@ -209,7 +206,7 @@ public class ServiceDiscoveryRecipe {
 
   private void startHeartBeat(ServiceEntity service) {
     try {
-      CloseableClient keepAliveClient = mClient.getLeaseClient()
+      CloseableClient keepAliveClient = mAlluxioEtcdClient.getEtcdClient().getLeaseClient()
           .keepAlive(service.mLease.mLeaseId, new RetryKeepAliveObserver(service));
       service.setKeepAliveClient(keepAliveClient);
     } catch (Throwable th) {

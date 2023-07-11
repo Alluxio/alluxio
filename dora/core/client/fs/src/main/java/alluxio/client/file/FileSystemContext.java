@@ -449,7 +449,7 @@ public class FileSystemContext implements Closeable {
     try {
       mMembershipManager = MembershipManager.Factory.create(getClusterConf());
     } catch (IOException ex) {
-      LOG.error("Error setting membership manager.");
+      LOG.error("Failed to set membership manager.", ex);
     }
   }
 

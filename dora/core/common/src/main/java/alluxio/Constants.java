@@ -230,15 +230,5 @@ public final class Constants {
   public static final String MEDIUM_HDD = "HDD";
   public static final String MEDIUM_SSD = "SSD";
 
-  /**
-   * Please use this switch enable/disable Dora write support in development.
-   * This will be removed when Dora write support is production ready.
-   */
-  public static final boolean ENABLE_DORA_WRITE = true;
-
-  // Membership
-  public static final String STATIC_MEMBERSHIP = "STATIC";
-  public static final String ETCD_MEMBERSHIP = "ETCD";
-
   private Constants() {} // prevent instantiation
 }
