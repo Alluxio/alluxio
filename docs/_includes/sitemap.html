@@ -1,11 +1,11 @@
 <ul>
     {% for item in include.map %}
     {% if item.subfiles.size == 1 %}
-        <div>
-            <button class = "single">
-            <a class = "single-items" href="{{site.baseurl}}{{ files.url }}" >{{ item.title }}</a>
-            </button>
-        </div>
+    <div>
+        <button class = "single">
+            <a class = "single-items" href="{{site.baseurl}}{{ item.subfiles[0].url }}" >{{ item.title }}</a>
+        </button>
+    </div>
     {% else %}
     <div>
     <button type="button", class ="btn btn-collapse" data-toggle="collapse" data-target="#{{item.buttonTitle}}">
