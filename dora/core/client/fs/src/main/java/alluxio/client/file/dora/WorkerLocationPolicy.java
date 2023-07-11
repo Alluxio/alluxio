@@ -111,7 +111,7 @@ public class WorkerLocationPolicy {
     // let one caller initialize the map while blocking all others.
     private void maybeInitialize(List<BlockWorkerInfo> workerInfos, int numVirtualNodes) {
       if (mActiveNodesByConsistentHashing == null) {
-        synchronized (mActiveNodesByConsistentHashing) {
+        synchronized (ConsistentHashProvider.class) {
           // only one thread should reach here
           // test again to skip re-initialization
           if (mActiveNodesByConsistentHashing == null) {
