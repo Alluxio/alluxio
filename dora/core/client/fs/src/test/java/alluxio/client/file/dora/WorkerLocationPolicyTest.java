@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class WorkerLocationPolicyTest {
-  private static final long WORKER_LIST_TTL_MS = 100;
+  private static final long WORKER_LIST_TTL_MS = 20;
   private static final String OBJECT_KEY = "/path/to/object";
   private static final int NUM_VIRTUAL_NODES = 100;
 
@@ -61,7 +61,7 @@ public class WorkerLocationPolicyTest {
     List<List<BlockWorkerInfo>> lists = IntStream.range(0, numThreads)
         .mapToObj(i -> generateRandomWorkerList(5))
         .collect(Collectors.toList());
-    List<Future<?>> futures = IntStream.range(0, numThreads)
+    List<Future<NavigableMap<Integer, BlockWorkerInfo>>> futures = IntStream.range(0, numThreads)
         .mapToObj(i -> {
           List<BlockWorkerInfo> list = lists.get(i);
           return executorService.submit(() -> {
@@ -72,19 +72,21 @@ public class WorkerLocationPolicyTest {
               fail("interrupted");
             }
             provider.refresh(list, NUM_VIRTUAL_NODES);
+            return provider.getActiveNodesMap();
           });
         })
         .collect(Collectors.toList());
-    futures.forEach(future -> {
+    Set<NavigableMap<Integer, BlockWorkerInfo>> mapSet = futures.stream().map(future -> {
       try {
-        future.get();
+        return future.get();
       } catch (InterruptedException interruptedException) {
-        fail("interrupted" + interruptedException);
+        throw new AssertionError("interrupted", interruptedException);
       } catch (ExecutionException e) {
-        fail("failed to run thread" + e);
+        throw new AssertionError("failed to run thread", e);
       }
-    });
+    }).collect(Collectors.toSet());
 
+    assertEquals(1, mapSet.size());
     // check if the worker list is one of the lists provided by the threads
     List<BlockWorkerInfo> workerInfoListUsedByPolicy = provider.getLastWorkerInfos();
     assertTrue(lists.contains(workerInfoListUsedByPolicy));
@@ -94,6 +96,7 @@ public class WorkerLocationPolicyTest {
   }
 
   @Test
+  // todo(bowen): this test can be flaky if the test subject is not thread safe
   public void concurrentRefresh() throws Exception {
     ConsistentHashProvider provider = new ConsistentHashProvider(1, WORKER_LIST_TTL_MS);
     provider.refresh(generateRandomWorkerList(5), NUM_VIRTUAL_NODES);
@@ -131,9 +134,9 @@ public class WorkerLocationPolicyTest {
       try {
         map = futures.get(i).get();
       } catch (InterruptedException interruptedException) {
-        throw new AssertionError("interrupted" + interruptedException);
+        throw new AssertionError("interrupted", interruptedException);
       } catch (ExecutionException e) {
-        throw new AssertionError("failed to run thread" + e);
+        throw new AssertionError("failed to run thread", e);
       }
       distinctMaps.add(map);
       // the map returned by the i-th thread can be one of the 3 cases:
