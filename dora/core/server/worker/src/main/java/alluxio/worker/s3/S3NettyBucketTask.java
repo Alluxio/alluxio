@@ -12,11 +12,20 @@
 package alluxio.worker.s3;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
+import alluxio.grpc.Bits;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.PMode;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.s3.ListAllMyBucketsResult;
 import alluxio.s3.ListBucketOptions;
 import alluxio.s3.ListBucketResult;
@@ -26,6 +35,8 @@ import alluxio.s3.S3Constants;
 import alluxio.s3.S3ErrorCode;
 import alluxio.s3.S3Exception;
 
+import javax.ws.rs.core.Response;
+import com.google.common.net.InetAddresses;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import org.apache.commons.lang3.StringUtils;
@@ -35,6 +46,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 /**
@@ -74,19 +86,11 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
         case "GET":
           if (StringUtils.isEmpty(handler.getBucket())) {
             return new ListBucketsTask(handler, OpType.ListBuckets);
-//          } else if (handler.getQueryParameter("tagging") != null) {
-//            return new GetBucketTaggingTask(handler, OpType.GetBucketTagging);
-//          } else if (handler.getQueryParameter("uploads") != null) {
-//            return new ListMultipartUploadsTask(handler, OpType.ListMultipartUploads);
           } else {
             return new ListObjectsTask(handler, OpType.ListObjects);
           }
-//        case "PUT":
-//          if (handler.getQueryParameter("tagging") != null) {
-//            return new PutBucketTaggingTask(handler, OpType.PutBucketTagging);
-//          } else {
-//            return new CreateBucketTask(handler, OpType.CreateBucket);
-//          }
+        case "PUT":
+          return new CreateBucketTask(handler, OpType.CreateBucket);
 //        case "POST":
 //          if (handler.getQueryParameter("delete") != null) {
 //            return new DeleteObjectsTask(handler, OpType.DeleteObjects);
@@ -97,12 +101,8 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
             return new HeadBucketTask(handler, OpType.HeadBucket);
           }
           break;
-//        case "DELETE":
-//          if (handler.getQueryParameter("tagging") != null) {
-//            return new DeleteBucketTaggingTask(handler, OpType.DeleteBucketTagging);
-//          } else {
-//            return new DeleteBucketTask(handler, OpType.DeleteBucket);
-//          }
+        case "DELETE":
+          return new DeleteBucketTask(handler, OpType.DeleteBucket);
         default:
           break;
       }
@@ -242,6 +242,85 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
       });
     }
   } // end of ListObjectsTask
+  private static class CreateBucketTask extends S3NettyBucketTask {
+    protected CreateBucketTask(S3NettyHandler handler, OpType opType) {
+      super(handler, opType);
+    }
+
+    @Override
+    public HttpResponse continueTask() {
+      return NettyRestUtils.call(mHandler.getBucket(), () -> {
+        final String user = mHandler.getUser();
+        final FileSystem userFs = mHandler.createFileSystemForUser(user);
+        String bucketPath = NettyRestUtils.parsePath(AlluxioURI.SEPARATOR + mHandler.getBucket());
+        try (S3AuditContext auditContext = mHandler.createAuditContext(
+            mOPType.name(), user, mHandler.getBucket(), null)) {
+          if (S3NettyHandler.BUCKET_NAMING_RESTRICTION_ENABLED) {
+            Matcher m =
+                S3NettyHandler.BUCKET_ADJACENT_DOTS_DASHES_PATTERN.matcher(mHandler.getBucket());
+            while (m.find()) {
+              if (!m.group().equals("--")) {
+                auditContext.setSucceeded(false);
+                throw new S3Exception(mHandler.getBucket(), S3ErrorCode.INVALID_BUCKET_NAME);
+              }
+            }
+            if (!S3NettyHandler.BUCKET_VALID_NAME_PATTERN.matcher(mHandler.getBucket()).matches()
+                || S3NettyHandler.BUCKET_INVALIDATION_PREFIX_PATTERN.matcher(mHandler.getBucket())
+                .matches()
+                ||
+                S3NettyHandler.BUCKET_INVALID_SUFFIX_PATTERN.matcher(mHandler.getBucket()).matches()
+                || InetAddresses.isInetAddress(mHandler.getBucket())) {
+              auditContext.setSucceeded(false);
+              throw new S3Exception(mHandler.getBucket(), S3ErrorCode.INVALID_BUCKET_NAME);
+            }
+          }
+          try {
+            URIStatus status = mHandler.getFsClient().getStatus(new AlluxioURI(bucketPath));
+            if (status.isFolder()) {
+              if (status.getOwner().equals(user)) {
+                // Silently swallow CreateBucket calls on existing buckets for this user
+                // - S3 clients may prepend PutObject requests with CreateBucket calls instead of
+                //   calling HeadBucket to ensure that the bucket exists
+                mHandler.BUCKET_PATH_CACHE.put(bucketPath, true);
+                return Response.Status.OK;
+              }
+              // Otherwise, this bucket is owned by a different user
+              throw new S3Exception(S3ErrorCode.BUCKET_ALREADY_EXISTS);
+            }
+            // Otherwise, that path exists in Alluxio but is not a directory
+            auditContext.setSucceeded(false);
+            throw new InvalidPathException("A file already exists at bucket path " + bucketPath);
+          } catch (FileDoesNotExistException e) {
+            // do nothing, we will create the directory below
+          } catch (Exception e) {
+            throw NettyRestUtils.toBucketS3Exception(e, bucketPath, auditContext);
+          }
+
+          // These permission bits will be inherited by all objects/folders created within
+          // the bucket; we don't support custom bucket/object ACLs at the moment
+          CreateDirectoryPOptions options =
+              CreateDirectoryPOptions.newBuilder()
+                  .setMode(PMode.newBuilder()
+                      .setOwnerBits(Bits.ALL)
+                      .setGroupBits(Bits.ALL)
+                      .setOtherBits(Bits.NONE))
+                  .setWriteType(S3NettyHandler.S3_WRITE_TYPE)
+                  .build();
+          try {
+            mHandler.getFsClient().createDirectory(new AlluxioURI(bucketPath), options);
+            SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
+                .setOwner(user)
+                .build();
+            mHandler.getFsClient().setAttribute(new AlluxioURI(bucketPath), attrPOptions);
+          } catch (Exception e) {
+            throw NettyRestUtils.toBucketS3Exception(e, bucketPath, auditContext);
+          }
+          mHandler.BUCKET_PATH_CACHE.put(bucketPath, true);
+          return Response.Status.OK;
+        }
+      });
+    }
+  } // end of CreateBucketTask
 
   private static class HeadBucketTask extends S3NettyBucketTask {
     protected HeadBucketTask(S3NettyHandler handler, OpType opType) {
@@ -263,4 +342,36 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
       });
     }
   } // end of HeadBucketTask
+  private static class DeleteBucketTask extends S3NettyBucketTask {
+
+    protected DeleteBucketTask(S3NettyHandler handler, OpType opType) {
+      super(handler, opType);
+    }
+
+    @Override
+    public HttpResponse continueTask() {
+      return NettyRestUtils.call(mHandler.getBucket(), () -> {
+        final String user = mHandler.getUser();
+        final FileSystem userFs = mHandler.createFileSystemForUser(user);
+        String bucketPath = NettyRestUtils.parsePath(AlluxioURI.SEPARATOR + mHandler.getBucket());
+
+        try (S3AuditContext auditContext = mHandler.createAuditContext(
+            mOPType.name(), user, mHandler.getBucket(), null)) {
+          S3NettyHandler.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext);
+          // Delete the bucket.
+          DeletePOptions options = DeletePOptions.newBuilder().setAlluxioOnly(Configuration
+                  .get(PropertyKey.PROXY_S3_DELETE_TYPE)
+                  .equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY))
+              .build();
+          try {
+            userFs.delete(new AlluxioURI(bucketPath), options);
+            mHandler.BUCKET_PATH_CACHE.put(bucketPath, false);
+          } catch (Exception e) {
+            throw NettyRestUtils.toBucketS3Exception(e, bucketPath, auditContext);
+          }
+          return Response.Status.NO_CONTENT;
+        }
+      });
+    }
+  } // end of DeleteBucketTask
 }

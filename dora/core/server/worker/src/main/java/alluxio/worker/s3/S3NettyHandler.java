@@ -12,6 +12,7 @@
 package alluxio.worker.s3;
 
 import alluxio.AlluxioURI;
+import alluxio.client.WriteType;
 import alluxio.client.file.DoraCacheFileSystem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -22,6 +23,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.WritePType;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.network.netty.FileTransferType;
 import alluxio.network.protocol.databuffer.CompositeDataBuffer;
@@ -43,6 +45,8 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.dora.DoraWorker;
 
 import com.google.common.base.Stopwatch;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.protobuf.ByteString;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
@@ -97,13 +101,36 @@ public class S3NettyHandler {
 
   public static final Pattern BUCKET_PATH_PATTERN = Pattern.compile("^" + "/[^/]*$");
   public static final Pattern OBJECT_PATH_PATTERN = Pattern.compile("^" + "/[^/]*/.*$");
+  public static final boolean BUCKET_NAMING_RESTRICTION_ENABLED =
+      Configuration.getBoolean(PropertyKey.PROXY_S3_BUCKET_NAMING_RESTRICTIONS_ENABLED);
+  public static final WritePType S3_WRITE_TYPE =
+      Configuration.getEnum(PropertyKey.PROXY_S3_WRITE_TYPE, WriteType.class).toProto();
+  // https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
+  // - Undocumented edge-case, no adjacent periods with hyphens, i.e: '.-' or '-.'
+  public static final Pattern BUCKET_ADJACENT_DOTS_DASHES_PATTERN = Pattern.compile("([-\\.]{2})");
+  public static final Pattern BUCKET_INVALIDATION_PREFIX_PATTERN = Pattern.compile("^xn--.*");
+  public static final Pattern BUCKET_INVALID_SUFFIX_PATTERN = Pattern.compile(".*-s3alias$");
+  public static final Pattern BUCKET_VALID_NAME_PATTERN =
+      Pattern.compile("[a-z0-9][a-z0-9\\.-]{1,61}[a-z0-9]");
+  public static final int BUCKET_PATH_CACHE_SIZE = 65536;
+  /* BUCKET_PATH_CACHE caches bucket path during specific period.
+   BUCKET_PATH_CACHE.put(bucketPath,true) means bucket path exists.
+   BUCKET_PATH_CACHE.put(bucketPath,false) plays the same effect
+   as BUCKET_PATH_CACHE.remove(bucketPath). */
+  public static final Cache<String, Boolean> BUCKET_PATH_CACHE = CacheBuilder.newBuilder()
+      .maximumSize(BUCKET_PATH_CACHE_SIZE)
+      .expireAfterWrite(
+          Configuration.global().getMs(PropertyKey.PROXY_S3_BUCKETPATHCACHE_TIMEOUT_MS),
+          TimeUnit.MILLISECONDS)
+      .build();
   private static final int PACKET_LENGTH = 8 * 1024;
   String[] mUnsupportedSubResources = {"acl", "policy", "versioning", "cors",
       "encryption", "intelligent-tiering", "inventory", "lifecycle",
       "metrics", "ownershipControls", "replication", "website", "accelerate",
       "location", "logging", "metrics", "notification", "ownershipControls",
       "policyStatus", "requestPayment", "attributes", "legal-hold", "object-lock",
-      "retention", "torrent", "publicAccessBlock", "restore", "select"};
+      "retention", "torrent", "publicAccessBlock", "restore", "select",
+      "tagging", "uploads", "uploadId"};
   Set<String> mUnsupportedSubResourcesSet = new HashSet<>(Arrays.asList(mUnsupportedSubResources));
   Map<String, String> mAmzHeaderMap = new HashMap<>();
 
@@ -583,6 +610,9 @@ public class S3NettyHandler {
   public static void checkPathIsAlluxioDirectory(FileSystem fs, String bucketPath,
                                           @Nullable S3AuditContext auditContext)
       throws S3Exception {
+    if (Boolean.TRUE.equals(BUCKET_PATH_CACHE.getIfPresent(bucketPath))) {
+      return;
+    }
     try {
       // TODO(wyy) check bucket is alluxio directory in cache first
       URIStatus status = fs.getStatus(new AlluxioURI(bucketPath));
@@ -593,6 +623,7 @@ public class S3NettyHandler {
     } catch (Exception e) {
       throw NettyRestUtils.toBucketS3Exception(e, bucketPath, auditContext);
     }
+    BUCKET_PATH_CACHE.put(bucketPath, true);
   }
 
   /**
