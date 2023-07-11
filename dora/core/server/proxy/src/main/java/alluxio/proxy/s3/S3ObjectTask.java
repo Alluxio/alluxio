@@ -39,6 +39,7 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File;
 import alluxio.s3.ChunkedEncodingInputStream;
+import alluxio.s3.CopyObjectResult;
 import alluxio.s3.S3AuditContext;
 import alluxio.s3.S3Constants;
 import alluxio.s3.S3ErrorCode;

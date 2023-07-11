@@ -12,6 +12,8 @@
 package alluxio.worker.s3;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.PositionReader;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -27,11 +29,14 @@ import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.PMode;
+import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.network.netty.FileTransferType;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.s3.ChunkedEncodingInputStream;
+import alluxio.s3.CopyObjectResult;
 import alluxio.s3.NettyRestUtils;
 import alluxio.s3.S3AuditContext;
 import alluxio.s3.S3Constants;
@@ -63,7 +68,9 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLDecoder;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.util.Date;
@@ -110,6 +117,9 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
         case "GET":
           return new GetObjectTask(handler, OpType.GetObject);
         case "PUT":
+          if (handler.getHeader(S3Constants.S3_COPY_SOURCE_HEADER) != null) {
+            return new CopyObjectTask(handler, OpType.CopyObject);
+          }
           return new PutObjectTask(handler, OpType.PutObject);
         case "POST":
           break;
@@ -315,6 +325,115 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
     }
   } // end of GetObjectTask
 
+  private static final class CopyObjectTask extends PutObjectTask {
+
+    public CopyObjectTask(S3NettyHandler handler, OpType opType) {
+      super(handler, opType);
+    }
+
+    @Override
+    public HttpResponse continueTask() {
+      return NettyRestUtils.call(getObjectTaskResource(), () -> {
+        final String user = mHandler.getUser();
+        final FileSystem userFs = mHandler.createFileSystemForUser(user);
+        final String bucket = mHandler.getBucket();
+        final String object = mHandler.getObject();
+        Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
+        Preconditions.checkNotNull(object, "required 'object' parameter is missing");
+        String bucketPath = NettyRestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
+        String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
+
+        final String copySourceParam = mHandler.getHeader(S3Constants.S3_COPY_SOURCE_HEADER);
+        String copySource = !copySourceParam.startsWith(AlluxioURI.SEPARATOR)
+            ? AlluxioURI.SEPARATOR + copySourceParam : copySourceParam;
+
+        try (S3AuditContext auditContext = mHandler.createAuditContext(
+            mOPType.name(), user, mHandler.getBucket(), mHandler.getObject())) {
+
+          if (objectPath.endsWith(AlluxioURI.SEPARATOR)) {
+            createDirectory(objectPath, userFs, auditContext);
+          }
+          AlluxioURI objectUri = new AlluxioURI(objectPath);
+
+          // Populate the xattr Map with the metadata tags if provided
+//          Map<String, ByteString> xattrMap = new HashMap<>();
+//          final String taggingHeader = mHandler.getHeader(S3Constants.S3_TAGGING_HEADER);
+//          NettyRestUtils.populateTaggingInXAttr(xattrMap, taggingHeader, auditContext, objectPath);
+
+          // populate the xAttr map with the "Content-Type" header
+//          final String contentTypeHeader = mHandler.getHeader(S3Constants.S3_CONTENT_TYPE_HEADER);
+//          NettyRestUtils.populateContentTypeInXAttr(xattrMap, contentTypeHeader);
+
+          try {
+            copySource = URLDecoder.decode(copySource, "UTF-8");
+          } catch (UnsupportedEncodingException ex) {
+            throw NettyRestUtils.toObjectS3Exception(ex, objectPath, auditContext);
+          }
+          URIStatus status = null;
+          CreateFilePOptions.Builder copyFilePOptionsBuilder = CreateFilePOptions.newBuilder()
+              .setRecursive(true)
+              .setMode(PMode.newBuilder()
+                  .setOwnerBits(Bits.ALL)
+                  .setGroupBits(Bits.ALL)
+                  .setOtherBits(Bits.NONE)
+                  .build())
+              .setWriteType(S3NettyHandler.S3_WRITE_TYPE)
+              .setXattrPropStrat(XAttrPropagationStrategy.LEAF_NODE)
+              .setOverwrite(true)
+              .setCheckS3BucketPath(true);
+
+          // Handle metadata directive
+//          final String metadataDirective = mHandler.getHeader(
+//              S3Constants.S3_METADATA_DIRECTIVE_HEADER);
+//          if (StringUtils.equals(metadataDirective, S3Constants.Directive.REPLACE.name())
+//              && xattrMap.containsKey(S3Constants.CONTENT_TYPE_XATTR_KEY)) {
+//            copyFilePOptionsBuilder.putXattr(S3Constants.CONTENT_TYPE_XATTR_KEY,
+//                xattrMap.get(S3Constants.CONTENT_TYPE_XATTR_KEY));
+//          } else { // defaults to COPY
+//            try {
+//              status = userFs.getStatus(new AlluxioURI(copySource));
+//              if (status.getFileInfo().getXAttr() != null) {
+//                copyFilePOptionsBuilder.putXattr(S3Constants.CONTENT_TYPE_XATTR_KEY,
+//                    ByteString.copyFrom(status.getFileInfo().getXAttr().getOrDefault(
+//                        S3Constants.CONTENT_TYPE_XATTR_KEY,
+//                        MediaType.APPLICATION_OCTET_STREAM.getBytes(S3Constants.HEADER_CHARSET))));
+//              }
+//            } catch (Exception e) {
+//              throw NettyRestUtils.toObjectS3Exception(e, objectPath, auditContext);
+//            }
+//          }
+
+          // Handle tagging directive
+//          final String taggingDirective = mHandler.getHeader(
+//              S3Constants.S3_TAGGING_DIRECTIVE_HEADER);
+//          if (StringUtils.equals(taggingDirective, S3Constants.Directive.REPLACE.name())
+//              && xattrMap.containsKey(S3Constants.TAGGING_XATTR_KEY)) {
+//            copyFilePOptionsBuilder.putXattr(S3Constants.TAGGING_XATTR_KEY,
+//                xattrMap.get(S3Constants.TAGGING_XATTR_KEY));
+//          } else { // defaults to COPY
+//            try {
+//              if (status == null) {
+//                status = userFs.getStatus(new AlluxioURI(copySource));
+//              }
+//              if (status.getFileInfo().getXAttr() != null
+//                  && status.getFileInfo().getXAttr()
+//                  .containsKey(S3Constants.TAGGING_XATTR_KEY)) {
+//                copyFilePOptionsBuilder.putXattr(S3Constants.TAGGING_XATTR_KEY,
+//                    TaggingData.serialize(S3RestUtils.deserializeTags(status.getXAttr())));
+//              }
+//            } catch (Exception e) {
+//              throw NettyRestUtils.toObjectS3Exception(e, objectPath, auditContext);
+//            }
+//          }
+
+          String entityTag = copyObject(userFs, auditContext,
+              objectPath, copySource, copyFilePOptionsBuilder.build());
+          return new CopyObjectResult(entityTag, System.currentTimeMillis());
+        }
+      });
+    }
+  } // end of CopyObjectTask
+
   private static class PutObjectTask extends S3NettyObjectTask {
     // For both PutObject and UploadPart
 
@@ -388,6 +507,73 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
         return response;
       } catch (Exception e) {
         throw NettyRestUtils.toObjectS3Exception(e, objectPath, auditContext);
+      }
+    }
+
+    /**
+     * Common func for copy from a source path to target path.
+     * @param userFs
+     * @param auditContext
+     * @param targetPath
+     * @param sourcePath
+     * @param copyFilePOption
+     * @return entityTag(Etag)
+     * @throws S3Exception
+     */
+    public String copyObject(FileSystem userFs, S3AuditContext auditContext,
+                             String targetPath, String sourcePath,
+                             CreateFilePOptions copyFilePOption)
+        throws S3Exception {
+      AlluxioURI objectUri = new AlluxioURI(targetPath);
+      if (sourcePath.equals(targetPath)) {
+        // do not need to copy a file to itself, unless we are changing file attributes
+        // TODO(czhu): support changing metadata via CopyObject to self,
+        //  verify for UploadPartCopy
+        auditContext.setSucceeded(false);
+        throw new S3Exception("Copying an object to itself invalid.",
+            targetPath, S3ErrorCode.INVALID_REQUEST);
+      }
+      URIStatus status;
+      try {
+        status = userFs.getStatus(new AlluxioURI(sourcePath));
+      }  catch (Exception e) {
+        throw NettyRestUtils.toObjectS3Exception(e, targetPath, auditContext);
+      }
+      final String range = mHandler.getHeaderOrDefault(S3Constants.S3_COPY_SOURCE_RANGE, null);
+      S3RangeSpec s3Range = S3RangeSpec.Factory.create(range);
+      PositionReader reader = userFs.openPositionRead(status,
+          OpenFilePOptions.getDefaultInstance());
+      try (FileOutStream out = userFs.createFile(objectUri, copyFilePOption)) {
+        MessageDigest md5 = MessageDigest.getInstance("MD5");
+        try (DigestOutputStream digestOut = new DigestOutputStream(out, md5)) {
+          long position = s3Range.getOffset(status.getLength());
+          long length = s3Range.getLength(status.getLength());
+          byte[] buf = new byte[8 * Constants.MB];
+          int totalRead = 0;
+          int currentRead;
+          while (totalRead < length) {
+            currentRead = reader.read(position + totalRead, buf, (int) (length - totalRead));
+            if (currentRead <= 0) {
+              break;
+            }
+            digestOut.write(buf);
+            totalRead += currentRead;
+          }
+          byte[] digest = md5.digest();
+          String entityTag = Hex.encodeHexString(digest);
+          // persist the ETag via xAttr
+          S3NettyHandler.setEntityTag(userFs, objectUri, entityTag);
+          return entityTag;
+        } catch (IOException e) {
+          try {
+            out.cancel();
+          } catch (Throwable t2) {
+            e.addSuppressed(t2);
+          }
+          throw e;
+        }
+      } catch (Exception e) {
+        throw NettyRestUtils.toObjectS3Exception(e, targetPath, auditContext);
       }
     }
 
