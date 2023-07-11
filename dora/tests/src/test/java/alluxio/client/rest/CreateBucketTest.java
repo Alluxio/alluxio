@@ -136,21 +136,25 @@ public class CreateBucketTest extends RestApiTest {
     Assert.assertEquals(S3ErrorCode.Name.BUCKET_ALREADY_EXISTS, response.getCode());
   }
 
-  private TestCaseOptions getDefaultOptionsWithAuth() {
-    return TestCaseOptions.defaults().setAuthorization("AWS4-HMAC-SHA256 Credential=xx/...")
-        .setContentType(TestCaseOptions.XML_CONTENT_TYPE);
-  }
+  /**
+   * 2 users creates the same bucket.
+   */
+  @Test
+  public void createSameBucket() throws Exception {
+    String bucketName = "bucket";
+//    Ensures this bucket exists.
+    if (headBucketRestCall(bucketName, "user0").getResponseCode()
+        == Response.Status.NOT_FOUND.getStatusCode()) {
+      createBucketRestCall(bucketName, "user0");
+    }
 
-  private void createBucketRestCall(String bucket) throws Exception {
-    TestCaseOptions options = getDefaultOptionsWithAuth();
-    new TestCase(mHostname, mPort, mBaseUri,
-        bucket, NO_PARAMS, HttpMethod.PUT,
-        options).runAndCheckResult();
-  }
-
-  private HttpURLConnection headBucketRestCall(String bucketName) throws Exception {
-    return new TestCase(mHostname, mPort, mBaseUri,
-        bucketName, NO_PARAMS, HttpMethod.HEAD,
-        getDefaultOptionsWithAuth()).execute();
+    HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
+        bucketName, NO_PARAMS, HttpMethod.PUT,
+        getDefaultOptionsWithAuth("user1")).execute();
+    Assert.assertEquals(Response.Status.CONFLICT.getStatusCode(), connection.getResponseCode());
+    S3Error response =
+        new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
+    Assert.assertEquals(bucketName, response.getResource());
+    Assert.assertEquals(S3ErrorCode.Name.BUCKET_ALREADY_EXISTS, response.getCode());
   }
 }

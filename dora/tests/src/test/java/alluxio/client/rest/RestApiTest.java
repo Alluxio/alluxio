@@ -12,16 +12,61 @@
 package alluxio.client.rest;
 
 import alluxio.Constants;
+import alluxio.proxy.s3.ListBucketResult;
 import alluxio.testutils.BaseIntegrationTest;
 
 import com.google.common.collect.ImmutableMap;
 
+import java.net.HttpURLConnection;
 import java.util.Map;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.HttpMethod;
 
 public abstract class RestApiTest extends BaseIntegrationTest {
   protected static final Map<String, String> NO_PARAMS = ImmutableMap.of();
-
+  protected static final String TEST_USER_NAME = "testuser";
+  protected static final String TEST_BUCKET_NAME = "bucket";
   protected String mHostname;
   protected int mPort;
   protected String mBaseUri = Constants.REST_API_PREFIX;
+
+  protected HttpURLConnection createBucketRestCall(String bucket, @NotNull String user)
+      throws Exception {
+    return new TestCase(mHostname, mPort, mBaseUri,
+        bucket, NO_PARAMS, HttpMethod.PUT,
+        getDefaultOptionsWithAuth(user)).executeAndAssertSuccess();
+  }
+
+  protected HttpURLConnection createBucketRestCall(String bucket) throws Exception {
+    return createBucketRestCall(bucket, TEST_USER_NAME);
+  }
+
+  protected HttpURLConnection headBucketRestCall(String bucket, @NotNull String user)
+      throws Exception {
+    return new TestCase(mHostname, mPort, mBaseUri,
+        bucket, NO_PARAMS, HttpMethod.HEAD,
+        getDefaultOptionsWithAuth(user)).execute();
+  }
+
+  protected void listStatusRestCall(Map<String, String> parameters, ListBucketResult expected)
+      throws Exception {
+    new TestCase(mHostname, mPort, mBaseUri,
+        TEST_BUCKET_NAME, parameters, HttpMethod.GET,
+        getDefaultOptionsWithAuth())
+        .runAndCheckResult(expected);
+  }
+
+  protected HttpURLConnection headBucketRestCall(String bucket) throws Exception {
+    return headBucketRestCall(bucket, TEST_USER_NAME);
+  }
+
+  protected TestCaseOptions getDefaultOptionsWithAuth(@NotNull String user) {
+    return TestCaseOptions.defaults()
+        .setAuthorization("AWS4-HMAC-SHA256 Credential=" + user + "/...")
+        .setContentType(TestCaseOptions.XML_CONTENT_TYPE);
+  }
+
+  protected TestCaseOptions getDefaultOptionsWithAuth() {
+    return getDefaultOptionsWithAuth(TEST_USER_NAME);
+  }
 }

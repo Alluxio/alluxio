@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 
@@ -42,6 +43,7 @@ public final class TestCase {
       .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
   private static final ObjectMapper JSON_MAPPER = new ObjectMapper()
       .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+  private static final Map<String, String> NO_PARAMS = ImmutableMap.of();
 
   private final String mHostname;
   private final int mPort;
