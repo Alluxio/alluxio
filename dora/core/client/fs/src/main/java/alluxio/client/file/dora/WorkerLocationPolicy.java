@@ -94,14 +94,14 @@ public class WorkerLocationPolicy {
         mInitLock.acquireUninterruptibly();
         // only one thread should reach here
         // test again to skip re-initialization
-        if (mActiveNodesByConsistentHashing == null) {
-          try {
+        try {
+          if (mActiveNodesByConsistentHashing == null) {
             mActiveNodesByConsistentHashing = build(workerInfos, numVirtualNodes);
-          } finally {
             mLastWorkerInfos = workerInfos;
             mLastUpdatedTimestamp.set(System.nanoTime());
-            mInitLock.release();
           }
+        } finally {
+          mInitLock.release();
         }
       }
       // check if the worker list has expired
