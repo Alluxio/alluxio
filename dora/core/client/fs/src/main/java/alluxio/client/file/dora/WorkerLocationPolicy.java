@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
@@ -73,11 +72,9 @@ public class WorkerLocationPolicy {
     private static final int MAX_ATTEMPTS = 100;
     private static final long WORKER_INFO_UPDATE_INTERVAL_NS = Constants.SECOND_NANO;
     private volatile List<BlockWorkerInfo> mLastWorkerInfos = ImmutableList.of();
-    // Can only be null before the first call to refresh
+    // Lazily initialized, can only be null before the first call to refresh
     @Nullable
     private volatile NavigableMap<Integer, BlockWorkerInfo> mActiveNodesByConsistentHashing;
-    private final Semaphore mInitLock = new Semaphore(1);
-
     // Must use System.nanoTime to ensure monotonic increment
     private final AtomicLong mLastUpdatedTimestamp = new AtomicLong(System.nanoTime());
 
@@ -88,22 +85,7 @@ public class WorkerLocationPolicy {
     public void refresh(List<BlockWorkerInfo> workerInfos, int numVirtualNodes) {
       Preconditions.checkArgument(!workerInfos.isEmpty(),
           "cannot refresh hash provider with empty worker list");
-      // When the active nodes map does not exist, the hash provider is not initialized yet.
-      // let one caller initialize the map while blocking all others.
-      if (mActiveNodesByConsistentHashing == null) {
-        mInitLock.acquireUninterruptibly();
-        // only one thread should reach here
-        // test again to skip re-initialization
-        try {
-          if (mActiveNodesByConsistentHashing == null) {
-            mActiveNodesByConsistentHashing = build(workerInfos, numVirtualNodes);
-            mLastWorkerInfos = workerInfos;
-            mLastUpdatedTimestamp.set(System.nanoTime());
-          }
-        } finally {
-          mInitLock.release();
-        }
-      }
+      maybeInitialize(workerInfos, numVirtualNodes);
       // check if the worker list has expired
       long lastUpdateTs = mLastUpdatedTimestamp.get();
       long currentTs = System.nanoTime();
@@ -115,15 +97,29 @@ public class WorkerLocationPolicy {
         // finished
         if (casUpdated) {
           if (hasWorkerListChanged(workerInfos, mLastWorkerInfos)) {
-            try {
-              mActiveNodesByConsistentHashing = build(workerInfos, numVirtualNodes);
-            } finally {
-              mLastWorkerInfos = workerInfos;
-            }
+            mActiveNodesByConsistentHashing = build(workerInfos, numVirtualNodes);
+            mLastWorkerInfos = workerInfos;
           }
         }
         // else, do nothing and proceed with stale worker list. on next access, the worker list
         // will have been updated by another thread
+      }
+    }
+
+    // Lazy initialization of the hash provider:
+    // When the active nodes map does not exist, the hash provider is not initialized yet.
+    // let one caller initialize the map while blocking all others.
+    private void maybeInitialize(List<BlockWorkerInfo> workerInfos, int numVirtualNodes) {
+      if (mActiveNodesByConsistentHashing == null) {
+        synchronized (mActiveNodesByConsistentHashing) {
+          // only one thread should reach here
+          // test again to skip re-initialization
+          if (mActiveNodesByConsistentHashing == null) {
+            mActiveNodesByConsistentHashing = build(workerInfos, numVirtualNodes);
+            mLastWorkerInfos = workerInfos;
+            mLastUpdatedTimestamp.set(System.nanoTime());
+          }
+        }
       }
     }
 
