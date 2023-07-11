@@ -14,6 +14,7 @@ package alluxio.worker.dora;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.PageId;
+import alluxio.grpc.WritePType;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.worker.block.io.BlockWriter;
 
@@ -87,11 +88,13 @@ public class PagedFileWriter extends BlockWriter {
       int bytesLeftInPage = getBytesLeftInPage(currentPageOffset, buf.readableBytes());
       byte[] page = new byte[bytesLeftInPage];
       buf.readBytes(page);
-      if (!mCacheManager.append(pageId, currentPageOffset, page, mTempCacheContext)) {
-        throw new IOException("Append failed for file " + mFileId);
+      if (handle != null && handle.getOptions().hasWriteType()
+          && handle.getOptions().getWriteType() != WritePType.THROUGH) {
+        // Don't write to local paging cache for THROUGH
+        if (!mCacheManager.append(pageId, currentPageOffset, page, mTempCacheContext)) {
+          throw new IOException("Append failed for file " + mFileId);
+        }
       }
-      bytesWritten += bytesLeftInPage;
-
       // Now writes data to UFS.
       if (handle != null) {
         OutputStream outputStream = Preconditions.checkNotNull(handle.getOutStream());
@@ -99,6 +102,7 @@ public class PagedFileWriter extends BlockWriter {
       } else {
         throw new IOException("Cannot write data to UFS for " + mUfsPath + " @" + mPosition);
       }
+      bytesWritten += bytesLeftInPage;
     }
 
     // data is written to local cache and UFS. Update Position.

@@ -11,6 +11,7 @@
 
 package alluxio.worker.dora;
 
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FileInfo;
 
 import java.io.IOException;
@@ -30,13 +31,17 @@ public class OpenFileHandle {
   private OutputStream   mOutStream; //outstream from UFS
   private boolean        mClosed;
 
+  private final CreateFilePOptions mOptions;
+
   /**
    * Construct a new open file handle.
-   * @param path
-   * @param info
-   * @param outStream
+   * @param path the path of the file
+   * @param info the FileInfo of this file
+   * @param options the options of create
+   * @param outStream the UFS output stream of this file
    */
-  public OpenFileHandle(String path, FileInfo info, @Nullable OutputStream outStream) {
+  public OpenFileHandle(String path, FileInfo info, CreateFilePOptions options,
+                        @Nullable OutputStream outStream) {
     mPath = path;
     mInfo = info;
     // TODO(Hua): The operation of generating UUID is SLOW. We can replace it in other way.
@@ -45,6 +50,7 @@ public class OpenFileHandle {
     mPos = 0L;
     mLastAccessTimeMs = System.currentTimeMillis();
     mClosed = false;
+    mOptions = options;
   }
 
   /**
@@ -93,6 +99,14 @@ public class OpenFileHandle {
    */
   public OutputStream getOutStream() {
     return mOutStream;
+  }
+
+  /**
+   * Get Alluxio create file options.
+   * @return the CreateFilePOptions of this operation
+   */
+  public CreateFilePOptions getOptions() {
+    return mOptions;
   }
 
   /**

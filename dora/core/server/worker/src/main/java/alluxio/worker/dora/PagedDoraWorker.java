@@ -332,7 +332,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     if (fileLength > 0) {
       cachedPercentage = (int) (bytesInCache * 100 / fileLength);
     } else {
-      cachedPercentage = 0;
+      cachedPercentage = 100;
     }
     return cachedPercentage;
   }
@@ -383,8 +383,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       if (fileLength > 0) {
         cachedPercentage = (int) (bytesInCache * 100 / fileLength);
       } else {
-        cachedPercentage = 0;
+        cachedPercentage = 100;
       }
+
       infoBuilder.setInAlluxioPercentage(cachedPercentage)
           .setInMemoryPercentage(cachedPercentage);
     }
@@ -678,7 +679,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     }
     OutputStream outStream = mUfs.create(path, createOption);
 
-    OpenFileHandle handle = new OpenFileHandle(path, info, outStream);
+    OpenFileHandle handle = new OpenFileHandle(path, info, options, outStream);
     //add to map.
     mOpenFileHandleContainer.add(path, handle);
 
