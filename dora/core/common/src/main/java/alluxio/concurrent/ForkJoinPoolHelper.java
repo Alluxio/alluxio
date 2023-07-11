@@ -12,12 +12,12 @@
 package alluxio.concurrent;
 
 import alluxio.Constants;
+import alluxio.concurrent.jsr.ForkJoinPool;
 import alluxio.util.logging.SamplingLogger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RejectedExecutionException;
 
 /**

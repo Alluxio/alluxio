@@ -101,7 +101,7 @@ public class DoraMetaManager {
    */
   public void put(String path, FileStatus meta) {
     Optional<FileStatus> status = mMetastore.getDoraMeta(path);
-    if (status.isEmpty()
+    if (!status.isPresent()
         || status.get().getFileInfo().getFolder()
         || status.get().getFileInfo().getLength() == 0) {
       mMetastore.putDoraMeta(path, meta);
