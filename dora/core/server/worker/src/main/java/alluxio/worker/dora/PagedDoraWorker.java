@@ -471,7 +471,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
               .setCode(t.getStatus().getCode().value())
               .setRetryable(true)
               .setMessage(t.getMessage()).build());
-          throw ex;
         }
       }
     }
