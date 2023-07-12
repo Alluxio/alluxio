@@ -552,11 +552,12 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
           int totalRead = 0;
           int currentRead;
           while (totalRead < length) {
-            currentRead = reader.read(position + totalRead, buf, (int) (length - totalRead));
+            int readlength = Math.min(buf.length, (int) (length - totalRead));
+            currentRead = reader.read(position + totalRead, buf, readlength);
             if (currentRead <= 0) {
               break;
             }
-            digestOut.write(buf);
+            digestOut.write(buf, 0, currentRead);
             totalRead += currentRead;
           }
           byte[] digest = md5.digest();
