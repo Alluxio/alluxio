@@ -64,17 +64,6 @@ public final class JournalEntryAssociation {
         || entry.hasPolicyRemove()) {
       return Constants.POLICY_ENGINE_NAME;
     }
-    if (entry.hasAttachDb()
-        || entry.hasAddTable()
-        || entry.hasAddTablePartitions()
-        || entry.hasRemoveTable()
-        || entry.hasDetachDb()
-        || entry.hasUpdateDatabaseInfo()
-        || entry.hasAddTransformJobInfo()
-        || entry.hasRemoveTransformJobInfo()
-        || entry.hasCompleteTransformTable()) {
-      return Constants.TABLE_MASTER_NAME;
-    }
     throw new IllegalStateException("Unrecognized journal entry: " + entry);
   }
 
