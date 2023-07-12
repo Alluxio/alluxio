@@ -816,11 +816,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
     Assert.assertTrue(mFileSystemMaster
         .listStatus(uri, ListStatusContext.defaults()).isEmpty());
 
-    HttpURLConnection connection = headBucketRestCall(bucket);
+    HttpURLConnection connection = headRestCall(bucket);
     Assert.assertEquals(Response.Status.OK.getStatusCode(), connection.getResponseCode());
 
     // Verify 404 status will be returned by head none existing bucket.
-    connection = headBucketRestCall(nonExistingBucket);
+    connection = headRestCall(nonExistingBucket);
     Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), connection.getResponseCode());
   }
 
@@ -1147,7 +1147,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     createBucketRestCall(bucket);
     final String objectKey = bucket + AlluxioURI.SEPARATOR + "object.txt";
     createObjectRestCall(objectKey, NO_PARAMS,
-        getDefaultOptionsWithAuth()
+        getDefaultOptionsWithAuth("edy")
             .setBody(expectedObject)
             .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
             .setMD5(computeObjectChecksum(expectedObject)));
@@ -2217,12 +2217,6 @@ public final class S3ClientRestApiTest extends RestApiTest {
     return BaseEncoding.base64().encode(md5Digest);
   }
 
-  private void createObjectRestCall(String objectUri, @NotNull Map<String, String> params,
-                                    @NotNull TestCaseOptions options) throws Exception {
-    new TestCase(mHostname, mPort, mBaseUri, objectUri, params, HttpMethod.PUT, options)
-        .runAndCheckResult();
-  }
-
   private String initiateMultipartUploadRestCall(String objectUri) throws Exception {
     return initiateMultipartUploadRestCall(objectUri, TEST_USER_NAME);
   }
@@ -2292,11 +2286,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
         getDefaultOptionsWithAuth()).executeAndAssertSuccess();
   }
 
-  private String getObjectRestCall(String objectUri) throws Exception {
-    return new TestCase(mHostname, mPort, mBaseUri,
-        objectUri, NO_PARAMS, HttpMethod.GET,
-        getDefaultOptionsWithAuth()).runAndGetResponse();
-  }
+
 
   /**
    * Do not process the error response, and judge by the method caller.

@@ -107,11 +107,11 @@ public class CreateBucketTest extends RestApiTest {
   public void createAndHeadBucket() throws Exception {
     String bucketName = "bucket";
     Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(),
-        headBucketRestCall(bucketName).getResponseCode());
+        headRestCall(bucketName).getResponseCode());
     Assert.assertEquals(Response.Status.OK.getStatusCode(),
         createBucketRestCall(bucketName).getResponseCode());
     Assert.assertEquals(Response.Status.OK.getStatusCode(),
-        headBucketRestCall(bucketName).getResponseCode());
+        headRestCall(bucketName).getResponseCode());
   }
 
   /**
@@ -121,7 +121,7 @@ public class CreateBucketTest extends RestApiTest {
   public void createExistentBucket() throws Exception {
     String bucketName = "bucket";
 //    Ensures this bucket exists.
-    if (headBucketRestCall(bucketName).getResponseCode()
+    if (headRestCall(bucketName).getResponseCode()
         == Response.Status.NOT_FOUND.getStatusCode()) {
       Assert.assertEquals(Response.Status.OK.getStatusCode(),
           createBucketRestCall(bucketName).getResponseCode());
@@ -142,7 +142,7 @@ public class CreateBucketTest extends RestApiTest {
   public void createSameBucket() throws Exception {
     String bucketName = "bucket";
 //    Ensures this bucket exists.
-    if (headBucketRestCall(bucketName, "user0").getResponseCode()
+    if (headRestCall(bucketName, "user0").getResponseCode()
         == Response.Status.NOT_FOUND.getStatusCode()) {
       Assert.assertEquals(Response.Status.OK.getStatusCode(),
           createBucketRestCall(bucketName, "user0").getResponseCode());
