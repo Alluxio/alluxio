@@ -73,13 +73,33 @@ public class WorkerLocationPolicy {
     private static final HashFunction HASH_FUNCTION = murmur3_32_fixed();
     private final int mMaxAttempts;
     private final long mWorkerInfoUpdateIntervalNs;
+
+    /**
+     * Timestamp of the last update to {@link #mActiveNodesByConsistentHashing}.
+     * Must use System.nanoTime to ensure monotonic increment. Otherwise, updates to the worker
+     * list may be missed as the expiry based on TTL cannot be reliably determined.
+     */
     private final AtomicLong mLastUpdatedTimestamp = new AtomicLong(System.nanoTime());
+    /**
+     * Counter for how many times the map has been updated.
+     */
+    private final AtomicLong mUpdateCount = new AtomicLong(0);
+    /**
+     * The worker list which the {@link #mActiveNodesByConsistentHashing} was built from.
+     * Must kept in sync with {@link #mActiveNodesByConsistentHashing}.
+     * Used to compare with incoming worker list to skip the heavy build process if the worker
+     * list has not changed.
+     */
     private volatile List<BlockWorkerInfo> mLastWorkerInfos = ImmutableList.of();
-    // Lazily initialized, can only be null before the first call to refresh
+    /**
+     * A map of virtual node indices to the actual workers.
+     * This is lazily initialized, can only be null before the first call to refresh.
+     */
     @Nullable
     private volatile NavigableMap<Integer, BlockWorkerInfo> mActiveNodesByConsistentHashing;
-    // Must use System.nanoTime to ensure monotonic increment
-    private final AtomicLong mUpdateCount = new AtomicLong(0);
+    /**
+     * Lock to protect the lazy initialization of {@link #mActiveNodesByConsistentHashing}.
+     */
     private final Object mInitLock = new Object();
 
     public ConsistentHashProvider(int maxAttempts, long workerListTtlMs) {
@@ -90,6 +110,11 @@ public class WorkerLocationPolicy {
     /**
      * Initializes or refreshes the worker list using the given list of workers and number of
      * virtual nodes.
+     * <br>
+     * Thread safety:
+     * If called concurrently by two or more threads, only one of the callers will actually
+     * update the state of the hash provider using the worker list provided by that thread, and all
+     * others will not change the internal state of the hash provider.
      */
     public void refresh(List<BlockWorkerInfo> workerInfos, int numVirtualNodes) {
       Preconditions.checkArgument(!workerInfos.isEmpty(),
@@ -116,9 +141,11 @@ public class WorkerLocationPolicy {
       }
     }
 
-    // Lazy initialization of the hash provider:
-    // When the active nodes map does not exist, the hash provider is not initialized yet.
-    // let one caller initialize the map while blocking all others.
+    /**
+     * Lazily initializes the hash ring.
+     * Only one caller gets to initialize the map while all others are blocked.
+     * After the initialization, the map must not be null.
+     */
     private void maybeInitialize(List<BlockWorkerInfo> workerInfos, int numVirtualNodes) {
       if (mActiveNodesByConsistentHashing == null) {
         synchronized (mInitLock) {
@@ -161,10 +188,8 @@ public class WorkerLocationPolicy {
 
     @VisibleForTesting
     static BlockWorkerInfo get(NavigableMap<Integer, BlockWorkerInfo> map, String key, int index) {
+      Preconditions.checkNotNull(map, "Hash provider is not properly initialized");
       int hashKey = HASH_FUNCTION.hashString(format("%s%d", key, index), UTF_8).asInt();
-      if (map == null) {
-        throw new IllegalStateException("Hash provider is not properly initialized");
-      }
       Map.Entry<Integer, BlockWorkerInfo> entry = map.ceilingEntry(hashKey);
       if (entry != null) {
         return entry.getValue();

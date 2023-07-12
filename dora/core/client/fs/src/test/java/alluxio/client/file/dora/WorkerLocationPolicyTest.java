@@ -13,6 +13,7 @@ package alluxio.client.file.dora;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -24,7 +25,6 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.List;
@@ -47,13 +47,13 @@ public class WorkerLocationPolicyTest {
   @Test
   public void uninitializedThrowsException() {
     ConsistentHashProvider provider = new ConsistentHashProvider(1, WORKER_LIST_TTL_MS);
-    Assert.assertThrows(IllegalStateException.class, () -> provider.get(OBJECT_KEY, 0));
+    assertThrows(IllegalStateException.class, () -> provider.get(OBJECT_KEY, 0));
   }
 
   @Test
   public void concurrentInitialization() {
     ConsistentHashProvider provider = new ConsistentHashProvider(1, WORKER_LIST_TTL_MS);
-    final int numThreads = Runtime.getRuntime().availableProcessors();
+    final int numThreads = 16;
     CountDownLatch startSignal = new CountDownLatch(numThreads);
     ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
     List<List<BlockWorkerInfo>> lists = IntStream.range(0, numThreads)
@@ -101,7 +101,7 @@ public class WorkerLocationPolicyTest {
     long initialCount = provider.getUpdateCount();
     Thread.sleep(WORKER_LIST_TTL_MS);
 
-    final int numThreads = Runtime.getRuntime().availableProcessors();
+    final int numThreads = 16;
     CountDownLatch startSignal = new CountDownLatch(numThreads);
     ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
 
@@ -134,6 +134,12 @@ public class WorkerLocationPolicyTest {
     }
     // only one thread actually updated the map
     assertEquals(1, provider.getUpdateCount() - initialCount);
+    // check if the worker list is one of the lists provided by the threads
+    List<BlockWorkerInfo> workerInfoListUsedByPolicy = provider.getLastWorkerInfos();
+    assertTrue(listsPerThread.contains(workerInfoListUsedByPolicy));
+    assertEquals(
+        ConsistentHashProvider.build(workerInfoListUsedByPolicy, NUM_VIRTUAL_NODES),
+        provider.getActiveNodesMap());
   }
 
   @Test
