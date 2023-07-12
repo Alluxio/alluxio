@@ -1,8 +1,6 @@
 ---
 layout: global
 title: Quick Start Guide
-# group: Overview
-priority: 1
 ---
 
 This quick start guide goes over how to run Alluxio on a local machine.
