@@ -169,7 +169,9 @@ public abstract class Benchmark<T extends TaskResult> {
       long jobId =
           JobGrpcClientUtils.run(generateJobConfig(args), 0, conf);
       JobInfo jobInfo = JobGrpcClientUtils.getJobStatus(jobId, conf, true);
-      return jobInfo.getResult().toString();
+      String jobResultJson = jobInfo.getResult().toString();
+      LOG.info("Collected job results: {}", jobResultJson);
+      return jobResultJson;
     }
 
     // run locally
@@ -177,11 +179,15 @@ public abstract class Benchmark<T extends TaskResult> {
       // run in process
       T result = runLocal();
       if (mBaseParameters.mDistributed) {
-        return result.toJson();
+        String resultsJson = result.toJson();
+        LOG.info("This process has results {}", resultsJson);
+        return resultsJson;
       }
 
       // aggregate the results
-      return result.aggregator().aggregate(Collections.singletonList(result)).toJson();
+      String resultAggregated = result.aggregator().aggregate(Collections.singletonList(result)).toJson();
+      LOG.info("Merged results {}", resultAggregated);
+      return resultAggregated;
     } else {
       // Spawn a new process
       List<String> command = new ArrayList<>();
@@ -194,7 +200,9 @@ public abstract class Benchmark<T extends TaskResult> {
           .collect(Collectors.toList()));
 
       LOG.info("running command: " + String.join(" ", command));
-      return ShellUtils.execCommand(command.toArray(new String[0]));
+      String commandOutput = ShellUtils.execCommand(command.toArray(new String[0]));
+      LOG.info("Command output: {}", commandOutput);
+      return commandOutput;
     }
   }
 

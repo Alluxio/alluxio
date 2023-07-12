@@ -281,7 +281,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
 
     service.shutdownNow();
     service.awaitTermination(30, TimeUnit.SECONDS);
-
     return context.getResult();
   }
 
@@ -344,7 +343,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     private final FileSystem mFs;
     private final byte[] mBuffer;
     private final WorkerBenchTaskResult mResult;
-    private final boolean mIsRandomReed;
+    private final boolean mIsRandomRead;
 
     private FSDataInputStream mInStream;
 
@@ -358,7 +357,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       mResult = new WorkerBenchTaskResult();
       mResult.setParameters(mParameters);
       mResult.setBaseParameters(mBaseParameters);
-      mIsRandomReed = mParameters.mIsRandom;
+      mIsRandomRead = mParameters.mIsRandom;
     }
 
     @Override
@@ -403,6 +402,8 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
         if (currentMs > recordMs) {
           if (ioBytes > 0) {
             mResult.incrementIOBytes(ioBytes);
+          } else {
+            LOG.warn("Thread for file {} read 0 bytes from I/O", mFilePaths[mTargetFileIndex]);
           }
         }
       }
@@ -422,7 +423,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       }
 
       int bytesRead = 0;
-      if (mIsRandomReed) {
+      if (mIsRandomRead) {
         while (length > 0) {
           int actualReadLength = mInStream
               .read(offset, mBuffer, 0, mBuffer.length);
