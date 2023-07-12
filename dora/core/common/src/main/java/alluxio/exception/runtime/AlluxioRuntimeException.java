@@ -30,6 +30,7 @@ import java.net.MalformedURLException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.file.attribute.UserPrincipalNotFoundException;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.RejectedExecutionException;
 import javax.annotation.Nullable;
 import javax.security.sasl.SaslException;
 
@@ -113,6 +114,17 @@ public class AlluxioRuntimeException extends RuntimeException {
   }
 
   /**
+   * Wrap a RejectedExecutionException with io.grpc RESOURCE_EXHAUSTED
+   * exception.
+   * @param ex
+   * @return AlluxioRuntimeException
+   */
+  public static AlluxioRuntimeException from(RejectedExecutionException ex) {
+    return new AlluxioRuntimeException(Status.RESOURCE_EXHAUSTED, "StageOverload",
+        ex, ErrorType.User, true);
+  }
+
+  /**
    * Converts an arbitrary throwable to an Alluxio runtime exception.
    * @param t exception
    * @return alluxio runtime exception
@@ -139,6 +151,9 @@ public class AlluxioRuntimeException extends RuntimeException {
    * @return alluxio runtime exception
    */
   public static AlluxioRuntimeException from(RuntimeException t) {
+    if (t instanceof RejectedExecutionException) {
+      return from((RejectedExecutionException) t);
+    }
     if (t instanceof IllegalArgumentException) {
       return new InvalidArgumentRuntimeException(t);
     }

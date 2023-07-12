@@ -95,7 +95,6 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   private static final int RETRY_BLOCK_CAPACITY = 1000;
   private static final double RETRY_THRESHOLD = 0.8 * RETRY_BLOCK_CAPACITY;
   private static final int BATCH_SIZE = Configuration.getInt(PropertyKey.JOB_BATCH_SIZE);
-  private static final int MAX_FILES_PER_TASK = 100; // TODO(lucy) make it configurable
 
   /* TODO(lucy) add logic to detect loaded files, as currently each file loaded
      status is on each dora worker, so the decision to load or not delegates to
@@ -192,10 +191,12 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   /**
    * Prepare next set of tasks waiting to be kicked off.
    * it is made sure only one thread should be calling this.
+   * @param workers
    * @return list of DoraLoadTask
    */
-  public List<DoraLoadTask> prepareNextTasks() {
+  private List<DoraLoadTask> prepareNextTasks(Collection<WorkerInfo> workers) {
     LOG.debug("Preparing next set of tasks for jobId:{}", mJobId);
+    int workerNum = workers.size();
     ImmutableList.Builder<UfsStatus> batchBuilder = ImmutableList.builder();
     int i = 0;
     int startRetryListSize = mRetryFiles.size();
@@ -205,6 +206,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       String path = mRetryFiles.poll();
       try {
         UfsStatus uriStatus = mUfs.getStatus(path);
+        uriStatus.setUfsFullPath(new AlluxioURI(path));
         batchBuilder.add(uriStatus);
         ++filesToLoad;
       } catch (IOException e) {
@@ -218,7 +220,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
         }
       }
     }
-    while (filesToLoad < BATCH_SIZE && mUfsStatusIterator.hasNext()) {
+    while (filesToLoad < BATCH_SIZE * workerNum && mUfsStatusIterator.hasNext()) {
       try {
         UfsStatus ufsStatus = mUfsStatusIterator.next();
         batchBuilder.add(ufsStatus);
@@ -231,29 +233,25 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       }
     }
 
-    Map<WorkerInfo, List<DoraLoadTask>> workerToTaskMap = new HashMap<>();
+    Map<WorkerInfo, DoraLoadTask> workerToTaskMap = new HashMap<>();
     for (UfsStatus ufsStatus : batchBuilder.build()) {
       // NOTE: active workers may not reflect all workers at start up,
-      // but hash based policy will deterministically only among current recognized active workers
+      // but hash based policy will deterministically pick only among
+      // current recognized active workers -> will change in future
+      // once membership module is ready to tell all registered workers
       WorkerInfo pickedWorker = mWorkerAssignPolicy.pickAWorker(
-          ufsStatus.getUfsFullPath().toString(),
-          Scheduler.getInstance().getActiveWorkers().keySet());
+          ufsStatus.getUfsFullPath().toString(), workers);
       if (pickedWorker == null) {
         mRetryFiles.offer(ufsStatus.getUfsFullPath().toString());
         continue;
       }
-      List<DoraLoadTask> tasks = workerToTaskMap.computeIfAbsent(pickedWorker,
-          w -> new ArrayList<>());
-      DoraLoadTask task;
-      if (!tasks.isEmpty()
-          && tasks.get(tasks.size() - 1).mFilesToLoad.size() < MAX_FILES_PER_TASK) {
-        task = tasks.get(tasks.size() - 1);
-      } else {
-        task = new DoraLoadTask();
-        task.setMyRunningWorker(pickedWorker);
-        task.setJob(this);
-        tasks.add(task);
-      }
+      DoraLoadTask task = workerToTaskMap.computeIfAbsent(pickedWorker,
+          w -> {
+            DoraLoadTask t = new DoraLoadTask();
+            t.setMyRunningWorker(pickedWorker);
+            t.setJob(this);
+            return t;
+          });
       task.mFilesToLoad.add(ufsStatus);
       if (ufsStatus.isFile()) {
         if (!mLoadMetadataOnly) {
@@ -265,7 +263,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     if (workerToTaskMap.isEmpty()) {
       return Collections.unmodifiableList(new ArrayList<>());
     }
-    List<DoraLoadTask> tasks = workerToTaskMap.values().stream().flatMap(List::stream)
+    List<DoraLoadTask> tasks = workerToTaskMap.values().stream()
         .collect(Collectors.toList());
     LOG.debug("prepared tasks:{}", tasks);
     return tasks;
@@ -391,7 +389,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   @Override
   public boolean isCurrentPassDone() {
     return !mUfsStatusIterator.hasNext() && mRetryFiles.isEmpty()
-        && mTaskList.isEmpty();
+        && mRetryTaskList.isEmpty();
   }
 
   @Override
@@ -408,22 +406,22 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     List<DoraLoadTask> list = new ArrayList<>();
     if (mPreparingTasks.compareAndSet(false, true)) {
       try {
-        list = prepareNextTasks();
+        Iterator<DoraLoadTask> it = mRetryTaskList.iterator();
+        if (it.hasNext()) {
+          DoraLoadTask task = it.next();
+          LOG.debug("Re-submit retried DoraLoadTask:{} in getNextTasks.",
+              task.getTaskId());
+          list.add(task);
+          it.remove();
+          return Collections.unmodifiableList(list);
+        }
+        list = prepareNextTasks(workers);
         return Collections.unmodifiableList(list);
       } finally {
         mPreparingTasks.compareAndSet(true, false);
       }
     }
     return list;
-  }
-
-  @Override
-  public void onTaskSubmitFailure(Task<?> task) {
-    if (!(task instanceof DoraLoadTask)) {
-      throw new IllegalArgumentException("Task is not a DoraLoadTask: " + task);
-    }
-    ((DoraLoadTask) task).mFilesToLoad.forEach(
-        it -> addFilesToRetry(it.getUfsFullPath().toString()));
   }
 
   @Override
@@ -520,11 +518,10 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     catch (ExecutionException e) {
       LOG.warn("exception when trying to get load response.", e.getCause());
       for (UfsStatus ufsStatus : doraLoadTask.getFilesToLoad()) {
+        AlluxioRuntimeException exception = AlluxioRuntimeException.from(e.getCause());
         if (isHealthy()) {
           addFilesToRetry(ufsStatus.getUfsFullPath().toString());
-        }
-        else {
-          AlluxioRuntimeException exception = AlluxioRuntimeException.from(e.getCause());
+        } else {
           addFileFailure(ufsStatus.getUfsFullPath().toString(),
               exception.getMessage(), exception.getStatus().getCode()
               .value());
