@@ -1,39 +1,29 @@
 package alluxio.membership;
 
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.resource.LockResource;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryUtils;
-import alluxio.util.executor.ExecutorServiceFactories;
-import alluxio.util.executor.ExecutorServiceFactory;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
 import io.etcd.jetcd.KeyValue;
-import io.etcd.jetcd.Txn;
 import io.etcd.jetcd.Watch;
 import io.etcd.jetcd.kv.GetResponse;
 import io.etcd.jetcd.kv.PutResponse;
-import io.etcd.jetcd.kv.TxnResponse;
 import io.etcd.jetcd.lease.LeaseGrantResponse;
 import io.etcd.jetcd.lease.LeaseRevokeResponse;
 import io.etcd.jetcd.lease.LeaseTimeToLiveResponse;
-import io.etcd.jetcd.op.Cmp;
-import io.etcd.jetcd.op.CmpTarget;
-import io.etcd.jetcd.op.Op;
 import io.etcd.jetcd.options.DeleteOption;
 import io.etcd.jetcd.options.GetOption;
 import io.etcd.jetcd.options.LeaseOption;
-import io.etcd.jetcd.options.PutOption;
 import io.etcd.jetcd.options.WatchOption;
 import io.etcd.jetcd.watch.WatchEvent;
 import io.etcd.jetcd.watch.WatchResponse;
 import io.netty.util.internal.StringUtil;
-import org.apache.log4j.BasicConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +31,6 @@ import javax.annotation.concurrent.GuardedBy;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -49,13 +38,11 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 public class AlluxioEtcdClient implements Closeable {
 
@@ -66,7 +53,7 @@ public class AlluxioEtcdClient implements Closeable {
   protected AtomicBoolean mConnected = new AtomicBoolean(false);
   private Client mClient;
   public final ServiceDiscoveryRecipe mServiceDiscovery;
-  public String[] mEndpoints = new String[0];
+  public String[] mEndpoints;
   private final Closer mCloser = Closer.create();
   // only watch for children change(add/remove) for given parent path
   private ConcurrentHashMap<String, Watch.Watcher> mRegisteredWatchers =
