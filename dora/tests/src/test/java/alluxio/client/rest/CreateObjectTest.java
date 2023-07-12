@@ -129,7 +129,6 @@ public class CreateObjectTest extends RestApiTest {
     Assert.assertEquals(Response.Status.OK.getStatusCode(),
         createObjectRestCall(folderKey, NO_PARAMS, new byte[] {},
             TEST_USER_NAME).getResponseCode());
-//    Assert.assertEquals(0, headRestCall(folderKey).getContentLength());
     Assert.assertEquals(Response.Status.OK.getStatusCode(), headRestCall(folderKey).getResponseCode());
   }
 
@@ -144,8 +143,8 @@ public class CreateObjectTest extends RestApiTest {
         createObjectRestCall(objectKey2, NO_PARAMS, new byte[] {},
             TEST_USER_NAME).getResponseCode());
 
-    Assert.assertEquals(0, headRestCall(objectKey1).getContentLength());
-    Assert.assertEquals(0, headRestCall(objectKey2).getContentLength());
+    Assert.assertEquals(Response.Status.OK.getStatusCode(), headRestCall(objectKey1).getResponseCode());
+    Assert.assertEquals(Response.Status.OK.getStatusCode(), headRestCall(objectKey2).getResponseCode());
   }
 
   @Test
@@ -165,11 +164,14 @@ public class CreateObjectTest extends RestApiTest {
     Assert.assertArrayEquals(object2, getObjectRestCall(objectKey).getBytes());
   }
 
+  /**
+   * Creates a folder which path is the same as the object.
+   * */
   @Test
   public void putObjectAndDirectoryWithSamePath() throws Exception {
     final String bucket = "bucket";
-    final String objectKey = bucket + AlluxioURI.SEPARATOR + "object";
-    final String folderKey = objectKey + AlluxioURI.SEPARATOR;
+    final String objectKey =  "bucket/object";
+    final String folderKey = "bucket/object/";
     final byte[] object = "Hello World!".getBytes();
 
     Assert.assertEquals(Response.Status.OK.getStatusCode(),
@@ -177,14 +179,12 @@ public class CreateObjectTest extends RestApiTest {
     Assert.assertEquals(Response.Status.OK.getStatusCode(),
         createObjectRestCall(objectKey, NO_PARAMS, object, TEST_USER_NAME).getResponseCode());
     Assert.assertArrayEquals(object, getObjectRestCall(objectKey).getBytes());
-//   Creates a folder which path is the same as the object.
     Assert.assertEquals(Response.Status.OK.getStatusCode(),
         createObjectRestCall(folderKey, NO_PARAMS, new byte[] {},
             TEST_USER_NAME).getResponseCode());
 
     Assert.assertArrayEquals(object, getObjectRestCall(objectKey).getBytes());
-//    TODO(Xinran Dong): make the following assertion pass.
-//    Assert.assertEquals(0, headRestCall(folderKey).getContentLength());
+    Assert.assertEquals(Response.Status.OK.getStatusCode(), headRestCall(folderKey).getResponseCode());
   }
 
   @Test
@@ -452,31 +452,51 @@ public class CreateObjectTest extends RestApiTest {
    * Creates object first, and then creates directory with the same name.
    */
   @Test
-  public void putObjectAndDirectoryWithSameName() throws Exception {
+  public void putObjectBeforeDirAsPrefixOfDir() throws Exception {
     final String bucket = "bucket";
-    final String objectKey = bucket + AlluxioURI.SEPARATOR + "folder";
-    final String objectKey2 = objectKey + AlluxioURI.SEPARATOR + "object/";
+    final String objectKey = "bucket/a";
+    final String folderKey = "bucket/a/b/";
     final byte[] object = CommonUtils.randomAlphaNumString(Constants.KB).getBytes();
-    final byte[] object2 =new byte[] {};
-        //CommonUtils.randomAlphaNumString(Constants.KB * 2).getBytes();
 
     Assert.assertEquals(Response.Status.OK.getStatusCode(),
         createBucketRestCall(bucket).getResponseCode());
     Assert.assertEquals(Response.Status.OK.getStatusCode(),
         createObjectRestCall(objectKey, NO_PARAMS, object, TEST_USER_NAME).getResponseCode());
     Assert.assertEquals(Response.Status.OK.getStatusCode(),
-        createObjectRestCall(objectKey2, NO_PARAMS, object2, TEST_USER_NAME).getResponseCode());
+        createObjectRestCall(folderKey, NO_PARAMS, new byte[] {}, TEST_USER_NAME).getResponseCode());
 
     Assert.assertEquals(Constants.KB, headRestCall(objectKey).getContentLength());
     Assert.assertEquals(Response.Status.OK.getStatusCode(),
-        headRestCall(objectKey2).getResponseCode());
-//    Assert.assertEquals(0, headRestCall(objectKey2).getContentLength());
+        headRestCall(folderKey).getResponseCode());
+    Assert.assertArrayEquals(object, getObjectRestCall(objectKey).getBytes());
+//    Assert.assertArrayEquals(object, getObjectRestCall(folderKey).getBytes());
   }
+
   @Test
-  public void deleteObjectButDirectory() throws Exception {
+  public void putObjectAfterDirAsPrefixOfDir() throws Exception {
     final String bucket = "bucket";
-    final String objectKey = bucket + AlluxioURI.SEPARATOR + "object";
-    final String folderKey = objectKey + AlluxioURI.SEPARATOR+"folder/";
+    final String objectKey = "bucket/a";
+    final String folderKey = "bucket/a/b/";
+    final byte[] object = CommonUtils.randomAlphaNumString(Constants.KB).getBytes();
+
+    Assert.assertEquals(Response.Status.OK.getStatusCode(),
+        createBucketRestCall(bucket).getResponseCode());
+    Assert.assertEquals(Response.Status.OK.getStatusCode(),
+        createObjectRestCall(folderKey, NO_PARAMS, new byte[] {}, TEST_USER_NAME).getResponseCode());
+    Assert.assertEquals(Response.Status.OK.getStatusCode(),
+        createObjectRestCall(objectKey, NO_PARAMS, object, TEST_USER_NAME).getResponseCode());
+
+    Assert.assertArrayEquals(object, getObjectRestCall(objectKey).getBytes());
+    Assert.assertEquals(Response.Status.OK.getStatusCode(),
+        headRestCall(folderKey).getResponseCode());
+  }
+
+
+  @Test
+  public void deleteObjectAsPrefixOfDir() throws Exception {
+    final String bucket = "bucket";
+    final String objectKey =  "bucket/aa";
+    final String folderKey = "bucket/aa/bb/";
     final byte[] object = "Hello World!".getBytes();
 
     Assert.assertEquals(Response.Status.OK.getStatusCode(),
@@ -486,19 +506,47 @@ public class CreateObjectTest extends RestApiTest {
     Assert.assertEquals(Response.Status.OK.getStatusCode(),
         createObjectRestCall(folderKey, NO_PARAMS, new byte[] {},
             TEST_USER_NAME).getResponseCode());
-
-//    deleteRestCall(objectKey);
-//    TODO(Xinran Dong): make the following assertion pass.
-    Assert.assertEquals(0, headRestCall(folderKey).getContentLength());
     Assert.assertEquals(Response.Status.OK.getStatusCode(),
         headRestCall(folderKey).getResponseCode());
+    Assert.assertArrayEquals(object, getObjectRestCall(objectKey).getBytes());
+
+    deleteRestCall(objectKey);
+
+    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), headRestCall(objectKey).getResponseCode());
+    Assert.assertEquals(Response.Status.OK.getStatusCode(), headRestCall(folderKey).getResponseCode());
+  }
+
+
+
+  @Test
+  public void deleteObjectButDirectory() throws Exception {
+    final String bucket = "bucket";
+    final String objectKey =  "bucket/object";
+    final String folderKey = "bucket/object/";
+    final byte[] object = "Hello World!".getBytes();
+
+    Assert.assertEquals(Response.Status.OK.getStatusCode(),
+        createBucketRestCall(bucket).getResponseCode());
+    Assert.assertEquals(Response.Status.OK.getStatusCode(),
+        createObjectRestCall(objectKey, NO_PARAMS, object, TEST_USER_NAME).getResponseCode());
+    Assert.assertEquals(Response.Status.OK.getStatusCode(),
+        createObjectRestCall(folderKey, NO_PARAMS, new byte[] {},
+            TEST_USER_NAME).getResponseCode());
+    Assert.assertEquals(Response.Status.OK.getStatusCode(),
+        headRestCall(folderKey).getResponseCode());
+    Assert.assertArrayEquals(object, getObjectRestCall(objectKey).getBytes());
+
+    deleteRestCall(objectKey);
+
+    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), headRestCall(objectKey).getResponseCode());
+    Assert.assertEquals(Response.Status.OK.getStatusCode(), headRestCall(folderKey).getResponseCode());
   }
 
   @Test
   public void deleteDirectoryButObject() throws Exception {
     final String bucket = "bucket";
-    final String objectKey = bucket + AlluxioURI.SEPARATOR + "object";
-    final String folderKey = objectKey + AlluxioURI.SEPARATOR;
+    final String objectKey =  "bucket/object";
+    final String folderKey = "bucket/object/";
     final byte[] object = "Hello World!".getBytes();
 
     Assert.assertEquals(Response.Status.OK.getStatusCode(),
@@ -508,11 +556,39 @@ public class CreateObjectTest extends RestApiTest {
     Assert.assertEquals(Response.Status.OK.getStatusCode(),
         createObjectRestCall(folderKey, NO_PARAMS, new byte[] {},
             TEST_USER_NAME).getResponseCode());
+    Assert.assertEquals(Response.Status.OK.getStatusCode(),
+        headRestCall(folderKey).getResponseCode());
+    Assert.assertArrayEquals(object, getObjectRestCall(objectKey).getBytes());
 
     deleteRestCall(folderKey);
-//    TODO(Xinran Dong): make the following assertion pass.
+
+    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), headRestCall(folderKey).getResponseCode());
+    Assert.assertArrayEquals(object, getObjectRestCall(objectKey).getBytes());
+  }
+
+  @Test
+  public void deleteDirectoryButObject2() throws Exception {
+    final String bucket = "bucket";
+    final String objectKey =  "bucket/a";
+    final String folderKey = "bucket/a/b/";
+    final byte[] object = "Hello World!".getBytes();
+
     Assert.assertEquals(Response.Status.OK.getStatusCode(),
-        headRestCall(objectKey).getResponseCode());
+        createBucketRestCall(bucket).getResponseCode());
+    Assert.assertEquals(Response.Status.OK.getStatusCode(),
+        createObjectRestCall(folderKey, NO_PARAMS, new byte[] {},
+            TEST_USER_NAME).getResponseCode());
+    Assert.assertEquals(Response.Status.OK.getStatusCode(),
+        createObjectRestCall(objectKey, NO_PARAMS, object, TEST_USER_NAME).getResponseCode());
+
+    Assert.assertEquals(Response.Status.OK.getStatusCode(),
+        headRestCall(folderKey).getResponseCode());
+    Assert.assertArrayEquals(object, getObjectRestCall(objectKey).getBytes());
+
+    deleteRestCall(folderKey);
+
+    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), headRestCall(folderKey).getResponseCode());
+    Assert.assertArrayEquals(object, getObjectRestCall(objectKey).getBytes());
   }
 
   @Test

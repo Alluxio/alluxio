@@ -50,6 +50,9 @@ public class CreateBucketTest extends RestApiTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setIncludeProxy(true)
+          .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, Constants.MB * 16)
+          .setProperty(PropertyKey.USER_FILE_RESERVED_BYTES, Constants.MB * 16 / 2)
+          .setProperty(PropertyKey.WORKER_PAGE_STORE_SIZES, "1GB")
           .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)
           .setProperty(PropertyKey.WORKER_BLOCK_STORE_TYPE, "PAGE")
           .setProperty(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, Constants.KB)

@@ -630,10 +630,10 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     if (isDirectory(path)) {
       return true;
     }
-    if (isFile(path)) {
-      LOG.error("Cannot create directory {} because it is already a file.", path);
-      return false;
-    }
+//    if (isFile(path)) {
+//      LOG.error("Cannot create directory {} because it is already a file.", path);
+//      return false;
+//    }
     if (!options.getCreateParent()) {
       if (parentExists(path)) {
         // Parent directory exists
