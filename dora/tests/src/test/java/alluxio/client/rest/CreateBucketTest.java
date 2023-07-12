@@ -62,10 +62,12 @@ public class CreateBucketTest extends RestApiTest {
           .setProperty(PropertyKey.S3A_ACCESS_KEY, mS3Proxy.getAccessKey())
           .setProperty(PropertyKey.S3A_SECRET_KEY, mS3Proxy.getSecretKey())
           .setNumWorkers(2)
+          .setStartCluster(false)
           .build();
 
   @Before
   public void before() throws Exception {
+    mLocalAlluxioClusterResource.start();
     mS3Client = AmazonS3ClientBuilder
         .standard()
         .withPathStyleAccessEnabled(true)
