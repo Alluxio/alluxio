@@ -2211,12 +2211,6 @@ public final class S3ClientRestApiTest extends RestApiTest {
         getDefaultOptionsWithAuth()).executeAndAssertSuccess();
   }
 
-  private String computeObjectChecksum(byte[] objectContent) throws Exception {
-    MessageDigest md5Hash = MessageDigest.getInstance("MD5");
-    byte[] md5Digest = md5Hash.digest(objectContent);
-    return BaseEncoding.base64().encode(md5Digest);
-  }
-
   private String initiateMultipartUploadRestCall(String objectUri) throws Exception {
     return initiateMultipartUploadRestCall(objectUri, TEST_USER_NAME);
   }
@@ -2285,8 +2279,6 @@ public final class S3ClientRestApiTest extends RestApiTest {
         objectUri, NO_PARAMS, HttpMethod.HEAD,
         getDefaultOptionsWithAuth()).executeAndAssertSuccess();
   }
-
-
 
   /**
    * Do not process the error response, and judge by the method caller.

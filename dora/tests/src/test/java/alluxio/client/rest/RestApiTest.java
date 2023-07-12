@@ -32,6 +32,22 @@ public abstract class RestApiTest extends BaseIntegrationTest {
   protected int mPort;
   protected String mBaseUri = Constants.REST_API_PREFIX;
 
+  protected static TestCaseOptions getDefaultOptionsWithAuth(@NotNull String user) {
+    return TestCaseOptions.defaults()
+        .setAuthorization("AWS4-HMAC-SHA256 Credential=" + user + "/...")
+        .setContentType(TestCaseOptions.XML_CONTENT_TYPE);
+  }
+
+  protected static TestCaseOptions getDefaultOptionsWithAuth() {
+    return getDefaultOptionsWithAuth(TEST_USER_NAME);
+  }
+
+  protected static String computeObjectChecksum(byte[] objectContent) throws Exception {
+    MessageDigest md5Hash = MessageDigest.getInstance("MD5");
+    byte[] md5Digest = md5Hash.digest(objectContent);
+    return BaseEncoding.base64().encode(md5Digest);
+  }
+
   protected HttpURLConnection createBucketRestCall(String bucket, @NotNull String user)
       throws Exception {
     return new TestCase(mHostname, mPort, mBaseUri,
@@ -87,26 +103,9 @@ public abstract class RestApiTest extends BaseIntegrationTest {
         getDefaultOptionsWithAuth()).runAndGetResponse();
   }
 
-
   protected HttpURLConnection deleteRestCall(String objectUri) throws Exception {
     return new TestCase(mHostname, mPort, mBaseUri,
         objectUri, NO_PARAMS, HttpMethod.DELETE,
         getDefaultOptionsWithAuth()).executeAndAssertSuccess();
-  }
-
-  protected TestCaseOptions getDefaultOptionsWithAuth(@NotNull String user) {
-    return TestCaseOptions.defaults()
-        .setAuthorization("AWS4-HMAC-SHA256 Credential=" + user + "/...")
-        .setContentType(TestCaseOptions.XML_CONTENT_TYPE);
-  }
-
-  protected TestCaseOptions getDefaultOptionsWithAuth() {
-    return getDefaultOptionsWithAuth(TEST_USER_NAME);
-  }
-
-  private String computeObjectChecksum(byte[] objectContent) throws Exception {
-    MessageDigest md5Hash = MessageDigest.getInstance("MD5");
-    byte[] md5Digest = md5Hash.digest(objectContent);
-    return BaseEncoding.base64().encode(md5Digest);
   }
 }
