@@ -183,12 +183,13 @@ public class WorkerLocationPolicy {
     }
 
     public BlockWorkerInfo get(String key, int index) {
-      return get(mActiveNodesByConsistentHashing, key, index);
+      NavigableMap<Integer, BlockWorkerInfo> map = mActiveNodesByConsistentHashing;
+      Preconditions.checkState(map != null, "Hash provider is not properly initialized");
+      return get(map, key, index);
     }
 
     @VisibleForTesting
     static BlockWorkerInfo get(NavigableMap<Integer, BlockWorkerInfo> map, String key, int index) {
-      Preconditions.checkNotNull(map, "Hash provider is not properly initialized");
       int hashKey = HASH_FUNCTION.hashString(format("%s%d", key, index), UTF_8).asInt();
       Map.Entry<Integer, BlockWorkerInfo> entry = map.ceilingEntry(hashKey);
       if (entry != null) {
