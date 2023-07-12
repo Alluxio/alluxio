@@ -1,12 +1,9 @@
 ---
 layout: global
 title: DORA Architecture
-group: Overview
+group: Introduction
 priority: 1
 ---
-
-* Table of Contents
-{:toc}
 
 ## Architecture Overview
 
@@ -33,8 +30,6 @@ The diagram below shows the architecture design of DORA, which consists of four 
 * The client runs inside the applications and utilizes the same consistent hash algorithm to determine the appropriate worker for the corresponding file.
 * The service registry is responsible for service discovery and maintains a list of workers.
 * The scheduler handles all asynchronous jobs, such as preloading data to workers.
-<br />
-<br />
 
 ## Technical Highlights
 
@@ -59,10 +54,10 @@ Other scenarios also reap benefits as well; 9x throughput improvement can be ach
 
 ![Dora read approaches]({{ '/img/dora_read_approaches.png' | relativize_url }})
 
+Check out these 2 short videos on the benefits of paging storage and how it improves the efficiency of Alluxio caching:
 <iframe width="425" height="239" src="https://www.youtube.com/embed/cO7ymRFnPyM" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
 <iframe width="425" height="239" src="https://www.youtube.com/embed/7UY_iE_Ha_k" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-<br />
 
 ### Decentralized Metadata Store
 
@@ -94,8 +89,6 @@ and less data transfer due to the absence of additional HTTP headers.
 The scheduler provides an intuitive, extensible solution for efficient job scheduling,
 with consideration towards observability, scalability, and reliability.
 It has also been used to implement a distributed load capable of loading billions of files.
-<br />
-<br />
 
 ## Benchmark Results
 

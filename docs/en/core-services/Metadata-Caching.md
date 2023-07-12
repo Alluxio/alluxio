@@ -7,8 +7,6 @@ priority: 2
 ---
 
 In Dora, Alluxio caches metadata and data on workers. This document explains how the metadata is cached and how the metadata is invalidated and refreshed. Along with the metadata invalidation, the data that is associated with the metadata is also invalidated.
-<br />
-<br />
 
 ## Two Different Levels of Metadata Cache
 
@@ -33,8 +31,6 @@ The following keys are used to control the size of in-memory metadata cache from
 Alluxio workers also cache the result of a ListStatus() request in memory to speed up this operation.
 - `DORA_UFS_LIST_STATUS_CACHE_TTL (alluxio.dora.ufs.list.status.cache.ttl)`: the maximum time that a ListStatus() result is cached.
 - `DORA_UFS_LIST_STATUS_CACHE_NR_DIRS (alluxio.dora.ufs.list.status.cache.nr.dirs)`: the maximum number of ListStatus() results cached in memory.
-<br />
-<br />
 
 ## Metadata Invalidation by Client
 
@@ -59,7 +55,6 @@ Applications using Alluxio client jar can also do this in a java program like th
           .build();
       st = fs.getStatus(path, option);
 ```
-<br />
 
 ## Invalidation of Data Cached in PageStore
 

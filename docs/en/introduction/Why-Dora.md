@@ -1,7 +1,7 @@
 ---
 layout: global
 title: Moving from Alluxio 2.x to Dora
-group: Overview
+group: Introduction
 priority: 2
 ---
 

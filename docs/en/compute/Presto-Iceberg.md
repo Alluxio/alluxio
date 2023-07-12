@@ -18,16 +18,12 @@ If not, please refer to the
 [guide]({{ '/en/compute/Presto.html' | relativize_url }}) on general Presto installation 
 and configuration. Most of that guide apply for Iceberg workflows as well, and this document 
 covers the specific instructions for working with Iceberg tables.
-<br />
-<br />
 
 ## Prerequisites
 
 * All [prerequisites]({{ '/en/compute/Presto.html' | relativize_url }}#prerequisites) 
   from the general Presto setup;
 * Presto server, version 0.257 or later.
-<br />
-<br />
 
 ## Basic Setup
 
@@ -57,8 +53,6 @@ hive.metastore.uri=thrift://localhost:9083
 ```
 
 Change the Hive Metastore connection URI to match your setup.
-<br />
-<br />
 
 ## Examples: Use Presto to Query Iceberg Tables on Alluxio
 

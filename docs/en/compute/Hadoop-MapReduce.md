@@ -20,8 +20,6 @@ downloaded from the Alluxio [download page](https://www.alluxio.io/download).
 based on your Hadoop version.
 For example, if you are using Hadoop 2.7 download this
 [examples jar](https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-examples/2.7.7).
-<br />
-<br />
 
 ## Basic Setup
 
@@ -65,8 +63,6 @@ $ ./bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wo
 ```
 
 Alternative configurations are described in the [Advanced Setup](#advanced-setup) section.
-<br />
-<br />
 
 ## Example
 
@@ -116,8 +112,6 @@ $ ./bin/alluxio fs cat /wordcount/output/part-r-00000
 
 > Tip：The previous wordcount example is also applicable to Alluxio in HA mode. See the instructions on
 [Using the HDFS API to connect to Alluxio with high availability]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#ha-authority).
-<br />
-<br />
 
 ## Advanced Setup
 
@@ -175,7 +169,6 @@ $ ./bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.
   -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} \
   <INPUT FILES> <OUTPUT DIRECTORY>
 ```
-<br />
 
 ## Troubleshooting
 

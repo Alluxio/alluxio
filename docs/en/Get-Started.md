@@ -5,9 +5,6 @@ title: Quick Start Guide
 priority: 1
 ---
 
-* Table of Contents
-{:toc}
-
 This quick start guide goes over how to run Alluxio on a local machine.
 The guide will cover the following tasks:
 
@@ -22,11 +19,9 @@ The guide will cover the following tasks:
 [AWS account with an access key id and secret access key](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html).
 The optional sections will be labeled with **[Bonus]**.
 
-**Note**  This guide is designed to start an Alluxio system with minimal setup on a single machine.
+**Note**: This guide is designed to start an Alluxio system with minimal setup on a single machine.
 If you are trying to speedup SQL analytics, you can try the
 [Presto Alluxio Getting Started](https://www.alluxio.io/alluxio-presto-sandbox-docker/) tutorial.
-<br />
-<br />
 
 ## Prerequisites
 
@@ -34,8 +29,6 @@ If you are trying to speedup SQL analytics, you can try the
 * [Java 8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)
 * Enable remote login: see [instructions for MacOS users](http://osxdaily.com/2011/09/30/remote-login-ssh-server-mac-os-x/)
 * **[Bonus]** AWS account and keys
-<br />
-<br />
 
 ## Downloading Alluxio
 
@@ -51,8 +44,6 @@ $ cd alluxio-{{site.ALLUXIO_VERSION_STRING}}
 This creates a directory `alluxio-{{site.ALLUXIO_VERSION_STRING}}` with all of the Alluxio
 source files and Java binaries. Through this tutorial, the path of this directory will be referred
 to as `${ALLUXIO_HOME}`.
-<br />
-<br />
 
 ## Configuring Alluxio
 
@@ -134,8 +125,6 @@ $ echo "alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/core-site.xml:/pat
 Replace the url and configuration with the actual value.
 
 For more information, please refer to the [HDFS configuration docs]({{ '/en/ufs/HDFS.html' | relativize_url }}.
-<br />
-<br />
 
 ## Starting Alluxio
 
@@ -154,8 +143,6 @@ $ ./bin/alluxio-start.sh worker SudoMount
 ```
 
 Congratulations! Alluxio is now up and running!
-<br />
-<br />
 
 ## Using the Alluxio Shell
 
@@ -209,8 +196,6 @@ $ ./bin/alluxio fs cat /LICENSE
 ```
 
 When the file is read, it will also be cached by Alluxio to speed up future data access.
-<br />
-<br />
 
 ## Stopping Alluxio
 
@@ -220,7 +205,6 @@ Stop Alluxio with the following command:
 $ ./bin/alluxio-stop.sh master
 $ ./bin/alluxio-stop.sh worker
 ```
-<br />
 
 ## Conclusion
 
@@ -231,8 +215,6 @@ shell. This was a simple example on how to get started with Alluxio.
 There are several next steps available. Learn more about the various features of Alluxio in
 our documentation. The resources below detail deploying Alluxio in various ways,
 mounting existing storage systems, and configuring existing applications to interact with Alluxio.
-<br />
-<br />
 
 ## FAQ
 
@@ -254,8 +236,6 @@ To fix it, open `System Preferences` and open `Sharing`.
 On the left, check the box next to `Remote Login`. If there is `Allow full access to remote users` as shown in the
 image, check the box next to it. Besides, click the `+` button and add yourself to the list of users that are allowed
 for Remote Login if you are not already in it.
-<br />
-<br />
 
 ## Tuning
 
@@ -270,8 +250,6 @@ If disabled, client will always fetch metadata from under storage directly.
 Set `alluxio.user.netty.data.transmission.enabled` to `true` to enable transmission of data between clients and
 Dora cache nodes over Netty. This avoids serialization and deserialization cost of gRPC, as well as consumes less
 resources on the worker side.
-<br />
-<br />
 
 ## Known limitations
 

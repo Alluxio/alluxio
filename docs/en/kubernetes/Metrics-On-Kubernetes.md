@@ -25,18 +25,34 @@ The metrics are exposed through the web ports of different components.
 ### Get Metrics Snapshot
 
 You can send an HTTP request to an Alluxio process to get a snapshot of the metrics in JSON format.
+
+Get the metrics in JSON format from one specific component:
 ```console
-// Get the metrics in JSON format from one specific component
 $ kubectl exec <COMPONENT_HOSTNAME> -c <CONTAINER_NAME> -- curl 127.0.0.1:<COMPONENT_WEB_PORT>/metrics/json/
-// For example, get the metrics of the leading master with default web port 19999
+```
+
+For example, get the metrics of the leading master with default web port 19999:
+```console
 $ kubectl exec <alluxio-master-x> -c alluxio-master -- curl 127.0.0.1:19999/metrics/json/
-// Get the metrics of a worker with default web port 30000
+```
+
+Get the metrics of a worker with default web port 30000:
+```console
 $ kubectl exec <alluxio-worker-xxxxx> -c alluxio-worker -- curl 127.0.0.1:30000/metrics/json/
-// Get the metrics of the leading job master with default web port 20002
+```
+
+Get the metrics of the leading job master with default web port 20002:
+```console
 $ kubectl exec <alluxio-master-x> -c alluxio-job-master -- curl 127.0.0.1:20002/metrics/json/
-// Get metrics of a job worker with default web port 30003
+```
+
+Get metrics of a job worker with default web port 30003:
+```console
 $ kubectl exec <alluxio-worker-xxxxx> -c alluxio-job-worker -- curl 127.0.0.1:30003/metrics/json/
-// Get metrics of a fuse process with default web port 49999
+```
+
+Get metrics of a fuse process with default web port 49999:
+```console
 $ kubectl exec <alluxio-fuse-xxxxx> -- curl 127.0.0.1:49999/metrics/json/
 ```
 
@@ -264,16 +280,33 @@ scrape_configs:
 ### Get Metrics Snapshot
 
 You can send an HTTP request to the Prometheus endpoint of an Alluxio process to get a snapshot of the metrics in Prometheus format.
+
+Get the metrics in Prometheus format from one specific component:
 ```console
 $ kubectl exec <COMPONENT_HOSTNAME> -c <CONTAINER_NAME> -- curl 127.0.0.1:<COMPONEMT_WEB_PORT>/metrics/prometheus/
-// For example, get the metrics of the leading master with default web port 19999
+```
+
+For example, get the metrics of the leading master with default web port 19999:
+```console
 $ kubectl exec <alluxio-master-x> -c alluxio-master -- curl 127.0.0.1:19999/metrics/prometheus/
-// Get the metrics of a worker with default web port 30000
+```
+
+Get the metrics of a worker with default web port 30000:
+```console
 $ kubectl exec <alluxio-worker-xxxxx> -c alluxio-worker -- curl 127.0.0.1:30000/metrics/prometheus/
-// Get the metrics of the leading job master with default web port 20002
+```
+
+Get the metrics of the leading job master with default web port 20002:
+```console
 $ kubectl exec <alluxio-master-x> -c alluxio-job-master -- curl 127.0.0.1:20002/metrics/prometheus/
-// Get metrics of a job worker with default web port 30003
+```
+
+Get metrics of a job worker with default web port 30003:
+```console
 $ kubectl exec <alluxio-worker-xxxxx> -c alluxio-job-worker -- curl 127.0.0.1:30003/metrics/prometheus/
-// Get metrics of a fuse process with default web port 49999
+```
+
+Get metrics of a fuse process with default web port 49999:
+```console
 $ kubectl exec <alluxio-fuse-xxxxx> -- curl 127.0.0.1:49999/metrics/prometheus/
 ```

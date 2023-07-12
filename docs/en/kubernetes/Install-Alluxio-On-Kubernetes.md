@@ -17,8 +17,6 @@ if some required permissions are missing, consider using helm chart instead.
 <iframe width="425" height="239" src="https://www.youtube.com/embed/FlvbekK_xG0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
 <iframe width="425" height="239" src="https://www.youtube.com/embed/zwhMwiYmO8M" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-<br />
-
 
 ## Prerequisites
 
@@ -30,8 +28,6 @@ If using a private Docker registry, refer to the Kubernetes private image regist
 allows for connectivity between applications (Alluxio clients) and the Alluxio Pods on the defined
 ports.
 - The control plane of the Kubernetes cluster has [helm 3](https://helm.sh/docs/intro/install/) with version at least 3.6.0 installed.
-<br />
-<br />
 
 ## Operator
 

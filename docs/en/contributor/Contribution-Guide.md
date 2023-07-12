@@ -10,11 +10,7 @@ We warmly welcome you to the Alluxio community. We are excited for your contribu
 engagement with our project! This guide aims to give you step by step instructions on how
 to get started becoming a contributor to the Alluxio open source project.
 
-* Table of Contents
-{:toc}
-
 <iframe width="560" height="315" src="https://www.youtube.com/embed/5YQvvznT5cI" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-<br />
 
 ## Prerequisites
 
@@ -42,8 +38,6 @@ contributions. You can check this in [your profile email settings](https://githu
 Before creating commits to Alluxio, you should verify that your committer email in Git is set up correctly.
 Please visit
 [the instructions for setting up your email](https://help.github.com/articles/setting-your-email-in-git/).
-<br />
-<br />
 
 ## Forking the Alluxio Repository
 
@@ -82,8 +76,6 @@ $ git remote -v
 
 This will show you the urls for the remote repositories,
 including `origin` (your fork), and `upstream` (the Alluxio repository).
-<br />
-<br />
 
 ## Building Alluxio
 
@@ -105,8 +97,6 @@ $ mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip \
 ```
 
 This should take less than 1 minute.
-<br />
-<br />
 
 ## Taking a New Contributor Task
 
@@ -289,12 +279,7 @@ your pull request an **LGTM** and approve the pull request. After at least one a
 a maintainer will merge your pull request into the Alluxio codebase.
 
 Congratulations! You have successfully contributed to Alluxio! Thank you for joining the community!
-<br />
-<br />
 
-<!-- ## Video
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/QsbM804rc6Y" frameborder="0" allowfullscreen></iframe> -->
 
 ## Submit Your Feature
 
@@ -325,8 +310,6 @@ as you have mastered in the previous section. Please also link to the issue and 
 In the pull request, you should also add documentation on your feature to 
 [Alluxio documentations](https://docs.alluxio.io/).
 1. After your pull request is reviewed and merged, you have contributed your feature to Alluxio. Cheers!
-<br />
-<br />
 
 ## Next Steps
 
@@ -346,9 +329,7 @@ Afterwards, try some Beginner/Intermediate tasks, or ask in the
 For a tutorial, see the GitHub guides on
 [forking a repo](https://help.github.com/articles/fork-a-repo) and
 [sending a pull request](https://help.github.com/articles/using-pull-requests).
-<br />
-<br />
 
 ## Welcome to the Alluxio Community!
 
-Join our vibrant and fast-growing [Alluxio Community Slack Channel](alluxio.io/slack) to connect with users & developers of Alluxio. If you encounter any blockers or need some pointers, send your technical questions to our `#troubleshooting` channel.
+Join our vibrant and fast-growing [Alluxio Community Slack Channel](https://www.alluxio.io/slack) to connect with users & developers of Alluxio. If you encounter any blockers or need some pointers, send your technical questions to our `#troubleshooting` channel.

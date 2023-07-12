@@ -1,14 +1,11 @@
 ---
 layout: global
 title: Introduction
-group: Overview
+group: Introduction
 priority: 1
 ---
 
-* Table of Contents
-{:toc}
-
-## What is Alluxio
+## About Alluxio
 
 Alluxio is world's first open source [data orchestration technology](https://www.alluxio.io/blog/data-orchestration-the-missing-piece-in-the-data-world/)
 for analytics and AI for the cloud. It bridges the gap between data driven applications and storage
@@ -36,15 +33,28 @@ with the largest deployment exceeding 1,500 nodes.
 
 ## DORA Architecture
 
-DORA, short for Decentralized Object Repository Architecture, is the foundation of the Alluxio system. As an open-source distributed caching storage system, DORA offers low latency, high throughput, and cost savings,
-while aiming to provide a unified data layer that can support various data workloads, including AI and data analytics. [Read More](/en/overview/DORA-Architecture.html)
+DORA, short for Decentralized Object Repository Architecture, is the foundation of the Alluxio system.
+
+As an open-source distributed caching storage system, DORA offers low latency, high throughput, and cost savings,
+while aiming to provide a unified data layer that can support various data workloads, including AI and data analytics.
+
+DORA leverages decentralized storage and metadata management to provide higher performance and availability,
+as well as pluggable data security and governance, enabling better scalability and more efficient management of large-scale data access.
+
+DORA’s architecture goal:
+* Scalability: Scalability is a top priority for DORA, which needs to support billions of files to meet the demands of data-intensive applications, such as AI training.
+* High Availability: DORA's architecture is designed with high availability in mind, with 99.99% uptime and protection against single points of failure.
+* Performance: Performance is a key goal for DORA, which prioritizes Presto/Trino powered SQL analytics workloads and GPU utilization for AI workloads.
 
 The diagram below shows the architecture design of DORA, which consists of four major components: the service registry, scheduler, client, and worker. 
 
 ![Dora Architecture]({{ '/img/dora_architecture.png' | relativize_url }})
-<br />
-<br />
+
+* The worker is the most important component, as it stores both metadata and data that are sharded by key, usually the path of the file.
+* The client runs inside the applications and utilizes the same consistent hash algorithm to determine the appropriate worker for the corresponding file.
+* The service registry is responsible for service discovery and maintains a list of workers.
+* The scheduler handles all asynchronous jobs, such as preloading data to workers.
 
 ## Alluxio Community Slack
 
-Join our vibrant and fast-growing [Alluxio Community Slack Channel](alluxio.io/slack) to connect with users & developers of Alluxio. If you need help running Alluxio or encounter any blockers, send your technical questions to our `#troubleshooting` channel. If you are a developer looking to contribute to Alluxio, check out the `#dev` channel.
+Join our vibrant and fast-growing [Alluxio Community Slack Channel](https://www.alluxio.io/slack) to connect with users & developers of Alluxio. If you need help running Alluxio or encounter any blockers, send your technical questions to our `#troubleshooting` channel. If you are a developer looking to contribute to Alluxio, check out the `#dev` channel.

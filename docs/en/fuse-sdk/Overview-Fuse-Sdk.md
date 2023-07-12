@@ -1,6 +1,6 @@
 ---
 layout: global
-title: FUSE Overview
+title: FUSE SDK Overview
 group: FUSE SDK
 priority: 1
 ---
@@ -50,4 +50,4 @@ for performance optimization or debugging.
 
 ### Distributed Caching Solution
 
-FUSE SDK can connect to a shared distributed caching service. For more information, please refer to [here]({{ '/en/fuse-sdk/FUSE-SDK-Dora-Quick-Start.html' | relative_url }})
+FUSE SDK can connect to a shared distributed caching service. For more information, please refer to [Distributed Cache Quick Start]({{ '/en/fuse-sdk/FUSE-SDK-Dora-Quick-Start.html' | relative_url }})

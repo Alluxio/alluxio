@@ -9,9 +9,6 @@ priority: 2
 This guide describes how to run [Apache Hive](http://hive.apache.org/) with Alluxio, so
 that you can easily store Hive tables in Alluxio's tiered storage.
 
-* Table of Contents
-{:toc}
-<br />
 
 ## Prerequisites
 
@@ -27,8 +24,6 @@ that you can easily store Hive tables in Alluxio's tiered storage.
   [running MapReduce on Alluxio]({{ '/en/compute/Hadoop-MapReduce.html' | relativize_url }})
   to make sure Hadoop MapReduce can work with Alluxio.
   In the following sections of this documentation, Hive is running on Hadoop MapReduce.
-<br />
-<br />
 
 ## Basic Setup
 
@@ -39,7 +34,6 @@ Within Hive installation directory , set `HIVE_AUX_JARS_PATH` in `conf/hive-env.
 ```console
 $ export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
 ```
-<br />
 
 ## Example: Create New Hive Tables in Alluxio
 
@@ -121,7 +115,6 @@ hive> select * from u_user;
 And you can see the query results from console:
 
 ![HiveQueryResult]({{ '/img/screenshot_hive_query_result.png' | relativize_url }})
-<br />
 
 ## Example: Serve Existing Tables Stored in HDFS from Alluxio
 
@@ -205,7 +198,6 @@ See the following for an example.
 ```sql
 hive> alter table TABLE_NAME partition(PARTITION_COLUMN = VALUE) set location "hdfs://namenode:port/table/path/partitionpath";
 ```
-<br />
 
 ## Advanced Setup
 
@@ -339,8 +331,6 @@ hive> select * from u_user;
 And you can see the query results from console:
 
 ![HiveQueryResult]({{ '/img/screenshot_hive_query_result.png' | relativize_url }})
-<br />
-<br />
 
 ## Troubleshooting
 

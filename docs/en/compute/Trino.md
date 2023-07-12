@@ -17,7 +17,6 @@ Co-locating Alluxio workers with Trino workers improves data locality and reduce
 latency when other storage systems are remote or the network is slow or congested.
 
 
-
 ## Prerequisites
 
 * Setup Java for Java 11, at least version 11.0.7, 64-bit，as required by Trino
