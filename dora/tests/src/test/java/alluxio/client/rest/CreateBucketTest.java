@@ -15,8 +15,8 @@ import alluxio.Constants;
 import alluxio.client.WriteType;
 import alluxio.conf.PropertyKey;
 import alluxio.master.journal.JournalType;
-import alluxio.proxy.s3.S3Error;
-import alluxio.proxy.s3.S3ErrorCode;
+import alluxio.s3.S3Error;
+import alluxio.s3.S3ErrorCode;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;

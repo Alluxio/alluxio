@@ -12,7 +12,7 @@
 package alluxio.client.rest;
 
 import alluxio.Constants;
-import alluxio.proxy.s3.ListBucketResult;
+import alluxio.s3.ListBucketResult;
 import alluxio.testutils.BaseIntegrationTest;
 
 import com.google.common.collect.ImmutableMap;
