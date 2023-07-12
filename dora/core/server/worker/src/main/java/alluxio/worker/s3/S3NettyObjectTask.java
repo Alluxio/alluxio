@@ -76,7 +76,6 @@ import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.util.Date;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 /**
  * S3 Netty Tasks to handle object level request.
@@ -361,7 +360,8 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
           // Populate the xattr Map with the metadata tags if provided
 //          Map<String, ByteString> xattrMap = new HashMap<>();
 //          final String taggingHeader = mHandler.getHeader(S3Constants.S3_TAGGING_HEADER);
-//          NettyRestUtils.populateTaggingInXAttr(xattrMap, taggingHeader, auditContext, objectPath);
+//          NettyRestUtils.populateTaggingInXAttr(xattrMap, taggingHeader, auditContext,
+//                                                objectPath);
 
           // populate the xAttr map with the "Content-Type" header
 //          final String contentTypeHeader = mHandler.getHeader(S3Constants.S3_CONTENT_TYPE_HEADER);
@@ -399,7 +399,8 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
 //                copyFilePOptionsBuilder.putXattr(S3Constants.CONTENT_TYPE_XATTR_KEY,
 //                    ByteString.copyFrom(status.getFileInfo().getXAttr().getOrDefault(
 //                        S3Constants.CONTENT_TYPE_XATTR_KEY,
-//                        MediaType.APPLICATION_OCTET_STREAM.getBytes(S3Constants.HEADER_CHARSET))));
+//                        MediaType.APPLICATION_OCTET_STREAM.getBytes(
+//                            S3Constants.HEADER_CHARSET))));
 //              }
 //            } catch (Exception e) {
 //              throw NettyRestUtils.toObjectS3Exception(e, objectPath, auditContext);

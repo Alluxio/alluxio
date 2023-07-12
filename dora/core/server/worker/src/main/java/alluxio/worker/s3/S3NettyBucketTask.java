@@ -35,7 +35,6 @@ import alluxio.s3.S3Constants;
 import alluxio.s3.S3ErrorCode;
 import alluxio.s3.S3Exception;
 
-import javax.ws.rs.core.Response;
 import com.google.common.net.InetAddresses;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -242,6 +241,7 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
       });
     }
   } // end of ListObjectsTask
+
   private static class CreateBucketTask extends S3NettyBucketTask {
     protected CreateBucketTask(S3NettyHandler handler, OpType opType) {
       super(handler, opType);
@@ -282,7 +282,7 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
                 // - S3 clients may prepend PutObject requests with CreateBucket calls instead of
                 //   calling HeadBucket to ensure that the bucket exists
                 mHandler.BUCKET_PATH_CACHE.put(bucketPath, true);
-                return Response.Status.OK;
+                return HttpResponseStatus.OK;
               }
               // Otherwise, this bucket is owned by a different user
               throw new S3Exception(S3ErrorCode.BUCKET_ALREADY_EXISTS);
@@ -316,7 +316,7 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
             throw NettyRestUtils.toBucketS3Exception(e, bucketPath, auditContext);
           }
           mHandler.BUCKET_PATH_CACHE.put(bucketPath, true);
-          return Response.Status.OK;
+          return HttpResponseStatus.OK;
         }
       });
     }
@@ -342,6 +342,7 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
       });
     }
   } // end of HeadBucketTask
+
   private static class DeleteBucketTask extends S3NettyBucketTask {
 
     protected DeleteBucketTask(S3NettyHandler handler, OpType opType) {
@@ -369,7 +370,7 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
           } catch (Exception e) {
             throw NettyRestUtils.toBucketS3Exception(e, bucketPath, auditContext);
           }
-          return Response.Status.NO_CONTENT;
+          return HttpResponseStatus.NO_CONTENT;
         }
       });
     }

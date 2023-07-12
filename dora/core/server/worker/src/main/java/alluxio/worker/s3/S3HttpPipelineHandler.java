@@ -22,8 +22,6 @@ import alluxio.worker.dora.DoraWorker;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.codec.compression.CompressionOptions;
-import io.netty.handler.codec.http.HttpContentCompressor;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.HttpServerExpectContinueHandler;
@@ -58,7 +56,6 @@ public class S3HttpPipelineHandler extends ChannelInitializer<SocketChannel> {
   protected void initChannel(SocketChannel channel) throws Exception {
     ChannelPipeline pipeline = channel.pipeline();
     pipeline.addLast(new HttpServerCodec());
-    pipeline.addLast(new HttpContentCompressor((CompressionOptions[]) null));
     pipeline.addLast(new HttpObjectAggregator(512 * 1024));
     pipeline.addLast(new HttpServerExpectContinueHandler());
     pipeline.addLast(new S3HttpHandler(mFileSystem, mDoraWorker, mAsyncAuditLogWriter));
