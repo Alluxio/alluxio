@@ -9,8 +9,6 @@ priority: 0
 This guide describes how to configure [Apache Spark](http://spark-project.org/)
 to access Alluxio.
 
-* Table of Contents
-{:toc}
 
 ## Overview
 

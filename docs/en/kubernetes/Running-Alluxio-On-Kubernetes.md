@@ -13,8 +13,6 @@ a kubernetes extension for managing applications.
 We recommend using the operator to deploy Alluxio on Kubernetes. However, 
 if some required permissions are missing, consider using helm chart instead.
 
-* Table of Contents
-{:toc}
 
 ## Prerequisites
 

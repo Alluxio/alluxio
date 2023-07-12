@@ -5,9 +5,6 @@ group: FUSE SDK
 priority: 4
 ---
 
-* Table of Contents
-  {:toc}
-
 ## Local Cache
 
 When an application runs an operation against the local FUSE mount point,

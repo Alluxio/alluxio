@@ -300,7 +300,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   protected alluxio.grpc.FileInfo getGrpcFileInfo(String ufsFullPath, long syncIntervalMs)
       throws IOException {
     Optional<DoraMeta.FileStatus> status = mMetaManager.getFromMetaStore(ufsFullPath);
-    boolean shouldLoad = status.isEmpty();
+    boolean shouldLoad = !status.isPresent();
     if (syncIntervalMs >= 0 && status.isPresent()) {
       // Check if the metadata is still valid.
       if (System.nanoTime() - status.get().getTs() > syncIntervalMs * Constants.MS_NANO) {
@@ -311,7 +311,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       status = mMetaManager.loadFromUfs(ufsFullPath);
     }
 
-    if (status.isEmpty()) {
+    if (!status.isPresent()) {
       throw new FileNotFoundException("File " + ufsFullPath + " not found.");
     }
     return status.get().getFileInfo();
@@ -665,7 +665,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       handle.close();
       Optional<DoraMeta.FileStatus> status = mMetaManager.loadFromUfs(path);
       mMetaManager.invalidateListingCacheOfParent(path);
-      if (status.isEmpty()) {
+      if (!status.isPresent()) {
         throw new FileNotFoundException("Cannot retrieve file metadata of "
             + path + " when completing the file");
       }

@@ -255,6 +255,16 @@
                   <shadedPattern>${shading.prefix}.com.google.inject.</shadedPattern>
                 </relocation>
                 <relocation>
+                  <pattern>com/google/protobuf/</pattern>
+                  <shadedPattern>${shading.prefix}.com.google.protobuf</shadedPattern>
+                  <rawString>true</rawString>
+                </relocation>
+                <relocation>
+                  <pattern>google/protobuf/</pattern>
+                  <shadedPattern>alluxio/shaded/client/google/protobuf/</shadedPattern>
+                  <rawString>true</rawString>
+                </relocation>
+                <relocation>
                   <pattern>io/</pattern>
                   <shadedPattern>${shading.prefix}.io.</shadedPattern>
                   <excludes>

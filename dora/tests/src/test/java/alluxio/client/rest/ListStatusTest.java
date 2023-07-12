@@ -17,7 +17,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -41,7 +40,6 @@ import alluxio.security.authorization.ModeParser;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -57,13 +55,8 @@ import java.util.Map;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response;
 
-public class ListStatusTest {
+public class ListStatusTest extends RestApiTest {
 
-  protected static final Map<String, String> NO_PARAMS = ImmutableMap.of();
-
-  protected String mHostname;
-  protected int mPort;
-  protected String mBaseUri = Constants.REST_API_PREFIX;
   private FileSystem mFileSystem;
   private FileSystemMaster mFileSystemMaster;
 
@@ -929,11 +922,9 @@ public class ListStatusTest {
   public void headAndListNonExistentBucket() throws Exception {
     // Heads a non-existent bucket.
     String bucketName = "non_existent_bucket";
-    HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
-        bucketName, NO_PARAMS, HttpMethod.HEAD,
-        getDefaultOptionsWithAuth()).execute();
     // Verifies 404 status will be returned by head non-existent bucket.
-    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), connection.getResponseCode());
+    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(),
+        headBucketRestCall(bucketName).getResponseCode());
 
     // Lists objects in a non-existent bucket.
     HttpURLConnection connection2 = new TestCase(mHostname, mPort, mBaseUri,
@@ -946,30 +937,5 @@ public class ListStatusTest {
         new XmlMapper().readerFor(S3Error.class).readValue(connection2.getErrorStream());
     Assert.assertEquals(bucketName, response.getResource());
     Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_BUCKET, response.getCode());
-  }
-
-  /**
-   * Heads objects in a bucket.
-   */
-  @Test
-  public void headBucket() throws Exception {
-    HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", NO_PARAMS, HttpMethod.HEAD,
-        getDefaultOptionsWithAuth()).execute();
-
-    Assert.assertEquals(Response.Status.OK.getStatusCode(), connection.getResponseCode());
-  }
-
-  private TestCaseOptions getDefaultOptionsWithAuth() {
-    return TestCaseOptions.defaults().setAuthorization("AWS4-HMAC-SHA256 Credential=testuser/...")
-        .setContentType(TestCaseOptions.XML_CONTENT_TYPE);
-  }
-
-  private void listStatusRestCall(Map<String, String> parameters, ListBucketResult expected)
-      throws Exception {
-    new TestCase(mHostname, mPort, mBaseUri,
-        "bucket", parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth())
-        .runAndCheckResult(expected);
   }
 }

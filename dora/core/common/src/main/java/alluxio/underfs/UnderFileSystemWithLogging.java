@@ -828,7 +828,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   public Iterator<UfsStatus> listStatusIterable(
       String path, ListOptions options, String startAfter,
       int batchSize) throws IOException {
-    return call(new UfsCallable<>() {
+    return call(new UfsCallable<Iterator<UfsStatus>>() {
       @Override
       public Iterator<UfsStatus> call() throws IOException {
         Iterator<UfsStatus> result =

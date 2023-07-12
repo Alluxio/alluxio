@@ -6,8 +6,6 @@ group: Contributor Resources
 priority: 2
 ---
 
-* Table of Contents
-{:toc}
 
 First off, we thank you for your interest in the Alluxio open source project!
 We greatly appreciate any contribution; whether it be new features or bug fixes.

@@ -12,8 +12,6 @@ To deploy Alluxio on Kubernetes, refer to [Deploy Alluxio on Kubernetes]({{ '/en
 
 This documentation focus on how to configure and get metrics of different metrics sinks from Alluxio deployed on Kubernetes.
 
-* Table of Contents
-{:toc}
 
 ### HTTP JSON Sink
 

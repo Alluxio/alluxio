@@ -6,8 +6,6 @@ group: Core Services
 priority: 1
 ---
 
-* Table of Contents
-{:toc}
 
 ## Alluxio Storage Overview
 
