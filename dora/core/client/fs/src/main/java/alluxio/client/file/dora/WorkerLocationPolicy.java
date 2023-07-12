@@ -25,6 +25,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.hash.HashFunction;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +70,7 @@ public class WorkerLocationPolicy {
     return HASH_PROVIDER.getMultiple(fileId, count);
   }
 
+  @VisibleForTesting
   static class ConsistentHashProvider {
     private static final HashFunction HASH_FUNCTION = murmur3_32_fixed();
     private final int mMaxAttempts;
@@ -86,11 +88,11 @@ public class WorkerLocationPolicy {
     private final AtomicLong mUpdateCount = new AtomicLong(0);
     /**
      * The worker list which the {@link #mActiveNodesByConsistentHashing} was built from.
-     * Must kept in sync with {@link #mActiveNodesByConsistentHashing}.
+     * Must be kept in sync with {@link #mActiveNodesByConsistentHashing}.
      * Used to compare with incoming worker list to skip the heavy build process if the worker
      * list has not changed.
      */
-    private volatile List<BlockWorkerInfo> mLastWorkerInfos = ImmutableList.of();
+    private final List<BlockWorkerInfo> mLastWorkerInfos = new ArrayList<>();
     /**
      * A map of virtual node indices to the actual workers.
      * This is lazily initialized, can only be null before the first call to refresh.
@@ -132,7 +134,8 @@ public class WorkerLocationPolicy {
         if (casUpdated) {
           if (hasWorkerListChanged(workerInfos, mLastWorkerInfos)) {
             mActiveNodesByConsistentHashing = build(workerInfos, numVirtualNodes);
-            mLastWorkerInfos = workerInfos;
+            mLastWorkerInfos.clear();
+            mLastWorkerInfos.addAll(workerInfos);
             mUpdateCount.incrementAndGet();
           }
         }
@@ -153,7 +156,8 @@ public class WorkerLocationPolicy {
           // test again to skip re-initialization
           if (mActiveNodesByConsistentHashing == null) {
             mActiveNodesByConsistentHashing = build(workerInfos, numVirtualNodes);
-            mLastWorkerInfos = workerInfos;
+            mLastWorkerInfos.clear();
+            mLastWorkerInfos.addAll(workerInfos);
             mLastUpdatedTimestamp.set(System.nanoTime());
           }
         }
