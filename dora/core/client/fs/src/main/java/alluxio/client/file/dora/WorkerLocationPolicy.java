@@ -79,6 +79,7 @@ public class WorkerLocationPolicy {
     @Nullable
     private volatile NavigableMap<Integer, BlockWorkerInfo> mActiveNodesByConsistentHashing;
     // Must use System.nanoTime to ensure monotonic increment
+    private final AtomicLong mUpdateCount = new AtomicLong(0);
 
     public ConsistentHashProvider(int maxAttempts, long workerListTtlMs) {
       mMaxAttempts = maxAttempts;
@@ -106,6 +107,7 @@ public class WorkerLocationPolicy {
           if (hasWorkerListChanged(workerInfos, mLastWorkerInfos)) {
             mActiveNodesByConsistentHashing = build(workerInfos, numVirtualNodes);
             mLastWorkerInfos = workerInfos;
+            mUpdateCount.incrementAndGet();
           }
         }
         // else, do nothing and proceed with stale worker list. on next access, the worker list
@@ -182,6 +184,11 @@ public class WorkerLocationPolicy {
     @VisibleForTesting
     NavigableMap<Integer, BlockWorkerInfo> getActiveNodesMap() {
       return mActiveNodesByConsistentHashing;
+    }
+
+    @VisibleForTesting
+    long getUpdateCount() {
+      return mUpdateCount.get();
     }
 
     @VisibleForTesting

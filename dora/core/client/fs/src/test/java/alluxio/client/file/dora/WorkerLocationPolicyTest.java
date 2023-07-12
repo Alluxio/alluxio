@@ -13,7 +13,6 @@ package alluxio.client.file.dora;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -28,7 +27,6 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.NavigableMap;
 import java.util.Set;
@@ -100,8 +98,7 @@ public class WorkerLocationPolicyTest {
   public void concurrentRefresh() throws Exception {
     ConsistentHashProvider provider = new ConsistentHashProvider(1, WORKER_LIST_TTL_MS);
     provider.refresh(generateRandomWorkerList(5), NUM_VIRTUAL_NODES);
-    NavigableMap<Integer, BlockWorkerInfo> initialMap = provider.getActiveNodesMap();
-    assertNotNull(initialMap);
+    long initialCount = provider.getUpdateCount();
     Thread.sleep(WORKER_LIST_TTL_MS);
 
     final int numThreads = Runtime.getRuntime().availableProcessors();
@@ -112,7 +109,7 @@ public class WorkerLocationPolicyTest {
     List<List<BlockWorkerInfo>> listsPerThread = IntStream.range(0, numThreads)
         .mapToObj(i -> generateRandomWorkerList(5))
         .collect(Collectors.toList());
-    List<Future<NavigableMap<Integer, BlockWorkerInfo>>> futures = IntStream.range(0, numThreads)
+    List<Future<?>> futures = IntStream.range(0, numThreads)
         .mapToObj(i -> {
           List<BlockWorkerInfo> list = listsPerThread.get(i);
           return executorService.submit(() -> {
@@ -123,47 +120,20 @@ public class WorkerLocationPolicyTest {
               fail("interrupted");
             }
             provider.refresh(list, NUM_VIRTUAL_NODES);
-            return provider.getActiveNodesMap();
           });
         })
         .collect(Collectors.toList());
-    int numOfThreadsWhichUpdatedMap = 0;
-    Set<NavigableMap<Integer, BlockWorkerInfo>> distinctMaps = new HashSet<>();
-    for (int i = 0; i < futures.size(); i++) {
-      final NavigableMap<Integer, BlockWorkerInfo> map;
+    for (Future<?> future : futures) {
       try {
-        map = futures.get(i).get();
+        future.get();
       } catch (InterruptedException interruptedException) {
         throw new AssertionError("interrupted", interruptedException);
       } catch (ExecutionException e) {
         throw new AssertionError("failed to run thread", e);
       }
-      distinctMaps.add(map);
-      // the map returned by the i-th thread can be one of the 3 cases:
-      // 1. the refresh call returns before the writer thread could finish updating the map,
-      //    so the map is the same as the initial map
-      // 2. this thread is the one that gets to update the map, so the map is the i-th
-      //    map in map lists
-      // 3. the refresh call executes after the writer finishes updating the map, so this thread
-      //    sees the up-to-date map set by the writer, which is not the i-th map
-      // in summary, if only one thread gets to update the map, then case 2 can occur only
-      // once.
-
-      if (initialMap.equals(map)) { // case 1
-        numOfThreadsWhichUpdatedMap += 0;
-      } else if (ConsistentHashProvider.build(
-          listsPerThread.get(i), NUM_VIRTUAL_NODES).equals(map)) { // case 2
-        numOfThreadsWhichUpdatedMap += 1;
-      } else { // case 3
-        numOfThreadsWhichUpdatedMap += 0;
-      }
     }
-
-    assertTrue("at most two possible outcomes about the active nodes map should be visible, "
-        + "but got " + distinctMaps.size(),
-        distinctMaps.size() >= 1 && distinctMaps.size() <= 2);
-    // check only one thread updated the worker map
-    assertEquals(1, numOfThreadsWhichUpdatedMap);
+    // only one thread actually updated the map
+    assertEquals(1, provider.getUpdateCount() - initialCount);
   }
 
   @Test
