@@ -437,10 +437,10 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
       path = path.replace("//", "/");
     }
 
-    int minLength = hasWindowsDrive(path, true) ? 4 : 1;
-    while (path.length() > minLength && path.endsWith("/")) {
-      path = path.substring(0, path.length() - 1);
-    }
+//    int minLength = hasWindowsDrive(path, true) ? 4 : 1;
+//    while (path.length() > minLength && path.endsWith("/")) {
+//      path = path.substring(0, path.length() - 1);
+//    }
 
     return path;
   }

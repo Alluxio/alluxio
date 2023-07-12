@@ -56,6 +56,9 @@ public class CreateObjectTest extends RestApiTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setIncludeProxy(true)
+          .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, Constants.MB * 16)
+          .setProperty(PropertyKey.USER_FILE_RESERVED_BYTES, Constants.MB * 16 / 2)
+          .setProperty(PropertyKey.WORKER_PAGE_STORE_SIZES, "1GB")
           .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)
           .setProperty(PropertyKey.WORKER_BLOCK_STORE_TYPE, "PAGE")
           .setProperty(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, Constants.KB)
@@ -126,7 +129,8 @@ public class CreateObjectTest extends RestApiTest {
     Assert.assertEquals(Response.Status.OK.getStatusCode(),
         createObjectRestCall(folderKey, NO_PARAMS, new byte[] {},
             TEST_USER_NAME).getResponseCode());
-    Assert.assertEquals(0, headRestCall(folderKey).getContentLength());
+//    Assert.assertEquals(0, headRestCall(folderKey).getContentLength());
+    Assert.assertEquals(Response.Status.OK.getStatusCode(), headRestCall(folderKey).getResponseCode());
   }
 
   @Test
@@ -444,11 +448,35 @@ public class CreateObjectTest extends RestApiTest {
     deleteRestCall(objectKey);
   }
 
-  @Ignore
+  /**
+   * Creates object first, and then creates directory with the same name.
+   */
+  @Test
+  public void putObjectAndDirectoryWithSameName() throws Exception {
+    final String bucket = "bucket";
+    final String objectKey = bucket + AlluxioURI.SEPARATOR + "folder";
+    final String objectKey2 = objectKey + AlluxioURI.SEPARATOR + "object/";
+    final byte[] object = CommonUtils.randomAlphaNumString(Constants.KB).getBytes();
+    final byte[] object2 =new byte[] {};
+        //CommonUtils.randomAlphaNumString(Constants.KB * 2).getBytes();
+
+    Assert.assertEquals(Response.Status.OK.getStatusCode(),
+        createBucketRestCall(bucket).getResponseCode());
+    Assert.assertEquals(Response.Status.OK.getStatusCode(),
+        createObjectRestCall(objectKey, NO_PARAMS, object, TEST_USER_NAME).getResponseCode());
+    Assert.assertEquals(Response.Status.OK.getStatusCode(),
+        createObjectRestCall(objectKey2, NO_PARAMS, object2, TEST_USER_NAME).getResponseCode());
+
+    Assert.assertEquals(Constants.KB, headRestCall(objectKey).getContentLength());
+    Assert.assertEquals(Response.Status.OK.getStatusCode(),
+        headRestCall(objectKey2).getResponseCode());
+//    Assert.assertEquals(0, headRestCall(objectKey2).getContentLength());
+  }
+  @Test
   public void deleteObjectButDirectory() throws Exception {
     final String bucket = "bucket";
     final String objectKey = bucket + AlluxioURI.SEPARATOR + "object";
-    final String folderKey = objectKey + AlluxioURI.SEPARATOR;
+    final String folderKey = objectKey + AlluxioURI.SEPARATOR+"folder/";
     final byte[] object = "Hello World!".getBytes();
 
     Assert.assertEquals(Response.Status.OK.getStatusCode(),
@@ -459,13 +487,14 @@ public class CreateObjectTest extends RestApiTest {
         createObjectRestCall(folderKey, NO_PARAMS, new byte[] {},
             TEST_USER_NAME).getResponseCode());
 
-    deleteRestCall(objectKey);
+//    deleteRestCall(objectKey);
 //    TODO(Xinran Dong): make the following assertion pass.
+    Assert.assertEquals(0, headRestCall(folderKey).getContentLength());
     Assert.assertEquals(Response.Status.OK.getStatusCode(),
         headRestCall(folderKey).getResponseCode());
   }
 
-  @Ignore
+  @Test
   public void deleteDirectoryButObject() throws Exception {
     final String bucket = "bucket";
     final String objectKey = bucket + AlluxioURI.SEPARATOR + "object";

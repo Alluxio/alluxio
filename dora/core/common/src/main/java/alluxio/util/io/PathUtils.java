@@ -69,7 +69,7 @@ public final class PathUtils {
     Preconditions.checkNotNull(base, "base");
     Preconditions.checkNotNull(path, "path");
     String trimmedBase = SEPARATOR_MATCHER.trimTrailingFrom(base.toString());
-    String trimmedPath = SEPARATOR_MATCHER.trimFrom(path.toString());
+    String trimmedPath = SEPARATOR_MATCHER.trimLeadingFrom(path.toString());
 
     StringBuilder output = new StringBuilder(trimmedBase.length() + trimmedPath.length() + 1);
     output.append(trimmedBase);

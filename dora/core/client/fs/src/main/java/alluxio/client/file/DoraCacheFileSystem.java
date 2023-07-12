@@ -430,7 +430,8 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       }
 
       // Treat this path as Alluxio relative, and add the UFS root before it.
-      String ufsFullPath = PathUtils.concatPath(rootUFS, alluxioPath.toString());
+      String ufsFullPath = PathUtils.concatPath(rootUFS, alluxioPath);
+//      rootUFS.toString()+alluxioPath.toString();
       if (alluxioPath.isRoot()) {
         ufsFullPath = ufsFullPath + AlluxioURI.SEPARATOR;
       }
