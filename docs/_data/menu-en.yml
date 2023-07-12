@@ -1,5 +1,5 @@
 # These are the ordered category names
-  - title: Overview # i want this item to open a new page when clicked, no drop down arrow
+  - title: Overview
     buttonTitle: Overview
     subfiles:
       - title: Overview
