@@ -22,6 +22,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.grpc.Bits;
@@ -125,6 +126,8 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
           break;
         case "HEAD":
           return new HeadObjectTask(handler, OpType.HeadObject);
+        case "DELETE":
+          return new DeleteObjectTask(handler, OpType.DeleteObject);
         default:
           return new S3NettyObjectTask(handler, OpType.Unsupported);
       }
@@ -586,7 +589,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
      * @return Response
      * @throws S3Exception
      */
-    public Response createDirectory(String objectPath, FileSystem userFs,
+    public HttpResponseStatus createDirectory(String objectPath, FileSystem userFs,
                                     S3AuditContext auditContext)
         throws S3Exception {
       // Need to create a folder
@@ -610,7 +613,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
       } catch (IOException | AlluxioException e) {
         throw NettyRestUtils.toObjectS3Exception(e, objectPath, auditContext);
       }
-      return Response.ok().build();
+      return HttpResponseStatus.OK;
     }
 
     @Override
@@ -664,4 +667,43 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
       });
     }
   } // end of PutObjectTask
+
+  private static final class DeleteObjectTask extends S3NettyObjectTask {
+
+    public DeleteObjectTask(S3NettyHandler handler, OpType opType) {
+      super(handler, opType);
+    }
+
+    @Override
+    public HttpResponse continueTask() {
+      return NettyRestUtils.call(getObjectTaskResource(), () -> {
+        // DeleteObjectTask ...
+        Preconditions.checkNotNull(mHandler.getBucket(), "required 'bucket' parameter is missing");
+        Preconditions.checkNotNull(mHandler.getObject(), "required 'object' parameter is missing");
+
+        final String user = mHandler.getUser();
+        final FileSystem userFs = mHandler.createFileSystemForUser(user);
+        String bucketPath = NettyRestUtils.parsePath(AlluxioURI.SEPARATOR + mHandler.getBucket());
+        // Delete the object.
+        String objectPath = bucketPath + AlluxioURI.SEPARATOR + mHandler.getObject();
+        DeletePOptions options = DeletePOptions.newBuilder().setAlluxioOnly(Configuration
+                .get(PropertyKey.PROXY_S3_DELETE_TYPE).equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY))
+            .build();
+        try (S3AuditContext auditContext = mHandler.createAuditContext(
+            "deleteObject", user, mHandler.getBucket(), mHandler.getObject())) {
+          S3NettyHandler.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext);
+          try {
+            userFs.delete(new AlluxioURI(objectPath), options);
+          } catch (FileDoesNotExistException | DirectoryNotEmptyException e) {
+            // intentionally do nothing, this is ok. It should result in a 204 error
+            // This is the same response behavior as AWS's S3.
+          } catch (Exception e) {
+            throw NettyRestUtils.toObjectS3Exception(e, objectPath, auditContext);
+          }
+        }
+        // Note: the normal response for S3 delete key is 204 NO_CONTENT, not 200 OK
+        return HttpResponseStatus.NO_CONTENT;
+      });
+    }
+  } // end of DeleteObjectTask
 }
