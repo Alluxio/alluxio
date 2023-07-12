@@ -16,8 +16,7 @@ accessed data (e.g., tables commonly used) into Alluxio distributed storage.
 Co-locating Alluxio workers with Trino workers improves data locality and reduces the I/O access
 latency when other storage systems are remote or the network is slow or congested.
 
-* Table of Contents
-{:toc}
+
 
 ## Prerequisites
 

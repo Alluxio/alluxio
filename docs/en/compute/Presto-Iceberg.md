@@ -11,8 +11,6 @@ Presto has introduced support for [Iceberg tables](https://iceberg.apache.org/) 
 This document describes how to use Presto to query Iceberg tables through Alluxio.
 This document is currently experimental, and the information provided here is subject to change.
 
-* Table of Contents
-{:toc}
 
 In order to use Presto to query an Iceberg table, make sure you have a working setup of Presto, 
 Hive Metastore and Alluxio, and Presto can access data through Alluxio's filesystem interface.

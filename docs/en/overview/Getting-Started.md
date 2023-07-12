@@ -5,8 +5,6 @@ group: Overview
 priority: 1
 ---
 
-* Table of Contents
-  {:toc}
 
 This quick start guide goes over how to run Alluxio on a local machine.
 The guide will cover the following tasks:

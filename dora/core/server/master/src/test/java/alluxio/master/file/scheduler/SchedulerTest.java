@@ -179,7 +179,7 @@ public final class SchedulerTest {
     assertFalse(scheduler.submitJob(loadJob));
     assertEquals(1, scheduler.getJobs().size());
     job = (DoraLoadJob) scheduler.getJobs().get(loadJob.getDescription());
-    assertTrue(job.getBandwidth().isEmpty());
+    assertFalse(job.getBandwidth().isPresent());
 
     // Verify the job present in Scheduler and jobMetaStore
     final DoraLoadJob loadJobFinalNew = loadJob;
@@ -187,8 +187,8 @@ public final class SchedulerTest {
         scheduler.getJobMetaStore().getJobs().stream()
             .filter(j -> j.equals(loadJobFinalNew)).findFirst();
     assertTrue(loadJobInMetaStore.isPresent());
-    assertTrue(((DoraLoadJob) loadJobInMetaStoreNewBandwidth.get())
-        .getBandwidth().isEmpty());
+    assertFalse(((DoraLoadJob) loadJobInMetaStoreNewBandwidth.get())
+        .getBandwidth().isPresent());
   }
 
   @Test
@@ -600,7 +600,7 @@ public final class SchedulerTest {
 
     @Override
     public Set<alluxio.scheduler.job.Job<?>> getJobs() {
-      return mExistingJobs.values().stream().collect(Collectors.toUnmodifiableSet());
+      return mExistingJobs.values().stream().collect(Collectors.toSet());
     }
 
     public alluxio.scheduler.job.Job<?> get(String jobId) {

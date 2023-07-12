@@ -6,8 +6,6 @@ group: Storage Integrations
 priority: 0
 ---
 
-* Table of Contents
-  {:toc}
 
 This guide describes the instructions to configure [OBS](https://www.huaweicloud.com/product/obs) as Alluxio's
 under storage system.

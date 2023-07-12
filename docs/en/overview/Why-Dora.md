@@ -5,8 +5,6 @@ group: Overview
 priority: 2
 ---
 
-* Table of Contents
-{:toc}
 
 ## Challenges facing Alluxio 2.x 
 

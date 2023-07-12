@@ -6,8 +6,6 @@ group: Storage Integrations
 priority: 10
 ---
 
-* Table of Contents
-{:toc}
 
 This guide describes how to configure Alluxio with an under storage system supporting the
 [Swift API](http://docs.openstack.org/developer/swift/).
