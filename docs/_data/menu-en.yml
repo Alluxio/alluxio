@@ -10,8 +10,6 @@
     subfiles:
       - title: Introduction
         url: /en/introduction/Introduction.html
-      - title: DORA Architecture
-        url: /en/introduction/Dora-Architecture.html
       - title: Glossary
         url: /en/introduction/Glossary.html
 
@@ -30,7 +28,7 @@
         url: /en/Get-Started.html
 
   - title: Install Alluxio
-    buttonTitle: Install_Alluxio 
+    buttonTitle: Install_Alluxio
     subfiles:
       - title: Software Requirements
         url: /en/deploy/Software-Requirements.html

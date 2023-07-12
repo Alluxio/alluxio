@@ -31,22 +31,22 @@ with the largest deployment exceeding 1,500 nodes.
 <img src="https://d39kqat1wpn1o5.cloudfront.net/app/uploads/2021/07/alluxio-overview-r071521.png" width="800" alt="Ecosystem"/>
 </p>
 
-## DORA Architecture
+## Dora Architecture
 
-DORA, short for Decentralized Object Repository Architecture, is the foundation of the Alluxio system.
+Dora, short for Decentralized Object Repository Architecture, is the foundation of the Alluxio system.
 
-As an open-source distributed caching storage system, DORA offers low latency, high throughput, and cost savings,
+As an open-source distributed caching storage system, Dora offers low latency, high throughput, and cost savings,
 while aiming to provide a unified data layer that can support various data workloads, including AI and data analytics.
 
-DORA leverages decentralized storage and metadata management to provide higher performance and availability,
+Dora leverages decentralized storage and metadata management to provide higher performance and availability,
 as well as pluggable data security and governance, enabling better scalability and more efficient management of large-scale data access.
 
-DORA’s architecture goal:
-* Scalability: Scalability is a top priority for DORA, which needs to support billions of files to meet the demands of data-intensive applications, such as AI training.
-* High Availability: DORA's architecture is designed with high availability in mind, with 99.99% uptime and protection against single points of failure.
-* Performance: Performance is a key goal for DORA, which prioritizes Presto/Trino powered SQL analytics workloads and GPU utilization for AI workloads.
+Dora’s architecture goal:
+* Scalability: Scalability is a top priority for Dora, which needs to support billions of files to meet the demands of data-intensive applications, such as AI training.
+* High Availability: Dora's architecture is designed with high availability in mind, with 99.99% uptime and protection against single points of failure.
+* Performance: Performance is a key goal for Dora, which prioritizes Presto/Trino powered SQL analytics workloads and GPU utilization for AI workloads.
 
-The diagram below shows the architecture design of DORA, which consists of four major components: the service registry, scheduler, client, and worker. 
+The diagram below shows the architecture design of Dora, which consists of four major components: the service registry, scheduler, client, and worker. 
 
 ![Dora Architecture]({{ '/img/dora_architecture.png' | relativize_url }})
 

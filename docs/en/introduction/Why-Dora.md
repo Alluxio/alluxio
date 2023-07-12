@@ -17,8 +17,6 @@ In emerging use cases, the tradeoffs of these fundamental design choices are cha
 Using an inode tree to store the entire namespace on a single master node results in constant throughput and resource pressure on the Alluxio master node when the namespace becomes massive in number of files.
 The conventional file system journaling often becomes a performance bottleneck during when a failover event occurs to transition to a new master.
 Frequent access to columnar storage introduces a heavy load of seek operations which leads to unnecessary read amplification.
-<br />
-<br />
 
 ## Why Do We Need A New Distributed Caching Architecture
 

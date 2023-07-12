@@ -11,7 +11,7 @@ Welcome to Alluxio Documentation! You will find resources regarding deploying Al
 
 Check out our [Quick Start Guide]({{'/en/Get-Started.html' | relativize_url }}) for step-by-step guidance on how to download Alluxio, run Alluxio on a local machine, and perform basic tasks via Alluxio Shell.
 
-Follow along to deploy an Alluxio cluster with High Availability (HA) by running multiple Alluxio master processes on different nodes in the system. [Read More]({{'/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }})
+Follow [Install Alluxio Cluster with HA]({{'/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }}) to deploy an Alluxio cluster with High Availability (HA) by running multiple Alluxio master processes on different nodes in the system.
 
 ## Compute Integrations
 * [Running Presto with Alluxio]({{'/en/compute/Presto.html' | relativize_url }})
