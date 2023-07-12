@@ -1,9 +1,6 @@
 ---
 layout: global
-title: Caching
-nickname: Caching
-group: Core Services
-priority: 1
+title: Data Caching
 ---
 
 ## Alluxio Storage Overview

@@ -18,8 +18,8 @@
   - title: Core Services
     buttonTitle: Core_Services
     subfiles:
-      - title: Caching
-        url: /en/core-services/Caching.html
+      - title: Data Caching
+        url: /en/core-services/Data-Caching.html
       - title: Metadata Cache & Invalidation
         url: /en/core-services/Metadata-Caching.html
 
