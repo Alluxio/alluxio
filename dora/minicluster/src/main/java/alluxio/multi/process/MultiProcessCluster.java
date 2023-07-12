@@ -17,6 +17,7 @@ import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.MembershipType;
 import alluxio.cli.Format;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileSystem;
@@ -739,6 +740,9 @@ public final class MultiProcessCluster {
     conf.put(PropertyKey.DORA_CLIENT_UFS_ROOT, PathUtils.concatPath(mWorkDir, "underFSStorage"));
     conf.put(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false);
     conf.put(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED, true);
+
+    Configuration.set(PropertyKey.WORKER_MEMBERSHIP_TYPE, MembershipType.ETCD);
+    Configuration.set(PropertyKey.ETCD_ENDPOINTS, getProxiedClientEndpoints());
 
     Worker worker = mCloser.register(new Worker(logsDir, conf));
     mWorkers.add(worker);
