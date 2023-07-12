@@ -7,7 +7,6 @@ import alluxio.util.ThreadFactoryUtils;
 import com.google.common.base.Preconditions;
 
 import io.etcd.jetcd.ByteSequence;
-import io.etcd.jetcd.Client;
 import io.etcd.jetcd.KeyValue;
 import io.etcd.jetcd.Txn;
 import io.etcd.jetcd.kv.TxnResponse;

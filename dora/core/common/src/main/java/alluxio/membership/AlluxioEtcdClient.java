@@ -2,9 +2,11 @@ package alluxio.membership;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.resource.LockResource;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryUtils;
+
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
@@ -27,7 +29,6 @@ import io.netty.util.internal.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.GuardedBy;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -39,10 +40,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import javax.annotation.concurrent.GuardedBy;
 
 public class AlluxioEtcdClient implements Closeable {
 
@@ -103,7 +106,7 @@ public class AlluxioEtcdClient implements Closeable {
     SINGLE_PATH
   }
 
-  public class Lease {
+  public static class Lease {
     public long mLeaseId = -1;
     public long mTtlInSec = -1;
     public Lease(long leaseId, long ttlInSec) {
@@ -126,30 +129,38 @@ public class AlluxioEtcdClient implements Closeable {
   private static final int RETRY_SLEEP_IN_MS = 100;
   private static final int MAX_RETRY_SLEEP_IN_MS = 500;
 
-  public Lease createLease(long ttlInSec, long timeout, TimeUnit timeUnit) {
-    return RetryUtils.retryCallable(String.format("Creating Lease ttl:%s", ttlInSec), () -> {
-      CompletableFuture<LeaseGrantResponse> leaseGrantFut =
-          getEtcdClient().getLeaseClient().grant(ttlInSec, timeout, timeUnit);
-      long leaseId;
-      LeaseGrantResponse resp = leaseGrantFut.get();
-      leaseId = resp.getID();
-      Lease lease = new Lease(leaseId, ttlInSec);
-      return lease;
-    }, new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES));
+  public Lease createLease(long ttlInSec, long timeout, TimeUnit timeUnit)
+      throws IOException{
+    try {
+      return RetryUtils.retryCallable(String.format("Creating Lease ttl:%s", ttlInSec), () -> {
+        CompletableFuture<LeaseGrantResponse> leaseGrantFut =
+            getEtcdClient().getLeaseClient().grant(ttlInSec, timeout, timeUnit);
+        long leaseId;
+        LeaseGrantResponse resp = leaseGrantFut.get(timeout, timeUnit);
+        leaseId = resp.getID();
+        Lease lease = new Lease(leaseId, ttlInSec);
+        return lease;
+      }, new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES));
+    } catch (AlluxioRuntimeException ex) {
+      throw new IOException(ex.getMessage());
+    }
   }
 
-  public Lease createLease() {
+  public Lease createLease() throws IOException {
     return createLease(sDefaultLeaseTTLInSec, sDefaultTimeoutInSec, TimeUnit.SECONDS);
   }
 
-  public void revokeLease(Lease lease) {
-    RetryUtils.retryCallable(String.format("Revoking Lease:%s", lease.toString()), () -> {
-      CompletableFuture<LeaseRevokeResponse> leaseRevokeFut =
-          getEtcdClient().getLeaseClient().revoke(lease.mLeaseId);
-      long leaseId;
-      LeaseRevokeResponse resp = leaseRevokeFut.get();
-      return null;
-    }, new ExponentialBackoffRetry(100, 500, RETRY_TIMES));
+  public void revokeLease(Lease lease) throws IOException {
+    RetryUtils.retry(String.format("Revoking Lease:%s", lease.toString()), () -> {
+      try {
+        CompletableFuture<LeaseRevokeResponse> leaseRevokeFut =
+            getEtcdClient().getLeaseClient().revoke(lease.mLeaseId);
+        long leaseId;
+        LeaseRevokeResponse resp = leaseRevokeFut.get(sDefaultTimeoutInSec, TimeUnit.SECONDS);
+      } catch (ExecutionException | InterruptedException | TimeoutException ex) {
+        throw new IOException("Error revoking lease:" + lease.toString(), ex);
+      }
+    }, new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES));
   }
 
   /**
@@ -157,15 +168,20 @@ public class AlluxioEtcdClient implements Closeable {
    * @param lease
    * @return lease expired
    */
-  public boolean isLeaseExpired(Lease lease) {
-    return RetryUtils.retryCallable(
-        String.format("Checking IsLeaseExpired, lease:%s",lease.toString()),
-        () -> {
-          LeaseTimeToLiveResponse leaseResp = mClient.getLeaseClient()
-              .timeToLive(lease.mLeaseId, LeaseOption.DEFAULT)
-              .get();
-          return leaseResp.getTTl() <= 0;
-        }, new ExponentialBackoffRetry(100, 500, RETRY_TIMES));
+  public boolean isLeaseExpired(Lease lease) throws IOException {
+    try {
+      return RetryUtils.retryCallable(
+          String.format("Checking IsLeaseExpired, lease:%s", lease.toString()),
+          () -> {
+            LeaseTimeToLiveResponse leaseResp = mClient.getLeaseClient()
+                .timeToLive(lease.mLeaseId, LeaseOption.DEFAULT)
+                .get(sDefaultTimeoutInSec, TimeUnit.SECONDS);
+            // if no such lease, lease resp will still be returned with a negative ttl
+            return leaseResp.getTTl() <= 0;
+          }, new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES));
+    } catch (AlluxioRuntimeException ex) {
+      throw new IOException(ex.getMessage());
+    }
   }
 
   /**
@@ -176,17 +192,23 @@ public class AlluxioEtcdClient implements Closeable {
    * @param childPath
    * @param value
    */
-  public void addChildren(String parentPath, String childPath, byte[] value) {
+  public void addChildren(String parentPath, String childPath, byte[] value)
+      throws IOException {
     Preconditions.checkState(!StringUtil.isNullOrEmpty(parentPath));
     Preconditions.checkState(!StringUtil.isNullOrEmpty(childPath));
-    RetryUtils.retryCallable(
+    RetryUtils.retry(
         String.format("Adding child, parentPath:%s, childPath:%s", parentPath, childPath),
         () -> {
-          String fullPath = parentPath + childPath;
-          PutResponse putResponse = mClient.getKVClient().put(ByteSequence.from(fullPath, StandardCharsets.UTF_8),
-                  ByteSequence.from(value))
-              .get(sDefaultTimeoutInSec, TimeUnit.SECONDS);
-          return true;
+          try {
+            String fullPath = parentPath + childPath;
+            PutResponse putResponse = mClient.getKVClient().put(ByteSequence.from(fullPath, StandardCharsets.UTF_8),
+                    ByteSequence.from(value))
+                .get(sDefaultTimeoutInSec, TimeUnit.SECONDS);
+          } catch (ExecutionException | InterruptedException | TimeoutException ex) {
+            String errMsg = String.format("Error addChildren parentPath:%s child:%s",
+                parentPath, childPath);
+            throw new IOException(errMsg, ex);
+          }
         },
         new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, 0));
   }
@@ -198,14 +220,18 @@ public class AlluxioEtcdClient implements Closeable {
    * @param parentPath parentPath ends with /
    * @return
    */
-  public List<KeyValue> getChildren(String parentPath) {
-    return RetryUtils.retryCallable(String.format("Getting children for path:%s", parentPath), () -> {
-      Preconditions.checkState(!StringUtil.isNullOrEmpty(parentPath));
-      GetResponse getResponse = mClient.getKVClient().get(ByteSequence.from(parentPath, StandardCharsets.UTF_8),
-          GetOption.newBuilder().isPrefix(true).build())
-          .get(sDefaultTimeoutInSec, TimeUnit.SECONDS);
-      return getResponse.getKvs();
-    }, new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES));
+  public List<KeyValue> getChildren(String parentPath) throws IOException {
+    try {
+      return RetryUtils.retryCallable(String.format("Getting children for path:%s", parentPath), () -> {
+        Preconditions.checkState(!StringUtil.isNullOrEmpty(parentPath));
+        GetResponse getResponse = mClient.getKVClient().get(ByteSequence.from(parentPath, StandardCharsets.UTF_8),
+                GetOption.newBuilder().isPrefix(true).build())
+            .get(sDefaultTimeoutInSec, TimeUnit.SECONDS);
+        return getResponse.getKvs();
+      }, new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES));
+    } catch (AlluxioRuntimeException ex) {
+      throw new IOException(ex.getMessage());
+    }
   }
 
   private void addListenerInternal(
@@ -299,9 +325,9 @@ public class AlluxioEtcdClient implements Closeable {
 
   // get latest value attached to the key
   public byte[] getForPath(String path) throws IOException {
-    return RetryUtils.retryCallable(String.format("Get for path:%s", path), () -> {
-      byte[] ret = null;
-      try {
+    try {
+      return RetryUtils.retryCallable(String.format("Get for path:%s", path), () -> {
+        byte[] ret = null;
         CompletableFuture<GetResponse> getResponse =
             getEtcdClient().getKVClient().get(ByteSequence.from(path, StandardCharsets.UTF_8));
         List<KeyValue> kvs = getResponse.get(sDefaultTimeoutInSec, TimeUnit.SECONDS).getKvs();
@@ -309,52 +335,56 @@ public class AlluxioEtcdClient implements Closeable {
           KeyValue latestKv = Collections.max(kvs, Comparator.comparing(KeyValue::getModRevision));
           return latestKv.getValue().getBytes();
         }
-      } catch (ExecutionException | InterruptedException ex) {
-        throw new IOException("Error getting path:" + path, ex);
-      }
-      return ret;
-    }, new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES));
+        return ret;
+      }, new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES));
+    } catch (AlluxioRuntimeException ex) {
+      throw new IOException(ex.getMessage());
+    }
   }
 
-  public boolean checkExistsForPath(String path) {
-    return RetryUtils.retryCallable(String.format("Get for path:%s", path), () -> {
-      boolean exist = false;
-      try {
-        CompletableFuture<GetResponse> getResponse =
-            getEtcdClient().getKVClient().get(ByteSequence.from(path, StandardCharsets.UTF_8));
-        List<KeyValue> kvs = getResponse.get(sDefaultTimeoutInSec, TimeUnit.SECONDS).getKvs();
-        exist = !kvs.isEmpty();
-      } catch (ExecutionException | InterruptedException ex) {
-        throw new IOException("Error getting path:" + path, ex);
-      }
-      return exist;
-    }, new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, 0));
+  public boolean checkExistsForPath(String path) throws IOException {
+    try {
+      return RetryUtils.retryCallable(String.format("Get for path:%s", path), () -> {
+        boolean exist = false;
+        try {
+          CompletableFuture<GetResponse> getResponse =
+              getEtcdClient().getKVClient().get(ByteSequence.from(path, StandardCharsets.UTF_8));
+          List<KeyValue> kvs = getResponse.get(sDefaultTimeoutInSec, TimeUnit.SECONDS).getKvs();
+          exist = !kvs.isEmpty();
+        } catch (ExecutionException | InterruptedException | TimeoutException ex) {
+          throw new IOException("Error getting path:" + path, ex);
+        }
+        return exist;
+      }, new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES));
+    } catch (AlluxioRuntimeException ex) {
+      throw new IOException(ex.getMessage());
+    }
   }
 
   public void createForPath(String path, Optional<byte[]> value) throws IOException {
-    RetryUtils.retryCallable(String.format("Get for path:%s, value size:%s",
+    RetryUtils.retry(String.format("Get for path:%s, value size:%s",
         path, (value.isEmpty() ? "null" : value.get().length)), () -> {
       try {
         mClient.getKVClient().put(ByteSequence.from(path, StandardCharsets.UTF_8)
                 , ByteSequence.from(value.get()))
-            .get();
-      } catch (ExecutionException | InterruptedException ex) {
-        throw new IOException("Error getting path:" + path, ex);
+            .get(sDefaultTimeoutInSec, TimeUnit.SECONDS);
+      } catch (ExecutionException | InterruptedException | TimeoutException ex) {
+        String errMsg = String.format("Error createForPath:%s", path);
+        throw new IOException(errMsg, ex);
       }
-      return null;
     }, new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES));
   }
 
-  public void deleteForPath(String path, boolean recursive) {
-    RetryUtils.retryCallable(String.format("Delete for path:%s", path), () -> {
+  public void deleteForPath(String path, boolean recursive) throws IOException {
+    RetryUtils.retry(String.format("Delete for path:%s", path), () -> {
       try {
         mClient.getKVClient().delete(ByteSequence.from(path, StandardCharsets.UTF_8)
                 , DeleteOption.newBuilder().isPrefix(recursive).build())
-            .get();
-      } catch (ExecutionException | InterruptedException ex) {
-        throw new IOException("Error deleting path:" + path, ex);
+            .get(sDefaultTimeoutInSec, TimeUnit.SECONDS);
+      } catch (ExecutionException | InterruptedException | TimeoutException ex) {
+        String errMsg = String.format("Error deleteForPath:%s", path);
+        throw new IOException(errMsg, ex);
       }
-      return null;
     }, new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES));
   }
 

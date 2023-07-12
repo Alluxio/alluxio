@@ -169,6 +169,12 @@ public class MembershipManagerTest {
     return new AlluxioEtcdClient(Configuration.global());
   }
 
+  public AlluxioEtcdClient getToxicAlluxioEtcdClient() {
+    Configuration.set(PropertyKey.WORKER_MEMBERSHIP_TYPE, MembershipType.ETCD);
+    Configuration.set(PropertyKey.ETCD_ENDPOINTS, getProxiedClientEndpoints());
+    return new AlluxioEtcdClient(Configuration.global());
+  }
+
   public MembershipManager getHealthyEtcdMemberMgr() throws IOException {
     return new EtcdMembershipManager(Configuration.global(), getHealthyAlluxioEtcdClient());
   }
