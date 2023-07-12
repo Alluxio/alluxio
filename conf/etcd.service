@@ -1,0 +1,11 @@
+[Unit]
+Description=Etcd Service
+
+[Service]	
+ExecStart=/usr/local/bin/etcd --config-file /etc/etcd/etcd.conf
+KillSignal=SIGTERM
+StandardOutput=append:/var/log/etcd.log
+StandardError=append:/var/log/etcd.err
+
+[Install]
+WantedBy=default.target
