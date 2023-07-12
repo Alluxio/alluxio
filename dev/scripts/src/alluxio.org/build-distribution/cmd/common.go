@@ -86,6 +86,7 @@ var libJars = map[string]struct{}{
 	"underfs-swift":         {},
 	"underfs-wasb":          {},
 	"underfs-web":           {},
+	"underfs-toss":          {},
 }
 
 var fuseLibJars = map[string]struct{}{
