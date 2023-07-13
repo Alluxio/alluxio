@@ -6,8 +6,6 @@ group: Storage Integrations
 priority: 10
 ---
 
-* Table of Contents
-{:toc}
 
 This guide describes the instructions to configure [NFS](http://nfs.sourceforge.net) as Alluxio's under
 storage system.
@@ -29,7 +27,7 @@ details.
 
 ## Initial Setup
 
-The Alluxio binaries must be on your machine. You can [download the binaries locally]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
+The Alluxio binaries must be on your machine. You can [download the binaries locally]({{ '/en/Get-Started.html' | relativize_url }}).
 
 ## Creating NFS mount point
 

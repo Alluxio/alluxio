@@ -6,15 +6,13 @@ group: Storage Integrations
 priority: 10
 ---
 
-* Table of Contents
-{:toc}
 
 This guide describes how to configure [Aliyun OSS](https://intl.aliyun.com/product/oss) as Alluxio's under storage system. 
 Object Storage Service (OSS) is a massive, secure and highly reliable cloud storage service provided by Aliyun.
 
 ## Prerequisites
 
-The Alluxio binaries must be on your machine. You can [download the binaries locally]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
+The Alluxio binaries must be on your machine. You can [download the binaries locally]({{ '/en/Get-Started.html' | relativize_url }}).
 
 In preparation for using OSS with Alluxio, follow the [OSS quick start guide](https://www.alibabacloud.com/help/doc-detail/31883.htm)
 to sign up for OSS and create an OSS bucket.
@@ -95,4 +93,27 @@ $ ./bin/alluxio fs mount --option fs.oss.accessKeyId=<OSS_ACCESS_KEY_ID> \
   --option fs.oss.accessKeySecret=<OSS_ACCESS_KEY_SECRET> \
   --option fs.oss.endpoint=<OSS_ENDPOINT> \
   /oss oss://<OSS_BUCKET>/<OSS_DIRECTORY>/
+```
+
+### [Experimental] OSS multipart upload
+
+The default upload method uploads one file completely from start to end in one go. We use multipart-upload method to upload one file by multiple parts, every part will be uploaded in one thread. It won't generate any temporary files while uploading.
+
+To enable OSS multipart upload, you need to modify `conf/alluxio-site.properties` to include:
+
+```
+alluxio.underfs.oss.multipart.upload.enabled=true
+```
+
+There are other parameters you can specify in `conf/alluxio-site.properties` to make the process faster and better.
+
+```properties
+# Timeout for uploading part when using multipart upload.
+alluxio.underfs.object.store.multipart.upload.timeout
+
+# Thread pool size for OSS multipart upload.
+alluxio.underfs.oss.multipart.upload.threads
+
+# Multipart upload partition size for OSS. The default partition size is 64MB. 
+alluxio.underfs.oss.multipart.upload.partition.size
 ```

@@ -5,8 +5,6 @@ group: FUSE SDK
 priority: 3
 ---
 
-* Table of Contents
-  {:toc}
 
 ![POSIX LOCAL CACHE]({{ '/img/posix-distributed-cache.png' | relativize_url }})
 
@@ -23,7 +21,7 @@ Limitations:
 
 ## Deployment
 
-Please follow [dora distributed cache cluster deployment guide]({{ '/en/overview/Getting-Started.html' | relativize_url}})
+Please follow [Dora distributed cache cluster deployment guide]({{ '/en/Get-Started.html' | relativize_url}})
 to deploy the Alluxio cluster.
 
 ### Launch FUSE SDK Connect to the distributed cache cluster

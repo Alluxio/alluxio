@@ -6,8 +6,6 @@ group: Storage Integrations
 priority: 11
 ---
 
-* Table of Contents
-{:toc}
 
 This guide describes how to configure Alluxio with CephFS as the under storage system. Alluxio supports
 two different implementations of under storage system for [CephFS](https://docs.ceph.com/en/latest/cephfs/):
@@ -18,7 +16,7 @@ two different implementations of under storage system for [CephFS](https://docs.
 
 ### Deploy Alluxio binary package
 The Alluxio binaries must be on your machine. You can 
-[download the binaries locally]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
+[download the binaries locally]({{ '/en/Get-Started.html' | relativize_url }}).
 
 ### Install Dependences
 According to [ceph packages install](https://docs.ceph.com/en/latest/install/get-packages/) to install below packages:
