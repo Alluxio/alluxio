@@ -6,8 +6,6 @@ group: Storage Integrations
 priority: 5
 ---
 
-* Table of Contents
-{:toc}
 
 This guide describes how to configure Alluxio with Tencent [COS](https://cloud.tencent.com/product/cos) (Cloud Object Storage) as the under storage system.
 Tencent Cloud Object Storage (COS) is a distributed storage service offered by Tencent Cloud for unstructured data and accessible via HTTP/HTTPS protocols.
@@ -16,13 +14,11 @@ It can store massive amounts of data and features imperceptible bandwidth and ca
 ## Basic Setup
 
 Alluxio runs on multiple machines in cluster mode so its binary package needs to be deployed on the machines.
-You can either [compile Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}) or [download the binaries locally]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
+You can either [compile Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}) or [download the binaries locally]({{ '/en/Get-Started.html' | relativize_url }}).
 
 In preparation for using COS with Alluxio, create a new bucket or use an existing bucket.
 You should also note the directory you want to use in that bucket, either by creating a new directory in the bucket or using an existing one.
 For the purposes of this guide, the COS Bucket name is called `COSN_ALLUXIO_BUCKET`, the directory in that bucket is called `COSN_DATA`, and COS Bucket region is called `COSN_REGION` which specifies the region of your bucket.
-
-## Basic Setup
 
 ### Root Mount Point
 

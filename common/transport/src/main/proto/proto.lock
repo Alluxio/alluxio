@@ -7777,28 +7777,6 @@
               }
             ]
           }
-        ],
-        "imports": [
-          {
-            "path": "grpc/table/table_master.proto"
-          }
-        ],
-        "package": {
-          "name": "alluxio.grpc.table.layout"
-        },
-        "options": [
-          {
-            "name": "java_multiple_files",
-            "value": "true"
-          },
-          {
-            "name": "java_package",
-            "value": "alluxio.grpc.table.layout.hive"
-          },
-          {
-            "name": "java_outer_classname",
-            "value": "HiveLayoutProto"
-          }
         ]
       }
     },

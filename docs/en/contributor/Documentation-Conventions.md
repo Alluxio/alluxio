@@ -6,8 +6,6 @@ group: Contributor Resources
 priority: 2
 ---
 
-* Table of Contents
-{:toc}
 
 This documentation provides a writing style guide that portrays professionalism and efficiency in delivering technical content
 in Alluxio documentation.

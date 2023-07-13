@@ -33,6 +33,7 @@ import alluxio.grpc.WriteOptions;
 import alluxio.job.JobDescription;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.proto.journal.Job.FileFilter;
 import alluxio.proto.journal.Journal;
 import alluxio.scheduler.job.JobState;
 import alluxio.scheduler.job.Task;
@@ -110,6 +111,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
   private Optional<AlluxioRuntimeException> mFailedReason = Optional.empty();
   private final Iterable<FileInfo> mFileIterable;
   private Optional<Iterator<FileInfo>> mFileIterator = Optional.empty();
+  private Optional<FileFilter> mFilter;
 
   /**
    * Constructor.
@@ -124,10 +126,11 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
    * @param verificationEnabled whether to verify the job after loaded
    * @param checkContent        whether to check content
    * @param fileIterable        file iterable
+   * @param filter              file filter
    */
   public CopyJob(String src, String dst, boolean overwrite, Optional<String> user, String jobId,
       OptionalLong bandwidth, boolean usePartialListing, boolean verificationEnabled,
-      boolean checkContent, Iterable<FileInfo> fileIterable) {
+      boolean checkContent, Iterable<FileInfo> fileIterable, Optional<FileFilter> filter) {
     super(user, jobId, new RoundRobinWorkerAssignPolicy());
     mSrc = requireNonNull(src, "src is null");
     mDst = requireNonNull(dst, "dst is null");
@@ -141,6 +144,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     mFileIterable = fileIterable;
     mOverwrite = overwrite;
     mCheckContent = checkContent;
+    mFilter = filter;
   }
 
   /**
@@ -282,6 +286,14 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
    */
   public List<CopyTask> getNextTasks(Collection<WorkerInfo> workers) {
     List<CopyTask> tasks = new ArrayList<>();
+    Iterator<CopyTask> it = mRetryTaskList.iterator();
+    if (it.hasNext()) {
+      CopyTask task = it.next();
+      LOG.debug("Re-submit retried CopyTask:{} in getNextTasks.", task.getTaskId());
+      tasks.add(task);
+      it.remove();
+      return Collections.unmodifiableList(tasks);
+    }
     List<Route> routes = getNextRoutes(BATCH_SIZE);
     if (routes.isEmpty()) {
       return Collections.unmodifiableList(tasks);
@@ -291,18 +303,6 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     copyTask.setMyRunningWorker(workerInfo);
     tasks.add(copyTask);
     return Collections.unmodifiableList(tasks);
-  }
-
-  /**
-   * Define how to process task that gets rejected when scheduler tried to kick off.
-   * For CopyJob
-   * @param task
-   */
-  public void onTaskSubmitFailure(Task<?> task) {
-    if (!(task instanceof CopyTask)) {
-      throw new IllegalArgumentException("Task is not a CopyTask: " + task);
-    }
-    ((CopyTask) task).mRoutes.forEach(this::addToRetry);
   }
 
   /**
@@ -429,6 +429,14 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     mUser.ifPresent(jobEntry::setUser);
     mBandwidth.ifPresent(jobEntry::setBandwidth);
     mEndTime.ifPresent(jobEntry::setEndTime);
+    if (mFilter.isPresent()) {
+      FileFilter.Builder builder = FileFilter.newBuilder().setValue(mFilter.get().getValue())
+          .setName(mFilter.get().getName());
+      if (mFilter.get().hasPattern()) {
+        builder.setPattern(mFilter.get().getPattern());
+      }
+      jobEntry.setFilter(builder.build());
+    }
     return Journal.JournalEntry
         .newBuilder()
         .setCopyJob(jobEntry.build())
