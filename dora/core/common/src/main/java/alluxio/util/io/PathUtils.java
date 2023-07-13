@@ -69,8 +69,9 @@ public final class PathUtils {
     Preconditions.checkNotNull(base, "base");
     Preconditions.checkNotNull(path, "path");
     String trimmedBase = SEPARATOR_MATCHER.trimTrailingFrom(base.toString());
-    String trimmedPath = SEPARATOR_MATCHER.trimLeadingFrom(path.toString());
-
+    String trimmedPath = SEPARATOR_MATCHER.trimFrom(path.toString());
+    if (path.toString().endsWith(AlluxioURI.SEPARATOR))
+      trimmedPath.concat(AlluxioURI.SEPARATOR);
     StringBuilder output = new StringBuilder(trimmedBase.length() + trimmedPath.length() + 1);
     output.append(trimmedBase);
     if (!trimmedPath.isEmpty()) {
