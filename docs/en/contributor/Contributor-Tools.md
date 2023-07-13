@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Contributor Tools
-nickname: Contributor Tools
-group: Contributor Resources
-priority: 3
 ---
 
 
