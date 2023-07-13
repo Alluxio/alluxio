@@ -8,7 +8,7 @@ priority: 2
 
 For general information about the metrics of Alluxio, refer to [Metrics-System]({{ '/en/operation/Metrics-System.html' | relativize_url }}).
 
-To deploy Alluxio on Kubernetes, refer to [Deploy Alluxio on Kubernetes]({{ '/en/kubernetes/Running-Alluxio-On-Kubernetes.html' | relativize_url }}).
+To deploy Alluxio on Kubernetes, refer to [Install Alluxio on Kubernetes]({{ '/en/kubernetes/Install-Alluxio-On-Kubernetes.html' | relativize_url }}).
 
 This documentation focus on how to configure and get metrics of different metrics sinks from Alluxio deployed on Kubernetes.
 

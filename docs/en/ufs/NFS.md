@@ -27,7 +27,7 @@ details.
 
 ## Initial Setup
 
-The Alluxio binaries must be on your machine. You can [download the binaries locally]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
+The Alluxio binaries must be on your machine. You can [download the binaries locally]({{ '/en/Get-Started.html' | relativize_url }}).
 
 ## Creating NFS mount point
 

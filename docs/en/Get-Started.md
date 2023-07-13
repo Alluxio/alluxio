@@ -86,7 +86,7 @@ The following uses `/mnt/ramdisk` as an example.
 ```console
 $ echo "alluxio.worker.page.store.dirs=/mnt/ramdisk" >> conf/alluxio-site.properties
 ```
-The [paging cache storage guide]({{ '/en/core-services/Caching.html' | relativize_url }}#paging-worker-storage) has more information about how to configure page block store.
+The [paging cache storage guide]({{ '/en/core-services/Data-Caching.html' | relativize_url }}#paging-worker-storage) has more information about how to configure page block store.
 
 Configure Alluxio ufs:
 ```console

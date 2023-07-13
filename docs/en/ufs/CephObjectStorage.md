@@ -16,7 +16,7 @@ using [Rados Gateway](http://docs.ceph.com/docs/master/radosgw/):
 ## Prerequisites
 
 The Alluxio binaries must be on your machine. You can
-[download the binaries locally]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
+[download the binaries locally]({{ '/en/Get-Started.html' | relativize_url }}).
 
 ## Basic Setup
 

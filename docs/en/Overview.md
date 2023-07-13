@@ -9,23 +9,23 @@ Welcome to Alluxio Documentation! You will find resources regarding deploying Al
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/5YQvvznT5cI" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
-Check out our [Quick Start Guide]({{'/en/Get-Started.html' | relativize_url }}) for step-by-step guidance on how to download Alluxio, run Alluxio on a local machine, and perform basic tasks via Alluxio Shell.
+Check out our [Quick Start Guide]({{ '/en/Get-Started.html' | relativize_url }}) for step-by-step guidance on how to download Alluxio, run Alluxio on a local machine, and perform basic tasks via Alluxio Shell.
 
-Follow [Install Alluxio Cluster with HA]({{'/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }}) to deploy an Alluxio cluster with High Availability (HA) by running multiple Alluxio master processes on different nodes in the system.
+Follow [Install Alluxio Cluster with HA]({{ '/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }}) to deploy an Alluxio cluster with High Availability (HA) by running multiple Alluxio master processes on different nodes in the system.
 
 ## Compute Integrations
-* [Running Presto with Alluxio]({{'/en/compute/Presto.html' | relativize_url }})
+* [Running Presto with Alluxio]({{ '/en/compute/Presto.html' | relativize_url }})
 
-* [Running Trino with Alluxio]({{'/en/compute/Trino.html' | relativize_url }})
+* [Running Trino with Alluxio]({{ '/en/compute/Trino.html' | relativize_url }})
 
-* [Running Spark with Alluxio]({{'/en/compute/Spark.html' | relativize_url }})
+* [Running Spark with Alluxio]({{ '/en/compute/Spark.html' | relativize_url }})
 
 ## Storage Integrations
-* [Amazon AWS S3]({{'/en/ufs/S3.html' | relativize_url }})
+* [Amazon AWS S3]({{ '/en/ufs/S3.html' | relativize_url }})
 
-* [HDFS]({{'/en/ufs/HDFS.html' | relativize_url }})
+* [HDFS]({{ '/en/ufs/HDFS.html' | relativize_url }})
 
-* [Google Cloud Storage]({{'/en/ufs/GCS.html' | relativize_url }})
+* [Google Cloud Storage]({{ '/en/ufs/GCS.html' | relativize_url }})
 
 ## Alluxio Community Slack
 
@@ -33,4 +33,4 @@ Join our vibrant and fast-growing [Alluxio Community Slack Channel](https://www.
 
 ## Contribute to the Open Source Project
 
-Become a contributor! Follow our [Contribution Guide]({{'/en/contributor/Contributor-Getting-Started.html' | relativize_url }}) to learn how to fork the Alluxio repository and take on a new contributor task.
+Become a contributor! Follow our [Contribution Guide]({{ '/en/contributor/Contribution-Guide.html' | relativize_url }}) to learn how to fork the Alluxio repository and take on a new contributor task.

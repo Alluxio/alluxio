@@ -12,7 +12,7 @@ This guide describes how to configure Alluxio with [Azure Data Lake Storage Gen1
 ## Prerequisites
 
 The Alluxio binaries must be on your machine.
-You can [download the precompiled binaries directly]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
+You can [download the precompiled binaries directly]({{ '/en/Get-Started.html' | relativize_url }}).
 
 In preparation for using Azure Data Lake storage with Alluxio, create a new Data Lake storage in your Azure
 account or use an existing Data Lake storage. You should also note the directory you want to

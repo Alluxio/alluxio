@@ -96,7 +96,7 @@ future, we'd like to explore certain use cases where invalidation of metadata is
 
 Alluxio supports finer-grained page-level (typically, 1 MB) caching storage on Alluxio workers, 
 as an alternative option to the existing block-based (defaults to 64 MB) tiered caching storage. 
-This paging storage supports general workloads including reading and writing, with customizable cache eviction policies similar to [block annotation policies]({{ '/en/core-services/Caching.html' | relativize_url }}#block-annotation-policies) in tiered block store.
+This paging storage supports general workloads including reading and writing, with customizable cache eviction policies similar to [block annotation policies]({{ '/en/core-services/Data-Caching.html' | relativize_url }}#block-annotation-policies) in tiered block store.
 
 To switch to the paging storage:
 ```properties
