@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Journal Management
-nickname: Journal Management
-group: Operations
-priority: 5
 ---
 
 

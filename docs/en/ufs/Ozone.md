@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Ozone
-nickname: Ozone
-group: Storage Integrations
-priority: 10
 ---
 
 

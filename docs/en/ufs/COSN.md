@@ -1,9 +1,6 @@
 ---
 layout: global
 title: COSN
-nickname: COSN
-group: Storage Integrations
-priority: 5
 ---
 
 
@@ -33,13 +30,13 @@ Configure Alluxio to use COSN as its under storage system by modifying `conf/all
 Specify an existing COS bucket and directory as the under storage system by modifying
 `conf/alluxio-site.properties` to include:
 
-```
+```properties
 alluxio.dora.client.ufs.root=cosn://COSN_ALLUXIO_BUCKET/COSN_DATA/
 ```
 
 Specify COS configuration information in order to access COS by modifying `conf/core-site.xml` to include:
 
-```
+```xml
 <property>
    <name>fs.cosn.impl</name>
    <value>org.apache.hadoop.fs.CosFileSystem</value>
@@ -85,7 +82,7 @@ $ ./bin/alluxio runTests
 Visit your COS directory at `COSN_ALLUXIO_BUCKET/COSN_DATA` to verify the files and directories created by Alluxio exist.
 For this test, you should see files named like:
 
-```console
+```
 COSN_ALLUXIO_BUCKET/COSN_DATA/default_tests_files/BASIC_CACHE_THROUGH
 ```
 

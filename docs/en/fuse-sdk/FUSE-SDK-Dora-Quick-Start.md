@@ -1,8 +1,6 @@
 ---
 layout: global
 title: FUSE SDK with Distributed Cache Quick Start
-group: FUSE SDK
-priority: 3
 ---
 
 

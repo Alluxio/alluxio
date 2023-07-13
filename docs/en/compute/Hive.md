@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Running Apache Hive with Alluxio
-nickname: Apache Hive
-group: Compute Integrations
-priority: 2
 ---
 
 This guide describes how to run [Apache Hive](http://hive.apache.org/) with Alluxio, so

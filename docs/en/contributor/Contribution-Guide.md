@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Contribution Guide
-nickname: Contribution Guide
-group: Contributor Resources
-priority: 1
 ---
 
 We warmly welcome you to the Alluxio community. We are excited for your contributions and

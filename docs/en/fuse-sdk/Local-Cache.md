@@ -1,8 +1,6 @@
 ---
 layout: global
 title: FUSE SDK Local Cache Overview
-group: FUSE SDK
-priority: 4
 ---
 
 ## Local Cache

@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Azure Blob Store
-nickname: Azure Blob Store
-group: Storage Integrations
-priority: 2
 ---
 
 

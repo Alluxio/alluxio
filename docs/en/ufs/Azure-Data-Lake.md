@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Azure Data Lake Storage
-nickname: Azure Data Lake Storage
-group: Storage Integrations
-priority: 2
 ---
 
 

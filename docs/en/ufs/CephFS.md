@@ -1,9 +1,6 @@
 ---
 layout: global
 title: CephFS
-nickname: CephFS
-group: Storage Integrations
-priority: 11
 ---
 
 

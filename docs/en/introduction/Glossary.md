@@ -1,8 +1,6 @@
 ---
 layout: global
 title: Glossary
-group: Introduction
-priority: 1
 ---
 
 Master

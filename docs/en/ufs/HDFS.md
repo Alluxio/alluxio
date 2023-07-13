@@ -1,9 +1,6 @@
 ---
 layout: global
 title: HDFS
-nickname: HDFS
-group: Storage Integrations
-priority: 1
 ---
 
 

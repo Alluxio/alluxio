@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Metrics System On Kubernetes
-nickname: Metrics
-group: Kubernetes
-priority: 2
 ---
 
 For general information about the metrics of Alluxio, refer to [Metrics-System]({{ '/en/operation/Metrics-System.html' | relativize_url }}).

@@ -1,9 +1,6 @@
 ---
 layout: global
 title: NFS
-nickname: NFS
-group: Storage Integrations
-priority: 10
 ---
 
 

@@ -1,9 +1,6 @@
 ---
 layout: global
 title: CephObjectStorage
-nickname: CephObjectStorage
-group: Storage Integrations
-priority: 10
 ---
 
 

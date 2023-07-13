@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Qiniu Kodo
-nickname: Qiniu Kodo
-group: Storage Integrations
-priority: 4
 ---
 
 
