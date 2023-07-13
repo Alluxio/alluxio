@@ -282,7 +282,7 @@ public final class FileSystemMasterSyncMetadataTest {
   private AlluxioURI setupMockUfsS3Mount()
       throws IOException, FileDoesNotExistException, FileAlreadyExistsException,
       AccessControlException, InvalidPathException {
-    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryContext.defaults());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt"), CreateDirectoryContext.defaults());
     // Mock ufs mount
     AlluxioURI ufsMount = new AlluxioURI("s3a://bucket/");
     Mockito.when(mUfs.getUnderFSType()).thenReturn("s3");
@@ -306,9 +306,9 @@ public final class FileSystemMasterSyncMetadataTest {
   @Deprecated
   public void deleteAlluxioOnlyNoSync() throws Exception {
     // Prepare files
-    mFileSystemMaster.createDirectory(new AlluxioURI("/a/"), CreateDirectoryContext.defaults());
-    mFileSystemMaster.createDirectory(new AlluxioURI("/a/b/"), CreateDirectoryContext.defaults());
-    mFileSystemMaster.createDirectory(new AlluxioURI("/b/"), CreateDirectoryContext.defaults());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/a"), CreateDirectoryContext.defaults());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/a/b"), CreateDirectoryContext.defaults());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/b"), CreateDirectoryContext.defaults());
     // If the sync operation happens, the flag will be marked
     SyncAwareFileSystemMaster delegateMaster = (SyncAwareFileSystemMaster) mFileSystemMaster;
     delegateMaster.setSynced(false);
