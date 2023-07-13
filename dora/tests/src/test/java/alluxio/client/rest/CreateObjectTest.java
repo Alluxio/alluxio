@@ -48,7 +48,7 @@ public class CreateObjectTest extends RestApiTest {
   @Rule
   public S3ProxyRule mS3Proxy = S3ProxyRule.builder()
       .withBlobStoreProvider("transient")
-      .withPort(8001)
+      .withPort(8002)
       .withCredentials("_", "_")
       .build();
 
@@ -67,7 +67,7 @@ public class CreateObjectTest extends RestApiTest {
           .setProperty(PropertyKey.WORKER_BLOCK_STORE_TYPE, "PAGE")
           .setProperty(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, Constants.KB)
           .setProperty(PropertyKey.WORKER_PAGE_STORE_SIZES, "1GB")
-          .setProperty(PropertyKey.UNDERFS_S3_ENDPOINT, "localhost:8001")
+          .setProperty(PropertyKey.UNDERFS_S3_ENDPOINT, "localhost:8002")
           .setProperty(PropertyKey.UNDERFS_S3_ENDPOINT_REGION, "us-west-2")
           .setProperty(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS, true)
           .setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, "s3://" + TEST_BUCKET)
