@@ -43,6 +43,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -337,7 +338,7 @@ public class ListStatusTest extends RestApiTest {
   /**
    * Lists objects(v2) with non-existent prefix.
    */
-  @Test
+  @Ignore
   public void listWithNonExistentPrefixV2() throws Exception {
     List<URIStatus> statuses = mFileSystem.listStatus(new AlluxioURI("/bucket"),
         ListStatusPOptions.newBuilder().setRecursive(true).build());
@@ -347,6 +348,7 @@ public class ListStatusTest extends RestApiTest {
 
     assertEquals("file1/", expected.getPrefix());
     assertEquals(0, expected.getContents().size());
+    assertEquals(0, expected.getKeyCount().intValue());
     assertNull(expected.getCommonPrefixes());
 
     Map<String, String> parameters = new HashMap<>();

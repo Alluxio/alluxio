@@ -65,30 +65,30 @@ public final class PathUtils {
    * @param path path element to concatenate
    * @return joined path
    */
-  public static String concatPath(Object base, Object path) {
+  public static String concat(String base, String path) {
     Preconditions.checkNotNull(base, "base");
     Preconditions.checkNotNull(path, "path");
-    String trimmedBase = SEPARATOR_MATCHER.trimTrailingFrom(base.toString());
-    String trimmedPath = SEPARATOR_MATCHER.trimFrom(path.toString());
+    String trimmedBase = SEPARATOR_MATCHER.trimTrailingFrom(base);
+    String trimmedPath = SEPARATOR_MATCHER.trimFrom(path);
 
     StringBuilder output = new StringBuilder(trimmedBase.length() + trimmedPath.length() + 1);
     output.append(trimmedBase);
     if (!trimmedPath.isEmpty()) {
       output.append(AlluxioURI.SEPARATOR);
       output.append(trimmedPath);
-      if (path.toString().endsWith(AlluxioURI.SEPARATOR)) {
+      if (path.endsWith(AlluxioURI.SEPARATOR)) {
         output.append(AlluxioURI.SEPARATOR);
       }
     } else {
-      if (base.toString().endsWith(AlluxioURI.SEPARATOR)) {
+      if (base.endsWith(AlluxioURI.SEPARATOR)) {
         output.append(AlluxioURI.SEPARATOR);
       }
     }
 
-    if (output.length() == 0) {
-      // base must be "[/]+"
-      return AlluxioURI.SEPARATOR;
-    }
+//    if (output.length() == 0) {
+//      // base must be "[/]+"
+//      return AlluxioURI.SEPARATOR;
+//    }
     return output.toString();
   }
 
@@ -130,12 +130,12 @@ public final class PathUtils {
 //        output.append(trimmedPath);
 //      }
 //    }
-//    if (output.length() == 0) {
-//      // base must be "[/]+"
-//      return AlluxioURI.SEPARATOR;
-//    }
     for (Object path : paths) {
-      output = concatPath(output, path);
+      output = concat(output, path.toString());
+    }
+    if (output.length() == 0) {
+      // base must be "[/]+"
+      return AlluxioURI.SEPARATOR;
     }
 
     return output;
