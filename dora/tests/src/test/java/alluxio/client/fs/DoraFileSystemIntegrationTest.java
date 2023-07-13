@@ -39,6 +39,7 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import org.apache.commons.io.IOUtils;
 import org.gaul.s3proxy.junit.S3ProxyRule;
 import org.junit.Before;
 import org.junit.Rule;
@@ -132,7 +133,7 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
         .build()));
     try (FileInStream fis = mFileSystem.openFile(TEST_FILE_URI,
         OpenFilePOptions.newBuilder().setCommonOptions(optionNoSync()).build())) {
-      String content = new String(fis.readAllBytes());
+      String content = IOUtils.toString(fis);
       assertEquals(TEST_CONTENT, content);
     }
 
@@ -164,7 +165,7 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
 
     try (FileInStream fis = mFileSystem.openFile(TEST_FILE_URI,
         OpenFilePOptions.newBuilder().setCommonOptions(optionNoSync()).build())) {
-      String content = new String(fis.readAllBytes());
+      String content = IOUtils.toString(fis);
       assertEquals(TEST_CONTENT, content);
     }
 
@@ -176,7 +177,7 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
     // it should get the latest content.
     try (FileInStream fis = mFileSystem.openFile(TEST_FILE_URI,
         OpenFilePOptions.newBuilder().setCommonOptions(optionNoSync()).build())) {
-      String content = new String(fis.readAllBytes());
+      String content = IOUtils.toString(fis);
       assertEquals(UPDATED_TEST_CONTENT, content);
     }
   }

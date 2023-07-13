@@ -5,9 +5,6 @@ group: FUSE SDK
 priority: 2
 ---
 
-* Table of Contents
-  {:toc}
-
 ## Prerequisites
 
 The followings are the basic requirements running ALLUXIO POSIX API.

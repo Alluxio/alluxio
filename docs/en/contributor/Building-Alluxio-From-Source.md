@@ -8,8 +8,6 @@ priority: 0
 
 This guide describes how to clone the Alluxio repository, compile the source code, and run tests in your environment.
 
-* Table of Contents
-{:toc}
 
 ## Required Software
 
@@ -21,7 +19,7 @@ Alternatively, we have published a docker image [alluxio/alluxio-maven](https://
 
 ## Checkout Source Code
 
-Checkout the Alluxio master branch from Github:
+Checkout the Alluxio main branch from Github:
 
 ```shell
 $ git clone https://github.com/Alluxio/alluxio.git

@@ -2404,8 +2404,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       dataSizeBuilder(Name.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX)
           .setDefaultValue("10MB")
           .setDescription("The maximum single journal entry size allowed to be flushed. "
-              + "This value should be smaller than 30MB. Set to a larger value to allow larger "
-              + "journal entries when using the Alluxio Catalog service.")
+              + "This value should be smaller than 30MB.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -3618,8 +3617,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_UPDATE_CHECK_ENABLED =
       booleanBuilder(Name.MASTER_UPDATE_CHECK_ENABLED)
           .setDefaultValue(Boolean.parseBoolean(ProjectConstants.UPDATE_CHECK_ENABLED))
-          .setDescription("Whether to check for update availability.")
+          .setDescription("Whether to check for update availability")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setIsHidden(true)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_UPDATE_CHECK_INTERVAL =
@@ -3627,6 +3627,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("7day")
           .setDescription("The interval to check for update availability.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setIsHidden(true)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_UNSAFE_DIRECT_PERSIST_OBJECT_ENABLED =
@@ -5950,6 +5951,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_FILE_METADATA_LOAD_REAL_CONTENT_HASH =
+      booleanBuilder(Name.USER_FILE_METADATA_LOAD_REAL_CONTENT_HASH)
+          .setDefaultValue(false)
+          .setDescription("Whether to get real content hash of file when the file is loaded "
+              + "from UFS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey USER_FILE_PASSIVE_CACHE_ENABLED =
       booleanBuilder(Name.USER_FILE_PASSIVE_CACHE_ENABLED)
           .setDefaultValue(true)
@@ -7640,77 +7649,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
 
-  //
-  // Table service properties
-  //
-  public static final PropertyKey TABLE_ENABLED =
-      booleanBuilder(Name.TABLE_ENABLED)
-          .setDefaultValue(true)
-          .setDescription("(Experimental) Enables the table service.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey TABLE_CATALOG_PATH =
-      stringBuilder(Name.TABLE_CATALOG_PATH)
-          .setDefaultValue("/catalog")
-          .setDescription("The Alluxio file path for the table catalog metadata.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey TABLE_CATALOG_UDB_SYNC_TIMEOUT =
-      durationBuilder(Name.TABLE_CATALOG_UDB_SYNC_TIMEOUT)
-          .setDefaultValue("1h")
-          .setDescription("The timeout period for a db sync to finish in the catalog. If a sync"
-              + "takes longer than this timeout, the sync will be terminated.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE =
-      intBuilder(Name.TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE)
-          .setDefaultValue(500)
-          .setDescription("The maximum table partitions number in a single journal entry.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL =
-      durationBuilder(Name.TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL)
-          .setDefaultValue("10s")
-          .setDescription("Job monitor is a heartbeat thread in the transform manager, "
-              + "this is the time interval in milliseconds the job monitor heartbeat is run to "
-              + "check the status of the transformation jobs and update table and partition "
-              + "locations after transformation.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME =
-      durationBuilder(Name.TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME)
-          .setDefaultValue("300sec")
-          .setDescription("The length of time the Alluxio Table Master should keep information "
-              + "about finished transformation jobs before they are discarded.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey TABLE_UDB_HIVE_CLIENTPOOL_MIN =
-      intBuilder(Name.TABLE_UDB_HIVE_CLIENTPOOL_MIN)
-          .setDefaultValue(16)
-          .setDescription("The minimum capacity of the hive client pool per hive metastore")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey TABLE_UDB_HIVE_CLIENTPOOL_MAX =
-      intBuilder(Name.TABLE_UDB_HIVE_CLIENTPOOL_MAX)
-          .setDefaultValue(256)
-          .setDescription("The maximum capacity of the hive client pool per hive metastore")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey TABLE_LOAD_DEFAULT_REPLICATION =
-      intBuilder(Name.TABLE_LOAD_DEFAULT_REPLICATION)
-          .setDefaultValue(1)
-          .setDescription("The default replication number of files under the SDS table after "
-                  + "load option.")
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey HADOOP_SECURITY_AUTHENTICATION =
       stringBuilder(Name.HADOOP_SECURITY_AUTHENTICATION)
           .setDescription("HDFS authentication method.")
@@ -9220,6 +9158,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.metadata.load.type";
     public static final String USER_FILE_METADATA_SYNC_INTERVAL =
         "alluxio.user.file.metadata.sync.interval";
+    public static final String USER_FILE_METADATA_LOAD_REAL_CONTENT_HASH =
+        "alluxio.user.file.metadata.real.content.hash";
     public static final String USER_FILE_PASSIVE_CACHE_ENABLED =
         "alluxio.user.file.passive.cache.enabled";
     public static final String USER_FILE_READ_TYPE_DEFAULT = "alluxio.user.file.readtype.default";
@@ -9535,26 +9475,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_JVM_MONITOR_ENABLED = "alluxio.worker.jvm.monitor.enabled";
     public static final String STANDALONE_FUSE_JVM_MONITOR_ENABLED
         = "alluxio.standalone.fuse.jvm.monitor.enabled";
-
-    //
-    // Table service properties
-    //
-    public static final String TABLE_ENABLED = "alluxio.table.enabled";
-    public static final String TABLE_CATALOG_PATH = "alluxio.table.catalog.path";
-    public static final String TABLE_CATALOG_UDB_SYNC_TIMEOUT =
-        "alluxio.table.catalog.udb.sync.timeout";
-    public static final String TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE =
-        "alluxio.table.journal.partitions.chunk.size";
-    public static final String TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL =
-        "alluxio.table.transform.manager.job.monitor.interval";
-    public static final String TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME =
-        "alluxio.table.transform.manager.job.history.retention.time";
-    public static final String TABLE_UDB_HIVE_CLIENTPOOL_MIN =
-        "alluxio.table.udb.hive.clientpool.min";
-    public static final String TABLE_UDB_HIVE_CLIENTPOOL_MAX =
-        "alluxio.table.udb.hive.clientpool.MAX";
-    public static final String TABLE_LOAD_DEFAULT_REPLICATION =
-        "alluxio.table.load.default.replication";
 
     public static final String HADOOP_SECURITY_AUTHENTICATION =
         "alluxio.hadoop.security.authentication";

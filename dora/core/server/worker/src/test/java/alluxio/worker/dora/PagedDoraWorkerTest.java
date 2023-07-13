@@ -26,6 +26,9 @@ import alluxio.client.file.cache.PageMetaStore;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
+import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.FileInfo;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
@@ -390,7 +393,8 @@ public class PagedDoraWorkerTest {
 
     loadFileData(f.getPath());
 
-    var result = mWorker.getFileInfo(f.getPath(), GetStatusPOptions.getDefaultInstance());
+    alluxio.wire.FileInfo result =
+        mWorker.getFileInfo(f.getPath(), GetStatusPOptions.getDefaultInstance());
     List<PageId> cachedPages =
         mCacheManager.getCachedPageIdsByFileId(
             new AlluxioURI(f.getPath()).hash(), fileContent.length());
@@ -425,7 +429,8 @@ public class PagedDoraWorkerTest {
     File f = mTestFolder.newFile();
     Files.write(f.toPath(), fileContent.getBytes());
 
-    var result = mWorker.getFileInfo(f.getPath(), GetStatusPOptions.getDefaultInstance());
+    alluxio.wire.FileInfo result =
+        mWorker.getFileInfo(f.getPath(), GetStatusPOptions.getDefaultInstance());
     List<PageId> cachedPages =
         mCacheManager.getCachedPageIdsByFileId(
             new AlluxioURI(f.getPath()).hash(), fileContent.length());
@@ -477,11 +482,87 @@ public class PagedDoraWorkerTest {
       throws AccessControlException, IOException {
     File f = mTestFolder.newFolder();
 
-    var result = mWorker.getFileInfo(f.getPath(), GetStatusPOptions.getDefaultInstance());
+    alluxio.wire.FileInfo result =
+        mWorker.getFileInfo(f.getPath(), GetStatusPOptions.getDefaultInstance());
     assertTrue(result.isFolder());
 
     result = mWorker.getFileInfo(f.getPath(), GET_STATUS_OPTIONS_MUST_SYNC);
     assertTrue(result.isFolder());
+  }
+
+  @Test
+  public void testCreateDeleteFile() throws Exception {
+    File testDir = mTestFolder.newFolder("testDir");
+    testDir.mkdirs();
+    File testFile = new File(testDir, "a");
+    int fileLength = 1024;
+    createDummyFile(testFile, fileLength);
+
+    assertTrue(testFile.exists());
+    alluxio.wire.FileInfo fileInfo = mWorker.getFileInfo(testFile.getPath(),
+        GetStatusPOptions.getDefaultInstance());
+    assertEquals(fileInfo.getLength(), fileLength);
+
+    mWorker.delete(testFile.getPath(), DeletePOptions.getDefaultInstance());
+    assertThrows(FileNotFoundException.class, () -> {
+      mWorker.getFileInfo(testFile.getPath(), GetStatusPOptions.getDefaultInstance());
+    });
+    assertFalse(testFile.exists());
+  }
+
+  @Test
+  public void testCreateDeleteDirectory() throws Exception {
+    File testBaseDir = mTestFolder.newFolder("testBaseDir");
+    // Prepare the base dir in UFS because we create the dir without recursive=true
+    testBaseDir.mkdirs();
+    File testDir = new File(testBaseDir, "testDir");
+    mWorker.createDirectory(testDir.getPath(), CreateDirectoryPOptions.getDefaultInstance());
+    // The test dir should be created by Alluxio in UFS
+    assertTrue(testDir.exists());
+    alluxio.wire.FileInfo fileInfo = mWorker.getFileInfo(testDir.getPath(),
+        GetStatusPOptions.getDefaultInstance());
+    assertTrue(fileInfo.isFolder());
+
+    mWorker.delete(testDir.getPath(), DeletePOptions.getDefaultInstance());
+    assertThrows(FileNotFoundException.class, () -> {
+      mWorker.getFileInfo(testDir.getPath(), GetStatusPOptions.getDefaultInstance());
+    });
+  }
+
+  @Test
+  public void testRecursiveCreateDeleteDirectory() throws Exception {
+    File testBaseDir = mTestFolder.newFolder("testDir");
+    File testDir = new File(testBaseDir, "a");
+    File testNestedDir = new File(testDir, "b");
+    // Through Alluxio, create the nested path recursively
+    mWorker.createDirectory(testNestedDir.getPath(),
+        CreateDirectoryPOptions.newBuilder().setRecursive(true).build());
+    // Both directories should be created by Alluxio
+    assertTrue(testNestedDir.exists());
+    assertTrue(testDir.exists());
+    alluxio.wire.FileInfo nestedDirInfo = mWorker.getFileInfo(testNestedDir.getPath(),
+        GetStatusPOptions.getDefaultInstance());
+    assertTrue(nestedDirInfo.isFolder());
+
+    // Can create files under the nested dir, meaning the dir is created in UFS
+    File testFile = new File(testNestedDir, "testFile");
+    createDummyFile(testFile, 1024);
+    alluxio.wire.FileInfo nestedFileInfo = mWorker.getFileInfo(testFile.getPath(),
+        GetStatusPOptions.getDefaultInstance());
+    assertEquals(nestedFileInfo.getLength(), 1024);
+
+    // Delete the dir (containing nested files), the dir and nested files should all be gone
+    mWorker.delete(testNestedDir.getPath(), DeletePOptions.newBuilder().setRecursive(true).build());
+    assertThrows(FileNotFoundException.class, () -> {
+      mWorker.getFileInfo(testNestedDir.getPath(), GetStatusPOptions.getDefaultInstance());
+    });
+
+    assertThrows(FileNotFoundException.class, () -> {
+      // https://github.com/Alluxio/alluxio/issues/17741
+      // Children under a recursively deleted directory may exist in cache for a while
+      // So we need to manually ignore the cache
+      mWorker.getFileInfo(testFile.getPath(), GET_STATUS_OPTIONS_MUST_SYNC);
+    });
   }
 
   @Test
@@ -514,8 +595,8 @@ public class PagedDoraWorkerTest {
 
     mWorker.delete(f.getAbsolutePath(), DeletePOptions.getDefaultInstance());
     // Assert that page cache, metadata cache & list cache all removed stale data
-    assertTrue(mWorker.getMetaManager().getFromMetaStore(f.getPath()).isEmpty());
-    assertTrue(mWorker.getMetaManager().listCached(rootPath, false).isEmpty());
+    assertFalse(mWorker.getMetaManager().getFromMetaStore(f.getPath()).isPresent());
+    assertFalse(mWorker.getMetaManager().listCached(rootPath, false).isPresent());
     cachedPages =
         mCacheManager.getCachedPageIdsByFileId(
             new AlluxioURI(f.getPath()).hash(), fileContent.length());
@@ -533,5 +614,16 @@ public class PagedDoraWorkerTest {
                 .build());
     List<LoadFileFailure> fileFailures = load.get(30, TimeUnit.SECONDS);
     assertEquals(0, fileFailures.size());
+  }
+
+  private void createDummyFile(File testFile, int length) throws Exception {
+    OpenFileHandle handle = mWorker.createFile(testFile.getPath(),
+        CreateFilePOptions.getDefaultInstance());
+    // create file and write some data directly to this file in UFS.
+    byte[] buffer = BufferUtils.getIncreasingByteArray(length);
+    BufferUtils.writeBufferToFile(testFile.getAbsolutePath(), buffer);
+
+    mWorker.completeFile(testFile.getPath(), CompleteFilePOptions.getDefaultInstance(),
+        handle.getUUID().toString());
   }
 }

@@ -9,8 +9,6 @@ priority: 2
 While users should use [S3 API]({{ '/en/api/S3-API.html' | relativize_url }}) for data I/O operations, admins can 
 interact with Alluxio through REST API for actions not supported by S3 API. For example, mount and unmount operations.
 
-* Table of Contents
-{:toc}
 
 ## REST API
 

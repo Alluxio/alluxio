@@ -6,15 +6,13 @@ group: Storage Integrations
 priority: 10
 ---
 
-* Table of Contents
-{:toc}
 
 This guide describes how to configure Alluxio with an under storage system supporting the
 [Swift API](http://docs.openstack.org/developer/swift/).
 
 ## Prerequisites
 
-The Alluxio binaries must be on your machine. You can [download the binaries locally]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
+The Alluxio binaries must be on your machine. You can [download the binaries locally]({{ '/en/Get-Started.html' | relativize_url }}).
 
 ## Basic Setup
 
