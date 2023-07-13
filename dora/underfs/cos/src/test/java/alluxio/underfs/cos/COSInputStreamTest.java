@@ -12,7 +12,6 @@
 package alluxio.underfs.cos;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -35,7 +34,6 @@ import org.junit.rules.ExpectedException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 
 /**
@@ -52,7 +50,7 @@ public class COSInputStreamTest {
   private COSObjectInputStream[] mCOSObjectInputStreamSpy;
   private COSObject[] mCosObject;
 
-  private static final byte[] mInput = new byte[] {0, 1, 2};
+  private static final byte[] INPUT_ARRAY = new byte[] {0, 1, 2};
 
   /**
    * The exception expected to be thrown.
@@ -64,9 +62,9 @@ public class COSInputStreamTest {
   public void setUp() throws IOException {
     mCosClient = mock(COSClient.class);
 
-    mCosObject = new COSObject[mInput.length];
-    mCOSObjectInputStreamSpy = new COSObjectInputStream[mInput.length];
-    for (int i = 0; i < mInput.length; ++i) {
+    mCosObject = new COSObject[INPUT_ARRAY.length];
+    mCOSObjectInputStreamSpy = new COSObjectInputStream[INPUT_ARRAY.length];
+    for (int i = 0; i < INPUT_ARRAY.length; ++i) {
       final long pos = (long) i;
       mCosObject[i] = mock(COSObject.class);
       when(mCosClient.getObject(argThat(argument -> {
@@ -76,7 +74,7 @@ public class COSInputStreamTest {
         return false;
       })))
           .thenReturn(mCosObject[i]);
-      byte[] mockInput = Arrays.copyOfRange(mInput, i, mInput.length);
+      byte[] mockInput = Arrays.copyOfRange(INPUT_ARRAY, i, INPUT_ARRAY.length);
       mCOSObjectInputStreamSpy[i] = spy(new COSObjectInputStream(
           new ByteArrayInputStream(mockInput), null));
       when(mCosObject[i].getObjectContent()).thenReturn(mCOSObjectInputStreamSpy[i]);
@@ -95,34 +93,35 @@ public class COSInputStreamTest {
 
   @Test
   public void readInt() throws IOException {
-    for (int i = 0; i < mInput.length; ++i) {
-      assertEquals(mInput[i], mCosInputStream.read());
+    for (int i = 0; i < INPUT_ARRAY.length; ++i) {
+      Assert.assertEquals(INPUT_ARRAY[i], mCosInputStream.read());
     }
   }
 
   @Test
   public void readByteArray() throws IOException {
-    byte[] bytes = new byte[mInput.length];
-    int readCount = mCosInputStream.read(bytes, 0, mInput.length);
-    assertEquals(mInput.length, readCount);
-    assertArrayEquals(mInput, bytes);
+    byte[] bytes = new byte[INPUT_ARRAY.length];
+    int readCount = mCosInputStream.read(bytes, 0, INPUT_ARRAY.length);
+    Assert.assertEquals(INPUT_ARRAY.length, readCount);
+    Assert.assertArrayEquals(INPUT_ARRAY, bytes);
   }
 
   @Test
   public void skip() throws IOException {
-    assertEquals(0, mCosInputStream.read());
+    Assert.assertEquals(0, mCosInputStream.read());
     mCosInputStream.skip(1);
-    assertEquals(2, mCosInputStream.read());
+    Assert.assertEquals(2, mCosInputStream.read());
   }
 
   @Test
   public void testException() {
-    for(int i = 0; i < mInput.length; ++i) {
+
+    for (int i = 0; i < INPUT_ARRAY.length; ++i) {
       when(mCosObject[i].getObjectContent()).thenThrow(new CosServiceException(""));
       try {
         mCosInputStream.read();
       } catch (Exception e) {
-        assertTrue(e instanceof IOException);
+        Assert.assertTrue(e instanceof IOException);
       }
     }
   }
