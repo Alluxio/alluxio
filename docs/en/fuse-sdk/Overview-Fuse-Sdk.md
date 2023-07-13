@@ -1,8 +1,6 @@
 ---
 layout: global
 title: FUSE SDK Overview
-group: FUSE SDK
-priority: 1
 ---
 
 The Alluxio POSIX API is a feature that allows mounting training datasets
