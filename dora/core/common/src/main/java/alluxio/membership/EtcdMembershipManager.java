@@ -99,7 +99,7 @@ public class EtcdMembershipManager implements MembershipManager {
     return fullMembers;
   }
 
-  private List<WorkerServiceEntity> retrieveLiveMembers() {
+  private List<WorkerServiceEntity> retrieveLiveMembers() throws IOException {
     List<WorkerServiceEntity> liveMembers = new ArrayList<>();
     for (Map.Entry<String, ByteBuffer> entry : mAlluxioEtcdClient.mServiceDiscovery
         .getAllLiveServices().entrySet()) {
