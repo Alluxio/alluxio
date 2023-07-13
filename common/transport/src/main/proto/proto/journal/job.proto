@@ -24,7 +24,7 @@ message LoadJobEntry {
   optional bool load_metadata_only = 9;
 }
 
-// next available id: 12
+// next available id: 13
 message CopyJobEntry {
   required string src = 1;
   required string dst = 2;
@@ -37,6 +37,7 @@ message CopyJobEntry {
   optional int64 end_time = 9;
   optional bool overwrite = 10;
   optional bool check_content = 11;
+  optional FileFilter filter = 12;
 }
 
 // next available id: 13

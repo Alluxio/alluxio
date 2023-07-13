@@ -12,16 +12,19 @@
 package alluxio.master.job;
 
 import alluxio.AlluxioURI;
-import alluxio.conf.Configuration;
+import alluxio.exception.runtime.FailedPreconditionRuntimeException;
+import alluxio.exception.runtime.NotFoundRuntimeException;
+import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.MoveJobPOptions;
 import alluxio.job.MoveJobRequest;
 import alluxio.master.file.DefaultFileSystemMaster;
+import alluxio.master.file.meta.MountTable;
 import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobFactory;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.wire.FileInfo;
 
 import java.util.Optional;
@@ -55,8 +58,22 @@ public class MoveJobFactory implements JobFactory {
     boolean verificationEnabled = options.hasVerify() && options.getVerify();
     boolean overwrite = options.hasOverwrite() && options.getOverwrite();
     boolean checkContent = options.hasCheckContent() && options.getCheckContent();
-    UnderFileSystem ufs = mFs.getUfsManager().getOrAdd(new AlluxioURI(src),
-        UnderFileSystemConfiguration.defaults(Configuration.global()));
+    MountTable.ReverseResolution resolution =
+        mFs.getMountTable().reverseResolve(new AlluxioURI(src));
+    long mountId;
+    if (resolution == null) {
+      throw new NotFoundRuntimeException("Mount point not found");
+    }
+    else {
+      mountId = resolution.getMountInfo().getMountId();
+    }
+    UnderFileSystem ufs;
+    try {
+      ufs = mFs.getUfsManager().get(mountId).acquireUfsResource().get();
+    } catch (NotFoundException | UnavailableException e) {
+      // concurrent mount table change would cause this exception
+      throw new FailedPreconditionRuntimeException(e);
+    }
     Iterable<FileInfo> fileIterator = new UfsFileIterable(ufs, src, Optional
         .ofNullable(AuthenticatedClientUser.getOrNull())
         .map(User::getName), FileInfo::isCompleted);
