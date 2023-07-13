@@ -56,12 +56,15 @@ public class CreateObjectTest extends RestApiTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setIncludeProxy(true)
+          .setProperty(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL, "200ms")
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, Constants.MB * 16)
-          .setProperty(PropertyKey.USER_FILE_RESERVED_BYTES, Constants.MB * 16 / 2)
-          .setProperty(PropertyKey.WORKER_PAGE_STORE_SIZES, "1GB")
+          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, Long.MAX_VALUE)
           .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)
+          .setProperty(PropertyKey.USER_FILE_RESERVED_BYTES, Constants.MB * 16 / 2)
+          .setProperty(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED, true)
           .setProperty(PropertyKey.WORKER_BLOCK_STORE_TYPE, "PAGE")
           .setProperty(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, Constants.KB)
+          .setProperty(PropertyKey.WORKER_PAGE_STORE_SIZES, "1GB")
           .setProperty(PropertyKey.UNDERFS_S3_ENDPOINT, "localhost:8001")
           .setProperty(PropertyKey.UNDERFS_S3_ENDPOINT_REGION, "us-west-2")
           .setProperty(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS, true)
@@ -129,7 +132,8 @@ public class CreateObjectTest extends RestApiTest {
     Assert.assertEquals(Response.Status.OK.getStatusCode(),
         createObjectRestCall(folderKey, NO_PARAMS, new byte[] {},
             TEST_USER_NAME).getResponseCode());
-    Assert.assertEquals(Response.Status.OK.getStatusCode(), headRestCall(folderKey).getResponseCode());
+    Assert.assertEquals(Response.Status.OK.getStatusCode(),
+        headRestCall(folderKey).getResponseCode());
   }
 
   @Test
@@ -143,8 +147,10 @@ public class CreateObjectTest extends RestApiTest {
         createObjectRestCall(objectKey2, NO_PARAMS, new byte[] {},
             TEST_USER_NAME).getResponseCode());
 
-    Assert.assertEquals(Response.Status.OK.getStatusCode(), headRestCall(objectKey1).getResponseCode());
-    Assert.assertEquals(Response.Status.OK.getStatusCode(), headRestCall(objectKey2).getResponseCode());
+    Assert.assertEquals(Response.Status.OK.getStatusCode(),
+        headRestCall(objectKey1).getResponseCode());
+    Assert.assertEquals(Response.Status.OK.getStatusCode(),
+        headRestCall(objectKey2).getResponseCode());
   }
 
   @Test
@@ -184,7 +190,8 @@ public class CreateObjectTest extends RestApiTest {
             TEST_USER_NAME).getResponseCode());
 
     Assert.assertArrayEquals(object, getObjectRestCall(objectKey).getBytes());
-    Assert.assertEquals(Response.Status.OK.getStatusCode(), headRestCall(folderKey).getResponseCode());
+    Assert.assertEquals(Response.Status.OK.getStatusCode(),
+        headRestCall(folderKey).getResponseCode());
   }
 
   @Test
@@ -214,7 +221,8 @@ public class CreateObjectTest extends RestApiTest {
     HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
         objectKey, NO_PARAMS, HttpMethod.GET,
         getDefaultOptionsWithAuth()).execute();
-    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), connection.getResponseCode());
+    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(),
+        connection.getResponseCode());
     S3Error response =
         new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
     Assert.assertEquals(objectKey, response.getResource());
@@ -231,7 +239,8 @@ public class CreateObjectTest extends RestApiTest {
         headRestCall(bucket).getResponseCode());
     HttpURLConnection connection =
         createObjectRestCall(objectKey, NO_PARAMS, object, TEST_USER_NAME);
-    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), connection.getResponseCode());
+    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(),
+        connection.getResponseCode());
     S3Error response =
         new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
     Assert.assertEquals(objectKey, response.getResource());
@@ -248,7 +257,8 @@ public class CreateObjectTest extends RestApiTest {
         headRestCall(bucket).getResponseCode());
     HttpURLConnection connection =
         createObjectRestCall(objectKey, NO_PARAMS, object, TEST_USER_NAME);
-    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), connection.getResponseCode());
+    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(),
+        connection.getResponseCode());
     S3Error response =
         new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
     Assert.assertEquals(objectKey, response.getResource());
@@ -268,7 +278,8 @@ public class CreateObjectTest extends RestApiTest {
             .setBody(object)
             .setContentType(TestCaseOptions.OCTET_STREAM_CONTENT_TYPE)
             .setMD5(null));
-    Assert.assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), connection.getResponseCode());
+    Assert.assertEquals(Response.Status.BAD_REQUEST.getStatusCode(),
+        connection.getResponseCode());
     S3Error response =
         new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
     Assert.assertEquals(objectKey, response.getResource());
@@ -331,7 +342,8 @@ public class CreateObjectTest extends RestApiTest {
                 S3Constants.Directive.REPLACE.name())
             .addHeader(S3Constants.S3_COPY_SOURCE_HEADER, sourcePath)).execute();
 
-    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), connection.getResponseCode());
+    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(),
+        connection.getResponseCode());
     S3Error response =
         new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
     Assert.assertEquals(targetPath, response.getResource());
@@ -429,7 +441,8 @@ public class CreateObjectTest extends RestApiTest {
     HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
         objectKey, NO_PARAMS, HttpMethod.DELETE,
         getDefaultOptionsWithAuth()).execute();
-    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), connection.getResponseCode());
+    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(),
+        connection.getResponseCode());
     S3Error response =
         new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
     Assert.assertEquals(objectKey, response.getResource());
@@ -463,7 +476,8 @@ public class CreateObjectTest extends RestApiTest {
     Assert.assertEquals(Response.Status.OK.getStatusCode(),
         createObjectRestCall(objectKey, NO_PARAMS, object, TEST_USER_NAME).getResponseCode());
     Assert.assertEquals(Response.Status.OK.getStatusCode(),
-        createObjectRestCall(folderKey, NO_PARAMS, new byte[] {}, TEST_USER_NAME).getResponseCode());
+        createObjectRestCall(folderKey, NO_PARAMS, new byte[] {},
+            TEST_USER_NAME).getResponseCode());
 
     Assert.assertEquals(Constants.KB, headRestCall(objectKey).getContentLength());
     Assert.assertEquals(Response.Status.OK.getStatusCode(),
@@ -482,7 +496,8 @@ public class CreateObjectTest extends RestApiTest {
     Assert.assertEquals(Response.Status.OK.getStatusCode(),
         createBucketRestCall(bucket).getResponseCode());
     Assert.assertEquals(Response.Status.OK.getStatusCode(),
-        createObjectRestCall(folderKey, NO_PARAMS, new byte[] {}, TEST_USER_NAME).getResponseCode());
+        createObjectRestCall(folderKey, NO_PARAMS, new byte[] {},
+            TEST_USER_NAME).getResponseCode());
     Assert.assertEquals(Response.Status.OK.getStatusCode(),
         createObjectRestCall(objectKey, NO_PARAMS, object, TEST_USER_NAME).getResponseCode());
 
@@ -490,7 +505,6 @@ public class CreateObjectTest extends RestApiTest {
     Assert.assertEquals(Response.Status.OK.getStatusCode(),
         headRestCall(folderKey).getResponseCode());
   }
-
 
   @Test
   public void deleteObjectAsPrefixOfDir() throws Exception {
@@ -512,11 +526,11 @@ public class CreateObjectTest extends RestApiTest {
 
     deleteRestCall(objectKey);
 
-    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), headRestCall(objectKey).getResponseCode());
-    Assert.assertEquals(Response.Status.OK.getStatusCode(), headRestCall(folderKey).getResponseCode());
+    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(),
+        headRestCall(objectKey).getResponseCode());
+    Assert.assertEquals(Response.Status.OK.getStatusCode(),
+        headRestCall(folderKey).getResponseCode());
   }
-
-
 
   @Test
   public void deleteObjectButDirectory() throws Exception {
@@ -538,8 +552,10 @@ public class CreateObjectTest extends RestApiTest {
 
     deleteRestCall(objectKey);
 
-    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), headRestCall(objectKey).getResponseCode());
-    Assert.assertEquals(Response.Status.OK.getStatusCode(), headRestCall(folderKey).getResponseCode());
+    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(),
+        headRestCall(objectKey).getResponseCode());
+    Assert.assertEquals(Response.Status.OK.getStatusCode(),
+        headRestCall(folderKey).getResponseCode());
   }
 
   @Test
@@ -562,7 +578,8 @@ public class CreateObjectTest extends RestApiTest {
 
     deleteRestCall(folderKey);
 
-    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), headRestCall(folderKey).getResponseCode());
+    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(),
+        headRestCall(folderKey).getResponseCode());
     Assert.assertArrayEquals(object, getObjectRestCall(objectKey).getBytes());
   }
 
@@ -587,7 +604,8 @@ public class CreateObjectTest extends RestApiTest {
 
     deleteRestCall(folderKey);
 
-    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), headRestCall(folderKey).getResponseCode());
+    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(),
+        headRestCall(folderKey).getResponseCode());
     Assert.assertArrayEquals(object, getObjectRestCall(objectKey).getBytes());
   }
 
@@ -599,7 +617,8 @@ public class CreateObjectTest extends RestApiTest {
     HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
         objectKey, NO_PARAMS, HttpMethod.DELETE,
         getDefaultOptionsWithAuth()).execute();
-    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(), connection.getResponseCode());
+    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(),
+        connection.getResponseCode());
     S3Error response =
         new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
     Assert.assertEquals(objectKey, response.getResource());
