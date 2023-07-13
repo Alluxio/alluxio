@@ -94,52 +94,62 @@ public class WorkerLocationPolicyTest {
   }
 
   @Test
-  // todo(bowen): this test can be flaky if the test subject is not thread safe
+  // Notes on thread safety:
+  // This test tries to ensure the test subject live up to its thread safety guarantees.
+  // 1. When the test subject is actually correctly implemented, this test will *always* pass.
+  // 2. When it is not, this test cannot reliably detect that, since it's a matter of
+  //    chance that race conditions manifest themselves. This test may appear to be flaky,
+  //    but chances are that there are thread safety issues with the test subject.
+  // To decrease the chance of false negatives, you can run this test manually multiple times
+  // until you are confident it's free of race conditions.
   public void concurrentRefresh() throws Exception {
-    ConsistentHashProvider provider = new ConsistentHashProvider(1, WORKER_LIST_TTL_MS);
-    provider.refresh(generateRandomWorkerList(5), NUM_VIRTUAL_NODES);
-    long initialCount = provider.getUpdateCount();
-    Thread.sleep(WORKER_LIST_TTL_MS);
-
     final int numThreads = 16;
-    CountDownLatch startSignal = new CountDownLatch(numThreads);
     ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
 
-    // generate a list of distinct maps for each thread
-    List<List<BlockWorkerInfo>> listsPerThread = IntStream.range(0, numThreads)
-        .mapToObj(i -> generateRandomWorkerList(5))
-        .collect(Collectors.toList());
-    List<Future<?>> futures = IntStream.range(0, numThreads)
-        .mapToObj(i -> {
-          List<BlockWorkerInfo> list = listsPerThread.get(i);
-          return executorService.submit(() -> {
-            startSignal.countDown();
-            try {
-              startSignal.await();
-            } catch (InterruptedException e) {
-              fail("interrupted");
-            }
-            provider.refresh(list, NUM_VIRTUAL_NODES);
-          });
-        })
-        .collect(Collectors.toList());
-    for (Future<?> future : futures) {
-      try {
-        future.get();
-      } catch (InterruptedException interruptedException) {
-        throw new AssertionError("interrupted", interruptedException);
-      } catch (ExecutionException e) {
-        throw new AssertionError("failed to run thread", e);
+    for (int repeat = 0; repeat < 100; repeat++) {
+      ConsistentHashProvider provider = new ConsistentHashProvider(1, WORKER_LIST_TTL_MS);
+      provider.refresh(generateRandomWorkerList(50), NUM_VIRTUAL_NODES);
+      long initialCount = provider.getUpdateCount();
+      Thread.sleep(WORKER_LIST_TTL_MS);
+
+      CountDownLatch startSignal = new CountDownLatch(numThreads);
+
+      // generate a list of distinct maps for each thread
+      List<List<BlockWorkerInfo>> listsPerThread = IntStream.range(0, numThreads)
+          .mapToObj(i -> generateRandomWorkerList(50))
+          .collect(Collectors.toList());
+      List<Future<?>> futures = IntStream.range(0, numThreads)
+          .mapToObj(i -> {
+            List<BlockWorkerInfo> list = listsPerThread.get(i);
+            return executorService.submit(() -> {
+              startSignal.countDown();
+              try {
+                startSignal.await();
+              } catch (InterruptedException e) {
+                fail("interrupted");
+              }
+              provider.refresh(list, NUM_VIRTUAL_NODES);
+            });
+          })
+          .collect(Collectors.toList());
+      for (Future<?> future : futures) {
+        try {
+          future.get();
+        } catch (InterruptedException interruptedException) {
+          throw new AssertionError("interrupted", interruptedException);
+        } catch (ExecutionException e) {
+          throw new AssertionError("failed to run thread", e);
+        }
       }
+      // only one thread actually updated the map
+      assertEquals(1, provider.getUpdateCount() - initialCount);
+      // check if the worker list is one of the lists provided by the threads
+      List<BlockWorkerInfo> workerInfoListUsedByPolicy = provider.getLastWorkerInfos();
+      assertTrue(listsPerThread.contains(workerInfoListUsedByPolicy));
+      assertEquals(
+          ConsistentHashProvider.build(workerInfoListUsedByPolicy, NUM_VIRTUAL_NODES),
+          provider.getActiveNodesMap());
     }
-    // only one thread actually updated the map
-    assertEquals(1, provider.getUpdateCount() - initialCount);
-    // check if the worker list is one of the lists provided by the threads
-    List<BlockWorkerInfo> workerInfoListUsedByPolicy = provider.getLastWorkerInfos();
-    assertTrue(listsPerThread.contains(workerInfoListUsedByPolicy));
-    assertEquals(
-        ConsistentHashProvider.build(workerInfoListUsedByPolicy, NUM_VIRTUAL_NODES),
-        provider.getActiveNodesMap());
   }
 
   @Test
