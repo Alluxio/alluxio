@@ -139,25 +139,46 @@ public class LocalCacheFileSystem extends org.apache.hadoop.fs.FileSystem {
   }
 
   /**
-   * Attempts to open the specified file for reading.
+   * A wrapper method to default not enforce an open call.
    *
    * @param status the status of the file to open
    * @param bufferSize stream buffer size in bytes, currently unused
    * @return an {@link FSDataInputStream} at the indicated path of a file
    */
   public FSDataInputStream open(URIStatus status, int bufferSize) throws IOException {
+    return open(status, bufferSize, false);
+  }
+
+  /**
+   * Attempts to open the specified file for reading.
+   *
+   * @param status the status of the file to open
+   * @param bufferSize stream buffer size in bytes, currently unused
+   * @param enforceOpen flag to enforce calling open to external storage
+   * @return an {@link FSDataInputStream} at the indicated path of a file
+   */
+  public FSDataInputStream open(URIStatus status, int bufferSize, boolean enforceOpen)
+          throws IOException {
     if (mCacheManager == null || !mCacheFilter.needsCache(status)) {
       return mExternalFileSystem.open(HadoopUtils.toPath(new AlluxioURI(status.getPath())),
           bufferSize);
     }
-    CloseableSupplier<PositionReader> fallbackHadoopReader = new CloseableSupplier<>(() -> {
-      try {
-        return new AlluxioHdfsPositionReader(mHadoopFileOpener.open(status),
-            status.getLength());
-      } catch (IOException e) {
-        throw AlluxioRuntimeException.from(e);
-      }
-    });
+    CloseableSupplier<PositionReader> fallbackHadoopReader;
+    if (enforceOpen) {
+      // making the open call right now, instead of later when called back
+      FSDataInputStream inputStream = mHadoopFileOpener.open(status);
+      fallbackHadoopReader = new CloseableSupplier<>(() ->
+              new AlluxioHdfsPositionReader(inputStream, status.getLength()));
+    } else {
+      fallbackHadoopReader = new CloseableSupplier<>(() -> {
+        try {
+          return new AlluxioHdfsPositionReader(mHadoopFileOpener.open(status),
+                  status.getLength());
+        } catch (IOException e) {
+          throw AlluxioRuntimeException.from(e);
+        }
+      });
+    }
     LocalCachePositionReader localCachePositionReader = LocalCachePositionReader
         .create(mAlluxioConf, mCacheManager, fallbackHadoopReader, status,
             mAlluxioConf.getBytes(PropertyKey.USER_CLIENT_CACHE_PAGE_SIZE),
