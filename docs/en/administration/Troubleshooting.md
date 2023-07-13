@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Troubleshooting
-nickname: Troubleshooting
-group: Administration
-priority: 1
 ---
 
 
