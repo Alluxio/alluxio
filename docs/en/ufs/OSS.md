@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Aliyun Object Storage Service
-nickname: Aliyun Object Storage Service
-group: Storage Integrations
-priority: 10
 ---
 
 

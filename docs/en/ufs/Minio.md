@@ -1,9 +1,6 @@
 ---
 layout: global
 title: MinIO
-nickname: MinIO
-group: Storage Integrations
-priority: 10
 ---
 
 

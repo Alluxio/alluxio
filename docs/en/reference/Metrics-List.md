@@ -1,8 +1,6 @@
 ---
 layout: global
 title: List of Metrics
-group: Reference
-priority: 1
 ---
 
 

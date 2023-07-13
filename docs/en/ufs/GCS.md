@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Google Cloud Storage
-nickname: Google Cloud Storage
-group: Storage Integrations
-priority: 2
 ---
 
 

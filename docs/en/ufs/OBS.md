@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Huawei OBS
-nickname: Huawei OBS
-group: Storage Integrations
-priority: 0
 ---
 
 

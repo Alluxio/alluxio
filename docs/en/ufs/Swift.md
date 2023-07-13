@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Swift
-nickname: Swift
-group: Storage Integrations
-priority: 10
 ---
 
 

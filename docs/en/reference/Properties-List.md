@@ -1,8 +1,6 @@
 ---
 layout: global
 title: List of Configuration Properties
-group: Reference
-priority: 0
 ---
 
 
