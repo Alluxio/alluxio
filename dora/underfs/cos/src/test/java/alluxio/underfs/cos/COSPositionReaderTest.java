@@ -12,6 +12,7 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 public class COSPositionReaderTest {
   /**
@@ -55,7 +56,7 @@ public class COSPositionReaderTest {
     // test successful open object input stream
     long position = 0L;
     int bytesToRead = 10;
-    var inputStream = mCOSPositionReader.openObjectInputStream(position, bytesToRead);
+    InputStream inputStream = mCOSPositionReader.openObjectInputStream(position, bytesToRead);
     Assert.assertTrue(inputStream instanceof COSObjectInputStream);
 
     // test open object input stream with exception

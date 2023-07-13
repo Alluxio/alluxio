@@ -38,6 +38,7 @@ import org.mockito.Mockito;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -222,7 +223,7 @@ public class COSUnderFileSystemTest {
     Mockito.when(mClient.listObjects(ArgumentMatchers.any(ListObjectsRequest.class)))
         .thenReturn(new ObjectListing());
     ListObjectsRequest request = new ListObjectsRequest();
-    var result = mCOSUnderFileSystem.getObjectListingChunk(request);
+    Serializable result = mCOSUnderFileSystem.getObjectListingChunk(request);
     Assert.assertTrue(result instanceof ObjectListing);
   }
 
