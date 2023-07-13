@@ -1,11 +1,7 @@
 ---
 layout: global
 title: User Command Line Interface
-nickname: User CLI
-group: Operations
-priority: 1
 ---
-
 
 Alluxio's command line interface provides users with basic file system operations. You can invoke
 the following command line utility to get all the subcommands:

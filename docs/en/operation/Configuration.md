@@ -1,8 +1,6 @@
 ---
 layout: global
 title: Configuration Settings
-group: Operations
-priority: 0
 ---
 
 
