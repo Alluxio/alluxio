@@ -25,7 +25,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.hash.HashFunction;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +32,8 @@ import java.util.NavigableMap;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
@@ -78,24 +79,37 @@ public class WorkerLocationPolicy {
 
     /**
      * Timestamp of the last update to {@link #mActiveNodesByConsistentHashing}.
-     * Must use System.nanoTime to ensure monotonic increment. Otherwise, updates to the worker
-     * list may be missed as the expiry based on TTL cannot be reliably determined.
+     * Must use System.nanoTime to ensure monotonic increment. Otherwise, earlier updates
+     * may overwrite the latest as the expiry based on TTL cannot be reliably determined.
      */
     private final AtomicLong mLastUpdatedTimestamp = new AtomicLong(System.nanoTime());
     /**
      * Counter for how many times the map has been updated.
      */
-    private final AtomicLong mUpdateCount = new AtomicLong(0);
+    private final LongAdder mUpdateCount = new LongAdder();
     /**
      * The worker list which the {@link #mActiveNodesByConsistentHashing} was built from.
      * Must be kept in sync with {@link #mActiveNodesByConsistentHashing}.
      * Used to compare with incoming worker list to skip the heavy build process if the worker
      * list has not changed.
      */
-    private final List<BlockWorkerInfo> mLastWorkerInfos = new ArrayList<>();
+    private final AtomicReference<List<BlockWorkerInfo>> mLastWorkerInfos =
+        new AtomicReference<>(ImmutableList.of());
     /**
-     * A map of virtual node indices to the actual workers.
-     * This is lazily initialized, can only be null before the first call to refresh.
+     * Requirements for interacting with this map:
+     * 1. This hash ring is lazy initialized (cannot init in the constructor).
+     *    Multiple threads may try to enter the init section and it should be only initialized once.
+     * 2. This hash ring is timestamped. After the TTL expires, we need to compare the worker
+     *    list with the current available workers and possibly rebuild the hash ring.
+     * 3. While the hash ring is being updated, readers should see a stale hash ring
+     *    without blocking.
+     *
+     * Thread safety guarantees:
+     * 1. At lazy-init time, mutual exclusion is provided by `synchronized(mInitLock)`
+     *    and double-checking. At this stage it is guarded by `mInitLock`.
+     * 2. After init, updating the hash ring is guarded by an optimistic lock using CAS(timestamp).
+     *    There will be no blocking but a read may see a stale ring.
+     *    At this stage it is guarded by `mLastUpdatedTimestamp`.
      */
     @Nullable
     private volatile NavigableMap<Integer, BlockWorkerInfo> mActiveNodesByConsistentHashing;
@@ -123,25 +137,35 @@ public class WorkerLocationPolicy {
           "cannot refresh hash provider with empty worker list");
       maybeInitialize(workerInfos, numVirtualNodes);
       // check if the worker list has expired
+      if (shouldRebuildActiveNodesMapExclusively()) {
+        // thread safety is valid provided that build() takes less than
+        // WORKER_INFO_UPDATE_INTERVAL_NS, so that before next update the current update has been
+        // finished
+        if (hasWorkerListChanged(workerInfos, mLastWorkerInfos.get())) {
+          mActiveNodesByConsistentHashing = build(workerInfos, numVirtualNodes);
+          mLastWorkerInfos.set(workerInfos);
+          mUpdateCount.increment();
+        }
+      }
+      // otherwise, do nothing and proceed with stale worker list. on next access, the worker list
+      // will have been updated by another thread
+    }
+
+    /**
+     * Check whether the current map has expired and needs update.
+     * If called by multiple threads concurrently, only one of the callers will get a return value
+     * of true, so that the map will be updated only once. The other threads will not try to
+     * update and use stale information instead.
+     */
+    private boolean shouldRebuildActiveNodesMapExclusively() {
+      // check if the worker list has expired
       long lastUpdateTs = mLastUpdatedTimestamp.get();
       long currentTs = System.nanoTime();
       if (currentTs - lastUpdateTs > mWorkerInfoUpdateIntervalNs) {
         // use CAS to only allow one thread to actually update the timestamp
-        boolean casUpdated = mLastUpdatedTimestamp.compareAndSet(lastUpdateTs, currentTs);
-        // thread safety is valid provided that build() takes less than
-        // WORKER_INFO_UPDATE_INTERVAL_NS, so that before next update the current update has been
-        // finished
-        if (casUpdated) {
-          if (hasWorkerListChanged(workerInfos, mLastWorkerInfos)) {
-            mActiveNodesByConsistentHashing = build(workerInfos, numVirtualNodes);
-            mLastWorkerInfos.clear();
-            mLastWorkerInfos.addAll(workerInfos);
-            mUpdateCount.incrementAndGet();
-          }
-        }
-        // else, do nothing and proceed with stale worker list. on next access, the worker list
-        // will have been updated by another thread
+        return mLastUpdatedTimestamp.compareAndSet(lastUpdateTs, currentTs);
       }
+      return false;
     }
 
     /**
@@ -156,8 +180,7 @@ public class WorkerLocationPolicy {
           // test again to skip re-initialization
           if (mActiveNodesByConsistentHashing == null) {
             mActiveNodesByConsistentHashing = build(workerInfos, numVirtualNodes);
-            mLastWorkerInfos.clear();
-            mLastWorkerInfos.addAll(workerInfos);
+            mLastWorkerInfos.set(workerInfos);
             mLastUpdatedTimestamp.set(System.nanoTime());
           }
         }
@@ -209,7 +232,7 @@ public class WorkerLocationPolicy {
 
     @VisibleForTesting
     List<BlockWorkerInfo> getLastWorkerInfos() {
-      return mLastWorkerInfos;
+      return mLastWorkerInfos.get();
     }
 
     @VisibleForTesting
@@ -219,7 +242,7 @@ public class WorkerLocationPolicy {
 
     @VisibleForTesting
     long getUpdateCount() {
-      return mUpdateCount.get();
+      return mUpdateCount.sum();
     }
 
     @VisibleForTesting

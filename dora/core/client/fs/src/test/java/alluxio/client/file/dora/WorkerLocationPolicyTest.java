@@ -148,6 +148,7 @@ public class WorkerLocationPolicyTest {
     List<BlockWorkerInfo> workerList = generateRandomWorkerList(5);
     // set initial state
     provider.refresh(workerList, NUM_VIRTUAL_NODES);
+    long initialUpdateCount = provider.getUpdateCount();
     assertEquals(workerList, provider.getLastWorkerInfos());
     assertEquals(
         ConsistentHashProvider.build(workerList, NUM_VIRTUAL_NODES),
@@ -156,6 +157,7 @@ public class WorkerLocationPolicyTest {
     // before TTL is up, refresh does not change the internal states of the provider
     List<BlockWorkerInfo> newList = generateRandomWorkerList(5);
     provider.refresh(newList, NUM_VIRTUAL_NODES);
+    assertEquals(0, provider.getUpdateCount() - initialUpdateCount);
     assertNotEquals(newList, workerList);
     assertEquals(workerList, provider.getLastWorkerInfos());
     assertEquals(
@@ -165,6 +167,7 @@ public class WorkerLocationPolicyTest {
     // after TTL expires, refresh should change the worker list and the active nodes map
     Thread.sleep(WORKER_LIST_TTL_MS);
     provider.refresh(newList, NUM_VIRTUAL_NODES);
+    assertEquals(1, provider.getUpdateCount() - initialUpdateCount);
     assertEquals(newList, provider.getLastWorkerInfos());
     assertEquals(
         ConsistentHashProvider.build(newList, NUM_VIRTUAL_NODES),
