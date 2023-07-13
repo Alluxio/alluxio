@@ -1,10 +1,7 @@
 ---
 layout: global
 title: Quick Start Guide
-group: Overview
-priority: 1
 ---
-
 
 This quick start guide goes over how to run Alluxio on a local machine.
 The guide will cover the following tasks:
@@ -20,7 +17,7 @@ The guide will cover the following tasks:
 [AWS account with an access key id and secret access key](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html).
 The optional sections will be labeled with **[Bonus]**.
 
-**Note**  This guide is designed to start an Alluxio system with minimal setup on a single machine.
+**Note**: This guide is designed to start an Alluxio system with minimal setup on a single machine.
 If you are trying to speedup SQL analytics, you can try the
 [Presto Alluxio Getting Started](https://www.alluxio.io/alluxio-presto-sandbox-docker/) tutorial.
 
@@ -76,20 +73,20 @@ $ echo "alluxio.master.hostname=localhost" >> conf/alluxio-site.properties
 
 Set additional parameters in `conf/alluxio-site.properties`
 ```console
-echo "alluxio.dora.client.read.location.policy.enabled=true" >> conf/alluxio-site.properties
-echo "alluxio.user.short.circuit.enabled=false" >> conf/alluxio-site.properties
-echo "alluxio.master.worker.register.lease.enabled=false" >> conf/alluxio-site.properties
-echo "alluxio.worker.block.store.type=PAGE" >> conf/alluxio-site.properties
-echo "alluxio.worker.page.store.type=LOCAL" >> conf/alluxio-site.properties
-echo "alluxio.worker.page.store.sizes=1GB" >> conf/alluxio-site.properties
-echo "alluxio.worker.page.store.page.size=1MB" >> conf/alluxio-site.properties
+$ echo "alluxio.dora.client.read.location.policy.enabled=true" >> conf/alluxio-site.properties
+$ echo "alluxio.user.short.circuit.enabled=false" >> conf/alluxio-site.properties
+$ echo "alluxio.master.worker.register.lease.enabled=false" >> conf/alluxio-site.properties
+$ echo "alluxio.worker.block.store.type=PAGE" >> conf/alluxio-site.properties
+$ echo "alluxio.worker.page.store.type=LOCAL" >> conf/alluxio-site.properties
+$ echo "alluxio.worker.page.store.sizes=1GB" >> conf/alluxio-site.properties
+$ echo "alluxio.worker.page.store.page.size=1MB" >> conf/alluxio-site.properties
 ```
 Set the page store directories to an existing directory which the current user has read/write permissions to.
 The following uses `/mnt/ramdisk` as an example. 
 ```console
 $ echo "alluxio.worker.page.store.dirs=/mnt/ramdisk" >> conf/alluxio-site.properties
 ```
-The [paging cache storage guide]({{ '/en/core-services/Caching.html' | relativize_url }}#paging-worker-storage) has more information about how to configure page block store.
+The [paging cache storage guide]({{ '/en/core-services/Data-Caching.html' | relativize_url }}#paging-worker-storage) has more information about how to configure page block store.
 
 Configure Alluxio ufs:
 ```console

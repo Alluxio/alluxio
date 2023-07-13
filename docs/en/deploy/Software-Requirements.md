@@ -6,7 +6,6 @@ group: Install Alluxio
 priority: 9
 ---
 
-
 ## General Requirements
 
 Listed below are the generic requirements to run Alluxio locally or as a cluster.

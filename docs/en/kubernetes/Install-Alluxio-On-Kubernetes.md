@@ -1,11 +1,11 @@
 ---
 layout: global
-title: Deploy Alluxio on Kubernetes
+title: Install Alluxio on Kubernetes
 group: Kubernetes
 priority: 2
 ---
 
-This documentation shows how to deploy Alluxio (Dora) on Kubernetes via 
+This documentation shows how to install Alluxio (Dora) on Kubernetes via 
 [Helm](https://helm.sh/), a kubernetes package manager, and 
 [Operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/),
 a kubernetes extension for managing applications.
@@ -13,6 +13,10 @@ a kubernetes extension for managing applications.
 We recommend using the operator to deploy Alluxio on Kubernetes. However, 
 if some required permissions are missing, consider using helm chart instead.
 
+
+<iframe width="425" height="239" src="https://www.youtube.com/embed/FlvbekK_xG0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
+<iframe width="425" height="239" src="https://www.youtube.com/embed/zwhMwiYmO8M" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
 ## Prerequisites
 
@@ -38,12 +42,12 @@ You will need certain RBAC permission in the Kubernetes cluster to make Operator
 We use the Helm Chart for Alluxio K8s Operator for deploying.
 Following the steps below to deploy Alluxio Operator:
 
-#### Step 1
+#### 1. Download Alluxio Kubernetes Operator
 
 Download the Alluxio Kubernetes Operator
 [here](https://github.com/Alluxio/k8s-operator) and enter the root directory of the project.
 
-#### Step 2
+#### 2. Install Operator
 
 Install the operator by running:
 ```console
@@ -52,7 +56,7 @@ $ helm install operator ./deploy/charts/alluxio-operator
 Operator will automatically create namespace `alluxio-operator` and install
 all the components there.
 
-#### Step 3
+#### 3. Run Operator
 
 Run
 ```console
@@ -62,7 +66,7 @@ to make sure the operator is running as expected.
 
 ### Deploy Dataset
 
-#### Step 1
+#### 1. Create Dataset Configuration
 
 Create a dataset configuration `dataset.yaml`. Its `apiVersion` must be 
 `k8s-operator.alluxio.com/v1alpha1` and `kind` must be `Dataset`. Here is an example:
@@ -80,14 +84,14 @@ spec:
       - ...
 ```
 
-#### Step 2
+#### 2. Deploy Dataset
 
 Deploy your dataset by running 
 ```console
 $ kubectl create -f dataset.yaml
 ```
 
-#### Step 3
+#### 3. Check Status of Dataset
 
 Check the status of the dataset by running 
 ```console
@@ -96,7 +100,7 @@ $ kubectl get dataset <dataset-name>
 
 ### Deploy Alluxio
 
-#### Step 1
+#### 1. Configure Persistent Volumes
 
 Configure [Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) for:
 
@@ -129,7 +133,7 @@ configurable through the configuration file which will be talked in step 2.
 - If using local hostPath persistent volume, make sure user alluxio has RWX permission.
   - Alluxio containers run as user `alluxio` of group `alluxio` with UID 1000 and GID 1000 by default.
 
-#### Step 2
+#### 2. Prepare Resource Configuration File
 
 Prepare a resource configuration file `alluxio-config.yaml`. Its `apiVersion` must be
 `k8s-operator.alluxio.com/v1alpha1` and `kind` must be `AlluxioCluster`. Here is an example:
@@ -146,14 +150,14 @@ spec:
 
 All other configurable properties in the `spec` section can be found in `deploy/charts/alluxio/values.yaml`.
 
-#### Step 3
+#### 3. Deploy Alluxio Cluster
 
 Deploy Alluxio cluster by running:
 ```console
 $ kubectl create -f alluxio-config.yaml
 ```
 
-#### Step 4
+#### 4. Check Status of Alluxio Cluster
 
 Check the status of Alluxio cluster by running:
 ```console
@@ -215,12 +219,12 @@ spec:
 
 Following the steps below to deploy Dora on Kubernetes:
 
-#### Step 1
+#### 1. Download Helm Chart
 
 Download the Helm chart [here](https://github.com/Alluxio/k8s-operator/deploy/charts/alluxio)
 and enter the helm chart directory.
 
-#### Step 2
+#### 2. Configure Persistent Volumes
 
 Configure [Persistent Volumes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/) for:
 
@@ -253,7 +257,7 @@ configurable through the configuration file which will be talked in step 3.
 - If using local hostPath persistent volume, make sure the user of UID 1000 and GID 1000 has RWX permission.
   - Alluxio containers run as user `alluxio` of group `alluxio` with UID 1000 and GID 1000 by default.
 
-#### Step 3
+#### 3. Prepare Configuration File
 
 Prepare a configuration file `config.yaml`.
 All configurable properties can be found in file `values.yaml` from the code downloaded in step 1.
@@ -273,7 +277,7 @@ dataset:
   credentials:
 ```
 
-#### Step 4
+#### 4. Install Dora Cluster
 
 Install Dora cluster by running 
 ```console

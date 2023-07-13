@@ -17,7 +17,6 @@ Co-locating Alluxio workers with Trino workers improves data locality and reduce
 latency when other storage systems are remote or the network is slow or congested.
 
 
-
 ## Prerequisites
 
 * Setup Java for Java 11, at least version 11.0.7, 64-bit，as required by Trino
@@ -172,7 +171,7 @@ which is contained by `hive.config.resources`.
 ```
 
 For information about how to connect to Alluxio HA cluster using Zookeeper-based leader election,
-please refer to [HA mode client configuration parameters]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#specify-alluxio-service-in-configuration-parameters).
+please refer to [HA mode client configuration parameters]({{ '/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }}#specify-alluxio-service-in-configuration-parameters).
 
 #### Example: change default Alluxio write type
 

@@ -15,7 +15,7 @@ You can use this scheme to connect Alluxio with a MinIO server.
 ## Prerequisites
 
 The Alluxio binaries must be on your machine to proceed.
-You can [download the binaries locally]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
+You can [download the binaries locally]({{ '/en/Get-Started.html' | relativize_url }}).
 
 ## Setup MinIO
 

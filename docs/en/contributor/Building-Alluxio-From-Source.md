@@ -19,7 +19,7 @@ Alternatively, we have published a docker image [alluxio/alluxio-maven](https://
 
 ## Checkout Source Code
 
-Checkout the Alluxio master branch from Github:
+Checkout the Alluxio main branch from Github:
 
 ```shell
 $ git clone https://github.com/Alluxio/alluxio.git

@@ -1,11 +1,7 @@
 ---
 layout: global
-title: Caching
-nickname: Caching
-group: Core Services
-priority: 1
+title: Data Caching
 ---
-
 
 ## Alluxio Storage Overview
 
@@ -49,7 +45,7 @@ Alluxio also supports tiered storage configurations such as memory, SSD, and HDD
 make the storage system media aware.
 This enables decreased fetching latencies similar to how L1/L2 CPU caches operate.
 
-## Dora Cache overview
+## Dora Cache Overview
 
 The major shift in the landscape of Alluxio's metadata and cache management in Project Dora is that there is no longer a single
 master node in charge of all the file system metadata and cache information. Instead, the "workers", or simply "Dora
@@ -100,7 +96,7 @@ future, we'd like to explore certain use cases where invalidation of metadata is
 
 Alluxio supports finer-grained page-level (typically, 1 MB) caching storage on Alluxio workers, 
 as an alternative option to the existing block-based (defaults to 64 MB) tiered caching storage. 
-This paging storage supports general workloads including reading and writing, with customizable cache eviction policies similar to [block annotation policies]({{ '/en/core-services/Caching.html' | relativize_url }}#block-annotation-policies) in tiered block store.
+This paging storage supports general workloads including reading and writing, with customizable cache eviction policies similar to [block annotation policies]({{ '/en/core-services/Data-Caching.html' | relativize_url }}#block-annotation-policies) in tiered block store.
 
 To switch to the paging storage:
 ```properties
@@ -134,3 +130,8 @@ To enable the asynchronous writes for paging store:
 alluxio.worker.page.store.async.write.enabled=true
 ```
 You might find this property helpful if you notice performance degradation when there are a lot of cache misses.
+
+Check out these 2 short videos on the benefits of paging storage and how it improves the efficiency of Alluxio caching:
+<iframe width="425" height="239" src="https://www.youtube.com/embed/cO7ymRFnPyM" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
+<iframe width="425" height="239" src="https://www.youtube.com/embed/7UY_iE_Ha_k" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>

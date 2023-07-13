@@ -1,13 +1,10 @@
 ---
 layout: global
-title: Deploy Alluxio on a Cluster with HA
+title: Install Alluxio on a Cluster with HA
 nickname: Cluster with HA
 group: Install Alluxio
 priority: 3
 ---
-
-
-
 ## Overview
 
 An Alluxio cluster with High Availability (HA) is achieved by running multiple Alluxio master

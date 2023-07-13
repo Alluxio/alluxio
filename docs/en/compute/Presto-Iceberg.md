@@ -63,7 +63,7 @@ For demonstration purposes, we will create an example schema and an Iceberg tabl
 Launch the Presto CLI client with the following command:
 
 ```console
-./presto --server localhost:8080 --catalog iceberg --debug
+$ ./presto --server localhost:8080 --catalog iceberg --debug
 ```
 
 For more information on the client, please refer to this section on [querying tables using Presto]

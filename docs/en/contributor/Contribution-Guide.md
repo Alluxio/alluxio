@@ -10,6 +10,7 @@ We warmly welcome you to the Alluxio community. We are excited for your contribu
 engagement with our project! This guide aims to give you step by step instructions on how
 to get started becoming a contributor to the Alluxio open source project.
 
+<iframe width="560" height="315" src="https://www.youtube.com/embed/5YQvvznT5cI" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
 ## Prerequisites
 
@@ -128,20 +129,20 @@ For example, if your issue number is `#123`, the PR description should include `
 
 Keep all changes for a single issue in its own branch when submitting a change to Alluxio.
 
-Ensure you are on the `master` branch in your clone. Switch to the `master` branch with:
+Ensure you are on the `main` branch in your clone. Switch to the `main` branch with:
 
 ```console
-$ git checkout master
+$ git checkout main
 ```
 
-The `master` branch needs to be in sync with the latest changes from the evolving
+The `main` branch needs to be in sync with the latest changes from the evolving
 Alluxio codebase. Pull new changes from the project with:
 
 ```console
-$ git pull upstream master
+$ git pull upstream main
 ```
 
-This pulls in the changes from the `master` branch of the `upstream` repository into your local `master`
+This pulls in the changes from the `main` branch of the `upstream` repository into your local `main`
 branch, where the `upstream` repository was previously set to the Alluxio open source project.
 
 Create a new branch to work on the **New Contributor** task you took earlier.
@@ -154,6 +155,12 @@ $ git checkout -b awesome_feature
 This will create the branch and switch to it. Now, you can modify the necessary code to address the
 issue.
 
+To view what branches have been created and check which branch you are currently on, run:
+
+```console
+$ git branch
+```
+
 ### Creating Local Commits
 
 As you are addressing the ticket, you can create local commits of your code. This can be useful for
@@ -161,6 +168,12 @@ when you have finished a well-defined portion of the change. You can stage a fil
 
 ```console
 $ git add <file to stage>
+```
+
+To check which files have been modified and need to be staged for a commit, run:
+
+```console
+$ git status
 ```
 
 Once the appropriate files are staged, create a local commit of these modifications with:
@@ -191,7 +204,7 @@ but if not, navigate to the branch you want to submit the pull request for (**aw
 and press the **Pull request** button next to the **Compare** button.
 
 In the **Comparing changes** page, the base repository should be `Alluxio/alluxio` and the base branch
-should be **master**. The head repository should be your fork and the compare branch should be the branch
+should be **main**. The head repository should be your fork and the compare branch should be the branch
 you want to submit the pull request for (**awesome_feature** in this example).
 Click on the **Create pull request** button.
 The title of the page will change to **Open a pull request** and you should see the boxes that let you input the title
@@ -207,7 +220,7 @@ for a great PR title. These tips are adapted from
 * Title should start with an imperative verb
   * Examples: `Fix Alluxio UI bugs`, `Refactor Inode caching logic`
   * Incorrect: `~~Fixed Alluxio UI bugs~~`, `~~Inode caching refactor~~`
-  * [List of allowable words to start the title](https://github.com/Alluxio/alluxio/blob/master/docs/resources/pr/pr_title_words.md)
+  * [List of allowable words to start the title](https://github.com/Alluxio/alluxio/blob/master-2.x/docs/resources/pr/pr_title_words.md)
 * The first word of the title should be capitalized
 * Title should not end with a period
 
@@ -267,9 +280,6 @@ a maintainer will merge your pull request into the Alluxio codebase.
 
 Congratulations! You have successfully contributed to Alluxio! Thank you for joining the community!
 
-## Video
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/QsbM804rc6Y" frameborder="0" allowfullscreen></iframe>
 
 ## Submit Your Feature
 
@@ -305,7 +315,8 @@ In the pull request, you should also add documentation on your feature to
 
 There are a few things that new contributors can do to familiarize themselves with Alluxio:
 
-1.  [Run Alluxio locally or as a cluster]({{ '/en/overview/Getting-Started.html' | relativize_url }})
+1.  [Run Alluxio locally]({{ '/en/Get-Started.html' | relativize_url }})
+1.  [Run Alluxio as a cluster with HA]({{ '/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }})
 1.  Read [Configuration Settings]({{ '/en/operation/Configuration.html' | relativize_url }}) and
 [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }})
 1.  Fork the repository, add unit tests or javadoc for one or two files, and submit a pull request.
@@ -320,3 +331,5 @@ For a tutorial, see the GitHub guides on
 [sending a pull request](https://help.github.com/articles/using-pull-requests).
 
 ## Welcome to the Alluxio Community!
+
+Join our vibrant and fast-growing [Alluxio Community Slack Channel](https://www.alluxio.io/slack) to connect with users & developers of Alluxio. If you encounter any blockers or need some pointers, send your technical questions to our `#troubleshooting` channel.
