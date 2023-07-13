@@ -174,7 +174,7 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
 
   @Test
   public void syncDirReplay() throws Exception {
-    AlluxioURI dir = new AlluxioURI("/dir/");
+    AlluxioURI dir = new AlluxioURI("/dir");
 
     // Add ufs nested file.
     String ufs = Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
@@ -258,7 +258,7 @@ public class FileSystemMasterRestartIntegrationTest extends BaseIntegrationTest 
 
     mFsMaster.mount(new AlluxioURI("/mnt"), new AlluxioURI(ufsBase), MountContext.defaults());
 
-    AlluxioURI root = new AlluxioURI("/mnt/");
+    AlluxioURI root = new AlluxioURI("/mnt");
     AlluxioURI alluxioFile = new AlluxioURI("/mnt/dir1/dir2/file");
 
     // Create a persisted Alluxio file (but no ufs file).

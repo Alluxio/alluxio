@@ -553,9 +553,12 @@ public class DefaultFileSystemMaster extends CoreMaster
           && Configuration.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY);
       boolean readonly = Configuration.getBoolean(
           PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
-      String rootUfsUri = PathUtils.normalizePath(
-          Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS),
-          AlluxioURI.SEPARATOR);
+//      String rootUfsUri = PathUtils.normalizePath(
+//          Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS),
+//          AlluxioURI.SEPARATOR);
+      String rootUfsUri =
+          Configuration.getString(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+
       Map<String, String> rootUfsConf =
           Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION)
               .entrySet().stream()

@@ -172,7 +172,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
     assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
 
     AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
-    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryContext.defaults());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt"), CreateDirectoryContext.defaults());
     // Create ufs file.
     Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
     Files.createFile(Paths.get(ufsMount.join("dir1").join("file1").getPath()));
@@ -230,7 +230,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
     assertEquals(-1, mFileSystemMaster.getFileId(NESTED_URI));
 
     AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
-    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryContext.defaults());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt"), CreateDirectoryContext.defaults());
     // Create ufs file.
     Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
     mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount,
@@ -277,7 +277,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
 
   @Test
   public void deleteDirRecursiveWithReadOnlyCheck() throws Exception {
-    AlluxioURI rootPath = new AlluxioURI("/mnt/");
+    AlluxioURI rootPath = new AlluxioURI("/mnt");
     mFileSystemMaster.createDirectory(rootPath, CreateDirectoryContext.defaults());
     // Create ufs file.
     AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
@@ -673,7 +673,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
   @Test
   public void getFileInfoWithLoadMetadata() throws Exception {
     AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
-    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryContext.defaults());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt"), CreateDirectoryContext.defaults());
 
     // Create ufs file.
     Files.createFile(Paths.get(ufsMount.join("file").getPath()));
@@ -695,7 +695,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
   @Test
   public void getFileIdWithLoadMetadata() throws Exception {
     AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
-    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryContext.defaults());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt"), CreateDirectoryContext.defaults());
 
     // Create ufs file.
     Files.createFile(Paths.get(ufsMount.join("file").getPath()));
@@ -716,7 +716,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
   @Test
   public void listStatusWithLoadMetadataNever() throws Exception {
     AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
-    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryContext.defaults());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt"), CreateDirectoryContext.defaults());
 
     // Create ufs file.
     Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
@@ -744,7 +744,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
   @Test
   public void listStatusWithLoadMetadataOnce() throws Exception {
     AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
-    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryContext.defaults());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt"), CreateDirectoryContext.defaults());
 
     // Create ufs file.
     Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
@@ -775,7 +775,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
   @Test
   public void listStatusWithLoadMetadataAlways() throws Exception {
     AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
-    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryContext.defaults());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt"), CreateDirectoryContext.defaults());
 
     // Create ufs file.
     Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
@@ -824,7 +824,7 @@ public class FileSystemMasterFsOptsTest extends FileSystemMasterTestBase {
   @Deprecated
   public void listStatusWithLoadMetadataNonPersistedDir() throws Exception {
     AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
-    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryContext.defaults());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt"), CreateDirectoryContext.defaults());
 
     // Create ufs file.
     mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount,

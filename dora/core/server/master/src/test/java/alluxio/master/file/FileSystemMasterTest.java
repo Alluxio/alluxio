@@ -404,7 +404,7 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
   @Test
   public void mountUnmount() throws Exception {
     AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
-    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryContext.defaults());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt"), CreateDirectoryContext.defaults());
 
     // Alluxio mount point should not exist before mounting.
     try {
