@@ -1,6 +1,6 @@
 ---
 layout: global
-title: COSNs
+title: COSN
 ---
 
 
