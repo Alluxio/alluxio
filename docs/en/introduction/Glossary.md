@@ -16,7 +16,7 @@ Data Caching
 : Alluxio provides an in-memory data caching mechanism to accelerate data access. Frequently accessed data is cached in memory, reducing the need for repetitive disk I/O and improving overall application performance. [Learn more]({{ '/en/core-services/Data-Caching.html' | relativize_url }})
 
 Fault Tolerance
-: Alluxio incorporates fault tolerance mechanisms to ensure dat availability and reliability. It replicates data across different notes in the cluster, providing resilience against node failures. [See Fault Tolerance in Dora Cache]({{ '/en/core-services/Data-Caching.html#fault-tolerance-and-client-side-ufs-fallback' | relativize_url }})
+: Alluxio incorporates fault tolerance mechanisms to ensure data availability and reliability. It replicates data across different notes in the cluster, providing resilience against node failures. [See Fault Tolerance in Dora Cache]({{ '/en/core-services/Data-Caching.html#fault-tolerance-and-client-side-ufs-fallback' | relativize_url }})
 
 FUSE
 : Filesystem in Userspace (FUSE) is a software interface for Unix and Unix-like operating systems that lets non-privileged users create their own file systems without editing kernel code. [Learn about Alluxio FUSE SDK]({{ '/en/fuse-sdk/Overview-Fuse-Sdk.html' | relativize_url }})
