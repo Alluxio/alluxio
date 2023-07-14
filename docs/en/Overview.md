@@ -15,7 +15,7 @@ Follow [Install Alluxio Cluster with HA]({{ '/en/deploy/Install-Alluxio-Cluster-
 
 ## Kubernetes
 See [Install Alluxio on Kubernetes]({{ '/en/kubernetes/Install-Alluxio-On-Kubernetes.html' | relativize_url }}) on how to install Alluxio on Kubernetes via 
-[Helm](https://helm.sh/), a Kubernetes package manager, and [Operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/), a Kubernetes extension for managing applications.
+[Helm](https://helm.sh/), a kubernetes package manager, and [Operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/), a kubernetes extension for managing applications.
 
 Check out these 2 short videos on deployment and best practices with configurations & recommendations:
 
