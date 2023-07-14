@@ -7877,6 +7877,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
 
+  public static final PropertyKey CLIENT_WRITE_TO_UFS_ENABLED =
+      booleanBuilder(Name.CLIENT_WRITE_TO_UFS_ENABLED)
+          .setDescription("Whether or not to enable client writing data directly to UFS. "
+              + "If enabled, client writes data to worker (to be cached in Paging Store) and "
+              + "to UFS (to be stored permanently). Client need UFS credentials in this case. "
+              + "Enabled by default.")
+          .setDefaultValue(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.ALL)
+          .build();
+
   //
   // Extra class to be loaded
   //
@@ -9511,6 +9522,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String DORA_UFS_LIST_STATUS_CACHE_NR_FILES =
         "alluxio.dora.ufs.list.status.cache.nr.files";
 
+    public static final String CLIENT_WRITE_TO_UFS_ENABLED =
+        "alluxio.client.write.to.ufs.enabled";
     //
     // Extra class to be loaded
     //

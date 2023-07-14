@@ -20,6 +20,7 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.GrpcDataReader;
 import alluxio.client.file.DoraFileOutStream;
+import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.PositionReadFileInStream;
 import alluxio.client.file.URIStatus;
@@ -64,6 +65,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 
 /**
  * Dora cache client.
@@ -118,16 +120,18 @@ public class DoraCacheClient {
    * @param alluxioPath the alluxio path to be written
    * @param fsContext the file system context
    * @param outStreamOptions the output stream options
+   * @param ufsOutStream the UfsOutStream for writing data to UFS
    * @param uuid the UUID for a certain FileOutStream
    * @return the output stream
    */
   public DoraFileOutStream getOutStream(AlluxioURI alluxioPath, FileSystemContext fsContext,
-      OutStreamOptions outStreamOptions, String uuid) throws IOException {
+      OutStreamOptions outStreamOptions, @Nullable FileOutStream ufsOutStream,
+      String uuid) throws IOException {
     WorkerNetAddress workerNetAddress = getWorkerNetAddress(alluxioPath.toString());
     NettyDataWriter writer = NettyDataWriter.create(
         fsContext, workerNetAddress, Long.MAX_VALUE, RequestType.ALLUXIO_BLOCK, outStreamOptions);
     return new DoraFileOutStream(this, writer, alluxioPath,
-        outStreamOptions, fsContext, uuid);
+        outStreamOptions, fsContext, ufsOutStream, uuid);
   }
 
   protected long getChunkSize() {

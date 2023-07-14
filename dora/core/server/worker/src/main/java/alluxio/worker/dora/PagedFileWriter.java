@@ -97,8 +97,10 @@ public class PagedFileWriter extends BlockWriter {
       }
       // Now writes data to UFS.
       if (handle != null) {
-        OutputStream outputStream = Preconditions.checkNotNull(handle.getOutStream());
-        outputStream.write(page);
+        OutputStream outputStream = handle.getOutStream();
+        if (outputStream != null) {
+          outputStream.write(page);
+        }
       } else {
         throw new IOException("Cannot write data to UFS for " + mUfsPath + " @" + mPosition);
       }

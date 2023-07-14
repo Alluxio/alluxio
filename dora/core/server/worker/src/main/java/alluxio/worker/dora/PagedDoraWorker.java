@@ -142,6 +142,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   private final DoraOpenFileHandleContainer mOpenFileHandleContainer;
 
+  private final boolean mClientWriteToUFSEnabled;
+
   /**
    * Constructor.
    *
@@ -174,6 +176,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
     mMkdirsRecursive = MkdirsOptions.defaults(mConf).setCreateParent(true);
     mMkdirsNonRecursive = MkdirsOptions.defaults(mConf).setCreateParent(false);
+
+    mClientWriteToUFSEnabled = Configuration.global()
+        .getBoolean(PropertyKey.CLIENT_WRITE_TO_UFS_ENABLED);
   }
 
   @Override
@@ -677,7 +682,14 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    OutputStream outStream = mUfs.create(path, createOption);
+
+    OutputStream outStream;
+    if (mClientWriteToUFSEnabled) {
+      // client is writing directly to UFS. Worker does not write to UFS.
+      outStream = null;
+    } else {
+      outStream = mUfs.create(path, createOption);
+    }
 
     OpenFileHandle handle = new OpenFileHandle(path, info, options, outStream);
     //add to map.
