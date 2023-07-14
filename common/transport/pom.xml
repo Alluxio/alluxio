@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-common</artifactId>
-    <version>301-SNAPSHOT</version>
+    <version>301</version>
   </parent>
   <artifactId>alluxio-core-transport</artifactId>
   <packaging>jar</packaging>
