@@ -8,9 +8,6 @@ under storage system.
 
 ## Prerequisites
 
-The Alluxio binaries must be on your machine. You can
-[download the binaries locally]({{ '/en/Get-Started.html' | relativize_url }}).
-
 In preparation for using COS with Alluxio, create a new bucket or use an existing bucket. You
 should also note the directory you want to use in that bucket, either by creating a new directory in
 the bucket, or using an existing one. For the purposes of this guide, the COS bucket name is called

@@ -8,9 +8,6 @@ This guide describes how to configure Alluxio with [Azure Data Lake Storage Gen2
 
 ## Prerequisites
 
-The Alluxio binaries must be on your machine.
-You can [download the precompiled binaries directly]({{ '/en/Get-Started.html' | relativize_url }}).
-
 In preparation for using Azure Data Lake storage with Alluxio, [create a new Data Lake storage in your Azure
 account](https://docs.microsoft.com/en-in/azure/storage/blobs/create-data-lake-storage-account) or use an existing Data Lake storage. 
 You should also note the directory you want to use, either by creating a new directory, or using an existing one. You also need a 

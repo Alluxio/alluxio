@@ -7,10 +7,6 @@ title: Swift
 This guide describes how to configure Alluxio with an under storage system supporting the
 [Swift API](http://docs.openstack.org/developer/swift/).
 
-## Prerequisites
-
-The Alluxio binaries must be on your machine. You can [download the binaries locally]({{ '/en/Get-Started.html' | relativize_url }}).
-
 ## Basic Setup
 
 A Swift bucket can be mounted to the Alluxio either at the root of the namespace, or at a nested directory.
