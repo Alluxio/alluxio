@@ -25,10 +25,6 @@ repeatedly input the password, you can add the public SSH key for the host into
 `~/.ssh/authorized_keys`. See [this tutorial](http://www.linuxproblem.org/art_9.html) for more
 details.
 
-## Initial Setup
-
-The Alluxio binaries must be on your machine. You can [download the binaries locally]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
-
 ## Creating NFS mount point
 
 Before Alluxio master and workers can access the NFS server, mount points to the NFS server need to be created.

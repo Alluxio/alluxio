@@ -13,11 +13,6 @@ using [Rados Gateway](http://docs.ceph.com/docs/master/radosgw/):
 - [S3](http://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html) (preferred)
 - [Swift](http://docs.openstack.org/developer/swift/)
 
-## Prerequisites
-
-The Alluxio binaries must be on your machine. You can
-[download the binaries locally]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
-
 ## Basic Setup
 
 A Ceph bucket can be mounted to Alluxio either at the root of the namespace, or at a nested directory.
