@@ -13,6 +13,7 @@ package alluxio.client.rest;
 
 import alluxio.Constants;
 import alluxio.proxy.s3.ListBucketResult;
+import alluxio.proxy.s3.S3Constants;
 import alluxio.testutils.BaseIntegrationTest;
 
 import com.google.common.collect.ImmutableMap;
@@ -25,6 +26,7 @@ import javax.ws.rs.HttpMethod;
 
 public abstract class RestApiTest extends BaseIntegrationTest {
   protected static final Map<String, String> NO_PARAMS = ImmutableMap.of();
+  protected static final byte[] EMPTY_OBJECT = new byte[] {};
   protected static final String TEST_USER_NAME = "testuser";
   protected static final String TEST_BUCKET_NAME = "bucket";
   protected String mHostname;
@@ -47,12 +49,23 @@ public abstract class RestApiTest extends BaseIntegrationTest {
         .setMD5(computeObjectChecksum(object)));
   }
 
+  protected TestCase copyObjectTestCase(String sourcePath, String targetPath) throws Exception {
+    return newTestCase(targetPath, NO_PARAMS, HttpMethod.PUT, getDefaultOptionsWithAuth()
+        .addHeader(S3Constants.S3_METADATA_DIRECTIVE_HEADER,
+            S3Constants.Directive.REPLACE.name())
+        .addHeader(S3Constants.S3_COPY_SOURCE_HEADER, sourcePath));
+  }
+
   protected TestCase deleteTestCase(String uri) throws Exception {
     return newTestCase(uri, NO_PARAMS, HttpMethod.DELETE, getDefaultOptionsWithAuth());
   }
 
   protected TestCase headTestCase(String uri) throws Exception {
     return newTestCase(uri, NO_PARAMS, HttpMethod.HEAD, getDefaultOptionsWithAuth());
+  }
+
+  protected TestCase getTestCase(String uri) throws Exception {
+    return newTestCase(uri, NO_PARAMS, HttpMethod.GET, getDefaultOptionsWithAuth());
   }
 
   protected TestCase listTestCase(String uri, Map<String, String> params) throws Exception {
