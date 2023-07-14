@@ -2205,10 +2205,27 @@ public final class S3ClientRestApiTest extends RestApiTest {
     Assert.assertEquals(0, deletedTags.getTagMap().size());
   }
 
+  private void createBucketRestCall(String bucketUri) throws Exception {
+    createBucketRestCall(bucketUri, TEST_USER_NAME);
+  }
+
+  private void createBucketRestCall(String bucketUri, String user) throws Exception {
+    TestCaseOptions options = getDefaultOptionsWithAuth(user);
+    new TestCase(mHostname, mPort, mBaseUri,
+        bucketUri, NO_PARAMS, HttpMethod.PUT,
+        options).runAndCheckResult();
+  }
+
   private HttpURLConnection deleteBucketRestCall(String bucketUri) throws Exception {
     return new TestCase(mHostname, mPort, mBaseUri,
         bucketUri, NO_PARAMS, HttpMethod.DELETE,
         getDefaultOptionsWithAuth()).executeAndAssertSuccess();
+  }
+
+  private HttpURLConnection headBucketRestCall(String bucketUri) throws Exception {
+    return new TestCase(mHostname, mPort, mBaseUri,
+        bucketUri, NO_PARAMS, HttpMethod.HEAD,
+        getDefaultOptionsWithAuth()).execute();
   }
 
   private String computeObjectChecksum(byte[] objectContent) throws Exception {
@@ -2236,13 +2253,13 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   private TestCase getCompleteMultipartUploadReadCallTestCase(
-          String objectUri, String uploadId, CompleteMultipartUploadRequest request) {
+      String objectUri, String uploadId, CompleteMultipartUploadRequest request) throws Exception {
     Map<String, String> params = ImmutableMap.of("uploadId", uploadId);
     return new TestCase(mHostname, mPort, mBaseUri,
-            objectUri, params, HttpMethod.POST,
-            getDefaultOptionsWithAuth()
-                    .setBody(request)
-                    .setContentType(TestCaseOptions.XML_CONTENT_TYPE));
+        objectUri, params, HttpMethod.POST,
+        getDefaultOptionsWithAuth()
+            .setBody(request)
+            .setContentType(TestCaseOptions.XML_CONTENT_TYPE));
   }
 
   private String completeMultipartUploadRestCall(
