@@ -3,7 +3,7 @@ layout: global
 title: Overview
 ---
 
-Welcome to Alluxio Documentation! You will find resources regarding deploying Alluxio, integrating with various tech stacks, API references, and more! If you have any questions, join our Alluxio Community Slack &rarr; [alluxio.io/slack](https://www.alluxio.io/slack)
+Welcome to Alluxio Documentation! You will find resources regarding deploying Alluxio, integrations with various tech stacks, API references, and more! If you have any questions, join our Alluxio Community Slack &rarr; [alluxio.io/slack](https://www.alluxio.io/slack)
 
 ## Get Started with Alluxio
 
