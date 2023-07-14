@@ -49,10 +49,10 @@ public final class HeartbeatThread implements Runnable {
   private HeartbeatTimer mTimer;
   private AlluxioConfiguration mConfiguration;
   private volatile Status mStatus;
-  private volatile String mPreviousReport;
   private AtomicLong mCounter = new AtomicLong(0L);
   private volatile long mStartTickTime;
   private volatile long mStartHeartbeatTime;
+  private volatile long mEndHeartbeatTime;
 
   /**
    * @param executorName the executor name defined in {@link HeartbeatContext}
@@ -163,14 +163,7 @@ public final class HeartbeatThread implements Runnable {
         LOG.debug("{} #{} will run limited in {}s", mThreadName, mCounter.get(),
             limitTime / Constants.SECOND_MS);
         mExecutor.heartbeat(limitTime);
-        long endHeartbeatTime = CommonUtils.getCurrentMs();
-        mPreviousReport = String.format("#%d [%s - %s - %s] ticked(s) %d, run(s) %d.",
-            mCounter.get(),
-            CommonUtils.convertMsToDate(mStartTickTime, DATE_PATTERN),
-            CommonUtils.convertMsToDate(mStartHeartbeatTime, DATE_PATTERN),
-            CommonUtils.convertMsToDate(endHeartbeatTime, DATE_PATTERN),
-            (mStartHeartbeatTime - mStartTickTime) / Constants.SECOND_MS,
-            (endHeartbeatTime - mStartHeartbeatTime) / Constants.SECOND_MS);
+        mEndHeartbeatTime = CommonUtils.getCurrentMs();
         updateState();
       }
     } catch (InterruptedException e) {
@@ -201,12 +194,18 @@ public final class HeartbeatThread implements Runnable {
    * @return the {@link HeartbeatThreadInfo} for the heartbeat thread
    */
   public synchronized HeartbeatThreadInfo toHeartbeatThreadInfo() {
-
+    String previousReport = String.format("#%d [%s - %s - %s] ticked(s) %d, run(s) %d.",
+        mCounter.get(),
+        CommonUtils.convertMsToDate(mStartTickTime, DATE_PATTERN),
+        CommonUtils.convertMsToDate(mStartHeartbeatTime, DATE_PATTERN),
+        CommonUtils.convertMsToDate(mEndHeartbeatTime, DATE_PATTERN),
+        (mStartHeartbeatTime - mStartTickTime) / Constants.SECOND_MS,
+        (mEndHeartbeatTime - mStartHeartbeatTime) / Constants.SECOND_MS);
     HeartbeatThreadInfo heartbeatThreadInfo = new HeartbeatThreadInfo()
         .setThreadName(mThreadName)
         .setCount(mCounter.get())
         .setStatus(mStatus)
-        .setPreviousReport(mPreviousReport);
+        .setPreviousReport(previousReport);
     if (mStartTickTime != 0) {
       heartbeatThreadInfo.setStartTickTime(
           CommonUtils.convertMsToDate(mStartTickTime, DATE_PATTERN));
