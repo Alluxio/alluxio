@@ -58,30 +58,6 @@ public class MetricsStoreTest {
   }
 
   @Test
-  public void putClientMetrics() {
-    List<Metric> metrics1 = Lists.newArrayList(
-        Metric.from(MetricKey.CLIENT_BYTES_READ_LOCAL.getName() + ".192_1_1_1:A",
-            10, MetricType.COUNTER),
-        Metric.from(MetricKey.CLIENT_BYTES_WRITTEN_LOCAL.getName() + ".192_1_1_1:A",
-            20, MetricType.COUNTER));
-    mMetricStore.putClientMetrics("192_1_1_1", metrics1);
-    List<Metric> metrics2 = Lists.newArrayList(
-        Metric.from(MetricKey.CLIENT_BYTES_READ_LOCAL.getName() + ".192_1_1_2:C",
-            1, MetricType.COUNTER));
-    mMetricStore.putClientMetrics("192_1_1_2", metrics2);
-    List<Metric> metrics3 = Lists.newArrayList(
-        Metric.from(MetricKey.CLIENT_BYTES_READ_LOCAL.getName() + ".192_1_1_1:B",
-            15, MetricType.COUNTER),
-        Metric.from(MetricKey.CLIENT_BYTES_WRITTEN_LOCAL.getName() + ".192_1_1_1:B",
-            25, MetricType.COUNTER));
-    mMetricStore.putClientMetrics("192_1_1_1", metrics3);
-    assertEquals(26,
-        MetricsSystem.counter(MetricKey.CLUSTER_BYTES_READ_LOCAL.getName()).getCount());
-    assertEquals(45,
-        MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL.getName()).getCount());
-  }
-
-  @Test
   public void putWorkerUfsMetrics() {
     String readBytes = MetricKey.WORKER_BYTES_READ_UFS.getName();
     String writtenBytes = MetricKey.WORKER_BYTES_WRITTEN_UFS.getName();
@@ -140,23 +116,14 @@ public class MetricsStoreTest {
             20, MetricType.COUNTER));
     mMetricStore.putWorkerMetrics(workerHost1, metrics1);
 
-    List<Metric> metrics2 = Lists.newArrayList(
-        Metric.from(MetricKey.CLIENT_BYTES_WRITTEN_LOCAL.getName() + ".192_1_1_2:C",
-            1, MetricType.COUNTER));
-    mMetricStore.putClientMetrics("192_1_1_2", metrics2);
-
     assertEquals(10,
         MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_REMOTE.getName()).getCount());
-    assertEquals(1,
-        MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL.getName()).getCount());
     // Make sure the test does not execute too fast
     // so that new clear time will be definitely different from the previous one
     Thread.sleep(10);
     mMetricStore.clear();
     assertEquals(0,
         MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_REMOTE.getName()).getCount());
-    assertEquals(0,
-        MetricsSystem.counter(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL.getName()).getCount());
     long newClearTime = mMetricStore.getLastClearTime();
     assertTrue(newClearTime > clearTime);
   }
