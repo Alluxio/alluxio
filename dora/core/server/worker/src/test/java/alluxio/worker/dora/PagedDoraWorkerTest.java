@@ -566,6 +566,22 @@ public class PagedDoraWorkerTest {
   }
 
   @Test
+  public void testRecursiveListing() throws Exception {
+    File rootFolder = mTestFolder.newFolder("root");
+    String rootPath = rootFolder.getAbsolutePath();
+    mTestFolder.newFolder("root/d1");
+    mTestFolder.newFolder("root/d1/d1");
+    mTestFolder.newFolder("root/d2");
+    UfsStatus[] listResult =
+        mWorker.listStatus(rootPath, ListStatusPOptions.newBuilder().setRecursive(true).build());
+    assertEquals(3, listResult.length);
+    assertFalse(mWorker.getMetaManager().listCached(rootPath, true).isPresent());
+    listResult =
+        mWorker.listStatus(rootPath, ListStatusPOptions.newBuilder().setRecursive(false).build());
+    assertEquals(2, listResult.length);
+  }
+
+  @Test
   public void testListCacheConsistency()
       throws IOException, AccessControlException, ExecutionException, InterruptedException,
       TimeoutException {
