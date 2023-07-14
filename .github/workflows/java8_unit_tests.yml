@@ -1,4 +1,4 @@
-name: Java 11 Integration Tests (w/ webui)
+name: Java 8 Unit Tests
 
 on: [pull_request]
 
@@ -11,7 +11,9 @@ jobs:
       matrix:
         modules:
           - >-
-            alluxio.web.**
+            !alluxio.client.**,!alluxio.master.**
+          - >-
+            alluxio.client.**,alluxio.master.**
 
     runs-on: ubuntu-latest
     if: "!contains(github.event.pull_request.title, 'DOCFIX') &&
@@ -45,8 +47,8 @@ jobs:
           ALLUXIO_DOCKER_NO_TTY=true \
           ALLUXIO_DOCKER_GIT_CLEAN=true \
           ALLUXIO_DOCKER_MVN_RUNTOEND=true \
-          ALLUXIO_DOCKER_MVN_PROJECT_LIST=!dora/shaded/client,!dora/integration/tools/hms,!dora/integration/yarn,!assembly/client,!assembly/server \
-          dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl dora/tests
+          ALLUXIO_DOCKER_MVN_PROJECT_LIST=!webui,!dora/shaded/client,!assembly/client,!assembly/server \
+          dev/github/run_docker.sh "\"-Dtest=${{ matrix.modules }}\"" -pl '!dora/tests,!webui'
         timeout-minutes: 60
 
       - name: Archive artifacts
