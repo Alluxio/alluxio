@@ -411,7 +411,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   private final ActiveSyncManager mSyncManager;
 
   /** Log writer for user access audit log. */
-  protected final AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
+  protected AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
 
   /** Stores the time series for various metrics which are exposed in the UI. */
   private final TimeSeriesStore mTimeSeriesStore;
@@ -534,11 +534,6 @@ public class DefaultFileSystemMaster extends CoreMaster
     mScheduler = new Scheduler(new DefaultWorkerProvider(this, schedulerFsContext), jobMetaStore);
     mDefaultSyncProcess =  createSyncProcess(
         mInodeStore, mMountTable, mInodeTree, getSyncPathCache());
-
-    // As we can determine whether enable the audit log through update the config,
-    // So we need this audit log writer thread all the time.
-    mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("AUDIT_LOG");
-    mAsyncAuditLogWriter.start();
 
     // The mount table should come after the inode tree because restoring the mount table requires
     // that the inode tree is already restored.
@@ -802,11 +797,19 @@ public class DefaultFileSystemMaster extends CoreMaster
       mSyncManager.start();
       mScheduler.start();
     }
+    // As we can determine whether enable the audit log through update the config,
+    // So we need this audit log writer thread all the time.
+    mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("AUDIT_LOG");
+    mAsyncAuditLogWriter.start();
   }
 
   @Override
   public void stop() throws IOException {
     LOG.info("Next directory id before close: {}", mDirectoryIdGenerator.peekDirectoryId());
+    if (mAsyncAuditLogWriter != null) {
+      mAsyncAuditLogWriter.stop();
+      mAsyncAuditLogWriter = null;
+    }
     mSyncManager.stop();
     if (mAccessTimeUpdater != null) {
       mAccessTimeUpdater.stop();
