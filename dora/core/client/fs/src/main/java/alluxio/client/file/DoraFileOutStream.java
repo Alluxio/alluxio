@@ -17,6 +17,7 @@ import alluxio.client.UnderStorageType;
 import alluxio.client.file.dora.DoraCacheClient;
 import alluxio.client.file.dora.netty.NettyDataWriter;
 import alluxio.client.file.options.OutStreamOptions;
+import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.FileSystemMasterCommonPOptions;
@@ -72,6 +73,8 @@ public class DoraFileOutStream extends FileOutStream {
 
   private final String mUuid;
 
+  private final boolean mClientWriteToUFSEnabled;
+
   /**
    * Creates a new file output stream.
    *
@@ -96,6 +99,9 @@ public class DoraFileOutStream extends FileOutStream {
     // The resource will be released in close().
     mContext = context;
     mCloser.register(mContext.blockReinit());
+    mClientWriteToUFSEnabled = context.getClusterConf()
+        .getBoolean(PropertyKey.CLIENT_WRITE_TO_UFS_ENABLED);
+
     try {
       mUri = Preconditions.checkNotNull(path, "path");
       mAlluxioStorageType = options.getAlluxioStorageType();
@@ -226,7 +232,9 @@ public class DoraFileOutStream extends FileOutStream {
       Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
           PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
 
-      if (mAlluxioStorageType.isStore()) {
+      if (mAlluxioStorageType.isStore() || !mClientWriteToUFSEnabled) {
+        // If client is configured to write data to worker and ask worker to write to UFS,
+        // client must send data over netty.
         mNettyDataWriter.writeChunk(b, off, len);
 
         Metrics.BYTES_WRITTEN_ALLUXIO.inc(len);
