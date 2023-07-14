@@ -797,8 +797,11 @@ public class DefaultFileSystemMaster extends CoreMaster
       mSyncManager.start();
       mScheduler.start();
     }
-    // As we can determine whether enable the audit log through update the config,
-    // So we need this audit log writer thread all the time.
+    /**
+     * As we can determine whether enable the audit log through update the config,
+     * and check it in {@link #createAuditContext},
+     * so we need this audit log writer thread all the time.
+     */
     mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("AUDIT_LOG");
     mAsyncAuditLogWriter.start();
   }
