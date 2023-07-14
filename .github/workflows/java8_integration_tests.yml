@@ -1,4 +1,4 @@
-name: Java 11 Integration Tests
+name: Java 8 Integration Tests
 
 on: [pull_request]
 

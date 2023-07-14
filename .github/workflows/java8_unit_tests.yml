@@ -1,4 +1,4 @@
-name: Java 11 Unit Tests
+name: Java 8 Unit Tests
 
 on: [pull_request]
 
