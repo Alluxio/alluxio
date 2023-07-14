@@ -11,11 +11,7 @@ two different implementations of under storage system for [CephFS](https://docs.
 
 ## Prerequisites
 
-### Deploy Alluxio binary package
-The Alluxio binaries must be on your machine. You can 
-[download the binaries locally]({{ '/en/Get-Started.html' | relativize_url }}).
-
-### Install Dependences
+### Install Dependencies
 According to [ceph packages install](https://docs.ceph.com/en/latest/install/get-packages/) to install below packages:
 
 ```

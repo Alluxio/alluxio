@@ -9,8 +9,6 @@ Object Storage Service (OSS) is a massive, secure and highly reliable cloud stor
 
 ## Prerequisites
 
-The Alluxio binaries must be on your machine. You can [download the binaries locally]({{ '/en/Get-Started.html' | relativize_url }}).
-
 In preparation for using OSS with Alluxio, follow the [OSS quick start guide](https://www.alibabacloud.com/help/doc-detail/31883.htm)
 to sign up for OSS and create an OSS bucket.
 

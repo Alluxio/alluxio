@@ -9,11 +9,6 @@ under storage system.
 Alluxio natively provides the `s3://` scheme (recommended for better performance).
 You can use this scheme to connect Alluxio with a MinIO server.
 
-## Prerequisites
-
-The Alluxio binaries must be on your machine to proceed.
-You can [download the binaries locally]({{ '/en/Get-Started.html' | relativize_url }}).
-
 ## Setup MinIO
 
 MinIO is an object storage server built for cloud applications and DevOps. MinIO provides an open
