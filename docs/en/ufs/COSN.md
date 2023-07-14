@@ -1,12 +1,11 @@
 ---
 layout: global
-title: COSN
+title: COSN (Hadoop-COS)
 ---
 
+This guide describes how to configure Alluxio with [COSN](https://hadoop.apache.org/docs/stable/hadoop-cos/cloud-storage/index.html), Tencent COS in Hadoop, as the under storage system. COSN, also known as Hadoop-COS, is a client that makes the upper computing systems based on HDFS be able to use the COS as its underlying storage system. 
 
-This guide describes how to configure Alluxio with Tencent [COS](https://cloud.tencent.com/product/cos) (Cloud Object Storage) as the under storage system.
-Tencent Cloud Object Storage (COS) is a distributed storage service offered by Tencent Cloud for unstructured data and accessible via HTTP/HTTPS protocols.
-It can store massive amounts of data and features imperceptible bandwidth and capacity expansion, making it a perfect data pool for big data computation and analytics.
+[Tencent Cloud Object Storage (COS)](https://cloud.tencent.com/product/cos) is a distributed storage service offered by Tencent Cloud for unstructured data and accessible via HTTP/HTTPS protocols. It can store massive amounts of data and features imperceptible bandwidth and capacity expansion, making it a perfect data pool for big data computation and analytics.
 
 ## Basic Setup
 

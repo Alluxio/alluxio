@@ -80,7 +80,7 @@
         url: /en/ufs/Qiniu-KODO.html
       - title: Tencent COS
         url: /en/ufs/COS.html
-      - title: COSN
+      - title: COSN (Hadoop-COS)
         url: /en/ufs/COSN.html
       - title: CephObjectStorage
         url: /en/ufs/CephObjectStorage.html
@@ -96,7 +96,7 @@
         url: /en/ufs/Swift.html
       - title: CephFS
         url: /en/ufs/CephFS.html
-      - title: OBS
+      - title: Huawei OBS
         url: /en/ufs/OBS.html
 
   - title: FUSE SDK
