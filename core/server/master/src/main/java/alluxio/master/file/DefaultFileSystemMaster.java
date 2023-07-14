@@ -411,7 +411,7 @@ public class DefaultFileSystemMaster extends CoreMaster
   private final ActiveSyncManager mSyncManager;
 
   /** Log writer for user access audit log. */
-  protected AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
+  protected volatile AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
 
   /** Stores the time series for various metrics which are exposed in the UI. */
   private final TimeSeriesStore mTimeSeriesStore;
