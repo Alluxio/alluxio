@@ -15,6 +15,9 @@ Consistent Hashing
 Data Caching
 : Alluxio provides an in-memory data caching mechanism to accelerate data access. Frequently accessed data is cached in memory, reducing the need for repetitive disk I/O and improving overall application performance. [Learn more]({{ '/en/core-services/Data-Caching.html' | relativize_url }})
 
+Data Lake
+: A data lake is a centralized repository that stores vast amounts of raw, unstructured, and structured data in its native format, enabling flexible and scalable data storage and analytics across various data sources and formats.
+
 Fault Tolerance
 : Alluxio incorporates fault tolerance mechanisms to ensure data availability and reliability. It replicates data across different notes in the cluster, providing resilience against node failures. [See Fault Tolerance in Dora Cache]({{ '/en/core-services/Data-Caching.html#fault-tolerance-and-client-side-ufs-fallback' | relativize_url }})
 
