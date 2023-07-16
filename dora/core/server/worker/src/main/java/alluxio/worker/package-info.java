@@ -30,8 +30,6 @@
  * Data server handles the following types of block requests:
  * <ul>
  *   <li>Read blocks in worker storage from network</li>
- *   <li>Read blocks in worker storage from local file system:
- *     short-circuit read for local client</li>
  *   <li>Read blocks in UFS</li>
  *   <li>Write blocks in worker storage from network</li>
  *   <li>Write blocks in worker storage from local file system:

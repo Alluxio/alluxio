@@ -23,8 +23,6 @@ import alluxio.grpc.CreateDirectoryPRequest;
 import alluxio.grpc.CreateDirectoryPResponse;
 import alluxio.grpc.CreateFilePRequest;
 import alluxio.grpc.CreateFilePResponse;
-import alluxio.grpc.CreateLocalBlockRequest;
-import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.DeletePRequest;
 import alluxio.grpc.DeletePResponse;
 import alluxio.grpc.ExistsPRequest;
@@ -42,8 +40,6 @@ import alluxio.grpc.MoveBlockRequest;
 import alluxio.grpc.MoveBlockResponse;
 import alluxio.grpc.MoveRequest;
 import alluxio.grpc.MoveResponse;
-import alluxio.grpc.OpenLocalBlockRequest;
-import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.grpc.RemoveBlockRequest;
@@ -123,32 +119,6 @@ public interface BlockWorkerClient extends Closeable {
    * @return the stream observer for the client request
    */
   ListenableFuture<Object> readBlockNoDataBack(ReadRequest request);
-
-  /**
-   * Creates a local block on the worker. This is a two stage operations:
-   * 1. Client sends a create request through the request stream. Server will respond with the name
-   *    of the file to write to.
-   * 2. When client is done with the file, it should signal complete or cancel on the request stream
-   *    based on the intent. The server will signal complete on the response stream once the
-   *    operation is done.
-   *
-   * @param responseObserver the stream observer for the server response
-   * @return the stream observer for the client request
-   */
-  StreamObserver<CreateLocalBlockRequest> createLocalBlock(
-      StreamObserver<CreateLocalBlockResponse> responseObserver);
-
-  /**
-   * Opens a local block. This is a two stage operations:
-   * 1. Client sends an open request through the request stream. Server will respond with the name
-   *    of the file to read from.
-   * 2. When client is done with the file, it should close the stream.
-   *
-   * @param responseObserver the stream observer for the server response
-   * @return the stream observer for the client request
-   */
-  StreamObserver<OpenLocalBlockRequest> openLocalBlock(
-      StreamObserver<OpenLocalBlockResponse> responseObserver);
 
   /**
    * Removes a block from worker.

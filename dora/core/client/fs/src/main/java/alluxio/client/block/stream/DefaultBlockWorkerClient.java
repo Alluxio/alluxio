@@ -27,8 +27,6 @@ import alluxio.grpc.CreateDirectoryPRequest;
 import alluxio.grpc.CreateDirectoryPResponse;
 import alluxio.grpc.CreateFilePRequest;
 import alluxio.grpc.CreateFilePResponse;
-import alluxio.grpc.CreateLocalBlockRequest;
-import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.DataMessageMarshaller;
 import alluxio.grpc.DataMessageMarshallerProvider;
 import alluxio.grpc.DeletePRequest;
@@ -53,8 +51,6 @@ import alluxio.grpc.MoveBlockRequest;
 import alluxio.grpc.MoveBlockResponse;
 import alluxio.grpc.MoveRequest;
 import alluxio.grpc.MoveResponse;
-import alluxio.grpc.OpenLocalBlockRequest;
-import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.grpc.RemoveBlockRequest;
@@ -282,18 +278,6 @@ public class DefaultBlockWorkerClient implements BlockWorkerClient {
     } else {
       return mStreamingAsyncStub.readBlock(responseObserver);
     }
-  }
-
-  @Override
-  public StreamObserver<CreateLocalBlockRequest> createLocalBlock(
-      StreamObserver<CreateLocalBlockResponse> responseObserver) {
-    return mStreamingAsyncStub.createLocalBlock(responseObserver);
-  }
-
-  @Override
-  public StreamObserver<OpenLocalBlockRequest> openLocalBlock(
-      StreamObserver<OpenLocalBlockResponse> responseObserver) {
-    return mStreamingAsyncStub.openLocalBlock(responseObserver);
   }
 
   @Override
