@@ -85,7 +85,7 @@ public class SleepingTimer implements HeartbeatTimer {
   }
 
   @Override
-  public void update(Map<PropertyKey, Object> changedProperties) {
+  public void update() {
     SleepIntervalSupplier newSupplier = mIntervalSupplierSupplier.get();
     if (!Objects.equals(mIntervalSupplier, newSupplier)) {
       mIntervalSupplier = newSupplier;

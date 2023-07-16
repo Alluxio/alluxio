@@ -32,6 +32,14 @@ public interface HeartbeatTimer extends Reconfigurable {
   }
 
   /**
+   * When this object needs to be reconfigured
+   * due to external configuration change etc.,
+   * this function will be invoked.
+   */
+  default void update() {
+  }
+
+  /**
    * Waits until next heartbeat should be executed.
    *
    * @return time limit in milliseconds for this heartbeat action to run for before

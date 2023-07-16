@@ -23,4 +23,9 @@ public interface Reconfigurable {
    * @param changedProperties the changed properties
    */
   void update(Map<PropertyKey, Object> changedProperties);
+
+  /**
+   * When any property changed, this function will be invoked.
+   */
+  void update();
 }

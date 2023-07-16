@@ -48,7 +48,7 @@ public class ReconfigurableRegistry {
    */
   public static synchronized boolean update() {
     for (Reconfigurable listener : new ArrayList<>(LISTENER_LIST)) {
-      listener.update(null);
+      listener.update();
     }
     return true;
   }
