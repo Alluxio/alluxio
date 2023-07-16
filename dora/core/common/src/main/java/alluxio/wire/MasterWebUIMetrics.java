@@ -69,7 +69,7 @@ public final class MasterWebUIMetrics implements Serializable {
    *
    * @return the cache hit remote
    */
-  public String getCacheHitRemote() {
+  public String getCacheHit() {
     return mCacheHit;
   }
 

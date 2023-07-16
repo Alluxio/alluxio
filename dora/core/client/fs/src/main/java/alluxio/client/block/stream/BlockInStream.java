@@ -84,12 +84,11 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    *
    * One of several read behaviors:
    *
-   * 1. Domain socket - if the data source is the local worker and the local worker has a domain
+   * - Domain socket - if the data source is the local worker and the local worker has a domain
    * socket server
-   * 2. Short-Circuit - if the data source is the local worker
-   * 3. Local Loopback Read - if the data source is the local worker and short circuit is disabled
-   * 4. Read from remote worker - if the data source is a remote worker
-   * 5. UFS Read from worker - if the data source is UFS, read from the UFS policy's designated
+   * - Local Loopback Read - if the data source is the local worker
+   * - Read from remote worker - if the data source is a remote worker
+   * - UFS Read from worker - if the data source is UFS, read from the UFS policy's designated
    * worker (ufs -> local or remote worker -> client)
    *
    * @param context the file system context

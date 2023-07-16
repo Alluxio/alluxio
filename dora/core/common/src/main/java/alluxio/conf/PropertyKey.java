@@ -4210,17 +4210,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  /**
+   * Directory Permission Handling for Legacy Short-Circuit Read/Write.
+   * Legacy systems that use short-circuit read/write operations which requires this directory
+   * accessible by other users. As a result, the default permission setting is '777',
+   * providing full read, write, and execute permissions to all users.
+   */
+  // TODO(binfan): revisit if 777 is needed
   public static final PropertyKey WORKER_DATA_FOLDER_PERMISSIONS =
       stringBuilder(Name.WORKER_DATA_FOLDER_PERMISSIONS)
           .setDefaultValue("rwxrwxrwx")
-          .setDescription("The permission set for the worker data folder. If short circuit is used "
-              + "this folder should be accessible by all users (rwxrwxrwx).")
+          .setDescription("The permission set for the worker data folder.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS =
       stringBuilder(Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS)
-          .setDescription("The path to the domain socket. Short-circuit reads make use of a "
+          .setDescription("The path to the domain socket. In this case, it makes use of a "
               + "UNIX domain socket when this is set (non-empty). This is a special path in "
               + "the file system that allows the client and the AlluxioWorker to communicate. "
               + "You will need to set a path to this socket. The AlluxioWorker needs to be "

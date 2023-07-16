@@ -123,8 +123,6 @@ public class MetricsCommandTest {
     List<String> expectedOutput = Arrays.asList(
         "Cluster.BytesReadDomain  (Type: GAUGE, Value: 4145.73KB)",
         "Cluster.BytesReadDomainThroughput  (Type: GAUGE, Value: 29.97MB/MIN)",
-        "Cluster.BytesReadLocal  (Type: GAUGE, Value: 11.47GB)",
-        "Cluster.BytesReadLocalThroughput  (Type: GAUGE, Value: 117.42MB/MIN)",
         "Cluster.BytesReadRemote  (Type: GAUGE, Value: 401.79MB)",
         "Cluster.BytesReadRemoteThroughput  (Type: GAUGE, Value: 518.36MB/MIN)",
         "Cluster.BytesReadUfsAll  (Type: GAUGE, Value: 509.47MB)",
