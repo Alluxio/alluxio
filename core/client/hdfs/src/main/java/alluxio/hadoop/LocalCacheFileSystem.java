@@ -210,12 +210,16 @@ public class LocalCacheFileSystem extends org.apache.hadoop.fs.FileSystem {
   @Override
   public BlockLocation[] getFileBlockLocations(FileStatus file, long start,
       long len) throws IOException {
+    // This is used by application to schedule/distribute the tasks
+    // By returning the real locations in the UFS.
     return mExternalFileSystem.getFileBlockLocations(file, start, len);
   }
 
   @Override
   public BlockLocation[] getFileBlockLocations(Path p, long start, long len)
       throws IOException {
+    // This is used by application to schedule/distribute the tasks
+    // By returning the real locations in the UFS.
     return mExternalFileSystem.getFileBlockLocations(p, start, len);
   }
 }
