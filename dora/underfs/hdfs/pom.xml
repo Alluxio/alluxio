@@ -202,25 +202,6 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <groupId>com.igormaznitsa</groupId>
-        <artifactId>jcp</artifactId>
-        <executions>
-          <execution>
-            <id>preprocessSources</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>preprocess</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>clearGeneratedFolders</id>
-            <goals>
-              <goal>clear</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
 </project>

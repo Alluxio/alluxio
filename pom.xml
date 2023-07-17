@@ -923,11 +923,6 @@
           <version>1.0</version>
         </plugin>
         <plugin>
-          <groupId>com.igormaznitsa</groupId>
-          <artifactId>jcp</artifactId>
-          <version>6.1.2</version>
-        </plugin>
-        <plugin>
           <groupId>com.mycila</groupId>
           <artifactId>license-maven-plugin</artifactId>
           <version>4.2</version>

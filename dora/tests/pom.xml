@@ -389,26 +389,6 @@
         </executions>
       </plugin>
 
-      <plugin>
-        <groupId>com.igormaznitsa</groupId>
-        <artifactId>jcp</artifactId>
-        <executions>
-          <execution>
-            <id>preprocessSources</id>
-            <phase>generate-test-sources</phase>
-            <goals>
-              <goal>preprocessTests</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>clearGeneratedFolders</id>
-            <goals>
-              <goal>clear</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
       <!-- Export test classes in a test-jar so that other projects can use them for testing -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
