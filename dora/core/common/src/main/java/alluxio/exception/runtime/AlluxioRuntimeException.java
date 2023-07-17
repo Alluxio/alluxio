@@ -234,7 +234,6 @@ public class AlluxioRuntimeException extends RuntimeException {
       if (e instanceof SaslException) {
         return (SaslException) e;
       }
-      return new IOException(this);
     }
     if (this instanceof FailedPreconditionRuntimeException) {
       if (e instanceof ClosedChannelException) {
@@ -242,13 +241,10 @@ public class AlluxioRuntimeException extends RuntimeException {
       }
       return new ClosedChannelException();
     }
-    if (this instanceof AlluxioRuntimeException) {
-      if (e instanceof AlluxioStatusException) {
-        return (AlluxioStatusException) e;
-      }
-      return new AlluxioStatusException(getStatus());
+    if (e instanceof AlluxioStatusException) {
+      return (AlluxioStatusException) e;
     }
-    return new IOException(this);
+    return new AlluxioStatusException(getStatus());
   }
 
   @Override

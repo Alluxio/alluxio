@@ -415,8 +415,10 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     if (ownerOrGroupChanged) {
       try {
         mFileSystem.setAttribute(uri, optionsBuilder.build());
+      } catch (AlluxioRuntimeException e) {
+        throw e.toIOException();
       } catch (AlluxioException e) {
-        throw castToIOException(e.getCause());
+        throw new IOException(e);
       }
     }
   }
