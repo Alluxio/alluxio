@@ -207,6 +207,50 @@ public class AlluxioRuntimeException extends RuntimeException {
     return new UnknownRuntimeException(ioe);
   }
 
+  /**
+   * Converts an AlluxioRuntimeException to a corresponding IOException.
+   *
+   * @return the corresponding IOException
+   */
+  public IOException toIOException() {
+    Throwable e = getCause();
+
+    if (this instanceof NotFoundRuntimeException) {
+      if (e instanceof FileNotFoundException) {
+        return (FileNotFoundException) e;
+      }
+      return new FileNotFoundException(getMessage());
+    }
+    if (this instanceof InvalidArgumentRuntimeException) {
+      if (e instanceof MalformedURLException) {
+        return (MalformedURLException) e;
+      }
+      return new MalformedURLException(getMessage());
+    }
+    if (this instanceof UnauthenticatedRuntimeException) {
+      if (e instanceof UserPrincipalNotFoundException) {
+        return (UserPrincipalNotFoundException) e;
+      }
+      if (e instanceof SaslException) {
+        return (SaslException) e;
+      }
+      return new IOException(this);
+    }
+    if (this instanceof FailedPreconditionRuntimeException) {
+      if (e instanceof ClosedChannelException) {
+        return (ClosedChannelException) e;
+      }
+      return new ClosedChannelException();
+    }
+    if (this instanceof AlluxioRuntimeException) {
+      if (e instanceof AlluxioStatusException) {
+        return (AlluxioStatusException) e;
+      }
+      return new AlluxioStatusException(getStatus());
+    }
+    return new IOException(this);
+  }
+
   @Override
   @Nullable
   public String getMessage() {

@@ -28,6 +28,7 @@ import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -115,8 +116,10 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
         .build();
     try {
       mFileSystem.checkAccess(uri, options);
+    } catch (AlluxioRuntimeException e) {
+      throw e.toIOException();
     } catch (AlluxioException e) {
-      throw castToIOException(e.getCause());
+      throw new IOException(e);
     }
   }
 
@@ -136,8 +139,10 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
       return new FSDataOutputStream(
           mFileSystem.createFile(uri, CreateFilePOptions.newBuilder().setRecursive(true).build()),
           mStatistics);
+    } catch (AlluxioRuntimeException e) {
+      throw e.toIOException();
     } catch (AlluxioException e) {
-      throw castToIOException(e.getCause());
+      throw new IOException(e);
     }
   }
 
@@ -180,8 +185,10 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     FileOutStream outStream;
     try {
       outStream = mFileSystem.createFile(uri, options);
+    } catch (AlluxioRuntimeException e) {
+      throw e.toIOException();
     } catch (AlluxioException e) {
-      throw castToIOException(e.getCause());
+      throw new IOException(e);
     }
     return new FSDataOutputStream(outStream, mStatistics);
   }
@@ -247,8 +254,10 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (InvalidPathException | FileDoesNotExistException e) {
       LOG.debug("delete failed: {}", e.toString());
       return false;
+    } catch (AlluxioRuntimeException e) {
+      throw e.toIOException();
     } catch (AlluxioException e) {
-      throw castToIOException(e.getCause());
+      throw new IOException(e);
     }
   }
 
@@ -318,8 +327,10 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
             file.getPath().getName(), start, len, Arrays.toString(ret));
       }
       return ret;
+    } catch (AlluxioRuntimeException e) {
+      throw e.toIOException();
     } catch (AlluxioException e) {
-      throw castToIOException(e.getCause());
+      throw new IOException(e);
     }
   }
 
@@ -340,8 +351,10 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
       mFileSystem.setAttribute(uri, (SetAttributePOptions) SetAttributePOptions.newBuilder()
           .setReplicationMin(replication).build());
       return true;
+    } catch (AlluxioRuntimeException e) {
+      throw e.toIOException();
     } catch (AlluxioException e) {
-      throw castToIOException(e.getCause());
+      throw new IOException(e);
     }
   }
 
@@ -363,8 +376,10 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
       fileStatus = mFileSystem.getStatus(uri);
     } catch (FileDoesNotExistException e) {
       throw new FileNotFoundException(e.getMessage());
+    } catch (AlluxioRuntimeException e) {
+      throw e.toIOException();
     } catch (AlluxioException e) {
-      throw castToIOException(e.getCause());
+      throw new IOException(e);
     }
     return new AlluxioFileStatus(fileStatus, getFsPath(mAlluxioHeader, fileStatus));
   }
@@ -420,8 +435,10 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
         .setMode(new Mode(permission.toShort()).toProto()).setRecursive(false).build();
     try {
       mFileSystem.setAttribute(uri, options);
+    } catch (AlluxioRuntimeException e) {
+      throw e.toIOException();
     } catch (AlluxioException e) {
-      throw castToIOException(e.getCause());
+      throw new IOException(e);
     }
   }
 
@@ -590,8 +607,10 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
       statuses = mFileSystem.listStatus(uri, listStatusPOptions);
     } catch (FileDoesNotExistException e) {
       throw new FileNotFoundException(getAlluxioPath(path).toString());
+    } catch (AlluxioRuntimeException e) {
+      throw e.toIOException();
     } catch (AlluxioException e) {
-      throw castToIOException(e.getCause());
+      throw new IOException(e);
     }
 
     FileStatus[] ret = new FileStatus[statuses.size()];
@@ -621,8 +640,10 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     try {
       mFileSystem.createDirectory(uri, options);
       return true;
+    } catch (AlluxioRuntimeException e) {
+      throw e.toIOException();
     } catch (AlluxioException e) {
-      throw castToIOException(e.getCause());
+      throw new IOException(e);
     }
   }
 
@@ -707,8 +728,10 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
   private void ensureExists(AlluxioURI path) throws IOException {
     try {
       mFileSystem.getStatus(path);
+    } catch (AlluxioRuntimeException e) {
+      throw e.toIOException();
     } catch (AlluxioException e) {
-      throw castToIOException(e.getCause());
+      throw new IOException(e);
     }
   }
 
