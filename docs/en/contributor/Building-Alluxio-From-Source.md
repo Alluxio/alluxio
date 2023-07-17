@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Building Alluxio From Source
-nickname: Building Alluxio From Source
-group: Contributor Resources
-priority: 0
 ---
 
 This guide describes how to clone the Alluxio repository, compile the source code, and run tests in your environment.

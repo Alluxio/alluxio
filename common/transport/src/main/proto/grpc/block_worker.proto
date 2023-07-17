@@ -27,11 +27,6 @@ service BlockWorker {
   rpc ReadBlock (stream ReadRequest) returns (stream ReadResponse);
   rpc WriteBlock (stream WriteRequest) returns (stream WriteResponse);
 
-  // Replaces ShortCircuitBlockReadHandler.
-  rpc OpenLocalBlock (stream OpenLocalBlockRequest) returns (stream OpenLocalBlockResponse);
-
-  // Replaces ShortCircuitBlockWriteHandler.
-  rpc CreateLocalBlock (stream CreateLocalBlockRequest) returns (stream CreateLocalBlockResponse);
   rpc AsyncCache (AsyncCacheRequest) returns (AsyncCacheResponse);
   rpc Cache (CacheRequest) returns (CacheResponse);
   rpc Load(LoadRequest)returns (LoadResponse);
@@ -331,34 +326,6 @@ message RouteFailure {
   // A developer-facing error message
   optional string message = 3;
   optional bool retryable = 4;
-}
-
-// next available id: 3
-message OpenLocalBlockRequest {
-  optional int64 block_id = 1;
-  optional bool promote = 2;
-}
-
-// next available id: 2
-message OpenLocalBlockResponse {
-  optional string path = 1;
-}
-
-// next available id: 9
-message CreateLocalBlockRequest {
-  optional int64 block_id = 1;
-  optional int32 tier = 3;
-  optional int64 space_to_reserve = 4;
-  // If set, only reserve space for the block.
-  optional bool only_reserve_space = 5;
-  optional bool cleanup_on_failure = 6;
-  optional string medium_type = 7;
-  optional bool pin_on_create = 8;
-}
-
-// next available id: 2
-message CreateLocalBlockResponse {
-  optional string path = 1;
 }
 
 // next available id: 2

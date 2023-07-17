@@ -1,9 +1,6 @@
 ---
 layout: global
 title: S3 API
-nickname: S3 API
-group: Client APIs
-priority: 1
 ---
 
 

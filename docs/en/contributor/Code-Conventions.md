@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Code Conventions
-nickname: Code Conventions
-group: Contributor Resources
-priority: 2
 ---
 
 

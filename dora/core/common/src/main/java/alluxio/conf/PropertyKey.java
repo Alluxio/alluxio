@@ -4210,17 +4210,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  /**
+   * Directory Permission Handling for Legacy Short-Circuit Read/Write.
+   * Legacy systems that use short-circuit read/write operations which requires this directory
+   * accessible by other users. As a result, the default permission setting is '777',
+   * providing full read, write, and execute permissions to all users.
+   */
+  // TODO(binfan): revisit if 777 is needed
   public static final PropertyKey WORKER_DATA_FOLDER_PERMISSIONS =
       stringBuilder(Name.WORKER_DATA_FOLDER_PERMISSIONS)
           .setDefaultValue("rwxrwxrwx")
-          .setDescription("The permission set for the worker data folder. If short circuit is used "
-              + "this folder should be accessible by all users (rwxrwxrwx).")
+          .setDescription("The permission set for the worker data folder.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS =
       stringBuilder(Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS)
-          .setDescription("The path to the domain socket. Short-circuit reads make use of a "
+          .setDescription("The path to the domain socket. In this case, it makes use of a "
               + "UNIX domain socket when this is set (non-empty). This is a special path in "
               + "the file system that allows the client and the AlluxioWorker to communicate. "
               + "You will need to set a path to this socket. The AlluxioWorker needs to be "
@@ -6981,23 +6987,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_SHORT_CIRCUIT_ENABLED =
-      booleanBuilder(Name.USER_SHORT_CIRCUIT_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("The short circuit read/write which allows the clients to "
-              + "read/write data without going through Alluxio workers if the data is local "
-              + "is enabled if set to true.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_SHORT_CIRCUIT_PREFERRED =
-      booleanBuilder(Name.USER_SHORT_CIRCUIT_PREFERRED)
-          .setDefaultValue(false)
-          .setDescription("When short circuit and domain socket both enabled, "
-              + "prefer to use short circuit.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
 
   //
   // FUSE integration related properties
@@ -9288,9 +9277,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.unsafe.direct.local.io.enabled";
     public static final String USER_UPDATE_FILE_ACCESSTIME_DISABLED =
         "alluxio.user.update.file.accesstime.disabled";
-    public static final String USER_SHORT_CIRCUIT_ENABLED = "alluxio.user.short.circuit.enabled";
-    public static final String USER_SHORT_CIRCUIT_PREFERRED =
-        "alluxio.user.short.circuit.preferred";
     public static final String USER_WORKER_LIST_REFRESH_INTERVAL =
         "alluxio.user.worker.list.refresh.interval";
 

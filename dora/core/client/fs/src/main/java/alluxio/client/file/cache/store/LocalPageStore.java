@@ -210,6 +210,12 @@ public class LocalPageStore implements PageStore {
     if (!pageFile.exists()) {
       throw new PageNotFoundException(pagePath.toString());
     }
+
+    long fileLength = pageFile.length();
+    if (pageOffset + bytesToRead > fileLength) {
+      bytesToRead = (int) (fileLength - (long) pageOffset);
+    }
+
     DataFileChannel dataFileChannel = new DataFileChannel(pageFile, pageOffset, bytesToRead);
     return dataFileChannel;
   }

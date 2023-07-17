@@ -15,7 +15,7 @@
   <parent>
     <artifactId>alluxio-shaded</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>301-SNAPSHOT</version>
+    <version>302-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-shaded-hadoop3-client</artifactId>
   <packaging>jar</packaging>

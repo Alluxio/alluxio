@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Running Presto on Iceberg Tables with Alluxio
-nickname: Presto on Iceberg (Experimental)
-group: Compute Integrations
-priority: 2
 ---
 
 Presto has introduced support for [Iceberg tables](https://iceberg.apache.org/) in version 0.256.
