@@ -4,7 +4,7 @@ title: Huawei OBS
 ---
 
 
-This guide describes the instructions to configure [OBS](https://www.huaweicloud.com/product/obs) as Alluxio's
+This guide describes the instructions to configure [Huawei OBS](https://www.huaweicloud.com/product/obs) as Alluxio's
 under storage system.
 
 ## Prerequisites

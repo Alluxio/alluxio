@@ -14,7 +14,7 @@ use, either by creating a new directory, or using an existing one. You also need
 [Service-to-service authentication](https://docs.microsoft.com/en-us/azure/data-lake-store/data-lake-store-service-to-service-authenticate-using-active-directory) for your storage account.
 For the purposes of this guide, the Azure storage account name is called `<AZURE_ACCOUNT>`
 and the directory in that storage account is called `<AZURE_DIRECTORY>`. For more information 
-about Azure storage account, Please see
+about Azure storage account, please see
 [here](https://docs.microsoft.com/en-us/azure/data-lake-store/data-lake-store-get-started-portal).
 
 

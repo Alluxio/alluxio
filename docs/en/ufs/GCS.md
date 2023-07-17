@@ -59,7 +59,7 @@ Choose your preferred GCS UFS version and provide the corresponding Google crede
 {% navtabs rootMount %}
 {% navtab GCS version 2 %}
 
-In`conf/alluxio-site.properties`, add:
+In `conf/alluxio-site.properties`, add:
 ```properties
 fs.gcs.credential.path=/path/to/<google_application_credentials>.json
 ```

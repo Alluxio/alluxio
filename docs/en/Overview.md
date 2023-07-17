@@ -3,15 +3,25 @@ layout: global
 title: Overview
 ---
 
-Welcome to Alluxio Documentation! You will find resources regarding deploying Alluxio, integrating with various tech stacks, API references, and more! If you have any questions, join our Alluxio Community Slack &rarr; [alluxio.io/slack](https://www.alluxio.io/slack)
+Welcome to Alluxio Documentation! You will find resources regarding deploying Alluxio, integrations with various tech stacks, API references, and more! If you have any questions, join our Alluxio Community Slack &rarr; [alluxio.io/slack](https://www.alluxio.io/slack)
 
 ## Get Started with Alluxio
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/5YQvvznT5cI" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-
 Check out our [Quick Start Guide]({{ '/en/Get-Started.html' | relativize_url }}) for step-by-step guidance on how to download Alluxio, run Alluxio on a local machine, and perform basic tasks via Alluxio Shell.
 
+<iframe width="560" height="315" src="https://www.youtube.com/embed/5YQvvznT5cI" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
 Follow [Install Alluxio Cluster with HA]({{ '/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }}) to deploy an Alluxio cluster with High Availability (HA) by running multiple Alluxio master processes on different nodes in the system.
+
+## Kubernetes
+See [Install Alluxio on Kubernetes]({{ '/en/kubernetes/Install-Alluxio-On-Kubernetes.html' | relativize_url }}) on how to install Alluxio on Kubernetes via 
+[Helm](https://helm.sh/), a kubernetes package manager, and [Operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/), a kubernetes extension for managing applications.
+
+Check out these 2 short videos on deployment and best practices with configurations & recommendations:
+
+<iframe width="500" height="281" src="https://www.youtube.com/embed/FlvbekK_xG0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
+<iframe width="500" height="281" src="https://www.youtube.com/embed/zwhMwiYmO8M" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
 ## Compute Integrations
 * [Running Presto with Alluxio]({{ '/en/compute/Presto.html' | relativize_url }})

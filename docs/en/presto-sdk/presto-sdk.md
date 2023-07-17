@@ -19,14 +19,14 @@ can be cached locally on Presto Workers that execute the TableScan operator.
 Presto gets the database and table metadata information (including file system locations) from the Hive Metastore, via Presto's Hive Connector.
 Here is an example Presto configuration file `${PRESTO_HOME}/etc/hive.properties`, for a catalog using the Hive connector,
 where the metastore is located on `localhost`.
-```shell
+```properties
 connector.name=hive-hadoop2
 hive.metastore.uri=thrift://localhost:9083
 ```
 
 ### Enable local caching for Presto
 To enable local caching, add the following configurations in `${PRESTO_HOME}/etc/hive.properties`:
-```shell
+```properties
 hive.node-selection-strategy=SOFT_AFFINITY
 cache.enabled=true
 cache.type=ALLUXIO
@@ -49,7 +49,7 @@ After completing the basic configuration, Presto should be able to access data i
 
 ## Example
 ### Create a Hive
-Create a Hive table by hive client specifying its LOCATION to Alluxio.
+Create a Hive table by hive client specifying its `LOCATION` to Alluxio.
 ```sql
 hive> CREATE TABlE employee_parquet_alluxio (name string, salary int)
 PARTITIONED BY (doj string)
