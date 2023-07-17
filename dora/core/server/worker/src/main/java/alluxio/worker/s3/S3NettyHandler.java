@@ -686,10 +686,15 @@ public class S3NettyHandler {
 
     @Override
     public void operationComplete(ChannelFuture future) {
-      S3NettyHandler.logAccess(mHandler.getRequest(), mHandler.getResponse(),
-          mHandler.getStopwatch(), mHandler.getS3Task() != null
-              ? mHandler.getS3Task().getOPType() : S3NettyBaseTask.OpType.Unknown);
-      future.channel().close();
+      if (future.isSuccess()) {
+        S3NettyHandler.logAccess(mHandler.getRequest(), mHandler.getResponse(),
+            mHandler.getStopwatch(), mHandler.getS3Task() != null
+                ? mHandler.getS3Task().getOPType() : S3NettyBaseTask.OpType.Unknown);
+        future.channel().close();
+      } else {
+        Throwable cause = future.cause();
+        LOG.warn("write to channel failed:", cause);
+      }
     }
   }
 }

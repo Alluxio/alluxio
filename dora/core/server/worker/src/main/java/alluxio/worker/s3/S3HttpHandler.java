@@ -12,10 +12,14 @@
 package alluxio.worker.s3;
 
 import alluxio.client.file.FileSystem;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.s3.S3ErrorResponse;
 import alluxio.worker.dora.DoraWorker;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -37,17 +41,27 @@ public class S3HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
 
   private final AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
 
+  private final ThreadPoolExecutor mLightPool;
+
+  private final ThreadPoolExecutor mHeavyPool;
+
   /**
    * Constructs an instance of {@link S3HttpHandler}.
+   *
    * @param fileSystem
    * @param doraWorker
    * @param asyncAuditLogWriter
+   * @param lightPool
+   * @param heavyPool
    */
   public S3HttpHandler(FileSystem fileSystem, DoraWorker doraWorker,
-                       AsyncUserAccessAuditLogWriter asyncAuditLogWriter) {
+                       AsyncUserAccessAuditLogWriter asyncAuditLogWriter,
+                       ThreadPoolExecutor lightPool, ThreadPoolExecutor heavyPool) {
     mFileSystem = fileSystem;
     mDoraWorker = doraWorker;
     mAsyncAuditLogWriter = asyncAuditLogWriter;
+    mLightPool = lightPool;
+    mHeavyPool = heavyPool;
   }
 
   //  private final PagedService mPagedService;
@@ -63,8 +77,27 @@ public class S3HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
       S3NettyHandler s3Handler =
           S3NettyHandler.createHandler(context, request, mFileSystem, mDoraWorker,
               mAsyncAuditLogWriter);
-      HttpResponse response = s3Handler.getS3Task().continueTask();
-      s3Handler.processHttpResponse(response);
+      // Handle request async
+      if (Configuration.getBoolean(PropertyKey.WORKER_S3_ASYNC_PROCESS_ENABLED)) {
+        S3NettyBaseTask.OpTag opTag = s3Handler.getS3Task().mOPType.getOpTag();
+        ExecutorService es = (ExecutorService) (opTag == S3NettyBaseTask.OpTag.LIGHT
+            ? mLightPool : mHeavyPool);
+
+        es.submit(() -> {
+          try {
+            HttpResponse response = s3Handler.getS3Task().continueTask();
+            s3Handler.processHttpResponse(response);
+          } catch (Throwable th) {
+            HttpResponse errorResponse =
+                S3ErrorResponse.createNettyErrorResponse(th, request.uri());
+            ChannelFuture f = context.writeAndFlush(errorResponse);
+            f.addListener(ChannelFutureListener.CLOSE);
+          }
+        });
+      } else {
+        HttpResponse response = s3Handler.getS3Task().continueTask();
+        s3Handler.processHttpResponse(response);
+      }
     } catch (Exception ex) {
       HttpResponse errorResponse = S3ErrorResponse.createNettyErrorResponse(ex, request.uri());
       ChannelFuture f = context.writeAndFlush(errorResponse);
