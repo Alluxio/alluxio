@@ -11,7 +11,6 @@
 
 package alluxio.hadoop;
 
-import static alluxio.util.CommonUtils.castToIOException;
 import static java.util.stream.Collectors.toList;
 
 import alluxio.AlluxioURI;
