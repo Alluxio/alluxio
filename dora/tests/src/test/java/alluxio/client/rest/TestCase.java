@@ -224,7 +224,6 @@ public final class TestCase {
     }
 
     String result = runAndGetResponse();
-    System.out.println(result);
     Assert.assertEquals(mEndpoint, expected, result);
   }
 
