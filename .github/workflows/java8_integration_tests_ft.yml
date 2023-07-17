@@ -1,4 +1,4 @@
-name: Java 11 Fault Tolerant Integration Tests
+name: Java 8 Fault Tolerant Integration Tests
 
 on: [pull_request]
 

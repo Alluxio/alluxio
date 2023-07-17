@@ -1,9 +1,6 @@
 ---
 layout: global
 title: REST API
-nickname: REST API
-group: Client APIs
-priority: 2
 ---
 
 While users should use [S3 API]({{ '/en/api/S3-API.html' | relativize_url }}) for data I/O operations, admins can 

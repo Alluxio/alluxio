@@ -1,8 +1,6 @@
 ---
 layout: global
 title: FUSE SDK Local Metadata Cache
-group: FUSE SDK
-priority: 5
 ---
 
 

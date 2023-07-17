@@ -1,8 +1,6 @@
 ---
 layout: global
 title: Presto SDK with Local Cache
-group: Presto SDK
-priority: 1
 ---
 
 Presto provides an SDK way to combined with Alluxio.

@@ -1,8 +1,6 @@
 ---
 layout: global
 title: Install Alluxio on Kubernetes
-group: Kubernetes
-priority: 2
 ---
 
 This documentation shows how to install Alluxio (Dora) on Kubernetes via 

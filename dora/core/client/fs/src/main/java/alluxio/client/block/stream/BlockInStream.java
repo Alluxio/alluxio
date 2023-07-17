@@ -21,7 +21,6 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.OutOfRangeException;
 import alluxio.grpc.ReadRequest;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -85,12 +84,11 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    *
    * One of several read behaviors:
    *
-   * 1. Domain socket - if the data source is the local worker and the local worker has a domain
+   * - Domain socket - if the data source is the local worker and the local worker has a domain
    * socket server
-   * 2. Short-Circuit - if the data source is the local worker
-   * 3. Local Loopback Read - if the data source is the local worker and short circuit is disabled
-   * 4. Read from remote worker - if the data source is a remote worker
-   * 5. UFS Read from worker - if the data source is UFS, read from the UFS policy's designated
+   * - Local Loopback Read - if the data source is the local worker
+   * - Read from remote worker - if the data source is a remote worker
+   * - UFS Read from worker - if the data source is UFS, read from the UFS policy's designated
    * worker (ufs -> local or remote worker -> client)
    *
    * @param context the file system context
@@ -115,49 +113,27 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     }
 
     AlluxioConfiguration alluxioConf = context.getClusterConf();
-    boolean shortCircuit = alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED);
-    boolean shortCircuitPreferred =
-        alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_PREFERRED);
     boolean sourceSupportsDomainSocket = NettyUtils.isDomainSocketSupported(dataSource);
     boolean sourceIsLocal = dataSourceType == BlockInStreamSource.NODE_LOCAL;
     boolean nettyTransEnabled =
         alluxioConf.getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
 
-    // Short circuit is enabled when
-    // 1. data source is local node
-    // 2. alluxio.user.short.circuit.enabled is true
-    // 3. the worker's domain socket is not configured
-    //      OR alluxio.user.short.circuit.preferred is true
-    if (sourceIsLocal && shortCircuit && (shortCircuitPreferred || !sourceSupportsDomainSocket)) {
-      LOG.debug("Creating short circuit input stream for block {} @ {}", blockId, dataSource);
-      try {
-        return createLocalBlockInStream(context, dataSource, blockId, blockSize, options);
-      } catch (NotFoundException e) {
-        // Failed to do short circuit read because the block is not available in Alluxio.
-        // We will try to read via gRPC. So this exception is ignored.
-        LOG.warn("Failed to create short circuit input stream for block {} @ {}. Falling back to "
-            + "network transfer", blockId, dataSource);
-      }
-    }
-
     // use Netty to transfer data
     if (nettyTransEnabled) {
       // TODO(JiamingMai): implement this logic
       LOG.debug("Creating Netty input stream for block {} @ {} from client {} reading through {} ("
-              + "data locates in the local worker {}, shortCircuitEnabled {}, "
-              + "shortCircuitPreferred {}, sourceSupportDomainSocket {})",
+              + "data locates in the local worker {}, sourceSupportDomainSocket {})",
           blockId, dataSource, NetworkAddressUtils.getClientHostName(alluxioConf), dataSource,
-          sourceIsLocal, shortCircuit, shortCircuitPreferred, sourceSupportsDomainSocket);
+          sourceIsLocal, sourceSupportsDomainSocket);
       return createNettyBlockInStream(context, dataSource, dataSourceType, blockId,
           blockSize, options);
     }
 
     // gRPC
     LOG.debug("Creating gRPC input stream for block {} @ {} from client {} reading through {} ("
-        + "data locates in the local worker {}, shortCircuitEnabled {}, "
-        + "shortCircuitPreferred {}, sourceSupportDomainSocket {})",
+        + "data locates in the local worker {}, sourceSupportDomainSocket {})",
         blockId, dataSource, NetworkAddressUtils.getClientHostName(alluxioConf), dataSource,
-        sourceIsLocal, shortCircuit, shortCircuitPreferred, sourceSupportsDomainSocket);
+        sourceIsLocal, sourceSupportsDomainSocket);
     return createGrpcBlockInStream(context, dataSource, dataSourceType, blockId,
         blockSize, options);
   }
@@ -183,27 +159,6 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         context.getProcessLocalWorker().orElseThrow(NullPointerException::new),
         blockId, chunkSize, options),
         address, BlockInStreamSource.PROCESS_LOCAL, blockId, length);
-  }
-
-  /**
-   * Creates a {@link BlockInStream} to read from a local file.
-   *
-   * @param context the file system context
-   * @param address the network address of the gRPC data server to read from
-   * @param blockId the block ID
-   * @param length the block length
-   * @param options the in stream options
-   * @return the {@link BlockInStream} created
-   */
-  private static BlockInStream createLocalBlockInStream(FileSystemContext context,
-      WorkerNetAddress address, long blockId, long length, InStreamOptions options)
-      throws IOException {
-    AlluxioConfiguration conf = context.getClusterConf();
-    long chunkSize = conf.getBytes(
-        PropertyKey.USER_LOCAL_READER_CHUNK_SIZE_BYTES);
-    return new BlockInStream(
-        new LocalFileDataReader.Factory(context, address, blockId, chunkSize, options),
-        address, BlockInStreamSource.NODE_LOCAL, blockId, length);
   }
 
   /**

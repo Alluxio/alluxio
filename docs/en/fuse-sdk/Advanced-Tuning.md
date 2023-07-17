@@ -1,8 +1,6 @@
 ---
 layout: global
 title: FUSE SDK Advanced Tuning
-group: FUSE SDK
-priority: 6
 ---
 
 

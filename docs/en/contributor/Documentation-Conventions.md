@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Documentation Conventions
-nickname: Documentation Conventions
-group: Contributor Resources
-priority: 2
 ---
 
 

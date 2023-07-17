@@ -1,8 +1,6 @@
 ---
 layout: global
 title: Introduction
-group: Introduction
-priority: 1
 ---
 
 ## About Alluxio

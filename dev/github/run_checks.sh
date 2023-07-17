@@ -22,21 +22,14 @@ then
   git clean -fdx
 fi
 
-mvn_args=""
-if [ -n "${ALLUXIO_MVN_RUNTOEND}" ]
-then
-  mvn_args+=" -fn -DfailIfNoTests=false --fail-at-end"
-fi
-
 export MAVEN_OPTS="-Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss.SSS"
 
-# Always use java 11 to compile the source code
+# Always use java 8 to compile the source code
 JAVA_HOME_BACKUP=${JAVA_HOME}
 PATH_BACKUP=${PATH}
-JAVA_HOME=/usr/local/openjdk-11
+JAVA_HOME=/usr/local/openjdk-8
 PATH=$JAVA_HOME/bin:$PATH
-mvn -Duser.home=/home/jenkins -T 4C clean install -Pdeveloper -DskipTests -Dmaven.javadoc.skip \
--Dsurefire.forkCount=2 ${mvn_args}
+mvn -Duser.home=/home/jenkins -T 4C clean install -DskipTests ${mvn_args}
 
 ./dev/scripts/check-docs.sh
 ./dev/scripts/build-artifact.sh ufsVersionCheck

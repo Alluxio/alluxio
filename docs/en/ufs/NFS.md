@@ -1,9 +1,6 @@
 ---
 layout: global
 title: NFS
-nickname: NFS
-group: Storage Integrations
-priority: 10
 ---
 
 
@@ -24,10 +21,6 @@ Turn on remote login service so that `ssh localhost` can succeed. To avoid the n
 repeatedly input the password, you can add the public SSH key for the host into
 `~/.ssh/authorized_keys`. See [this tutorial](http://www.linuxproblem.org/art_9.html) for more
 details.
-
-## Initial Setup
-
-The Alluxio binaries must be on your machine. You can [download the binaries locally]({{ '/en/Get-Started.html' | relativize_url }}).
 
 ## Creating NFS mount point
 

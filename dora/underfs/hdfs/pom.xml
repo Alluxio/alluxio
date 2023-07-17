@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>301-SNAPSHOT</version>
+    <version>302-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs-hdfs</artifactId>
   <name>Alluxio Under File System - HDFS</name>
@@ -199,25 +199,6 @@
               <sourceDirectory>src/main/java-templates</sourceDirectory>
               <outputDirectory>target/generated-sources/java-templates</outputDirectory>
             </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>com.igormaznitsa</groupId>
-        <artifactId>jcp</artifactId>
-        <executions>
-          <execution>
-            <id>preprocessSources</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>preprocess</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>clearGeneratedFolders</id>
-            <goals>
-              <goal>clear</goal>
-            </goals>
           </execution>
         </executions>
       </plugin>

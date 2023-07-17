@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Running Spark on Alluxio
-nickname: Apache Spark
-group: Compute Integrations
-priority: 0
 ---
 
 This guide describes how to configure [Apache Spark](http://spark-project.org/)

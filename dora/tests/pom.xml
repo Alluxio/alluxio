@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-dora</artifactId>
-    <version>301-SNAPSHOT</version>
+    <version>302-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-tests</artifactId>
   <packaging>jar</packaging>
@@ -385,26 +385,6 @@
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer" />
               </transformers>
             </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>com.igormaznitsa</groupId>
-        <artifactId>jcp</artifactId>
-        <executions>
-          <execution>
-            <id>preprocessSources</id>
-            <phase>generate-test-sources</phase>
-            <goals>
-              <goal>preprocessTests</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>clearGeneratedFolders</id>
-            <goals>
-              <goal>clear</goal>
-            </goals>
           </execution>
         </executions>
       </plugin>

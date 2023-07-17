@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Metadata Cache and Invalidation
-nickname: Metadata Cache
-group: Core Services
-priority: 2
 ---
 
 In Dora, Alluxio caches metadata and data on workers. This document explains how the metadata is cached and how the metadata is invalidated and refreshed. Along with the metadata invalidation, the data that is associated with the metadata is also invalidated.

@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Running Presto with Alluxio
-nickname: Presto
-group: Compute Integrations
-priority: 2
 ---
 
 [Presto](https://prestodb.io/)
