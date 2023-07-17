@@ -93,12 +93,17 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
         response.headers().set(CONNECTION, CLOSE);
       }
 
-      ctx.write(response);
-      ctx.write(responseContext.getFileRegion());
-      ChannelFuture f = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+      ChannelFuture channelFuture;
+      if (response instanceof FullHttpResponse) {
+        channelFuture = ctx.write(response);
+      } else {
+        ctx.write(response);
+        ctx.write(responseContext.getFileRegion());
+        channelFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+      }
 
       if (!keepAlive) {
-        f.addListener(ChannelFutureListener.CLOSE);
+        channelFuture.addListener(ChannelFutureListener.CLOSE);
       }
     }
   }
