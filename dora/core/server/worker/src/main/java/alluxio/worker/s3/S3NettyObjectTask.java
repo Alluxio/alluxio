@@ -35,7 +35,6 @@ import alluxio.grpc.PMode;
 import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.network.netty.FileTransferType;
 import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.s3.ChunkedEncodingInputStream;
 import alluxio.s3.CopyObjectResult;
 import alluxio.s3.NettyRestUtils;
@@ -49,7 +48,6 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.BlockReader;
-import alluxio.worker.block.io.LocalFileBlockReader;
 import alluxio.worker.dora.PagedFileReader;
 
 import com.google.common.base.Preconditions;
@@ -66,7 +64,6 @@ import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -305,11 +302,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
       mHandler.processHttpResponse(response, false);
       try {
         if (mHandler.getFileTransferType() == FileTransferType.TRANSFER) {
-          if (blockReader instanceof LocalFileBlockReader) {
-            packet =
-                new DataFileChannel(new File(((LocalFileBlockReader) blockReader).getFilePath()),
-                    offset, length);
-          } else if (blockReader instanceof PagedFileReader) {
+          if (blockReader instanceof PagedFileReader) {
             PagedFileReader pagedFileReader = (PagedFileReader) blockReader;
             packet =
                 pagedFileReader.getMultipleDataFileChannel(mHandler.getContext().channel(), length);
