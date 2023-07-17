@@ -1,9 +1,6 @@
 ---
 layout: global
 title: CephFS
-nickname: CephFS
-group: Storage Integrations
-priority: 11
 ---
 
 
@@ -14,11 +11,7 @@ two different implementations of under storage system for [CephFS](https://docs.
 
 ## Prerequisites
 
-### Deploy Alluxio binary package
-The Alluxio binaries must be on your machine. You can 
-[download the binaries locally]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
-
-### Install Dependences
+### Install Dependencies
 According to [ceph packages install](https://docs.ceph.com/en/latest/install/get-packages/) to install below packages:
 
 ```

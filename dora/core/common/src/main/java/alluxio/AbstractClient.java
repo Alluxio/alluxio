@@ -234,6 +234,14 @@ public abstract class AbstractClient implements Client {
     }
   }
 
+  protected GrpcChannel createChannel() throws AlluxioStatusException {
+    AlluxioConfiguration conf = mContext.getClusterConf();
+    return GrpcChannelBuilder
+        .newBuilder(mServerAddress, conf, mAlwaysEnableTLS)
+        .setSubject(mContext.getSubject())
+        .build();
+  }
+
   /**
    * Connects with the remote.
    */
@@ -265,12 +273,8 @@ public abstract class AbstractClient implements Client {
         beforeConnect();
         LOG.debug("Alluxio client (version {}) is trying to connect with {} @ {}",
             RuntimeConstants.VERSION, getServiceName(), mServerAddress);
-        AlluxioConfiguration conf = mContext.getClusterConf();
         // set up rpc group channel
-        mChannel = GrpcChannelBuilder
-            .newBuilder(mServerAddress, conf, mAlwaysEnableTLS)
-            .setSubject(mContext.getSubject())
-            .build();
+        mChannel = createChannel();
         // Create stub for version service on host
         mVersionService = ServiceVersionClientServiceGrpc.newBlockingStub(mChannel);
         mConnected = true;

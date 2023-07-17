@@ -1,10 +1,7 @@
 ---
 layout: global
 title: FUSE SDK with Local Cache Quick Start
-group: FUSE SDK
-priority: 2
 ---
-
 
 ## Prerequisites
 

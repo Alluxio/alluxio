@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Running Apache Hive with Alluxio
-nickname: Apache Hive
-group: Compute Integrations
-priority: 2
 ---
 
 This guide describes how to run [Apache Hive](http://hive.apache.org/) with Alluxio, so
@@ -16,7 +13,6 @@ that you can easily store Hive tables in Alluxio's tiered storage.
 * [Download and setup Hive](https://cwiki.apache.org/confluence/display/Hive/GettingStarted). If you are using Hive2.1+, 
   make sure to [run the schematool](https://cwiki.apache.org/confluence/display/Hive/GettingStarted#GettingStarted-RunningHiveServer2andBeeline.1)
   before starting Hive. `$HIVE_HOME/bin/schematool -dbType derby -initSchema`
-* Alluxio has been [set up and is running]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
 * Make sure that the Alluxio client jar is available.
   This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the tarball
   downloaded from Alluxio [download page](https://www.alluxio.io/download).
@@ -70,7 +66,7 @@ creates:
 
 Then create a new internal table:
 
-```
+```sql
 hive> CREATE TABLE u_user (
 userid INT,
 age INT,
@@ -87,7 +83,7 @@ LOCATION 'alluxio://master_hostname:port/ml-100k';
 
 Make the same setup as the previous example, and create a new external table:
 
-```
+```sql
 hive> CREATE EXTERNAL TABLE u_user (
 userid INT,
 age INT,
@@ -108,7 +104,7 @@ Alluxio.
 
 Now you can query the created table. For example:
 
-```
+```sql
 hive> select * from u_user;
 ```
 
@@ -129,7 +125,7 @@ is set in `conf/alluxio-site.properties`).
 We assume that the `hive.metastore.warehouse.dir` property (within your Hive installation `conf/hive-default.xml`)
 is set to `/user/hive/warehouse` which is the default value, and the internal table is already created like this:
 
-```
+```sql
 hive> CREATE TABLE u_user (
 userid INT,
 age INT,
@@ -144,13 +140,13 @@ hive> LOAD DATA LOCAL INPATH '/path/to/ml-100k/u.user' OVERWRITE INTO TABLE u_us
 
 The following HiveQL statement will change the table data location from HDFS to Alluxio：
 
-```
+```sql
 hive> alter table u_user set location "alluxio://master_hostname:port/user/hive/warehouse/u_user";
 ```
 
 Verify whether the table location is set correctly:
 
-```
+```sql
 hive> desc formatted u_user;
 ```
 
@@ -166,13 +162,13 @@ Assume there is an existing external table `u_user` in Hive with location set to
 `hdfs://namenode_hostname:port/ml-100k`.
 You can use the following HiveQL statement to check its "Location" attribute:
 
-```
+```sql
 hive> desc formatted u_user;
 ```
 
 Then use the following HiveQL statement to change the table data location from HDFS to Alluxio：
 
-```
+```sql
 hive> alter table u_user set location "alluxio://master_hostname:port/ml-100k";
 ```
 
@@ -181,7 +177,7 @@ hive> alter table u_user set location "alluxio://master_hostname:port/ml-100k";
 In both cases above about changing table data location to Alluxio, you can also change the table
 location back to HDFS:
 
-```
+```sql
 hive> alter table TABLE_NAME set location "hdfs://namenode:port/table/path/in/HDFS";
 ```
 
@@ -195,7 +191,7 @@ The process of moving a partitioned table is quite similar to moving a non-parti
 In addition to altering the table location, we also need to modify the partition location for all the partitions.
 See the following for an example.
 
-```
+```sql
 hive> alter table TABLE_NAME partition(PARTITION_COLUMN = VALUE) set location "hdfs://namenode:port/table/path/partitionpath";
 ```
 
@@ -251,17 +247,17 @@ Alternatively one can add the properties to the Hive `conf/hive-site.xml`:
 ```
 
 For information about how to connect to Alluxio HA cluster using Zookeeper-based leader election,
-please refer to [HA mode client configuration parameters]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#specify-alluxio-service-in-configuration-parameters).
+please refer to [HA mode client configuration parameters]({{ '/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }}#specify-alluxio-service-in-configuration-parameters).
 
 If the master RPC addresses are specified in one of the configuration files listed above,
 you can omit the authority part in Alluxio URIs:
 
-```
+```sql
 hive> alter table u_user set location "alluxio:///ml-100k";
 ```
 
 Since Alluxio 2.0, one can directly use Alluxio HA-style authorities in Hive queries without any configuration setup.
-See [HA authority]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#ha-authority) for more details.
+See [HA authority]({{ '/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }}#ha-authority) for more details.
 
 ### Experimental: Use Alluxio as the Default File System
 
@@ -302,7 +298,7 @@ Create a table in Hive and load a file in local path into Hive:
 Again use the data file in `ml-100k.zip` from
 [http://grouplens.org/datasets/movielens/](http://grouplens.org/datasets/movielens/) as an example.
 
-```
+```sql
 hive> CREATE TABLE u_user (
 userid INT,
 age INT,
@@ -317,14 +313,14 @@ hive> LOAD DATA LOCAL INPATH '/path/to/ml-100k/u.user'
 OVERWRITE INTO TABLE u_user;
 ```
 
-View Alluxio WebUI at `http://master_hostname:19999` and you can see the directory and file Hive
+View Alluxio Web UI at `http://master_hostname:19999` and you can see the directory and file Hive
 creates:
 
 ![HiveTableInAlluxio]({{ '/img/screenshot_hive_table_in_alluxio.png' | relativize_url }})
 
 Using a single query:
 
-```
+```sql
 hive> select * from u_user;
 ```
 

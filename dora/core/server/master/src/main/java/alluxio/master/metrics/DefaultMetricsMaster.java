@@ -122,11 +122,6 @@ public class DefaultMetricsMaster extends CoreMaster implements MetricsMaster, N
         MetricKey.CLUSTER_BYTES_READ_UFS_THROUGHPUT.getName());
     registerThroughputGauge(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_ALL.getName(),
         MetricKey.CLUSTER_BYTES_WRITTEN_UFS_THROUGHPUT.getName());
-    // client metrics
-    registerThroughputGauge(MetricKey.CLUSTER_BYTES_READ_LOCAL.getName(),
-        MetricKey.CLUSTER_BYTES_READ_LOCAL_THROUGHPUT.getName());
-    registerThroughputGauge(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL.getName(),
-        MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT.getName());
 
     // TODO(lu) Create a template for dynamically construct MetricKey
     for (MetricInfo.UfsOps ufsOp : MetricInfo.UfsOps.values()) {

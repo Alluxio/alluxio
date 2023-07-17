@@ -71,7 +71,6 @@ public class DoraPositionReaderIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, "TRANSFER")
           .setProperty(PropertyKey.DORA_CLIENT_UFS_ROOT, UFS_ROOT)
           .setProperty(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false)
-          .setProperty(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, false)
           .setProperty(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES, Constants.KB)
           .setProperty(PropertyKey.WORKER_BLOCK_STORE_TYPE, "PAGE")
           .setProperty(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, Constants.KB)

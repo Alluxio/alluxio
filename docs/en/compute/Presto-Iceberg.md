@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Running Presto on Iceberg Tables with Alluxio
-nickname: Presto on Iceberg (Experimental)
-group: Compute Integrations
-priority: 2
 ---
 
 Presto has introduced support for [Iceberg tables](https://iceberg.apache.org/) in version 0.256.
@@ -63,7 +60,7 @@ For demonstration purposes, we will create an example schema and an Iceberg tabl
 Launch the Presto CLI client with the following command:
 
 ```console
-./presto --server localhost:8080 --catalog iceberg --debug
+$ ./presto --server localhost:8080 --catalog iceberg --debug
 ```
 
 For more information on the client, please refer to this section on [querying tables using Presto]

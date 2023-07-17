@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Ozone
-nickname: Ozone
-group: Storage Integrations
-priority: 10
 ---
 
 
@@ -13,9 +10,6 @@ Ozone can function effectively in containerized environments such as Kubernetes 
 
 ## Prerequisites
 
-To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these
-machines. You can [download the precompiled binaries directly]({{ '/en/overview/Getting-Started.html' | relativize_url }})
-with the correct Hadoop version (recommended).
 In preparation for using Ozone with Alluxio, follow the [Ozone On Premise Installation](https://ozone.apache.org/docs/1.2.1/start/onprem.html)
 to install a Ozone cluster, and follow the [Cli Commands](https://ozone.apache.org/docs/1.2.1/interface/cli.html) to create volume and bucket for Ozone cluster.
 

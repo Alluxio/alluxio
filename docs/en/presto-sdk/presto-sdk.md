@@ -1,10 +1,7 @@
 ---
 layout: global
-title: Presto SDK with local cache
-group: Presto SDK
-priority: 1
+title: Presto SDK with Local Cache
 ---
-
 
 Presto provides an SDK way to combined with Alluxio.
 With the SDK, hot data that need to be scanned frequently

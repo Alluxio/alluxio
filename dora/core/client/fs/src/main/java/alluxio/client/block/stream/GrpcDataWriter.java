@@ -136,7 +136,7 @@ public final class GrpcDataWriter implements DataWriter {
       builder.setCreateUfsFileOptions(ufsFileOptions);
     }
     // two cases to use UFS_FALLBACK_BLOCK endpoint:
-    // (1) this writer is created by the fallback of a short-circuit writer, or
+    // (1) this writer is created by the fallback
     boolean alreadyFallback = type == RequestType.UFS_FALLBACK_BLOCK;
     // (2) the write-type is async when UFS tier is enabled.
     boolean possibleToFallback = type == RequestType.ALLUXIO_BLOCK

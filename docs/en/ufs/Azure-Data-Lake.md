@@ -1,18 +1,12 @@
 ---
 layout: global
 title: Azure Data Lake Storage
-nickname: Azure Data Lake Storage
-group: Storage Integrations
-priority: 2
 ---
 
 
 This guide describes how to configure Alluxio with [Azure Data Lake Storage Gen1](https://docs.microsoft.com/en-in/azure/data-lake-store/data-lake-store-overview) as the under storage system.
 
 ## Prerequisites
-
-The Alluxio binaries must be on your machine.
-You can [download the precompiled binaries directly]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
 
 In preparation for using Azure Data Lake storage with Alluxio, create a new Data Lake storage in your Azure
 account or use an existing Data Lake storage. You should also note the directory you want to
