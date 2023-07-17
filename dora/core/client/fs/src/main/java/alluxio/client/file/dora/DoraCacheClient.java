@@ -74,7 +74,7 @@ public class DoraCacheClient {
   public static final int PREFERRED_WORKER_COUNT = 1;
   private final FileSystemContext mContext;
   private final long mChunkSize;
-  private final WorkerLocationPolicy mWorkerLocationPolicy;
+  private final ConsistentHashPolicy mWorkerLocationPolicy;
 
   private final boolean mNettyTransEnabled;
 
@@ -84,7 +84,8 @@ public class DoraCacheClient {
    * @param context
    * @param workerLocationPolicy
    */
-  public DoraCacheClient(FileSystemContext context, WorkerLocationPolicy workerLocationPolicy) {
+  // TODO(jiacheng): Build this policy using factory
+  public DoraCacheClient(FileSystemContext context, ConsistentHashPolicy workerLocationPolicy) {
     mContext = context;
     mWorkerLocationPolicy = workerLocationPolicy;
     mChunkSize = mContext.getClusterConf().getBytes(

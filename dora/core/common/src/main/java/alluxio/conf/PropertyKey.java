@@ -6885,6 +6885,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(false)
           .setDescription("Shuffle the client-side configured master rpc addresses.")
           .build();
+  public static final PropertyKey USER_WORKER_SELECTION_POLICY =
+      stringBuilder(Name.USER_WORKER_SELECTION_POLICY)
+          .setDefaultValue("HASH")
+          .setDescription("The policy a client uses to map a file path to a worker address")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_WORKER_LIST_REFRESH_INTERVAL =
       durationBuilder(Name.USER_WORKER_LIST_REFRESH_INTERVAL)
           .setDefaultValue("2min")
@@ -9277,6 +9284,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.unsafe.direct.local.io.enabled";
     public static final String USER_UPDATE_FILE_ACCESSTIME_DISABLED =
         "alluxio.user.update.file.accesstime.disabled";
+    public static final String USER_WORKER_SELECTION_POLICY =
+        "alluxio.user.worker.selection.policy";
     public static final String USER_WORKER_LIST_REFRESH_INTERVAL =
         "alluxio.user.worker.list.refresh.interval";
 

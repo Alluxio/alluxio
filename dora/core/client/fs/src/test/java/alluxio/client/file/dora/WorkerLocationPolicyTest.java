@@ -19,7 +19,7 @@ import static org.junit.Assert.fail;
 
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.file.dora.WorkerLocationPolicy.ConsistentHashProvider;
+import alluxio.client.file.dora.ConsistentHashProvider;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 
