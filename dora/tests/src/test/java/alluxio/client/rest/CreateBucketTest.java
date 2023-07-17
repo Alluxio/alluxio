@@ -34,11 +34,12 @@ import javax.ws.rs.core.Response.Status;
 public class CreateBucketTest extends RestApiTest {
 
   private static final String TEST_BUCKET = "test-bucket";
+  private static final int UFS_PORT = 8002;
   private AmazonS3 mS3Client = null;
   @Rule
   public S3ProxyRule mS3Proxy = S3ProxyRule.builder()
       .withBlobStoreProvider("transient")
-      .withPort(8002)
+      .withPort(UFS_PORT)
       .withCredentials("_", "_")
       .build();
 
@@ -49,7 +50,7 @@ public class CreateBucketTest extends RestApiTest {
           .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)
           .setProperty(PropertyKey.WORKER_BLOCK_STORE_TYPE, "PAGE")
           .setProperty(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, Constants.KB)
-          .setProperty(PropertyKey.UNDERFS_S3_ENDPOINT, "localhost:8002")
+          .setProperty(PropertyKey.UNDERFS_S3_ENDPOINT, "localhost:" + UFS_PORT)
           .setProperty(PropertyKey.UNDERFS_S3_ENDPOINT_REGION, "us-west-2")
           .setProperty(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS, true)
           .setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, "s3://" + TEST_BUCKET)

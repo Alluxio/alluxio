@@ -114,7 +114,6 @@ public final class TestCase {
   }
 
   /**
-   * @param connection the HttpURLConnection
    * @return the String from the InputStream of HttpURLConnection
    */
   public String getResponse() throws Exception {
