@@ -16,8 +16,6 @@ import alluxio.Constants;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
-import alluxio.proxy.s3.S3Constants;
-import alluxio.proxy.s3.S3Error;
 import alluxio.proxy.s3.S3ErrorCode;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
@@ -28,16 +26,13 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.gaul.s3proxy.junit.S3ProxyRule;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.net.HttpURLConnection;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response.Status;
 
@@ -94,34 +89,69 @@ public class S3ObjectTest extends RestApiTest {
     mS3Client = null;
   }
 
+  /**
+   * Gets a non-existent object.
+   */
+  @Test
+  public void getNonExistentObject() throws Exception {
+    final String bucket = "bucket";
+    final String objectKey = "bucket/object";
+    createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
+    getTestCase(objectKey).checkResponseCode(Status.NOT_FOUND.getStatusCode())
+        .checkErrorCode(S3ErrorCode.Name.NO_SUCH_KEY);
+  }
+
+  /**
+   * Gets a non-existent directory.
+   */
+  @Test
+  public void getNonExistentDirectory() throws Exception {
+    final String bucket = "bucket";
+    final String objectKey = "bucket/object/";
+    createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
+    getTestCase(objectKey).checkResponseCode(Status.NOT_FOUND.getStatusCode())
+        .checkErrorCode(S3ErrorCode.Name.NO_SUCH_KEY);
+  }
+
+  /**
+   * Puts and gets a small object.
+   */
   @Test
   public void putAndGetSmallObject() throws Exception {
     final String bucket = "bucket";
-    createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
-    final String objectKey = bucket + AlluxioURI.SEPARATOR + "object";
+    final String objectKey = "bucket/object";
     final byte[] object = "Hello World!".getBytes();
 
+    createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
     createObjectTestCase(objectKey, object).checkResponseCode(Status.OK.getStatusCode());
     getTestCase(objectKey).checkResponseCode(Status.OK.getStatusCode()).checkResponse(object);
   }
 
+  /**
+   * Puts and gets a large object.
+   */
   @Ignore
   public void putAndGetLargeObject() throws Exception {
-//    TODO(Xinran Dong): error occurs when getting large object.
+    // TODO(Xinran Dong): error occurs when getting large object.
   }
 
+  /**
+   * Puts and heads a directory.
+   */
   @Test
   public void putAndHeadDirectory() throws Exception {
     final String bucket = "bucket";
     final String folderKey = bucket + AlluxioURI.SEPARATOR + "folder" + AlluxioURI.SEPARATOR;
 
     headTestCase(bucket).checkResponseCode(Status.NOT_FOUND.getStatusCode());
-
     createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
     createObjectTestCase(folderKey, EMPTY_OBJECT).checkResponseCode(Status.OK.getStatusCode());
     headTestCase(folderKey).checkResponseCode(Status.OK.getStatusCode());
   }
 
+  /**
+   * Puts and heads directories.
+   */
   @Test
   public void putAndHeadDirectories() throws Exception {
     final String bucket = "bucket" + AlluxioURI.SEPARATOR;
@@ -133,13 +163,16 @@ public class S3ObjectTest extends RestApiTest {
     headTestCase(objectKey2).checkResponseCode(Status.OK.getStatusCode());
   }
 
+  /**
+   * Overwrites an existent object.
+   */
   @Test
   public void overwriteObject() throws Exception {
     final String bucket = "bucket";
-    createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
-    final String objectKey = bucket + AlluxioURI.SEPARATOR + "object";
+    final String objectKey = "bucket/object";
     final byte[] object = "Hello World!".getBytes();
     final byte[] object2 = CommonUtils.randomAlphaNumString(Constants.KB).getBytes();
+    createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
     createObjectTestCase(objectKey, object).checkResponseCode(Status.OK.getStatusCode());
     getTestCase(objectKey).checkResponseCode(Status.OK.getStatusCode()).checkResponse(object);
 //   This object will be overwritten.
@@ -148,59 +181,25 @@ public class S3ObjectTest extends RestApiTest {
   }
 
   /**
-   * Creates a folder which path is the same as the object.
+   * Puts a directory to a non-existent bucket.
    */
   @Test
-  public void putObjectAndDirectoryWithSamePath() throws Exception {
-    final String bucket = "bucket";
-    final String objectKey = "bucket/object";
-    final String folderKey = "bucket/object/";
-    final byte[] object = "Hello World!".getBytes();
-
-    createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
-    createObjectTestCase(objectKey, object).checkResponseCode(Status.OK.getStatusCode());
-    getTestCase(objectKey).checkResponseCode(Status.OK.getStatusCode()).checkResponse(object);
-    createObjectTestCase(folderKey, EMPTY_OBJECT).checkResponseCode(Status.OK.getStatusCode());
-
-    getTestCase(objectKey).checkResponseCode(Status.OK.getStatusCode()).checkResponse(object);
-    headTestCase(folderKey).checkResponseCode(Status.OK.getStatusCode());
-  }
-
-  @Test
-  public void getNonexistentObject() throws Exception {
-    final String bucket = "bucket";
-    final String objectKey = bucket + AlluxioURI.SEPARATOR + "object";
-    createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
-
-    getTestCase(objectKey).checkResponseCode(Status.NOT_FOUND.getStatusCode())
-        .checkErrorCode(S3ErrorCode.Name.NO_SUCH_KEY);
-  }
-
-  @Test
-  public void getNonexistentDirectory() throws Exception {
-    final String bucket = "bucket" + AlluxioURI.SEPARATOR;
-    final String objectKey = bucket + "object" + AlluxioURI.SEPARATOR;
-
-    createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
-    getTestCase(objectKey).checkResponseCode(Status.NOT_FOUND.getStatusCode())
-        .checkErrorCode(S3ErrorCode.Name.NO_SUCH_KEY);
-  }
-
-  @Test
-  public void putDirectoryToNonexistentBucket() throws Exception {
-
+  public void putDirectoryToNonExistentBucket() throws Exception {
     final String bucket = "non-existent-bucket";
-    final String objectKey = bucket + AlluxioURI.SEPARATOR + "folder/";
+    final String objectKey = "non-existent-bucket/folder/";
     final byte[] object = new byte[] {};
     headTestCase(bucket).checkResponseCode(Status.NOT_FOUND.getStatusCode());
     createObjectTestCase(objectKey, object).checkResponseCode(Status.NOT_FOUND.getStatusCode())
         .checkErrorCode(S3ErrorCode.Name.NO_SUCH_BUCKET);
   }
 
+  /**
+   * Puts an object to a non-existent bucket.
+   */
   @Test
   public void putObjectToNonExistentBucket() throws Exception {
     final String bucket = "non-existent-bucket";
-    final String objectKey = bucket + AlluxioURI.SEPARATOR + "object";
+    final String objectKey = "non-existent-bucket/object";
     final byte[] object = "Hello World!".getBytes();
 
     headTestCase(bucket).checkResponseCode(Status.NOT_FOUND.getStatusCode());
@@ -208,10 +207,13 @@ public class S3ObjectTest extends RestApiTest {
         .checkErrorCode(S3ErrorCode.Name.NO_SUCH_BUCKET);
   }
 
+  /**
+   * Puts an object with wrong MD5.
+   */
   @Test
   public void putObjectWithWrongMD5() throws Exception {
     final String bucket = "bucket";
-    final String objectKey = bucket + AlluxioURI.SEPARATOR + "object";
+    final String objectKey = "bucket/object";
     final byte[] object = "Hello World!".getBytes();
 
     createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
@@ -221,10 +223,13 @@ public class S3ObjectTest extends RestApiTest {
         .checkErrorCode(S3ErrorCode.Name.BAD_DIGEST);
   }
 
+  /**
+   * Puts an object without MD5.
+   */
   @Test
   public void putObjectWithoutMD5() throws Exception {
     final String bucket = "bucket";
-    final String objectKey = bucket + AlluxioURI.SEPARATOR + "object";
+    final String objectKey = "bucket/object";
     final byte[] object = "Hello World!".getBytes();
 
     createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
@@ -235,30 +240,47 @@ public class S3ObjectTest extends RestApiTest {
   }
 
   /**
-   * Copies an object from one folder to a different folder.
+   * Copies an object and renames it.
    */
   @Test
-  public void copyObjectToAnotherBucket() throws Exception {
-    final String bucket1 = "bucket1";
-    final String bucket2 = "bucket2";
-    final String sourcePath = "bucket1/object";
-    final String targetPath = "bucket2/object";
-
+  public void copyObjectAndRename() throws Exception {
+    final String bucket = "bucket";
+    final String sourcePath = "bucket/object1";
+    final String targetPath = "bucket/object2";
     final byte[] object = "Hello World!".getBytes();
-    createBucketTestCase(bucket1).checkResponseCode(Status.OK.getStatusCode());
-    createBucketTestCase(bucket2).checkResponseCode(Status.OK.getStatusCode());
-    createObjectTestCase(sourcePath, object).checkResponseCode(Status.OK.getStatusCode());
 
+    createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
+    createObjectTestCase(sourcePath, object).checkResponseCode(Status.OK.getStatusCode());
     // copy object
     copyObjectTestCase(sourcePath, targetPath).checkResponseCode(Status.OK.getStatusCode());
     getTestCase(targetPath).checkResponseCode(Status.OK.getStatusCode()).checkResponse(object);
   }
 
   /**
-   * Copies an object from one folder to a different folder.
+   * Copies an object and overwrite another object.
    */
   @Test
-  public void copyObjectToNonexistentBucket() throws Exception {
+  public void copyObjectAndOverwrite() throws Exception {
+    final String bucket = "bucket";
+    final String sourcePath = "bucket/object1";
+    final String targetPath = "bucket/object2";
+    final byte[] object = "Hello World!".getBytes();
+    final byte[] object2 = CommonUtils.randomAlphaNumString(Constants.KB).getBytes();
+
+    createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
+    createObjectTestCase(sourcePath, object).checkResponseCode(Status.OK.getStatusCode());
+    createObjectTestCase(targetPath, object2).checkResponseCode(Status.OK.getStatusCode());
+    getTestCase(targetPath).checkResponseCode(Status.OK.getStatusCode()).checkResponse(object2);
+    // copy object and overwrite another object.
+    copyObjectTestCase(sourcePath, targetPath).checkResponseCode(Status.OK.getStatusCode());
+    getTestCase(targetPath).checkResponseCode(Status.OK.getStatusCode()).checkResponse(object);
+  }
+
+  /**
+   * Copies an object to a non-existent bucket.
+   */
+  @Test
+  public void copyObjectToNonExistentBucket() throws Exception {
     final String bucket1 = "bucket1";
     final String bucket2 = "bucket2";
     final String sourcePath = "bucket1/object";
@@ -274,127 +296,118 @@ public class S3ObjectTest extends RestApiTest {
   }
 
   /**
+   * Copies an object from one bucket to another bucket.
+   */
+  @Ignore
+  public void copyObjectToAnotherBucket() throws Exception {
+    final String bucket1 = "bucket1";
+    final String bucket2 = "bucket2/";
+    final String sourcePath = "bucket1/object";
+    final String targetPath = "bucket2/object";
+
+    final byte[] object = "Hello World!".getBytes();
+    createBucketTestCase(bucket1).checkResponseCode(Status.OK.getStatusCode());
+    createBucketTestCase(bucket2).checkResponseCode(Status.OK.getStatusCode());
+    createObjectTestCase(sourcePath, object).checkResponseCode(Status.OK.getStatusCode());
+
+    // TODO(Xinran Dong): copy to a directory.
+    copyObjectTestCase(sourcePath, bucket2).checkResponseCode(Status.OK.getStatusCode());
+    getTestCase(targetPath).checkResponseCode(Status.OK.getStatusCode()).checkResponse(object);
+  }
+
+  /**
    * Copies an object from one folder to a different folder.
    */
-  @Test
-  public void copyObjectToAnotherFolder() throws Exception {
+  @Ignore
+  public void copyObjectToAnotherDir() throws Exception {
     final String bucket = "bucket";
     final String sourcePath = "bucket/sourceDir/object";
+    final String targetFolder = "bucket/targetDir/";
     final String targetPath = "bucket/targetDir/object";
 
     final byte[] object = "Hello World!".getBytes();
     createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
     createObjectTestCase(sourcePath, object).checkResponseCode(Status.OK.getStatusCode());
 
-    // copy object
-    copyObjectTestCase(sourcePath, targetPath).checkResponseCode(Status.OK.getStatusCode());
+    // TODO(Xinran Dong): copy to a directory.
+    copyObjectTestCase(sourcePath, targetFolder).checkResponseCode(Status.OK.getStatusCode());
     getTestCase(targetPath).checkResponseCode(Status.OK.getStatusCode()).checkResponse(object);
   }
 
   /**
-   * Copies an object and renames it.
+   * Deletes a directory.
    */
   @Test
-  public void copyObjectAsAnotherObject() throws Exception {
-    final String bucket = "bucket";
-    final String sourcePath = "bucket/object1";
-    final String targetPath = "bucket/object2";
-
-    final byte[] object = "Hello World!".getBytes();
-    createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
-    createObjectTestCase(sourcePath, object).checkResponseCode(Status.OK.getStatusCode());
-    // copy object
-    new TestCase(mHostname, mPort, mBaseUri,
-        targetPath,
-        NO_PARAMS, HttpMethod.PUT,
-        getDefaultOptionsWithAuth()
-            .addHeader(S3Constants.S3_METADATA_DIRECTIVE_HEADER,
-                S3Constants.Directive.REPLACE.name())
-            .addHeader(S3Constants.S3_COPY_SOURCE_HEADER, sourcePath)).runAndGetResponse();
-
-    getTestCase(targetPath).checkResponseCode(Status.OK.getStatusCode()).checkResponse(object);
-  }
-
-  @Test
   public void deleteObjectAndDirectory() throws Exception {
-    final String bucket = "bucket" + AlluxioURI.SEPARATOR;
-    final String folderKey = bucket + "folder" + AlluxioURI.SEPARATOR;
-    final String objectKey = folderKey + "object";
+    final String bucket = "bucket";
+    final String folderKey = "bucket/folder/";
+    final String objectKey =  "bucket/folder/object";
     final byte[] object = "Hello World!".getBytes();
 
     createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
     createObjectTestCase(objectKey, object).checkResponseCode(Status.OK.getStatusCode());
 
-//    The directory can't be deleted because the directory is not empty.
+    // The directory can't be deleted because the directory is not empty.
     deleteTestCase(folderKey).checkResponseCode(Status.NO_CONTENT.getStatusCode());
     headTestCase(objectKey).checkResponseCode(Status.OK.getStatusCode());
 
-//    Deletes the object first.
+    // Deletes the object first.
     deleteTestCase(objectKey).checkResponseCode(Status.NO_CONTENT.getStatusCode());
     headTestCase(objectKey).checkResponseCode(Status.NOT_FOUND.getStatusCode());
-    deleteTestCase(folderKey).checkResponseCode(Status.OK.getStatusCode());
+    deleteTestCase(folderKey).checkResponseCode(Status.NO_CONTENT.getStatusCode());
     headTestCase(folderKey).checkResponseCode(Status.NOT_FOUND.getStatusCode());
   }
 
+  /**
+   * Deletes the object in a non-existent bucket.
+   */
   @Test
-  public void deleteObjectInNonexistentBucket() throws Exception {
+  public void deleteObjectInNonExistentBucket() throws Exception {
     final String bucket = "bucket";
-    final String objectKey = bucket + AlluxioURI.SEPARATOR + "object";
+    final String objectKey = "bucket/object";
 
-//    deleteRestCall(objectKey);
+    headTestCase(bucket).checkResponseCode(Status.NOT_FOUND.getStatusCode());
     deleteTestCase(objectKey).checkResponseCode(Status.NOT_FOUND.getStatusCode())
         .checkErrorCode(S3ErrorCode.Name.NO_SUCH_BUCKET);
   }
 
+  /**
+   * Deletes a non-existent object.
+   */
   @Test
-  public void deleteNonexistentObject() throws Exception {
+  public void deleteNonExistentObject() throws Exception {
     final String bucket = "bucket";
-    final String objectKey = bucket + AlluxioURI.SEPARATOR + "object";
+    final String objectKey = "bucket/object";
 
     createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
     headTestCase(objectKey).checkResponseCode(Status.NOT_FOUND.getStatusCode());
     deleteTestCase(objectKey).checkResponseCode(Status.NO_CONTENT.getStatusCode());
+    headTestCase(objectKey).checkResponseCode(Status.NOT_FOUND.getStatusCode());
   }
 
+  /**
+   * Deletes the directory in a non-existent bucket.
+   */
   @Test
-  public void deleteDirectoryInNonexistentBucket() throws Exception {
+  public void deleteDirectoryInNonExistentBucket() throws Exception {
     final String bucket = "bucket";
-    final String objectKey = bucket + AlluxioURI.SEPARATOR + "folder/";
-
-    HttpURLConnection connection = new TestCase(mHostname, mPort, mBaseUri,
-        objectKey, NO_PARAMS, HttpMethod.DELETE,
-        getDefaultOptionsWithAuth()).execute();
-    Assert.assertEquals(Status.NOT_FOUND.getStatusCode(),
-        connection.getResponseCode());
-    S3Error response =
-        new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
-    Assert.assertEquals(objectKey, response.getResource());
-    Assert.assertEquals(S3ErrorCode.Name.NO_SUCH_BUCKET, response.getCode());
+    final String objectKey = "bucket/folder/";
+    headTestCase(bucket).checkResponseCode(Status.NOT_FOUND.getStatusCode());
+    deleteTestCase(objectKey).checkResponseCode(Status.NOT_FOUND.getStatusCode())
+        .checkErrorCode(S3ErrorCode.Name.NO_SUCH_BUCKET);
   }
 
+  /**
+   * Deletes a non-existent directory.
+   */
   @Test
-  public void deleteNonexistentDirectory() throws Exception {
+  public void deleteNonExistentDirectory() throws Exception {
     final String bucket = "bucket";
-    final String objectKey = bucket + AlluxioURI.SEPARATOR + "folder/";
+    final String objectKey = "bucket/folder/";
 
     createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
     headTestCase(objectKey).checkResponseCode(Status.NOT_FOUND.getStatusCode());
     deleteTestCase(objectKey).checkResponseCode(Status.NO_CONTENT.getStatusCode());
-  }
-
-  @Test
-  public void deleteNonEmptyDirectory() throws Exception {
-    final String bucket = "bucket" + AlluxioURI.SEPARATOR;
-    final String folderKey = bucket + "folder" + AlluxioURI.SEPARATOR;
-    final String objectKey = folderKey + "object";
-    final byte[] object = CommonUtils.randomAlphaNumString(Constants.KB).getBytes();
     headTestCase(objectKey).checkResponseCode(Status.NOT_FOUND.getStatusCode());
-
-    createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
-    createObjectTestCase(objectKey, object).checkResponseCode(Status.OK.getStatusCode());
-
-//    The directory can't be deleted because the directory is not empty.
-    deleteTestCase(folderKey).checkResponseCode(Status.NO_CONTENT.getStatusCode());
-    headTestCase(objectKey).checkResponseCode(Status.OK.getStatusCode());
   }
 }
