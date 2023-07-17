@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Running Hadoop MapReduce on Alluxio
-nickname: Apache Hadoop MapReduce
-group: Compute Integrations
-priority: 1
 ---
 
 This guide describes how to configure Alluxio with Apache Hadoop MapReduce, so that your

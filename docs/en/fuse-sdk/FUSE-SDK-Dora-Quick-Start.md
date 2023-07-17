@@ -1,8 +1,6 @@
 ---
 layout: global
 title: FUSE SDK with Distributed Cache Quick Start
-group: FUSE SDK
-priority: 3
 ---
 
 
@@ -19,12 +17,7 @@ Limitations:
 - Only support one under storage dataset and is not modifiable
 - Only support read-only workloads
 
-## Deployment
-
-Please follow [Dora distributed cache cluster deployment guide]({{ '/en/Get-Started.html' | relativize_url}})
-to deploy the Alluxio cluster.
-
-### Launch FUSE SDK Connect to the distributed cache cluster
+## Launch FUSE SDK Connect to the distributed cache cluster
 
 Launch FUSE SDK with the same configuration (same `<ALLUXIO_HOME>/conf/`) as launching the Alluxio cluster.
 Other configuration is the same as launching a standalone FUSE SDK.

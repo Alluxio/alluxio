@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Java API
-nickname: Java API
-group: Client APIs
-priority: 0
 ---
 
 Applications primarily interact with Alluxio through its File System API. Java users

@@ -12,10 +12,10 @@
 package alluxio.client.block;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -42,10 +42,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
-import alluxio.grpc.CreateLocalBlockResponse;
 import alluxio.grpc.OpenFilePOptions;
-import alluxio.grpc.OpenLocalBlockRequest;
-import alluxio.grpc.OpenLocalBlockResponse;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.resource.DummyCloseableResource;
 import alluxio.util.FileSystemOptionsUtils;
@@ -73,14 +70,12 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.Closeable;
-import java.io.File;
 import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -108,7 +103,6 @@ public final class BlockStoreClientTest {
   private static final WorkerNetAddress WORKER_NET_ADDRESS_REMOTE = new WorkerNetAddress()
       .setHost(WORKER_HOSTNAME_REMOTE);
   private ClientCallStreamObserver mStreamObserver;
-  private StreamObserver<OpenLocalBlockResponse> mResponseObserver;
 
   /**
    * A mock class used to return controlled result when selecting workers.
@@ -187,8 +181,6 @@ public final class BlockStoreClientTest {
     mStreamObserver = PowerMockito.mock(ClientCallStreamObserver.class);
     when(mWorkerClient.writeBlock(any(StreamObserver.class)))
         .thenReturn(mStreamObserver);
-    when(mWorkerClient.openLocalBlock(any(StreamObserver.class)))
-        .thenReturn(mStreamObserver);
     when(mStreamObserver.isReady()).thenReturn(true);
     when(mContext.getCachedWorkers()).thenReturn(Lists.newArrayList(
         new BlockWorkerInfo(new WorkerNetAddress(), -1, -1)));
@@ -235,28 +227,6 @@ public final class BlockStoreClientTest {
 
   @Test
   @Ignore
-  public void getOutStreamLocal() throws Exception {
-    File file = File.createTempFile("test", ".tmp");
-    CreateLocalBlockResponse response = CreateLocalBlockResponse.newBuilder()
-        .setPath(file.getAbsolutePath()).build();
-    when(mWorkerClient.createLocalBlock(any(StreamObserver.class)))
-        .thenAnswer((Answer) invocation -> {
-          StreamObserver<CreateLocalBlockResponse> observer =
-              invocation.getArgument(0, StreamObserver.class);
-          observer.onNext(response);
-          return mStreamObserver;
-        });
-
-    OutStreamOptions options = OutStreamOptions.defaults(mContext)
-        .setBlockSizeBytes(BLOCK_LENGTH).setLocationPolicy(
-            new MockBlockLocationPolicyTest(Lists.newArrayList(WORKER_NET_ADDRESS_LOCAL)))
-            .setWriteType(WriteType.MUST_CACHE);
-    BlockOutStream stream = mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
-    assertEquals(WORKER_NET_ADDRESS_LOCAL, stream.getAddress());
-  }
-
-  @Test
-  @Ignore
   public void getOutStreamRemote() throws Exception {
     WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1");
     WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2");
@@ -268,33 +238,6 @@ public final class BlockStoreClientTest {
     assertEquals(worker1, stream1.getAddress());
     BlockOutStream stream2 = mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
     assertEquals(worker2, stream2.getAddress());
-  }
-
-  @Test
-  @Ignore
-  public void getOutStreamWithReplicated() throws Exception {
-    File file = File.createTempFile("test", ".tmp");
-    CreateLocalBlockResponse response = CreateLocalBlockResponse.newBuilder()
-        .setPath(file.getAbsolutePath()).build();
-    when(mWorkerClient.createLocalBlock(any(StreamObserver.class)))
-        .thenAnswer((Answer) invocation -> {
-          StreamObserver<CreateLocalBlockResponse> observer =
-              invocation.getArgument(0, StreamObserver.class);
-          observer.onNext(response);
-          return mStreamObserver;
-        });
-
-    when(mContext.getCachedWorkers()).thenReturn(Lists
-        .newArrayList(new BlockWorkerInfo(WORKER_NET_ADDRESS_LOCAL, -1, -1),
-            new BlockWorkerInfo(WORKER_NET_ADDRESS_REMOTE, -1, -1)));
-    OutStreamOptions options =
-        OutStreamOptions.defaults(mContext).setBlockSizeBytes(BLOCK_LENGTH).setLocationPolicy(
-            new MockBlockLocationPolicyTest(
-                Lists.newArrayList(WORKER_NET_ADDRESS_LOCAL, WORKER_NET_ADDRESS_REMOTE)))
-            .setWriteType(WriteType.MUST_CACHE).setReplicationMin(2);
-    BlockOutStream stream = mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
-
-    assertEquals(alluxio.client.block.stream.BlockOutStream.class, stream.getClass());
   }
 
   @Test
@@ -373,35 +316,6 @@ public final class BlockStoreClientTest {
     Exception e = assertThrows(UnavailableException.class, () ->
         mBlockStore.getInStream(BLOCK_ID, options).getAddress());
     assertTrue(e.getMessage().contains("unavailable in both Alluxio and UFS"));
-  }
-
-  @Test
-  @Ignore
-  public void getInStreamLocal() throws Exception {
-    WorkerNetAddress remote = new WorkerNetAddress().setHost("remote");
-    WorkerNetAddress local = new WorkerNetAddress().setHost(WORKER_HOSTNAME_LOCAL);
-
-    // Mock away gRPC usage.
-    OpenLocalBlockResponse response = OpenLocalBlockResponse.newBuilder().setPath("/tmp").build();
-    when(mWorkerClient.openLocalBlock(any(StreamObserver.class))).thenAnswer(invocation -> {
-      mResponseObserver = invocation.getArgument(0, StreamObserver.class);
-      return mStreamObserver;
-    });
-    doAnswer(invocation -> {
-      mResponseObserver.onNext(response);
-      mResponseObserver.onCompleted();
-      return null;
-    }).when(mStreamObserver).onNext(any(OpenLocalBlockRequest.class));
-
-    BlockInfo info = new BlockInfo().setBlockId(BLOCK_ID).setLocations(Arrays
-        .asList(new BlockLocation().setWorkerAddress(remote),
-            new BlockLocation().setWorkerAddress(local)));
-
-    when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(info);
-    assertEquals(local, mBlockStore.getInStream(BLOCK_ID, new InStreamOptions(
-        new URIStatus(new FileInfo().setBlockIds(Lists.newArrayList(BLOCK_ID))),
-            S_CONF, mContext))
-        .getAddress());
   }
 
   @Test
@@ -584,7 +498,7 @@ public final class BlockStoreClientTest {
         //do nothing
       }
     }
-    Objects.requireNonNull(inStream);
+    assertNotNull(inStream);
     assertEquals(workers[expectedWorker], inStream.getAddress());
   }
 

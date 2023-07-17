@@ -420,8 +420,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   @Nullable
   public List<String> getFileLocations(String path, FileLocationOptions options)
       throws IOException {
-    // If the user has hinted the underlying storage nodes are not co-located with Alluxio
-    // workers, short circuit without querying the locations.
+    // If the user has hinted the underlying storage nodes are not co-located with Alluxio workers.
     if (mUfsConf.getBoolean(PropertyKey.UNDERFS_HDFS_REMOTE)) {
       return null;
     }

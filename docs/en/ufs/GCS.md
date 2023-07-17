@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Google Cloud Storage
-nickname: Google Cloud Storage
-group: Storage Integrations
-priority: 2
 ---
 
 
@@ -11,8 +8,6 @@ This guide describes how to configure Alluxio with [Google Cloud Storage (GCS)](
 as the under storage system.
 
 ## Prerequisites
-
-The Alluxio binaries must be on your machine. You can [download the binaries locally]({{ '/en/Get-Started.html' | relativize_url }}).
 
 In preparation for using GCS with Alluxio, create a bucket (or use an existing bucket). You
 should also note the directory you want to use in that bucket, either by creating a new directory in

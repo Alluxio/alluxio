@@ -74,8 +74,6 @@ public class FileOutStreamDecommissionIntegrationTest {
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE)
           .setProperty(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL, "2s")
           .setProperty(PropertyKey.USER_FILE_WRITE_INIT_MAX_DURATION, "2s")
-          // Disable short circuit
-          .setProperty(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, false)
           .setStartCluster(false)
           .build();
   private FileSystem mFileSystem = null;

@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Running Trino with Alluxio
-nickname: Trino
-group: Compute Integrations
-priority: 2
 ---
 
 [Trino](https://trino.io/)

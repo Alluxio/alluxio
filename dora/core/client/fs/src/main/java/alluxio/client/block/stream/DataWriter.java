@@ -57,9 +57,6 @@ public interface DataWriter extends Closeable, Cancelable {
     public static DataWriter create(FileSystemContext context, long blockId, long blockSize,
         WorkerNetAddress address, OutStreamOptions options) throws IOException {
       AlluxioConfiguration alluxioConf = context.getClusterConf();
-      boolean shortCircuit = alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED);
-      boolean shortCircuitPreferred =
-          alluxioConf.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_PREFERRED);
       boolean ufsFallbackEnabled = options.getWriteType() == WriteType.ASYNC_THROUGH
           && alluxioConf.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED);
       boolean workerIsLocal = CommonUtils.isLocalHost(address, alluxioConf);
@@ -77,24 +74,11 @@ public interface DataWriter extends Closeable, Cancelable {
           workerIsLocal, context.hasProcessLocalWorker(), ufsFallbackEnabled);
 
       boolean domainSocketSupported = NettyUtils.isDomainSocketSupported(address);
-      if (workerIsLocal && shortCircuit
-          && (shortCircuitPreferred || !domainSocketSupported)) {
-        if (ufsFallbackEnabled) {
-          LOG.info("Creating UFS-fallback short circuit output stream for block {} @ {}", blockId,
-              address);
-          return UfsFallbackLocalFileDataWriter.create(
-              context, address, blockId, blockSize, options);
-        }
-        LOG.debug("Creating short circuit output stream for block {} @ {}", blockId, address);
-        return LocalFileDataWriter.create(context, address, blockId, blockSize, options);
-      }
-
       if (nettyTransEnabled) {
         LOG.debug("Creating netty output stream for block {} @ {} from client {} "
-                + "(data locates in local worker: {}, shortCircuitEnabled: {}, "
-                + "shortCircuitPreferred: {}, domainSocketSupported: {})",
+                + "(data locates in local worker: {}, domainSocketSupported: {})",
             blockId, address, NetworkAddressUtils.getClientHostName(alluxioConf),
-            workerIsLocal, shortCircuit, shortCircuitPreferred, domainSocketSupported);
+            workerIsLocal, domainSocketSupported);
         // TODO(JiamingMai): implement the netty writer here
         return NettyDataWriter
             .create(context, address, blockId, blockSize, RequestType.ALLUXIO_BLOCK,
@@ -102,10 +86,9 @@ public interface DataWriter extends Closeable, Cancelable {
       }
 
       LOG.debug("Creating gRPC output stream for block {} @ {} from client {} "
-          + "(data locates in local worker: {}, shortCircuitEnabled: {}, "
-          + "shortCircuitPreferred: {}, domainSocketSupported: {})",
+          + "(data locates in local worker: {}, domainSocketSupported: {})",
           blockId, address, NetworkAddressUtils.getClientHostName(alluxioConf),
-          workerIsLocal, shortCircuit, shortCircuitPreferred, domainSocketSupported);
+          workerIsLocal, domainSocketSupported);
       return GrpcDataWriter
           .create(context, address, blockId, blockSize, RequestType.ALLUXIO_BLOCK,
               options);

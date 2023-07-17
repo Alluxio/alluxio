@@ -1,9 +1,6 @@
 ---
 layout: global
 title: COSN
-nickname: COSN
-group: Storage Integrations
-priority: 5
 ---
 
 
@@ -12,9 +9,6 @@ Tencent Cloud Object Storage (COS) is a distributed storage service offered by T
 It can store massive amounts of data and features imperceptible bandwidth and capacity expansion, making it a perfect data pool for big data computation and analytics.
 
 ## Basic Setup
-
-Alluxio runs on multiple machines in cluster mode so its binary package needs to be deployed on the machines.
-You can either [compile Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}) or [download the binaries locally]({{ '/en/Get-Started.html' | relativize_url }}).
 
 In preparation for using COS with Alluxio, create a new bucket or use an existing bucket.
 You should also note the directory you want to use in that bucket, either by creating a new directory in the bucket or using an existing one.
@@ -33,13 +27,13 @@ Configure Alluxio to use COSN as its under storage system by modifying `conf/all
 Specify an existing COS bucket and directory as the under storage system by modifying
 `conf/alluxio-site.properties` to include:
 
-```
+```properties
 alluxio.dora.client.ufs.root=cosn://COSN_ALLUXIO_BUCKET/COSN_DATA/
 ```
 
 Specify COS configuration information in order to access COS by modifying `conf/core-site.xml` to include:
 
-```
+```xml
 <property>
    <name>fs.cosn.impl</name>
    <value>org.apache.hadoop.fs.CosFileSystem</value>
@@ -85,7 +79,7 @@ $ ./bin/alluxio runTests
 Visit your COS directory at `COSN_ALLUXIO_BUCKET/COSN_DATA` to verify the files and directories created by Alluxio exist.
 For this test, you should see files named like:
 
-```console
+```
 COSN_ALLUXIO_BUCKET/COSN_DATA/default_tests_files/BASIC_CACHE_THROUGH
 ```
 

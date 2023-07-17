@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Huawei OBS
-nickname: Huawei OBS
-group: Storage Integrations
-priority: 0
 ---
 
 
@@ -11,9 +8,6 @@ This guide describes the instructions to configure [OBS](https://www.huaweicloud
 under storage system.
 
 ## Prerequisites
-
-The Alluxio binaries must be on your machine. You can
-[download the binaries locally]({{ '/en/Get-Started.html' | relativize_url }}).
 
 In preparation for using OBS with Alluxio, create a new bucket or use an existing bucket. You
 should also note the directory you want to use in that bucket, either by creating a new directory in

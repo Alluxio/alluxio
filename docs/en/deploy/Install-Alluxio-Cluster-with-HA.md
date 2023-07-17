@@ -1,9 +1,6 @@
 ---
 layout: global
-title: Install Alluxio on a Cluster with HA
-nickname: Cluster with HA
-group: Install Alluxio
-priority: 3
+title: Install Alluxio Cluster with HA
 ---
 ## Overview
 

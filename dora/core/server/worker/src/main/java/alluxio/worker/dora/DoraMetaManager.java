@@ -208,13 +208,14 @@ public class DoraMetaManager implements Closeable {
    */
   public Optional<UfsStatus[]> listFromUfsThenCache(String path, boolean isRecursive)
       throws IOException {
-    if (mListStatusCache == null) {
+    // Recursive listing results are not cached.
+    if (mListStatusCache == null || isRecursive) {
       return listFromUfs(path, isRecursive);
     }
     try {
       ListStatusResult cached = mListStatusCache.get(path, (k) -> {
         try {
-          Optional<UfsStatus[]> listResults = listFromUfs(path, isRecursive);
+          Optional<UfsStatus[]> listResults = listFromUfs(path, false);
           return listResults.map(
                   ufsStatuses -> new ListStatusResult(
                       System.nanoTime(), ufsStatuses,

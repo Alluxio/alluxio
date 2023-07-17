@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Basic Logging
-nickname: Basic Logging
-group: Administration
-priority: 2
 ---
 
 
