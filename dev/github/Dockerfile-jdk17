@@ -11,7 +11,7 @@
 
 # See https://hub.docker.com/r/alluxio/alluxio-maven for instructions on running the image.
 
-FROM maven:3.8.6-jdk-17
+FROM maven:3.8.6
 
 # reference: https://github.com/docker-library/openjdk/blob/master/8/jdk/buster/Dockerfile
 # we need jdk 8 in jdk 17 so that we can compile with jdk 8 and test with jdk 17
