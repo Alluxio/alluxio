@@ -38,7 +38,6 @@ import javax.ws.rs.core.Response.Status;
 
 public class S3ObjectTest extends RestApiTest {
   private FileSystem mFileSystem;
-  private static final String TEST_BUCKET = "test-bucket";
   private AmazonS3 mS3Client = null;
   @Rule
   public S3ProxyRule mS3Proxy = S3ProxyRule.builder()
@@ -114,7 +113,7 @@ public class S3ObjectTest extends RestApiTest {
   }
 
   /**
-   * Puts and gets a small object.
+   * Puts a small object and gets it.
    */
   @Test
   public void putAndGetSmallObject() throws Exception {
@@ -128,7 +127,7 @@ public class S3ObjectTest extends RestApiTest {
   }
 
   /**
-   * Puts and gets a large object.
+   * Puts a large object and gets it.
    */
   @Ignore
   public void putAndGetLargeObject() throws Exception {
@@ -136,7 +135,7 @@ public class S3ObjectTest extends RestApiTest {
   }
 
   /**
-   * Puts and heads a directory.
+   * Puts a directory and heads it.
    */
   @Test
   public void putAndHeadDirectory() throws Exception {
@@ -175,7 +174,7 @@ public class S3ObjectTest extends RestApiTest {
     createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
     createObjectTestCase(objectKey, object).checkResponseCode(Status.OK.getStatusCode());
     getTestCase(objectKey).checkResponseCode(Status.OK.getStatusCode()).checkResponse(object);
-//   This object will be overwritten.
+    //   This object will be overwritten.
     createObjectTestCase(objectKey, object2).checkResponseCode(Status.OK.getStatusCode());
     getTestCase(objectKey).checkResponseCode(Status.OK.getStatusCode()).checkResponse(object2);
   }
@@ -257,7 +256,7 @@ public class S3ObjectTest extends RestApiTest {
   }
 
   /**
-   * Copies an object and overwrite another object.
+   * Copies an object and overwrites another object.
    */
   @Test
   public void copyObjectAndOverwrite() throws Exception {
@@ -335,7 +334,7 @@ public class S3ObjectTest extends RestApiTest {
   }
 
   /**
-   * Deletes a directory.
+   * Deletes the object and then the directory.
    */
   @Test
   public void deleteObjectAndDirectory() throws Exception {

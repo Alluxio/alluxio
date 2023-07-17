@@ -27,8 +27,8 @@ import javax.ws.rs.HttpMethod;
 public abstract class RestApiTest extends BaseIntegrationTest {
   protected static final Map<String, String> NO_PARAMS = ImmutableMap.of();
   protected static final byte[] EMPTY_OBJECT = new byte[] {};
-  protected static final String TEST_USER_NAME = "testuser";
-  protected static final String TEST_BUCKET_NAME = "bucket";
+  protected static final String TEST_USER = "testuser";
+  protected static final String TEST_BUCKET = "test-bucket";
   protected String mHostname;
   protected int mPort;
   protected String mBaseUri = Constants.REST_API_PREFIX;
@@ -76,7 +76,7 @@ public abstract class RestApiTest extends BaseIntegrationTest {
   protected void listStatusRestCall(Map<String, String> parameters, ListBucketResult expected)
       throws Exception {
     new TestCase(mHostname, mPort, mBaseUri,
-        TEST_BUCKET_NAME, parameters, HttpMethod.GET,
+        TEST_BUCKET, parameters, HttpMethod.GET,
         getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
         .runAndCheckResult(expected);
   }
@@ -87,7 +87,7 @@ public abstract class RestApiTest extends BaseIntegrationTest {
   }
 
   protected TestCaseOptions getDefaultOptionsWithAuth() {
-    return getDefaultOptionsWithAuth(TEST_USER_NAME);
+    return getDefaultOptionsWithAuth(TEST_USER);
   }
 
   private String computeObjectChecksum(byte[] objectContent) throws Exception {
