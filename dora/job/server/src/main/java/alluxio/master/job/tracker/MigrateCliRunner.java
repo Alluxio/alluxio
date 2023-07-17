@@ -84,8 +84,23 @@ public class MigrateCliRunner extends AbstractCmdRunner {
             submissionTime, filePath);
 
     try {
-      if (mFileSystem.getStatus(srcPath).isFolder()) {
-        createFolders(srcPath, dstPath, mFileSystem);
+      if (mFileSystem.exists(srcPath) && mFileSystem.getStatus(srcPath).isFolder()) {
+        if (!mFileSystem.exists(dstPath) || mFileSystem.getStatus(dstPath).isFolder()) {
+          createFolders(srcPath, dstPath, mFileSystem);
+        } else if (mFileSystem.exists(dstPath)) {
+          String errorMessage = String.format("when srcPath:\"%s\" is a directory, destPath:\"%s\" is not allowed to be a file.", srcPath.getPath(), dstPath.getPath());
+          throw new IOException(errorMessage);
+        }
+      } else if (mFileSystem.exists(srcPath) && !mFileSystem.getStatus(srcPath).isFolder()) {
+        if (mFileSystem.exists(dstPath) && !mFileSystem.getStatus(dstPath).isFolder()) {
+          String errorMessage = String.format("dstPath:\"%s\" is not allowed to be a file that already exists in Alluxio fileSystem.", srcPath.getPath(), dstPath.getPath());
+          throw new IOException(errorMessage);
+        } else if (mFileSystem.exists(dstPath) && mFileSystem.getStatus(dstPath).isFolder()) {
+          dstPath = new AlluxioURI(PathUtils.concatPath(dstPath.getPath(), srcPath.getName()));
+        }
+      } else {
+        String errorMessage = String.format("Can not cp a non-existed source file:\"%s\"", srcPath.getPath());
+        throw new IOException(errorMessage);
       }
       copy(srcPath, dstPath, overwrite, batchSize, filePool, writeType, cmdInfo);
     } catch (IOException | AlluxioException e) {
@@ -112,6 +127,10 @@ public class MigrateCliRunner extends AbstractCmdRunner {
         copy(new AlluxioURI(srcInnerStatus.getPath()), new AlluxioURI(dstInnerPath), overwrite,
                 batchSize, pool, writeType, cmdInfo);
       } else {
+        if (mFileSystem.exists(new AlluxioURI(dstInnerPath))) {
+          String errorMessage = String.format("Destination path:\"%s\" already exists.", dstInnerPath);
+          throw new IOException(errorMessage);
+        }
         pool.add(new Pair<>(srcInnerStatus.getPath(), dstInnerPath));
         if (pool.size() == batchSize) {
           submitDistCp(pool, overwrite, writeType, cmdInfo);
