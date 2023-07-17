@@ -12,6 +12,7 @@
 package alluxio.client.rest;
 
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.proxy.s3.S3Error;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 
 /**
@@ -51,18 +53,22 @@ public final class TestCase {
   private final String mMethod;
   private final TestCaseOptions mOptions;
 
+  private final HttpURLConnection mConnection;
+
   /**
    * Creates a new instance of {@link TestCase}.
-   * @param hostname the hostname to use
-   * @param port the port to use
-   * @param baseUri the base URI of the REST server
-   * @param endpoint the endpoint to use
+   *
+   * @param hostname   the hostname to use
+   * @param port       the port to use
+   * @param baseUri    the base URI of the REST server
+   * @param endpoint   the endpoint to use
    * @param parameters the parameters to use
-   * @param method the method to use
-   * @param options the test case options to use
+   * @param method     the method to use
+   * @param options    the test case options to use
    */
   public TestCase(String hostname, int port, String baseUri, String endpoint,
-                  Map<String, String> parameters, String method, TestCaseOptions options) {
+                  Map<String, String> parameters, String method, TestCaseOptions options)
+      throws Exception {
     // TODO(czhu): URL-encode the URI & parameters
     mHostname = hostname;
     mPort = port;
@@ -71,6 +77,7 @@ public final class TestCase {
     mParameters = parameters;
     mMethod = method;
     mOptions = options;
+    mConnection =  execute();
   }
 
   /**
@@ -107,12 +114,11 @@ public final class TestCase {
   }
 
   /**
-   * @param connection the HttpURLConnection
    * @return the String from the InputStream of HttpURLConnection
    */
-  public String getResponse(HttpURLConnection connection) throws Exception {
+  public String getResponse() throws Exception {
     StringBuilder sb = new StringBuilder();
-    BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+    BufferedReader br = new BufferedReader(new InputStreamReader(mConnection.getInputStream()));
     char[] buffer = new char[1024];
     int len;
 
@@ -171,7 +177,9 @@ public final class TestCase {
    * if response is not successful, it will assert fail.
    * @return connection
    * @throws Exception
+   * @deprecated use checkResponseCode() instead.
    */
+  @Deprecated
   public HttpURLConnection executeAndAssertSuccess() throws Exception {
     HttpURLConnection connection = execute();
     if (Response.Status.Family.familyOf(connection.getResponseCode())
@@ -187,53 +195,80 @@ public final class TestCase {
 
   /**
    * Runs the test case and returns the output.
+   * @deprecated use checkResponse() instead.
    */
+  @Deprecated
   public String runAndGetResponse() throws Exception {
-    return getResponse(executeAndAssertSuccess());
+    executeAndAssertSuccess();
+    return getResponse();
   }
 
+  /**
+   * @deprecated use checkResponseCode() instead.
+   */
+  @Deprecated
   public void runAndCheckResult() throws Exception {
     runAndCheckResult(null);
   }
 
   /**
    * Runs the test case.
+   * @deprecated use checkResponse() instead.
    */
+  @Deprecated
   public void runAndCheckResult(Object expectedResult) throws Exception {
     String expected = "";
     if (expectedResult != null) {
-      switch (mOptions.getContentType()) {
-        case TestCaseOptions.JSON_CONTENT_TYPE: {
-          ObjectMapper mapper = new ObjectMapper();
-          if (mOptions.isPrettyPrint()) {
-            expected = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(expectedResult);
-          } else {
-            expected = mapper.writeValueAsString(expectedResult);
-          }
-          break;
-        }
-        case TestCaseOptions.XML_CONTENT_TYPE: {
-          XmlMapper mapper = new XmlMapper();
-          if (mOptions.isPrettyPrint()) {
-            expected = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(expectedResult);
-          } else {
-            expected = mapper.writeValueAsString(expectedResult);
-          }
-          break;
-        }
-        case TestCaseOptions.OCTET_STREAM_CONTENT_TYPE: {
-          expected = new String((byte[]) expectedResult, mOptions.getCharset());
-          break;
-        }
-        case TestCaseOptions.TEXT_PLAIN_CONTENT_TYPE: {
-          expected = (String) expectedResult;
-          break;
-        }
-        default:
-          throw new InvalidArgumentException("Invalid content type in TestCaseOptions!");
-      }
+      expected = convertToString(expectedResult);
     }
+
     String result = runAndGetResponse();
     Assert.assertEquals(mEndpoint, expected, result);
+  }
+
+  public void checkResponse(@NotNull Object expectedResult) throws Exception {
+    String expected = convertToString(expectedResult);
+    Assert.assertEquals(mEndpoint, expected, getResponse());
+  }
+
+  public TestCase checkResponseCode(@NotNull int expected) throws Exception {
+    Assert.assertEquals(mEndpoint, expected, mConnection.getResponseCode());
+    return this;
+  }
+
+  public TestCase checkErrorCode(@NotNull String expectedErrorCode) throws Exception {
+    InputStream errorStream = mConnection.getErrorStream();
+    S3Error response = XML_MAPPER.readerFor(S3Error.class).readValue(errorStream);
+    Assert.assertEquals(mEndpoint, expectedErrorCode, response.getCode());
+    return this;
+  }
+
+  private String convertToString(@NotNull Object expectedResult) throws Exception {
+    switch (mOptions.getContentType()) {
+      case TestCaseOptions.JSON_CONTENT_TYPE: {
+        ObjectMapper mapper = new ObjectMapper();
+        if (mOptions.isPrettyPrint()) {
+          return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(expectedResult);
+        } else {
+          return mapper.writeValueAsString(expectedResult);
+        }
+      }
+      case TestCaseOptions.XML_CONTENT_TYPE: {
+        XmlMapper mapper = new XmlMapper();
+        if (mOptions.isPrettyPrint()) {
+          return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(expectedResult);
+        } else {
+          return mapper.writeValueAsString(expectedResult);
+        }
+      }
+      case TestCaseOptions.OCTET_STREAM_CONTENT_TYPE: {
+        return new String((byte[]) expectedResult, mOptions.getCharset());
+      }
+      case TestCaseOptions.TEXT_PLAIN_CONTENT_TYPE: {
+        return (String) expectedResult;
+      }
+      default:
+        throw new InvalidArgumentException("Invalid content type in TestCaseOptions!");
+    }
   }
 }
