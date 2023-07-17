@@ -6325,7 +6325,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-
+  public static final PropertyKey USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT =
+      intBuilder(Name.USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT)
+          .setDefaultValue("2000")
+          .setDescription("The number of virtual nodes used by consistent hashing algorithm.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_FILE_WRITE_TYPE_DEFAULT =
       enumBuilder(Name.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
           .setDefaultValue(WriteType.CACHE_THROUGH)
@@ -9102,6 +9108,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.timeout.threads";
     public static final String USER_CLIENT_REPORT_VERSION_ENABLED =
         "alluxio.user.client.report.version.enabled";
+    public static final String USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT =
+        "alluxio.user.consistent.hash.virtual.node.count";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_CONF_SYNC_INTERVAL = "alluxio.user.conf.sync.interval";

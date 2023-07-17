@@ -4,8 +4,6 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.util.CommonUtils;
-import com.google.common.collect.ImmutableList;
 
 import java.util.List;
 
@@ -38,9 +36,9 @@ public interface WorkerLocationPolicy {
     public static WorkerLocationPolicy create(AlluxioConfiguration conf) {
       String policyName = conf.getString(PropertyKey.USER_WORKER_SELECTION_POLICY);
       if (policyName.equals("HASH")) {
-        return new ConsistentHashPolicy();
+        return new ConsistentHashPolicy(conf);
       } else if (policyName.equals("LOCAL")) {
-        return new LocalWorkerPolicy();
+        return new LocalWorkerPolicy(conf);
       } else {
         throw new IllegalArgumentException("Policy " + policyName + " is unrecognized");
       }

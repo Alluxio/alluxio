@@ -11,11 +11,10 @@
 
 package alluxio.client.file.dora;
 
-import static com.google.common.hash.Hashing.murmur3_32_fixed;
-import static java.lang.String.format;
-
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.PropertyKey;
 
 import com.google.common.collect.ImmutableList;
 
@@ -30,8 +29,6 @@ import java.util.List;
  * 3. Created with factory methods
  */
 public class ConsistentHashPolicy implements WorkerLocationPolicy {
-  // TODO(jiacheng): add a property key for this
-  public static final int DEFAULT_VIRTUAL_NODES_NUMBER = 2000;
   private static final ConsistentHashProvider HASH_PROVIDER =
       new ConsistentHashProvider(100, Constants.SECOND_MS);
   /**
@@ -43,18 +40,14 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
    * in the cluster, where X is a balance between redistribution granularity and size.
    */
   private final int mNumVirtualNodes;
-
-  public ConsistentHashPolicy() {
-    this(DEFAULT_VIRTUAL_NODES_NUMBER);
-  }
+  private final AlluxioConfiguration mConf;
 
   /**
    * Constructs a new {@link ConsistentHashPolicy}.
-   *
-   * @param numVirtualNodes number of virtual nodes
    */
-  public ConsistentHashPolicy(int numVirtualNodes) {
-    mNumVirtualNodes = numVirtualNodes;
+  public ConsistentHashPolicy(AlluxioConfiguration conf) {
+    mConf = conf;
+    mNumVirtualNodes = conf.getInt(PropertyKey.USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT);
   }
 
   @Override

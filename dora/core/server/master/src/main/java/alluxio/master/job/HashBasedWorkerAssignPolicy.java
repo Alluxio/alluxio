@@ -13,6 +13,7 @@ package alluxio.master.job;
 
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.dora.ConsistentHashPolicy;
+import alluxio.conf.Configuration;
 import alluxio.wire.WorkerInfo;
 
 import java.util.Collection;
@@ -24,7 +25,7 @@ import javax.annotation.Nullable;
  * Policy which employs Hash-Based algorithm to select worker from given workers set.
  */
 public class HashBasedWorkerAssignPolicy extends WorkerAssignPolicy {
-  ConsistentHashPolicy mWorkerLocationPolicy = new ConsistentHashPolicy();
+  ConsistentHashPolicy mWorkerLocationPolicy = new ConsistentHashPolicy(Configuration.global());
 
   @Override
   protected WorkerInfo pickAWorker(String object, @Nullable Collection<WorkerInfo> workerInfos) {

@@ -108,7 +108,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
    * @param context
    */
   public DoraCacheFileSystem(FileSystem fs, FileSystemContext context) {
-    this(fs, context, new DoraCacheClient(context, new ConsistentHashPolicy()));
+    this(fs, context, new DoraCacheClient(context));
   }
 
   protected DoraCacheFileSystem(FileSystem fs, FileSystemContext context,
