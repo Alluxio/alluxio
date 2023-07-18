@@ -39,7 +39,7 @@ func (c *ClassCommand) Base() *env.BaseJavaCommand {
 
 func (c *ClassCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   "class mainClass | --jar jarFile | --m module",
+		Use:   "class",
 		Short: "Run the main method of an Alluxio class.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
@@ -61,8 +61,10 @@ func (c *ClassCommand) Run(args []string) error {
 	} else {
 		c.JavaClassName = args[0]
 	}
-	javaArgs = append(javaArgs, args...)
-
+	if len(args) > 1 {
+		javaArgs = append(javaArgs, args[1:]...)
+	}
+	log.Logger.Infoln(javaArgs)
 	return c.Base().Run(javaArgs)
 }
 
