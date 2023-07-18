@@ -134,7 +134,7 @@ public abstract class Benchmark<T extends TaskResult> {
     return runSingleTask(args);
   }
 
-  protected void parseParameters(String[] args) {
+  public void parseParameters(String[] args) {
     JCommander jc = new JCommander(this);
     jc.setProgramName(this.getClass().getSimpleName());
     try {

@@ -13,10 +13,18 @@ package alluxio.stress.cli.worker;
 
 import static alluxio.stress.BaseParameters.DEFAULT_TASK_ID;
 
+import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.annotation.SuppressFBWarnings;
+import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.file.DoraCacheFileSystem;
+import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.dora.WorkerLocationPolicy;
+import alluxio.conf.AlluxioConfiguration;
+import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.WritePType;
+import alluxio.hadoop.HadoopUtils;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.cli.AbstractStressBench;
 import alluxio.stress.common.FileSystemParameters;
@@ -26,6 +34,9 @@ import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
+import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.block.BlockWorker;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -35,6 +46,7 @@ import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -59,6 +71,8 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
   private Path[] mFilePaths;
   private Integer[] mOffsets;
   private Integer[] mLengths;
+  private FileSystemContext mFsContext;
+  private DoraCacheFileSystem mDoraFs;
 
   /** generate random number in range [min, max] (include both min and max).*/
   private Integer randomNumInRange(Random rand, int min, int max) {
@@ -70,6 +84,12 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
    */
   public StressWorkerBench() {
     mParameters = new WorkerBenchParameters();
+    InstancedConfiguration conf =
+        new InstancedConfiguration(alluxio.conf.Configuration.global().copyProperties());
+    conf.set(PropertyKey.DORA_ENABLED, true);
+    mFsContext = FileSystemContext.create(conf);
+    alluxio.client.file.FileSystem testFs = alluxio.client.file.FileSystem.Factory.create(mFsContext);
+    mDoraFs = (DoraCacheFileSystem) testFs;
   }
 
   /***
@@ -137,29 +157,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     mLengths = new Integer[numFiles];
     mOffsets = new Integer[numFiles];
 
-    Random rand = new Random();
-    if (mParameters.mIsRandom) {
-      rand = new Random(mParameters.mRandomSeed);
-    }
-    for (int i = 0; i < clusterSize; i++) {
-      for (int j = 0; j < threads; j++) {
-        Path filePath = calculateFilePath(basePath, i, j);
-        int index = i * threads + j;
-        mFilePaths[index] = filePath;
-        // TODO(jiacheng): do we want a new randomness for every read?
-        if (mParameters.mIsRandom) {
-          int randomMin = (int) FormatUtils.parseSpaceSize(mParameters.mRandomMinReadLength);
-          int randomMax = (int) FormatUtils.parseSpaceSize(mParameters.mRandomMaxReadLength);
-          mOffsets[index] = randomNumInRange(rand, 0, fileSize - 1 - randomMin);
-          mLengths[index] = randomNumInRange(rand, randomMin,
-                  Integer.min(fileSize - mOffsets[i], randomMax));
-        } else {
-          mOffsets[index] = 0;
-          mLengths[index] = fileSize;
-        }
-      }
-    }
-    LOG.info("{} file paths generated", mFilePaths.length);
+    generateTestFilePaths(basePath);
 
     // Generate test files if necessary
     if (mBaseParameters.mDistributed){
@@ -195,6 +193,133 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     for (int i = 0; i < mCachedFs.length; i++) {
       mCachedFs[i] = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
     }
+  }
+
+  @VisibleForTesting
+  // TODO(jiacheng): We must test this method here
+  public void generateTestFilePaths(Path basePath) throws IOException {
+    int fileSize = (int) FormatUtils.parseSpaceSize(mParameters.mFileSize);
+    int clusterSize = mBaseParameters.mClusterLimit;
+    int threads = mParameters.mThreads;
+    // We assume the worker list does not change at this stage of test
+    List<BlockWorkerInfo> workers = mFsContext.getCachedWorkers();
+    LOG.info("Available workers in the cluster are {}", workers);
+
+    boolean isLocal = false;
+    if (mParameters.mMode.equals("LOCAL")){
+      LOG.info("Running test in LOCAL mode, meaning all clients should read local worker");
+      isLocal = true;
+    } else if (mParameters.mMode.equals("REMOTE")) {
+      LOG.info("Running test in REMOTE mode, meaning all clients must not read local workers");
+    } else {
+      throw new IllegalArgumentException("Unrecognized mode " + mParameters.mMode);
+    }
+
+    Random rand = new Random();
+    if (mParameters.mIsRandom) {
+      rand = new Random(mParameters.mRandomSeed);
+    }
+
+    // This distribution keeps track of how many connections each worker will serve
+    int[] distribution = new int[clusterSize];
+
+    for (int i = 0; i < clusterSize; i++) {
+      BlockWorkerInfo localWorker = workers.get(i);
+      LOG.info("Building file paths for worker {}", localWorker);
+      for (int j = 0; j < threads; j++) {
+        Path filePathBeforeSalt = calculateFilePath(basePath, i, j);
+
+        boolean isFound = false;
+        Path filePathAfterSalt = null;
+        int salt = 0;
+        for (; salt < 1024; salt++) {
+          // TODO(jiacheng): what happens if this does not stop
+          filePathAfterSalt = filePathBeforeSalt.suffix("-" + salt);
+
+          // Check if the salt can meet our need
+          WorkerNetAddress targetWorker = calculateAllocation(filePathAfterSalt, mDoraFs, workers);
+
+          if (isLocal) {
+            // accept only if the target worker is local to the client
+            // otherwise reject
+            // TODO(jiacheng): check if the ring has the same order as the input worker list
+            if (targetWorker.equals(localWorker.getNetAddress())) {
+              isFound = true;
+              distribution[i]++;
+              break; // this salt will give the client a local worker in the hash ring
+            }
+          } else {
+            // accept if:
+            // 1. the target worker is not local to the client AND
+            if (targetWorker.equals(localWorker.getNetAddress())) {
+              // Reject the allocation to a local worker because we want remote
+              continue;
+            }
+            // 2. distribution is even among the workers
+            //    on each worker we create #threads requests so each worker should serve that many
+            int allocationIndex = findWorkerByAddress(workers, targetWorker);
+            if (allocationIndex == -1) {
+              throw new IllegalStateException(String.format(
+                  "Failed to find worker with address %s in %s", targetWorker, workers));
+            }
+            if (distribution[allocationIndex] < threads) {
+              isFound = true;
+              distribution[allocationIndex]++;
+              break;
+            }
+          }
+        }
+        LOG.info("Tried {} salts for file {}", salt, filePathBeforeSalt);
+
+        // If we exhausted all salts and no fitting path has been found, give up
+        if (!isFound) {
+          if (isLocal) {
+            throw new IllegalStateException(String.format("exhausted %s salts but still cannot find a local worker for path %s",
+                1024, filePathBeforeSalt));
+          } else {
+            throw new IllegalStateException(String.format("exhausted %s salts but still cannot find a remote worker for path %s",
+                1024, filePathBeforeSalt));
+          }
+        }
+
+        int index = i * threads + j;
+        mFilePaths[index] = filePathAfterSalt;
+
+        // Continue init other aspects of the file read operation
+        // TODO(jiacheng): do we want a new randomness for every read?
+        if (mParameters.mIsRandom) {
+          int randomMin = (int) FormatUtils.parseSpaceSize(mParameters.mRandomMinReadLength);
+          int randomMax = (int) FormatUtils.parseSpaceSize(mParameters.mRandomMaxReadLength);
+          mOffsets[index] = randomNumInRange(rand, 0, fileSize - 1 - randomMin);
+          mLengths[index] = randomNumInRange(rand, randomMin,
+                  Integer.min(fileSize - mOffsets[i], randomMax));
+        } else {
+          mOffsets[index] = 0;
+          mLengths[index] = fileSize;
+        }
+      }
+    }
+    LOG.info("{} file paths generated, the distribution is {}", mFilePaths.length, Arrays.toString(distribution));
+  }
+
+  private WorkerNetAddress calculateAllocation(Path proposedPath,
+                                               DoraCacheFileSystem doraFs,
+                                               List<BlockWorkerInfo> availableWorkers) {
+    // This copies from how a hadoop Path translates to a target worker in Dora
+    // However this method is extremely fragile to code changes in Dora
+    AlluxioURI alluxioUri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(proposedPath));
+    AlluxioURI ufsUri = doraFs.convertAlluxioPathToUFSPath(alluxioUri);
+    String pathToHash = ufsUri.toString();
+    return doraFs.getClient().getWorkerNetAddress(pathToHash);
+  }
+
+  private int findWorkerByAddress(List<BlockWorkerInfo> workers, WorkerNetAddress targetWorkerAddr) {
+    for (int i = 0; i < workers.size(); i++) {
+      if (workers.get(i).getNetAddress().equals(targetWorkerAddr)) {
+        return i;
+      }
+    }
+    return -1;
   }
 
   private void prepareTestFiles(Path basePath, int fileSize, FileSystem prepareFs) throws IOException {
@@ -298,6 +423,11 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       throw new IllegalStateException(String.format("%s cannot be %s when %s option provided",
               FileSystemParameters.WRITE_TYPE_OPTION_NAME, WritePType.MUST_CACHE, "--free"));
     }
+  }
+
+  @VisibleForTesting
+  public Path[] getFilePaths() {
+    return mFilePaths;
   }
 
   private static final class BenchContext {

@@ -87,6 +87,10 @@ public final class WorkerBenchParameters extends FileSystemParameters {
       description = "If true, skip the data file creation")
   public boolean mSkipCreation = false;
 
+  @Parameter(names = {"--mode"},
+          description = "LOCAL or REMOTE")
+  public String mMode = "LOCAL";
+
   @DynamicParameter(names = "--conf", description = "HDFS client configuration. Can be repeated.")
   public Map<String, String> mConf = new HashMap<>();
 }

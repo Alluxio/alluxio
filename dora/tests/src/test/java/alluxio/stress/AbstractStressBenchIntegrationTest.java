@@ -34,8 +34,9 @@ import java.util.List;
  */
 public class AbstractStressBenchIntegrationTest extends BaseIntegrationTest {
   @ClassRule
+  // TODO(jiacheng): how to avoid impacting other tests
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder().setNumWorkers(8).build();
 
   @Rule
   public TestRule mResetRule = sLocalAlluxioClusterResource.getResetResource();

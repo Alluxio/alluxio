@@ -494,4 +494,8 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     }
     return listBuilder.build();
   }
+
+  public DoraCacheClient getClient() {
+    return mDoraClient;
+  }
 }
