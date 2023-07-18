@@ -153,6 +153,14 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       @Named("workerId") AtomicReference<Long> workerId,
       AlluxioConfiguration conf,
       CacheManager cacheManager) {
+    this(workerId, conf, cacheManager, new BlockMasterClientPool());
+  }
+
+  protected PagedDoraWorker(
+      AtomicReference<Long> workerId,
+      AlluxioConfiguration conf,
+      CacheManager cacheManager,
+      BlockMasterClientPool blockMasterClientPool) {
     super(ExecutorServiceFactories.fixedThreadPool("dora-worker-executor", 5));
     mWorkerId = workerId;
     mConf = conf;
@@ -165,7 +173,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
         UnderFileSystemConfiguration.defaults(Configuration.global()));
 
     mPageSize = Configuration.global().getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
-    mBlockMasterClientPool = new BlockMasterClientPool();
+    mBlockMasterClientPool = blockMasterClientPool;
     mCacheManager = cacheManager;
     mMetaManager = mResourceCloser.register(
         new DoraMetaManager(this, mCacheManager, mUfs));
