@@ -51,17 +51,17 @@ type module struct {
 
 // ufsModules is a map from ufs module to information for building the module.
 var ufsModules = map[string]module{
-	"ufs-hadoop-2.7":  {"hadoop-2.7", "hdfs", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.7.3 -PhdfsActiveSync"},
-	"ufs-hadoop-2.8":  {"hadoop-2.8", "hdfs", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.8.5 -PhdfsActiveSync"},
-	"ufs-hadoop-2.9":  {"hadoop-2.9", "hdfs", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.9.2 -PhdfsActiveSync"},
-	"ufs-hadoop-2.10": {"hadoop-2.10", "hdfs", true, "-pl underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.10.1 -PhdfsActiveSync"},
-	"ufs-hadoop-3.0":  {"hadoop-3.0", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.0.0 -PhdfsActiveSync"},
-	"ufs-hadoop-3.1":  {"hadoop-3.1", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.1.1 -PhdfsActiveSync"},
-	"ufs-hadoop-3.2":  {"hadoop-3.2", "hdfs", true, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.2.1 -PhdfsActiveSync"},
-	"ufs-hadoop-3.3":  {"hadoop-3.3", "hdfs", false, "-pl underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.1 -PhdfsActiveSync"},
+	"ufs-hadoop-2.7":  {"hadoop-2.7", "hdfs", true, "-pl dora/underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.7.3 -PhdfsActiveSync"},
+	"ufs-hadoop-2.8":  {"hadoop-2.8", "hdfs", true, "-pl dora/underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.8.5 -PhdfsActiveSync"},
+	"ufs-hadoop-2.9":  {"hadoop-2.9", "hdfs", true, "-pl dora/underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.9.2 -PhdfsActiveSync"},
+	"ufs-hadoop-2.10": {"hadoop-2.10", "hdfs", true, "-pl dora/underfs/hdfs -Pufs-hadoop-2 -Dufs.hadoop.version=2.10.1 -PhdfsActiveSync"},
+	"ufs-hadoop-3.0":  {"hadoop-3.0", "hdfs", false, "-pl dora/underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.0.0 -PhdfsActiveSync"},
+	"ufs-hadoop-3.1":  {"hadoop-3.1", "hdfs", false, "-pl dora/underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.1.1 -PhdfsActiveSync"},
+	"ufs-hadoop-3.2":  {"hadoop-3.2", "hdfs", true, "-pl dora/underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.2.1 -PhdfsActiveSync"},
+	"ufs-hadoop-3.3":  {"hadoop-3.3", "hdfs", false, "-pl dora/underfs/hdfs -Pufs-hadoop-3 -Dufs.hadoop.version=3.3.1 -PhdfsActiveSync"},
 
-	"ufs-hadoop-ozone-1.2.1":      {"hadoop-ozone-1.2.1", "ozone", true, "-pl underfs/ozone -Pufs-hadoop-3 -Dufs.ozone.version=1.2.1"},
-	"ufs-hadoop-cosn-3.1.0-5.8.5": {"hadoop-cosn-3.1.0-5.8.5", "cosn", true, "-pl underfs/cosn -Dufs.cosn.version=3.1.0-5.8.5"},
+	"ufs-hadoop-ozone-1.2.1":      {"hadoop-ozone-1.2.1", "ozone", true, "-pl dora/underfs/ozone -Pufs-hadoop-3 -Dufs.ozone.version=1.2.1"},
+	"ufs-hadoop-cosn-3.1.0-5.8.5": {"hadoop-cosn-3.1.0-5.8.5", "cosn", true, "-pl dora/underfs/cosn -Dufs.cosn.version=3.1.0-5.8.5"},
 }
 
 var fuseUfsModuleNames = []string{

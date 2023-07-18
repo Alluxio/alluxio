@@ -207,21 +207,21 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 			"conf/rocks-block.ini.template",
 			"conf/masters",
 			"conf/workers",
-			"integration/docker/.dockerignore",
-			"integration/docker/conf/alluxio-env.sh.template",
-			"integration/docker/conf/alluxio-site.properties.template",
-			"integration/docker/Dockerfile",
-			"integration/docker/Dockerfile-dev",
-			"integration/docker/entrypoint.sh",
-			"integration/fuse/bin/alluxio-fuse",
-			"integration/metrics/docker-compose-master.yaml",
-			"integration/metrics/docker-compose-worker.yaml",
-			"integration/metrics/otel-agent-config.yaml",
-			"integration/metrics/otel-agent-config-worker.yaml",
-			"integration/metrics/otel-collector-config.yaml",
-			"integration/metrics/prometheus.yaml",
-			"integration/tools/ratis-shell/install-ratis-shell.sh",
-			"integration/tools/ratis-shell/README.md",
+			"dora/integration/docker/.dockerignore",
+			"dora/integration/docker/conf/alluxio-env.sh.template",
+			"dora/integration/docker/conf/alluxio-site.properties.template",
+			"dora/integration/docker/Dockerfile",
+			"dora/integration/docker/Dockerfile-dev",
+			"dora/integration/docker/entrypoint.sh",
+			"dora/integration/fuse/bin/alluxio-fuse",
+			"dora/integration/metrics/docker-compose-master.yaml",
+			"dora/integration/metrics/docker-compose-worker.yaml",
+			"dora/integration/metrics/otel-agent-config.yaml",
+			"dora/integration/metrics/otel-agent-config-worker.yaml",
+			"dora/integration/metrics/otel-collector-config.yaml",
+			"dora/integration/metrics/prometheus.yaml",
+			"dora/integration/tools/ratis-shell/install-ratis-shell.sh",
+			"dora/integration/tools/ratis-shell/README.md",
 		)
 	}
 
@@ -333,7 +333,7 @@ func generateTarball(opts *GenerateTarballOpts) error {
 	}
 
 	if opts.Fuse {
-		run("adding Alluxio FUSE jar", "mv", fmt.Sprintf("integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "lib", fmt.Sprintf("alluxio-fuse-%v.jar", version)))
+		run("adding Alluxio FUSE jar", "mv", fmt.Sprintf("dora/integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "lib", fmt.Sprintf("alluxio-fuse-%v.jar", version)))
 		fuseDstPath := filepath.Join(dstPath, "bin", "alluxio-fuse")
 		run("adding Alluxio fuse script", "mv", "integration/fuse/bin/alluxio-fuse", fuseDstPath)
 		replace(fuseDstPath, "target/alluxio-integration-fuse-${VERSION}-jar-with-dependencies.jar", "lib/alluxio-fuse-${VERSION}.jar")
@@ -344,7 +344,7 @@ func generateTarball(opts *GenerateTarballOpts) error {
 		}
 		run("adding Alluxio client assembly jar", "mv", fmt.Sprintf("assembly/client/target/alluxio-assembly-client-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-client-%v.jar", version)))
 		run("adding Alluxio server assembly jar", "mv", fmt.Sprintf("assembly/server/target/alluxio-assembly-server-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-server-%v.jar", version)))
-		run("adding Alluxio FUSE jar", "mv", fmt.Sprintf("integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "fuse", fmt.Sprintf("alluxio-fuse-%v.jar", version)))
+		run("adding Alluxio FUSE jar", "mv", fmt.Sprintf("dora/integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "fuse", fmt.Sprintf("alluxio-fuse-%v.jar", version)))
 
 		if !opts.SkipUI {
 			masterWebappDir := "webui/master"

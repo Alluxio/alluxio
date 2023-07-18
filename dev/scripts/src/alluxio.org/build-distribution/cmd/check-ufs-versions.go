@@ -27,7 +27,7 @@ var (
 	ufsTypeToVersionDetails = map[string]*UfsVersionDetails{
 		"hdfs": {
 			VersionProp:         "ufs.hadoop.version",
-			VersionEnumFilePath: "underfs/hdfs/src/main/java/alluxio/underfs/hdfs/HdfsVersion.java",
+			VersionEnumFilePath: "dora/underfs/hdfs/src/main/java/alluxio/underfs/hdfs/HdfsVersion.java",
 		},
 	}
 )
