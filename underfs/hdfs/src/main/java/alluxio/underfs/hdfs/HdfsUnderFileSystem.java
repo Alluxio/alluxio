@@ -841,7 +841,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
           return hdfs.delete(hdfsPath, recursive);
         }
         // move to trash
-        if (isDirectory && !recursive) {
+        if (isDirectory && !recursive && hdfs.listStatus(hdfsPath).length != 0) {
           return false;
         }
         return trash.get().moveToTrash(hdfsPath);
