@@ -4,9 +4,21 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.util.CommonUtils;
 
 import java.util.List;
 
+/**
+ * Interface for determining the Alluxio worker location to serve a read or write request.
+ *
+ * A policy MUST have the property of being deterministic, because distributed clients must
+ * be able to resolve the same path to the same worker(s) for the file.
+ * Imagine a totally random policy which resolves a path to a random worker in the cluster.
+ * The first reader of path /a will resolve to a random worker in the cluster and leave a cache
+ * there. A subsequent reader will resolve to another random worker and the chance of a cache-hit
+ * is very low! Worse still, that subsequent reader may produce another cache replica.
+ * This random policy wastes cache space and provides terrible cache hit rate.
+ */
 public interface WorkerLocationPolicy {
   /**
    * TODO(jiacheng): the semantics here is ambiguous:
@@ -32,15 +44,13 @@ public interface WorkerLocationPolicy {
      * @param conf Alluxio configuration
      * @return a new instance of {@link BlockLocationPolicy}
      */
-    // TODO(jiacheng): use enum
     public static WorkerLocationPolicy create(AlluxioConfiguration conf) {
-      String policyName = conf.getString(PropertyKey.USER_WORKER_SELECTION_POLICY);
-      if (policyName.equals("HASH")) {
-        return new ConsistentHashPolicy(conf);
-      } else if (policyName.equals("LOCAL")) {
-        return new LocalWorkerPolicy(conf);
-      } else {
-        throw new IllegalArgumentException("Policy " + policyName + " is unrecognized");
+      try {
+        return CommonUtils.createNewClassInstance(
+            conf.getClass(PropertyKey.USER_WORKER_SELECTION_POLICY),
+            new Class[] {AlluxioConfiguration.class}, new Object[] {conf});
+      } catch (ClassCastException e) {
+        throw new RuntimeException(e);
       }
     }
   }
