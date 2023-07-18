@@ -26,7 +26,7 @@ import javax.ws.rs.HttpMethod;
 
 public abstract class RestApiTest extends BaseIntegrationTest {
   protected static final Map<String, String> NO_PARAMS = ImmutableMap.of();
-  protected static final byte[] EMPTY_OBJECT = new byte[] {};
+  protected static final byte[] EMPTY_CONTENT = new byte[] {};
   protected static final String TEST_USER = "testuser";
   protected static final String TEST_BUCKET = "test-bucket";
   protected String mHostname;
@@ -47,6 +47,10 @@ public abstract class RestApiTest extends BaseIntegrationTest {
     return newTestCase(bucket, NO_PARAMS, HttpMethod.PUT, getDefaultOptionsWithAuth()
         .setBody(object)
         .setMD5(computeObjectChecksum(object)));
+  }
+
+  protected TestCase createObjectTestCase(String bucket, byte[] object,TestCaseOptions options) throws Exception {
+    return newTestCase(bucket, NO_PARAMS, HttpMethod.PUT, options);
   }
 
   protected TestCase copyObjectTestCase(String sourcePath, String targetPath) throws Exception {
