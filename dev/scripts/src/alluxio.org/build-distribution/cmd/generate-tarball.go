@@ -294,12 +294,12 @@ func generateTarball(opts *GenerateTarballOpts) error {
 	}
 
 	// Reset the shaded hadoop version if it's auto-resolved by the maven release plugin
-	replace("shaded/hadoop/pom.xml", "<version>2.2.0</version>", "<version>${ufs.hadoop.version}</version>")
+	replace("dora/shaded/hadoop/pom.xml", "<version>2.2.0</version>", "<version>${ufs.hadoop.version}</version>")
 	// Update the assembly jar paths.
 	replace("libexec/alluxio-config.sh", "assembly/client/target/alluxio-assembly-client-${VERSION}-jar-with-dependencies.jar", "assembly/alluxio-client-${VERSION}.jar")
 	replace("libexec/alluxio-config.sh", "assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar", "assembly/alluxio-server-${VERSION}.jar")
 	// Update the FUSE jar path
-	replace("integration/fuse/bin/alluxio-fuse", "target/alluxio-integration-fuse-${VERSION}-jar-with-dependencies.jar", "alluxio-fuse-${VERSION}.jar")
+	replace("dora/integration/fuse/bin/alluxio-fuse", "target/alluxio-integration-fuse-${VERSION}-jar-with-dependencies.jar", "alluxio-fuse-${VERSION}.jar")
 
 	mvnArgs := getCommonMvnArgs(hadoopVersion)
 	if opts.SkipUI || opts.Fuse {
