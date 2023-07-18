@@ -74,7 +74,7 @@ $ ./bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio:///ml-100k
 
 Create an external Hive table pointing to the Alluxio file location.
 
-```
+```sql
 hive> CREATE TABLE u_user (
   userid INT,
   age INT,
@@ -118,8 +118,7 @@ directly).
 Run a single query (replace `localhost:8080` with your actual Trino server hostname and port):
 
 ```console
-$ ./trino --server localhost:8080 --execute "use default; select * from u_user limit 10;" \
-  --catalog hive --debug
+$ ./trino --server localhost:8080 --execute "use default; select * from u_user limit 10;" --catalog hive --debug
 ```
 
 ## Advanced Setup
@@ -131,9 +130,8 @@ To configure additional Alluxio properties, you can append the conf path (i.e.
 to Trino's JVM config at `etc/jvm.config` under Trino folder. The advantage of this approach is to
 have all the Alluxio properties set within the same file of `alluxio-site.properties`.
 
-```bash
-...
--Xbootclasspath/a:<path-to-alluxio-conf>
+```console
+$ -Xbootclasspath/a:<path-to-alluxio-conf>
 ```
 
 Alternatively, add Alluxio properties to the Hadoop configuration files
@@ -141,7 +139,7 @@ Alternatively, add Alluxio properties to the Hadoop configuration files
 file `${Trino_HOME}/etc/catalog/hive.properties` to point to the Hadoop resource locations for
 every Trino worker. 
 
-```
+```properties
 hive.config.resources=/<PATH_TO_CONF>/core-site.xml,/<PATH_TO_CONF>/hdfs-site.xml
 ```
 
@@ -168,7 +166,7 @@ which is contained by `hive.config.resources`.
 ```
 
 For information about how to connect to Alluxio HA cluster using Zookeeper-based leader election,
-please refer to [HA mode client configuration parameters]({{ '/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }}#specify-alluxio-service-in-configuration-parameters).
+please refer to [HA mode client configuration parameters]({{ '/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }}#specify-alluxio-service-in-configuration-parameters-or-java-options).
 
 #### Example: change default Alluxio write type
 

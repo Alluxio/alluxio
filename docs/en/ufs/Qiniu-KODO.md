@@ -4,9 +4,9 @@ title: Qiniu Kodo
 ---
 
 
-This guide describes how to configure Alluxio with
-[Qiniu Kodo](https://www.qiniu.com/products/kodo) as the under storage system. Qiniu Object Storage
-Service (Kodo) is a massive, secure and highly reliable cloud storage service.
+This guide describes how to configure Alluxio with [Qiniu Kodo](https://www.qiniu.com/products/kodo) as the under storage system. 
+
+Qiniu Object Storage Service (Kodo) is a cloud-based object storage service provided by Qiniu Cloud, a Chinese cloud service provider. Kodo is a massive, secure and highly reliable cloud storge service that is designed to store, manage, and serve large amounts of unstructured data.
 
 ## Initial Setup
 
@@ -25,11 +25,11 @@ The root of Alluxio namespace or its subdirectories are all available for the mo
 
 If you want to use Qiniu Kodo as its under storage system in Alluxio, `conf/alluxio-site.properties` must be modified.
 In the beginning, an existing Kodo bucket and its directory should be specified for storage by the following code:
-```
+```properties
 alluxio.dora.client.ufs.root=kodo://<KODO_BUCKET>/<KODO_DIRECTORY>/
 ```
 Next, some settings must be added to `conf/alluxio-site.properties`:
-```
+```properties
 fs.kodo.accesskey=<KODO_ACCESS_KEY>
 fs.kodo.secretkey=<KODO_SECRET_KET>
 alluxio.underfs.kodo.downloadhost=<KODO_DOWNLOAD_HOST>
@@ -41,13 +41,38 @@ alluxio.underfs.kodo.endpoint=<KODO_ENDPOINT>
 
 `alluxio.underfs.kodo.endpoint` is the endpoint of this bucket, which can be found in the bucket in this table:
 
-| Region | Abbreviation| EndPoint |
-| ------- | -------- | --------- |
-|East China| z0|  iovip.qbox.me | 
-|North China| z1| iovip-z1.qbox.me| 
-|South China| z2| iovip-z2.qbox.me | 
-|North America| na0| iovip-na0.qbox.me | 
-|Southeast Asia| as0| iovip-as0.qbox.me |
+<table class="table table-striped">
+<tr>
+    <th>Region</th>
+    <th>Abbreviation</th>
+    <th>EndPoint</th>
+</tr>
+<tr>
+    <td markdown="span">East China</td>
+    <td markdown="span">z0</td>
+    <td markdown="span">iovip.qbox.me</td>
+</tr>
+<tr>
+    <td markdown="span">North China</td>
+    <td markdown="span">z1</td>
+    <td markdown="span">iovip-z1.qbox.me</td>
+</tr>
+<tr>
+    <td markdown="span">South China</td>
+    <td markdown="span">z2</td>
+    <td markdown="span">iovip-z2.qbox.me</td>
+</tr>
+<tr>
+    <td markdown="span">North America</td>
+    <td markdown="span">na0</td>
+    <td markdown="span">iovip-na0.qbox.me</td>
+</tr>
+<tr>
+    <td markdown="span">Southeast Asia</td>
+    <td markdown="span">as0</td>
+    <td markdown="span">iovip-as0.qbox.me</td>
+</tr>
+</table>
 
 ## Running Alluxio Locally with Kodo
 

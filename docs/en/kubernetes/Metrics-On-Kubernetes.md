@@ -53,9 +53,6 @@ Get metrics of a fuse process with default web port 49999:
 $ kubectl exec <alluxio-fuse-xxxxx> -- curl 127.0.0.1:49999/metrics/json/
 ```
 
-### Visualization
-<br />
-
 ## Prometheus Sink
 
 [Prometheus](https://prometheus.io/) is a monitoring tool that can help to monitor Alluxio metrics changes.

@@ -75,7 +75,7 @@ leader election based on the Raft protocol and has its own format for storing jo
 The built-in leader election cannot work with Zookeeper since the journal formats between these
 configurations may not match.
 Enabling embedded journal enables Alluxio's internal leader election.
-See [embedded journal configuration documentation]({{ '/en/operation/Journal.html' | relativize_url }}#embedded-journal-configuration)
+See [embedded journal configuration documentation]({{ '/en/operation/Journal.html' | relativize_url }}#configuring-embedded-journal)
 for more details and alternative ways to set up HA cluster with internal leader election.
 
 ### Zookeeper and Shared Journal Storage

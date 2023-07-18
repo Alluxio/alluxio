@@ -138,7 +138,7 @@ Alternatively, add the property to the Hadoop configuration file
 Users can also configure Spark to connect to an Alluxio HA cluster using
 Zookeeper-based leader election.
 Refer to
-[HA mode client configuration parameters]({{ '/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }}#specify-alluxio-service-in-configuration-parameters).
+[HA mode client configuration parameters]({{ '/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }}#specify-alluxio-service-in-configuration-parameters-or-java-options).
 
 ### Customize Alluxio User Properties for Individual Spark Jobs
 

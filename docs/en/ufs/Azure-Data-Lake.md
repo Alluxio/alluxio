@@ -4,7 +4,10 @@ title: Azure Data Lake Storage
 ---
 
 
-This guide describes how to configure Alluxio with [Azure Data Lake Storage Gen1](https://docs.microsoft.com/en-in/azure/data-lake-store/data-lake-store-overview) as the under storage system.
+This guide describes how to configure Alluxio with [Azure Data Lake Storage Gen1](https://docs.microsoft.com/en-in/azure/data-lake-store/data-lake-store-overview) as the under storage system. 
+
+Azure Data Lake Storage is an enterprise-wide hyper-scale repository for big data analytic workloads. Azure Data Lake enables you to capture data of any size, type, and ingestion speed in one single place for operational and exploratory analytics. It is designed to store and analyze large amounts of structured, semi-structured, and unstructured data.
+
 
 ## Prerequisites
 
@@ -68,8 +71,8 @@ After these changes, Alluxio should be configured to work with Azure Data Lake s
 Start up Alluxio locally to see that everything works.
 
 ```console
-./bin/alluxio format
-./bin/alluxio-start.sh local
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
 ```
 
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
@@ -78,7 +81,7 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 Run a simple example program:
 
 ```console
-./bin/alluxio runTests
+$ ./bin/alluxio runTests
 ```
 
 Visit your directory `<AZURE_DIRECTORY>` to verify the files and directories created by Alluxio exist. For this test, you should see files named like:
@@ -90,5 +93,5 @@ Visit your directory `<AZURE_DIRECTORY>` to verify the files and directories cre
 To stop Alluxio, you can run:
 
 ```console
-./bin/alluxio-stop.sh local
+$ ./bin/alluxio-stop.sh local
 ```

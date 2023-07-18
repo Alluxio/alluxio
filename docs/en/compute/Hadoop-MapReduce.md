@@ -150,7 +150,7 @@ election, the following section would need to be added to your Hadoop installati
 </configuration>
 ```
 
-See [HA mode client configuration parameters]({{ '/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }}#specify-alluxio-service-in-configuration-parameters)
+See [HA mode client configuration parameters]({{ '/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }}#specify-alluxio-service-in-configuration-parameters-or-java-options)
 for more details.
 
 ### Customize Alluxio User Properties for Individual MapReduce Jobs

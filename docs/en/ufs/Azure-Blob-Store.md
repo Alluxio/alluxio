@@ -4,8 +4,10 @@ title: Azure Blob Store
 ---
 
 
-This guide describes how to configure Alluxio with [Azure Blob
-Store](https://azure.microsoft.com/en-in/services/storage/blobs/) as the under storage system.
+This guide describes how to configure Alluxio with [Azure Blob Store](https://azure.microsoft.com/en-in/services/storage/blobs/) as the under storage system. 
+
+Azure Blob Storage is Microsoft's object storage solution for the cloud. Blob Storage is optimized for storing massive amounts of unstructured data.
+
 
 ## Prerequisites
 
@@ -14,7 +16,7 @@ storage account or use an existing container. You should also note that the dire
 use in that container, either by creating a new directory in the container, or using an existing
 one. For the purposes of this guide, the Azure storage account name is called `<AZURE_ACCOUNT>`, the
 container in that storage account is called `<AZURE_CONTAINER>` and the directory in that container is
-called `<AZURE_DIRECTORY>`. For more information about Azure storage account, Please see
+called `<AZURE_DIRECTORY>`. For more information about Azure storage account, please see
 [here](https://docs.microsoft.com/en-us/azure/storage/storage-create-storage-account).
 
 
