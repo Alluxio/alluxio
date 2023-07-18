@@ -430,6 +430,18 @@ public final class Configuration
   }
 
   /**
+   * Compares and swap the two conf.
+   *
+   * @param conf the old config
+   * @param newConf the new config
+   * @return whether the compare and set successful
+   */
+  public static boolean compareAndSetServerConfigReference(InstancedConfiguration conf,
+      InstancedConfiguration newConf) {
+    return SERVER_CONFIG_REFERENCE.compareAndSet(conf, newConf);
+  }
+
+  /**
    * Loads configuration from meta master in one RPC.
    *
    * @param address the meta master address
