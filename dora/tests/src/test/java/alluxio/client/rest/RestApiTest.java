@@ -49,7 +49,8 @@ public abstract class RestApiTest extends BaseIntegrationTest {
         .setMD5(computeObjectChecksum(object)));
   }
 
-  protected TestCase createObjectTestCase(String bucket, byte[] object,TestCaseOptions options) throws Exception {
+  protected TestCase createObjectTestCase(String bucket, TestCaseOptions options)
+      throws Exception {
     return newTestCase(bucket, NO_PARAMS, HttpMethod.PUT, options);
   }
 

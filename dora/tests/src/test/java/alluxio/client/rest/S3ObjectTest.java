@@ -33,7 +33,6 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
-import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response.Status;
 
 public class S3ObjectTest extends RestApiTest {
@@ -160,9 +159,10 @@ public class S3ObjectTest extends RestApiTest {
   public void putAndHeadDirectories() throws Exception {
     final String bucket = "bucket";
     final String folderKey1 = "folder1";
-    final String fullKey1 = bucket + AlluxioURI.SEPARATOR + folderKey1 + AlluxioURI.SEPARATOR;
     final String folderKey2 = "folder2";
-    final String fullKey2 = bucket + AlluxioURI.SEPARATOR + folderKey1 + AlluxioURI.SEPARATOR + folderKey2 + AlluxioURI.SEPARATOR;
+    final String fullKey1 = bucket + AlluxioURI.SEPARATOR + folderKey1 + AlluxioURI.SEPARATOR;
+    final String fullKey2 = bucket + AlluxioURI.SEPARATOR + folderKey1 + AlluxioURI.SEPARATOR
+        + folderKey2 + AlluxioURI.SEPARATOR;
     createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
     createObjectTestCase(fullKey2, EMPTY_CONTENT).checkResponseCode(Status.OK.getStatusCode());
     headTestCase(fullKey1).checkResponseCode(Status.OK.getStatusCode());
@@ -227,8 +227,7 @@ public class S3ObjectTest extends RestApiTest {
     final byte[] content = "Hello World!".getBytes();
 
     createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
-    createObjectTestCase(fullKey, content,
-        getDefaultOptionsWithAuth().setBody(content).setMD5(""))
+    createObjectTestCase(fullKey, getDefaultOptionsWithAuth().setBody(content).setMD5(""))
         .checkResponseCode(Status.BAD_REQUEST.getStatusCode())
         .checkErrorCode(S3ErrorCode.Name.BAD_DIGEST);
   }
@@ -244,7 +243,7 @@ public class S3ObjectTest extends RestApiTest {
     final byte[] content = "Hello World!".getBytes();
 
     createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
-    createObjectTestCase(fullKey, content, getDefaultOptionsWithAuth().setBody(content))
+    createObjectTestCase(fullKey, getDefaultOptionsWithAuth().setBody(content))
         .checkResponseCode(Status.OK.getStatusCode());
     getTestCase(fullKey).checkResponseCode(Status.OK.getStatusCode()).checkResponse(content);
   }
