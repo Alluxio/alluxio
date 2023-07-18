@@ -36,7 +36,7 @@ public class PositionReadFileInStream extends FileInStream {
   private final long mLength;
   private long mPos = 0;
   private boolean mClosed;
-  private final PositionReader mPositionReader;
+  public final PositionReader mPositionReader;
   private final PrefetchCache mCache;
 
   private static class PrefetchCache implements AutoCloseable {
