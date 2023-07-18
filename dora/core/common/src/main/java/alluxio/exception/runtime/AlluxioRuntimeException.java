@@ -241,10 +241,10 @@ public class AlluxioRuntimeException extends RuntimeException {
       }
       return new ClosedChannelException();
     }
-    if (e instanceof AlluxioStatusException) {
-      return (AlluxioStatusException) e;
+    if (e instanceof IOException) {
+      return (IOException) e;
     }
-    return new AlluxioStatusException(getStatus());
+    return new IOException(this);
   }
 
   @Override
