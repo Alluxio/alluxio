@@ -59,17 +59,6 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
       .withCredentials("_", "_")
       .build();
 
-  private static final String TEST_BUCKET = "test-bucket";
-  private static final String TEST_FILE = "test-file";
-  private static final AlluxioURI TEST_FILE_URI = new AlluxioURI("/" + "test-file");
-  private static final String TEST_CONTENT = "test-content";
-  private static final String UPDATED_TEST_CONTENT = "updated-test-content";
-
-  private FileSystem mFileSystem = null;
-  @Rule
-  public ExpectedException mThrown = ExpectedException.none();
-  private AmazonS3 mS3Client = null;
-
   LocalAlluxioClusterResource.Builder mLocalAlluxioClusterResourceBuilder =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS, "10ms")
@@ -94,6 +83,17 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.S3A_SECRET_KEY, mS3Proxy.getSecretKey())
           .setNumWorkers(2)
           .setStartCluster(false);
+
+  private static final String TEST_BUCKET = "test-bucket";
+  private static final String TEST_FILE = "test-file";
+  private static final AlluxioURI TEST_FILE_URI = new AlluxioURI("/" + "test-file");
+  private static final String TEST_CONTENT = "test-content";
+  private static final String UPDATED_TEST_CONTENT = "updated-test-content";
+
+  private FileSystem mFileSystem = null;
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
+  private AmazonS3 mS3Client = null;
 
   @Before
   public void before() throws Exception {
