@@ -12,11 +12,9 @@
 package exec
 
 import (
-	"alluxio.org/cli/env"
-	"alluxio.org/log"
-	"bytes"
-	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
+
+	"alluxio.org/cli/env"
 )
 
 var Class = &ClassCommand{
@@ -59,25 +57,12 @@ func (c *ClassCommand) Run(args []string) error {
 	} else if c.module != "" {
 		javaArgs = append(javaArgs, "-m", c.module)
 	} else {
-		c.JavaClassName = args[0]
+		if len(args) != 0 {
+			c.JavaClassName = args[0]
+		}
 	}
 	if len(args) > 1 {
 		javaArgs = append(javaArgs, args[1:]...)
 	}
-	log.Logger.Infoln(javaArgs)
 	return c.Base().Run(javaArgs)
-}
-
-func (c *ClassCommand) FetchValue(key string) (string, error) {
-	cmd := c.RunJavaClassCmd([]string{key})
-
-	errBuf := &bytes.Buffer{}
-	cmd.Stderr = errBuf
-
-	log.Logger.Debugln(cmd.String())
-	out, err := cmd.Output()
-	if err != nil {
-		return "", stacktrace.Propagate(err, "error getting conf for %v\nstderr: %v", key, errBuf.String())
-	}
-	return string(out), nil
 }
