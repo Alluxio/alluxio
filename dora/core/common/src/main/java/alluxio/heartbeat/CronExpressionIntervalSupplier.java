@@ -39,9 +39,9 @@ public class CronExpressionIntervalSupplier implements SleepIntervalSupplier {
   }
 
   @Override
-  public long getNextInterval(long mPreviousTickedMs, long nowTimeStampMillis) {
+  public long getNextInterval(long previousTickedMs, long nowTimeStampMillis) {
     long nextInterval = 0;
-    long executionTimeMs = nowTimeStampMillis - mPreviousTickedMs;
+    long executionTimeMs = nowTimeStampMillis - previousTickedMs;
     if (executionTimeMs < mInterval) {
       nextInterval = mInterval - executionTimeMs;
     }
@@ -54,8 +54,8 @@ public class CronExpressionIntervalSupplier implements SleepIntervalSupplier {
   }
 
   @Override
-  public long getRunLimit(long mPreviousTickedMs) {
-    Date now = Date.from(Instant.ofEpochMilli(mPreviousTickedMs));
+  public long getRunLimit(long previousTickedMs) {
+    Date now = Date.from(Instant.ofEpochMilli(previousTickedMs));
     return Duration.between(now.toInstant(),
         mCron.getNextInvalidTimeAfter(now).toInstant()).toMillis();
   }

@@ -1,13 +1,8 @@
 ---
 layout: global
 title: Troubleshooting
-nickname: Troubleshooting
-group: Administration
-priority: 1
 ---
 
-* Table of Contents
-{:toc}
 
 This page is a collection of high-level guides and tips regarding how to diagnose issues encountered in
 Alluxio.

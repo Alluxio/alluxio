@@ -1,19 +1,14 @@
 ---
 layout: global
 title: Journal Management
-nickname: Journal Management
-group: Operations
-priority: 5
 ---
 
-* Table of Contents
-{:toc}
 
 Alluxio keeps the history of all metadata related changes, such as creating files or renaming directories,
 in edit logs referred to as "journal".
 Upon startup, the Alluxio master will replay all the steps recorded in the journal to recover its last saved state.
 Also when the leading master falls back to a different master for
-[high availability (HA)]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}) mode,
+[high availability (HA)]({{ '/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }}) mode,
 the new leading master also replays the journal to recover the last state of the leading master.
 The purpose of this documentation is to help Alluxio administrators understand and manage the Alluxio journal.
 

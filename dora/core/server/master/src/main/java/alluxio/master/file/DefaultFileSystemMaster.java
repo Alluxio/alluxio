@@ -947,8 +947,9 @@ public class DefaultFileSystemMaster extends CoreMaster
               FileSystemMasterCommonPOptions.newBuilder()
                   .setTtl(context.getOptions().getCommonOptions().getTtl())
                   .setTtlAction(context.getOptions().getCommonOptions().getTtlAction())));
-      /*
-      See the comments in #getFileIdInternal for an explanation on why the loop here is required.
+      /**
+       * See the comments in {@link #getFileIdInternal(AlluxioURI, boolean)} for an explanation
+       * on why the loop here is required.
        */
       boolean run = true;
       boolean loadMetadata = false;
@@ -1118,8 +1119,9 @@ public class DefaultFileSystemMaster extends CoreMaster
         context.getOptions().setLoadMetadataType(LoadMetadataPType.NEVER);
         ufsAccessed = true;
       }
-      /*
-      See the comments in #getFileIdInternal for an explanation on why the loop here is required.
+      /**
+       * See the comments in {@link #getFileIdInternal(AlluxioURI, boolean)} for an explanation
+       * on why the loop here is required.
        */
       DescendantType loadDescendantType;
       if (context.getOptions().getLoadMetadataType() == LoadMetadataPType.NEVER) {
@@ -1506,8 +1508,9 @@ public class DefaultFileSystemMaster extends CoreMaster
           LoadMetadataPOptions.newBuilder()
               .setCommonOptions(context.getOptions().getCommonOptions())
               .setLoadType(context.getOptions().getLoadMetadataType()));
-      /*
-      See the comments in #getFileIdInternal for an explanation on why the loop here is required.
+      /**
+       * See the comments in {@link #getFileIdInternal(AlluxioURI, boolean)} for an explanation
+       * on why the loop here is required.
        */
       boolean run = true;
       boolean loadMetadata = false;
@@ -1663,7 +1666,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       UnavailableException {
     if (isOperationComplete(context)) {
       Metrics.COMPLETED_OPERATION_RETRIED_COUNT.inc();
-      LOG.warn("A completed \"completeFile\" operation has been retried. {}", context);
+      LOG.warn("A completed \"completeFile\" operation has been retried. OperationContext={}",
+          context);
       return;
     }
     Metrics.COMPLETE_FILE_OPS.inc();
@@ -1879,7 +1883,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       BlockInfoException, IOException, FileDoesNotExistException {
     if (isOperationComplete(context)) {
       Metrics.COMPLETED_OPERATION_RETRIED_COUNT.inc();
-      LOG.warn("A completed \"createFile\" operation has been retried. {}", context);
+      LOG.warn("A completed \"createFile\" operation has been retried. OperationContext={}",
+          context);
       return getFileInfo(path,
           GetStatusContext.create(GetStatusPOptions.newBuilder()
               .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1))
@@ -2109,7 +2114,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       InvalidPathException, AccessControlException {
     if (isOperationComplete(context)) {
       Metrics.COMPLETED_OPERATION_RETRIED_COUNT.inc();
-      LOG.warn("A completed \"delete\" operation has been retried. {}", context);
+      LOG.warn("A completed \"delete\" operation has been retried. OperationContext={}", context);
       return;
     }
     Metrics.DELETE_PATHS_OPS.inc();
@@ -2700,7 +2705,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       FileDoesNotExistException {
     if (isOperationComplete(context)) {
       Metrics.COMPLETED_OPERATION_RETRIED_COUNT.inc();
-      LOG.warn("A completed \"createDirectory\" operation has been retried. {}", context);
+      LOG.warn("A completed \"createDirectory\" operation has been retried. OperationContext={}",
+          context);
       return getFileInfo(path,
           GetStatusContext.create(GetStatusPOptions.newBuilder()
               .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1))
@@ -2827,7 +2833,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       IOException, AccessControlException {
     if (isOperationComplete(context)) {
       Metrics.COMPLETED_OPERATION_RETRIED_COUNT.inc();
-      LOG.warn("A completed \"rename\" operation has been retried. {}", context);
+      LOG.warn("A completed \"rename\" operation has been retried. OperationContext={}", context);
       return;
     }
     Metrics.RENAME_PATH_OPS.inc();
@@ -5011,16 +5017,12 @@ public class DefaultFileSystemMaster extends CoreMaster
       mTimeSeriesStore.record("% UFS Space Used", percentUfsSpaceUsed);
 
       // Bytes read
-      Long bytesReadLocalThroughput = (Long) gauges.get(
-          MetricKey.CLUSTER_BYTES_READ_LOCAL_THROUGHPUT.getName()).getValue();
       Long bytesReadDomainSocketThroughput = (Long) gauges
           .get(MetricKey.CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT.getName()).getValue();
       Long bytesReadRemoteThroughput = (Long) gauges
           .get(MetricKey.CLUSTER_BYTES_READ_REMOTE_THROUGHPUT.getName()).getValue();
       Long bytesReadUfsThroughput = (Long) gauges
           .get(MetricKey.CLUSTER_BYTES_READ_UFS_THROUGHPUT.getName()).getValue();
-      mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_READ_LOCAL_THROUGHPUT.getName(),
-          bytesReadLocalThroughput);
       mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT.getName(),
           bytesReadDomainSocketThroughput);
       mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_READ_REMOTE_THROUGHPUT.getName(),
@@ -5029,17 +5031,12 @@ public class DefaultFileSystemMaster extends CoreMaster
           bytesReadUfsThroughput);
 
       // Bytes written
-      Long bytesWrittenLocalThroughput = (Long) gauges
-          .get(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT.getName())
-          .getValue();
       Long bytesWrittenAlluxioThroughput = (Long) gauges
           .get(MetricKey.CLUSTER_BYTES_WRITTEN_REMOTE_THROUGHPUT.getName()).getValue();
       Long bytesWrittenDomainSocketThroughput = (Long) gauges.get(
           MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName()).getValue();
       Long bytesWrittenUfsThroughput = (Long) gauges
           .get(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_THROUGHPUT.getName()).getValue();
-      mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT.getName(),
-          bytesWrittenLocalThroughput);
       mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_WRITTEN_REMOTE_THROUGHPUT.getName(),
           bytesWrittenAlluxioThroughput);
       mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName(),

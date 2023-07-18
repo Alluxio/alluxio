@@ -1,22 +1,14 @@
 ---
 layout: global
 title: Qiniu Kodo
-nickname: Qiniu Kodo
-group: Storage Integrations
-priority: 4
 ---
 
-* Table of Contents
-{:toc}
 
 This guide describes how to configure Alluxio with
 [Qiniu Kodo](https://www.qiniu.com/products/kodo) as the under storage system. Qiniu Object Storage
 Service (Kodo) is a massive, secure and highly reliable cloud storage service.
 
 ## Initial Setup
-
-To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these
-machines.You can [download the precompiled binaries directly]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
 
 A Qiniu Kodo bucket is necessary before using Kodo with Alluxio. In this guide, the Qiniu Kodo bucket
 is called `KODO_BUCKET`, and the directory in the bucket is called `KODO_DIRECTORY`.

@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>301-SNAPSHOT</version>
+    <version>302-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs-hdfs</artifactId>
   <name>Alluxio Under File System - HDFS</name>
@@ -167,7 +167,7 @@
               <arguments>
                 <argument>${project.artifactId}</argument>
                 <argument>${basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar</argument>
-                <argument>${basedir}/../../../lib/${project.artifactId}-${ufs.hadoop.version}-${project.version}.jar</argument>
+                <argument>${build.path}/../lib/${project.artifactId}-${ufs.hadoop.version}-${project.version}.jar</argument>
               </arguments>
             </configuration>
           </execution>
@@ -178,7 +178,7 @@
         <configuration>
           <filesets>
             <fileset>
-              <directory>${basedir}/../../../lib</directory>
+              <directory>${build.path}/../lib</directory>
               <includes>
                 <include>**/${project.artifactId}-*.jar</include>
               </includes>
@@ -199,25 +199,6 @@
               <sourceDirectory>src/main/java-templates</sourceDirectory>
               <outputDirectory>target/generated-sources/java-templates</outputDirectory>
             </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>com.igormaznitsa</groupId>
-        <artifactId>jcp</artifactId>
-        <executions>
-          <execution>
-            <id>preprocessSources</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>preprocess</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>clearGeneratedFolders</id>
-            <goals>
-              <goal>clear</goal>
-            </goals>
           </execution>
         </executions>
       </plugin>

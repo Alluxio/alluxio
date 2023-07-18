@@ -1,13 +1,8 @@
 ---
 layout: global
 title: Metrics System
-nickname: Metrics
-group: Operations
-priority: 7
 ---
 
-* Table of Contents
-{:toc}
 
 Metrics provide insight into what is going on in the cluster. 
 They are an invaluable resource for monitoring and debugging. 

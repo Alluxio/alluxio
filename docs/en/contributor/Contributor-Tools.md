@@ -1,13 +1,8 @@
 ---
 layout: global
 title: Contributor Tools
-nickname: Contributor Tools
-group: Contributor Resources
-priority: 3
 ---
 
-* Table of Contents
-{:toc}
 
 ## IDE
 
@@ -79,7 +74,7 @@ action from the `Navigate > Search Everywhere` dialog.
 8. Prepare the RamFS and format the Alluxio Worker with `bin/alluxio-mount.sh SudoMount && bin/alluxio formatWorker`
 9. In Intellij, start Alluxio worker process by selecting `Run > Run > AlluxioWorker`
 10. In Intellij, start Alluxio job worker process by selecting `Run > Run > AlluxioJobWorker`
-11. [Verify the Alluxio cluster is up]({{ '/en/overview/Getting-Started.html#verify-alluxio-is-running' | relativize_url }}).
+11. [Verify the Alluxio cluster is up]({{ '/en/Get-Started.html#starting-alluxio' | relativize_url }}).
 
 ##### Start a High Availability (HA) Alluxio cluster
 1. Create journal directories for the masters 
@@ -252,7 +247,7 @@ $ mvn -T 2C install -DskipTests
 ```
 
 After the install target executes, you can follow the instructions at 
-[Running Alluxio Locally]({{ '/en/overview/Getting-Started.html' | relativize_url }})
+[Running Alluxio Locally]({{ '/en/Get-Started.html' | relativize_url }})
 to start a local cluster.
 
 ### Unit Tests

@@ -1,26 +1,21 @@
 ---
 layout: global
 title: Code Conventions
-nickname: Code Conventions
-group: Contributor Resources
-priority: 2
 ---
 
-* Table of Contents
-{:toc}
 
 First off, we thank you for your interest in the Alluxio open source project!
 We greatly appreciate any contribution; whether it be new features or bug fixes.
 
 > If you are a first time contributor to the Alluxio open source project, we strongly encourage
 > you to follow the step-by-step instructions within the
-> [Contribution Guide]({{ '/en/contributor/Contributor-Getting-Started.html' | relativize_url }}) and
+> [Contribution Guide]({{ '/en/contributor/Contribution-Guide.html' | relativize_url }}) and
 > finish new contributor tasks before making more advanced changes to the Alluxio codebase.
 
 ## Submitting Code
 
 Submitting changes to Alluxio is done via pull requests. Please read our
-[pull request guidelines]({{ '/en/contributor/Contributor-Getting-Started.html' | relativize_url }}#sending-a-pull-request)
+[pull request guidelines]({{ '/en/contributor/Contribution-Guide.html' | relativize_url }}#sending-a-pull-request)
 for details on how to submit a pull request to the Alluxio repository. Below are some tips for
 the pull requests.
 
@@ -33,7 +28,7 @@ Open an issue detailing the proposed change or the bug description.
 issue in the last line of the description field of the pull request,
 such as `Fixes #1234`.
 - Please read our
-[pull request guidelines]({{ '/en/contributor/Contributor-Getting-Started.html' | relativize_url }}#sending-a-pull-request)
+[pull request guidelines]({{ '/en/contributor/Contribution-Guide.html' | relativize_url }}#sending-a-pull-request)
 for details.
 
 ## Coding Style

@@ -1,12 +1,8 @@
 ---
 layout: global
 title: List of Configuration Properties
-group: Reference
-priority: 0
 ---
 
-* Table of Contents
-{:toc}
 
 All Alluxio configuration settings fall into one of the six categories:
 [Common](#common-configuration) (shared by Master and Worker),

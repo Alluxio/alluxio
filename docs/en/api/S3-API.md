@@ -1,13 +1,8 @@
 ---
 layout: global
 title: S3 API
-nickname: S3 API
-group: Client APIs
-priority: 1
 ---
 
-* Table of Contents
-{:toc}
 
 Alluxio supports a [RESTful API](https://docs.alluxio.io/os/restdoc/{{site.ALLUXIO_MAJOR_VERSION}}/proxy/index.html)
 that is compatible with the basic operations of the Amazon [S3 API](http://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html).

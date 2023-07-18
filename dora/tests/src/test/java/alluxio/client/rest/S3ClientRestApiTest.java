@@ -104,8 +104,6 @@ public final class S3ClientRestApiTest extends RestApiTest {
   private static final GetStatusContext GET_STATUS_CONTEXT = GetStatusContext.defaults();
   private static final XmlMapper XML_MAPPER = new XmlMapper();
 
-  private static final String TEST_USER_NAME = "testuser";
-
   private FileSystem mFileSystem;
   private FileSystemMaster mFileSystemMaster;
 
@@ -2255,13 +2253,13 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   private TestCase getCompleteMultipartUploadReadCallTestCase(
-          String objectUri, String uploadId, CompleteMultipartUploadRequest request) {
+      String objectUri, String uploadId, CompleteMultipartUploadRequest request) throws Exception {
     Map<String, String> params = ImmutableMap.of("uploadId", uploadId);
     return new TestCase(mHostname, mPort, mBaseUri,
-            objectUri, params, HttpMethod.POST,
-            getDefaultOptionsWithAuth()
-                    .setBody(request)
-                    .setContentType(TestCaseOptions.XML_CONTENT_TYPE));
+        objectUri, params, HttpMethod.POST,
+        getDefaultOptionsWithAuth()
+            .setBody(request)
+            .setContentType(TestCaseOptions.XML_CONTENT_TYPE));
   }
 
   private String completeMultipartUploadRestCall(
@@ -2382,15 +2380,5 @@ public final class S3ClientRestApiTest extends RestApiTest {
     response =
             new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
     Assert.assertEquals(S3ErrorCode.Name.AUTHORIZATION_HEADER_MALFORMED, response.getCode());
-  }
-
-  private TestCaseOptions getDefaultOptionsWithAuth() {
-    return getDefaultOptionsWithAuth("testuser");
-  }
-
-  private TestCaseOptions getDefaultOptionsWithAuth(@NotNull String user) {
-    TestCaseOptions options = TestCaseOptions.defaults();
-    options.setAuthorization("AWS4-HMAC-SHA256 Credential=" + user + "/20220830");
-    return options;
   }
 }

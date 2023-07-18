@@ -1,16 +1,10 @@
 ---
 layout: global
 title: Running Hadoop MapReduce on Alluxio
-nickname: Apache Hadoop MapReduce
-group: Compute Integrations
-priority: 1
 ---
 
 This guide describes how to configure Alluxio with Apache Hadoop MapReduce, so that your
 MapReduce programs can read+write data stored in Alluxio.
-
-* Table of Contents
-{:toc}
 
 ## Prerequisites
 
@@ -114,7 +108,7 @@ $ ./bin/alluxio fs cat /wordcount/output/part-r-00000
 ```
 
 > Tip：The previous wordcount example is also applicable to Alluxio in HA mode. See the instructions on
-[Using the HDFS API to connect to Alluxio with high availability]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#ha-authority).
+[Using the HDFS API to connect to Alluxio with high availability]({{ '/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }}#ha-authority).
 
 ## Advanced Setup
 
@@ -156,7 +150,7 @@ election, the following section would need to be added to your Hadoop installati
 </configuration>
 ```
 
-See [HA mode client configuration parameters]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#specify-alluxio-service-in-configuration-parameters)
+See [HA mode client configuration parameters]({{ '/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }}#specify-alluxio-service-in-configuration-parameters)
 for more details.
 
 ### Customize Alluxio User Properties for Individual MapReduce Jobs

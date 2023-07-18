@@ -1,12 +1,8 @@
 ---
 layout: global
 title: FUSE SDK Local Data Cache
-group: FUSE SDK
-priority: 6
 ---
 
-* Table of Contents
-  {:toc}
 
 ## Local Kernel Data Cache
 

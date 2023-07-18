@@ -1,12 +1,8 @@
 ---
 layout: global
 title: FUSE SDK Advanced Tuning
-group: FUSE SDK
-priority: 6
 ---
 
-* Table of Contents
-  {:toc}
 
 ### Select Libfuse Version
 

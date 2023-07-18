@@ -1,13 +1,8 @@
 ---
 layout: global
 title: Running Apache Flink on Alluxio
-nickname: Apache Flink
-group: Compute Integrations
-priority: 2
 ---
 
-* Table of Contents
-{:toc}
 
 This guide describes how to get Alluxio running with [Apache Flink](http://flink.apache.org/), so
 that you can easily work with files stored in Alluxio.

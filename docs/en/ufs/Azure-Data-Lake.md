@@ -1,20 +1,12 @@
 ---
 layout: global
 title: Azure Data Lake Storage
-nickname: Azure Data Lake Storage
-group: Storage Integrations
-priority: 2
 ---
 
-* Table of Contents
-{:toc}
 
 This guide describes how to configure Alluxio with [Azure Data Lake Storage Gen1](https://docs.microsoft.com/en-in/azure/data-lake-store/data-lake-store-overview) as the under storage system.
 
 ## Prerequisites
-
-The Alluxio binaries must be on your machine.
-You can [download the precompiled binaries directly]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
 
 In preparation for using Azure Data Lake storage with Alluxio, create a new Data Lake storage in your Azure
 account or use an existing Data Lake storage. You should also note the directory you want to
@@ -22,7 +14,7 @@ use, either by creating a new directory, or using an existing one. You also need
 [Service-to-service authentication](https://docs.microsoft.com/en-us/azure/data-lake-store/data-lake-store-service-to-service-authenticate-using-active-directory) for your storage account.
 For the purposes of this guide, the Azure storage account name is called `<AZURE_ACCOUNT>`
 and the directory in that storage account is called `<AZURE_DIRECTORY>`. For more information 
-about Azure storage account, Please see
+about Azure storage account, please see
 [here](https://docs.microsoft.com/en-us/azure/data-lake-store/data-lake-store-get-started-portal).
 
 

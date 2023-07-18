@@ -1,12 +1,8 @@
 ---
 layout: global
 title: FUSE SDK Local Metadata Cache
-group: FUSE SDK
-priority: 5
 ---
 
-* Table of Contents
-  {:toc}
 
 # Local Metadata Cache
 

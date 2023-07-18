@@ -1,13 +1,8 @@
 ---
 layout: global
 title: Basic Logging
-nickname: Basic Logging
-group: Administration
-priority: 2
 ---
 
-* Table of Contents
-{:toc}
 
 ## Introduction
 

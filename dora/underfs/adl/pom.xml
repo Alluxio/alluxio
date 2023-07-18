@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>301-SNAPSHOT</version>
+    <version>302-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs-adl</artifactId>
   <name>Alluxio Under File System - Microsoft Azure DataLake</name>
@@ -119,7 +119,7 @@
               <arguments>
                 <argument>${project.artifactId}</argument>
                 <argument>${basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar</argument>
-                <argument>${basedir}/../../../lib/${project.artifactId}-${project.version}.jar</argument>
+                <argument>${build.path}/../lib/${project.artifactId}-${project.version}.jar</argument>
               </arguments>
             </configuration>
           </execution>
@@ -130,7 +130,7 @@
         <configuration>
           <filesets>
             <fileset>
-              <directory>${basedir}/../../../lib</directory>
+              <directory>${build.path}/../lib</directory>
               <includes>
                 <include>**/${project.artifactId}-*.jar</include>
               </includes>

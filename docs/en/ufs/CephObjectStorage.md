@@ -1,24 +1,14 @@
 ---
 layout: global
 title: CephObjectStorage
-nickname: CephObjectStorage
-group: Storage Integrations
-priority: 10
 ---
 
-* Table of Contents
-{:toc}
 
 This guide describes how to configure Alluxio with Ceph Object Storage as the under storage system. Alluxio supports
 two different clients APIs to connect to [Ceph Object Storage](http://ceph.com/ceph-storage/object-storage/)
 using [Rados Gateway](http://docs.ceph.com/docs/master/radosgw/):
 - [S3](http://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html) (preferred)
 - [Swift](http://docs.openstack.org/developer/swift/)
-
-## Prerequisites
-
-The Alluxio binaries must be on your machine. You can
-[download the binaries locally]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
 
 ## Basic Setup
 

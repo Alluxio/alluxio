@@ -2,37 +2,47 @@
   - title: Overview
     buttonTitle: Overview
     subfiles:
-      - title: Introduction
+      - title: Overview
         url: /en/Overview.html
-      - title: Dora
-        url: /en/overview/Why-Dora.html
-      - title: Getting Started
-        url: /en/overview/Getting-Started.html
+
+  - title: What is Alluxio
+    buttonTitle: What_is_Alluxio
+    subfiles:
+      - title: Introduction
+        url: /en/introduction/Introduction.html
+      - title: Glossary
+        url: /en/introduction/Glossary.html
 
   - title: Core Services
     buttonTitle: Core_Services
     subfiles:
       - title: Data Caching
-        url: /en/core-services/Caching.html
-      - title: Metadata Caching
+        url: /en/core-services/Data-Caching.html
+      - title: Metadata Cache & Invalidation
         url: /en/core-services/Metadata-Caching.html
+
+  - title: Get Started
+    buttonTitle: Get-Started
+    subfiles:
+      - title: Get Started
+        url: /en/Get-Started.html
 
   - title: Install Alluxio
     buttonTitle: Install_Alluxio
     subfiles:
-      - title: Cluster
-        url: /en/deploy/Running-Alluxio-On-a-HA-Cluster.html
       - title: Software Requirements
-        url: /en/deploy/Requirements.html
+        url: /en/deploy/Software-Requirements.html
+      - title: Install Alluxio Cluster with HA
+        url: /en/deploy/Install-Alluxio-Cluster-with-HA.html
 
   - title: Kubernetes
     buttonTitle: Kubernetes
     subfiles:
-      - title: Deploy
-        url: /en/kubernetes/Running-Alluxio-On-Kubernetes.html
-      - title: Metrics
+      - title: Install Alluxio on K8s
+        url: /en/kubernetes/Install-Alluxio-On-Kubernetes.html
+      - title: Metrics System on K8s
         url: /en/kubernetes/Metrics-On-Kubernetes.html
-
+  
   - title: Compute Integrations
     buttonTitle: Compute_Integrations
     subfiles:
@@ -68,7 +78,9 @@
         url: /en/ufs/GCS.html
       - title: Qiniu Kodo
         url: /en/ufs/Qiniu-KODO.html
-      - title: COSN
+      - title: Tencent COS
+        url: /en/ufs/COS.html
+      - title: COSN (Hadoop-COS)
         url: /en/ufs/COSN.html
       - title: CephObjectStorage
         url: /en/ufs/CephObjectStorage.html
@@ -84,17 +96,19 @@
         url: /en/ufs/Swift.html
       - title: CephFS
         url: /en/ufs/CephFS.html
+      - title: Huawei OBS
+        url: /en/ufs/OBS.html
 
   - title: FUSE SDK
     buttonTitle: FUSE_SDK
     subfiles:
-      - title: FUSE SDK
+      - title: FUSE SDK Overview
         url: /en/fuse-sdk/Overview-Fuse-Sdk.html
       - title: Local Cache Quick Start
         url: /en/fuse-sdk/Local-Cache-Quick-Start.html
-      - title: FUSE SDK on Dora Quick Start
+      - title: Distributed Cache Quick Start
         url: /en/fuse-sdk/FUSE-SDK-Dora-Quick-Start.html
-      - title: Local Cache
+      - title: Local Cache Overview
         url: /en/fuse-sdk/Local-Cache.html
       - title: Local Metadata Cache
         url: /en/fuse-sdk/Local-Metadata-Cache.html
@@ -106,7 +120,7 @@
   - title: Presto SDK
     buttonTitle: Presto_SDK
     subfiles:
-      - title: Presto SDK
+      - title: Presto SDK with Local Cache
         url: /en/presto-sdk/presto-sdk.html
 
   - title: Operations
@@ -118,7 +132,7 @@
         url: /en/operation/User-CLI.html
       - title: Journal Management
         url: /en/operation/Journal.html
-      - title: Metrics
+      - title: Metrics System
         url: /en/operation/Metrics-System.html
 
   - title: Administration
@@ -145,7 +159,7 @@
       - title: Building Alluxio From Source
         url: /en/contributor/Building-Alluxio-From-Source.html
       - title: Contribution Guide
-        url: /en/contributor/Contributor-Getting-Started.html
+        url: /en/contributor/Contribution-Guide.html
       - title: Code Conventions
         url: /en/contributor/Code-Conventions.html
       - title: Documentation Conventions

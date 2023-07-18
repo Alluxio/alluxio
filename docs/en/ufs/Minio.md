@@ -1,23 +1,13 @@
 ---
 layout: global
 title: MinIO
-nickname: MinIO
-group: Storage Integrations
-priority: 10
 ---
 
-* Table of Contents
-{:toc}
 
 This guide describes how to configure Alluxio with [MinIO](https://min.io/) as the
 under storage system.
 Alluxio natively provides the `s3://` scheme (recommended for better performance).
 You can use this scheme to connect Alluxio with a MinIO server.
-
-## Prerequisites
-
-The Alluxio binaries must be on your machine to proceed.
-You can [download the binaries locally]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
 
 ## Setup MinIO
 

@@ -1,13 +1,7 @@
 ---
 layout: global
 title: Metadata Cache and Invalidation
-nickname: Metadata Cache
-group: Core Services
-priority: 2
 ---
-
-* Table of Contents
-  {:toc}
 
 In Dora, Alluxio caches metadata and data on workers. This document explains how the metadata is cached and how the metadata is invalidated and refreshed. Along with the metadata invalidation, the data that is associated with the metadata is also invalidated.
 
@@ -35,7 +29,6 @@ Alluxio workers also cache the result of a ListStatus() request in memory to spe
 - `DORA_UFS_LIST_STATUS_CACHE_TTL (alluxio.dora.ufs.list.status.cache.ttl)`: the maximum time that a ListStatus() result is cached.
 - `DORA_UFS_LIST_STATUS_CACHE_NR_DIRS (alluxio.dora.ufs.list.status.cache.nr.dirs)`: the maximum number of ListStatus() results cached in memory.
 
-
 ## Metadata Invalidation by Client
 
 Alluxio client can also pass the following config to workers in some metadata oriented operations to control the metadata invalidation.
@@ -43,7 +36,7 @@ Alluxio client can also pass the following config to workers in some metadata or
 
 "Syncing UFS metadata" means to invalidate the cached metadata if needed and then to reload the metadata from UFS. This key can be configured in `conf/alluxio-site.properties`, or defined as a JVM system property on the command line by `-Dalluxio.user.file.metadata.sync.interval=<integer_value>`.
 ```console
-bin/alluxio fs -Dalluxio.user.file.metadata.sync.interval=0 ls "some/path/and/file"
+$ bin/alluxio fs -Dalluxio.user.file.metadata.sync.interval=0 ls "some/path/and/file"
 ```
 This configuration will be globally effective for all operations and for all paths.
 

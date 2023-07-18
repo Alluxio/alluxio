@@ -62,7 +62,8 @@ public final class HttpServer {
 
   private void startHttpServer() {
     // Configure the server.
-    EventLoopGroup bossGroup = new NioEventLoopGroup(1);
+    int threadsNum = Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS);
+    EventLoopGroup bossGroup = new NioEventLoopGroup(threadsNum);
     EventLoopGroup workerGroup = new NioEventLoopGroup();
     try {
       ServerBootstrap b = new ServerBootstrap();

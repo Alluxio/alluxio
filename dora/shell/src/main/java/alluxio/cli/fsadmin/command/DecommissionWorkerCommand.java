@@ -372,8 +372,8 @@ public final class DecommissionWorkerCommand extends AbstractFsAdminCommand {
   }
 
   private static boolean canWorkerBeStopped(WorkerWebUIOperations workerStatus) {
-    // Now the idleness check only considers RPCs. This means it does NOT consider
-    // short circuit r/w operations. So when the admin believes the worker is idle and
+    // Now the idleness check only considers RPCs.
+    // So when the admin believes the worker is idle and
     // kill/restart the worker, ongoing r/w operations may fail.
     // https://github.com/Alluxio/alluxio/issues/17343
     /*

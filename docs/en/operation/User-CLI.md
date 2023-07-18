@@ -1,13 +1,7 @@
 ---
 layout: global
 title: User Command Line Interface
-nickname: User CLI
-group: Operations
-priority: 1
 ---
-
-* Table of Contents
-{:toc}
 
 Alluxio's command line interface provides users with basic file system operations. You can invoke
 the following command line utility to get all the subcommands:
@@ -277,10 +271,6 @@ Usage: `docGen [--metric] [--conf]`
 Supplying neither flag will default to generating both docs.
 
 > Note: This command does not require the Alluxio cluster to be running.
-
-### table
-
-See [Table Operations](#table-operations).
 
 ### version
 

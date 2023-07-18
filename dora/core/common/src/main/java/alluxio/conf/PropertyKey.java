@@ -2404,8 +2404,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       dataSizeBuilder(Name.MASTER_EMBEDDED_JOURNAL_ENTRY_SIZE_MAX)
           .setDefaultValue("10MB")
           .setDescription("The maximum single journal entry size allowed to be flushed. "
-              + "This value should be smaller than 30MB. Set to a larger value to allow larger "
-              + "journal entries when using the Alluxio Catalog service.")
+              + "This value should be smaller than 30MB.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
@@ -3618,8 +3617,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_UPDATE_CHECK_ENABLED =
       booleanBuilder(Name.MASTER_UPDATE_CHECK_ENABLED)
           .setDefaultValue(Boolean.parseBoolean(ProjectConstants.UPDATE_CHECK_ENABLED))
-          .setDescription("Whether to check for update availability.")
+          .setDescription("Whether to check for update availability")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setIsHidden(true)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_UPDATE_CHECK_INTERVAL =
@@ -3627,6 +3627,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("7day")
           .setDescription("The interval to check for update availability.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setIsHidden(true)
           .setScope(Scope.MASTER)
           .build();
   public static final PropertyKey MASTER_UNSAFE_DIRECT_PERSIST_OBJECT_ENABLED =
@@ -4209,17 +4210,23 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  /**
+   * Directory Permission Handling for Legacy Short-Circuit Read/Write.
+   * Legacy systems that use short-circuit read/write operations which requires this directory
+   * accessible by other users. As a result, the default permission setting is '777',
+   * providing full read, write, and execute permissions to all users.
+   */
+  // TODO(binfan): revisit if 777 is needed
   public static final PropertyKey WORKER_DATA_FOLDER_PERMISSIONS =
       stringBuilder(Name.WORKER_DATA_FOLDER_PERMISSIONS)
           .setDefaultValue("rwxrwxrwx")
-          .setDescription("The permission set for the worker data folder. If short circuit is used "
-              + "this folder should be accessible by all users (rwxrwxrwx).")
+          .setDescription("The permission set for the worker data folder.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS =
       stringBuilder(Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS)
-          .setDescription("The path to the domain socket. Short-circuit reads make use of a "
+          .setDescription("The path to the domain socket. In this case, it makes use of a "
               + "UNIX domain socket when this is set (non-empty). This is a special path in "
               + "the file system that allows the client and the AlluxioWorker to communicate. "
               + "You will need to set a path to this socket. The AlluxioWorker needs to be "
@@ -5950,6 +5957,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_FILE_METADATA_LOAD_REAL_CONTENT_HASH =
+      booleanBuilder(Name.USER_FILE_METADATA_LOAD_REAL_CONTENT_HASH)
+          .setDefaultValue(false)
+          .setDescription("Whether to get real content hash of file when the file is loaded "
+              + "from UFS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey USER_FILE_PASSIVE_CACHE_ENABLED =
       booleanBuilder(Name.USER_FILE_PASSIVE_CACHE_ENABLED)
           .setDefaultValue(true)
@@ -6972,23 +6987,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_SHORT_CIRCUIT_ENABLED =
-      booleanBuilder(Name.USER_SHORT_CIRCUIT_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("The short circuit read/write which allows the clients to "
-              + "read/write data without going through Alluxio workers if the data is local "
-              + "is enabled if set to true.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_SHORT_CIRCUIT_PREFERRED =
-      booleanBuilder(Name.USER_SHORT_CIRCUIT_PREFERRED)
-          .setDefaultValue(false)
-          .setDescription("When short circuit and domain socket both enabled, "
-              + "prefer to use short circuit.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
 
   //
   // FUSE integration related properties
@@ -7640,77 +7638,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
 
-  //
-  // Table service properties
-  //
-  public static final PropertyKey TABLE_ENABLED =
-      booleanBuilder(Name.TABLE_ENABLED)
-          .setDefaultValue(true)
-          .setDescription("(Experimental) Enables the table service.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey TABLE_CATALOG_PATH =
-      stringBuilder(Name.TABLE_CATALOG_PATH)
-          .setDefaultValue("/catalog")
-          .setDescription("The Alluxio file path for the table catalog metadata.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey TABLE_CATALOG_UDB_SYNC_TIMEOUT =
-      durationBuilder(Name.TABLE_CATALOG_UDB_SYNC_TIMEOUT)
-          .setDefaultValue("1h")
-          .setDescription("The timeout period for a db sync to finish in the catalog. If a sync"
-              + "takes longer than this timeout, the sync will be terminated.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE =
-      intBuilder(Name.TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE)
-          .setDefaultValue(500)
-          .setDescription("The maximum table partitions number in a single journal entry.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL =
-      durationBuilder(Name.TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL)
-          .setDefaultValue("10s")
-          .setDescription("Job monitor is a heartbeat thread in the transform manager, "
-              + "this is the time interval in milliseconds the job monitor heartbeat is run to "
-              + "check the status of the transformation jobs and update table and partition "
-              + "locations after transformation.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME =
-      durationBuilder(Name.TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME)
-          .setDefaultValue("300sec")
-          .setDescription("The length of time the Alluxio Table Master should keep information "
-              + "about finished transformation jobs before they are discarded.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey TABLE_UDB_HIVE_CLIENTPOOL_MIN =
-      intBuilder(Name.TABLE_UDB_HIVE_CLIENTPOOL_MIN)
-          .setDefaultValue(16)
-          .setDescription("The minimum capacity of the hive client pool per hive metastore")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey TABLE_UDB_HIVE_CLIENTPOOL_MAX =
-      intBuilder(Name.TABLE_UDB_HIVE_CLIENTPOOL_MAX)
-          .setDefaultValue(256)
-          .setDescription("The maximum capacity of the hive client pool per hive metastore")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.MASTER)
-          .build();
-  public static final PropertyKey TABLE_LOAD_DEFAULT_REPLICATION =
-      intBuilder(Name.TABLE_LOAD_DEFAULT_REPLICATION)
-          .setDefaultValue(1)
-          .setDescription("The default replication number of files under the SDS table after "
-                  + "load option.")
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey HADOOP_SECURITY_AUTHENTICATION =
       stringBuilder(Name.HADOOP_SECURITY_AUTHENTICATION)
           .setDescription("HDFS authentication method.")
@@ -7920,17 +7847,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey DORA_WORKER_POPULATE_METADATA_FINGERPRINT =
-      booleanBuilder(Name.DORA_WORKER_POPULATE_METADATA_FINGERPRINT)
-          .setDescription("Populate the fingerprint for file metadata fetched from UFS "
-              + "If set, when the file metadata is updated, the fingerprints will be compared. "
-              + "If the file metadata is updated but the data part does not change, "
-              + "we can skip invalidating the page cache, at the expense of having extra overhead "
-              + "on computing the fingerprint for UFS files.")
-          .setDefaultValue(false)
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
-          .build();
 
   public static final PropertyKey DORA_UFS_LIST_STATUS_CACHE_TTL =
       durationBuilder(Name.DORA_UFS_LIST_STATUS_CACHE_TTL)
@@ -7940,10 +7856,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
 
-  public static final PropertyKey DORA_UFS_LIST_STATUS_CACHE_NR_DIRS =
-      intBuilder(Name.DORA_UFS_LIST_STATUS_CACHE_NR_DIRS)
-          .setDefaultValue(50)
-          .setDescription("Number of the file/dir cache of UFS list status results")
+  public static final PropertyKey DORA_UFS_LIST_STATUS_CACHE_NR_FILES =
+      intBuilder(Name.DORA_UFS_LIST_STATUS_CACHE_NR_FILES)
+          .setDefaultValue(100000)
+          .setDescription("Number of the file ufs statuses of UFS listing cache. "
+              + "The more files a directory contain, the more weight it is counted "
+              + "when the cache capacity is calculated.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.WORKER)
           .build();
@@ -9199,6 +9117,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.metadata.load.type";
     public static final String USER_FILE_METADATA_SYNC_INTERVAL =
         "alluxio.user.file.metadata.sync.interval";
+    public static final String USER_FILE_METADATA_LOAD_REAL_CONTENT_HASH =
+        "alluxio.user.file.metadata.real.content.hash";
     public static final String USER_FILE_PASSIVE_CACHE_ENABLED =
         "alluxio.user.file.passive.cache.enabled";
     public static final String USER_FILE_READ_TYPE_DEFAULT = "alluxio.user.file.readtype.default";
@@ -9357,9 +9277,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.unsafe.direct.local.io.enabled";
     public static final String USER_UPDATE_FILE_ACCESSTIME_DISABLED =
         "alluxio.user.update.file.accesstime.disabled";
-    public static final String USER_SHORT_CIRCUIT_ENABLED = "alluxio.user.short.circuit.enabled";
-    public static final String USER_SHORT_CIRCUIT_PREFERRED =
-        "alluxio.user.short.circuit.preferred";
     public static final String USER_WORKER_LIST_REFRESH_INTERVAL =
         "alluxio.user.worker.list.refresh.interval";
 
@@ -9515,26 +9432,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String STANDALONE_FUSE_JVM_MONITOR_ENABLED
         = "alluxio.standalone.fuse.jvm.monitor.enabled";
 
-    //
-    // Table service properties
-    //
-    public static final String TABLE_ENABLED = "alluxio.table.enabled";
-    public static final String TABLE_CATALOG_PATH = "alluxio.table.catalog.path";
-    public static final String TABLE_CATALOG_UDB_SYNC_TIMEOUT =
-        "alluxio.table.catalog.udb.sync.timeout";
-    public static final String TABLE_JOURNAL_PARTITIONS_CHUNK_SIZE =
-        "alluxio.table.journal.partitions.chunk.size";
-    public static final String TABLE_TRANSFORM_MANAGER_JOB_MONITOR_INTERVAL =
-        "alluxio.table.transform.manager.job.monitor.interval";
-    public static final String TABLE_TRANSFORM_MANAGER_JOB_HISTORY_RETENTION_TIME =
-        "alluxio.table.transform.manager.job.history.retention.time";
-    public static final String TABLE_UDB_HIVE_CLIENTPOOL_MIN =
-        "alluxio.table.udb.hive.clientpool.min";
-    public static final String TABLE_UDB_HIVE_CLIENTPOOL_MAX =
-        "alluxio.table.udb.hive.clientpool.MAX";
-    public static final String TABLE_LOAD_DEFAULT_REPLICATION =
-        "alluxio.table.load.default.replication";
-
     public static final String HADOOP_SECURITY_AUTHENTICATION =
         "alluxio.hadoop.security.authentication";
 
@@ -9594,14 +9491,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String DORA_WORKER_METASTORE_ROCKSDB_INDEX =
         "alluxio.dora.worker.metastore.rocksdb.index";
 
-    public static final String DORA_WORKER_POPULATE_METADATA_FINGERPRINT =
-        "alluxio.dora.worker.populate.metadata.fingerprint";
-
     public static final String DORA_UFS_LIST_STATUS_CACHE_TTL =
         "alluxio.dora.ufs.list.status.cache.ttl";
 
-    public static final String DORA_UFS_LIST_STATUS_CACHE_NR_DIRS =
-        "alluxio.dora.ufs.list.status.cache.nr.dirs";
+    public static final String DORA_UFS_LIST_STATUS_CACHE_NR_FILES =
+        "alluxio.dora.ufs.list.status.cache.nr.files";
 
     //
     // Extra class to be loaded

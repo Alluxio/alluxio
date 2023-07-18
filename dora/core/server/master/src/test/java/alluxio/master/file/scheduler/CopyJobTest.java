@@ -64,7 +64,7 @@ public class CopyJobTest {
     FileIterable files =
         new FileIterable(fileSystemMaster, srcPath, user, false, CopyJob.QUALIFIED_FILE_FILTER);
     CopyJob copy = new CopyJob(srcPath, dstPath, false, user, "1",
-        OptionalLong.empty(), false, false, false, files);
+        OptionalLong.empty(), false, false, false, files, Optional.empty());
     List<WorkerInfo> workers = ImmutableList.of(
         new WorkerInfo().setId(1).setAddress(
             new WorkerNetAddress().setHost("worker1").setRpcPort(1234)),
@@ -86,7 +86,7 @@ public class CopyJobTest {
     FileIterable files =
         new FileIterable(fileSystemMaster, srcPath, user, false, CopyJob.QUALIFIED_FILE_FILTER);
     CopyJob copy = new CopyJob(srcPath, dstPath, false, user, "1",
-        OptionalLong.empty(), false, false, false, files);
+        OptionalLong.empty(), false, false, false, files, Optional.empty());
     List<Route> routes = copy.getNextRoutes(100);
     assertTrue(copy.isHealthy());
     routes.forEach(copy::addToRetry);
@@ -116,7 +116,7 @@ public class CopyJobTest {
     FileIterable files =
         new FileIterable(fileSystemMaster, srcPath, user, false, CopyJob.QUALIFIED_FILE_FILTER);
     CopyJob job = spy(new CopyJob(srcPath, dstPath, false, user, "1",
-        OptionalLong.empty(), false, false, false, files));
+        OptionalLong.empty(), false, false, false, files, Optional.empty()));
     when(job.getDurationInSec()).thenReturn(0L);
     job.setJobState(JobState.RUNNING, false);
     List<Route> nextRoutes = job.getNextRoutes(25);
