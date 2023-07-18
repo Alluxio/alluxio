@@ -155,12 +155,10 @@ public class DoraFileOutStream extends FileOutStream {
 
       if (mUnderStorageType.isSyncPersist()) {
         try {
-          if (mCanceled) {
-            if (mUnderStorageOutputStream != null) {
+          if (mUnderStorageOutputStream != null) {
+            if (mCanceled) {
               mUnderStorageOutputStream.cancel();
-            }
-          } else {
-            if (mUnderStorageOutputStream != null) {
+            } else {
               mUnderStorageOutputStream.flush();
             }
           }

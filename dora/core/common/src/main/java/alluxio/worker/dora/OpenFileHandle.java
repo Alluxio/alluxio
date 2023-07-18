@@ -28,7 +28,7 @@ public class OpenFileHandle {
   private final UUID     mUUID;
   private long           mPos;
   private long           mLastAccessTimeMs;
-  private OutputStream   mOutStream; //outstream from UFS
+  private OutputStream   mUfsOutStream; //outstream from UFS
   private boolean        mClosed;
 
   private final CreateFilePOptions mOptions;
@@ -38,15 +38,15 @@ public class OpenFileHandle {
    * @param path the path of the file
    * @param info the FileInfo of this file
    * @param options the options of create
-   * @param outStream the UFS output stream of this file
+   * @param ufsOutStream the UFS output stream of this file
    */
   public OpenFileHandle(String path, FileInfo info, CreateFilePOptions options,
-                        @Nullable OutputStream outStream) {
+                        @Nullable OutputStream ufsOutStream) {
     mPath = path;
     mInfo = info;
     // TODO(Hua): The operation of generating UUID is SLOW. We can replace it in other way.
     mUUID = UUID.randomUUID();
-    mOutStream = outStream;
+    mUfsOutStream = ufsOutStream;
     mPos = 0L;
     mLastAccessTimeMs = System.currentTimeMillis();
     mClosed = false;
@@ -98,7 +98,7 @@ public class OpenFileHandle {
    * @return UFS out stream of this handle
    */
   public OutputStream getOutStream() {
-    return mOutStream;
+    return mUfsOutStream;
   }
 
   /**
@@ -122,10 +122,10 @@ public class OpenFileHandle {
    */
   public void close() {
     mClosed = true;
-    if (mOutStream != null) {
+    if (mUfsOutStream != null) {
       try {
-        mOutStream.close();
-        mOutStream = null;
+        mUfsOutStream.close();
+        mUfsOutStream = null;
       } catch (IOException e) {
         //Ignored
       }

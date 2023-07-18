@@ -59,8 +59,18 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
       .withCredentials("_", "_")
       .build();
 
+  private static final String TEST_BUCKET = "test-bucket";
+  private static final String TEST_FILE = "test-file";
+  private static final AlluxioURI TEST_FILE_URI = new AlluxioURI("/" + "test-file");
+  private static final String TEST_CONTENT = "test-content";
+  private static final String UPDATED_TEST_CONTENT = "updated-test-content";
+
+  private FileSystem mFileSystem = null;
   @Rule
-  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+  public ExpectedException mThrown = ExpectedException.none();
+  private AmazonS3 mS3Client = null;
+
+  LocalAlluxioClusterResource.Builder mLocalAlluxioClusterResourceBuilder =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS, "10ms")
           .setProperty(PropertyKey.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS, "10ms")
@@ -83,36 +93,36 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.S3A_ACCESS_KEY, mS3Proxy.getAccessKey())
           .setProperty(PropertyKey.S3A_SECRET_KEY, mS3Proxy.getSecretKey())
           .setNumWorkers(2)
-          .setStartCluster(false)
-          .build();
-
-  private static final String TEST_BUCKET = "test-bucket";
-  private static final String TEST_FILE = "test-file";
-  private static final AlluxioURI TEST_FILE_URI = new AlluxioURI("/" + "test-file");
-  private static final String TEST_CONTENT = "test-content";
-  private static final String UPDATED_TEST_CONTENT = "updated-test-content";
-
-  private FileSystem mFileSystem = null;
-  @Rule
-  public ExpectedException mThrown = ExpectedException.none();
-  private AmazonS3 mS3Client = null;
+          .setStartCluster(false);
 
   @Before
   public void before() throws Exception {
-    mLocalAlluxioClusterResource.start();
-    mFileSystem = mLocalAlluxioClusterResource.get().getClient();
+  }
 
-    mS3Client = AmazonS3ClientBuilder
-        .standard()
-        .withPathStyleAccessEnabled(true)
-        .withCredentials(
-            new AWSStaticCredentialsProvider(
-                new BasicAWSCredentials(mS3Proxy.getAccessKey(), mS3Proxy.getSecretKey())))
-        .withEndpointConfiguration(
-            new AwsClientBuilder.EndpointConfiguration(mS3Proxy.getUri().toString(),
-                Regions.US_WEST_2.getName()))
-        .build();
-    mS3Client.createBucket(TEST_BUCKET);
+  private void startCluster(LocalAlluxioClusterResource cluster) throws Exception
+  {
+    cluster.start();
+    mFileSystem = cluster.get().getClient();
+
+    if (mS3Client == null) {
+      mS3Client = AmazonS3ClientBuilder
+          .standard()
+          .withPathStyleAccessEnabled(true)
+          .withCredentials(
+              new AWSStaticCredentialsProvider(
+                  new BasicAWSCredentials(mS3Proxy.getAccessKey(), mS3Proxy.getSecretKey())))
+          .withEndpointConfiguration(
+              new AwsClientBuilder.EndpointConfiguration(mS3Proxy.getUri().toString(),
+                  Regions.US_WEST_2.getName()))
+          .build();
+      mS3Client.createBucket(TEST_BUCKET);
+    }
+  }
+
+  private void stopCluster(LocalAlluxioClusterResource cluster) throws Exception
+  {
+    mFileSystem = null;
+    cluster.stop();
   }
 
   /**
@@ -120,8 +130,13 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
    * Read the file with sync interval setting to -1 should give the cached file.
    * Read the file with sync interval setting to 0 should return error.
    */
-  @Test
-  public void writeThenDeleteFromUfs() throws IOException, AlluxioException {
+  private void writeThenDeleteFromUfs(boolean clientWriteToUFS)
+      throws IOException, AlluxioException, Exception {
+    mLocalAlluxioClusterResourceBuilder.setProperty(PropertyKey.CLIENT_WRITE_TO_UFS_ENABLED,
+                                                    clientWriteToUFS);
+    LocalAlluxioClusterResource clusterResource = mLocalAlluxioClusterResourceBuilder.build();
+    startCluster(clusterResource);
+
     FileOutStream fos = mFileSystem.createFile(TEST_FILE_URI,
         CreateFilePOptions.newBuilder().setOverwrite(true).build());
     fos.write(TEST_CONTENT.getBytes());
@@ -144,6 +159,8 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
     assertThrows(FileDoesNotExistException.class, () ->
         mFileSystem.getStatus(TEST_FILE_URI, GetStatusPOptions.newBuilder()
             .setCommonOptions(optionNoSync()).build()));
+
+    stopCluster(clusterResource);
   }
 
   /**
@@ -151,8 +168,13 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
    * Read the file with sync interval setting to -1 should give the cached file.
    * Read the file with sync interval setting to 0 should return the updated file content.
    */
-  @Test
-  public void writeThenUpdateFromUfs() throws IOException, AlluxioException {
+  private void writeThenUpdateFromUfs(boolean clientWriteToUFS)
+      throws IOException, AlluxioException, Exception {
+    mLocalAlluxioClusterResourceBuilder.setProperty(PropertyKey.CLIENT_WRITE_TO_UFS_ENABLED,
+                                                    clientWriteToUFS);
+    LocalAlluxioClusterResource clusterResource = mLocalAlluxioClusterResourceBuilder.build();
+    startCluster(clusterResource);
+
     FileOutStream fos = mFileSystem.createFile(TEST_FILE_URI,
         CreateFilePOptions.newBuilder().setOverwrite(true).build());
     fos.write(TEST_CONTENT.getBytes());
@@ -180,6 +202,8 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
       String content = IOUtils.toString(fis);
       assertEquals(UPDATED_TEST_CONTENT, content);
     }
+
+    stopCluster(clusterResource);
   }
 
   private FileSystemMasterCommonPOptions optionNoSync() {
@@ -190,5 +214,27 @@ public final class DoraFileSystemIntegrationTest extends BaseIntegrationTest {
   private FileSystemMasterCommonPOptions optionSync() {
     return FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(0)
             .build();
+  }
+
+  /**
+   * Writes a file through alluxio into UFS. Deletes the file from UFS.
+   * Read the file with sync interval setting to -1 should give the cached file.
+   * Read the file with sync interval setting to 0 should return error.
+   */
+  @Test
+  public void testWriteThenDeleteFromUfs() throws Exception {
+    writeThenDeleteFromUfs(true);
+    writeThenDeleteFromUfs(false);
+  }
+
+  /**
+   * Writes a file through alluxio into UFS, then updates the file from UFS.
+   * Read the file with sync interval setting to -1 should give the cached file.
+   * Read the file with sync interval setting to 0 should return the updated file content.
+   */
+  @Test
+  public void testWriteThenUpdateFromUfs() throws Exception {
+    writeThenUpdateFromUfs(true);
+    writeThenUpdateFromUfs(false);
   }
 }
