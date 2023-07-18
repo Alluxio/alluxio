@@ -119,7 +119,6 @@ import alluxio.master.journal.Journaled;
 import alluxio.master.journal.JournaledGroup;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
-import alluxio.master.journal.ufs.UfsJournalSystem;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
@@ -1865,14 +1864,6 @@ public class DefaultFileSystemMaster extends CoreMaster
     long currLength = fileLength;
     for (long blockId : blockIds) {
       long currentBlockSize = Math.min(currLength, blockSize);
-      // if we are not using the UFS journal system, we can use the same journal context
-      // for the block info so that we do not have to create a new journal
-      // context and flush again
-      if (context != null && !(mJournalSystem instanceof UfsJournalSystem)) {
-        mBlockMaster.commitBlockInUFS(blockId, currentBlockSize, context);
-      } else {
-        mBlockMaster.commitBlockInUFS(blockId, currentBlockSize);
-      }
       currLength -= currentBlockSize;
     }
   }
@@ -4822,20 +4813,6 @@ public class DefaultFileSystemMaster extends CoreMaster
           }
         }
         mPersistRequests.put(fileId, job.getTimer());
-      }
-
-      // Cleanup possible staging UFS blocks files due to fast durable write fallback.
-      // Note that this is best effort
-      if (ufsClient != null) {
-        for (long blockId : blockIds) {
-          String ufsBlockPath = alluxio.worker.BlockUtils.getUfsBlockPath(ufsClient, blockId);
-          try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
-            alluxio.util.UnderFileSystemUtils.deleteFileIfExists(ufsResource.get(), ufsBlockPath);
-          } catch (Exception e) {
-            LOG.warn("Failed to clean up staging UFS block file {}: {}",
-                ufsBlockPath, e.toString());
-          }
-        }
       }
     }
 

@@ -29,8 +29,6 @@ import alluxio.grpc.BlockMasterWorkerServiceGrpc;
 import alluxio.grpc.BlockStoreLocationProto;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
-import alluxio.grpc.CommitBlockInUfsPRequest;
-import alluxio.grpc.CommitBlockInUfsPResponse;
 import alluxio.grpc.CommitBlockPRequest;
 import alluxio.grpc.CommitBlockPResponse;
 import alluxio.grpc.ConfigProperty;
@@ -186,35 +184,6 @@ public class BlockMasterClientTest {
 
     assertEquals(1, committedBlocks.size());
     assertEquals(workerId, (long) committedBlocks.get(blockId));
-  }
-
-  @Test
-  public void commitUfsBlock() throws Exception {
-    ConcurrentHashMap<Long, Long> committedUfsBlocks = new ConcurrentHashMap<>();
-    final long blockId = 1L;
-    final long length = 1024 * 1024L;
-
-    createMockService(
-        new BlockMasterWorkerServiceGrpc.BlockMasterWorkerServiceImplBase() {
-          @Override
-          public void commitBlockInUfs(CommitBlockInUfsPRequest request,
-                                       StreamObserver<CommitBlockInUfsPResponse> responseObserver) {
-            long blockId = request.getBlockId();
-            long length = request.getLength();
-            committedUfsBlocks.put(blockId, length);
-            responseObserver.onNext(CommitBlockInUfsPResponse.newBuilder().build());
-            responseObserver.onCompleted();
-          }
-        });
-
-    BlockMasterClient client = new BlockMasterClient(
-        MasterClientContext.newBuilder(ClientContext.create(mConf)).build()
-    );
-
-    client.commitBlockInUfs(blockId, length);
-
-    assertEquals(1, committedUfsBlocks.size());
-    assertEquals(length, (long) committedUfsBlocks.get(blockId));
   }
 
   @Test
