@@ -374,7 +374,7 @@ public class AlluxioEtcdClient implements Closeable {
 
   public void createForPath(String path, Optional<byte[]> value) throws IOException {
     RetryUtils.retry(String.format("Get for path:%s, value size:%s",
-        path, (value.isEmpty() ? "null" : value.get().length)), () -> {
+        path, (!value.isPresent() ? "null" : value.get().length)), () -> {
       try {
         mClient.getKVClient().put(ByteSequence.from(path, StandardCharsets.UTF_8)
                 , ByteSequence.from(value.get()))

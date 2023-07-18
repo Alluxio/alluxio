@@ -82,15 +82,18 @@ public class MembershipManagerTest {
           .withNetworkAliases("toxiproxy");
 
   private static List<String> getClientEndpoints() {
-    return List.of("https://" + etcd.getHost() +
+    ArrayList<String> clientEps = new ArrayList<>();
+    clientEps.add("https://" + etcd.getHost() +
         ":" + etcd.getMappedPort(ETCD_PORT));
+    return clientEps;
   }
 
   private static List<URI> getProxiedClientEndpoints() {
-    return List.of(URI.create(
+    ArrayList<URI> clientURIs = new ArrayList<>();
+    clientURIs.add(URI.create(
         "https://" + etcdProxy.getContainerIpAddress() +
-            ":" + etcdProxy.getProxyPort()
-    ));
+            ":" + etcdProxy.getProxyPort()));
+    return clientURIs;
   }
 
   @BeforeClass

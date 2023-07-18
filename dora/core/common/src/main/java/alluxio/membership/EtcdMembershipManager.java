@@ -62,7 +62,7 @@ public class EtcdMembershipManager implements MembershipManager {
     // If there's existing entry, check if it's me.
     if (ret != null) {
       // It's not me, something is wrong.
-      if (Arrays.compare(serializedEntity, ret) != 0) {
+      if (!Arrays.equals(serializedEntity, ret)) {
         throw new AlreadyExistsException("Some other member with same id registered on the ring, bail.");
       }
       // It's me, go ahead to start heartbeating.
