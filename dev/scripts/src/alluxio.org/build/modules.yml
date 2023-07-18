@@ -72,6 +72,10 @@ libModules:
     generatedJarPath: "lib/alluxio-underfs-web-${VERSION}.jar"
     bundleWith:
       - default
+  underfs-tos:
+    generatedJarPath: "lib/alluxio-underfs-tos-${VERSION}.jar"
+    bundleWith:
+      - default
 pluginModules:
   ufs-hadoop-2.7:
     moduleType: hdfs

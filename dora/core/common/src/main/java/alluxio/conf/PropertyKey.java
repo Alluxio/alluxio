@@ -7865,6 +7865,32 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey TOS_ACCESS_KEY =
+      stringBuilder(Name.TOS_ACCESS_KEY)
+          .setDescription("The access key of TOS bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .setDisplayType(DisplayType.CREDENTIALS)
+          .build();
+  public static final PropertyKey TOS_SECRET_KEY =
+      stringBuilder(Name.TOS_SECRET_KEY)
+          .setDescription("The secret key of TOS bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .setDisplayType(DisplayType.CREDENTIALS)
+          .build();
+  public static final PropertyKey TOS_ENDPOINT =
+      stringBuilder(Name.TOS_ENDPOINT)
+          .setDescription("The endpoint of TOS bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey TOS_REGION =
+      stringBuilder(Name.TOS_REGION)
+          .setDescription("The region name of TOS bucket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
 
   //
   // Extra class to be loaded
@@ -8183,6 +8209,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String OBS_ENDPOINT = "fs.obs.endpoint";
     public static final String OBS_SECRET_KEY = "fs.obs.secretKey";
     public static final String OBS_BUCKET_TYPE = "fs.obs.bucketType";
+    public static final String TOS_ACCESS_KEY = "fs.tos.accessKey";
+    public static final String TOS_SECRET_KEY = "fs.tos.secretKey";
+    public static final String TOS_ENDPOINT = "fs.tos.endpoint";
+    public static final String TOS_REGION = "fs.tos.region";
 
     //
     // Master related properties
