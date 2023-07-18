@@ -17,7 +17,6 @@ import alluxio.PositionReader;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.ReadType;
 import alluxio.client.file.dora.DoraCacheClient;
-import alluxio.client.file.dora.WorkerLocationPolicy;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.collections.Pair;
@@ -108,7 +107,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
    * @param context
    */
   public DoraCacheFileSystem(FileSystem fs, FileSystemContext context) {
-    this(fs, context, new DoraCacheClient(context, new WorkerLocationPolicy(2000)));
+    this(fs, context, new DoraCacheClient(context));
   }
 
   protected DoraCacheFileSystem(FileSystem fs, FileSystemContext context,

@@ -13,7 +13,6 @@ package alluxio.worker.dora;
 
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.base.MoreObjects;
 import com.google.common.hash.PrimitiveSink;
 
 import java.nio.ByteBuffer;
@@ -53,9 +52,7 @@ public final class WorkerIdentity {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("mIdentity", Arrays.hashCode(mIdentity))
-        .toString();
+    return "Worker@" + Integer.toHexString(hashCode());
   }
 
   /**

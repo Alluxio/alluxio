@@ -60,6 +60,7 @@ import alluxio.grpc.SetAttributePRequest;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.dora.WorkerClusterView;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -74,7 +75,6 @@ public class DoraCacheClient {
   public static final int PREFERRED_WORKER_COUNT = 1;
   private final FileSystemContext mContext;
   private final long mChunkSize;
-  private final WorkerLocationPolicy mWorkerLocationPolicy;
 
   private final boolean mNettyTransEnabled;
 
@@ -82,11 +82,9 @@ public class DoraCacheClient {
    * Constructor.
    *
    * @param context
-   * @param workerLocationPolicy
    */
-  public DoraCacheClient(FileSystemContext context, WorkerLocationPolicy workerLocationPolicy) {
+  public DoraCacheClient(FileSystemContext context) {
     mContext = context;
-    mWorkerLocationPolicy = workerLocationPolicy;
     mChunkSize = mContext.getClusterConf().getBytes(
         PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES);
     mNettyTransEnabled =
@@ -384,14 +382,14 @@ public class DoraCacheClient {
    * @return the related worker net address where file locates
    */
   public WorkerNetAddress getWorkerNetAddress(String path) {
-    List<BlockWorkerInfo> workers = null;
+    WorkerClusterView clusterView = null;
     try {
-      workers = mContext.getCachedWorkers();
+      clusterView = mContext.getCachedWorkerClusterView();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
     List<BlockWorkerInfo> preferredWorkers =
-        mWorkerLocationPolicy.getPreferredWorkers(workers,
+        mContext.getWorkerLocationPolicy().getPreferredWorkers(clusterView,
             path, PREFERRED_WORKER_COUNT);
     checkState(preferredWorkers.size() > 0);
     WorkerNetAddress workerNetAddress = preferredWorkers.get(0).getNetAddress();

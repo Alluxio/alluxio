@@ -23,7 +23,9 @@ import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.BlockWorkerClientPool;
 import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
+import alluxio.client.file.dora.WorkerLocationPolicy;
 import alluxio.client.metrics.MetricsHeartbeatContext;
+import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -50,11 +52,13 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.dora.WorkerClusterView;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Streams;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
@@ -178,16 +182,17 @@ public class FileSystemContext implements Closeable {
   private boolean mUriValidationEnabled = true;
 
   /** Cached map for workers. */
-  @GuardedBy("mWorkerInfoList")
-  private final AtomicReference<List<BlockWorkerInfo>> mWorkerInfoList = new AtomicReference<>();
+  @GuardedBy("mWorkerClusterView")
+  private final AtomicReference<WorkerClusterView> mWorkerClusterView = new AtomicReference<>();
 
   /** The policy to refresh workers list. */
-  @GuardedBy("mWorkerInfoList")
+  @GuardedBy("mWorkerClusterView")
   private final RefreshPolicy mWorkerRefreshPolicy;
 
   private final List<InetSocketAddress> mMasterAddresses;
 
   private final Map<Class, BlockLocationPolicy> mBlockLocationPolicyMap;
+  private volatile WorkerLocationPolicy mWorkerLocationPolicy;
 
   /**
    * FileSystemContextFactory, it can be extended.
@@ -439,6 +444,7 @@ public class FileSystemContext implements Closeable {
     mBlockMasterClientPool = new BlockMasterClientPool(mMasterClientContext);
     mBlockWorkerClientPoolMap = new ConcurrentHashMap<>();
     mUriValidationEnabled = ctx.getUriValidationEnabled();
+    mWorkerLocationPolicy = WorkerLocationPolicy.Factory.create(this);
   }
 
   /**
@@ -843,13 +849,33 @@ public class FileSystemContext implements Closeable {
    * @return the info of all block workers eligible for reads and writes
    */
   public List<BlockWorkerInfo> getCachedWorkers() throws IOException {
-    synchronized (mWorkerInfoList) {
-      if (mWorkerInfoList.get() == null || mWorkerInfoList.get().isEmpty()
+    synchronized (mWorkerClusterView) {
+      if (mWorkerClusterView.get() == null || mWorkerClusterView.get().isEmpty()
           || mWorkerRefreshPolicy.attempt()) {
-        mWorkerInfoList.set(getAllWorkers());
+        List<WorkerInfo> workerInfoList = getAllWorkers();
+        mWorkerClusterView.set(getWorkerLocationPolicy().createView(workerInfoList));
       }
-      return mWorkerInfoList.get();
+      // todo(bowen): cache the list and eliminate the object instantiation on every invocation?
+      WorkerClusterView workerClusterView = mWorkerClusterView.get();
+      return Streams.stream(workerClusterView.iterateWorkers())
+          .map(Pair::getSecond)
+          .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
+          .collect(toList());
     }
+  }
+
+  public WorkerClusterView getCachedWorkerClusterView() throws IOException {
+    synchronized (mWorkerClusterView) {
+      if (mWorkerClusterView.get() == null || mWorkerClusterView.get().isEmpty()
+          || mWorkerRefreshPolicy.attempt()) {
+        mWorkerClusterView.set(getWorkerLocationPolicy().createView(getAllWorkers()));
+      }
+      return mWorkerClusterView.get();
+    }
+  }
+
+  public WorkerLocationPolicy getWorkerLocationPolicy() {
+    return mWorkerLocationPolicy;
   }
 
   /**
@@ -859,12 +885,10 @@ public class FileSystemContext implements Closeable {
    *
    * @return the info of all block workers
    */
-  protected List<BlockWorkerInfo> getAllWorkers() throws IOException {
+  protected List<WorkerInfo> getAllWorkers() throws IOException {
     try (CloseableResource<BlockMasterClient> masterClientResource =
              acquireBlockMasterClientResource()) {
-      return masterClientResource.get().getWorkerInfoList().stream()
-          .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
-          .collect(toList());
+      return masterClientResource.get().getWorkerInfoList();
     }
   }
 
