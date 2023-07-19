@@ -4,7 +4,7 @@ title: FUSE SDK Advanced Tuning
 ---
 
 
-### Select Libfuse Version
+## Select Libfuse Version
 
 Alluxio now supports both libfuse2 and libfuse3. Alluxio FUSE on libfuse2 is more stable and has been tested in production.
 Alluxio FUSE on libfuse3 is currently experimental but under active development. Alluxio will focus more on libfuse3 and utilize new features provided.
@@ -22,7 +22,7 @@ See `logs/fuse.out` for which version is used.
 INFO  NativeLibraryLoader - Loaded libjnifuse with libfuse version 2(or 3).
 ```
 
-### FUSE Mount Options
+## FUSE Mount Options
 
 You can use `alluxio-fuse mount -o mount_option_a -o mount_option_b=value` to set mount options when launching the standalone Fuse process.
 
@@ -36,7 +36,7 @@ and the set-up process may be different depending on the platform.
 $ alluxio-fuse mount <under_storage_dataset> <mount_point> -o mount_option
 ```
 
-#### Example: `allow_other` and `allow_root`
+### Example: `allow_other` and `allow_root`
 
 By default, Alluxio-FUSE mount point can only be accessed by the user
 mounting the Alluxio namespace to the local filesystem.
@@ -68,6 +68,6 @@ This section talks about how to troubleshoot issues related to Alluxio POSIX API
 
 When encountering the out of direct memory issue, add the following JVM opts to `${ALLUXIO_HOME}/conf/alluxio-env.sh` to increase the max amount of direct memory.
 
-```bash
+```sh
 ALLUXIO_FUSE_JAVA_OPTS+=" -XX:MaxDirectMemorySize=8G"
 ```

@@ -7,6 +7,8 @@ title: Huawei OBS
 This guide describes the instructions to configure [Huawei OBS](https://www.huaweicloud.com/product/obs) as Alluxio's
 under storage system.
 
+Huawei Object Storage Service (OBS) is a scalable service that provides secure, reliable, and cost-effective cloud storage for massive amounts of data. OBS provides unlimited storage capacity for objects of any format, catering to the needs of common users, websites, enterprises, and developers.
+
 ## Prerequisites
 
 In preparation for using OBS with Alluxio, create a new bucket or use an existing bucket. You
@@ -28,7 +30,7 @@ Configure Alluxio to use OBS as its under storage system by modifying `conf/allu
 Specify an **existing** OBS bucket and directory as the under storage system by modifying
 `conf/alluxio-site.properties` to include:
 
-```
+```properties
 alluxio.dora.client.ufs.root=obs://<OBS_BUCKET>/<OBS_DIRECTORY>
 ```
 
@@ -38,14 +40,14 @@ Note that if you want to mount the whole obs bucket, add a trailing slash after 
 Specify the OBS credentials for OBS access by setting `fs.obs.accessKey` and `fs.obs.secretKey` in
 `alluxio-site.properties`.
 
-```
+```properties
 fs.obs.accessKey=<OBS ACCESS KEY>
 fs.obs.secretKey=<OBS SECRET KEY>
 ```
 
 Specify the OBS region by setting `fs.obs.endpoint` in `alluxio-site.properties` (e.g. obs.cn-north-4.myhuaweicloud.com).
 
-```
+```properties
 fs.obs.endpoint=<OBS ENDPOINT>
 ```
 
@@ -102,7 +104,7 @@ The default upload method uploads one file completely from start to end in one g
 
 To enable OBS multipart upload, you need to modify `conf/alluxio-site.properties` to include:
 
-```
+```properties
 alluxio.underfs.obs.multipart.upload.enabled=true
 ```
 

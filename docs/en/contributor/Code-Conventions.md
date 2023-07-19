@@ -27,9 +27,6 @@ Open an issue detailing the proposed change or the bug description.
 - If your pull request aims to solve an existing Github issue, please include a link to the Github
 issue in the last line of the description field of the pull request,
 such as `Fixes #1234`.
-- Please read our
-[pull request guidelines]({{ '/en/contributor/Contribution-Guide.html' | relativize_url }}#sending-a-pull-request)
-for details.
 
 ## Coding Style
 

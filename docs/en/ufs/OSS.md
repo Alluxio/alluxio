@@ -5,6 +5,7 @@ title: Aliyun Object Storage Service
 
 
 This guide describes how to configure [Aliyun OSS](https://intl.aliyun.com/product/oss) as Alluxio's under storage system. 
+
 Object Storage Service (OSS) is a massive, secure and highly reliable cloud storage service provided by Aliyun.
 
 ## Prerequisites
@@ -17,7 +18,7 @@ to sign up for OSS and create an OSS bucket.
 To configure Alluxio to use OSS as under storage, you will need to modify the configuration file 
 `conf/alluxio-site.properties`. If the file does not exist, create the configuration file from the template.
 
-```
+```console
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
@@ -26,13 +27,13 @@ the OSS directory you want to mount to Alluxio. For example, the under storage a
 you want to mount the whole bucket to Alluxio, or `oss://alluxio-bucket/alluxio/data` if only the directory `/alluxio/data`
 inside the oss bucket `alluxio-bucket` is mapped to Alluxio.
 
-```
+```properties
 alluxio.dora.client.ufs.root=oss://<OSS_BUCKET>/<OSS_DIRECTORY>
 ``` 
 
 Specify the Aliyun credentials for OSS access. In `conf/alluxio-site.properties`, add:
 
-```
+```properties
 fs.oss.accessKeyId=<OSS_ACCESS_KEY_ID>
 fs.oss.accessKeySecret=<OSS_ACCESS_KEY_SECRET>
 fs.oss.endpoint=<OSS_ENDPOINT>
@@ -96,7 +97,7 @@ The default upload method uploads one file completely from start to end in one g
 
 To enable OSS multipart upload, you need to modify `conf/alluxio-site.properties` to include:
 
-```
+```properties
 alluxio.underfs.oss.multipart.upload.enabled=true
 ```
 

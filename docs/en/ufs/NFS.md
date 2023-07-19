@@ -7,6 +7,8 @@ title: NFS
 This guide describes the instructions to configure [NFS](http://nfs.sourceforge.net) as Alluxio's under
 storage system.
 
+Network File System (NFS) is a distributed file system protocol that allows a client computer to access files over a network as if they were located on its local storage. NFS enables file sharing and remote file access between systems in a networked environment.
+
 You'll need to have a configured and running installation of NFS for the rest of this guide.
 If you need to get your own NFS installation up and running, we recommend taking a look at the
 [NFS-HOW TO](http://nfs.sourceforge.net/nfs-howto/)
@@ -46,7 +48,7 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 
 Assume we have mounted NFS share at `/mnt/nfs` on all Alluxio masters and workers, the following lines should be exist within the `conf/alluxio-site.properties` file.
 
-```
+```properties
 alluxio.master.hostname=localhost
 alluxio.dora.client.ufs.root=/mnt/nfs
 ```
@@ -62,7 +64,7 @@ $ ./bin/alluxio-start.sh local
 ```
 
 To verify that Alluxio is running, you can visit
-**[http://localhost:19999](http://localhost:19999)**, or see the log in the `logs` folder.
+[http://localhost:19999](http://localhost:19999), or see the log in the `logs` folder.
 
 Run a simple example program:
 

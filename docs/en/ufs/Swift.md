@@ -7,6 +7,8 @@ title: Swift
 This guide describes how to configure Alluxio with an under storage system supporting the
 [Swift API](http://docs.openstack.org/developer/swift/).
 
+Swift is a highly available, distributed, eventually consistent object/blob store. Organizations can use Swift to store lots of data efficiently, safely, and cheaply.
+
 ## Basic Setup
 
 A Swift bucket can be mounted to the Alluxio either at the root of the namespace, or at a nested directory.
@@ -74,7 +76,7 @@ $ ./bin/alluxio runTests
 Visit your Swift bucket to verify the files and directories created
 by Alluxio exist. For this test, you should see files named like:
 
-```bash
+```
 <bucket>/<folder>/default_tests_files/BASIC_CACHE_THROUGH
 ```
 

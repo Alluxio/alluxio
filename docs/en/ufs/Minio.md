@@ -6,8 +6,10 @@ title: MinIO
 
 This guide describes how to configure Alluxio with [MinIO](https://min.io/) as the
 under storage system.
-Alluxio natively provides the `s3://` scheme (recommended for better performance).
-You can use this scheme to connect Alluxio with a MinIO server.
+
+MinIO is a high-performance, S3 compatible object store. It is built for large scale AI/ML, data lake and database workloads. It runs on-prem and on any cloud (public or private) and from the data center to the edge.
+
+Alluxio natively provides the `s3://` scheme (recommended for better performance). You can use this scheme to connect Alluxio with a MinIO server.
 
 ## Setup MinIO
 

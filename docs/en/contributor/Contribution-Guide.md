@@ -15,8 +15,6 @@ The main requirement is a computer with MacOS or Linux-based operating system in
 does not have Windows support at this time.
 
 ### Software Requirements
-
-- Required Software:
   - Java 8
   - Maven 3.3.9+
   - Git

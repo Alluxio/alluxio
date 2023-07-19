@@ -96,7 +96,7 @@ The journal storage system is recommended to be:
 
 The minimal configuration parameters which must be set are:
 
-```
+```properties
 alluxio.zookeeper.enabled=true
 alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>
 alluxio.master.journal.type=UFS
@@ -225,19 +225,19 @@ Depending on the different approaches to achieve HA, different properties are re
 
 If using embedded journal, set `alluxio.master.rpc.addresses`.
 
-```
+```properties
 alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 ```
 
 Or specify the properties in Java option. For example, for Spark applications, add the following to 
 `spark.executor.extraJavaOptions` and `spark.driver.extraJavaOptions`:
 
-```
+```properties
 -Dalluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 ```
 
 If using Zookeeper, set the following Zookeeper related properties  
-```
+```properties
 alluxio.zookeeper.enabled=true
 alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>
 ```
@@ -284,7 +284,7 @@ A comma-separated ID of the alluxio master node that determine all the alluxio m
 For example, if you previously used `my-alluxio-cluster` as the logical name and wanted to
 use `master1,master2,master3` as individual IDs for each alluxio master, you configure this as such:
 
-```
+```properties
 alluxio.master.nameservices.my-alluxio-cluster=master1,master2,master3
 ```
 
@@ -292,7 +292,7 @@ alluxio.master.nameservices.my-alluxio-cluster=master1,master2,master3
 
 For each alluxio master node previously configured, set the full address of each alluxio master node, for example:
 
-```
+```properties
 alluxio.master.rpc.address.my-alluxio-cluster.master1=master1:19998
 alluxio.master.rpc.address.my-alluxio-cluster.master2=master2:19998
 alluxio.master.rpc.address.my-alluxio-cluster.master3=master3:19998
@@ -309,7 +309,7 @@ A comma-separated zookeeper node ID that determine all the Zookeeper nodes in th
 if you previously used `my-alluxio-cluster` as the logical name and wanted to use `node1,node2,node3` as individual
 IDs for each Zookeeper, you would configure this as such:
 
-```
+```properties
 alluxio.master.zookeeper.nameservices.my-alluxio-cluster=node1,node2,node3
 ```
 
@@ -318,7 +318,7 @@ alluxio.master.zookeeper.nameservices.my-alluxio-cluster=node1,node2,node3
 
 For each Zookeeper node previously configured, set the full address of each Zookeeper node, for example:
 
-```
+```properties
 alluxio.master.zookeeper.address.my-alluxio-cluster.node1=host1:2181
 alluxio.master.zookeeper.address.my-alluxio-cluster.node2=host2:2181
 alluxio.master.zookeeper.address.my-alluxio-cluster.node3=host3:2181

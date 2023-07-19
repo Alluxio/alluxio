@@ -53,14 +53,14 @@ such as HDFS or NFS. In contrast, S3 is not recommended for the UFS journal.
 
 The following configuration must be configured to a local path on the masters. The default
 value is local directory `${alluxio.work.dir}/journal`.
-```
+```properties
 alluxio.master.journal.folder=/local/path/to/store/journal/files/
 ```
 
 Set the addresses of all masters in the cluster. The default embedded journal port is `19200`.
 This must be set on all Alluxio servers, as well as Alluxio clients.
 
-```
+```properties
 alluxio.master.embedded.journal.addresses=master_hostname_1:19200,master_hostname_2:19200,master_hostname_3:19200
 ```
 
@@ -121,13 +121,13 @@ UFS journal options can be configured using the configuration prefix:
 **Configuration examples:**
 
 Use HDFS to store the journal:
-```
+```properties
 alluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/alluxio_journal
 alluxio.master.journal.ufs.option.alluxio.underfs.version=2.6
 ```
 
 Use the local file system to store the journal:
-```
+```properties
 alluxio.master.journal.folder=/opt/alluxio/journal
 ```
 
@@ -162,7 +162,7 @@ By default, this will write a backup named
 the root under storage system, e.g. `hdfs://cluster/alluxio_backups`. This default
 backup directory can be configured by setting `alluxio.master.backup.directory`
 
-```
+```properties
 alluxio.master.backup.directory=/alluxio/backups
 ```
 
@@ -172,7 +172,7 @@ Alluxio supports automatically taking leading master metadata snapshots every da
 so that Alluxio metadata can be restored to at most one day before.
 This functionality is enabled by setting the following property in `${ALLUXIO_HOME}/conf/alluxio-site.properties`:
 
-```
+```properties
 alluxio.master.daily.backup.enabled=true
 ```
 

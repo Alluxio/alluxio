@@ -3,9 +3,11 @@ layout: global
 title: CephFS
 ---
 
+This guide describes how to configure Alluxio with [CephFS](https://docs.ceph.com/en/latest/cephfs/) as the under storage system. 
 
-This guide describes how to configure Alluxio with CephFS as the under storage system. Alluxio supports
-two different implementations of under storage system for [CephFS](https://docs.ceph.com/en/latest/cephfs/):
+The Ceph File System (CephFS) is a POSIX-compliant file system built on top of Ceph’s distributed object store, RADOS. CephFS endeavors to provide a state-of-the-art, multi-use, highly available, and performant file store for a variety of applications, including traditional use-cases like shared home directories, HPC scratch space, and distributed workflow shared storage.
+
+Alluxio supports two different implementations of under storage system for CephFS:
 - [cephfs](https://docs.ceph.com/en/latest/cephfs/api/libcephfs-java/)
 - [cephfs-hadoop](https://docs.ceph.com/en/nautilus/cephfs/hadoop/)
 
@@ -138,7 +140,7 @@ to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/op
 
 Issue the following command to use the ufs cephfs:
 
-```
+```console
 $ ./bin/alluxio fs mkdir /mnt/cephfs
 $ ./bin/alluxio fs mount /mnt/cephfs cephfs://mon1\;mon2\;mon3/
 ```
@@ -179,7 +181,7 @@ $ ./bin/alluxio fs mount /mnt/cephfs-hadoop ceph://mon1\;mon2\;mon3/
 Run a simple example program:
 
 ```console
-./bin/alluxio runTests --path cephfs://mon1\;mon2\;mon3/
+$ ./bin/alluxio runTests --path cephfs://mon1\;mon2\;mon3/
 ```
 
 Visit your cephfs to verify the files and directories created by Alluxio exist.

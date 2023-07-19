@@ -4,9 +4,11 @@ title: CephObjectStorage
 ---
 
 
-This guide describes how to configure Alluxio with Ceph Object Storage as the under storage system. Alluxio supports
-two different clients APIs to connect to [Ceph Object Storage](http://ceph.com/ceph-storage/object-storage/)
-using [Rados Gateway](http://docs.ceph.com/docs/master/radosgw/):
+This guide describes how to configure Alluxio with [Ceph Object Storage](http://ceph.com/ceph-storage/object-storage/) as the under storage system. 
+
+Ceph Object Storage is a distributed, open-source storage system designed for storing and retrieving large amounts of unstructured data. It provides a scalable and highly available storage solution that can be deployed on commodity hardware.
+
+Alluxio supports two different clients APIs to connect to Ceph Object Storage using [Rados Gateway](http://docs.ceph.com/docs/master/radosgw/):
 - [S3](http://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html) (preferred)
 - [Swift](http://docs.openstack.org/developer/swift/)
 

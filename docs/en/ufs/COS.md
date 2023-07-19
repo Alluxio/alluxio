@@ -4,7 +4,9 @@ title: Tencent COS
 ---
 
 This guide describes the instructions to configure [Tencent COS](https://cloud.tencent.com/product/cos) as Alluxio's
-under storage system. Tencent Cloud Object Storage (COS) is a distributed storage service offered by Tencent Cloud for unstructured data and accessible via HTTP/HTTPS protocols. It can store massive amounts of data and features imperceptible bandwidth and capacity expansion, making it a perfect data pool for big data computation and analytics.
+under storage system. 
+
+Tencent Cloud Object Storage (COS) is a distributed storage service offered by Tencent Cloud for unstructured data and accessible via HTTP/HTTPS protocols. It can store massive amounts of data and features imperceptible bandwidth and capacity expansion, making it a perfect data pool for big data computation and analytics.
 
 ## Prerequisites
 
@@ -29,7 +31,7 @@ Configure Alluxio to use COS as its under storage system by modifying `conf/allu
 Specify an **existing** COS bucket and directory as the under storage system by modifying
 `conf/alluxio-site.properties` to include:
 
-```
+```properties
 alluxio.dora.client.ufs.root=cos://COS_ALLUXIO_BUCKET/COS_DATA/
 ```
 
@@ -39,14 +41,14 @@ Note that if you want to mount the whole cos bucket, add a trailing slash after 
 Specify the COS credentials for COS access by setting `fs.cos.access.key` and `fs.cos.secret.key` in
 `alluxio-site.properties`.
 
-```
+```properties
 fs.cos.access.key=<COS_SECRET_ID>
 fs.cos.secret.key=<COS_SECRET_KEY>
 ```
 
 Specify the COS region by setting `fs.cos.region` in `alluxio-site.properties` (e.g. ap-beijing) and `fs.cos.app.id`.
 
-```
+```properties
 fs.cos.region=<COS_REGION>
 fs.cos.app.id=<COS_APP_ID>
 ```
@@ -105,7 +107,7 @@ The default upload method uploads one file completely from start to end in one g
 
 To enable COS multipart upload, you need to modify `conf/alluxio-site.properties` to include:
 
-```
+```properties
 alluxio.underfs.cos.multipart.upload.enabled=true
 ```
 

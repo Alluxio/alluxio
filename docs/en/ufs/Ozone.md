@@ -5,6 +5,7 @@ title: Ozone
 
 
 This guide describes how to configure [Ozone](https://ozone.apache.org/) as Alluxio's under storage system. 
+
 Ozone is a scalable, redundant, and distributed object store for Hadoop. Apart from scaling to billions of objects of varying sizes, 
 Ozone can function effectively in containerized environments such as Kubernetes and YARN.
 

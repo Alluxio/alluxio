@@ -49,7 +49,7 @@ $ alluxio-fuse mount <under_storage_dataset> <mount_point> -o option
     - Alluxio property key value pair in `-o alluxio_property_key=value` format
         - Under storage credentials and configuration. Detailed configuration can be found under the `Storage Integrations` tap of the left of the doc page.
     - Local cache configuration. Detailed usage can be found in the [local cache guide]({{ '/en/fuse-sdk/Local-Cache.html' | relative_url }})
-    - Generic mount options. Detailed supported mount options information can be found in the [FUSE mount options section]({{ '/en/fuse-sdk/Advanced-Tuning.html' | relative_url }})
+    - Generic mount options. Detailed supported mount options information can be found in the [FUSE mount options section]({{ '/en/fuse-sdk/Advanced-Tuning.html#fuse-mount-options' | relative_url }})
 
 After mounting, `alluxio-fuse` mount can be found locally
 ```console
@@ -81,7 +81,7 @@ Mounts the dataset in target HDFS cluster to a local folder:
 $ alluxio-fuse mount hdfs://nameservice/path/to/dataset /path/to/mount_point -o alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/core-site.xml:/path/to/hdfs/conf/hdfs-site.xml
 ```
 The supported versions of HDFS can be specified via `-o alluxio.underfs.version=2.7` or `-o alluxio.underfs.version=3.3`.
-Other [HDFS configuration]({{ '/en/ufs/HDFS.html' | relative_url }}) can also be set via the `-o alluxio_property_key=value` format.
+Other [HDFS configuration]({{ '/en/ufs/HDFS.html#advanced-setup' | relative_url }}) can also be set via the `-o alluxio_property_key=value` format.
 
 ## Example: Run operations
 

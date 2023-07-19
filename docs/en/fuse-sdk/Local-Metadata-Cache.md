@@ -4,8 +4,6 @@ title: FUSE SDK Local Metadata Cache
 ---
 
 
-# Local Metadata Cache
-
 Metadata cache may significantly improve the read training performance especially when loading a large amount of small files repeatedly.
 FUSE kernel issues extra metadata read operations (sometimes can be 3 - 7 times more) compared to [Alluxio Java API]({{ '/en/api/Java-API.html' | relativize_url }}))
 when applications are doing metadata operations or even data operations.
