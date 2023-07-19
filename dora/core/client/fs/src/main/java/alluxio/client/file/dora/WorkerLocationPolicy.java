@@ -4,6 +4,7 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.util.CommonUtils;
 
 import java.util.List;
@@ -21,28 +22,34 @@ import java.util.List;
  */
 public interface WorkerLocationPolicy {
   /**
-   * TODO(jiacheng): the semantics here is ambiguous:
-   *  If I want count=3, what does it mean if the policy returns a list of 2 or empty?
+   * Find a specified number of workers following the logic defined by the policy.
+   * This method should return exactly #{count} different workers, no more no less.
+   * If the specified number of workers cannot be found, this method will throw
+   * a {@link ResourceExhaustedException}.
+   *
+   * We want the semantics here to be explicit when the requirement cannot be satisfied.
+   * So the caller should define its own logic handling the exception and finding backups.
    *
    * @param blockWorkerInfos
    * @param fileId
    * @param count
    * @return a list of preferred workers
+   * @throws ResourceExhaustedException if unable to return exactly #{count} workers
    */
-  List<BlockWorkerInfo> getPreferredWorkers(
-      List<BlockWorkerInfo> blockWorkerInfos, String fileId, int count);
+  List<BlockWorkerInfo> getPreferredWorkers(List<BlockWorkerInfo> blockWorkerInfos,
+      String fileId, int count) throws ResourceExhaustedException;
 
   /**
-   * The factory for the {@link BlockLocationPolicy}.
+   * The factory for the {@link WorkerLocationPolicy}.
    */
   class Factory {
     private Factory() {} // prevent instantiation
 
     /**
-     * Factory for creating {@link BlockLocationPolicy}.
+     * Factory for creating {@link WorkerLocationPolicy}.
      *
      * @param conf Alluxio configuration
-     * @return a new instance of {@link BlockLocationPolicy}
+     * @return a new instance of {@link WorkerLocationPolicy}
      */
     public static WorkerLocationPolicy create(AlluxioConfiguration conf) {
       try {

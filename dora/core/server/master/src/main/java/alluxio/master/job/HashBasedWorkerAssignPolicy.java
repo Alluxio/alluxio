@@ -14,6 +14,7 @@ package alluxio.master.job;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.dora.ConsistentHashPolicy;
 import alluxio.conf.Configuration;
+import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.wire.WorkerInfo;
 
 import java.util.Collection;
@@ -35,14 +36,16 @@ public class HashBasedWorkerAssignPolicy extends WorkerAssignPolicy {
     List<BlockWorkerInfo> candidates = workerInfos.stream()
         .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
         .collect(Collectors.toList());
-    List<BlockWorkerInfo> blockWorkerInfo = mWorkerLocationPolicy
-        .getPreferredWorkers(candidates, object, 1);
-    if (blockWorkerInfo.isEmpty()) {
+    try {
+      List<BlockWorkerInfo> blockWorkerInfo = mWorkerLocationPolicy
+              .getPreferredWorkers(candidates, object, 1);
+      WorkerInfo returnWorker = workerInfos.stream().filter(workerInfo ->
+                      workerInfo.getAddress().equals(blockWorkerInfo.get(0).getNetAddress()))
+              .findFirst().get();
+      return returnWorker;
+    } catch (ResourceExhaustedException e) {
+      // Tolerate the exception when there is no workers in the cluster
       return null;
     }
-    WorkerInfo returnWorker = workerInfos.stream().filter(workerInfo ->
-            workerInfo.getAddress().equals(blockWorkerInfo.get(0).getNetAddress()))
-        .findFirst().get();
-    return returnWorker;
   }
 }

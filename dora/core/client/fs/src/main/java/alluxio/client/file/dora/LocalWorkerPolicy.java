@@ -2,8 +2,10 @@ package alluxio.client.file.dora;
 
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.util.network.NetworkAddressUtils;
 
+import alluxio.wire.WorkerNetAddress;
 import com.google.common.collect.ImmutableList;
 
 import java.util.List;
@@ -27,15 +29,24 @@ public class LocalWorkerPolicy implements WorkerLocationPolicy {
     mConf = conf;
   }
 
+  /**
+   * Finds a local worker from the available workers, matching by hostname.
+   * If there are multiple workers matching the client hostname, return the 1st one following
+   * the input order.
+   */
   @Override
-  public List<BlockWorkerInfo> getPreferredWorkers(
-      List<BlockWorkerInfo> blockWorkerInfos, String fileId, int count) {
+  public List<BlockWorkerInfo> getPreferredWorkers(List<BlockWorkerInfo> blockWorkerInfos,
+      String fileId, int count) throws ResourceExhaustedException {
     String userHostname = NetworkAddressUtils.getClientHostName(mConf);
-    // Find the worker matching in hostname
     // TODO(jiacheng): domain socket is not considered here
+    // Find the worker matching in hostname
     BlockWorkerInfo localWorker = null;
     for (BlockWorkerInfo worker : blockWorkerInfos) {
-      if (worker.getNetAddress().getHost().equals(userHostname)) {
+      WorkerNetAddress workerAddr = worker.getNetAddress();
+      if (workerAddr == null) {
+        continue;
+      }
+      if (userHostname.equals(workerAddr.getHost())) {
         localWorker = worker;
         break;
       }
@@ -43,7 +54,8 @@ public class LocalWorkerPolicy implements WorkerLocationPolicy {
     if (localWorker != null) {
       return ImmutableList.of(localWorker);
     } else {
-      return ImmutableList.of();
+      throw new ResourceExhaustedException(String.format(
+          "Failed to find a local worker for client hostname %s", userHostname));
     }
   }
 }

@@ -383,17 +383,18 @@ public class DoraCacheClient {
    * @return the related worker net address where file locates
    */
   public WorkerNetAddress getWorkerNetAddress(String path) {
-    List<BlockWorkerInfo> workers = null;
     try {
-      workers = mContext.getCachedWorkers();
+      List<BlockWorkerInfo> workers = mContext.getCachedWorkers();
+      List<BlockWorkerInfo> preferredWorkers =
+          mWorkerLocationPolicy.getPreferredWorkers(workers,
+              path, PREFERRED_WORKER_COUNT);
+      checkState(preferredWorkers.size() > 0);
+      WorkerNetAddress workerNetAddress = preferredWorkers.get(0).getNetAddress();
+      return workerNetAddress;
     } catch (IOException e) {
+      // If failed to find workers in the cluster or failed to find the specified number of
+      // workers, throw an exception to the application
       throw new RuntimeException(e);
     }
-    List<BlockWorkerInfo> preferredWorkers =
-        mWorkerLocationPolicy.getPreferredWorkers(workers,
-            path, PREFERRED_WORKER_COUNT);
-    checkState(preferredWorkers.size() > 0);
-    WorkerNetAddress workerNetAddress = preferredWorkers.get(0).getNetAddress();
-    return workerNetAddress;
   }
 }
