@@ -25,9 +25,6 @@
 /conf/metrics.properties
 /conf/rocks-*.ini
 /data/
-/dev/scripts/*.tar.gz
-/dev/scripts/tarballs
-/dev/scripts/workdir
 /docs/_site/
 /docs/api/
 /docs/serve/
