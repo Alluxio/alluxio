@@ -32,7 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * The passed in client will not be closed by this class.
  */
 @ThreadSafe
-public final class ConfigHashSync implements HeartbeatExecutor {
+public class ConfigHashSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(ConfigHashSync.class);
 
   private final FileSystemContext mContext;
@@ -47,7 +47,7 @@ public final class ConfigHashSync implements HeartbeatExecutor {
    */
   public ConfigHashSync(FileSystemContext context) {
     mContext = context;
-    mClient = new RetryHandlingMetaMasterConfigClient(mContext.getMasterClientContext());
+    mClient = createMetaMasterConfigClient(mContext.getMasterClientContext());
   }
 
   /**
@@ -57,7 +57,12 @@ public final class ConfigHashSync implements HeartbeatExecutor {
    */
   public void resetMetaMasterConfigClient(MasterClientContext context) {
     mClient.close();
-    mClient = new RetryHandlingMetaMasterConfigClient(context);
+    mClient = createMetaMasterConfigClient(context);
+  }
+
+  protected RetryHandlingMetaMasterConfigClient createMetaMasterConfigClient(
+      MasterClientContext context) {
+    return new RetryHandlingMetaMasterConfigClient(context);
   }
 
   /**
