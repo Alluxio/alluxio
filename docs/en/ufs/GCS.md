@@ -7,6 +7,8 @@ title: Google Cloud Storage
 This guide describes how to configure Alluxio with [Google Cloud Storage (GCS)](https://cloud.google.com/storage/)
 as the under storage system.
 
+Google Cloud Storage (GCS) is a scalable and durable object storage service offered by Google Cloud Platform (GCP). It allows users to store and retrieve various types of data, including unstructured and structured data.
+
 ## Prerequisites
 
 In preparation for using GCS with Alluxio, create a bucket (or use an existing bucket). You
@@ -42,7 +44,7 @@ Configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.
 
-```console
+```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
@@ -50,7 +52,7 @@ Configure Alluxio to use GCS as its root under storage system. The first modific
 specify an **existing** GCS bucket and directory as the under storage system by modifying
 `conf/alluxio-site.properties` to include:
 
-```
+```properties
 alluxio.dora.client.ufs.root=gs://GCS_BUCKET/GCS_DIRECTORY
 ```
 
@@ -96,7 +98,7 @@ you can [Run Alluxio Locally with GCS](#running-alluxio-locally-with-gcs).
 
 Start up Alluxio locally to see that everything works.
 
-```console
+```shell
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local SudoMount
 ```
@@ -106,7 +108,7 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 
 Run a simple example program:
 
-```console
+```shell
 $ ./bin/alluxio runTests
 ```
 
@@ -119,7 +121,7 @@ GCS_BUCKET/GCS_DIRECTORY/default_tests_files/BASIC_CACHE_THROUGH
 
 To stop Alluxio, you can run:
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh local
 ```
 
@@ -174,7 +176,7 @@ the internet with the default settings.
 
 Add the following java options to `conf/alluxio-env.sh` before starting the Alluxio Masters and Workers.
 
-```bash
+```sh
 ALLUXIO_MASTER_JAVA_OPTS+=" -Dhttps.proxyHost=<proxy_host> -Dhttps.proxyPort=<proxy_port> -Dhttp.proxyHost=<proxy_host> -Dhttp.proxyPort=<proxy_port> -Dhttp.nonProxyHosts=<non_proxy_host>"
 ALLUXIO_WORKER_JAVA_OPTS+=" -Dhttps.proxyHost=<proxy_host> -Dhttps.proxyPort=<proxy_port> -Dhttp.proxyHost=<proxy_host> -Dhttp.proxyPort=<proxy_port> -Dhttp.nonProxyHosts=<non_proxy_host>"
 ```

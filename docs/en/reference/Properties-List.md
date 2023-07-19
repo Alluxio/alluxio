@@ -4,11 +4,10 @@ title: List of Configuration Properties
 ---
 
 
-All Alluxio configuration settings fall into one of the six categories:
+All Alluxio configuration settings fall into one of the five categories:
 [Common](#common-configuration) (shared by Master and Worker),
 [Master specific](#master-configuration), [Worker specific](#worker-configuration),
-[User specific](#user-configuration), [Cluster specific](#resource-manager-configuration) (used for running
-Alluxio with cluster managers like Mesos and YARN), and
+[User specific](#user-configuration), and
 [Security specific](#security-configuration) (shared by Master, Worker, and User).
 
 ## Common Configuration

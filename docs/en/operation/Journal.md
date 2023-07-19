@@ -53,14 +53,14 @@ such as HDFS or NFS. In contrast, S3 is not recommended for the UFS journal.
 
 The following configuration must be configured to a local path on the masters. The default
 value is local directory `${alluxio.work.dir}/journal`.
-```
+```properties
 alluxio.master.journal.folder=/local/path/to/store/journal/files/
 ```
 
 Set the addresses of all masters in the cluster. The default embedded journal port is `19200`.
 This must be set on all Alluxio servers, as well as Alluxio clients.
 
-```
+```properties
 alluxio.master.embedded.journal.addresses=master_hostname_1:19200,master_hostname_2:19200,master_hostname_3:19200
 ```
 
@@ -121,13 +121,13 @@ UFS journal options can be configured using the configuration prefix:
 **Configuration examples:**
 
 Use HDFS to store the journal:
-```
+```properties
 alluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/alluxio_journal
 alluxio.master.journal.ufs.option.alluxio.underfs.version=2.6
 ```
 
 Use the local file system to store the journal:
-```
+```properties
 alluxio.master.journal.folder=/opt/alluxio/journal
 ```
 
@@ -139,7 +139,7 @@ Before starting Alluxio for the first time, the journal must be formatted.
 **Warning**: the following command permanently deletes all Alluxio metadata,
 so be careful with this command or backup your journal first (see next section).
 
-```console
+```shell
 $ ./bin/alluxio formatMasters
 ```
 
@@ -153,7 +153,7 @@ unavailability while the leading master is taking the backup.
 (See [Backup delegation on HA cluster](#backup-delegation-on-ha-cluster) section for overcoming this limitation.)
 
 To generate a backup, use the `fsadmin backup` CLI command.
-```console
+```shell
 $ ./bin/alluxio fsadmin backup
 ```
 
@@ -162,7 +162,7 @@ By default, this will write a backup named
 the root under storage system, e.g. `hdfs://cluster/alluxio_backups`. This default
 backup directory can be configured by setting `alluxio.master.backup.directory`
 
-```
+```properties
 alluxio.master.backup.directory=/alluxio/backups
 ```
 
@@ -172,7 +172,7 @@ Alluxio supports automatically taking leading master metadata snapshots every da
 so that Alluxio metadata can be restored to at most one day before.
 This functionality is enabled by setting the following property in `${ALLUXIO_HOME}/conf/alluxio-site.properties`:
 
-```
+```properties
 alluxio.master.daily.backup.enabled=true
 ```
 
@@ -223,7 +223,7 @@ To restore the Alluxio system from a journal backup, stop the system, format the
 journal, then restart the system, passing the URI of the backup with the `-i`
 (import) flag.
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh masters
 $ ./bin/alluxio formatMasters
 $ ./bin/alluxio-start.sh -i <backup_uri> masters
@@ -279,7 +279,7 @@ Please note `-domain` parameter in below commands. This is because embedded jour
 for both regular masters and job service masters. You should supply correct value based on which cluster you intend to work on.
 
 1. Check current quorum state:
-```console
+```shell
 $ ./bin/alluxio fsadmin journal quorum info -domain <MASTER | JOB_MASTER>
 ```
 This will print out node status for all currently participating members of the embedded journal cluster. You should verify
@@ -287,7 +287,7 @@ that the removed master is shown as `UNAVAILABLE`.
 
 2. Remove member from the quorum:
 `-address` option below should reflect the exact address that is returned by the `.. quorum info` command provided above.
-```console
+```shell
 $ ./bin/alluxio fsadmin journal quorum remove -domain <MASTER | JOB_MASTER> -address <HOSTNAME:PORT>
 ```
 
@@ -297,14 +297,14 @@ $ ./bin/alluxio fsadmin journal quorum remove -domain <MASTER | JOB_MASTER> -add
 To aid in debugging and to add flexibility, it is possible to manually change the leader of an embedded journal cluster.
 
 1. Check current quorum state:
-```console
+```shell
 $ ./bin/alluxio fsadmin journal quorum info -domain MASTER
 ```
 This will print out node status for all currently participating members of the embedded journal cluster. You should select one 
 of the `AVAILABLE` masters. The current leader is also displayed by this command. 
 
 2. Elect an available master as leader:
-```console
+```shell
 $ ./bin/alluxio fsadmin journal quorum elect -address <HOSTNAME:PORT>
 ```
 The `elect` command makes sure that the leadership has transferred to the designated master before returning and displaying
@@ -366,7 +366,7 @@ No need to manually transfer leadership anymore.
 
 If HA mode is not an option, the following command can be used to manually trigger the checkpoint:
 
-```console
+```shell
 $ ./bin/alluxio fsadmin journal checkpoint
 ```
 

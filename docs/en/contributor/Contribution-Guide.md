@@ -15,8 +15,6 @@ The main requirement is a computer with MacOS or Linux-based operating system in
 does not have Windows support at this time.
 
 ### Software Requirements
-
-- Required Software:
   - Java 8
   - Maven 3.3.9+
   - Git
@@ -47,7 +45,7 @@ Alluxio repository under your GitHub account.
 Create a local clone of your fork to copy the files of your fork onto your computer.
 Clone your fork with this command:
 
-```console
+```shell
 $ git clone https://github.com/YOUR-USERNAME/alluxio.git
 $ cd alluxio
 ```
@@ -60,14 +58,14 @@ Set a new remote repository that points to the Alluxio repository
 to pull changes from the open source Alluxio codebase into your clone.
 To add a new remote repository, run:
 
-```console
+```shell
 $ git remote add upstream https://github.com/Alluxio/alluxio.git
 ```
 
 This will create a remote repository called `upstream` pointing to the Alluxio repository.
 View the urls for remote repositories with the following command.
 
-```console
+```shell
 $ git remote -v
 ```
 
@@ -78,7 +76,7 @@ including `origin` (your fork), and `upstream` (the Alluxio repository).
 
 Build Alluxio by running:
 
-```console
+```shell
 $ mvn clean install
 ```
 
@@ -88,7 +86,7 @@ Depending on your hardware, this may take anywhere from several minutes to half 
 
 To only recompile and skip running all the checks and tests, run:
 
-```console
+```shell
 $ mvn -T 2C clean install -DskipTests -Dmaven.javadoc.skip -Dfindbugs.skip \
   -Dcheckstyle.skip -Dlicense.skip
 ```
@@ -128,14 +126,14 @@ Keep all changes for a single issue in its own branch when submitting a change t
 
 Ensure you are on the `main` branch in your clone. Switch to the `main` branch with:
 
-```console
+```shell
 $ git checkout main
 ```
 
 The `main` branch needs to be in sync with the latest changes from the evolving
 Alluxio codebase. Pull new changes from the project with:
 
-```console
+```shell
 $ git pull upstream main
 ```
 
@@ -145,7 +143,7 @@ branch, where the `upstream` repository was previously set to the Alluxio open s
 Create a new branch to work on the **New Contributor** task you took earlier.
 To create a branch name **awesome_feature**, run:
 
-```console
+```shell
 $ git checkout -b awesome_feature
 ```
 
@@ -154,7 +152,7 @@ issue.
 
 To view what branches have been created and check which branch you are currently on, run:
 
-```console
+```shell
 $ git branch
 ```
 
@@ -163,19 +161,19 @@ $ git branch
 As you are addressing the ticket, you can create local commits of your code. This can be useful for
 when you have finished a well-defined portion of the change. You can stage a file for a commit with:
 
-```console
+```shell
 $ git add <file to stage>
 ```
 
 To check which files have been modified and need to be staged for a commit, run:
 
-```console
+```shell
 $ git status
 ```
 
 Once the appropriate files are staged, create a local commit of these modifications with:
 
-```console
+```shell
 $ git commit -m "<concise but descriptive commit message>"
 ```
 
@@ -192,7 +190,7 @@ but the following is a common way to do it.
 Push the branch with your commits to your forked repository in GitHub.
 For your **awesome_feature** branch, push to GitHub with:
 
-```console
+```shell
 $ git push origin awesome_feature
 ```
 
@@ -265,7 +263,7 @@ After making the required changes locally, create a new commit and push to your 
 GitHub will detect new changes to the source branch and update the corresponding pull request automatically.
 An example workflow to update your remote branch:
 
-```console
+```shell
 $ git add <modified files>
 $ git commit -m "<another commit message>"
 $ git push origin awesome_feature
