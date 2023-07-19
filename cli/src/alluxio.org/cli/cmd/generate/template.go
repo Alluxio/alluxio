@@ -12,11 +12,14 @@
 package generate
 
 import (
-	"alluxio.org/cli/env"
-	"fmt"
-	"github.com/spf13/cobra"
 	"io/ioutil"
 	"os"
+	"path/filepath"
+
+	"github.com/spf13/cobra"
+
+	"alluxio.org/cli/env"
+	"alluxio.org/log"
 )
 
 var Template = &TemplateCommand{}
@@ -31,26 +34,26 @@ func (c *TemplateCommand) ToCommand() *cobra.Command {
 		Short: "Generate a config file if one doesn't exist.",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) == 0 {
-				fmt.Println("Usage: template <alluxio_master_hostname>")
+				log.Logger.Infoln("Usage: template <alluxio_master_hostname>")
 				return
 			}
-			targetDir := env.ConfAlluxioConfDir.EnvVar + "alluxio-site.properties"
+			targetDir := filepath.Join(env.ConfAlluxioConfDir.EnvVar, "alluxio-site.properties")
 			content := "alluxio.master.hostname=" + args[0]
 			if _, err := os.Stat(targetDir); err != nil {
 				if os.IsNotExist(err) {
 					e := ioutil.WriteFile(targetDir, []byte(content), 0644)
 					if e != nil {
-						fmt.Println("Error writing file:", e)
+						log.Logger.Errorln("Error writing file:", e)
 						return
 					}
-					fmt.Println(targetDir + " is created.")
+					log.Logger.Infoln(targetDir + " is created.")
 					return
 				} else {
-					fmt.Println("File read error:", err)
+					log.Logger.Errorln("File read error:", err)
 					return
 				}
 			} else {
-				fmt.Println(targetDir + " already exists")
+				log.Logger.Warnln(targetDir + " already exists")
 				return
 			}
 		},
