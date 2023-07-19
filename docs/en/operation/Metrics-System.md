@@ -64,30 +64,34 @@ setting `alluxio.fuse.web.enabled` to `true` in `${ALLUXIO_HOME}/conf/alluxio-si
 
 You can send an HTTP request to `/metrics/json/` of the target Alluxio processes to get a snapshot of all metrics in JSON format.
 
-Get the metrics in JSON format from Alluxio leading master or workers:
-```console
+```shell
+# Get the metrics in JSON format from Alluxio leading master or workers
 $ curl <LEADING_MASTER_HOSTNAME>:<MASTER_WEB_PORT>/metrics/json/
 $ curl <WORKER_HOSTNAME>:<WORKER_WEB_PORT>/metrics/json/
 ```
-For example, get the local master metrics with its default web port 19999:
-```console
+
+```shell
+# For example, get the local master metrics with its default web port 19999
 $ curl 127.0.0.1:19999/metrics/json/
 ```
-Get the local worker metrics with its default web port 30000:
-```console
+
+```shell
+# Get the local worker metrics with its default web port 30000
 $ curl 127.0.0.1:30000/metrics/json/
 ```
-Get the local job master metrics with its default web port 20002:
-```console
+
+```shell
+# Get the local job master metrics with its default web port 20002
 $ curl 127.0.0.1:20002/metrics/json/
 ```
-Get the local job worker metrics with its default web port 30003:
-```console
+
+```shell
+# Get the local job worker metrics with its default web port 30003
 $ curl 127.0.0.1:30003/metrics/json/
 ```
 
 After setting alluxio.fuse.web.enabled=true and launching the standalone Fuse process, get the metrics with its default web port:
-```console
+```shell
 $ curl <FUSE_WEB_HOSTNAME>:<FUSE_WEB_PORT>/metrics/json/
 $ curl 127.0.0.1:49999/metrics/json/
 ```
@@ -116,31 +120,36 @@ setting `alluxio.fuse.web.enabled` to `true` in `${ALLUXIO_HOME}/conf/alluxio-si
 You can send an HTTP request to `/metrics/prometheus/` of the target Alluxio process to get a snapshot of metrics in Prometheus format.
 
 Get the metrics in Prometheus format from Alluxio leading master or workers or job service or standalone fuse:
-```console
+```shell
 $ curl <LEADING_MASTER_HOSTNAME>:<MASTER_WEB_PORT>/metrics/prometheus/
 $ curl <WORKER_HOSTNAME>:<WORKER_WEB_PORT>/metrics/prometheus/
 $ curl <LEADING_JOB_MASTER_HOSTNAME>:<JOB_MASTER_WEB_PORT>/metrics/prometheus/
 $ curl <JOB_WORKER_HOSTNAME>:<JOB_WORKER_WEB_PORT>/metrics/prometheus/
 $ curl <FUSE_WEB_HOSTNAME>:<FUSE_WEB_PORT>/metrics/prometheus/
 ```
-For example, get the local master metrics with its default web port 19999:
-```console
+
+```shell
+# For example, get the local master metrics with its default web port 19999
 $ curl 127.0.0.1:19999/metrics/prometheus/
 ```
-Get the local worker metrics with its default web port 30000:
-```console
+
+```shell
+# Get the local worker metrics with its default web port 30000
 $ curl 127.0.0.1:30000/metrics/prometheus/
 ```
-Get the local job master metrics with its default web port 20002:
-```console
+
+```shell
+# Get the local job master metrics with its default web port 20002
 $ curl 127.0.0.1:20002/metrics/prometheus/
 ```
-Get the local job worker metrics with its default web port 30003:
-```console
+
+```shell
+# Get the local job worker metrics with its default web port 30003
 $ curl 127.0.0.1:30003/metrics/prometheus/
 ```
-Get the local standalone Fuse process metrics with its default web port 49999:
-```console
+
+```shell
+# Get the local standalone Fuse process metrics with its default web port 49999
 $ curl 127.0.0.1:49999/metrics/prometheus/
 ```
 
@@ -183,7 +192,7 @@ This section gives an example of writing collected metrics to CSV files.
 
 First, create the polling directory for `CsvSink` (if it does not already exist):
 
-```console
+```shell
 $ mkdir /tmp/alluxio-metrics
 ```
 
@@ -345,7 +354,7 @@ You can get JVM related metrics via `jvm_exporter` as a Java agent.
 
 Download [jmx_prometheus_javaagent-0.16.0.jar](https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0.16.0/jmx_prometheus_javaagent-0.16.0.jar) and run:
 
-```console
+```shell
 $ java -javaagent:./jmx_prometheus_javaagent-0.16.0.jar=8080:config.yaml -jar yourJar.jar
 ```
 

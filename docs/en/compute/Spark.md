@@ -208,7 +208,9 @@ The saved RDDs in Alluxio can be read again (from memory) by using `sc.textFile`
 // as text file
 rdd.saveAsTextFile("alluxio://localhost:19998/rdd1")
 rdd = sc.textFile("alluxio://localhost:19998/rdd1")
+```
 
+```scala
 // as object file
 rdd.saveAsObjectFile("alluxio://localhost:19998/rdd2")
 rdd = sc.objectFile("alluxio://localhost:19998/rdd2")

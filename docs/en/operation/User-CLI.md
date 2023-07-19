@@ -6,7 +6,7 @@ title: User Command Line Interface
 Alluxio's command line interface provides users with basic file system operations. You can invoke
 the following command line utility to get all the subcommands:
 
-```console
+```shell
 $ ./bin/alluxio
 Usage: alluxio [COMMAND]
        [format [-s]]
@@ -33,7 +33,7 @@ Data in under storage will not be changed.
 > Warning: `format` is required when you run Alluxio for the first time.
 `format` should only be called while the cluster is not running.
 
-```console
+```shell
 $ ./bin/alluxio format
 $ ./bin/alluxio format -s
 ```
@@ -53,7 +53,7 @@ All this information is deleted if `formatJournal` is run.,
 > Warning: `formatJournal` should only be called while the cluster is not running.
 
 
-```console
+```shell
 $ ./bin/alluxio formatJournal
 ```
 
@@ -76,7 +76,7 @@ All this information is deleted if `formatMasters` is run.,
 > Warning: `formatMasters` should only be called while the cluster is not running.
 
 
-```console
+```shell
 $ ./bin/alluxio formatMasters
 ```
 
@@ -91,7 +91,7 @@ Data in under storage will not be changed.
 
 > Warning: `formatWorker` should only be called while the cluster is not running.
 
-```console
+```shell
 $ ./bin/alluxio formatWorker
 ```
 
@@ -116,28 +116,28 @@ and with `--unit S`, a configuration value of `5000ms` returns as `5`.
 Possible unit options include B, KB, MB, GB, TP, PB as units of byte size and
 MS, S, M, H, D as units of time.
 
-Display all the current node configuration:
-```console
+```shell
+# Display all the current node configuration
 $ ./bin/alluxio getConf
 ```
 
-Display the value of a property key:
-```console
+```shell
+# Display the value of a property key
 $ ./bin/alluxio getConf alluxio.master.hostname
 ```
 
-Display the configuration of the current running Alluxio leading master:
-```console
+```shell
+# Display the configuration of the current running Alluxio leading master
 $ ./bin/alluxio getConf --master
 ```
 
-Display the source of the configuration:
-```console
+```shell
+# Display the source of the configuration
 $ ./bin/alluxio getConf --source
 ```
 
-Displays the values in a given unit:
-```console
+```shell
+# Display the values in a given unit
 $ ./bin/alluxio getConf --unit KB alluxio.user.block.size.bytes.default
 $ ./bin/alluxio getConf --unit S alluxio.master.journal.flush.timeout
 ```
@@ -156,12 +156,12 @@ where `[generic options]` can be one of the following values:
 * `cancel <id>`: Cancels the job with the corresponding id asynchronously.
 
 Print the hostname of the job master service leader:
-```console
+```shell
 $ ./bin/alluxio job leader
 ```
 
 Print the IDs, job names, and completion status of the most recently created jobs:
-```console
+```shell
 $ ./bin/alluxio job ls
 
 1576539334518 Load COMPLETED
@@ -176,7 +176,7 @@ $ ./bin/alluxio job ls
 ```
 
 Display the status info for the specific job:
-```console
+```shell
 $ bin/alluxio job stat -v 1579102592778
 
 ID: 1579102592778
@@ -197,7 +197,7 @@ Status: CANCELED
 ```
 
 Cancel the job asynchronously based on a specific job:
-```console
+```shell
 $ bin/alluxio job cancel 1579102592778
 
 $ bin/alluxio job stat 1579102592778 | grep "Status"
@@ -245,7 +245,7 @@ Note that Alluxio master is required to stop before reading the local embedded j
 * `-outputDir <arg>` the output directory to write journal content to. (Default: journal_dump-${timestamp})
 * `-master <arg>` (advanced) the name of the master (e.g. FileSystemMaster, BlockMaster). (Default: "FileSystemMaster")
 
-```console
+```shell
 $ ./bin/alluxio readJournal
 
 Dumping journal of type EMBEDDED to /Users/alluxio/journal_dump-1602698211916
@@ -265,7 +265,7 @@ The `killAll` command kills all processes containing the specified word.
 The `copyDir` command copies the directory at `PATH` to all master nodes listed in `conf/masters`
 and all worker nodes listed in `conf/workers`.
 
-```console
+```shell
 $ ./bin/alluxio copyDir conf/alluxio-site.properties
 ```
 
@@ -296,7 +296,7 @@ The `version` command prints Alluxio version.
 Usage: `version --revision [revision_length]`
 * `-r,--revision [revision_length]` Prints the git revision along with the Alluxio version. Optionally specify the revision length.
 
-```console
+```shell
 $ ./bin/alluxio version
 ```
 
@@ -306,7 +306,7 @@ $ ./bin/alluxio version
 
 The `validateConf` command validates the local Alluxio configuration files, checking for common misconfigurations.
 
-```console
+```shell
 $ ./bin/alluxio validateConf
 ```
 
@@ -322,7 +322,7 @@ For more information see the [collectInfo command page]({{ '/en/administration/T
 
 ## File System Operations
 
-```console
+```shell
 $ ./bin/alluxio fs
 
 Usage: alluxio fs [generic options]
@@ -343,7 +343,7 @@ or a path without its header, such as `/<path>`, to use the default hostname and
 >Most of the commands which require path components allow wildcard arguments for ease of use. For
 >example:
 >
->```console
+>```shell
 >$ ./bin/alluxio fs rm '/data/2014*'
 >```
 >
@@ -360,7 +360,7 @@ or a path without its header, such as `/<path>`, to use the default hostname and
 >As a workaround, you can disable globbing (depending on the shell type; for example, `set -f`) or by
 >escaping wildcards, for example:
 >
->```console
+>```shell
 >$ ./bin/alluxio fs cat /\\*
 >```
 >
@@ -369,12 +369,12 @@ or a path without its header, such as `/<path>`, to use the default hostname and
 
 ### cat
 
-The `cat` command prints the contents of a file in Alluxio to the console.
+The `cat` command prints the contents of a file in Alluxio to the shell.
 If you wish to copy the file to your local file system, `copyToLocal` should be used.
 
 For example, when testing a new computation job, `cat` can be used as a quick way to check the output:
 
-```console
+```shell
 $ ./bin/alluxio fs cat /output/part-00000
 ```
 
@@ -403,13 +403,13 @@ to files or directories in the subtree cannot be completed until this command co
 
 For example, `checkConsistency` can be used to periodically validate the integrity of the namespace.
 
-List each inconsistent file or directory:
-```console
+```shell
+# List each inconsistent file or directory
 $ ./bin/alluxio fs checkConsistency /
 ```
 
-Repair the inconsistent files or directories:
-```console
+```shell
+# Repair the inconsistent files or directories
 $ ./bin/alluxio fs checkConsistency -r /
 ```
 
@@ -419,7 +419,7 @@ The `checksum` command outputs the md5 value of a file in Alluxio.
 
 For example, `checksum` can be used to verify the contents of a file stored in Alluxio.
 
-```console
+```shell
 $ ./bin/alluxio fs checksum /LICENSE
 
 md5sum: bf0513403ff54711966f39b058e059a3
@@ -438,7 +438,7 @@ Adding `-R` option also changes the group of child file and child directory recu
 
 For example, `chgrp` can be used as a quick way to change the group of file:
 
-```console
+```shell
 $ ./bin/alluxio fs chgrp alluxio-group-new /input/file1
 ```
 
@@ -464,7 +464,7 @@ Adding `-R` option also changes the permission of child file and child directory
 
 For example, `chmod` can be used as a quick way to change the permission of file:
 
-```console
+```shell
 $ ./bin/alluxio fs chmod 755 /input/file1
 ```
 
@@ -475,7 +475,7 @@ For security reasons, the ownership of a file can only be altered by a super use
 
 For example, `chown` can be used as a quick way to change the owner of file:
 
-```console
+```shell
 $ ./bin/alluxio fs chown alluxio-user /input/file1
 $ ./bin/alluxio fs chown alluxio-user:alluxio-group /input/file2
 ```
@@ -498,7 +498,7 @@ Usage: `copyFromLocal [--thread <num>] [--buffersize <bytes>] <src> <remoteDst>`
 
 For example, `copyFromLocal` can be used as a quick way to inject data into the system for processing:
 
-```console
+```shell
 $ ./bin/alluxio fs copyFromLocal /local/data /input
 ```
 
@@ -515,7 +515,7 @@ Usage: `copyToLocal [--buffersize <bytes>] <src> <localDst>`
 For example, `copyToLocal` can be used as a quick way to download output data
 for additional investigation or debugging.
 
-```console
+```shell
 $ ./bin/alluxio fs copyToLocal /output/part-00000 part-00000
 $ wc -l part-00000
 ```
@@ -539,7 +539,7 @@ A lower value means slower execution but also being nicer to the other users of 
 * `--batch-size`: Specifies how many files to be batched into one request. The default value is `20`. Notice that if some task failed in the batched job, the whole batched job would fail with some completed tasks and some failed tasks.
 * `--async`: Specifies whether to wait for command execution to finish. If not explicitly shown then default to run synchronously.
 
-```console
+```shell
 $ ./bin/alluxio fs distributedCp --active-jobs 2000 /data/1023 /data/1024
 
 Sample Output:
@@ -555,7 +555,7 @@ Finished running the command, jobControlId = JOB_CONTROL_ID_1
 ```
 
 Turn on async submission mode. Run this command to get JOB_CONTROL_ID, then use getCmdStatus to check command detailed status:
-```console
+```shell
 $ ./bin/alluxio fs distributedCp /data/1023 /data/1025 --async
 
 Sample Output:
@@ -596,7 +596,7 @@ A lower value means slower execution but also being nicer to the other users of 
 * `--passive-cache`: Specifies using direct cache request or passive cache with read(old implementation)
 * `--async`: Specifies whether to wait for command execution to finish. If not explicitly shown then default to run synchronously.
 
-```console
+```shell
 $ ./bin/alluxio fs distributedLoad --replication 2 --active-jobs 2000 /data/today
 
 Sample Output:
@@ -611,7 +611,7 @@ Total completed file count is 3, failed file count is 0
 Finished running the command, jobControlId = JOB_CONTROL_ID_3
 ```
 Turn on async submission mode. Run this command to get JOB_CONTROL_ID, then use getCmdStatus to check command detailed status:
-```console
+```shell
 $ ./bin/alluxio fs distributedLoad /data/today --async
 
 Sample Output:
@@ -626,48 +626,55 @@ Or you can include some workers or exclude some workers by using options `--host
 Note: Do not use `--host-file <host-file>`, `--hosts`, `--locality-file <locality-file>`, `--locality` with
 `--excluded-host-file <host-file>`, `--excluded-hosts`, `--excluded-host-file <host-file>`, `--excluded-locality` together.
 
-Only include host1 and host2:
-```console
+```shell
+# Only include host1 and host2
 $ ./bin/alluxio fs distributedLoad /data/today --hosts host1,host2
 ```
-Only include the workset from host file /tmp/hostfile:
-```console
+
+```shell
+# Only include the workset from host file /tmp/hostfile
 $ ./bin/alluxio fs distributedLoad /data/today --host-file /tmp/hostfile
 ```
-Include all workers except host1 and host2:
-```console
+
+```shell
+# Include all workers except host1 and host2
 $ ./bin/alluxio fs distributedLoad /data/today --excluded-hosts host1,host2
 ```
-Include all workers except the workerset in the excluded host file /tmp/hostfile-exclude:
-```console
+
+```shell
+# Include all workers except the workerset in the excluded host file /tmp/hostfile-exclude
 $ ./bin/alluxio fs distributedLoad /data/today --excluded-file /tmp/hostfile-exclude
 ```
-Include workers which's locality identify belong to ROCK1 or ROCK2:
-```console
+
+```shell
+# Include workers which's locality identify belong to ROCK1 or ROCK2
 $ ./bin/alluxio fs distributedLoad /data/today --locality ROCK1,ROCK2
 ```
-Include workers which's locality identify belong to the localities in the locality file:
-```console
+
+```shell
+# Include workers which's locality identify belong to the localities in the locality file
 $ ./bin/alluxio fs distributedLoad /data/today --locality-file /tmp/localityfile
 ```
-Include all workers except which's locality belong to ROCK1 or ROCK2:
-```console
+
+```shell
+# Include all workers except which's locality belong to ROCK1 or ROCK2
 $ ./bin/alluxio fs distributedLoad /data/today --excluded-locality ROCK1,ROCK2
 ```
-Include all workers except which's locality belong to the localities in the excluded locality file:
-```console
+
+```shell
+# Include all workers except which's locality belong to the localities in the excluded locality file
 $ ./bin/alluxio fs distributedLoad /data/today --excluded-locality-file /tmp/localityfile-exclude
 ```
 
 **Conflict Cases:**
 
 * The `--hosts` and `--locality` are `OR` relationship, so host2,host3 and workers in ROCK2,ROCKS3 will be included:
-```console
+```shell
 $ ./bin/alluxio fs distributedLoad /data/today --locality ROCK2,ROCK3 --hosts host2,host3
 ```
 
 * The `--excluded-hosts` and `--excluded-locality` are `OR` relationship, so host2,host3 and workers in ROCK2,ROCKS3 will be excluded:
-```console
+```shell
 $ ./bin/alluxio fs distributedLoad /data/today --excluded-hosts host2,host3 --excluded-locality ROCK2,ROCK3
 ```
 
@@ -678,17 +685,17 @@ using the job service.
 
 If the source designates a directory, `distributedMv` moves the entire subtree at source to the destination.
 
-```console
+```shell
 $ ./bin/alluxio fs distributedMv /data/1023 /data/1024
 ```
 
 ### head
 
-The `head` command prints the first 1 KB of data in a file to the console.
+The `head` command prints the first 1 KB of data in a file to the shell.
 
-Using the `-c [bytes]` option will print the first `n` bytes of data to the console.
+Using the `-c [bytes]` option will print the first `n` bytes of data to the shell.
 
-```console
+```shell
 $ ./bin/alluxio fs head -c 2048 /output/part-00000
 ```
 
@@ -698,12 +705,13 @@ The `help` command prints the help message for a given `fs` subcommand.
 If the given command does not exist, it prints help messages for all supported subcommands.
 
 Examples:
-* Print all subcommands
-```console
+```shell
+# Print all subcommands
 $ ./bin/alluxio fs help
 ```
-* Print help message for ls
-```console
+
+```shell
+# Print help message for ls
 $ ./bin/alluxio fs help ls
 ```
 
@@ -711,7 +719,7 @@ $ ./bin/alluxio fs help ls
 
 The `leader` command prints the current Alluxio leading master hostname.
 
-```console
+```shell
 $ ./bin/alluxio fs leader
 ```
 
@@ -720,7 +728,7 @@ $ ./bin/alluxio fs leader
 The `load` command moves data from the under storage system into Alluxio storage.
 For example, `load` can be used to prefetch data for analytics jobs.
 If `load` is run on a directory, files in the directory will be recursively loaded.
-```console
+```shell
 $ ./bin/alluxio fs load <path> --submit [--bandwidth N] [--verify] [--partial-listing]
 ```
 **Options:**
@@ -729,11 +737,11 @@ $ ./bin/alluxio fs load <path> --submit [--bandwidth N] [--verify] [--partial-li
 * `--partial-listing` option specify using batch listStatus API or traditional listStatus. We would retire this option when batch listStatus API gets mature.
 
 After submit the command, you can check the status by running the following
-```console
+```shell
 $ ./bin/alluxio fs load <path> --progress [--format TEXT|JSON] [--verbose]
 ```
 And you would get the following output:
-```console
+```shell
 Progress for loading path '/dir-99':
         Settings:       bandwidth: unlimited    verify: false
         Job State: SUCCEEDED
@@ -747,13 +755,13 @@ Progress for loading path '/dir-99':
 * `--format` option specify output format. TEXT as default
 * `--verbose` option output job details. 
 
-If you want to stop the command, run the following:
-```console
+```shell
+# If you want to stop the command, run the following
 $ ./bin/alluxio fs load <path> --stop
 ```
 
-If you just want sequential execution for couple files, you can use the following old version:
-```console
+```shell
+# If you just want sequential execution for couple files, you can use the following old version
 $ ./bin/alluxio fs load <path>
 ```
 If there is a Alluxio worker on the machine this command is run from, the data will be loaded to that worker.
@@ -762,7 +770,7 @@ Otherwise, a random worker will be selected to serve the data.
 If the data is already loaded into Alluxio, load is a no-op unless the `--local flag` is used.
 The `--local` flag forces the data to be loaded to a local worker
 even if the data is already available on a remote worker.
-```console
+```shell
 $ ./bin/alluxio fs load <path> --local
 ```
 
@@ -780,7 +788,7 @@ This command is more efficient than using the `ls` command since it does not sto
 
 For example, `loadMetadata` can be used to load metadata for a path in the UFS.
 The -F option will force the loading of metadata even if there are existing metadata entries for the path.
-```console
+```shell
 $ ./bin/alluxio fs loadMetadata -R -F <path>
 ```
 
@@ -813,20 +821,23 @@ The default option is lastModificationTime.
 
 For example, `ls` can be used to browse the file system.
 
-```console
+```shell
 $ ./bin/alluxio fs mount /s3/data s3://data-bucket/
 ```
-Loads metadata for all immediate children of /s3/data and lists them:
-```console
+
+```shell
+# Loads metadata for all immediate children of /s3/data and lists them
 $ ./bin/alluxio fs ls /s3/data/
 ```
-Forces loading metadata:
-```console
+
+```shell
+# Forces loading metadata
 $ aws s3 cp /tmp/somedata s3://data-bucket/somedata
 $ ./bin/alluxio fs ls -f /s3/data
 ```
-Files are not removed from Alluxio if they are removed from the UFS (s3 here) only:
-```console
+
+```shell
+# Files are not removed from Alluxio if they are removed from the UFS (s3 here) only
 $ aws s3 rm s3://data-bucket/somedata
 $ ./bin/alluxio fs ls -f /s3/data
 ```
@@ -836,12 +847,13 @@ on 1 million files will consume 2GB heap until the sync operation is complete.
 Therefore, we recommend not using forced sync to avoid accidental repeated sync operations.
 It is recommended to always specify a non-zero sync interval for metadata sync, so
 even if the sync is repeatedly triggered, the paths that have just been sync-ed can be identified and skipped. 
-* Should be avoided:
-```console
+
+```shell
+# Should be avoided
 $ ./bin/alluxio fs ls -f -R /s3/data
 ```
-* **Recommended.** This will not sync files repeatedly in 1 minute.
-```console
+```shell
+# RECOMMENDED. This will not sync files repeatedly in 1 minute.
 $ ./bin/alluxio fs ls -Dalluxio.user.file.metadata.sync.interval=1min -R /s3/data
 ```
 
@@ -855,7 +867,7 @@ and the configured Zookeeper address is printed.
 
 For example, `masterInfo` can be used to print information regarding master fault tolerance.
 
-```console
+```shell
 $ ./bin/alluxio fs masterInfo
 ```
 
@@ -869,7 +881,7 @@ Using `mkdir` on an invalid or existing path will fail.
 
 For example, `mkdir` can be used by an admin to set up the basic folder structures.
 
-```console
+```shell
 $ ./bin/alluxio fs mkdir /users
 $ ./bin/alluxio fs mkdir /users/Alice
 $ ./bin/alluxio fs mkdir /users/Bob
@@ -885,7 +897,7 @@ If it is a directory, the file or directory will be placed as a child of the dir
 
 For example, `mv` can be used to re-organize your files.
 
-```console
+```shell
 $ ./bin/alluxio fs mv /data/2014 /data/archives/2014
 ```
 
@@ -901,18 +913,19 @@ before attempting to delete persisted directories. We recommend always using the
 * Adding `--alluxioOnly` option removes data and metadata from Alluxio space only.
 The under storage system will not be affected.
 
-Remove a file from Alluxio space and the under storage system:
-```console
+```shell
+# Remove a file from Alluxio space and the under storage system
 $ ./bin/alluxio fs rm /tmp/unused-file
 ```
-Remove a file from Alluxio space only:
-```console
+
+```shell
+# Remove a file from Alluxio space only
 $ ./bin/alluxio fs rm --alluxioOnly /tmp/unused-file2
 ```
 
 When deleting only from Alluxio but leaving the files in UFS, we recommend using `-U` and `-Dalluxio.user.file.metadata.sync.interval=-1`
 to skip the metadata sync and the UFS check. This will save time and memory consumption on the Alluxio master.
-```console
+```shell
 $ bin/alluxio fs rm -R -U --alluxioOnly -Dalluxio.user.file.metadata.sync.interval=-1 /dir
 ```
 
@@ -928,7 +941,7 @@ because the loaded file metadata will be deleted anyway, and the expensive metad
 will essentially be wasted.
 
 2. Issue the deletion from Alluxio to delete files from both Alluxio and the UFS:
-```console
+```shell
 # Disable the sync and skip the UFS check, to reduce memory consumption on the master side
 $ bin/alluxio fs rm -R -U -Dalluxio.user.file.metadata.sync.interval=-1 /dir
 ```
@@ -946,7 +959,7 @@ A general good practice is to break deleting a large directory into deleting eac
 
 ### stat
 
-The `stat` command dumps the FileInfo representation of a file or a directory to the console.
+The `stat` command dumps the FileInfo representation of a file or a directory to the shell.
 It is primarily intended to assist power users in debugging their system.
 Generally viewing the file info in the UI will be easier to understand.
 
@@ -963,34 +976,34 @@ One can specify `-f <arg>` to display info in given format:
 For example, `stat` can be used to debug the block locations of a file.
 This is useful when trying to achieve locality for compute workloads.
 
-Displays file's stat:
-```console
+```shell
+# Display file's stat
 $ ./bin/alluxio fs stat /data/2015/logs-1.txt
 ```
 
-Displays directory's stat:
-```console
+```shell
+# Display directory's stat
 $ ./bin/alluxio fs stat /data/2015
 ```
 
-Displays the size of file:
-```console
+```shell
+# Display the size of file
 $ ./bin/alluxio fs stat -f %z /data/2015/logs-1.txt
 ```
 
-Finds the file by fileID/inodeID and displays the stat, useful in troubleshooting:
-```console
+```shell
+# Find the file by fileID/inodeID and display the stat, useful in troubleshooting
 $ ./bin/alluxio fs stat -fileId 12345678
 ```
 
 ### tail
 
-The `tail` command outputs the last 1 KB of data in a file to the console.
-Using the `-c [bytes]` option will print the last `n` bytes of data to the console.
+The `tail` command outputs the last 1 KB of data in a file to the shell.
+Using the `-c [bytes]` option will print the last `n` bytes of data to the shell.
 
 For example, `tail` can be used to verify the output of a job is in the expected format
 or contains expected values.
 
-```console
+```shell
 $ ./bin/alluxio fs tail /output/part-00000
 ```

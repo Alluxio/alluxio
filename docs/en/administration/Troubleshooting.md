@@ -49,8 +49,10 @@ the remote debugging parameters; you can export the following configuration prop
 # Java 8
 export ALLUXIO_MASTER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60001"
 export ALLUXIO_WORKER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60002"
-# Java 11
+```
 
+```shell
+# Java 11
 export ALLUXIO_MASTER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:60001"
 export ALLUXIO_WORKER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:60002"
 ```
@@ -72,6 +74,9 @@ If you want to debug shell commands (e.g. `bin/alluxio fs ls /`), you can set th
 ```shell
 # Java 8
 export ALLUXIO_USER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60000"
+```
+
+```shell
 # Java 11
 export ALLUXIO_USER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:60000"
 ```
@@ -156,7 +161,7 @@ like `-Daws.access.key=XXX`, DO NOT share the collected tarball with anybody unl
 
 The `collectInfo` command has the below options.
 
-```console
+```shell
 $ bin/alluxio collectInfo 
     [--max-threads <threadNum>] 
     [--local] 
@@ -324,7 +329,9 @@ The thresholds are
 ```properties
 # JVM paused time
 alluxio.master.throttle.overloaded.heap.gc.time
+```
 
+```properties
 # heap used thresholds
 alluxio.master.throttle.active.heap.used.ratio
 alluxio.master.throttle.stressed.heap.used.ratio

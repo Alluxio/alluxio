@@ -139,7 +139,7 @@ Before starting Alluxio for the first time, the journal must be formatted.
 **Warning**: the following command permanently deletes all Alluxio metadata,
 so be careful with this command or backup your journal first (see next section).
 
-```console
+```shell
 $ ./bin/alluxio formatMasters
 ```
 
@@ -153,7 +153,7 @@ unavailability while the leading master is taking the backup.
 (See [Backup delegation on HA cluster](#backup-delegation-on-ha-cluster) section for overcoming this limitation.)
 
 To generate a backup, use the `fsadmin backup` CLI command.
-```console
+```shell
 $ ./bin/alluxio fsadmin backup
 ```
 
@@ -223,7 +223,7 @@ To restore the Alluxio system from a journal backup, stop the system, format the
 journal, then restart the system, passing the URI of the backup with the `-i`
 (import) flag.
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh masters
 $ ./bin/alluxio formatMasters
 $ ./bin/alluxio-start.sh -i <backup_uri> masters
@@ -279,7 +279,7 @@ Please note `-domain` parameter in below commands. This is because embedded jour
 for both regular masters and job service masters. You should supply correct value based on which cluster you intend to work on.
 
 1. Check current quorum state:
-```console
+```shell
 $ ./bin/alluxio fsadmin journal quorum info -domain <MASTER | JOB_MASTER>
 ```
 This will print out node status for all currently participating members of the embedded journal cluster. You should verify
@@ -287,7 +287,7 @@ that the removed master is shown as `UNAVAILABLE`.
 
 2. Remove member from the quorum:
 `-address` option below should reflect the exact address that is returned by the `.. quorum info` command provided above.
-```console
+```shell
 $ ./bin/alluxio fsadmin journal quorum remove -domain <MASTER | JOB_MASTER> -address <HOSTNAME:PORT>
 ```
 
@@ -297,14 +297,14 @@ $ ./bin/alluxio fsadmin journal quorum remove -domain <MASTER | JOB_MASTER> -add
 To aid in debugging and to add flexibility, it is possible to manually change the leader of an embedded journal cluster.
 
 1. Check current quorum state:
-```console
+```shell
 $ ./bin/alluxio fsadmin journal quorum info -domain MASTER
 ```
 This will print out node status for all currently participating members of the embedded journal cluster. You should select one 
 of the `AVAILABLE` masters. The current leader is also displayed by this command. 
 
 2. Elect an available master as leader:
-```console
+```shell
 $ ./bin/alluxio fsadmin journal quorum elect -address <HOSTNAME:PORT>
 ```
 The `elect` command makes sure that the leadership has transferred to the designated master before returning and displaying
@@ -366,7 +366,7 @@ No need to manually transfer leadership anymore.
 
 If HA mode is not an option, the following command can be used to manually trigger the checkpoint:
 
-```console
+```shell
 $ ./bin/alluxio fsadmin journal checkpoint
 ```
 
