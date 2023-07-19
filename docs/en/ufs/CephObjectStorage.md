@@ -22,7 +22,7 @@ Configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.
 
-```console
+```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
@@ -62,7 +62,7 @@ as `http://<rgw-hostname>:<rgw-port>/auth/1.0`.
 
 Start up Alluxio locally to see that everything works.
 
-```console
+```shell
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
 ```
@@ -72,7 +72,7 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 
 Run a simple example program:
 
-```console
+```shell
 $ ./bin/alluxio runTests
 ```
 
@@ -85,7 +85,7 @@ You should see files named like:
 
 To stop Alluxio, run:
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh local
 ```
 

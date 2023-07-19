@@ -18,7 +18,7 @@ to sign up for OSS and create an OSS bucket.
 To configure Alluxio to use OSS as under storage, you will need to modify the configuration file 
 `conf/alluxio-site.properties`. If the file does not exist, create the configuration file from the template.
 
-```console
+```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
@@ -50,7 +50,7 @@ values like `oss-us-west-1.aliyuncs.com` and `oss-cn-shanghai.aliyuncs.com`. Ava
 
 Start the Alluxio servers:
 
-```console
+```shell
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
 ```
@@ -60,7 +60,7 @@ This will start an Alluxio master and an Alluxio worker. You can see the master 
 
 Run a simple example program:
 
-```console
+```shell
 $ ./bin/alluxio runTests
 ```
 
@@ -70,7 +70,7 @@ and directories created by Alluxio exist. For this test, you should see files na
 
 Stop Alluxio by running:
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh local
 ```
 
@@ -84,7 +84,7 @@ access to multiple under storage systems. Alluxio's
 For example, the following command mounts a directory inside an OSS bucket into Alluxio directory
 `/oss`:
 
-```console
+```shell
 $ ./bin/alluxio fs mount --option fs.oss.accessKeyId=<OSS_ACCESS_KEY_ID> \
   --option fs.oss.accessKeySecret=<OSS_ACCESS_KEY_SECRET> \
   --option fs.oss.endpoint=<OSS_ENDPOINT> \
@@ -106,10 +106,12 @@ There are other parameters you can specify in `conf/alluxio-site.properties` to 
 ```properties
 # Timeout for uploading part when using multipart upload.
 alluxio.underfs.object.store.multipart.upload.timeout
-
+```
+```properties
 # Thread pool size for OSS multipart upload.
 alluxio.underfs.oss.multipart.upload.threads
-
+```
+```properties
 # Multipart upload partition size for OSS. The default partition size is 64MB. 
 alluxio.underfs.oss.multipart.upload.partition.size
 ```

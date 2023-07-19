@@ -18,7 +18,7 @@ For the purposes of this guide, the COS Bucket name is called `COSN_ALLUXIO_BUCK
 
 Create `conf/alluxio-site.properties` and `conf/core-site.xml` if they do not exist.
 
-```console
+```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 $ cp conf/core-site.xml.template conf/core-site.xml
 ```
@@ -63,7 +63,7 @@ After these changes, Alluxio should be configured to work with COSN as its under
 
 Start up Alluxio locally to see that everything works.
 
-```console
+```shell
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
 ```
@@ -72,7 +72,7 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 
 Run a simple example program:
 
-```console
+```shell
 $ ./bin/alluxio runTests
 ```
 
@@ -85,6 +85,6 @@ COSN_ALLUXIO_BUCKET/COSN_DATA/default_tests_files/BASIC_CACHE_THROUGH
 
 To stop Alluxio, you can run:
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh local
 ```

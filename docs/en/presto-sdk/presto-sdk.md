@@ -42,7 +42,7 @@ As Presto communicates with Alluxio servers by the SDK provided in the Alluxio c
 in the classpath of Presto servers. Put the Alluxio client jar `/<PATH_TO_ALLUXIO>/client/alluxio-2.9.1-client.jar`
 into the directory `${PRESTO_HOME}/plugin/hive-hadoop2/` (this directory may differ across versions) on all Presto servers.
 Restart the Presto workers and coordinator
-```console
+```shell
 $ ${PRESTO_HOME}/bin/launcher restart
 ```
 After completing the basic configuration, Presto should be able to access data in Alluxio.

@@ -19,7 +19,7 @@ to install a Ozone cluster, and follow the [Cli Commands](https://ozone.apache.o
 To configure Alluxio to use Ozone as under storage, you will need to modify the configuration file 
 `conf/alluxio-site.properties`. If the file does not exist, create the configuration file from the template.
 
-```console
+```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
@@ -86,7 +86,7 @@ alluxio.underfs.version=<OZONE_VERSION>
 
 Start the Alluxio servers:
 
-```console
+```shell
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
 ```
@@ -96,7 +96,7 @@ This will start an Alluxio master and an Alluxio worker. You can see the master 
 
 Run a simple example program:
 
-```console
+```shell
 $ ./bin/alluxio runTests
 ```
 
@@ -106,7 +106,7 @@ to verify the files and directories created by Alluxio exist. For this test, you
 
 Stop Alluxio by running:
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh local
 ```
 

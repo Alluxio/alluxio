@@ -29,7 +29,7 @@ covers the specific instructions for working with Iceberg tables.
 Copy the Alluxio client jar located at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` into Presto Iceberg 
 connector's directory located at `${PRESTO_HOME}/plugin/iceberg/`. Then restart the Presto server:
 
-```console
+```shell
 $ ${PRESTO_HOME}/bin/launcher restart
 ```
 
@@ -59,7 +59,7 @@ For demonstration purposes, we will create an example schema and an Iceberg tabl
 
 Launch the Presto CLI client with the following command:
 
-```console
+```shell
 $ ./presto --server localhost:8080 --catalog iceberg --debug
 ```
 
@@ -101,7 +101,7 @@ SELECT * FROM person;
 
 As well as examine the files in Alluxio:
 
-```console
+```shell
 $ bin/alluxio fs ls /person
 drwxr-xr-x  alluxio    alluxio    10    PERSISTED 06-29-2021 16:24:02:007  DIR /person/metadata
 drwxr-xr-x  alluxio    alluxio     1    PERSISTED 06-29-2021 16:24:00:049  DIR /person/data

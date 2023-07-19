@@ -14,7 +14,7 @@ To configure Alluxio to use HDFS as under storage, you will need to modify the c
 file `conf/alluxio-site.properties`.
 If the file does not exist, create the configuration file from the template.
 
-```console
+```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
@@ -41,7 +41,7 @@ alluxio.underfs.version=<HADOOP VERSION>
 Before this step, make sure your HDFS cluster is running and the directory mapped to Alluxio
 exists. Start the Alluxio servers:
 
-```console
+```shell
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh master
 $ ./bin/alluxio-start.sh worker
@@ -49,7 +49,7 @@ $ ./bin/alluxio-start.sh worker
 
 Stop Alluxio by running:
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh master
 $ ./bin/alluxio-stop.sh worker
 ```
@@ -160,10 +160,10 @@ You can check the existence of this client by going to the `lib` directory under
 If you have built Alluxio from source, you can build additional client jar files by running `mvn` command under the `underfs` directory in the Alluxio source tree. 
 For example, issuing the following command would build the client jar for the 2.8.0 version.
 
-```console
+```shell
 $ mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests \
--Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true \
--Pufs-hadoop-2 -Dufs.hadoop.version=2.8.0
+    -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true \
+    -Pufs-hadoop-2 -Dufs.hadoop.version=2.8.0
 ```
 
 #### Using Site Properties

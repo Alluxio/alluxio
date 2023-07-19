@@ -78,7 +78,7 @@ alluxio.underfs.kodo.endpoint=<KODO_ENDPOINT>
 
 After everything is configured, you can start up Alluxio locally to see that everything works.
 
-```console
+```shell
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
 ```
@@ -87,7 +87,7 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 
 Next, you can run a simple example program:
 
-```console
+```shell
 $ ./bin/alluxio runTests
 ```
 After this succeeds, you can visit your Kodo directory `kodo://<KODO_BUCKET>/<KODO_DIRECTORY>` to verify the files
@@ -95,7 +95,7 @@ and directories mounted by Alluxio exist. For this test, you should see files na
 `KODO_BUCKET/KODO_DIRECTORY/default_tests_files/BasicFile_CACHE_PROMOTE_MUST_CACHE`.
 
 To stop Alluxio, you can run:
-```console
+```shell
 $ ./bin/alluxio-stop.sh local
 ```
 

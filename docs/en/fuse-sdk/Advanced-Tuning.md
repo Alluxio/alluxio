@@ -12,7 +12,7 @@ Alluxio FUSE on libfuse3 is currently experimental but under active development.
 **libfuse3** is used by default.
 
 Set to use **libfuse2** via:
-```console
+```shell
 $ sudo yum install fuse
 $ alluxio-fuse mount under_storage_dataset mount_point -o fuse=2
 ```
@@ -32,7 +32,7 @@ The mount options of MacOS with osxfuse are listed [here](https://github.com/osx
 Some mount options (e.g. `allow_other` and `allow_root`) need additional set-up
 and the set-up process may be different depending on the platform.
 
-```console
+```shell
 $ alluxio-fuse mount <under_storage_dataset> <mount_point> -o mount_option
 ```
 
@@ -52,9 +52,11 @@ For MacOS, follow the [osxfuse allow_other instructions](https://github.com/osxf
 to allow other users to use the `allow_other` and `allow_root` mount options.
 
 After setting up, pass the `allow_other` or `allow_root` mount options when mounting Alluxio-FUSE:
-```console
+```shell
 # All users (including root) can access the files.
 $ alluxio-fuse mount <under_storage_dataset> <mount_point> -o allow_other
+```
+```shell
 # The user mounting the filesystem and root can access the files.
 $ alluxio-fuse mount <under_storage_dataset> <mount_point> -o allow_root
 ```

@@ -32,7 +32,7 @@ NFS client cache can interfere with the correct operation of Alluxio, specifical
 Thus we highly recommend setting the attribute cache timeout to 0. 
 Please mount your nfs share like this. 
 
-```console
+```shell
 $ sudo mount -o actimeo=0 nfshost:/nfsdir /mnt/nfs
 ```
 
@@ -42,7 +42,7 @@ Configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.
 
-```console
+```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
@@ -57,7 +57,7 @@ alluxio.dora.client.ufs.root=/mnt/nfs
 
 Run the following command to start Alluxio filesystem.
 
-```console
+```shell
 $ ./bin/alluxio-mount.sh SudoMount
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
@@ -68,7 +68,7 @@ To verify that Alluxio is running, you can visit
 
 Run a simple example program:
 
-```console
+```shell
 $ ./bin/alluxio runTests
 ```
 
@@ -81,6 +81,6 @@ For this test, you should see files named:
 
 Stop Alluxio by running:
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh local
 ```

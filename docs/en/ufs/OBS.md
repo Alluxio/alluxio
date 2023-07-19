@@ -22,7 +22,7 @@ the bucket, or using an existing one. For the purposes of this guide, the OBS bu
 
 Create `conf/alluxio-site.properties` if it does not exist.
 
-```console
+```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
@@ -59,7 +59,7 @@ you can try [Running Alluxio Locally with OBS](#running-alluxio-locally-with-obs
 
 Start the Alluxio servers:
 
-```console
+```shell
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
 ```
@@ -69,7 +69,7 @@ This will start an Alluxio master and an Alluxio worker. You can see the master 
 
 Run a simple example program:
 
-```console
+```shell
 $ ./bin/alluxio runTests
 ```
 
@@ -77,7 +77,7 @@ Before running an example program, please make sure the root mount point
 set in the `conf/alluxio-site.properties` is a valid path in the ufs.
 Make sure the user running the example program has write permissions to the alluxio file system.
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh local
 ```
 
@@ -91,7 +91,7 @@ access to multiple under storage systems. Alluxio's
 For example, the following command mounts a directory inside an OBS bucket into Alluxio directory
 `/obs`:
 
-```console
+```shell
 $ ./bin/alluxio fs mount --option fs.obs.accessKey=<OBS ACCESS KEY> \
   --option fs.obs.secretKey=<OBS SECRET KEY> \
   --option fs.obs.endpoint=<OBS_ENDPOINT> \
@@ -113,10 +113,12 @@ There are other parameters you can specify in `conf/alluxio-site.properties` to 
 ```properties
 # Timeout for uploading part when using multipart upload.
 alluxio.underfs.object.store.multipart.upload.timeout
-
+```
+```properties
 # Thread pool size for OBS multipart upload.
 alluxio.underfs.obs.multipart.upload.threads
-
+```
+```properties
 # Multipart upload partition size for OBS. The default partition size is 64MB. 
 alluxio.underfs.obs.multipart.upload.partition.size
 ```

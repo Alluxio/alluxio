@@ -30,7 +30,7 @@ you need to configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.
 
-```console
+```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
@@ -56,7 +56,7 @@ An Azure Data Lake store location can be mounted at a nested directory in the Al
 to multiple under storage systems. Alluxio's
 [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) can be used for this purpose.
 
-```console
+```shell
 $ ./bin/alluxio fs mount \
   --option fs.adl.account.<AZURE_ACCOUNT>.oauth2.client.id=<APPLICATION_ID>
   --option fs.adl.account.<AZURE_ACCOUNT>.oauth2.credential=<AUTHENTICATION_KEY>
@@ -70,7 +70,7 @@ After these changes, Alluxio should be configured to work with Azure Data Lake s
 
 Start up Alluxio locally to see that everything works.
 
-```console
+```shell
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
 ```
@@ -80,7 +80,7 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 
 Run a simple example program:
 
-```console
+```shell
 $ ./bin/alluxio runTests
 ```
 
@@ -92,6 +92,6 @@ Visit your directory `<AZURE_DIRECTORY>` to verify the files and directories cre
 
 To stop Alluxio, you can run:
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh local
 ```

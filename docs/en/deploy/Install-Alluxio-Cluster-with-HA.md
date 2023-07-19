@@ -48,7 +48,7 @@ nodes inside the cluster.
 On each Alluxio node, create the `conf/alluxio-site.properties` configuration file from the
 template.
 
-```console
+```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
@@ -168,7 +168,7 @@ On all the Alluxio master nodes, list all the worker hostnames in the `conf/work
 This will allow alluxio scripts to run operations on the cluster nodes.
 `format` Alluxio cluster with the following command in one of the master nodes:
 
-```console
+```shell
 $ ./bin/alluxio format
 ```
 
@@ -176,7 +176,7 @@ $ ./bin/alluxio format
 
 In one of the master nodes, start the Alluxio cluster with the following command:
 
-```console
+```shell
 $ ./bin/alluxio-start.sh all SudoMount
 ```
 
@@ -191,7 +191,7 @@ On MacOS, make sure your terminal has full disk access (tutorial [here](https://
 To verify that Alluxio is running, you can visit the web UI of the leading master. To determine the
 leading master, run:
 
-```console
+```shell
 $ ./bin/alluxio fs masterInfo
 ```
 
@@ -200,7 +200,7 @@ Then, visit `http://<LEADER_HOSTNAME>:19999` to see the status page of the Allux
 Alluxio comes with a simple program that writes and reads sample files in Alluxio. Run the sample
 program with:
 
-```console
+```shell
 $ ./bin/alluxio runTests
 ```
 
@@ -217,7 +217,7 @@ or site properties, and then connect to the service using an Alluxio URI such as
 For example, with Alluxio connection information in `core-site.xml` of Hadoop, Hadoop CLI can 
 connect to the Alluxio cluster.
 
-```console
+```shell
 $ hadoop fs -ls alluxio:///directory
 ```
 
@@ -332,7 +332,7 @@ Below are common operations to perform on an Alluxio cluster.
 
 To stop an Alluxio service, run:
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh all
 ```
 
@@ -340,7 +340,7 @@ This will stop all the processes on all nodes listed in `conf/workers` and `conf
 
 You can stop just the masters and just the workers with the following commands:
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh masters # stops all masters in conf/masters
 $ ./bin/alluxio-stop.sh workers # stops all workers in conf/workers
 ```
@@ -349,7 +349,7 @@ If you do not want to use `ssh` to login to all the nodes and stop all the proce
 commands on each node individually to stop each component.
 For any node, you can stop a master or worker with:
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh master # stops the local master
 $ ./bin/alluxio-stop.sh worker # stops the local worker
 ```
@@ -359,13 +359,13 @@ $ ./bin/alluxio-stop.sh worker # stops the local worker
 Starting Alluxio is similar. If `conf/workers` and `conf/masters` are both populated, you can start
 the cluster with:
 
-```console
+```shell
 $ ./bin/alluxio-start.sh all
 ```
 
 You can start just the masters and just the workers with the following commands:
 
-```console
+```shell
 $ ./bin/alluxio-start.sh masters # starts all masters in conf/masters
 $ ./bin/alluxio-start.sh workers # starts all workers in conf/workers
 ```
@@ -374,7 +374,7 @@ If you do not want to use `ssh` to login to all the nodes and start all the proc
 commands on each node individually to start each component. For any node, you can start a master or
 worker with:
 
-```console
+```shell
 $ ./bin/alluxio-start.sh master # starts the local master
 $ ./bin/alluxio-start.sh worker # starts the local worker
 ```
@@ -386,7 +386,7 @@ process, with the appropriate configuration.
 In most cases, the new worker's configuration should be the same as all the other workers' configuration.
 Run the following command on the new worker to add
 
-```console
+```shell
 $ ./bin/alluxio-start.sh worker SudoMount # starts the local worker
 ```
 
@@ -394,7 +394,7 @@ Once the worker is started, it will register itself with the Alluxio leading mas
 
 Removing a worker is as simple as stopping the worker process.
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh worker # stops the local worker
 ```
 

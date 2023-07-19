@@ -27,7 +27,7 @@ Distribute Alluxio client jar on all Hive nodes and include the Alluxio client j
 classpath so Hive can query and access data on Alluxio.
 Within Hive installation directory , set `HIVE_AUX_JARS_PATH` in `conf/hive-env.sh`:
 
-```console
+```shell
 $ export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
 ```
 
@@ -52,7 +52,7 @@ You can download a data file (e.g., `ml-100k.zip`) from
 [http://grouplens.org/datasets/movielens/](http://grouplens.org/datasets/movielens/).
 Unzip this file and upload the file `u.user` into `ml-100k/` on Alluxio:
 
-```console
+```shell
 $ ./bin/alluxio fs mkdir /ml-100k
 $ ./bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio://master_hostname:port/ml-100k
 ```
@@ -108,7 +108,7 @@ Now you can query the created table. For example:
 hive> select * from u_user;
 ```
 
-And you can see the query results from console:
+And you can see the query results from shell:
 
 ![HiveQueryResult]({{ '/img/screenshot_hive_query_result.png' | relativize_url }})
 
@@ -281,7 +281,7 @@ Add the following property to `hive-site.xml` in your Hive installation `conf` d
 
 Create directories in Alluxio for Hive:
 
-```console
+```shell
 $ ./bin/alluxio fs mkdir /tmp
 $ ./bin/alluxio fs mkdir /user/hive/warehouse
 $ ./bin/alluxio fs chmod 775 /tmp
@@ -324,7 +324,7 @@ Using a single query:
 hive> select * from u_user;
 ```
 
-And you can see the query results from console:
+And you can see the query results from shell:
 
 ![HiveQueryResult]({{ '/img/screenshot_hive_query_result.png' | relativize_url }})
 

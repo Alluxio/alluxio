@@ -49,7 +49,7 @@ Put the Alluxio client jar `{{site.ALLUXIO_CLIENT_JAR_PATH}}` into the directory
 (this directory may differ across versions) on all Trino servers. Restart the Trino workers and
 coordinator:
 
-```console
+```shell
 $ ${Trino_HOME}/bin/launcher restart
 ```
 
@@ -67,7 +67,7 @@ You can download a data file (e.g., `ml-100k.zip`) from
 [http://grouplens.org/datasets/movielens/](http://grouplens.org/datasets/movielens/).
 Unzip this file and upload the file `u.user` into `/ml-100k/` in Alluxio:
 
-```console
+```shell
 $ ./bin/alluxio fs mkdir /ml-100k
 $ ./bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio:///ml-100k
 ```
@@ -94,7 +94,7 @@ You can see the directory and files that Hive creates by viewing the Alluxio Web
 Ensure your Hive Metastore service is running. Hive Metastore listens on port `9083` by
 default. If it is not running, execute the following command to start the metastore:
 
-```console
+```shell
 $ ${HIVE_HOME}/bin/hive --service metastore
 ```
 
@@ -103,7 +103,7 @@ $ ${HIVE_HOME}/bin/hive --service metastore
 Start your Trino server. Trino server runs on port `8080` by default (configurable with
 `http-server.http.port` in `${Trino_HOME}/etc/config.properties` ):
 
-```console
+```shell
 $ ${Trino_HOME}/bin/launcher run
 ```
 
@@ -117,7 +117,7 @@ directly).
 
 Run a single query (replace `localhost:8080` with your actual Trino server hostname and port):
 
-```console
+```shell
 $ ./trino --server localhost:8080 --execute "use default; select * from u_user limit 10;" --catalog hive --debug
 ```
 
@@ -130,7 +130,7 @@ To configure additional Alluxio properties, you can append the conf path (i.e.
 to Trino's JVM config at `etc/jvm.config` under Trino folder. The advantage of this approach is to
 have all the Alluxio properties set within the same file of `alluxio-site.properties`.
 
-```console
+```shell
 $ -Xbootclasspath/a:<path-to-alluxio-conf>
 ```
 

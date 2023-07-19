@@ -19,7 +19,7 @@ Configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.
 
-```console
+```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
@@ -59,7 +59,7 @@ be deployed.
 
 Start an Alluxio cluster:
 
-```console
+```shell
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
 ```
@@ -69,7 +69,7 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 
 Run a simple example program:
 
-```console
+```shell
 $ ./bin/alluxio runTests
 ```
 
@@ -82,7 +82,7 @@ by Alluxio exist. For this test, you should see files named like:
 
 To stop Alluxio, you can run:
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh local
 ```
 
@@ -92,7 +92,7 @@ The following command can be used to test if the given Swift credentials are val
 Developers can also use it to run functional tests against a Swift endpoint 
 to validate the contract between Alluxio and Swift.
 
-```console
+```shell
 $ ./bin/alluxio runUfsTests --path swift://<bucket> \
   -Dfs.swift.user=<SWIFT_USER> \
   -Dfs.swift.tenant=<SWIFT_TENANT> \
