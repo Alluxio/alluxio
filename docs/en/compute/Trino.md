@@ -118,7 +118,8 @@ directly).
 Run a single query (replace `localhost:8080` with your actual Trino server hostname and port):
 
 ```shell
-$ ./trino --server localhost:8080 --execute "use default; select * from u_user limit 10;" --catalog hive --debug
+$ ./trino --server localhost:8080 --execute "use default; select * from u_user limit 10;" \
+    --catalog hive --debug
 ```
 
 ## Advanced Setup

@@ -76,21 +76,6 @@ $ ./bin/alluxio-stop.sh local
 
 ## Advanced Setup
 
-### Nested Mount
-
-An OSS location can be mounted at a nested directory in the Alluxio namespace to have unified
-access to multiple under storage systems. Alluxio's
-[Mount Command]({{ '/en/operation/User-CLI.html' | relativize_url }}#mount) can be used for this purpose.
-For example, the following command mounts a directory inside an OSS bucket into Alluxio directory
-`/oss`:
-
-```shell
-$ ./bin/alluxio fs mount --option fs.oss.accessKeyId=<OSS_ACCESS_KEY_ID> \
-  --option fs.oss.accessKeySecret=<OSS_ACCESS_KEY_SECRET> \
-  --option fs.oss.endpoint=<OSS_ENDPOINT> \
-  /oss oss://<OSS_BUCKET>/<OSS_DIRECTORY>/
-```
-
 ### [Experimental] OSS multipart upload
 
 The default upload method uploads one file completely from start to end in one go. We use multipart-upload method to upload one file by multiple parts, every part will be uploaded in one thread. It won't generate any temporary files while uploading.

@@ -50,27 +50,27 @@ alluxio.underfs.kodo.endpoint=<KODO_ENDPOINT>
 <tr>
     <td markdown="span">East China</td>
     <td markdown="span">z0</td>
-    <td markdown="span">iovip.qbox.me</td>
+    <td markdown="span">`iovip.qbox.me`</td>
 </tr>
 <tr>
     <td markdown="span">North China</td>
     <td markdown="span">z1</td>
-    <td markdown="span">iovip-z1.qbox.me</td>
+    <td markdown="span">`iovip-z1.qbox.me`</td>
 </tr>
 <tr>
     <td markdown="span">South China</td>
     <td markdown="span">z2</td>
-    <td markdown="span">iovip-z2.qbox.me</td>
+    <td markdown="span">`iovip-z2.qbox.me`</td>
 </tr>
 <tr>
     <td markdown="span">North America</td>
     <td markdown="span">na0</td>
-    <td markdown="span">iovip-na0.qbox.me</td>
+    <td markdown="span">`iovip-na0.qbox.me`</td>
 </tr>
 <tr>
     <td markdown="span">Southeast Asia</td>
     <td markdown="span">as0</td>
-    <td markdown="span">iovip-as0.qbox.me</td>
+    <td markdown="span">`iovip-as0.qbox.me`</td>
 </tr>
 </table>
 

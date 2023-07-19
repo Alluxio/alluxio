@@ -83,21 +83,6 @@ $ ./bin/alluxio-stop.sh local
 
 ## Advanced Setup
 
-### Nested Mount
-
-An OBS location can be mounted at a nested directory in the Alluxio namespace to have unified
-access to multiple under storage systems. Alluxio's
-[Mount Command]({{ '/en/operation/User-CLI.html' | relativize_url }}#mount) can be used for this purpose.
-For example, the following command mounts a directory inside an OBS bucket into Alluxio directory
-`/obs`:
-
-```shell
-$ ./bin/alluxio fs mount --option fs.obs.accessKey=<OBS ACCESS KEY> \
-  --option fs.obs.secretKey=<OBS SECRET KEY> \
-  --option fs.obs.endpoint=<OBS_ENDPOINT> \
-  /obs obs://<OBS_BUCKET>/<OBS_DIRECTORY>/
-```
-
 ### [Experimental] OBS multipart upload
 
 The default upload method uploads one file completely from start to end in one go. We use multipart-upload method to upload one file by multiple parts, every part will be uploaded in one thread. It won't generate any temporary files while uploading.

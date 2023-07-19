@@ -244,14 +244,14 @@ PR description, adapted from
 `Alluxio/new-contributor-tasks`, like `Fixes Alluxio/new-contributor-tasks#1234`.
 
 Once everything is set, click on the **Create pull request** button. Congratulations! Your first
-pull request for Alluxio has been submitted!
+pull request for Alluxio has been submitted! After the pull request has been submitted, it can be found on the
+[Pull Request page of the Alluxio repository](https://github.com/Alluxio/alluxio/pulls).
+
+Make sure to sign the [Contributor License Agreement (CLA)](https://www.alluxio.io/app/uploads/2022/07/Contribution-License-Agreement-2022-Template.pdf) and email back to [cla@alluxio.org](mailto:cla@alluxio.org) so that we can starting reviewing your pull request. The name and email associated with your pull request must match the name and email found in your `git config` and in the signed CLA. See [Configuring Your Git Email]({{ '/en/contributor/Contribution-Guide.html#configuring-your-git-email' | relativize_url }}).
 
 ### Reviewing the Pull Request
 
-After the pull request has been submitted, it can be found on the
-[Pull Request page of the Alluxio repository](https://github.com/Alluxio/alluxio/pulls).
-
-After it is submitted, other developers in the community will review your pull request. Others may
+After your pull request is submitted, other developers in the community will review your pull request. Others may
 add comments or questions to your pull request. Tests and checks will also be run against the
 new changes to validate your changes are safe to merge.
 

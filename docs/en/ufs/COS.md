@@ -85,22 +85,6 @@ $ ./bin/alluxio-stop.sh local
 
 ## Advanced Setup
 
-### Nested Mount
-
-An COS location can be mounted at a nested directory in the Alluxio namespace to have unified
-access to multiple under storage systems. Alluxio's
-[Mount Command]({{ '/en/operation/User-CLI.html' | relativize_url }}#mount) can be used for this purpose.
-For example, the following command mounts a directory inside an COS bucket into Alluxio directory
-`/cos`:
-
-```shell
-$ ./bin/alluxio fs mount --option fs.cos.access.key=<COS_SECRET_ID> \
-    --option fs.cos.secret.key=<COS_SECRET_KEY> \
-    --option fs.cos.region=<COS_REGION> \
-    --option fs.cos.app.id=<COS_APP_ID> \
-    /cos cos://<COS_ALLUXIO_BUCKET>/<COS_DATA>/
-```
-
 ### [Experimental] COS multipart upload
 
 The default upload method uploads one file completely from start to end in one go. We use multipart-upload method to upload one file by multiple parts, every part will be uploaded in one thread. It won't generate any temporary files while uploading.

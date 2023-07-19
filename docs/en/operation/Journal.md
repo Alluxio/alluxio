@@ -73,7 +73,7 @@ when using multiple masters without Zookeeper. This property is not used when Zo
 If this is not set, clients will look for masters using the hostnames from `alluxio.master.embedded.journal.addresses`
 and the master rpc port (Default:`19998`).
 
-### Advanced configuration
+<!-- ### Advanced configuration
 
 <ul>
 {% for item in site.data.table.master-configuration %}
@@ -85,7 +85,7 @@ and the master rpc port (Default:`19998`).
         <li><code>{{ item.propertyName }}</code>: {{ site.data.table.en.master-configuration[item.propertyName] }} Default: <code>{{ item.defaultValue }}</code></li>
     {% endif %}
 {% endfor %}
-</ul>
+</ul> -->
 
 ### Configuring the Job service
 
