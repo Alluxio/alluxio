@@ -153,20 +153,22 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       @Named("workerId") AtomicReference<Long> workerId,
       AlluxioConfiguration conf,
       CacheManager cacheManager) {
-    this(workerId, conf, cacheManager, new BlockMasterClientPool());
+    this(workerId, conf, cacheManager, new BlockMasterClientPool(),
+        FileSystemContext.create(conf));
   }
 
   protected PagedDoraWorker(
       AtomicReference<Long> workerId,
       AlluxioConfiguration conf,
       CacheManager cacheManager,
-      BlockMasterClientPool blockMasterClientPool) {
+      BlockMasterClientPool blockMasterClientPool,
+      FileSystemContext fileSystemContext) {
     super(ExecutorServiceFactories.fixedThreadPool("dora-worker-executor", 5));
     mWorkerId = workerId;
     mConf = conf;
     mRootUFS = Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
     mUfsManager = mResourceCloser.register(new DoraUfsManager());
-    mFsContext = mResourceCloser.register(FileSystemContext.create(mConf));
+    mFsContext = mResourceCloser.register(fileSystemContext);
     mUfsStreamCache = new UfsInputStreamCache();
     mUfs = UnderFileSystem.Factory.create(
         mRootUFS,
