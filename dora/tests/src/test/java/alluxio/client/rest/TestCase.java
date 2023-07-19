@@ -237,6 +237,11 @@ public final class TestCase {
     return this;
   }
 
+  public TestCase checkHeader(@NotNull String header, @NotNull String expected) throws Exception {
+    Assert.assertEquals(mEndpoint, expected, mConnection.getHeaderField(header));
+    return this;
+  }
+
   public TestCase checkErrorCode(@NotNull String expectedErrorCode) throws Exception {
     InputStream errorStream = mConnection.getErrorStream();
     S3Error response = XML_MAPPER.readerFor(S3Error.class).readValue(errorStream);
