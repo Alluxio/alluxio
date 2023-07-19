@@ -56,8 +56,8 @@ public final class WorkerWebServer extends WebServer {
    * @param worker block worker to manage blocks
    */
   public WorkerWebServer(InetSocketAddress webAddress, final WorkerProcess workerProcess,
-       DataWorker worker) {
-     this(webAddress, workerProcess, worker, FileSystem.Factory.create());
+      DataWorker worker) {
+    this(webAddress, workerProcess, worker, FileSystem.Factory.create());
   }
 
   /**
@@ -66,6 +66,7 @@ public final class WorkerWebServer extends WebServer {
    * @param webAddress the service address
    * @param workerProcess the Alluxio worker process
    * @param worker block worker to manage blocks
+   * @param fileSystem the filesystem
    */
   public WorkerWebServer(InetSocketAddress webAddress, final WorkerProcess workerProcess,
       DataWorker worker, FileSystem fileSystem) {
