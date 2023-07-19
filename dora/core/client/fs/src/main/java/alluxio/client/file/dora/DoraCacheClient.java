@@ -65,6 +65,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 
 /**
  * Dora cache client.
@@ -124,7 +125,7 @@ public class DoraCacheClient {
    * @return the output stream
    */
   public DoraFileOutStream getOutStream(AlluxioURI alluxioPath, FileSystemContext fsContext,
-      OutStreamOptions outStreamOptions, FileOutStream ufsOutStream,
+      OutStreamOptions outStreamOptions, @Nullable FileOutStream ufsOutStream,
       String uuid) throws IOException {
     WorkerNetAddress workerNetAddress = getWorkerNetAddress(alluxioPath.toString());
     NettyDataWriter writer = NettyDataWriter.create(
