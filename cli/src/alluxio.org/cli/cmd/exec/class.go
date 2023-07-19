@@ -19,8 +19,7 @@ import (
 
 var Class = &ClassCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "class",
-		JavaClassName: "",
+		CommandName: "class",
 	},
 }
 
