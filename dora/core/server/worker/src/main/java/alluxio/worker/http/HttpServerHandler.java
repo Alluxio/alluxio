@@ -156,6 +156,7 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
   private HttpResponseContext doListFiles(Map<String, String> parametersMap,
                            HttpRequest httpRequest) {
     String path = parametersMap.get("path");
+    path = handleReservedCharacters(path);
     ListStatusPOptions options = FileSystemOptionsUtils.listStatusDefaults(
         Configuration.global()).toBuilder().build();
     try {
@@ -184,6 +185,11 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
       LOG.error("Failed to list files of path {}", path, e);
       return null;
     }
+  }
+
+  private String handleReservedCharacters(String path) {
+    path = path.replace("%2F", "/");
+    return path;
   }
 
   private String getRequestMapping(String requestUri) {
