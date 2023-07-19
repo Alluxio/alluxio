@@ -52,7 +52,7 @@ public class S3ObjectTest extends RestApiTest {
       new LocalAlluxioClusterResource.Builder()
           .setIncludeProxy(true)
           .setProperty(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL,
-              "0s")  //always sync the metadata of the path before an operation
+              "0s")  //always sync the metadata
           .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)
           .setProperty(PropertyKey.WORKER_BLOCK_STORE_TYPE, "PAGE")
           .setProperty(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, Constants.KB)
