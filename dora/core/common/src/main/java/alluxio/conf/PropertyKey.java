@@ -1290,7 +1290,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_STREAMING_UPLOAD_PART_TIMEOUT =
       durationBuilder(Name.UNDERFS_OBJECT_STORE_STREAMING_UPLOAD_PART_TIMEOUT)
+          .setAlias("alluxio.underfs.object.store.streaming.upload.part.timeout")
           .setDescription("Timeout for uploading part when using streaming uploads.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OBJECT_STORE_MULTIPART_UPLOAD_TIMEOUT =
+      durationBuilder(Name.UNDERFS_OBJECT_STORE_MULTIPART_UPLOAD_TIMEOUT)
+          .setAlias("alluxio.underfs.object.store.multipart.upload.timeout")
+          .setDescription("Timeout for uploading part when using multipart upload.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
@@ -1570,7 +1578,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       durationBuilder(Name.UNDERFS_S3_INTERMEDIATE_UPLOAD_CLEAN_AGE)
           .setAlias("alluxio.underfs.s3a.intermediate.upload.clean.age")
           .setDefaultValue("3day")
-          .setDescription("Streaming uploads may not have been completed/aborted correctly "
+          .setDescription("Streaming uploads or multipart uploads"
+              + " may not have been completed/aborted correctly "
               + "and need periodical ufs cleanup. If ufs cleanup is enabled, "
               + "intermediate multipart uploads in all non-readonly S3 mount points "
               + "older than this age will be cleaned. This may impact other "
@@ -1663,6 +1672,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "S3A streaming upload. When the buffer file reaches the partition size, "
               + "it will be uploaded and the upcoming data will write to other buffer files."
               + "If the partition size is too small, S3A upload speed might be affected. ")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_S3_MULTIPART_UPLOAD_ENABLED =
+      booleanBuilder(Name.UNDERFS_S3_MULTIPART_UPLOAD_ENABLED)
+          .setAlias("alluxio.underfs.s3.multipart.upload.enabled")
+          .setDefaultValue(false)
+          .setDescription("(Experimental) If true, using multipart upload to write to S3.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_S3_MULTIPART_UPLOAD_PARTITION_SIZE =
+      dataSizeBuilder(Name.UNDERFS_S3_MULTIPART_UPLOAD_PARTITION_SIZE)
+          .setAlias("alluxio.underfs.s3.multipart.upload.partition.size")
+          .setDefaultValue("64MB")
+          .setDescription("Maximum allowable size of a single buffer file when using "
+              + "S3 Multipart upload. When the buffer file reaches the partition size, "
+              + "it will be uploaded and the upcoming data will write to other buffer files."
+              + "If the partition size is too small, S3 upload speed might be affected. ")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -1831,7 +1859,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey UNDERFS_OSS_INTERMEDIATE_UPLOAD_CLEAN_AGE =
       durationBuilder(Name.UNDERFS_OSS_INTERMEDIATE_UPLOAD_CLEAN_AGE)
           .setDefaultValue("3day")
-          .setDescription("Streaming uploads may not have been completed/aborted correctly "
+          .setDescription("Streaming uploads or multipart uploads"
+              + " may not have been completed/aborted correctly "
               + "and need periodical ufs cleanup. If ufs cleanup is enabled, "
               + "intermediate multipart uploads in all non-readonly OSS mount points "
               + "older than this age will be cleaned. This may impact other "
@@ -1861,6 +1890,30 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(20)
           .setDescription("the number of threads to use for streaming upload data to OSS.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_MULTIPART_UPLOAD_ENABLED =
+      booleanBuilder(Name.UNDERFS_OSS_MULTIPART_UPLOAD_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("(Experimental) If true, using multipart upload to write to OSS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_MULTIPART_UPLOAD_THREADS =
+      intBuilder(Name.UNDERFS_OSS_MULTIPART_UPLOAD_THREADS)
+          .setDefaultValue(20)
+          .setDescription("the number of threads to use for multipart upload data to OSS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_MULTIPART_UPLOAD_PARTITION_SIZE =
+      dataSizeBuilder(Name.UNDERFS_OSS_MULTIPART_UPLOAD_PARTITION_SIZE)
+          .setDefaultValue("64MB")
+          .setDescription("Maximum allowable size of a single buffer file when using "
+              + "OSS multipart upload. When the buffer file reaches the partition size, "
+              + "it will be uploaded and the upcoming data will write to other buffer files."
+              + "If the partition size is too small, OSS upload speed might be affected. ")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey S3A_ACCESS_KEY = stringBuilder(Name.S3A_ACCESS_KEY)
@@ -2017,7 +2070,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey UNDERFS_OBS_INTERMEDIATE_UPLOAD_CLEAN_AGE =
       durationBuilder(Name.UNDERFS_OBS_INTERMEDIATE_UPLOAD_CLEAN_AGE)
           .setDefaultValue("3day")
-          .setDescription("Streaming uploads may not have been completed/aborted correctly "
+          .setDescription("Streaming uploads or multipart uploads"
+              + " may not have been completed/aborted correctly "
               + "and need periodical ufs cleanup. If ufs cleanup is enabled, "
               + "intermediate multipart uploads in all non-readonly OBS mount points "
               + "older than this age will be cleaned. This may impact other "
@@ -2047,6 +2101,54 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(20)
           .setDescription("the number of threads to use for streaming upload data to OBS.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OBS_MULTIPART_UPLOAD_ENABLED =
+      booleanBuilder(Name.UNDERFS_OBS_MULTIPART_UPLOAD_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("(Experimental) If true, using multipart upload to write to OBS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OBS_MULTIPART_UPLOAD_THREADS =
+      intBuilder(Name.UNDERFS_OBS_MULTIPART_UPLOAD_THREADS)
+          .setDefaultValue(20)
+          .setDescription("the number of threads to use for multipart upload data to OBS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OBS_MULTIPART_UPLOAD_PARTITION_SIZE =
+      dataSizeBuilder(Name.UNDERFS_OBS_MULTIPART_UPLOAD_PARTITION_SIZE)
+          .setDefaultValue("64MB")
+          .setDescription("Maximum allowable size of a single buffer file when using "
+              + "OBS multipart upload. When the buffer file reaches the partition size, "
+              + "it will be uploaded and the upcoming data will write to other buffer files."
+              + "If the partition size is too small, OSS upload speed might be affected. ")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_COS_MULTIPART_UPLOAD_ENABLED =
+      booleanBuilder(Name.UNDERFS_COS_MULTIPART_UPLOAD_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("(Experimental) If true, using multipart upload to write to COS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_COS_MULTIPART_UPLOAD_THREADS =
+      intBuilder(Name.UNDERFS_COS_MULTIPART_UPLOAD_THREADS)
+          .setDefaultValue(20)
+          .setDescription("the number of threads to use for multipart upload data to COS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_COS_MULTIPART_UPLOAD_PARTITION_SIZE =
+      dataSizeBuilder(Name.UNDERFS_COS_MULTIPART_UPLOAD_PARTITION_SIZE)
+          .setDefaultValue("64MB")
+          .setDescription("Maximum allowable size of a single buffer file when using "
+              + "COS multipart upload. When the buffer file reaches the partition size, "
+              + "it will be uploaded and the upcoming data will write to other buffer files."
+              + "If the partition size is too small, OSS upload speed might be affected. ")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
   //
@@ -8035,6 +8137,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_VERSION = "alluxio.underfs.version";
     public static final String UNDERFS_OBJECT_STORE_STREAMING_UPLOAD_PART_TIMEOUT =
         "alluxio.underfs.object.store.streaming.upload.part.timeout";
+    public static final String UNDERFS_OBJECT_STORE_MULTIPART_UPLOAD_TIMEOUT =
+        "alluxio.underfs.object.store.multipart.upload.timeout";
     public static final String UNDERFS_OBJECT_STORE_BREADCRUMBS_ENABLED =
         "alluxio.underfs.object.store.breadcrumbs.enabled";
     public static final String UNDERFS_OBJECT_STORE_SERVICE_THREADS =
@@ -8065,6 +8169,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.oss.streaming.upload.partition.size";
     public static final String UNDERFS_OSS_STREAMING_UPLOAD_THREADS =
         "alluxio.underfs.oss.streaming.upload.threads";
+    public static final String UNDERFS_OSS_MULTIPART_UPLOAD_ENABLED =
+        "alluxio.underfs.oss.multipart.upload.enabled";
+    public static final String UNDERFS_OSS_MULTIPART_UPLOAD_THREADS =
+        "alluxio.underfs.oss.multipart.upload.threads";
+    public static final String UNDERFS_OSS_MULTIPART_UPLOAD_PARTITION_SIZE =
+        "alluxio.underfs.oss.multipart.upload.part.size";
     public static final String UNDERFS_S3_BULK_DELETE_ENABLED =
         "alluxio.underfs.s3.bulk.delete.enabled";
     public static final String UNDERFS_S3_DEFAULT_MODE = "alluxio.underfs.s3.default.mode";
@@ -8107,6 +8217,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_S3_THREADS_MAX = "alluxio.underfs.s3.threads.max";
     public static final String UNDERFS_S3_UPLOAD_THREADS_MAX =
         "alluxio.underfs.s3.upload.threads.max";
+    public static final String UNDERFS_S3_MULTIPART_UPLOAD_ENABLED =
+        "alluxio.underfs.s3.multipart.upload.enabled";
+    public static final String UNDERFS_S3_MULTIPART_UPLOAD_PARTITION_SIZE =
+        "alluxio.underfs.s3.multipart.upload.partition.size";
     public static final String KODO_ENDPOINT = "alluxio.underfs.kodo.endpoint";
     public static final String KODO_DOWNLOAD_HOST = "alluxio.underfs.kodo.downloadhost";
     public static final String UNDERFS_KODO_CONNECT_TIMEOUT =
@@ -8144,6 +8258,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.obs.streaming.upload.partition.size";
     public static final String UNDERFS_OBS_STREAMING_UPLOAD_THREADS =
         "alluxio.underfs.obs.streaming.upload.threads";
+    public static final String UNDERFS_OBS_MULTIPART_UPLOAD_ENABLED =
+        "alluxio.underfs.obs.multipart.upload.enabled";
+    public static final String UNDERFS_OBS_MULTIPART_UPLOAD_THREADS =
+        "alluxio.underfs.obs.multipart.upload.threads";
+    public static final String UNDERFS_OBS_MULTIPART_UPLOAD_PARTITION_SIZE =
+        "alluxio.underfs.obs.multipart.upload.part.size";
+    public static final String UNDERFS_COS_MULTIPART_UPLOAD_ENABLED =
+        "alluxio.underfs.cos.multipart.upload.enabled";
+    public static final String UNDERFS_COS_MULTIPART_UPLOAD_THREADS =
+        "alluxio.underfs.cos.multipart.upload.threads";
+    public static final String UNDERFS_COS_MULTIPART_UPLOAD_PARTITION_SIZE =
+        "alluxio.underfs.cos.multipart.upload.part.size";
 
     //
     // UFS access control related properties

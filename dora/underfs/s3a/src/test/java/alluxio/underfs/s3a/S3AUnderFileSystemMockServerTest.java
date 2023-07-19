@@ -105,7 +105,7 @@ public class S3AUnderFileSystemMockServerTest {
         new S3AUnderFileSystem(new AlluxioURI("s3://" + TEST_BUCKET), mClient,
             asyncClient, TEST_BUCKET,
             Executors.newSingleThreadExecutor(), new TransferManager(),
-            UnderFileSystemConfiguration.defaults(CONF), false);
+            UnderFileSystemConfiguration.defaults(CONF), false, false);
   }
 
   @After
