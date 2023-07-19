@@ -6892,9 +6892,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Shuffle the client-side configured master rpc addresses.")
           .build();
   public static final PropertyKey USER_WORKER_SELECTION_POLICY =
-      stringBuilder(Name.USER_WORKER_SELECTION_POLICY)
-          .setDefaultValue("HASH")
-          .setDescription("The policy a client uses to map a file path to a worker address")
+      classBuilder(Name.USER_WORKER_SELECTION_POLICY)
+          .setDefaultValue("alluxio.client.file.dora.ConsistentHashPolicy")
+          .setDescription("The policy a client uses to map a file path to a worker address. "
+              + "The only option is `alluxio.client.file.dora.ConsistentHashPolicy`. "
+              + "Other options are for internal tests only and not for real deployments.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();

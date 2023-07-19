@@ -9,14 +9,20 @@ import com.google.common.collect.ImmutableList;
 import java.util.List;
 
 /**
- * A policy where a client will talk to a local worker.
- * The most common use case is for testing like StressWorkerBench, where we create clients
+ * A policy where a client will ONLY talk to a local worker.
+ *
+ * This policy can probably only be used in testing. If client on node A reads path /a,
+ * it will only talk to the worker on node A and produce a cache there. If a client on
+ * node B reads the same path /a, it will not see the cache on node A.
+ *
+ * A use case for this policy is a test like StressWorkerBench, where we create clients
  * (with job service) and simulate I/O workload to workers.
- * If all clients will talk to a local worker, the test creates balanced stress on each worker
- * and the performance measured is I/O with perfect data locality.
+ * If all clients talk to their local worker, the test creates balanced stress on each worker
+ * and we measure local read performance.
  */
 public class LocalWorkerPolicy implements WorkerLocationPolicy {
   private final AlluxioConfiguration mConf;
+
   public LocalWorkerPolicy(AlluxioConfiguration conf) {
     mConf = conf;
   }
