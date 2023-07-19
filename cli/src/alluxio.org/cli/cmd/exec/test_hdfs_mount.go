@@ -12,9 +12,11 @@
 package exec
 
 import (
-	"alluxio.org/cli/env"
 	"fmt"
+
 	"github.com/spf13/cobra"
+
+	"alluxio.org/cli/env"
 )
 
 var TestHdfsMount = &TestHdfsMountCommand{
