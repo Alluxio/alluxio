@@ -13,10 +13,7 @@ package exec
 
 import (
 	"alluxio.org/cli/env"
-	"alluxio.org/log"
-	"bytes"
 	"fmt"
-	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 )
 
@@ -76,18 +73,4 @@ func (c *TestHdfsMountCommand) Run(args []string) error {
 	javaArgs = append(javaArgs, args...)
 
 	return c.Base().Run(javaArgs)
-}
-
-func (c *TestHdfsMountCommand) FetchValue(key string) (string, error) {
-	cmd := c.RunJavaClassCmd([]string{key})
-
-	errBuf := &bytes.Buffer{}
-	cmd.Stderr = errBuf
-
-	log.Logger.Debugln(cmd.String())
-	out, err := cmd.Output()
-	if err != nil {
-		return "", stacktrace.Propagate(err, "error getting conf for %v\nstderr: %v", key, errBuf.String())
-	}
-	return string(out), nil
 }
