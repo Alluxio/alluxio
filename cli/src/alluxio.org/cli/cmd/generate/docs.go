@@ -37,7 +37,7 @@ func (c *DocsCommand) Base() *env.BaseJavaCommand {
 
 func (c *DocsCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   fmt.Sprintf("%v", Docs.CommandName),
+		Use:   Docs.CommandName,
 		Short: "Generate docs automatically.",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
