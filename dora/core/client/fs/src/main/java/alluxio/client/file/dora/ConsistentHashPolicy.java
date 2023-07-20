@@ -15,9 +15,7 @@ import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-
 import alluxio.exception.status.ResourceExhaustedException;
-import com.google.common.collect.ImmutableList;
 
 import java.util.List;
 
@@ -45,6 +43,8 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
 
   /**
    * Constructs a new {@link ConsistentHashPolicy}.
+   *
+   * @param conf the configuration used by the policy
    */
   public ConsistentHashPolicy(AlluxioConfiguration conf) {
     mConf = conf;
@@ -60,6 +60,11 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
           blockWorkerInfos.size(), count));
     }
     HASH_PROVIDER.refresh(blockWorkerInfos, mNumVirtualNodes);
-    return HASH_PROVIDER.getMultiple(fileId, count);
+    List<BlockWorkerInfo> workers = HASH_PROVIDER.getMultiple(fileId, count);
+    if (workers.size() != count) {
+      throw new ResourceExhaustedException(String.format(
+          "Found %d workers from the hash ring but %d required", blockWorkerInfos.size(), count));
+    }
+    return workers;
   }
 }

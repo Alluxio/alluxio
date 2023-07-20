@@ -17,7 +17,6 @@ import alluxio.PositionReader;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.ReadType;
 import alluxio.client.file.dora.DoraCacheClient;
-import alluxio.client.file.dora.ConsistentHashPolicy;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.collections.Pair;
