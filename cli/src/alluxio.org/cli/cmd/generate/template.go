@@ -36,20 +36,21 @@ func (c *TemplateCommand) ToCommand() *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			targetDir := filepath.Join(env.ConfAlluxioConfDir.EnvVar, "alluxio-site.properties")
 			content := "alluxio.master.hostname=" + args[0]
-			if _, err := os.Stat(targetDir); err != nil {
-				if os.IsNotExist(err) {
-					if err := ioutil.WriteFile(targetDir, []byte(content), 0644); err != nil {
-						log.Logger.Errorln("Error writing file:", e)
-						return
-					}
-					log.Logger.Infoln(targetDir + " is created.")
-					return
-				} else {
-					log.Logger.Errorln("File read error:", err)
+
+			_, statErr := os.Stat(targetDir)
+			if os.IsExist(statErr) {
+				log.Logger.Warnln(targetDir + " already exists")
+				return
+			} else if os.IsNotExist(statErr) {
+				writeErr := ioutil.WriteFile(targetDir, []byte(content), 0644)
+				if writeErr != nil {
+					log.Logger.Errorln("Error writing file:", writeErr)
 					return
 				}
+				log.Logger.Infoln(targetDir + " is created.")
+				return
 			} else {
-				log.Logger.Warnln(targetDir + " already exists")
+				log.Logger.Errorln("File read error:", statErr)
 				return
 			}
 		},
