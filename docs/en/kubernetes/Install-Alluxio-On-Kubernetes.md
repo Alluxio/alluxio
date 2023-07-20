@@ -169,7 +169,7 @@ $ kubectl delete dataset <dataset-name>
 $ kubectl delete alluxiocluster <alluxio-cluster-name>
 ```
 
-### Bonus - Load the data into Alluxio
+### [Bonus] Load the data into Alluxio
 
 To load your data into Alluxio cluster, so that your application can read the data faster, create a
 resource file `load.yaml`. Here is an example:
@@ -193,7 +193,7 @@ To check the status of the load:
 $ kubectl get load
 ```
 
-### More bonus - an example alluxio cluster configuration for AI/ML use case
+### [Bonus] Example Alluxio cluster configuration for AI/ML use case
 ```yaml
 apiVersion: k8s-operator.alluxio.com/v1alpha1
 kind: AlluxioCluster

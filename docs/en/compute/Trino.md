@@ -3,6 +3,9 @@ layout: global
 title: Running Trino with Alluxio
 ---
 
+This guide describes how to configure [Trino](https://trino.io/) to access Alluxio.
+
+## Overview
 [Trino](https://trino.io/)
 is an open source distributed SQL query engine for running interactive analytic queries
 on data at a large scale.

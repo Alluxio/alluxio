@@ -28,7 +28,7 @@ Check out these 2 short videos on deployment and best practices with configurati
 
 * [Running Trino with Alluxio]({{ '/en/compute/Trino.html' | relativize_url }})
 
-* [Running Spark with Alluxio]({{ '/en/compute/Spark.html' | relativize_url }})
+* [Running Apache Spark with Alluxio]({{ '/en/compute/Spark.html' | relativize_url }})
 
 ## Storage Integrations
 * [Amazon AWS S3]({{ '/en/ufs/S3.html' | relativize_url }})
