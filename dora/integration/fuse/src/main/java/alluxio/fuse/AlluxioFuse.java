@@ -63,7 +63,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Main entry point to Alluxio-FUSE.
  */
 @ThreadSafe
-public final class AlluxioFuse {
+public class AlluxioFuse {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuse.class);
   protected static final CommandLineParser PARSER = new DefaultParser();
 
