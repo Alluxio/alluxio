@@ -34,10 +34,6 @@ func (c *TemplateCommand) ToCommand() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Short: "Generate a config file if one doesn't exist.",
 		Run: func(cmd *cobra.Command, args []string) {
-			if len(args) == 0 {
-				log.Logger.Infoln("Usage: template <alluxio_master_hostname>")
-				return
-			}
 			targetDir := filepath.Join(env.ConfAlluxioConfDir.EnvVar, "alluxio-site.properties")
 			content := "alluxio.master.hostname=" + args[0]
 			if _, err := os.Stat(targetDir); err != nil {
