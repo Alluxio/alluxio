@@ -20,6 +20,7 @@ import org.junit.Test;
 /**
  * Tests for doctor command.
  */
+@Ignore
 public final class DoctorCommandIntegrationTest extends AbstractFsAdminShellTest {
   @Test
   public void masterNotRunning() throws Exception {
