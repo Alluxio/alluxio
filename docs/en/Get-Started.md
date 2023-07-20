@@ -10,6 +10,7 @@ The guide will cover the following tasks:
 * Start Alluxio locally
 * Perform basic tasks via Alluxio Shell
 * **[Bonus]** Mount a public Amazon S3 bucket in Alluxio
+* **[Bonus]** Mount HDFS under storage in Alluxio
 * Stop Alluxio
 
 **[Bonus]** This guide contains optional tasks that use credentials from an
@@ -105,10 +106,10 @@ $ echo "s3a.accessKeyId=<AWS_ACCESS_KEY_ID>" >> conf/alluxio-site.properties
 $ echo "s3a.secretKey=<AWS_SECRET_ACCESS_KEY>" >> conf/alluxio-site.properties
 ```
 
-Replace **`s3://<BUCKET_NAME>/<DIR>`**, **`<AWS_ACCESS_KEY_ID>`** and **`<AWS_SECRET_ACCESS_KEY>`** with
+Replace `s3://<BUCKET_NAME>/<DIR>`, `<AWS_ACCESS_KEY_ID>` and `<AWS_SECRET_ACCESS_KEY>` with
 a valid AWS S3 address, AWS access key ID and AWS secret access key respectively.
 
-For more information, please refer to the [S3 configuration docs]({{ '/en/ufs/S3.html' | relativize_url }}.
+For more information, please refer to the [S3 configuration docs]({{ '/en/ufs/S3.html' | relativize_url }}).
 
 ### [Bonus] Configuration for HDFS
 
@@ -119,9 +120,9 @@ $ echo "alluxio.dora.client.ufs.root=hdfs://nameservice/<DIR>" >> conf/alluxio-s
 $ echo "alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/core-site.xml:/path/to/hdfs/conf/hdfs-site.xml" >> conf/alluxio-site.properties
 ```
 
-Replace the url and configuration with the actual value.
+Replace `nameservice/<DIR>` and `/path/to/hdfs/conf` with the actual values.
 
-For more information, please refer to the [HDFS configuration docs]({{ '/en/ufs/HDFS.html' | relativize_url }}.
+For more information, please refer to the [HDFS configuration docs]({{ '/en/ufs/HDFS.html' | relativize_url }}).
 
 ## Starting Alluxio
 
