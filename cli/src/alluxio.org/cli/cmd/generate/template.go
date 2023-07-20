@@ -38,8 +38,7 @@ func (c *TemplateCommand) ToCommand() *cobra.Command {
 			content := "alluxio.master.hostname=" + args[0]
 			if _, err := os.Stat(targetDir); err != nil {
 				if os.IsNotExist(err) {
-					e := ioutil.WriteFile(targetDir, []byte(content), 0644)
-					if e != nil {
+					if err := ioutil.WriteFile(targetDir, []byte(content), 0644); err != nil {
 						log.Logger.Errorln("Error writing file:", e)
 						return
 					}
