@@ -15,28 +15,19 @@
 #
 set -ex
 
-if [ -z "${ALLUXIO_FORK_COUNT}" ]
-then
+if [ -z "${ALLUXIO_FORK_COUNT}" ]; then
   ALLUXIO_FORK_COUNT=2
 fi
 
-if [ -n "${ALLUXIO_GIT_CLEAN}" ]
-then
+if [ -n "${ALLUXIO_GIT_CLEAN}" ]; then
   # https://stackoverflow.com/questions/72978485/git-submodule-update-failed-with-fatal-detected-dubious-ownership-in-repositor
   git config --global --add safe.directory '*'
   git clean -fdx
 fi
 
 mvn_args=""
-if [ -n "${ALLUXIO_MVN_RUNTOEND}" ]
-then
-  mvn_args+=" -fn -DfailIfNoTests=false -Dsurefire.failIfNoSpecifiedTests=false --fail-at-end"
-fi
-
-mvn_project_list=""
-if [ -n "${ALLUXIO_MVN_PROJECT_LIST}" ]
-then
-  mvn_project_list+=" -pl ${ALLUXIO_MVN_PROJECT_LIST}"
+if [ -n "${ALLUXIO_MVN_PROJECT_LIST}" ]; then
+  mvn_args+="-am -pl ${ALLUXIO_MVN_PROJECT_LIST}"
 fi
 
 export MAVEN_OPTS="-Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss.SSS"
@@ -54,12 +45,18 @@ myuid=$(id -u)
 mygid=$(id -g)
 echo "$myuid:x:$myuid:$mygid:anonymous uid:/home/jenkins:/bin/false" >> /etc/passwd
 
-export MAVEN_OPTS="-Dorg.slf4j.simpleLogger.showDateTime=true -Dorg.slf4j.simpleLogger.dateTimeFormat=HH:mm:ss.SSS"
-
 # Revert back to the image default java version to run the test
 JAVA_HOME=${JAVA_HOME_BACKUP}
 PATH=${PATH_BACKUP}
 
+if [ -n "${ALLUXIO_MVN_TESTS}" ]; then
+  mvn_args+=" -fn -DfailIfNoTests=false -Dsurefire.failIfNoSpecifiedTests=false --fail-at-end -Dtest=${ALLUXIO_MVN_TESTS}"
+fi
+if [ -n "${ALLUXIO_MVN_ADDITIONAL_PROPERTIES}" ]
+then
+  mvn_args+=" ${ALLUXIO_MVN_ADDITIONAL_PROPERTIES}"
+fi
+
 # Run tests
 mvn -Duser.home=/home/jenkins test -Dmaven.main.skip -Dskip.protoc=true -Dmaven.javadoc.skip -Dlicense.skip=true \
--Dcheckstyle.skip=true -Dfindbugs.skip=true -Dsurefire.forkCount=${ALLUXIO_FORK_COUNT} ${mvn_args} $@
+-Dcheckstyle.skip=true -Dfindbugs.skip=true -Dsurefire.forkCount=${ALLUXIO_FORK_COUNT} ${mvn_args}
