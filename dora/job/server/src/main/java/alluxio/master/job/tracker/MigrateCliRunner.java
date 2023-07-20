@@ -83,24 +83,24 @@ public class MigrateCliRunner extends AbstractCmdRunner {
     CmdInfo cmdInfo = new CmdInfo(jobControlId, OperationType.DIST_CP, JobSource.CLI,
             submissionTime, filePath);
 
+    List<Boolean> pathIsExist = checkPathState(srcPath, dstPath);
+    Boolean srcIsFolder = pathIsExist.get(0);
+    Boolean destIsFolder = pathIsExist.get(1);
     try {
-      if (mFileSystem.exists(srcPath) && mFileSystem.getStatus(srcPath).isFolder()) {
-        if (!mFileSystem.exists(dstPath) || mFileSystem.getStatus(dstPath).isFolder()) {
+      //Add boundary condition judgement before running distributedCp command
+      if (srcIsFolder.booleanValue()) {
+        if (destIsFolder == null || destIsFolder.booleanValue()) {
           createFolders(srcPath, dstPath, mFileSystem);
-        } else if (mFileSystem.exists(dstPath)) {
-          String errorMessage = String.format("when srcPath:\"%s\" is a directory, destPath:\"%s\" is not allowed to be a file.", srcPath.getPath(), dstPath.getPath());
+        } else {
+          String errorMessage = String.format("When source Path:\"%s\" is a directory, destination path:\"%s\" can not to be a file.", srcPath.getPath(), dstPath.getPath());
           throw new IOException(errorMessage);
-        }
-      } else if (mFileSystem.exists(srcPath) && !mFileSystem.getStatus(srcPath).isFolder()) {
-        if (mFileSystem.exists(dstPath) && !mFileSystem.getStatus(dstPath).isFolder()) {
-          String errorMessage = String.format("dstPath:\"%s\" is not allowed to be a file that already exists in Alluxio fileSystem.", srcPath.getPath(), dstPath.getPath());
-          throw new IOException(errorMessage);
-        } else if (mFileSystem.exists(dstPath) && mFileSystem.getStatus(dstPath).isFolder()) {
-          dstPath = new AlluxioURI(PathUtils.concatPath(dstPath.getPath(), srcPath.getName()));
         }
       } else {
-        String errorMessage = String.format("Can not cp a non-existed source file:\"%s\"", srcPath.getPath());
-        throw new IOException(errorMessage);
+        if (destIsFolder != null && !destIsFolder.booleanValue()) {
+          throw new IOException("Destination path: \"" + dstPath.getPath() + "\" already exists.");
+        } else if (destIsFolder != null && destIsFolder.booleanValue()) {
+          dstPath = new AlluxioURI(PathUtils.concatPath(dstPath.getPath(), srcPath.getName()));
+        }
       }
       copy(srcPath, dstPath, overwrite, batchSize, filePool, writeType, cmdInfo);
     } catch (IOException | AlluxioException e) {
@@ -117,6 +117,39 @@ public class MigrateCliRunner extends AbstractCmdRunner {
     return cmdInfo;
   }
 
+  //check the existence of srcPath and dstPath
+  private List<Boolean> checkPathState(AlluxioURI srcPath, AlluxioURI dstPath) throws IOException {
+    ArrayList<Boolean> pathIsFolder = new ArrayList<>();
+    Boolean srcIsFolder;
+    Boolean destIsFolder = null;
+    try {
+      boolean srcIsExist = mFileSystem.exists(srcPath);
+      if (srcIsExist) {
+        srcIsFolder = new Boolean(mFileSystem.getStatus(srcPath).isFolder());
+      } else {
+        throw new IOException("Can not copy a non-existed source path:\""+srcPath.getPath()+"\"");
+      }
+      boolean destIsExist = mFileSystem.exists(dstPath);
+      if (destIsExist) {
+        destIsFolder = new Boolean(mFileSystem.getStatus(dstPath).isFolder());
+      } else {
+        String destParentPath = PathUtils.getParentCleaned(dstPath.getPath());
+        if (!mFileSystem.exists(new AlluxioURI(destParentPath))) {
+          throw new IOException("Parent directory of destination path:\"" + dstPath.getPath() + "\" does not exists.");
+        }
+      }
+    } catch (Exception e) {
+      throw new IOException(e.getMessage());
+    }
+    pathIsFolder.add(srcIsFolder);
+    pathIsFolder.add(destIsFolder);
+    if (srcIsFolder == null) {
+      String errorMessage = String.format("Fail to acquire srcPath state:\"%s\"", srcPath.getPath());
+      throw new IOException(errorMessage);
+    }
+    return pathIsFolder;
+  }
+
   private void copy(AlluxioURI srcPath, AlluxioURI dstPath, boolean overwrite, int batchSize,
       List<Pair<String, String>> pool, WriteType writeType, CmdInfo cmdInfo)
           throws IOException, AlluxioException {
@@ -128,8 +161,7 @@ public class MigrateCliRunner extends AbstractCmdRunner {
                 batchSize, pool, writeType, cmdInfo);
       } else {
         if (mFileSystem.exists(new AlluxioURI(dstInnerPath))) {
-          String errorMessage = String.format("Destination path:\"%s\" already exists.", dstInnerPath);
-          throw new IOException(errorMessage);
+          throw new IOException("Destination path: \"" + dstInnerPath + "\" already exists.");
         }
         pool.add(new Pair<>(srcInnerStatus.getPath(), dstInnerPath));
         if (pool.size() == batchSize) {
