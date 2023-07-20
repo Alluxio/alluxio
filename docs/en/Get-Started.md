@@ -7,7 +7,6 @@ This quick start guide goes over how to run Alluxio on a local machine.
 The guide will cover the following tasks:
 
 * Download and configure Alluxio
-* Validate the Alluxio environment
 * Start Alluxio locally
 * Perform basic tasks via Alluxio Shell
 * **[Bonus]** Mount a public Amazon S3 bucket in Alluxio
@@ -204,14 +203,21 @@ $ ./bin/alluxio-stop.sh master
 $ ./bin/alluxio-stop.sh worker
 ```
 
-## Conclusion
+## Next Steps
 
-Congratulations on completing the quick start guide for Alluxio! This guide covered how to
+Congratulations on getting Alluxio started! This guide covered how to
 download and install Alluxio locally with examples of basic interactions via the Alluxio
-shell. This was a simple example on how to get started with Alluxio.
+shell.
 
-There are several next steps available. Learn more about the various features of Alluxio in
-our documentation. The resources below detail deploying Alluxio in various ways,
+There are several next steps available. 
+* Learn more about the various features of Alluxio in
+our documentation, such as [Data Caching]({{ '/en/core-services/Data-Caching.html' | relativize_url }}) and [Metadata Caching]({{ '/en/core-services/Metadata-Caching.html' | relativize_url }}). 
+* See how you can [Install an Alluxio Cluster with High Availability (HA)]({{ '/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }})
+   * You can also [Install Alluxio on Kubernetes]({{ '/en/kubernetes/Install-Alluxio-On-Kubernetes.html' | relativize_url }}) with Alluxio Helm Chart
+* Connect a compute engine such as [Presto]({{ '/en/compute/Presto.html' | relativize_url }}), [Trino]({{ '/en/compute/Trino.html' | relativize_url }}), or [Spark]({{ '/en/compute/Spark.html' | relativize_url }})
+* Connect an under file storage such as [Amazon AWS S3]({{ '/en/ufs/S3.html' | relativize_url }}), [HDFS]({{ '/en/ufs/HDFS.html' | relativize_url }}), or [Google Cloud Storage]({{ '/en/ufs/GCS.html' | relativize_url }})
+
+The resources below detail deploying Alluxio in various ways,
 mounting existing storage systems, and configuring existing applications to interact with Alluxio.
 
 ## FAQ
