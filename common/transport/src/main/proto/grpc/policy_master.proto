@@ -1,0 +1,141 @@
+syntax = "proto2";
+
+option java_multiple_files = true;
+option java_package = "alluxio.grpc";
+option java_outer_classname = "PolicyMasterProto";
+
+package alluxio.grpc.policy;
+
+// next available id: 5
+message PolicyInfo {
+  optional int64 id = 1;
+  optional string name = 2;
+  optional int64 created_at = 3;
+  optional AddPolicyPOptions options = 4;
+}
+
+message ListPolicyPResponse {
+  repeated PolicyInfo policy = 1;
+}
+message ListPolicyPOptions {}
+message ListPolicyPRequest {
+  optional ListPolicyPOptions options = 1;
+}
+
+message AddPolicyPResponse {
+  optional PolicyInfo policy = 1;
+}
+message AddPolicyPOptions {
+  optional string operation = 1;
+  optional string srcPath = 2;
+  optional string dstPath = 3;
+  optional string timeExpression = 4;
+  optional string filter = 5;
+  optional string file_date_pattern = 6;
+}
+message AddPolicyPRequest {
+  optional string policyName = 1;
+  optional AddPolicyPOptions options = 2;
+}
+
+message RemovePolicyPResponse {}
+message RemovePolicyPOptions {}
+message RemovePolicyPRequest {
+  optional string policyName = 1;
+  optional RemovePolicyPOptions options = 2;
+}
+
+// next available id: 12
+message PolicyStatus {
+  // scan status
+  optional int64 scanStartedMs = 1;
+  optional int64 scanTotal = 2;
+  optional int64 scanPendingAction = 3;
+  optional int64 scanCompleted = 4;
+  optional bool isScanning = 11;
+  // metrics
+  optional int64 actionsScheduled = 5;
+  optional int64 actionsRunning = 6;
+  optional int64 actionsSucceeded = 7;
+  optional int64 actionsCanceled = 8;
+  optional int64 actionsFailed = 9;
+  map<string, string> errors = 10;
+}
+
+
+
+// next available id: 7
+message ActionInfo {
+  optional string actionId = 1;
+  optional string actionType = 2;
+  optional string actionStatus = 3;
+  optional string filePath = 4;
+  optional int64 lastUpdatedTime = 5;
+  optional string errorType = 6;
+  optional string errorMessage = 7;
+}
+
+message GetActionInfoResponse {
+  repeated ActionInfo infos = 1;
+}
+
+message GetActionInfoOptions {}
+
+message GetActionInfoRequest {
+  optional string policyName = 1;
+  optional string actionId = 2;
+  optional string filePath = 3;
+  optional GetPolicyStatusPOptions options = 4;
+}
+
+
+message GetPolicyStatusPResponse {
+  optional PolicyStatus status = 1;
+}
+
+message GetPolicyStatusPOptions {}
+message GetPolicyStatusPRequest {
+  optional string policyName = 1;
+  optional GetPolicyStatusPOptions options = 2;
+}
+
+message TriggerPolicyRequest {
+  optional string policyName = 1;
+}
+
+message TriggerPolicyResponse {}
+
+/**
+ * This interface contains policy master service endpoints for Alluxio clients.
+ */
+service PolicyMasterClientService {
+  /**
+   * Returns the list of policies
+   */
+  rpc ListPolicy(ListPolicyPRequest) returns (ListPolicyPResponse);
+
+  /**
+   * Adds a new policy definition
+   */
+  rpc AddPolicy(AddPolicyPRequest) returns (AddPolicyPResponse);
+
+  /**
+   * Removes a policy definition
+   */
+  rpc RemovePolicy(RemovePolicyPRequest) returns (RemovePolicyPResponse);
+
+  /**
+   * Gets the status of a policy
+   */
+  rpc GetPolicyStatus(GetPolicyStatusPRequest) returns (GetPolicyStatusPResponse);
+
+  /**
+   * Gets the information of a action
+   */
+  rpc GetActionInfo(GetActionInfoRequest) returns (GetActionInfoResponse);
+
+  /**
+   * Trigger policy scan for all policies
+   */
+  rpc TriggerPolicy(TriggerPolicyRequest) returns (TriggerPolicyResponse);
+}

@@ -25,9 +25,11 @@ script=$(basename "${this}")
 config_bin=$(cd "${config_bin}"; pwd)
 this="${config_bin}/${script}"
 
+# Set Alluxio version from generated script
+. ${config_bin}/version.sh
+
 # This will set the default installation for a tarball installation while os distributors can
 # set system installation locations.
-VERSION=295-SNAPSHOT
 ALLUXIO_HOME=$(dirname $(dirname "${this}"))
 ALLUXIO_ASSEMBLY_CLIENT_JAR="${ALLUXIO_HOME}/assembly/client/target/alluxio-assembly-client-${VERSION}-jar-with-dependencies.jar"
 ALLUXIO_ASSEMBLY_SERVER_JAR="${ALLUXIO_HOME}/assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar"
@@ -51,12 +53,12 @@ if [[ -z "${JAVA}" ]]; then
   fi
 fi
 
-# Check Java version == 11
+# Check Java version == 1.8 or == 11
 JAVA_VERSION=$(${JAVA} -version 2>&1 | awk -F '"' '/version/ {print $2}')
 JAVA_MAJORMINOR=$(echo "${JAVA_VERSION}" | awk -F. '{printf("%03d%03d",$1,$2);}')
 JAVA_MAJOR=$(echo "${JAVA_VERSION}" | awk -F. '{printf("%03d",$1);}')
-if [[ ${JAVA_MAJOR} != 011 ]]; then
-  echo "Error: Alluxio requires Java 11, currently Java $JAVA_VERSION found."
+if [[ ${JAVA_MAJORMINOR} != 001008 && ${JAVA_MAJOR} != 011 ]]; then
+  echo "Error: Alluxio requires Java 8 or Java 11, currently Java $JAVA_VERSION found."
   exit 1
 fi
 

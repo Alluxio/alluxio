@@ -102,7 +102,7 @@ public class OutStreamOptionsTest {
     assertEquals(ModeUtils.applyFileUMask(Mode.defaults(),
         mConf.getString(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK)), options.getMode());
     assertEquals(Constants.NO_TTL, options.getCommonOptions().getTtl());
-    assertEquals(TtlAction.DELETE, options.getCommonOptions().getTtlAction());
+    assertEquals(TtlAction.FREE, options.getCommonOptions().getTtlAction());
     assertEquals(ufsType, options.getUnderStorageType());
     assertEquals(WriteType.CACHE_THROUGH, options.getWriteType());
     assertEquals(Constants.LAST_TIER, options.getWriteTier());

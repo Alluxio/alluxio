@@ -16,9 +16,11 @@ import static alluxio.client.file.CacheContext.StatsUnit.BYTE;
 import alluxio.client.file.CacheContext;
 import alluxio.client.quota.CacheScope;
 import alluxio.conf.AlluxioConfiguration;
+import alluxio.exception.PageNotFoundException;
 import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.network.protocol.databuffer.DataFileChannel;
 
 import com.codahale.metrics.Counter;
 import com.google.common.annotations.VisibleForTesting;
@@ -46,6 +48,11 @@ public class CacheManagerWithShadowCache implements CacheManager {
   public CacheManagerWithShadowCache(CacheManager cacheManager, AlluxioConfiguration conf) {
     mCacheManager = cacheManager;
     mShadowCacheManager = ShadowCacheManager.create(conf);
+  }
+
+  @Override
+  public void commitFile(String fileId) {
+    mCacheManager.commitFile(fileId);
   }
 
   @Override
@@ -157,8 +164,24 @@ public class CacheManagerWithShadowCache implements CacheManager {
   }
 
   @Override
+  public void deleteFile(String fileId) {
+    mCacheManager.deleteFile(fileId);
+  }
+
+  @Override
+  public void deleteTempFile(String fileId) {
+    mCacheManager.deleteTempFile(fileId);
+  }
+
+  @Override
   public Optional<CacheUsage> getUsage() {
     return mCacheManager.getUsage();
+  }
+
+  @Override
+  public Optional<DataFileChannel> getDataFileChannel(PageId pageId, int pageOffset,
+      int bytesToRead, CacheContext cacheContext) throws PageNotFoundException {
+    return mCacheManager.getDataFileChannel(pageId, pageOffset, bytesToRead, cacheContext);
   }
 
   /**

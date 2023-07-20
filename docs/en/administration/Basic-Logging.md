@@ -1,13 +1,8 @@
 ---
 layout: global
 title: Basic Logging
-nickname: Basic Logging
-group: Administration
-priority: 2
 ---
 
-* Table of Contents
-{:toc}
 
 ## Introduction
 
@@ -131,10 +126,13 @@ In this case `alluxio.underfs.hdfs.HdfsUnderFileSystem` inherits the log level i
 
 Furthermore, you can turn on Alluxio debug logging when you are troubleshooting a certain issue
 in a running cluster, and turn it off when you are done.
+
 ```shell
 # Turn on Alluxio debug logging and start debugging
 $ ./bin/alluxio logLevel --logName=alluxio --level=DEBUG
+```
 
+```shell
 # Turn off Alluxio debug logging when you are done
 $ ./bin/alluxio logLevel --logName=alluxio --level=INFO
 ```
@@ -159,7 +157,7 @@ $ ./bin/alluxio logLevel --logName=alluxio --target=127.0.0.1:25252:worker --lev
 Add the following line to `conf/allulxio-env.sh` to enable logging GC events for server processes
 in log files with `.out` suffix like `master.out` and `worker.out`:
 
-```bash
+```sh
 ALLUXIO_JAVA_OPTS+=" -XX:+PrintGCDetails -XX:+PrintTenuringDistribution -XX:+PrintGCTimeStamps"
 ```
 
@@ -221,101 +219,4 @@ commonOptions {
   ttlAction: DELETE
 }
 ) in 2 ms: alluxio.exception.status.NotFoundException: Path "/.DS_Store" does not exist.
-```
-
-### Logging RPC Calls Received by Masters
-
-On the master, debug-level logging for incoming File System level RPC calls can be turned on (e.g.,
-creating/reading/writing/removing files, updating file attributions) using the `logLevel` command:
-
-```console
-$ ./bin/alluxio logLevel \
---logName=alluxio.master.file.FileSystemMasterClientServiceHandler \
---target master --level=DEBUG
-```
-
-Similarly, turn on the debug-level logging for block related RPC calls (e.g., adding/removing
-blocks):
-
-```console
-$ ./bin/alluxio logLevel \
---logName=alluxio.master.block.BlockMasterClientServiceHandler \
---target master --level=DEBUG
-```
-
-Similarly, you can update the log level for these classes in the `conf/log4j.properties` file.
-You need to restart the relevant processes for the log4j properties to take effect.
-
-### Logging UnderFileSystem Operations
-
-Sometimes it can be useful to log all operations on under storage.
-On the master, debug-level logging for UnderFileSystem operations can be turned on (e.g.,
-creating/reading/writing/removing files on UFS) using the `logLevel` command:
-
-```console
-$ ./bin/alluxio logLevel \
---logName=alluxio.underfs.UnderFileSystemWithLogging \
---target master --level=DEBUG
-```
-
-One can similarly turn on UFS operations on workers by passing `--target workers`.
-You can see operations in corresponding master or worker logs like below:
-
-```
-2020-06-02 11:28:21,824 DEBUG UnderFileSystemWithLogging - Enter: GetSpace: path=/opt/alluxio/underFSStorage, type=SPACE_USED
-2020-06-02 11:28:21,824 DEBUG UnderFileSystemWithLogging - Exit (OK): GetSpace: path=/opt/alluxio/underFSStorage, type=SPACE_USED
-```
-
-Similarly, you can update the log level for these classes in the `conf/log4j.properties` file.
-You need to restart the relevant processes for the log4j properties to take effect.
-
-### Identifying Expensive Calls
-
-When debugging the performance, it is often useful to understand which RPCs take most of the time
-but without recording all the communication (e.g., enabling all debug logging).
-Alluxio can record slow calls or RPCs in logs with WARN level by setting the following properties:
-
-1. Set `alluxio.user.logging.threshold` to record slow client-side RPCs in application logs.
-1. Set `alluxio.fuse.logging.threshold` to record slow FUSE API calls in fuse logs (`logs/fuse.log`).
-1. Set `alluxio.underfs.logging.threshold` to record slow under storage RPCs (`logs/master.log` or `logs/worker.log`).
-
-For example, the following setting in `conf/alluxio-site.properties` will log each FUSE API call slower than 1s,
-each UFS call slower than 10s, and each client-side RPC slower than 200ms:
-
-```properties
-alluxio.fuse.logging.threshold=1s
-alluxio.underfs.logging.threshold=10s
-alluxio.user.logging.threshold=200ms
-```
-
-Example results are:
-
-```
-2020-03-08 23:40:44,374 WARN  BlockMasterClient - GetBlockMasterInfo(fields=[USED_BYTES,
-FREE_BYTES, CAPACITY_BYTES]) returned BlockMasterInfo{capacityBytes=11453246122,
-capacityBytesOnTiers={}, freeBytes=11453237930, liveWorkerNum=0, lostWorkerNum=0, usedBytes=8192, usedBytesOnTiers={}} in 600 ms
-2020-03-08 23:40:44,374 WARN  AlluxioFuseFileSystem - statfs(path=/) returned 0 in 1200 ms
-```
-
-### Redirecting debug log for certain classes
-
-Sometimes it is useful to separate the log for certain classes into a separate log.
-This can be useful for reasons including but not limited to:
-1. Clearly separate the wanted logs for further analysis.
-1. Avoid `master.log` or `worker.log` being too big or having too many files created by log rotation.
-1. Use a separate logger to send logs to a remote endpoint like a socket.
-
-This can be achieved by adding a separate logger in the `conf/log4j.properties`.
-For example, the below example redirects debug logs of `alluxio.master.StateLockManager` to a separate set of files,
-so the `master.log` will not be full of DEBUG logs created by `alluxio.master.StateLockManager`.
-
-```properties
-log4j.category.alluxio.master.StateLockManager=DEBUG, State_LOCK_LOGGER
-log4j.additivity.alluxio.master.StateLockManager=false
-log4j.appender.State_LOCK_LOGGER=org.apache.log4j.RollingFileAppender
-log4j.appender.State_LOCK_LOGGER.File=<ALLUXIO_HOME>/logs/statelock.log
-log4j.appender.State_LOCK_LOGGER.MaxFileSize=10MB
-log4j.appender.State_LOCK_LOGGER.MaxBackupIndex=100
-log4j.appender.State_LOCK_LOGGER.layout=org.apache.log4j.PatternLayout
-log4j.appender.State_LOCK_LOGGER.layout.ConversionPattern=%d{ISO8601} %-5p %c{1} - %m%n
 ```

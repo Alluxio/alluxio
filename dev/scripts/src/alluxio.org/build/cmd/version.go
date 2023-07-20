@@ -18,14 +18,12 @@ import (
 	"regexp"
 
 	"github.com/palantir/stacktrace"
+
+	"alluxio.org/common/repo"
 )
 
 func VersionF() error {
-	repoRoot, err := findRepoRoot()
-	if err != nil {
-		return stacktrace.Propagate(err, "error finding repo root")
-	}
-	ver, err := alluxioVersionFromPom(repoRoot)
+	ver, err := alluxioVersionFromPom()
 	if err != nil {
 		return stacktrace.Propagate(err, "error finding alluxio version from pom")
 	}
@@ -36,8 +34,8 @@ func VersionF() error {
 
 var versionRe = regexp.MustCompile(".*<version>(.*)</version>.*")
 
-func alluxioVersionFromPom(repoRoot string) (string, error) {
-	rootPomPath := filepath.Join(repoRoot, "pom.xml")
+func alluxioVersionFromPom() (string, error) {
+	rootPomPath := filepath.Join(repo.FindRepoRoot(), "pom.xml")
 	contents, err := ioutil.ReadFile(rootPomPath)
 	if err != nil {
 		return "", stacktrace.Propagate(err, "error reading %v", rootPomPath)

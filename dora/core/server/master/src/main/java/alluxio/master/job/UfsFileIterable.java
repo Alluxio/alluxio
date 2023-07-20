@@ -15,7 +15,7 @@ import static java.util.Objects.requireNonNull;
 
 import alluxio.AlluxioURI;
 import alluxio.exception.runtime.AlluxioRuntimeException;
-import alluxio.grpc.ListStatusPOptions;
+import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
@@ -25,14 +25,12 @@ import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 
+import com.google.common.collect.Iterators;
+
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * Iterable for {@link FileInfo} objects. Generates the list of files from under file system.
@@ -40,125 +38,75 @@ import java.util.stream.Collectors;
 public class UfsFileIterable implements Iterable<FileInfo> {
   private final String mPath;
   private final Optional<String> mUser;
-  private final boolean mUsePartialListing;
+
   private final Predicate<FileInfo> mFilter;
-  private final UnderFileSystem mFs;
+  private final UnderFileSystem mUfs;
 
   /**
    * Creates a new instance of {@link FileIterable}.
    *
-   * @param fs                under file system
-   * @param path              path to list
-   * @param user              user to list as
-   * @param usePartialListing whether to use partial listing
-   * @param filter            filter to apply to the file infos
+   * @param fs     under file system
+   * @param path   path to list
+   * @param user   user to list as
+   * @param filter filter to apply to the file infos
    */
   public UfsFileIterable(UnderFileSystem fs, String path, Optional<String> user,
-      boolean usePartialListing, Predicate<FileInfo> filter) {
-    mFs = requireNonNull(fs, "fileSystem is null");
+      Predicate<FileInfo> filter) {
+    mUfs = requireNonNull(fs, "fileSystem is null");
     mPath = requireNonNull(path, "path is null");
     mUser = requireNonNull(user, "user is null");
-    mUsePartialListing = usePartialListing;
     mFilter = filter;
   }
 
   /**
    * @return file iterator. generate new iterator each time
    */
-  public UfsFileIterable.FileIterator iterator() {
-    return new FileIterator();
+  @Override
+  public Iterator<FileInfo> iterator() {
+    try {
+      AuthenticatedClientUser.set(mUser.orElse(null));
+      UfsStatus rootUfsStatus = mUfs.getStatus(mPath);
+      if (rootUfsStatus != null && rootUfsStatus.isFile()) {
+        rootUfsStatus.setUfsFullPath(new AlluxioURI(mPath));
+        return Iterators.filter(Iterators.singletonIterator(transformUfsStatus(rootUfsStatus)),
+            mFilter::test);
+      }
+      Iterator<UfsStatus> statuses =
+          mUfs.listStatusIterable(mPath, ListOptions.defaults().setRecursive(true), null, 0);
+      if (statuses == null) {
+        throw new FailedPreconditionRuntimeException("Get null when listing directory: " + mPath);
+      }
+      else {
+        Iterator<FileInfo> infoIterator = Iterators.transform(statuses, this::transformUfsStatus);
+        return Iterators.filter(infoIterator, mFilter::test);
+      }
+    } catch (IOException e) {
+      throw AlluxioRuntimeException.from(e);
+    }
   }
 
-  /**
-   * An iterator over {@link FileInfo} objects.
-   */
-  public class FileIterator implements Iterator<FileInfo> {
-    private final ListStatusPOptions.Builder mListOptions =
-        ListStatusPOptions.newBuilder().setRecursive(true);
-    private static final int PARTIAL_LISTING_BATCH_SIZE = 1000;
-    private String mStartAfter = "";
-    private List<FileInfo> mFiles;
-    private Iterator<FileInfo> mFileInfoIterator;
-
-    private FileIterator() {
-
-      if (mUsePartialListing) {
-        partialListFileInfos();
-      }
-      else {
-        listFileInfos();
-      }
+  private FileInfo transformUfsStatus(UfsStatus ufsStatus) {
+    AlluxioURI ufsUri = new AlluxioURI(
+        PathUtils.concatPath(mPath, CommonUtils.stripPrefixIfPresent(ufsStatus.getName(), mPath)));
+    FileInfo info = new FileInfo().setName(ufsUri.getName()).setPath(ufsUri.getPath())
+                                  .setUfsPath(ufsUri.toString()).setFolder(ufsStatus.isDirectory())
+                                  .setOwner(ufsStatus.getOwner()).setGroup(ufsStatus.getGroup())
+                                  .setMode(ufsStatus.getMode()).setCompleted(true);
+    if (ufsStatus.getLastModifiedTime() != null) {
+      info.setLastModificationTimeMs(info.getLastModificationTimeMs());
     }
-
-    @Override
-    public boolean hasNext() {
-      if (mUsePartialListing && !mFileInfoIterator.hasNext()) {
-        partialListFileInfos();
-      }
-      return mFileInfoIterator.hasNext();
+    if (ufsStatus.getXAttr() != null) {
+      info.setXAttr(ufsStatus.getXAttr());
     }
-
-    @Override
-    public FileInfo next() {
-      if (mUsePartialListing && !mFileInfoIterator.hasNext()) {
-        partialListFileInfos();
-      }
-      return mFileInfoIterator.next();
+    if (ufsStatus instanceof UfsFileStatus) {
+      UfsFileStatus fileStatus = (UfsFileStatus) ufsStatus;
+      info.setLength(fileStatus.getContentLength());
+      info.setBlockSizeBytes(fileStatus.getBlockSize());
     }
-
-    private void partialListFileInfos() {
-      if (!mStartAfter.isEmpty()) {
-        mListOptions.setDisableAreDescendantsLoadedCheck(true);
-      }
-      listFileInfos();
-      if (mFiles.size() > 0) {
-        mStartAfter = mFiles.get(mFiles.size() - 1).getPath();
-      }
+    else {
+      info.setLength(0);
     }
-
-    private void listFileInfos() {
-      try {
-        AuthenticatedClientUser.set(mUser.orElse(null));
-        Optional<UfsStatus[]> ufsStatuses = mFs.listStatuses(mPath, ListOptions.defaults());
-        if (!ufsStatuses.isPresent() || ufsStatuses.get().length == 0) {
-          mFiles = Collections.emptyList();
-          mFileInfoIterator = Collections.emptyIterator();
-        }
-        else {
-          mFiles = Arrays.stream(ufsStatuses.get()).map(this::transformUfsStatus).filter(mFilter)
-                         .collect(Collectors.toList());
-          mFileInfoIterator = mFiles.iterator();
-        }
-      } catch (IOException e) {
-        throw AlluxioRuntimeException.from(e);
-      } finally {
-        AuthenticatedClientUser.remove();
-      }
-    }
-
-    private FileInfo transformUfsStatus(UfsStatus ufsStatus) {
-      AlluxioURI ufsUri = new AlluxioURI(PathUtils.concatPath(mPath,
-          CommonUtils.stripPrefixIfPresent(ufsStatus.getName(), mPath)));
-      FileInfo info = new FileInfo().setName(ufsUri.getName()).setPath(ufsUri.getPath())
-                                    .setUfsPath(ufsUri.getPath())
-                                    .setFolder(ufsStatus.isDirectory())
-                                    .setOwner(ufsStatus.getOwner()).setGroup(ufsStatus.getGroup())
-                                    .setMode(ufsStatus.getMode()).setCompleted(true);
-      if (ufsStatus.getLastModifiedTime() != null) {
-        info.setLastModificationTimeMs(info.getLastModificationTimeMs());
-      }
-      if (ufsStatus.getXAttr() != null) {
-        info.setXAttr(ufsStatus.getXAttr());
-      }
-      if (ufsStatus instanceof UfsFileStatus) {
-        UfsFileStatus fileStatus = (UfsFileStatus) ufsStatus;
-        info.setLength(fileStatus.getContentLength());
-        info.setBlockSizeBytes(fileStatus.getBlockSize());
-      }
-      else {
-        info.setLength(0);
-      }
-      return info;
-    }
+    return info;
   }
 }
+

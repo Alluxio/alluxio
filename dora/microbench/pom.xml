@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-dora</artifactId>
-    <version>295-SNAPSHOT</version>
+    <version>302-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-microbench</artifactId>
   <name>Alluxio Microbenchmarks</name>
@@ -101,12 +101,16 @@
         <groupId>com.mycila</groupId>
         <artifactId>license-maven-plugin</artifactId>
         <configuration>
-          <excludes>
-            <!-- exclude build configuration files -->
-            <exclude>build/**/*</exclude>
-            <!-- exclude generated code -->
-            <exclude>target/**</exclude>
-          </excludes>
+          <licenseSets>
+            <licenseSet>
+              <excludes>
+                <!-- exclude build configuration files -->
+                <exclude>build/**/*</exclude>
+                <!-- exclude generated code -->
+                <exclude>target/**</exclude>
+              </excludes>
+            </licenseSet>
+          </licenseSets>
         </configuration>
       </plugin>
       <plugin>

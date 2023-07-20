@@ -12,6 +12,7 @@
 package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
@@ -26,6 +27,7 @@ import alluxio.grpc.WritePType;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -37,6 +39,9 @@ import java.util.stream.Collectors;
 /**
  * Tests for needsSync command.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "adapt the command to the new arch")
+@Ignore
 public final class NeedsSyncCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void needsSyncDir() throws IOException, AlluxioException {

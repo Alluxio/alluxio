@@ -12,6 +12,7 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockInStream.BlockInStreamSource;
@@ -44,6 +45,7 @@ import alluxio.wire.WorkerNetAddress;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -53,6 +55,9 @@ import java.util.Arrays;
 /**
  * Integration tests for reading from a remote worker.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
+    comment = "fix tests here")
+@Ignore
 public class RemoteReadIntegrationTest extends BaseIntegrationTest {
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;

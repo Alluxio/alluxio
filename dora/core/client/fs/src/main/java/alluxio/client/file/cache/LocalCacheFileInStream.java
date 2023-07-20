@@ -108,7 +108,7 @@ public class LocalCacheFileInStream extends FileInStream {
     mExternalFileInStreamOpener = fileOpener;
     mCacheManager = cacheManager;
     mStatus = status;
-    mIsDora = conf.getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED);
+    mIsDora = conf.getBoolean(PropertyKey.DORA_ENABLED);
     // Currently quota is only supported when it is set by external systems in status context
     mQuotaEnabled = conf.getBoolean(PropertyKey.USER_CLIENT_CACHE_QUOTA_ENABLED);
     if (mQuotaEnabled && status.getCacheContext() != null) {
@@ -291,8 +291,21 @@ public class LocalCacheFileInStream extends FileInStream {
 
   @Override
   public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
-    return readInternal(new ByteArrayTargetBuffer(b, off), off, len, ReadType.READ_INTO_BYTE_ARRAY,
-        pos, true);
+    try {
+      return readInternal(new ByteArrayTargetBuffer(b, off), off, len,
+          ReadType.READ_INTO_BYTE_ARRAY, pos, true);
+    } catch (IOException | RuntimeException e) {
+      LOG.warn("Failed to read from Alluxio's page cache.", e);
+      if (mExternalFileInStream == null) {
+        try {
+          mExternalFileInStream = mExternalFileInStreamOpener.open(mStatus);
+        } catch (AlluxioException ex) {
+          throw new IOException(ex);
+        }
+        mCloser.register(mExternalFileInStream);
+      }
+      return mExternalFileInStream.positionedRead(pos, b, off, len);
+    }
   }
 
   @Override
@@ -314,6 +327,13 @@ public class LocalCacheFileInStream extends FileInStream {
       mEOF = false;
     }
     mPosition = pos;
+  }
+
+  @Override
+  public void unbuffer() {
+    if (mExternalFileInStream != null) {
+      mExternalFileInStream.unbuffer();
+    }
   }
 
   /**

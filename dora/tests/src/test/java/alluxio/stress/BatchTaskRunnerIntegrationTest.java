@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.stress.cli.BatchTaskRunner;
 import alluxio.stress.common.FileSystemClientType;
 import alluxio.stress.master.MasterBenchSummary;
@@ -24,6 +25,7 @@ import alluxio.util.JsonSerializable;
 import com.google.common.collect.ImmutableList;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -31,6 +33,9 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.Map;
 
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "these tests should be moved to worker")
 public class BatchTaskRunnerIntegrationTest extends AbstractStressBenchIntegrationTest {
   private PrintStream mOriginalOut;
   private ByteArrayOutputStream mOut;

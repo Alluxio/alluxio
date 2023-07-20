@@ -27,11 +27,6 @@ service BlockWorker {
   rpc ReadBlock (stream ReadRequest) returns (stream ReadResponse);
   rpc WriteBlock (stream WriteRequest) returns (stream WriteResponse);
 
-  // Replaces ShortCircuitBlockReadHandler.
-  rpc OpenLocalBlock (stream OpenLocalBlockRequest) returns (stream OpenLocalBlockResponse);
-
-  // Replaces ShortCircuitBlockWriteHandler.
-  rpc CreateLocalBlock (stream CreateLocalBlockRequest) returns (stream CreateLocalBlockResponse);
   rpc AsyncCache (AsyncCacheRequest) returns (AsyncCacheResponse);
   rpc Cache (CacheRequest) returns (CacheResponse);
   rpc Load(LoadRequest)returns (LoadResponse);
@@ -40,10 +35,66 @@ service BlockWorker {
   rpc RemoveBlock (RemoveBlockRequest) returns (RemoveBlockResponse);
   rpc MoveBlock (MoveBlockRequest) returns (MoveBlockResponse);
 
+  rpc Move(MoveRequest) returns (MoveResponse);
+
   // TODO(lu) Move to metrics worker
   rpc ClearMetrics (ClearMetricsRequest) returns (ClearMetricsResponse);
 
   rpc FreeWorker (FreeWorkerRequest) returns (FreeWorkerResponse);
+
+  /**
+   * Creates a file.
+   */
+  rpc CreateFile(grpc.file.CreateFilePRequest) returns (grpc.file.CreateFilePResponse);
+
+  /**
+   * Marks a file as completed.
+   */
+  rpc CompleteFile(grpc.file.CompleteFilePRequest) returns (grpc.file.CompleteFilePResponse);
+
+  /**
+   * Deletes a file or a directory and returns whether the remove operation succeeded.
+   */
+  rpc Remove(grpc.file.DeletePRequest) returns (grpc.file.DeletePResponse);
+
+  /**
+   * Renames a file or a directory.
+   */
+  rpc Rename(grpc.file.RenamePRequest) returns (grpc.file.RenamePResponse);
+
+  /**
+   * Creates a directory.
+   */
+  rpc CreateDirectory(grpc.file.CreateDirectoryPRequest) returns (grpc.file.CreateDirectoryPResponse);
+
+  /**
+   * Checks the existence of a file or directory.
+   */
+  rpc Exists(grpc.file.ExistsPRequest) returns (grpc.file.ExistsPResponse);
+
+  /**
+   * Sets file or directory attributes.
+   */
+  rpc SetAttribute(grpc.file.SetAttributePRequest) returns (grpc.file.SetAttributePResponse);
+}
+
+message UfsStatus {
+  optional string name = 1;
+  optional bool is_directory = 2;
+  optional int64 last_modified_time_ms = 3;
+  optional string owner = 4;
+  optional string group = 5;
+  optional int32 mode = 6;
+  map<string, bytes> xattr = 7;
+  optional string ufs_full_path = 8;
+
+  optional UfsFileStatus ufs_file_status = 100;
+}
+
+message UfsFileStatus {
+  optional string content_hash = 1;
+  optional int64 content_length = 2;
+  optional int64 block_size = 3;
 }
 
 // The check request
@@ -190,20 +241,22 @@ enum TaskStatus {
 }
 
 message LoadFileRequest {
-  repeated File files = 1;
+  repeated UfsStatus ufs_status = 1;
   required UfsReadOptions options = 2;
+  optional bool load_metadata_only = 3; // If set false, only the metadata of file will be loaded.
 }
 
 message File{
-  optional string ufs_path = 1;
+  optional string alluxio_path = 1;
+  optional string ufs_path = 2;
   // file length
-  optional int64 length = 2;
-  optional int64 mountId = 3;
+  optional int64 length = 3;
+  optional int64 mountId = 4;
 }
 
 message LoadFileResponse {
   required TaskStatus status = 1;
-  repeated FileFailure files = 2;
+  repeated LoadFileFailure failures = 2;
 }
 
 message FreeWorkerRequest{}
@@ -214,6 +267,15 @@ message BlockStatus {
   required Block block = 1;
   // The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
   required int32 code = 2;
+  // A developer-facing error message
+  optional string message = 3;
+  optional bool retryable = 4;
+}
+
+message LoadFileFailure {
+  optional UfsStatus ufs_status = 1;
+  // The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
+  optional int32 code = 2;
   // A developer-facing error message
   optional string message = 3;
   optional bool retryable = 4;
@@ -266,34 +328,6 @@ message RouteFailure {
   optional bool retryable = 4;
 }
 
-// next available id: 3
-message OpenLocalBlockRequest {
-  optional int64 block_id = 1;
-  optional bool promote = 2;
-}
-
-// next available id: 2
-message OpenLocalBlockResponse {
-  optional string path = 1;
-}
-
-// next available id: 9
-message CreateLocalBlockRequest {
-  optional int64 block_id = 1;
-  optional int32 tier = 3;
-  optional int64 space_to_reserve = 4;
-  // If set, only reserve space for the block.
-  optional bool only_reserve_space = 5;
-  optional bool cleanup_on_failure = 6;
-  optional string medium_type = 7;
-  optional bool pin_on_create = 8;
-}
-
-// next available id: 2
-message CreateLocalBlockResponse {
-  optional string path = 1;
-}
-
 // next available id: 2
 message RemoveBlockRequest {
   optional int64 block_id = 1;
@@ -311,3 +345,14 @@ message MoveBlockResponse {}
 message ClearMetricsRequest {}
 
 message ClearMetricsResponse {}
+
+message MoveRequest {
+  repeated Route routes = 1;
+  optional UfsReadOptions ufs_read_options = 2;
+  required WriteOptions write_options= 3;
+}
+
+message MoveResponse {
+  required TaskStatus status = 1;
+  repeated RouteFailure failures = 2;
+}

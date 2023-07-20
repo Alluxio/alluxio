@@ -29,8 +29,8 @@ import alluxio.web.WebServer;
 import alluxio.web.WorkerWebServer;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.block.BlockWorker;
 import alluxio.worker.dora.DoraWorker;
+import alluxio.worker.http.HttpServer;
 import alluxio.worker.netty.NettyDataServer;
 
 import com.google.common.collect.ImmutableList;
@@ -51,7 +51,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This class encapsulates the different worker services that are configured to run.
  */
 @NotThreadSafe
-public final class AlluxioWorkerProcess implements WorkerProcess {
+public class AlluxioWorkerProcess implements WorkerProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioWorkerProcess.class);
 
   private final TieredIdentity mTieredIdentitiy;
@@ -67,6 +67,11 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
    * If started (i.e. not null), this server is used to serve local data transfer.
    */
   private DataServer mDomainSocketDataServer;
+
+  /**
+   * HTTP Server provides RESTful API to get/put/append/delete page.
+   */
+  private HttpServer mHttpServer;
 
   /**
    * The worker registry.
@@ -115,7 +120,24 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       UfsManager ufsManager,
       Worker worker,
       DataServerFactory dataServerFactory,
-      @Nullable NettyDataServer nettyDataServer) {
+      @Nullable NettyDataServer nettyDataServer,
+      @Nullable HttpServer httpServer) {
+    this(tieredIdentity, workerRegistry, ufsManager, worker,
+        dataServerFactory, nettyDataServer, httpServer, false);
+  }
+
+  /**
+   * Creates a new instance of {@link AlluxioWorkerProcess}.
+   */
+  protected AlluxioWorkerProcess(
+      TieredIdentity tieredIdentity,
+      WorkerRegistry workerRegistry,
+      UfsManager ufsManager,
+      Worker worker,
+      DataServerFactory dataServerFactory,
+      @Nullable NettyDataServer nettyDataServer,
+      @Nullable HttpServer httpServer,
+      boolean delayWebServer) {
     try {
       mTieredIdentitiy = requireNonNull(tieredIdentity);
       mUfsManager = requireNonNull(ufsManager);
@@ -124,22 +146,25 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       mRpcConnectAddress = requireNonNull(dataServerFactory.getConnectAddress());
       mStartTimeMs = System.currentTimeMillis();
       List<Callable<Void>> callables = ImmutableList.of(() -> {
-        if (worker instanceof BlockWorker) {
-          mRegistry.add(BlockWorker.class, worker);
-        } else if (worker instanceof DoraWorker) {
+        if (worker instanceof DoraWorker) {
           mRegistry.add(DoraWorker.class, worker);
+          mRegistry.addAlias(DataWorker.class, worker);
+          return null;
+        } else {
+          throw new UnsupportedOperationException(worker.getClass().getCanonicalName()
+              + " is no longer supported in Alluxio 3.x");
         }
-        mRegistry.addAlias(DataWorker.class, worker);
-        return null;
       });
       CommonUtils.invokeAll(callables,
           Configuration.getMs(PropertyKey.WORKER_STARTUP_TIMEOUT));
 
       // Setup web server
-      mWebServer =
-          new WorkerWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB,
-              Configuration.global()), this,
-              mRegistry.get(DataWorker.class));
+      if (!delayWebServer) {
+        mWebServer =
+            new WorkerWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB,
+                Configuration.global()), this,
+                mRegistry.get(DataWorker.class));
+      }
 
       // Setup GRPC server
       mDataServer = dataServerFactory.createRemoteGrpcDataServer(
@@ -159,9 +184,15 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       } else {
         mNettyDataServer = null;
       }
+
+      mHttpServer = httpServer;
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  protected void setWebServer(WebServer webServer) {
+    mWebServer = webServer;
   }
 
   @Override
@@ -239,6 +270,11 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
     // Start serving the web server, this will not block.
     mWebServer.start();
+
+    // Start HTTP Server
+    if (mHttpServer != null && Configuration.getBoolean(PropertyKey.WORKER_HTTP_SERVER_ENABLED)) {
+      mHttpServer.start();
+    }
 
     // Start monitor jvm
     if (Configuration.getBoolean(PropertyKey.WORKER_JVM_MONITOR_ENABLED)) {

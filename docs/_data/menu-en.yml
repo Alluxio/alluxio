@@ -1,0 +1,176 @@
+# These are the ordered category names
+  - title: Overview
+    buttonTitle: Overview
+    subfiles:
+      - title: Overview
+        url: /en/Overview.html
+
+  - title: What is Alluxio
+    buttonTitle: What_is_Alluxio
+    subfiles:
+      - title: Introduction
+        url: /en/introduction/Introduction.html
+      - title: Glossary
+        url: /en/introduction/Glossary.html
+
+  - title: Core Services
+    buttonTitle: Core_Services
+    subfiles:
+      - title: Data Caching
+        url: /en/core-services/Data-Caching.html
+      - title: Metadata Cache & Invalidation
+        url: /en/core-services/Metadata-Caching.html
+
+  - title: Get Started
+    buttonTitle: Get-Started
+    subfiles:
+      - title: Get Started
+        url: /en/Get-Started.html
+
+  - title: Install Alluxio
+    buttonTitle: Install_Alluxio
+    subfiles:
+      - title: Software Requirements
+        url: /en/deploy/Software-Requirements.html
+      - title: Install Alluxio Cluster with HA
+        url: /en/deploy/Install-Alluxio-Cluster-with-HA.html
+
+  - title: Kubernetes
+    buttonTitle: Kubernetes
+    subfiles:
+      - title: Install Alluxio on K8s
+        url: /en/kubernetes/Install-Alluxio-On-Kubernetes.html
+      - title: Metrics System on K8s
+        url: /en/kubernetes/Metrics-On-Kubernetes.html
+  
+  - title: Compute Integrations
+    buttonTitle: Compute_Integrations
+    subfiles:
+      - title: Apache Spark
+        url: /en/compute/Spark.html
+      - title: Apache Hadoop MapReduce
+        url: /en/compute/Hadoop-MapReduce.html
+      - title: Apache Flink
+        url: /en/compute/Flink.html
+      - title: Apache Hive
+        url: /en/compute/Hive.html
+      - title: Presto on Iceberg (Experimental)
+        url: /en/compute/Presto-Iceberg.html
+      - title: Presto
+        url: /en/compute/Presto.html
+      - title: Trino
+        url: /en/compute/Trino.html
+
+  - title: Storage Integrations
+    buttonTitle: Storage_Integrations
+    subfiles:
+      - title: Amazon AWS S3
+        url: /en/ufs/S3.html
+      - title: HDFS
+        url: /en/ufs/HDFS.html
+      - title: Azure Blob Store
+        url: /en/ufs/Azure-Blob-Store.html
+      - title: Azure Data Lake Storage
+        url: /en/ufs/Azure-Data-Lake.html
+      - title: Azure Data Lake Storage Gen2
+        url: /en/ufs/Azure-Data-Lake-Gen2.html
+      - title: Google Cloud Storage
+        url: /en/ufs/GCS.html
+      - title: Qiniu Kodo
+        url: /en/ufs/Qiniu-KODO.html
+      - title: Tencent COS
+        url: /en/ufs/COS.html
+      - title: COSN (Hadoop-COS)
+        url: /en/ufs/COSN.html
+      - title: CephObjectStorage
+        url: /en/ufs/CephObjectStorage.html
+      - title: MinIO
+        url: /en/ufs/Minio.html
+      - title: NFS
+        url: /en/ufs/NFS.html
+      - title: Aliyun Object Storage Service
+        url: /en/ufs/OSS.html
+      - title: Ozone
+        url: /en/ufs/Ozone.html
+      - title: Swift
+        url: /en/ufs/Swift.html
+      - title: CephFS
+        url: /en/ufs/CephFS.html
+      - title: Huawei OBS
+        url: /en/ufs/OBS.html
+
+  - title: FUSE SDK
+    buttonTitle: FUSE_SDK
+    subfiles:
+      - title: FUSE SDK Overview
+        url: /en/fuse-sdk/Overview-Fuse-Sdk.html
+      - title: Local Cache Quick Start
+        url: /en/fuse-sdk/Local-Cache-Quick-Start.html
+      - title: Distributed Cache Quick Start
+        url: /en/fuse-sdk/FUSE-SDK-Dora-Quick-Start.html
+      - title: Local Cache Overview
+        url: /en/fuse-sdk/Local-Cache.html
+      - title: Local Metadata Cache
+        url: /en/fuse-sdk/Local-Metadata-Cache.html
+      - title: Local Data Cache
+        url: /en/fuse-sdk/Local-Data-Cache.html
+      - title: Advanced Tuning
+        url: /en/fuse-sdk/Advanced-Tuning.html
+
+  - title: Presto SDK
+    buttonTitle: Presto_SDK
+    subfiles:
+      - title: Presto SDK with Local Cache
+        url: /en/presto-sdk/presto-sdk.html
+
+  - title: Operations
+    buttonTitle: Operations
+    subfiles:
+      - title: Configuration Settings
+        url: /en/operation/Configuration.html
+      - title: User CLI
+        url: /en/operation/User-CLI.html
+      - title: Journal Management
+        url: /en/operation/Journal.html
+      - title: Metrics System
+        url: /en/operation/Metrics-System.html
+
+  - title: Administration
+    buttonTitle: Administration
+    subfiles:
+      - title: Troubleshooting
+        url: /en/administration/Troubleshooting.html
+      - title: Basic Logging
+        url: /en/administration/Basic-Logging.html
+
+  - title: Client APIs
+    buttonTitle: Client_APIs
+    subfiles:
+      - title: Java API
+        url: /en/api/Java-API.html
+      - title: S3 API
+        url: /en/api/S3-API.html
+      - title: REST API
+        url: /en/api/REST-API.html
+
+  - title: Contributor Resources
+    buttonTitle: Contributor_Resources
+    subfiles:
+      - title: Building Alluxio From Source
+        url: /en/contributor/Building-Alluxio-From-Source.html
+      - title: Contribution Guide
+        url: /en/contributor/Contribution-Guide.html
+      - title: Code Conventions
+        url: /en/contributor/Code-Conventions.html
+      - title: Documentation Conventions
+        url: /en/contributor/Documentation-Conventions.html
+      - title: Contributor Tools
+        url: /en/contributor/Contributor-Tools.html
+
+  - title: Reference
+    buttonTitle: Reference
+    subfiles:
+      - title: List of Configuration Properties
+        url: /en/reference/Properties-List.html
+      - title: List of Metrics
+        url: /en/reference/Metrics-List.html

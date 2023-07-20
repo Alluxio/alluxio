@@ -21,6 +21,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
@@ -36,10 +37,13 @@ import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.SecurityUtils;
+import alluxio.util.ThreadUtils;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.cache.Cache;
 import com.google.common.primitives.Longs;
+import com.google.common.util.concurrent.RateLimiter;
 import com.google.protobuf.ByteString;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -56,10 +60,13 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.security.auth.Subject;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -123,7 +130,11 @@ public final class S3RestUtils {
       XmlMapper mapper = new XmlMapper();
       return Response.ok(mapper.writeValueAsString(result)).build();
     } catch (Exception e) {
-      LOG.warn("Error invoking REST endpoint for {}:\n{}", resource, e.getMessage());
+      String errOutputMsg = e.getMessage();
+      if (StringUtils.isEmpty(errOutputMsg)) {
+        errOutputMsg = ThreadUtils.formatStackTrace(e);
+      }
+      LOG.warn("Error invoking REST endpoint for {}:\n{}", resource, errOutputMsg);
       return S3ErrorResponse.createErrorResponse(e, resource);
     }
   }
@@ -243,6 +254,10 @@ public final class S3RestUtils {
     } catch (DirectoryNotEmptyException e) {
       return new S3Exception(e, resource, S3ErrorCode.PRECONDITION_FAILED);
     } catch (FileDoesNotExistException e) {
+      if (Pattern.matches(ExceptionMessage.BUCKET_DOES_NOT_EXIST.getMessage(".*"),
+          e.getMessage())) {
+        return new S3Exception(e, resource, S3ErrorCode.NO_SUCH_BUCKET);
+      }
       return new S3Exception(e, resource, S3ErrorCode.NO_SUCH_KEY);
     } catch (AccessControlException e) {
       return new S3Exception(e, resource, S3ErrorCode.ACCESS_DENIED_ERROR);
@@ -281,8 +296,8 @@ public final class S3RestUtils {
     try {
       URIStatus status = fs.getStatus(new AlluxioURI(bucketPath));
       if (!status.isFolder()) {
-        throw new InvalidPathException("Bucket " + bucketPath
-            + " is not a valid Alluxio directory.");
+        throw new FileDoesNotExistException(
+            ExceptionMessage.BUCKET_DOES_NOT_EXIST.getMessage(bucketPath));
       }
     } catch (Exception e) {
       if (auditContext != null) {
@@ -290,6 +305,25 @@ public final class S3RestUtils {
       }
       throw toBucketS3Exception(e, bucketPath);
     }
+  }
+
+  /**
+   * Check if a path in alluxio is a directory.
+   *
+   * @param fs instance of {@link FileSystem}
+   * @param bucketPath bucket complete path
+   * @param auditContext the audit context for exception
+   * @param bucketPathCache cache the bucket path for a certain time period
+   */
+  public static void checkPathIsAlluxioDirectory(FileSystem fs, String bucketPath,
+                                                 @Nullable S3AuditContext auditContext,
+                                                 Cache<String, Boolean> bucketPathCache)
+      throws S3Exception {
+    if (Boolean.TRUE.equals(bucketPathCache.getIfPresent(bucketPath))) {
+      return;
+    }
+    checkPathIsAlluxioDirectory(fs, bucketPath, auditContext);
+    bucketPathCache.put(bucketPath, true);
   }
 
   /**
@@ -394,7 +428,9 @@ public final class S3RestUtils {
 
     final Subject subject = new Subject();
     subject.getPrincipals().add(new User(user));
-    return FileSystem.Factory.get(subject, fs.getConf());
+    // Use local conf to create filesystem rather than fs.getConf()
+    // due to fs conf will be changed by merged cluster conf.
+    return FileSystem.Factory.get(subject, Configuration.global());
   }
 
   /**
@@ -508,12 +544,12 @@ public final class S3RestUtils {
    * @return the entityTag String, or null if it does not exist
    */
   public static String getEntityTag(URIStatus status) {
-    if (status.getXAttr() == null
-        || !status.getXAttr().containsKey(S3Constants.ETAG_XATTR_KEY)) {
+    String contenthash = status.getFileInfo().getContentHash();
+    if (StringUtils.isNotEmpty(contenthash)) {
+      return contenthash;
+    } else {
       return null;
     }
-    return new String(status.getXAttr().get(S3Constants.ETAG_XATTR_KEY),
-        S3Constants.XATTR_STR_CHARSET);
   }
 
   /**
@@ -537,6 +573,38 @@ public final class S3RestUtils {
       throw new S3Exception(new S3ErrorCode(S3ErrorCode.INTERNAL_ERROR.getCode(),
           e.getMessage(), S3ErrorCode.INTERNAL_ERROR.getStatus()));
     }
+  }
+
+  /**
+   * Get username from header info from HttpServletRequest.
+   *
+   * @param authorization
+   * @param request
+   * @return user name
+   * @throws S3Exception
+   */
+  public static String getUser(String authorization, HttpServletRequest request)
+          throws S3Exception {
+    if (S3RestUtils.isAuthenticationEnabled(Configuration.global())) {
+      return getUserFromSignature(request);
+    }
+    try {
+      return getUserFromAuthorization(authorization, Configuration.global());
+    } catch (RuntimeException e) {
+      throw new S3Exception(new S3ErrorCode(S3ErrorCode.INTERNAL_ERROR.getCode(),
+              e.getMessage(), S3ErrorCode.INTERNAL_ERROR.getStatus()));
+    }
+  }
+
+  private static String getUserFromSignature(HttpServletRequest request)
+          throws S3Exception {
+    AwsSignatureProcessor signatureProcessor = new AwsSignatureProcessor(request);
+    Authenticator authenticator = Authenticator.Factory.create(Configuration.global());
+    AwsAuthInfo authInfo = signatureProcessor.getAuthInfo();
+    if (authenticator.isAuthenticated(authInfo)) {
+      return authInfo.getAccessID();
+    }
+    throw new S3Exception(authInfo.toString(), S3ErrorCode.INVALID_IDENTIFIER);
   }
 
   /**
@@ -608,8 +676,69 @@ public final class S3RestUtils {
   }
 
   /**
-   * Comparator based on uri name， treat uri name as a Long number.
+   * Populate xattr with content type info from header.
+   * @param xattrMap
+   * @param contentTypeHeader
    */
+  public static void populateContentTypeInXAttr(Map<String, ByteString> xattrMap,
+                                                String contentTypeHeader) {
+    if (contentTypeHeader != null) {
+      xattrMap.put(S3Constants.CONTENT_TYPE_XATTR_KEY,
+              ByteString.copyFrom(contentTypeHeader, S3Constants.HEADER_CHARSET));
+    }
+  }
+
+  /**
+   * Populate xattr map with tagging info from tagging header.
+   * @param xattrMap
+   * @param taggingHeader
+   * @param auditContext
+   * @param objectPath
+   * @throws S3Exception
+   */
+  public static void populateTaggingInXAttr(Map<String, ByteString> xattrMap, String taggingHeader,
+                                            S3AuditContext auditContext, String objectPath)
+      throws S3Exception {
+    TaggingData tagData = null;
+    if (taggingHeader != null) { // Parse the tagging header if it exists for PutObject
+      try {
+        tagData = S3RestUtils.deserializeTaggingHeader(
+            taggingHeader, S3Handler.MAX_HEADER_METADATA_SIZE);
+      } catch (IllegalArgumentException e) {
+        Throwable cause = e.getCause();
+        if (cause instanceof S3Exception) {
+          throw S3RestUtils.toObjectS3Exception((S3Exception) cause, objectPath,
+                  auditContext);
+        }
+        throw S3RestUtils.toObjectS3Exception(e, objectPath, auditContext);
+      }
+    }
+    LOG.debug("tagData={}", tagData);
+    // Populate the xattr Map with the metadata tags if provided
+    if (tagData != null) {
+      try {
+        xattrMap.put(S3Constants.TAGGING_XATTR_KEY, TaggingData.serialize(tagData));
+      } catch (Exception e) {
+        throw S3RestUtils.toObjectS3Exception(e, objectPath, auditContext);
+      }
+    }
+  }
+
+  /**
+   * Create a rate limiter for given rate.
+   * @param rate bytes per second
+   * @return empty if rate <= 0
+   */
+  public static Optional<RateLimiter> createRateLimiter(long rate) {
+    if (rate <= 0) {
+      return Optional.empty();
+    }
+    return Optional.of(RateLimiter.create(rate));
+  }
+
+    /**
+     * Comparator based on uri name， treat uri name as a Long number.
+     */
   public static class URIStatusNameComparator implements Comparator<URIStatus>, Serializable {
 
     private static final long serialVersionUID = 733270188584155565L;

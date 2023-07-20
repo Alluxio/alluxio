@@ -35,7 +35,7 @@ import java.util.stream.Stream;
  * Directory of page store.
  */
 public interface PageStoreDir extends CacheStatus {
-  Logger LOG = LoggerFactory.getLogger(RocksPageStore.class);
+  Logger LOG = LoggerFactory.getLogger(PageStoreDir.class);
 
   /**
    * Create a list of PageStoreDir based on the configuration.

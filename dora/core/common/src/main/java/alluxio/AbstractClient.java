@@ -83,6 +83,8 @@ public abstract class AbstractClient implements Client {
   /* Used to query service version for the remote service type. */
   protected ServiceVersionClientServiceGrpc.ServiceVersionClientServiceBlockingStub mVersionService;
 
+  protected boolean mAlwaysEnableTLS = false;
+
   /** Is true if this client is currently connected. */
   protected boolean mConnected = false;
 
@@ -112,6 +114,11 @@ public abstract class AbstractClient implements Client {
     this(context, RetryUtils::defaultClientRetry);
   }
 
+  protected AbstractClient(ClientContext context, boolean alwaysEnableTLS) {
+    this(context, RetryUtils::defaultClientRetry);
+    mAlwaysEnableTLS = alwaysEnableTLS;
+  }
+
   /**
    * Creates a new client base with specified retry policy supplier.
    *
@@ -139,7 +146,10 @@ public abstract class AbstractClient implements Client {
     try {
       return mVersionService
           .getServiceVersion(
-              GetServiceVersionPRequest.newBuilder().setServiceType(getRemoteServiceType()).build())
+              GetServiceVersionPRequest.newBuilder()
+                  .setServiceType(getRemoteServiceType())
+                  .setAllowedOnStandbyMasters(true)
+                  .build())
           .getVersion();
     } catch (Throwable t) {
       throw AlluxioStatusException.fromThrowable(t);
@@ -224,6 +234,14 @@ public abstract class AbstractClient implements Client {
     }
   }
 
+  protected GrpcChannel createChannel() throws AlluxioStatusException {
+    AlluxioConfiguration conf = mContext.getClusterConf();
+    return GrpcChannelBuilder
+        .newBuilder(mServerAddress, conf, mAlwaysEnableTLS)
+        .setSubject(mContext.getSubject())
+        .build();
+  }
+
   /**
    * Connects with the remote.
    */
@@ -255,12 +273,8 @@ public abstract class AbstractClient implements Client {
         beforeConnect();
         LOG.debug("Alluxio client (version {}) is trying to connect with {} @ {}",
             RuntimeConstants.VERSION, getServiceName(), mServerAddress);
-        AlluxioConfiguration conf = mContext.getClusterConf();
         // set up rpc group channel
-        mChannel = GrpcChannelBuilder
-            .newBuilder(mServerAddress, conf)
-            .setSubject(mContext.getSubject())
-            .build();
+        mChannel = createChannel();
         // Create stub for version service on host
         mVersionService = ServiceVersionClientServiceGrpc.newBlockingStub(mChannel);
         mConnected = true;
@@ -484,6 +498,7 @@ public abstract class AbstractClient implements Client {
         if (se.getStatusCode() == Status.Code.UNAVAILABLE
             || se.getStatusCode() == Status.Code.CANCELLED
             || se.getStatusCode() == Status.Code.UNAUTHENTICATED
+            || se.getStatusCode() == Status.Code.UNIMPLEMENTED // for standby grpc enabled
             || e.getCause() instanceof UnresolvedAddressException) {
           ex = se;
         } else {

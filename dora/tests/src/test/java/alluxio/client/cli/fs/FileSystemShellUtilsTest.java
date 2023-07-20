@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.cli.Command;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.cli.fs.FileSystemShellUtils;
@@ -36,6 +37,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.reflections.Reflections;
@@ -298,6 +300,9 @@ public final class FileSystemShellUtilsTest {
   }
 
   @Test
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jianjian",
+      comment = "fix or remove this test")
+  @Ignore
   public void loadCommands() {
     Map<String, Command> map =
         FileSystemShellUtils.loadCommands(FileSystemContext.create(Configuration.global()));

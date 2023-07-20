@@ -21,6 +21,7 @@ import alluxio.master.journal.JournalSystem;
 import alluxio.master.service.SimpleService;
 import alluxio.master.service.rpc.RpcServerService;
 import alluxio.master.service.web.WebServerService;
+import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
@@ -90,6 +91,7 @@ public abstract class MasterProcess implements Process {
     mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(rpcService, Configuration.global());
     mWebConnectAddress = NetworkAddressUtils.getConnectAddress(webService, Configuration.global());
     mStartTimeMs = System.currentTimeMillis();
+    MetricsSystem.registerGaugeIfAbsent(MetricKey.MASTER_START_TIME.getName(), () -> mStartTimeMs);
   }
 
   private static InetSocketAddress configureAddress(ServiceType service) {
@@ -210,9 +212,9 @@ public abstract class MasterProcess implements Process {
   /**
    * @return true if the system is the leader (serving the rpc server), false otherwise
    */
-  public boolean isGrpcServing() {
+  public boolean isGrpcServingAsLeader() {
     return mServices.stream().anyMatch(service -> service instanceof RpcServerService
-        && ((RpcServerService) service).isServing());
+        && ((RpcServerService) service).isServingLeader());
   }
 
   /**
@@ -236,8 +238,8 @@ public abstract class MasterProcess implements Process {
    * @param timeoutMs how long to wait in milliseconds
    * @return whether the grpc server became ready before the specified timeout
    */
-  public boolean waitForGrpcServerReady(int timeoutMs) {
-    return pollFor(this + " to start", this::isGrpcServing, timeoutMs);
+  public boolean waitForLeaderGrpcServerReady(int timeoutMs) {
+    return pollFor(this + " to start", this::isGrpcServingAsLeader, timeoutMs);
   }
 
   /**
@@ -274,6 +276,13 @@ public abstract class MasterProcess implements Process {
 
   @Override
   public boolean waitForReady(int timeoutMs) {
-    return waitForGrpcServerReady(timeoutMs);
+    return waitForLeaderGrpcServerReady(timeoutMs);
+  }
+
+  /**
+   * @return the primary selector
+   */
+  public PrimarySelector getPrimarySelector() {
+    return mLeaderSelector;
   }
 }

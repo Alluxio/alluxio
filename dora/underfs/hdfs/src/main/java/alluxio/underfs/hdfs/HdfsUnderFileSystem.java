@@ -24,6 +24,7 @@ import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.AtomicFileOutputStream;
 import alluxio.underfs.AtomicFileOutputStreamCallback;
+import alluxio.underfs.ChecksumType;
 import alluxio.underfs.ConsistentUnderFileSystem;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
@@ -33,7 +34,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
-import alluxio.underfs.options.GetFileStatusOptions;
+import alluxio.underfs.options.GetStatusOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
@@ -82,35 +83,35 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     implements AtomicFileOutputStreamCallback {
   private static final Logger LOG = LoggerFactory.getLogger(HdfsUnderFileSystem.class);
   private static final int MAX_TRY = 5;
-  private static final String HDFS_USER = "";
+  protected static final String HDFS_USER = "";
   /** Name of the class for the HDFS Acl provider. */
-  private static final String HDFS_ACL_PROVIDER_CLASS =
+  protected static final String HDFS_ACL_PROVIDER_CLASS =
       "alluxio.underfs.hdfs.acl.SupportedHdfsAclProvider";
 
   /** Name of the class for the Hdfs ActiveSync provider. */
-  private static final String HDFS_ACTIVESYNC_PROVIDER_CLASS =
+  protected static final String HDFS_ACTIVESYNC_PROVIDER_CLASS =
       "alluxio.underfs.hdfs.activesync.SupportedHdfsActiveSyncProvider";
 
   /** The minimum HDFS production version required for EC. **/
-  private static final String HDFS_EC_MIN_VERSION = "3.0.0";
+  protected static final String HDFS_EC_MIN_VERSION = "3.0.0";
 
   /** Name of the class for the HDFS EC Codec Registry. **/
-  private static final String HDFS_EC_CODEC_REGISTRY_CLASS =
+  protected static final String HDFS_EC_CODEC_REGISTRY_CLASS =
       "org.apache.hadoop.io.erasurecode.CodecRegistry";
 
-  private static final String JAVAX_WS_RS_CORE_MEDIA_TYPE =
+  protected static final String JAVAX_WS_RS_CORE_MEDIA_TYPE =
       "javax.ws.rs.core.MediaType";
 
-  private static final String HADOOP_AUTH_METHOD =
+  protected static final String HADOOP_AUTH_METHOD =
           "hadoop.security.authentication";
 
-  private static final String KRB5_CONF_FILE =
+  protected static final String KRB5_CONF_FILE =
           "java.security.krb5.conf";
 
-  private static final String KRB_KEYTAB_LOGIN_AUTO_RENEW =
+  protected static final String KRB_KEYTAB_LOGIN_AUTO_RENEW =
           "hadoop.kerberos.keytab.login.autorenewal.enabled";
 
-  private static final String CHECKSUM_COMBINE_MODE =
+  protected static final String CHECKSUM_COMBINE_MODE =
           "dfs.checksum.combine.mode";
 
   private final LoadingCache<String, FileSystem> mUserFs;
@@ -140,6 +141,11 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
    */
   public HdfsUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
       Configuration hdfsConf) {
+    this(ufsUri, conf, hdfsConf, true);
+  }
+
+  protected HdfsUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
+      Configuration hdfsConf, boolean useLoadingCache) {
     super(ufsUri, conf);
 
     // Create the supported HdfsAclProvider if possible.
@@ -182,9 +188,10 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         hdfsConf.setBoolean(KRB_KEYTAB_LOGIN_AUTO_RENEW,
                 mUfsConf.getBoolean(PropertyKey.HADOOP_KERBEROS_KEYTAB_LOGIN_AUTORENEWAL));
       }
-      if (mUfsConf.isSet(PropertyKey.HADOOP_CHECKSUM_COMBINE_MODE)) {
-        hdfsConf.set(CHECKSUM_COMBINE_MODE,
-            mUfsConf.getString(PropertyKey.HADOOP_CHECKSUM_COMBINE_MODE));
+      // HDFS default composite type is MD5 of a concatenation of chunk CRCs so no need to set
+      if (mUfsConf.getEnum(PropertyKey.UNDERFS_CHECKSUM_TYPE, ChecksumType.class)
+                  .equals(ChecksumType.CRC32C)) {
+        hdfsConf.set(CHECKSUM_COMBINE_MODE, "COMPOSITE_CRC");
       }
 
       // Set Hadoop UGI configuration to ensure UGI can be initialized by the shaded classes for
@@ -215,26 +222,30 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
       Thread.currentThread().setContextClassLoader(currentClassLoader);
     }
 
-    mUserFs = CacheBuilder.newBuilder().build(new CacheLoader<String, FileSystem>() {
-      @Override
-      public FileSystem load(String userKey) throws Exception {
-        // When running {@link UnderFileSystemContractTest} with hdfs path,
-        // the org.apache.hadoop.fs.FileSystem is loaded by {@link ExtensionClassLoader},
-        // but the org.apache.hadoop.fs.LocalFileSystem is loaded by {@link AppClassLoader}.
-        // When an interface and associated implementation are each loaded
-        // by two separate class loaders, an instance of the class from one loader cannot
-        // be recognized as implementing the interface from the other loader.
-        ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
-        try {
-          // Set the class loader to ensure FileSystem implementations are
-          // loaded by the same class loader to avoid ConfigurationError
-          Thread.currentThread().setContextClassLoader(currentClassLoader);
-          return path.getFileSystem(hdfsConf);
-        } finally {
-          Thread.currentThread().setContextClassLoader(previousClassLoader);
+    if (useLoadingCache) {
+      mUserFs = CacheBuilder.newBuilder().build(new CacheLoader<String, FileSystem>() {
+        @Override
+        public FileSystem load(String userKey) throws Exception {
+          // When running {@link UnderFileSystemContractTest} with hdfs path,
+          // the org.apache.hadoop.fs.FileSystem is loaded by {@link ExtensionClassLoader},
+          // but the org.apache.hadoop.fs.LocalFileSystem is loaded by {@link AppClassLoader}.
+          // When an interface and associated implementation are each loaded
+          // by two separate class loaders, an instance of the class from one loader cannot
+          // be recognized as implementing the interface from the other loader.
+          ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
+          try {
+            // Set the class loader to ensure FileSystem implementations are
+            // loaded by the same class loader to avoid ConfigurationError
+            Thread.currentThread().setContextClassLoader(currentClassLoader);
+            return path.getFileSystem(hdfsConf);
+          } finally {
+            Thread.currentThread().setContextClassLoader(previousClassLoader);
+          }
         }
-      }
-    });
+      });
+    } else {
+      mUserFs = null;
+    }
 
     // Create the supported HdfsActiveSyncer if possible.
     HdfsActiveSyncProvider hdfsActiveSyncProvider = new NoopHdfsActiveSyncProvider();
@@ -409,8 +420,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   @Nullable
   public List<String> getFileLocations(String path, FileLocationOptions options)
       throws IOException {
-    // If the user has hinted the underlying storage nodes are not co-located with Alluxio
-    // workers, short circuit without querying the locations.
+    // If the user has hinted the underlying storage nodes are not co-located with Alluxio workers.
     if (mUfsConf.getBoolean(PropertyKey.UNDERFS_HDFS_REMOTE)) {
       return null;
     }
@@ -437,7 +447,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   @Override
-  public UfsFileStatus getFileStatus(String path, GetFileStatusOptions options) throws IOException {
+  public UfsFileStatus getFileStatus(String path, GetStatusOptions options) throws IOException {
     Path tPath = new Path(path);
     FileSystem hdfs = getFs();
     FileStatus fs = hdfs.getFileStatus(tPath);
@@ -481,7 +491,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   @Override
-  public UfsStatus getStatus(String path, GetFileStatusOptions options) throws IOException {
+  public UfsStatus getStatus(String path, GetStatusOptions options) throws IOException {
     Path tPath = new Path(path);
     FileSystem hdfs = getFs();
     FileStatus fs = hdfs.getFileStatus(tPath);
@@ -495,23 +505,6 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         contentHash =
             UnderFileSystemUtils.approximateContentHash(fs.getLen(), fs.getModificationTime());
       }
-      return new UfsFileStatus(path, contentHash, fs.getLen(), fs.getModificationTime(),
-          fs.getOwner(), fs.getGroup(), fs.getPermission().toShort(), fs.getBlockSize());
-    }
-    // Return directory status.
-    return new UfsDirectoryStatus(path, fs.getOwner(), fs.getGroup(), fs.getPermission().toShort(),
-        fs.getModificationTime());
-  }
-
-  @Override
-  public UfsStatus getStatus(String path) throws IOException {
-    Path tPath = new Path(path);
-    FileSystem hdfs = getFs();
-    FileStatus fs = hdfs.getFileStatus(tPath);
-    if (!fs.isDir()) {
-      // Return file status.
-      String contentHash =
-          UnderFileSystemUtils.approximateContentHash(fs.getLen(), fs.getModificationTime());
       return new UfsFileStatus(path, contentHash, fs.getLen(), fs.getModificationTime(),
           fs.getOwner(), fs.getGroup(), fs.getPermission().toShort(), fs.getBlockSize());
     }
@@ -681,7 +674,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         LOG.debug("Using original API to HDFS");
         return new HdfsUnderFileInputStream(inputStream);
       } catch (IOException e) {
-        LOG.warn("{} try to open {} : {}", retryPolicy.getAttemptCount(), path, e.toString());
+        LOG.debug("{} try to open {} : {}", retryPolicy.getAttemptCount(), path, e.toString());
         te = e;
         if (options.getRecoverFailedOpen() && dfs != null && e.getMessage().toLowerCase()
             .startsWith("cannot obtain block length for")) {
@@ -708,7 +701,12 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
         }
       }
     }
-    throw te;
+    if (te != null) {
+      LOG.error("{} failed attempts to open \"{}\" with last error:",
+          retryPolicy.getAttemptCount(), path, te);
+      throw te;
+    }
+    throw new IllegalStateException("Exceeded the number of retry attempts with no exception");
   }
 
   @Override
@@ -889,7 +887,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   /**
    * @return the underlying HDFS {@link FileSystem} object
    */
-  private FileSystem getFs() throws IOException {
+  protected FileSystem getFs() throws IOException {
     try {
       // TODO(gpang): handle different users
       return mUserFs.get(HDFS_USER);

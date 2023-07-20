@@ -22,8 +22,10 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.FilenameUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import javax.annotation.concurrent.ThreadSafe;
@@ -189,6 +191,29 @@ public final class PathUtils {
       return AlluxioURI.SEPARATOR;
     }
     return parent;
+  }
+
+  /**
+   * Gets the first level directory of the path.
+   * For example,
+   *
+   * <pre>
+   * {@code
+   * getFirstLevelDirectory("/a/xx/").equals("/a");
+   * getFirstLevelDirectory("/a/").equals("/a");
+   * }
+   * </pre>
+   *
+   * @param path the path
+   * @return the first level directory of the path;
+   * @throws InvalidPathException if the path is the root or invalid
+   */
+  public static String getFirstLevelDirectory(String path) throws InvalidPathException {
+    String[] paths = getPathComponents(path);
+    if (paths.length < 2) {
+      throw new InvalidPathException(path + " has no first level directory");
+    }
+    return AlluxioURI.SEPARATOR + paths[1];
   }
 
   /**
@@ -421,4 +446,26 @@ public final class PathUtils {
   }
 
   private PathUtils() {} // prevent instantiation
+
+  /**
+   * Returns the list of possible mount points of the given path.
+   *
+   * "/a/b/c" => {"/a", "/a/b", "/a/b/c"}
+   *
+   * @param path the path to get the mount points of
+   * @return a list of paths
+   */
+  public static List<String> getPossibleMountPoints(String path) throws InvalidPathException {
+    String basePath = cleanPath(path);
+    List<String> paths = new ArrayList<>();
+    if ((basePath != null) && !basePath.equals(AlluxioURI.SEPARATOR)) {
+      paths.add(basePath);
+      String parent = getParent(path);
+      while (!parent.equals(AlluxioURI.SEPARATOR)) {
+        paths.add(0, parent);
+        parent = getParent(parent);
+      }
+    }
+    return paths;
+  }
 }

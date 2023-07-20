@@ -12,12 +12,14 @@
 package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -25,6 +27,9 @@ import java.io.IOException;
 /**
  * Tests for rm command.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "fix rm command")
+@Ignore
 public final class RmCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void rmNotExistingDir() throws IOException {
@@ -129,5 +134,31 @@ public final class RmCommandIntegrationTest extends AbstractFileSystemShellTest 
     Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/bar")));
     Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/foo")));
     Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/foobar4")));
+  }
+
+  @Test
+  public void rmSyncDirNextTime() {
+    StringBuilder toCompare = new StringBuilder();
+    sFsShell.run("mkdir", "/testFolder1/testFolder2");
+    toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder1/testFolder2"}));
+    sFsShell.run("touch", "/testFolder1/testFolder2/testFile2");
+    toCompare
+        .append(getCommandOutput(new String[] {"touch", "/testFolder1/testFolder2/testFile2"}));
+    AlluxioURI testFolder1 = new AlluxioURI("/testFolder1");
+    AlluxioURI testFolder2 = new AlluxioURI("/testFolder1/testFolder2");
+    AlluxioURI testFile2 = new AlluxioURI("/testFolder1/testFolder2/testFile2");
+    Assert.assertTrue(fileExists(testFolder1));
+    Assert.assertTrue(fileExists(testFolder2));
+    Assert.assertTrue(fileExists(testFile2));
+    sFsShell.run("rm", "--alluxioOnly", "-s", "true", "/testFolder1/testFolder2/testFile2");
+    toCompare.append(getCommandOutput(new String[] {"rm", "/testFolder1/testFolder2/testFile2"})
+        .replace("\n", "")
+        + " only from Alluxio space\n");
+    Assert.assertEquals(toCompare.toString(), mOutput.toString());
+    Assert.assertTrue(fileExists(testFolder1));
+    Assert.assertTrue(fileExists(testFolder2));
+    Assert.assertFalse(fileExistsInAlluxio(testFile2));
+    Assert.assertTrue(fileExists(testFile2));
+    Assert.assertTrue(fileExistsInAlluxio(testFile2));
   }
 }

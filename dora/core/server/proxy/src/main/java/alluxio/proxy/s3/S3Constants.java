@@ -28,6 +28,7 @@ public final class S3Constants {
    * mount:point:bucket represents Alluxio directory /mount/point/bucket.
    */
   public static final String BUCKET_SEPARATOR = ":";
+  public static final String EMPTY = "";
 
   /* Headers */
   // standard headers
@@ -40,6 +41,7 @@ public final class S3Constants {
   // AWS headers
   public static final String S3_ACL_HEADER = "x-amz-acl";
   public static final String S3_COPY_SOURCE_HEADER = "x-amz-copy-source";
+  public static final String S3_COPY_SOURCE_RANGE = "x-amz-copy-source-range";
   public static final String S3_ETAG_HEADER = "ETAG";
   public static final String S3_METADATA_DIRECTIVE_HEADER = "x-amz-metadata-directive";
 

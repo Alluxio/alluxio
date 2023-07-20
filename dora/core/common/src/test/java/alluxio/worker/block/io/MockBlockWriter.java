@@ -38,6 +38,10 @@ public final class MockBlockWriter extends BlockWriter {
   }
 
   @Override
+  public void abort() {
+  }
+
+  @Override
   public void close() throws IOException {
     mOutputStream.close();
     mPosition = -1;
@@ -118,5 +122,10 @@ public final class MockBlockWriter extends BlockWriter {
    */
   public byte[] getBytes() {
     return mOutputStream.toByteArray();
+  }
+
+  @Override
+  public void commitFile() {
+    throw new UnsupportedOperationException("commitFile method is unsupported. ");
   }
 }

@@ -139,8 +139,9 @@ public final class HeartbeatThreadTest {
       try (ManuallyScheduleHeartbeat.Resource r =
           new ManuallyScheduleHeartbeat.Resource(Arrays.asList(mThreadName))) {
         DummyHeartbeatExecutor executor = new DummyHeartbeatExecutor();
-        HeartbeatThread ht = new HeartbeatThread(mThreadName, executor, 1, Configuration.global(),
-            UserState.Factory.create(Configuration.global()));
+        HeartbeatThread ht = new HeartbeatThread(mThreadName, executor,
+            () -> new FixedIntervalSupplier(1L),
+            Configuration.global(), UserState.Factory.create(Configuration.global()));
 
         // Run the HeartbeatThread.
         mExecutorService.submit(ht);
@@ -166,7 +167,7 @@ public final class HeartbeatThreadTest {
     private int mCounter = 0;
 
     @Override
-    public void heartbeat() {
+    public void heartbeat(long timeLimitMs) {
       mCounter++;
     }
 

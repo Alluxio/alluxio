@@ -27,6 +27,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public enum ExceptionMessage {
   // general
   PATH_DOES_NOT_EXIST("Path \"{0}\" does not exist."),
+  BUCKET_DOES_NOT_EXIST("Bucket \"{0}\" does not exist."),
   PATH_DOES_NOT_EXIST_PARTIAL_LISTING("Path \"{0}\" was removed during listing."),
   INODE_NOT_FOUND_PARTIAL_LISTING("\"{0}\" Inode was not found during partial listing. It was "
       + "likely removed across listing calls."),
@@ -110,6 +111,11 @@ public enum ExceptionMessage {
   ROOT_CANNOT_BE_RENAMED("The root directory cannot be renamed"),
   JOURNAL_ENTRY_MISSING(
       "Journal entries are missing between sequence number {0} (inclusive) and {1} (exclusive)."),
+  CANNOT_OVERWRITE_DIRECTORY("{0} already exists. Directories cannot be overwritten with create"),
+  CANNOT_OVERWRITE_FILE_WITHOUT_OVERWRITE("{0} already exists. If you want to overwrite the file,"
+      + " you need to specify the overwrite option."),
+  CANNOT_COPY_TO_NOT_EXIST_DIRECTORY("{0} is a directory and should be created first."),
+  FILE_TYPE_NOT_MATCH("{0} exists but it's not a directory."),
 
   // block master
   NO_WORKER_FOUND("No worker with workerId {0,number,#} is found"),
@@ -128,6 +134,11 @@ public enum ExceptionMessage {
 
   // file system master ufs
   FAILED_UFS_RENAME("Failed to rename {0} to {1} in the under file system"),
+
+  // worker
+  WORKER_NOT_FOUND("Worker {0} not found"),
+  WORKER_DECOMMISSIONED_BEFORE_REGISTER("Attempting to decommission an unregistered worker {0}. "
+      + "Please wait until this worker is registered."),
 
   // cli
   INVALID_ARGS_NULL("Null args for command {0}"),
@@ -202,6 +213,16 @@ public enum ExceptionMessage {
 
   // ufs maintenance
   UFS_OP_NOT_ALLOWED("Operation {0} not allowed on ufs path {1} under maintenance mode {2}"),
+
+  // RocksDB
+  ROCKS_DB_CLOSING("RocksDB is being closed because the master is under one of the following "
+      + "events: primary failover/shut down/checkpoint/journal replay"),
+  ROCKS_DB_REWRITTEN("RocksDB has been rewritten. Typically this is because the master is "
+      + "restored to a checkpoint."),
+  ROCKS_DB_EXCLUSIVE_LOCK_FORCED("RocksDB exclusive lock is forced with {0} ongoing "
+      + "r/w operations. There is a risk to crash!"),
+  ROCKS_DB_REF_COUNT_DIRTY("Some read/write operations did not respect the exclusive lock on "
+      + "the RocksStore and messed up the ref count! Current ref count is {0}."),
 
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;

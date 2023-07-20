@@ -22,6 +22,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 import java.util.Optional;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -31,6 +32,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class SpecificHostPolicy implements BlockLocationPolicy {
   private final String mHostname;
+  @Nullable
+  private final Integer mRpcPort;
 
   /**
    * Constructs a new {@link SpecificHostPolicy}
@@ -39,7 +42,7 @@ public final class SpecificHostPolicy implements BlockLocationPolicy {
    * @param conf Alluxio configuration
    */
   public SpecificHostPolicy(AlluxioConfiguration conf) {
-    this(conf.getString(PropertyKey.WORKER_HOSTNAME));
+    this(conf.getString(PropertyKey.WORKER_HOSTNAME), conf.getInt(PropertyKey.WORKER_RPC_PORT));
   }
 
   /**
@@ -48,7 +51,18 @@ public final class SpecificHostPolicy implements BlockLocationPolicy {
    * @param hostname the name of the host
    */
   public SpecificHostPolicy(String hostname) {
+    this(hostname, null);
+  }
+
+  /**
+   * Constructs the policy with the hostname and port.
+   *
+   * @param hostname the name of the host
+   * @param rpcPort the rpc port
+   */
+  public SpecificHostPolicy(String hostname, @Nullable Integer rpcPort) {
     mHostname = Preconditions.checkNotNull(hostname, "hostname");
+    mRpcPort = rpcPort;
   }
 
   /**
@@ -59,7 +73,8 @@ public final class SpecificHostPolicy implements BlockLocationPolicy {
   public Optional<WorkerNetAddress> getWorker(GetWorkerOptions options) {
     // find the first worker matching the host name
     for (BlockWorkerInfo info : options.getBlockWorkerInfos()) {
-      if (info.getNetAddress().getHost().equals(mHostname)) {
+      if (info.getNetAddress().getHost().equals(mHostname)
+          && (mRpcPort == null || info.getNetAddress().getRpcPort() == mRpcPort)) {
         return Optional.of(info.getNetAddress());
       }
     }

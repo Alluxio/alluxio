@@ -14,6 +14,7 @@ package alluxio.master.job;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
+import alluxio.AlluxioURI;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -32,8 +33,8 @@ import alluxio.grpc.WriteOptions;
 import alluxio.job.JobDescription;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.proto.journal.Job.FileFilter;
 import alluxio.proto.journal.Journal;
-import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobState;
 import alluxio.scheduler.job.Task;
 import alluxio.util.FormatUtils;
@@ -54,9 +55,12 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
+import io.netty.util.internal.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -75,6 +79,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Copy job that copy a file or a directory from source to destination.
  * This class should only be manipulated from the scheduler thread in Scheduler
  * thus the state changing functions are not thread safe.
+ * TODO() as task within this class is running on multithreaded context,
+ * make thread unsafe places to be thread safe in future.
  */
 @NotThreadSafe
 public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
@@ -89,6 +95,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
   private final String mSrc;
   private final String mDst;
   private final boolean mOverwrite;
+  private final boolean mCheckContent;
   private OptionalLong mBandwidth;
   private boolean mUsePartialListing;
   private boolean mVerificationEnabled;
@@ -96,7 +103,6 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
   // Job states
   private final LinkedList<Route> mRetryRoutes = new LinkedList<>();
   private final Map<String, String> mFailedFiles = new HashMap<>();
-  private final long mStartTime;
   private final AtomicLong mProcessedFileCount = new AtomicLong();
   private final AtomicLong mCopiedByteCount = new AtomicLong();
   private final AtomicLong mTotalByteCount = new AtomicLong();
@@ -105,7 +111,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
   private Optional<AlluxioRuntimeException> mFailedReason = Optional.empty();
   private final Iterable<FileInfo> mFileIterable;
   private Optional<Iterator<FileInfo>> mFileIterator = Optional.empty();
-  private OptionalLong mEndTime = OptionalLong.empty();
+  private Optional<FileFilter> mFilter;
 
   /**
    * Constructor.
@@ -118,12 +124,14 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
    * @param bandwidth           bandwidth
    * @param usePartialListing   whether to use partial listing
    * @param verificationEnabled whether to verify the job after loaded
+   * @param checkContent        whether to check content
    * @param fileIterable        file iterable
+   * @param filter              file filter
    */
   public CopyJob(String src, String dst, boolean overwrite, Optional<String> user, String jobId,
       OptionalLong bandwidth, boolean usePartialListing, boolean verificationEnabled,
-      Iterable<FileInfo> fileIterable) {
-    super(user, jobId);
+      boolean checkContent, Iterable<FileInfo> fileIterable, Optional<FileFilter> filter) {
+    super(user, jobId, new RoundRobinWorkerAssignPolicy());
     mSrc = requireNonNull(src, "src is null");
     mDst = requireNonNull(dst, "dst is null");
     Preconditions.checkArgument(
@@ -132,10 +140,11 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     mBandwidth = bandwidth;
     mUsePartialListing = usePartialListing;
     mVerificationEnabled = verificationEnabled;
-    mStartTime = System.currentTimeMillis();
     mState = JobState.RUNNING;
     mFileIterable = fileIterable;
     mOverwrite = overwrite;
+    mCheckContent = checkContent;
+    mFilter = filter;
   }
 
   /**
@@ -187,11 +196,6 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     return mVerificationEnabled && mProcessedFileCount.get() > 0;
   }
 
-  @Override
-  public void continueJob() {
-    // NOOP
-  }
-
   /**
    * Enable verification.
    * @param enableVerification whether to enable verification
@@ -206,15 +210,17 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
    */
   @Override
   public void failJob(AlluxioRuntimeException reason) {
-    setJobState(JobState.FAILED);
+    setJobState(JobState.FAILED, true);
     mFailedReason = Optional.of(reason);
     JOB_COPY_FAIL.inc();
+    LOG.info("Copy Job {} fails with status: {}", mJobId, this);
   }
 
   @Override
   public void setJobSuccess() {
-    setJobState(JobState.SUCCEEDED);
+    setJobState(JobState.SUCCEEDED, true);
     JOB_COPY_SUCCESS.inc();
+    LOG.info("Copy Job {} succeeds with status {}", mJobId, this);
   }
 
   /**
@@ -275,15 +281,28 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
   /**
    * get next load task.
    *
-   * @param worker blocker to worker
+   * @param workers workerInfos
    * @return the next task to run. If there is no task to run, return empty
    */
-  public Optional<CopyTask> getNextTask(WorkerInfo worker) {
+  public List<CopyTask> getNextTasks(Collection<WorkerInfo> workers) {
+    List<CopyTask> tasks = new ArrayList<>();
+    Iterator<CopyTask> it = mRetryTaskList.iterator();
+    if (it.hasNext()) {
+      CopyTask task = it.next();
+      LOG.debug("Re-submit retried CopyTask:{} in getNextTasks.", task.getTaskId());
+      tasks.add(task);
+      it.remove();
+      return Collections.unmodifiableList(tasks);
+    }
     List<Route> routes = getNextRoutes(BATCH_SIZE);
     if (routes.isEmpty()) {
-      return Optional.empty();
+      return Collections.unmodifiableList(tasks);
     }
-    return Optional.of(new CopyTask(routes));
+    WorkerInfo workerInfo = mWorkerAssignPolicy.pickAWorker(StringUtil.EMPTY_STRING, workers);
+    CopyTask copyTask = new CopyTask(routes);
+    copyTask.setMyRunningWorker(workerInfo);
+    tasks.add(copyTask);
+    return Collections.unmodifiableList(tasks);
   }
 
   /**
@@ -361,24 +380,28 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
   private Route buildRoute(FileInfo sourceFile) {
     String relativePath;
     try {
-      relativePath = PathUtils.subtractPaths(sourceFile.getPath(), mSrc);
+      relativePath = PathUtils.subtractPaths(sourceFile.getPath(), new AlluxioURI(mSrc).getPath());
     } catch (InvalidPathException e) {
       throw new InvalidArgumentRuntimeException("fail to parse source file path", e);
     }
     String dst = PathUtils.concatPath(mDst, relativePath);
-    return Route.newBuilder().setSrc(sourceFile.getPath())
+    return Route.newBuilder().setSrc(sourceFile.getUfsPath())
                 .setDst(dst).setLength(sourceFile.getLength()).build();
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
+        .add("JobId", mJobId)
         .add("Src", mSrc)
         .add("Dst", mDst)
         .add("User", mUser)
         .add("Bandwidth", mBandwidth)
         .add("UsePartialListing", mUsePartialListing)
         .add("VerificationEnabled", mVerificationEnabled)
+        .add("TotalByteCount", mTotalByteCount)
+        .add("CheckContent", mCheckContent)
+        .add("Overwrite", mOverwrite)
         .add("RetryRoutes", mRetryRoutes)
         .add("FailedFiles", mFailedFiles)
         .add("StartTime", mStartTime)
@@ -400,10 +423,20 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
         .newBuilder().setSrc(mSrc).setDst(mDst).setState(JobState.toProto(mState))
         .setPartialListing(mUsePartialListing)
         .setVerify(mVerificationEnabled)
+        .setOverwrite(mOverwrite)
+        .setCheckContent(mCheckContent)
         .setJobId(mJobId);
     mUser.ifPresent(jobEntry::setUser);
     mBandwidth.ifPresent(jobEntry::setBandwidth);
     mEndTime.ifPresent(jobEntry::setEndTime);
+    if (mFilter.isPresent()) {
+      FileFilter.Builder builder = FileFilter.newBuilder().setValue(mFilter.get().getValue())
+          .setName(mFilter.get().getName());
+      if (mFilter.get().hasPattern()) {
+        builder.setPattern(mFilter.get().getPattern());
+      }
+      jobEntry.setFilter(builder.build());
+    }
     return Journal.JournalEntry
         .newBuilder()
         .setCopyJob(jobEntry.build())
@@ -472,13 +505,8 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
   }
 
   @Override
-  public void updateJob(Job<?> job) {
-    if (!(job instanceof CopyJob)) {
-      throw new IllegalArgumentException("Job is not a CopyJob: " + job);
-    }
-    CopyJob targetJob = (CopyJob) job;
-    updateBandwidth(targetJob.getBandwidth());
-    setVerificationEnabled(targetJob.isVerificationEnabled());
+  public boolean hasFailure() {
+    return !mFailedFiles.isEmpty();
   }
 
   /**
@@ -501,6 +529,8 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
      * @param routes pair of source and destination files
      */
     public CopyTask(List<Route> routes) {
+      super(CopyJob.this, CopyJob.this.mTaskIdGenerator.incrementAndGet());
+      super.setPriority(2);
       mRoutes = routes;
     }
 
@@ -521,19 +551,24 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
       WriteOptions writeOptions = WriteOptions
           .newBuilder()
           .setOverwrite(mOverwrite)
+          .setCheckContent(mCheckContent)
           .build();
       return workerClient.copy(request
           .setUfsReadOptions(ufsReadOptions.build())
           .setWriteOptions(writeOptions)
           .build());
     }
+
+    @Override
+    public int compareTo(Task o) {
+      return 0;
+    }
   }
 
   private static class CopyProgressReport {
     private final boolean mVerbose;
     private final JobState mJobState;
-    private final Long mBandwidth;
-    private final boolean mVerificationEnabled;
+    private final boolean mCheckContent;
     private final long mProcessedFileCount;
     private final long mByteCount;
     private final Long mTotalByteCount;
@@ -547,8 +582,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     {
       mVerbose = verbose;
       mJobState = job.mState;
-      mBandwidth = job.mBandwidth.isPresent() ? job.mBandwidth.getAsLong() : null;
-      mVerificationEnabled = job.mVerificationEnabled;
+      mCheckContent = job.mCheckContent;
       mProcessedFileCount = job.mProcessedFileCount.get();
       mByteCount = job.mCopiedByteCount.get();
       if (!job.mUsePartialListing && job.mFileIterator.isPresent()) {
@@ -598,9 +632,7 @@ public class CopyJob extends AbstractJob<CopyJob.CopyTask> {
     private String getTextReport() {
       StringBuilder progress = new StringBuilder();
       progress.append(
-          format("\tSettings:\tbandwidth: %s\tverify: %s%n",
-              mBandwidth == null ? "unlimited" : mBandwidth,
-              mVerificationEnabled));
+          format("\tSettings:\tcheck-content: %s%n", mCheckContent));
       progress.append(format("\tJob State: %s%s%n", mJobState,
           mFailureReason == null
               ? "" : format(

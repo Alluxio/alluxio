@@ -95,19 +95,23 @@ public final class Constants {
   public static final long META_MASTER_CONFIG_SERVICE_VERSION = 2;
   public static final long META_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long META_MASTER_MASTER_SERVICE_VERSION = 1;
+  public static final long META_MASTER_PROXY_SERVICE_VERSION = 1;
+  public static final long JOB_MASTER_MASTER_SERVICE_VERSION = 1;
   public static final long METRICS_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long JOURNAL_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final long RAFT_JOURNAL_SERVICE_VERSION = 1;
+  public static final long SECURITY_SERVER_VERSION = 1;
   public static final long UNKNOWN_SERVICE_VERSION = -1;
 
   public static final String BLOCK_MASTER_NAME = "BlockMaster";
   public static final String FILE_SYSTEM_MASTER_NAME = "FileSystemMaster";
   public static final String META_MASTER_NAME = "MetaMaster";
+  public static final String POLICY_ENGINE_NAME = "PolicyEngine";
   public static final String METRICS_MASTER_NAME = "MetricsMaster";
   public static final String JOURNAL_MASTER_NAME = "JournalMaster";
   public static final String BLOCK_WORKER_NAME = "BlockWorker";
   public static final String FILE_SYSTEM_WORKER_NAME = "FileSystemWorker";
-
+  public static final long POLICY_ENGINE_CLIENT_SERVICE_VERSION = 1;
   public static final String BLOCK_MASTER_CLIENT_SERVICE_NAME = "BlockMasterClient";
   public static final String BLOCK_MASTER_WORKER_SERVICE_NAME = "BlockMasterWorker";
   public static final String FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME = "FileSystemMasterClient";
@@ -117,7 +121,9 @@ public final class Constants {
   // Its value is "MetaMaster" for backwards compatibility so 1.7 clients can talk to 1.8 MetaMaster
   public static final String META_MASTER_CONFIG_SERVICE_NAME = "MetaMaster";
   public static final String META_MASTER_CLIENT_SERVICE_NAME = "MetaMaster";
+  public static final String META_MASTER_PROXY_SERVICE_NAME = "MetaMasterProxy";
   public static final String META_MASTER_MASTER_SERVICE_NAME = "MetaMasterMaster";
+  public static final String JOB_MASTER_MASTER_SERVICE_NAME = "JobMasterMaster";
   public static final String METRICS_MASTER_CLIENT_SERVICE_NAME = "MetricsMasterClient";
   public static final String BLOCK_WORKER_CLIENT_SERVICE_NAME = "BlockWorkerClient";
   public static final String FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME = "FileSystemWorkerClient";
@@ -217,11 +223,6 @@ public final class Constants {
   public static final int NO_AUTO_PERSIST = -1;
   public static final int PERSISTENCE_INVALID_JOB_ID = -1;
   public static final String PERSISTENCE_INVALID_UFS_PATH = "";
-
-  // Table service
-  public static final String TABLE_MASTER_NAME = "TableMaster";
-  public static final String TABLE_MASTER_CLIENT_SERVICE_NAME = "TableMasterClient";
-  public static final long TABLE_MASTER_CLIENT_SERVICE_VERSION = 1;
 
   // Medium name
   public static final String MEDIUM_MEM = "MEM";

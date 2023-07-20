@@ -1,16 +1,11 @@
 ---
 layout: global
 title: Running Spark on Alluxio
-nickname: Apache Spark
-group: Compute Integrations
-priority: 0
 ---
 
 This guide describes how to configure [Apache Spark](http://spark-project.org/)
 to access Alluxio.
 
-* Table of Contents
-{:toc}
 
 ## Overview
 
@@ -32,18 +27,13 @@ data-locality.
 * Java 8 Update 60 or higher (8u60+), 64-bit.
 * An Alluxio cluster is set up and is running.
 This guide assumes the persistent under storage is a local HDFS deployment.
-E.g., a line of `alluxio.master.mount.table.root.ufs=hdfs://localhost:9000/alluxio/`
+E.g., a line of `alluxio.dora.client.ufs.root=hdfs://localhost:9000/alluxio/`
 is included in `${ALLUXIO_HOME}/conf/alluxio-site.properties`.
 Note that Alluxio supports many other under storage systems in addition to HDFS.
-To access data from any number of those systems is orthogonal to the focus of
-this guide but covered by
-[Unified and Transparent Namespace]({{ '/en/core-services/Unified-Namespace.html' | relativize_url }}).
 * Make sure that the Alluxio client jar is available.
 This Alluxio client jar file can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`
 in the tarball distribution downloaded from Alluxio
 [download page](https://www.alluxio.io/download).
-Alternatively, advanced users can compile this client jar from the source code
-by following the [instructions]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}).
 
 ## Basic Setup
 
@@ -71,7 +61,7 @@ applications.
 Copy local data to the Alluxio file system. Put the `LICENSE` file into Alluxio,
 assuming you are in the Alluxio installation directory:
 
-```console
+```shell
 $ ./bin/alluxio fs copyFromLocal LICENSE /Input
 ```
 
@@ -97,7 +87,7 @@ system.
 
 Put a file `Input_HDFS` into HDFS:
 
-```console
+```shell
 $ hdfs dfs -copyFromLocal -f ${ALLUXIO_HOME}/LICENSE hdfs://localhost:9000/alluxio/Input_HDFS
 ```
 
@@ -128,7 +118,7 @@ set the `alluxio.master.rpc.addresses` property via the Java options in
 applications know which Alluxio masters to connect to and how to identify the
 leader. For example:
 
-```
+```properties
 spark.driver.extraJavaOptions -Dalluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 spark.executor.extraJavaOptions -Dalluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 ```
@@ -148,7 +138,7 @@ Alternatively, add the property to the Hadoop configuration file
 Users can also configure Spark to connect to an Alluxio HA cluster using
 Zookeeper-based leader election.
 Refer to
-[HA mode client configuration parameters]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#specify-alluxio-service-in-configuration-parameters).
+[HA mode client configuration parameters]({{ '/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }}#specify-alluxio-service-in-configuration-parameters-or-java-options).
 
 ### Customize Alluxio User Properties for Individual Spark Jobs
 
@@ -157,10 +147,10 @@ adding `"-Dproperty=value"` to `spark.executor.extraJavaOptions` for Spark execu
 `spark.driver.extraJavaOptions` for Spark drivers.
 For example, to submit a Spark job with that uses the Alluxio `CACHE_THROUGH` write type:
 
-```console
+```shell
 $ spark-submit \
---conf 'spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH' \
---conf 'spark.executor.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH' \
+    --conf 'spark.driver.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH' \
+    --conf 'spark.executor.extraJavaOptions=-Dalluxio.user.file.writetype.default=CACHE_THROUGH' \
 ...
 ```
 
@@ -201,7 +191,7 @@ double.saveAsTextFile("alluxio://master_hostname_1:19998;master_hostname_2:19998
 refer a URI of Alluxio in HA mode in Spark.
 Otherwise, the URI will be considered invalid by Spark.
 Please refer to the instructions in
-[HA authority]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#ha-authority).
+[HA authority]({{ '/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }}#ha-authority).
 
 ### Cache RDDs into Alluxio
 
@@ -218,7 +208,9 @@ The saved RDDs in Alluxio can be read again (from memory) by using `sc.textFile`
 // as text file
 rdd.saveAsTextFile("alluxio://localhost:19998/rdd1")
 rdd = sc.textFile("alluxio://localhost:19998/rdd1")
+```
 
+```scala
 // as object file
 rdd.saveAsObjectFile("alluxio://localhost:19998/rdd2")
 rdd = sc.objectFile("alluxio://localhost:19998/rdd2")
@@ -269,14 +261,14 @@ Users can explicitly specify hostnames by using the following script offered in
 Spark.
 Start the Spark Worker in each slave node with slave-hostname:
 
-```console
+```shell
 $ ${SPARK_HOME}/sbin/start-worker.sh -h <slave-hostname> <spark master uri>
 ```
 Note for older versions of Spark the script is called `start-slave.sh`.
 
 For example:
 
-```console
+```shell
 $ ${SPARK_HOME}/sbin/start-worker.sh -h simple30 spark://simple27:7077
 ```
 
@@ -284,7 +276,7 @@ You can also set the `SPARK_LOCAL_HOSTNAME` in `$SPARK_HOME/conf/spark-env.sh`
 to achieve this. For
 example:
 
-```bash
+```properties
 SPARK_LOCAL_HOSTNAME=simple30
 ```
 
@@ -337,7 +329,7 @@ append the `alluxio` package to the configuration parameter
 the main classloader.
 For example, the parameter may be set in `spark/conf/spark-defaults.conf`:
 
-```bash
+```properties
 spark.sql.hive.metastore.sharedPrefixes=com.mysql.jdbc,org.postgresql,com.microsoft.sqlserver,oracle.jdbc,alluxio
 ```
 

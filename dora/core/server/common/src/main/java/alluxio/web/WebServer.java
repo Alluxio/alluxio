@@ -38,7 +38,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.EnumSet;
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.servlet.DispatcherType;
 
 /**
  * Class that bootstraps and starts a web server.
@@ -59,6 +61,10 @@ public abstract class WebServer {
   private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
   private final PrometheusMetricsServlet mPMetricsServlet = new PrometheusMetricsServlet(
       MetricsSystem.METRIC_REGISTRY);
+
+  protected ServerConnector getServerConnector() {
+    return mServerConnector;
+  }
 
   /**
    * Creates a new instance of {@link WebServer}. It pairs URLs with servlets and sets the webapp
@@ -112,6 +118,9 @@ public abstract class WebServer {
     }
     mServletContextHandler.addServlet(StacksServlet.class, THREAD_DUMP_PATH);
     mServletContextHandler.addServlet(JmxServlet.class, JMX_PATH);
+    mServletContextHandler.addFilter(CORSFilter.class, "/*",
+        EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.INCLUDE,
+            DispatcherType.ASYNC, DispatcherType.ERROR));
     HandlerList handlers = new HandlerList();
     handlers.setHandlers(new Handler[] {mMetricsServlet.getHandler(), mPMetricsServlet.getHandler(),
         mServletContextHandler, new DefaultHandler()});

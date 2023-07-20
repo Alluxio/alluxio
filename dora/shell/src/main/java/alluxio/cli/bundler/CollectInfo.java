@@ -538,7 +538,7 @@ public class CollectInfo extends AbstractShell {
    */
   public static <T> CompletableFuture<List<T>> collectAllFutures(
           List<CompletableFuture<T>> futures) {
-    CompletableFuture[] cfs = futures.toArray(new CompletableFuture[futures.size()]);
+    CompletableFuture[] cfs = futures.toArray(new CompletableFuture[0]);
 
     return CompletableFuture.allOf(cfs)
             .thenApply(f -> futures.stream()
@@ -558,7 +558,7 @@ public class CollectInfo extends AbstractShell {
     return CommandUtils.loadCommands(
             CollectInfo.class.getPackage().getName(),
             new Class[] {FileSystemContext.class},
-            new Object[] {FileSystemContext.create(mConfiguration)});
+            new Object[] {FileSystemContext.sFileSystemContextFactory.create(mConfiguration)});
   }
 
   @Override

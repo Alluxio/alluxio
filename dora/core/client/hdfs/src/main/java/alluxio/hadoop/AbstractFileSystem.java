@@ -31,6 +31,7 @@ import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.master.MasterInquireClient.Factory;
 import alluxio.security.CurrentUser;
@@ -60,7 +61,6 @@ import java.net.URI;
 import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -88,6 +88,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
   private Path mWorkingDir = new Path(AlluxioURI.SEPARATOR);
   private Statistics mStatistics = null;
   private String mAlluxioHeader = null;
+  private boolean mExcludeMountInfoOnListStatus;
 
   /**
    * Constructs a new {@link AbstractFileSystem} instance with specified a {@link FileSystem}
@@ -172,29 +173,14 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
 
     AlluxioURI uri = getAlluxioPath(path);
     CreateFilePOptions options = CreateFilePOptions.newBuilder().setBlockSizeBytes(blockSize)
-        .setMode(new Mode(permission.toShort()).toProto()).setRecursive(true).build();
+        .setMode(new Mode(permission.toShort()).toProto()).setRecursive(true)
+        .setOverwrite(overwrite).build();
 
     FileOutStream outStream;
     try {
       outStream = mFileSystem.createFile(uri, options);
     } catch (AlluxioException e) {
-      //now we should consider the override parameter
-      try {
-        if (mFileSystem.exists(uri)) {
-          if (!overwrite) {
-            throw new IOException(
-                "Not allowed to create() (overwrite=false) for existing Alluxio path: " + uri);
-          }
-          if (mFileSystem.getStatus(uri).isFolder()) {
-            throw new IOException(MessageFormat
-                .format("{0} already exists. Directories cannot be overwritten with create", uri));
-          }
-          mFileSystem.delete(uri);
-        }
-        outStream = mFileSystem.createFile(uri, options);
-      } catch (AlluxioException e2) {
-        throw new IOException(e2);
-      }
+      throw new IOException(e);
     }
     return new FSDataOutputStream(outStream, mStatistics);
   }
@@ -325,7 +311,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
               info.getBlockInfo().getLength()));
         }
       });
-      BlockLocation[] ret = blockLocations.toArray(new BlockLocation[blockLocations.size()]);
+      BlockLocation[] ret = blockLocations.toArray(new BlockLocation[0]);
       if (LOG.isDebugEnabled()) {
         LOG.debug("getFileBlockLocations({}, {}, {}) returned {}",
             file.getPath().getName(), start, len, Arrays.toString(ret));
@@ -521,6 +507,8 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     // Creating a new instanced configuration from an AlluxioProperties object isn't expensive.
     mAlluxioConf = new InstancedConfiguration(alluxioProps);
     mAlluxioConf.validate();
+    mExcludeMountInfoOnListStatus = mAlluxioConf.getBoolean(
+        PropertyKey.USER_HDFS_CLIENT_EXCLUDE_MOUNT_INFO_ON_LIST_STATUS);
 
     if (mFileSystem != null) {
       return;
@@ -596,7 +584,9 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     AlluxioURI uri = getAlluxioPath(path);
     List<URIStatus> statuses;
     try {
-      statuses = mFileSystem.listStatus(uri);
+      ListStatusPOptions listStatusPOptions = ListStatusPOptions.getDefaultInstance().toBuilder()
+          .setExcludeMountInfo(mExcludeMountInfoOnListStatus).build();
+      statuses = mFileSystem.listStatus(uri, listStatusPOptions);
     } catch (FileDoesNotExistException e) {
       throw new FileNotFoundException(getAlluxioPath(path).toString());
     } catch (AlluxioException e) {

@@ -1,6 +1,0 @@
-propertyName,defaultValue
-alluxio.integration.master.resource.cpu,"1"
-alluxio.integration.master.resource.mem,"1024MB"
-alluxio.integration.worker.resource.cpu,"1"
-alluxio.integration.worker.resource.mem,"1024MB"
-alluxio.integration.yarn.workers.per.host.max,"1"

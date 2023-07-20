@@ -17,15 +17,15 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.netty.FileTransferType;
+import alluxio.network.protocol.databuffer.CompositeDataBuffer;
 import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.NettyDataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
 import alluxio.worker.block.io.BlockReader;
-import alluxio.worker.block.io.LocalFileBlockReader;
 import alluxio.worker.dora.DoraWorker;
+import alluxio.worker.dora.PagedFileReader;
 
 import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
@@ -33,7 +33,7 @@ import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
+import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.ExecutorService;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -57,8 +57,8 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequestContext
   /**
    * Creates an instance of {@link FileReadHandler}.
    *
-   * @param executorService the executor service to run data readers
-   * @param worker block worker
+   * @param executorService  the executor service to run data readers
+   * @param worker           block worker
    * @param fileTransferType the file transfer type
    */
   public FileReadHandler(ExecutorService executorService,
@@ -74,28 +74,39 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequestContext
   }
 
   @Override
-  protected AbstractReadHandler<BlockReadRequestContext>.PacketReader createPacketReader(
-      BlockReadRequestContext context, Channel channel) {
-    return new BlockPacketReader(context, channel, mWorker);
+  protected AbstractReadHandler<BlockReadRequestContext>.PacketReader createPacketReader() {
+    return new BlockPacketReader(mWorker);
+  }
+
+  /**
+   * Gets worker.
+   * @return dora worker
+   */
+  public DoraWorker getWorker() {
+    return mWorker;
   }
 
   /**
    * The packet reader to read from a local block worker.
    */
   @NotThreadSafe
-  public final class BlockPacketReader extends PacketReader {
+  public class BlockPacketReader extends PacketReader {
     /**
-     * The Block Worker.
+     * The Dora Worker.
      */
     private final DoraWorker mWorker;
 
-    BlockPacketReader(BlockReadRequestContext context, Channel channel, DoraWorker worker) {
-      super(context, channel);
+    /**
+     * Creates an instance of {@link BlockPacketReader}.
+     *
+     * @param worker dora worker
+     */
+    public BlockPacketReader(DoraWorker worker) {
       mWorker = worker;
     }
 
     @Override
-    protected void completeRequest(BlockReadRequestContext context) throws Exception {
+    public void completeRequest(BlockReadRequestContext context) throws Exception {
       BlockReader reader = context.getBlockReader();
       if (reader != null) {
         try {
@@ -108,25 +119,36 @@ public class FileReadHandler extends AbstractReadHandler<BlockReadRequestContext
     }
 
     @Override
-    protected DataBuffer getDataBuffer(BlockReadRequestContext context, Channel channel,
-                                       long offset, int len) throws Exception {
+    public DataBuffer getDataBuffer(BlockReadRequestContext context, Channel channel,
+                                    long offset, int len) throws Exception {
       openBlock(context, channel);
       BlockReader blockReader = context.getBlockReader();
       Preconditions.checkState(blockReader != null);
-      if (mTransferType == FileTransferType.TRANSFER
-          && (blockReader instanceof LocalFileBlockReader)) {
-        return new DataFileChannel(new File(((LocalFileBlockReader) blockReader).getFilePath()),
-            offset, len);
-      } else {
-        ByteBuf buf = channel.alloc().buffer(len, len);
-        try {
-          while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
-          }
-          return new NettyDataBuffer(buf);
-        } catch (Throwable e) {
-          buf.release();
-          throw e;
+      if (mTransferType == FileTransferType.TRANSFER) {
+        if (blockReader instanceof PagedFileReader) {
+          PagedFileReader pagedFileReader = (PagedFileReader) blockReader;
+          CompositeDataBuffer compositeDataBuffer =
+              pagedFileReader.getMultipleDataFileChannel(channel, len);
+          return compositeDataBuffer;
+        } else {
+          throw new UnsupportedOperationException(blockReader.getClass().getCanonicalName()
+              + "is no longer supported in Alluxio 3.x");
         }
+      }
+      return getDataBufferByCopying(context, channel, len, blockReader);
+    }
+
+    private DataBuffer getDataBufferByCopying(
+        BlockReadRequestContext context, Channel channel, int len, BlockReader blockReader)
+        throws IOException {
+      ByteBuf buf = channel.alloc().buffer(len, len);
+      try {
+        while (buf.writableBytes() > 0 && blockReader.transferTo(buf) != -1) {
+        }
+        return new NettyDataBuffer(buf);
+      } catch (Throwable e) {
+        buf.release();
+        throw e;
       }
     }
 

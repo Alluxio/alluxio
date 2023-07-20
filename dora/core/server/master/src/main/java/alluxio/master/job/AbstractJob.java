@@ -18,12 +18,13 @@ import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobState;
 import alluxio.scheduler.job.Task;
 
-import org.eclipse.jetty.util.BlockingArrayQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Abstract class for job. It provides basic job information and state management.
@@ -33,12 +34,13 @@ import java.util.OptionalLong;
 public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
   private static final Logger LOG = LoggerFactory.getLogger(LoadJob.class);
   protected final String mJobId;
+  protected final AtomicInteger mTaskIdGenerator = new AtomicInteger(0);
   protected JobState mState; // TODO(lucy) make it thread safe state update
   protected OptionalLong mEndTime = OptionalLong.empty();
   protected final long mStartTime;
   protected final Optional<String> mUser;
-  protected final BlockingArrayQueue<Task<T>> mTaskList = new BlockingArrayQueue<>();
-  protected Scheduler mMyScheduler;
+  // not making it thread safe as currently scheduler has been single-threaded
+  protected final LinkedHashSet<T> mRetryTaskList = new LinkedHashSet<>();
   protected WorkerAssignPolicy mWorkerAssignPolicy;
 
   /**
@@ -48,18 +50,21 @@ public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
    * @param jobId the job id
    */
   public AbstractJob(Optional<String> user, String jobId) {
+    this(user, jobId, new HashBasedWorkerAssignPolicy());
+  }
+
+  /**
+   * Creates a new instance of {@link AbstractJob}.
+   * @param user
+   * @param jobId
+   * @param workerAssignPolicy
+   */
+  public AbstractJob(Optional<String> user, String jobId, WorkerAssignPolicy workerAssignPolicy) {
     mUser = requireNonNull(user, "user is null");
     mJobId = requireNonNull(jobId, "jobId is null");
     mState = JobState.RUNNING;
     mStartTime = System.currentTimeMillis();
-  }
-
-  /**
-   * Sets the scheduler.
-   * @param scheduler the scheduler
-   */
-  public void setMyScheduler(Scheduler scheduler) {
-    mMyScheduler = scheduler;
+    mWorkerAssignPolicy = workerAssignPolicy;
   }
 
   /**
@@ -68,6 +73,14 @@ public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
    */
   public void setWorkerAssignPolicy(WorkerAssignPolicy assignPolicy) {
     mWorkerAssignPolicy = assignPolicy;
+  }
+
+  /**
+   * Gets the worker assign policy.
+   * @return assignPolicy the assign policy
+   */
+  public WorkerAssignPolicy getWorkerAssignPolicy() {
+    return mWorkerAssignPolicy;
   }
 
   @Override
@@ -108,14 +121,24 @@ public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
    * Set load state.
    *
    * @param state new state
+   * @param journalUpdate true if state change needs to be journaled
    */
   @Override
-  public void setJobState(JobState state) {
-    LOG.debug("Change JobState to {} for job {}", state, this);
+  public void setJobState(JobState state, boolean journalUpdate) {
+    LOG.debug("Change JobState to {} for job {}, journalUpdate:{}", state, this, journalUpdate);
     mState = state;
     if (!isRunning()) {
       mEndTime = OptionalLong.of(System.currentTimeMillis());
     }
+    if (journalUpdate) {
+      Scheduler.getInstance().getJobMetaStore().updateJob(this);
+    }
+  }
+
+  @Override
+  public void onTaskSubmitFailure(Task<?> task) {
+    mRetryTaskList.add((T) task);
+    LOG.debug("OnTaskSubmitFailure, retry task size:{}", mRetryTaskList.size());
   }
 
   @Override
@@ -126,5 +149,10 @@ public abstract class AbstractJob<T extends Task<?>> implements Job<T> {
   @Override
   public boolean isDone() {
     return mState == JobState.SUCCEEDED || mState == JobState.FAILED;
+  }
+
+  @Override
+  public void initializeJob() {
+    LOG.info("Job:{} initializing...", mJobId);
   }
 }

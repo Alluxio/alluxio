@@ -24,8 +24,10 @@ import alluxio.util.network.NetworkAddressUtils;
 import com.codahale.metrics.CachedGauge;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Histogram;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.SlidingTimeWindowMovingAverages;
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.UniformReservoir;
 import com.codahale.metrics.jvm.CachedThreadStatesGaugeSet;
@@ -40,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.management.BufferPoolMXBean;
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -91,6 +94,7 @@ public final class MetricsSystem {
       CommonUtils.memoize(() -> constructSourceName());
   private static final Map<String, InstrumentedExecutorService>
       EXECUTOR_SERVICES = new ConcurrentHashMap<>();
+  private static final int SECONDS_IN_A_MINUTE = 60;
 
   /**
    * An enum of supported instance type.
@@ -100,6 +104,7 @@ public final class MetricsSystem {
     SERVER("Server"),
     MASTER("Master"),
     WORKER("Worker"),
+    SECURITY("Security"),
     JOB_MASTER("JobMaster"),
     JOB_WORKER("JobWorker"),
     PLUGIN("Plugin"),
@@ -163,7 +168,7 @@ public final class MetricsSystem {
 
   private static BufferPoolMXBean getDirectBufferPool() {
     for (BufferPoolMXBean bufferPoolMXBean
-        : sun.management.ManagementFactoryHelper.getBufferPoolMXBeans()) {
+        :  ManagementFactory.getPlatformMXBeans(BufferPoolMXBean.class)) {
       if (bufferPoolMXBean.getName().equals("direct")) {
         return bufferPoolMXBean;
       }
@@ -348,6 +353,8 @@ public final class MetricsSystem {
         return getJobWorkerMetricName(name);
       case PLUGIN:
         return getPluginMetricName(name);
+      case SECURITY:
+        return getSecurityMetricName(name);
       default:
         throw new IllegalStateException("Unknown process type");
     }
@@ -383,6 +390,15 @@ public final class MetricsSystem {
     }
     return CACHED_METRICS.computeIfAbsent(name,
         n -> getMetricNameWithUniqueId(InstanceType.WORKER, name));
+  }
+
+  private static String getSecurityMetricName(String name) {
+    String result = CACHED_METRICS.get(name);
+    if (result != null) {
+      return result;
+    }
+    return CACHED_METRICS.computeIfAbsent(name,
+        n -> getMetricNameWithUniqueId(InstanceType.SECURITY, name));
   }
 
   /**
@@ -591,7 +607,8 @@ public final class MetricsSystem {
    * @return a meter object with the qualified metric name
    */
   public static Meter meter(String name) {
-    return METRIC_REGISTRY.meter(getMetricName(name));
+    return METRIC_REGISTRY.meter(getMetricName(name),
+        () -> new Meter(new SlidingTimeWindowMovingAverages()));
   }
 
   /**
@@ -628,7 +645,7 @@ public final class MetricsSystem {
   }
 
   /**
-   * Same with {@link #timer} but with UnirformReservoir for sampling.
+   * Same with {@link #timer} but with UniformReservoir for sampling.
    *
    * @param name the name of the metric
    * @return a timer object with the qualified metric name
@@ -639,6 +656,16 @@ public final class MetricsSystem {
               Timer timer = new Timer(new UniformReservoir());
               return timer;
             });
+  }
+
+  /**
+   * Get or add a histogram with the given name.
+   *
+   * @param name the name of the metric
+   * @return a histogram object with the qualified metric name
+   */
+  public static Histogram histogram(String name) {
+    return METRIC_REGISTRY.histogram(getMetricName(name));
   }
 
   /**
@@ -786,7 +813,7 @@ public final class MetricsSystem {
         // that a value marked. For clients, especially short-life clients,
         // the minute rates will be zero for their whole life.
         // That's why all throughput meters are not aggregated at cluster level.
-        rpcMetrics.add(Metric.from(entry.getKey(), meter.getOneMinuteRate(),
+        rpcMetrics.add(Metric.from(entry.getKey(), meter.getOneMinuteRate() / SECONDS_IN_A_MINUTE,
             MetricType.METER).toProto());
       } else if (metric instanceof Timer) {
         Timer timer = (Timer) metric;
@@ -871,7 +898,7 @@ public final class MetricsSystem {
       return Metric.from(name, counter.getCount(), MetricType.COUNTER);
     } else if (metric instanceof Meter) {
       Meter meter = (Meter) metric;
-      return Metric.from(name, meter.getOneMinuteRate(), MetricType.METER);
+      return Metric.from(name, meter.getOneMinuteRate() / SECONDS_IN_A_MINUTE, MetricType.METER);
     } else if (metric instanceof Timer) {
       Timer timer = (Timer) metric;
       return Metric.from(name, timer.getCount(), MetricType.TIMER);
@@ -903,7 +930,7 @@ public final class MetricsSystem {
             .setDoubleValue(((Counter) metric).getCount());
       } else if (metric instanceof Meter) {
         valueBuilder.setMetricType(MetricType.METER)
-            .setDoubleValue(((Meter) metric).getOneMinuteRate());
+            .setDoubleValue(((Meter) metric).getOneMinuteRate() / SECONDS_IN_A_MINUTE);
       } else if (metric instanceof Timer) {
         valueBuilder.setMetricType(MetricType.TIMER)
             .setDoubleValue(((Timer) metric).getCount());

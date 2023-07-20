@@ -1,2 +1,0 @@
-Proxy.AuditLogEntriesSize:
-  'The size of the audit log entries blocking queue'

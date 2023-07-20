@@ -38,6 +38,8 @@ import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.PageNotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
+import alluxio.file.NettyBufTargetBuffer;
+import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
@@ -46,7 +48,11 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.DefaultFileRegion;
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -173,13 +179,13 @@ public final class LocalCacheManagerTest {
   }
 
   @Test
-  public void createUnwriableRootDirSyncRestore() throws Exception {
+  public void createUnwritableRootDirSyncRestore() throws Exception {
     File root = mTemp.newFolder();
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, false);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIRS, root.getAbsolutePath());
     mCacheManagerOptions = CacheManagerOptions.create(mConf);
+    Assume.assumeTrue(root.setWritable(false));
     try {
-      root.setWritable(false);
       mPageMetaStore =
           new DefaultPageMetaStore(PageStoreDir.createPageStoreDirs(mCacheManagerOptions));
       LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore);
@@ -192,13 +198,13 @@ public final class LocalCacheManagerTest {
   }
 
   @Test
-  public void createUnwriableRootDirAsyncRestore() throws Exception {
+  public void createUnwritableRootDirAsyncRestore() throws Exception {
     File root = mTemp.newFolder();
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, true);
     mConf.set(PropertyKey.USER_CLIENT_CACHE_DIRS, root.getAbsolutePath());
     mCacheManagerOptions = CacheManagerOptions.create(mConf);
+    Assume.assumeTrue(root.setWritable(false));
     try {
-      root.setWritable(false);
       mPageMetaStore =
           new DefaultPageMetaStore(PageStoreDir.createPageStoreDirs(mCacheManagerOptions));
       mCacheManager =
@@ -668,6 +674,10 @@ public final class LocalCacheManagerTest {
     assertTrue(mCacheManager.delete(PAGE_ID2));
   }
 
+  /**
+   * Invalid page file will be deleted and cache manager will start normally.
+   * @throws Exception
+   */
   @Test
   public void syncRestoreUnknownFile() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, false);
@@ -684,10 +694,14 @@ public final class LocalCacheManagerTest {
     mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(dir));
     mCacheManager = LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore);
     assertEquals(CacheManager.State.READ_WRITE, mCacheManager.state());
-    assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
-    assertEquals(0, mCacheManager.get(pageUuid, PAGE2.length, mBuf, 0));
+    assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
+    assertEquals(PAGE2.length, mCacheManager.get(pageUuid, PAGE2.length, mBuf, 0));
   }
 
+  /**
+   * Invalid page file will be deleted and cache manager will start normally.
+   * @throws Exception
+   */
   @Test
   public void asyncRestoreUnknownFile() throws Exception {
     mConf.set(PropertyKey.USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED, true);
@@ -702,8 +716,8 @@ public final class LocalCacheManagerTest {
     FileUtils.createFile(Paths.get(rootDir, "invalidPageFile").toString());
     mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(dir));
     mCacheManager = createLocalCacheManager(mConf, mPageMetaStore);
-    assertEquals(0, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
-    assertEquals(0, mCacheManager.get(pageUuid, PAGE2.length, mBuf, 0));
+    assertEquals(PAGE1.length, mCacheManager.get(PAGE_ID1, PAGE1.length, mBuf, 0));
+    assertEquals(PAGE2.length, mCacheManager.get(pageUuid, PAGE2.length, mBuf, 0));
   }
 
   @Test
@@ -719,8 +733,8 @@ public final class LocalCacheManagerTest {
     String rootDir = mPageStoreOptions.getRootDir().toString();
     FileUtils.deletePathRecursively(rootDir);
     File rootParent = new File(rootDir).getParentFile();
+    Assume.assumeTrue(rootParent.setWritable(false));
     try {
-      rootParent.setWritable(false);
       mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(dir));
       LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore);
     } catch (Exception e) {
@@ -742,7 +756,7 @@ public final class LocalCacheManagerTest {
     String rootDir = mPageStoreOptions.getRootDir().toString();
     FileUtils.deletePathRecursively(rootDir);
     File rootParent = new File(rootDir).getParentFile();
-    rootParent.setWritable(false);
+    Assume.assumeTrue(rootParent.setWritable(false));
     try {
       mPageMetaStore = new DefaultPageMetaStore(ImmutableList.of(dir));
       mCacheManager = LocalCacheManager.create(mCacheManagerOptions, mPageMetaStore);
@@ -1087,6 +1101,28 @@ public final class LocalCacheManagerTest {
     assertEquals(zeroLenFilePageId,
         mCacheManager.getCachedPageIdsByFileId(zeroLenFilePageId.getFileId(),
             0).get(0));
+  }
+
+  @Test
+  public void getDataFileChannel() throws Exception {
+    mCacheManager = createLocalCacheManager();
+    mCacheManager.put(PAGE_ID1, PAGE1);
+    CacheContext cacheContext = CacheContext.defaults();
+    Optional<DataFileChannel> dataFileChannel = mCacheManager.getDataFileChannel(PAGE_ID1,
+        0, PAGE1.length, cacheContext);
+    assertNotNull(dataFileChannel);
+    assertEquals(dataFileChannel.isPresent(), true);
+    assertEquals(dataFileChannel.get().getNettyOutput() instanceof DefaultFileRegion, true);
+    DefaultFileRegion defaultFileRegion =
+        (DefaultFileRegion) dataFileChannel.get().getNettyOutput();
+    ByteBuf buf = Unpooled.buffer(PAGE1.length);
+    NettyBufTargetBuffer targetBuffer = new NettyBufTargetBuffer(buf);
+    long bytesTransferred = defaultFileRegion.transferTo(targetBuffer.byteChannel(), 0);
+    assertEquals(bytesTransferred, PAGE1.length);
+
+    byte[] bytes = new byte[PAGE1.length];
+    buf.readBytes(bytes);
+    assertArrayEquals(PAGE1, bytes);
   }
 
   /**

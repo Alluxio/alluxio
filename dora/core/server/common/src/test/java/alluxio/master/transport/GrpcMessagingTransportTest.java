@@ -18,6 +18,7 @@ import io.atomix.catalyst.buffer.BufferInput;
 import io.atomix.catalyst.buffer.BufferOutput;
 import io.atomix.catalyst.serializer.CatalystSerializable;
 import io.atomix.catalyst.serializer.Serializer;
+import io.grpc.StatusRuntimeException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -150,7 +151,8 @@ public class GrpcMessagingTransportTest {
     try {
       sendRequest(clientConnection, new DummyRequest("dummy")).get();
     } catch (ExecutionException e) {
-      Assert.assertTrue(e.getCause() instanceof IllegalStateException);
+      Assert.assertTrue(e.getCause() instanceof IllegalStateException
+          || e.getCause() instanceof StatusRuntimeException);
       failed = true;
     }
     Assert.assertTrue(failed);

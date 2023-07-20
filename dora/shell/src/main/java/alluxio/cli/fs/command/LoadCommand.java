@@ -22,12 +22,9 @@ import alluxio.client.file.BaseFileSystem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.FileSystemOptions;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.collections.Pair;
 import alluxio.conf.AlluxioConfiguration;
-import alluxio.conf.AlluxioProperties;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
@@ -60,9 +57,12 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Loads a file or directory in Alluxio space, making it resident in Alluxio.
+ *
+ * @deprecated This command no longer works under the new Dora architecture.
  */
 @ThreadSafe
 @PublicApi
+@Deprecated
 public final class LoadCommand extends AbstractFileSystemCommand {
   private static final JobProgressReportFormat DEFAULT_FORMAT = JobProgressReportFormat.TEXT;
   private static final String JOB_TYPE = "load";
@@ -133,6 +133,13 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       .desc("Whether to return a verbose progress report with detailed errors")
       .build();
 
+  private static final Option LOAD_METADATA_ONLY = Option.builder()
+      .longOpt("metadata-only")
+      .required(false)
+      .hasArg(false)
+      .desc("If specified, only the file metadata are loaded")
+      .build();
+
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
    *
@@ -140,11 +147,8 @@ public final class LoadCommand extends AbstractFileSystemCommand {
    */
   public LoadCommand(FileSystemContext fsContext) {
     super(fsContext);
-    AlluxioProperties properties = fsContext.getClusterConf().copyProperties();
-    properties.set(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED, false);
-    AlluxioConfiguration config = new InstancedConfiguration(properties);
-    mFileSystem = FileSystem.Factory.create(fsContext, FileSystemOptions.create(config));
-    assert (mFileSystem instanceof BaseFileSystem);
+    mFileSystem = FileSystem.Factory.createLegacy(fsContext);
+    Preconditions.checkArgument(mFileSystem instanceof BaseFileSystem);
   }
 
   @Override
@@ -163,11 +167,14 @@ public final class LoadCommand extends AbstractFileSystemCommand {
         .addOption(PROGRESS_OPTION)
         .addOption(PROGRESS_FORMAT)
         .addOption(PROGRESS_VERBOSE)
-        .addOption(LOCAL_OPTION);
+        .addOption(LOCAL_OPTION)
+        .addOption(LOAD_METADATA_ONLY);
   }
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
+    System.out.println("The load command is deprecated under the new  DORA architecture. "
+        + "Please only use it when the cluster has " + PropertyKey.DORA_ENABLED + "=false");
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
     if (isOldFormat(cl)) {
@@ -189,7 +196,8 @@ public final class LoadCommand extends AbstractFileSystemCommand {
           path,
           bandwidth,
           cl.hasOption(PARTIAL_LISTING_OPTION.getLongOpt()),
-          cl.hasOption(VERIFY_OPTION.getLongOpt()));
+          cl.hasOption(VERIFY_OPTION.getLongOpt()),
+          cl.hasOption(LOAD_METADATA_ONLY.getLongOpt()));
     }
 
     if (cl.hasOption(STOP_OPTION.getLongOpt())) {
@@ -210,7 +218,8 @@ public final class LoadCommand extends AbstractFileSystemCommand {
   public String getUsage() {
     return "For backward compatibility: load [--local] <path>\n"
         + "For distributed load:\n"
-        + "\tload <path> --submit [--bandwidth N] [--verify] [--partial-listing]\n"
+        + "\tload <path> --submit "
+        + "[--bandwidth N] [--verify] [--partial-listing] [--metadata-only]\n"
         + "\tload <path> --stop\n"
         + "\tload <path> --progress [--format TEXT|JSON] [--verbose]\n";
   }
@@ -241,9 +250,10 @@ public final class LoadCommand extends AbstractFileSystemCommand {
   }
 
   private int submitLoad(AlluxioURI path, OptionalLong bandwidth,
-      boolean usePartialListing, boolean verify) {
+      boolean usePartialListing, boolean verify, boolean loadMetadataOnly) {
     LoadJobPOptions.Builder options = alluxio.grpc.LoadJobPOptions
-        .newBuilder().setPartialListing(usePartialListing).setVerify(verify);
+        .newBuilder().setPartialListing(usePartialListing).setVerify(verify)
+        .setLoadMetadataOnly(loadMetadataOnly);
     if (bandwidth.isPresent()) {
       options.setBandwidth(bandwidth.getAsLong());
     }
@@ -253,11 +263,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       if (jobId.isPresent()) {
         System.out.printf("Load '%s' is successfully submitted. JobId: %s%n", path, jobId.get());
       } else {
-        System.out.printf("Load already running for path '%s', updated the job with "
-                + "new bandwidth: %s, verify: %s%n",
-            path,
-            bandwidth.isPresent() ? String.valueOf(bandwidth.getAsLong()) : "unlimited",
-            verify);
+        System.out.printf("Load already running for path '%s' %n", path);
       }
       return 0;
     } catch (StatusRuntimeException e) {

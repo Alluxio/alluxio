@@ -20,6 +20,7 @@ import alluxio.client.file.cache.store.PageStoreDir;
 import alluxio.client.quota.CacheScope;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.PageNotFoundException;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
@@ -132,6 +133,15 @@ public class DefaultPageMetaStore implements PageMetaStore {
   }
 
   @Override
+  public PageStoreDir getStoreDirOfFile(String fileId) throws FileDoesNotExistException {
+    PageInfo pageInfo = mPages.getFirstByField(INDEX_FILE_ID, fileId);
+    if (pageInfo == null) {
+      throw new FileDoesNotExistException(String.format("File %s does not exist in cache", fileId));
+    }
+    return pageInfo.getLocalCacheDir();
+  }
+
+  @Override
   public List<PageStoreDir> getStoreDirs() {
     return mDirs;
   }
@@ -215,6 +225,13 @@ public class DefaultPageMetaStore implements PageMetaStore {
       return null;
     }
     return victimInfo;
+  }
+
+  @Override
+  @GuardedBy("getLock().readLock()")
+  public Set<PageInfo> getAllPagesByFileId(String fileId) {
+    Set<PageInfo> pages = mPages.getByField(INDEX_FILE_ID, fileId);
+    return pages;
   }
 
   @Override

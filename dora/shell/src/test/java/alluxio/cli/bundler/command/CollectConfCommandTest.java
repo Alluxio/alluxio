@@ -86,7 +86,8 @@ public class CollectConfCommandTest {
 
   @Test
   public void confDirCopied() throws IOException, AlluxioException {
-    CollectConfigCommand cmd = new CollectConfigCommand(FileSystemContext.create(mConf));
+    CollectConfigCommand cmd = new CollectConfigCommand(FileSystemContext
+        .sFileSystemContextFactory.create(mConf));
 
     File targetDir = InfoCollectorTestUtils.createTemporaryDirectory();
     CommandLine mockCommandLine = mock(CommandLine.class);

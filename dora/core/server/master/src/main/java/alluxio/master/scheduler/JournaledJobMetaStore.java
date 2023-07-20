@@ -12,10 +12,9 @@
 package alluxio.master.scheduler;
 
 import alluxio.collections.ConcurrentHashSet;
-import alluxio.conf.Configuration;
 import alluxio.exception.runtime.UnavailableRuntimeException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.job.JobFactoryProducer;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.Journaled;
@@ -24,9 +23,6 @@ import alluxio.proto.journal.Journal;
 import alluxio.resource.CloseableIterator;
 import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobMetaStore;
-import alluxio.underfs.UfsManager;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemConfiguration;
 
 import com.google.common.collect.Iterators;
 import org.slf4j.Logger;
@@ -39,19 +35,16 @@ import java.util.Set;
  */
 public class JournaledJobMetaStore implements JobMetaStore, Journaled {
   private static final Logger LOG = LoggerFactory.getLogger(JournaledJobMetaStore.class);
-  private final FileSystemMaster mFileSystemMaster;
+  private final DefaultFileSystemMaster mFileSystemMaster;
   private final Set<Job<?>> mExistingJobs = new ConcurrentHashSet<>();
-  private final UfsManager mUfsManager;
 
   /**
    * Creates a new instance of {@link JournaledJobMetaStore}.
    *
    * @param fileSystemMaster the file system master
-   * @param ufsManager
    */
-  public JournaledJobMetaStore(FileSystemMaster fileSystemMaster, UfsManager ufsManager) {
+  public JournaledJobMetaStore(DefaultFileSystemMaster fileSystemMaster) {
     mFileSystemMaster = fileSystemMaster;
-    mUfsManager = ufsManager;
   }
 
   @Override
@@ -62,18 +55,17 @@ public class JournaledJobMetaStore implements JobMetaStore, Journaled {
 
   @Override
   public boolean processJournalEntry(Journal.JournalEntry entry) {
-    if (!entry.hasLoadJob() && !entry.hasCopyJob()) {
+    if (!entry.hasLoadJob() && !entry.hasCopyJob() && !entry.hasMoveJob()) {
       return false;
     }
-    if (entry.hasLoadJob()) {
-      Job<?> job = JobFactoryProducer.create(entry, mFileSystemMaster).create();
-      mExistingJobs.add(job);
-    }
-    if (entry.hasCopyJob()) {
-      UnderFileSystem ufs = UnderFileSystem.Factory.create(entry.getCopyJob().getSrc(),
-          UnderFileSystemConfiguration.defaults(Configuration.global()));
-      Job<?> job = JobFactoryProducer.create(entry, ufs).create();
-      mExistingJobs.add(job);
+    else {
+      try {
+        Job<?> job = JobFactoryProducer.create(entry, mFileSystemMaster).create();
+        mExistingJobs.remove(job);
+        mExistingJobs.add(job);
+      } catch (RuntimeException e) {
+        LOG.error("Failed to create job from journal entry: {}", entry, e);
+      }
     }
     return true;
   }
@@ -92,6 +84,7 @@ public class JournaledJobMetaStore implements JobMetaStore, Journaled {
   public void updateJob(Job<?> job) {
     try (JournalContext context = mFileSystemMaster.createJournalContext()) {
       context.append(job.toJournalEntry());
+      mExistingJobs.remove(job);
       mExistingJobs.add(job);
     } catch (UnavailableException e) {
       throw new UnavailableRuntimeException(

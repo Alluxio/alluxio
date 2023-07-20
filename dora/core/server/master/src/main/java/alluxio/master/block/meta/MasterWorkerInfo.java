@@ -17,6 +17,7 @@ import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
 import alluxio.grpc.BuildVersion;
 import alluxio.grpc.StorageList;
+import alluxio.master.WorkerState;
 import alluxio.master.block.DefaultBlockMaster;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
@@ -111,13 +112,11 @@ import javax.annotation.concurrent.NotThreadSafe;
  *    and block removal/commit.
  * 2. In {@link alluxio.master.block.WorkerRegisterContext},
  *    to write locks are held throughout the lifecycle.
- * 3. In {@link DefaultBlockMaster.LostWorkerDetectionHeartbeatExecutor#heartbeat()}
+ * 3. In {@link DefaultBlockMaster.LostWorkerDetectionHeartbeatExecutor#heartbeat(long)}
  */
 @NotThreadSafe
 public final class MasterWorkerInfo {
   private static final Logger LOG = LoggerFactory.getLogger(MasterWorkerInfo.class);
-  private static final String LIVE_WORKER_STATE = "In Service";
-  private static final String LOST_WORKER_STATE = "Out of Service";
 
   private static final EnumSet<WorkerInfoField> USAGE_INFO_FIELDS =
       EnumSet.of(WorkerInfoField.WORKER_CAPACITY_BYTES,
@@ -301,10 +300,10 @@ public final class MasterWorkerInfo {
    * The required locks will be determined internally based on the fields.
    *
    * @param fieldRange the client selected fields
-   * @param isLiveWorker the worker is live or not
+   * @param workerState the worker state
    * @return generated worker information
    */
-  public WorkerInfo generateWorkerInfo(Set<WorkerInfoField> fieldRange, boolean isLiveWorker) {
+  public WorkerInfo generateWorkerInfo(Set<WorkerInfoField> fieldRange, WorkerState workerState) {
     WorkerInfo info = new WorkerInfo();
     for (WorkerInfoField field : fieldRange) {
       switch (field) {
@@ -331,11 +330,7 @@ public final class MasterWorkerInfo {
           info.setStartTimeMs(mMeta.mStartTimeMs);
           break;
         case STATE:
-          if (isLiveWorker) {
-            info.setState(LIVE_WORKER_STATE);
-          } else {
-            info.setState(LOST_WORKER_STATE);
-          }
+          info.setState(workerState.toString());
           break;
         case WORKER_USED_BYTES:
           info.setUsedBytes(mUsage.mUsedBytes);

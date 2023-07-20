@@ -24,7 +24,7 @@ public final class WaitForOptions {
   /** How often to check for completion. */
   private int mIntervalMs;
   /** How long to wait before giving up. */
-  private int mTimeoutMs;
+  private long mTimeoutMs;
 
   private WaitForOptions() {}
 
@@ -45,7 +45,7 @@ public final class WaitForOptions {
   /**
    * @return the timeout
    */
-  public int getTimeoutMs() {
+  public long getTimeoutMs() {
     return mTimeoutMs;
   }
 
@@ -62,7 +62,7 @@ public final class WaitForOptions {
    * @param timeoutMs the timeout to use (in milliseconds)
    * @return the updated options object
    */
-  public WaitForOptions setTimeoutMs(int timeoutMs) {
+  public WaitForOptions setTimeoutMs(long timeoutMs) {
     mTimeoutMs = timeoutMs;
     return this;
   }

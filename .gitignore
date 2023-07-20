@@ -1,5 +1,6 @@
 **/.port_coordination
-**/alluxio-site.properties
+**/alluxio-site.properties*
+!**/alluxio-site.properties.template
 **/nb-configuration*.xml
 **/nbproject/
 *.iml
@@ -17,15 +18,13 @@
 .port_coordination/
 .project
 .settings/
+.java-version
 /client/
 /conf/alluxio-env.sh
 /conf/alluxio-env.sh.bootstrap.bk
 /conf/metrics.properties
 /conf/rocks-*.ini
 /data/
-/dev/scripts/*.tar.gz
-/dev/scripts/tarballs
-/dev/scripts/workdir
 /docs/_site/
 /docs/api/
 /docs/serve/
@@ -34,9 +33,8 @@
 /integration/docker/*.tar.gz
 /journal/
 /lib/*.jar
-/logs/*.log*
-/logs/*.out*
-/logs/user/*
+/libexec/version.sh
+/logs/
 /metastore
 /underFSStorage/
 /underfs/hdfs/src/main/java/alluxio/UfsConstants.java

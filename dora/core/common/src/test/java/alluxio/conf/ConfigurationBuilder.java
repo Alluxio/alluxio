@@ -24,7 +24,7 @@ public class ConfigurationBuilder {
    * @return the updated configuration builder
    */
   public ConfigurationBuilder setProperty(PropertyKey key, Object value) {
-    mProperties.put(key, value.toString(), Source.RUNTIME);
+    mProperties.put(key, value, Source.RUNTIME);
     return this;
   }
 

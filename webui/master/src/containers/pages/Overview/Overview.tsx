@@ -62,6 +62,10 @@ export class OverviewPresenter extends React.Component<AllProps> {
                 <td>{data.version}</td>
               </tr>
               <tr>
+                <th scope="row">Revision</th>
+                <td>{data.revision}</td>
+              </tr>
+              <tr>
                 <th scope="row">Running Workers</th>
                 <td>{data.liveWorkerNodes}</td>
               </tr>
@@ -76,6 +80,10 @@ export class OverviewPresenter extends React.Component<AllProps> {
               <tr>
                 <th scope="row">LeaderId</th>
                 <td>{data.leaderId}</td>
+              </tr>
+              <tr>
+                <th scope="row">System Status</th>
+                <td>{data.systemStatus}</td>
               </tr>
               {this.renderConfigurationIssues(data.configCheckErrors, 'text-error')}
               {this.renderConfigurationIssues(data.configCheckWarns, 'text-warning')}

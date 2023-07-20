@@ -509,9 +509,20 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @return HEX encoded hash string
    */
   public String hash() {
+    return hash(toString());
+  }
+
+  /**
+   * Computes the hash of this URI, with SHA-256, or MD5, or simple hashCode().
+   *
+   * @param uri the alluxio path uri
+   *
+   * @return HEX encoded hash string
+   */
+  public static String hash(String uri) {
     try {
       MessageDigest md = MessageDigest.getInstance("SHA-256");
-      md.update(toString().getBytes());
+      md.update(uri.getBytes());
       return Hex.encodeHexString(md.digest()).toLowerCase();
     } catch (NoSuchAlgorithmException e) {
       /* No actions. Continue with other hash method. */
@@ -519,13 +530,13 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
 
     try {
       MessageDigest md = MessageDigest.getInstance("MD5");
-      md.update(toString().getBytes());
+      md.update(uri.getBytes());
       return Hex.encodeHexString(md.digest()).toLowerCase();
     } catch (NoSuchAlgorithmException e) {
       /* No actions. Continue with other hash method. */
     }
 
     // Cannot find SHA-256 or MD5. Fall back to use simple hashCode, which is probable to conflict.
-    return Hex.encodeHexString(String.valueOf(hashCode()).getBytes()).toLowerCase();
+    return Hex.encodeHexString(String.valueOf(uri.hashCode()).getBytes()).toLowerCase();
   }
 }

@@ -22,12 +22,16 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.file.options.DescendantType;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
+import alluxio.underfs.UfsLoadResult;
 import alluxio.underfs.UfsMode;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.UnderFileSystemTestUtil;
+import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.io.PathUtils;
@@ -296,6 +300,35 @@ public class LocalUnderFileSystemTest {
     assertTrue(Files.exists(linkPath, LinkOption.NOFOLLOW_LINKS));
     assertFalse(Files.exists(linkPath));
     assertThrows(NoSuchFileException.class, () -> mLocalUfs.listStatus(mLocalUfsRoot));
+  }
+
+  @Test
+  public void testListAsync() throws Throwable {
+    mLocalUfs.create(PathUtils.concatPath(mLocalUfsRoot, "root/d/f"),
+        CreateOptions.defaults(Configuration.global()).setCreateParent(true)).close();
+    mLocalUfs.create(PathUtils.concatPath(mLocalUfsRoot, "root/d/d/f"),
+        CreateOptions.defaults(Configuration.global()).setCreateParent(true)).close();
+    mLocalUfs.create(PathUtils.concatPath(mLocalUfsRoot, "root/f"),
+        CreateOptions.defaults(Configuration.global()).setCreateParent(true)).close();
+    UfsLoadResult result = UnderFileSystemTestUtil.performListingAsyncAndGetResult(
+        mLocalUfs, PathUtils.concatPath(mLocalUfsRoot, "root"), DescendantType.ALL);
+    Assert.assertEquals(5, result.getItemsCount());
+
+    result = UnderFileSystemTestUtil.performListingAsyncAndGetResult(
+        mLocalUfs, PathUtils.concatPath(mLocalUfsRoot, "root"), DescendantType.ONE);
+    Assert.assertEquals(2, result.getItemsCount());
+
+    result = UnderFileSystemTestUtil.performListingAsyncAndGetResult(
+        mLocalUfs, PathUtils.concatPath(mLocalUfsRoot, "root"), DescendantType.NONE);
+    Assert.assertEquals(1, result.getItemsCount());
+
+    result = UnderFileSystemTestUtil.performListingAsyncAndGetResult(
+        mLocalUfs, PathUtils.concatPath(mLocalUfsRoot, "root/d/d/f"), DescendantType.NONE);
+    Assert.assertEquals(1, result.getItemsCount());
+
+    result = UnderFileSystemTestUtil.performListingAsyncAndGetResult(
+        mLocalUfs, PathUtils.concatPath(mLocalUfsRoot, "root/foobar"), DescendantType.NONE);
+    Assert.assertEquals(0, result.getItemsCount());
   }
 
   private Path createNonExistentSymlink() throws IOException {

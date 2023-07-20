@@ -26,6 +26,7 @@ import alluxio.grpc.UfsReadOptions;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.Configuration;
 import alluxio.wire.FileInfo;
+import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.DataWorker;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
@@ -39,6 +40,8 @@ import java.util.concurrent.CompletableFuture;
 /**
  * A block worker in the Alluxio system.
  */
+// TODO(jiacheng): This class is not removed yet because it is still used by client code
+//  like FileSystemContext. It should be removed with the client side Block API code.
 public interface BlockWorker extends DataWorker, SessionCleanable {
   /**
    * Aborts the temporary block created by the session.
@@ -236,6 +239,11 @@ public interface BlockWorker extends DataWorker, SessionCleanable {
    * @return the block store
    */
   BlockStore getBlockStore();
+
+  /**
+   * @return the worker address
+   */
+  WorkerNetAddress getWorkerAddress();
 
   /**
    * Gets the block reader for the block. This method is only called by a data server.

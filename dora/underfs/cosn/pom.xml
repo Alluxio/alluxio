@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>295-SNAPSHOT</version>
+    <version>302-SNAPSHOT</version>
   </parent>
 
   <artifactId>alluxio-underfs-cosn</artifactId>
@@ -68,27 +68,89 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
-        </plugin>
-        <plugin>
-            <groupId>com.coderplus.maven.plugins</groupId>
-            <artifactId>copy-rename-maven-plugin</artifactId>
-        </plugin>
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>templating-maven-plugin</artifactId>
           <executions>
             <execution>
-              <id>filter-src</id>
+              <id>shade</id>
+              <phase>package</phase>
               <goals>
-                <goal>filter-sources</goal>
+                <goal>shade</goal>
               </goals>
               <configuration>
-                <sourceDirectory>src/main/java-templates</sourceDirectory>
-                <outputDirectory>${project.build.directory}/generated-sources/java-templates</outputDirectory>
+                <filters>
+                  <filter>
+                    <artifact>*:*</artifact>
+                    <excludes>
+                      <exclude>LICENSE</exclude>
+                      <exclude>META-INF/LICENSE</exclude>
+                      <exclude>META-INF/*.SF</exclude>
+                      <exclude>META-INF/*.DSA</exclude>
+                      <exclude>META-INF/*.RSA</exclude>
+                      <!-- Because this module depends on alluxio-underfs-hdfs, eliminate HDFS factory implementation -->
+                      <exclude>alluxio/underfs/hdfs/HdfsUnderFileSystemFactory.*</exclude>
+                    </excludes>
+                  </filter>
+                  <filter>
+                    <artifact>org.alluxio:alluxio-underfs-hdfs</artifact>
+                    <excludes>
+                      <exclude>META-INF/services/alluxio.underfs.UnderFileSystemFactory</exclude>
+                    </excludes>
+                  </filter>
+                </filters>
               </configuration>
             </execution>
           </executions>
         </plugin>
+      <plugin>
+        <artifactId>exec-maven-plugin</artifactId>
+        <groupId>org.codehaus.mojo</groupId>
+        <inherited>false</inherited>
+        <executions>
+          <execution>
+            <id>copy-lib-jars-selectively</id>
+            <phase>install</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${build.path}/lib/copy_jars.sh</executable>
+              <arguments>
+                <argument>${project.artifactId}</argument>
+                <argument>${basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar</argument>
+                <argument>${build.path}/../lib/${project.artifactId}-${project.version}.jar</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>${build.path}/../lib</directory>
+              <includes>
+                <include>**/${project.artifactId}-*.jar</include>
+              </includes>
+            </fileset>
+          </filesets>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>templating-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>filter-src</id>
+            <goals>
+              <goal>filter-sources</goal>
+            </goals>
+            <configuration>
+              <sourceDirectory>src/main/java-templates</sourceDirectory>
+              <outputDirectory>${project.build.directory}/generated-sources/java-templates</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
-</build>
+  </build>
 </project>

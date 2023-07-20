@@ -12,11 +12,15 @@
 package alluxio.worker.dora;
 
 import alluxio.Constants;
+import alluxio.conf.PropertyKey;
+import alluxio.master.metastore.rocks.RocksExclusiveLockHandle;
+import alluxio.master.metastore.rocks.RocksSharedLockHandle;
 import alluxio.proto.meta.DoraMeta;
 import alluxio.rocks.RocksStore;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
+import org.rocksdb.BlockBasedTableConfig;
 import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.ColumnFamilyOptions;
@@ -38,10 +42,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Dora Meta Store in RocksDB.
  */
+@ThreadSafe
 public class RocksDBDoraMetaStore implements DoraMetaStore {
   private static final Logger LOG = LoggerFactory.getLogger(RocksDBDoraMetaStore.class);
   private static final String DORA_META_DB_NAME = "DoraMeta";
@@ -73,27 +79,34 @@ public class RocksDBDoraMetaStore implements DoraMetaStore {
     Preconditions.checkState(metaTTL > 0 || metaTTL == -1);
 
     // the rocksDB objects must be initialized after RocksDB.loadLibrary() is called
-    mWriteOption = new WriteOptions();
+    mWriteOption = new WriteOptions().setDisableWAL(true);
+    mToClose.add(mWriteOption);
     mReadOption  = new ReadOptions();
+    mToClose.add(mReadOption);
     String dbPath = PathUtils.concatPath(baseDir, DORA_META_DB_NAME);
     String backupPath = PathUtils.concatPath(baseDir, DORA_META_DB_NAME + "-backup");
-
-    List<ColumnFamilyDescriptor> columns = new ArrayList<>();
     DBOptions opts = new DBOptions();
     mToClose.add(opts);
-    mToClose.add(mReadOption);
-    mToClose.add(mWriteOption);
-
     opts.setAllowConcurrentMemtableWrite(false) // not supported for hash mem tables
             .setCreateMissingColumnFamilies(true)
             .setCreateIfMissing(true)
             .setMaxOpenFiles(-1);
+
+    List<ColumnFamilyDescriptor> columns = new ArrayList<>();
     columns.add(new ColumnFamilyDescriptor(DORA_META_FILE_STATUS_COLUMN.getBytes(),
             new ColumnFamilyOptions()
                     .setMemTableConfig(new HashLinkedListMemTableConfig())
                     .setCompressionType(CompressionType.NO_COMPRESSION)));
     mToClose.addAll(columns.stream().map(
             ColumnFamilyDescriptor::getOptions).collect(Collectors.toList()));
+
+    Optional<BlockBasedTableConfig> config = RocksStore.checkSetTableConfig(
+        PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_CACHE_SIZE,
+        PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_BLOOM_FILTER,
+        PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_INDEX,
+        PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_BLOCK_INDEX, mToClose);
+    config.ifPresent(blockBasedTableConfig -> columns.get(0).getOptions()
+        .setTableFormatConfig(blockBasedTableConfig));
 
     mRocksStore = new RocksStore(DORA_META_STORE_NAME, dbPath, backupPath, opts, columns,
             Arrays.asList(mFileStatusColumn), false);
@@ -109,7 +122,7 @@ public class RocksDBDoraMetaStore implements DoraMetaStore {
   @Override
   public Optional<DoraMeta.FileStatus> getDoraMeta(String path) {
     byte[] status;
-    try {
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
       status = db().get(mFileStatusColumn.get(), path.getBytes());
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
@@ -142,7 +155,7 @@ public class RocksDBDoraMetaStore implements DoraMetaStore {
    */
   @Override
   public void putDoraMeta(String path, DoraMeta.FileStatus meta) {
-    try {
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
       db().put(mFileStatusColumn.get(), mWriteOption, path.getBytes(),
               meta.toByteString().toByteArray());
     } catch (RocksDBException e) {
@@ -158,7 +171,7 @@ public class RocksDBDoraMetaStore implements DoraMetaStore {
    */
   @Override
   public void removeDoraMeta(String path) {
-    try {
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
       db().delete(mFileStatusColumn.get(), mWriteOption, path.getBytes());
     } catch (RocksDBException e) {
       LOG.error("Cannot remove {} : {}", path, e);
@@ -177,11 +190,13 @@ public class RocksDBDoraMetaStore implements DoraMetaStore {
    */
   @Override
   public void close() {
-    LOG.info("Closing " + DORA_META_DB_NAME + " and recycling all RocksDB JNI objects");
-    // Close the elements in the reverse order they were added
-    Collections.reverse(mToClose);
-    mToClose.forEach(RocksObject::close);
-    mRocksStore.close();
+    try (RocksExclusiveLockHandle lock = mRocksStore.lockForClosing()) {
+      LOG.info("Closing " + DORA_META_DB_NAME + " and recycling all RocksDB JNI objects");
+      // Close the elements in the reverse order they were added
+      Collections.reverse(mToClose);
+      mToClose.forEach(RocksObject::close);
+      mRocksStore.close();
+    }
     LOG.info(DORA_META_DB_NAME + " closed");
   }
 
@@ -193,12 +208,12 @@ public class RocksDBDoraMetaStore implements DoraMetaStore {
    */
   @Override
   public Optional<Long> size() {
-    try {
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
       String res = db().getProperty(mFileStatusColumn.get(), "rocksdb.estimate-num-keys");
       Long s = Long.parseLong(res);
       return Optional.of(s);
     } catch (RocksDBException e) {
-      LOG.error("Cannot getProperty for rocksdb.estimate-num-keys:" + e);
+      LOG.error("Cannot getProperty for rocksdb.estimate-num-keys:", e);
       return Optional.empty();
     }
   }

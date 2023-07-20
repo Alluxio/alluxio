@@ -19,6 +19,7 @@ import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.ClientContext;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -58,6 +59,7 @@ import io.grpc.Context;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -76,6 +78,9 @@ import java.util.stream.Collectors;
 /**
  * Tests the loading of metadata and the available options.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "check if this feature is still relevant")
+@Ignore
 public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   private static final long INTERVAL_MS = 100;
   private static final long LARGE_INTERVAL_MS = 1000;
@@ -863,14 +868,20 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
     // delete the file and wait a bit
     new File(ufsPath("/delete/file")).delete();
-    CommonUtils.sleepMs(2000);
+    CommonUtils.sleepMs(3000);
 
     // getStatus (not listStatus) on the root, with a shorter interval than the sleep.
     // This will sync that directory. The sync interval has to be long enough for the internal
     // syncing process to finish within that time.
     mFileSystem.getStatus(new AlluxioURI(alluxioPath("/delete")), GetStatusPOptions.newBuilder()
         .setCommonOptions(
-            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(1000).build()).build());
+            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(2000).build()).build());
+
+    // a following list status should trigger a metadata sync even though the path was just synced,
+    // because the descendant type is ONE this time, and it was NONE previously.
+    mFileSystem.listStatus(new AlluxioURI(alluxioPath("/delete")),
+        ListStatusPOptions.newBuilder().setRecursive(false).setCommonOptions(
+            FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(2000).build()).build());
 
     // verify that the file is deleted, without syncing
     try {

@@ -13,6 +13,7 @@ package alluxio.master.backup;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
+import alluxio.Constants;
 import alluxio.ProcessUtils;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -33,6 +34,7 @@ import alluxio.master.transport.GrpcMessagingConnection;
 import alluxio.master.transport.Listener;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
+import alluxio.util.logging.SamplingLogger;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BackupStatus;
 
@@ -55,6 +57,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class BackupWorkerRole extends AbstractBackupRole {
   private static final Logger LOG = LoggerFactory.getLogger(BackupWorkerRole.class);
+  private static final Logger SAMPLING_LOG = new SamplingLogger(LOG, 10L * Constants.SECOND_MS);
 
   // Constant timeout for journal transition before backup.
   private static final long BACKUP_ABORT_AFTER_TRANSITION_TIMEOUT_MS = 30000;
@@ -370,6 +373,12 @@ public class BackupWorkerRole extends AbstractBackupRole {
                 .build().getMasterInquireClient();
 
         leaderAddress = inquireClient.getPrimaryRpcAddress();
+        InetSocketAddress localAddress = NetworkAddressUtils.getConnectAddress(
+            NetworkAddressUtils.ServiceType.MASTER_RPC, Configuration.global());
+        if (leaderAddress.equals(localAddress)) {
+          SAMPLING_LOG.info("Currently being promoted to leader");
+          continue;
+        }
       } catch (Throwable t) {
         LOG.warn("Failed to get backup-leader address. Error:{}. Attempt:{}", t,
             infiniteRetryPolicy.getAttemptCount());

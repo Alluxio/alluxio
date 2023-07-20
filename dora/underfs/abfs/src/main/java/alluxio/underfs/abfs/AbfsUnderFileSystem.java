@@ -18,6 +18,7 @@ import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.hdfs.HdfsUnderFileSystem;
 import alluxio.underfs.options.FileLocationOptions;
+import alluxio.underfs.options.GetStatusOptions;
 
 import com.google.common.base.MoreObjects;
 import org.apache.hadoop.conf.Configuration;
@@ -74,7 +75,7 @@ public class AbfsUnderFileSystem extends HdfsUnderFileSystem {
     if (!clientCredentials && !sharedKey) {
       abfsConf.set("fs.azure.account.auth.type", "OAuth");
       abfsConf.set("fs.azure.account.oauth.provider.type",
-              "org.apache.hadoop.fs.azurebfs.oauth2.MsiTokenProvider<");
+              "org.apache.hadoop.fs.azurebfs.oauth2.MsiTokenProvider");
       if (conf.isSet(PropertyKey.ABFS_MSI_ENDPOINT)) {
         abfsConf.set(PropertyKey.ABFS_MSI_ENDPOINT.getName(),
             conf.getString(PropertyKey.ABFS_MSI_ENDPOINT));
@@ -128,8 +129,8 @@ public class AbfsUnderFileSystem extends HdfsUnderFileSystem {
   }
 
   @Override
-  public UfsStatus getStatus(String path) throws IOException {
-    UfsStatus status = super.getStatus(path);
+  public UfsStatus getStatus(String path, GetStatusOptions options) throws IOException {
+    UfsStatus status = super.getStatus(path, options);
     if (status instanceof UfsFileStatus) {
       // abfs is backed by an object store but always claims its block size to be 512MB.
       // reset the block size in UfsFileStatus according to getBlockSizeByte

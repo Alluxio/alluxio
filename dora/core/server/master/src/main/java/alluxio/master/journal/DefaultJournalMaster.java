@@ -15,7 +15,6 @@ import alluxio.Constants;
 import alluxio.clock.SystemClock;
 import alluxio.grpc.GetNodeStatePResponse;
 import alluxio.grpc.GetQuorumInfoPResponse;
-import alluxio.grpc.GetTransferLeaderMessagePResponse;
 import alluxio.grpc.GrpcService;
 import alluxio.grpc.JournalDomain;
 import alluxio.grpc.NetAddress;
@@ -24,7 +23,10 @@ import alluxio.master.AbstractMaster;
 import alluxio.master.MasterContext;
 import alluxio.master.PrimarySelector;
 import alluxio.master.journal.raft.RaftJournalSystem;
+import alluxio.security.authentication.ClientContextServerInjector;
 import alluxio.util.executor.ExecutorServiceFactories;
+
+import io.grpc.ServerInterceptors;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -88,14 +90,6 @@ public class DefaultJournalMaster extends AbstractMaster implements JournalMaste
   }
 
   @Override
-  public GetTransferLeaderMessagePResponse getTransferLeaderMessage(String transferId) {
-    checkQuorumOpSupported();
-    return GetTransferLeaderMessagePResponse.newBuilder()
-           .setTransMsg(((RaftJournalSystem) mJournalSystem).getTransferLeaderMessage(transferId))
-           .build();
-  }
-
-  @Override
   public GetNodeStatePResponse getNodeState() {
     return GetNodeStatePResponse.newBuilder()
         .setNodeState(mPrimarySelector.getState())
@@ -111,7 +105,9 @@ public class DefaultJournalMaster extends AbstractMaster implements JournalMaste
   public Map<ServiceType, GrpcService> getServices() {
     Map<ServiceType, GrpcService> services = new HashMap<>();
     services.put(alluxio.grpc.ServiceType.JOURNAL_MASTER_CLIENT_SERVICE,
-        new GrpcService(new JournalMasterClientServiceHandler(this)));
+        new GrpcService(ServerInterceptors.intercept(
+            new JournalMasterClientServiceHandler(this),
+            new ClientContextServerInjector())));
     return services;
   }
 }

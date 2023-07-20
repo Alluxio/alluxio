@@ -15,25 +15,39 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.grpc.CacheRequest;
 import alluxio.grpc.ClearMetricsRequest;
 import alluxio.grpc.ClearMetricsResponse;
+import alluxio.grpc.CompleteFilePRequest;
+import alluxio.grpc.CompleteFilePResponse;
 import alluxio.grpc.CopyRequest;
 import alluxio.grpc.CopyResponse;
-import alluxio.grpc.CreateLocalBlockRequest;
-import alluxio.grpc.CreateLocalBlockResponse;
+import alluxio.grpc.CreateDirectoryPRequest;
+import alluxio.grpc.CreateDirectoryPResponse;
+import alluxio.grpc.CreateFilePRequest;
+import alluxio.grpc.CreateFilePResponse;
+import alluxio.grpc.DeletePRequest;
+import alluxio.grpc.DeletePResponse;
+import alluxio.grpc.ExistsPRequest;
+import alluxio.grpc.ExistsPResponse;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.ListStatusPRequest;
 import alluxio.grpc.ListStatusPResponse;
+import alluxio.grpc.LoadFileRequest;
+import alluxio.grpc.LoadFileResponse;
 import alluxio.grpc.LoadRequest;
 import alluxio.grpc.LoadResponse;
 import alluxio.grpc.MoveBlockRequest;
 import alluxio.grpc.MoveBlockResponse;
-import alluxio.grpc.OpenLocalBlockRequest;
-import alluxio.grpc.OpenLocalBlockResponse;
+import alluxio.grpc.MoveRequest;
+import alluxio.grpc.MoveResponse;
 import alluxio.grpc.ReadRequest;
 import alluxio.grpc.ReadResponse;
 import alluxio.grpc.RemoveBlockRequest;
 import alluxio.grpc.RemoveBlockResponse;
+import alluxio.grpc.RenamePRequest;
+import alluxio.grpc.RenamePResponse;
+import alluxio.grpc.SetAttributePRequest;
+import alluxio.grpc.SetAttributePResponse;
 import alluxio.grpc.WriteRequest;
 import alluxio.grpc.WriteResponse;
 import alluxio.security.user.UserState;
@@ -107,32 +121,6 @@ public interface BlockWorkerClient extends Closeable {
   ListenableFuture<Object> readBlockNoDataBack(ReadRequest request);
 
   /**
-   * Creates a local block on the worker. This is a two stage operations:
-   * 1. Client sends a create request through the request stream. Server will respond with the name
-   *    of the file to write to.
-   * 2. When client is done with the file, it should signal complete or cancel on the request stream
-   *    based on the intent. The server will signal complete on the response stream once the
-   *    operation is done.
-   *
-   * @param responseObserver the stream observer for the server response
-   * @return the stream observer for the client request
-   */
-  StreamObserver<CreateLocalBlockRequest> createLocalBlock(
-      StreamObserver<CreateLocalBlockResponse> responseObserver);
-
-  /**
-   * Opens a local block. This is a two stage operations:
-   * 1. Client sends an open request through the request stream. Server will respond with the name
-   *    of the file to read from.
-   * 2. When client is done with the file, it should close the stream.
-   *
-   * @param responseObserver the stream observer for the server response
-   * @return the stream observer for the client request
-   */
-  StreamObserver<OpenLocalBlockRequest> openLocalBlock(
-      StreamObserver<OpenLocalBlockResponse> responseObserver);
-
-  /**
    * Removes a block from worker.
    * @param request the remove block request
    * @return the response from server
@@ -179,6 +167,13 @@ public interface BlockWorkerClient extends Closeable {
   ListenableFuture<LoadResponse> load(LoadRequest request);
 
   /**
+   * load files.
+   * @param request
+   * @return listenable future of LoadFileResponse
+   */
+  ListenableFuture<LoadFileResponse> loadFile(LoadFileRequest request);
+
+  /**
    * get file status.
    *
    * @param request
@@ -201,4 +196,62 @@ public interface BlockWorkerClient extends Closeable {
    * @throws StatusRuntimeException if any error occurs
    */
   ListenableFuture<CopyResponse> copy(CopyRequest request);
+
+  /**
+   * move files from src to dst.
+   *
+   * @param request the move request
+   * @return listenable future of MoveResponse
+   * @throws StatusRuntimeException if any error occurs
+   */
+  ListenableFuture<MoveResponse> move(MoveRequest request);
+
+  /**
+   * Create file request from client to worker.
+   * @param request the request to create a file
+   * @return a response to contain FileInfo and OpenHandle
+   */
+  CreateFilePResponse createFile(CreateFilePRequest request);
+
+  /**
+   * Complete a file when writing is done.
+   * @param request the request to complete a file
+   * @return a response of this operation
+   */
+  CompleteFilePResponse completeFile(CompleteFilePRequest request);
+
+  /**
+   * Delete a file from.
+   * @param request the request to delete a file
+   * @return a response of this operation
+   */
+  DeletePResponse delete(DeletePRequest request);
+
+  /**
+   * Rename the src to dst.
+   * @param request the request to do rename
+   * @return a response of this operation
+   */
+  RenamePResponse rename(RenamePRequest request);
+
+  /**
+   * Create a directory.
+   * @param request the request to create a dir
+   * @return a response of this operation
+   */
+  CreateDirectoryPResponse createDirectory(CreateDirectoryPRequest request);
+
+  /**
+   * Check if a file or dir exists.
+   * @param request the request to do the cechking
+   * @return a response of this operation
+   */
+  ExistsPResponse exists(ExistsPRequest request);
+
+  /**
+   * SetAttribute for a file or dir.
+   * @param request the request to do the operation
+   * @return a response of this operation
+   */
+  SetAttributePResponse setAttribute(SetAttributePRequest request);
 }

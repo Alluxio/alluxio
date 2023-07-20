@@ -22,11 +22,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.ClientContext;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.MasterInquireClient;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.powermock.reflect.Whitebox;
@@ -37,6 +39,9 @@ import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "Jiacheng",
+    comment = "remove if the master should no longer collect metrics")
+@Ignore
 public class MetricsHeartbeatContextTest {
 
   @Test

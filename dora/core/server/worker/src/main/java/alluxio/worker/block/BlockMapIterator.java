@@ -34,6 +34,8 @@ import java.util.Map;
  * The number of blocks included in one iteration is specified by
  * {@code PropertyKey.WORKER_REGISTER_STREAM_BATCH_SIZE}.
  */
+// TODO(jiacheng): This is not removed because it is used in the RegisterStreamer.
+//  It shall be removed together with a refactor on the Dora worker refactor on register.
 public class BlockMapIterator implements Iterator<List<LocationBlockIdListEntry>> {
   private static final Logger LOG = LoggerFactory.getLogger(BlockMapIterator.class);
 

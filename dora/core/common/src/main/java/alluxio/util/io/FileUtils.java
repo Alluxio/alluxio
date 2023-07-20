@@ -108,30 +108,6 @@ public final class FileUtils {
   }
 
   /**
-   * Gets local file's owner.
-   *
-   * @param filePath the file path
-   * @return the owner of the local file
-   */
-  public static String getLocalFileOwner(String filePath) throws IOException {
-    PosixFileAttributes attr =
-        Files.readAttributes(Paths.get(filePath), PosixFileAttributes.class);
-    return attr.owner().getName();
-  }
-
-  /**
-   * Gets local file's group.
-   *
-   * @param filePath the file path
-   * @return the group of the local file
-   */
-  public static String getLocalFileGroup(String filePath) throws IOException {
-    PosixFileAttributes attr =
-        Files.readAttributes(Paths.get(filePath), PosixFileAttributes.class);
-    return attr.group().getName();
-  }
-
-  /**
    * Gets local file's permission mode.
    *
    * @param filePath the file path
@@ -284,6 +260,25 @@ public final class FileUtils {
       throw new InvalidArgumentRuntimeException(e);
     } catch (NoSuchFileException e) {
       throw new NotFoundRuntimeException(e);
+    } catch (DirectoryNotEmptyException e) {
+      throw new FailedPreconditionRuntimeException(e);
+    } catch (SecurityException e) {
+      throw new PermissionDeniedRuntimeException(e);
+    } catch (IOException e) {
+      throw new UnknownRuntimeException(e);
+    }
+  }
+
+  /**
+   * Deletes the file or directory, if it exists.
+   *
+   * @param path pathname string of file or directory
+   */
+  public static void deleteIfExists(String path) {
+    try {
+      Files.deleteIfExists(Paths.get(path));
+    } catch (java.nio.file.InvalidPathException e) {
+      throw new InvalidArgumentRuntimeException(e);
     } catch (DirectoryNotEmptyException e) {
       throw new FailedPreconditionRuntimeException(e);
     } catch (SecurityException e) {

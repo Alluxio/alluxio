@@ -62,12 +62,14 @@ public final class MetaMasterSync implements HeartbeatExecutor {
    * Heartbeats to the leader master node.
    */
   @Override
-  public void heartbeat() {
+  public void heartbeat(long timeLimitMs) {
     MetaCommand command = null;
     try {
       if (mMasterId.get() == UNINITIALIZED_MASTER_ID) {
         setIdAndRegister();
       }
+      LOG.debug("Standby master: {} send a heartbeat request to the leader master.",
+          mMasterId.get());
       command = mMasterClient.heartbeat(mMasterId.get());
       handleCommand(command);
     } catch (IOException e) {

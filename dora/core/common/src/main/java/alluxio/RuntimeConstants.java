@@ -11,6 +11,8 @@
 
 package alluxio;
 
+import alluxio.grpc.BuildVersion;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -24,17 +26,26 @@ public final class RuntimeConstants {
   public static final String VERSION = ProjectConstants.VERSION;
 
   static {
-    if (VERSION.endsWith("SNAPSHOT") || !VERSION.contains("\\.")) {
+    if (VERSION.endsWith("SNAPSHOT")) {
       ALLUXIO_DOCS_URL = "https://docs.alluxio.io/os/user/edge";
       ALLUXIO_JAVADOC_URL = "https://docs.alluxio.io/os/javadoc/edge";
     } else {
-      String[] majorMinor = VERSION.split("\\.");
       ALLUXIO_DOCS_URL =
-          String.format("https://docs.alluxio.io/os/user/%s.%s", majorMinor[0], majorMinor[1]);
+          "https://docs.alluxio.io/os/user/" + VERSION;
       ALLUXIO_JAVADOC_URL =
-          String.format("https://docs.alluxio.io/os/javadoc/%s.%s", majorMinor[0], majorMinor[1]);
+          "https://docs.alluxio.io/os/javadoc/" + VERSION;
     }
   }
+
+  public static final String REVISION_SHORT = ProjectConstants.REVISION.length() > 8
+      ? ProjectConstants.REVISION.substring(0, 8) : ProjectConstants.REVISION;
+  public static final String VERSION_AND_REVISION_SHORT =
+      VERSION + "-" + REVISION_SHORT;
+  public static final BuildVersion UNKNOWN_VERSION_INFO = BuildVersion.newBuilder()
+      .setVersion("UNKNOWN").setRevision("UNKNOWN").build();
+  public static final BuildVersion CURRENT_VERSION_INFO = BuildVersion.newBuilder()
+      .setVersion(RuntimeConstants.VERSION)
+      .setRevision(RuntimeConstants.REVISION_SHORT).build();
 
   /** The relative path to the Alluxio target jar. */
   public static final String ALLUXIO_JAR = "target/alluxio-" + VERSION

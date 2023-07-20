@@ -15,22 +15,28 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PositionReader;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.qcloud.cos.COSClient;
 import com.qcloud.cos.ClientConfig;
 import com.qcloud.cos.auth.BasicCOSCredentials;
 import com.qcloud.cos.auth.COSCredentials;
 import com.qcloud.cos.exception.CosClientException;
 import com.qcloud.cos.model.COSObjectSummary;
+import com.qcloud.cos.model.DeleteObjectsRequest;
+import com.qcloud.cos.model.DeleteObjectsResult;
 import com.qcloud.cos.model.ListObjectsRequest;
 import com.qcloud.cos.model.ObjectListing;
 import com.qcloud.cos.model.ObjectMetadata;
@@ -43,6 +49,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -63,6 +71,9 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
 
   /** Bucket name of user's configured Alluxio bucket. */
   private final String mBucketNameInternal;
+
+  /** The executor service for the multipart upload. */
+  private final Supplier<ListeningExecutorService> mMultipartUploadExecutor;
 
   /**
    * Constructs a new instance of {@link COSUnderFileSystem}.
@@ -108,6 +119,16 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
     mClient = client;
     mBucketName = bucketName;
     mBucketNameInternal = bucketName + "-" + appId;
+
+    // Initialize the executor service for the multipart upload.
+    mMultipartUploadExecutor = Suppliers.memoize(() -> {
+      int numTransferThreads =
+          conf.getInt(PropertyKey.UNDERFS_COS_MULTIPART_UPLOAD_THREADS);
+      ExecutorService service = ExecutorServiceFactories
+          .fixedThreadPool("alluxio-cos-multipart-upload-worker",
+              numTransferThreads).create();
+      return MoreExecutors.listeningDecorator(service);
+    });
   }
 
   @Override
@@ -150,6 +171,10 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected OutputStream createObject(String key) throws IOException {
+    if (mUfsConf.getBoolean(PropertyKey.UNDERFS_COS_MULTIPART_UPLOAD_ENABLED)) {
+      return new COSMultipartUploadOutputStream(mBucketNameInternal, key, mClient,
+          mMultipartUploadExecutor.get(), mUfsConf);
+    }
     return new COSOutputStream(mBucketNameInternal, key, mClient,
         mUfsConf.getList(PropertyKey.TMP_DIRS));
   }
@@ -163,6 +188,24 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
       return false;
     }
     return true;
+  }
+
+  @Override
+  protected List<String> deleteObjects(List<String> keys) throws IOException {
+    try {
+      DeleteObjectsRequest request = new DeleteObjectsRequest(mBucketNameInternal);
+      List<DeleteObjectsRequest.KeyVersion> keyVersions = keys.stream()
+          .map(DeleteObjectsRequest.KeyVersion::new)
+          .collect(Collectors.toList());
+      request.setKeys(keyVersions);
+      DeleteObjectsResult result = mClient.deleteObjects(request);
+      return result.getDeletedObjects()
+          .stream()
+          .map(DeleteObjectsResult.DeletedObject::getKey)
+          .collect(Collectors.toList());
+    } catch (CosClientException e) {
+      throw new IOException("failed to delete objects", e);
+    }
   }
 
   @Override
@@ -230,7 +273,7 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
     @Override
     public String[] getCommonPrefixes() {
       List<String> res = mResult.getCommonPrefixes();
-      return res.toArray(new String[res.size()]);
+      return res.toArray(new String[0]);
     }
 
     @Override
@@ -261,7 +304,8 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   public PositionReader openPositionRead(String path, long fileLength) {
-    throw new UnimplementedRuntimeException("Position read is not implemented");
+    return new COSPositionReader(mClient, mBucketNameInternal,
+        stripPrefixIfPresent(path), fileLength);
   }
 
   @Override

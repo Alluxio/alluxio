@@ -109,14 +109,22 @@ message WorkerLostStorageInfo {
   /** a map from tier alias to the lost storage paths */
   map<string, StorageList> lostStorage = 2;
 }
-message RemoveDecommissionedWorkerPOptions {
-  optional string workerName = 1;
+message RemoveDisabledWorkerPOptions {
+  required string workerHostname = 1;
+  optional int64 workerWebPort = 2;
 }
-message RemoveDecommissionedWorkerPResponse {}
+message RemoveDisabledWorkerPResponse {}
 
 message GetWorkerLostStoragePOptions {}
 message GetWorkerLostStoragePResponse {
   repeated WorkerLostStorageInfo workerLostStorageInfo = 1;
+}
+
+message DecommissionWorkerPResponse {}
+message DecommissionWorkerPOptions {
+  required string workerHostname = 1;
+  optional int64 workerWebPort = 2;
+  optional bool canRegisterAgain = 3;
 }
 
 /**
@@ -153,8 +161,8 @@ service BlockMasterClientService {
    * If target worker is in the decommissioned worker set,
    * return true, remove target worker from decommissioned worker set; else, return false.
    */
-  rpc RemoveDecommissionedWorker(RemoveDecommissionedWorkerPOptions)
-      returns (RemoveDecommissionedWorkerPResponse);
+  rpc RemoveDisabledWorker(RemoveDisabledWorkerPOptions)
+      returns (RemoveDisabledWorkerPResponse);
 
   /**
    * Returns a list of workers information for report CLI.
@@ -165,6 +173,11 @@ service BlockMasterClientService {
    * Returns a list of worker lost storage information
    */
   rpc GetWorkerLostStorage(GetWorkerLostStoragePOptions) returns (GetWorkerLostStoragePResponse);
+
+  /**
+  *  Decommission the specific worker from Alluxio.
+  */
+  rpc DecommissionWorker(DecommissionWorkerPOptions) returns (DecommissionWorkerPResponse);
 }
 
 message TierList {
@@ -240,6 +253,16 @@ message CommitBlockInUfsPRequest {
 message CommitBlockInUfsPOptions {}
 message CommitBlockInUfsPResponse {}
 
+message NotifyWorkerIdPOptions {}
+message NotifyWorkerIdPRequest {
+  optional int64 workerId = 1;
+  /** the worker network address */
+  optional grpc.WorkerNetAddress workerNetAddress = 2;
+  optional NotifyWorkerIdPOptions options = 3;
+}
+message NotifyWorkerIdPResponse {
+}
+
 message GetWorkerIdPOptions {}
 message GetWorkerIdPRequest {
   /** the worker network address */
@@ -263,12 +286,6 @@ message GetRegisterLeasePResponse {
   optional GetRegisterLeasePOptions options = 4;
 }
 
-message BuildVersion {
-  /** the project version of the worker */
-  optional string version = 1;
-  /** the git revision at the time of building the worker */
-  optional string revision = 2;
-}
 message RegisterWorkerPOptions {
   repeated grpc.ConfigProperty configs = 1;
   /** the worker version to display in info pages (useful for rolling upgrades) */
@@ -317,6 +334,11 @@ service BlockMasterWorkerService {
    * Returns a worker id for the given network address.
    */
   rpc GetWorkerId(GetWorkerIdPRequest) returns (GetWorkerIdPResponse);
+
+  /**
+  * Notify all masters about the worker ID.
+  */
+  rpc NotifyWorkerId(NotifyWorkerIdPRequest) returns (NotifyWorkerIdPResponse);
 
   /**
    * Registers a worker.

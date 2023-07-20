@@ -18,7 +18,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
-import alluxio.exception.runtime.AlreadyExistsRuntimeException;
+import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
@@ -26,6 +26,7 @@ import alluxio.grpc.Bits;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.ErrorType;
+import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.PMode;
 import alluxio.grpc.Route;
 import alluxio.grpc.WriteOptions;
@@ -48,6 +49,8 @@ import java.util.Objects;
  */
 public final class CopyHandler {
   private static final Logger LOG = LoggerFactory.getLogger(CopyHandler.class);
+  private static final GetStatusPOptions GET_STATUS_OPTIONS =
+      GetStatusPOptions.getDefaultInstance().toBuilder().setIncludeRealContentHash(true).build();
 
   /**
    * Copies a file from source to destination.
@@ -65,7 +68,7 @@ public final class CopyHandler {
     URIStatus dstStatus = null;
     URIStatus sourceStatus;
     try {
-      dstStatus = dstFs.getStatus(dst);
+      dstStatus = dstFs.getStatus(dst, GET_STATUS_OPTIONS);
     } catch (FileNotFoundException | NotFoundRuntimeException ignore) {
       // ignored
     } catch (FileDoesNotExistException ignore) {
@@ -74,15 +77,17 @@ public final class CopyHandler {
       throw new InternalRuntimeException(e);
     }
     try {
-      sourceStatus = srcFs.getStatus(src);
+      sourceStatus = srcFs.getStatus(src, GET_STATUS_OPTIONS);
     } catch (Exception e) {
       throw AlluxioRuntimeException.from(e);
     }
-    if (dstStatus != null && !writeOptions.getOverwrite()) {
-      throw new AlreadyExistsRuntimeException("File " + route.getDst()
-          + " is already persisted in UFS, to overwrite the file, please set the overwrite flag");
+    if (dstStatus != null && dstStatus.isFolder() && sourceStatus.isFolder()) {
+      // skip copy if it's already a folder there
+      return;
     }
-
+    if (dstStatus != null && !dstStatus.isFolder() && !writeOptions.getOverwrite()) {
+      throw new FailedPreconditionRuntimeException("File " + route.getDst() + " is already in UFS");
+    }
     if (dstStatus != null && (dstStatus.isFolder() != sourceStatus.isFolder())) {
       throw new InvalidArgumentRuntimeException(
           "Can't replace target because type is not compatible. Target is " + dstStatus
@@ -104,8 +109,8 @@ public final class CopyHandler {
       if (!checkLengthAndContentHash(sourceStatus, dst, dstFs, copiedLength)) {
         try {
           dstFs.delete(dst);
-        } catch (AlluxioException | IOException e) {
-          LOG.debug("Failed to delete dst file {}", dst, e);
+        } catch (Exception e) {
+          LOG.warn("Failed to delete dst file {} after content mismatch", dst, e);
         }
         throw new AlluxioRuntimeException(Status.FAILED_PRECONDITION, String.format(
             "Copied file %s does not match source %s, there might be concurrent updates to src",
@@ -120,7 +125,7 @@ public final class CopyHandler {
     CreateFilePOptions createOptions =
         CreateFilePOptions.getDefaultInstance().toBuilder().setRecursive(true).setMode(
             PMode.newBuilder().setOwnerBits(Bits.ALL).setGroupBits(Bits.ALL)
-                 .setOtherBits(Bits.NONE)).setWriteType(writeType).build();
+                 .setOtherBits(Bits.NONE)).setWriteType(writeType).setIsAtomicWrite(true).build();
     try (InputStream in = srcFs.openFile(src);
         OutputStream out = dstFs.createFile(dst, createOptions)) {
       copiedLength = IOUtils.copyLarge(in, out, new byte[Constants.MB * 8]);
@@ -158,7 +163,7 @@ public final class CopyHandler {
       String srcContentHash = parseContentHash(sourceStatus);
       URIStatus dstStatus;
       try {
-        dstStatus = dstFs.getStatus(dst);
+        dstStatus = dstFs.getStatus(dst, GET_STATUS_OPTIONS);
       } catch (Exception e) {
         throw AlluxioRuntimeException.from(e);
       }

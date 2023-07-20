@@ -65,6 +65,8 @@ enum MetricType {
   // METER represents a metric value at a _rate_. The value of the metric varies with the time over which events are
   // recorded
   METER = 2;
+  // HISTOGRAM gives statistics about the value of past occurrences of an event.
+  HISTOGRAM = 5;
   // TIMER represents a histogram of the rate of the specified events.
   TIMER = 3;
   // EXECUTOR_SERVICE represents an executor service.
@@ -78,6 +80,8 @@ enum CommandType {
   Free = 3;     // Ask the worker to free files.
   Delete = 4;   // Ask the worker to delete files.
   Persist = 5;  // Ask the worker to persist a file for lineage
+  Decommissioned = 6; // Notify the worker that it has been decommissioned
+  Disabled = 7; // Notify the worker that it has been disabled
 }
 
 message ConfigProperty {
@@ -89,6 +93,7 @@ message ConfigProperty {
 enum TtlAction {
   DELETE = 0; // Delete the file after TTL expires.
   FREE = 1;   // Free the file after TTL expires.
+  DELETE_ALLUXIO = 2; // Delete the data and metadata in Alluxio after TTL expires.
 }
 
 message Command {
@@ -143,4 +148,11 @@ enum ErrorType {
   User = 0;
   Internal = 1;
   External = 2;
+}
+
+message BuildVersion {
+  /** the project version */
+  optional string version = 1;
+  /** the git revision at the time of building */
+  optional string revision = 2;
 }

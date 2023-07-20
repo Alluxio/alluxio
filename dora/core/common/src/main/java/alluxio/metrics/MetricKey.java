@@ -322,12 +322,14 @@ public final class MetricKey implements Comparable<MetricKey> {
   // Master file statistics
   public static final MetricKey MASTER_FILES_PINNED =
       new Builder("Master.FilesPinned")
-          .setDescription("Total number of currently pinned files")
+          .setDescription("Total number of currently pinned files. "
+              + "Note that IDs for these files are stored in memory.")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_FILES_TO_PERSIST =
       new Builder("Master.FilesToBePersisted")
-          .setDescription("Total number of currently to be persisted files")
+          .setDescription("Total number of currently to be persisted files."
+              + " Note that the IDs for these files are stored in memory.")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_FILE_SIZE =
@@ -408,6 +410,11 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Total number of unique blocks in Alluxio")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey MASTER_CACHED_BLOCK_LOCATIONS =
+      new Builder("Master.CachedBlockLocations")
+          .setDescription("Total number of cached block locations")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_TOTAL_RPCS =
       new Builder("Master.TotalRpcs")
           .setDescription("Throughput of master RPC calls. This metrics indicates how busy the"
@@ -419,6 +426,20 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Master.BlockReplicaCount")
           .setDescription("Total number of block replicas in Alluxio")
           .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_TTL_BUCKETS =
+      new Builder("Master.TTLBuckets")
+          .setDescription("The number of TTL buckets at the master. Note that these buckets"
+              + " are stored in memory.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey MASTER_TTL_INODES =
+      new Builder("Master.TTLInodes")
+          .setDescription("The total number of inodes contained in TTL buckets at the mater."
+              + " Note that these inodes are stored in memory.")
+          .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
           .build();
   public static final MetricKey MASTER_INODE_HEAP_SIZE =
       new Builder("Master.InodeHeapSize")
@@ -615,6 +636,13 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey MASTER_MOUNT_OPS =
       new Builder("Master.MountOps")
           .setDescription("Total number of Mount operations")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey MASTER_REPLICATION_LIMITED_FILES =
+      new Builder("Master.ReplicationLimitedFiles")
+          .setDescription("Number of files that have a replication count set to a "
+              + "non-default value. Note that these files have IDs that are stored "
+              + "in memory.")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey MASTER_RENAME_PATH_OPS =
@@ -842,6 +870,18 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
 
   // Journal metrics
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_DURATION_MS =
+      new Builder("Master.EmbeddedJournalLastSnapshotDurationMs")
+          .setDescription("Describes the amount of time taken to generate the last local journal "
+              + "snapshots on this master. Only valid when using the embedded journal.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_ENTRIES_COUNT =
+      new Builder("Master.EmbeddedJournalLastSnapshotEntriesCount")
+          .setDescription("Describes the number of entries in the last local journal "
+              + "snapshots on this master. Only valid when using the embedded journal.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_GENERATE_TIMER =
       new Builder("Master.EmbeddedJournalSnapshotGenerateTimer")
           .setDescription("Describes the amount of time taken to generate local journal snapshots"
@@ -852,10 +892,83 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_TIMER =
       new Builder("Master.EmbeddedJournalSnapshotDownloadGenerate")
           .setDescription("Describes the amount of time taken to download journal snapshots from "
-              + "other masters in the cluster. Only valid when using the embedded journal. Use "
-              + "this metric to determine if there are potential communication bottlenecks "
-              + "between Alluxio masters.")
+              + "other masters in the cluster. Only valid when using the embedded journal. Long "
+              + "running average.")
           .setMetricType(MetricType.TIMER)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_DOWNLOAD_DURATION_MS =
+      new Builder("Master.EmbeddedJournalLastSnapshotDownloadDurationMs")
+          .setDescription("Describes the amount of time taken to download journal snapshots from "
+              + "other masters in the cluster the previous time the download occurred. Only "
+              + "valid when using the embedded journal.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_HISTOGRAM =
+      new Builder("Master.EmbeddedJournalSnapshotDownloadHistogram")
+          .setDescription("Describes the size of the snapshot downloaded from another master in "
+              + "the cluster. Only valid when using the embedded journal. Long running average.")
+          .setMetricType(MetricType.HISTOGRAM)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_DOWNLOAD_SIZE =
+      new Builder("Master.EmbeddedJournalLastSnapshotDownloadSize")
+          .setDescription("Describes the size of the snapshot downloaded from "
+              + "other masters in the cluster the previous time the download occurred. Only "
+              + "valid when using the embedded journal.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_DOWNLOAD_DISK_HISTOGRAM =
+      new Builder("Master.EmbeddedJournalSnapshotDownloadDiskHistogram")
+          .setDescription("Describes the size on disk of the snapshot downloaded from another "
+              + "master in the cluster. Only valid when using the embedded journal. "
+              + "Long running average.")
+          .setMetricType(MetricType.HISTOGRAM)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_DOWNLOAD_DISK_SIZE =
+      new Builder("Master.EmbeddedJournalLastSnapshotDownloadDiskSize")
+          .setDescription("Describes the size on disk of the snapshot downloaded from "
+              + "other masters in the cluster the previous time the download occurred. Only "
+              + "valid when using the embedded journal.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_UPLOAD_HISTOGRAM =
+      new Builder("Master.EmbeddedJournalSnapshotUploadHistogram")
+          .setDescription("Describes the size of the snapshot uploaded to another master in "
+              + "the cluster. Only valid when using the embedded journal. Long running average.")
+          .setMetricType(MetricType.HISTOGRAM)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_UPLOAD_SIZE =
+      new Builder("Master.EmbeddedJournalLastSnapshotUploadSize")
+          .setDescription("Describes the size of the snapshot uploaded to "
+              + "other masters in the cluster the previous time the download occurred. Only "
+              + "valid when using the embedded journal.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_UPLOAD_DISK_HISTOGRAM =
+      new Builder("Master.EmbeddedJournalSnapshotUploadDiskHistogram")
+          .setDescription("Describes the size on disk of the snapshot uploaded to another master "
+              + "in the cluster. Only valid when using the embedded journal. Long running average.")
+          .setMetricType(MetricType.HISTOGRAM)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_UPLOAD_DISK_SIZE =
+      new Builder("Master.EmbeddedJournalLastSnapshotUploadDiskSize")
+          .setDescription("Describes the size on disk of the snapshot uploaded to "
+              + "other masters in the cluster the previous time the download occurred. Only "
+              + "valid when using the embedded journal.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_UPLOAD_TIMER =
+      new Builder("Master.EmbeddedJournalSnapshotUploadTimer")
+          .setDescription("Describes the amount of time taken to upload journal snapshots to "
+              + "another master in the cluster. Only valid when using the embedded journal. long "
+              + "running average")
+          .setMetricType(MetricType.TIMER)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_UPLOAD_DURATION_MS =
+      new Builder("Master.EmbeddedJournalLastSnapshotUploadDurationMs")
+          .setDescription("Describes the amount of time taken to upload journal snapshots to "
+              + "another master in the cluster the previous time the upload occurred. Only "
+              + "valid when using the embedded journal.")
+          .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_INSTALL_TIMER =
       new Builder("Master.EmbeddedJournalSnapshotInstallTimer")
@@ -874,6 +987,18 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "snapshot file. Higher numbers may indicate a slow disk or CPU contention")
           .setMetricType(MetricType.TIMER)
           .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_REPLAY_DURATION_MS =
+      new Builder("Master.EmbeddedJournalLastSnapshotReplayDurationMs")
+          .setDescription("Represents the time the last restore from checkpoint operation took in"
+              + " milliseconds.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_EMBEDDED_JOURNAL_LAST_SNAPSHOT_REPLAY_ENTRIES_COUNT =
+      new Builder("Master.EmbeddedJournalLastSnapshotReplayEntriesCount")
+          .setDescription("Represents the time the last restore from checkpoint operation took in"
+              + " milliseconds.")
+          .setMetricType(MetricType.GAUGE)
+          .build();
   public static final MetricKey MASTER_EMBEDDED_JOURNAL_SNAPSHOT_LAST_INDEX =
       new Builder("Master.EmbeddedJournalSnapshotLastIndex")
           .setDescription("Represents the latest journal index that was recorded by this master "
@@ -884,6 +1009,21 @@ public final class MetricKey implements Comparable<MetricKey> {
   public static final MetricKey MASTER_ROLE_ID =
       new Builder("Master.RoleId")
           .setDescription("Display master role id")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_START_TIME =
+      new Builder("Master.StartTime")
+          .setDescription("The start time of the master process")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_LAST_GAIN_PRIMACY_TIME =
+      new Builder("Master.LastGainPrimacyTime")
+          .setDescription("Last time the master gains primacy")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+  public static final MetricKey MASTER_LAST_LOSE_PRIMACY_TIME =
+      new Builder("Master.LastLosePrimacyTime")
+          .setDescription("Last time the master loses primacy")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey MASTER_JOURNAL_FLUSH_FAILURE =
@@ -1473,7 +1613,7 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Cluster.BytesReadRemote")
           .setDescription("Total number of bytes read from all workers via network (RPC). "
               + "Data exists in worker storage or is fetched by workers from UFSes. "
-              + "This does not include short-circuit local reads and domain socket reads")
+              + "This does not include domain socket reads")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_REMOTE_THROUGHPUT =
@@ -1481,7 +1621,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("Bytes read per minute throughput from all workers "
               + "via network (RPC calls). Data exists in worker storage "
               + "or is fetched by workers from UFSes. This does not include "
-              + "short-circuit local reads and domain socket reads")
+              + "domain socket reads")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_DOMAIN =
@@ -1494,18 +1634,6 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Cluster.BytesReadDomainThroughput")
           .setDescription("Bytes read per minute throughput from all workers "
               + "via domain socket")
-          .setMetricType(MetricType.GAUGE)
-          .build();
-  public static final MetricKey CLUSTER_BYTES_READ_LOCAL =
-      new Builder("Cluster.BytesReadLocal")
-          .setDescription("Total number of bytes short-circuit read reported by all clients. "
-              + "Each client reads data from the collocated worker data storage directly.")
-          .setMetricType(MetricType.COUNTER)
-          .build();
-  public static final MetricKey CLUSTER_BYTES_READ_LOCAL_THROUGHPUT =
-      new Builder("Cluster.BytesReadLocalThroughput")
-          .setDescription("Bytes per minute throughput "
-              + "short-circuit read reported by all clients")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_READ_UFS =
@@ -1527,15 +1655,14 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Cluster.BytesWrittenRemote")
           .setDescription("Total number of bytes written to workers via network (RPC). "
               + "Data is written to worker storage or is written by workers to underlying UFSes. "
-              + "This does not include short-circuit local writes and domain socket writes.")
+              + "This does not include domain socket writes.")
           .setMetricType(MetricType.COUNTER)
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_REMOTE_THROUGHPUT =
       new Builder("Cluster.BytesWrittenRemoteThroughput")
           .setDescription("Bytes write per minute throughput to workers via network (RPC). "
               + "Data is written to worker storage or is written by workers to underlying UFSes. "
-              + "This does not include short-circuit local writes "
-              + "and domain socket writes.")
+              + "This does not include domain socket writes.")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_DOMAIN =
@@ -1548,18 +1675,6 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Cluster.BytesWrittenDomainThroughput")
           .setDescription("Throughput of bytes written per minute to all workers "
               + "via domain socket")
-          .setMetricType(MetricType.GAUGE)
-          .build();
-  public static final MetricKey CLUSTER_BYTES_WRITTEN_LOCAL =
-      new Builder("Cluster.BytesWrittenLocal")
-          .setDescription("Total number of bytes short-circuit written to "
-              + "local worker data storage by all clients")
-          .setMetricType(MetricType.COUNTER)
-          .build();
-  public static final MetricKey CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT =
-      new Builder("Cluster.BytesWrittenLocalThroughput")
-          .setDescription("Bytes per minute throughput written to "
-              + "local worker data storage by all clients")
           .setMetricType(MetricType.GAUGE)
           .build();
   public static final MetricKey CLUSTER_BYTES_WRITTEN_UFS =
@@ -1669,11 +1784,23 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
+  /*
+   * This metric is inaccurate because it is updated at so many places.
+   * Given time, it should be deprecated and replaced by WORKER_ACTIVE_OPERATIONS.
+   */
+  @Deprecated
   public static final MetricKey WORKER_ACTIVE_CLIENTS =
       new Builder("Worker.ActiveClients")
           .setDescription("The number of clients actively reading from or writing to this worker")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
+          .build();
+  public static final MetricKey WORKER_ACTIVE_OPERATIONS =
+      new Builder("Worker.ActiveOperations")
+          .setDescription("The number of active RPCs in the worker, including control RPCs "
+              + "and data I/O. Used to tell if the worker is idle or busy.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
           .build();
   public static final MetricKey WORKER_BLOCKS_ACCESSED =
       new Builder("Worker.BlocksAccessed")
@@ -1724,12 +1851,6 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
-  public static final MetricKey WORKER_BLOCKS_READ_LOCAL =
-      new Builder("Worker.BlocksReadLocal")
-          .setDescription("Total number of local blocks read by this worker.")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(false)
-          .build();
   public static final MetricKey WORKER_BLOCKS_READ_REMOTE =
       new Builder("Worker.BlocksReadRemote")
           .setDescription("Total number of a remote blocks read by this worker.")
@@ -1766,7 +1887,7 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Worker.BytesReadRemote")
           .setDescription("Total number of bytes read from the this worker via network (RPC). "
               + "Data exists in worker storage or is fetched by this worker from underlying UFSes. "
-              + "This does not include short-circuit local reads and domain socket reads.")
+              + "This does not include domain socket reads.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
@@ -1774,7 +1895,7 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Worker.BytesReadRemoteThroughput")
           .setDescription("Throughput of bytes read from the this worker via network (RPC). "
               + "Data exists in worker storage or is fetched by this worker from underlying UFSes. "
-              + "This does not include short-circuit local reads and domain socket reads")
+              + "This does not include domain socket reads")
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
@@ -1826,8 +1947,7 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Worker.BytesWrittenRemote")
           .setDescription("Total number of bytes written to this worker via network (RPC). "
               + "Data is written to worker storage or is written by this worker "
-              + "to underlying UFSes. This does not include short-circuit local writes "
-              + "and domain socket writes.")
+              + "to underlying UFSes. This does not include domain socket writes.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
@@ -1835,8 +1955,7 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Worker.BytesWrittenRemoteThroughput")
           .setDescription("Bytes write throughput to this worker via network (RPC). "
               + "Data is written to worker storage or is written by this worker "
-              + "to underlying UFSes. This does not include short-circuit local writes "
-              + "and domain socket writes.")
+              + "to underlying UFSes. This does not include domain socket writes.")
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
@@ -2094,6 +2213,11 @@ public final class MetricKey implements Comparable<MetricKey> {
               + "Use this metric to monitor the RPC pressure on worker.")
           .setMetricType(MetricType.GAUGE)
           .build();
+  public static final MetricKey WORKER_MASTER_REGISTRATION_SUCCESS_COUNT =
+      new Builder("Worker.MasterRegistrationSuccessCount")
+          .setDescription("Total number of the succeed master registration.")
+          .setMetricType(MetricType.COUNTER)
+          .build();
 
   // Client metrics
   public static final MetricKey CLIENT_BLOCK_READ_CHUNK_REMOTE =
@@ -2111,36 +2235,15 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
-  public static final MetricKey CLIENT_BYTES_READ_LOCAL =
-      new Builder("Client.BytesReadLocal")
-          .setDescription("Total number of bytes short-circuit read from worker data storage "
-              + "that collocates with the client")
+  public static final MetricKey CLIENT_BYTES_WRITTEN_ALLUXIO =
+      new Builder("Client.BytesWrittenAlluxio")
+          .setDescription("Total number of bytes write to Alluxio by this client")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
-          .build();
-  public static final MetricKey CLIENT_BYTES_READ_LOCAL_THROUGHPUT =
-      new Builder("Client.BytesReadLocalThroughput")
-          .setDescription("Bytes throughput short-circuit read from worker data storage "
-              + "that collocated with this client")
-          .setMetricType(MetricType.METER)
-          .setIsClusterAggregated(false)
-          .build();
-  public static final MetricKey CLIENT_BYTES_WRITTEN_LOCAL =
-      new Builder("Client.BytesWrittenLocal")
-          .setDescription("Total number of bytes short-circuit written to local storage "
-              + "by this client")
-          .setMetricType(MetricType.COUNTER)
-          .setIsClusterAggregated(true)
-          .build();
-  public static final MetricKey CLIENT_BYTES_WRITTEN_LOCAL_THROUGHPUT =
-      new Builder("Client.BytesWrittenLocalThroughput")
-          .setDescription("Bytes throughput short-circuit written to local storage by this client")
-          .setMetricType(MetricType.METER)
-          .setIsClusterAggregated(false)
           .build();
   public static final MetricKey CLIENT_BYTES_WRITTEN_UFS =
       new Builder("Client.BytesWrittenUfs")
-          .setDescription("Total number of bytes write to Alluxio UFS by this client")
+          .setDescription("Total number of bytes write to UFS by this client")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(true)
           .build();
@@ -2468,7 +2571,7 @@ public final class MetricKey implements Comparable<MetricKey> {
           .build();
 
   public static final MetricKey NETTY_CHANNEL_COUNT =
-      new Builder("Netty.NettyChannelCount")
+      new Builder("Process.NettyChannelCount")
           .setDescription("Number of instances in the NettyChannelPool.")
           .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
@@ -2532,6 +2635,38 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setDescription("The used direct memory")
           .setMetricType(MetricType.GAUGE)
           .build();
+
+  public static final MetricKey MASTER_JOB_MOVE_SUCCESS =
+          new Builder("Master.JobMoveSuccess")
+                  .setDescription("The number of successful Move commands")
+                  .setMetricType(MetricType.COUNTER)
+                  .build();
+  public static final MetricKey MASTER_JOB_MOVE_FAIL =
+          new Builder("Master.JobMoveFail")
+                  .setDescription("The number of failed Move commands")
+                  .setMetricType(MetricType.COUNTER)
+                  .build();
+  public static final MetricKey MASTER_JOB_MOVE_FILE_COUNT =
+          new Builder("Master.JobMoveFileCount")
+                  .setDescription("The number of files moves by move commands")
+                  .setMetricType(MetricType.COUNTER)
+                  .build();
+  public static final MetricKey MASTER_JOB_MOVE_FAIL_FILE_COUNT =
+          new Builder("Master.JobMoveFailFileCount")
+                  .setDescription("The number of files failed to be moved by move commands")
+                  .setMetricType(MetricType.COUNTER)
+                  .build();
+  public static final MetricKey MASTER_JOB_MOVE_SIZE =
+          new Builder("Master.JobMoveFileSize")
+                  .setDescription("The total block size moved by move commands")
+                  .setMetricType(MetricType.COUNTER)
+                  .build();
+  public static final MetricKey MASTER_JOB_MOVE_RATE =
+          new Builder("Master.JobMoveRate")
+                  .setDescription("The average move rate of move commands")
+                  .setMetricType(MetricType.METER)
+                  .setIsClusterAggregated(true)
+                  .build();
 
   /**
    * A nested class to hold named string constants for their corresponding metrics.

@@ -58,7 +58,7 @@ public final class PlanCoordinator {
   private final PlanInfo mPlanInfo;
   private final CommandManager mCommandManager;
 
-  /** The context containing containing the necessary references to schedule jobs. */
+  /** The context containing the necessary references to schedule jobs. */
   private final JobServerContext mJobServerContext;
 
   /**

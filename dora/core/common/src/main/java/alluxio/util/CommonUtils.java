@@ -203,8 +203,7 @@ public final class CommonUtils {
    * @return an array of strings
    */
   public static String[] toStringArray(ArrayList<String> src) {
-    String[] ret = new String[src.size()];
-    return src.toArray(ret);
+    return src.toArray(new String[0]);
   }
 
   /**
@@ -377,7 +376,7 @@ public final class CommonUtils {
     T value;
     long start = getCurrentMs();
     int interval = options.getInterval();
-    int timeout = options.getTimeoutMs();
+    long timeout = options.getTimeoutMs();
     while (condition.apply(value = objectSupplier.get()) != true) {
       if (timeout != WaitForOptions.NEVER && getCurrentMs() - start > timeout) {
         throw new TimeoutException("Timed out waiting for " + description + " options: " + options

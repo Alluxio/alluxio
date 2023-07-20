@@ -14,6 +14,8 @@ package alluxio.client.cli;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -22,7 +24,9 @@ import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.SystemOutRule;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.WriteType;
+import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.conf.Configuration;
@@ -47,6 +51,7 @@ import org.apache.ratis.statemachine.impl.SimpleStateMachineStorage;
 import org.apache.ratis.statemachine.impl.SingleFileSnapshotInfo;
 import org.hamcrest.Matchers;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -61,6 +66,9 @@ import java.util.List;
 /**
  * Tests for {@link JournalTool}.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "Jiacheng",
+    comment = "journal no longer exists in dora")
+@Ignore
 public class JournalToolTest extends BaseIntegrationTest {
   private static final int CHECKPOINT_SIZE = 100;
 
@@ -142,6 +150,34 @@ public class JournalToolTest extends BaseIntegrationTest {
   }
 
   @Test
+  public void dumpBlockMasterCheckpointFromUfsJournal() throws Throwable {
+    blockMasterCheckpointUfsJournal();
+    JournalTool.main(new String[] {"-outputDir", mDumpDir.getAbsolutePath(),
+        "-master", Constants.BLOCK_MASTER_NAME});
+
+    assertNonemptyFileWithPrefixExist(mDumpDir, "checkpoints");
+  }
+
+  private void assertNonemptyFileWithPrefixExist(File parent, String prefix) {
+    File[] files = parent.listFiles();
+    assertNotNull(files);
+    List<File> checkpointFiles = Arrays.stream(files)
+        .filter(File::isFile)
+        .filter(file -> file.getName().startsWith(prefix)).collect(toList());
+    assertFalse(checkpointFiles.isEmpty());
+  }
+
+  private void blockMasterCheckpointUfsJournal() throws Exception {
+    // Perform operations to generate a checkpoint.
+    for (int i = 0; i < CHECKPOINT_SIZE * 2; i++) {
+      FileOutStream out = mFs.createFile(new AlluxioURI("/" + i));
+      out.write(new byte[1]);
+      out.close();
+    }
+    IntegrationTestUtils.waitForUfsJournalCheckpoint(Constants.BLOCK_MASTER_NAME);
+  }
+
+  @Test
   @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.MASTER_JOURNAL_TYPE,
       "EMBEDDED", PropertyKey.Name.MASTER_METASTORE, "HEAP"})
   public void dumpHeapCheckpointFromEmbeddedJournal() throws Throwable {
@@ -174,14 +210,11 @@ public class JournalToolTest extends BaseIntegrationTest {
         new String[] {"-inputDir", leaderJournalDir, "-outputDir", mDumpDir.getAbsolutePath()});
     // Find the main checkpoint dir.
     String checkpointDir = findCheckpointDir();
-    // Embedded journal checkpoints are grouped by masters.
-    String fsMasterCheckpointsDir = PathUtils.concatPath(checkpointDir, "FILE_SYSTEM_MASTER");
 
-    assertNonemptyFileExists(
-        PathUtils.concatPath(fsMasterCheckpointsDir, "INODE_DIRECTORY_ID_GENERATOR"));
     for (String subPath : Arrays.asList("HEAP_INODE_STORE", "INODE_COUNTER",
-        "PINNED_INODE_FILE_IDS", "REPLICATION_LIMITED_FILE_IDS", "TO_BE_PERSISTED_FILE_IDS")) {
-      assertNonemptyFileExists(PathUtils.concatPath(fsMasterCheckpointsDir, "INODE_TREE", subPath));
+        "PINNED_INODE_FILE_IDS", "REPLICATION_LIMITED_FILE_IDS", "TO_BE_PERSISTED_FILE_IDS",
+        "INODE_DIRECTORY_ID_GENERATOR")) {
+      assertNonemptyFileExists(PathUtils.concatPath(checkpointDir, subPath));
     }
   }
 

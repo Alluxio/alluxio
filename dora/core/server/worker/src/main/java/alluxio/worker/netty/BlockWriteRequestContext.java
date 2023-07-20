@@ -21,11 +21,13 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The block write request internal representation.
  */
 @NotThreadSafe
-public final class BlockWriteRequestContext extends WriteRequestContext<BlockWriteRequest> {
+// TODO(jiacheng): This is not removed because it is used by the FileWriteHandler.
+//  It shall be removed together with a refactor on the Dora worker refactor.
+public class BlockWriteRequestContext extends WriteRequestContext<BlockWriteRequest> {
   private BlockWriter mBlockWriter;
   private long mBytesReserved;
 
-  BlockWriteRequestContext(Protocol.WriteRequest request, long bytesReserved) {
+  protected BlockWriteRequestContext(Protocol.WriteRequest request, long bytesReserved) {
     super(new BlockWriteRequest(request));
     mBytesReserved = bytesReserved;
   }

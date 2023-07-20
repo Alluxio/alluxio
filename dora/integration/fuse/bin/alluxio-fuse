@@ -9,8 +9,8 @@
 #
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
-
-SCRIPT_DIR="$(cd "$(dirname "$(readlink "$0" || echo "$0")")"; pwd)"
+SCRIPT_NAME=$(basename $0)
+SCRIPT_DIR="$(cd "$(dirname $0)"; cd "$(dirname "$(readlink "$SCRIPT_NAME" || echo "$SCRIPT_NAME")")"; pwd)"
 
 readonly USAGE="Usage:\n\talluxio-fuse [mount|umount]
 
@@ -52,7 +52,7 @@ Usage:\n\talluxio-fuse umount mount_point [options]
 "
 
 get_env() {
-  DEFAULT_LIBEXEC_DIR="${SCRIPT_DIR}"/../../../libexec
+  DEFAULT_LIBEXEC_DIR="${SCRIPT_DIR}"/../../../../libexec
   ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 

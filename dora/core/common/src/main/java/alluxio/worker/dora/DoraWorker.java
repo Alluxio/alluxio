@@ -12,12 +12,18 @@
 package alluxio.worker.dora;
 
 import alluxio.exception.AccessControlException;
-import alluxio.grpc.File;
-import alluxio.grpc.FileFailure;
+import alluxio.grpc.CompleteFilePOptions;
+import alluxio.grpc.CreateDirectoryPOptions;
+import alluxio.grpc.CreateFilePOptions;
+import alluxio.grpc.DeletePOptions;
+import alluxio.grpc.ExistsPOptions;
 import alluxio.grpc.GetStatusPOptions;
 import alluxio.grpc.ListStatusPOptions;
+import alluxio.grpc.LoadFileFailure;
+import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.Route;
 import alluxio.grpc.RouteFailure;
+import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UfsReadOptions;
 import alluxio.grpc.WriteOptions;
 import alluxio.proto.dataserver.Protocol;
@@ -26,6 +32,7 @@ import alluxio.wire.FileInfo;
 import alluxio.worker.DataWorker;
 import alluxio.worker.SessionCleanable;
 import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.io.BlockWriter;
 
 import com.google.common.util.concurrent.ListenableFuture;
 
@@ -64,16 +71,6 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
       throws IOException, AccessControlException;
 
   /**
-   * Invalidate all cached pages of this file.
-   *
-   * @param fileInfo the FileInfo of this file. Cached pages are identified by PageId and PageId is
-   *                 generated from fileInfo.fullUfsPath.
-   *
-   * @return successful or not
-   */
-  boolean invalidateCachedFile(FileInfo fileInfo);
-
-  /**
    * Creates the file reader to read from Alluxio dora.
    * Owner of this block reader must close it or lock will leak.
    *
@@ -89,13 +86,27 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
       throws IOException, AccessControlException;
 
   /**
-   * Loads files from UFS to Alluxio.
+   * Creates the file writer to write to Alluxio dora.
+   * Owner of this block writer must close it or lock will leak.
    *
-   * @param files   the files to load
+   * @param fileId  the ID of the UFS file
+   * @param ufsPath the path of UFS file
+   * @return the block writer for the local file
+   */
+  BlockWriter createFileWriter(String fileId, String ufsPath)
+      throws AccessControlException, IOException;
+
+  /**
+   * Loads the metadata and data of files from UFS to Alluxio.
+   *
+   * @param loadData true if data should also be loaded, otherwise metadata only
+   * @param ufsStatuses the files to load
    * @param options
    * @return a list of failed files
    */
-  ListenableFuture<List<FileFailure>> load(List<File> files, UfsReadOptions options);
+  ListenableFuture<List<LoadFileFailure>> load(
+      boolean loadData, List<UfsStatus> ufsStatuses, UfsReadOptions options)
+      throws AccessControlException, IOException;
 
   /**
    * Copies files from src to dst.
@@ -107,4 +118,73 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
    */
   ListenableFuture<List<RouteFailure>> copy(List<Route> routes, UfsReadOptions readOptions,
       WriteOptions writeOptions);
+
+  /**
+   * Moves files from src to dst.
+   *
+   * @param routes the files to move
+   * @param readOptions the options for reading
+   * @param writeOptions the options for writing
+   * @return a list of failed files
+   */
+  ListenableFuture<List<RouteFailure>> move(List<Route> routes, UfsReadOptions readOptions,
+                                            WriteOptions writeOptions);
+
+  /**
+   * Create File.
+   * @param path the path of this file
+   * @param options the options for this operation
+   * @return a open file handle including a unique uuid
+   */
+  OpenFileHandle createFile(String path, CreateFilePOptions options)
+      throws AccessControlException, IOException;
+
+  /**
+   * Complete writing a file. This operation will verify the supplied uuid matching its open handle.
+   * @param path the path of this file
+   * @param options the options for this operation
+   * @param uuid the uuid string of its file open handle
+   */
+  void completeFile(String path, CompleteFilePOptions options, String uuid)
+      throws IOException, AccessControlException;
+
+  /**
+   * Delete a file.
+   * @param path the path of this file
+   * @param options the options for this operation
+   */
+  void delete(String path, DeletePOptions options) throws IOException, AccessControlException;
+
+  /**
+   * Rename src to dst.
+   * @param src the source file/dir
+   * @param dst the destination file/dir
+   * @param options the options for this operations
+   */
+  void rename(String src, String dst, RenamePOptions options)
+      throws IOException, AccessControlException;
+
+  /**
+   * Create a directory.
+   * @param path the directory name
+   * @param options the options for this operations
+   */
+  void createDirectory(String path, CreateDirectoryPOptions options)
+      throws IOException, AccessControlException;
+
+  /**
+   * Check existence of a file or dir.
+   * @param path the path of this file or dir
+   * @param options the options of this operation
+   * @return true if the file or dir exists, false otherwise
+   */
+  boolean exists(String path, ExistsPOptions options)
+      throws IOException;
+
+  /**
+   * Set Attributes for a file or dir.
+   * @param path the pth of this file or dir
+   * @param options the options of this operation
+   */
+  void setAttribute(String path, SetAttributePOptions options) throws IOException;
 }

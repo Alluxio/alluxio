@@ -54,7 +54,9 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -126,7 +128,7 @@ public class AlluxioFileInStream extends FileInStream {
       AlluxioConfiguration conf = mContext.getPathConf(new AlluxioURI(status.getPath()));
       mPassiveCachingEnabled = conf.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
       mNettyTransEnabled = conf.getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
-      mDoraEnabled = conf.getBoolean(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED);
+      mDoraEnabled = conf.getBoolean(PropertyKey.DORA_ENABLED);
       final Duration blockReadRetryMaxDuration =
           conf.getDuration(PropertyKey.USER_BLOCK_READ_RETRY_MAX_DURATION);
       final Duration blockReadRetrySleepBase =
@@ -400,6 +402,7 @@ public class AlluxioFileInStream extends FileInStream {
       throw new IOException("No BlockInfo for block(id=" + blockId + ") of file"
           + "(id=" + mStatus.getFileId() + ", path=" + mStatus.getPath() + ")");
     }
+
     // Create stream
     boolean isBlockInfoOutdated = true;
     // blockInfo is "outdated" when all the locations in that blockInfo are failed workers,
@@ -407,7 +410,8 @@ public class AlluxioFileInStream extends FileInStream {
     if (mFailedWorkers.isEmpty() || mFailedWorkers.size() < blockInfo.getLocations().size()) {
       isBlockInfoOutdated = false;
     } else {
-      for (BlockLocation location : blockInfo.getLocations()) {
+      List<BlockLocation> locs = blockInfo.getLocations();
+      for (BlockLocation location : locs) {
         if (!mFailedWorkers.containsKey(location.getWorkerAddress())) {
           isBlockInfoOutdated = false;
           break;
@@ -431,6 +435,9 @@ public class AlluxioFileInStream extends FileInStream {
       // TODO(calvin): we should be able to do a close check instead of using null
       if (stream == mBlockInStream) { // if stream is instance variable, set to null
         mBlockInStream = null;
+      }
+      if (stream == mCachedPositionedReadStream) {
+        mCachedPositionedReadStream = null;
       }
       if (blockSource == BlockInStream.BlockInStreamSource.NODE_LOCAL
           || blockSource == BlockInStream.BlockInStreamSource.PROCESS_LOCAL) {
@@ -528,7 +535,13 @@ public class AlluxioFileInStream extends FileInStream {
         if (mPassiveCachingEnabled && mContext.hasNodeLocalWorker()) {
           // send request to local worker
           worker = mContext.getNodeLocalWorker();
-        } else { // send request to data source
+        } else {
+          if (blockInfo.getLocations().stream()
+              .anyMatch(it -> Objects.equals(it.getWorkerAddress(), dataSource))) {
+            mLastBlockIdCached = blockId;
+            return false;
+          }
+          // send request to data source
           worker = dataSource;
         }
         try (CloseableResource<BlockWorkerClient> blockWorker =
@@ -569,6 +582,16 @@ public class AlluxioFileInStream extends FileInStream {
     // TODO(lu) consider recovering failed workers
     if (!causedByClientOOM) {
       mFailedWorkers.put(workerAddress, System.currentTimeMillis());
+    }
+  }
+
+  @Override
+  public void unbuffer() {
+    if (mBlockInStream != null) {
+      mBlockInStream.unbuffer();
+    }
+    if (mCachedPositionedReadStream != null) {
+      mCachedPositionedReadStream.unbuffer();
     }
   }
 }

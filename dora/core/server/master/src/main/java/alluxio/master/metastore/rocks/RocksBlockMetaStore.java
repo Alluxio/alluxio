@@ -15,12 +15,14 @@ import static alluxio.rocks.RocksStore.checkSetTableConfig;
 
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.master.journal.checkpoint.CheckpointName;
 import alluxio.master.metastore.BlockMetaStore;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.meta.Block.BlockLocation;
 import alluxio.proto.meta.Block.BlockMeta;
 import alluxio.resource.CloseableIterator;
+import alluxio.rocks.RocksCheckpointed;
 import alluxio.rocks.RocksStore;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
@@ -61,13 +63,17 @@ import javax.annotation.concurrent.ThreadSafe;
  * Block store backed by RocksDB.
  */
 @ThreadSafe
-public class RocksBlockMetaStore implements BlockMetaStore {
+public class RocksBlockMetaStore implements BlockMetaStore, RocksCheckpointed {
   private static final Logger LOG = LoggerFactory.getLogger(RocksBlockMetaStore.class);
   private static final String BLOCKS_DB_NAME = "blocks";
   private static final String BLOCK_META_COLUMN = "block-meta";
   private static final String BLOCK_LOCATIONS_COLUMN = "block-locations";
   private static final String ROCKS_STORE_NAME = "BlockStore";
 
+  /*
+   * Below 3 fields are created and managed by the external user class,
+   * no need to close in this class
+   */
   // This is a field instead of a constant because it depends on the call to RocksDB.loadLibrary().
   private final WriteOptions mDisableWAL;
   private final ReadOptions mIteratorOption;
@@ -76,7 +82,9 @@ public class RocksBlockMetaStore implements BlockMetaStore {
   private final List<RocksObject> mToClose = new ArrayList<>();
 
   private final RocksStore mRocksStore;
-  // The handles are closed in RocksStore
+  /*
+   * The ColumnFamilyHandle instances are created and closed in RocksStore
+   */
   private final AtomicReference<ColumnFamilyHandle> mBlockMetaColumn = new AtomicReference<>();
   private final AtomicReference<ColumnFamilyHandle> mBlockLocationsColumn = new AtomicReference<>();
   private final LongAdder mSize = new LongAdder();
@@ -90,11 +98,14 @@ public class RocksBlockMetaStore implements BlockMetaStore {
     RocksDB.loadLibrary();
     // the rocksDB objects must be initialized after RocksDB.loadLibrary() is called
     mDisableWAL = new WriteOptions().setDisableWAL(true);
+    mToClose.add(mDisableWAL);
     mReadPrefixSameAsStart = new ReadOptions().setPrefixSameAsStart(true);
+    mToClose.add(mReadPrefixSameAsStart);
     mIteratorOption = new ReadOptions()
         .setReadaheadSize(Configuration.getBytes(
             PropertyKey.MASTER_METASTORE_ITERATOR_READAHEAD_SIZE))
         .setTotalOrderSeek(true);
+    mToClose.add(mIteratorOption);
 
     List<ColumnFamilyDescriptor> columns = new ArrayList<>();
     DBOptions opts = new DBOptions();
@@ -120,16 +131,20 @@ public class RocksBlockMetaStore implements BlockMetaStore {
           .setCreateMissingColumnFamilies(true)
           .setCreateIfMissing(true)
           .setMaxOpenFiles(-1);
+      // This is a field instead of a constant as it depends on the call to RocksDB.loadLibrary().
+      CompressionType compressionType =
+          Configuration.getEnum(PropertyKey.MASTER_METASTORE_ROCKS_CHECKPOINT_COMPRESSION_TYPE,
+              CompressionType.class);
       columns.add(new ColumnFamilyDescriptor(BLOCK_META_COLUMN.getBytes(),
           new ColumnFamilyOptions()
               .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by block id
               .setMemTableConfig(new HashLinkedListMemTableConfig()) // bucket contains single value
-              .setCompressionType(CompressionType.NO_COMPRESSION)));
+              .setCompressionType(compressionType)));
       columns.add(new ColumnFamilyDescriptor(BLOCK_LOCATIONS_COLUMN.getBytes(),
           new ColumnFamilyOptions()
               .useFixedLengthPrefixExtractor(Longs.BYTES) // allows memtable buckets by block id
               .setMemTableConfig(new HashLinkedListMemTableConfig()) // bucket contains worker info
-              .setCompressionType(CompressionType.NO_COMPRESSION)));
+              .setCompressionType(compressionType)));
     }
 
     mToClose.addAll(columns.stream().map(
@@ -262,7 +277,7 @@ public class RocksBlockMetaStore implements BlockMetaStore {
   }
 
   private long getProperty(String rocksPropertyName) {
-    try {
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
       return db().getAggregatedLongProperty(rocksPropertyName);
     } catch (RocksDBException e) {
       LOG.warn(String.format("error collecting %s", rocksPropertyName), e);
@@ -273,7 +288,7 @@ public class RocksBlockMetaStore implements BlockMetaStore {
   @Override
   public Optional<BlockMeta> getBlock(long id) {
     byte[] meta;
-    try {
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
       meta = db().get(mBlockMetaColumn.get(), Longs.toByteArray(id));
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
@@ -290,7 +305,7 @@ public class RocksBlockMetaStore implements BlockMetaStore {
 
   @Override
   public void putBlock(long id, BlockMeta meta) {
-    try {
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
       byte[] buf = db().get(mBlockMetaColumn.get(), Longs.toByteArray(id));
       // Overwrites the key if it already exists.
       db().put(mBlockMetaColumn.get(), mDisableWAL, Longs.toByteArray(id), meta.toByteArray());
@@ -305,7 +320,7 @@ public class RocksBlockMetaStore implements BlockMetaStore {
 
   @Override
   public void removeBlock(long id) {
-    try {
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
       byte[] buf = db().get(mBlockMetaColumn.get(), Longs.toByteArray(id));
       db().delete(mBlockMetaColumn.get(), mDisableWAL, Longs.toByteArray(id));
       if (buf != null) {
@@ -319,8 +334,14 @@ public class RocksBlockMetaStore implements BlockMetaStore {
 
   @Override
   public void clear() {
-    mSize.reset();
-    mRocksStore.clear();
+    LOG.info("Waiting to clear RocksBlockMetaStore..");
+    try (RocksExclusiveLockHandle lock = mRocksStore.lockForRewrite()) {
+      LOG.info("Clearing RocksDB");
+      mSize.reset();
+      mRocksStore.clear();
+    }
+    // Reset the DB state and prepare to serve again
+    LOG.info("RocksBlockMetaStore cleared and ready to serve again");
   }
 
   @Override
@@ -329,17 +350,23 @@ public class RocksBlockMetaStore implements BlockMetaStore {
   }
 
   @Override
+  /**
+   * There may be concurrent readers and writers so we have to guarantee thread safety when
+   * closing the RocksDB and all RocksObject instances. The sequence for closing is:
+   * 1. Mark flag mClosed = true without locking.
+   *    All new readers/writers should see the flag and not start the operation.
+   * 2. Acquire the WriteLock before shutting down, so it waits for all concurrent r/w to
+   *    bail or finish.
+   */
   public void close() {
-    mSize.reset();
-    LOG.info("Closing RocksBlockStore and recycling all RocksDB JNI objects");
-    mRocksStore.close();
-    mIteratorOption.close();
-    mDisableWAL.close();
-    mReadPrefixSameAsStart.close();
-    // Close the elements in the reverse order they were added
-    Collections.reverse(mToClose);
-    mToClose.forEach(RocksObject::close);
-    LOG.info("RocksBlockStore closed");
+    LOG.info("RocksBlockStore is being closed");
+    try (RocksExclusiveLockHandle lock = mRocksStore.lockForClosing()) {
+      mSize.reset();
+      mRocksStore.close();
+      // Close the elements in the reverse order they were added
+      Collections.reverse(mToClose);
+      mToClose.forEach(RocksObject::close);
+    }
   }
 
   @Override
@@ -351,8 +378,11 @@ public class RocksBlockMetaStore implements BlockMetaStore {
     // When there are multiple resources declared in the try-with-resource block
     // They are closed in the opposite order of declaration
     // Ref: https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html
-    try (final RocksIterator iter = db().newIterator(mBlockLocationsColumn.get(),
-        mReadPrefixSameAsStart)) {
+    // We assume this operation is short (one block cannot have too many locations)
+    // and lock the full iteration
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock();
+         final RocksIterator iter = db().newIterator(mBlockLocationsColumn.get(),
+            mReadPrefixSameAsStart)) {
       iter.seek(Longs.toByteArray(id));
       List<BlockLocation> locations = new ArrayList<>();
       for (; iter.isValid(); iter.next()) {
@@ -369,7 +399,7 @@ public class RocksBlockMetaStore implements BlockMetaStore {
   @Override
   public void addLocation(long id, BlockLocation location) {
     byte[] key = RocksUtils.toByteArray(id, location.getWorkerId());
-    try {
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
       db().put(mBlockLocationsColumn.get(), mDisableWAL, key, location.toByteArray());
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
@@ -379,7 +409,7 @@ public class RocksBlockMetaStore implements BlockMetaStore {
   @Override
   public void removeLocation(long blockId, long workerId) {
     byte[] key = RocksUtils.toByteArray(blockId, workerId);
-    try {
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
       db().delete(mBlockLocationsColumn.get(), mDisableWAL, key);
     } catch (RocksDBException e) {
       throw new RuntimeException(e);
@@ -387,13 +417,41 @@ public class RocksBlockMetaStore implements BlockMetaStore {
   }
 
   @Override
+  /**
+   * Acquires an iterator to iterate all Blocks in RocksDB.
+   * A shared lock will be acquired when this iterator is created, and released when:
+   * 1. This iterator is complete.
+   * 2. At each step, the iterator finds the RocksDB is closing and aborts voluntarily.
+   *
+   * This iterator is used in:
+   * 1. {@link BlockIntegrityChecker} to iterate all existing blocks
+   * 2. Journal dumping like checkpoint/backup sequences
+   */
   public CloseableIterator<Block> getCloseableIterator() {
-    RocksIterator iterator = db().newIterator(mBlockMetaColumn.get(), mIteratorOption);
-    return RocksUtils.createCloseableIterator(iterator,
-        (iter) -> new Block(Longs.fromByteArray(iter.key()), BlockMeta.parseFrom(iter.value())));
+    try (RocksSharedLockHandle lock = mRocksStore.checkAndAcquireSharedLock()) {
+      RocksSharedLockHandle readLock = mRocksStore.checkAndAcquireSharedLock();
+
+      RocksIterator iterator = db().newIterator(mBlockMetaColumn.get(), mIteratorOption);
+      return RocksUtils.createCloseableIterator(iterator,
+          (iter) -> new Block(Longs.fromByteArray(iter.key()), BlockMeta.parseFrom(iter.value())),
+          () -> {
+            mRocksStore.shouldAbort(lock.getLockVersion());
+            return null;
+          }, readLock);
+    }
   }
 
   private RocksDB db() {
     return mRocksStore.getDb();
+  }
+
+  @Override
+  public RocksStore getRocksStore() {
+    return mRocksStore;
+  }
+
+  @Override
+  public CheckpointName getCheckpointName() {
+    return CheckpointName.BLOCK_MASTER;
   }
 }

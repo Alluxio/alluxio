@@ -377,7 +377,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
               + "If no JVM property is present, Alluxio will use default value '%s'.",
           key.getName(), key.getDefaultValue());
 
-      if (PropertyKey.isDeprecated(key) && getSource(key).compareTo(Source.DEFAULT) != 0) {
+      if (PropertyKey.isDeprecated(key) && isSetByUser(key)) {
         LOG.warn("{} is deprecated. Please avoid using this key in the future. {}", key.getName(),
             PropertyKey.getDeprecationMessage(key));
       }
@@ -389,6 +389,7 @@ public class InstancedConfiguration implements AlluxioConfiguration {
     checkTieredLocality();
     checkTieredStorage();
     checkMasterThrottleThresholds();
+    checkCheckpointZipConfig();
   }
 
   @Override
@@ -580,6 +581,19 @@ public class InstancedConfiguration implements AlluxioConfiguration {
   }
 
   /**
+   * @throws IllegalStateException if invalid checkpoint zip configuration parameters are found
+   */
+  private void checkCheckpointZipConfig() {
+    int compression = getInt(
+        PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_LEVEL);
+    if (compression < -1 || compression > 9) {
+      throw new IllegalStateException(String.format("Zip compression level for property key %s"
+          + " must be between -1 and 9 inclusive",
+          PropertyKey.MASTER_EMBEDDED_JOURNAL_SNAPSHOT_REPLICATION_COMPRESSION_LEVEL.getName()));
+    }
+  }
+
+  /**
    * @throws IllegalStateException if invalid throttle threshold parameters are found
    */
   private void checkMasterThrottleThresholds() {
@@ -660,6 +674,13 @@ public class InstancedConfiguration implements AlluxioConfiguration {
               getInt(PropertyKey.MASTER_THROTTLE_STRESSED_RPC_QUEUE_SIZE),
               getInt(PropertyKey.MASTER_THROTTLE_OVERLOADED_RPC_QUEUE_SIZE)));
     }
+  }
+
+  /**
+   * @return the last update time
+   */
+  public long getLastUpdateTime() {
+    return mProperties.getLastUpdateTime();
   }
 
   protected class UnresolvablePropertyException extends Exception {

@@ -12,11 +12,14 @@
 package alluxio.master.job;
 
 import alluxio.AlluxioURI;
-import alluxio.client.WriteType;
-import alluxio.conf.Configuration;
-import alluxio.conf.PropertyKey;
+import alluxio.exception.runtime.FailedPreconditionRuntimeException;
+import alluxio.exception.runtime.NotFoundRuntimeException;
+import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.CopyJobPOptions;
 import alluxio.job.CopyJobRequest;
+import alluxio.master.file.DefaultFileSystemMaster;
+import alluxio.master.file.meta.MountTable;
 import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobFactory;
 import alluxio.security.User;
@@ -29,20 +32,20 @@ import java.util.OptionalLong;
 import java.util.UUID;
 
 /**
- * Factory for creating {@link LoadJob}s that get file infos from master.
+ * Factory for creating {@link CopyJob}s that get file infos from master.
  */
 public class CopyJobFactory implements JobFactory {
 
-  private final UnderFileSystem mFs;
+  private final DefaultFileSystemMaster mFs;
   private final CopyJobRequest mRequest;
 
   /**
    * Create factory.
-   * @param request load job request
-   * @param underFileSystem file system master
+   * @param request copy job request
+   * @param fsMaster file system master
    */
-  public CopyJobFactory(CopyJobRequest request, UnderFileSystem underFileSystem) {
-    mFs = underFileSystem;
+  public CopyJobFactory(CopyJobRequest request, DefaultFileSystemMaster fsMaster) {
+    mFs = fsMaster;
     mRequest = request;
   }
 
@@ -50,23 +53,37 @@ public class CopyJobFactory implements JobFactory {
   public Job<?> create() {
     CopyJobPOptions options = mRequest.getOptions();
     String src = mRequest.getSrc();
-    String srcRoot = new AlluxioURI(src).getRootPath();
-    String dstRoot = new AlluxioURI(mRequest.getDst()).getRootPath();
     OptionalLong bandwidth =
         options.hasBandwidth() ? OptionalLong.of(options.getBandwidth()) : OptionalLong.empty();
     boolean partialListing = options.hasPartialListing() && options.getPartialListing();
     boolean verificationEnabled = options.hasVerify() && options.getVerify();
     boolean overwrite = options.hasOverwrite() && options.getOverwrite();
-    WriteType writeType = options.hasWriteType() ? WriteType.fromProto(options.getWriteType()) :
-        Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
-    Iterable<FileInfo> fileIterator = new UfsFileIterable(mFs, src, Optional
+    boolean checkContent = options.hasCheckContent() && options.getCheckContent();
+    MountTable.ReverseResolution resolution =
+        mFs.getMountTable().reverseResolve(new AlluxioURI(src));
+    long mountId;
+    if (resolution == null) {
+      throw new NotFoundRuntimeException("Mount point not found");
+    }
+    else {
+      mountId = resolution.getMountInfo().getMountId();
+    }
+    UnderFileSystem ufs;
+    try {
+      ufs = mFs.getUfsManager().get(mountId).acquireUfsResource().get();
+    } catch (NotFoundException | UnavailableException e) {
+      // concurrent mount table change would cause this exception
+      throw new FailedPreconditionRuntimeException(e);
+    }
+    Iterable<FileInfo> fileIterator = new UfsFileIterable(ufs, src, Optional
         .ofNullable(AuthenticatedClientUser.getOrNull())
-        .map(User::getName), partialListing, FileInfo::isCompleted);
+        .map(User::getName), FileInfo::isCompleted);
     Optional<String> user = Optional
         .ofNullable(AuthenticatedClientUser.getOrNull())
         .map(User::getName);
     return new CopyJob(src, mRequest.getDst(), overwrite, user, UUID.randomUUID().toString(),
-        bandwidth, partialListing, verificationEnabled, fileIterator);
+        bandwidth, partialListing, verificationEnabled, checkContent, fileIterator,
+        Optional.empty());
   }
 }
 

@@ -74,4 +74,15 @@ public final class BlockHeartbeatReport {
   public Map<String, List<String>> getLostStorage() {
     return Collections.unmodifiableMap(mLostStorage);
   }
+
+  /**
+   * @return the number of blocks in the report
+   */
+  public int getBlockChangeCount() {
+    int count = mRemovedBlocks.size();
+    for (List<Long> blocks: mAddedBlocks.values()) {
+      count += blocks.size();
+    }
+    return count;
+  }
 }

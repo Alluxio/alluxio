@@ -111,6 +111,9 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
       Path basePath;
       if (mParameters.mOperation == Operation.CREATE_DIR) {
         basePath = new Path(path, "dirs");
+      } else if (mParameters.mOperation == Operation.CREATE_TREE
+          || mParameters.mOperation == Operation.LOAD_METADATA) {
+        basePath = new Path(path, extractHostName(mBaseParameters.mId));
       } else {
         basePath = new Path(path, "files");
       }
@@ -123,6 +126,9 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
         long end = CommonUtils.getCurrentMs();
         LOG.info("Cleanup took: {} s", (end - start) / 1000.0);
         prepareFs.mkdirs(basePath);
+      } else if (mParameters.mOperation == Operation.CREATE_TREE
+          || mParameters.mOperation == Operation.LOAD_METADATA) {
+        // Do nothing
       } else {
         // these are read operations. the directory must exist
         if (!prepareFs.exists(basePath)) {
@@ -131,10 +137,13 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
                   mParameters.mOperation));
         }
       }
-      if (!prepareFs.getFileStatus(basePath).isDirectory()) {
-        throw new IllegalStateException(String
-            .format("base path (%s) must be a directory for operation (%s)", basePath,
-                mParameters.mOperation));
+      if (mParameters.mOperation != Operation.CREATE_TREE
+          && mParameters.mOperation != Operation.LOAD_METADATA) {
+        if (!prepareFs.getFileStatus(basePath).isDirectory()) {
+          throw new IllegalStateException(String
+              .format("base path (%s) must be a directory for operation (%s)", basePath,
+                  mParameters.mOperation));
+        }
       }
     }
 
@@ -150,7 +159,6 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
 
     hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, mParameters.mWriteType);
 
-    LOG.info("Using {} to perform the test.", mParameters.mClientType);
     if (mParameters.mClientType == FileSystemClientType.ALLUXIO_HDFS) {
       mCachedFs = new FileSystem[mParameters.mClients];
       for (int i = 0; i < mCachedFs.length; i++) {
@@ -258,10 +266,20 @@ public class StressMasterBench extends StressMasterBenchBase<MasterBenchTaskResu
         if (Thread.currentThread().isInterrupted()) {
           break;
         }
-        if (!useStopCount && CommonUtils.getCurrentMs() >= mContext.getEndMs()) {
+        if (mParameters.mOperation != Operation.LOAD_METADATA
+            && mParameters.mOperation != Operation.CREATE_TREE
+            && !useStopCount && CommonUtils.getCurrentMs() >= mContext.getEndMs()) {
           break;
         }
         localCounter = mContext.getOperationCounter(0).getAndIncrement();
+        if (mParameters.mOperation == Operation.CREATE_TREE
+            && localCounter >= mTreeTotalNodeCount) {
+          break;
+        }
+        if (mParameters.mOperation == Operation.LOAD_METADATA
+            && localCounter >= mParameters.mThreads) {
+          break;
+        }
         if (useStopCount && localCounter >= mParameters.mStopCount) {
           break;
         }

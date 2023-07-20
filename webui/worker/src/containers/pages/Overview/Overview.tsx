@@ -58,6 +58,10 @@ export class OverviewPresenter extends React.Component<AllProps> {
                 <th scope="row">Version</th>
                 <td>{data.version}</td>
               </tr>
+              <tr>
+                <th scope="row">Revision</th>
+                <td>{data.revision}</td>
+              </tr>
             </tbody>
           </Table>
         </div>

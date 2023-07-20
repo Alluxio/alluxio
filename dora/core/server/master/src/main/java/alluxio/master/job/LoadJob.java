@@ -31,7 +31,6 @@ import alluxio.job.JobDescription;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Journal;
-import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobState;
 import alluxio.scheduler.job.Task;
 import alluxio.util.FormatUtils;
@@ -55,6 +54,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -74,6 +75,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Load job that loads a file or a directory into Alluxio.
  * This class should only be manipulated from the scheduler thread in Scheduler
  * thus the state changing functions are not thread safe.
+ * Deprecated class, refer to {@link DoraLoadJob}
  */
 @NotThreadSafe
 public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
@@ -203,14 +205,14 @@ public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
    */
   @Override
   public void failJob(AlluxioRuntimeException reason) {
-    setJobState(JobState.FAILED);
+    setJobState(JobState.FAILED, true);
     mFailedReason = Optional.of(reason);
     JOB_LOAD_FAIL.inc();
   }
 
   @Override
   public void setJobSuccess() {
-    setJobState(JobState.SUCCEEDED);
+    setJobState(JobState.SUCCEEDED, true);
     JOB_LOAD_SUCCESS.inc();
   }
 
@@ -281,16 +283,24 @@ public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
   /**
    * get next load task.
    *
-   * @param worker blocker to worker
+   * @param workers list of available workers to schedule task on
    * @return the next task to run. If there is no task to run, return empty
    */
   @Override
-  public Optional<LoadTask> getNextTask(WorkerInfo worker) {
+  public  List<LoadJob.LoadTask> getNextTasks(Collection<WorkerInfo> workers) {
+    List<LoadTask> tasks = new ArrayList<>();
     List<Block> blocks = getNextBatchBlocks(BATCH_SIZE);
     if (blocks.isEmpty()) {
-      return Optional.empty();
+      return Collections.unmodifiableList(tasks);
     }
-    return Optional.of(new LoadTask(blocks));
+    LoadTask task = new LoadTask(blocks);
+    tasks.add(task);
+    return Collections.unmodifiableList(tasks);
+  }
+
+  @Override
+  public void onTaskSubmitFailure(Task<?> task) {
+    // NOOP
   }
 
   /**
@@ -498,13 +508,8 @@ public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
   }
 
   @Override
-  public void updateJob(Job<?> job) {
-    if (!(job instanceof LoadJob)) {
-      throw new IllegalArgumentException("Job is not a LoadJob: " + job);
-    }
-    LoadJob targetJob = (LoadJob) job;
-    updateBandwidth(targetJob.getBandwidth());
-    setVerificationEnabled(targetJob.isVerificationEnabled());
+  public boolean hasFailure() {
+    return !mFailedFiles.isEmpty();
   }
 
   /**
@@ -515,11 +520,6 @@ public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
   @Override
   public boolean needVerification() {
     return mVerificationEnabled && mCurrentBlockCount.get() > 0;
-  }
-
-  @Override
-  public void continueJob() {
-    // nothing to do
   }
 
   /**
@@ -542,6 +542,7 @@ public class LoadJob extends AbstractJob<LoadJob.LoadTask> {
      * @param blocks blocks to load
      */
     public LoadTask(List<Block> blocks) {
+      super(LoadJob.this, LoadJob.this.mTaskIdGenerator.incrementAndGet());
       mBlocks = blocks;
     }
 

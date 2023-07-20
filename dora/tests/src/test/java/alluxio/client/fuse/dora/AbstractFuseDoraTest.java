@@ -49,6 +49,9 @@ public abstract class AbstractFuseDoraTest {
   private static final String MOUNT_POINT = AlluxioTestDirectory
       .createTemporaryDirectory("fuse_mount").toString();
 
+  private static final String PAGING_STORE_DIR = AlluxioTestDirectory
+      .createTemporaryDirectory("ramdisk").toString();
+
   protected FileSystem mFileSystem;
   protected FileSystemContext mContext;
   protected UfsFileSystemOptions mUfsOptions;
@@ -56,14 +59,19 @@ public abstract class AbstractFuseDoraTest {
   @Rule
   public LocalAlluxioClusterResource mClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED, true)
+          .setProperty(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED, true)
           // TODO(lu) support dora client metadata cache in read-write tests
           .setProperty(PropertyKey.DORA_CLIENT_METADATA_CACHE_ENABLED, false)
           .setProperty(PropertyKey.DORA_CLIENT_UFS_ROOT, UFS_ROOT.toString())
           .setProperty(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false)
-          .setProperty(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, false)
           .setProperty(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES, Constants.KB)
           .setProperty(PropertyKey.FUSE_MOUNT_POINT, MOUNT_POINT)
+          .setProperty(PropertyKey.WORKER_BLOCK_STORE_TYPE, "PAGE")
+          .setProperty(PropertyKey.WORKER_PAGE_STORE_TYPE, "LOCAL")
+          .setProperty(PropertyKey.WORKER_PAGE_STORE_DIRS, PAGING_STORE_DIR)
+          .setProperty(PropertyKey.WORKER_PAGE_STORE_SIZES, "10GB")
+          .setProperty(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, "1MB")
+          .setProperty(PropertyKey.DORA_CLIENT_METADATA_CACHE_ENABLED, true)
           .build();
 
   @Before

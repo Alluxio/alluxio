@@ -15,10 +15,10 @@ import static java.util.stream.Collectors.toList;
 
 import alluxio.annotation.PublicApi;
 import alluxio.client.block.BlockMasterClient;
+import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.status.NotFoundException;
 import alluxio.resource.CloseableResource;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -57,7 +57,11 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
 
     try (CloseableResource<BlockMasterClient> masterClientResource =
                  mFsContext.acquireBlockMasterClientResource()) {
-      totalWorkers = masterClientResource.get().getWorkerInfoList().stream()
+      totalWorkers = masterClientResource.get()
+              // the default option is to get all worker infos,
+              // as we want to make sure the worker by the name exists and is not a typo
+              .getWorkerReport(GetWorkerReportOptions.defaults())
+              .stream()
               .map(WorkerInfo::getAddress)
               .collect(toList());
     }
@@ -76,16 +80,7 @@ public final class FreeWorkerCommand extends AbstractFileSystemCommand {
       return -1;
     }
 
-    // 3. Remove target worker metadata.
-    try (CloseableResource<BlockMasterClient> blockMasterClient =
-                 mFsContext.acquireBlockMasterClientResource()) {
-      blockMasterClient.get().removeDecommissionedWorker(workerName);
-    } catch (NotFoundException notFoundException) {
-      System.out.println("Worker" + workerName + " is not found in decommissioned worker set.");
-      return -1;
-    }
-
-    // 4. Free target worker.
+    // 3. Free target worker.
     try (CloseableResource<BlockWorkerClient> blockWorkerClient =
                  mFsContext.acquireBlockWorkerClient(targetWorkerNetAddress)) {
       blockWorkerClient.get().freeWorker();

@@ -17,12 +17,14 @@ import alluxio.clock.ManualClock;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.RegisterWorkerPOptions;
+import alluxio.master.AlwaysPrimaryPrimarySelector;
 import alluxio.master.CoreMasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.block.meta.MasterWorkerInfo;
+import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.metrics.MetricsMaster;
 import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -55,7 +57,8 @@ public class BlockMasterDeleteLostWorkerIntegrationTest {
     Configuration.set(PropertyKey.MASTER_WORKER_TIMEOUT_MS, MASTER_WORKER_TIMEOUT_MS);
 
     mRegistry = new MasterRegistry();
-    CoreMasterContext masterContext = MasterTestUtils.testMasterContext();
+    CoreMasterContext masterContext = MasterTestUtils.testMasterContext(new NoopJournalSystem(),
+        null, new AlwaysPrimaryPrimarySelector());
     MetricsMaster metricsMaster = new MetricsMasterFactory().create(mRegistry, masterContext);
     mRegistry.add(MetricsMaster.class, metricsMaster);
     mClock = new ManualClock();
@@ -88,14 +91,14 @@ public class BlockMasterDeleteLostWorkerIntegrationTest {
     // The worker will not be deleted, if the lost time is less than MASTER_WORKER_TIMEOUT_MS
     long newTimeMs = worker.getLastUpdatedTimeMs() + MASTER_WORKER_TIMEOUT_MS + 1;
     mClock.setTimeMs(newTimeMs);
-    lostWorkerDetector.heartbeat();
+    lostWorkerDetector.heartbeat(Long.MAX_VALUE);
     assertEquals(0, mBlockMaster.getWorkerCount());
     assertEquals(1, mBlockMaster.getLostWorkerCount());
 
     // The worker will be deleted, if the lost time is greater than MASTER_WORKER_TIMEOUT_MS
     newTimeMs = newTimeMs + MASTER_WORKER_DELETE_TIMEOUT_MS + 1;
     mClock.setTimeMs(newTimeMs);
-    lostWorkerDetector.heartbeat();
+    lostWorkerDetector.heartbeat(Long.MAX_VALUE);
     assertEquals(0, mBlockMaster.getWorkerCount());
     assertEquals(0, mBlockMaster.getLostWorkerCount());
   }

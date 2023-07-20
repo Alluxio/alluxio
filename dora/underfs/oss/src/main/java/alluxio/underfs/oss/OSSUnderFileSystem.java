@@ -16,7 +16,6 @@ import alluxio.Constants;
 import alluxio.PositionReader;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.ObjectUnderFileSystem;
 import alluxio.underfs.UnderFileSystem;
@@ -31,6 +30,8 @@ import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClientBuilder;
 import com.aliyun.oss.ServiceException;
 import com.aliyun.oss.model.AbortMultipartUploadRequest;
+import com.aliyun.oss.model.DeleteObjectsRequest;
+import com.aliyun.oss.model.DeleteObjectsResult;
 import com.aliyun.oss.model.ListMultipartUploadsRequest;
 import com.aliyun.oss.model.ListObjectsRequest;
 import com.aliyun.oss.model.MultipartUpload;
@@ -72,7 +73,11 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   /** Bucket name of user's configured Alluxio bucket. */
   private final String mBucketName;
 
+  /** The executor service for the streaming upload. */
   private final Supplier<ListeningExecutorService> mStreamingUploadExecutor;
+
+  /** The executor service for the multipart upload. */
+  private final Supplier<ListeningExecutorService> mMultipartUploadExecutor;
 
   private StsOssClientProvider mClientProvider;
 
@@ -128,11 +133,23 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
     }
 
     mBucketName = bucketName;
+
+    // Initialize the executor service for the streaming upload.
     mStreamingUploadExecutor = Suppliers.memoize(() -> {
       int numTransferThreads =
           conf.getInt(PropertyKey.UNDERFS_OSS_STREAMING_UPLOAD_THREADS);
       ExecutorService service = ExecutorServiceFactories
           .fixedThreadPool("alluxio-oss-streaming-upload-worker",
+              numTransferThreads).create();
+      return MoreExecutors.listeningDecorator(service);
+    });
+
+    // Initialize the executor service for the multipart upload.
+    mMultipartUploadExecutor = Suppliers.memoize(() -> {
+      int numTransferThreads =
+          conf.getInt(PropertyKey.UNDERFS_OSS_MULTIPART_UPLOAD_THREADS);
+      ExecutorService service = ExecutorServiceFactories
+          .fixedThreadPool("alluxio-oss-multipart-upload-worker",
               numTransferThreads).create();
       return MoreExecutors.listeningDecorator(service);
     });
@@ -165,7 +182,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   public PositionReader openPositionRead(String path, long fileLength) {
-    throw new UnimplementedRuntimeException("Position read is not implemented");
+    return new OSSPositionReader(mClient, mBucketName, stripPrefixIfPresent(path), fileLength);
   }
 
   // No ACL integration currently, no-op
@@ -207,6 +224,10 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
       return new OSSLowLevelOutputStream(mBucketName, key, mClient,
           mStreamingUploadExecutor.get(), mUfsConf);
     }
+    else if (mUfsConf.getBoolean(PropertyKey.UNDERFS_OSS_MULTIPART_UPLOAD_ENABLED)) {
+      return new OSSMultipartUploadOutputStream(mBucketName, key, mClient,
+          mMultipartUploadExecutor.get(), mUfsConf);
+    }
     return new OSSOutputStream(mBucketName, key, mClient,
         mUfsConf.getList(PropertyKey.TMP_DIRS));
   }
@@ -220,6 +241,18 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
       return false;
     }
     return true;
+  }
+
+  @Override
+  protected List<String> deleteObjects(List<String> keys) throws IOException {
+    try {
+      DeleteObjectsRequest request = new DeleteObjectsRequest(mBucketName);
+      request.setKeys(keys);
+      DeleteObjectsResult result = mClient.deleteObjects(request);
+      return result.getDeletedObjects();
+    } catch (ServiceException e) {
+      throw new IOException("Failed to delete objects", e);
+    }
   }
 
   @Override
@@ -290,7 +323,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
     @Override
     public String[] getCommonPrefixes() {
       List<String> res = mResult.getCommonPrefixes();
-      return res.toArray(new String[res.size()]);
+      return res.toArray(new String[0]);
     }
 
     @Override

@@ -625,7 +625,10 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(dirId);
     assertEquals(fileInfo.getFileId(), dirId);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
-    mThrown.expect(FileDoesNotExistException.class);
+    // TTL is set to 0, the directory should have been freed during last TTL check.
+    assertEquals(0,
+            mFileSystemMaster.getFileInfo(NESTED_DIR_URI, GET_STATUS_CONTEXT)
+                    .getInAlluxioPercentage());
     mFileSystemMaster.getFileInfo(dirId);
   }
 
@@ -646,7 +649,10 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(dirId);
     assertEquals(fileInfo.getFileId(), dirId);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
-    mThrown.expect(FileDoesNotExistException.class);
+    // TTL is set to 0, the directory should have been freed during last TTL check.
+    assertEquals(0,
+            mFileSystemMaster.getFileInfo(NESTED_DIR_URI, GET_STATUS_CONTEXT)
+                    .getInAlluxioPercentage());
     mFileSystemMaster.getFileInfo(dirId);
   }
 
@@ -764,8 +770,10 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0))));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
-    // TTL is set to 0, the file should have been deleted during last TTL check.
-    mThrown.expect(FileDoesNotExistException.class);
+    // TTL is set to 0, the file should have been freed during last TTL check.
+    assertEquals(0,
+            mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_CONTEXT)
+                    .getInAlluxioPercentage());
     mFileSystemMaster.getFileInfo(fileId);
   }
 
@@ -791,8 +799,10 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0))));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
-    // TTL is set to 0, the file and directory should have been deleted during last TTL check.
-    mThrown.expect(FileDoesNotExistException.class);
+    // TTL is set to 0, the file should have been freed during last TTL check.
+    assertEquals(0,
+        mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_CONTEXT)
+            .getInAlluxioPercentage());
     mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_CONTEXT);
     mFileSystemMaster.getFileInfo(NESTED_DIR_URI, GET_STATUS_CONTEXT);
     mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GET_STATUS_CONTEXT);
@@ -817,8 +827,10 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0))));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
-    // TTL is reset to 0, the file should have been deleted during last TTL check.
-    mThrown.expect(FileDoesNotExistException.class);
+    // TTL is set to 0, the file should have been freed during last TTL check.
+    assertEquals(0,
+            mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_CONTEXT)
+                    .getInAlluxioPercentage());
     mFileSystemMaster.getFileInfo(fileId);
   }
 
@@ -840,8 +852,10 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
         SetAttributeContext.mergeFrom(SetAttributePOptions.newBuilder()
             .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(0))));
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
-    // TTL is reset to 0, the file should have been deleted during last TTL check.
-    mThrown.expect(FileDoesNotExistException.class);
+    // TTL is set to 0, the file should have been freed during last TTL check.
+    assertEquals(0,
+            mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_CONTEXT)
+                    .getInAlluxioPercentage());
     mFileSystemMaster.getFileInfo(NESTED_URI, GET_STATUS_CONTEXT);
   }
 
@@ -1765,10 +1779,10 @@ public final class FileSystemMasterTest extends FileSystemMasterTestBase {
 
   @Test
   public void RecursiveDeleteForceFlushJournals() throws Exception {
-    FileSystemMaster fileSystemMasterWithSpy = spy(mFileSystemMaster);
+    DefaultFileSystemMaster fileSystemMasterWithSpy = spy(mFileSystemMaster);
     AtomicInteger flushCount = new AtomicInteger();
     AtomicInteger closeCount = new AtomicInteger();
-    when(fileSystemMasterWithSpy.createJournalContext()).thenReturn(
+    when(fileSystemMasterWithSpy.createJournalContext(true)).thenReturn(
         new JournalContext() {
           private int mNumLogs = 0;
 

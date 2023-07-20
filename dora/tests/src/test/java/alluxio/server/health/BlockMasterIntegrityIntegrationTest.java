@@ -12,6 +12,7 @@
 package alluxio.server.health;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.PropertyKey;
@@ -31,10 +32,14 @@ import alluxio.worker.block.BlockWorker;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.powermock.reflect.Whitebox;
 
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jiacheng",
+    comment = "BlockMaster is deprecated")
 public class BlockMasterIntegrityIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mClusterResource =

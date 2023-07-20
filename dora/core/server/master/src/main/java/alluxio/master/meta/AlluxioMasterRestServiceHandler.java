@@ -16,6 +16,7 @@ import static alluxio.metrics.MetricInfo.UFS_OP_SAVED_PREFIX;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.ProjectConstants;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.StorageTierAssoc;
@@ -40,6 +41,7 @@ import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.contexts.ListStatusContext;
 import alluxio.master.file.meta.MountTable;
+import alluxio.master.throttle.SystemMonitor.SystemStatus;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -57,11 +59,11 @@ import alluxio.util.webui.UIFileBlockInfo;
 import alluxio.util.webui.UIFileInfo;
 import alluxio.util.webui.WebUtils;
 import alluxio.web.MasterWebServer;
-import alluxio.wire.Address;
 import alluxio.wire.AlluxioMasterInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.Capacity;
 import alluxio.wire.ConfigCheckReport;
+import alluxio.wire.ConfigHash;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MasterInfo;
@@ -98,7 +100,6 @@ import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetSocketAddress;
 import java.net.URLDecoder;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -139,6 +140,7 @@ public final class AlluxioMasterRestServiceHandler {
 
   // endpoints
   public static final String GET_INFO = "info";
+  public static final String SCHEDULER_INFO = "scheduler_info";
 
   // webui endpoints // TODO(william): DRY up these endpoints
   public static final String WEBUI_INIT = "webui_init";
@@ -185,6 +187,19 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   /**
+   * @summary gateway to get scheduler info.
+   * @param jobId
+   * @return Response
+   */
+  @GET
+  @Path(SCHEDULER_INFO)
+  public Response getSchedulerInfo(@QueryParam("jobid") final String jobId) {
+    return RestUtils.call(() -> {
+      return mFileSystemMaster.getScheduler().printJobsStatus();
+    }, Configuration.global());
+  }
+
+  /**
    * @summary get the Alluxio master information
    * @param rawConfiguration if it's true, raw configuration values are returned,
    *    otherwise, they are looked up; if it's not provided in URL queries, then
@@ -209,7 +224,8 @@ public final class AlluxioMasterRestServiceHandler {
           .setRpcAddress(mMasterProcess.getRpcAddress().toString())
           .setStartTimeMs(mMasterProcess.getStartTimeMs())
           .setTierCapacity(getTierCapacityInternal()).setUfsCapacity(getUfsCapacityInternal())
-          .setUptimeMs(mMasterProcess.getUptimeMs()).setVersion(RuntimeConstants.VERSION)
+          .setUptimeMs(mMasterProcess.getUptimeMs())
+          .setVersion(RuntimeConstants.VERSION).setRevision(ProjectConstants.REVISION)
           .setWorkers(mBlockMaster.getWorkerInfoList());
     }, Configuration.global());
   }
@@ -262,6 +278,7 @@ public final class AlluxioMasterRestServiceHandler {
           .setStartTime(CommonUtils.convertMsToDate(mMetaMaster.getStartTimeMs(),
               Configuration.getString(PropertyKey.USER_DATE_FORMAT_PATTERN)))
           .setVersion(RuntimeConstants.VERSION)
+          .setRevision(ProjectConstants.REVISION)
           .setLiveWorkerNodes(Integer.toString(mBlockMaster.getWorkerCount()))
           .setCapacity(FormatUtils.getSizeFromBytes(mBlockMaster.getCapacityBytes()))
           .setClusterId(mMetaMaster.getClusterID())
@@ -370,6 +387,14 @@ public final class AlluxioMasterRestServiceHandler {
       if (leaderIdGauge != null) {
         response.setLeaderId((String) leaderIdGauge.getValue());
       }
+      // Add master system status
+      Gauge systemStatusGauge = MetricsSystem.METRIC_REGISTRY.getGauges()
+              .get("Master.system.status");
+      if (systemStatusGauge != null) {
+        SystemStatus systemStatus = (SystemStatus) systemStatusGauge.getValue();
+        response.setSystemStatus(systemStatus.toString());
+      }
+
       return response;
     }, Configuration.global());
   }
@@ -686,9 +711,6 @@ public final class AlluxioMasterRestServiceHandler {
       }
       response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG)).setInvalidPathError("")
           .setViewingOffset(0).setCurrentPath("");
-      //response.setDownloadLogFile(1);
-      //response.setBaseUrl("./browseLogs");
-      //response.setShowPermissions(false);
 
       String logsPath = Configuration.getString(PropertyKey.LOGS_DIR);
       File logsDir = new File(logsPath);
@@ -733,7 +755,6 @@ public final class AlluxioMasterRestServiceHandler {
         }
       } else {
         // Request a specific log file.
-
         // Only allow filenames as the path, to avoid arbitrary local path lookups.
         requestFile = new File(requestFile).getName();
         response.setCurrentPath(requestFile);
@@ -810,12 +831,11 @@ public final class AlluxioMasterRestServiceHandler {
       MasterWebUIConfiguration response = new MasterWebUIConfiguration();
 
       response.setWhitelist(mFileSystemMaster.getWhiteList());
-
+      alluxio.wire.Configuration conf = mMetaMaster.getConfiguration(
+          GetConfigurationPOptions.newBuilder().setRawValue(true).build());
       TreeSet<Triple<String, String, String>> sortedProperties = new TreeSet<>();
       Set<String> alluxioConfExcludes = Sets.newHashSet(PropertyKey.MASTER_WHITELIST.toString());
-      for (ConfigProperty configProperty : mMetaMaster
-          .getConfiguration(GetConfigurationPOptions.newBuilder().setRawValue(true).build())
-          .toProto().getClusterConfigsList()) {
+      for (ConfigProperty configProperty : conf.toProto().getClusterConfigsList()) {
         String confName = configProperty.getName();
         if (!alluxioConfExcludes.contains(confName)) {
           sortedProperties.add(new ImmutableTriple<>(confName,
@@ -825,7 +845,8 @@ public final class AlluxioMasterRestServiceHandler {
       }
 
       response.setConfiguration(sortedProperties);
-
+      response.setConfigHash(new ConfigHash(conf.getClusterConfHash(), conf.getPathConfHash(),
+          conf.getClusterConfLastUpdateTime(), conf.getPathConfLastUpdateTime()));
       return response;
     }, Configuration.global());
   }
@@ -863,24 +884,34 @@ public final class AlluxioMasterRestServiceHandler {
   @GET
   @Path(WEBUI_MASTERS)
   public Response getWebUIMasters() {
-    return RestUtils.call(() -> {
-      MasterWebUIMasters response = new MasterWebUIMasters();
+    final Map<String, Gauge> gauges = MetricsSystem.METRIC_REGISTRY.getGauges();
+    Gauge lastCheckpointGauge = gauges
+        .get(MetricKey.MASTER_JOURNAL_LAST_CHECKPOINT_TIME.getName());
+    long lastCheckpointTime = lastCheckpointGauge == null ? 0
+        : (long) lastCheckpointGauge.getValue();
+    Gauge journalEntriesGauge = gauges
+        .get(MetricKey.MASTER_JOURNAL_ENTRIES_SINCE_CHECKPOINT.getName());
+    long journalEntriesSinceCheckpoint = journalEntriesGauge == null ? 0
+        : (long) journalEntriesGauge.getValue();
 
-      response.setDebug(Configuration.getBoolean(PropertyKey.DEBUG));
+    Gauge lastGainPrimacyGuage = gauges
+        .get(MetricKey.MASTER_LAST_GAIN_PRIMACY_TIME.getName());
+    long lastGainPrimacyTime = lastGainPrimacyGuage == null ? 0
+        : (long) lastGainPrimacyGuage.getValue();
 
-      MasterInfo[] failedMasterInfos = mMetaMaster.getLostMasterInfos();
-      response.setFailedMasterInfos(failedMasterInfos);
-
-      MasterInfo[] normalMasterInfos = mMetaMaster.getMasterInfos();
-      response.setNormalMasterInfos(normalMasterInfos);
-
-      InetSocketAddress leaderMasterAddress = mMasterProcess.getRpcAddress();
-      MasterInfo leaderMasterInfo = new MasterInfo(MASTER_ID_NULL,
-              new Address(leaderMasterAddress.getHostString(), leaderMasterAddress.getPort()),
-              System.currentTimeMillis());
-      response.setLeaderMasterInfo(leaderMasterInfo);
-      return response;
-    }, Configuration.global());
+    return RestUtils.call(() -> new MasterWebUIMasters()
+        .setDebug(Configuration.getBoolean(PropertyKey.DEBUG))
+        .setLostMasterInfos(mMetaMaster.getLostMasterInfos())
+        .setStandbyMasterInfos(mMetaMaster.getStandbyMasterInfos())
+        .setPrimaryMasterInfo(new MasterInfo(MASTER_ID_NULL, mMetaMaster.getMasterAddress())
+            .setLastUpdatedTimeMs(System.currentTimeMillis())
+            .setStartTimeMs(mMasterProcess.getStartTimeMs())
+            .setGainPrimacyTimeMs(lastGainPrimacyTime)
+            .setLastCheckpointTimeMs(lastCheckpointTime)
+            .setJournalEntriesSinceCheckpoint(journalEntriesSinceCheckpoint)
+            .setVersion(ProjectConstants.VERSION)
+            .setRevision(ProjectConstants.REVISION)),
+        Configuration.global());
   }
 
   /**
@@ -958,49 +989,36 @@ public final class AlluxioMasterRestServiceHandler {
           .setMasterUnderfsCapacityFreePercentage(100 - masterUnderfsCapacityUsedPercentage);
 
       // cluster read size
-      Long bytesReadLocal = counters.get(
-          MetricKey.CLUSTER_BYTES_READ_LOCAL.getName()).getCount();
       Long bytesReadRemote = counters.get(
           MetricKey.CLUSTER_BYTES_READ_REMOTE.getName()).getCount();
       Long bytesReadDomainSocket = counters.get(
           MetricKey.CLUSTER_BYTES_READ_DOMAIN.getName()).getCount();
       Long bytesReadUfs = counters.get(
           MetricKey.CLUSTER_BYTES_READ_UFS_ALL.getName()).getCount();
-      response.setTotalBytesReadLocal(FormatUtils.getSizeFromBytes(bytesReadLocal))
-          .setTotalBytesReadDomainSocket(FormatUtils.getSizeFromBytes(bytesReadDomainSocket))
-          .setTotalBytesReadRemote(FormatUtils.getSizeFromBytes(bytesReadRemote))
-          .setTotalBytesReadUfs(FormatUtils.getSizeFromBytes(bytesReadUfs));
 
       // cluster cache hit and miss
-      long bytesReadTotal = bytesReadLocal + bytesReadRemote + bytesReadDomainSocket;
-      double cacheHitLocalPercentage =
+      long bytesReadTotal = bytesReadRemote + bytesReadDomainSocket + bytesReadUfs;
+      double cacheHitPercentage =
           (bytesReadTotal > 0)
-              ? (100D * (bytesReadLocal + bytesReadDomainSocket) / bytesReadTotal) : 0;
-      double cacheHitRemotePercentage =
-          (bytesReadTotal > 0) ? (100D * (bytesReadRemote - bytesReadUfs) / bytesReadTotal) : 0;
+              ? (100D * (bytesReadRemote + bytesReadDomainSocket) / bytesReadTotal) : 0;
       double cacheMissPercentage =
           (bytesReadTotal > 0) ? (100D * bytesReadUfs / bytesReadTotal) : 0;
-      response.setCacheHitLocal(String.format("%.2f", cacheHitLocalPercentage))
-          .setCacheHitRemote(String.format("%.2f", cacheHitRemotePercentage))
+      response.setCacheHit(String.format("%.2f", cacheHitPercentage))
           .setCacheMiss(String.format("%.2f", cacheMissPercentage));
 
       // cluster write size
-      Long bytesWrittenLocal = counters
-          .get(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL.getName()).getCount();
       Long bytesWrittenAlluxio = counters
           .get(MetricKey.CLUSTER_BYTES_WRITTEN_REMOTE.getName()).getCount();
       Long bytesWrittenDomainSocket = counters.get(
           MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN.getName()).getCount();
       Long bytesWrittenUfs = counters
           .get(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_ALL.getName()).getCount();
-      response.setTotalBytesWrittenLocal(FormatUtils.getSizeFromBytes(bytesWrittenLocal))
+      response
           .setTotalBytesWrittenRemote(FormatUtils.getSizeFromBytes(bytesWrittenAlluxio))
           .setTotalBytesWrittenDomainSocket(FormatUtils.getSizeFromBytes(bytesWrittenDomainSocket))
           .setTotalBytesWrittenUfs(FormatUtils.getSizeFromBytes(bytesWrittenUfs));
 
       // cluster read throughput
-      Long bytesReadLocalThroughput = (Long) gauges.get(
-          MetricKey.CLUSTER_BYTES_READ_LOCAL_THROUGHPUT.getName()).getValue();
       Long bytesReadDomainSocketThroughput = (Long) gauges
           .get(MetricKey.CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT.getName()).getValue();
       Long bytesReadRemoteThroughput = (Long) gauges
@@ -1008,7 +1026,6 @@ public final class AlluxioMasterRestServiceHandler {
       Long bytesReadUfsThroughput = (Long) gauges
           .get(MetricKey.CLUSTER_BYTES_READ_UFS_THROUGHPUT.getName()).getValue();
       response
-          .setTotalBytesReadLocalThroughput(FormatUtils.getSizeFromBytes(bytesReadLocalThroughput))
           .setTotalBytesReadDomainSocketThroughput(
               FormatUtils.getSizeFromBytes(bytesReadDomainSocketThroughput))
           .setTotalBytesReadRemoteThroughput(
@@ -1016,17 +1033,13 @@ public final class AlluxioMasterRestServiceHandler {
           .setTotalBytesReadUfsThroughput(FormatUtils.getSizeFromBytes(bytesReadUfsThroughput));
 
       // cluster write throughput
-      Long bytesWrittenLocalThroughput = (Long) gauges
-          .get(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT.getName())
-          .getValue();
       Long bytesWrittenAlluxioThroughput = (Long) gauges
           .get(MetricKey.CLUSTER_BYTES_WRITTEN_REMOTE_THROUGHPUT.getName()).getValue();
       Long bytesWrittenDomainSocketThroughput = (Long) gauges.get(
           MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName()).getValue();
       Long bytesWrittenUfsThroughput = (Long) gauges
           .get(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_THROUGHPUT.getName()).getValue();
-      response.setTotalBytesWrittenLocalThroughput(
-              FormatUtils.getSizeFromBytes(bytesWrittenLocalThroughput))
+      response
           .setTotalBytesWrittenRemoteThroughput(
               FormatUtils.getSizeFromBytes(bytesWrittenAlluxioThroughput))
           .setTotalBytesWrittenDomainSocketThroughput(

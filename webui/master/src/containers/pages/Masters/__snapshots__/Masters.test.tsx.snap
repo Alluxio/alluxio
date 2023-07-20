@@ -14,7 +14,7 @@ exports[`Masters Shallow component Matches snapshot 1`] = `
         className="col-12"
       >
         <h5>
-          Leader Master
+          Primary Master
         </h5>
         <Table
           hover={true}
@@ -24,10 +24,28 @@ exports[`Masters Shallow component Matches snapshot 1`] = `
           <thead>
             <tr>
               <th>
-                Master Host
+                Host
               </th>
               <th>
-                Master Port
+                Port
+              </th>
+              <th>
+                Elected
+              </th>
+              <th>
+                Started
+              </th>
+              <th>
+                Last Checkpoint
+              </th>
+              <th>
+                Journal Entries
+              </th>
+              <th>
+                Version
+              </th>
+              <th>
+                Revision
               </th>
             </tr>
           </thead>
@@ -37,6 +55,14 @@ exports[`Masters Shallow component Matches snapshot 1`] = `
               <td>
                 0
               </td>
+              <td />
+              <td />
+              <td />
+              <td>
+                0
+              </td>
+              <td />
+              <td />
             </tr>
           </tbody>
         </Table>
@@ -59,13 +85,31 @@ exports[`Masters Shallow component Matches snapshot 1`] = `
           <thead>
             <tr>
               <th>
-                Master Host
+                Host
               </th>
               <th>
-                Master Port
+                Port
               </th>
               <th>
                 Last Heartbeat
+              </th>
+              <th>
+                Started
+              </th>
+              <th>
+                Step-down Time
+              </th>
+              <th>
+                Last Checkpoint
+              </th>
+              <th>
+                Journal Entries
+              </th>
+              <th>
+                Version
+              </th>
+              <th>
+                Revision
               </th>
             </tr>
           </thead>
@@ -90,13 +134,31 @@ exports[`Masters Shallow component Matches snapshot 1`] = `
           <thead>
             <tr>
               <th>
-                Master Host
+                Host
               </th>
               <th>
-                Master Port
+                Port
               </th>
               <th>
                 Last Heartbeat
+              </th>
+              <th>
+                Started
+              </th>
+              <th>
+                Step-down Time
+              </th>
+              <th>
+                Last Checkpoint
+              </th>
+              <th>
+                Journal Entries
+              </th>
+              <th>
+                Version
+              </th>
+              <th>
+                Revision
               </th>
             </tr>
           </thead>

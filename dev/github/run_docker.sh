@@ -23,7 +23,7 @@ function main {
   fi
   if [ -z "${ALLUXIO_DOCKER_IMAGE}" ]
   then
-    ALLUXIO_DOCKER_IMAGE="alluxio/alluxio-maven:0.1.1-jdk11"
+    ALLUXIO_DOCKER_IMAGE="alluxio/alluxio-maven:0.1.3-jdk8"
   fi
 
   local run_args="--rm"

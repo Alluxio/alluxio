@@ -88,6 +88,7 @@ message CompleteFilePRequest {
   /** the path of the file */
   optional string path = 1;
   optional CompleteFilePOptions options = 2;
+  optional string uuid = 3;
 }
 
 message OpenFilePOptions {
@@ -95,6 +96,11 @@ message OpenFilePOptions {
   optional int32 maxUfsReadConcurrency = 2;
   optional FileSystemMasterCommonPOptions commonOptions = 3;
   optional bool updateLastAccessTime = 4 [default = true];
+  // If specified and the blocks are not cached in any worker,
+  // the data will be read and cached to the certain worker.
+  // If the blocks have been cached in some alluxio workers,
+  // this field will be ignored.
+  optional grpc.WorkerNetAddress ufsReadWorkerLocation = 15;
 }
 
 // XAttrPropagationStrategy controls the behaviour for assigning xAttr
@@ -115,6 +121,7 @@ message CreateDirectoryPOptions {
   optional FileSystemMasterCommonPOptions commonOptions = 5;
   map<string, bytes> xattr = 6;
   optional XAttrPropagationStrategy xattrPropStrat = 7 [default = NEW_PATHS];
+  optional bool checkS3BucketPath = 8;
 }
 message CreateDirectoryPRequest {
   /** the path of the directory */
@@ -124,6 +131,8 @@ message CreateDirectoryPRequest {
 
 message CreateFilePResponse {
   optional FileInfo fileInfo = 1;
+  /** uuid of its open file handle */
+  optional string uuid = 2;
 }
 message CreateFilePOptions {
   optional int64 blockSizeBytes = 1;
@@ -156,6 +165,7 @@ message DeletePOptions {
   optional bool alluxioOnly = 2;
   optional bool unchecked = 3;
   optional FileSystemMasterCommonPOptions commonOptions = 4;
+  optional bool syncParentNextTime = 5;
   optional bool deleteMountPoint = 6;
 }
 message DeletePRequest {
@@ -242,6 +252,11 @@ message ListStatusPOptions {
   // being loaded. It is recommended to set this to true after the first call of a
   // recursive partial listing.
   optional bool disableAreDescendantsLoadedCheck = 6;
+  // Mount info will be excluded from the list status response if this field is set to true.
+  // Resolving a path and obtain the mount info is an expensive operation.
+  // For clients that do not need this information such as hadoop-compatible clients,
+  // excluding mount info improves the endpoint performance.
+  optional bool excludeMountInfo = 7;
 }
 message ListStatusPRequest {
   /** the path of the file or directory */
@@ -385,6 +400,8 @@ message FileInfo {
   optional int64 lastAccessTimeMs = 31;
   map<string, bytes> xattr = 32;
   repeated string mediumType = 33;
+  optional string contentHash = 34;
+  optional string ufsType = 35;
 }
 
 message GetFilePathPResponse {
@@ -470,7 +487,12 @@ message ReverseResolvePRequest {
 message ReverseResolvePResponse {
   optional string alluxioPath = 1;
 }
-
+message GetMountIdPRequest {
+  required string ufsUri = 1;
+}
+message GetMountIdPResponse {
+  required int64 mountId = 1;
+}
 
 message SetAttributePResponse {}
 message SetAttributePOptions {
@@ -486,6 +508,7 @@ message SetAttributePOptions {
   repeated string pinnedMedia = 10;
   map<string, bytes> xattr = 11;
   optional alluxio.proto.journal.XAttrUpdateStrategy xattrUpdateStrategy = 12;
+  optional bool directChildrenLoaded = 13;
 }
 message SetAttributePRequest {
   /** the path of the file */
@@ -610,6 +633,7 @@ message LoadJobPOptions {
   optional int64 bandwidth = 1;
   optional bool verify = 2;
   optional bool partialListing = 3;
+  optional bool loadMetadataOnly = 4;
 }
 
 message CopyJobPOptions {
@@ -618,7 +642,16 @@ message CopyJobPOptions {
   optional bool partialListing = 3;
   optional bool overwrite = 4;
   optional WritePType writeType = 5;
-  optional bool ufs_only = 6;
+  optional bool check_content = 6;
+}
+
+message MoveJobPOptions {
+  optional int64 bandwidth = 1;
+  optional bool verify = 2;
+  optional bool partialListing = 3;
+  optional bool overwrite = 4;
+  optional WritePType writeType = 5;
+  optional bool check_content = 6;
 }
 
 message StopJobPRequest {
@@ -755,6 +788,11 @@ service FileSystemMasterClientService {
   rpc ReverseResolve(ReverseResolvePRequest) returns (ReverseResolvePResponse);
 
   /**
+   * Reverse resolve a ufs path and get mount id.
+   */
+  rpc GetMountId(GetMountIdPRequest) returns (GetMountIdPResponse);
+
+  /**
    * Schedules async persistence.
    */
   rpc ScheduleAsyncPersistence(ScheduleAsyncPersistencePRequest) returns (ScheduleAsyncPersistencePResponse);
@@ -878,6 +916,11 @@ service FileSystemMasterWorkerService {
    * Returns the UFS information for the given mount point identified by its id.
    **/
   rpc GetUfsInfo(GetUfsInfoPRequest) returns (GetUfsInfoPResponse);
+
+  /**
+   * Reverse resolve a ufs path and get mount id.
+   */
+  rpc GetMountId(GetMountIdPRequest) returns (GetMountIdPResponse);
 }
 
 /**

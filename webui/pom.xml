@@ -15,10 +15,10 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-parent</artifactId>
-    <version>295-SNAPSHOT</version>
+    <version>302-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-webui</artifactId>
-  <version>295-SNAPSHOT</version>
+  <version>302-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Alluxio UI</name>
   <description>Alluxio web UI pom</description>
@@ -165,15 +165,19 @@
           <mapping>
             <ts>PHP_STYLE</ts>
           </mapping>
-          <excludes>
-            <exclude>**/node_modules/**</exclude>
-            <exclude>node/**</exclude>
-            <exclude>**/build/**</exclude>
-            <exclude>**/*.snap</exclude>
-            <exclude>**/coverage/**</exclude>
-            <!-- auto-generated css -->
-            <exclude>**/*.css</exclude>
-          </excludes>
+          <licenseSets>
+            <licenseSet>
+              <excludes>
+                <exclude>**/node_modules/**</exclude>
+                <exclude>node/**</exclude>
+                <exclude>**/build/**</exclude>
+                <exclude>**/*.snap</exclude>
+                <exclude>**/coverage/**</exclude>
+                <!-- auto-generated css -->
+                <exclude>**/*.css</exclude>
+              </excludes>
+            </licenseSet>
+          </licenseSets>
         </configuration>
       </plugin>
     </plugins>

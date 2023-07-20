@@ -27,7 +27,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
-import alluxio.underfs.options.GetFileStatusOptions;
+import alluxio.underfs.options.GetStatusOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.UnderFileSystemUtils;
@@ -37,6 +37,10 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.base.Strings;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
+import com.google.common.io.BaseEncoding;
+import com.google.common.io.ByteSource;
 import com.google.common.io.ByteStreams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -227,7 +231,7 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   @Override
-  public UfsFileStatus getFileStatus(String path, GetFileStatusOptions options) throws IOException {
+  public UfsFileStatus getFileStatus(String path, GetStatusOptions options) throws IOException {
     String tpath = stripPath(path);
     File file = new File(tpath);
     try {
@@ -236,8 +240,7 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
       if (attr.isDirectory()) {
         throw new IOException(String.format("path %s is not a file", path));
       }
-      String contentHash =
-          UnderFileSystemUtils.approximateContentHash(file.length(), file.lastModified());
+      String contentHash = getContentHash(options.isIncludeRealContentHash(), file);
       return new UfsFileStatus(path, contentHash, file.length(), file.lastModified(),
           attr.owner().getName(), attr.group().getName(),
           FileUtils.translatePosixPermissionToMode(attr.permissions()),
@@ -264,7 +267,7 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   @Override
-  public UfsStatus getStatus(String path) throws IOException {
+  public UfsStatus getStatus(String path, GetStatusOptions options) throws IOException {
     String tpath = stripPath(path);
     File file = new File(tpath);
     try {
@@ -272,8 +275,7 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
           Files.readAttributes(Paths.get(file.getPath()), PosixFileAttributes.class);
       if (file.isFile()) {
         // Return file status.
-        String contentHash =
-            UnderFileSystemUtils.approximateContentHash(file.length(), file.lastModified());
+        String contentHash = getContentHash(options.isIncludeRealContentHash(), file);
         return new UfsFileStatus(path, contentHash, file.length(), file.lastModified(),
             attr.owner().getName(), attr.group().getName(),
             FileUtils.translatePosixPermissionToMode(attr.permissions()),
@@ -285,6 +287,20 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
     } catch (FileSystemException e) {
       throw new FileNotFoundException(e.getMessage());
     }
+  }
+
+  private static String getContentHash(boolean isRealContentHash, File file) throws IOException {
+    String contentHash;
+    if (isRealContentHash) {
+      ByteSource byteSource = com.google.common.io.Files.asByteSource(file);
+      HashCode hashCode = byteSource.hash(Hashing.md5());
+      contentHash = BaseEncoding.base64().encode(hashCode.asBytes());
+    }
+    else {
+      contentHash =
+          UnderFileSystemUtils.approximateContentHash(file.length(), file.lastModified());
+    }
+    return contentHash;
   }
 
   @Override

@@ -16,6 +16,7 @@ import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.CacheUsage;
 import alluxio.client.file.cache.PageId;
 import alluxio.file.ReadTargetBuffer;
+import alluxio.network.protocol.databuffer.DataFileChannel;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -37,6 +38,11 @@ class ByteArrayCacheManager implements CacheManager {
 
   ByteArrayCacheManager() {
     mPages = new HashMap<>();
+  }
+
+  @Override
+  public void commitFile(String fileId) {
+    throw new UnsupportedOperationException("commitFile method is unsupported. ");
   }
 
   @Override
@@ -93,8 +99,24 @@ class ByteArrayCacheManager implements CacheManager {
   }
 
   @Override
+  public void deleteFile(String fileId) {
+    mPages.keySet().removeIf(pageId -> pageId.getFileId().equals(fileId));
+  }
+
+  @Override
+  public void deleteTempFile(String fileId) {
+    mPages.keySet().removeIf(pageId -> pageId.getFileId().equals(fileId));
+  }
+
+  @Override
   public Optional<CacheUsage> getUsage() {
     return Optional.of(new Usage());
+  }
+
+  @Override
+  public Optional<DataFileChannel> getDataFileChannel(PageId pageId, int pageOffset,
+      int bytesToRead, CacheContext cacheContext) {
+    return Optional.empty();
   }
 
   class Usage implements CacheUsage {

@@ -1,13 +1,8 @@
 ---
 layout: global
 title: Troubleshooting
-nickname: Troubleshooting
-group: Administration
-priority: 1
 ---
 
-* Table of Contents
-{:toc}
 
 This page is a collection of high-level guides and tips regarding how to diagnose issues encountered in
 Alluxio.
@@ -54,8 +49,10 @@ the remote debugging parameters; you can export the following configuration prop
 # Java 8
 export ALLUXIO_MASTER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60001"
 export ALLUXIO_WORKER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60002"
-# Java 11
+```
 
+```shell
+# Java 11
 export ALLUXIO_MASTER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:60001"
 export ALLUXIO_WORKER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:60002"
 ```
@@ -77,6 +74,9 @@ If you want to debug shell commands (e.g. `bin/alluxio fs ls /`), you can set th
 ```shell
 # Java 8
 export ALLUXIO_USER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=60000"
+```
+
+```shell
 # Java 11
 export ALLUXIO_USER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:60000"
 ```
@@ -161,7 +161,7 @@ like `-Daws.access.key=XXX`, DO NOT share the collected tarball with anybody unl
 
 The `collectInfo` command has the below options.
 
-```console
+```shell
 $ bin/alluxio collectInfo 
     [--max-threads <threadNum>] 
     [--local] 
@@ -289,7 +289,7 @@ resource usage which is used to decide the system status.
 
 Each PIT includes the following metrics.
 
-```console
+```
 directMemUsed=5268082, heapMax=59846950912, heapUsed=53165684872, cpuLoad=0.4453061982287778, pitTotalJVMPauseTimeMS=190107, totalJVMPauseTimeMS=0, rpcQueueSize=0, pitTimeMS=1665995384998}
 ```
 
@@ -305,10 +305,10 @@ directMemUsed=5268082, heapMax=59846950912, heapUsed=53165684872, cpuLoad=0.4453
 The aggregated server indicators are the certain number of continuous PITs, this one is generated in a sliding window. The alluxio
 master has a derived indicator `Master.system.status` that is based on the heuristic algorithm.
 
-```console
-    "Master.system.status" : {
-      "value" : "STRESSED"
-    }
+```
+"Master.system.status" : {
+  "value" : "STRESSED"
+}
 ```
 
 The possible statuses are: 
@@ -327,240 +327,21 @@ The system status is mainly decided by the JVM pause time and the free heap memo
 
 The thresholds are
 ```properties
-// JVM paused time
+# JVM paused time
 alluxio.master.throttle.overloaded.heap.gc.time
+```
 
-// heap used thresholds
+```properties
+# heap used thresholds
 alluxio.master.throttle.active.heap.used.ratio
 alluxio.master.throttle.stressed.heap.used.ratio
 alluxio.master.throttle.overloaded.heap.used.ratio
 ```
 
 If the system status is `STRESSED` or `OVERLOADED`, `WARN` level log would be printed containing the following the filesystem indicators:
-```console
+```
 2022-10-17 08:29:41,998 WARN  SystemMonitor - System transition status is UNCHANGED, status is STRESSED, related Server aggregate indicators:ServerIndicator{directMemUsed=15804246, heapMax=58686177280, heapUsed=157767176816, cpuLoad=1.335918594686334, pitTotalJVMPauseTimeMS=62455, totalJVMPauseTimeMS=6, rpcQueueSize=0, pitTimeMS=1665989354196}, pit indicators:ServerIndicator{directMemUsed=5268082, heapMax=59846950912, heapUsed=48601091600, cpuLoad=0.4453061982287778, pitTotalJVMPauseTimeMS=190107, totalJVMPauseTimeMS=0, rpcQueueSize=0, pitTimeMS=1665995381998}
 2022-10-17 08:29:41,998 WARN  SystemMonitor - The delta filesystem indicators FileSystemIndicator{Master.DeletePathOps=0, Master.PathsDeleted=0, Master.MetadataSyncPathsFail=0, Master.CreateFileOps=0, Master.ListingCacheHits=0, Master.MetadataSyncSkipped=3376, Master.UfsStatusCacheSize=0, Master.CreateDirectoryOps=0, Master.FileBlockInfosGot=0, Master.MetadataSyncPrefetchFail=0, Master.FilesCompleted=0, Master.RenamePathOps=0, Master.MetadataSyncSuccess=0, Master.MetadataSyncActivePaths=0, Master.FilesCreated=0, Master.PathsRenamed=0, Master.FilesPersisted=658, Master.CompletedOperationRetryCount=0, Master.ListingCacheEvictions=0, Master.MetadataSyncTimeMs=0, Master.SetAclOps=0, Master.PathsMounted=0, Master.FreeFileOps=0, Master.PathsUnmounted=0, Master.CompleteFileOps=0, Master.NewBlocksGot=0, Master.GetNewBlockOps=0, Master.ListingCacheMisses=0, Master.FileInfosGot=3376, Master.GetFileInfoOps=3376, Master.GetFileBlockInfoOps=0, Master.UnmountOps=0, Master.MetadataSyncPrefetchPaths=0, Master.getConfigHashInProgress=0, Master.MetadataSyncPathsSuccess=0, Master.FilesFreed=0, Master.MetadataSyncNoChange=0, Master.SetAttributeOps=0, Master.getConfigurationInProgress=0, Master.MetadataSyncPendingPaths=0, Master.DirectoriesCreated=0, Master.ListingCacheLoadTimes=0, Master.MetadataSyncPrefetchSuccess=0, Master.MountOps=0, Master.UfsStatusCacheChildrenSize=0, Master.MetadataSyncPrefetchOpsCount=0, Master.registerWorkerStartInProgress=0, Master.MetadataSyncPrefetchCancel=0, Master.MetadataSyncPathsCancel=0, Master.MetadataSyncPrefetchRetries=0, Master.MetadataSyncFail=0, Master.MetadataSyncOpsCount=3376}
 ```
 
 The monitoring indicators describe the system status in a heuristic way to have a basic understanding of its load.
-
-## Setup FAQ
-
-### Q: I'm new to Alluxio and cannot set up Alluxio on my local machine. What should I do?
-
-A: Check `${ALLUXIO_HOME}/logs` to see if there are any master or worker logs. Look for any errors
-in these logs. Double check if you missed any configuration
-steps in [Running-Alluxio-Locally]({{ '/en/deploy/Running-Alluxio-Locally.html' | relativize_url }}).
-
-Typical issues:
-- `ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS` is not configured correctly.
-- If running `ssh localhost` fails, make sure the public SSH key for the host is added in `~/.ssh/authorized_keys`.
-
-### Q: I'm trying to deploy Alluxio in a cluster with Spark and HDFS. Are there any suggestions?
-
-A: Please follow [Running-Alluxio-on-a-Cluster]({{ '/en/deploy/Running-Alluxio-On-a-Cluster.html' | relativize_url }}),
-[Configuring-Alluxio-with-HDFS]({{ '/en/ufs/HDFS.html' | relativize_url }}),
-and [Configuring-Spark-with-Alluxio]({{ '/en/compute/Spark.html' | relativize_url }}).
-
-Tips:
-
-- The best performance gains occur when Alluxio workers are co-located with the nodes of the computation frameworks.
-- If the under storage is remote (like S3 or remote HDFS), using Alluxio can be especially beneficial.
-
-### Q: What Java version should I use when I deploy Alluxio?
-
-A: Alluxio requires Java 8 or 11 runtime to function properly.
-You can find more details about the system requirements [here]({{ '/en/deploy/Requirements.html' | relativize_url }}).
-
-## Usage FAQ
-
-### Q: Why do I see exceptions like "No FileSystem for scheme: alluxio"?
-
-A: This error message is seen when your applications (e.g., MapReduce, Spark) try to access
-Alluxio as an HDFS-compatible file system, but the `alluxio://` scheme is not recognized by the
-application. Please make sure your HDFS configuration file `core-site.xml` (in your default hadoop
-installation or `spark/conf/` if you customize this file for Spark) has the following property:
-
-```xml
-<configuration>
-  <property>
-    <name>fs.alluxio.impl</name>
-    <value>alluxio.hadoop.FileSystem</value>
-  </property>
-</configuration>
-```
-
-See the doc page for your specific compute framework for detailed setup instructions.
-
-### Q: Why do I see exceptions like "java.lang.RuntimeException: java.lang.ClassNotFoundException: Class alluxio.hadoop.FileSystem not found"?
-
-A: This error message is seen when your applications (e.g., MapReduce, Spark) try to access
-Alluxio as an HDFS-compatible file system, the `alluxio://` scheme has been
-configured correctly, but the Alluxio client jar is not found on the classpath of your application.
-Depending on the computation frameworks, users usually need to add the Alluxio
-client jar to their class path of the framework through environment variables or
-properties on all nodes running this framework. Here are some examples:
-
-- For MapReduce jobs, you can append the client jar to `$HADOOP_CLASSPATH`:
-
-```console
-$ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
-```
-See [MapReduce on Alluxio]({{ '/en/compute/Hadoop-MapReduce.html' | relativize_url }}) for more details.
-
-- For Spark jobs, you can append the client jar to `$SPARK_CLASSPATH`:
-
-```console
-$ export SPARK_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${SPARK_CLASSPATH}
-```
-See [Spark on Alluxio]({{ '/en/compute/Spark.html' | relativize_url }}) for more details.
-
-Alternatively, add the following lines to `spark/conf/spark-defaults.conf`:
-
-```
-spark.driver.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
-spark.executor.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
-```
-
-- For Presto, put Alluxio client jar `{{site.ALLUXIO_CLIENT_JAR_PATH}}` into the directory
-`${PRESTO_HOME}/plugin/hive-hadoop2/`
-Since Presto has long running processes, ensure they are restarted after the jar has been added.
-See [Presto on Alluxio]({{ '/en/compute/Presto.html' | relativize_url }}) for more details.
-
-- For Hive, set `HIVE_AUX_JARS_PATH` in `conf/hive-env.sh`:
-
-```console
-$ export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
-```
-Since Hive has long running processes, ensure they are restarted after the jar has been added.
-
-If the corresponding classpath has been set but exceptions still exist, users can check
-whether the path is valid by:
-
-```console
-$ ls {{site.ALLUXIO_CLIENT_JAR_PATH}}
-```
-See [Hive on Alluxio]({{ '/en/compute/Hive.html' | relativize_url }}) for more details.
-
-### Q: I'm seeing error messages like "Frame size (67108864) larger than max length (16777216)". What is wrong?
-
-A: This problem can be caused by different possible reasons.
-
-- Please double check if the port of Alluxio master address is correct. The default listening port for Alluxio master is port 19998,
-while a common mistake causing this error message is due to using a wrong port in master address (e.g., using port 19999 which is the default Web UI port for Alluxio master).
-- Please ensure that the security settings of Alluxio client and master are consistent.
-Alluxio provides different approaches to [authenticate]({{ '/en/security/Security.html' | relativize_url }}#authentication) users by configuring `alluxio.security.authentication.type`.
-This error happens if this property is configured with different values across servers and clients
-(e.g., one uses the default value `NOSASL` while the other is customized to `SIMPLE`).
-Please read [Configuration-Settings]({{ '/en/operation/Configuration.html' | relativize_url }}) for how to customize Alluxio clusters and applications.
-
-### Q: I'm copying or writing data to Alluxio while seeing error messages like "Failed to cache: Not enough space to store block on worker". Why?
-
-A: This error indicates insufficient space left on Alluxio workers to complete your write request.
-This is either because the worker fails to evict enough space or the block size is too large to fit in any of the worker's storage directories.
-
-- Check if you have any files unnecessarily pinned in memory and unpin them to release space.
-See [Command-Line-Interface]({{ '/en/operation/User-CLI.html#pin' | relativize_url }}) for more details.
-- Increase the capacity of workers by updating the
-[worker tier storage configurations]({{ '/en/core-services/Caching.html#configuring-alluxio-storage' | relativize_url }}).
-
-### Q: I'm writing a new file/directory to Alluxio and seeing journal errors in my application
-
-A: First you should check if you are running Alluxio with UFS journal or Embedded journal.
-See the difference [here]({{ '/en/operation/Journal.html#embedded-journal-vs-ufs-journal' | relativize_url }}).
-
-Also you should verify that the journal you are using is compatible with the current configuration.
-There are a few scenarios where the journal compatibility is not guaranteed and you need to either
-[restore from a backup]({{ '/en/operation/Journal.html#restoring-from-a-backup' | relativize_url }}) or
-[format the journal]({{ '/en/operation/Journal.html#formatting-the-journal' | relativize_url }}):
-
-1. Alluxio 2.X is not compatible with 1.X journals.
-1. UFS journal and embedded journal files are not compatible.
-1. Journals for `ROCKS` and `HEAP` metastore are not compatible.
-
-If you are using UFS journal and see errors like "Failed to replace a bad datanode on the existing pipeline due to no more good datanodes being available to try",
-it is because Alluxio master failed to update journal files stored in a HDFS directory according to
-the property `alluxio.master.journal.folder` setting. There can be multiple reasons for this type of errors, typically because
-some HDFS datanodes serving the journal files are under heavy load or running out of disk space. Please ensure the
-HDFS deployment is connected and healthy for Alluxio to store journals when the journal directory is set to be in HDFS.
-
-If you do not find the answer above, please post a question following [here](#posting-questions).
-
-### Q: I added some files in under file system. How can I reveal the files in Alluxio?
-
-A: By default, Alluxio loads the list of files the first time a directory is visited.
-Alluxio will keep using the cached file list regardless of the changes in the under file system.
-To reveal new files from under file system, you can use the command
-`alluxio fs ls -R -Dalluxio.user.file.metadata.sync.interval=${SOME_INTERVAL} /path` or by setting the same
-configuration property in masters' `alluxio-site.properties`.
-The value for the configuration property is used to determine the minimum interval between two syncs.
-You can read more about metadata sync from under file systems
-[here]({{ '/en/core-services/Unified-Namespace.html' | relativize_url }}#ufs-metadata-sync).
-
-### Q: I see an error "Block ?????? is unavailable in both Alluxio and UFS" while reading some file. Where is my file?
-
-A: When writing files to Alluxio, one of the several write type can be used to tell Alluxio worker how the data should be stored:
-
-`MUST_CACHE`: data will be stored in Alluxio only
-
-`CACHE_THROUGH`: data will be cached in Alluxio as well as written to UFS
-
-`THROUGH`: data will be only written to UFS
-
-`ASYNC_THROUGH`: data will be stored in Alluxio synchronously and then written to UFS asynchronously
-
-By default the write type used by Alluxio client is `ASYNC_THROUGH`, therefore a new file written to Alluxio is only stored in Alluxio
-worker storage, and can be lost if a worker crashes. To make sure data is persisted, either use `CACHE_THROUGH` or `THROUGH` write type,
-or increase `alluxio.user.file.replication.durable` to an acceptable degree of redundancy.
-
-Another possible cause for this error is that the block exists in the file system, but no worker has connected to master. In that
-case the error will go away once at least one worker containing this block is connected.
-
-### Q: I'm running an Alluxio shell command and it hangs without giving any output. What's going on?
-
-A: Most Alluxio shell commands require connecting to Alluxio master to execute. If the command fails to connect to master it will
-keep retrying several times, appearing as "hanging" for a long time. It is also possible that some command can take a long time to
-execute, such as persisting a large file on a slow UFS. If you want to know what happens under the hood, check the user log (stored
-as `${ALLUXIO_HOME}/logs/user_${USER_NAME}.log` by default) or master log (stored as `${ALLUXIO_HOME}/logs/master.log` on the master
-node by default).
-
-If the logs are not sufficient to reveal the problem, you can [enable more verbose logging]({{ '/en/administration/Basic-Logging.html#enabling-advanced-logging' | relativize_url }}).
-
-### Q: I'm getting unknown gRPC errors like "io.grpc.StatusRuntimeException: UNKNOWN"
-
-A: One possible cause is the RPC request is not recognized by the server side.
-This typically happens when you are running the Alluxio client and master/worker with different versions where the RPCs are incompatible.
-Please double check and make sure all components are running the same Alluxio version.
-
-If you do not find the answer above, please post a question following [here](#posting-questions).
-
-## Performance FAQ
-
-### Q: I tested Alluxio/Spark against HDFS/Spark (running simple word count of GBs of files). Why is there no discernible performance difference?
-
-A: Alluxio accelerates your system performance by leveraging temporal or spatial locality using distributed in-memory storage
-(and tiered storage). If your workloads don't have any locality, you will not see noticeable performance boost.
-
-**For a comprehensive guide on tuning performance of Alluxio cluster, please check out [this page]({{ '/en/administration/Performance-Tuning.html' | relativize_url }}).**
-
-## Environment
-
-Alluxio can be configured under a variety of modes, in different production environments.
-Please make sure the Alluxio version being deployed is update-to-date and supported.
-
-## Posting Questions
-
-It is highly recommended searching if your questions have been answered and problem have been resolved already.
-Past Github issues and Slack chat histories are both very good sources. 
-
-When posting questions on the [Github issues](https://github.com/Alluxio/alluxio/issues)
-or [Slack channel](https://alluxio.io/slack), please attach the full environment information, including
-- Alluxio version
-- OS version
-- Java version
-- UnderFileSystem type and version
-- Computing framework type and version
-- Cluster information, e.g. the number of nodes, memory size in each node, intra-datacenter or cross-datacenter
-- Relevant Alluxio configurations like `alluxio-site.properties` and `alluxio-env.sh`
-- Relevant Alluxio logs and logs from compute/storage engines
-- If you face a problem, please try to include clear steps to reproduce it

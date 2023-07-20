@@ -56,7 +56,7 @@ public final class CopyFromLocalCommand extends AbstractFileSystemCommand {
           conf.get(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY),
           PropertyKey.USER_FILE_COPYFROMLOCAL_BLOCK_LOCATION_POLICY.getName()));
     }
-    FileSystemContext updatedCtx = FileSystemContext.create(conf);
+    FileSystemContext updatedCtx = FileSystemContext.sFileSystemContextFactory.create(conf);
     mFsContext = updatedCtx;
     mFileSystem = FileSystem.Factory.create(updatedCtx);
     mCpCommand = new CpCommand(updatedCtx);

@@ -1,0 +1,468 @@
+alluxio.master.audit.logging.enabled:
+  'Set to true to enable file system master audit.'
+alluxio.master.audit.logging.queue.capacity:
+  'Capacity of the queue used by audit logging.'
+alluxio.master.backup.abandon.timeout:
+  'Duration after which leader will abandon the backup if it has not received heartbeat from backup-worker.'
+alluxio.master.backup.connect.interval.max:
+  'Maximum delay between each connection attempt to backup-leader.'
+alluxio.master.backup.connect.interval.min:
+  'Minimum delay between each connection attempt to backup-leader.'
+alluxio.master.backup.delegation.enabled:
+  'Whether to delegate journals to standby masters in HA cluster.'
+alluxio.master.backup.directory:
+  'Default directory for writing master metadata backups. This path is an absolute path of the root UFS. For example, if the root ufs directory is hdfs://host:port/alluxio/data, the default backup directory will be hdfs://host:port/alluxio_backups.'
+alluxio.master.backup.entry.buffer.count:
+  'How many journal entries to buffer during a back-up.'
+alluxio.master.backup.heartbeat.interval:
+  'Interval at which stand-by master that is taking the backup will update the leading master with current backup status.'
+alluxio.master.backup.state.lock.exclusive.duration:
+  'Alluxio master will allow only exclusive locking of the state-lock for this duration. This duration starts after masters are started for the first time. User RPCs will fail to acquire state-lock during this phase and a backup is guaranteed take the state-lock meanwhile.'
+alluxio.master.backup.state.lock.forced.duration:
+  'Exclusive locking of the state-lock will timeout after this duration is spent on forced phase.'
+alluxio.master.backup.state.lock.interrupt.cycle.enabled:
+  'This controls whether RPCs that are waiting/holding state-lock in shared-mode will be interrupted while state-lock is taken exclusively.'
+alluxio.master.backup.state.lock.interrupt.cycle.interval:
+  'The interval at which the RPCs that are waiting/holding state-lock in shared-mode will be interrupted while state-lock is taken exclusively.'
+alluxio.master.backup.suspend.timeout:
+  'Timeout for when suspend request is not followed by a backup request.'
+alluxio.master.backup.transport.timeout:
+  'Communication timeout for messaging between masters for coordinating backup.'
+alluxio.master.bind.host:
+  'The hostname that Alluxio master binds to.'
+alluxio.master.block.scan.invalid.batch.max.size:
+  'The invalid block max batch size when the master is scanning the invalid blocks, minus number means no limit.'
+alluxio.master.container.id.reservation.size:
+  'The number of container ids to ''reserve'' before having to journal container id state. This allows the master to return container ids within the reservation, without having to write to.'
+alluxio.master.daily.backup.enabled:
+  'Whether or not to enable daily primary master metadata backup.'
+alluxio.master.daily.backup.files.retained:
+  'The maximum number of backup files to keep in the backup directory.'
+alluxio.master.daily.backup.state.lock.grace.mode:
+  'Grace mode helps taking the state-lock exclusively for backup with minimum disruption to existing RPCs. This low-impact locking phase is called grace-cycle. Two modes are supported: TIMEOUT/FORCED.TIMEOUT: Means exclusive locking will timeout if it cannot acquire the lockwith grace-cycle. FORCED: Means the state-lock will be taken forcefully if grace-cycle fails to acquire it. Forced phase might trigger interrupting of existing RPCs if it is enabled.'
+alluxio.master.daily.backup.state.lock.sleep.duration:
+  'The duration that controls how long the lock waiter sleeps within a single grace-cycle.'
+alluxio.master.daily.backup.state.lock.timeout:
+  'The max duration for a grace-cycle.'
+alluxio.master.daily.backup.state.lock.try.duration:
+  'The duration that controls how long the state-lock is tried within a single grace-cycle.'
+alluxio.master.daily.backup.time:
+  'Default UTC time for writing daily master metadata backups. The accepted time format is hour:minute which is based on a 24-hour clock (E.g., 05:30, 06:00, and 22:04). Backing up metadata requires a pause in master metadata changes, so please set this value to an off-peak time to avoid interfering with other users of the system.'
+alluxio.master.embedded.journal.addresses:
+  'A comma-separated list of journal addresses for all masters in the cluster. The format is ''hostname1:port1,hostname2:port2,...''. When left unset, Alluxio uses ${alluxio.master.hostname}:${alluxio.master.embedded.journal.port} by default'
+alluxio.master.embedded.journal.catchup.retry.wait:
+  'Time for embedded journal leader to wait before retrying a catch up. This is added to avoid excessive retries when server is not ready.'
+alluxio.master.embedded.journal.election.timeout.max:
+  'The max election timeout for the embedded journal. When a random period between ${alluxio.master.embedded.journal.election.timeout.min} and ${alluxio.master.embedded.journal.election.timeout.max} elapses without a master receiving any messages, the master will attempt to become the primary Election timeout will be waited initially when the cluster is forming. So larger values for election timeout will cause longer start-up time. Smaller values might introduce instability to leadership.'
+alluxio.master.embedded.journal.election.timeout.min:
+  'The min election timeout for the embedded journal.'
+alluxio.master.embedded.journal.entry.size.max:
+  'The maximum single journal entry size allowed to be flushed. This value should be smaller than 30MB. Set to a larger value to allow larger journal entries when using the Alluxio Catalog service.'
+alluxio.master.embedded.journal.flush.size.max:
+  'The maximum size in bytes of journal entries allowed in concurrent journal flushing (journal IO to standby masters and IO to local disks).'
+alluxio.master.embedded.journal.port:
+  'The port to use for embedded journal communication with other masters.'
+alluxio.master.embedded.journal.raft.client.request.interval:
+  'Base interval for retrying Raft client calls. The retry policy is ExponentialBackoffRetry'
+alluxio.master.embedded.journal.raft.client.request.timeout:
+  'Time after which calls made through the Raft client timeout.'
+alluxio.master.embedded.journal.ratis.config:
+  'Prefix for Apache Ratis internal configuration options. For example, setting alluxio.master.embedded.journal.ratis.config.raft.server.rpc.request.timeout will set ratis.config.raft.server.rpc.request.timeout on the Ratis service in the Alluxio master.'
+alluxio.master.embedded.journal.retry.cache.expiry.time:
+  'The time for embedded journal server retry cache to expire. Setting a bigger value allows embedded journal server to cache the responses for a longer time in case of journal writer retries, but will take up more memory in master.'
+alluxio.master.embedded.journal.snapshot.replication.chunk.size:
+  'The stream chunk size used by masters to replicate snapshots.'
+alluxio.master.embedded.journal.snapshot.replication.compression.level:
+  'The zip compression level of sending a snapshot from one master to another. Only applicable when alluxio.master.embedded.journal.snapshot.replication.compression.type is not NO_COMPRESSION. The zip format defines ten levels of compression, ranging from 0 (no compression, but very fast) to 9 (best compression, but slow). Or -1 for the system default compression level.'
+alluxio.master.embedded.journal.snapshot.replication.compression.type:
+  'The type of compression to use when transferring a snapshot from one master to another. Options are NO_COMPRESSION, GZIP, TAR_GZIP'
+alluxio.master.embedded.journal.transport.max.inbound.message.size:
+  'The maximum size of a message that can be sent to the embedded journal server node.'
+alluxio.master.embedded.journal.transport.request.timeout.ms:
+  'The duration after which embedded journal masters will timeout messages sent between each other. Lower values might cause leadership instability when the network is slow.'
+alluxio.master.embedded.journal.unsafe.flush.enabled:
+  'If true, embedded journal entries will be committed without waiting for the entry to be flushed to disk. This may improve performance of write operations on the Alluxio master if the journal is written to a slow or contested disk. WARNING: enabling this property may result in metadata loss if half or more of the master nodes fail. See Ratis property raft.server.log.unsafe-flush.enabled at https://github.com/apache/ratis/blob/master/ratis-docs/src/site/markdown/configuraions.md.'
+alluxio.master.embedded.journal.write.timeout:
+  'Maximum time to wait for a write/flush on embedded journal.'
+alluxio.master.failover.collect.info:
+  'If true, the primary master will persist metrics and jstack into the log folder when it transitions to standby. '
+alluxio.master.file.access.time.journal.flush.interval:
+  'The minimum interval between files access time update journal entries get flushed asynchronously. Setting it to a non-positive value will make the the journal update synchronous. Asynchronous update reduces the performance impact of tracking access time but can lose some access time update when master stops unexpectedly.'
+alluxio.master.file.access.time.update.precision:
+  'The file last access time is precise up to this value. Setting it toa non-positive value will update last access time on every file access operation.Longer precision will help reduce the performance impact of tracking access time by reduce the amount of metadata writes occur while reading the same group of files repetitively.'
+alluxio.master.file.access.time.updater.enabled:
+  'If enabled, file access time updater will update the file last access time when an inode is accessed. This property can be turned off to improve performance and reduce the number of journal entries if your application does not rely on the file access time metadata.'
+alluxio.master.file.access.time.updater.shutdown.timeout:
+  'Maximum time to wait for access updater to stop on shutdown.'
+alluxio.master.filesystem.liststatus.result.message.length:
+  'Count of items on each list-status response message.'
+alluxio.master.filesystem.merge.inode.journals:
+  'If enabled, the file system master inode related journalswill be merged and submitted BEFORE the inode path lock is released. Due to the performance consideration, this will not apply to the metadata sync, where journals are still flushed asynchronously.'
+alluxio.master.filesystem.operation.retry.cache.enabled:
+  'If enabled, each filesystem operation will be tracked on all masters, in order to avoid re-execution of client retries.'
+alluxio.master.filesystem.operation.retry.cache.size:
+  'Size of fs operation retry cache.'
+alluxio.master.format.file.prefix:
+  'The file prefix of the file generated in the journal directory when the journal is formatted. The master will search for a file with this prefix when determining if the journal is formatted.'
+alluxio.master.heartbeat.timeout:
+  'Timeout between leader master and standby master indicating a lost master.'
+alluxio.master.hostname:
+  'The hostname of Alluxio master.'
+alluxio.master.journal.backup.when.corrupted:
+  'Takes a backup automatically when encountering journal corruption'
+alluxio.master.journal.catchup.protect.enabled:
+  '(Experimental) make sure the journal catchup finish before joining the quorum in fault tolerant mode when starting the master process and before the current master becoming the leader.This is added to prevent frequently leadership transition during heavy journal catchup stage. Catchup is only implemented in ufs journal with Zookeeper.'
+alluxio.master.journal.checkpoint.period.entries:
+  'The number of journal entries to write before creating a new journal checkpoint.'
+alluxio.master.journal.exit.on.demotion:
+  '(Experimental) When this flag is set to true, the master process may start as the primary or standby in a quorum, but at any point in time after becoming a primary it is demoted to standby, the process will shut down. This leaves the responsibility of restarting the master to re-join the quorum (e.g. in case of a journal failure on a particular node) to an external entity such as kubernetes or systemd.'
+alluxio.master.journal.flush.batch.time:
+  'Time to wait for batching journal writes.'
+alluxio.master.journal.flush.timeout:
+  'The amount of time to keep retrying journal writes before giving up and shutting down the master.'
+alluxio.master.journal.folder:
+  'The path to store master journal logs. When using the UFS journal this could be a URI like hdfs://namenode:port/alluxio/journal. When using the embedded journal this must be a local path'
+alluxio.master.journal.gc.period:
+  'Frequency with which to scan for and delete stale journal checkpoints.'
+alluxio.master.journal.gc.threshold:
+  'Minimum age for garbage collecting checkpoints.'
+alluxio.master.journal.init.from.backup:
+  'A uri for a backup to initialize the journal from. When the master becomes primary, if it sees that its journal is freshly formatted, it will restore its state from the backup. When running multiple masters, this property must be configured on all masters since it isn''t known during startup which master will become the first primary.'
+alluxio.master.journal.local.log.compaction:
+  'Whether to employ a quorum level log compaction policy or a local (individual) log compaction policy.'
+alluxio.master.journal.log.size.bytes.max:
+  'If a log file is bigger than this value, it will rotate to next file.'
+alluxio.master.journal.request.data.timeout:
+  'Time to wait for follower to respond to request to send a new snapshot'
+alluxio.master.journal.request.info.timeout:
+  'Time to wait for follower to respond to request to get information about its latest snapshot'
+alluxio.master.journal.retry.interval:
+  'The amount of time to sleep between retrying journal flushes'
+alluxio.master.journal.space.monitor.interval:
+  'How often to check and update information on space utilization of the journal disk. This is currently only compatible with linux-basedsystems and when alluxio.master.journal.type is configured to EMBEDDED'
+alluxio.master.journal.space.monitor.percent.free.threshold:
+  'When the percent of free space on any disk which backs the journal falls below this percentage, begin logging warning messages to let administrators know the journal disk(s) may be running low on space.'
+alluxio.master.journal.tailer.shutdown.quiet.wait.time:
+  'Before the standby master shuts down its tailer thread, there should be no update to the leader master''s journal in this specified time period.'
+alluxio.master.journal.tailer.sleep.time:
+  'Time for the standby master to sleep for when it cannot find anything new in leader master''s journal.'
+alluxio.master.journal.temporary.file.gc.threshold:
+  'Minimum age for garbage collecting temporary checkpoint files.'
+alluxio.master.journal.type:
+  'The type of journal to use. Valid options are UFS (store journal in UFS), EMBEDDED (use a journal embedded in the masters), and NOOP (do not use a journal)'
+alluxio.master.journal.ufs.option:
+  'The configuration to use for the journal operations.'
+alluxio.master.jvm.monitor.enabled:
+  'Whether to enable start JVM monitor thread on the master. This will start a thread to detect JVM-wide pauses induced by GC or other reasons.'
+alluxio.master.keytab.file:
+  'Kerberos keytab file for Alluxio master.'
+alluxio.master.lock.pool.concurrency.level:
+  'Maximum concurrency level for the lock pool'
+alluxio.master.lock.pool.high.watermark:
+  'High watermark of lock pool size. When the size grows over the high watermark, a background thread starts evicting unused locks from the pool.'
+alluxio.master.lock.pool.initsize:
+  'Initial size of the lock pool for master inodes.'
+alluxio.master.lock.pool.low.watermark:
+  'Low watermark of lock pool size. When the size grows over the high watermark, a background thread will try to evict unused locks until the size reaches the low watermark.'
+alluxio.master.log.config.report.heartbeat.interval:
+  'The interval for periodically logging the configuration check report.'
+alluxio.master.lost.proxy.deletion.timeout:
+  'If an Alluxio Proxy has been lost for more than this timeout, the master will totally forget this worker.'
+alluxio.master.lost.worker.deletion.timeout:
+  'If a worker has no heartbeat with the master for more than this timeout, the master will totally forget this worker.'
+alluxio.master.lost.worker.detection.interval:
+  'The interval between Alluxio master detections to find lost workers based on updates from Alluxio workers.'
+alluxio.master.lost.worker.file.detection.interval:
+  'The interval between Alluxio master detections to find lost files based on updates from Alluxio workers.'
+alluxio.master.merge.journal.context.num.entries.logging.threshold:
+  'The logging threshold of number of journal entries which are held in a merge journal context. This log may help debug memory exhaustion issues.'
+alluxio.master.metadata.concurrent.sync.dedup:
+  'If set to true, a metadata sync request will be skipped and doesn''t trigger a UFS sync when there have already been other requests syncing the same path. The outstanding metadata sync request will wait until these syncs are done and return SyncStatus.NOT_NEED.'
+alluxio.master.metadata.sync.concurrency.level:
+  'The maximum number of concurrent sync tasks running for a given sync operation'
+alluxio.master.metadata.sync.executor.pool.size:
+  'The number of threads used to execute all metadata syncoperations'
+alluxio.master.metadata.sync.ignore.ttl:
+  'Whether files created from metadata sync will ignore the TTL from the command/path conf and have no TTL.'
+alluxio.master.metadata.sync.instrument.executor:
+  'If true the metadata sync thread pool executors will be instrumented with additional metrics.'
+alluxio.master.metadata.sync.lock.pool.concurrency.level:
+  'Maximum concurrency level for the metadata sync lock pool'
+alluxio.master.metadata.sync.lock.pool.high.watermark:
+  'High watermark of metadata sync lock pool size. When the size grows over the high watermark, a background thread starts evicting unused locks from the pool.'
+alluxio.master.metadata.sync.lock.pool.initsize:
+  'Initial size of the lock pool for master metadata sync.'
+alluxio.master.metadata.sync.lock.pool.low.watermark:
+  'Low watermark of metadata sync lock pool size. When the size grows over the high watermark, a background thread will try to evict unused locks until the size reaches the low watermark.'
+alluxio.master.metadata.sync.traversal.order:
+  'The pending Path in the Inode SyncStream traversal order, DFS consumes less memory while BFS is more fair for all concurrent sync tasks. For more description see the comments of MetadataSyncTraversalOrder.'
+alluxio.master.metadata.sync.ufs.prefetch.pool.size:
+  'The number of threads used to fetch UFS objects for all metadata syncoperations'
+alluxio.master.metadata.sync.ufs.prefetch.status:
+  'Whether or not to prefetch ufs status of children during metadata sync. Prefetching will facilitate the metadata sync process but will consume more memory to hold prefetched results.'
+alluxio.master.metadata.sync.ufs.prefetch.timeout:
+  'The timeout for a metadata fetch operation from the UFSes. Adjust this timeout according to the expected UFS worst-case response time.'
+alluxio.master.metastore:
+  'The type of metastore to use, either HEAP or ROCKS. The heap metastore keeps all metadata on-heap, while the rocks metastore stores some metadata on heap and some metadata on disk. The rocks metastore has the advantage of being able to support a large namespace (1 billion plus files) without needing a massive heap size.The metadata storage includes inode and block metadata. Users can override the type of metastore using alluxio.master.metastore.inode and alluxio.master.metastore.block. For example if alluxio.master.metastore=ROCKS but alluxio.master.metastore.inode=HEAP, then inodes are stored with HEAP and blocks are stored with ROCKS.'
+alluxio.master.metastore.block:
+  'The type of block metastore to use, either HEAP or ROCKS. By default this uses alluxio.master.metastore.'
+alluxio.master.metastore.dir:
+  'The metastore work directory. Only some metastores need disk.'
+alluxio.master.metastore.dir.block:
+  'If the metastore is ROCKS, this property controls where the RocksDB stores block metadata. This property defaults to alluxio.master.metastore.dir. And it can be used to change block metadata storage path to a different disk to improve RocksDB performance.'
+alluxio.master.metastore.dir.inode:
+  'If the metastore is ROCKS, this property controls where the RocksDB stores inode metadata. This property defaults to alluxio.master.metastore.dir. And it can be used to change inode metadata storage path to a different disk to improve RocksDB performance.'
+alluxio.master.metastore.inode:
+  'The type of inode metastore to use, either HEAP or ROCKS. By default this uses alluxio.master.metastore.'
+alluxio.master.metastore.inode.cache.evict.batch.size:
+  'The batch size for evicting entries from the inode cache.'
+alluxio.master.metastore.inode.cache.high.water.mark.ratio:
+  'The high water mark for the inode cache, as a ratio from high water mark to total cache size. If this is 0.85 and the max size is 10 million, the high water mark value is 8.5 million. When the cache reaches the high water mark, the eviction process will evict down to the low water mark.'
+alluxio.master.metastore.inode.cache.low.water.mark.ratio:
+  'The low water mark for the inode cache, as a ratio from low water mark to total cache size. If this is 0.8 and the max size is 10 million, the low water mark value is 8 million. When the cache reaches the high water mark, the eviction process will evict down to the low water mark.'
+alluxio.master.metastore.inode.cache.max.size:
+  'The number of inodes to cache on-heap. The default value is chosen based on half the amount of maximum available memory of master JVM at runtime, and the estimation that each inode takes up approximately 2 KB of memory. This only applies to off-heap metastores, e.g. ROCKS. Set this to 0 to disable the on-heap inode cache'
+alluxio.master.metastore.inode.enumerator.buffer.count:
+  'The number of entries to buffer during read-ahead enumeration.'
+alluxio.master.metastore.inode.inherit.owner.and.group:
+  'Whether to inherit the owner/group from the parent when creating a new inode path if empty'
+alluxio.master.metastore.inode.iteration.crawler.count:
+  'The number of threads used during inode tree enumeration.'
+alluxio.master.metastore.iterator.readahead.size:
+  'The read-ahead size (in bytes) for metastore iterators.'
+alluxio.master.metastore.metrics.refresh.interval:
+  'Interval with which the master refreshes and reports metastore metrics'
+alluxio.master.metastore.rocks.block.location.block.index:
+  'The block index type to be used in the RocksDB block location table. If unset, the RocksDB default will be used. See https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html'
+alluxio.master.metastore.rocks.block.location.bloom.filter:
+  'Whether or not to use a bloom filter in the Block location table in RocksDB. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter'
+alluxio.master.metastore.rocks.block.location.cache.size:
+  'The capacity in bytes of the RocksDB block location table LRU cache. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Block-Cache'
+alluxio.master.metastore.rocks.block.location.index:
+  'The index type to be used in the RocksDB block location table. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Index-Block-Format'
+alluxio.master.metastore.rocks.block.meta.block.index:
+  'The block index type to be used in the RocksDB block metadata table. If unset, the RocksDB default will be used.See https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html'
+alluxio.master.metastore.rocks.block.meta.bloom.filter:
+  'Whether or not to use a bloom filter in the Block meta table in RocksDB. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter'
+alluxio.master.metastore.rocks.block.meta.cache.size:
+  'The capacity in bytes of the RocksDB block metadata table LRU  cache. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Block-Cache'
+alluxio.master.metastore.rocks.block.meta.index:
+  'The index type to be used in the RocksDB block metadata table. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Index-Block-Format'
+alluxio.master.metastore.rocks.checkpoint.compression.type:
+  'The compression algorithm that RocksDB uses internally. One of {NO_COMPRESSION SNAPPY_COMPRESSION ZLIB_COMPRESSION BZLIB2_COMPRESSION LZ4_COMPRESSION LZ4HC_COMPRESSION XPRESS_COMPRESSION ZSTD_COMPRESSION DISABLE_COMPRESSION_OPTION}'
+alluxio.master.metastore.rocks.edge.block.index:
+  'The block index type to be used in the RocksDB inode edge table. If unset, the RocksDB default will be used. See https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html'
+alluxio.master.metastore.rocks.edge.bloom.filter:
+  'Whether or not to use a bloom filter in the Inode edge table in RocksDB. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter'
+alluxio.master.metastore.rocks.edge.cache.size:
+  'The capacity in bytes of the RocksDB Inode edge table LRU cache. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Block-Cache'
+alluxio.master.metastore.rocks.edge.index:
+  'The index type to be used in the RocksDB Inode edge table. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Index-Block-Format'
+alluxio.master.metastore.rocks.inode.block.index:
+  'The block index type to be used in the RocksDB inode table. If unset, the RocksDB default will be used. See https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html'
+alluxio.master.metastore.rocks.inode.bloom.filter:
+  'Whether or not to use a bloom filter in the Inode table in RocksDB. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter'
+alluxio.master.metastore.rocks.inode.cache.size:
+  'The capacity in bytes of the RocksDB Inode table LRU cache. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Block-Cache'
+alluxio.master.metastore.rocks.inode.index:
+  'The index type to be used in the RocksDB Inode table. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Index-Block-Format'
+alluxio.master.metastore.rocks.parallel.backup:
+  'Whether to checkpoint rocksdb in parallel using the number of threads set by alluxio.master.metastore.rocks.parallel.backup.threads.'
+alluxio.master.metastore.rocks.parallel.backup.threads:
+  'The number of threads used by backing up rocksdb in parallel.'
+alluxio.master.metrics.file.size.distribution.buckets:
+  'Master metrics file size buckets'
+alluxio.master.metrics.heap.enabled:
+  'Enable master heap estimate metrics'
+alluxio.master.metrics.service.threads:
+  'The number of threads in metrics master executor pool for parallel processing metrics submitted by workers or clients and update cluster metrics.'
+alluxio.master.metrics.time.series.interval:
+  'Interval for which the master records metrics information. This affects the granularity of the metrics graphed in the UI.'
+alluxio.master.mount.table.root.alluxio:
+  'Alluxio root mount point.'
+alluxio.master.mount.table.root.option:
+  'Configuration for the UFS of Alluxio root mount point.'
+alluxio.master.mount.table.root.readonly:
+  'Whether Alluxio root mount point is readonly.'
+alluxio.master.mount.table.root.shared:
+  'Whether Alluxio root mount point is shared.'
+alluxio.master.mount.table.root.ufs:
+  'The storage address of the UFS at the Alluxio root mount point.'
+alluxio.master.network.flowcontrol.window:
+  'The HTTP2 flow control window used by Alluxio master gRPC connections. Larger value will allow more data to be buffered but will use more memory.'
+alluxio.master.network.keepalive.time:
+  'The amount of time for Alluxio master gRPC server to wait for a response before pinging the client to see if it is still alive.'
+alluxio.master.network.keepalive.timeout:
+  'The maximum time for Alluxio master gRPC server to wait for a keepalive response before closing the connection.'
+alluxio.master.network.max.inbound.message.size:
+  'The maximum size of a message that can be sent to the Alluxio master'
+alluxio.master.network.permit.keepalive.time:
+  'Specify the most aggressive keep-alive time clients are permitted to configure. The server will try to detect clients exceeding this rate and when detected will forcefully close the connection.'
+alluxio.master.periodic.block.integrity.check.interval:
+  'The period for the block integrity check, disabled if &lt;= 0.'
+alluxio.master.periodic.block.integrity.check.repair:
+  'Whether the system should delete orphaned blocks found during the periodic integrity check.'
+alluxio.master.persistence.blacklist:
+  'Patterns to blacklist persist, comma separated, string match, no regex. This affects any async persist call (including ASYNC_THROUGH writes and CLI persist) but does not affect CACHE_THROUGH writes. Users may want to specify temporary files in the blacklist to avoid unnecessary I/O and errors. Some examples are `.staging` and `.tmp`.'
+alluxio.master.persistence.checker.interval:
+  'How often the master checks persistence status for files written using ASYNC_THROUGH'
+alluxio.master.persistence.initial.interval:
+  'How often the  master persistence checker checks persistence status for files written using ASYNC_THROUGH'
+alluxio.master.persistence.max.interval:
+  'Max wait interval for master persistence checker persistence status for files written using ASYNC_THROUGH'
+alluxio.master.persistence.max.total.wait.time:
+  'Total wait time for master persistence checker persistence status for files written using ASYNC_THROUGH'
+alluxio.master.persistence.scheduler.interval:
+  'How often the master schedules persistence jobs for files written using ASYNC_THROUGH'
+alluxio.master.principal:
+  'Kerberos principal for Alluxio master.'
+alluxio.master.proxy.check.heartbeat.timeout:
+  'The master will periodically check the last heartbeat time from all Proxy instances. This key specifies the frequency of the check.'
+alluxio.master.proxy.timeout:
+  'An Alluxio Proxy instance will maintain heartbeat to the primary Alluxio Master. No heartbeat more than this timeout indicates a lost Proxy.'
+alluxio.master.recursive.operation.journal.force.flush.max.entries:
+  'The threshold of the number of completed single operations in a recursive file system operation, e.g. delete file/set file attributes to trigger a force journal flush. Increasing the threshold decreases the possibility to see partial state of a recursive operation on a standby master but increases the memory consumption as alluxio holds more journal entries in memory. This config is only available when alluxio.master.filesystem.merge.inode.journalsis enabled.'
+alluxio.master.replication.check.interval:
+  'How often the master runs background process to check replication level for files'
+alluxio.master.rpc.addresses:
+  'A list of comma-separated host:port RPC addresses where the client should look for masters when using multiple masters without Zookeeper. This property is not used when Zookeeper is enabled, since Zookeeper already stores the master addresses.'
+alluxio.master.rpc.executor.core.pool.size:
+  'The number of threads to keep in thread pool of master RPC ExecutorService.'
+alluxio.master.rpc.executor.fjp.async:
+  'This property is effective when alluxio.master.rpc.executor.type is set to ForkJoinPool. if true, it establishes local first-in-first-out scheduling mode for forked tasks that are never joined. This mode may be more appropriate than default locally stack-based mode in applications in which worker threads only process event-style asynchronous tasks.'
+alluxio.master.rpc.executor.fjp.min.runnable:
+  'This property is effective when alluxio.master.rpc.executor.type is set to ForkJoinPool. It controls the minimum allowed number of core threads not blocked. A value of 1 ensures liveness. A larger value might improve throughput but might also increase overhead.'
+alluxio.master.rpc.executor.fjp.parallelism:
+  'This property is effective when alluxio.master.rpc.executor.type is set to ForkJoinPool. It controls the parallelism level (internal queue count) of master RPC ExecutorService.'
+alluxio.master.rpc.executor.keepalive:
+  'The keep alive time of a thread in master RPC ExecutorServicelast used before this thread is terminated (and replaced if necessary).'
+alluxio.master.rpc.executor.max.pool.size:
+  'The maximum number of threads allowed for master RPC ExecutorService. When the maximum is reached, attempts to replace blocked threads fail.'
+alluxio.master.rpc.executor.tpe.allow.core.threads.timeout:
+  'This property is effective when alluxio.master.rpc.executor.type is set to ThreadPoolExecutor. It controls whether core threads can timeout and terminate when there is no work.'
+alluxio.master.rpc.executor.tpe.queue.type:
+  'This property is effective when alluxio.master.rpc.executor.type is set to TPE. It specifies the internal task queue that''s used by RPC ExecutorService. Supported values are: LINKED_BLOCKING_QUEUE, LINKED_BLOCKING_QUEUE_WITH_CAP, ARRAY_BLOCKING_QUEUE and SYNCHRONOUS_BLOCKING_QUEUE'
+alluxio.master.rpc.executor.type:
+  'Type of ExecutorService for Alluxio master gRPC server. Supported values are TPE (for ThreadPoolExecutor) and FJP (for ForkJoinPool).'
+alluxio.master.rpc.port:
+  'The port for Alluxio master''s RPC service.'
+alluxio.master.shell.backup.state.lock.grace.mode:
+  'Grace mode helps taking the state-lock exclusively for backup with minimum disruption to existing RPCs. This low-impact locking phase is called grace-cycle. Two modes are supported: TIMEOUT/FORCED.TIMEOUT: Means exclusive locking will timeout if it cannot acquire the lockwith grace-cycle. FORCED: Means the state-lock will be taken forcefully if grace-cycle fails to acquire it. Forced phase might trigger interrupting of existing RPCs if it is enabled.'
+alluxio.master.shell.backup.state.lock.sleep.duration:
+  'The duration that controls how long the lock waiter sleeps within a single grace-cycle.'
+alluxio.master.shell.backup.state.lock.timeout:
+  'The max duration for a grace-cycle.'
+alluxio.master.shell.backup.state.lock.try.duration:
+  'The duration that controls how long the state-lock is tried within a single grace-cycle.'
+alluxio.master.standby.heartbeat.interval:
+  'The heartbeat interval between Alluxio primary master and standby masters.'
+alluxio.master.startup.block.integrity.check.enabled:
+  'Whether the system should be checked on startup for orphaned blocks (blocks having no corresponding files but still taking system resource due to various system failures). Orphaned blocks will be deleted during master startup if this property is true. This property is available since 1.7.1'
+alluxio.master.state.lock.error.threshold:
+  'Used to trace and debug state lock issues. When a thread recursively acquires the state lock more than threshold, log an error for further debugging.'
+alluxio.master.throttle.active.cpu.load.ratio:
+  'N/A'
+alluxio.master.throttle.active.heap.gc.time:
+  'N/A'
+alluxio.master.throttle.active.heap.used.ratio:
+  'N/A'
+alluxio.master.throttle.active.rpc.queue.size:
+  'N/A'
+alluxio.master.throttle.background.enabled:
+  'Whether to throttle the background job'
+alluxio.master.throttle.enabled:
+  'The throttle service can monitor and throttle the master in case of overloaded'
+alluxio.master.throttle.filesystem.op.per.sec:
+  'The max filesystem operations can be made per second if throttling is triggered'
+alluxio.master.throttle.filesystem.rpc.queue.size.limit:
+  'N/A'
+alluxio.master.throttle.foreground.enabled:
+  'Whether to throttle the foreground job'
+alluxio.master.throttle.heartbeat.interval:
+  'The heartbeat interval for throttling monitor check'
+alluxio.master.throttle.observed.pit.number:
+  'The number of indicator PITs used to evaluate the system status.'
+alluxio.master.throttle.overloaded.cpu.load.ratio:
+  'N/A'
+alluxio.master.throttle.overloaded.heap.gc.time:
+  'N/A'
+alluxio.master.throttle.overloaded.heap.used.ratio:
+  'N/A'
+alluxio.master.throttle.overloaded.rpc.queue.size:
+  'N/A'
+alluxio.master.throttle.stressed.cpu.load.ratio:
+  'N/A'
+alluxio.master.throttle.stressed.heap.gc.time:
+  'N/A'
+alluxio.master.throttle.stressed.heap.used.ratio:
+  'N/A'
+alluxio.master.throttle.stressed.rpc.queue.size:
+  'N/A'
+alluxio.master.tieredstore.global.level0.alias:
+  'The name of the highest storage tier in the entire system.'
+alluxio.master.tieredstore.global.level1.alias:
+  'The name of the second highest storage tier in the entire system.'
+alluxio.master.tieredstore.global.level2.alias:
+  'The name of the third highest storage tier in the entire system.'
+alluxio.master.tieredstore.global.levels:
+  'The total number of storage tiers in the system.'
+alluxio.master.tieredstore.global.mediumtype:
+  'The list of medium types we support in the system.'
+alluxio.master.ttl.checker.interval:
+  'How often to periodically check and delete/free the files with expired ttl value.'
+alluxio.master.ufs.active.sync.event.rate.interval:
+  'The time interval we use to estimate incoming event rate'
+alluxio.master.ufs.active.sync.interval:
+  'Time interval to periodically actively sync UFS'
+alluxio.master.ufs.active.sync.max.activities:
+  'Max number of changes in a directory to be considered for active syncing'
+alluxio.master.ufs.active.sync.max.age:
+  'The maximum number of intervals we will wait to find a quiet period before we have to sync the directories'
+alluxio.master.ufs.active.sync.poll.batch.size:
+  'The number of event batches that should be submitted together to a single thread for processing.'
+alluxio.master.ufs.active.sync.poll.timeout:
+  'Max time to wait before timing out a polling operation'
+alluxio.master.ufs.active.sync.retry.timeout:
+  'The max total duration to retry failed active sync operations.A large duration is useful to handle transient failures such as an unresponsive under storage but can lock the inode tree being synced longer.'
+alluxio.master.ufs.active.sync.thread.pool.size:
+  'Max number of threads used to perform active sync'
+alluxio.master.ufs.block.location.cache.capacity:
+  'The capacity of the UFS block locations cache. This cache caches UFS block locations for files that are persisted but not in Alluxio space, so that listing status of these files do not need to repeatedly ask UFS for their block locations. If this is set to 0, the cache will be disabled.'
+alluxio.master.ufs.journal.max.catchup.time:
+  'The maximum time to wait for ufs journal catching up before listening to Zookeeper state change. This is added to prevent frequently leadership transition during heavy journal replay stage.'
+alluxio.master.ufs.path.cache.capacity:
+  'The capacity of the UFS sync path cache. This cache is used to approximate the `ONCE` metadata load behavior (see `alluxio.user.file.metadata.load.type`). Larger caches will consume more memory, but will better approximate the `ONCE` behavior.'
+alluxio.master.ufs.path.cache.threads:
+  'The maximum size of the thread pool for asynchronously processing paths for the UFS path cache. Greater number of threads will decrease the amount of staleness in the async cache, but may impact performance. If this is set to 0, the cache will be disabled, and `alluxio.user.file.metadata.load.type=ONCE` will behave like `ALWAYS`.'
+alluxio.master.unsafe.direct.persist.object.enabled:
+  'When set to false, writing files using ASYNC_THROUGH or persist CLI with object stores as the UFS will first create temporary objects suffixed by &quot;.alluxio.TIMESTAMP.tmp&quot; in the object store before committed to the final UFS path. When set to true, files will be put to the destination path directly in the object store without staging with a temp suffix. Enabling this optimization by directly persisting files can significantly improve the efficiency writing to object store by making less data copy as rename in object store can be slow, but leaving a short vulnerability window for undefined behavior if a file is written using ASYNC_THROUGH but renamed or removed before the async persist operation completes, while this same file path was reused for other new files in Alluxio.'
+alluxio.master.update.check.enabled:
+  'Whether to check for update availability.'
+alluxio.master.update.check.interval:
+  'The interval to check for update availability.'
+alluxio.master.web.bind.host:
+  'The hostname Alluxio master web UI binds to.'
+alluxio.master.web.hostname:
+  'The hostname of Alluxio Master web UI.'
+alluxio.master.web.in.alluxio.data.page.count:
+  'The number of URIs showing in the In-Alluxio Data Web UI page.'
+alluxio.master.web.port:
+  'The port Alluxio web UI runs on.'
+alluxio.master.whitelist:
+  'A comma-separated list of prefixes of the paths which are cacheable, separated by semi-colons. Alluxio will try to cache the cacheable file when it is read for the first time.'
+alluxio.master.worker.connect.wait.time:
+  'Alluxio master will wait a period of time after start up for all workers to register, before it starts accepting client requests. This property determines the wait time.'
+alluxio.master.worker.info.cache.refresh.time:
+  'The worker information list will be refreshed after being cached for this time period. If the refresh time is too big, operations on the job servers or clients may fail because of the stale worker info. If it is too small, continuously updating worker information may case lock contention in the block master'
+alluxio.master.worker.register.lease.count:
+  'The number of workers that can register at the same time. Others will wait and retry until they are granted a RegisterLease. If you observe pressure on the master when many workers start up and register, tune down this parameter.'
+alluxio.master.worker.register.lease.enabled:
+  'Whether workers request for leases before they register. The RegisterLease is used by the master to control the concurrency of workers that are actively registering.'
+alluxio.master.worker.register.lease.respect.jvm.space:
+  'Whether the master checks the availability on the JVM before granting a lease to a worker. If the master determines the JVM does not have enough space to accept a new worker, the RegisterLease will not be granted.'
+alluxio.master.worker.register.lease.ttl:
+  'The TTL for a RegisterLease granted to the worker. Leases that exceed the TTL will be recycled and granted to other workers.'
+alluxio.master.worker.register.stream.response.timeout:
+  'When the worker registers the master with streaming, the worker will be sending messages to the master during the streaming.During an active stream if the master have not heard from the worker for more than this timeout, the worker will be considered hanging and the stream will be closed.'
+alluxio.master.worker.timeout:
+  'Timeout between master and worker indicating a lost worker.'

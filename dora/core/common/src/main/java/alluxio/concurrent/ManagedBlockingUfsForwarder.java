@@ -15,21 +15,24 @@ import alluxio.AlluxioURI;
 import alluxio.PositionReader;
 import alluxio.SyncInfo;
 import alluxio.collections.Pair;
+import alluxio.concurrent.jsr.ForkJoinPool;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.file.options.DescendantType;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclEntry;
 import alluxio.security.authorization.DefaultAccessControlList;
 import alluxio.underfs.Fingerprint;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
+import alluxio.underfs.UfsLoadResult;
 import alluxio.underfs.UfsMode;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
-import alluxio.underfs.options.GetFileStatusOptions;
+import alluxio.underfs.options.GetStatusOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
@@ -37,16 +40,17 @@ import alluxio.underfs.options.OpenOptions;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ForkJoinPool;
+import java.util.function.Consumer;
 import javax.annotation.Nullable;
 
 /**
  * Forwarder for {@link UnderFileSystem} objects that works through with ForkJoinPool's
  * managed blocking.
  *
- * If UFS calls are being done on a {@link java.util.concurrent.ForkJoinWorkerThread}, then
+ * If UFS calls are being done on a {@link alluxio.concurrent.jsr.ForkJoinWorkerThread}, then
  * this forwarder will make sure UFS operations are treated as blocking operations
  * for compensating the ForkJoinPool.
  *
@@ -263,11 +267,11 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
   }
 
   @Override
-  public UfsFileStatus getFileStatus(String path, GetFileStatusOptions options) throws IOException {
+  public UfsFileStatus getFileStatus(String path, GetStatusOptions options) throws IOException {
     return new ManagedBlockingUfsMethod<UfsFileStatus>() {
       @Override
       public UfsFileStatus execute() throws IOException {
-        return mUfs.getFileStatus(path);
+        return mUfs.getFileStatus(path, options);
       }
     }.get();
   }
@@ -318,11 +322,11 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
   }
 
   @Override
-  public UfsStatus getStatus(String path) throws IOException {
+  public UfsStatus getStatus(String path, GetStatusOptions options) throws IOException {
     return new ManagedBlockingUfsMethod<UfsStatus>() {
       @Override
       public UfsStatus execute() throws IOException {
-        return mUfs.getStatus(path);
+        return mUfs.getStatus(path, options);
       }
     }.get();
   }
@@ -592,6 +596,27 @@ public class ManagedBlockingUfsForwarder implements UnderFileSystem {
   @Override
   public void close() throws IOException {
     mUfs.close();
+  }
+
+  @Override
+  public Iterator<UfsStatus> listStatusIterable(
+      String path, ListOptions options, String startAfter, int batchSize) throws IOException {
+    return new ManagedBlockingUfsMethod<Iterator<UfsStatus>>() {
+      @Override
+      public Iterator<UfsStatus> execute() throws IOException {
+        return mUfs.listStatusIterable(path, options, startAfter, batchSize);
+      }
+    }.get();
+  }
+
+  @Override
+  public void performListingAsync(
+      String path, @Nullable String continuationToken, @Nullable String startAfter,
+      DescendantType descendantType, boolean checkStatus, Consumer<UfsLoadResult> onComplete,
+      Consumer<Throwable> onError) {
+    // given this is an async function, we do not execute it in the thread pool
+    mUfs.performListingAsync(path, continuationToken, startAfter, descendantType,
+        checkStatus, onComplete, onError);
   }
 
   /**

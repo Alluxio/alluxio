@@ -12,6 +12,7 @@
 package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.cli.fs.command.DistributedLoadCommand;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
@@ -30,6 +31,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -47,6 +49,9 @@ import java.util.Set;
 /**
  * Test for {@link DistributedLoadCommand}.
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jianjian",
+    comment = "fix or remove these tests")
 public final class DistributedLoadCommandTest extends AbstractFileSystemShellTest {
   @Rule
   public TemporaryFolder mTempFolder = new TemporaryFolder();

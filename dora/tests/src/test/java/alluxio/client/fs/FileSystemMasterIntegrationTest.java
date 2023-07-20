@@ -18,6 +18,7 @@ import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.ClientContext;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.WriteType;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystem;
@@ -75,6 +76,7 @@ import alluxio.wire.FileInfo;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -100,6 +102,9 @@ import javax.annotation.Nullable;
  *
  * For example, (concurrently) creating/deleting/renaming files.
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jiacheng",
+    comment = "the FSM does not exist in dora")
 public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   private static final int DEPTH = 6;
   private static final int FILES_PER_NODE = 4;
@@ -154,9 +159,11 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
   /**
    * Tests the {@link FileInfo} of a directory.
+   * @deprecated
    */
-  @Test
+  @Deprecated
   public void clientFileInfoDirectory() throws Exception {
+    // TODO(jiacheliu3): mark deprecated temporary because metadata no longer exists in master
     AlluxioURI path = new AlluxioURI("/testFolder");
     mFsMaster.createDirectory(path, CreateDirectoryContext.defaults());
     long fileId = mFsMaster.getFileId(path);
@@ -174,9 +181,11 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
   /**
    * Tests the {@link FileInfo} of an empty file.
+   * @deprecated
    */
-  @Test
+  @Deprecated
   public void clientFileInfoEmptyFile() throws Exception {
+    // TODO(jiacheliu3): mark deprecated temporary because metadata no longer exists in master
     FileInfo fileInfo =
         mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileContext.defaults());
     Assert.assertEquals("testFile", fileInfo.getName());
@@ -187,7 +196,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     assertFalse(fileInfo.isPersisted());
     assertFalse(fileInfo.isPinned());
     Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
-    Assert.assertEquals(TtlAction.DELETE, fileInfo.getTtlAction());
+    Assert.assertEquals(TtlAction.FREE, fileInfo.getTtlAction());
     Assert.assertEquals(TEST_USER, fileInfo.getOwner());
     Assert.assertEquals(0644, (short) fileInfo.getMode());
   }
@@ -238,9 +247,11 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
   /**
    * Tests concurrent rename of files.
+   * @deprecated
    */
-  @Test
+  @Deprecated
   public void concurrentRename() throws Exception {
+    // TODO(jiacheliu3): mark deprecated temporary because metadata no longer exists in master
     ConcurrentCreator concurrentCreator =
         new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
     concurrentCreator.call();
@@ -530,8 +541,9 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     Assert.assertTrue(accessTimeBeforeDelete < accessTimeAfterDelete);
   }
 
-  @Test
+  @Deprecated
   public void lastModificationTimeRename() throws Exception {
+    // TODO(jiacheliu3): mark deprecated temporary because metadata no longer exists in master
     AlluxioURI srcPath = new AlluxioURI("/testFolder/testFile1");
     AlluxioURI dstPath = new AlluxioURI("/testFolder/testFile2");
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryContext.defaults());
@@ -658,7 +670,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryContext.defaults());
     long ttl = 1;
     CreateFileContext context = CreateFileContext.mergeFrom(CreateFilePOptions.newBuilder()
-        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(ttl)));
+        .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setTtl(ttl)))
+        .setWriteType(WriteType.CACHE_THROUGH);
     long fileId =
         mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), context).getFileId();
     FileInfo folderInfo =
@@ -668,8 +681,12 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     // Sleep for the ttl expiration.
     CommonUtils.sleepMs(2 * TTL_CHECKER_INTERVAL_MS);
     HeartbeatScheduler.execute(HeartbeatContext.MASTER_TTL_CHECK);
-    mThrown.expect(FileDoesNotExistException.class);
-    mFsMaster.getFileInfo(fileId);
+    HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 10, TimeUnit.SECONDS);
+    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_TTL_CHECK);
+    HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 10, TimeUnit.SECONDS);
+    FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
+    Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
+    Assert.assertEquals(TtlAction.DELETE, fileInfo.getTtlAction());
   }
 
   @Test
@@ -697,8 +714,9 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals(TtlAction.DELETE, fileInfo.getTtlAction());
   }
 
-  @Test
+  @Deprecated
   public void ttlRename() throws Exception {
+    // TODO(jiacheliu3): mark deprecated temporary because metadata no longer exists in master
     AlluxioURI srcPath = new AlluxioURI("/testFolder/testFile1");
     AlluxioURI dstPath = new AlluxioURI("/testFolder/testFile2");
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryContext.defaults());
@@ -829,8 +847,9 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
         .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
   }
 
-  @Test
+  @Deprecated
   public void setModeOwnerNoWritePermission() throws Exception {
+    // TODO(jiacheliu3): mark deprecated temporary because metadata no longer exists in master
     AlluxioURI root = new AlluxioURI("/");
     mFsMaster.setAttribute(root, SetAttributeContext
         .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));
@@ -852,8 +871,9 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     }
   }
 
-  @Test
+  @Deprecated
   public void setModeNoOwner() throws Exception {
+    // TODO(jiacheliu3): mark deprecated temporary because metadata no longer exists in master
     AlluxioURI root = new AlluxioURI("/");
     mFsMaster.setAttribute(root, SetAttributeContext
         .mergeFrom(SetAttributePOptions.newBuilder().setMode(new Mode((short) 0777).toProto())));

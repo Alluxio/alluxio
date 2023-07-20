@@ -14,10 +14,12 @@ package alluxio.client.file.cache;
 import alluxio.client.file.CacheContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.PageNotFoundException;
 import alluxio.file.ByteArrayTargetBuffer;
 import alluxio.file.ReadTargetBuffer;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
+import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.resource.LockResource;
 
 import com.codahale.metrics.Counter;
@@ -250,6 +252,20 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
    *
    * @param pageId page identifier
    * @param pageOffset offset into the page
+   * @param buffer destination buffer to write
+   * @param cacheContext cache related context
+   * @return number of bytes read, 0 if page is not found, -1 on errors
+   */
+  default int get(PageId pageId, int pageOffset, ReadTargetBuffer buffer,
+          CacheContext cacheContext) {
+    throw new UnsupportedOperationException("This method is unsupported. ");
+  }
+
+  /**
+   * Reads a part of a page if the queried page is found in the cache, stores the result in buffer.
+   *
+   * @param pageId page identifier
+   * @param pageOffset offset into the page
    * @param bytesToRead number of bytes to read in this page
    * @param buffer destination buffer to write
    * @param offsetInBuffer offset in the destination buffer to write
@@ -301,6 +317,20 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
   }
 
   /**
+   * Deletes all pages of the given file.
+   *
+   * @param fileId the file id of the target file
+   */
+  void deleteFile(String fileId);
+
+  /**
+   * Deletes all temporary pages of the given file.
+   *
+   * @param fileId the file id of the target file
+   */
+  void deleteTempFile(String fileId);
+
+  /**
    * Deletes a page from the cache.
    *
    * @param pageId page identifier
@@ -333,4 +363,22 @@ public interface CacheManager extends AutoCloseable, CacheStatus {
 
   @Override
   Optional<CacheUsage> getUsage();
+
+  /**
+   * Commit the File.
+   * @param fileId the file ID
+   */
+  void commitFile(String fileId);
+
+  /**
+   * Get a {@link DataFileChannel} which wraps a {@link io.netty.channel.FileRegion}.
+   * @param pageId the page id
+   * @param pageOffset the offset inside the page
+   * @param bytesToRead the bytes to read
+   * @param cacheContext the cache context
+   * @return an object of {@link DataFileChannel}
+   */
+  Optional<DataFileChannel> getDataFileChannel(
+      PageId pageId, int pageOffset, int bytesToRead, CacheContext cacheContext)
+      throws PageNotFoundException;
 }

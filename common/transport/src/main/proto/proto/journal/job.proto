@@ -2,7 +2,6 @@ syntax = "proto2";
 
 package alluxio.proto.journal;
 
-import "grpc/file_system_master.proto";
 
 // Journal entry messages for the block master.
 enum PJobState {
@@ -22,10 +21,27 @@ message LoadJobEntry {
   required bool partialListing = 6;
   required string job_id = 7;
   optional int64 end_time = 8;
+  optional bool load_metadata_only = 9;
 }
 
-// next available id: 11
+// next available id: 13
 message CopyJobEntry {
+  required string src = 1;
+  required string dst = 2;
+  required PJobState state = 3;
+  optional int64 bandwidth = 4;
+  required bool verify = 5;
+  optional string user = 6;
+  required bool partialListing = 7;
+  required string job_id = 8;
+  optional int64 end_time = 9;
+  optional bool overwrite = 10;
+  optional bool check_content = 11;
+  optional FileFilter filter = 12;
+}
+
+// next available id: 13
+message MoveJobEntry {
   required string src= 1;
   required string dst= 2;
   required PJobState state = 3;
@@ -36,4 +52,12 @@ message CopyJobEntry {
   required string job_id = 8;
   optional int64 end_time = 9;
   optional bool overwrite = 10;
+  optional bool check_content = 11;
+  optional FileFilter filter = 12;
+}
+
+message FileFilter {
+  required string name = 1;
+  optional string pattern = 2;
+  required string value = 3;
 }

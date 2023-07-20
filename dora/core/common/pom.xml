@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-core</artifactId>
-    <version>295-SNAPSHOT</version>
+    <version>302-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-core-common</artifactId>
   <packaging>jar</packaging>
@@ -56,6 +56,10 @@
       <artifactId>gson</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.github.ben-manes.caffeine</groupId>
+      <artifactId>caffeine</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
     </dependency>
@@ -93,6 +97,10 @@
     </dependency>
     <dependency>
       <groupId>io.grpc</groupId>
+      <artifactId>grpc-services</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
       <artifactId>grpc-stub</artifactId>
     </dependency>
     <dependency>
@@ -102,6 +110,10 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.curator</groupId>

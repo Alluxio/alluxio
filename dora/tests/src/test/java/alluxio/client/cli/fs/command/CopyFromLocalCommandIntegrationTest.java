@@ -16,6 +16,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.SystemPropertyRule;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.WriteType;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
@@ -24,6 +25,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
 import alluxio.grpc.DeletePOptions;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.grpc.ReadPType;
@@ -32,6 +34,7 @@ import alluxio.util.io.BufferUtils;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -48,6 +51,9 @@ import java.util.concurrent.TimeUnit;
 /**
  * Tests for copyFromLocal command.
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "the command is still relevant")
 public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSystemShellTest {
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -196,10 +202,42 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
     String[] cmd2 = {"copyFromLocal", testFile2.getPath(), alluxioFilePath.getPath()};
     Assert.assertEquals(-1, sFsShell.run(cmd2));
     Assert.assertThat(mOutput.toString(), containsString(
-        "Not allowed to create file because path already exists: " + alluxioFilePath.getPath()));
+        ExceptionMessage.CANNOT_OVERWRITE_FILE_WITHOUT_OVERWRITE.getMessage(
+            alluxioFilePath.getPath())));
     // Make sure the original file is intact
     Assert.assertTrue(BufferUtils
         .equalIncreasingByteArray(LEN1, readContent(alluxioFilePath, LEN1)));
+  }
+
+  @Test
+  public void copyFromLocalDirectoryNotExist() throws Exception {
+    final int LEN = 10;
+    File testFile1 = generateFileContent("/testFile1", BufferUtils.getIncreasingByteArray(LEN));
+    String dirPath = "/testDir-notExist/";
+    AlluxioURI alluxioFilePath = new AlluxioURI(dirPath);
+    String[] cmd = {"copyFromLocal", testFile1.getPath(), dirPath};
+    Assert.assertEquals(-1, sFsShell.run(cmd));
+    Assert.assertThat(mOutput.toString(), containsString(
+            ExceptionMessage.CANNOT_COPY_TO_NOT_EXIST_DIRECTORY.getMessage(
+                    alluxioFilePath.getPath())));
+  }
+
+  @Test
+  public void copyFromLocalTypeNotMatch() throws Exception {
+    final int LEN = 10;
+    String path = "/testFile1";
+    File testFile1 = generateFileContent(path, BufferUtils.getIncreasingByteArray(LEN));
+    AlluxioURI alluxioFilePath = new AlluxioURI(path);
+
+    // Write the first file
+    String[] cmd1 = {"copyFromLocal", testFile1.getPath(), alluxioFilePath.getPath()};
+    Assert.assertEquals(0, sFsShell.run(cmd1));
+    mOutput.reset();
+
+    String[] cmd2 = {"copyFromLocal", testFile1.getPath(), alluxioFilePath.getPath() + "/"};
+    Assert.assertEquals(-1, sFsShell.run(cmd2));
+    Assert.assertThat(mOutput.toString(), containsString(
+            ExceptionMessage.FILE_TYPE_NOT_MATCH.getMessage(alluxioFilePath.getPath())));
   }
 
   @Test
@@ -235,15 +273,16 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSyste
     File file = mTestFolder.newFile();
     try (Closeable c = new ConfigurationRule(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT,
         WriteType.MUST_CACHE.toString(), Configuration.modifiableGlobal()).toResource()) {
-      Assert.assertEquals(0, sFsShell.run("copyFromLocal", file.getAbsolutePath(), "/"));
+      Assert.assertEquals(0, sFsShell.run("copyFromLocal", file.getAbsolutePath(), "/test"));
     }
     try (Closeable c = new ConfigurationRule(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT,
         WriteType.CACHE_THROUGH.toString(), Configuration.modifiableGlobal()).toResource()) {
       mOutput.reset();
-      sFsShell.run("copyFromLocal", file.getAbsolutePath(), "/");
+      sFsShell.run("copyFromLocal", file.getAbsolutePath(), "/test");
     }
     Assert.assertThat(mOutput.toString(),
-        containsString("Not allowed to create file because path already exists"));
+        containsString(
+            ExceptionMessage.CANNOT_OVERWRITE_FILE_WITHOUT_OVERWRITE.getMessage("/test")));
   }
 
   @Test

@@ -17,13 +17,10 @@ import static org.junit.Assert.assertTrue;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.UnderFileSystemFactoryRegistryRule;
-import alluxio.client.WriteType;
-import alluxio.client.file.FileSystem;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.grpc.WritePType;
 import alluxio.job.plan.load.LoadConfig;
-import alluxio.job.plan.migrate.MigrateConfig;
-import alluxio.job.plan.persist.PersistConfig;
 import alluxio.job.util.JobTestUtils;
 import alluxio.job.wire.Status;
 import alluxio.metrics.MetricKey;
@@ -34,12 +31,12 @@ import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemOptions;
 import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.util.Collections;
-import java.util.HashSet;
 
 /**
  * Tests stat counter values and output of CANCEL operations for distributed commands.
@@ -47,12 +44,12 @@ import java.util.HashSet;
  * If the job completes fast enough before the CANCEL operations runs,then the test would fail.
  * The tests compare the job statuses (CANCEL or not) and stat counter values for each status.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "Jianjian",
+    comment = "Job master and job worker no longer exists in dora")
+@Ignore
 public class DistributedCommandsStatsTest extends JobShellTest {
   private static final long SLEEP_MS = Constants.SECOND_MS * 15;
   private static final int TEST_TIMEOUT = 45;
-  // When the task is finished, end the waiting. We can check the specific task status later.
-  private static final HashSet<Status> FINISH_STATUS = Sets.newHashSet(Status.CANCELED,
-      Status.FAILED, Status.COMPLETED);
 
   @ClassRule
   public static UnderFileSystemFactoryRegistryRule sUnderfilesystemfactoryregistry =
@@ -70,7 +67,6 @@ public class DistributedCommandsStatsTest extends JobShellTest {
   public TemporaryFolder mTempFolder = new TemporaryFolder();
 
   private String mLocalUfsPath;
-  private FileSystem mFileSystem;
 
   @Before
   public void before() throws Exception {
@@ -138,113 +134,5 @@ public class DistributedCommandsStatsTest extends JobShellTest {
     assertEquals(completedPersistCount, 0, 0);
     assertEquals(completedPersistFileCount, 0, 0);
     assertEquals(completedPersistFileSize, 0, 0);
-  }
-
-  @Test
-  public void testDistributedLoadCancelStats() throws Exception {
-    FileSystemTestUtils.createByteFile(sFileSystem,  "/mnt/testFileNew",
-            WritePType.THROUGH, 10);
-
-    long jobId = sJobMaster.run(new LoadConfig("/mnt/testFileNew",
-            1, Collections.EMPTY_SET,
-            Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET, false));
-
-    sJobShell.run("cancel", Long.toString(jobId));
-
-    JobTestUtils
-        .waitForJobStatus(sJobMaster, jobId, FINISH_STATUS, TEST_TIMEOUT);
-
-    sJobShell.run("stat", "-v", Long.toString(jobId));
-
-    String[] output = mOutput.toString().split("\n");
-    assertEquals(String.format("ID: %s", jobId), output[0]);
-    assertEquals(String.format("Name: Load"), output[1]);
-    assertTrue(output[2].contains("Description: LoadConfig"));
-    assertTrue(output[2].contains("/mnt/testFileNew"));
-    assertEquals("Status: CANCELED", output[3]);
-    assertEquals("Task 0", output[4]);
-    assertTrue(output[5].contains("\tWorker: "));
-    assertEquals("\tStatus: CANCELED", output[7]);
-
-    double cancelledCount = MetricsSystem.getMetricValue(
-            MetricKey.MASTER_JOB_DISTRIBUTED_LOAD_CANCEL.getName()).getValue();
-
-    assertEquals(cancelledCount, 1, 0);
-  }
-
-  @Test
-  public void testDistributedCpCancelStats() throws Exception {
-    FileSystemTestUtils.createByteFile(sFileSystem,  "/mnt/testFileSource",
-            WritePType.THROUGH, 10);
-
-    long jobId = sJobMaster.run(new MigrateConfig(
-            "/mnt/testFileSource", "/mnt/testFileDest",
-            WriteType.THROUGH, false));
-
-    sJobShell.run("cancel", Long.toString(jobId));
-
-    JobTestUtils
-            .waitForJobStatus(sJobMaster, jobId, FINISH_STATUS, TEST_TIMEOUT);
-
-    sJobShell.run("stat", "-v", Long.toString(jobId));
-
-    String[] output = mOutput.toString().split("\n");
-    assertEquals(String.format("ID: %s", jobId), output[0]);
-    assertEquals(String.format("Name: Migrate"), output[1]);
-    assertTrue(output[2].contains("Description: MigrateConfig"));
-    assertTrue(output[2].contains("/mnt/testFileSource"));
-    assertTrue(output[2].contains("/mnt/testFileDest"));
-    assertEquals("Status: CANCELED", output[3]);
-    assertEquals("Task 0", output[4]);
-    assertTrue(output[5].contains("\tWorker: "));
-    assertEquals("\tStatus: CANCELED", output[7]);
-
-    double cancelledCount = MetricsSystem.getMetricValue(
-            MetricKey.MASTER_MIGRATE_JOB_CANCEL.getName()).getValue();
-    double failedCount = MetricsSystem.getMetricValue(
-            MetricKey.MASTER_MIGRATE_JOB_FAIL.getName()).getValue();
-    double completedCount = MetricsSystem.getMetricValue(
-            MetricKey.MASTER_MIGRATE_JOB_SUCCESS.getName()).getValue();
-
-    assertEquals(cancelledCount, 1, 0);
-    assertEquals(failedCount, 0, 0);
-    assertEquals(completedCount, 0, 0);
-  }
-
-  @Test
-  public void testAsyncPersistCancelStats() throws Exception {
-    FileSystemTestUtils.createByteFile(sFileSystem,  "/mnt/testFile",
-            WritePType.MUST_CACHE, 10000);
-
-    long jobId = sJobMaster.run(new PersistConfig("/mnt/testFile",
-            0, false, "/mnt/testUfsPath"));
-
-    sJobShell.run("cancel", Long.toString(jobId));
-
-    JobTestUtils
-            .waitForJobStatus(sJobMaster, jobId, FINISH_STATUS, TEST_TIMEOUT);
-
-    sJobShell.run("stat", "-v", Long.toString(jobId));
-
-    String[] output = mOutput.toString().split("\n");
-    assertEquals(String.format("ID: %s", jobId), output[0]);
-    assertEquals(String.format("Name: Persist"), output[1]);
-    assertTrue(output[2].contains("Description: PersistConfig"));
-    assertTrue(output[2].contains("/mnt/testFile"));
-    assertEquals("Status: CANCELED", output[3]);
-    assertEquals("Task 0", output[4]);
-    assertTrue(output[5].contains("\tWorker: "));
-    assertEquals("\tStatus: CANCELED", output[6]);
-
-    double cancelledCount = MetricsSystem.getMetricValue(
-            MetricKey.MASTER_ASYNC_PERSIST_CANCEL.getName()).getValue();
-    double failedCount = MetricsSystem.getMetricValue(
-            MetricKey.MASTER_ASYNC_PERSIST_FAIL.getName()).getValue();
-    double completedCount = MetricsSystem.getMetricValue(
-            MetricKey.MASTER_ASYNC_PERSIST_SUCCESS.getName()).getValue();
-
-    assertEquals(cancelledCount, 1, 0);
-    assertEquals(failedCount, 0, 0);
-    assertEquals(completedCount, 0, 0);
   }
 }
