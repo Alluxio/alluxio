@@ -49,12 +49,9 @@ echo "$myuid:x:$myuid:$mygid:anonymous uid:/home/jenkins:/bin/false" >> /etc/pas
 JAVA_HOME=${JAVA_HOME_BACKUP}
 PATH=${PATH_BACKUP}
 
+mvn_args+=" -fn -DfailIfNoTests=false -Dsurefire.failIfNoSpecifiedTests=false --fail-at-end"
 if [ -n "${ALLUXIO_MVN_TESTS}" ]; then
-  mvn_args+=" -fn -DfailIfNoTests=false -Dsurefire.failIfNoSpecifiedTests=false --fail-at-end -Dtest=${ALLUXIO_MVN_TESTS}"
-fi
-if [ -n "${ALLUXIO_MVN_ADDITIONAL_PROPERTIES}" ]
-then
-  mvn_args+=" ${ALLUXIO_MVN_ADDITIONAL_PROPERTIES}"
+  mvn_args+=" -Dtest=${ALLUXIO_MVN_TESTS}"
 fi
 
 # Run tests

@@ -39,10 +39,6 @@ function main {
     run_args+=" -e ALLUXIO_GIT_CLEAN=true"
   fi
 
-  if [ -n "${ALLUXIO_DOCKER_MVN_ADDITIONAL_PROPERTIES}" ]; then
-    run_args+=" -e ALLUXIO_MVN_ADDITIONAL_PROPERTIES=-D${ALLUXIO_DOCKER_MVN_ADDITIONAL_PROPERTIES}"
-  fi
-
   if [ -n "${ALLUXIO_DOCKER_MVN_PROJECT_LIST}" ]; then
     run_args+=" -e ALLUXIO_MVN_PROJECT_LIST=${ALLUXIO_DOCKER_MVN_PROJECT_LIST}"
   fi

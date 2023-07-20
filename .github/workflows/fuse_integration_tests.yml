@@ -8,9 +8,6 @@ jobs:
 
     strategy:
       fail-fast: false
-      matrix:
-        java: ["11"]
-        version: ["2", "3"]
 
     runs-on: ubuntu-latest
     if: "!contains(github.event.pull_request.title, 'DOCFIX') &&
@@ -29,7 +26,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-java${{ matrix.java }}-${{ hashFiles('**/pom.xml') }}
+          key: ${{ runner.os }}-maven-java11-${{ hashFiles('**/pom.xml') }}
 
       - name: Cache local Go modules
         uses: actions/cache@v3
@@ -45,7 +42,6 @@ jobs:
           ALLUXIO_DOCKER_GIT_CLEAN=true \
           ALLUXIO_DOCKER_ID=0 \
           ALLUXIO_DOCKER_MVN_PROJECT_LIST=dora/tests \
-          ALLUXIO_DOCKER_MVN_ADDITIONAL_PROPERTIES=alluxio.fuse.jnifuse.libfuse.version=${{ matrix.version }}
           ALLUXIO_DOCKER_MVN_TESTS=alluxio.client.fuse.** \
           dev/github/run_docker.sh
         timeout-minutes: 60
