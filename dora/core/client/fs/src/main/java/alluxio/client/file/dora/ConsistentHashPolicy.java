@@ -39,7 +39,6 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
    * in the cluster, where X is a balance between redistribution granularity and size.
    */
   private final int mNumVirtualNodes;
-  private final AlluxioConfiguration mConf;
 
   /**
    * Constructs a new {@link ConsistentHashPolicy}.
@@ -47,7 +46,6 @@ public class ConsistentHashPolicy implements WorkerLocationPolicy {
    * @param conf the configuration used by the policy
    */
   public ConsistentHashPolicy(AlluxioConfiguration conf) {
-    mConf = conf;
     mNumVirtualNodes = conf.getInt(PropertyKey.USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT);
   }
 
