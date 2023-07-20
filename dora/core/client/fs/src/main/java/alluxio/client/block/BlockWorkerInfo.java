@@ -24,7 +24,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @PublicApi
 @ThreadSafe
-// TODO(jiacheng): this class should just be renamed!
 public final class BlockWorkerInfo {
   private final WorkerNetAddress mNetAddress;
   private final long mCapacityBytes;

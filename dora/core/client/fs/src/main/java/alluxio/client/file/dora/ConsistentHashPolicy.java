@@ -22,10 +22,10 @@ import java.util.List;
 /**
  * An impl of WorkerLocationPolicy.
  *
- * Requirements:
- * 1. Multiple policies available
- * 2. A policy is stateless Strategy object, which can be a process-unique singleton
- * 3. Created with factory methods
+ * A policy where a file path is matched to worker(s) by a consistenct hashing algorithm.
+ * The hash algorithm makes sure the same path maps to the same worker sequence.
+ * On top of that, consistent hashing makes sure worker membership changes incur minimal
+ * hash changes.
  */
 public class ConsistentHashPolicy implements WorkerLocationPolicy {
   private static final ConsistentHashProvider HASH_PROVIDER =
