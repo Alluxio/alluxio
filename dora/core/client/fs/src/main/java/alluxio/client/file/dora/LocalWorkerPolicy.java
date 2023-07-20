@@ -8,6 +8,8 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 import com.google.common.collect.ImmutableList;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -40,22 +42,23 @@ public class LocalWorkerPolicy implements WorkerLocationPolicy {
     String userHostname = NetworkAddressUtils.getClientHostName(mConf);
     // TODO(jiacheng): domain socket is not considered here
     // Find the worker matching in hostname
-    BlockWorkerInfo localWorker = null;
+    List<BlockWorkerInfo> results = new ArrayList<>();
     for (BlockWorkerInfo worker : blockWorkerInfos) {
       WorkerNetAddress workerAddr = worker.getNetAddress();
       if (workerAddr == null) {
         continue;
       }
       if (userHostname.equals(workerAddr.getHost())) {
-        localWorker = worker;
-        break;
+        results.add(worker);
+        if (results.size() >= count) {
+          break;
+        }
       }
     }
-    if (localWorker != null) {
-      return ImmutableList.of(localWorker);
-    } else {
+    if (results.size() < count) {
       throw new ResourceExhaustedException(String.format(
           "Failed to find a local worker for client hostname %s", userHostname));
     }
+    return results;
   }
 }
