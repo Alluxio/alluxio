@@ -53,6 +53,10 @@ function main {
   run_args+=" --device /dev/fuse"
   run_args+=" --security-opt apparmor:unconfined"
 
+  # Run as the host jenkins user so that files written to .m2 are written as jenkins.
+  # Use group 0 to get certain elevated permissions.
+  run_args+=" --user ${ALLUXIO_DOCKER_ID}:0"
+
   # Mount the local directory inside the docker container, and set it as the working directory
   run_args+=" -v $(pwd):/usr/src/alluxio"
   run_args+=" -w /usr/src/alluxio"
@@ -61,7 +65,6 @@ function main {
   # configure anything that's relative to ${HOME}.
   run_args+=" -e HOME=${home}"
   run_args+=" -v ${ALLUXIO_DOCKER_M2}:${home}/.m2"
-  run_args+=" -v /var/run/docker.sock:/var/run/docker.sock"
   run_args+=" -e npm_config_cache=${home}/.npm"
   run_args+=" -e MAVEN_CONFIG=${home}/.m2"
 
