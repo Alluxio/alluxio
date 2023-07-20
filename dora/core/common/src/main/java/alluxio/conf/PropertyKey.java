@@ -6427,7 +6427,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-
+  public static final PropertyKey USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT =
+      intBuilder(Name.USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT)
+          .setDefaultValue(2000)
+          .setDescription("This is the number of virtual nodes in the consistent hashing "
+              + "algorithm. In a consistent hashing algorithm, on membership changes, some "
+              + "virtual nodes are re-distributed instead of rebuilding the whole hash table. "
+              + "This guarantees the hash table is changed only in a minimal. In order to achieve "
+              + "that, the number of virtual nodes should be X times the physical nodes in "
+              + "the cluster, where X is a balance between redistribution granularity and size.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_FILE_WRITE_TYPE_DEFAULT =
       enumBuilder(Name.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
           .setDefaultValue(WriteType.CACHE_THROUGH)
@@ -6986,6 +6997,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       booleanBuilder(Name.USER_RPC_SHUFFLE_MASTERS_ENABLED)
           .setDefaultValue(false)
           .setDescription("Shuffle the client-side configured master rpc addresses.")
+          .build();
+  public static final PropertyKey USER_WORKER_SELECTION_POLICY =
+      classBuilder(Name.USER_WORKER_SELECTION_POLICY)
+          .setDefaultValue("alluxio.client.file.dora.ConsistentHashPolicy")
+          .setDescription("The policy a client uses to map a file path to a worker address. "
+              + "The only option is `alluxio.client.file.dora.ConsistentHashPolicy`. "
+              + "Other options are for internal tests only and not for real deployments.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_WORKER_LIST_REFRESH_INTERVAL =
       durationBuilder(Name.USER_WORKER_LIST_REFRESH_INTERVAL)
@@ -9232,6 +9252,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.timeout.threads";
     public static final String USER_CLIENT_REPORT_VERSION_ENABLED =
         "alluxio.user.client.report.version.enabled";
+    public static final String USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT =
+        "alluxio.user.consistent.hash.virtual.node.count";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_CONF_SYNC_INTERVAL = "alluxio.user.conf.sync.interval";
@@ -9414,6 +9436,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.unsafe.direct.local.io.enabled";
     public static final String USER_UPDATE_FILE_ACCESSTIME_DISABLED =
         "alluxio.user.update.file.accesstime.disabled";
+    public static final String USER_WORKER_SELECTION_POLICY =
+        "alluxio.user.worker.selection.policy";
     public static final String USER_WORKER_LIST_REFRESH_INTERVAL =
         "alluxio.user.worker.list.refresh.interval";
 
