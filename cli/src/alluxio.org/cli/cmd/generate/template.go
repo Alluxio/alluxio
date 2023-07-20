@@ -30,7 +30,8 @@ type TemplateCommand struct {
 
 func (c *TemplateCommand) ToCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "template --conf",
+		Use:   "templateConf [alluxioMasterHostname]",
+		Args:  cobra.ExactArgs(1),
 		Short: "Generate a config file if one doesn't exist.",
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) == 0 {
