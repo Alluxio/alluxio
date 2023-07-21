@@ -98,7 +98,12 @@ public final class WorkerIdentity {
         throw new MissingRequiredFieldsParsingException(descriptor, proto);
       }
       final int version = proto.getVersion();
-      final Parser parser = getParser(version);
+      final Parser parser;
+      try {
+        parser = getParser(version);
+      } catch (IllegalArgumentException e) {
+        throw new InvalidVersionParsingException(version, 0, 1);
+      }
       return parser.fromProto(proto);
     }
 
@@ -125,13 +130,26 @@ public final class WorkerIdentity {
   abstract static class Parser {
     protected abstract int getVersion();
 
-    protected abstract byte[] parseIdentifier(alluxio.grpc.WorkerIdentity workerIdentityProto)
+    protected abstract byte[] parseIdentifier(ByteString identifier)
         throws ProtoParsingException;
 
     /**
      * @return a version-specific string representation of worker identity
      */
-    public abstract Object getVersionSpecificRepresentation(WorkerIdentity identity);
+    public Object getVersionSpecificRepresentation(WorkerIdentity identity) {
+      ensureVersionMatch(identity);
+      return getVersionSpecificRepresentation0(identity);
+    }
+
+    protected abstract Object getVersionSpecificRepresentation0(WorkerIdentity identity);
+
+    protected void ensureVersionMatch(WorkerIdentity identity) throws IllegalArgumentException {
+      if (identity.mVersion != getVersion()) {
+        throw new IllegalArgumentException(
+            String.format("Identity definition version mismatch, expected %s, got %s",
+                getVersion(), identity.mVersion));
+      }
+    }
 
     /**
      * Converts to a protobuf representation.
@@ -175,7 +193,7 @@ public final class WorkerIdentity {
             .findFieldByNumber(alluxio.grpc.WorkerIdentity.IDENTIFIER_FIELD_NUMBER);
         throw new MissingRequiredFieldsParsingException(descriptor, workerIdentityProto);
       }
-      return new WorkerIdentity(parseIdentifier(workerIdentityProto), version);
+      return new WorkerIdentity(parseIdentifier(workerIdentityProto.getIdentifier()), version);
     }
   }
 
@@ -198,9 +216,8 @@ public final class WorkerIdentity {
     }
 
     @Override
-    protected byte[] parseIdentifier(alluxio.grpc.WorkerIdentity workerIdentityProto)
+    protected byte[] parseIdentifier(ByteString identifier)
         throws ProtoParsingException {
-      ByteString identifier = workerIdentityProto.getIdentifier();
       byte[] idBytes = identifier.toByteArray();
       if (idBytes.length != ID_LENGTH_BYTES) {
         throw new ProtoParsingException(String.format(
@@ -211,7 +228,7 @@ public final class WorkerIdentity {
     }
 
     @Override
-    public Object getVersionSpecificRepresentation(WorkerIdentity workerIdentity) {
+    protected Long getVersionSpecificRepresentation0(WorkerIdentity workerIdentity) {
       return Longs.fromByteArray(workerIdentity.mId);
     }
 
@@ -227,6 +244,18 @@ public final class WorkerIdentity {
     public WorkerIdentity fromLong(long workerId) {
       byte[] id = Longs.toByteArray(workerId);
       return new WorkerIdentity(id, VERSION);
+    }
+
+    /**
+     * Converts to a numeric worker ID represented as a {@code long}.
+     *
+     * @param identity identity
+     * @return numeric worker ID
+     * @throws IllegalArgumentException if the identity was not created from a numeric ID
+     */
+    public long toLong(WorkerIdentity identity) throws IllegalArgumentException {
+      ensureVersionMatch(identity);
+      return getVersionSpecificRepresentation0(identity);
     }
   }
 
@@ -250,9 +279,8 @@ public final class WorkerIdentity {
     }
 
     @Override
-    protected byte[] parseIdentifier(alluxio.grpc.WorkerIdentity workerIdentityProto)
+    protected byte[] parseIdentifier(ByteString identifier)
         throws ProtoParsingException {
-      ByteString identifier = workerIdentityProto.getIdentifier();
       if (identifier.size() != ID_LENGTH_BYTES) {
         throw new ProtoParsingException(String.format(
             "Invalid identifier length: %s, expecting %s. identifier: %s",
@@ -262,7 +290,7 @@ public final class WorkerIdentity {
     }
 
     @Override
-    public UUID getVersionSpecificRepresentation(WorkerIdentity identity) {
+    protected UUID getVersionSpecificRepresentation0(WorkerIdentity identity) {
       ByteBuffer buffer = ByteBuffer.wrap(identity.mId);
       long msb = buffer.getLong();
       long lsb = buffer.getLong();
@@ -305,6 +333,18 @@ public final class WorkerIdentity {
     public WorkerIdentity fromUUID(String uuid) throws IllegalArgumentException {
       UUID id = UUID.fromString(uuid);
       return fromUUID(id);
+    }
+
+    /**
+     * Converts to a UUID.
+     *
+     * @param identity the worker identity
+     * @return identity represented as a UUID
+     * @throws IllegalArgumentException if the identity was not created from a UUID
+     */
+    public UUID toUUID(WorkerIdentity identity) throws IllegalArgumentException {
+      ensureVersionMatch(identity);
+      return getVersionSpecificRepresentation0(identity);
     }
   }
 }
