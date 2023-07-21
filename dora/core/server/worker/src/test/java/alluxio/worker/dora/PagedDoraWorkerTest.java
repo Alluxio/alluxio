@@ -43,6 +43,7 @@ import alluxio.grpc.WriteOptions;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsStatus;
 import alluxio.util.io.BufferUtils;
+import alluxio.wire.WorkerIdentity;
 
 import com.google.common.base.Strings;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -89,7 +90,8 @@ public class PagedDoraWorkerTest {
         PageMetaStore.create(CacheManagerOptions.createForWorker(Configuration.global()));
     mCacheManager =
         CacheManager.Factory.create(Configuration.global(), cacheManagerOptions, pageMetaStore);
-    mWorker = new PagedDoraWorker(new AtomicReference<>(1L), Configuration.global(), mCacheManager);
+    mWorker = new PagedDoraWorker(new AtomicReference<>(1L),
+        WorkerIdentity.ParserV0.INSTANCE.fromLong(1L), Configuration.global(), mCacheManager);
   }
 
   @After
