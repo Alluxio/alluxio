@@ -12,10 +12,13 @@
 package alluxio.client.file.dora;
 
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.client.file.AlluxioFileInStream;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.util.CommonUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -53,6 +56,8 @@ public interface WorkerLocationPolicy {
    * The factory for the {@link WorkerLocationPolicy}.
    */
   class Factory {
+    private static final Logger LOG = LoggerFactory.getLogger(WorkerLocationPolicy.class);
+
     private Factory() {} // prevent instantiation
 
     /**
@@ -63,6 +68,8 @@ public interface WorkerLocationPolicy {
      */
     public static WorkerLocationPolicy create(AlluxioConfiguration conf) {
       try {
+        Class clazz = conf.getClass(PropertyKey.USER_WORKER_SELECTION_POLICY);
+        LOG.info("Creating WorkerLocationPolicy {}", clazz);
         return CommonUtils.createNewClassInstance(
             conf.getClass(PropertyKey.USER_WORKER_SELECTION_POLICY),
             new Class[] {AlluxioConfiguration.class}, new Object[] {conf});

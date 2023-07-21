@@ -184,6 +184,9 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     hdfsConf.set(
         String.format("fs.%s.impl.disable.cache", (new URI(mParameters.mBasePath)).getScheme()),
         "true");
+    // TODO(jiacheng): we may need a policy to only IO to remote worker
+    hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
+        "alluxio.client.file.dora.LocalWorkerPolicy");
     for (Map.Entry<String, String> entry : mParameters.mConf.entrySet()) {
       hdfsConf.set(entry.getKey(), entry.getValue());
     }
@@ -196,7 +199,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
   }
 
   @VisibleForTesting
-  // TODO(jiacheng): We must test this method here
   public void generateTestFilePaths(Path basePath) throws IOException {
     int fileSize = (int) FormatUtils.parseSpaceSize(mParameters.mFileSize);
     int clusterSize = mBaseParameters.mClusterLimit;
@@ -205,85 +207,34 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     List<BlockWorkerInfo> workers = mFsContext.getCachedWorkers();
     LOG.info("Available workers in the cluster are {}", workers);
 
-    boolean isLocal = false;
-    if (mParameters.mMode.equals("LOCAL")){
-      LOG.info("Running test in LOCAL mode, meaning all clients should read local worker");
-      isLocal = true;
-    } else if (mParameters.mMode.equals("REMOTE")) {
-      LOG.info("Running test in REMOTE mode, meaning all clients must not read local workers");
-    } else {
-      throw new IllegalArgumentException("Unrecognized mode " + mParameters.mMode);
-    }
-
     Random rand = new Random();
     if (mParameters.mIsRandom) {
       rand = new Random(mParameters.mRandomSeed);
     }
 
+    // TODO(jiacheng): by adding LocalWorkerPolicy, we no longer need these
     // This distribution keeps track of how many connections each worker will serve
-    int[] distribution = new int[clusterSize];
+//    int[] distribution = new int[clusterSize];
+//    boolean isLocal = false;
+//    if (mParameters.mMode.equals("LOCAL")){
+//      LOG.info("Running test in LOCAL mode, meaning all clients should read local worker");
+//      isLocal = true;
+//    } else if (mParameters.mMode.equals("REMOTE")) {
+//      LOG.info("Running test in REMOTE mode, meaning all clients must not read local workers");
+//    } else {
+//      throw new IllegalArgumentException("Unrecognized mode " + mParameters.mMode);
+//    }
 
     for (int i = 0; i < clusterSize; i++) {
       BlockWorkerInfo localWorker = workers.get(i);
       LOG.info("Building file paths for worker {}", localWorker);
       for (int j = 0; j < threads; j++) {
-        Path filePathBeforeSalt = calculateFilePath(basePath, i, j);
-
-        boolean isFound = false;
-        Path filePathAfterSalt = null;
-        int salt = 0;
-        for (; salt < 1024; salt++) {
-          // TODO(jiacheng): what happens if this does not stop
-          filePathAfterSalt = filePathBeforeSalt.suffix("-" + salt);
-
-          // Check if the salt can meet our need
-          WorkerNetAddress targetWorker = calculateAllocation(filePathAfterSalt, mDoraFs, workers);
-
-          if (isLocal) {
-            // accept only if the target worker is local to the client
-            // otherwise reject
-            // TODO(jiacheng): check if the ring has the same order as the input worker list
-            if (targetWorker.equals(localWorker.getNetAddress())) {
-              isFound = true;
-              distribution[i]++;
-              break; // this salt will give the client a local worker in the hash ring
-            }
-          } else {
-            // accept if:
-            // 1. the target worker is not local to the client AND
-            if (targetWorker.equals(localWorker.getNetAddress())) {
-              // Reject the allocation to a local worker because we want remote
-              continue;
-            }
-            // 2. distribution is even among the workers
-            //    on each worker we create #threads requests so each worker should serve that many
-            int allocationIndex = findWorkerByAddress(workers, targetWorker);
-            if (allocationIndex == -1) {
-              throw new IllegalStateException(String.format(
-                  "Failed to find worker with address %s in %s", targetWorker, workers));
-            }
-            if (distribution[allocationIndex] < threads) {
-              isFound = true;
-              distribution[allocationIndex]++;
-              break;
-            }
-          }
-        }
-        LOG.info("Tried {} salts for file {}", salt, filePathBeforeSalt);
-
-        // If we exhausted all salts and no fitting path has been found, give up
-        if (!isFound) {
-          if (isLocal) {
-            throw new IllegalStateException(String.format("exhausted %s salts but still cannot find a local worker for path %s",
-                1024, filePathBeforeSalt));
-          } else {
-            throw new IllegalStateException(String.format("exhausted %s salts but still cannot find a remote worker for path %s",
-                1024, filePathBeforeSalt));
-          }
-        }
+        Path filePath = calculateFilePath(basePath, i, j);
+        // TODO(jiacheng): by adding LocalWorkerPolicy, we no longer need this hash check
+//        Path filePathAfterSalt = forecastLocation(filePathBeforeSalt, threads, isLocal, distribution, i, workers, localWorker);
 
         int index = i * threads + j;
-        mFilePaths[index] = filePathAfterSalt;
+        mFilePaths[index] = filePath;
 
         // Continue init other aspects of the file read operation
         // TODO(jiacheng): do we want a new randomness for every read?
@@ -299,7 +250,64 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
         }
       }
     }
-    LOG.info("{} file paths generated, the distribution is {}", mFilePaths.length, Arrays.toString(distribution));
+    LOG.info("{} file paths generated", mFilePaths.length);
+  }
+
+  private Path forecastLocation(Path filePathBeforeSalt, int threadNumber, boolean isLocal,
+                                int[] distribution, int currentWorkerIdx,
+                                List<BlockWorkerInfo> workers, BlockWorkerInfo localWorker) {
+    boolean isFound = false;
+    Path filePathAfterSalt = null;
+    int salt = 0;
+    for (; salt < 1024; salt++) {
+      // TODO(jiacheng): what happens if this does not stop
+      filePathAfterSalt = filePathBeforeSalt.suffix("-" + salt);
+
+      // Check if the salt can meet our need
+      WorkerNetAddress targetWorker = calculateAllocation(filePathAfterSalt, mDoraFs, workers);
+
+      if (isLocal) {
+        // accept only if the target worker is local to the client
+        // otherwise reject
+        if (targetWorker.equals(localWorker.getNetAddress())) {
+          isFound = true;
+          distribution[currentWorkerIdx]++;
+          break; // this salt will give the client a local worker in the hash ring
+        }
+      } else {
+        // accept if:
+        // 1. the target worker is not local to the client AND
+        if (targetWorker.equals(localWorker.getNetAddress())) {
+          // Reject the allocation to a local worker because we want remote
+          continue;
+        }
+        // 2. distribution is even among the workers
+        //    on each worker we create #threads requests so each worker should serve that many
+        int allocationIndex = findWorkerByAddress(workers, targetWorker);
+        if (allocationIndex == -1) {
+          throw new IllegalStateException(String.format(
+                  "Failed to find worker with address %s in %s", targetWorker, workers));
+        }
+        if (distribution[allocationIndex] < threadNumber) {
+          isFound = true;
+          distribution[allocationIndex]++;
+          break;
+        }
+      }
+    }
+    LOG.info("Tried {} salts for file {}", salt, filePathBeforeSalt);
+
+    // If we exhausted all salts and no fitting path has been found, give up
+    if (!isFound) {
+      if (isLocal) {
+        throw new IllegalStateException(String.format("exhausted %s salts but still cannot find a local worker for path %s",
+                1024, filePathBeforeSalt));
+      } else {
+        throw new IllegalStateException(String.format("exhausted %s salts but still cannot find a remote worker for path %s",
+                1024, filePathBeforeSalt));
+      }
+    }
+    return filePathAfterSalt;
   }
 
   private WorkerNetAddress calculateAllocation(Path proposedPath,
