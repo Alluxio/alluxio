@@ -46,7 +46,7 @@ which are created and managed in [Aliyun AccessKey management console](https://a
 values like `oss-us-west-1.aliyuncs.com` and `oss-cn-shanghai.aliyuncs.com`. Available endpoints are listed in the 
 [OSS Internet Endpoints documentation](https://intl.aliyun.com/help/doc-detail/31837.htm).
 
-## Example: Running Alluxio Locally with OSS
+## Running Alluxio Locally with Aliyun OSS
 
 Start the Alluxio servers:
 

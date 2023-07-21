@@ -82,7 +82,7 @@ When mounting the under storage at the Alluxio root with a specific Ozone versio
 alluxio.underfs.version=<OZONE_VERSION>
 ```
 
-## Example: Running Alluxio Locally with Ozone
+## Running Alluxio Locally with Ozone
 
 Start the Alluxio servers:
 

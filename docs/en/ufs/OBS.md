@@ -18,8 +18,6 @@ the bucket, or using an existing one. For the purposes of this guide, the OBS bu
 
 ## Basic Setup
 
-### Root Mount Point
-
 Create `conf/alluxio-site.properties` if it does not exist.
 
 ```shell

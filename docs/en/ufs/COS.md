@@ -19,9 +19,9 @@ You also need to provide APPID and REGION. In this guide, the APPID is called `C
 
 ## Basic Setup
 
-### Root Mount Point
-
-Create `conf/alluxio-site.properties` if it does not exist.
+To use Tencent COS as the UFS of Alluxio, you need to configure Alluxio to use under storage systems by modifying
+`conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
+template.
 
 ```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
