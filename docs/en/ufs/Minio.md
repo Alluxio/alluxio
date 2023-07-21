@@ -49,7 +49,7 @@ For these parameters, replace `<MINIO_ENDPOINT>` with the hostname and port of y
 e.g., `http://localhost:9000/`.
 If the port value is left unset, it defaults to port 80 for `http` and 443 for `https`.
 
-## Test the MinIO Configuration
+## Running Alluxio Locally with MinIO
 
 Format and start Alluxio with
 

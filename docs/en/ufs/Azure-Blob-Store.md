@@ -22,8 +22,6 @@ called `<AZURE_DIRECTORY>`. For more information about Azure storage account, pl
 
 ## Basic Setup
 
-### Root Mount
-
 To use Azure blob store as the UFS of Alluxio root mount point,
 you need to configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the

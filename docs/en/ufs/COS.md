@@ -19,9 +19,9 @@ You also need to provide APPID and REGION. In this guide, the APPID is called `C
 
 ## Basic Setup
 
-### Root Mount Point
-
-Create `conf/alluxio-site.properties` if it does not exist.
+To use Tencent COS as the UFS of Alluxio, you need to configure Alluxio to use under storage systems by modifying
+`conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
+template.
 
 ```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
@@ -84,22 +84,6 @@ $ ./bin/alluxio-stop.sh local
 ```
 
 ## Advanced Setup
-
-### Nested Mount
-
-An COS location can be mounted at a nested directory in the Alluxio namespace to have unified
-access to multiple under storage systems. Alluxio's
-[Mount Command]({{ '/en/operation/User-CLI.html' | relativize_url }}#mount) can be used for this purpose.
-For example, the following command mounts a directory inside an COS bucket into Alluxio directory
-`/cos`:
-
-```shell
-$ ./bin/alluxio fs mount --option fs.cos.access.key=<COS_SECRET_ID> \
-    --option fs.cos.secret.key=<COS_SECRET_KEY> \
-    --option fs.cos.region=<COS_REGION> \
-    --option fs.cos.app.id=<COS_APP_ID> \
-    /cos cos://<COS_ALLUXIO_BUCKET>/<COS_DATA>/
-```
 
 ### [Experimental] COS multipart upload
 

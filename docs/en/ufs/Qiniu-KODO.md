@@ -8,7 +8,7 @@ This guide describes how to configure Alluxio with [Qiniu Kodo](https://www.qini
 
 Qiniu Object Storage Service (Kodo) is a cloud-based object storage service provided by Qiniu Cloud, a Chinese cloud service provider. Kodo is a massive, secure and highly reliable cloud storge service that is designed to store, manage, and serve large amounts of unstructured data.
 
-## Initial Setup
+## Prerequisites
 
 A Qiniu Kodo bucket is necessary before using Kodo with Alluxio. In this guide, the Qiniu Kodo bucket
 is called `KODO_BUCKET`, and the directory in the bucket is called `KODO_DIRECTORY`.
@@ -21,10 +21,15 @@ Alluxio unifies access to different storage systems through the
 unified namespace feature.
 The root of Alluxio namespace or its subdirectories are all available for the mount point of Kodo.
 
-### Root Mount
+If you want to use Qiniu Kodo as its under storage system in Alluxio, you need to configure Alluxio to use under storage systems by modifying
+`conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
+template.
 
-If you want to use Qiniu Kodo as its under storage system in Alluxio, `conf/alluxio-site.properties` must be modified.
-In the beginning, an existing Kodo bucket and its directory should be specified for storage by the following code:
+```shell
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```
+
+In the beginning, an existing Kodo bucket and its directory should be specified for storage:
 ```properties
 alluxio.dora.client.ufs.root=kodo://<KODO_BUCKET>/<KODO_DIRECTORY>/
 ```
@@ -50,27 +55,27 @@ alluxio.underfs.kodo.endpoint=<KODO_ENDPOINT>
 <tr>
     <td markdown="span">East China</td>
     <td markdown="span">z0</td>
-    <td markdown="span">iovip.qbox.me</td>
+    <td markdown="span">`iovip.qbox.me`</td>
 </tr>
 <tr>
     <td markdown="span">North China</td>
     <td markdown="span">z1</td>
-    <td markdown="span">iovip-z1.qbox.me</td>
+    <td markdown="span">`iovip-z1.qbox.me`</td>
 </tr>
 <tr>
     <td markdown="span">South China</td>
     <td markdown="span">z2</td>
-    <td markdown="span">iovip-z2.qbox.me</td>
+    <td markdown="span">`iovip-z2.qbox.me`</td>
 </tr>
 <tr>
     <td markdown="span">North America</td>
     <td markdown="span">na0</td>
-    <td markdown="span">iovip-na0.qbox.me</td>
+    <td markdown="span">`iovip-na0.qbox.me`</td>
 </tr>
 <tr>
     <td markdown="span">Southeast Asia</td>
     <td markdown="span">as0</td>
-    <td markdown="span">iovip-as0.qbox.me</td>
+    <td markdown="span">`iovip-as0.qbox.me`</td>
 </tr>
 </table>
 

@@ -16,8 +16,6 @@ Alluxio supports two different clients APIs to connect to Ceph Object Storage us
 
 A Ceph bucket can be mounted to Alluxio either at the root of the namespace, or at a nested directory.
 
-### Root Mount Point
-
 Configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.
@@ -26,7 +24,7 @@ template.
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-#### Option 1: S3 Interface (preferred)
+### Option 1: S3 Interface (preferred)
 
 Modify `conf/alluxio-site.properties` to include:
 
@@ -43,7 +41,7 @@ If using a Ceph release such as hammer (or older) specify `alluxio.underfs.s3.si
 to use v2 S3 signatures. To use GET Bucket (List Objects) Version 1 specify
 `alluxio.underfs.s3.list.objects.v1=true`.
 
-#### Option 2: Swift Interface
+### Option 2: Swift Interface
 Modify `conf/alluxio-site.properties` to include:
 
 ```properties

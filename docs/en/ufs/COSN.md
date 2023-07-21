@@ -8,13 +8,13 @@ This guide describes how to configure Alluxio with [COSN](https://hadoop.apache.
 COSN, also known as Hadoop-COS, is a client that makes the upper computing systems based on HDFS be able to use [Tencent Cloud Object Storage (COS)](https://cloud.tencent.com/product/cos) as its underlying storage system. 
 
 
-## Basic Setup
+## Prerequisites
 
 In preparation for using COS with Alluxio, create a new bucket or use an existing bucket.
 You should also note the directory you want to use in that bucket, either by creating a new directory in the bucket or using an existing one.
 For the purposes of this guide, the COS Bucket name is called `COSN_ALLUXIO_BUCKET`, the directory in that bucket is called `COSN_DATA`, and COS Bucket region is called `COSN_REGION` which specifies the region of your bucket.
 
-### Root Mount Point
+## Basic Setup 
 
 Create `conf/alluxio-site.properties` and `conf/core-site.xml` if they do not exist.
 

@@ -1,6 +1,6 @@
 ---
 layout: global
-title: Running Spark on Alluxio
+title: Running Apache Spark on Alluxio
 ---
 
 This guide describes how to configure [Apache Spark](http://spark-project.org/)

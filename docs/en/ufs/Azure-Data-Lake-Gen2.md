@@ -20,8 +20,6 @@ the directory in that storage account is called `<AZURE_DIRECTORY>`, and the nam
 
 ## Setup with Shared Key
 
-### Root Mount
-
 To use Azure Data Lake Storage as the UFS of Alluxio root mount point,
 you need to configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
@@ -44,8 +42,6 @@ fs.azure.account.key.<AZURE_ACCOUNT>.dfs.core.windows.net=<SHARED_KEY>
 ```
 
 ## Setup with OAuth 2.0 Client Credentials
-
-### Root Mount
 
 To use Azure Data Lake Storage as the UFS of Alluxio root mount point,
 you need to configure Alluxio to use under storage systems by modifying
@@ -72,8 +68,6 @@ fs.azure.account.oauth2.client.secret=<CLIENT_SECRET>
 ```
 
 ## Setup with Azure Managed Identities
-
-### Root Mount
 
 To use Azure Data Lake Storage as the UFS of Alluxio root mount point,
 you need to configure Alluxio to use under storage systems by modifying

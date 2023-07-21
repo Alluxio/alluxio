@@ -13,7 +13,7 @@ You'll need to have a configured and running installation of NFS for the rest of
 If you need to get your own NFS installation up and running, we recommend taking a look at the
 [NFS-HOW TO](http://nfs.sourceforge.net/nfs-howto/)
 
-## Requirements
+## Prerequisites
 
 The prerequisite for this part is that you have a version of
 [Java 8](https://adoptopenjdk.net/releases.html?variant=openjdk8&jvmVariant=hotspot)

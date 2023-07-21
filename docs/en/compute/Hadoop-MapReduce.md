@@ -1,9 +1,9 @@
 ---
 layout: global
-title: Running Hadoop MapReduce on Alluxio
+title: Running Apache Hadoop MapReduce on Alluxio
 ---
 
-This guide describes how to configure Alluxio with Apache Hadoop MapReduce, so that your
+This guide describes how to configure Alluxio with [Apache Hadoop MapReduce](https://hadoop.apache.org/docs/stable/hadoop-mapreduce-client/hadoop-mapreduce-client-core/MapReduceTutorial.html), so that your
 MapReduce programs can read+write data stored in Alluxio.
 
 ## Prerequisites

@@ -21,8 +21,8 @@ based on a self-managed consensus protocol;
 whereas UFS journal stores edit logs in an external shared UFS storage,
 and relies on an external Zookeeper for coordination for HA mode.
 Starting from 2.2, the default journal type is `EMBEDDED`.
-This can be changed by setting the property "`alluxio.master.journal.type`" to "`UFS`"
-instead of "`EMBEDDED`".
+This can be changed by setting the property `alluxio.master.journal.type` to `UFS`
+instead of `EMBEDDED`.
 
 To choose between the default Embedded Journal and UFS journal,
 here are some aspects to consider:
@@ -72,20 +72,6 @@ alluxio.master.embedded.journal.addresses=master_hostname_1:19200,master_hostnam
 when using multiple masters without Zookeeper. This property is not used when Zookeeper is enabled, since Zookeeper already stores the master addresses.
 If this is not set, clients will look for masters using the hostnames from `alluxio.master.embedded.journal.addresses`
 and the master rpc port (Default:`19998`).
-
-### Advanced configuration
-
-<ul>
-{% for item in site.data.table.master-configuration %}
-    {% capture journal_properties %}{{ 'alluxio.master.embedded.journal.' }}{% endcapture %} 
-    {% assign journal_prop_size = journal_properties | size %}
-    {% assign result = item.propertyName | slice: 0, journal_prop_size %}
-    
-    {% if result == journal_properties %}
-        <li><code>{{ item.propertyName }}</code>: {{ site.data.table.en.master-configuration[item.propertyName] }} Default: <code>{{ item.defaultValue }}</code></li>
-    {% endif %}
-{% endfor %}
-</ul>
 
 ### Configuring the Job service
 

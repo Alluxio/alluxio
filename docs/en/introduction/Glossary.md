@@ -30,11 +30,19 @@ FUSE Kernel Cache
 FUSE Userspace Cache
 : Recommended for data cache, userspace cache is a cache mechanism that operates at the application or userspace level. It involves storing frequently accessed data closer to the application, typically in memory, to improve performance and reduce the need for expensive disk or network operations. Userspace cache provides a more fine-grain control on the cache (e.g. cache medium, maximum cache size, eviction policy) and the cache will not affect other applications in containerized environments unexpectedly. [Learn more]({{ '/en/fuse-sdk/Local-Cache.html' | relativize_url }})
 
+Helm
+: Helm is an open-source package manager for Kubernetes. It simplifies the deployment and management of applications on Kubernetes clusters by providing a templating engine and a collection of pre-configured application packages called "charts." 
+
+: Helm Charts help you define, install, and upgrade Kubernetes applications. See [Install Alluxio on Kubernetes]({{ '/en/kubernetes/Install-Alluxio-On-Kubernetes.html' | relativize_url }}) on how to use Helm Charts in your Alluxio deployment on Kubernetes.
+
 Job
 : A job is a computation or processing task performed by an application or framework that interacts with Alluxio as a data storage layer.
 
 Job Service
 : Job service helps in coordinating and monitoring the execution of jobs that involve data access or processing using Alluxio as the storage layer.
+
+Kubernetes
+: Kubernetes, also known as K8s, is an open-source system for automating deployment, scaling, and management of containerized applications. It groups containers that make up an application into logical units for easy management and discovery. [Install Alluxio on Kubernetes]({{ '/en/kubernetes/Install-Alluxio-On-Kubernetes.html' | relativize_url }})
 
 Master
 : The Alluxio Master serves all user requests and journals file system metadata changes. The Alluxio Job Master is the process which serves as a lightweight scheduler for file system operations which are then executed on Alluxio Job Workers.
@@ -43,6 +51,9 @@ Master
 
 Metadata Management
 : Alluxio manages metadata associated with data stored in various storage systems. It tracks metadata changes, provides metadata caching, and ensures consistency and coherence across different storage systems. [See more on Metadata Cache & Invalidation]({{ '/en/core-services/Metadata-Caching.html' | relativize_url }})
+
+Operator
+: An operator is a software extension for Kubernetes that makes use of custom resources to manage applications and their components. See [Install Alluxio on Kubernetes]({{ '/en/kubernetes/Install-Alluxio-On-Kubernetes.html' | relativize_url }}) on how to use Operator in your Alluxio deployment on Kubernetes.
 
 Paging Worker Storage
 : Alluxio supports finer-grained page-level caching storage on Alluxio workers, as an alternative option to the existing block-based tiered caching storage. This paging storage supports general workloads including reading and writing, with customizable cache eviction policies. [Learn more]({{ '/en/core-services/Data-Caching.html#paging-worker-storage' | relativize_url}})
@@ -61,6 +72,9 @@ Transparent Data Access
 
 Trino
 : Trino is a distributed SQL query engine designed for fast, interactive SQL queries across large-scale data sets, supporting a wide range of data sources and providing excellent performance and scalability. [Run Trino with Alluxio]({{ '/en/compute/Trino.html' | relativize_url }})
+
+Under File Storage (UFS)
+: Under File Storage, also referred to as under storage, is a type of storage that is represented as space not managed by Alluxio. UFS storage may come from an external file system, including HDFS or S3. [See Data Caching]({{ '/en/core-services/Data-Caching.html' | relativize_url}})
 
 Unified Namespace
 : Alluxio presents a unified namespace that spans multiple storage systems, creating a logical view of the data. It allows applications to interact with data consistently, regardless of where the data is physically stored.
