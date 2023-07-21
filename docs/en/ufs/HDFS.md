@@ -36,7 +36,7 @@ See [mounting HDFS with specific versions]({{ '/en/ufs/HDFS.html' | relativize_u
 alluxio.underfs.version=<HADOOP VERSION>
 ```
 
-## Example: Running Alluxio Locally with HDFS
+## Running Alluxio Locally with HDFS
 
 Before this step, make sure your HDFS cluster is running and the directory mapped to Alluxio
 exists. Start the Alluxio servers:
