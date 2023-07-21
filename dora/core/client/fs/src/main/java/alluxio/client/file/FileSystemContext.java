@@ -44,6 +44,7 @@ import alluxio.resource.CloseableResource;
 import alluxio.resource.DynamicResourcePool;
 import alluxio.security.authentication.AuthenticationUtils;
 import alluxio.security.user.UserState;
+import alluxio.uri.UfsUrl;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -603,6 +604,12 @@ public class FileSystemContext implements Closeable {
     return new SpecificPathConfiguration(getClientContext().getClusterConf(),
         getClientContext().getPathConf(), path);
   }
+
+//  public AlluxioConfiguration getPathConf(UfsUrl ufsPath) {
+//    // TODO(Tony Sun): Add impl. We need add a constructive method in SpecificPathConfiguration,
+//    //  Or add a new class called like "SpecificUfsUriPathConfiguration?"
+//    return null;
+//  }
 
   /**
    * @return the master address

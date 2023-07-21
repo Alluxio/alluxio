@@ -176,6 +176,12 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   }
 
   @Override
+  public FileInStream openFile(UfsUrl ufsPath, OpenFilePOptions options)
+      throws IOException, AlluxioException {
+    return openFile(getStatus(ufsPath), options);
+  }
+
+  @Override
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
       throws IOException, AlluxioException {
     return openFile(getStatus(path), options);
@@ -312,6 +318,23 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       throw e;
     }
   }
+
+//  @Override
+//  public FileOutStream createFile(UfsUrl ufsPath, CreateFilePOptions options) {
+//    try {
+//      // TODO(Tony Sun): Does there need to refactor FileSystemContext.getPathConf first?
+////      CreateFilePOptions mergedOptions = FileSystemOptionsUtils.createFileDefaults(
+////          mFsContext.getPathConf();
+////      )
+//    } catch (Exception e) {
+//      // TODO(Tony Sun): delete the file?
+//      UFS_FALLBACK_COUNTER.inc();
+//      LOG.debug("Dora client CreateFile error ({} times). Fall back to UFS.",
+//          UFS_FALLBACK_COUNTER.getCount(), e);
+//      throw e;
+//    }
+//    return null;
+//  }
 
   @Override
   public void createDirectory(AlluxioURI path, CreateDirectoryPOptions options)

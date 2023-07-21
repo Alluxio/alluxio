@@ -244,6 +244,20 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
+  public List<URIStatus> listStatus(final UfsUrl ufsPath, final ListStatusPOptions options)
+          throws AlluxioStatusException {
+    return retryRPC(() -> {
+      List<URIStatus> result = new ArrayList<>();
+      mClient.listStatus(ListStatusPRequest.newBuilder().setUfsPath(ufsPath.getProto()).setOptions(options).build())
+        .forEachRemaining(
+          (pListStatusResponse) -> result.addAll(pListStatusResponse.getFileInfosList().stream()
+                  .map((pFileInfo) -> new URIStatus(GrpcUtils.fromProto(pFileInfo)))
+                  .collect(Collectors.toList())));
+      return result;
+    }, RPC_LOG, "ListStatus", "path=%s,options=%s", ufsPath, options);
+  }
+
+  @Override
   public synchronized List<SyncPointInfo> getSyncPathList() throws AlluxioStatusException {
     return retryRPC(() -> mClient.getSyncPathList(GetSyncPathListPRequest.getDefaultInstance())
         .getSyncPathsList().stream().map(x -> alluxio.wire.SyncPointInfo.fromProto(x))
@@ -294,7 +308,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
               .forEach(action);
           return null;
         },
-        RPC_LOG, "ListStatus", "path=%s,options=%s", path, options);
+        RPC_LOG, "IterateStatus", "path=%s,options=%s", path, options);
   }
 
   @Override
@@ -303,12 +317,11 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     return retryRPC(() -> {
       List<URIStatus> result = new ArrayList<>();
       mClient
-          .listStatus(ListStatusPRequest.newBuilder().setPath(getTransportPath(path))
-              .setOptions(options).build())
-          .forEachRemaining(
-              (pListStatusResponse) -> result.addAll(pListStatusResponse.getFileInfosList().stream()
-                  .map((pFileInfo) -> new URIStatus(GrpcUtils.fromProto(pFileInfo)))
-                  .collect(Collectors.toList())));
+              .listStatus(ListStatusPRequest.newBuilder().setPath(getTransportPath(path)).setOptions(options).build())
+              .forEachRemaining(
+                      (pListStatusResponse) -> result.addAll(pListStatusResponse.getFileInfosList().stream()
+                              .map((pFileInfo) -> new URIStatus(GrpcUtils.fromProto(pFileInfo)))
+                              .collect(Collectors.toList())));
       return result;
     }, RPC_LOG, "ListStatus", "path=%s,options=%s", path, options);
   }

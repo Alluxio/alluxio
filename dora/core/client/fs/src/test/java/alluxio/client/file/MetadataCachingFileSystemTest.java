@@ -334,6 +334,12 @@ public class MetadataCachingFileSystemTest {
     }
 
     @Override
+    public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
+        throws AlluxioStatusException {
+      throw new UnsupportedOperationException("listStatus(UfsUrl) is not supported");
+    }
+
+    @Override
     public URIStatus createFile(AlluxioURI path, CreateFilePOptions options)
         throws AlluxioStatusException {
       URIStatus status = new URIStatus(

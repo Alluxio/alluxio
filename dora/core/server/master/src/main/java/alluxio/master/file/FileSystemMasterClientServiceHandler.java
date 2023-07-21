@@ -278,6 +278,7 @@ public final class FileSystemMasterClientServiceHandler
       StreamObserver<GetStatusPResponse> responseObserver) {
     GetStatusPOptions options = request.getOptions();
     RpcUtils.call(LOG, () -> {
+      // TODO(Tony Sun): refactor it. Finally here should use request.getUfsPath().
       AlluxioURI pathUri = getAlluxioURI(request.getPath());
       return GetStatusPResponse.newBuilder()
           .setFileInfo(GrpcUtils.toProto(mFileSystemMaster.getFileInfo(pathUri, GetStatusContext

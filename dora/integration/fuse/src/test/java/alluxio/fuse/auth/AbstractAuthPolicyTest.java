@@ -25,6 +25,8 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.FileIncompleteException;
+import alluxio.exception.OpenDirectoryException;
 import alluxio.fuse.AlluxioFuseUtils;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -212,6 +214,12 @@ public abstract class AbstractAuthPolicyTest {
     }
 
     @Override
+    public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
+        throws FileDoesNotExistException, IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public ListStatusPartialResult listStatusPartial(
         AlluxioURI path, ListStatusPartialPOptions options) {
       throw new UnsupportedOperationException();
@@ -246,6 +254,12 @@ public abstract class AbstractAuthPolicyTest {
 
     @Override
     public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
+        throws IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public FileInStream openFile(UfsUrl ufsPath, OpenFilePOptions options)
         throws IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }

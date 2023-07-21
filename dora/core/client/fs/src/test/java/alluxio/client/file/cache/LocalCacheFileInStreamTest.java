@@ -858,6 +858,12 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
+    public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
+        throws FileDoesNotExistException, IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public ListStatusPartialResult listStatusPartial(
         AlluxioURI path, ListStatusPartialPOptions options) {
       throw new UnsupportedOperationException();
@@ -912,6 +918,17 @@ public class LocalCacheFileInStreamTest {
         return new MockFileInStream(mFiles.get(path));
       } else {
         throw new FileDoesNotExistException(path);
+      }
+    }
+
+    @Override
+    public FileInStream openFile(UfsUrl ufsPath, OpenFilePOptions options)
+        throws  FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
+        IOException, AlluxioException {
+      if (mFiles.containsKey(ufsPath)) {
+        return new MockFileInStream(mFiles.get(ufsPath));
+      } else {
+        throw new FileDoesNotExistException(ufsPath);
       }
     }
 

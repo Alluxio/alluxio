@@ -23,6 +23,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -277,6 +278,12 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   @Override
+  public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    return null;
+  }
+
+  @Override
   public void iterateStatus(AlluxioURI path, final ListStatusPOptions options,
       Consumer<? super URIStatus> action) {
     call(() -> {
@@ -335,6 +342,13 @@ public class UfsBaseFileSystem implements FileSystem {
   @Override
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options) {
     return openFile(getStatus(path), options);
+  }
+
+  @Override
+  public FileInStream openFile(UfsUrl ufsPath, OpenFilePOptions options)
+    throws IOException, AlluxioException {
+    // TODO(Tony Sun): Asking for the exceptions.
+    return openFile(getStatus(ufsPath), options);
   }
 
   @Override

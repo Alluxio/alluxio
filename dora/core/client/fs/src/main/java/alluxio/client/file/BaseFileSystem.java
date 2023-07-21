@@ -192,6 +192,13 @@ public class BaseFileSystem implements FileSystem {
     });
   }
 
+//  @Override
+//  public FileOutStream createFile(UfsUrl ufsPath, CreateFilePOptions options)
+//      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
+//    // TODO(Tony Sun): add impl.
+//    return null;
+//  }
+
   @Override
   public void delete(AlluxioURI path, DeletePOptions options)
       throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
@@ -317,6 +324,15 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
+  public List<URIStatus> listStatus(UfsUrl ufsPath, final ListStatusPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    checkUri(ufsPath);
+    return rpc(client -> {
+      return client.listStatus(ufsPath, options);
+    });
+  }
+
+  @Override
   public void iterateStatus(AlluxioURI path, final ListStatusPOptions options,
       Consumer<? super URIStatus> action)
       throws FileDoesNotExistException, IOException, AlluxioException {
@@ -419,6 +435,15 @@ public class BaseFileSystem implements FileSystem {
             .setAccessMode(Bits.READ)
             .setUpdateTimestamps(options.getUpdateLastAccessTime())
             .build());
+    return openFile(status, options);
+  }
+
+  @Override
+  public FileInStream openFile(UfsUrl ufsPath, OpenFilePOptions options)
+      throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
+      IOException, AlluxioException {
+    checkUri(ufsPath);
+    URIStatus status = getStatus(ufsPath);
     return openFile(status, options);
   }
 

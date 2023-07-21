@@ -12,6 +12,7 @@
 package alluxio.exception;
 
 import alluxio.AlluxioURI;
+import alluxio.uri.UfsUrl;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -70,5 +71,9 @@ public class FileDoesNotExistException extends AlluxioException {
    */
   public FileDoesNotExistException(AlluxioURI path) {
     this(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
+  }
+
+  public FileDoesNotExistException(UfsUrl ufsPath) {
+    this(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessageWithUrl(ufsPath.asString()));
   }
 }

@@ -276,6 +276,14 @@ public interface FileSystem extends Closeable {
   FileOutStream createFile(AlluxioURI path, CreateFilePOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException;
 
+//  default FileOutStream createFile(UfsUrl ufsPath)
+//      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
+//    return createFile(ufsPath, CreateFilePOptions.getDefaultInstance());
+//  }
+//
+//  FileOutStream createFile(UfsUrl ufsPath, CreateFilePOptions options)
+//      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException;
+
   /**
    * Convenience method for {@link #delete(AlluxioURI, DeletePOptions)} with default options.
    *
@@ -477,6 +485,9 @@ public interface FileSystem extends Closeable {
   List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
+  List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException;
+
   /**
    * Same as {@link FileSystem#listStatus(AlluxioURI, ListStatusPOptions)} except may
    * only return a subset of the results as determined by the options parameter.
@@ -601,6 +612,10 @@ public interface FileSystem extends Closeable {
    * @throws FileIncompleteException when path is a file and is not completed yet
    */
   FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
+      throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
+      IOException, AlluxioException;
+
+  FileInStream openFile(UfsUrl ufsPath, OpenFilePOptions options)
       throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
       IOException, AlluxioException;
 
