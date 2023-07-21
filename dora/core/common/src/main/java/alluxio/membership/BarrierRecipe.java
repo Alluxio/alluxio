@@ -11,6 +11,8 @@
 
 package alluxio.membership;
 
+import alluxio.annotation.SuppressFBWarnings;
+
 import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
 import io.etcd.jetcd.Txn;
@@ -156,6 +158,7 @@ public class BarrierRecipe {
    * @param timeUnit
    * @throws InterruptedException
    */
+  @SuppressFBWarnings({"RV_RETURN_VALUE_IGNORED"})
   public void waitOnBarrier(long time, TimeUnit timeUnit) throws InterruptedException {
     waitOnBarrierInternal();
     mLatch.await(time, timeUnit);

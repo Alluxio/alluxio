@@ -11,6 +11,7 @@
 
 package alluxio.membership;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.grpc.GrpcUtils;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -38,6 +39,7 @@ public class WorkerServiceEntity extends ServiceEntity {
 
   WorkerNetAddress mAddress;
   State mState = State.JOINED;
+  @SuppressFBWarnings({"URF_UNREAD_FIELD"})
   int mGenerationNum = -1;
 
   public WorkerServiceEntity() {
@@ -71,7 +73,7 @@ public class WorkerServiceEntity extends ServiceEntity {
       return false;
     }
     WorkerServiceEntity anotherO = (WorkerServiceEntity) o;
-    return mAddress.equals(anotherO)
+    return mAddress.equals(anotherO.mAddress)
         && getServiceEntityName().equals(anotherO.getServiceEntityName());
   }
 

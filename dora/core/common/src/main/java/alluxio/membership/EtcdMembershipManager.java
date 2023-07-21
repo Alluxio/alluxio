@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 public class EtcdMembershipManager implements MembershipManager {
   private static final Logger LOG = LoggerFactory.getLogger(EtcdMembershipManager.class);
   private AlluxioEtcdClient mAlluxioEtcdClient;
-  private static String mClusterName;
+  private String mClusterName;
   private final AlluxioConfiguration mConf;
   private static String sRingPathFormat = "/DHT/%s/AUTHORIZED/";
 
@@ -139,7 +139,7 @@ public class EtcdMembershipManager implements MembershipManager {
       List<WorkerServiceEntity> registeredWorkers = retrieveFullMembers();
       List<String> liveWorkers = retrieveLiveMembers().stream().map(w -> w.getServiceEntityName())
           .collect(Collectors.toList());
-      String printFormat = "%s\t%s\t%s\n";
+      String printFormat = "%s\t%s\t%s%n";
       StringBuilder sb = new StringBuilder(
           String.format(printFormat, "WorkerId", "Address", "Status"));
       for (WorkerServiceEntity entity : registeredWorkers) {

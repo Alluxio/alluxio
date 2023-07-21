@@ -14,14 +14,10 @@ package alluxio.membership;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.grpc.GrpcServer;
-import alluxio.network.ChannelType;
 import alluxio.util.CommonUtils;
-import alluxio.util.network.NettyUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.DataWorker;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -60,8 +56,7 @@ public class StaticMembershipManager implements MembershipManager {
     }
     Scanner scanner = new Scanner(file);
     while (scanner.hasNextLine()) {
-      String addr = scanner.nextLine();
-      addr.trim();
+      String addr = scanner.nextLine().trim();
       WorkerNetAddress workerNetAddress = new WorkerNetAddress()
           .setHost(addr)
           .setContainerHost(Configuration.global()
@@ -122,7 +117,7 @@ public class StaticMembershipManager implements MembershipManager {
 
   @Override
   public String showAllMembers() {
-    String printFormat = "%s\t%s\t%s\n";
+    String printFormat = "%s\t%s\t%s%n";
     StringBuilder sb = new StringBuilder(
         String.format(printFormat, "WorkerId", "Address", "Status"));
     try {

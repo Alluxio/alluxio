@@ -15,6 +15,7 @@ import alluxio.cli.fsadmin.command.DoctorCommand;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**

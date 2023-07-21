@@ -11,6 +11,7 @@
 
 package alluxio.membership;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.exception.status.AlreadyExistsException;
 
 import alluxio.resource.LockResource;
@@ -62,6 +63,7 @@ public class ServiceDiscoveryRecipe {
   AlluxioEtcdClient mAlluxioEtcdClient;
   ScheduledExecutorService mExecutor;
   String mClusterIdentifier = "";
+  @SuppressFBWarnings({"URF_UNREAD_FIELD"})
   private final ReentrantLock mRegisterLock = new ReentrantLock();
   final ConcurrentHashMap<String, ServiceEntity> mRegisteredServices = new ConcurrentHashMap<>();
 
