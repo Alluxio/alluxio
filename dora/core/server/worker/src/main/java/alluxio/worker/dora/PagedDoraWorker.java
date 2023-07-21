@@ -155,6 +155,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    * Constructor.
    *
    * @param workerId
+   * @param identity
    * @param conf
    * @param cacheManager
    * @param membershipManager
