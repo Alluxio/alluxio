@@ -7109,12 +7109,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey DORA_READ_PARTITION_SIZE =
-      dataSizeBuilder(Name.DORA_READ_PARTITION_SIZE)
-          .setDefaultValue("64MB")
-          .setDescription(format("The minimum required file size of partition to enable concurrent read. "
-              + "Files larger than this would be split into partitions "
-              + "and read in parallel from different works. Partition size need to be "
+  public static final PropertyKey DORA_READ_VIRTUAL_BLOCK_SIZE =
+      dataSizeBuilder(Name.DORA_READ_VIRTUAL_BLOCK_SIZE)
+          .setDefaultValue("256MB")
+          .setDescription(format("The minimum required file size of virtual block. "
+              + "Files larger than this would be split into virtual blocks "
+              + "and read from different works. Virtual block size need to be "
               + "a multiplier of %s", Name.WORKER_PAGE_STORE_PAGE_SIZE))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.CLIENT)
@@ -8618,7 +8618,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
             "alluxio.extra.loaded.filesystem.classname";
     public static final String DORA_UFS_LIST_STATUS_CACHE_NR_DIRS =
         "alluxio.dora.ufs.list.status.cache.nr.dirs";
-    public static final String DORA_READ_PARTITION_SIZE =
+    public static final String DORA_READ_VIRTUAL_BLOCK_SIZE =
         "alluxio.dora.file.read.partition.size";
 
     private Name() {} // prevent instantiation

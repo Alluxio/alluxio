@@ -218,13 +218,14 @@ message UfsReadOptions{
 }
 
 message Block{
-  required int64 block_id = 1;
+  optional int64 block_id = 1;
     // The block length.
   required int64 length = 2;
   optional string ufs_path = 3;
   // The offset of the block in within ufs the file.
   optional int64 offset_in_file = 4;
   optional int64 mountId = 5;
+  optional UfsStatus ufs_status = 6;
 }
 
 message LoadResponse {
@@ -241,8 +242,8 @@ enum TaskStatus {
 message LoadFileRequest {
   repeated UfsStatus ufs_status = 1;
   required UfsReadOptions options = 2;
-  optional bool load_metadata_only = 3; // If set false, only the metadata of file will be loaded.
-  optional bool skip_if_exists = 4;
+  optional bool skip_if_exists = 3;
+  repeated Block blocks = 4;
 }
 
 message File{
@@ -280,6 +281,7 @@ message LoadFileFailure {
   // A developer-facing error message
   optional string message = 3;
   optional bool retryable = 4;
+  optional Block block = 5;
 }
 
 message FileFailure {
