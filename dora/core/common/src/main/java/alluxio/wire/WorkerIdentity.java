@@ -89,7 +89,19 @@ public final class WorkerIdentity {
         Parsers.getParser(mVersion).getVersionSpecificRepresentation(this));
   }
 
+  /**
+   * Parsers for worker identity.
+   */
   public static class Parsers {
+    /**
+     * Parses from a protobuf representation.
+     *
+     * @param proto proto
+     * @return worker identity
+     * @throws MissingRequiredFieldsParsingException if required fields are missing
+     * @throws InvalidVersionParsingException if the version of the proto message is not valid
+     * @throws ProtoParsingException if parsing fails
+     */
     public static WorkerIdentity fromProto(alluxio.grpc.WorkerIdentity proto)
         throws ProtoParsingException {
       if (!proto.hasVersion()) {
@@ -107,6 +119,12 @@ public final class WorkerIdentity {
       return parser.fromProto(proto);
     }
 
+    /**
+     * Converts to a Protobuf representation.
+     *
+     * @param workerIdentity worker identity
+     * @return GRPC representation
+     */
     public static alluxio.grpc.WorkerIdentity toProto(WorkerIdentity workerIdentity) {
       return getParser(workerIdentity.mVersion).toProto(workerIdentity);
     }
@@ -134,7 +152,7 @@ public final class WorkerIdentity {
         throws ProtoParsingException;
 
     /**
-     * @return a version-specific string representation of worker identity
+     * @return a version-specific representation of worker identity
      */
     public Object getVersionSpecificRepresentation(WorkerIdentity identity) {
       ensureVersionMatch(identity);
