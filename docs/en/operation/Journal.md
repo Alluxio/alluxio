@@ -21,8 +21,8 @@ based on a self-managed consensus protocol;
 whereas UFS journal stores edit logs in an external shared UFS storage,
 and relies on an external Zookeeper for coordination for HA mode.
 Starting from 2.2, the default journal type is `EMBEDDED`.
-This can be changed by setting the property "`alluxio.master.journal.type`" to "`UFS`"
-instead of "`EMBEDDED`".
+This can be changed by setting the property `alluxio.master.journal.type` to `UFS`
+instead of `EMBEDDED`.
 
 To choose between the default Embedded Journal and UFS journal,
 here are some aspects to consider:
