@@ -1,5 +1,11 @@
 name: Java 8 Integration Tests
 
+# This build runs the default integration tests in the dora/tests module
+# It runs all the tests besides those categorized as:
+# - Fault tolerance = alluxio.server.ft
+# - Web UI = alluxio.web
+# - FUSE = alluxio.client.fuse
+
 on: [pull_request]
 
 jobs:
@@ -11,15 +17,11 @@ jobs:
       matrix:
         modules:
           - >-
-            alluxio.client.cli.**,!alluxio.client.cli.fs.**
+            alluxio.client.cli.**
           - >-
-            alluxio.client.cli.fs.**
+            alluxio.client.fs.**
           - >-
-            alluxio.client.fs.**,!alluxio.client.fs.concurrent.**,!alluxio.client.fs.io.**
-          - >-
-            alluxio.client.fs.concurrent.**,alluxio.client.fs.io.**
-          - >-
-            alluxio.client.**,!alluxio.client.fs.**,!alluxio.client.cli.**,!alluxio.client.fuse.**
+            alluxio.client.**,!alluxio.client.fs.**,!alluxio.client.cli.**
           - >-
             alluxio.job.**,alluxio.master.**,alluxio.stress.**
           - >-

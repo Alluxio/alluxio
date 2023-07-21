@@ -1,5 +1,10 @@
 name: Java 8 Integration Tests (w/ webui)
 
+# This build runs the integration tests in the dora/tests module that require the web UI
+# The key differences between this build and the default integration test build are
+# - Only runs integration tests with prefix alluxio.web
+# - Adds webui to the project list
+
 on: [pull_request]
 
 jobs:
