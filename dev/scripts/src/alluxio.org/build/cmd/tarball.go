@@ -13,62 +13,15 @@ package cmd
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/palantir/stacktrace"
 
 	"alluxio.org/common/command"
-)
-
-type assembledJarsInfo struct {
-	generatedJarPath string                       // relative path of generated jar, before formatting with alluxio version string
-	tarballJarPath   string                       // relative path of copied jar into the tarball, before formatting with alluxio version string
-	fileReplacements map[string]map[string]string // location of file to execute replacement -> find -> replace
-}
-
-var (
-	assembledJars = map[string]assembledJarsInfo{
-		"client": {
-			generatedJarPath: "assembly/client/target/alluxio-assembly-client-%v-jar-with-dependencies.jar",
-			tarballJarPath:   "assembly/alluxio-client-%v.jar",
-			fileReplacements: map[string]map[string]string{
-				"libexec/alluxio-config.sh": {
-					fmt.Sprintf("assembly/client/target/alluxio-assembly-client-%v-jar-with-dependencies.jar", versionPlaceholder): fmt.Sprintf("assembly/alluxio-client-%v.jar", versionPlaceholder),
-				},
-			},
-		},
-		"server": {
-			generatedJarPath: "assembly/server/target/alluxio-assembly-server-%v-jar-with-dependencies.jar",
-			tarballJarPath:   "assembly/alluxio-server-%v.jar",
-			fileReplacements: map[string]map[string]string{
-				"libexec/alluxio-config.sh": {
-					fmt.Sprintf("assembly/server/target/alluxio-assembly-server-%v-jar-with-dependencies.jar", versionPlaceholder): fmt.Sprintf("assembly/alluxio-server-%v.jar", versionPlaceholder),
-				},
-			},
-		},
-		"fuseBundled": {
-			generatedJarPath: "dora/integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar",
-			tarballJarPath:   "dora/integration/fuse/alluxio-fuse-%v.jar",
-			fileReplacements: map[string]map[string]string{
-				"dora/integration/fuse/bin/alluxio-fuse": {
-					fmt.Sprintf("target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", versionPlaceholder): fmt.Sprintf("alluxio-fuse-%v.jar", versionPlaceholder),
-				},
-			},
-		},
-		"fuseStandalone": {
-			generatedJarPath: "dora/integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar",
-			tarballJarPath:   "lib/alluxio-fuse-%v.jar",
-			fileReplacements: map[string]map[string]string{
-				"dora/integration/fuse/bin/alluxio-fuse": {
-					fmt.Sprintf("target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", versionPlaceholder): fmt.Sprintf("../../../lib/alluxio-fuse-%v.jar", versionPlaceholder),
-				},
-			},
-		},
-	}
 )
 
 func collectTarballContents(opts *buildOpts, repoBuildDir, dstDir, alluxioVersion string) error {
@@ -87,18 +40,18 @@ func collectTarballContents(opts *buildOpts, repoBuildDir, dstDir, alluxioVersio
 
 	// add assembly jars, rename jars, and update name used in scripts
 	for _, n := range opts.tarball.AssemblyJars {
-		a, ok := assembledJars[n]
+		a, ok := opts.assemblyJars[n]
 		if !ok {
 			return stacktrace.NewError("no assembly jar named %v", n)
 		}
-		src := filepath.Join(repoBuildDir, fmt.Sprintf(a.generatedJarPath, alluxioVersion))
-		dst := filepath.Join(dstDir, fmt.Sprintf(a.tarballJarPath, alluxioVersion))
+		src := filepath.Join(repoBuildDir, strings.ReplaceAll(a.GeneratedJarPath, versionPlaceholder, alluxioVersion))
+		dst := filepath.Join(dstDir, strings.ReplaceAll(a.TarballJarPath, versionPlaceholder, alluxioVersion))
 		if err := copyFileForTarball(src, dst); err != nil {
 			return stacktrace.Propagate(err, "error copying file from %v to %v", src, dst)
 		}
 
 		// replace corresponding reference in scripts
-		for filePath, replacements := range a.fileReplacements {
+		for filePath, replacements := range a.FileReplacements {
 			replacementFile := filepath.Join(dstDir, filePath)
 			stat, err := os.Stat(replacementFile)
 			if err != nil {
@@ -109,7 +62,6 @@ func collectTarballContents(opts *buildOpts, repoBuildDir, dstDir, alluxioVersio
 				return stacktrace.Propagate(err, "error reading file at %v", replacementFile)
 			}
 			for find, replace := range replacements {
-				// ex. "alluxio-assembly-client-${VERSION}-jar-with-dependencies.jar" -> "alluxio-assembly-client-${VERSION}.jar
 				contents = bytes.ReplaceAll(contents, []byte(find), []byte(replace))
 			}
 			if err := ioutil.WriteFile(replacementFile, contents, stat.Mode()); err != nil {
