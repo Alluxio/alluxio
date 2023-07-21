@@ -21,6 +21,8 @@ import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientContext;
 import alluxio.membership.MembershipManager;
 import alluxio.underfs.UfsManager;
+import alluxio.wire.TieredIdentity;
+import alluxio.wire.WorkerIdentity;
 import alluxio.worker.Worker;
 import alluxio.worker.dora.DoraUfsManager;
 import alluxio.worker.dora.DoraWorker;
@@ -44,13 +46,19 @@ import java.util.concurrent.atomic.AtomicReference;
 public class DoraWorkerModule extends AbstractModule {
   @Override
   protected void configure() {
+    bind(AlluxioConfiguration.class).toProvider(() -> Configuration.global());
+
+    // Identities
+    bind(TieredIdentity.class).toProvider(() ->
+        TieredIdentityFactory.localIdentity(Configuration.global()));
     bind(new TypeLiteral<AtomicReference<Long>>() {
     }).annotatedWith(Names.named("workerId"))
         .toInstance(new AtomicReference<>(-1L));
+    bind(WorkerIdentity.class).toProvider(WorkerIdentityProvider.class).in(Scopes.SINGLETON);
+
     bind(FileSystemMasterClient.class).toProvider(() -> new FileSystemMasterClient(
         MasterClientContext.newBuilder(ClientContext.create(Configuration.global())).build()));
     bind(UfsManager.class).to(DoraUfsManager.class).in(Scopes.SINGLETON);
-    bind(AlluxioConfiguration.class).toProvider(() -> Configuration.global());
 
     // Note that dora can only use Paged Store
     try {

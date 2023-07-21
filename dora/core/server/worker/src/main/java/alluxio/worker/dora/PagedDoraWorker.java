@@ -82,6 +82,7 @@ import alluxio.util.HashUtils;
 import alluxio.util.ModeUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.wire.FileInfo;
+import alluxio.wire.WorkerIdentity;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
@@ -132,6 +133,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private final Closer mResourceCloser = Closer.create();
   // TODO(lucy) change to string typed once membership manager got enabled by default
   private final AtomicReference<Long> mWorkerId;
+  private final WorkerIdentity mWorkerIdentity;
   private final CacheManager mCacheManager;
   protected final DoraUfsManager mUfsManager;
   private final DoraMetaManager mMetaManager;
@@ -160,16 +162,18 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   @Inject
   public PagedDoraWorker(
       @Named("workerId") AtomicReference<Long> workerId,
+      WorkerIdentity identity,
       AlluxioConfiguration conf,
       CacheManager cacheManager,
       MembershipManager membershipManager
   ) {
-    this(workerId, conf, cacheManager, membershipManager, new BlockMasterClientPool(),
+    this(workerId, identity, conf, cacheManager, membershipManager, new BlockMasterClientPool(),
         FileSystemContext.create(conf));
   }
 
   protected PagedDoraWorker(
       AtomicReference<Long> workerId,
+      WorkerIdentity identity,
       AlluxioConfiguration conf,
       CacheManager cacheManager,
       MembershipManager membershipManager,
@@ -177,6 +181,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       FileSystemContext fileSystemContext) {
     super(ExecutorServiceFactories.fixedThreadPool("dora-worker-executor", 5));
     mWorkerId = workerId;
+    mWorkerIdentity = identity;
     mConf = conf;
     mUfsManager = mResourceCloser.register(new DoraUfsManager());
     String rootUFS = mConf.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
