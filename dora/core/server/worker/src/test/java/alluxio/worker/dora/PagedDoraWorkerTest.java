@@ -46,6 +46,7 @@ import alluxio.membership.MembershipManager;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsStatus;
 import alluxio.util.io.BufferUtils;
+import alluxio.wire.WorkerIdentity;
 
 import com.google.common.base.Strings;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -96,6 +97,7 @@ public class PagedDoraWorkerTest {
     mMembershipManager =
         MembershipManager.Factory.create(Configuration.global());
     mWorker = new PagedDoraWorker(new AtomicReference<>(1L),
+        WorkerIdentity.ParserV0.INSTANCE.fromLong(1L),
         Configuration.global(), mCacheManager, mMembershipManager);
   }
 
