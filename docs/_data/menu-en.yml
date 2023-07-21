@@ -80,8 +80,6 @@
         url: /en/ufs/Qiniu-KODO.html
       - title: Tencent COS
         url: /en/ufs/COS.html
-      - title: COSN (Hadoop-COS)
-        url: /en/ufs/COSN.html
       - title: CephObjectStorage
         url: /en/ufs/CephObjectStorage.html
       - title: MinIO
