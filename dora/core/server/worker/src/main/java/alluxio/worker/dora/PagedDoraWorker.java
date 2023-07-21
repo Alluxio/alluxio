@@ -102,6 +102,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -143,6 +144,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   private final DoraOpenFileHandleContainer mOpenFileHandleContainer;
 
+  private final boolean mClientWriteToUFSEnabled;
+
   /**
    * Constructor.
    *
@@ -156,7 +159,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       WorkerIdentity identity,
       AlluxioConfiguration conf,
       CacheManager cacheManager) {
-    this(workerId, identity, conf, cacheManager, new BlockMasterClientPool());
+    this(workerId, identity, conf, cacheManager, new BlockMasterClientPool(),
+        FileSystemContext.create(conf));
   }
 
   protected PagedDoraWorker(
@@ -164,14 +168,15 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       WorkerIdentity identity,
       AlluxioConfiguration conf,
       CacheManager cacheManager,
-      BlockMasterClientPool blockMasterClientPool) {
+      BlockMasterClientPool blockMasterClientPool,
+      FileSystemContext fileSystemContext) {
     super(ExecutorServiceFactories.fixedThreadPool("dora-worker-executor", 5));
     mWorkerId = workerId;
     mWorkerIdentity = identity;
     mConf = conf;
     mRootUFS = Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
     mUfsManager = mResourceCloser.register(new DoraUfsManager());
-    mFsContext = mResourceCloser.register(FileSystemContext.create(mConf));
+    mFsContext = mResourceCloser.register(fileSystemContext);
     mUfsStreamCache = new UfsInputStreamCache();
     mUfs = UnderFileSystem.Factory.create(
         mRootUFS,
@@ -186,6 +191,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
     mMkdirsRecursive = MkdirsOptions.defaults(mConf).setCreateParent(true);
     mMkdirsNonRecursive = MkdirsOptions.defaults(mConf).setCreateParent(false);
+
+    mClientWriteToUFSEnabled = Configuration.global()
+        .getBoolean(PropertyKey.CLIENT_WRITE_TO_UFS_ENABLED);
   }
 
   @Override
@@ -344,7 +352,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     if (fileLength > 0) {
       cachedPercentage = (int) (bytesInCache * 100 / fileLength);
     } else {
-      cachedPercentage = 0;
+      cachedPercentage = 100;
     }
     return cachedPercentage;
   }
@@ -395,8 +403,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       if (fileLength > 0) {
         cachedPercentage = (int) (bytesInCache * 100 / fileLength);
       } else {
-        cachedPercentage = 0;
+        cachedPercentage = 100;
       }
+
       infoBuilder.setInAlluxioPercentage(cachedPercentage)
           .setInMemoryPercentage(cachedPercentage);
     }
@@ -440,7 +449,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   @Override
   public BlockWriter createFileWriter(String fileId, String ufsPath)
       throws AccessControlException, IOException {
-    return new PagedFileWriter(mCacheManager, fileId, mPageSize);
+    return new PagedFileWriter(this, ufsPath, mCacheManager, fileId, mPageSize);
   }
 
   @Override
@@ -657,6 +666,9 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     if (options.hasMode()) {
       createOption.setMode(new Mode(ModeUtils.protoToShort(options.getMode())));
     }
+    if (options.hasRecursive() && options.getRecursive()) {
+      createOption.setCreateParent(true);
+    }
 
     try {
       // Check if the target file already exists. If yes, return by throwing error.
@@ -686,7 +698,15 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       throw new RuntimeException(e);
     }
 
-    OpenFileHandle handle = new OpenFileHandle(path, info, null);
+    OutputStream outStream;
+    if (mClientWriteToUFSEnabled) {
+      // client is writing directly to UFS. Worker does not write to UFS.
+      outStream = null;
+    } else {
+      outStream = mUfs.create(path, createOption);
+    }
+
+    OpenFileHandle handle = new OpenFileHandle(path, info, options, outStream);
     //add to map.
     mOpenFileHandleContainer.add(path, handle);
 

@@ -121,5 +121,5 @@ If check failed, SCM will throw a NPE.
 To avoid the exception, please set the Alluxio version with parameter "`-Dmaven.buildNumber.revisionOnScmFailure`".
 For example, if the alluxio version is 2.7.3 then set "`-Dmaven.buildNumber.revisionOnScmFailure=2.7.3`". 
 
-See https://www.mojohaus.org/buildnumber-maven-plugin/create-mojo.html#revisionOnScmFailure for more information.
+See [revisionOnScmFailure](https://www.mojohaus.org/buildnumber-maven-plugin/create-mojo.html#revisionOnScmFailure) for more information.
 

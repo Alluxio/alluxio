@@ -4,9 +4,11 @@ title: CephObjectStorage
 ---
 
 
-This guide describes how to configure Alluxio with Ceph Object Storage as the under storage system. Alluxio supports
-two different clients APIs to connect to [Ceph Object Storage](http://ceph.com/ceph-storage/object-storage/)
-using [Rados Gateway](http://docs.ceph.com/docs/master/radosgw/):
+This guide describes how to configure Alluxio with [Ceph Object Storage](http://ceph.com/ceph-storage/object-storage/) as the under storage system. 
+
+Ceph Object Storage is a distributed, open-source storage system designed for storing and retrieving large amounts of unstructured data. It provides a scalable and highly available storage solution that can be deployed on commodity hardware.
+
+Alluxio supports two different clients APIs to connect to Ceph Object Storage using [Rados Gateway](http://docs.ceph.com/docs/master/radosgw/):
 - [S3](http://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html) (preferred)
 - [Swift](http://docs.openstack.org/developer/swift/)
 
@@ -20,7 +22,7 @@ Configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.
 
-```console
+```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
@@ -60,7 +62,7 @@ as `http://<rgw-hostname>:<rgw-port>/auth/1.0`.
 
 Start up Alluxio locally to see that everything works.
 
-```console
+```shell
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
 ```
@@ -70,7 +72,7 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 
 Run a simple example program:
 
-```console
+```shell
 $ ./bin/alluxio runTests
 ```
 
@@ -83,7 +85,7 @@ You should see files named like:
 
 To stop Alluxio, run:
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh local
 ```
 

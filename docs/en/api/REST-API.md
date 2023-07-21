@@ -39,7 +39,7 @@ file system operations in Alluxio.
 The Python client requires an Alluxio proxy that exposes the [REST API](#rest-api) to function.
 
 ### Install Python Client Library
-```console
+```shell
 $ pip install alluxio
 ```
 
@@ -147,7 +147,7 @@ Alluxio.
 The Go client requires an Alluxio proxy that exposes the [REST API](#rest-api) to function.
 
 ### Install Go Client Library
-```console
+```shell
 $ go get -d github.com/Alluxio/alluxio-go
 ```
 

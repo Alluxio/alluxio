@@ -4,8 +4,6 @@ title: FUSE SDK Local Metadata Cache
 ---
 
 
-# Local Metadata Cache
-
 Metadata cache may significantly improve the read training performance especially when loading a large amount of small files repeatedly.
 FUSE kernel issues extra metadata read operations (sometimes can be 3 - 7 times more) compared to [Alluxio Java API]({{ '/en/api/Java-API.html' | relativize_url }}))
 when applications are doing metadata operations or even data operations.
@@ -24,7 +22,7 @@ Kernel metadata cache is defined by the following FUSE mount options:
 - [entry_timeout](https://manpages.debian.org/testing/fuse/mount.fuse.8.en.html#entry_timeout=T): Specifies the timeout in seconds for which directory listing results are cached. The default is 1.0 second.
 
 The timeout time can be enlarged via Fuse mount command:
-```console
+```shell
 $ bin/alluxio-fuse mount <under_storage_dataset> <mount_point> -o attr_timeout=600 -o entry_timeout=600 
 ```
 
@@ -45,7 +43,7 @@ Test against your common workloads to find out the optimal value.
 ## Local Userspace Metadata Cache Configuration
 
 Userspace metadata cache can be enabled via
-```console
+```shell
 $ alluxio-fuse mount <under_storage_dataset> <mount_point> -o local_metadata_cache_size=<size> -o local_metadata_cache_expire=<timeout>
 ```
 `local_metadata_cache_size` (Default = `20000` around 40MB memory): Maximum number of entries in the metadata cache. Each 1000 entries cause about 2MB memory.

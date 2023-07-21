@@ -48,7 +48,7 @@ Download the Alluxio Kubernetes Operator
 #### 2. Install Operator
 
 Install the operator by running:
-```console
+```shell
 $ helm install operator ./deploy/charts/alluxio-operator
 ```
 Operator will automatically create namespace `alluxio-operator` and install
@@ -56,11 +56,10 @@ all the components there.
 
 #### 3. Run Operator
 
-Run
-```console
+Make sure the operator is running as expected:
+```shell
 $ kubectl get pods -n alluxio-operator
 ```
-to make sure the operator is running as expected.
 
 ### Deploy Dataset
 
@@ -85,14 +84,14 @@ spec:
 #### 2. Deploy Dataset
 
 Deploy your dataset by running 
-```console
+```shell
 $ kubectl create -f dataset.yaml
 ```
 
 #### 3. Check Status of Dataset
 
 Check the status of the dataset by running 
-```console
+```shell
 $ kubectl get dataset <dataset-name>
 ```
 
@@ -151,21 +150,21 @@ All other configurable properties in the `spec` section can be found in `deploy/
 #### 3. Deploy Alluxio Cluster
 
 Deploy Alluxio cluster by running:
-```console
+```shell
 $ kubectl create -f alluxio-config.yaml
 ```
 
 #### 4. Check Status of Alluxio Cluster
 
 Check the status of Alluxio cluster by running:
-```console
+```shell
 $ kubectl get alluxiocluster <alluxio-cluster-name>
 ```
 
 ### Uninstall Dataset + Alluxio
 
 Run the following command to uninstall Dataset and Alluxio cluster:
-```console
+```shell
 $ kubectl delete dataset <dataset-name>
 $ kubectl delete alluxiocluster <alluxio-cluster-name>
 ```
@@ -185,12 +184,12 @@ spec:
 ```
 
 Then run the following command to start the load:
-```console
+```shell
 $ kubectl create -f load.yaml 
 ```
 
 To check the status of the load:
-```console
+```shell
 $ kubectl get load
 ```
 
@@ -278,17 +277,17 @@ dataset:
 #### 4. Install Dora Cluster
 
 Install Dora cluster by running 
-```console
+```shell
 $ helm install dora -f config.yaml .
 ```
 Wait until the cluster is ready. You can check pod status and container readiness by running 
-```console
+```shell
 $ kubectl get po
 ```
 
 ### Uninstall
 
 Uninstall Dora cluster as follows:
-```console
+```shell
 $ helm delete dora
 ```

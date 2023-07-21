@@ -4,7 +4,9 @@ title: Tencent COS
 ---
 
 This guide describes the instructions to configure [Tencent COS](https://cloud.tencent.com/product/cos) as Alluxio's
-under storage system. Tencent Cloud Object Storage (COS) is a distributed storage service offered by Tencent Cloud for unstructured data and accessible via HTTP/HTTPS protocols. It can store massive amounts of data and features imperceptible bandwidth and capacity expansion, making it a perfect data pool for big data computation and analytics.
+under storage system. 
+
+Tencent Cloud Object Storage (COS) is a distributed storage service offered by Tencent Cloud for unstructured data and accessible via HTTP/HTTPS protocols. It can store massive amounts of data and features imperceptible bandwidth and capacity expansion, making it a perfect data pool for big data computation and analytics.
 
 ## Prerequisites
 
@@ -21,7 +23,7 @@ You also need to provide APPID and REGION. In this guide, the APPID is called `C
 
 Create `conf/alluxio-site.properties` if it does not exist.
 
-```console
+```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
@@ -29,7 +31,7 @@ Configure Alluxio to use COS as its under storage system by modifying `conf/allu
 Specify an **existing** COS bucket and directory as the under storage system by modifying
 `conf/alluxio-site.properties` to include:
 
-```
+```properties
 alluxio.dora.client.ufs.root=cos://COS_ALLUXIO_BUCKET/COS_DATA/
 ```
 
@@ -39,14 +41,14 @@ Note that if you want to mount the whole cos bucket, add a trailing slash after 
 Specify the COS credentials for COS access by setting `fs.cos.access.key` and `fs.cos.secret.key` in
 `alluxio-site.properties`.
 
-```
+```properties
 fs.cos.access.key=<COS_SECRET_ID>
 fs.cos.secret.key=<COS_SECRET_KEY>
 ```
 
 Specify the COS region by setting `fs.cos.region` in `alluxio-site.properties` (e.g. ap-beijing) and `fs.cos.app.id`.
 
-```
+```properties
 fs.cos.region=<COS_REGION>
 fs.cos.app.id=<COS_APP_ID>
 ```
@@ -59,7 +61,7 @@ you can try [Running Alluxio Locally with COS](#running-alluxio-locally-with-cos
 
 Start the Alluxio servers:
 
-```console
+```shell
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
 ```
@@ -69,7 +71,7 @@ This will start an Alluxio master and an Alluxio worker. You can see the master 
 
 Run a simple example program:
 
-```console
+```shell
 $ ./bin/alluxio runTests
 ```
 
@@ -77,7 +79,7 @@ Before running an example program, please make sure the root mount point
 set in the `conf/alluxio-site.properties` is a valid path in the ufs.
 Make sure the user running the example program has write permissions to the alluxio file system.
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh local
 ```
 
@@ -91,7 +93,7 @@ access to multiple under storage systems. Alluxio's
 For example, the following command mounts a directory inside an COS bucket into Alluxio directory
 `/cos`:
 
-```console
+```shell
 $ ./bin/alluxio fs mount --option fs.cos.access.key=<COS_SECRET_ID> \
     --option fs.cos.secret.key=<COS_SECRET_KEY> \
     --option fs.cos.region=<COS_REGION> \
@@ -105,7 +107,7 @@ The default upload method uploads one file completely from start to end in one g
 
 To enable COS multipart upload, you need to modify `conf/alluxio-site.properties` to include:
 
-```
+```properties
 alluxio.underfs.cos.multipart.upload.enabled=true
 ```
 
@@ -114,10 +116,12 @@ There are other parameters you can specify in `conf/alluxio-site.properties` to 
 ```properties
 # Timeout for uploading part when using multipart upload.
 alluxio.underfs.object.store.multipart.upload.timeout
-
+```
+```properties
 # Thread pool size for COS multipart upload.
 alluxio.underfs.cos.multipart.upload.threads
-
+```
+```properties
 # Multipart upload partition size for COS. The default partition size is 64MB. 
 alluxio.underfs.cos.multipart.upload.partition.size
 ```

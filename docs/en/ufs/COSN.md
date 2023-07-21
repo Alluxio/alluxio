@@ -3,9 +3,10 @@ layout: global
 title: COSN (Hadoop-COS)
 ---
 
-This guide describes how to configure Alluxio with [COSN](https://hadoop.apache.org/docs/stable/hadoop-cos/cloud-storage/index.html), Tencent COS in Hadoop, as the under storage system. COSN, also known as Hadoop-COS, is a client that makes the upper computing systems based on HDFS be able to use the COS as its underlying storage system. 
+This guide describes how to configure Alluxio with [COSN](https://hadoop.apache.org/docs/stable/hadoop-cos/cloud-storage/index.html), Tencent COS in Hadoop, as the under storage system. 
 
-[Tencent Cloud Object Storage (COS)](https://cloud.tencent.com/product/cos) is a distributed storage service offered by Tencent Cloud for unstructured data and accessible via HTTP/HTTPS protocols. It can store massive amounts of data and features imperceptible bandwidth and capacity expansion, making it a perfect data pool for big data computation and analytics.
+COSN, also known as Hadoop-COS, is a client that makes the upper computing systems based on HDFS be able to use [Tencent Cloud Object Storage (COS)](https://cloud.tencent.com/product/cos) as its underlying storage system. 
+
 
 ## Basic Setup
 
@@ -17,7 +18,7 @@ For the purposes of this guide, the COS Bucket name is called `COSN_ALLUXIO_BUCK
 
 Create `conf/alluxio-site.properties` and `conf/core-site.xml` if they do not exist.
 
-```console
+```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 $ cp conf/core-site.xml.template conf/core-site.xml
 ```
@@ -62,7 +63,7 @@ After these changes, Alluxio should be configured to work with COSN as its under
 
 Start up Alluxio locally to see that everything works.
 
-```console
+```shell
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
 ```
@@ -71,7 +72,7 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 
 Run a simple example program:
 
-```console
+```shell
 $ ./bin/alluxio runTests
 ```
 
@@ -84,6 +85,6 @@ COSN_ALLUXIO_BUCKET/COSN_DATA/default_tests_files/BASIC_CACHE_THROUGH
 
 To stop Alluxio, you can run:
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh local
 ```
