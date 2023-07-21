@@ -6,11 +6,13 @@ title: Tencent COS
 This guide describes the instructions to configure [Tencent COS](https://cloud.tencent.com/product/cos) as Alluxio's
 under storage system. 
 
-Tencent Cloud Object Storage (COS) is a distributed storage service offered by Tencent Cloud for unstructured data and accessible via HTTP/HTTPS protocols. It can store massive amounts of data and features imperceptible bandwidth and capacity expansion, making it a perfect data pool for big data computation and analytics.
+Alluxio support two different implementations of under storage system for Tencent COS:
 
-Alluxio support two different implementations of under storage system for Tencent COS
 * [COS](https://cloud.tencent.com/product/cos)
+: Tencent Cloud Object Storage (COS) is a distributed storage service offered by Tencent Cloud for unstructured data and accessible via HTTP/HTTPS protocols. It can store massive amounts of data and features imperceptible bandwidth and capacity expansion, making it a perfect data pool for big data computation and analytics.
+
 * [COSN](https://hadoop.apache.org/docs/stable/hadoop-cos/cloud-storage/index.html), also known as Hadoop-COS
+: COSN, also known as Hadoop-COS, is a client that makes the upper computing systems based on HDFS be able to use [Tencent Cloud Object Storage (COS)](https://cloud.tencent.com/product/cos) as its underlying storage system. 
 
 ## Prerequisites
 
