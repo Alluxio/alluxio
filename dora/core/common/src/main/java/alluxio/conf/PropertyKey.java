@@ -4207,18 +4207,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   //
-  // Secondary master related properties
-  //
-  public static final PropertyKey SECONDARY_MASTER_METASTORE_DIR =
-      stringBuilder(Name.SECONDARY_MASTER_METASTORE_DIR)
-          .setDefaultValue(format("${%s}/secondary-metastore", Name.WORK_DIR))
-          .setDescription(
-              "The secondary master metastore work directory. Only some metastores need disk.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-
-  //
   // File system master related properties
   //
   public static final PropertyKey MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE =
@@ -8821,10 +8809,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.throttle.filesystem.rpc.queue.size.limit";
 
     //
-    // Secondary master related properties
+    // Standby master related properties
     //
-    public static final String SECONDARY_MASTER_METASTORE_DIR =
-        "alluxio.secondary.master.metastore.dir";
     public static final String STANDBY_MASTER_METRICS_SINK_ENABLED =
         "alluxio.standby.master.metrics.sink.enabled";
     public static final String STANDBY_MASTER_WEB_ENABLED =
