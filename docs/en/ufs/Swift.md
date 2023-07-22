@@ -24,22 +24,19 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 Modify `conf/alluxio-site.properties` to include:
 
 ```properties
-alluxio.dora.client.ufs.root=swift://<bucket>/<folder>
-fs.swift.user=<swift-user>
-fs.swift.tenant=<swift-tenant>
-fs.swift.password=<swift-user-password>
-fs.swift.auth.url=<swift-auth-url>
-fs.swift.auth.method=<swift-auth-model>
+alluxio.dora.client.ufs.root=swift://<SWIFT_BUCKET>/<SWIFT_DIRECTORY>
+fs.swift.user=<SWIFT_USER>
+fs.swift.tenant=<SWIFT_TENANT>
+fs.swift.password=<SWIFT_PASSWORD>
+fs.swift.auth.url=<SWIFT_AUTH_URL>
+fs.swift.auth.method=<SWIFT_AUTH_METHOD>
 ```
-
-Replace `<bucket>/<folder>` with an existing Swift bucket location. Possible values of
-`<swift-use-public>` are `true`, `false`. Possible values of `<swift-auth-model>` are `keystonev3`,
-`keystone`, `tempauth`, `swiftauth`. 
+Replace `<CEPH_BUCKET>/<CEPH_DIRECTORY>` with an existing Swift bucket location.
 
 When using either keystone authentication, the following parameter can optionally be set:
 
 ```properties
-fs.swift.region=<swift-preferred-region>
+fs.swift.region=<SWIFT_REGION>
 ```
 
 On the successful authentication, Keystone will return two access URLs: public and private. If
@@ -75,7 +72,7 @@ Visit your Swift bucket to verify the files and directories created
 by Alluxio exist. For this test, you should see files named like:
 
 ```
-<bucket>/<folder>/default_tests_files/BASIC_CACHE_THROUGH
+<SWIFT_BUCKET>/<SWIFT_DIRECTORY>/default_tests_files/BASIC_CACHE_THROUGH
 ```
 
 To stop Alluxio, you can run:
@@ -91,12 +88,12 @@ Developers can also use it to run functional tests against a Swift endpoint
 to validate the contract between Alluxio and Swift.
 
 ```shell
-$ ./bin/alluxio runUfsTests --path swift://<bucket> \
+$ ./bin/alluxio runUfsTests --path swift://<SWIFT_BUCKET> \
   -Dfs.swift.user=<SWIFT_USER> \
   -Dfs.swift.tenant=<SWIFT_TENANT> \
   -Dfs.swift.password=<SWIFT_PASSWORD> \
-  -Dfs.swift.auth.url=<AUTH_URL> \
-  -Dfs.swift.auth.method=<AUTH_METHOD> 
+  -Dfs.swift.auth.url=<SWIFT_AUTH_URL> \
+  -Dfs.swift.auth.method=<SWIFT_AUTH_METHOD> 
 ```
 
 ## Advanced Setup

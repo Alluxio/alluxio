@@ -36,11 +36,11 @@ alluxio.dora.client.ufs.root=kodo://<KODO_BUCKET>/<KODO_DIRECTORY>/
 Next, some settings must be added to `conf/alluxio-site.properties`:
 ```properties
 fs.kodo.accesskey=<KODO_ACCESS_KEY>
-fs.kodo.secretkey=<KODO_SECRET_KET>
+fs.kodo.secretkey=<KODO_SECRET_KEY>
 alluxio.underfs.kodo.downloadhost=<KODO_DOWNLOAD_HOST>
 alluxio.underfs.kodo.endpoint=<KODO_ENDPOINT>
 ```
-`AccessKey/SecretKey` can be found in [Qiniu Console - Key Management](https://portal.qiniu.com/user/key)
+`accessKey/secretKey` can be found in [Qiniu Console - Key Management](https://portal.qiniu.com/user/key)
 
 `alluxio.underfs.kodo.downloadhost` can be found in [Qiniu Console - Kodo](https://portal.qiniu.com/bucket)
 
@@ -97,7 +97,10 @@ $ ./bin/alluxio runTests
 ```
 After this succeeds, you can visit your Kodo directory `kodo://<KODO_BUCKET>/<KODO_DIRECTORY>` to verify the files
 and directories mounted by Alluxio exist. For this test, you should see files named like
-`KODO_BUCKET/KODO_DIRECTORY/default_tests_files/BasicFile_CACHE_PROMOTE_MUST_CACHE`.
+
+```shell
+KODO_BUCKET/KODO_DIRECTORY/default_tests_files/BasicFile_CACHE_PROMOTE_MUST_CACHE
+```
 
 To stop Alluxio, you can run:
 ```shell

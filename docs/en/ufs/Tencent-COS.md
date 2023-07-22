@@ -62,7 +62,7 @@ Specify the COS credentials for COS access by setting `fs.cos.access.key` and `f
 `alluxio-site.properties`.
 
 ```properties
-fs.cos.access.key=<COS_SECRET_ID>
+fs.cos.access.key=<COS_ACCESS_KEY>
 fs.cos.secret.key=<COS_SECRET_KEY>
 ```
 
@@ -77,14 +77,14 @@ fs.cos.app.id=<COS_APP_ID>
 {% navtab COSN %}
 
 Configure Alluxio to use COSN as its under storage system by modifying `conf/alluxio-site.properties` and `conf/core-site.xml`.
-Specify an existing COS bucket and directory as the under storage system by modifying
+Specify an existing COSN bucket and directory as the under storage system by modifying
 `conf/alluxio-site.properties` to include:
 
 ```properties
 alluxio.dora.client.ufs.root=cosn://COSN_BUCKET/COSN_DIRECTORY/
 ```
 
-Specify COS configuration information in order to access COS by modifying `conf/core-site.xml` to include:
+Specify COSN configuration information in order to access COSN by modifying `conf/core-site.xml` to include `COSN_SECRET_KEY`, `COSN_SECRET_ID`, AND `COSN_REGION`:
 
 ```xml
 <property>
@@ -97,15 +97,15 @@ Specify COS configuration information in order to access COS by modifying `conf/
 </property>
 <property>
   <name>fs.cosn.userinfo.secretKey</name>
-  <value>xxxx</value>
+  <value>COSN_SECRET_KEY</value>
 </property>
 <property>
   <name>fs.cosn.userinfo.secretId</name>
-  <value>xxxx</value>
+  <value>COSN_SECRET_ID</value>
 </property>
 <property>
   <name>fs.cosn.bucket.region</name>
-  <value>xx</value>
+  <value>COSN_REGION</value>
 </property>
 ```
 

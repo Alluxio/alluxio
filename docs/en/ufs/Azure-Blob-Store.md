@@ -41,7 +41,7 @@ Specify credentials for the Azure account of the root mount point by adding the 
 properties in `conf/alluxio-site.properties`:
 
 ```properties
-fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<YOUR ACCESS KEY>
+fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<AZURE_ACCOUNT_KEY>
 ```
 
 ## Running Alluxio Locally with Azure Blob Store

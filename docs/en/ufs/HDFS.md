@@ -27,13 +27,13 @@ To find out where HDFS is running, use `hdfs getconf -confKey fs.defaultFS` to g
 and port HDFS is listening on.
 
 ```properties
-alluxio.dora.client.ufs.root=hdfs://<NAMENODE>:<PORT>
+alluxio.dora.client.ufs.root=hdfs://<HDFS_NAMENODE>:<HDFS_PORT>
 ```
 
 Additionally, you may need to specify the following property to be your HDFS version.
 See [mounting HDFS with specific versions]({{ '/en/ufs/HDFS.html' | relativize_url }}#mount-hdfs-with-specific-versions).
 ```properties
-alluxio.underfs.version=<HADOOP VERSION>
+alluxio.underfs.version=<HADOOP_VERSION>
 ```
 
 ## Running Alluxio Locally with HDFS

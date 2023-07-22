@@ -40,11 +40,11 @@ alluxio.dora.client.ufs.root=adl://<AZURE_ACCOUNT>.azuredatalakestore.net/<AZURE
 
 Specify the application ID, authentication key and tenant ID for the Azure AD application used for the Azure account of the root mount point by adding the following
 properties in `conf/alluxio-site.properties`:
-- For instructions on how to retrieve the application ID and authentication key (also called the client secret) for your application, see [Get application ID and authentication key](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal#get-tenant-and-app-id-values-for-signing-in).
+- For instructions on how to retrieve the application (client) ID and authentication key (also called the client secret) for your application, see [Get application ID and authentication key](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal#get-tenant-and-app-id-values-for-signing-in).
 - For instructions on how to retrieve the tenant ID, see [Get tenant ID](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal#get-tenant-and-app-id-values-for-signing-in).
 
 ```properties
-fs.adl.account.<AZURE_ACCOUNT>.oauth2.client.id=<APPLICATION_ID>
+fs.adl.account.<AZURE_ACCOUNT>.oauth2.client.id=<CLIENT_ID>
 fs.adl.account.<AZURE_ACCOUNT>.oauth2.credential=<AUTHENTICATION_KEY>
 fs.adl.account.<AZURE_ACCOUNT>.oauth2.refresh.url=https://login.microsoftonline.com/<TENANT_ID>/oauth2/token
 ```

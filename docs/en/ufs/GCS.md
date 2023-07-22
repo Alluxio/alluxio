@@ -72,7 +72,7 @@ but it is always recommended to set this property explicitly.
 
 {% navtab GCS version 1 %}
 
-In`conf/alluxio-site.properties`, add:
+In `conf/alluxio-site.properties`, add:
 ```properties
 alluxio.underfs.gcs.version=1
 fs.gcs.accessKeyId=<GCS_ACCESS_KEY_ID>

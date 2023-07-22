@@ -54,11 +54,11 @@ $ cp conf/core-site.xml.template conf/core-site.xml
 Modify `conf/alluxio-site.properties` to include:
 
 ```properties
-alluxio.underfs.cephfs.conf.file=<ceph-conf-file>
-alluxio.underfs.cephfs.mds.namespace=<ceph-fs-name>
-alluxio.underfs.cephfs.mount.point=<ceph-fs-dir>
-alluxio.underfs.cephfs.auth.id=<client-id>
-alluxio.underfs.cephfs.auth.keyring=<client-keyring-file>
+alluxio.underfs.cephfs.conf.file=<CEPHFS_CONF_FILE>
+alluxio.underfs.cephfs.mds.namespace=<CEPHFS_NAME>
+alluxio.underfs.cephfs.mount.point=<CEPHFS_DIRECTORY>
+alluxio.underfs.cephfs.auth.id=<CEPHFS_CLIENT_ID>
+alluxio.underfs.cephfs.auth.keyring=<CEPHFS_KEYRING_FILE>
 ```
 
 {% endnavtab %}
@@ -154,11 +154,12 @@ $ ./bin/alluxio runTests --path cephfs://mon1\;mon2\;mon3/
 Visit your cephfs to verify the files and directories created by Alluxio exist.
 
 You should see files named like:
-In cephfs, you can visit cephfs with ceph-fuse or mount by POSIX APIs. [Mounting CephFS](https://docs.ceph.com/en/latest/cephfs/#mounting-cephfs)
 
 ```
 ${ceph-fs-dir}/default_tests_files/Basic_CACHE_THROUGH
 ```
+In cephfs, you can visit cephfs with ceph-fuse or mount by POSIX APIs. [Mounting CephFS](https://docs.ceph.com/en/latest/cephfs/#mounting-cephfs)
+
 In Alluxio, you can visit the nested directory in the Alluxio. Alluxio's [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) can be used for this purpose.
 
 ```
@@ -187,11 +188,12 @@ $ ./bin/alluxio runTests --path cephfs://mon1\;mon2\;mon3/
 Visit your cephfs to verify the files and directories created by Alluxio exist.
 
 You should see files named like:
-In cephfs, you can visit cephfs with ceph-fuse or mount by POSIX APIs. [Mounting CephFS](https://docs.ceph.com/en/latest/cephfs/#mounting-cephfs)
 
 ```
 ${ceph-fs-dir}/default_tests_files/Basic_CACHE_THROUGH
 ```
+In cephfs, you can visit cephfs with ceph-fuse or mount by POSIX APIs. [Mounting CephFS](https://docs.ceph.com/en/latest/cephfs/#mounting-cephfs)
+
 In Alluxio, you can visit the nested directory in the Alluxio. Alluxio's [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) can be used for this purpose.
 
 ```

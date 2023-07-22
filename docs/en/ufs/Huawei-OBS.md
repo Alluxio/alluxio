@@ -1,6 +1,6 @@
 ---
 layout: global
-title: Huawei OBS
+title: Huawei Object Storage Service
 ---
 
 
@@ -39,14 +39,14 @@ Specify the OBS credentials for OBS access by setting `fs.obs.accessKey` and `fs
 `alluxio-site.properties`.
 
 ```properties
-fs.obs.accessKey=<OBS ACCESS KEY>
-fs.obs.secretKey=<OBS SECRET KEY>
+fs.obs.accessKey=<OBS_ACCESS_KEY>
+fs.obs.secretKey=<OBS_SECRET_KEY>
 ```
 
 Specify the OBS region by setting `fs.obs.endpoint` in `alluxio-site.properties` (e.g. obs.cn-north-4.myhuaweicloud.com).
 
 ```properties
-fs.obs.endpoint=<OBS ENDPOINT>
+fs.obs.endpoint=<OBS_ENDPOINT>
 ```
 
 After these changes, Alluxio should be configured to work with OBS as its under storage system, and

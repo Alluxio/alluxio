@@ -14,7 +14,7 @@ Alluxio supports two different clients APIs to connect to Ceph Object Storage us
 
 ## Basic Setup
 
-A Ceph bucket can be mounted to Alluxio either at the root of the namespace, or at a nested directory.
+A Ceph bucket can be mounted to Alluxio either at the root of the namespace, or at a nested directory. In this guide, the Ceph bucket is called `CEPH_BUCKET`, and the directory in the bucket is called `CEPH_DIRECTORY`.
 
 Configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
@@ -29,12 +29,12 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 Modify `conf/alluxio-site.properties` to include:
 
 ```properties
-alluxio.dora.client.ufs.root=s3://<bucket>/<folder>
-s3a.accessKeyId=<access-key>
-s3a.secretKey=<secret-key>
-alluxio.underfs.s3.endpoint=http://<rgw-hostname>:<rgw-port>
+alluxio.dora.client.ufs.root=s3://<CEPH_BUCKET>/<CEPH_DIRECTORY>
+s3a.accessKeyId=<S3_ACCESS_KEY_ID>
+s3a.secretKey=<S3_SECRET_KEY>
+alluxio.underfs.s3.endpoint=http://<RGW-HOSTNAME>:<RGW-PORT>
 alluxio.underfs.s3.disable.dns.buckets=true
-alluxio.underfs.s3.inherit.acl=<inherit-acl>
+alluxio.underfs.s3.inherit.acl=<INHERIT_ACL>
 ```
 
 If using a Ceph release such as hammer (or older) specify `alluxio.underfs.s3.signer.algorithm=S3SignerType`
@@ -45,16 +45,14 @@ to use v2 S3 signatures. To use GET Bucket (List Objects) Version 1 specify
 Modify `conf/alluxio-site.properties` to include:
 
 ```properties
-alluxio.dora.client.ufs.root=swift://<bucket>/<folder>
-fs.swift.user=<swift-user>
-fs.swift.tenant=<swift-tenant>
-fs.swift.password=<swift-user-password>
-fs.swift.auth.url=<swift-auth-url>
-fs.swift.auth.method=<swift-auth-method>
+alluxio.dora.client.ufs.root=swift://<CEPH_BUCKET>/<CEPH_DIRECTORY>
+fs.swift.user=<SWIFT_USER>
+fs.swift.tenant=<SWIFT_TENANT>
+fs.swift.password=<SWIFT_PASSWORD>
+fs.swift.auth.url=<SWIFT_AUTH_URL>
+fs.swift.auth.method=<SWIFT_AUTH_METHOD>
 ```
-Replace `<bucket>/<folder>` with an existing Swift container location. Possible values of `<swift-use-public>` are
-`true`, `false`. Specify `<swift-auth-model>` as `swiftauth` if using native Ceph RGW authentication and `<swift-auth-url>`
-as `http://<rgw-hostname>:<rgw-port>/auth/1.0`.
+Replace `<CEPH_BUCKET>/<CEPH_DIRECTORY>` with an existing Swift bucket location. Specify `<SWIFT_AUTH_URL>` as `http://<rgw-hostname>:<rgw-port>/auth/1.0`.
 
 ## Running Alluxio Locally with Ceph
 
@@ -78,7 +76,7 @@ Visit your bucket to verify the files and directories created by Alluxio exist.
 
 You should see files named like:
 ```
-<bucket>/<folder>/default_tests_files/Basic_CACHE_THROUGH
+<CEPH_BUCKET>/<CEPH_DIRECTORY>/default_tests_files/Basic_CACHE_THROUGH
 ```
 
 To stop Alluxio, run:

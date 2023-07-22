@@ -42,7 +42,7 @@ alluxio.underfs.s3.endpoint=http://<MINIO_ENDPOINT>/
 alluxio.underfs.s3.disable.dns.buckets=true
 alluxio.underfs.s3.inherit.acl=false
 s3a.accessKeyId=<MINIO_ACCESS_KEY_ID>
-s3a.secretKey=<MINIO_SECRET_KEY_ID>
+s3a.secretKey=<MINIO_SECRET_KEY>
 ```
 
 For these parameters, replace `<MINIO_ENDPOINT>` with the hostname and port of your MinIO service,

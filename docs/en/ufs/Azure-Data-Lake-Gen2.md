@@ -38,7 +38,7 @@ alluxio.dora.client.ufs.root=abfs://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.dfs.core.w
 Specify the Shared Key by adding the following property in `conf/alluxio-site.properties`:
 
 ```properties
-fs.azure.account.key.<AZURE_ACCOUNT>.dfs.core.windows.net=<SHARED_KEY>
+fs.azure.account.key.<AZURE_ACCOUNT>.dfs.core.windows.net=<AZURE_SHARED_KEY>
 ```
 
 ## Setup with OAuth 2.0 Client Credentials
@@ -89,7 +89,7 @@ Specify the Azure Managed Identities by adding the following property in `conf/a
 ```properties
 fs.azure.account.oauth2.msi.endpoint=<MSI_ENDPOINT>
 fs.azure.account.oauth2.client.id=<CLIENT_ID>
-fs.azure.account.oauth2.msi.tenant=<TENANT>
+fs.azure.account.oauth2.msi.tenant=<MSI_TENANT>
 ```
 
 ## Running Alluxio Locally with Data Lake Storage
