@@ -32,7 +32,6 @@ ALLUXIO_TASK_LOG="${ALLUXIO_LOGS_DIR}/task.log"
 
 echo "Executing the following command on all master nodes and logging to ${ALLUXIO_TASK_LOG}: $@" | tee -a ${ALLUXIO_TASK_LOG}
 
-N=0
 HA_ENABLED=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.zookeeper.enabled)
 JOURNAL_TYPE=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.master.journal.type | awk '{print toupper($0)}')
 if [[ ${JOURNAL_TYPE} == "EMBEDDED" ]]; then
@@ -40,15 +39,9 @@ if [[ ${JOURNAL_TYPE} == "EMBEDDED" ]]; then
 fi
 for master in ${HOSTLIST[@]}; do
   echo "[${master}] Connecting as ${USER}..." >> ${ALLUXIO_TASK_LOG}
-  if [[ ${HA_ENABLED} == "true" || ${N} -eq 0 ]]; then
-    nohup $(ssh_command ${master}) ${LAUNCHER} \
-      $"${@// /\\ }" 2>&1 | while read line; do echo "[$(date '+%F %T')][${master}] ${line}"; done >> ${ALLUXIO_TASK_LOG} &
-  else
-    nohup $(ssh_command ${master}) ${LAUNCHER} \
-      $"export ALLUXIO_MASTER_SECONDARY=true; ${@// /\\ }" 2>&1 | while read line; do echo "[$(date '+%F %T')][${master}] ${line}"; done >> ${ALLUXIO_TASK_LOG} &
-  fi
+  nohup $(ssh_command ${master}) ${LAUNCHER} \
+    $"${@// /\\ }" 2>&1 | while read line; do echo "[$(date '+%F %T')][${master}] ${line}"; done >> ${ALLUXIO_TASK_LOG} &
   pids[${#pids[@]}]=$!
-  N=$((N+1))
 done
 
 # wait for all pids
