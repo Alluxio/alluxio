@@ -798,9 +798,9 @@ public class DefaultFileSystemMaster extends CoreMaster
       mScheduler.start();
     }
     /**
-     * As we can determine whether enable the audit log through update the config,
-     * and check it in {@link #createAuditContext},
-     * so we need this audit log writer thread all the time.
+     * The audit logger will be running all the time, and an operation checks whether
+     * to enable audit logs in {@link #createAuditContext}. So audit log can be turned on/off
+     * at runtime by updating the property key.
      */
     mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("AUDIT_LOG");
     mAsyncAuditLogWriter.start();

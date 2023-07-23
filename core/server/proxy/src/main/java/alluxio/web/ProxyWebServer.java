@@ -111,10 +111,10 @@ public final class ProxyWebServer extends WebServer {
     mGlobalRateLimiter = S3RestUtils.createRateLimiter(rate).orElse(null);
 
     /**
-     * As we can determine whether enable the audit log through update the config,
-     * and check it in {@link alluxio.proxy.s3.S3RestServiceHandler#createAuditContext} and
-     * {@link alluxio.proxy.s3.S3Handler#createAuditContext},
-     * so we need this audit log writer thread all the time.
+     * The audit logger will be running all the time, and an operation checks whether
+     * to enable audit logs in {@link alluxio.proxy.s3.S3RestServiceHandler#createAuditContext} and
+     * {@link alluxio.proxy.s3.S3Handler#createAuditContext}. So audit log can be turned on/off
+     * at runtime by updating the property key.
      */
     mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter("PROXY_AUDIT_LOG");
     mAsyncAuditLogWriter.start();
