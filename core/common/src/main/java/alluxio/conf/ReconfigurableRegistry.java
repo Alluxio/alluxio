@@ -14,10 +14,12 @@ package alluxio.conf;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Registry of all reconfigurable listeners.
  */
+@ThreadSafe
 public class ReconfigurableRegistry {
   private static final List<Reconfigurable> LISTENER_LIST = new LinkedList<>();
 
