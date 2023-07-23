@@ -139,7 +139,7 @@
     <java.version>1.8</java.version>
     <jaxb.version>2.3.3</jaxb.version>
     <jersey.version>2.34</jersey.version>
-    <jetty.version>9.4.46.v20220331</jetty.version>
+    <jetty.version>9.4.51.v20230217</jetty.version>
     <junit.version>4.13.1</junit.version>
     <jupiter.version>5.9.2</jupiter.version>
     <log4j.version>2.17.1</log4j.version>
