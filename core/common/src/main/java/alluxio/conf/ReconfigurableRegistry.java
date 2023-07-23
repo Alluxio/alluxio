@@ -11,7 +11,6 @@
 
 package alluxio.conf;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +46,7 @@ public class ReconfigurableRegistry {
    * @return false if no listener related to the given property, otherwise, return false
    */
   public static synchronized boolean update() {
-    for (Reconfigurable listener : new ArrayList<>(LISTENER_LIST)) {
+    for (Reconfigurable listener : LISTENER_LIST) {
       listener.update();
     }
     return true;
@@ -62,8 +61,8 @@ public class ReconfigurableRegistry {
    *
    * @param changedProperties the changed properties
    */
-  public static void update(Map<PropertyKey, Object> changedProperties) {
-    for (Reconfigurable listener : new ArrayList<>(LISTENER_LIST)) {
+  public static synchronized void update(Map<PropertyKey, Object> changedProperties) {
+    for (Reconfigurable listener : LISTENER_LIST) {
       listener.update(changedProperties);
     }
   }
