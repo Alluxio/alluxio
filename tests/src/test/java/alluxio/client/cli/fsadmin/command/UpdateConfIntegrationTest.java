@@ -11,6 +11,8 @@
 
 package alluxio.client.cli.fsadmin.command;
 
+import alluxio.ClientContext;
+import alluxio.cli.GetConf;
 import alluxio.cli.fsadmin.command.UpdateConfCommand;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 
@@ -52,6 +54,26 @@ public final class UpdateConfIntegrationTest extends AbstractFsAdminShellTest {
         "alluxio.security.authorization.permission.enabled=false");
     Assert.assertEquals(-2, ret);
   }
+
+  @Test
+  public void unsetKey() {
+    int ret = mFsAdminShell.run("updateConf",
+        "alluxio.master.worker.timeout=6min");
+    Assert.assertEquals(0, ret);
+    GetConf.getConf(ClientContext.create(), "--master",
+        "alluxio.master.worker.timeout");
+    String output = mOutput.toString();
+    String lastLineOutput = lastLine(output);
+    Assert.assertTrue(lastLineOutput, lastLine(output).contains("6min"));
+    ret = mFsAdminShell.run("updateConf", "alluxio.master.worker.timeout=");
+    Assert.assertEquals(0, ret);
+    GetConf.getConf(ClientContext.create(), "--master",
+        "alluxio.master.worker.timeout");
+    output = mOutput.toString();
+    lastLineOutput = lastLine(output);
+    Assert.assertTrue(lastLineOutput, lastLine(output).contains("4min"));
+  }
+
 
   private String lastLine(String output) {
     String[] lines = output.split("\n");
