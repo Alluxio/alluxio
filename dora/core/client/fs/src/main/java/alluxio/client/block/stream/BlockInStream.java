@@ -181,7 +181,6 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     Protocol.ReadRequest.Builder builder = Protocol.ReadRequest.newBuilder()
         .setBlockId(blockId)
         .setPromote(ReadType.fromProto(options.getOptions().getReadType()).isPromote())
-        .setOpenUfsBlockOptions(options.getOpenUfsBlockOptions(blockId)) // Add UFS fallback options
         .setChunkSize(chunkSize);
     DataReader.Factory factory = new NettyDataReader.Factory(context, address, builder);
     return new BlockInStream(factory, address, blockSource, blockId, blockSize);
