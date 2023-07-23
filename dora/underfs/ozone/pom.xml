@@ -106,22 +106,6 @@
               </artifactSet>
               <filters>
                 <filter>
-                  <artifact>*:*</artifact>
-                  <excludes>
-                    <exclude>LICENSE</exclude>
-                    <exclude>META-INF/LICENSE</exclude>
-                    <exclude>META-INF/*.SF</exclude>
-                    <exclude>META-INF/*.DSA</exclude>
-                    <exclude>META-INF/*.RSA</exclude>
-                  </excludes>
-                </filter>
-                <filter>
-                  <artifact>commons-httpclient:commons-httpclient</artifact>
-                  <excludes>
-                    <exclude>META-INF/LICENSE.txt</exclude>
-                  </excludes>
-                </filter>
-                <filter>
                   <artifact>org.alluxio:alluxio-underfs-hdfs</artifact>
                   <excludes>
                     <exclude>META-INF/services/alluxio.underfs.UnderFileSystemFactory</exclude>
