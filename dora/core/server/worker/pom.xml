@@ -28,27 +28,8 @@
     <build.path>${project.parent.parent.parent.parent.basedir}/build</build.path>
   </properties>
 
-<!--  <repositories>-->
-<!--    <repository>-->
-<!--      <id>jitpack.io</id>-->
-<!--      <url>https://jitpack.io</url>-->
-<!--    </repository>-->
-<!--  </repositories>-->
-
   <dependencies>
     <!-- External dependencies -->
-<!--    <dependency>-->
-<!--      <groupId>org.testcontainers</groupId>-->
-<!--      <artifactId>testcontainers</artifactId>-->
-<!--      <version>1.18.3</version>-->
-<!--      <scope>test</scope>-->
-<!--    </dependency>-->
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>toxiproxy</artifactId>
-      <version>1.17.6</version>
-      <scope>test</scope>
-    </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
@@ -98,17 +79,6 @@
       <artifactId>jersey-media-json-jackson</artifactId>
       <scope>provided</scope>
     </dependency>
-    <dependency>
-      <groupId>io.etcd</groupId>
-      <artifactId>jetcd-core</artifactId>
-      <version>0.7.5</version>
-    </dependency>
-<!--    <dependency>-->
-<!--      <groupId>com.github.pambrose.etcd-recipes</groupId>-->
-<!--      <artifactId>etcd-recipes</artifactId>-->
-<!--      <version>0.9.20</version>-->
-<!--    </dependency>-->
-
 
     <!-- Internal dependencies -->
     <dependency>
