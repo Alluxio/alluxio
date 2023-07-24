@@ -16,6 +16,7 @@ import alluxio.exception.runtime.AlreadyExistsRuntimeException;
 import alluxio.fuse.file.FuseFileStream;
 
 import jnr.constants.platform.OpenFlags;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
@@ -41,6 +42,7 @@ public class InOrOutStreamInTest extends InStreamTest {
   }
 
   @Override
+  @Ignore("RandomAccessFuseFileStream allows to write existing file")
   @Test(expected = AlreadyExistsRuntimeException.class)
   public void write() throws Exception {
     AlluxioURI alluxioURI = getTestFileUri();
