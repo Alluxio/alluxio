@@ -74,7 +74,7 @@ public class AlluxioEtcdClient implements Closeable {
   public String[] mEndpoints;
   private final Closer mCloser = Closer.create();
   // only watch for children change(add/remove) for given parent path
-  private ConcurrentHashMap<String, Watch.Watcher> mRegisteredWatchers =
+  private final ConcurrentHashMap<String, Watch.Watcher> mRegisteredWatchers =
       new ConcurrentHashMap<>();
 
   /**
@@ -253,8 +253,8 @@ public class AlluxioEtcdClient implements Closeable {
    */
   public void addChildren(String parentPath, String childPath, byte[] value)
       throws IOException {
-    Preconditions.checkState(!StringUtil.isNullOrEmpty(parentPath));
-    Preconditions.checkState(!StringUtil.isNullOrEmpty(childPath));
+    Preconditions.checkArgument(!StringUtil.isNullOrEmpty(parentPath));
+    Preconditions.checkArgument(!StringUtil.isNullOrEmpty(childPath));
     RetryUtils.retry(
         String.format("Adding child, parentPath:%s, childPath:%s", parentPath, childPath),
         () -> {

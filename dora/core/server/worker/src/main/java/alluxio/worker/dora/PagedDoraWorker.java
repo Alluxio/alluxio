@@ -71,6 +71,7 @@ import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
+import alluxio.util.HashUtils;
 import alluxio.util.ModeUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.wire.FileInfo;
@@ -248,7 +249,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       try (PooledResource<BlockMasterClient> bmc = mBlockMasterClientPool.acquireCloseable()) {
         bmc.get().connect(); // TODO(lucy) this is necessary here for MASTER web to be opened for some reason
         mMembershipManager.join(new WorkerInfo().setAddress(mAddress));
-        mWorkerId.set(CommonUtils.hashAsLong(mAddress.dumpMainInfo()));
+        mWorkerId.set(HashUtils.hashAsLong(mAddress.dumpMainInfo()));
         break;
       } catch (IOException ioe) {
         if (!retry.attempt()) {

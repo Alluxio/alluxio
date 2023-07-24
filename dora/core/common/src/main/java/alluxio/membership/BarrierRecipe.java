@@ -47,7 +47,7 @@ public class BarrierRecipe {
   long mLeaseTtlInSec = 2L;
   String mBarrierPath;
   String mNewBarrierPath = "/new-barrier";
-  CountDownLatch mLatch = new CountDownLatch(1);
+  private final CountDownLatch mLatch = new CountDownLatch(1);
 
   /**
    * CTOR for BarrierRecipe.

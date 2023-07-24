@@ -14,6 +14,7 @@ package alluxio.membership;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.grpc.GrpcUtils;
 import alluxio.util.CommonUtils;
+import alluxio.util.HashUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
@@ -53,7 +54,7 @@ public class WorkerServiceEntity extends ServiceEntity {
    * @param addr
    */
   public WorkerServiceEntity(WorkerNetAddress addr) {
-    super(CommonUtils.hashAsStr(addr.dumpMainInfo()));
+    super(HashUtils.hashAsStr(addr.dumpMainInfo()));
     mAddress = addr;
     mState = State.AUTHORIZED;
   }

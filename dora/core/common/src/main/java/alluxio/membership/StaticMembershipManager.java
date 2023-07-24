@@ -15,6 +15,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.util.CommonUtils;
+import alluxio.util.HashUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -134,7 +135,7 @@ public class StaticMembershipManager implements MembershipManager {
     try {
       for (WorkerInfo worker : getAllMembers()) {
         String entryLine = String.format(printFormat,
-            CommonUtils.hashAsStr(worker.getAddress().dumpMainInfo()),
+            HashUtils.hashAsStr(worker.getAddress().dumpMainInfo()),
             worker.getAddress().getHost() + ":" + worker.getAddress().getRpcPort(),
             "N/A");
         sb.append(entryLine);

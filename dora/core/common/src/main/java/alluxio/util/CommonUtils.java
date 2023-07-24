@@ -11,9 +11,6 @@
 
 package alluxio.util;
 
-import static com.google.common.hash.Hashing.murmur3_32_fixed;
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import alluxio.Constants;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -29,13 +26,11 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
-import com.google.common.hash.HashFunction;
 import com.google.common.io.Closer;
 import com.google.protobuf.ByteString;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.netty.channel.Channel;
-import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,8 +42,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -89,7 +82,6 @@ public final class CommonUtils {
 
   private static final int JAVA_MAJOR_VERSION =
       parseMajorVersion(System.getProperty("java.version"));
-  private static final HashFunction HASH_FUNCTION = murmur3_32_fixed();
 
   /**
    * Convenience method for calling {@link #createProgressThread(long, PrintStream)} with an
@@ -960,31 +952,6 @@ public final class CommonUtils {
     }
     // VirtualMachineError includes OutOfMemoryError and other fatal errors
     return e instanceof VirtualMachineError || e instanceof LinkageError;
-  }
-
-  /**
-   * Hash the given obj as string.
-   * @param object
-   * @return hash in string
-   */
-  public static String hashAsStr(String object) {
-    try {
-      MessageDigest md = MessageDigest.getInstance("MD5");
-      md.update(object.getBytes());
-      return Hex.encodeHexString(md.digest()).toLowerCase();
-    } catch (NoSuchAlgorithmException e) {
-      /* No actions. Continue with other hash method. */
-    }
-    return HASH_FUNCTION.hashString(object, UTF_8).toString();
-  }
-
-  /**
-   * Hash the give obj as long.
-   * @param object
-   * @return hash in long
-   */
-  public static long hashAsLong(String object) {
-    return HASH_FUNCTION.hashString(object, UTF_8).padToLong();
   }
 
   private CommonUtils() {} // prevent instantiation

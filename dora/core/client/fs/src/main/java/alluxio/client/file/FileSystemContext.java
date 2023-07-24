@@ -35,6 +35,7 @@ import alluxio.grpc.GrpcServerAddress;
 import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
 import alluxio.membership.MembershipManager;
+import alluxio.membership.NoOpMembershipManager;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.netty.NettyChannelPool;
 import alluxio.network.netty.NettyClient;
@@ -873,7 +874,7 @@ public class FileSystemContext implements Closeable {
    */
   protected List<BlockWorkerInfo> getAllWorkers() throws IOException {
     // Use membership mgr
-    if (mMembershipManager != null) {
+    if (mMembershipManager != null && !(mMembershipManager instanceof NoOpMembershipManager)) {
       return mMembershipManager.getAllMembers().stream()
           .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
           .collect(toList());
