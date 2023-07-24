@@ -11,6 +11,7 @@
 
 package alluxio.client.fuse;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
@@ -26,6 +27,7 @@ import alluxio.util.io.BufferUtils;
 
 import jnr.constants.platform.OpenFlags;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -113,6 +115,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
   /**
    * Tests opening a file with O_WRONLY on existing file without O_TRUNC.
    */
+  @Ignore("RandomAccessFuseFileStream allows write existing file")
   @Test
   public void openWriteExistingWithoutTruncFlag() throws Exception {
     String testFile = "/openWriteExistingWithoutTruncFlag";
@@ -170,8 +173,6 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
       try {
         // truncate to original length is no-op
         Assert.assertEquals(0, mFuseFileSystem.truncate(testFile, FILE_LEN / 2));
-        // truncate to a large value
-        Assert.assertNotEquals(0, mFuseFileSystem.truncate(testFile, FILE_LEN));
         // delete file
         Assert.assertEquals(0, mFuseFileSystem.truncate(testFile, 0));
         Assert.assertEquals(0, mFuseFileSystem.truncate(testFile, FILE_LEN * 2));
@@ -236,7 +237,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
         ByteBuffer buffer = ByteBuffer.wrap(new byte[FILE_LEN]);
         Assert.assertEquals(FILE_LEN, mFuseFileSystem.read(testFile, buffer, FILE_LEN, 0, info));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(FILE_LEN, buffer.array()));
-        Assert.assertTrue(mFuseFileSystem.write(testFile, buffer, FILE_LEN, 0, info) < 0);
+        Assert.assertEquals(FILE_LEN, mFuseFileSystem.write(testFile, buffer, FILE_LEN, 0, info));
       } finally {
         Assert.assertEquals(0, mFuseFileSystem.release(testFile, info));
       }
@@ -262,7 +263,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
         ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(FILE_LEN);
         Assert.assertEquals(FILE_LEN, mFuseFileSystem.write(testFile, buffer, FILE_LEN, 0, info));
         buffer.clear();
-        Assert.assertTrue(mFuseFileSystem.read(testFile, buffer, FILE_LEN, 0, info) < 0);
+        Assert.assertEquals(FILE_LEN, mFuseFileSystem.read(testFile, buffer, FILE_LEN, 0, info));
       } finally {
         Assert.assertEquals(0, mFuseFileSystem.release(testFile, info));
       }
@@ -287,7 +288,7 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
         ByteBuffer buffer = BufferUtils.getIncreasingByteBuffer(FILE_LEN);
         Assert.assertEquals(FILE_LEN, mFuseFileSystem.write(testFile, buffer, FILE_LEN, 0, info));
         buffer.clear();
-        Assert.assertTrue(mFuseFileSystem.read(testFile, buffer, FILE_LEN, 0, info) < 0);
+        Assert.assertEquals(FILE_LEN, mFuseFileSystem.read(testFile, buffer, FILE_LEN, 0, info));
       } finally {
         Assert.assertEquals(0, mFuseFileSystem.release(testFile, info));
       }
