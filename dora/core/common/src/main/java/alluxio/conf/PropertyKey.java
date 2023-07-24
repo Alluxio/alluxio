@@ -4207,18 +4207,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   //
-  // Secondary master related properties
-  //
-  public static final PropertyKey SECONDARY_MASTER_METASTORE_DIR =
-      stringBuilder(Name.SECONDARY_MASTER_METASTORE_DIR)
-          .setDefaultValue(format("${%s}/secondary-metastore", Name.WORK_DIR))
-          .setDescription(
-              "The secondary master metastore work directory. Only some metastores need disk.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-
-  //
   // File system master related properties
   //
   public static final PropertyKey MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE =
@@ -6127,14 +6115,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(TtlAction.FREE)
           .setDescription("When file's ttl is expired, the action performs on it. Options: "
               + "FREE(default), DELETE_ALLUXIO or DELETE")
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_FILE_UFS_TIER_ENABLED =
-      booleanBuilder(Name.USER_FILE_UFS_TIER_ENABLED)
-          .setDescription("When workers run out of available memory, whether the client can skip "
-              + "writing data to Alluxio but fallback to write to UFS without stopping the "
-              + "application. This property only works when the write type is ASYNC_THROUGH.")
-          .setDefaultValue(false)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_BLOCK_READ_METRICS_ENABLED =
@@ -8821,10 +8801,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.throttle.filesystem.rpc.queue.size.limit";
 
     //
-    // Secondary master related properties
+    // Standby master related properties
     //
-    public static final String SECONDARY_MASTER_METASTORE_DIR =
-        "alluxio.secondary.master.metastore.dir";
     public static final String STANDBY_MASTER_METRICS_SINK_ENABLED =
         "alluxio.standby.master.metrics.sink.enabled";
     public static final String STANDBY_MASTER_WEB_ENABLED =
@@ -9291,7 +9269,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.replication.durable";
     public static final String USER_FILE_SEQUENTIAL_PREAD_THRESHOLD =
         "alluxio.user.file.sequential.pread.threshold";
-    public static final String USER_FILE_UFS_TIER_ENABLED = "alluxio.user.file.ufs.tier.enabled";
     public static final String USER_FILE_WAITCOMPLETED_POLL_MS =
         "alluxio.user.file.waitcompleted.poll";
     public static final String USER_FILE_CREATE_TTL =

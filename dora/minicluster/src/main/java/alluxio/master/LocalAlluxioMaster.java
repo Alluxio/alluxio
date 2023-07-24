@@ -17,7 +17,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.master.journal.JournalType;
 import alluxio.util.io.FileUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -50,47 +49,39 @@ public final class LocalAlluxioMaster {
 
   private final ClientPool mClientPool = new ClientPool(mClientSupplier);
 
-  private final boolean mIncludeSecondary;
-
   private AlluxioMasterProcess mMasterProcess;
   private Thread mMasterThread;
 
-  private AlluxioSecondaryMaster mSecondaryMaster;
-  private Thread mSecondaryMasterThread;
-
-  private LocalAlluxioMaster(boolean includeSecondary) {
+  private LocalAlluxioMaster() {
     mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC,
         Configuration.global());
     mJournalFolder = Configuration.getString(PropertyKey.MASTER_JOURNAL_FOLDER);
-    mIncludeSecondary = includeSecondary;
   }
 
   /**
    * Creates a new local Alluxio master with an isolated work directory and port.
    *
-   * @param includeSecondary whether to start a secondary master alongside the regular master
    * @return an instance of Alluxio master
    */
-  public static LocalAlluxioMaster create(boolean includeSecondary) throws IOException {
+  public static LocalAlluxioMaster create() throws IOException {
     String workDirectory = uniquePath();
     FileUtils.deletePathRecursively(workDirectory);
     Configuration.set(PropertyKey.WORK_DIR, workDirectory);
-    return create(workDirectory, includeSecondary);
+    return create(workDirectory);
   }
 
   /**
    * Creates a new local Alluxio master with a isolated port.
    *
    * @param workDirectory Alluxio work directory, this method will create it if it doesn't exist yet
-   * @param includeSecondary whether to start a secondary master alongside the regular master
    * @return the created Alluxio master
    */
-  public static LocalAlluxioMaster create(String workDirectory, boolean includeSecondary)
+  public static LocalAlluxioMaster create(String workDirectory)
       throws IOException {
     if (!Files.isDirectory(Paths.get(workDirectory))) {
       Files.createDirectory(Paths.get(workDirectory));
     }
-    return new LocalAlluxioMaster(includeSecondary);
+    return new LocalAlluxioMaster();
   }
 
   /**
@@ -116,35 +107,6 @@ public final class LocalAlluxioMaster {
     mMasterThread = new Thread(runMaster);
     mMasterThread.setName("MasterThread-" + System.identityHashCode(mMasterThread));
     mMasterThread.start();
-    // Don't start a secondary master when using the Raft journal.
-    if (Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE,
-        JournalType.class) == JournalType.EMBEDDED) {
-      return;
-    }
-    if (!mIncludeSecondary) {
-      return;
-    }
-    mSecondaryMaster = new AlluxioSecondaryMaster();
-    Runnable runSecondaryMaster = new Runnable() {
-      @Override
-      public void run() {
-        try {
-          LOG.info("Starting secondary master {}.", mSecondaryMaster);
-          mSecondaryMaster.start();
-        } catch (InterruptedException e) {
-          // this is expected
-        } catch (Exception e) {
-          // Log the exception as the RuntimeException will be caught and handled silently by JUnit
-          LOG.error("Start secondary master error", e);
-          throw new RuntimeException(e + " \n Start Secondary Master Error \n" + e.getMessage(), e);
-        }
-      }
-    };
-    mSecondaryMasterThread = new Thread(runSecondaryMaster);
-    mSecondaryMasterThread
-        .setName("SecondaryMasterThread-" + System.identityHashCode(mSecondaryMasterThread));
-    mSecondaryMasterThread.start();
-    TestUtils.waitForReady(mSecondaryMaster);
   }
 
   /**
@@ -158,14 +120,6 @@ public final class LocalAlluxioMaster {
    * Stops the master processes and cleans up client connections.
    */
   public void stop() throws Exception {
-    if (mSecondaryMasterThread != null) {
-      mSecondaryMaster.stop();
-      while (mSecondaryMasterThread.isAlive()) {
-        LOG.info("Stopping thread {}.", mSecondaryMasterThread.getName());
-        mSecondaryMasterThread.join(1000);
-      }
-      mSecondaryMasterThread = null;
-    }
     if (mMasterThread != null) {
       mMasterProcess.stop();
       while (mMasterThread.isAlive()) {
