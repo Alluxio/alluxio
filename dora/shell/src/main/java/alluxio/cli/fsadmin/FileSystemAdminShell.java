@@ -32,8 +32,6 @@ import alluxio.master.MasterClientContext;
 import alluxio.util.ConfigurationUtils;
 import alluxio.worker.job.JobMasterClientContext;
 
-import jline.console.ConsoleReader;
-import jline.console.completer.ArgumentCompleter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,24 +68,10 @@ public final class FileSystemAdminShell extends AbstractShell {
     }
     // Reduce the RPC retry max duration to fall earlier for CLIs
     conf.set(PropertyKey.USER_RPC_RETRY_MAX_DURATION, "5s", Source.DEFAULT);
-    if (args.length > 0 && ( args[0].equals("-i") || args[0].contains("interactive") )) {
-      ConsoleReader reader = new ConsoleReader();
-      reader.setPrompt("fsamdincli>");
-      String line;
-      while ((line = reader.readLine()) != null) {
-        ArgumentCompleter.ArgumentList list = new ArgumentCompleter.WhitespaceArgumentDelimiter()
-            .delimit(line, line.length());
-        try (FileSystemAdminShell fsAdminShell = new FileSystemAdminShell(conf)) {
-          ret = fsAdminShell.run(list.getArguments());
-          System.out.print("fsamdincli>");
-        }
-      }
-    } else {
-      try (FileSystemAdminShell fsAdminShell = new FileSystemAdminShell(conf)) {
-        ret = fsAdminShell.run(args);
-      }
-      System.exit(ret);
+    try (FileSystemAdminShell fsAdminShell = new FileSystemAdminShell(conf)) {
+      ret = fsAdminShell.run(args);
     }
+    System.exit(ret);
   }
 
   @Override
