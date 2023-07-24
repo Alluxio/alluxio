@@ -106,6 +106,12 @@ public interface FuseFileStream extends AutoCloseable {
      */
     public FuseFileStream create(
         AlluxioURI uri, int flags, long mode) {
+      boolean exists;
+      try {
+        exists = mFileSystem.exists(uri);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
       switch (OpenFlags.valueOf(flags & O_ACCMODE.intValue())) {
         case O_RDONLY:
           if (mPositionReadEnabled) {
@@ -113,14 +119,32 @@ public interface FuseFileStream extends AutoCloseable {
           }
           return FuseFileInStream.create(mFileSystem, mLockManager, uri);
         case O_WRONLY:
-          return FuseFileOutStream.create(mFileSystem, mAuthPolicy, mLockManager, uri, flags, mode);
+          if (!exists) {
+            return FuseFileOutStream.create(mFileSystem, mAuthPolicy, mLockManager, uri, flags,
+                mode);
+          } else {
+            //return FuseFileInOrOutStream.create(mFileSystem, mAuthPolicy, mLockManager,
+            //    uri, flags, mode);
+            return new FuseRandomAccessStream(mFileSystem, uri);
+          }
         default:
+          if (!exists) {
+            return FuseFileInOrOutStream.create(mFileSystem, mAuthPolicy, mLockManager,
+                uri, flags, mode);
+          } else {
+            //return FuseFileInOrOutStream.create(mFileSystem, mAuthPolicy, mLockManager,
+            //    uri, flags, mode);
+            return new FuseRandomAccessStream(mFileSystem, uri);
+          }
+          /*
           if (mPositionReadEnabled) {
             return FusePositionReadOrOutStream.create(mFileSystem, mAuthPolicy, mLockManager,
                 uri, flags, mode);
           }
           return FuseFileInOrOutStream.create(mFileSystem, mAuthPolicy, mLockManager,
               uri, flags, mode);
+
+           */
       }
     }
   }
