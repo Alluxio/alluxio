@@ -8619,7 +8619,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String DORA_UFS_LIST_STATUS_CACHE_NR_DIRS =
         "alluxio.dora.ufs.list.status.cache.nr.dirs";
     public static final String DORA_READ_VIRTUAL_BLOCK_SIZE =
-        "alluxio.dora.file.read.partition.size";
+        "alluxio.dora.file.read.virtual.block.size";
 
     private Name() {} // prevent instantiation
   }

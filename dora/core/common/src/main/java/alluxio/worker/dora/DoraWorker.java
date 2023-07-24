@@ -12,6 +12,7 @@
 package alluxio.worker.dora;
 
 import alluxio.exception.AccessControlException;
+import alluxio.grpc.Block;
 import alluxio.grpc.CompleteFilePOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -100,14 +101,14 @@ public interface DoraWorker extends DataWorker, SessionCleanable {
   /**
    * Loads the metadata and data of files from UFS to Alluxio.
    *
-   * @param loadData true if data should also be loaded, otherwise metadata only
    * @param skipIfExists true if data loading should be skipped if it's already loaded
    * @param ufsStatuses the files to load
-   * @param options
+   * @param blocks the virtual blocks to load
+   * @param options the options for reading
    * @return a list of failed files
    */
-  ListenableFuture<LoadFileResponse> load(
-      boolean loadData, boolean skipIfExists, List<UfsStatus> ufsStatuses, UfsReadOptions options)
+  ListenableFuture<List<LoadFileResponse>> load(
+      List<UfsStatus> ufsStatuses, List<Block> blocks, boolean skipIfExists, UfsReadOptions options)
       throws AccessControlException, IOException;
 
   /**

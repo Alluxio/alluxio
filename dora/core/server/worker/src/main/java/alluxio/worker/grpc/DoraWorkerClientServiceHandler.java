@@ -20,6 +20,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
+import alluxio.grpc.Block;
 import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.grpc.CompleteFilePRequest;
 import alluxio.grpc.CompleteFilePResponse;
@@ -129,12 +130,12 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   @Override
   public void loadFile(LoadFileRequest request, StreamObserver<LoadFileResponse> responseObserver) {
     try {
-      ListenableFuture<LoadFileResponse> response =
-          mWorker.load(!request.getLoadMetadataOnly(), request.getSkipIfExists(),
-              request.getUfsStatusList().stream().map(
-                  UfsStatus::fromProto).collect(
-                  Collectors.toList()), request.getOptions());
-      ListenableFuture<LoadFileResponse> future = Futures.transform(response, resp -> {
+      List<UfsStatus> ufsStatuses = request.getUfsStatusList().stream().map(UfsStatus::fromProto)
+                                       .collect(Collectors.toList());
+      List<Block> blocks = request.getBlocksList();
+      ListenableFuture<List<LoadFileResponse>> failures =
+          mWorker.load(ufsStatuses, blocks, request.getSkipIfExists(), request.getOptions());
+      ListenableFuture<LoadFileResponse> future = Futures.transform(failures, fail -> {
         int numFiles = request.getUfsStatusCount();
         TaskStatus taskStatus = TaskStatus.SUCCESS;
         if (!resp.getFailuresList().isEmpty()) {
