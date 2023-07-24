@@ -104,10 +104,10 @@
         url: /en/fuse-sdk/Overview-Fuse-Sdk.html
       - title: Local Cache Quick Start
         url: /en/fuse-sdk/Local-Cache-Quick-Start.html
-      - title: Distributed Cache Quick Start
-        url: /en/fuse-sdk/FUSE-SDK-Dora-Quick-Start.html
       - title: Local Cache Overview
         url: /en/fuse-sdk/Local-Cache.html
+      - title: Distributed Cache Quick Start
+        url: /en/fuse-sdk/FUSE-SDK-Dora-Quick-Start.html
       - title: Advanced Tuning
         url: /en/fuse-sdk/Advanced-Tuning.html
 

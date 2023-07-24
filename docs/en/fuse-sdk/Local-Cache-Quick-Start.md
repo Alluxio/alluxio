@@ -169,3 +169,15 @@ Most basic file system operations are supported. However, some operations are un
 </table>
 
 Note that all file/dir permissions are checked against the user launching the AlluxioFuse process instead of the end user running the operations.
+
+## Next Steps
+[Local Cache Overview]({{ '/en/fuse-sdk/Local-Cache.html' | relative_url }}) provides different local cache capabilities
+to speed up your workloads and reduce the pressure of storage services. 
+* [Local Kernel Data Cache Configuration]({{ 'en/fuse-sdk//Local-Cache.html#local-kernel-data-cache-configuration' | relativize_url
+}})
+* [Local Userspace Data Cache Configuration]({{ 'en/fuse-sdk//Local-Cache.html#local-userspace-data-cache-configuration' | relativize_url
+}})
+* [Local Kernel Metadata Cache Configuration]({{ 'en/fuse-sdk//Local-Cache.html#local-kernel-metadata-cache-configuration' | relativize_url
+}})
+* [Local Userspace Metadata Cache Configuration]({{ 'en/fuse-sdk//Local-Cache.html#local-userspace-metadata-cache-configuration' | relativize_url
+}})

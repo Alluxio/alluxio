@@ -3,6 +3,9 @@ layout: global
 title: FUSE SDK Local Cache Overview
 ---
 
+See [Local Cache Quick Start]({{ '/en/fuse-sdk/Local-Cache-Quick-Start.html' | relative_url }}) to quickly setup your FUSE SDK local cache solution
+which can connects to your desired storage services.
+
 ## Local Cache Overview
 
 When an application runs an operation against the local FUSE mount point,
