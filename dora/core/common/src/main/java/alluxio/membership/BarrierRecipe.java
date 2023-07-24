@@ -48,6 +48,14 @@ public class BarrierRecipe {
   String mBarrierPath;
   String mNewBarrierPath = "/new-barrier";
   CountDownLatch mLatch = new CountDownLatch(1);
+
+  /**
+   * CTOR for BarrierRecipe.
+   * @param client
+   * @param barrierPath
+   * @param clusterIdentifier
+   * @param leaseTtlSec
+   */
   public BarrierRecipe(AlluxioEtcdClient client, String barrierPath,
                        String clusterIdentifier, long leaseTtlSec) {
     client.connect();
@@ -65,7 +73,8 @@ public class BarrierRecipe {
     try {
       Txn txn = mClient.getKVClient().txn();
       ByteSequence key = ByteSequence.from(mBarrierPath, StandardCharsets.UTF_8);
-      CompletableFuture<TxnResponse> txnResponseFut = txn.If(new Cmp(key, Cmp.Op.EQUAL, CmpTarget.createRevision(0L)))
+      CompletableFuture<TxnResponse> txnResponseFut = txn.If(
+              new Cmp(key, Cmp.Op.EQUAL, CmpTarget.createRevision(0L)))
           .Then(Op.put(key, ByteSequence.EMPTY, PutOption.DEFAULT))
           .commit();
       TxnResponse txnResponse = txnResponseFut.get();
@@ -84,12 +93,14 @@ public class BarrierRecipe {
    */
   public void removeBarrier() throws IOException {
     try {
-      GetResponse getResp = mClient.getKVClient().get(ByteSequence.from(mBarrierPath, StandardCharsets.UTF_8)).get();
+      GetResponse getResp = mClient.getKVClient().get(
+          ByteSequence.from(mBarrierPath, StandardCharsets.UTF_8)).get();
       LOG.info("get key:{}, [{}]", mBarrierPath, getResp.getKvs());
       Txn txn = mClient.getKVClient().txn();
       ByteSequence key = ByteSequence.from(mBarrierPath, StandardCharsets.UTF_8);
       ByteSequence key1 = ByteSequence.from(mNewBarrierPath, StandardCharsets.UTF_8);
-      CompletableFuture<TxnResponse> txnResponseFut = txn.If(new Cmp(key, Cmp.Op.GREATER, CmpTarget.createRevision(0L)))
+      CompletableFuture<TxnResponse> txnResponseFut = txn.If(
+              new Cmp(key, Cmp.Op.GREATER, CmpTarget.createRevision(0L)))
           .Then(Op.delete(key, DeleteOption.DEFAULT))
           .Then(Op.put(key1, ByteSequence.EMPTY, PutOption.DEFAULT))
           .commit();
@@ -110,26 +121,26 @@ public class BarrierRecipe {
     try {
       Watch.Watcher watcher = mClient.getWatchClient().watch(
           ByteSequence.EMPTY, WatchOption.newBuilder().build(), new Watch.Listener() {
-        @Override
-        public void onNext(WatchResponse response) {
-          WatchEvent event = response.getEvents().get(0);
-        }
+            @Override
+            public void onNext(WatchResponse response) {
+              WatchEvent event = response.getEvents().get(0);
+            }
 
-        @Override
-        public void onError(Throwable throwable) {
+            @Override
+            public void onError(Throwable throwable) {
+              // NOOP
+            }
 
-        }
-
-        @Override
-        public void onCompleted() {
-
-        }
-      });
+            @Override
+            public void onCompleted() {
+              // NOOP
+            }
+          });
       mClient.getWatchClient().watch(ByteSequence.from(mBarrierPath, StandardCharsets.UTF_8),
           WatchOption.DEFAULT, watchResponse -> {
             for (WatchEvent event : watchResponse.getEvents()) {
-              if (event.getEventType() == WatchEvent.EventType.DELETE &&
-                  event.getKeyValue().getKey().equals(
+              if (event.getEventType() == WatchEvent.EventType.DELETE
+                  && event.getKeyValue().getKey().equals(
                       ByteSequence.from(mBarrierPath, StandardCharsets.UTF_8))) {
                 LOG.info("Delete event observed on path {}", mBarrierPath);
                 mLatch.countDown();
@@ -165,7 +176,7 @@ public class BarrierRecipe {
   }
 
   /**
-   * TEMPORARY simple barrier test - WIP
+   * TEMPORARY simple barrier test - WIP.
    * @param alluxioEtcdClient
    */
   public static void testBarrier(AlluxioEtcdClient alluxioEtcdClient) {

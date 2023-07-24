@@ -40,6 +40,7 @@ public class ServiceEntity implements Closeable {
 
   /**
    * CTOR for ServiceEntity with given ServiceEntity name.
+   * @param serviceEntityName
    */
   public ServiceEntity(String serviceEntityName) {
     mServiceEntityName = serviceEntityName;
@@ -61,12 +62,16 @@ public class ServiceEntity implements Closeable {
     mKeepAliveClient = keepAliveClient;
   }
 
+  /**
+   * Get the keepalive client instance.
+   * @return
+   */
   public CloseableClient getKeepAliveClient() {
     return mKeepAliveClient;
   }
 
   /**
-   * Serialize the ServiceEntity to output stream
+   * Serialize the ServiceEntity to output stream.
    * @param dos
    * @throws IOException
    */

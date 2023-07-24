@@ -962,6 +962,11 @@ public final class CommonUtils {
     return e instanceof VirtualMachineError || e instanceof LinkageError;
   }
 
+  /**
+   * Hash the given obj as string.
+   * @param object
+   * @return hash in string
+   */
   public static String hashAsStr(String object) {
     try {
       MessageDigest md = MessageDigest.getInstance("MD5");
@@ -973,6 +978,11 @@ public final class CommonUtils {
     return HASH_FUNCTION.hashString(object, UTF_8).toString();
   }
 
+  /**
+   * Hash the give obj as long.
+   * @param object
+   * @return hash in long
+   */
   public static long hashAsLong(String object) {
     return HASH_FUNCTION.hashString(object, UTF_8).padToLong();
   }

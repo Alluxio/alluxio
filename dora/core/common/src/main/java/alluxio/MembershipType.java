@@ -12,10 +12,10 @@
 package alluxio;
 
 /**
- * MembershipManager type
+ * MembershipManager type.
  */
 public enum MembershipType {
   STATIC,
   ETCD,
-  NONE
+  NOOP
 }

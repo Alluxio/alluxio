@@ -29,10 +29,19 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
+/**
+ * MembershipManager configured by a static file.
+ */
 public class StaticMembershipManager implements MembershipManager {
   List<WorkerInfo> mMembers;
 
   private final AlluxioConfiguration mConf;
+
+  /**
+   * CTOR for StaticMembershipManager.
+   * @param conf
+   * @throws IOException
+   */
   public StaticMembershipManager(AlluxioConfiguration conf) throws IOException {
     mConf = conf;
     String workerListFile = conf.getString(PropertyKey.WORKER_MEMBER_STATIC_CONFIG_FILE);
@@ -41,10 +50,12 @@ public class StaticMembershipManager implements MembershipManager {
   }
 
   /**
-   *
+   * Parse the worker addresses from given static config file.
+   * The static file only gives the hostname, the rest config params
+   * are inherited from given Configuration or default values.
    * @param configFile
    * @param conf
-   * @return
+   * @return list of parsed WorkerInfos
    * @throws IOException
    */
   public static List<WorkerInfo> parseWorkerAddresses(

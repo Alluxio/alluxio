@@ -25,11 +25,11 @@ import java.io.IOException;
 
 /**
  * Entity class including all the information to register to Etcd
- * when using EtcdMembershipManager
+ * when using EtcdMembershipManager.
  */
 public class WorkerServiceEntity extends ServiceEntity {
   /**
-   * Membership state of the worker
+   * Membership state of the worker.
    */
   enum State {
     JOINED,
@@ -42,17 +42,28 @@ public class WorkerServiceEntity extends ServiceEntity {
   @SuppressFBWarnings({"URF_UNREAD_FIELD"})
   int mGenerationNum = -1;
 
+  /**
+   * CTOR for WorkerServiceEntity.
+   */
   public WorkerServiceEntity() {
   }
 
-  public WorkerNetAddress getWorkerNetAddress() {
-    return mAddress;
-  }
-
+  /**
+   * CTOR  for WorkerServiceEntity with given WorkerNetAddress.
+   * @param addr
+   */
   public WorkerServiceEntity(WorkerNetAddress addr) {
     super(CommonUtils.hashAsStr(addr.dumpMainInfo()));
     mAddress = addr;
     mState = State.AUTHORIZED;
+  }
+
+  /**
+   * Get WorkerNetAddress field.
+   * @return WorkerNetAddress
+   */
+  public WorkerNetAddress getWorkerNetAddress() {
+    return mAddress;
   }
 
   @Override

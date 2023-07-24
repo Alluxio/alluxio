@@ -87,8 +87,15 @@ public interface MembershipManager extends AutoCloseable {
     private static final Logger LOG = LoggerFactory.getLogger(Factory.class);
     private static final Lock INIT_LOCK = new ReentrantLock();
     @GuardedBy("INIT_LOCK")
-    private static final AtomicReference<MembershipManager> MEMBERSHIP_MANAGER = new AtomicReference<>();
+    private static final AtomicReference<MembershipManager> MEMBERSHIP_MANAGER =
+        new AtomicReference<>();
 
+    /**
+     * Get or create a MembershipManager instance.
+     * @param conf
+     * @return MembershipManager
+     * @throws IOException
+     */
     public static MembershipManager get(AlluxioConfiguration conf) throws IOException {
       if (MEMBERSHIP_MANAGER.get() == null) {
         try (LockResource lockResource = new LockResource(INIT_LOCK)) {
@@ -113,7 +120,7 @@ public interface MembershipManager extends AutoCloseable {
           return new StaticMembershipManager(conf);
         case ETCD:
           return new EtcdMembershipManager(conf);
-        case NONE:
+        case NOOP:
           return new NoOpMembershipManager();
         default:
           throw new IOException("Unrecognized Membership Type.");

@@ -12,7 +12,7 @@
 package alluxio.membership;
 
 import alluxio.wire.WorkerInfo;
-import io.netty.util.internal.StringUtil;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;

@@ -13,11 +13,10 @@ package alluxio.membership;
 
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.exception.status.AlreadyExistsException;
-
 import alluxio.resource.LockResource;
 import alluxio.util.ThreadFactoryUtils;
-import com.google.common.base.Preconditions;
 
+import com.google.common.base.Preconditions;
 import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.KeyValue;
 import io.etcd.jetcd.Txn;
@@ -67,6 +66,11 @@ public class ServiceDiscoveryRecipe {
   private final ReentrantLock mRegisterLock = new ReentrantLock();
   final ConcurrentHashMap<String, ServiceEntity> mRegisteredServices = new ConcurrentHashMap<>();
 
+  /**
+   * CTOR for ServiceDiscoveryRecipe.
+   * @param client
+   * @param clusterIdentifier
+   */
   public ServiceDiscoveryRecipe(AlluxioEtcdClient client, String clusterIdentifier) {
     mAlluxioEtcdClient = client;
     mAlluxioEtcdClient.connect();
@@ -74,12 +78,12 @@ public class ServiceDiscoveryRecipe {
     mExecutor = Executors.newSingleThreadScheduledExecutor(
         ThreadFactoryUtils.build("service-discovery-checker", false));
     mExecutor.scheduleWithFixedDelay(this::checkAllForReconnect,
-        AlluxioEtcdClient.sDefaultLeaseTTLInSec, AlluxioEtcdClient.sDefaultLeaseTTLInSec,
+        AlluxioEtcdClient.DEFAULT_LEASE_TTL_IN_SEC, AlluxioEtcdClient.DEFAULT_LEASE_TTL_IN_SEC,
         TimeUnit.SECONDS);
   }
 
   /**
-   * Get register path prefix
+   * Get register path prefix.
    * @return register path prefix
    */
   private String getRegisterPathPrefix() {
@@ -92,7 +96,7 @@ public class ServiceDiscoveryRecipe {
    * @throws IOException
    */
   private void newLeaseInternal(ServiceEntity service) throws IOException {
-    try(LockResource lockResource = new LockResource(service.mLock)) {
+    try (LockResource lockResource = new LockResource(service.mLock)) {
       if (service.mLease != null && !mAlluxioEtcdClient.isLeaseExpired(service.mLease)) {
         LOG.info("Lease attached with service:{} is not expired, bail from here.");
         return;
@@ -136,6 +140,11 @@ public class ServiceDiscoveryRecipe {
     }
   }
 
+  /**
+   * Register service and start keeping-alive.
+   * @param service
+   * @throws IOException
+   */
   @GuardedBy("ServiceDiscoveryRecipe#mRegisterLock")
   public void registerAndStartSync(ServiceEntity service) throws IOException {
     LOG.info("registering service : {}", service);
@@ -147,6 +156,11 @@ public class ServiceDiscoveryRecipe {
     mRegisteredServices.put(service.mServiceEntityName, service);
   }
 
+  /**
+   * Unregister service and close corresponding keepalive client if any.
+   * @param serviceIdentifier
+   * @throws IOException
+   */
   @GuardedBy("ServiceDiscoveryRecipe#mRegisterLock")
   public void unregisterService(String serviceIdentifier) throws IOException {
     if (!mRegisteredServices.containsKey(serviceIdentifier)) {
@@ -159,6 +173,10 @@ public class ServiceDiscoveryRecipe {
     }
   }
 
+  /**
+   * Unregister all services registered from this ServiceDiscoveryRecipe instance.
+   * [It won't register services registered thru other instances(other processes)]
+   */
   public void unregisterAll() {
     for (Map.Entry<String, ServiceEntity> entry : mRegisteredServices.entrySet()) {
       try {
@@ -169,6 +187,12 @@ public class ServiceDiscoveryRecipe {
     }
   }
 
+  /**
+   * Get the registered service value as ByteBuffer.
+   * @param serviceEntityName
+   * @return
+   * @throws IOException
+   */
   public ByteBuffer getRegisteredServiceDetail(String serviceEntityName)
       throws IOException {
     String fullPath = getRegisterPathPrefix() + "/" + serviceEntityName;
@@ -216,6 +240,10 @@ public class ServiceDiscoveryRecipe {
     }
   }
 
+  /**
+   * Start heartbeating(keepalive) for the given service.
+   * @param service
+   */
   private void startHeartBeat(ServiceEntity service) {
     try {
       CloseableClient keepAliveClient = mAlluxioEtcdClient.getEtcdClient().getLeaseClient()

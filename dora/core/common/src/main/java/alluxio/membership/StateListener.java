@@ -11,7 +11,20 @@
 
 package alluxio.membership;
 
+/**
+ * Interface for getting callback on watch event from etcd.
+ */
 public interface StateListener {
+  /**
+   * Act on detecting new put on the key.
+   * @param newPutKey
+   * @param newPutValue
+   */
   public void onNewPut(String newPutKey, byte[] newPutValue);
+
+  /**
+   * Act on detecting new delete on the key.
+   * @param newDeleteKey
+   */
   public void onNewDelete(String newDeleteKey);
 }
