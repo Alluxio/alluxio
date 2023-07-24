@@ -48,7 +48,7 @@ $ alluxio-fuse mount <under_storage_dataset> <mount_point> -o option
 - `-o option`: All the `alluxio-fuse mount` options are provided using this format. Options include
     - Alluxio property key value pair in `-o alluxio_property_key=value` format
         - Under storage credentials and configuration. Detailed configuration can be found under the `Storage Integrations` tap of the left of the doc page.
-    - Local cache configuration. Detailed usage can be found in the [local cache guide]({{ '/en/fuse-sdk/Local-Cache.html' | relative_url }})
+    - Local cache configuration. Detailed usage can be found in the [local cache guide]({{ '/en/fuse-sdk/Local-Cache-Overview.html' | relative_url }})
     - Generic mount options. Detailed supported mount options information can be found in the [FUSE mount options section]({{ '/en/fuse-sdk/Advanced-Tuning.html#fuse-mount-options' | relative_url }})
 
 After mounting, `alluxio-fuse` mount can be found locally
@@ -106,7 +106,7 @@ $ dd if=/dev/zero of=testfolder/testfile bs=5MB count=1
 
 ### Read Through from Mounted Under Storage Dataset
 
-Without the [local cache]]({{ '/en/fuse-sdk/Local-Cache.html' | relative_url }}) functionalities that we will talk about later, all the read operations
+Without the [local cache]]({{ '/en/fuse-sdk/Local-Cache-Overview.html' | relative_url }}) functionalities that we will talk about later, all the read operations
 via the local mount point will be translated to read operations against the underlying data storage:
 ```shell
 $ cd /path/to/mount_point
@@ -171,13 +171,13 @@ Most basic file system operations are supported. However, some operations are un
 Note that all file/dir permissions are checked against the user launching the AlluxioFuse process instead of the end user running the operations.
 
 ## Next Steps
-[Local Cache Overview]({{ '/en/fuse-sdk/Local-Cache.html' | relative_url }}) provides different local cache capabilities
+[Local Cache Overview]({{ '/en/fuse-sdk/Local-Cache-Overview.html' | relative_url }}) provides different local cache capabilities
 to speed up your workloads and reduce the pressure of storage services. 
-* [Local Kernel Data Cache Configuration]({{ 'en/fuse-sdk//Local-Cache.html#local-kernel-data-cache-configuration' | relativize_url
+* [Local Kernel Data Cache Configuration]({{ 'en/fuse-sdk//Local-Cache-Overview.html#local-kernel-data-cache-configuration' | relativize_url
 }})
-* [Local Userspace Data Cache Configuration]({{ 'en/fuse-sdk//Local-Cache.html#local-userspace-data-cache-configuration' | relativize_url
+* [Local Userspace Data Cache Configuration]({{ 'en/fuse-sdk//Local-Cache-Overview.html#local-userspace-data-cache-configuration' | relativize_url
 }})
-* [Local Kernel Metadata Cache Configuration]({{ 'en/fuse-sdk//Local-Cache.html#local-kernel-metadata-cache-configuration' | relativize_url
+* [Local Kernel Metadata Cache Configuration]({{ 'en/fuse-sdk//Local-Cache-Overview.html#local-kernel-metadata-cache-configuration' | relativize_url
 }})
-* [Local Userspace Metadata Cache Configuration]({{ 'en/fuse-sdk//Local-Cache.html#local-userspace-metadata-cache-configuration' | relativize_url
+* [Local Userspace Metadata Cache Configuration]({{ 'en/fuse-sdk//Local-Cache-Overview.html#local-userspace-metadata-cache-configuration' | relativize_url
 }})

@@ -40,7 +40,7 @@ Differences between the two solutions are listed below, choose your desired solu
 See [Local Cache Quick Start]({{ '/en/fuse-sdk/Local-Cache-Quick-Start.html' | relative_url }}) to quickly setup your FUSE SDK local cache solution
 which can connects to your desired storage services.
 
-[Local Cache Overview]({{ '/en/fuse-sdk/Local-Cache.html' | relative_url }}) provides different local cache capabilities
+[Local Cache Overview]({{ '/en/fuse-sdk/Local-Cache-Overview.html' | relative_url }}) provides different local cache capabilities
 to speed up your workloads and reduce the pressure of storage services. 
 * [Local Kernel Data Cache Configuration]({{ 'en/fuse-sdk//Local-Cache.html#local-kernel-data-cache-configuration' | relativize_url
 }})
