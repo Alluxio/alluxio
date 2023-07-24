@@ -14,8 +14,6 @@ package alluxio.client.rest;
 import alluxio.Constants;
 import alluxio.client.WriteType;
 import alluxio.conf.PropertyKey;
-import alluxio.master.journal.JournalType;
-import alluxio.s3.S3Error;
 import alluxio.s3.S3ErrorCode;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
