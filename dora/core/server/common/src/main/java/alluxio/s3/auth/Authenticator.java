@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.proxy.s3.auth;
+package alluxio.s3.auth;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;

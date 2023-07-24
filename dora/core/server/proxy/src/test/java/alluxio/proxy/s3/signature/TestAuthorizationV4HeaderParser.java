@@ -14,7 +14,8 @@ package alluxio.proxy.s3.signature;
 import static alluxio.s3.S3Constants.DATE_FORMATTER;
 import static org.junit.Assert.assertEquals;
 
-import alluxio.proxy.s3.signature.utils.AwsAuthV4HeaderParserUtils;
+import alluxio.s3.signature.SignatureInfo;
+import alluxio.s3.signature.utils.AwsAuthV4HeaderParserUtils;
 import alluxio.s3.S3Exception;
 
 import org.junit.Before;

@@ -9,17 +9,19 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.proxy.s3.signature;
+package alluxio.s3.signature;
 
 import static alluxio.s3.S3Constants.AUTHORIZATION_CHARSET;
 import static alluxio.s3.S3Constants.S3_SIGN_CONTENT_SHA256;
 import static alluxio.s3.S3Constants.S3_SIGN_SIGNATURE;
 import static alluxio.s3.S3Constants.TIME_FORMATTER;
 
-import alluxio.proxy.s3.S3RestUtils;
+import alluxio.s3.NettyRestUtils;
 import alluxio.s3.S3ErrorCode;
 import alluxio.s3.S3Exception;
 
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import org.apache.kerby.util.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,8 +85,8 @@ public final class StringToSignProducer {
         context.getUriInfo().getRequestUri().getScheme(),
         context.getMethod(),
         context.getUriInfo().getRequestUri().getPath(),
-        S3RestUtils.fromMultiValueToSingleValueMap(context.getHeaders(), true),
-        S3RestUtils.fromMultiValueToSingleValueMap(
+        NettyRestUtils.fromMultiValueToSingleValueMap(context.getHeaders(), true),
+        NettyRestUtils.fromMultiValueToSingleValueMap(
             context.getUriInfo().getQueryParameters(), false));
   }
 
@@ -106,6 +108,27 @@ public final class StringToSignProducer {
         request.getRequestURI(),
         getHeaders(request),
         getParameterMap(request));
+  }
+
+  /**
+   * Convert signature info to strToSign.
+   *
+   * @param signatureInfo
+   * @param httpRequest
+   * @return signature string
+   * @throws Exception
+   */
+  public static String createSignatureBase(
+      SignatureInfo signatureInfo,
+      FullHttpRequest httpRequest
+  ) throws Exception {
+    QueryStringDecoder queryDecoder = new QueryStringDecoder(httpRequest.uri());
+    return createSignatureBase(signatureInfo,
+        NettyRestUtils.getScheme(httpRequest),
+        httpRequest.method().name(),
+        httpRequest.uri(),
+        NettyRestUtils.convertToSingleValueMap(httpRequest.headers(), true),
+        NettyRestUtils.fromListValueMapToSingleValueMap(queryDecoder.parameters(), false));
   }
 
   /**

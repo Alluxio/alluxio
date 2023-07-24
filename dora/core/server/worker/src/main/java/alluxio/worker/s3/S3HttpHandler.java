@@ -37,13 +37,9 @@ public class S3HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
   private static final Logger LOG = LoggerFactory.getLogger(S3HttpHandler.class);
 
   private final FileSystem mFileSystem;
-
   private final DoraWorker mDoraWorker;
-
   private final AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
-
   private final ThreadPoolExecutor mLightPool;
-
   private final ThreadPoolExecutor mHeavyPool;
 
   /**

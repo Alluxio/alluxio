@@ -70,6 +70,7 @@ public class NettyDataServer implements DataServer {
   @Inject
   public NettyDataServer(
       @Named("NettyBindAddress") InetSocketAddress nettyBindAddress,
+      @Named("S3BindAddress") InetSocketAddress s3BindAddress,
       UfsManager ufsManager,
       DoraWorker doraWorker) {
     mSocketAddress = nettyBindAddress;
@@ -79,13 +80,9 @@ public class NettyDataServer implements DataServer {
     try {
       mChannelFuture = mBootstrap.bind(nettyBindAddress).sync();
 
-      // bind http port
-      InetSocketAddress httpBindAddress = NetworkAddressUtils.getBindAddress(
-          NetworkAddressUtils.ServiceType.WORKER_REST,
-          Configuration.global());
       FileSystem fileSystem = FileSystem.Factory.create(Configuration.global());
       mBootstrap.childHandler(new S3HttpPipelineHandler(fileSystem, doraWorker));
-      mHttpChannelFuture = mBootstrap.bind(httpBindAddress).sync();
+      mHttpChannelFuture = mBootstrap.bind(s3BindAddress).sync();
     } catch (InterruptedException e) {
       throw Throwables.propagate(e);
     }

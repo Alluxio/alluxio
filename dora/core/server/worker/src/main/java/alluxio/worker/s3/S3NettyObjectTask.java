@@ -157,14 +157,14 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
               throw new FileDoesNotExistException(fi.getPath() + " is a directory");
             }
             HttpResponse response =
-                new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+                new DefaultHttpResponse(NettyRestUtils.HTTP_VERSION, HttpResponseStatus.OK);
             response.headers()
                 .set(HttpHeaderNames.LAST_MODIFIED, new Date(fi.getLastModificationTimeMs()));
             response.headers().set(S3Constants.S3_CONTENT_LENGTH_HEADER,
                 fi.isFolder() ? 0 : fi.getLength());
 
             // Check for the object's ETag
-            String entityTag = NettyRestUtils.getEntityTag(fi);
+            String entityTag = NettyRestUtils.getEntityTag(fi.getFileInfo());
             if (entityTag != null) {
               response.headers().set(S3Constants.S3_ETAG_HEADER, entityTag);
             } else {
@@ -178,7 +178,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
           } catch (FileDoesNotExistException e) {
             // must be null entity (content length 0) for S3A Filesystem
             HttpResponse response =
-                new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
+                new DefaultHttpResponse(NettyRestUtils.HTTP_VERSION, HttpResponseStatus.NOT_FOUND);
             response.headers().set(HttpHeaderNames.CONTENT_LENGTH, "0");
             return response;
           } catch (Exception e) {
@@ -229,7 +229,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
                         objectPath, null, null);
                 LOG.warn("redirect to the uri [{}]", uri);
                 HttpResponse response =
-                    new DefaultHttpResponse(HttpVersion.HTTP_1_1,
+                    new DefaultHttpResponse(NettyRestUtils.HTTP_VERSION,
                         HttpResponseStatus.TEMPORARY_REDIRECT);
                 response.headers().set(HttpHeaderNames.LOCATION, uri.toString());
                 return response;
@@ -238,7 +238,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
 
             AlluxioURI ufsFullPath = mHandler.getUfsPath(objectUri);
             HttpResponse response =
-                new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+                new DefaultHttpResponse(NettyRestUtils.HTTP_VERSION, HttpResponseStatus.OK);
             response.headers()
                 .set(HttpHeaderNames.LAST_MODIFIED, new Date(status.getLastModificationTimeMs()));
             response.headers().set(S3Constants.S3_CONTENT_LENGTH_HEADER,
@@ -254,7 +254,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
             }
 
             // Check for the object's ETag
-            String contentHash = NettyRestUtils.getEntityTag(status);
+            String contentHash = NettyRestUtils.getEntityTag(status.getFileInfo());
             if (contentHash != null) {
               response.headers().set(S3Constants.S3_ETAG_HEADER, contentHash);
             } else {
@@ -499,7 +499,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
         S3NettyHandler.setEntityTag(userFs, objectUri, entityTag);
 
         HttpResponse response =
-            new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+            new DefaultHttpResponse(NettyRestUtils.HTTP_VERSION, HttpResponseStatus.OK);
         response.headers().set(S3Constants.S3_ETAG_HEADER, entityTag);
         return response;
       } catch (Exception e) {

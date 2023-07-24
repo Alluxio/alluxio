@@ -9,18 +9,20 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.proxy.s3.signature;
+package alluxio.s3.signature;
 
 import static alluxio.s3.S3Constants.S3_SIGN_DATE;
 
-import alluxio.proxy.s3.S3RestUtils;
-import alluxio.proxy.s3.auth.AwsAuthInfo;
-import alluxio.proxy.s3.signature.utils.AwsAuthV2HeaderParserUtils;
-import alluxio.proxy.s3.signature.utils.AwsAuthV4HeaderParserUtils;
-import alluxio.proxy.s3.signature.utils.AwsAuthV4QueryParserUtils;
+import alluxio.s3.NettyRestUtils;
+import alluxio.s3.auth.AwsAuthInfo;
+import alluxio.s3.signature.utils.AwsAuthV2HeaderParserUtils;
+import alluxio.s3.signature.utils.AwsAuthV4HeaderParserUtils;
+import alluxio.s3.signature.utils.AwsAuthV4QueryParserUtils;
 import alluxio.s3.S3ErrorCode;
 import alluxio.s3.S3Exception;
 
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +45,7 @@ public class AwsSignatureProcessor {
 
   private ContainerRequestContext mContext;
   private HttpServletRequest mServletRequest;
+  private FullHttpRequest mHttpRequest;
 
   /**
    * Create a new {@link AwsSignatureProcessor}.
@@ -56,12 +59,23 @@ public class AwsSignatureProcessor {
   /**
    * Create a new {@link AwsSignatureProcessor} with HttpServletRequest
    * as the info marshall source.
-   * Used by the new architecture in {@link alluxio.proxy.s3.S3RequestServlet}
+   * Used by the new architecture in {@link HttpServletRequest}
    *
    * @param request
    */
   public AwsSignatureProcessor(HttpServletRequest request) {
     mServletRequest = request;
+  }
+
+  /**
+   * Create a new {@link AwsSignatureProcessor} with HttpRequest
+   * as the info marshall source.
+   * Used by the new architecture in {@link FullHttpRequest}
+   *
+   * @param httpRequest
+   */
+  public AwsSignatureProcessor(FullHttpRequest httpRequest) {
+    mHttpRequest = httpRequest;
   }
 
   /**
@@ -74,12 +88,20 @@ public class AwsSignatureProcessor {
     String authHeader;
     String dateHeader;
     if (mContext != null) {
-      Map<String, String> headers = S3RestUtils.fromMultiValueToSingleValueMap(
-              mContext.getHeaders(), true);
+      Map<String, String> headers = NettyRestUtils.fromMultiValueToSingleValueMap(
+          mContext.getHeaders(), true);
       authHeader = headers.get(AUTHORIZATION);
       dateHeader = headers.get(S3_SIGN_DATE);
-      queryParameters = S3RestUtils.fromMultiValueToSingleValueMap(
-              mContext.getUriInfo().getQueryParameters(), false);
+      queryParameters = NettyRestUtils.fromMultiValueToSingleValueMap(
+          mContext.getUriInfo().getQueryParameters(), false);
+    } else if (mHttpRequest != null) {
+      Map<String, String> headers = NettyRestUtils.convertToSingleValueMap(
+          mHttpRequest.headers(), true);
+      authHeader = headers.get(AUTHORIZATION);
+      dateHeader = headers.get(S3_SIGN_DATE);
+      QueryStringDecoder queryDecoder = new QueryStringDecoder(mHttpRequest.uri());
+      queryParameters = NettyRestUtils.fromListValueMapToSingleValueMap(
+          queryDecoder.parameters(), false);
     } else {
       authHeader = mServletRequest.getHeader(AUTHORIZATION);
       dateHeader = mServletRequest.getHeader(S3_SIGN_DATE);
@@ -117,6 +139,9 @@ public class AwsSignatureProcessor {
         if (mContext != null) {
           stringToSign =
               StringToSignProducer.createSignatureBase(signatureInfo, mContext);
+        } else if (mHttpRequest != null) {
+          stringToSign =
+              StringToSignProducer.createSignatureBase(signatureInfo, mHttpRequest);
         } else {
           stringToSign =
               StringToSignProducer.createSignatureBase(signatureInfo, mServletRequest);

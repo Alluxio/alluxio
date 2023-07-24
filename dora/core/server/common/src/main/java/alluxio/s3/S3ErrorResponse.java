@@ -203,10 +203,8 @@ public class S3ErrorResponse {
     } else {
       ByteBuf contentBuffer =
           Unpooled.copiedBuffer(e.getMessage(), CharsetUtil.UTF_8);
-      FullHttpResponse resp = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,
-          HttpResponseStatus.INTERNAL_SERVER_ERROR);
-      resp.content().writeBytes(contentBuffer);
-      contentBuffer.release();
+      FullHttpResponse resp = new DefaultFullHttpResponse(NettyRestUtils.HTTP_VERSION,
+          HttpResponseStatus.INTERNAL_SERVER_ERROR, contentBuffer);
       resp.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain");
       resp.headers().set(HttpHeaderNames.CONTENT_LENGTH, resp.content().readableBytes());
       return resp;
@@ -296,22 +294,18 @@ public class S3ErrorResponse {
     try {
       ByteBuf contentBuffer =
           Unpooled.copiedBuffer(mapper.writeValueAsString(errorResponse), CharsetUtil.UTF_8);
-      FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,
-          HttpResponseStatus.valueOf(s3ErrorCode.getStatus().getStatusCode()));
-      response.content().writeBytes(contentBuffer);
+      FullHttpResponse response = new DefaultFullHttpResponse(NettyRestUtils.HTTP_VERSION,
+          HttpResponseStatus.valueOf(s3ErrorCode.getStatus().getStatusCode()), contentBuffer);
       response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_XML);
       response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
-      contentBuffer.release();
       return response;
     } catch (JsonProcessingException e2) {
       ByteBuf contentBuffer =
           Unpooled.copiedBuffer("Failed to encode XML: " + e2.getMessage(), CharsetUtil.UTF_8);
-      FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,
-          HttpResponseStatus.INTERNAL_SERVER_ERROR);
-      response.content().writeBytes(contentBuffer);
+      FullHttpResponse response = new DefaultFullHttpResponse(NettyRestUtils.HTTP_VERSION,
+          HttpResponseStatus.INTERNAL_SERVER_ERROR, contentBuffer);
       response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain");
       response.headers().set(HttpHeaderNames.CONTENT_LENGTH, contentBuffer.readableBytes());
-      contentBuffer.release();
       return response;
     } finally {
       LOG.warn("mapper convert exception {} to {}.", message, s3ErrorCode.getStatus().toString());

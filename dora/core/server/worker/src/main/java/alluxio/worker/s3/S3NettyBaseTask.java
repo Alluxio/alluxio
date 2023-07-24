@@ -17,8 +17,8 @@ import io.netty.handler.codec.http.HttpResponse;
  * S3 Abstract Base task for handling S3 API logic in netty server.
  */
 public abstract class S3NettyBaseTask {
-  protected S3NettyHandler mHandler;
-  protected OpType mOPType;
+  protected final S3NettyHandler mHandler;
+  protected final OpType mOPType;
 
   /**
    * Creates an instance of {@link S3NettyBaseTask}.

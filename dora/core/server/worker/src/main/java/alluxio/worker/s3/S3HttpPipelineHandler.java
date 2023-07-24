@@ -38,9 +38,9 @@ import java.util.concurrent.TimeUnit;
 public class S3HttpPipelineHandler extends ChannelInitializer<SocketChannel> {
   private final FileSystem mFileSystem;
   private final DoraWorker mDoraWorker;
-  private AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter = null;
-  private ThreadPoolExecutor mLightPool;
-  private ThreadPoolExecutor mHeavyPool;
+  private final AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
+  private final ThreadPoolExecutor mLightPool;
+  private final ThreadPoolExecutor mHeavyPool;
 
   /**
    * Constructs an instance of {@link S3HttpPipelineHandler}.
@@ -57,11 +57,16 @@ public class S3HttpPipelineHandler extends ChannelInitializer<SocketChannel> {
           MetricKey.PROXY_AUDIT_LOG_ENTRIES_SIZE.getName(),
           () -> mAsyncAuditLogWriter != null
               ? mAsyncAuditLogWriter.getAuditLogEntriesSize() : -1);
+    } else {
+      mAsyncAuditLogWriter = null;
     }
 
     if (Configuration.getBoolean(PropertyKey.WORKER_S3_ASYNC_PROCESS_ENABLED)) {
       mLightPool = createLightThreadPool();
       mHeavyPool = createHeavyThreadPool();
+    } else {
+      mLightPool = null;
+      mHeavyPool = null;
     }
   }
 
@@ -78,20 +83,18 @@ public class S3HttpPipelineHandler extends ChannelInitializer<SocketChannel> {
   private ThreadPoolExecutor createLightThreadPool() {
     int lightCorePoolSize = Configuration.getInt(
         PropertyKey.WORKER_S3_ASYNC_LIGHT_POOL_CORE_THREAD_NUMBER);
-    Preconditions.checkArgument(lightCorePoolSize > 0,
-        PropertyKey.WORKER_S3_ASYNC_LIGHT_POOL_CORE_THREAD_NUMBER.getName()
-            + " must be a positive integer.");
+    Preconditions.checkArgument(lightCorePoolSize > 0, "%s must be a positive integer.",
+        PropertyKey.WORKER_S3_ASYNC_LIGHT_POOL_CORE_THREAD_NUMBER.getName());
     int lightMaximumPoolSize = Configuration.getInt(
         PropertyKey.WORKER_S3_ASYNC_LIGHT_POOL_MAXIMUM_THREAD_NUMBER);
     Preconditions.checkArgument(lightMaximumPoolSize >= lightCorePoolSize,
-        PropertyKey.WORKER_S3_ASYNC_LIGHT_POOL_MAXIMUM_THREAD_NUMBER.getName()
-            + " must be greater than or equal to the value of "
-            + PropertyKey.WORKER_S3_ASYNC_LIGHT_POOL_CORE_THREAD_NUMBER.getName());
+        "%s must be greater than or equal to the value of %s",
+        PropertyKey.WORKER_S3_ASYNC_LIGHT_POOL_MAXIMUM_THREAD_NUMBER.getName(),
+        PropertyKey.WORKER_S3_ASYNC_LIGHT_POOL_CORE_THREAD_NUMBER.getName());
     int lightPoolQueueSize = Configuration.getInt(
         PropertyKey.WORKER_S3_ASYNC_LIGHT_POOL_QUEUE_SIZE);
-    Preconditions.checkArgument(lightPoolQueueSize > 0,
-        PropertyKey.WORKER_S3_ASYNC_LIGHT_POOL_QUEUE_SIZE.getName()
-            + " must be a positive integer.");
+    Preconditions.checkArgument(lightPoolQueueSize > 0, "%s must be a positive integer.",
+        PropertyKey.WORKER_S3_ASYNC_LIGHT_POOL_QUEUE_SIZE.getName());
     return new ThreadPoolExecutor(lightCorePoolSize, lightMaximumPoolSize, 0,
         TimeUnit.SECONDS, new ArrayBlockingQueue<>(lightPoolQueueSize),
         ThreadFactoryUtils.build("S3-LIGHTPOOL-%d", false));
@@ -100,20 +103,19 @@ public class S3HttpPipelineHandler extends ChannelInitializer<SocketChannel> {
   private ThreadPoolExecutor createHeavyThreadPool() {
     int heavyCorePoolSize = Configuration.getInt(
         PropertyKey.WORKER_S3_ASYNC_HEAVY_POOL_CORE_THREAD_NUMBER);
-    Preconditions.checkArgument(heavyCorePoolSize > 0,
-        PropertyKey.WORKER_S3_ASYNC_HEAVY_POOL_CORE_THREAD_NUMBER.getName()
-            + " must be a positive integer.");
+    Preconditions.checkArgument(heavyCorePoolSize > 0, "%s must be a positive integer.",
+        PropertyKey.WORKER_S3_ASYNC_HEAVY_POOL_CORE_THREAD_NUMBER.getName());
     int heavyMaximumPoolSize = Configuration.getInt(
         PropertyKey.WORKER_S3_ASYNC_HEAVY_POOL_MAXIMUM_THREAD_NUMBER);
     Preconditions.checkArgument(heavyMaximumPoolSize >= heavyCorePoolSize,
-        PropertyKey.WORKER_S3_ASYNC_HEAVY_POOL_MAXIMUM_THREAD_NUMBER.getName()
-            + " must be greater than or equal to the value of "
-            + PropertyKey.WORKER_S3_ASYNC_HEAVY_POOL_CORE_THREAD_NUMBER.getName());
+        "%s must be greater than or equal to the value of %s",
+        PropertyKey.WORKER_S3_ASYNC_HEAVY_POOL_MAXIMUM_THREAD_NUMBER.getName(),
+        PropertyKey.WORKER_S3_ASYNC_HEAVY_POOL_CORE_THREAD_NUMBER.getName());
     int heavyPoolQueueSize = Configuration.getInt(
         PropertyKey.WORKER_S3_ASYNC_HEAVY_POOL_QUEUE_SIZE);
     Preconditions.checkArgument(heavyPoolQueueSize > 0,
-        PropertyKey.WORKER_S3_ASYNC_HEAVY_POOL_QUEUE_SIZE.getName()
-            + " must be a positive integer.");
+        "%s must be a positive integer.",
+        PropertyKey.WORKER_S3_ASYNC_HEAVY_POOL_QUEUE_SIZE.getName());
     return new ThreadPoolExecutor(heavyCorePoolSize, heavyMaximumPoolSize, 0,
         TimeUnit.SECONDS, new ArrayBlockingQueue<>(heavyPoolQueueSize),
         ThreadFactoryUtils.build("S3-HEAVYPOOL-%d", false));

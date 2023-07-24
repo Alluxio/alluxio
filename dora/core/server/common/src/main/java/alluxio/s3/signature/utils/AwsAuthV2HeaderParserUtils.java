@@ -9,9 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.proxy.s3.signature.utils;
+package alluxio.s3.signature.utils;
 
-import alluxio.proxy.s3.signature.SignatureInfo;
+import alluxio.s3.signature.SignatureInfo;
 import alluxio.s3.S3ErrorCode;
 import alluxio.s3.S3Exception;
 

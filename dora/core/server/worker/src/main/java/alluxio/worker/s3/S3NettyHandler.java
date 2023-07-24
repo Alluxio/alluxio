@@ -330,7 +330,11 @@ public class S3NettyHandler {
   public void processHttpResponse(HttpResponse response, boolean closeAfterWrite) {
     if (response != null) {
       setResponse(response);
-      mContext.write(response);
+      ChannelFuture future = mContext.writeAndFlush(response);
+      if (closeAfterWrite) {
+        future.addListener(new S3NettyFutureListener(this));
+      }
+      return;
     }
     if (closeAfterWrite) {
       mContext.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT)
@@ -546,6 +550,7 @@ public class S3NettyHandler {
    * @param queryParam
    * @return query parameter value
    */
+  @Nullable
   public String getQueryParameter(String queryParam) {
     if (mQueryDecoder.parameters().get(queryParam) != null) {
       return mQueryDecoder.parameters().get(queryParam).get(0);
