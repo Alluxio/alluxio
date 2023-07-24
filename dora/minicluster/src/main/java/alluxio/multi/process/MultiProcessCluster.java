@@ -744,7 +744,6 @@ public final class MultiProcessCluster {
     conf.put(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED, true);
 
     Configuration.set(PropertyKey.WORKER_MEMBERSHIP_TYPE, MembershipType.NOOP);
-//    Configuration.set(PropertyKey.ETCD_ENDPOINTS, getProxiedClientEndpoints());
 
     Worker worker = mCloser.register(new Worker(logsDir, conf));
     mWorkers.add(worker);

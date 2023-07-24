@@ -15,7 +15,9 @@ import static alluxio.client.file.cache.CacheUsage.PartitionDescriptor.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.DefaultStorageTierAssoc;
 import alluxio.Server;
+import alluxio.StorageTierAssoc;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.cache.CacheManager;
@@ -44,11 +46,13 @@ import alluxio.grpc.LoadFileFailure;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.Route;
 import alluxio.grpc.RouteFailure;
+import alluxio.grpc.Scope;
 import alluxio.grpc.ServiceType;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UfsReadOptions;
 import alluxio.grpc.WriteOptions;
 import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.membership.NoOpMembershipManager;
 import alluxio.network.protocol.databuffer.PooledDirectNioByteBuf;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.meta.DoraMeta;
@@ -235,6 +239,11 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private void register() throws IOException {
     Preconditions.checkState(mAddress != null, "worker not started");
     RetryPolicy retry = RetryUtils.defaultWorkerMasterClientRetry();
+    // For regression purpose, use the original way of regsiter
+    if (mMembershipManager instanceof NoOpMembershipManager) {
+      registerToMaster();
+      return;
+    }
     while (true) {
       try (PooledResource<BlockMasterClient> bmc = mBlockMasterClientPool.acquireCloseable()) {
         bmc.get().connect(); // TODO(lucy) this is necessary here for MASTER web to be opened for some reason
@@ -253,31 +262,31 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   }
 
-//  private void register() throws IOException {
-//    Preconditions.checkState(mAddress != null, "worker not started");
-//    RetryPolicy retry = RetryUtils.defaultWorkerMasterClientRetry();
-//    while (true) {
-//      try (PooledResource<BlockMasterClient> bmc = mBlockMasterClientPool.acquireCloseable()) {
-//        mWorkerId.set(bmc.get().getId(mAddress));
-//        StorageTierAssoc storageTierAssoc =
-//            new DefaultStorageTierAssoc(ImmutableList.of(Constants.MEDIUM_MEM));
-//        bmc.get().register(
-//            mWorkerId.get(),
-//            storageTierAssoc.getOrderedStorageAliases(),
-//            ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.GB),
-//            ImmutableMap.of(Constants.MEDIUM_MEM, 0L),
-//            ImmutableMap.of(),
-//            ImmutableMap.of(),
-//            Configuration.getConfiguration(Scope.WORKER));
-//        LOG.info("Worker registered with worker ID: {}", mWorkerId.get());
-//        break;
-//      } catch (IOException ioe) {
-//        if (!retry.attempt()) {
-//          throw ioe;
-//        }
-//      }
-//    }
-//  }
+  private void registerToMaster() throws IOException {
+    Preconditions.checkState(mAddress != null, "worker not started");
+    RetryPolicy retry = RetryUtils.defaultWorkerMasterClientRetry();
+    while (true) {
+      try (PooledResource<BlockMasterClient> bmc = mBlockMasterClientPool.acquireCloseable()) {
+        mWorkerId.set(bmc.get().getId(mAddress));
+        StorageTierAssoc storageTierAssoc =
+            new DefaultStorageTierAssoc(ImmutableList.of(Constants.MEDIUM_MEM));
+        bmc.get().register(
+            mWorkerId.get(),
+            storageTierAssoc.getOrderedStorageAliases(),
+            ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.GB),
+            ImmutableMap.of(Constants.MEDIUM_MEM, 0L),
+            ImmutableMap.of(),
+            ImmutableMap.of(),
+            Configuration.getConfiguration(Scope.WORKER));
+        LOG.info("Worker registered with worker ID: {}", mWorkerId.get());
+        break;
+      } catch (IOException ioe) {
+        if (!retry.attempt()) {
+          throw ioe;
+        }
+      }
+    }
+  }
 
   @Override
   public void stop() throws IOException {
