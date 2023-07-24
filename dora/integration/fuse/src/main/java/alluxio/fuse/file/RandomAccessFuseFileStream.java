@@ -17,8 +17,6 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.runtime.UnimplementedRuntimeException;
-import alluxio.fuse.AlluxioFuseUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +27,6 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.Optional;
 
 /**
  * FUSE file stream for supporting random access.
@@ -167,37 +164,6 @@ public class RandomAccessFuseFileStream implements FuseFileStream {
   @Override
   public void truncate(long size) {
     initTmpFileIfNotInitialized();
-
-    /*
-    if (size == 0) {
-      try {
-        mRandomAccessFile.close();
-      } catch (IOException e) {
-
-      } finally {
-        mTmpFile.delete();
-      }
-
-      AlluxioFuseUtils.deletePath(mFileSystem, mURI);
-
-      try (FileOutStream fos = mFileSystem.createFile(mURI)) {
-        mHasInitializedTmpFile = false;
-      } catch (IOException | AlluxioException e) {
-      }
-      return;
-    }
-
-    try {
-      if (size > mRandomAccessFile.length()) {
-        throw new UnimplementedRuntimeException(
-            String.format("Cannot truncate file %s from size %s to size %s", mURI, size,
-                size));
-      }
-    } catch (IOException e) {
-      LOG.error("Failed to get mRandomAccessFile.length(). The temporary file path is {}. ",
-          mTmpFile, e);
-    }
-    */
 
     try {
       mRandomAccessFile.setLength(size);
