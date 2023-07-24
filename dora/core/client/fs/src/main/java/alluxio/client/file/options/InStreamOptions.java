@@ -20,7 +20,6 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.OpenFilePOptions;
 import alluxio.master.block.BlockId;
-import alluxio.master.file.meta.PersistenceState;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.FileSystemOptionsUtils;
 import alluxio.wire.BlockInfo;
@@ -167,10 +166,7 @@ public final class InStreamOptions {
   public Protocol.OpenUfsBlockOptions getOpenUfsBlockOptions(long blockId) {
     Preconditions.checkArgument(mStatus.getBlockIds().contains(blockId),
         "block id %s does not belong to the file %s", blockId, mStatus.getPath());
-    // In case it is possible to fallback to read UFS blocks, also fill in the options.
-    boolean storedAsUfsBlock = mStatus.getPersistenceState()
-        .equals(PersistenceState.TO_BE_PERSISTED.name());
-    if (!mStatus.isPersisted() && !storedAsUfsBlock) {
+    if (!mStatus.isPersisted()) {
       return Protocol.OpenUfsBlockOptions.getDefaultInstance();
     }
     long blockStart = BlockId.getSequenceNumber(blockId) * mStatus.getBlockSizeBytes();
@@ -181,14 +177,6 @@ public final class InStreamOptions {
             .setMaxUfsReadConcurrency(mProtoOptions.getMaxUfsReadConcurrency())
             .setNoCache(!ReadType.fromProto(mProtoOptions.getReadType()).isCache())
             .setMountId(mStatus.getMountId());
-    if (storedAsUfsBlock) {
-      // On client-side, we do not have enough mount information to fill in the UFS file path.
-      // Instead, we unset the ufsPath field and fill in a flag ufsBlock to indicate the UFS file
-      // path can be derived from mount id and the block ID. Also because the entire file is only
-      // one block, we set the offset in file to be zero.
-      openUfsBlockOptionsBuilder.clearUfsPath().setBlockInUfsTier(true)
-            .setOffsetInFile(0);
-    }
     return openUfsBlockOptionsBuilder.build();
   }
 

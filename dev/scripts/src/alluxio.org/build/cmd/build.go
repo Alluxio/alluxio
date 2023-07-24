@@ -13,7 +13,6 @@ package cmd
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -103,8 +102,8 @@ func buildTarball(opts *buildOpts) error {
 		if opts.tarball.ClientJarName != "" {
 			mockFiles = append(mockFiles, opts.tarball.clientJarPath(alluxioVersion))
 		}
-		for _, info := range assembledJars {
-			mockFiles = append(mockFiles, fmt.Sprintf(info.generatedJarPath, alluxioVersion))
+		for _, info := range opts.assemblyJars {
+			mockFiles = append(mockFiles, strings.ReplaceAll(info.GeneratedJarPath, versionPlaceholder, alluxioVersion))
 		}
 		for _, l := range opts.libModules {
 			mockFiles = append(mockFiles, strings.ReplaceAll(l.GeneratedJarPath, versionPlaceholder, alluxioVersion))

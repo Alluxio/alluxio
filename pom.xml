@@ -322,11 +322,6 @@
         <version>1.2</version>
       </dependency>
       <dependency>
-        <groupId>pl.project13.maven</groupId>
-        <artifactId>git-commit-id-plugin</artifactId>
-        <version>4.0.5</version>
-      </dependency>
-      <dependency>
         <groupId>io.dropwizard.metrics</groupId>
         <artifactId>metrics-core</artifactId>
         <version>${metrics.version}</version>
@@ -923,14 +918,14 @@
           <version>1.0</version>
         </plugin>
         <plugin>
-          <groupId>com.igormaznitsa</groupId>
-          <artifactId>jcp</artifactId>
-          <version>6.1.2</version>
-        </plugin>
-        <plugin>
           <groupId>com.mycila</groupId>
           <artifactId>license-maven-plugin</artifactId>
           <version>4.2</version>
+        </plugin>
+        <plugin>
+          <groupId>pl.project13.maven</groupId>
+          <artifactId>git-commit-id-plugin</artifactId>
+          <version>4.0.5</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -1015,7 +1010,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>3.0.0-M5</version>
+          <version>3.0.0</version>
           <configuration>
             <argLine>@{argLine} -Djava.net.preferIPv4Stack=true</argLine>
             <excludesFile>${build.path}/surefire/${surefire.excludesFile}</excludesFile>
@@ -1348,12 +1343,12 @@
         </executions>
       </plugin>
 
-      <!-- Prevent Windows line endings -->
       <plugin>
         <artifactId>exec-maven-plugin</artifactId>
         <groupId>org.codehaus.mojo</groupId>
         <inherited>false</inherited>
         <executions>
+          <!-- Prevent Windows line endings -->
           <execution>
             <id>Check that there are no Windows line endings</id>
             <phase>compile</phase>
@@ -1364,15 +1359,7 @@
               <executable>${build.path}/style/check_no_windows_line_endings.sh</executable>
             </configuration>
           </execution>
-        </executions>
-      </plugin>
-
-      <!-- Create libexec/version.sh -->
-      <plugin>
-        <artifactId>exec-maven-plugin</artifactId>
-        <groupId>org.codehaus.mojo</groupId>
-        <inherited>false</inherited>
-        <executions>
+          <!-- Create libexec/version.sh -->
           <execution>
             <id>Write version string in generated packaged script</id>
             <phase>compile</phase>

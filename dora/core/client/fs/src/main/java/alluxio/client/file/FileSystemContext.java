@@ -422,10 +422,19 @@ public class FileSystemContext implements Closeable {
   protected synchronized void init(ClientContext clientContext,
       MasterInquireClient masterInquireClient) {
     initContext(clientContext, masterInquireClient);
-    mReinitializer = new FileSystemContextReinitializer(this);
+    reCreateReinitialize(null);
   }
 
-  private synchronized void initContext(ClientContext ctx,
+  protected void reCreateReinitialize(
+      @Nullable FileSystemContextReinitializer fileSystemContextReinitializer) {
+    if (fileSystemContextReinitializer == null) {
+      mReinitializer = new FileSystemContextReinitializer(this);
+    } else {
+      mReinitializer = fileSystemContextReinitializer;
+    }
+  }
+
+  protected synchronized void initContext(ClientContext ctx,
       MasterInquireClient masterInquireClient) {
     mClosed.set(false);
     mMasterClientContext = MasterClientContext.newBuilder(ctx)

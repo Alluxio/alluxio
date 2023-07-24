@@ -1290,7 +1290,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_STREAMING_UPLOAD_PART_TIMEOUT =
       durationBuilder(Name.UNDERFS_OBJECT_STORE_STREAMING_UPLOAD_PART_TIMEOUT)
+          .setAlias("alluxio.underfs.object.store.streaming.upload.part.timeout")
           .setDescription("Timeout for uploading part when using streaming uploads.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OBJECT_STORE_MULTIPART_UPLOAD_TIMEOUT =
+      durationBuilder(Name.UNDERFS_OBJECT_STORE_MULTIPART_UPLOAD_TIMEOUT)
+          .setAlias("alluxio.underfs.object.store.multipart.upload.timeout")
+          .setDescription("Timeout for uploading part when using multipart upload.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
@@ -1570,7 +1578,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       durationBuilder(Name.UNDERFS_S3_INTERMEDIATE_UPLOAD_CLEAN_AGE)
           .setAlias("alluxio.underfs.s3a.intermediate.upload.clean.age")
           .setDefaultValue("3day")
-          .setDescription("Streaming uploads may not have been completed/aborted correctly "
+          .setDescription("Streaming uploads or multipart uploads"
+              + " may not have been completed/aborted correctly "
               + "and need periodical ufs cleanup. If ufs cleanup is enabled, "
               + "intermediate multipart uploads in all non-readonly S3 mount points "
               + "older than this age will be cleaned. This may impact other "
@@ -1663,6 +1672,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "S3A streaming upload. When the buffer file reaches the partition size, "
               + "it will be uploaded and the upcoming data will write to other buffer files."
               + "If the partition size is too small, S3A upload speed might be affected. ")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_S3_MULTIPART_UPLOAD_ENABLED =
+      booleanBuilder(Name.UNDERFS_S3_MULTIPART_UPLOAD_ENABLED)
+          .setAlias("alluxio.underfs.s3.multipart.upload.enabled")
+          .setDefaultValue(false)
+          .setDescription("(Experimental) If true, using multipart upload to write to S3.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_S3_MULTIPART_UPLOAD_PARTITION_SIZE =
+      dataSizeBuilder(Name.UNDERFS_S3_MULTIPART_UPLOAD_PARTITION_SIZE)
+          .setAlias("alluxio.underfs.s3.multipart.upload.partition.size")
+          .setDefaultValue("64MB")
+          .setDescription("Maximum allowable size of a single buffer file when using "
+              + "S3 Multipart upload. When the buffer file reaches the partition size, "
+              + "it will be uploaded and the upcoming data will write to other buffer files."
+              + "If the partition size is too small, S3 upload speed might be affected. ")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.SERVER)
           .build();
@@ -1831,7 +1859,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey UNDERFS_OSS_INTERMEDIATE_UPLOAD_CLEAN_AGE =
       durationBuilder(Name.UNDERFS_OSS_INTERMEDIATE_UPLOAD_CLEAN_AGE)
           .setDefaultValue("3day")
-          .setDescription("Streaming uploads may not have been completed/aborted correctly "
+          .setDescription("Streaming uploads or multipart uploads"
+              + " may not have been completed/aborted correctly "
               + "and need periodical ufs cleanup. If ufs cleanup is enabled, "
               + "intermediate multipart uploads in all non-readonly OSS mount points "
               + "older than this age will be cleaned. This may impact other "
@@ -1861,6 +1890,30 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(20)
           .setDescription("the number of threads to use for streaming upload data to OSS.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_MULTIPART_UPLOAD_ENABLED =
+      booleanBuilder(Name.UNDERFS_OSS_MULTIPART_UPLOAD_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("(Experimental) If true, using multipart upload to write to OSS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_MULTIPART_UPLOAD_THREADS =
+      intBuilder(Name.UNDERFS_OSS_MULTIPART_UPLOAD_THREADS)
+          .setDefaultValue(20)
+          .setDescription("the number of threads to use for multipart upload data to OSS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OSS_MULTIPART_UPLOAD_PARTITION_SIZE =
+      dataSizeBuilder(Name.UNDERFS_OSS_MULTIPART_UPLOAD_PARTITION_SIZE)
+          .setDefaultValue("64MB")
+          .setDescription("Maximum allowable size of a single buffer file when using "
+              + "OSS multipart upload. When the buffer file reaches the partition size, "
+              + "it will be uploaded and the upcoming data will write to other buffer files."
+              + "If the partition size is too small, OSS upload speed might be affected. ")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
   public static final PropertyKey S3A_ACCESS_KEY = stringBuilder(Name.S3A_ACCESS_KEY)
@@ -2017,7 +2070,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey UNDERFS_OBS_INTERMEDIATE_UPLOAD_CLEAN_AGE =
       durationBuilder(Name.UNDERFS_OBS_INTERMEDIATE_UPLOAD_CLEAN_AGE)
           .setDefaultValue("3day")
-          .setDescription("Streaming uploads may not have been completed/aborted correctly "
+          .setDescription("Streaming uploads or multipart uploads"
+              + " may not have been completed/aborted correctly "
               + "and need periodical ufs cleanup. If ufs cleanup is enabled, "
               + "intermediate multipart uploads in all non-readonly OBS mount points "
               + "older than this age will be cleaned. This may impact other "
@@ -2047,6 +2101,54 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(20)
           .setDescription("the number of threads to use for streaming upload data to OBS.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OBS_MULTIPART_UPLOAD_ENABLED =
+      booleanBuilder(Name.UNDERFS_OBS_MULTIPART_UPLOAD_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("(Experimental) If true, using multipart upload to write to OBS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OBS_MULTIPART_UPLOAD_THREADS =
+      intBuilder(Name.UNDERFS_OBS_MULTIPART_UPLOAD_THREADS)
+          .setDefaultValue(20)
+          .setDescription("the number of threads to use for multipart upload data to OBS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_OBS_MULTIPART_UPLOAD_PARTITION_SIZE =
+      dataSizeBuilder(Name.UNDERFS_OBS_MULTIPART_UPLOAD_PARTITION_SIZE)
+          .setDefaultValue("64MB")
+          .setDescription("Maximum allowable size of a single buffer file when using "
+              + "OBS multipart upload. When the buffer file reaches the partition size, "
+              + "it will be uploaded and the upcoming data will write to other buffer files."
+              + "If the partition size is too small, OSS upload speed might be affected. ")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_COS_MULTIPART_UPLOAD_ENABLED =
+      booleanBuilder(Name.UNDERFS_COS_MULTIPART_UPLOAD_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("(Experimental) If true, using multipart upload to write to COS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_COS_MULTIPART_UPLOAD_THREADS =
+      intBuilder(Name.UNDERFS_COS_MULTIPART_UPLOAD_THREADS)
+          .setDefaultValue(20)
+          .setDescription("the number of threads to use for multipart upload data to COS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey UNDERFS_COS_MULTIPART_UPLOAD_PARTITION_SIZE =
+      dataSizeBuilder(Name.UNDERFS_COS_MULTIPART_UPLOAD_PARTITION_SIZE)
+          .setDefaultValue("64MB")
+          .setDescription("Maximum allowable size of a single buffer file when using "
+              + "COS multipart upload. When the buffer file reaches the partition size, "
+              + "it will be uploaded and the upcoming data will write to other buffer files."
+              + "If the partition size is too small, OSS upload speed might be affected. ")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setScope(Scope.SERVER)
           .build();
   //
@@ -4105,18 +4207,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   //
-  // Secondary master related properties
-  //
-  public static final PropertyKey SECONDARY_MASTER_METASTORE_DIR =
-      stringBuilder(Name.SECONDARY_MASTER_METASTORE_DIR)
-          .setDefaultValue(format("${%s}/secondary-metastore", Name.WORK_DIR))
-          .setDescription(
-              "The secondary master metastore work directory. Only some metastores need disk.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-
-  //
   // File system master related properties
   //
   public static final PropertyKey MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE =
@@ -6091,14 +6181,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "FREE(default), DELETE_ALLUXIO or DELETE")
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_FILE_UFS_TIER_ENABLED =
-      booleanBuilder(Name.USER_FILE_UFS_TIER_ENABLED)
-          .setDescription("When workers run out of available memory, whether the client can skip "
-              + "writing data to Alluxio but fallback to write to UFS without stopping the "
-              + "application. This property only works when the write type is ASYNC_THROUGH.")
-          .setDefaultValue(false)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey USER_BLOCK_READ_METRICS_ENABLED =
       booleanBuilder(Name.USER_BLOCK_READ_METRICS_ENABLED)
           .setDescription("Whether detailed block read metrics will be recorded and sink.")
@@ -6389,7 +6471,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-
+  public static final PropertyKey USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT =
+      intBuilder(Name.USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT)
+          .setDefaultValue(2000)
+          .setDescription("This is the number of virtual nodes in the consistent hashing "
+              + "algorithm. In a consistent hashing algorithm, on membership changes, some "
+              + "virtual nodes are re-distributed instead of rebuilding the whole hash table. "
+              + "This guarantees the hash table is changed only in a minimal. In order to achieve "
+              + "that, the number of virtual nodes should be X times the physical nodes in "
+              + "the cluster, where X is a balance between redistribution granularity and size.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_FILE_WRITE_TYPE_DEFAULT =
       enumBuilder(Name.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
           .setDefaultValue(WriteType.CACHE_THROUGH)
@@ -6948,6 +7041,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       booleanBuilder(Name.USER_RPC_SHUFFLE_MASTERS_ENABLED)
           .setDefaultValue(false)
           .setDescription("Shuffle the client-side configured master rpc addresses.")
+          .build();
+  public static final PropertyKey USER_WORKER_SELECTION_POLICY =
+      classBuilder(Name.USER_WORKER_SELECTION_POLICY)
+          .setDefaultValue("alluxio.client.file.dora.ConsistentHashPolicy")
+          .setDescription("The policy a client uses to map a file path to a worker address. "
+              + "The only option is `alluxio.client.file.dora.ConsistentHashPolicy`. "
+              + "Other options are for internal tests only and not for real deployments.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_WORKER_LIST_REFRESH_INTERVAL =
       durationBuilder(Name.USER_WORKER_LIST_REFRESH_INTERVAL)
@@ -7930,6 +8032,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
 
+  public static final PropertyKey CLIENT_WRITE_TO_UFS_ENABLED =
+      booleanBuilder(Name.CLIENT_WRITE_TO_UFS_ENABLED)
+          .setDescription("Whether or not to enable client writing data directly to UFS. "
+              + "If enabled, client writes data to worker (to be cached in Paging Store) and "
+              + "to UFS (to be stored permanently). Client need UFS credentials in this case. "
+              + "Enabled by default.")
+          .setDefaultValue(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.ALL)
+          .build();
+
   //
   // Extra class to be loaded
   //
@@ -8099,6 +8212,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_VERSION = "alluxio.underfs.version";
     public static final String UNDERFS_OBJECT_STORE_STREAMING_UPLOAD_PART_TIMEOUT =
         "alluxio.underfs.object.store.streaming.upload.part.timeout";
+    public static final String UNDERFS_OBJECT_STORE_MULTIPART_UPLOAD_TIMEOUT =
+        "alluxio.underfs.object.store.multipart.upload.timeout";
     public static final String UNDERFS_OBJECT_STORE_BREADCRUMBS_ENABLED =
         "alluxio.underfs.object.store.breadcrumbs.enabled";
     public static final String UNDERFS_OBJECT_STORE_SERVICE_THREADS =
@@ -8129,6 +8244,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.oss.streaming.upload.partition.size";
     public static final String UNDERFS_OSS_STREAMING_UPLOAD_THREADS =
         "alluxio.underfs.oss.streaming.upload.threads";
+    public static final String UNDERFS_OSS_MULTIPART_UPLOAD_ENABLED =
+        "alluxio.underfs.oss.multipart.upload.enabled";
+    public static final String UNDERFS_OSS_MULTIPART_UPLOAD_THREADS =
+        "alluxio.underfs.oss.multipart.upload.threads";
+    public static final String UNDERFS_OSS_MULTIPART_UPLOAD_PARTITION_SIZE =
+        "alluxio.underfs.oss.multipart.upload.part.size";
     public static final String UNDERFS_S3_BULK_DELETE_ENABLED =
         "alluxio.underfs.s3.bulk.delete.enabled";
     public static final String UNDERFS_S3_DEFAULT_MODE = "alluxio.underfs.s3.default.mode";
@@ -8171,6 +8292,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_S3_THREADS_MAX = "alluxio.underfs.s3.threads.max";
     public static final String UNDERFS_S3_UPLOAD_THREADS_MAX =
         "alluxio.underfs.s3.upload.threads.max";
+    public static final String UNDERFS_S3_MULTIPART_UPLOAD_ENABLED =
+        "alluxio.underfs.s3.multipart.upload.enabled";
+    public static final String UNDERFS_S3_MULTIPART_UPLOAD_PARTITION_SIZE =
+        "alluxio.underfs.s3.multipart.upload.partition.size";
     public static final String KODO_ENDPOINT = "alluxio.underfs.kodo.endpoint";
     public static final String KODO_DOWNLOAD_HOST = "alluxio.underfs.kodo.downloadhost";
     public static final String UNDERFS_KODO_CONNECT_TIMEOUT =
@@ -8208,6 +8333,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.obs.streaming.upload.partition.size";
     public static final String UNDERFS_OBS_STREAMING_UPLOAD_THREADS =
         "alluxio.underfs.obs.streaming.upload.threads";
+    public static final String UNDERFS_OBS_MULTIPART_UPLOAD_ENABLED =
+        "alluxio.underfs.obs.multipart.upload.enabled";
+    public static final String UNDERFS_OBS_MULTIPART_UPLOAD_THREADS =
+        "alluxio.underfs.obs.multipart.upload.threads";
+    public static final String UNDERFS_OBS_MULTIPART_UPLOAD_PARTITION_SIZE =
+        "alluxio.underfs.obs.multipart.upload.part.size";
+    public static final String UNDERFS_COS_MULTIPART_UPLOAD_ENABLED =
+        "alluxio.underfs.cos.multipart.upload.enabled";
+    public static final String UNDERFS_COS_MULTIPART_UPLOAD_THREADS =
+        "alluxio.underfs.cos.multipart.upload.threads";
+    public static final String UNDERFS_COS_MULTIPART_UPLOAD_PARTITION_SIZE =
+        "alluxio.underfs.cos.multipart.upload.part.size";
 
     //
     // UFS access control related properties
@@ -8728,10 +8865,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.throttle.filesystem.rpc.queue.size.limit";
 
     //
-    // Secondary master related properties
+    // Standby master related properties
     //
-    public static final String SECONDARY_MASTER_METASTORE_DIR =
-        "alluxio.secondary.master.metastore.dir";
     public static final String STANDBY_MASTER_METRICS_SINK_ENABLED =
         "alluxio.standby.master.metrics.sink.enabled";
     public static final String STANDBY_MASTER_WEB_ENABLED =
@@ -9176,6 +9311,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.timeout.threads";
     public static final String USER_CLIENT_REPORT_VERSION_ENABLED =
         "alluxio.user.client.report.version.enabled";
+    public static final String USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT =
+        "alluxio.user.consistent.hash.virtual.node.count";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_CONF_SYNC_INTERVAL = "alluxio.user.conf.sync.interval";
@@ -9213,7 +9350,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.replication.durable";
     public static final String USER_FILE_SEQUENTIAL_PREAD_THRESHOLD =
         "alluxio.user.file.sequential.pread.threshold";
-    public static final String USER_FILE_UFS_TIER_ENABLED = "alluxio.user.file.ufs.tier.enabled";
     public static final String USER_FILE_WAITCOMPLETED_POLL_MS =
         "alluxio.user.file.waitcompleted.poll";
     public static final String USER_FILE_CREATE_TTL =
@@ -9358,6 +9494,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.unsafe.direct.local.io.enabled";
     public static final String USER_UPDATE_FILE_ACCESSTIME_DISABLED =
         "alluxio.user.update.file.accesstime.disabled";
+    public static final String USER_WORKER_SELECTION_POLICY =
+        "alluxio.user.worker.selection.policy";
     public static final String USER_WORKER_LIST_REFRESH_INTERVAL =
         "alluxio.user.worker.list.refresh.interval";
 
@@ -9578,6 +9716,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String DORA_UFS_LIST_STATUS_CACHE_NR_FILES =
         "alluxio.dora.ufs.list.status.cache.nr.files";
 
+    public static final String CLIENT_WRITE_TO_UFS_ENABLED =
+        "alluxio.client.write.to.ufs.enabled";
     //
     // Extra class to be loaded
     //

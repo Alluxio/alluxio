@@ -147,6 +147,9 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   /** Whether the streaming upload is enabled. */
   private final boolean mStreamingUploadEnabled;
 
+  /** Whether the multipart upload is enabled. */
+  private final boolean mMultipartUploadEnabled;
+
   /** The permissions associated with the bucket. Fetched once and assumed to be immutable. */
   private final Supplier<ObjectPermissions> mPermissions
       = CommonUtils.memoize(this::getPermissionsInternal);
@@ -238,6 +241,9 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     boolean streamingUploadEnabled =
         conf.getBoolean(PropertyKey.UNDERFS_S3_STREAMING_UPLOAD_ENABLED);
 
+    boolean multipartUploadEnabled =
+        conf.getBoolean(PropertyKey.UNDERFS_S3_MULTIPART_UPLOAD_ENABLED);
+
     // Signer algorithm
     if (conf.isSet(PropertyKey.UNDERFS_S3_SIGNER_ALGORITHM)) {
       clientConf.setSignerOverride(conf.getString(PropertyKey.UNDERFS_S3_SIGNER_ALGORITHM));
@@ -261,7 +267,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
         .build();
 
     return new S3AUnderFileSystem(uri, amazonS3Client, asyncClient, bucketName,
-        service, transferManager, conf, streamingUploadEnabled);
+        service, transferManager, conf, streamingUploadEnabled, multipartUploadEnabled);
   }
 
   /**
@@ -405,7 +411,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   /**
    * Creates an endpoint configuration.
    *
-   * @param conf the aluxio conf
+   * @param conf the alluxio conf
    * @param clientConf the aws conf
    * @return the endpoint configuration
    */
@@ -449,11 +455,12 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
    * @param transferManager Transfer Manager for efficient I/O to S3
    * @param conf configuration for this S3A ufs
    * @param streamingUploadEnabled whether streaming upload is enabled
+   * @param multipartUploadEnabled whether multipart upload is enabled
    */
   protected S3AUnderFileSystem(
       AlluxioURI uri, AmazonS3 amazonS3Client, S3AsyncClient asyncClient, String bucketName,
       ExecutorService executor, TransferManager transferManager, UnderFileSystemConfiguration conf,
-      boolean streamingUploadEnabled) {
+      boolean streamingUploadEnabled, boolean multipartUploadEnabled) {
     super(uri, conf);
     mClient = amazonS3Client;
     mAsyncClient = asyncClient;
@@ -461,6 +468,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     mExecutor = MoreExecutors.listeningDecorator(executor);
     mManager = transferManager;
     mStreamingUploadEnabled = streamingUploadEnabled;
+    mMultipartUploadEnabled = multipartUploadEnabled;
   }
 
   @Override
@@ -546,6 +554,10 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     return mStreamingUploadEnabled;
   }
 
+  protected boolean getMultipartUploadEnabled() {
+    return mMultipartUploadEnabled;
+  }
+
   @Override
   public boolean createEmptyObject(String key) {
     try {
@@ -565,11 +577,19 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   @Override
   protected OutputStream createObject(String key) throws IOException {
     if (mStreamingUploadEnabled) {
+      LOG.debug("S3AUnderFileSystem, createObject, Streaming Upload enabled");
       return new S3ALowLevelOutputStream(mBucketName, key, mClient, mExecutor, mUfsConf);
     }
-    return new S3AOutputStream(mBucketName, key, mManager,
-        mUfsConf.getList(PropertyKey.TMP_DIRS),
-        mUfsConf.getBoolean(PropertyKey.UNDERFS_S3_SERVER_SIDE_ENCRYPTION_ENABLED));
+    else if (mMultipartUploadEnabled) {
+      LOG.debug("S3AUnderFileSystem, createObject, Multipart upload enabled");
+      return new S3AMultipartUploadOutputStream(mBucketName, key, mClient, mExecutor, mUfsConf);
+    }
+    else {
+      LOG.debug("S3AUnderFileSystem, createObject, Simple Upload enabled");
+      return new S3AOutputStream(mBucketName, key, mManager,
+          mUfsConf.getList(PropertyKey.TMP_DIRS),
+          mUfsConf.getBoolean(PropertyKey.UNDERFS_S3_SERVER_SIDE_ENCRYPTION_ENABLED));
+    }
   }
 
   @Override

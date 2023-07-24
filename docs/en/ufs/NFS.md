@@ -7,11 +7,13 @@ title: NFS
 This guide describes the instructions to configure [NFS](http://nfs.sourceforge.net) as Alluxio's under
 storage system.
 
+Network File System (NFS) is a distributed file system protocol that allows a client computer to access files over a network as if they were located on its local storage. NFS enables file sharing and remote file access between systems in a networked environment.
+
 You'll need to have a configured and running installation of NFS for the rest of this guide.
 If you need to get your own NFS installation up and running, we recommend taking a look at the
 [NFS-HOW TO](http://nfs.sourceforge.net/nfs-howto/)
 
-## Requirements
+## Prerequisites
 
 The prerequisite for this part is that you have a version of
 [Java 8](https://adoptopenjdk.net/releases.html?variant=openjdk8&jvmVariant=hotspot)
@@ -30,7 +32,7 @@ NFS client cache can interfere with the correct operation of Alluxio, specifical
 Thus we highly recommend setting the attribute cache timeout to 0. 
 Please mount your nfs share like this. 
 
-```console
+```shell
 $ sudo mount -o actimeo=0 nfshost:/nfsdir /mnt/nfs
 ```
 
@@ -40,13 +42,13 @@ Configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.
 
-```console
+```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Assume we have mounted NFS share at `/mnt/nfs` on all Alluxio masters and workers, the following lines should be exist within the `conf/alluxio-site.properties` file.
 
-```
+```properties
 alluxio.master.hostname=localhost
 alluxio.dora.client.ufs.root=/mnt/nfs
 ```
@@ -55,18 +57,18 @@ alluxio.dora.client.ufs.root=/mnt/nfs
 
 Run the following command to start Alluxio filesystem.
 
-```console
+```shell
 $ ./bin/alluxio-mount.sh SudoMount
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
 ```
 
 To verify that Alluxio is running, you can visit
-**[http://localhost:19999](http://localhost:19999)**, or see the log in the `logs` folder.
+[http://localhost:19999](http://localhost:19999), or see the log in the `logs` folder.
 
 Run a simple example program:
 
-```console
+```shell
 $ ./bin/alluxio runTests
 ```
 
@@ -79,6 +81,6 @@ For this test, you should see files named:
 
 Stop Alluxio by running:
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh local
 ```

@@ -93,12 +93,17 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
         response.headers().set(CONNECTION, CLOSE);
       }
 
-      ctx.write(response);
-      ctx.write(responseContext.getFileRegion());
-      ChannelFuture f = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+      ChannelFuture channelFuture;
+      if (response instanceof FullHttpResponse) {
+        channelFuture = ctx.write(response);
+      } else {
+        ctx.write(response);
+        ctx.write(responseContext.getFileRegion());
+        channelFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+      }
 
       if (!keepAlive) {
-        f.addListener(ChannelFutureListener.CLOSE);
+        channelFuture.addListener(ChannelFutureListener.CLOSE);
       }
     }
   }
@@ -151,6 +156,7 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
   private HttpResponseContext doListFiles(Map<String, String> parametersMap,
                            HttpRequest httpRequest) {
     String path = parametersMap.get("path");
+    path = handleReservedCharacters(path);
     ListStatusPOptions options = FileSystemOptionsUtils.listStatusDefaults(
         Configuration.global()).toBuilder().build();
     try {
@@ -179,6 +185,11 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<HttpObject> {
       LOG.error("Failed to list files of path {}", path, e);
       return null;
     }
+  }
+
+  private String handleReservedCharacters(String path) {
+    path = path.replace("%2F", "/");
+    return path;
   }
 
   private String getRequestMapping(String requestUri) {

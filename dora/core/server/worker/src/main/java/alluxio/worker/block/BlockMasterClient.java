@@ -24,7 +24,6 @@ import alluxio.grpc.BlockMasterWorkerServiceGrpc;
 import alluxio.grpc.BlockStoreLocationProto;
 import alluxio.grpc.BuildVersion;
 import alluxio.grpc.Command;
-import alluxio.grpc.CommitBlockInUfsPRequest;
 import alluxio.grpc.CommitBlockPRequest;
 import alluxio.grpc.ConfigProperty;
 import alluxio.grpc.GetRegisterLeasePRequest;
@@ -134,22 +133,6 @@ public class BlockMasterClient extends AbstractMasterClient {
     }, LOG, "CommitBlock",
         "workerId=%d,usedBytesOnTier=%d,tierAlias=%s,mediumType=%s,blockId=%d,length=%d",
         workerId, usedBytesOnTier, tierAlias, mediumType, blockId, length);
-  }
-
-  /**
-   * Commits a block in Ufs.
-   *
-   * @param blockId the block id being committed
-   * @param length the length of the block being committed
-   */
-  public void commitBlockInUfs(final long blockId, final long length)
-      throws AlluxioStatusException {
-    retryRPC(() -> {
-      CommitBlockInUfsPRequest request =
-          CommitBlockInUfsPRequest.newBuilder().setBlockId(blockId).setLength(length).build();
-      mClient.commitBlockInUfs(request);
-      return null;
-    }, LOG, "CommitBlockInUfs", "blockId=%d,length=%d", blockId, length);
   }
 
   /**

@@ -4,8 +4,10 @@ title: Azure Blob Store
 ---
 
 
-This guide describes how to configure Alluxio with [Azure Blob
-Store](https://azure.microsoft.com/en-in/services/storage/blobs/) as the under storage system.
+This guide describes how to configure Alluxio with [Azure Blob Store](https://azure.microsoft.com/en-in/services/storage/blobs/) as the under storage system. 
+
+Azure Blob Storage is Microsoft's object storage solution for the cloud. Blob Storage is optimized for storing massive amounts of unstructured data.
+
 
 ## Prerequisites
 
@@ -14,20 +16,18 @@ storage account or use an existing container. You should also note that the dire
 use in that container, either by creating a new directory in the container, or using an existing
 one. For the purposes of this guide, the Azure storage account name is called `<AZURE_ACCOUNT>`, the
 container in that storage account is called `<AZURE_CONTAINER>` and the directory in that container is
-called `<AZURE_DIRECTORY>`. For more information about Azure storage account, Please see
+called `<AZURE_DIRECTORY>`. For more information about Azure storage account, please see
 [here](https://docs.microsoft.com/en-us/azure/storage/storage-create-storage-account).
 
 
 ## Basic Setup
-
-### Root Mount
 
 To use Azure blob store as the UFS of Alluxio root mount point,
 you need to configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.
 
-```console
+```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
@@ -48,7 +48,7 @@ fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<YOUR ACCESS KEY>
 
 Start up Alluxio locally to see that everything works.
 
-```console
+```shell
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
 ```
@@ -58,7 +58,7 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 
 Run a simple example program:
 
-```console
+```shell
 $ ./bin/alluxio runTests
 ```
 
@@ -70,7 +70,7 @@ Visit your container `<AZURE_CONTAINER>` to verify the files and directories cre
 
 To stop Alluxio, you can run:
 
-``` console
+``` shell
 $ ./bin/alluxio-stop.sh local
 ```
 

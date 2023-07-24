@@ -923,8 +923,7 @@ public class ListStatusTest extends RestApiTest {
     // Heads a non-existent bucket.
     String bucketName = "non_existent_bucket";
     // Verifies 404 status will be returned by head non-existent bucket.
-    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(),
-        headBucketRestCall(bucketName).getResponseCode());
+    headTestCase(bucketName).checkResponseCode(Response.Status.NOT_FOUND.getStatusCode());
 
     // Lists objects in a non-existent bucket.
     HttpURLConnection connection2 = new TestCase(mHostname, mPort, mBaseUri,

@@ -473,7 +473,6 @@ public class AlluxioFileInStream extends FileInStream {
         long blockLength = mOptions.getBlockInfo(blockId).getLength();
         Protocol.AsyncCacheRequest request =
             Protocol.AsyncCacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
-                .setOpenUfsBlockOptions(mOptions.getOpenUfsBlockOptions(blockId))
                 .setSourceHost(dataSource.getHost()).setSourcePort(dataSource.getDataPort())
                 .build();
         Channel channel = mContext.acquireNettyChannel(worker);
