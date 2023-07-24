@@ -17,7 +17,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.network.ChannelType;
 import alluxio.underfs.UfsManager;
 import alluxio.util.network.NettyUtils;
-import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.DataServer;
 import alluxio.worker.dora.DoraWorker;
 import alluxio.worker.s3.S3HttpPipelineHandler;
@@ -64,6 +63,7 @@ public class NettyDataServer implements DataServer {
    * Creates a new instance of {@link NettyDataServer}.
    *
    * @param nettyBindAddress the server address
+   * @param s3BindAddress    the s3 server address
    * @param ufsManager       the UfsManager object
    * @param doraWorker       the DoraWorker object
    */

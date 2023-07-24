@@ -163,7 +163,7 @@ public class NettyRestUtils {
   @Nullable
   public static String getEntityTag(FileInfo status) {
     String contenthash = status.getContentHash();
-    return StringUtils.isNotEmpty(contenthash)? contenthash : null;
+    return StringUtils.isNotEmpty(contenthash) ? contenthash : null;
   }
 
   /**
@@ -229,8 +229,8 @@ public class NettyRestUtils {
       return e;
     } else if (exception instanceof DirectoryNotEmptyException) {
       return new S3Exception(exception, resource, S3ErrorCode.PRECONDITION_FAILED);
-    } else if (exception instanceof FileDoesNotExistException ||
-        exception instanceof FileNotFoundException) {
+    } else if (exception instanceof FileDoesNotExistException
+        || exception instanceof FileNotFoundException) {
       if (Pattern.matches(ExceptionMessage.BUCKET_DOES_NOT_EXIST.getMessage(".*"),
           exception.getMessage())) {
         return new S3Exception(exception, resource, S3ErrorCode.NO_SUCH_BUCKET);
@@ -358,11 +358,11 @@ public class NettyRestUtils {
       MultivaluedMap<String, String> queryParameters, boolean lowerCase) {
     Map<String, String> result = lowerCase
         ? new TreeMap<>(new Comparator<String>() {
-      @Override
-      public int compare(String o1, String o2) {
-        return o1.compareToIgnoreCase(o2);
-      }
-    }) : new HashMap<>();
+          @Override
+          public int compare(String o1, String o2) {
+            return o1.compareToIgnoreCase(o2);
+          }
+        }) : new HashMap<>();
     for (String key : queryParameters.keySet()) {
       result.put(key, queryParameters.getFirst(key));
     }
@@ -380,11 +380,11 @@ public class NettyRestUtils {
                                                             boolean lowerCase) {
     Map<String, String> headersMap = lowerCase
         ? new TreeMap<>(new Comparator<String>() {
-      @Override
-      public int compare(String o1, String o2) {
-        return o1.compareToIgnoreCase(o2);
-      }
-    }) : new HashMap<>();
+          @Override
+          public int compare(String o1, String o2) {
+            return o1.compareToIgnoreCase(o2);
+          }
+        }) : new HashMap<>();
     for (Map.Entry<String, String> entry : httpHeaders) {
       String key = entry.getKey();
       String value = entry.getValue();
@@ -404,11 +404,11 @@ public class NettyRestUtils {
       Map<String, List<String>> queryParameters, boolean lowerCase) {
     Map<String, String> result = lowerCase
         ? new TreeMap<>(new Comparator<String>() {
-      @Override
-      public int compare(String o1, String o2) {
-        return o1.compareToIgnoreCase(o2);
-      }
-    }) : new HashMap<>();
+          @Override
+          public int compare(String o1, String o2) {
+            return o1.compareToIgnoreCase(o2);
+          }
+        }) : new HashMap<>();
     for (String key : queryParameters.keySet()) {
       result.put(key, queryParameters.get(key).get(0));
     }
@@ -416,7 +416,7 @@ public class NettyRestUtils {
   }
 
   /**
-   * Get scheme of {@link FullHttpRequest}
+   * Get the scheme of a {@link FullHttpRequest}.
    *
    * @param fullHttpRequest FullHttpRequest
    * @return the scheme string

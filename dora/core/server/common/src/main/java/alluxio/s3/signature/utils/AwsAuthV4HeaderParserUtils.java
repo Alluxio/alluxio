@@ -11,10 +11,10 @@
 
 package alluxio.s3.signature.utils;
 
-import alluxio.s3.signature.AwsCredential;
-import alluxio.s3.signature.SignatureInfo;
 import alluxio.s3.S3ErrorCode;
 import alluxio.s3.S3Exception;
+import alluxio.s3.signature.AwsCredential;
+import alluxio.s3.signature.SignatureInfo;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;

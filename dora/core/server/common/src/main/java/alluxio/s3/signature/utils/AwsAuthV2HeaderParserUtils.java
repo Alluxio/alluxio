@@ -11,9 +11,9 @@
 
 package alluxio.s3.signature.utils;
 
-import alluxio.s3.signature.SignatureInfo;
 import alluxio.s3.S3ErrorCode;
 import alluxio.s3.S3Exception;
+import alluxio.s3.signature.SignatureInfo;
 
 import org.apache.commons.lang3.StringUtils;
 
