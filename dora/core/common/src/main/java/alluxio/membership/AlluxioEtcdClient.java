@@ -68,7 +68,7 @@ public class AlluxioEtcdClient implements Closeable {
   @GuardedBy("INSTANCE_LOCK")
   private static final AtomicReference<AlluxioEtcdClient> ALLUXIO_ETCD_CLIENT
       = new AtomicReference<>();
-  protected AtomicBoolean mConnected = new AtomicBoolean(false);
+  private final AtomicBoolean mConnected = new AtomicBoolean(false);
   private Client mClient;
   public final ServiceDiscoveryRecipe mServiceDiscovery;
   public String[] mEndpoints;
@@ -289,7 +289,7 @@ public class AlluxioEtcdClient implements Closeable {
     try {
       return RetryUtils.retryCallable(
           String.format("Getting children for path:%s", parentPath), () -> {
-            Preconditions.checkState(!StringUtil.isNullOrEmpty(parentPath));
+            Preconditions.checkArgument(!StringUtil.isNullOrEmpty(parentPath));
             GetResponse getResponse = mClient.getKVClient().get(
                     ByteSequence.from(parentPath, StandardCharsets.UTF_8),
                     GetOption.newBuilder().isPrefix(true).build())

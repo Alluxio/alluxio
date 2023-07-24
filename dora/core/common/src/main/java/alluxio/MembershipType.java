@@ -15,7 +15,7 @@ package alluxio;
  * MembershipManager type.
  */
 public enum MembershipType {
-  STATIC,
-  ETCD,
-  NOOP
+  STATIC, // Use a static file to configure a static member list for MembershipManager
+  ETCD, // Use etcd for MembershipManager
+  NOOP // For regression purpose, still leverage Master for worker registration
 }
