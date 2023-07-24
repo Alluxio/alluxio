@@ -13,7 +13,6 @@ package alluxio.membership;
 
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.grpc.GrpcUtils;
-import alluxio.util.CommonUtils;
 import alluxio.util.HashUtils;
 import alluxio.wire.WorkerNetAddress;
 

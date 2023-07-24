@@ -22,7 +22,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Base Entity class including information to register to Etcd
- * when using EtcdMembershipManager
+ * when using EtcdMembershipManager.
  */
 public class ServiceEntity implements Closeable {
   private CloseableClient mKeepAliveClient;
@@ -64,7 +64,7 @@ public class ServiceEntity implements Closeable {
 
   /**
    * Get the keepalive client instance.
-   * @return
+   * @return jetcd keepalive client
    */
   public CloseableClient getKeepAliveClient() {
     return mKeepAliveClient;

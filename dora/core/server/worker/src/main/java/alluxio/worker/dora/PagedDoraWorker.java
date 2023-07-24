@@ -52,6 +52,7 @@ import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UfsReadOptions;
 import alluxio.grpc.WriteOptions;
 import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.membership.MembershipManager;
 import alluxio.membership.NoOpMembershipManager;
 import alluxio.network.protocol.databuffer.PooledDirectNioByteBuf;
 import alluxio.proto.dataserver.Protocol;
@@ -83,7 +84,6 @@ import alluxio.worker.block.BlockMasterClientPool;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.grpc.GrpcExecutors;
-import alluxio.membership.MembershipManager;
 import alluxio.worker.task.CopyHandler;
 import alluxio.worker.task.DeleteHandler;
 
@@ -102,7 +102,6 @@ import org.slf4j.LoggerFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -152,6 +151,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    * @param workerId
    * @param conf
    * @param cacheManager
+   * @param membershipManager
    */
   @Inject
   public PagedDoraWorker(
@@ -159,7 +159,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       AlluxioConfiguration conf,
       CacheManager cacheManager,
       MembershipManager membershipManager
-      ) {
+  ) {
     this(workerId, conf, cacheManager, membershipManager, new BlockMasterClientPool(),
         FileSystemContext.create(conf));
   }
@@ -247,7 +247,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     }
     while (true) {
       try (PooledResource<BlockMasterClient> bmc = mBlockMasterClientPool.acquireCloseable()) {
-        bmc.get().connect(); // TODO(lucy) this is necessary here for MASTER web to be opened for some reason
+        // TODO(lucy) this is necessary here for MASTER web to be opened for some reason
+        bmc.get().connect();
         mMembershipManager.join(new WorkerInfo().setAddress(mAddress));
         mWorkerId.set(HashUtils.hashAsLong(mAddress.dumpMainInfo()));
         break;
@@ -260,7 +261,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   }
 
   private void decommission() {
-
+    // TO BE IMPLEMENTED
   }
 
   private void registerToMaster() throws IOException {

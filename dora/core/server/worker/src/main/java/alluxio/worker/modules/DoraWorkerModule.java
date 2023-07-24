@@ -19,6 +19,7 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientContext;
+import alluxio.membership.MembershipManager;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.underfs.UfsManager;
 import alluxio.wire.TieredIdentity;
@@ -31,7 +32,6 @@ import alluxio.worker.http.HttpServer;
 import alluxio.worker.http.HttpServerInitializer;
 import alluxio.worker.http.PagedService;
 
-import alluxio.membership.MembershipManager;
 import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
 import com.google.inject.TypeLiteral;

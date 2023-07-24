@@ -151,7 +151,7 @@ public class EtcdMembershipManager implements MembershipManager {
 
   /**
    * Get failed members.
-   * @return a list of WorkerInfos who are not alive.
+   * @return a list of WorkerInfos who are not alive
    * @throws IOException
    */
   public List<WorkerInfo> getFailedMembers() throws IOException {
@@ -165,6 +165,10 @@ public class EtcdMembershipManager implements MembershipManager {
         .collect(Collectors.toList());
   }
 
+  /**
+   * Pretty print all member status as string.
+   * @return result string
+   */
   public String showAllMembers() {
     try {
       List<WorkerServiceEntity> registeredWorkers = retrieveFullMembers();
@@ -176,7 +180,8 @@ public class EtcdMembershipManager implements MembershipManager {
       for (WorkerServiceEntity entity : registeredWorkers) {
         String entryLine = String.format(printFormat,
             entity.getServiceEntityName(),
-            entity.getWorkerNetAddress().getHost() + ":" + entity.getWorkerNetAddress().getRpcPort(),
+            entity.getWorkerNetAddress().getHost() + ":"
+                + entity.getWorkerNetAddress().getRpcPort(),
             liveWorkers.contains(entity.getServiceEntityName()) ? "ONLINE" : "OFFLINE");
         sb.append(entryLine);
       }

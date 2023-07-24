@@ -32,6 +32,10 @@ public interface WorkerProvider {
    */
   List<WorkerInfo> getWorkerInfos();
 
+  /**
+   * Get live workerInfo list.
+   * @return list of WorkerInfos who are alive
+   */
   List<WorkerInfo> getLiveWorkerInfos();
 
   /**

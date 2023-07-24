@@ -14,7 +14,6 @@ package alluxio.membership;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.util.CommonUtils;
 import alluxio.util.HashUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;

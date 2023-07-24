@@ -190,7 +190,7 @@ public class ServiceDiscoveryRecipe {
   /**
    * Get the registered service value as ByteBuffer.
    * @param serviceEntityName
-   * @return
+   * @return ByteBuffer container serialized content
    * @throws IOException
    */
   public ByteBuffer getRegisteredServiceDetail(String serviceEntityName)
@@ -254,7 +254,6 @@ public class ServiceDiscoveryRecipe {
           service.getServiceEntityName(), th);
     }
   }
-
 
   class RetryKeepAliveObserver implements StreamObserver<LeaseKeepAliveResponse> {
     public ServiceEntity mService;

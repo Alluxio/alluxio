@@ -190,6 +190,7 @@ public final class ReportCommand extends AbstractFsAdminCommand {
       case NODESTATUS:
         NodeStatusCommand nodeStatusCommand = new NodeStatusCommand(mConf, mPrintStream);
         nodeStatusCommand.run(cl);
+        break;
       default:
         break;
     }

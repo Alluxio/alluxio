@@ -40,12 +40,12 @@ import alluxio.grpc.RouteFailure;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UfsReadOptions;
 import alluxio.grpc.WriteOptions;
+import alluxio.membership.MembershipManager;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsStatus;
 import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Strings;
-import alluxio.membership.MembershipManager;
 import com.google.common.util.concurrent.ListenableFuture;
 import org.junit.After;
 import org.junit.Assert;

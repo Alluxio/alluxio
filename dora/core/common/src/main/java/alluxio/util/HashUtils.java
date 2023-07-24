@@ -10,7 +10,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 /**
- * Util class for hashing
+ * Util class for hashing.
  */
 public class HashUtils {
 
