@@ -409,8 +409,8 @@ public class NettyRestUtils {
             return o1.compareToIgnoreCase(o2);
           }
         }) : new HashMap<>();
-    for (String key : queryParameters.keySet()) {
-      result.put(key, queryParameters.get(key).get(0));
+    for (Map.Entry<String, List<String>> entry : queryParameters.entrySet()) {
+      result.put(entry.getKey(), entry.getValue().get(0));
     }
     return result;
   }
