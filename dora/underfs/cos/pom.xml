@@ -32,7 +32,6 @@
     <dependency>
       <groupId>com.qcloud</groupId>
       <artifactId>cos_api</artifactId>
-      <version>5.6.28</version>
     </dependency>
     <dependency>
       <groupId>commons-codec</groupId>

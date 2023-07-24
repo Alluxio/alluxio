@@ -26,7 +26,6 @@
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
     <build.path>${project.parent.parent.parent.parent.basedir}/build</build.path>
-    <alluxio.ratis.version>2.5.1</alluxio.ratis.version>
   </properties>
 
   <dependencies>
@@ -36,14 +35,12 @@
       <artifactId>kryo</artifactId>
     </dependency>
     <dependency>
-      <artifactId>ratis-server</artifactId>
       <groupId>org.apache.ratis</groupId>
-      <version>${alluxio.ratis.version}</version>
+      <artifactId>ratis-server</artifactId>
     </dependency>
     <dependency>
       <artifactId>ratis-grpc</artifactId>
       <groupId>org.apache.ratis</groupId>
-      <version>${alluxio.ratis.version}</version>
     </dependency>
     <!-- TODO(lu) remove catalyst dependency which used for serialization and move to Grpc impl -->
     <dependency>
@@ -127,7 +124,6 @@
     <dependency>
       <groupId>com.hubspot.jackson</groupId>
       <artifactId>jackson-datatype-protobuf</artifactId>
-      <version>0.9.12</version>
       <exclusions>
         <exclusion>
           <groupId>com.google.code.findbugs</groupId>
@@ -138,7 +134,6 @@
     <dependency>
       <groupId>org.lz4</groupId>
       <artifactId>lz4-java</artifactId>
-      <version>1.8.0</version>
     </dependency>
 
     <!-- Test dependencies -->
