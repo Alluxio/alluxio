@@ -29,7 +29,6 @@ func NewArtifactGroup(version string) (*ArtifactGroup, error) {
 	}
 
 	return &ArtifactGroup{
-		Artifacts: []*Artifact{},
 		RepoMetadata: &RepoMetadata{
 			CommitHash: strings.TrimSpace(string(hOut)),
 			Version:    version,

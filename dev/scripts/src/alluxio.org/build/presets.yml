@@ -10,7 +10,7 @@
 #
 
 nightly:
-  tarball: --profile default-testing --dryRun
+  tarball: --profile default-testing
   docker:
     - --image alluxio --metadata docker:repo=alluxio/alluxio
     - --image alluxio-dev --metadata docker:repo=alluxio/alluxio-dev

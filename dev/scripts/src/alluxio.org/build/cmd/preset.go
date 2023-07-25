@@ -81,7 +81,8 @@ func PresetsF(args []string) error {
 	tarball := a.Add(Tarball,
 		opts.outputDir,
 		strings.ReplaceAll(opts.targetName, versionPlaceholder, alluxioVersion),
-		nil)
+		nil,
+	)
 	for _, dArgs := range p.Docker {
 		dOpts, err := newDockerBuildOpts(strings.Split(dArgs, " "))
 		if err != nil {
