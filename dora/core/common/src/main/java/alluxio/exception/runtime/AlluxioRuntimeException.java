@@ -211,7 +211,7 @@ public class AlluxioRuntimeException extends RuntimeException {
   }
 
   /**
-   * Converts an AlluxioRuntimeException to a corresponding io exception.
+   * Converts an {@link AlluxioRuntimeException} to a corresponding io exception.
    *
    * @return the corresponding io exception
    */
