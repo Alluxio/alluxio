@@ -377,6 +377,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
               .setOverwrite(true)
               .setCheckS3BucketPath(true);
 
+          // TODO(wyy) not support tagging and xattr now
           // Handle metadata directive
 //          final String metadataDirective = mHandler.getHeader(
 //              S3Constants.S3_METADATA_DIRECTIVE_HEADER);
@@ -623,7 +624,6 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
 
         try (S3AuditContext auditContext =
                  mHandler.createAuditContext(mOPType.name(), user, bucket, object)) {
-          S3NettyHandler.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext);
           String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
 
           if (objectPath.endsWith(AlluxioURI.SEPARATOR)) {
@@ -684,7 +684,6 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
             .build();
         try (S3AuditContext auditContext = mHandler.createAuditContext(
             "deleteObject", user, mHandler.getBucket(), mHandler.getObject())) {
-          S3NettyHandler.checkPathIsAlluxioDirectory(userFs, bucketPath, auditContext);
           try {
             userFs.delete(new AlluxioURI(objectPath), options);
           } catch (FileDoesNotExistException | DirectoryNotEmptyException e) {

@@ -74,6 +74,7 @@ public class S3HttpPipelineHandler extends ChannelInitializer<SocketChannel> {
   protected void initChannel(SocketChannel channel) throws Exception {
     ChannelPipeline pipeline = channel.pipeline();
     pipeline.addLast(new HttpServerCodec());
+    // TODO(wyy) use ChunkedWriteHandler to replace this Aggregator to support large file uploading
     pipeline.addLast(new HttpObjectAggregator(512 * 1024));
     pipeline.addLast(new HttpServerExpectContinueHandler());
     pipeline.addLast(
