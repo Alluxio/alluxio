@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Util class for handling HTTP request.
@@ -23,6 +24,7 @@ public final class HttpRequestUtil {
 
   /**
    * Parse the parameters from the HTTP request URI and return a map of the parameters.
+   *
    * @param requestUri the HTTP request URI
    * @return a map of the parameters
    */
@@ -39,10 +41,18 @@ public final class HttpRequestUtil {
 
   /**
    * Parse the HTTP request URI and extract the fields.
+   *
    * @param requestUri the HTTP request URI
    * @return a list of fields
    */
   public static List<String> extractFieldsFromHttpRequestUri(String requestUri) {
+    int paramIndex = requestUri.indexOf("?");
+    Optional<String> parameterString = Optional.empty();
+    if (paramIndex != -1) {
+      parameterString = Optional.of(requestUri.substring(paramIndex));
+      requestUri = requestUri.substring(0, paramIndex);
+    }
+
     List<String> fields = new ArrayList<>();
     String httpPrefix = "http://";
     String httpsPrefix = "https://";
@@ -73,17 +83,12 @@ public final class HttpRequestUtil {
     }
 
     // extract the last field
-    int paramIndex = requestUri.indexOf("?");
-    if (paramIndex == -1) {
-      // no parameters
-      String lastField = requestUri.substring(leftIndex);
-      fields.add(lastField);
-    } else {
-      // there are parameters
-      String lastField = requestUri.substring(leftIndex, paramIndex);
-      fields.add(lastField);
-      // add parameters string
-      fields.add(requestUri.substring(paramIndex));
+    String lastField = requestUri.substring(leftIndex);
+    fields.add(lastField);
+
+    if (parameterString.isPresent()) {
+      // add parameters string as there are parameters
+      fields.add(parameterString.get());
     }
 
     return fields;

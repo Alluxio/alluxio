@@ -48,7 +48,7 @@ public class TestHttpRequestUtil {
   public long mLength;
 
   @Test
-  public void testExtractFieldsFromHttpRequestUri() {
+  public void testExtractFieldsForGetPageApi() {
     List<String> fields = HttpRequestUtil.extractFieldsFromHttpRequestUri(mRequestUri);
     HttpRequestUri httpRequestUri = HttpRequestUri.of(fields);
 
@@ -73,5 +73,20 @@ public class TestHttpRequestUtil {
       Assert.assertEquals(mOffset, Long.parseLong(httpRequestUri.getParameters().get("offset")));
       Assert.assertEquals(mLength, Long.parseLong(httpRequestUri.getParameters().get("length")));
     }
+  }
+
+  @Test
+  public void testExtractFieldsForListFilesApi() {
+    String requestUri = "http://localhost:28080/v1/files?path=/";
+    List<String> fields = HttpRequestUtil.extractFieldsFromHttpRequestUri(requestUri);
+    HttpRequestUri httpRequestUri = HttpRequestUri.of(fields);
+
+    Assert.assertEquals("localhost", httpRequestUri.getHost());
+    Assert.assertEquals(28080, httpRequestUri.getPort());
+    Assert.assertEquals("v1", httpRequestUri.getVersion());
+    Assert.assertEquals("files", httpRequestUri.getMappingPath());
+    Assert.assertEquals(0, httpRequestUri.getRemainingFields().size());
+    Assert.assertNotNull(httpRequestUri.getParameters());
+    Assert.assertEquals("/", httpRequestUri.getParameters().get("path"));
   }
 }
