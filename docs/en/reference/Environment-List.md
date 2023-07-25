@@ -1,6 +1,6 @@
 ---
 layout: global
-title: List of Environment Properties
+title: List of Environment Variables
 ---
 
 Alluxio supports defining a few frequently used configuration settings through environment
