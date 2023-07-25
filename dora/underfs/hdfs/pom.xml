@@ -66,6 +66,12 @@
           <artifactId>alluxio-shaded-hadoop</artifactId>
           <version>${ufs.hadoop.version}</version>
         </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-minicluster</artifactId>
+          <version>${ufs.hadoop.version}</version>
+          <scope>test</scope>
+        </dependency>
       </dependencies>
     </profile>
 
@@ -80,6 +86,12 @@
           <groupId>org.alluxio</groupId>
           <artifactId>alluxio-shaded-hadoop</artifactId>
           <version>${ufs.hadoop.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-minicluster</artifactId>
+          <version>${ufs.hadoop.version}</version>
+          <scope>test</scope>
         </dependency>
       </dependencies>
     </profile>
