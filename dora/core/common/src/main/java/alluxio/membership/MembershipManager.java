@@ -32,6 +32,8 @@ import javax.annotation.concurrent.GuardedBy;
  */
 public interface MembershipManager extends AutoCloseable {
 
+  public static final String PATH_SEPARATOR = "/";
+
   /**
    * An idempotent call to register to join the membership.
    * @param worker

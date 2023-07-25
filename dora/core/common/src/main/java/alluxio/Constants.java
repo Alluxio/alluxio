@@ -175,7 +175,6 @@ public final class Constants {
   public static final String MODE_BITS_READ_EXECUTE = "r-x";
   public static final String MODE_BITS_READ_WRITE = "rw-";
   public static final String MODE_BITS_ALL = "rwx";
-  public static final String FILE_SEPARATOR = "/";
 
   // Specific tier write
   public static final int FIRST_TIER = 0;

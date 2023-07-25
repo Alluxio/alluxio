@@ -11,7 +11,6 @@
 
 package alluxio.membership;
 
-import alluxio.Constants;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.resource.LockResource;
@@ -103,7 +102,7 @@ public class ServiceDiscoveryRecipe {
         return;
       }
       String path = service.mServiceEntityName;
-      String fullPath = getRegisterPathPrefix() + Constants.FILE_SEPARATOR + path;
+      String fullPath = getRegisterPathPrefix() + MembershipManager.PATH_SEPARATOR + path;
       try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
         AlluxioEtcdClient.Lease lease = mAlluxioEtcdClient.createLease();
         Txn txn = mAlluxioEtcdClient.getEtcdClient().getKVClient().txn();
@@ -196,7 +195,8 @@ public class ServiceDiscoveryRecipe {
    */
   public ByteBuffer getRegisteredServiceDetail(String serviceEntityName)
       throws IOException {
-    String fullPath = getRegisterPathPrefix() + Constants.FILE_SEPARATOR + serviceEntityName;
+    String fullPath = getRegisterPathPrefix() + MembershipManager.PATH_SEPARATOR
+        + serviceEntityName;
     byte[] val = mAlluxioEtcdClient.getForPath(fullPath);
     return ByteBuffer.wrap(val);
   }
@@ -216,7 +216,7 @@ public class ServiceDiscoveryRecipe {
       throw new NoSuchElementException("Service " + service.mServiceEntityName
           + " not registered, please register first.");
     }
-    String fullPath = getRegisterPathPrefix() + Constants.FILE_SEPARATOR
+    String fullPath = getRegisterPathPrefix() + MembershipManager.PATH_SEPARATOR
         + service.mServiceEntityName;
     try {
       Txn txn = mAlluxioEtcdClient.getEtcdClient().getKVClient().txn();
