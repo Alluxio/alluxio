@@ -51,7 +51,10 @@ import alluxio.grpc.ServiceType;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UfsReadOptions;
 import alluxio.grpc.WriteOptions;
+import alluxio.heartbeat.FixedIntervalSupplier;
+import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.heartbeat.HeartbeatThread;
 import alluxio.membership.MembershipManager;
 import alluxio.membership.NoOpMembershipManager;
 import alluxio.network.protocol.databuffer.PooledDirectNioByteBuf;
@@ -62,6 +65,7 @@ import alluxio.retry.RetryPolicy;
 import alluxio.retry.RetryUtils;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
+import alluxio.security.user.ServerUserState;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsInputStreamCache;
 import alluxio.underfs.UfsManager;
@@ -223,14 +227,15 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     // the heartbeat is only used to notify the aliveness of this worker, so that clients
     // can get the latest worker list from master.
     // TODO(bowen): once we set up a worker discovery service in place of master, remove this
-    /*
-    getExecutorService()
-        .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC,
-            mResourceCloser.register(new BlockMasterSync()),
-            () -> new FixedIntervalSupplier(Configuration.getMs(
-                PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)),
-            mConf, ServerUserState.global()));
-     */
+    // TODO(lucy): temporary fallback logic during transition of removing master dependency
+    if (mMembershipManager instanceof NoOpMembershipManager) {
+      getExecutorService()
+          .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC,
+              mResourceCloser.register(new BlockMasterSync()),
+              () -> new FixedIntervalSupplier(Configuration.getMs(
+                  PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)),
+              mConf, ServerUserState.global()));
+    }
   }
 
   /**

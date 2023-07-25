@@ -20,7 +20,7 @@
 
 
 # Human-readable name for this member.
-name: 'etcd1'
+#name: 'etcd1'
 
 # Path to the data directory.
 data-dir: /etcd-data-dir/data
@@ -30,32 +30,37 @@ wal-dir: /etcd-data-dir/wal
 
 
 # List of comma separated URLs to listen on for peer traffic.
+#give ip/hostname of this etcd instance
 listen-peer-urls: http://172.31.30.204:2380
 
 # List of comma separated URLs to listen on for client traffic.
+#give ip/hostname of this etcd instance
 listen-client-urls: http://172.31.30.204:2379,http://127.0.0.1:2379
 
 # List of this member's peer URLs to advertise to the rest of the cluster.
 # The URLs needed to be a comma-separated list.
+#give ip/hostname of this etcd instance for remote etcd members communication
 initial-advertise-peer-urls: http://172.31.30.204:2380
 
 # List of this member's client URLs to advertise to the public.
 # The URLs needed to be a comma-separated list.
+#give ip/hostname of this etcd instance for etcd client communication
 advertise-client-urls: http://172.31.30.204:2379
 
 # Initial cluster configuration for bootstrapping.
+#give all ip/hostnames of members of initial etcd cluster
 initial-cluster: etcd0=http://172.31.24.100:2380,etcd1=http://172.31.30.204:2380,etcd2=http://172.31.22.150:2380
 
 # Initial cluster token for the etcd cluster during bootstrap.
-initial-cluster-token: 'etcd-cluster-1'
+#initial-cluster-token: 'etcd-cluster-1'
 
 # Initial cluster state ('new' or 'existing').
 initial-cluster-state: 'new'
 
 # Enable debug-level logging for etcd.
-log-level: debug
+#log-level: debug
 
-logger: zap
+#logger: zap
 
 # Specify 'stdout' or 'stderr' to skip journald logging even when running under systemd.
 # log-outputs: [stderr]
