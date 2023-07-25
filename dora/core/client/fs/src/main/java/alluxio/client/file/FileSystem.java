@@ -78,10 +78,7 @@ import java.util.function.Consumer;
 import javax.security.auth.Subject;
 
 /**
- * Basic file system interface supporting metadata operations and data operations. Developers
- * should not implement this class but extend the default implementation provided by {@link
- * BaseFileSystem} instead. This ensures any new methods added to the interface will be provided
- * by the default implementation.
+ * Basic file system interface supporting metadata operations and data operations.
  */
 @PublicApi
 public interface FileSystem extends Closeable {
