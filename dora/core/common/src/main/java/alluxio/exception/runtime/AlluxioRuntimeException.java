@@ -23,6 +23,9 @@ import io.grpc.Status;
 import io.grpc.StatusException;
 import io.grpc.StatusRuntimeException;
 import io.grpc.protobuf.ProtoUtils;
+import org.apache.hadoop.fs.UnsupportedFileSystemException;
+import org.apache.hadoop.security.AccessControlException;
+import org.apache.hadoop.security.authorize.AuthorizationException;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -208,41 +211,22 @@ public class AlluxioRuntimeException extends RuntimeException {
   }
 
   /**
-   * Converts an AlluxioRuntimeException to a corresponding IOException.
+   * Converts an AlluxioRuntimeException to a corresponding io exception.
    *
-   * @return the corresponding IOException
+   * @return the corresponding io exception
    */
   public IOException toIOException() {
-    Throwable e = getCause();
-
     if (this instanceof NotFoundRuntimeException) {
-      if (e instanceof FileNotFoundException) {
-        return (FileNotFoundException) e;
-      }
       return new FileNotFoundException(getMessage());
     }
-    if (this instanceof InvalidArgumentRuntimeException) {
-      if (e instanceof MalformedURLException) {
-        return (MalformedURLException) e;
-      }
-      return new MalformedURLException(getMessage());
-    }
     if (this instanceof UnauthenticatedRuntimeException) {
-      if (e instanceof UserPrincipalNotFoundException) {
-        return (UserPrincipalNotFoundException) e;
-      }
-      if (e instanceof SaslException) {
-        return (SaslException) e;
-      }
+      return new AuthorizationException(this);
     }
-    if (this instanceof FailedPreconditionRuntimeException) {
-      if (e instanceof ClosedChannelException) {
-        return (ClosedChannelException) e;
-      }
-      return new ClosedChannelException();
+    if (this instanceof UnimplementedRuntimeException) {
+      return new UnsupportedFileSystemException(getMessage());
     }
-    if (e instanceof IOException) {
-      return (IOException) e;
+    if (this instanceof PermissionDeniedRuntimeException) {
+      return new AccessControlException(this);
     }
     return new IOException(this);
   }
