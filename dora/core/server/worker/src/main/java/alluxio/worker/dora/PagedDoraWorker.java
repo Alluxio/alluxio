@@ -30,7 +30,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
-import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.FailedPreconditionException;
 import alluxio.grpc.Command;
 import alluxio.grpc.CommandType;
 import alluxio.grpc.CompleteFilePOptions;
@@ -137,9 +137,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private MkdirsOptions mMkdirsNonRecursive;
 
   private WorkerNetAddress mAddress;
-
-  private final UnderFileSystem mUfs;
-
   private final DoraOpenFileHandleContainer mOpenFileHandleContainer;
 
   private final boolean mClientWriteToUFSEnabled;
@@ -173,15 +170,12 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     mUfsManager = mResourceCloser.register(new DoraUfsManager());
     mFsContext = mResourceCloser.register(fileSystemContext);
     mUfsStreamCache = new UfsInputStreamCache();
-    mUfs = UnderFileSystem.Factory.create(
-        mRootUFS,
-        UnderFileSystemConfiguration.defaults(Configuration.global()));
 
     mPageSize = Configuration.global().getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
     mBlockMasterClientPool = blockMasterClientPool;
     mCacheManager = cacheManager;
     mMetaManager = mResourceCloser.register(
-        new DoraMetaManager(this, mCacheManager, mUfs));
+        new DoraMetaManager(mConf, this, mCacheManager, mUfsManager));
     mOpenFileHandleContainer = new DoraOpenFileHandleContainer();
 
     mMkdirsRecursive = MkdirsOptions.defaults(mConf).setCreateParent(true);
@@ -189,6 +183,26 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
     mClientWriteToUFSEnabled = Configuration.global()
         .getBoolean(PropertyKey.CLIENT_WRITE_TO_UFS_ENABLED);
+  }
+
+  @VisibleForTesting
+  UnderFileSystem getUfsInstance(String ufsUriStr) {
+    AlluxioURI ufsUriUri = new AlluxioURI(ufsUriStr);
+    // make sure the UFS URI is really a URI with scheme and authority
+    // without a scheme, the URI is interpreted as a local file system path
+    // without an authority, it's almost impossible to connect to the UFS
+    Preconditions.checkArgument(ufsUriUri.hasScheme(), "%s has no scheme", ufsUriStr);
+    Preconditions.checkArgument(ufsUriUri.hasAuthority(), "%s has no authority", ufsUriStr);
+    try {
+      UnderFileSystem ufs = mUfsManager.getOrAdd(ufsUriUri,
+          // todo(bowen): local configuration may not have UFS-specific configurations
+          //  find another way to load UFS configurations
+          UnderFileSystemConfiguration.defaults(mConf));
+      return ufs;
+    } catch (Exception e) {
+      LOG.debug("failed to get UFS instance for URI {}", ufsUriStr, e);
+      throw e;
+    }
   }
 
   @Override
@@ -360,6 +374,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    * @return a FileInfo
    */
   public alluxio.grpc.FileInfo buildFileInfoFromUfsStatus(UfsStatus status, String ufsFullPath) {
+    UnderFileSystem ufs = getUfsInstance(ufsFullPath);
     String filename = new AlluxioURI(ufsFullPath).getName();
     String relativePath = CommonUtils.stripPrefixIfPresent(ufsFullPath, mRootUFS);
     if (!relativePath.startsWith(AlluxioURI.SEPARATOR)) {
@@ -367,7 +382,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     }
 
     alluxio.grpc.FileInfo.Builder infoBuilder = alluxio.grpc.FileInfo.newBuilder()
-        .setUfsType(mUfs.getUnderFSType())
+        .setUfsType(ufs.getUnderFSType())
         .setFileId(ufsFullPath.hashCode())
         .setName(filename)
         .setPath(relativePath)
@@ -424,20 +439,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   @Override
   public BlockReader createFileReader(String fileId, long offset, boolean positionShort,
       Protocol.OpenUfsBlockOptions options) throws IOException, AccessControlException {
-    UfsManager.UfsClient ufsClient;
-    try {
-      ufsClient = mUfsManager.get(MOUNT_POINT);
-    } catch (NotFoundException e) {
-      mUfsManager.addMount(MOUNT_POINT, new AlluxioURI(options.getUfsPath()),
-          UnderFileSystemConfiguration.defaults(mConf));
-      try {
-        ufsClient = mUfsManager.get(MOUNT_POINT);
-      } catch (NotFoundException e2) {
-        throw new RuntimeException(
-            String.format("Failed to get mount point for %s", options.getUfsPath()), e2);
-      }
-    }
-    return PagedFileReader.create(mConf, mCacheManager, ufsClient, fileId,
+    UnderFileSystem ufs = getUfsInstance(options.getUfsPath());
+    return PagedFileReader.create(mConf, mCacheManager, ufs, fileId,
         options.getUfsPath(), options.getBlockSize(), offset);
   }
 
@@ -641,6 +644,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   @Override
   public OpenFileHandle createFile(String path, CreateFilePOptions options)
       throws AccessControlException, IOException {
+    UnderFileSystem ufs = getUfsInstance(path);
     // TODO(yuyang): Lock is needed.
     alluxio.grpc.FileInfo info;
     OpenFileHandle existingHandle = mOpenFileHandleContainer.find(path);
@@ -668,7 +672,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     try {
       // Check if the target file already exists. If yes, return by throwing error.
       boolean overWrite = options.hasOverwrite() ? options.getOverwrite() : false;
-      boolean exists = mUfs.exists(path);
+      boolean exists = ufs.exists(path);
       if (!overWrite && exists) {
         throw new RuntimeException(
             new FileAlreadyExistsException("File already exists but no overwrite flag"));
@@ -698,7 +702,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       // client is writing directly to UFS. Worker does not write to UFS.
       outStream = null;
     } else {
-      outStream = mUfs.create(path, createOption);
+      outStream = ufs.create(path, createOption);
     }
 
     OpenFileHandle handle = new OpenFileHandle(path, info, options, outStream);
@@ -727,6 +731,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   @Override
   public void delete(String path, DeletePOptions options) throws IOException,
       AccessControlException {
+    UnderFileSystem ufs = getUfsInstance(path);
     try {
       mMetaManager.removeFromMetaStore(path);
 
@@ -734,14 +739,14 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       if (!options.getAlluxioOnly()) {
         // By being a cache, Dora assume the file exists in UFS when a delete is issued
         // So if the file does not exist in UFS, an IOException will be thrown here
-        UfsStatus status = mUfs.getStatus(path);
+        UfsStatus status = ufs.getStatus(path);
         if (status.isFile()) {
-          mUfs.deleteFile(path);
+          ufs.deleteFile(path);
         } else {
           if (options.hasRecursive() && options.getRecursive()) {
-            mUfs.deleteDirectory(path, DeleteOptions.RECURSIVE);
+            ufs.deleteDirectory(path, DeleteOptions.RECURSIVE);
           } else {
-            mUfs.deleteDirectory(path, DeleteOptions.NON_RECURSIVE);
+            ufs.deleteDirectory(path, DeleteOptions.NON_RECURSIVE);
           }
         }
       }
@@ -753,12 +758,20 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   @Override
   public void rename(String src, String dst, RenamePOptions options)
       throws IOException, AccessControlException {
+    UnderFileSystem srcUfs = getUfsInstance(src);
+    UnderFileSystem dstUfs = getUfsInstance(dst);
+    // use strong reference comparison as UnderFileSystem does not support equality check
+    // except by UFS type
+    if (srcUfs != dstUfs) {
+      throw new FailedPreconditionException("Cannot rename a file in one UFS to another UFS");
+    }
+
     try {
-      UfsStatus status = mUfs.getStatus(src);
+      UfsStatus status = srcUfs.getStatus(src);
       if (status.isFile()) {
-        mUfs.renameFile(src, dst);
+        srcUfs.renameFile(src, dst);
       } else {
-        mUfs.renameDirectory(src, dst);
+        srcUfs.renameDirectory(src, dst);
       }
       mMetaManager.removeFromMetaStore(src);
       mMetaManager.loadFromUfs(dst);
@@ -771,12 +784,13 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   @Override
   public void createDirectory(String path, CreateDirectoryPOptions options)
       throws IOException, AccessControlException {
+    UnderFileSystem ufs = getUfsInstance(path);
     try {
       boolean success;
       if (options.hasRecursive() && options.getRecursive()) {
-        success = mUfs.mkdirs(path, mMkdirsRecursive);
+        success = ufs.mkdirs(path, mMkdirsRecursive);
       } else {
-        success = mUfs.mkdirs(path, mMkdirsNonRecursive);
+        success = ufs.mkdirs(path, mMkdirsNonRecursive);
       }
       mMetaManager.loadFromUfs(path);
       mMetaManager.invalidateListingCacheOfParent(path);
@@ -816,15 +830,16 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
           options);
     }
 
+    UnderFileSystem ufs = getUfsInstance(path);
     if (options.hasMode()) {
-      mUfs.setMode(path, ModeUtils.protoToShort(options.getMode()));
+      ufs.setMode(path, ModeUtils.protoToShort(options.getMode()));
     }
     if (options.hasOwner() && options.hasGroup()) {
-      mUfs.setOwner(path, options.getOwner(), options.getGroup());
+      ufs.setOwner(path, options.getOwner(), options.getGroup());
     } else if (options.hasOwner()) {
-      mUfs.setOwner(path, options.getOwner(), null);
+      ufs.setOwner(path, options.getOwner(), null);
     } else if (options.hasGroup()) {
-      mUfs.setOwner(path, null, options.getGroup());
+      ufs.setOwner(path, null, options.getGroup());
     }
     mMetaManager.loadFromUfs(path);
     mMetaManager.invalidateListingCacheOfParent(path);
@@ -866,11 +881,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     public void close() {
       // do nothing
     }
-  }
-
-  @VisibleForTesting
-  UnderFileSystem getUfs() {
-    return mUfs;
   }
 
   @VisibleForTesting
