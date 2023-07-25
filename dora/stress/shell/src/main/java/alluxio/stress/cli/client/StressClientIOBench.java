@@ -141,7 +141,7 @@ public class StressClientIOBench extends AbstractStressBench
       }
     }
 
-    ClientIOWritePolicy.setMaxWorkers(mParameters.mWriteNumWorkers);
+//    ClientIOWritePolicy.setMaxWorkers(mParameters.mWriteNumWorkers);
 
     // set hdfs conf for all test clients
     Configuration hdfsConf = new Configuration();
@@ -149,8 +149,8 @@ public class StressClientIOBench extends AbstractStressBench
     hdfsConf.set(
         String.format("fs.%s.impl.disable.cache", (new URI(mParameters.mBasePath)).getScheme()),
         "true");
-    hdfsConf.set(PropertyKey.Name.USER_BLOCK_WRITE_LOCATION_POLICY,
-        ClientIOWritePolicy.class.getName());
+//    hdfsConf.set(PropertyKey.Name.USER_BLOCK_WRITE_LOCATION_POLICY,
+//        ClientIOWritePolicy.class.getName());
     for (Map.Entry<String, String> entry : mParameters.mConf.entrySet()) {
       hdfsConf.set(entry.getKey(), entry.getValue());
     }

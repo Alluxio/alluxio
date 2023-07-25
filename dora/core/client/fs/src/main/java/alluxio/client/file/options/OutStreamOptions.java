@@ -16,7 +16,7 @@ import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.block.policy.BlockLocationPolicy;
-import alluxio.client.block.policy.SpecificHostPolicy;
+//import alluxio.client.block.policy.SpecificHostPolicy;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
@@ -43,6 +43,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class OutStreamOptions {
   private FileSystemMasterCommonPOptions mCommonOptions;
   private long mBlockSizeBytes;
+  // TODO(jiacheng): remove this
   private BlockLocationPolicy mLocationPolicy;
   private int mWriteTier;
   private WriteType mWriteType;
@@ -114,11 +115,12 @@ public class OutStreamOptions {
     if (options.hasWriteType()) {
       mWriteType = WriteType.fromProto(options.getWriteType());
     }
-    if (options.hasWorkerLocation()) {
-      int port = options.getWorkerLocation().getRpcPort();
-      mLocationPolicy = new SpecificHostPolicy(
-          options.getWorkerLocation().getHost(), port == 0 ? null : port);
-    }
+    // TODO(jiacheng): need to remove this
+//    if (options.hasWorkerLocation()) {
+//      int port = options.getWorkerLocation().getRpcPort();
+//      mLocationPolicy = new SpecificHostPolicy(
+//          options.getWorkerLocation().getHost(), port == 0 ? null : port);
+//    }
   }
 
   protected OutStreamOptions(FileSystemContext context, AlluxioConfiguration alluxioConf) {

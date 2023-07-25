@@ -358,10 +358,10 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       throws IOException {
     AlluxioConfiguration conf = mFsContext.getPathConf(filePath);
     OpenFilePOptions options = FileSystemOptionsUtils.openFileDefaults(conf);
-    BlockLocationPolicy policy = Preconditions.checkNotNull(
-        BlockLocationPolicy.Factory
-            .create(conf.getClass(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY), conf),
-        "UFS read location policy Required when loading files");
+//    BlockLocationPolicy policy = Preconditions.checkNotNull(
+//        BlockLocationPolicy.Factory
+//            .create(conf.getClass(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY), conf),
+//        "UFS read location policy Required when loading files");
     WorkerNetAddress dataSource;
     List<Long> blockIds = status.getBlockIds();
     for (long blockId : blockIds) {
@@ -370,7 +370,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
       } else { // send request to data source
         BlockStoreClient blockStore = BlockStoreClient.create(mFsContext);
         Pair<WorkerNetAddress, BlockInStream.BlockInStreamSource> dataSourceAndType = blockStore
-            .getDataSourceAndType(status.getBlockInfo(blockId), status, policy, ImmutableMap.of());
+            .getDataSourceAndType(status.getBlockInfo(blockId), status, ImmutableMap.of());
         dataSource = dataSourceAndType.getFirst();
       }
       Protocol.OpenUfsBlockOptions openUfsBlockOptions =

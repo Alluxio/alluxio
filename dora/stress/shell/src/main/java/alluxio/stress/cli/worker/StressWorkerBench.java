@@ -18,7 +18,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.grpc.WritePType;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.cli.AbstractStressBench;
-import alluxio.stress.cli.client.ClientIOWritePolicy;
+//import alluxio.stress.cli.client.ClientIOWritePolicy;
 import alluxio.stress.common.FileSystemParameters;
 import alluxio.stress.worker.WorkerBenchParameters;
 import alluxio.stress.worker.WorkerBenchTaskResult;
@@ -99,7 +99,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
   public void prepare() throws Exception {
 
     // Read and write to one worker
-    ClientIOWritePolicy.setMaxWorkers(1);
+//    ClientIOWritePolicy.setMaxWorkers(1);
 
     // initialize the base, for only the non-distributed task (the cluster launching task)
     Path path = new Path(mParameters.mBasePath);
@@ -139,10 +139,10 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
             FileSystemParameters.WRITE_TYPE_OPTION_NAME, WritePType.MUST_CACHE, "--free"));
       }
       hdfsConf.set(PropertyKey.Name.USER_FILE_WRITE_TYPE_DEFAULT, mParameters.mWriteType);
-      hdfsConf.set(PropertyKey.Name.USER_BLOCK_WRITE_LOCATION_POLICY,
-          ClientIOWritePolicy.class.getName());
-      hdfsConf.set(PropertyKey.Name.USER_UFS_BLOCK_READ_LOCATION_POLICY,
-          ClientIOWritePolicy.class.getName());
+//      hdfsConf.set(PropertyKey.Name.USER_BLOCK_WRITE_LOCATION_POLICY,
+//          ClientIOWritePolicy.class.getName());
+//      hdfsConf.set(PropertyKey.Name.USER_UFS_BLOCK_READ_LOCATION_POLICY,
+//          ClientIOWritePolicy.class.getName());
       FileSystem prepareFs = FileSystem.get(new URI(mParameters.mBasePath), hdfsConf);
 
       if (!mParameters.mSkipCreation) {
@@ -179,10 +179,10 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     hdfsConf.set(
         String.format("fs.%s.impl.disable.cache", (new URI(mParameters.mBasePath)).getScheme()),
         "true");
-    hdfsConf.set(PropertyKey.Name.USER_BLOCK_WRITE_LOCATION_POLICY,
-        ClientIOWritePolicy.class.getName());
-    hdfsConf.set(PropertyKey.Name.USER_UFS_BLOCK_READ_LOCATION_POLICY,
-        ClientIOWritePolicy.class.getName());
+//    hdfsConf.set(PropertyKey.Name.USER_BLOCK_WRITE_LOCATION_POLICY,
+//        ClientIOWritePolicy.class.getName());
+//    hdfsConf.set(PropertyKey.Name.USER_UFS_BLOCK_READ_LOCATION_POLICY,
+//        ClientIOWritePolicy.class.getName());
     for (Map.Entry<String, String> entry : mParameters.mConf.entrySet()) {
       hdfsConf.set(entry.getKey(), entry.getValue());
     }

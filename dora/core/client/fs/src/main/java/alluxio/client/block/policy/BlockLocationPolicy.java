@@ -33,6 +33,8 @@ import java.util.Optional;
  * </p>
  */
 @PublicApi
+// TODO(jiacheng): this class is used by many places in the old API
+//  Hard to remove cleanly without cutting off the old API first
 public interface BlockLocationPolicy {
 
   /**

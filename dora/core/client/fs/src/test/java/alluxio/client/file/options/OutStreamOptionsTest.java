@@ -20,9 +20,9 @@ import alluxio.Constants;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
-import alluxio.client.block.policy.BlockLocationPolicy;
-import alluxio.client.block.policy.LocalFirstPolicy;
-import alluxio.client.block.policy.RoundRobinPolicy;
+//import alluxio.client.block.policy.BlockLocationPolicy;
+//import alluxio.client.block.policy.LocalFirstPolicy;
+//import alluxio.client.block.policy.RoundRobinPolicy;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
@@ -96,7 +96,8 @@ public class OutStreamOptionsTest {
 
     assertEquals(alluxioType, options.getAlluxioStorageType());
     assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
-    assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
+    // TODO(jiacheng): update this test because we are removing this policy
+//    assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
     assertEquals("test_user", options.getOwner());
     assertEquals("test_group", options.getGroup());
     assertEquals(ModeUtils.applyFileUMask(Mode.defaults(),
@@ -111,44 +112,44 @@ public class OutStreamOptionsTest {
   /**
    * Tests getting and setting fields.
    */
-  @Test
-  public void fields() throws Exception {
-    Random random = new Random();
-    long blockSize = random.nextLong();
-    BlockLocationPolicy locationPolicy = new RoundRobinPolicy(
-        Configuration.global());
-    String owner = CommonUtils.randomAlphaNumString(10);
-    String group = CommonUtils.randomAlphaNumString(10);
-    Mode mode = new Mode((short) random.nextInt());
-    int ttl = 5;
-    TtlAction ttlAction = TtlAction.FREE;
-    int writeTier = random.nextInt();
-    WriteType writeType = WriteType.NONE;
-
-    mConf.set(PropertyKey.USER_FILE_CREATE_TTL, ttl);
-    mConf.set(PropertyKey.USER_FILE_CREATE_TTL_ACTION, ttlAction);
-
-    ClientContext clientContext = ClientContext.create(mConf);
-    OutStreamOptions options = OutStreamOptions.defaults(FileSystemContext.create(clientContext));
-    options.setBlockSizeBytes(blockSize);
-    options.setLocationPolicy(locationPolicy);
-    options.setOwner(owner);
-    options.setGroup(group);
-    options.setMode(mode);
-    options.setWriteTier(writeTier);
-    options.setWriteType(writeType);
-
-    assertEquals(blockSize, options.getBlockSizeBytes());
-    assertEquals(locationPolicy, options.getLocationPolicy());
-    assertEquals(owner, options.getOwner());
-    assertEquals(group, options.getGroup());
-    assertEquals(mode, options.getMode());
-    assertEquals(ttl, options.getCommonOptions().getTtl());
-    assertEquals(ttlAction, options.getCommonOptions().getTtlAction());
-    assertEquals(writeTier, options.getWriteTier());
-    assertEquals(writeType.getAlluxioStorageType(), options.getAlluxioStorageType());
-    assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
-  }
+//  @Test
+//  public void fields() throws Exception {
+//    Random random = new Random();
+//    long blockSize = random.nextLong();
+//    BlockLocationPolicy locationPolicy = new RoundRobinPolicy(
+//        Configuration.global());
+//    String owner = CommonUtils.randomAlphaNumString(10);
+//    String group = CommonUtils.randomAlphaNumString(10);
+//    Mode mode = new Mode((short) random.nextInt());
+//    int ttl = 5;
+//    TtlAction ttlAction = TtlAction.FREE;
+//    int writeTier = random.nextInt();
+//    WriteType writeType = WriteType.NONE;
+//
+//    mConf.set(PropertyKey.USER_FILE_CREATE_TTL, ttl);
+//    mConf.set(PropertyKey.USER_FILE_CREATE_TTL_ACTION, ttlAction);
+//
+//    ClientContext clientContext = ClientContext.create(mConf);
+//    OutStreamOptions options = OutStreamOptions.defaults(FileSystemContext.create(clientContext));
+//    options.setBlockSizeBytes(blockSize);
+//    options.setLocationPolicy(locationPolicy);
+//    options.setOwner(owner);
+//    options.setGroup(group);
+//    options.setMode(mode);
+//    options.setWriteTier(writeTier);
+//    options.setWriteType(writeType);
+//
+//    assertEquals(blockSize, options.getBlockSizeBytes());
+//    assertEquals(locationPolicy, options.getLocationPolicy());
+//    assertEquals(owner, options.getOwner());
+//    assertEquals(group, options.getGroup());
+//    assertEquals(mode, options.getMode());
+//    assertEquals(ttl, options.getCommonOptions().getTtl());
+//    assertEquals(ttlAction, options.getCommonOptions().getTtlAction());
+//    assertEquals(writeTier, options.getWriteTier());
+//    assertEquals(writeType.getAlluxioStorageType(), options.getAlluxioStorageType());
+//    assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
+//  }
 
   @Test
   public void equalsTest() {

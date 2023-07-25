@@ -15,7 +15,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import alluxio.client.WriteType;
-import alluxio.client.block.policy.BlockLocationPolicy;
+//import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockInStream.BlockInStreamSource;
@@ -146,7 +146,7 @@ public final class BlockStoreClient {
   public BlockInStream getInStream(BlockInfo info, InStreamOptions options,
       Map<WorkerNetAddress, Long> failedWorkers) throws IOException {
     Pair<WorkerNetAddress, BlockInStreamSource> dataSourceAndType = getDataSourceAndType(info,
-        options.getStatus(), options.getUfsReadLocationPolicy(), failedWorkers);
+        options.getStatus(),failedWorkers);
     WorkerNetAddress dataSource = dataSourceAndType.getFirst();
     BlockInStreamSource dataSourceType = dataSourceAndType.getSecond();
     try {
@@ -168,12 +168,11 @@ public final class BlockStoreClient {
    *
    * @param info the info of the block to read
    * @param status the URIStatus associated with the read request
-   * @param policy the policy determining the Alluxio worker location
    * @param failedWorkers the map of worker's addresses to most recent failure time
    * @return the data source and type of data source of the block
    */
   public Pair<WorkerNetAddress, BlockInStreamSource> getDataSourceAndType(BlockInfo info,
-      URIStatus status, BlockLocationPolicy policy, Map<WorkerNetAddress, Long> failedWorkers)
+      URIStatus status, Map<WorkerNetAddress, Long> failedWorkers)
       throws IOException {
     List<BlockLocation> locations = info.getLocations();
     List<BlockWorkerInfo> blockWorkerInfo = Collections.emptyList();
@@ -224,18 +223,19 @@ public final class BlockStoreClient {
     // Can't get data from Alluxio, get it from the UFS instead
     if (dataSource == null) {
       dataSourceType = BlockInStreamSource.UFS;
-      Preconditions.checkNotNull(policy, "The UFS read location policy is not specified");
+//      Preconditions.checkNotNull(policy, "The UFS read location policy is not specified");
       blockWorkerInfo = blockWorkerInfo.stream()
           .filter(workerInfo -> workers.contains(workerInfo.getNetAddress())).collect(toList());
+      // TODO(jiacheng): need to get rid of this because the SpecificWorkerPolicy will be migrated
       GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults()
           .setBlockInfo(new BlockInfo()
               .setBlockId(info.getBlockId())
               .setLength(info.getLength())
               .setLocations(locations))
           .setBlockWorkerInfos(blockWorkerInfo);
-      dataSource = policy.getWorker(getWorkerOptions).orElseThrow(
-          () -> new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage())
-      );
+//      dataSource = policy.getWorker(getWorkerOptions).orElseThrow(
+//          () -> new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage())
+//      );
       if (mContext.hasProcessLocalWorker()
           && dataSource.equals(mContext.getNodeLocalWorker())) {
         dataSourceType = BlockInStreamSource.PROCESS_LOCAL;
@@ -301,9 +301,9 @@ public final class BlockStoreClient {
    */
   public BlockOutStream getOutStream(long blockId, long blockSize, OutStreamOptions options)
       throws IOException {
-    WorkerNetAddress address;
-    BlockLocationPolicy locationPolicy = Preconditions.checkNotNull(options.getLocationPolicy(),
-        PreconditionMessage.BLOCK_WRITE_LOCATION_POLICY_UNSPECIFIED);
+    WorkerNetAddress address = null;
+//    BlockLocationPolicy locationPolicy = Preconditions.checkNotNull(options.getLocationPolicy(),
+//        PreconditionMessage.BLOCK_WRITE_LOCATION_POLICY_UNSPECIFIED);
     GetWorkerOptions workerOptions = GetWorkerOptions.defaults()
         .setBlockInfo(new BlockInfo().setBlockId(blockId).setLength(blockSize))
         .setBlockWorkerInfos(new ArrayList<>(mContext.getCachedWorkers()));
@@ -315,19 +315,19 @@ public final class BlockStoreClient {
         && options.getReplicationDurable() > options.getReplicationMin())
         ? options.getReplicationDurable() : options.getReplicationMin();
     if (initialReplicas <= 1) {
-      address = locationPolicy.getWorker(workerOptions).orElseThrow(
-          () -> {
-            try {
-              if (mContext.getCachedWorkers().isEmpty()) {
-                return new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
-              }
-            } catch (IOException e) {
-              return e;
-            }
-            return new UnavailableException(
-                ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(blockSize));
-          }
-      );
+//      address = locationPolicy.getWorker(workerOptions).orElseThrow(
+//          () -> {
+//            try {
+//              if (mContext.getCachedWorkers().isEmpty()) {
+//                return new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
+//              }
+//            } catch (IOException e) {
+//              return e;
+//            }
+//            return new UnavailableException(
+//                ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(blockSize));
+//          }
+//      );
       // TODO(ggezer): Retry on another worker if this has no storage.
       return getOutStream(blockId, blockSize, address, options);
     }
@@ -346,13 +346,13 @@ public final class BlockStoreClient {
     // Select N workers on different hosts where N is the value of initialReplicas for this block
     List<WorkerNetAddress> workerAddressList = new ArrayList<>();
     List<BlockWorkerInfo> updatedInfos = Lists.newArrayList(workerOptions.getBlockWorkerInfos());
-    for (int i = 0; i < initialReplicas; i++) {
-      locationPolicy.getWorker(workerOptions).ifPresent(workerAddress -> {
-        workerAddressList.add(workerAddress);
-        updatedInfos.removeAll(blockWorkersByHost.get(workerAddress.getHost()));
-        workerOptions.setBlockWorkerInfos(updatedInfos);
-      });
-    }
+//    for (int i = 0; i < initialReplicas; i++) {
+//      locationPolicy.getWorker(workerOptions).ifPresent(workerAddress -> {
+//        workerAddressList.add(workerAddress);
+//        updatedInfos.removeAll(blockWorkersByHost.get(workerAddress.getHost()));
+//        workerOptions.setBlockWorkerInfos(updatedInfos);
+//      });
+//    }
     if (workerAddressList.size() < initialReplicas) {
       throw new alluxio.exception.status.ResourceExhaustedException(String.format(
           "Not enough workers for replications, %d workers selected but %d required",
