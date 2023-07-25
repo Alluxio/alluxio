@@ -87,7 +87,8 @@ public class ServiceDiscoveryRecipe {
    * @return register path prefix
    */
   private String getRegisterPathPrefix() {
-    return String.format("%s/%s", BASE_PATH, mClusterIdentifier);
+    return String.format("%s%s%s", BASE_PATH,
+        MembershipManager.PATH_SEPARATOR, mClusterIdentifier);
   }
 
   /**
@@ -102,7 +103,8 @@ public class ServiceDiscoveryRecipe {
         return;
       }
       String path = service.mServiceEntityName;
-      String fullPath = getRegisterPathPrefix() + MembershipManager.PATH_SEPARATOR + path;
+      String fullPath = String.format("%s%s%s", getRegisterPathPrefix(),
+          MembershipManager.PATH_SEPARATOR, path);
       try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
         AlluxioEtcdClient.Lease lease = mAlluxioEtcdClient.createLease();
         Txn txn = mAlluxioEtcdClient.getEtcdClient().getKVClient().txn();
@@ -195,8 +197,8 @@ public class ServiceDiscoveryRecipe {
    */
   public ByteBuffer getRegisteredServiceDetail(String serviceEntityName)
       throws IOException {
-    String fullPath = getRegisterPathPrefix() + MembershipManager.PATH_SEPARATOR
-        + serviceEntityName;
+    String fullPath = String.format("%s%s%s", getRegisterPathPrefix(),
+        MembershipManager.PATH_SEPARATOR, serviceEntityName);
     byte[] val = mAlluxioEtcdClient.getForPath(fullPath);
     return ByteBuffer.wrap(val);
   }
@@ -216,8 +218,8 @@ public class ServiceDiscoveryRecipe {
       throw new NoSuchElementException("Service " + service.mServiceEntityName
           + " not registered, please register first.");
     }
-    String fullPath = getRegisterPathPrefix() + MembershipManager.PATH_SEPARATOR
-        + service.mServiceEntityName;
+    String fullPath = String.format("%s%s%s", getRegisterPathPrefix(),
+        MembershipManager.PATH_SEPARATOR, service.mServiceEntityName);
     try {
       Txn txn = mAlluxioEtcdClient.getEtcdClient().getKVClient().txn();
       ByteSequence keyToPut = ByteSequence.from(fullPath, StandardCharsets.UTF_8);
