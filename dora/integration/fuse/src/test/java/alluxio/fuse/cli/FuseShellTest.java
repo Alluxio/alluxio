@@ -22,7 +22,6 @@ import alluxio.ClientContext;
 import alluxio.cli.FuseShell;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.MetadataCachingFileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.UfsFileSystemOptions;
@@ -31,14 +30,12 @@ import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.Source;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.grpc.GetStatusPOptions;
-import alluxio.resource.CloseableResource;
 import alluxio.wire.FileInfo;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
@@ -51,7 +48,6 @@ import java.util.Map;
 /**
  * Isolation tests for {@link FuseShell}.
  */
-@Ignore
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class})
 public class FuseShellTest {
@@ -59,7 +55,6 @@ public class FuseShellTest {
   private Map<AlluxioURI, URIStatus> mFileStatusMap;
   private FileSystem mFileSystem;
   private final InstancedConfiguration mConf = Configuration.copyGlobal();
-  private FileSystemMasterClient mFileSystemMasterClient;
 
   private static final AlluxioURI DIR = new AlluxioURI("/dir");
   private static final AlluxioURI FILE = new AlluxioURI("/dir/file");
@@ -75,20 +70,11 @@ public class FuseShellTest {
     mConf.set(PropertyKey.USER_METADATA_CACHE_MAX_SIZE, 1000, Source.RUNTIME);
     ClientContext clientContext = ClientContext.create(mConf);
     FileSystemContext fileContext = PowerMockito.mock(FileSystemContext.class);
-    mFileSystemMasterClient = new GetStatusFileSystemMasterClient();
-    when(fileContext.acquireMasterClientResource())
-        .thenReturn(new CloseableResource<FileSystemMasterClient>(mFileSystemMasterClient) {
-          @Override
-          public void closeResource() {
-            // Noop.
-          }
-        });
     when(fileContext.getClientContext()).thenReturn(clientContext);
     when(fileContext.getClusterConf()).thenReturn(mConf);
     when(fileContext.getPathConf(any())).thenReturn(mConf);
     when(fileContext.getUriValidationEnabled()).thenReturn(true);
-    // TODO(jiacheng): Change to mock into UfsBaseFileSystem
-    FileSystem fs = new UfsBaseFileSystem(fileContext,
+    FileSystem fs = new MockUfsBaseFileSystem(fileContext,
         new UfsFileSystemOptions(mConf.getString(PropertyKey.DORA_CLIENT_UFS_ROOT)));
     mFileSystem = new MetadataCachingFileSystem(fs, fileContext);
     mFuseShell = new FuseShell(mFileSystem, mConf);
@@ -161,13 +147,14 @@ public class FuseShellTest {
     assertEquals(NOT_FOUND_STATUS, mFileSystem.getStatus(FILE));
   }
 
-  class GetStatusFileSystemMasterClient extends MockFuseFileSystemMasterClient {
-    GetStatusFileSystemMasterClient() {
+  class MockUfsBaseFileSystem extends UfsBaseFileSystem {
+    public MockUfsBaseFileSystem(FileSystemContext fsContext, UfsFileSystemOptions options) {
+      super(fsContext, options);
     }
 
     @Override
-    public URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
-        throws AlluxioStatusException {
+    public URIStatus getStatus(AlluxioURI path, final GetStatusPOptions options)
+            throws FileDoesNotExistException {
       if (mFileStatusMap.containsKey(path)) {
         return mFileStatusMap.get(path);
       }

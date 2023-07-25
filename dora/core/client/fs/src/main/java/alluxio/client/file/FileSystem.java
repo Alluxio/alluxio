@@ -624,7 +624,7 @@ public interface FileSystem extends Closeable {
    * @param path the file to read from
    * @return a {@link PositionReader} for the given path
    */
-  default PositionReader openPositionRead(AlluxioURI path) {
+  default PositionReader openPositionRead(AlluxioURI path) throws FileDoesNotExistException {
     return openPositionRead(path, OpenFilePOptions.getDefaultInstance());
   }
 
@@ -635,7 +635,7 @@ public interface FileSystem extends Closeable {
    * @param options options to associate with this operation
    * @return a {@link PositionReader} for the given path
    */
-  PositionReader openPositionRead(AlluxioURI path, OpenFilePOptions options);
+  PositionReader openPositionRead(AlluxioURI path, OpenFilePOptions options) throws FileDoesNotExistException;
 
   /**
    * Opens a file for reading.

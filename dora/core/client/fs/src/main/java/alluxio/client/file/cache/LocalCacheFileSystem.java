@@ -23,6 +23,7 @@ import alluxio.client.file.cache.filter.CacheFilter;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.OpenFilePOptions;
 
@@ -79,7 +80,8 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
   }
 
   @Override
-  public PositionReader openPositionRead(AlluxioURI path, OpenFilePOptions options) {
+  public PositionReader openPositionRead(AlluxioURI path, OpenFilePOptions options)
+      throws FileDoesNotExistException {
     if (mCacheManager == null || mCacheManager.state() == CacheManager.State.NOT_IN_USE) {
       return mDelegatedFileSystem.openPositionRead(path, options);
     }
