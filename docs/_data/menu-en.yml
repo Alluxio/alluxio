@@ -101,17 +101,13 @@
     buttonTitle: FUSE_SDK
     subfiles:
       - title: FUSE SDK Overview
-        url: /en/fuse-sdk/Overview-Fuse-Sdk.html
+        url: /en/fuse-sdk/FUSE-SDK-Overview.html
       - title: Local Cache Quick Start
         url: /en/fuse-sdk/Local-Cache-Quick-Start.html
+      - title: Local Cache Overview
+        url: /en/fuse-sdk/Local-Cache-Overview.html
       - title: Distributed Cache Quick Start
         url: /en/fuse-sdk/FUSE-SDK-Dora-Quick-Start.html
-      - title: Local Cache Overview
-        url: /en/fuse-sdk/Local-Cache.html
-      - title: Local Metadata Cache
-        url: /en/fuse-sdk/Local-Metadata-Cache.html
-      - title: Local Data Cache
-        url: /en/fuse-sdk/Local-Data-Cache.html
       - title: Advanced Tuning
         url: /en/fuse-sdk/Advanced-Tuning.html
 
