@@ -18,6 +18,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCacheFileSystem;
 import alluxio.client.file.options.FileSystemOptions;
+import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
@@ -179,9 +180,10 @@ public interface FileSystem extends Closeable {
     public static FileSystem create(FileSystemContext context, FileSystemOptions options) {
       AlluxioConfiguration conf = context.getClusterConf();
       checkSortConf(conf);
-      FileSystem fs = options.getUfsFileSystemOptions().isPresent()
-          ? new UfsBaseFileSystem(context, options.getUfsFileSystemOptions().get())
-          : new BaseFileSystem(context);
+      Optional<UfsFileSystemOptions> ufsOptions = options.getUfsFileSystemOptions();
+      Preconditions.checkArgument(ufsOptions.isPresent(),
+          "Missing UfsFileSystemOptions in FileSystemOptions");
+      FileSystem fs = new UfsBaseFileSystem(context, options.getUfsFileSystemOptions().get());
 
       if (options.isDoraCacheEnabled()) {
         LOG.debug("Dora cache enabled");
@@ -203,15 +205,6 @@ public interface FileSystem extends Closeable {
         }
       }
       return fs;
-    }
-
-    /**
-     * Creates a legacy file system that connects to the alluxio master.
-     * @param context the FileSystemContext to use with the FileSystem
-     * @return a new FileSystem instance
-     */
-    public static alluxio.client.file.FileSystem createLegacy(FileSystemContext context) {
-      return new BaseFileSystem(context);
     }
 
     static void checkSortConf(AlluxioConfiguration conf) {

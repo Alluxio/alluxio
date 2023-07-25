@@ -147,8 +147,6 @@ public final class LoadCommand extends AbstractFileSystemCommand {
    */
   public LoadCommand(FileSystemContext fsContext) {
     super(fsContext);
-    mFileSystem = FileSystem.Factory.createLegacy(fsContext);
-    Preconditions.checkArgument(mFileSystem instanceof BaseFileSystem);
   }
 
   @Override
