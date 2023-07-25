@@ -460,7 +460,7 @@ public class UfsBaseFileSystem implements FileSystem {
   public String getJobProgress(JobDescription jobDescription,
       JobProgressReportFormat format, boolean verbose) {
     try (CloseableResource<FileSystemMasterClient> client =
-       mFsContext.acquireMasterClientResource()) {
+        mFsContext.acquireMasterClientResource()) {
       return client.get().getJobProgress(jobDescription, format, verbose);
     }
   }

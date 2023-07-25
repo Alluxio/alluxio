@@ -160,8 +160,8 @@ public class MetadataCachingFileSystemTest {
   @Ignore
   @Test
   @DoraTestTodoItem(owner = "hua", action = DoraTestTodoItem.Action.FIX,
-    comment = "UfsBaseFileSystem needs to support getBlockLocations for the application."
-        + "The concept of block here is HDFS block, instead of the deprecated Alluxio block.")
+        comment = "UfsBaseFileSystem needs to support getBlockLocations for the application."
+            + "The concept of block here is HDFS block, instead of the deprecated Alluxio block.")
   public void getBlockLocations() throws Exception {
     mFs.getBlockLocations(FILE);
     assertEquals(1, mRpcCountingFs.getStatusRpcCount(FILE));
