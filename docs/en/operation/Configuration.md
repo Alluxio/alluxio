@@ -8,19 +8,19 @@ An Alluxio cluster can be configured by setting the values of Alluxio
 [configuration properties]({{ '/en/reference/Properties-List.html' | relativize_url }}) within
 `${ALLUXIO_HOME}/conf/alluxio-site.properties`.
 
-The two major components to configure are:
+<!-- The two major components to configure are:
 - [Alluxio servers](#configure-an-alluxio-cluster), consisting of Alluxio processes such as masters and workers
-- [Alluxio clients](#configure-applications), which are typically a part of compute applications
+- [Alluxio clients](#configure-applications), which are typically a part of compute applications -->
 
-Alluxio properties mostly fall into three categories:
+<!-- Alluxio properties mostly fall into three categories:
 
 - properties prefixed with `alluxio.user` affect Alluxio client operations (e.g. compute applications)
 - properties prefixed with `alluxio.master` affect the Alluxio master processes
-- properties prefixed with `alluxio.worker` affect the Alluxio worker processes
+- properties prefixed with `alluxio.worker` affect the Alluxio worker processes -->
 
-## Configure Applications
+<!-- ## Configure Applications -->
 
-Customizing how an application interacts with Alluxio is specific to each application.
+<!-- Customizing how an application interacts with Alluxio is specific to each application.
 The following are recommendations for some common applications.
 
 ### Alluxio Shell Commands
@@ -37,9 +37,9 @@ $ ./bin/alluxio fs -Dalluxio.user.file.writetype.default=CACHE_THROUGH \
 
 Note that, as a part of Alluxio deployment, the Alluxio shell will also take the configuration in
 `${ALLUXIO_HOME}/conf/alluxio-site.properties` when it is run from Alluxio installation at
-`${ALLUXIO_HOME}`.
+`${ALLUXIO_HOME}`. -->
 
-### Spark
+<!-- ### Spark
 
 To customize Alluxio client-side properties in Spark applications,
 Spark users can use pass Alluxio properties as JVM system properties.
@@ -65,11 +65,11 @@ See
 
 Presto can be configured to use customized Alluxio client-side properties for the entire service.
 See
-[examples]({{ '/en/compute/Presto.html' | relativize_url }}#customize-alluxio-user-properties).
+[examples]({{ '/en/compute/Presto.html' | relativize_url }}#customize-alluxio-user-properties). -->
 
 ## Configure an Alluxio Cluster
 
-### `alluxio-site.properties` Files (Recommended)
+<!-- ### `alluxio-site.properties` Files (Recommended)
 
 Alluxio admins can create and edit the properties file `conf/alluxio-site.properties` to
 configure Alluxio masters or workers.
@@ -81,9 +81,9 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 
 Make sure that this file is distributed to `${ALLUXIO_HOME}/conf` on every Alluxio master
 and worker before starting the cluster.
-Restarting Alluxio processes is the safest way to ensure any configuration updates are applied.
+Restarting Alluxio processes is the safest way to ensure any configuration updates are applied. -->
 
-### Environment Variables
+<!-- ### Environment Variables
 
 Alluxio supports defining a few frequently used configuration settings through environment
 variables, including:
@@ -116,7 +116,7 @@ If this file does not exist yet, it can be copied from the template file under `
 
 ```shell
 $ cp conf/alluxio-env.sh.template conf/alluxio-env.sh
-```
+``` -->
 
 ### Cluster Defaults
 
@@ -177,8 +177,8 @@ Alluxio properties can be configured from multiple sources.
 A property's final value is determined by the following priority list, from highest priority to lowest:
 
 1. [JVM system properties (i.e., `-Dproperty=key`)](http://docs.oracle.com/javase/jndi/tutorial/beyond/env/source.html#SYS)
-2. [Environment variables](#environment-variables)
-3. [Property files](#alluxio-siteproperties-files-recommended):
+2. [Environment variables]({{ '/en/reference/Environment-List.html' | relativize_url}})
+3. [Property files]({{ '/en/reference/Properties-List.html' | relativize_url }}):
 When an Alluxio cluster starts, each server process including master and worker searches for
 `alluxio-site.properties` within the following directories in the given order, stopping when a match is found:
 `${CLASSPATH}`, `${HOME}/.alluxio/`, `/etc/alluxio/`, and `${ALLUXIO_HOME}/conf`

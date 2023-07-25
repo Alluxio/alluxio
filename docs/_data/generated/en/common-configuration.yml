@@ -17,15 +17,15 @@ alluxio.dora.ufs.list.status.cache.nr.dirs:
 alluxio.dora.ufs.list.status.cache.ttl:
   'The TTL of the cache of UFS list status results'
 alluxio.dora.worker.metastore.rocksdb.block.index:
-  'The block index type to be used in the RocksDB block metadata table. If unset, the RocksDB default will be used.See https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html'
+  'The block index type to be used in the RocksDB block metadata table. If unset, the RocksDB default will be used. See <a href ="https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html">Data Block Hash Index</a>'
 alluxio.dora.worker.metastore.rocksdb.bloom.filter:
-  'Whether or not to use a bloom filter in the Block meta table in RocksDB. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter'
+  'Whether or not to use a bloom filter in the Block meta table in RocksDB. If unset, the RocksDB default will be used. See <a href ="https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter">RocksDB Bloom Filter</a>'
 alluxio.dora.worker.metastore.rocksdb.cache.size:
-  'The capacity in bytes of the RocksDB block metadata table LRU  cache. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Block-Cache. Our microbench test shows that 1GB cache can double the metadata read operation performance for a meta store that persists 10M metadata entries. Note that the memory is off-heap and does not count in jvm memory.'
+  'The capacity in bytes of the RocksDB block metadata table LRU  cache. If unset, the RocksDB default will be used. See <a href="https://github.com/facebook/rocksdb/wiki/Block-Cache">Block Cache</a>. Our microbench test shows that 1GB cache can double the metadata read operation performance for a meta store that persists 10M metadata entries. Note that the memory is off-heap and does not count in jvm memory.'
 alluxio.dora.worker.metastore.rocksdb.dir:
   'The base dir of RocksDB to store Dora metadata'
 alluxio.dora.worker.metastore.rocksdb.index:
-  'The index type to be used in the RocksDB block metadata table. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Index-Block-Format'
+  'The index type to be used in the RocksDB block metadata table. If unset, the RocksDB default will be used. See <a href="https://github.com/facebook/rocksdb/wiki/Index-Block-Format">Index Block Format</a>'
 alluxio.dora.worker.metastore.rocksdb.ttl:
   'The TTL (Time To Live) in duration of RocksDB of Dora metadata. 0s or negative value means no expiry'
 alluxio.dora.worker.populate.metadata.fingerprint:
@@ -61,7 +61,7 @@ alluxio.fuse.position.read.enabled:
 alluxio.fuse.shared.caching.reader.enabled:
   '(Experimental) Use share grpc data reader for better performance on multi-process file reading through Alluxio JNI Fuse. Blocks data will be cached on the client side so more memory is required for the Fuse process.'
 alluxio.fuse.special.command.enabled:
-  'If enabled, user can issue special FUSE commands by using ''ls -l /path/to/fuse_mount/.alluxiocli.&lt;command_name&gt;.&lt;subcommand_name&gt;'', For example, when the Alluxio is mounted at local path /mnt/alluxio-fuse, ''ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.dropAll'' will drop all the user metadata cache. ''ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.size'' will get the metadata cache size， the size value will be show in the output''s filesize field. ''ls -l /mnt/alluxio-fuse/path/to/be/cleaned/.alluxiocli.metadatacache.drop'' will drop the metadata cache of path ''/mnt/alluxio-fuse/path/to/be/cleaned/'''
+  'If enabled, user can issue special FUSE commands by using ''ls -l /path/to/fuse_mount/.alluxiocli.&lt;command_name&gt;.&lt;subcommand_name&gt;'', For example, when the Alluxio is mounted at local path /mnt/alluxio-fuse, ''ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.dropAll'' will drop all the user metadata cache. ''ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.size'' will get the metadata cache size, the size value will be show in the output''s filesize field. ''ls -l /mnt/alluxio-fuse/path/to/be/cleaned/.alluxiocli.metadatacache.drop'' will drop the metadata cache of path ''/mnt/alluxio-fuse/path/to/be/cleaned/'''
 alluxio.fuse.stat.cache.refresh.interval:
   'The fuse filesystem statistics (e.g. Alluxio capacity information) will be refreshed after being cached for this time period. If the refresh time is too big, operations on the FUSE may fail because of the stale filesystem statistics. If it is too small, continuously fetching filesystem statistics create a large amount of master RPC calls and lower the overall performance of the Fuse application. A value small than or equal to zero means no statistics cache on the Fuse side.'
 alluxio.fuse.umount.timeout:
@@ -195,7 +195,7 @@ alluxio.proxy.audit.logging.enabled:
 alluxio.proxy.master.heartbeat.interval:
   'Proxy instances maintain a heartbeat with the primary master. This key specifies the heartbeat interval.'
 alluxio.proxy.s3.bucket.naming.restrictions.enabled:
-  'Toggles whether or not the Alluxio S3 API will enforce AWS S3 bucket naming restrictions. See https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html.'
+  'Toggles whether or not the Alluxio S3 API will enforce AWS S3 bucket naming restrictions. See <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html.">Bucket Naming Rules</a>'
 alluxio.proxy.s3.bucketpathcache.timeout:
   'Expire bucket path statistics in cache for this time period. Set 0min to disable the cache. If enabling the cache, be careful that Alluxio S3 API will behave differently from AWS S3 API if bucket path cache entries become stale.'
 alluxio.proxy.s3.complete.multipart.upload.keepalive.enabled:
@@ -225,7 +225,7 @@ alluxio.proxy.s3.multipart.upload.cleaner.timeout:
 alluxio.proxy.s3.single.connection.read.rate.limit.mb:
   'Limit the maximum read speed for each connection. Set value less than or equal to 0 to disable rate limits.'
 alluxio.proxy.s3.tagging.restrictions.enabled:
-  'Toggles whether or not the Alluxio S3 API will enforce AWS S3 tagging restrictions (10 tags, 128 character keys, 256 character values) See https://docs.aws.amazon.com/AmazonS3/latest/userguide/tagging-managing.html.'
+  'Toggles whether or not the Alluxio S3 API will enforce AWS S3 tagging restrictions (10 tags, 128 character keys, 256 character values) See <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/tagging-managing.html.">Tagging Managing</a>'
 alluxio.proxy.s3.v2.async.heavy.pool.core.thread.number:
   'Core thread number for async heavy thread pool.'
 alluxio.proxy.s3.v2.async.heavy.pool.maximum.thread.number:
@@ -261,9 +261,9 @@ alluxio.secondary.master.metastore.dir:
 alluxio.site.conf.dir:
   'Comma-separated search path for alluxio-site.properties. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending &quot;-Dalluxio.site.conf.dir&quot;=&lt;NEW_VALUE&gt;&quot; to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
 alluxio.site.conf.rocks.block.file:
-  'Path of file containing RocksDB block store configuration. A template configuration cab be found at ${alluxio.conf.dir}/rocks-block.ini.template. See https://github.com/facebook/rocksdb/blob/main/examples/rocksdb_option_file_example.ini for more information on RocksDB configuration files. If unset then a default configuration will be used.'
+  'Path of file containing RocksDB block store configuration. A template configuration cab be found at ${alluxio.conf.dir}/rocks-block.ini.template. See <a href="https://github.com/facebook/rocksdb/blob/main/examples/rocksdb_option_file_example.ini">RocksDB Option File Example</a> for more information on RocksDB configuration files. If unset then a default configuration will be used.'
 alluxio.site.conf.rocks.inode.file:
-  'Path of file containing RocksDB inode store configuration. A template configuration cab be found at ${alluxio.conf.dir}/rocks-inode.ini.template. See https://github.com/facebook/rocksdb/blob/main/examples/rocksdb_option_file_example.ini for more information on RocksDB configuration files. If unset then a default configuration will be used.'
+  'Path of file containing RocksDB inode store configuration. A template configuration cab be found at ${alluxio.conf.dir}/rocks-inode.ini.template. See <a href="https://github.com/facebook/rocksdb/blob/main/examples/rocksdb_option_file_example.ini">RocksDB Option File Example</a> for more information on RocksDB configuration files. If unset then a default configuration will be used.'
 alluxio.standalone.fuse.jvm.monitor.enabled:
   'Whether to enable start JVM monitor thread on the standalone fuse process. This will start a thread to detect JVM-wide pauses induced by GC or other reasons.'
 alluxio.standby.master.metrics.sink.enabled:
@@ -335,7 +335,7 @@ alluxio.underfs.gcs.default.mode:
 alluxio.underfs.gcs.directory.suffix:
   'Directories are represented in GCS as zero-byte objects named with the specified suffix.'
 alluxio.underfs.gcs.owner.id.to.username.mapping:
-  'Optionally, specify a preset gcs owner id to Alluxio username static mapping in the format &quot;id1=user1;id2=user2&quot;. The Google Cloud Storage IDs can be found at the console address https://console.cloud.google.com/storage/settings . Please use the &quot;Owners&quot; one. This property key is only valid when alluxio.underfs.gcs.version=1'
+  'Optionally, specify a preset gcs owner id to Alluxio username static mapping in the format &quot;id1=user1;id2=user2&quot;. The Google Cloud Storage IDs can be found at the console address <a href="https://console.cloud.google.com/storage/settings">https://console.cloud.google.com/storage/settings</a>. Please use the &quot;Owners&quot; one. This property key is only valid when alluxio.underfs.gcs.version=1'
 alluxio.underfs.gcs.retry.delay.multiplier:
   'Delay multiplier while retrying requests on the ufs'
 alluxio.underfs.gcs.retry.initial.delay:
@@ -447,7 +447,7 @@ alluxio.underfs.s3.list.objects.v1:
 alluxio.underfs.s3.max.error.retry:
   'The maximum number of retry attempts for failed retryable requests.Setting this property will override the AWS SDK default.'
 alluxio.underfs.s3.owner.id.to.username.mapping:
-  'Optionally, specify a preset s3 canonical id to Alluxio username static mapping, in the format &quot;id1=user1;id2=user2&quot;. The AWS S3 canonical ID can be found at the console address https://console.aws.amazon.com/iam/home?#security_credential . Please expand the &quot;Account Identifiers&quot; tab and refer to &quot;Canonical User ID&quot;. Unspecified owner id will map to a default empty username'
+  'Optionally, specify a preset s3 canonical id to Alluxio username static mapping, in the format &quot;id1=user1;id2=user2&quot;. The AWS S3 canonical ID can be found at the console address <a href="https://console.aws.amazon.com/iam/home?#security_credential">https://console.aws.amazon.com/iam/home?#security_credential</a>. Please expand the &quot;Account Identifiers&quot; tab and refer to &quot;Canonical User ID&quot;. Unspecified owner id will map to a default empty username'
 alluxio.underfs.s3.proxy.host:
   'Optionally, specify a proxy host for communicating with S3.'
 alluxio.underfs.s3.proxy.port:

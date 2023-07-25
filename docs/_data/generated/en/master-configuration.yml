@@ -81,7 +81,7 @@ alluxio.master.embedded.journal.transport.max.inbound.message.size:
 alluxio.master.embedded.journal.transport.request.timeout.ms:
   'The duration after which embedded journal masters will timeout messages sent between each other. Lower values might cause leadership instability when the network is slow.'
 alluxio.master.embedded.journal.unsafe.flush.enabled:
-  'If true, embedded journal entries will be committed without waiting for the entry to be flushed to disk. This may improve performance of write operations on the Alluxio master if the journal is written to a slow or contested disk. WARNING: enabling this property may result in metadata loss if half or more of the master nodes fail. See Ratis property raft.server.log.unsafe-flush.enabled at https://github.com/apache/ratis/blob/master/ratis-docs/src/site/markdown/configuraions.md.'
+  'If true, embedded journal entries will be committed without waiting for the entry to be flushed to disk. This may improve performance of write operations on the Alluxio master if the journal is written to a slow or contested disk. WARNING: enabling this property may result in metadata loss if half or more of the master nodes fail. See Ratis property raft.server.log.unsafe-flush.enabled at <a href="https://github.com/apache/ratis/blob/master/ratis-docs/src/site/markdown/configurations.md#log---configurations-related-to-raft-log">Ratis Configuration Reference</a>'
 alluxio.master.embedded.journal.write.timeout:
   'Maximum time to wait for a write/flush on embedded journal.'
 alluxio.master.failover.collect.info:
@@ -233,39 +233,39 @@ alluxio.master.metastore.iterator.readahead.size:
 alluxio.master.metastore.metrics.refresh.interval:
   'Interval with which the master refreshes and reports metastore metrics'
 alluxio.master.metastore.rocks.block.location.block.index:
-  'The block index type to be used in the RocksDB block location table. If unset, the RocksDB default will be used. See https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html'
+  'The block index type to be used in the RocksDB block location table. If unset, the RocksDB default will be used. See <a href="https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html">Data Block Hash Index</a>'
 alluxio.master.metastore.rocks.block.location.bloom.filter:
-  'Whether or not to use a bloom filter in the Block location table in RocksDB. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter'
+  'Whether or not to use a bloom filter in the Block location table in RocksDB. If unset, the RocksDB default will be used. See <a href="https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter">RocksDB Bloom Filter</a>'
 alluxio.master.metastore.rocks.block.location.cache.size:
-  'The capacity in bytes of the RocksDB block location table LRU cache. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Block-Cache'
+  'The capacity in bytes of the RocksDB block location table LRU cache. If unset, the RocksDB default will be used. See <a href="https://github.com/facebook/rocksdb/wiki/Block-Cache">Block Cache</a>'
 alluxio.master.metastore.rocks.block.location.index:
-  'The index type to be used in the RocksDB block location table. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Index-Block-Format'
+  'The index type to be used in the RocksDB block location table. If unset, the RocksDB default will be used. See <a href="https://github.com/facebook/rocksdb/wiki/Index-Block-Format">Index Block Format</a>'
 alluxio.master.metastore.rocks.block.meta.block.index:
-  'The block index type to be used in the RocksDB block metadata table. If unset, the RocksDB default will be used.See https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html'
+  'The block index type to be used in the RocksDB block metadata table. If unset, the RocksDB default will be used. See <a href="https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html">Data Block Hash Index</a>'
 alluxio.master.metastore.rocks.block.meta.bloom.filter:
-  'Whether or not to use a bloom filter in the Block meta table in RocksDB. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter'
+  'Whether or not to use a bloom filter in the Block meta table in RocksDB. If unset, the RocksDB default will be used. See <a href="https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter">RocksDB Bloom Filter</a>'
 alluxio.master.metastore.rocks.block.meta.cache.size:
-  'The capacity in bytes of the RocksDB block metadata table LRU  cache. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Block-Cache'
+  'The capacity in bytes of the RocksDB block metadata table LRU  cache. If unset, the RocksDB default will be used. See <a href="https://github.com/facebook/rocksdb/wiki/Block-Cache">Block Cache</a>'
 alluxio.master.metastore.rocks.block.meta.index:
-  'The index type to be used in the RocksDB block metadata table. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Index-Block-Format'
+  'The index type to be used in the RocksDB block metadata table. If unset, the RocksDB default will be used. See <a href="https://github.com/facebook/rocksdb/wiki/Index-Block-Format">Index Block Format</a>'
 alluxio.master.metastore.rocks.checkpoint.compression.type:
   'The compression algorithm that RocksDB uses internally. One of {NO_COMPRESSION SNAPPY_COMPRESSION ZLIB_COMPRESSION BZLIB2_COMPRESSION LZ4_COMPRESSION LZ4HC_COMPRESSION XPRESS_COMPRESSION ZSTD_COMPRESSION DISABLE_COMPRESSION_OPTION}'
 alluxio.master.metastore.rocks.edge.block.index:
-  'The block index type to be used in the RocksDB inode edge table. If unset, the RocksDB default will be used. See https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html'
+  'The block index type to be used in the RocksDB inode edge table. If unset, the RocksDB default will be used. See <a href="https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html">Data Block Hash Index</a>'
 alluxio.master.metastore.rocks.edge.bloom.filter:
-  'Whether or not to use a bloom filter in the Inode edge table in RocksDB. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter'
+  'Whether or not to use a bloom filter in the Inode edge table in RocksDB. If unset, the RocksDB default will be used. See <a href="https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter">RocksDB Bloom Filter</a>'
 alluxio.master.metastore.rocks.edge.cache.size:
-  'The capacity in bytes of the RocksDB Inode edge table LRU cache. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Block-Cache'
+  'The capacity in bytes of the RocksDB Inode edge table LRU cache. If unset, the RocksDB default will be used. See <a href="https://github.com/facebook/rocksdb/wiki/Block-Cache">Block Cache</a>'
 alluxio.master.metastore.rocks.edge.index:
-  'The index type to be used in the RocksDB Inode edge table. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Index-Block-Format'
+  'The index type to be used in the RocksDB Inode edge table. If unset, the RocksDB default will be used. See <a href="https://github.com/facebook/rocksdb/wiki/Index-Block-Format">Index Block Format</a>'
 alluxio.master.metastore.rocks.inode.block.index:
-  'The block index type to be used in the RocksDB inode table. If unset, the RocksDB default will be used. See https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html'
+  'The block index type to be used in the RocksDB inode table. If unset, the RocksDB default will be used. See <a href="https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html">Data Block Hash Index</a>'
 alluxio.master.metastore.rocks.inode.bloom.filter:
-  'Whether or not to use a bloom filter in the Inode table in RocksDB. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter'
+  'Whether or not to use a bloom filter in the Inode table in RocksDB. If unset, the RocksDB default will be used. See <a href="https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter">RocksDB Bloom Filter</a>'
 alluxio.master.metastore.rocks.inode.cache.size:
-  'The capacity in bytes of the RocksDB Inode table LRU cache. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Block-Cache'
+  'The capacity in bytes of the RocksDB Inode table LRU cache. If unset, the RocksDB default will be used. See <a href="https://github.com/facebook/rocksdb/wiki/Block-Cache">Block Cache</a>'
 alluxio.master.metastore.rocks.inode.index:
-  'The index type to be used in the RocksDB Inode table. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Index-Block-Format'
+  'The index type to be used in the RocksDB Inode table. If unset, the RocksDB default will be used. See <a href="https://github.com/facebook/rocksdb/wiki/Index-Block-Format">Index Block Format</a>'
 alluxio.master.metastore.rocks.parallel.backup:
   'Whether to checkpoint rocksdb in parallel using the number of threads set by alluxio.master.metastore.rocks.parallel.backup.threads.'
 alluxio.master.metastore.rocks.parallel.backup.threads:
