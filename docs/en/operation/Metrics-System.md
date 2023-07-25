@@ -48,7 +48,7 @@ Each instance can report to zero or more sinks.
 The metrics system is configured via a configuration file that Alluxio expects to be present at `${ALLUXIO_HOME}/conf/metrics.properties`.
 A custom file location can be specified via the `alluxio.metrics.conf.file` configuration property.
 Refer to `${ALLUXIO_HOME}/conf/metrics.properties.template` for all possible sink specific configurations.
-To configure the metrics system on Kubernetes, refer to [Metrics On Kubernetes]({{ '/en/kubernetes/Metrics-On-Kubernetes.html' | relativize_url }}#metrics-sink-configuration)
+To configure the metrics system on Kubernetes, refer to [Metrics On Kubernetes]({{ '/en/kubernetes/Metrics-On-Kubernetes.html' | relativize_url }})
 
 The Alluxio leading master emits both its instance metrics and a summary of the cluster-wide aggregated metrics.
 
@@ -64,22 +64,34 @@ setting `alluxio.fuse.web.enabled` to `true` in `${ALLUXIO_HOME}/conf/alluxio-si
 
 You can send an HTTP request to `/metrics/json/` of the target Alluxio processes to get a snapshot of all metrics in JSON format.
 
-```console
+```shell
 # Get the metrics in JSON format from Alluxio leading master or workers
 $ curl <LEADING_MASTER_HOSTNAME>:<MASTER_WEB_PORT>/metrics/json/
 $ curl <WORKER_HOSTNAME>:<WORKER_WEB_PORT>/metrics/json/
+```
 
+```shell
 # For example, get the local master metrics with its default web port 19999
 $ curl 127.0.0.1:19999/metrics/json/
+```
+
+```shell
 # Get the local worker metrics with its default web port 30000
 $ curl 127.0.0.1:30000/metrics/json/
+```
+
+```shell
 # Get the local job master metrics with its default web port 20002
 $ curl 127.0.0.1:20002/metrics/json/
+```
+
+```shell
 # Get the local job worker metrics with its default web port 30003
 $ curl 127.0.0.1:30003/metrics/json/
+```
 
-# After setting alluxio.fuse.web.enabled=true and launching the standalone Fuse process,
-# get the metrics with its default web port
+After setting alluxio.fuse.web.enabled=true and launching the standalone Fuse process, get the metrics with its default web port:
+```shell
 $ curl <FUSE_WEB_HOSTNAME>:<FUSE_WEB_PORT>/metrics/json/
 $ curl 127.0.0.1:49999/metrics/json/
 ```
@@ -107,22 +119,36 @@ setting `alluxio.fuse.web.enabled` to `true` in `${ALLUXIO_HOME}/conf/alluxio-si
 
 You can send an HTTP request to `/metrics/prometheus/` of the target Alluxio process to get a snapshot of metrics in Prometheus format.
 
-```console
-# Get the metrics in Prometheus format from Alluxio leading master or workers or job service or standalone fuse
+Get the metrics in Prometheus format from Alluxio leading master or workers or job service or standalone fuse:
+```shell
 $ curl <LEADING_MASTER_HOSTNAME>:<MASTER_WEB_PORT>/metrics/prometheus/
 $ curl <WORKER_HOSTNAME>:<WORKER_WEB_PORT>/metrics/prometheus/
 $ curl <LEADING_JOB_MASTER_HOSTNAME>:<JOB_MASTER_WEB_PORT>/metrics/prometheus/
 $ curl <JOB_WORKER_HOSTNAME>:<JOB_WORKER_WEB_PORT>/metrics/prometheus/
 $ curl <FUSE_WEB_HOSTNAME>:<FUSE_WEB_PORT>/metrics/prometheus/
+```
 
+```shell
 # For example, get the local master metrics with its default web port 19999
 $ curl 127.0.0.1:19999/metrics/prometheus/
+```
+
+```shell
 # Get the local worker metrics with its default web port 30000
 $ curl 127.0.0.1:30000/metrics/prometheus/
+```
+
+```shell
 # Get the local job master metrics with its default web port 20002
 $ curl 127.0.0.1:20002/metrics/prometheus/
+```
+
+```shell
 # Get the local job worker metrics with its default web port 30003
 $ curl 127.0.0.1:30003/metrics/prometheus/
+```
+
+```shell
 # Get the local standalone Fuse process metrics with its default web port 49999
 $ curl 127.0.0.1:49999/metrics/prometheus/
 ```
@@ -166,7 +192,7 @@ This section gives an example of writing collected metrics to CSV files.
 
 First, create the polling directory for `CsvSink` (if it does not already exist):
 
-```console
+```shell
 $ mkdir /tmp/alluxio-metrics
 ```
 
@@ -209,16 +235,44 @@ The web page includes the following information:
 
 The nickname and original metric name corresponding are shown:
 
-| Nick Name  | | Original Metric Name |
-|-----------------------------------|-|------------------------------|
-| Local Alluxio (Domain Socket) Read | | `Cluster.BytesReadDomain` |
-| Local Alluxio (Domain Socket) Write | | `Cluster.BytesWrittenDomain` |
-| Local Alluxio (Short-circuit) Read | | `Cluster.BytesReadLocal` |
-| Local Alluxio (Short-circuit) Write | | `Cluster.BytesWrittenLocal` |
-| Remote Alluxio Read | | `Cluster.BytesReadRemote` |
-| Remote Alluxio Write | | `Cluster.BytesWrittenRemote` |
-| Under Filesystem Read | | `Cluster.BytesReadUfsAll `| 
-| Under Filesystem Write | | `Cluster.BytesWrittenUfsAll` |
+<table class="table table-striped">
+  <tr>
+    <th>Nick Name</th>
+    <th>Original Metric Name</th>
+  </tr>
+  <tr>
+    <td markdown="span">Local Alluxio (Domain Socket) Read</td>
+    <td markdown="span">`Cluster.BytesReadDomain`</td>
+  </tr>
+    <tr>
+    <td markdown="span">Local Alluxio (Domain Socket) Write</td>
+    <td markdown="span">`Cluster.BytesWrittenDomain`</td>
+  </tr>
+    <tr>
+    <td markdown="span">Local Alluxio (Short-circuit) Read</td>
+    <td markdown="span">`Cluster.BytesReadLocal`</td>
+  </tr>
+    <tr>
+    <td markdown="span">Local Alluxio (Short-circuit) Write</td>
+    <td markdown="span">`Cluster.BytesWrittenLocal`</td>
+  </tr>
+    <tr>
+    <td markdown="span">Remote Alluxio Read</td>
+    <td markdown="span">`Cluster.BytesReadRemote`</td>
+  </tr>
+    <tr>
+    <td markdown="span">Remote Alluxio Write</td>
+    <td markdown="span">`Cluster.BytesWrittenRemote`</td>
+  </tr>
+    <tr>
+    <td markdown="span">Under Filesystem Read</td>
+    <td markdown="span">`Cluster.BytesReadUfsAll`</td>
+  </tr>
+    <tr>
+    <td markdown="span">Under Filesystem Write</td>
+    <td markdown="span">`Cluster.BytesWrittenUfsAll`</td>
+  </tr>
+</table>
 
 Detailed descriptions of those metrics are in [cluster metrics]({{ '/en/reference/Metrics-List.html' | relativize_url }}#cluster-metrics).
 
@@ -240,15 +294,31 @@ Grafana supports visualizing data from Prometheus. The following steps can help 
 1. Install Grafana using the instructions [here](https://grafana.com/docs/grafana/latest/installation/#install-grafana/).
 2. [Download](https://grafana.com/grafana/dashboards/13467) the Grafana template JSON file for Alluxio.
 3. Import the template JSON file to create a dashboard. See this [example](https://grafana.com/docs/grafana/latest/dashboards/export-import/#importing-a-dashboard) for importing a dashboard.
-4. Add the Prometheus data source to Grafana with a custom name, for example, *prometheus-alluxio*. Refer to the [toturial](https://grafana.com/docs/grafana/latest/datasources/add-a-data-source/#add-a-data-source) for help on importing a dashboard.
+4. Add the Prometheus data source to Grafana with a custom name, for example, *prometheus-alluxio*. Refer to the [tutorial](https://grafana.com/docs/grafana/latest/datasources/add-a-data-source/#add-a-data-source) for help on importing a dashboard.
 5. Modify the variables in the dashboard/settings with instructions [here](https://grafana.com/docs/grafana/latest/variables/) and **save** your dashboard.
 
-   | Variable | | Value |
-    	|------------------|-|------------------------------------------------------------|
-   | alluxio_datasource | | Your prometheus datasource name (eg. *prometheus-alluxio* used in step 4) |
-   | masters            | | Master 'job_name' configured in `prometheus.yml` (eg. *alluxio master*) |
-   | workers            | | Worker 'job_name' configured in `prometheus.yml` (eg. *alluxio worker*) |
-   | alluxio_user       | | The user used to start up Alluxio (eg. *alluxio*) |
+<table class="table table-striped">
+  <tr>
+    <th>Variable</th>
+    <th>Value</th>
+  </tr>
+  <tr>
+    <td markdown="span">`alluxio_datasource`</td>
+    <td markdown="span">Your prometheus datasource name (eg. *prometheus-alluxio* used in step 4)</td>
+  </tr>
+  <tr>
+    <td markdown="span">`masters`</td>
+    <td markdown="span">Master 'job_name' configured in `prometheus.yml` (eg. *alluxio master*)</td>
+  </tr>
+  <tr>
+    <td markdown="span">`workers`</td>
+    <td markdown="span">Worker 'job_name' configured in `prometheus.yml` (eg. *alluxio worker*)</td>
+  </tr>
+  <tr>
+    <td markdown="span">`alluxio_user`</td>
+    <td markdown="span">The user used to start up Alluxio (eg. *alluxio*)</td>
+  </tr>
+</table>
 
 If your Grafana dashboard appears like the screenshot below, you have built your monitoring successfully. Of course, you can modify the JSON file or just operate on the dashboard to design your monitoring.
 
@@ -284,8 +354,8 @@ You can get JVM related metrics via `jvm_exporter` as a Java agent.
 
 Download [jmx_prometheus_javaagent-0.16.0.jar](https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0.16.0/jmx_prometheus_javaagent-0.16.0.jar) and run:
 
-```bash
-java -javaagent:./jmx_prometheus_javaagent-0.16.0.jar=8080:config.yaml -jar yourJar.jar
+```shell
+$ java -javaagent:./jmx_prometheus_javaagent-0.16.0.jar=8080:config.yaml -jar yourJar.jar
 ```
 
 Metrics will now be accessible at http://localhost:8080/metrics.

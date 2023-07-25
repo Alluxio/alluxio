@@ -14,9 +14,9 @@ There are two kinds of caching capabilities: 1. local caching only 2. local cach
 Differences between the two solutions are listed below, choose your desired solution based on training requirements and available resources.
 <table class="table table-striped">
     <tr>
-        <td>Category</td>
-        <td>Local Caching</td>
-        <td>Distributed Caching</td>
+        <th>Category</th>
+        <th>Local Caching</th>
+        <th>Distributed Caching</th>
     </tr>
     <tr>
         <td>Prerequisite</td>

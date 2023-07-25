@@ -40,4 +40,4 @@ Some examples are listed below:
 - metadata cache: the file or directory metadata such as size, or modification timestamp cached on `Node A` might be stale
   if the file is being modified concurrently by an application on `Node B`.
 - data cache: `Node A` may read a cached file without knowing that Node B had already deleted or overwritten the file in the underlying persistent data storage.
-  When this happens the content read by
+  When this happens the content read by `Node A` is outdated.

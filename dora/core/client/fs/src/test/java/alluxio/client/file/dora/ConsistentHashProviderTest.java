@@ -19,7 +19,6 @@ import static org.junit.Assert.fail;
 
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.file.dora.WorkerLocationPolicy.ConsistentHashProvider;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 
@@ -39,7 +38,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class WorkerLocationPolicyTest {
+public class ConsistentHashProviderTest {
   private static final long WORKER_LIST_TTL_MS = 20;
   private static final String OBJECT_KEY = "/path/to/object";
   private static final int NUM_VIRTUAL_NODES = 100;

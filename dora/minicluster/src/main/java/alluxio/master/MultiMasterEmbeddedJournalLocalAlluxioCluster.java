@@ -269,7 +269,7 @@ public final class MultiMasterEmbeddedJournalLocalAlluxioCluster
           address.getEmbeddedJournalPort());
       Configuration.set(PropertyKey.MASTER_JOURNAL_FOLDER, mJournalFolders.get(k));
 
-      final LocalAlluxioMaster master = LocalAlluxioMaster.create(mWorkDirectory, false);
+      final LocalAlluxioMaster master = LocalAlluxioMaster.create(mWorkDirectory);
       master.start();
       LOG.info("master NO.{} started, isServing: {}, address: {}", k, master.isServing(),
           master.getAddress());

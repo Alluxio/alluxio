@@ -23,7 +23,6 @@ Where ACTION is one of:
   job_workers               \tStart job_workers on worker nodes.
   local [MOPT] [-c cache]   \tStart all processes locally.
   master                    \tStart the local master on this node.
-  secondary_master          \tStart the local secondary master on this node.
   masters                   \tStart masters on master nodes.
   proxy                     \tStart the proxy on this node.
   proxies                   \tStart proxies on master and worker nodes.
@@ -134,10 +133,8 @@ start_job_master() {
     ${LAUNCHER} "${BIN}/alluxio" format
   fi
 
-  if [[ ${ALLUXIO_MASTER_SECONDARY} != "true" ]]; then
-    echo "Starting job master @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-    (nohup ${BIN}/launch-process job_master > ${ALLUXIO_LOGS_DIR}/job_master.out 2>&1) &
-   fi
+  echo "Starting job master @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
+  (nohup ${BIN}/launch-process job_master > ${ALLUXIO_LOGS_DIR}/job_master.out 2>&1) &
 }
 
 start_job_masters() {
@@ -172,17 +169,8 @@ start_master() {
     fi
   fi
 
-  if [[ ${ALLUXIO_MASTER_SECONDARY} == "true" ]]; then
-    if [[ `${LAUNCHER} ${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} alluxio.master.journal.type` == "EMBEDDED" ]]; then
-      echo "Secondary master is not supported for journal type: EMBEDDED"
-      exit 1
-    fi
-    echo "Starting secondary master @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-    (nohup ${BIN}/launch-process secondary_master > ${ALLUXIO_LOGS_DIR}/secondary_master.out 2>&1) &
-  else
-    echo "Starting master @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
-    (JOURNAL_BACKUP="${journal_backup}" nohup ${BIN}/launch-process master > ${ALLUXIO_LOGS_DIR}/master.out 2>&1) &
-  fi
+  echo "Starting master @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
+  (JOURNAL_BACKUP="${journal_backup}" nohup ${BIN}/launch-process master > ${ALLUXIO_LOGS_DIR}/master.out 2>&1) &
 }
 
 start_masters() {
@@ -445,7 +433,7 @@ main() {
 
   if [[ "${killonstart}" != "no" ]]; then
     case "${ACTION}" in
-      all | local | master | masters | secondary_master | job_master | job_masters | proxy | proxies | worker | workers | job_worker | job_workers )
+      all | local | master | masters | job_master | job_masters | proxy | proxies | worker | workers | job_worker | job_workers )
         stop ${ACTION}
         sleep 1
         ;;
@@ -488,14 +476,6 @@ main() {
         ${LAUNCHER} ${BIN}/alluxio formatWorker
       fi
       start_master
-      ALLUXIO_MASTER_SECONDARY=true
-      # We only start a secondary master when using a UFS journal.
-      local journal_type=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} \
-                           alluxio.master.journal.type | awk '{print toupper($0)}')
-      if [[ ${journal_type} == "UFS" ]]; then
-          start_master
-      fi
-      ALLUXIO_MASTER_SECONDARY=false
       start_job_master
       sleep 2
       start_worker "${MOPT}"
@@ -516,12 +496,6 @@ main() {
       ;;
     master)
       start_master "${FORMAT}"
-      ;;
-    secondary_master)
-      ALLUXIO_MASTER_SECONDARY=true
-      async=true # there does not exist a monitor process for secondary_master
-      start_master
-      ALLUXIO_MASTER_SECONDARY=false
       ;;
     masters)
       start_masters

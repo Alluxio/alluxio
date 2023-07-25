@@ -4,9 +4,9 @@ title: HDFS
 ---
 
 
-This guide describes the instructions to configure
-[HDFS](https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HdfsUserGuide.html)
-as Alluxio's under storage system.
+This guide describes the instructions to configure [HDFS](https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HdfsUserGuide.html) as Alluxio's under storage system. 
+
+HDFS, or Hadoop Distributed File System, is the primary distributed storage used by Hadoop applications, providing reliable and scalable storage for big data processing in Hadoop ecosystems.
 
 ## Basic Setup
 
@@ -14,7 +14,7 @@ To configure Alluxio to use HDFS as under storage, you will need to modify the c
 file `conf/alluxio-site.properties`.
 If the file does not exist, create the configuration file from the template.
 
-```console
+```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
@@ -26,22 +26,22 @@ directory `/alluxio/data` is mapped to Alluxio.
 To find out where HDFS is running, use `hdfs getconf -confKey fs.defaultFS` to get the default hostname
 and port HDFS is listening on.
 
-```
+```properties
 alluxio.dora.client.ufs.root=hdfs://<NAMENODE>:<PORT>
 ```
 
 Additionally, you may need to specify the following property to be your HDFS version.
 See [mounting HDFS with specific versions]({{ '/en/ufs/HDFS.html' | relativize_url }}#mount-hdfs-with-specific-versions).
-```
+```properties
 alluxio.underfs.version=<HADOOP VERSION>
 ```
 
-## Example: Running Alluxio Locally with HDFS
+## Running Alluxio Locally with HDFS
 
 Before this step, make sure your HDFS cluster is running and the directory mapped to Alluxio
 exists. Start the Alluxio servers:
 
-```console
+```shell
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh master
 $ ./bin/alluxio-start.sh worker
@@ -49,7 +49,7 @@ $ ./bin/alluxio-start.sh worker
 
 Stop Alluxio by running:
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh master
 $ ./bin/alluxio-stop.sh worker
 ```
@@ -74,7 +74,7 @@ set the property `alluxio.underfs.hdfs.configuration` in
 `conf/alluxio-site.properties` to point to your `hdfs-site.xml` and `core-site.xml`.
 Make sure this configuration is set on all servers running Alluxio.
 
-```
+```properties
 alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/core-site.xml:/path/to/hdfs/conf/hdfs-site.xml
 ```
 
@@ -88,7 +88,7 @@ already configured in `hdfs-site.xml`). To mount an HDFS subdirectory to Alluxio
 of the whole HDFS namespace, change the under storage address to something like
 `hdfs://nameservice/alluxio/data`.
 
-```
+```properties
 alluxio.dora.client.ufs.root=hdfs://nameservice/
 ```
 
@@ -147,7 +147,7 @@ and KDC. You can override these defaults by setting the JVM properties
 
 To set these, set `ALLUXIO_JAVA_OPTS` in `conf/alluxio-env.sh`.
 
-```bash
+```sh
 ALLUXIO_JAVA_OPTS+=" -Djava.security.krb5.realm=<YOUR_KERBEROS_REALM> -Djava.security.krb5.kdc=<YOUR_KERBEROS_KDC_ADDRESS>"
 ```
 
@@ -160,10 +160,10 @@ You can check the existence of this client by going to the `lib` directory under
 If you have built Alluxio from source, you can build additional client jar files by running `mvn` command under the `underfs` directory in the Alluxio source tree. 
 For example, issuing the following command would build the client jar for the 2.8.0 version.
 
-```console
+```shell
 $ mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests \
--Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true \
--Pufs-hadoop-2 -Dufs.hadoop.version=2.8.0
+    -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true \
+    -Pufs-hadoop-2 -Dufs.hadoop.version=2.8.0
 ```
 
 #### Using Site Properties
@@ -171,7 +171,7 @@ $ mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests \
 When mounting the under storage of Alluxio root directory with a specific HDFS version, one can add the
 following line to the site properties file (`conf/alluxio-site.properties`)
 
-```
+```properties
 alluxio.dora.client.ufs.root=hdfs://namenode1:8020
 alluxio.underfs.version=2.2
 ```
@@ -193,7 +193,7 @@ To use the Hadoop native library with Alluxio HDFS under filesystem, first insta
 instructions on [this page](https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/NativeLibraries.html).
 Once the hadoop native library is installed on the machine, update Alluxio startup Java parameters in `conf/alluxio-env.sh` by adding the following line:
 
-```
+```sh
 ALLUXIO_JAVA_OPTS+=" -Djava.library.path=<local_path_containing_hadoop_native_library> "
 ```
 

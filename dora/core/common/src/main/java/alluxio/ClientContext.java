@@ -92,7 +92,7 @@ public class ClientContext {
     mUriValidationEnabled = ctx.getUriValidationEnabled();
   }
 
-  private ClientContext(Subject subject, AlluxioConfiguration alluxioConf) {
+  protected ClientContext(Subject subject, AlluxioConfiguration alluxioConf) {
     requireNonNull(subject, "subject is null");
     mClusterConf = requireNonNull(alluxioConf, "alluxioConf is null");
     mClusterConfHash = alluxioConf.hash();
@@ -171,11 +171,35 @@ public class ClientContext {
     return mClusterConf;
   }
 
+  protected void setClusterConf(AlluxioConfiguration alluxioConfiguration) {
+    mClusterConf = alluxioConfiguration;
+  }
+
+  protected void setClusterConfHash(String clusterConfHash) {
+    mClusterConfHash = clusterConfHash;
+  }
+
   /**
    * @return the path level configuration backing this context
    */
   public PathConfiguration getPathConf() {
     return mPathConf;
+  }
+
+  protected void setPathConf(PathConfiguration pathConfiguration) {
+    mPathConf = pathConfiguration;
+  }
+
+  protected void setPathConfHash(String pathConfHash) {
+    mPathConfHash = pathConfHash;
+  }
+
+  protected void setIsPathConfLoaded(boolean isPathConfLoaded) {
+    mIsPathConfLoaded = isPathConfLoaded;
+  }
+
+  protected boolean getIsPathConfLoaded() {
+    return mIsPathConfLoaded;
   }
 
   /**

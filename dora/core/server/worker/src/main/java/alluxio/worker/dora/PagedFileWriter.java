@@ -14,15 +14,18 @@ package alluxio.worker.dora;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.PageId;
+import alluxio.grpc.WritePType;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.worker.block.io.BlockWriter;
 
+import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.WritableByteChannel;
 
@@ -38,11 +41,18 @@ public class PagedFileWriter extends BlockWriter {
   private final long mPageSize;
   private long mPosition;
 
-  PagedFileWriter(CacheManager cacheManager, String fileId, long pageSize) {
+  private final PagedDoraWorker mWorker;
+
+  private final String mUfsPath;
+
+  PagedFileWriter(PagedDoraWorker worker, String ufsPath,
+                  CacheManager cacheManager, String fileId, long pageSize) {
+    mWorker = Preconditions.checkNotNull(worker);
     mTempCacheContext = CacheContext.defaults().setTemporary(true);
-    mCacheManager = cacheManager;
-    mFileId = fileId;
+    mCacheManager = Preconditions.checkNotNull(cacheManager);
+    mFileId = Preconditions.checkNotNull(fileId);
     mPageSize = pageSize;
+    mUfsPath = Preconditions.checkNotNull(ufsPath);
   }
 
   @Override
@@ -68,18 +78,38 @@ public class PagedFileWriter extends BlockWriter {
   @Override
   public long append(ByteBuf buf) throws IOException {
     long bytesWritten = 0;
+    LOG.debug("Writing @" + mPosition + "len=" + buf.readableBytes());
+    DoraOpenFileHandleContainer openFileHandleContainer = mWorker.getOpenFileHandleContainer();
+    OpenFileHandle handle = openFileHandleContainer.find(mUfsPath);
+
     while (buf.readableBytes() > 0) {
       PageId pageId = getPageId(bytesWritten);
       int currentPageOffset = getCurrentPageOffset(bytesWritten);
       int bytesLeftInPage = getBytesLeftInPage(currentPageOffset, buf.readableBytes());
       byte[] page = new byte[bytesLeftInPage];
       buf.readBytes(page);
-      if (!mCacheManager.append(pageId, currentPageOffset, page, mTempCacheContext)) {
-        throw new IOException("Append failed for file " + mFileId);
+      if (handle != null && handle.getOptions().hasWriteType()
+          && handle.getOptions().getWriteType() != WritePType.THROUGH) {
+        // Don't write to local paging cache for THROUGH
+        if (!mCacheManager.append(pageId, currentPageOffset, page, mTempCacheContext)) {
+          throw new IOException("Append failed for file " + mFileId);
+        }
+      }
+      // Now writes data to UFS.
+      if (handle != null) {
+        OutputStream outputStream = handle.getOutStream();
+        if (outputStream != null) {
+          outputStream.write(page);
+        }
+      } else {
+        throw new IOException("Cannot write data to UFS for " + mUfsPath + " @" + mPosition);
       }
       bytesWritten += bytesLeftInPage;
     }
+
+    // data is written to local cache and UFS. Update Position.
     mPosition += bytesWritten;
+    LOG.debug("after write " + bytesWritten + " bytes. New pos = " + mPosition);
     return bytesWritten;
   }
 

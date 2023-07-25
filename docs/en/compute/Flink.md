@@ -67,7 +67,7 @@ standalone cluster setups)
 - Specify the location of the jar file in the `HADOOP_CLASSPATH` environment variable (make sure its
 available on all cluster nodes as well). For example like this:
 
-```console
+```shell
 $ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
 
@@ -96,13 +96,13 @@ This example assumes you have set up Alluxio and Flink as previously described.
 
 Put the file `LICENSE` into Alluxio, assuming you are in the top level Alluxio project directory:
 
-```console
+```shell
 $ bin/alluxio fs copyFromLocal LICENSE alluxio://localhost:19998/LICENSE
 ```
 
 Run the following command from the top level Flink project directory:
 
-```console
+```shell
 $ bin/flink run examples/batch/WordCount.jar \
   --input alluxio://localhost:19998/LICENSE \
   --output alluxio://localhost:19998/output
