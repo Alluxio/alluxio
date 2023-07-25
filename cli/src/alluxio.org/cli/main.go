@@ -16,6 +16,7 @@ import (
 
 	"alluxio.org/cli/cmd/conf"
 	"alluxio.org/cli/cmd/fs"
+	"alluxio.org/cli/cmd/generate"
 	"alluxio.org/cli/cmd/info"
 	"alluxio.org/cli/cmd/journal"
 	"alluxio.org/cli/cmd/process"
@@ -39,6 +40,7 @@ func main() {
 	for _, c := range []*env.Service{
 		conf.Service,
 		fs.Service,
+		generate.Service,
 		info.Service,
 		journal.Service,
 		process.Service,
