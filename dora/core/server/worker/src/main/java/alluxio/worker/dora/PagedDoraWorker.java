@@ -125,7 +125,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private final Closer mResourceCloser = Closer.create();
   private final AtomicReference<Long> mWorkerId;
   private final CacheManager mCacheManager;
-  private final DoraUfsManager mUfsManager;
+  protected final DoraUfsManager mUfsManager;
   private final DoraMetaManager mMetaManager;
   private final UfsInputStreamCache mUfsStreamCache;
   private final long mPageSize;
