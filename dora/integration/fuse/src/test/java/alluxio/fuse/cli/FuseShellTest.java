@@ -20,6 +20,7 @@ import static org.mockito.Mockito.when;
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.cli.FuseShell;
+import alluxio.client.file.DelegatingFileSystem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.MetadataCachingFileSystem;
@@ -37,6 +38,7 @@ import alluxio.wire.FileInfo;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -55,6 +57,7 @@ public class FuseShellTest {
   private Map<AlluxioURI, URIStatus> mFileStatusMap;
   private FileSystem mFileSystem;
   private final InstancedConfiguration mConf = Configuration.copyGlobal();
+  private final TemporaryFolder mFolder = new TemporaryFolder();
 
   private static final AlluxioURI DIR = new AlluxioURI("/dir");
   private static final AlluxioURI FILE = new AlluxioURI("/dir/file");
@@ -67,15 +70,18 @@ public class FuseShellTest {
 
   @Before
   public void before() throws Exception {
+    mFolder.create();
     mConf.set(PropertyKey.USER_METADATA_CACHE_MAX_SIZE, 1000, Source.RUNTIME);
+    mConf.set(PropertyKey.DORA_CLIENT_UFS_ROOT, mFolder.getRoot());
     ClientContext clientContext = ClientContext.create(mConf);
     FileSystemContext fileContext = PowerMockito.mock(FileSystemContext.class);
     when(fileContext.getClientContext()).thenReturn(clientContext);
     when(fileContext.getClusterConf()).thenReturn(mConf);
     when(fileContext.getPathConf(any())).thenReturn(mConf);
     when(fileContext.getUriValidationEnabled()).thenReturn(true);
-    FileSystem fs = new MockUfsBaseFileSystem(fileContext,
+    UfsBaseFileSystem delegatedFs = new UfsBaseFileSystem(fileContext,
         new UfsFileSystemOptions(mConf.getString(PropertyKey.DORA_CLIENT_UFS_ROOT)));
+    FileSystem fs = new MockUfsBaseFileSystem(delegatedFs);
     mFileSystem = new MetadataCachingFileSystem(fs, fileContext);
     mFuseShell = new FuseShell(mFileSystem, mConf);
     mFileStatusMap = new HashMap<>();
@@ -147,9 +153,9 @@ public class FuseShellTest {
     assertEquals(NOT_FOUND_STATUS, mFileSystem.getStatus(FILE));
   }
 
-  class MockUfsBaseFileSystem extends UfsBaseFileSystem {
-    public MockUfsBaseFileSystem(FileSystemContext fsContext, UfsFileSystemOptions options) {
-      super(fsContext, options);
+  class MockUfsBaseFileSystem extends DelegatingFileSystem {
+    public MockUfsBaseFileSystem(FileSystem fs) {
+      super(fs);
     }
 
     @Override

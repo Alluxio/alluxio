@@ -38,6 +38,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -68,10 +69,13 @@ public class MetadataCachingFileSystemTest {
   private Map<AlluxioURI, URIStatus> mFileStatusMap;
   private MetadataCachingFileSystem mFs;
   private RpcCountingUfsBaseFileSystem mRpcCountingFs;
+  private final TemporaryFolder mFolder = new TemporaryFolder();
 
   @Before
   public void before() throws Exception {
+    mFolder.create();
     mConf.set(PropertyKey.USER_METADATA_CACHE_MAX_SIZE, 1000, Source.RUNTIME);
+    mConf.set(PropertyKey.DORA_CLIENT_UFS_ROOT, mFolder.getRoot());
     // Avoid async update file access time to call getStatus to mess up the test results
     mConf.set(PropertyKey.USER_UPDATE_FILE_ACCESSTIME_DISABLED, true);
     mClientContext = ClientContext.create(mConf);
@@ -80,8 +84,9 @@ public class MetadataCachingFileSystemTest {
     when(mFileContext.getClusterConf()).thenReturn(mConf);
     when(mFileContext.getPathConf(any())).thenReturn(mConf);
     when(mFileContext.getUriValidationEnabled()).thenReturn(true);
-    RpcCountingUfsBaseFileSystem fs = new RpcCountingUfsBaseFileSystem(mFileContext,
+    UfsBaseFileSystem delegatedFs = new UfsBaseFileSystem(mFileContext,
         new UfsFileSystemOptions(mConf.getString(PropertyKey.DORA_CLIENT_UFS_ROOT)));
+    RpcCountingUfsBaseFileSystem fs = new RpcCountingUfsBaseFileSystem(delegatedFs, mFileContext);
     mRpcCountingFs = fs;
     mFs = new MetadataCachingFileSystem(fs, mFileContext);
     mFileStatusMap = new HashMap<>();
@@ -285,13 +290,14 @@ public class MetadataCachingFileSystemTest {
     assertEquals(2, mRpcCountingFs.listStatusRpcCount(DIR));
   }
 
-  class RpcCountingUfsBaseFileSystem extends UfsBaseFileSystem {
+  class RpcCountingUfsBaseFileSystem extends DelegatingFileSystem {
     private Map<AlluxioURI, Integer> mGetStatusCount = new HashMap<>();
     private Map<AlluxioURI, Integer> mListStatusCount = new HashMap<>();
+    private FileSystemContext mContext;
 
-    public RpcCountingUfsBaseFileSystem(
-        FileSystemContext fsContext, UfsFileSystemOptions options) {
-      super(fsContext, options);
+    public RpcCountingUfsBaseFileSystem(FileSystem fs, FileSystemContext context) {
+      super(fs);
+      mContext = context;
     }
 
     int getStatusRpcCount(AlluxioURI uri) {
@@ -336,7 +342,7 @@ public class MetadataCachingFileSystemTest {
               .setCompleted(true));
       mFileStatusMap.put(path, status);
       try {
-        return new MockFileOutStream(mFsContext);
+        return new MockFileOutStream(mContext);
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
