@@ -28,11 +28,11 @@ public class HashUtils {
   private static final HashFunction HASH_FUNCTION = murmur3_32_fixed();
 
   /**
-   * Hash the given obj as string.
+   * MD5 Hash the given obj as string.
    * @param object
    * @return hash in string
    */
-  public static String hashAsStr(String object) {
+  public static String hashAsStringMD5(String object) {
     try {
       MessageDigest md = MessageDigest.getInstance("MD5");
       md.update(object.getBytes());
@@ -44,7 +44,7 @@ public class HashUtils {
   }
 
   /**
-   * Hash the give obj as long.
+   * Hash the give obj as long with given HASH_FUNCTION.
    * @param object
    * @return hash in long
    */

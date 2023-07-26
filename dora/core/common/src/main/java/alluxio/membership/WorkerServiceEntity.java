@@ -53,7 +53,7 @@ public class WorkerServiceEntity extends ServiceEntity {
    * @param addr
    */
   public WorkerServiceEntity(WorkerNetAddress addr) {
-    super(HashUtils.hashAsStr(addr.dumpMainInfo()));
+    super(HashUtils.hashAsStringMD5(addr.dumpMainInfo()));
     mAddress = addr;
     mState = State.AUTHORIZED;
   }

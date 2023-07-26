@@ -135,7 +135,7 @@ public class StaticMembershipManager implements MembershipManager {
     try {
       for (WorkerInfo worker : getAllMembers()) {
         String entryLine = String.format(printFormat,
-            HashUtils.hashAsStr(worker.getAddress().dumpMainInfo()),
+            HashUtils.hashAsStringMD5(worker.getAddress().dumpMainInfo()),
             worker.getAddress().getHost() + ":" + worker.getAddress().getRpcPort(),
             "N/A");
         sb.append(entryLine);

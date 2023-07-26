@@ -127,6 +127,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   // and assumes all UFS paths belong to the same UFS.
   private static final int MOUNT_POINT = 1;
   private final Closer mResourceCloser = Closer.create();
+  // TODO(lucy) change to string typed once membership manager got enabled by default
   private final AtomicReference<Long> mWorkerId;
   private final CacheManager mCacheManager;
   private final DoraUfsManager mUfsManager;
