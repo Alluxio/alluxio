@@ -23,6 +23,5 @@ var Service = &env.Service{
 		TestJournalCrash,
 		TestRun,
 		TestUfs,
-		TestUfsIO,
 	},
 }
