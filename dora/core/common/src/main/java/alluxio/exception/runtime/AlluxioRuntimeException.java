@@ -23,9 +23,6 @@ import io.grpc.Status;
 import io.grpc.StatusException;
 import io.grpc.StatusRuntimeException;
 import io.grpc.protobuf.ProtoUtils;
-import org.apache.hadoop.fs.UnsupportedFileSystemException;
-import org.apache.hadoop.security.AccessControlException;
-import org.apache.hadoop.security.authorize.AuthorizationException;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
