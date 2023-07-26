@@ -55,7 +55,6 @@ public class GrpcUtilsTest {
     Assert.assertFalse(GrpcUtils.contains(Scope.SERVER, Scope.CLIENT));
     Assert.assertFalse(GrpcUtils.contains(Scope.NONE, Scope.CLIENT));
 
-    // Old behavior
     Assert.assertTrue(GrpcUtils.contains(Scope.ALL, Scope.SERVER));
     Assert.assertTrue(GrpcUtils.contains(Scope.SERVER, Scope.SERVER));
     Assert.assertFalse(GrpcUtils.contains(Scope.MASTER, Scope.SERVER));
@@ -101,7 +100,6 @@ public class GrpcUtilsTest {
     Assert.assertFalse(GrpcUtils.containsInScope(Scope.SERVER, Scope.CLIENT));
     Assert.assertFalse(GrpcUtils.containsInScope(Scope.NONE, Scope.CLIENT));
 
-    // New behavior
     Assert.assertTrue(GrpcUtils.containsInScope(Scope.ALL, Scope.SERVER));
     Assert.assertTrue(GrpcUtils.containsInScope(Scope.SERVER, Scope.SERVER));
     Assert.assertTrue(GrpcUtils.containsInScope(Scope.MASTER, Scope.SERVER));
