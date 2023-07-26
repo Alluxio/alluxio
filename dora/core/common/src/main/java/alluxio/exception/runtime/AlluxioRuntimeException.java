@@ -210,27 +210,6 @@ public class AlluxioRuntimeException extends RuntimeException {
     return new UnknownRuntimeException(ioe);
   }
 
-  /**
-   * Converts an AlluxioRuntimeException to a corresponding io exception.
-   *
-   * @return the corresponding io exception
-   */
-  public IOException toIOException() {
-    if (this instanceof NotFoundRuntimeException) {
-      return new FileNotFoundException(getMessage());
-    }
-    if (this instanceof UnauthenticatedRuntimeException) {
-      return new AuthorizationException(this);
-    }
-    if (this instanceof UnimplementedRuntimeException) {
-      return new UnsupportedFileSystemException(getMessage());
-    }
-    if (this instanceof PermissionDeniedRuntimeException) {
-      return new AccessControlException(this);
-    }
-    return new IOException(this);
-  }
-
   @Override
   @Nullable
   public String getMessage() {

@@ -29,6 +29,10 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
+import alluxio.exception.runtime.NotFoundRuntimeException;
+import alluxio.exception.runtime.PermissionDeniedRuntimeException;
+import alluxio.exception.runtime.UnauthenticatedRuntimeException;
+import alluxio.exception.runtime.UnimplementedRuntimeException;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
 import alluxio.grpc.CreateFilePOptions;
@@ -50,9 +54,12 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.UnsupportedFileSystemException;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
+import org.apache.hadoop.security.AccessControlException;
 import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.hadoop.security.authorize.AuthorizationException;
 import org.apache.hadoop.util.Progressable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -119,7 +126,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (InvalidArgumentRuntimeException e) {
       throw new IllegalArgumentException(e);
     } catch (AlluxioRuntimeException e) {
-      throw e.toIOException();
+      throw toHdfsIOException(e);
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -144,7 +151,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (InvalidArgumentRuntimeException e) {
       throw new IllegalArgumentException(e);
     } catch (AlluxioRuntimeException e) {
-      throw e.toIOException();
+      throw toHdfsIOException(e);
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -192,7 +199,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (InvalidArgumentRuntimeException e) {
       throw new IllegalArgumentException(e);
     } catch (AlluxioRuntimeException e) {
-      throw e.toIOException();
+      throw toHdfsIOException(e);
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -263,7 +270,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (InvalidArgumentRuntimeException e) {
       throw new IllegalArgumentException(e);
     } catch (AlluxioRuntimeException e) {
-      throw e.toIOException();
+      throw toHdfsIOException(e);
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -338,7 +345,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (InvalidArgumentRuntimeException e) {
       throw new IllegalArgumentException(e);
     } catch (AlluxioRuntimeException e) {
-      throw e.toIOException();
+      throw toHdfsIOException(e);
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -364,7 +371,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (InvalidArgumentRuntimeException e) {
       throw new IllegalArgumentException(e);
     } catch (AlluxioRuntimeException e) {
-      throw e.toIOException();
+      throw toHdfsIOException(e);
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -391,7 +398,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (InvalidArgumentRuntimeException e) {
       throw new IllegalArgumentException(e);
     } catch (AlluxioRuntimeException e) {
-      throw e.toIOException();
+      throw toHdfsIOException(e);
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -432,7 +439,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
       } catch (InvalidArgumentRuntimeException e) {
         throw new IllegalArgumentException(e);
       } catch (AlluxioRuntimeException e) {
-        throw e.toIOException();
+        throw toHdfsIOException(e);
       } catch (AlluxioException e) {
         throw new IOException(e);
       }
@@ -456,7 +463,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (InvalidArgumentRuntimeException e) {
       throw new IllegalArgumentException(e);
     } catch (AlluxioRuntimeException e) {
-      throw e.toIOException();
+      throw toHdfsIOException(e);
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -630,7 +637,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (InvalidArgumentRuntimeException e) {
       throw new IllegalArgumentException(e);
     } catch (AlluxioRuntimeException e) {
-      throw e.toIOException();
+      throw toHdfsIOException(e);
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -665,7 +672,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (InvalidArgumentRuntimeException e) {
       throw new IllegalArgumentException(e);
     } catch (AlluxioRuntimeException e) {
-      throw e.toIOException();
+      throw toHdfsIOException(e);
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -755,12 +762,33 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (InvalidArgumentRuntimeException e) {
       throw new IllegalArgumentException(e);
     } catch (AlluxioRuntimeException e) {
-      throw e.toIOException();
+      throw toHdfsIOException(e);
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
   }
 
+  /**
+   * Converts an AlluxioRuntimeException to a corresponding io exception.
+   *
+   * @return the corresponding io exception
+   */
+  public IOException toHdfsIOException(AlluxioRuntimeException e) {
+    if (e instanceof NotFoundRuntimeException) {
+      return new FileNotFoundException(e.getMessage());
+    }
+    if (e instanceof UnauthenticatedRuntimeException) {
+      return new AuthorizationException(e);
+    }
+    if (e instanceof UnimplementedRuntimeException) {
+      return new UnsupportedFileSystemException(e.getMessage());
+    }
+    if (e instanceof PermissionDeniedRuntimeException) {
+      return new AccessControlException(e);
+    }
+    return new IOException(e);
+  }
+  
   /**
    * Gets the connection configuration from the input uri.
    *
