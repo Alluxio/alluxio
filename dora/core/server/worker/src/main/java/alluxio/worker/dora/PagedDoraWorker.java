@@ -129,7 +129,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   private final DoraMetaManager mMetaManager;
   private final UfsInputStreamCache mUfsStreamCache;
   private final long mPageSize;
-  private final AlluxioConfiguration mConf;
+  protected final AlluxioConfiguration mConf;
   private final BlockMasterClientPool mBlockMasterClientPool;
   private final String mRootUFS;
   private FileSystemContext mFsContext;
