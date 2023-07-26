@@ -188,7 +188,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   }
 
   @VisibleForTesting
-  UnderFileSystem getUfsInstance(String ufsUriStr) {
+  protected UnderFileSystem getUfsInstance(String ufsUriStr) {
     AlluxioURI ufsUriUri = new AlluxioURI(ufsUriStr);
     // make sure the UFS URI is really a URI with scheme and authority
     // without a scheme, the URI is interpreted as a local file system path
