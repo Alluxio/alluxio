@@ -12,6 +12,7 @@
 package exec
 
 import (
+	"alluxio.org/log"
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
@@ -50,15 +51,15 @@ func (c *TestUfsIOCommand) ToCommand() *cobra.Command {
 		},
 	})
 	cmd.Flags().StringVar(&c.path, "path", "",
-		"[required] specifies the path to write/read temporary data in.")
-	cmd.Flags().StringVar(&c.ioSize, "io-size", "",
+		"specifies the path to write/read temporary data in.")
+	cmd.Flags().StringVar(&c.ioSize, "io-size", "4G",
 		"specifies the amount of data each thread writes/reads. It defaults to 4G.")
-	cmd.Flags().StringVar(&c.threads, "threads", "",
+	cmd.Flags().StringVar(&c.threads, "threads", "4",
 		"specifies the number of threads to concurrently use on each worker. It defaults to 4.")
 	cmd.Flags().BoolVar(&c.cluster, "cluster", false,
 		"specifies the benchmark is run in the Alluxio cluster.\n"+
 			"If not specified, this benchmark will run locally.")
-	cmd.Flags().StringVar(&c.clusterLimit, "cluster-limit", "",
+	cmd.Flags().StringVar(&c.clusterLimit, "cluster-limit", "0",
 		"specifies how many Alluxio workers to run the benchmark concurrently.\n"+
 			"If >0, it will only run on that number of workers.\n"+
 			"If 0, it will run on all available cluster workers.\n"+
@@ -68,6 +69,10 @@ func (c *TestUfsIOCommand) ToCommand() *cobra.Command {
 		"The java options to add to the command line to for the task.\n"+
 			"This can be repeated. The options must be quoted and prefixed with a space.\n"+
 			"For example: --java-opt \" -Xmx4g\" --java-opt \" -Xms2g\".")
+	err := cmd.MarkFlagRequired("path")
+	if err != nil {
+		log.Logger.Errorln("Required flag --path not specified.")
+	}
 	return cmd
 }
 
@@ -84,9 +89,9 @@ func (c *TestUfsIOCommand) Run(args []string) error {
 	}
 	if c.cluster != false {
 		javaArgs = append(javaArgs, "--cluster")
-	}
-	if c.clusterLimit != "" {
-		javaArgs = append(javaArgs, "--cluster-limit", c.clusterLimit)
+		if c.clusterLimit != "" {
+			javaArgs = append(javaArgs, "--cluster-limit", c.clusterLimit)
+		}
 	}
 	for _, option := range c.javaOpt {
 		javaArgs = append(javaArgs, "--java-opt", "\""+option+"\"")

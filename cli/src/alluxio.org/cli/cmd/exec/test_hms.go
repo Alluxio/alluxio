@@ -12,6 +12,7 @@
 package exec
 
 import (
+	"alluxio.org/log"
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
@@ -45,8 +46,8 @@ func (c *TestHmsCommand) ToCommand() *cobra.Command {
 		},
 	})
 	cmd.Flags().StringVarP(&c.metastore, "metastore", "m", "",
-		"[required] Uri(s) to connect to hive metastore.")
-	cmd.Flags().StringVarP(&c.database, "database", "d", "",
+		"Uri(s) to connect to hive metastore.")
+	cmd.Flags().StringVarP(&c.database, "database", "d", "default",
 		"Database to run tests against.")
 	cmd.Flags().StringVarP(&c.tables, "table", "t", "",
 		"Tables to run tests against.\n"+
@@ -54,6 +55,10 @@ func (c *TestHmsCommand) ToCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&c.socketTimeout, "socketTimeout", "s", "",
 		"Socket timeout of hive metastore client in minutes.\n"+
 			"Consider increasing this if you have tables with a lot of metadata.")
+	err := cmd.MarkFlagRequired("metastore")
+	if err != nil {
+		log.Logger.Errorln("Required flag --metastore (-m) not specified.")
+	}
 	return cmd
 }
 

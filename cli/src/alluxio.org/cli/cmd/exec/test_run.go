@@ -48,7 +48,7 @@ func (c *TestRunCommand) ToCommand() *cobra.Command {
 			return c.Run(args)
 		},
 	})
-	cmd.Flags().StringVar(&c.directory, "directory", "",
+	cmd.Flags().StringVar(&c.directory, "directory", "/",
 		"Alluxio path for the tests working directory. Default: /")
 	cmd.Flags().StringVar(&c.operation, "operation", "",
 		"The operation to test, either BASIC or BASIC_NON_BYTE_BUFFER. \n"+
