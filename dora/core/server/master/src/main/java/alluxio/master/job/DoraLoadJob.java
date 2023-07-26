@@ -21,6 +21,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
+import alluxio.exception.runtime.NotFoundRuntimeException;
 import alluxio.grpc.Block;
 import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.LoadFileFailure;
@@ -103,7 +104,6 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 
   // Job states
   private final Queue<LoadSubTask> mRetrySubTasks = new ArrayDeque<>();
-  private final Queue<String> mRetryFiles = new ArrayDeque<>();
   private final Map<String, Integer> mRetryCount = new ConcurrentHashMap<>();
   private final Map<String, String> mFailedFiles = new HashMap<>();
   private final AtomicLong mSkippedFileCount = new AtomicLong();
@@ -187,34 +187,37 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     }
     int i = 0;
     int startRetryListSize = mRetrySubTasks.size();
-    int blocksToLoad = 0;
-    while (blocksToLoad < RETRY_THRESHOLD
+    int numSubTasks = 0;
+    while (numSubTasks < RETRY_THRESHOLD
         && i++ < startRetryListSize && mRetrySubTasks.peek() != null) {
       LoadSubTask subTask = mRetrySubTasks.poll();
       String path = subTask.mUfsStatus.getUfsPath();
       try {
         mUfs.getStatus(path);
         batchBuilder.add(subTask);
-        ++blocksToLoad;
-      } catch (IOException e) {
+        ++numSubTasks;
+      } catch (IOException | AlluxioRuntimeException e) {
         // The previous list or get might contain stale file metadata.
         // For example, if a file gets removed before the worker actually loads it,
         // the load will fail and the scheduler will retry.
         // In such case, a FileNotFoundException might be thrown when we attempt to
         // get the file status again, and we simply ignore that file.
-        if (!(e instanceof FileNotFoundException)) {
+        if (!(e instanceof FileNotFoundException) || !(e instanceof NotFoundRuntimeException)) {
           mRetrySubTasks.offer(subTask);
         }
       }
     }
-    while (blocksToLoad < BATCH_SIZE * workerNum) {
+    while (numSubTasks < BATCH_SIZE * workerNum) {
       if (!mCurrentSubTaskIterator.hasNext()) {
         if (!mUfsStatusIterator.get().hasNext()) {
           break;
         }
-        mCurrentSubTaskIterator = getSubTasks(mUfsStatusIterator.get().next()).listIterator();
+        else{
+          mCurrentSubTaskIterator = getSubTasks(mUfsStatusIterator.get().next()).listIterator();
+        }
       }
       batchBuilder.add(mCurrentSubTaskIterator.next());
+      numSubTasks++;
     }
 
 
@@ -253,7 +256,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       task.addSubTask(subtask);
       if (subtask.mUfsStatus.isFile()) {
         if (!mLoadMetadataOnly) {
-          mTotalByteCount.addAndGet(subtask.mUfsStatus.asUfsFileStatus().getContentLength());
+          mTotalByteCount.addAndGet(subtask.getLength());
         }
         mProcessingFileCount.addAndGet(1);
       }
@@ -604,7 +607,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
         loadFileReqBuilder.addUfsStatus(subTask.mUfsStatus.toProto());}
         else {
           Block block = Block.newBuilder().setOffsetInFile(subTask.getOffset()).setUfsPath(subTask.mUfsStatus.getUfsPath()).setLength(
-              subTask.getLength())
+              subTask.getLength()).setUfsStatus(subTask.mUfsStatus.toProto())
                              .build();
           loadFileReqBuilder.addBlocks(block);
         }
@@ -651,7 +654,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     }
 
     private long getLength(){
-      if (mUfsStatus.isDirectory()){
+      if (mUfsStatus.isDirectory() || isLoadMetadata()){
         return 0;
       }
       long leftover = mUfsStatus.asUfsFileStatus().getContentLength() - getOffset();

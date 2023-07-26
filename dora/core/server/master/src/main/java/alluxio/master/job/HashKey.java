@@ -21,7 +21,7 @@ public final class HashKey {
 
   @Override
   public String toString() {
-    if (mPartitionIndex.isPresent()) {
+    if (mPartitionIndex.isPresent()&&mPartitionIndex.getAsInt()!=0) {
       return mUFSPath + ":" + mPartitionIndex.getAsInt();
     } else {
       return mUFSPath;

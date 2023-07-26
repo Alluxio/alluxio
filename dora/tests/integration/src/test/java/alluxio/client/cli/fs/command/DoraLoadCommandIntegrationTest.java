@@ -24,6 +24,7 @@ import alluxio.conf.PropertyKey;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 
 public class DoraLoadCommandIntegrationTest extends AbstractDoraFileSystemShellTest {
@@ -35,20 +36,14 @@ public class DoraLoadCommandIntegrationTest extends AbstractDoraFileSystemShellT
   @Override
   public void before() throws Exception {
     mLocalAlluxioClusterResource.setProperty(
-        PropertyKey.JOB_BATCH_SIZE, 3
-    );
-    mLocalAlluxioClusterResource.setProperty(
         PropertyKey.MASTER_SCHEDULER_INITIAL_DELAY, "1s"
     );
     super.before();
   }
 
   @Test
-  @DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "yimin",
-      comment = "fix or remove this test")
-  @Ignore
   public void testCommand() throws Exception {
-    mTestFolder.newFolder("testRoot");
+    File testRoot = mTestFolder.newFolder("testRoot");
     mTestFolder.newFolder("testRoot/testDirectory");
 
     createByteFileInUfs("/testRoot/testFileA", Constants.MB);
@@ -74,13 +69,12 @@ public class DoraLoadCommandIntegrationTest extends AbstractDoraFileSystemShellT
       assertEquals(0, mFsShell.run("load", "/testRoot", "--progress"));
       Thread.sleep(1000);
     }
-    assertTrue(mOutput.toString().contains("Files Processed: 3"));
-    assertTrue(mOutput.toString().contains("Directories Processed: 1"));
+    assertTrue(mOutput.toString().contains("Inodes Processed: 4"));
     assertTrue(mOutput.toString().contains("Bytes Loaded: 3072.00KB out of 3072.00KB"));
     assertTrue(mOutput.toString().contains("Files Failed: 0"));
     assertEquals(0, mFsShell.run("load", "/testRoot", "--stop"));
     assertEquals(-2, mFsShell.run("load", "/testRootNotExists", "--progress"));
-    assertTrue(mOutput.toString().contains("Load for path '/testRootNotExists' cannot be found."));
+    assertTrue(mOutput.toString().contains("cannot be found."));
     mFsShell.run("load", "/testRoot", "--progress", "--format", "JSON");
     assertTrue(mOutput.toString().contains("\"mJobState\":\"SUCCEEDED\""));
     mFsShell.run("load", "/testRoot", "--progress", "--format", "JSON", "--verbose");

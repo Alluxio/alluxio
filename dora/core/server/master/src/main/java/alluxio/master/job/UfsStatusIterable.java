@@ -9,7 +9,6 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.ListOptions;
-import alluxio.wire.FileInfo;
 
 import com.google.common.collect.Iterators;
 
@@ -24,6 +23,7 @@ public class UfsStatusIterable implements Iterable<UfsStatus> {
   private final String mPath;
   private final Optional<String> mUser;
   private final Predicate<UfsStatus> mFilter;
+  private AlluxioURI mRootUri;
 
   /**
    * Creates a new instance of {@link UfsStatusIterable}.
@@ -38,6 +38,7 @@ public class UfsStatusIterable implements Iterable<UfsStatus> {
     mPath = requireNonNull(path, "path is null");
     mUser = requireNonNull(user, "user is null");
     mFilter = filter;
+    mRootUri = new AlluxioURI(mPath);
   }
 
   @Override
@@ -46,7 +47,7 @@ public class UfsStatusIterable implements Iterable<UfsStatus> {
       AuthenticatedClientUser.set(mUser.orElse(null));
       UfsStatus rootUfsStatus = mUfs.getStatus(mPath);
       if (rootUfsStatus != null && rootUfsStatus.isFile()) {
-        rootUfsStatus.setUfsFullPath(new AlluxioURI(mPath));
+        rootUfsStatus.setUfsFullPath(mRootUri);
         return Iterators.filter(Iterators.singletonIterator(rootUfsStatus),
             mFilter::test);
       }
@@ -56,7 +57,10 @@ public class UfsStatusIterable implements Iterable<UfsStatus> {
         throw new InternalRuntimeException("Get null when listing directory: " + mPath);
       }
       else {
-        return Iterators.filter(statuses, mFilter::test);
+        return Iterators.transform(Iterators.filter(statuses, mFilter::test),(it) -> {
+            it.setUfsFullPath(mRootUri.join(it.getName()));
+            return it;
+          });
       }
     } catch (IOException e) {
       throw AlluxioRuntimeException.from(e);
