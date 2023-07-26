@@ -43,6 +43,7 @@ public class EtcdMembershipManager implements MembershipManager {
   private String mClusterName;
   private final AlluxioConfiguration mConf;
   private static final String RING_PATH_FORMAT = "/DHT/%s/AUTHORIZED/";
+  private String mRingPathPrefix = "";
 
   /**
    * CTOR for EtcdMembershipManager.
@@ -60,6 +61,7 @@ public class EtcdMembershipManager implements MembershipManager {
   public EtcdMembershipManager(AlluxioConfiguration conf, AlluxioEtcdClient alluxioEtcdClient) {
     mConf = conf;
     mClusterName = conf.getString(PropertyKey.ALLUXIO_CLUSTER_NAME);
+    mRingPathPrefix = String.format(RING_PATH_FORMAT, mClusterName);
     mAlluxioEtcdClient = alluxioEtcdClient;
   }
 
@@ -67,8 +69,9 @@ public class EtcdMembershipManager implements MembershipManager {
   public void join(WorkerInfo wkrAddr) throws IOException {
     WorkerServiceEntity entity = new WorkerServiceEntity(wkrAddr.getAddress());
     // 1) register to the ring
-    String pathOnRing = String.format(RING_PATH_FORMAT, mClusterName)
-        + entity.getServiceEntityName();
+    String pathOnRing = new StringBuffer()
+        .append(mRingPathPrefix)
+        .append(entity.getServiceEntityName()).toString();
     byte[] ret = mAlluxioEtcdClient.getForPath(pathOnRing);
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     DataOutputStream dos = new DataOutputStream(baos);
@@ -104,8 +107,7 @@ public class EtcdMembershipManager implements MembershipManager {
 
   private List<WorkerServiceEntity> retrieveFullMembers() throws IOException {
     List<WorkerServiceEntity> fullMembers = new ArrayList<>();
-    String ringPath = String.format(RING_PATH_FORMAT, mClusterName);
-    List<KeyValue> childrenKvs = mAlluxioEtcdClient.getChildren(ringPath);
+    List<KeyValue> childrenKvs = mAlluxioEtcdClient.getChildren(mRingPathPrefix);
     for (KeyValue kv : childrenKvs) {
       try (ByteArrayInputStream bais =
                new ByteArrayInputStream(kv.getValue().getBytes())) {
