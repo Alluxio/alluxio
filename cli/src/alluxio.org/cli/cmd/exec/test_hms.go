@@ -22,7 +22,7 @@ import (
 
 var TestHms = &TestHmsCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "testHms",
+		CommandName:   "hiveMetastoreTest",
 		JavaClassName: "alluxio.cli.HmsTests",
 	},
 }
@@ -41,7 +41,7 @@ func (c *TestHmsCommand) Base() *env.BaseJavaCommand {
 
 func (c *TestHmsCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   "testHms",
+		Use:   "hiveMetastoreTest",
 		Short: "Test the configuration, connectivity, and permission of an existing hive metastore.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)

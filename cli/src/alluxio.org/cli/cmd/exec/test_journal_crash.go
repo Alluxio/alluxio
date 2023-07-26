@@ -23,7 +23,7 @@ import (
 
 var TestJournalCrash = &TestJournalCrashCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "testJournalCrash",
+		CommandName:   "journalCrashTest",
 		JavaClassName: "alluxio.cli.JournalCrashTest",
 		ShellJavaOpts: fmt.Sprintf(env.JavaOptFormat, env.ConfAlluxioLoggerType, "Console"),
 	},
@@ -45,7 +45,7 @@ func (c *TestJournalCrashCommand) Base() *env.BaseJavaCommand {
 
 func (c *TestJournalCrashCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   "testJournalCrash",
+		Use:   "journalCrashTest",
 		Short: "Test the Master Journal System in a crash scenario.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)

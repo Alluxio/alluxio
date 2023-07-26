@@ -22,7 +22,7 @@ import (
 
 var TestUfsIO = &TestUfsIOCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "testUfsIO",
+		CommandName:   "ufsIOTest",
 		JavaClassName: "alluxio.stress.cli.UfsIOBench",
 	},
 }
@@ -43,7 +43,7 @@ func (c *TestUfsIOCommand) Base() *env.BaseJavaCommand {
 
 func (c *TestUfsIOCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use: "testUfsIO",
+		Use: "ufsIOTest",
 		Short: "A benchmarking tool for the I/O between Alluxio and UFS.\n" +
 			"This test will measure the I/O throughput between Alluxio workers and the specified UFS path. " +
 			"Each worker will create concurrent clients to first generate test files of the specified size " +

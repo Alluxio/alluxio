@@ -20,7 +20,7 @@ import (
 
 var TestUfs = &TestUfsCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "testUfs",
+		CommandName:   "ufsTest",
 		JavaClassName: "alluxio.cli.UnderFileSystemContractTest",
 	},
 }
@@ -37,7 +37,7 @@ func (c *TestUfsCommand) Base() *env.BaseJavaCommand {
 
 func (c *TestUfsCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use: "testUfs",
+		Use: "ufsTest",
 		Short: "Test the integration between Alluxio and the given UFS.\n" +
 			"UFS tests validate the semantics Alluxio expects of the UFS.",
 		RunE: func(cmd *cobra.Command, args []string) error {
