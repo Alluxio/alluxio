@@ -17,6 +17,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
+	"alluxio.org/log"
 )
 
 var TestHdfsMount = &TestHdfsMountCommand{
@@ -49,13 +50,17 @@ func (c *TestHdfsMountCommand) ToCommand() *cobra.Command {
 		},
 	})
 	cmd.Flags().StringVar(&c.path, "path", "",
-		"[required] specifies the HDFS path you want to validate.")
+		"specifies the HDFS path you want to validate.")
 	cmd.Flags().BoolVar(&c.readonly, "readonly", false,
 		"mount point is readonly in Alluxio.")
 	cmd.Flags().BoolVar(&c.shared, "shared", false,
 		"mount point is shared.")
 	cmd.Flags().StringVar(&c.option, "option", "",
 		"options associated with this mount point.")
+	err := cmd.MarkFlagRequired("path")
+	if err != nil {
+		log.Logger.Errorln("Error marking flag --path required.")
+	}
 	return cmd
 }
 
