@@ -11,21 +11,24 @@ Azure Blob Storage is Microsoft's object storage solution for the cloud. Blob St
 
 ## Prerequisites
 
+If you haven't already, please see [Prerequisites]({{ '/en/ufs/Storage-Overview.html#prerequisites' | relativize_url }}) before you get started.
+
 In preparation for using Azure Blob Store with Alluxio, create a new container in your Azure
 storage account or use an existing container. You should also note that the directory you want to
 use in that container, either by creating a new directory in the container, or using an existing
-one. For the purposes of this guide, the Azure storage account name is called `<AZURE_ACCOUNT>`, the
+one. 
+
+<!-- For the purposes of this guide, the Azure storage account name is called `<AZURE_ACCOUNT>`, the
 container in that storage account is called `<AZURE_CONTAINER>` and the directory in that container is
-called `<AZURE_DIRECTORY>`. For more information about Azure storage account, please see
+called `<AZURE_DIRECTORY>`.  -->
+
+For more information about Azure storage account, please see
 [here](https://docs.microsoft.com/en-us/azure/storage/storage-create-storage-account).
 
 
 ## Basic Setup
 
-To use Azure blob store as the UFS of Alluxio root mount point,
-you need to configure Alluxio to use under storage systems by modifying
-`conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
-template.
+To use Azure blob store as the UFS of Alluxio root mount point, you need to configure Alluxio to use under storage systems by modifying `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the template.
 
 ```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
@@ -46,7 +49,10 @@ fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<AZURE_ACCOUNT_KEY>
 
 ## Running Alluxio Locally with Azure Blob Store
 
-Start up Alluxio locally to see that everything works.
+Once you have configured Alluxio to Azure Blob Store, try [running Alluxio locally]({{ '/en/ufs/Storage-Overview.html#running-alluxio-locally' | relativize_url}}) to see that everything works.
+
+
+<!-- Start up Alluxio locally to see that everything works.
 
 ```shell
 $ ./bin/alluxio format
@@ -72,9 +78,9 @@ To stop Alluxio, you can run:
 
 ``` shell
 $ ./bin/alluxio-stop.sh local
-```
+``` -->
 
-## FAQ
+## Troubleshooting
 ### What should I do if I get http not support error?
 If you mount the Blob and configure the Blob path start with `wasb://`, you may see the error as follows:
 

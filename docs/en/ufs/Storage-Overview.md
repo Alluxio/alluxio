@@ -3,13 +3,13 @@ layout: global
 title: Storage Integrations Overview
 ---
 
-This guide will cover general prerequisites and running Alluxio locally with an under storage system. To learn how to configure Alluxio with each individual storage system, please look at their respective pages.
+This guide will cover general prerequisites and running Alluxio locally with your desired under storage system. To learn how to configure Alluxio with each individual storage system, please look at their respective pages.
 
 ## Prerequisites
 
 <!-- In preparation for using your chosen storage system with Alluxio, create a new bucket, or use an existing bucket, and note the directory you want to use in that bucket, either by creating a new directory in the bucket or using an existing one. -->
 
-In preparation for using your chosen storage system with Alluxio, please be sure you have all the required location, credentials, and additional properties before you begin configuring Alluxio to your storage.
+In preparation for using your chosen storage system with Alluxio, please be sure you have all the required location, credentials, and additional properties before you begin configuring Alluxio to your storage system.
 
 For the purposes of this guide, the following are placeholders.
 
@@ -153,7 +153,7 @@ For the purposes of this guide, the following are placeholders.
 
 ## Running Alluxio Locally
 
-Start up Alluxio locally to see that everything works.
+Once you have configured Alluxio to your desired under storage system, start up Alluxio locally to see that everything works.
 
 ```shell
 $ ./bin/alluxio format
@@ -169,11 +169,14 @@ Run a simple example program:
 $ ./bin/alluxio runTests
 ```
 
-Visit your container `<BUCKET>/<DIRECTORY>` to verify the files and directories created by Alluxio exist. For this test, you should see files named like:
+<!-- Visit your container `<BUCKET>/<DIRECTORY>` to verify the files and directories created by Alluxio exist. For this test, you should see files named like:
 
 ```
 <BUCKET>/<DIRECTORY>/default_tests_files/BASIC_CACHE_THROUGH
-```
+``` -->
+
+
+Visit your bucket `<BUCKET>/<DIRECTORY>` to verify the files and directories created by Alluxio exist. If there are no errors, then you have successfully configured your storage system!
 
 To stop Alluxio, you can run:
 

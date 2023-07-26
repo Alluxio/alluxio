@@ -11,13 +11,17 @@ Azure Data Lake Storage is an enterprise-wide hyper-scale repository for big dat
 
 ## Prerequisites
 
+If you haven't already, please see [Prerequisites]({{ '/en/ufs/Storage-Overview.html#prerequisites' | relativize_url }}) before you get started.
+
 In preparation for using Azure Data Lake storage with Alluxio, create a new Data Lake storage in your Azure
 account or use an existing Data Lake storage. You should also note the directory you want to
 use, either by creating a new directory, or using an existing one. You also need to set up 
 [Service-to-service authentication](https://docs.microsoft.com/en-us/azure/data-lake-store/data-lake-store-service-to-service-authenticate-using-active-directory) for your storage account.
-For the purposes of this guide, the Azure storage account name is called `<AZURE_ACCOUNT>`
-and the directory in that storage account is called `<AZURE_DIRECTORY>`. For more information 
-about Azure storage account, please see
+
+<!-- For the purposes of this guide, the Azure storage account name is called `<AZURE_ACCOUNT>`
+and the directory in that storage account is called `<AZURE_DIRECTORY>`.  -->
+
+For more information about Azure storage account, please see
 [here](https://docs.microsoft.com/en-us/azure/data-lake-store/data-lake-store-get-started-portal).
 
 
@@ -53,7 +57,10 @@ After these changes, Alluxio should be configured to work with Azure Data Lake s
 
 ## Running Alluxio Locally with Data Lake Storage
 
-Start up Alluxio locally to see that everything works.
+Once you have configured Alluxio to Azure Data Lake Storage, try [running Alluxio locally]({{ '/en/ufs/Storage-Overview.html#running-alluxio-locally' | relativize_url}}) to see that everything works.
+
+
+<!-- Start up Alluxio locally to see that everything works.
 
 ```shell
 $ ./bin/alluxio format
@@ -79,4 +86,4 @@ To stop Alluxio, you can run:
 
 ```shell
 $ ./bin/alluxio-stop.sh local
-```
+``` -->
