@@ -43,8 +43,7 @@ func (c *TestJournalCrashCommand) Base() *env.BaseJavaCommand {
 
 func (c *TestJournalCrashCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use: "testJournalCrash [--creates <arg>] [--deletes <arg>] [--maxAlive <arg>]" +
-			"[--renames <arg>] [--testDir <arg>] [--totalTime <arg>]",
+		Use:   "testJournalCrash",
 		Short: "Test the Master Journal System in a crash scenario.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)

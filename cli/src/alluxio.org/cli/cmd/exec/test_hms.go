@@ -38,7 +38,7 @@ func (c *TestHmsCommand) Base() *env.BaseJavaCommand {
 
 func (c *TestHmsCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   "testHms -m <arg> [-d <arg>] [-h] [-s <arg>] [-t <arg>]",
+		Use:   "testHms",
 		Short: "Test the configuration, connectivity, and permission of an existing hive metastore.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)

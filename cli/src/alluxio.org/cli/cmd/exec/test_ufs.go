@@ -35,7 +35,7 @@ func (c *TestUfsCommand) Base() *env.BaseJavaCommand {
 
 func (c *TestUfsCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use: "testUfs --path <ufs_path>",
+		Use: "testUfs",
 		Short: "Test the integration between Alluxio and the given UFS.\n" +
 			"UFS tests validate the semantics Alluxio expects of the UFS.",
 		RunE: func(cmd *cobra.Command, args []string) error {
