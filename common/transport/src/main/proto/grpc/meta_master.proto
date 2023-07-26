@@ -202,6 +202,21 @@ service MetaMasterClientService {
    * Returns the status of all known Proxy instances in the cluster.
    */
   rpc ListProxyStatus(ListProxyStatusPRequest) returns (ListProxyStatusPResponse);
+
+  /**
+   * Sets a property for a path.
+   */
+  rpc SetPathConfiguration (SetPathConfigurationPRequest) returns (SetPathConfigurationPResponse);
+
+  /**
+   * Removes properties for a path, if the keys are empty, it means remove all properties.
+   */
+  rpc RemovePathConfiguration (RemovePathConfigurationPRequest) returns (RemovePathConfigurationPResponse);
+
+  /**
+   * Sets a property.
+   */
+  rpc UpdateConfiguration(UpdateConfigurationPRequest) returns (UpdateConfigurationPResponse);
 }
 
 message SetPathConfigurationPOptions {}
@@ -237,21 +252,9 @@ service MetaMasterConfigurationService {
   rpc GetConfiguration (GetConfigurationPOptions) returns (GetConfigurationPResponse);
 
   /**
-   * Sets a property for a path.
-   */
-  rpc SetPathConfiguration (SetPathConfigurationPRequest) returns (SetPathConfigurationPResponse);
-
-  /**
-   * Removes properties for a path, if the keys are empty, it means remove all properties.
-   */
-  rpc RemovePathConfiguration (RemovePathConfigurationPRequest) returns (RemovePathConfigurationPResponse);
-
-  /**
    * Returns the hashes of cluster and path level configurations.
    */
   rpc GetConfigHash (GetConfigHashPOptions) returns (GetConfigHashPResponse);
-
-  rpc UpdateConfiguration(UpdateConfigurationPRequest) returns (UpdateConfigurationPResponse);
 }
 
 message GetMasterIdPOptions {}

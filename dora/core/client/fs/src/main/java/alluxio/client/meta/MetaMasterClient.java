@@ -11,7 +11,9 @@
 
 package alluxio.client.meta;
 
+import alluxio.AlluxioURI;
 import alluxio.Client;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.BackupPRequest;
 import alluxio.grpc.MasterInfo;
 import alluxio.grpc.MasterInfoField;
@@ -20,7 +22,9 @@ import alluxio.wire.BackupStatus;
 import alluxio.wire.ConfigCheckReport;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -73,6 +77,53 @@ public interface MetaMasterClient extends Client {
    * @return the hostname of the master that did the checkpoint
    */
   String checkpoint() throws IOException;
+
+  /**
+   * Sets a property for a path.
+   *
+   * @param path the path
+   * @param key the property key
+   * @param value the property value
+   */
+  default void setPathConfiguration(AlluxioURI path, PropertyKey key, String value)
+      throws IOException {
+    Map<PropertyKey, String> properties = new HashMap<>();
+    properties.put(key, value);
+    setPathConfiguration(path, properties);
+  }
+
+  /**
+   * Sets properties for a path.
+   *
+   * @param path the path
+   * @param properties the properties
+   */
+  void setPathConfiguration(AlluxioURI path, Map<PropertyKey, String> properties)
+      throws IOException;
+
+  /**
+   * Removes properties for a path.
+   *
+   * @param path the path
+   * @param keys the property keys
+   */
+  void removePathConfiguration(AlluxioURI path, Set<PropertyKey> keys) throws IOException;
+
+  /**
+   * Removes all properties for a path.
+   *
+   * @param path the path
+   */
+  void removePathConfiguration(AlluxioURI path) throws IOException;
+
+  /**
+   * Updates properties.
+   *
+   * @param propertiesMap the properties map to be updated
+   * @return the update properties status map
+   */
+  Map<PropertyKey, Boolean> updateConfiguration(
+      Map<PropertyKey, String> propertiesMap) throws IOException;
 
   /**
    * Lists information of all known proxy instances from the primary master.

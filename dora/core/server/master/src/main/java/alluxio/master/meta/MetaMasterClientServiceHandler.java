@@ -31,6 +31,12 @@ import alluxio.grpc.MasterInfoField;
 import alluxio.grpc.MasterVersion;
 import alluxio.grpc.MetaMasterClientServiceGrpc;
 import alluxio.grpc.NetAddress;
+import alluxio.grpc.RemovePathConfigurationPRequest;
+import alluxio.grpc.RemovePathConfigurationPResponse;
+import alluxio.grpc.SetPathConfigurationPRequest;
+import alluxio.grpc.SetPathConfigurationPResponse;
+import alluxio.grpc.UpdateConfigurationPRequest;
+import alluxio.grpc.UpdateConfigurationPResponse;
 import alluxio.master.StateLockOptions;
 import alluxio.master.journal.raft.RaftJournalSystem;
 import alluxio.wire.Address;
@@ -40,7 +46,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -187,6 +196,49 @@ public final class MetaMasterClientServiceHandler
     RpcUtils.call(LOG,
         () -> CheckpointPResponse.newBuilder().setMasterHostname(mMetaMaster.checkpoint()).build(),
         "checkpoint", "options=%s", responseObserver, options);
+  }
+
+  @Override
+  public void setPathConfiguration(SetPathConfigurationPRequest request,
+      StreamObserver<SetPathConfigurationPResponse> responseObserver) {
+    String path = request.getPath();
+    Map<String, String> properties = request.getPropertiesMap();
+
+    RpcUtils.call(LOG, () -> {
+      Map<PropertyKey, String> props = new HashMap<>();
+      properties.forEach((key, value) -> props.put(PropertyKey.fromString(key), value));
+      mMetaMaster.setPathConfiguration(path, props);
+      return SetPathConfigurationPResponse.getDefaultInstance();
+    }, "setPathConfiguration", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void removePathConfiguration(RemovePathConfigurationPRequest request,
+      StreamObserver<RemovePathConfigurationPResponse> responseObserver) {
+    String path = request.getPath();
+    List<String> keys = request.getKeysList();
+
+    RpcUtils.call(LOG, () -> {
+      if (keys.isEmpty()) {
+        mMetaMaster.removePathConfiguration(path);
+      } else {
+        mMetaMaster.removePathConfiguration(path, new HashSet<>(keys));
+      }
+      return RemovePathConfigurationPResponse.getDefaultInstance();
+    }, "removePathConfiguration", "request=%s", responseObserver, request);
+  }
+
+  @Override
+  public void updateConfiguration(
+      UpdateConfigurationPRequest request,
+      StreamObserver<UpdateConfigurationPResponse> responseObserver) {
+    RpcUtils.call(LOG, () -> {
+      Map<String, Boolean> result =
+          mMetaMaster.updateConfiguration(request.getPropertiesMap());
+      return UpdateConfigurationPResponse.newBuilder()
+          .putAllStatus(result)
+          .build();
+    }, "updateConfiguration", "request=%s", responseObserver, request);
   }
 
   @Override

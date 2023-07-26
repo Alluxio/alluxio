@@ -98,12 +98,12 @@ public final class RemoveCommand extends AbstractFsAdminCommand {
 
     if (keysToRemove.isEmpty()) {
       for (AlluxioURI p : pathsToRemove) {
-        mMetaConfigClient.removePathConfiguration(p);
+        mMetaClient.removePathConfiguration(p);
       }
       return 0;
     }
     for (AlluxioURI p : pathsToRemove) {
-      mMetaConfigClient.removePathConfiguration(p, keysToRemove);
+      mMetaClient.removePathConfiguration(p, keysToRemove);
     }
     return 0;
   }

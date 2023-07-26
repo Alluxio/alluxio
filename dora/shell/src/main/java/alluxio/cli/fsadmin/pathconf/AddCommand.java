@@ -86,7 +86,7 @@ public final class AddCommand extends AbstractFsAdminCommand {
         propertyMap.put(key, property.getValue());
       }
     }
-    mMetaConfigClient.setPathConfiguration(path, propertyMap);
+    mMetaClient.setPathConfiguration(path, propertyMap);
     return 0;
   }
 

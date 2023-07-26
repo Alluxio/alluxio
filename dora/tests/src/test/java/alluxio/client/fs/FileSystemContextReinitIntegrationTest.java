@@ -19,8 +19,8 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemContextReinitializer;
-import alluxio.client.meta.MetaMasterConfigClient;
-import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
+import alluxio.client.meta.MetaMasterClient;
+import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
@@ -174,7 +174,7 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
   }
 
   private void updatePathConf() throws Exception {
-    MetaMasterConfigClient client = new RetryHandlingMetaMasterConfigClient(
+    MetaMasterClient client = new RetryHandlingMetaMasterClient(
         MasterClientContext.newBuilder(mContext.getClientContext()).build());
     client.setPathConfiguration(PATH_TO_UPDATE, KEY_TO_UPDATE, UPDATED_VALUE.name());
   }

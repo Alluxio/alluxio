@@ -19,8 +19,8 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemUtils;
-import alluxio.client.meta.MetaMasterConfigClient;
-import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
+import alluxio.client.meta.MetaMasterClient;
+import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.CreateFilePOptions;
@@ -52,11 +52,11 @@ public class PathConfigurationIntegrationTest {
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, USER_QUOTA_UNIT_BYTES)
           .build();
-  private MetaMasterConfigClient mMetaConfig;
+  private MetaMasterClient mMetaConfig;
   private FileSystem mFileSystem;
   private CreateFilePOptions mWriteThrough;
 
-  private void setPathConfigurations(MetaMasterConfigClient client) throws Exception {
+  private void setPathConfigurations(MetaMasterClient client) throws Exception {
     client.setPathConfiguration(new AlluxioURI(REMOTE_DIR), PropertyKey.USER_FILE_READ_TYPE_DEFAULT,
         ReadType.CACHE.toString());
     client.setPathConfiguration(new AlluxioURI(REMOTE_UNCACHED_FILE),
@@ -70,7 +70,7 @@ public class PathConfigurationIntegrationTest {
   @Before
   public void before() throws Exception {
     FileSystemContext metaCtx = FileSystemContext.create(Configuration.global());
-    mMetaConfig = new RetryHandlingMetaMasterConfigClient(
+    mMetaConfig = new RetryHandlingMetaMasterClient(
         MasterClientContext.newBuilder(metaCtx.getClientContext()).build());
     setPathConfigurations(mMetaConfig);
     FileSystemContext fsCtx = FileSystemContext.create(Configuration.global());
