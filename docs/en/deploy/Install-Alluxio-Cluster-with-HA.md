@@ -41,18 +41,24 @@ state across service restarts and maintaining consensus among masters about the 
   on all nodes.
 
 ## Basic Setup
-### Raft-based Embedded Journal
 
-The minimal configuration to set up a HA cluster is to give the embedded journal addresses to all
-nodes inside the cluster.
-On each Alluxio node, create the `conf/alluxio-site.properties` configuration file from the
-template.
+Alluxio admins can create and edit the properties file `conf/alluxio-site.properties` to
+configure Alluxio masters or workers.
+If this file does not exist, it can be copied from the template file under `${ALLUXIO_HOME}/conf`:
 
 ```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-Add the following properties to the `conf/alluxio-site.properties` file:
+Make sure that this file is distributed to `${ALLUXIO_HOME}/conf` on every Alluxio master
+and worker before starting the cluster.
+Restarting Alluxio processes is the safest way to ensure any configuration updates are applied.
+
+### Raft-based Embedded Journal
+
+The minimal configuration to set up a HA cluster is to give the embedded journal addresses to all
+nodes inside the cluster.
+On each Alluxio node, copy the `conf/alluxio-site.properties` configuration file and add the following properties to the file:
 
 ```properties
 alluxio.master.hostname=<MASTER_HOSTNAME> # Only needed on master node
