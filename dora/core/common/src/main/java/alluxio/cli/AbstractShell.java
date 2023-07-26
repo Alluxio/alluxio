@@ -181,7 +181,7 @@ public abstract class AbstractShell implements Closeable {
    * Prints usage for all commands.
    */
   protected void printUsage() {
-    System.out.println("Usage: alluxio " + getShellName() + " [-i for interactive mode]");
+    System.out.println("Usage: alluxio " + getShellName() + " [generic options]");
     SortedSet<String> sortedCmds = new TreeSet<>(mCommands.keySet());
     for (String cmd : sortedCmds) {
       System.out.format("%-60s%n", "\t [" + mCommands.get(cmd).getUsage() + "]");

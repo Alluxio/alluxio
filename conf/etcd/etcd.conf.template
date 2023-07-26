@@ -1,10 +1,12 @@
-# This is the configuration file for the etcd server.
+# This is the configuration file to start a etcd instance
+# e.g. /usr/local/bin/etcd --config-file /etc/etcd/etcd.conf 
 # *******README******
+# To make etcd a linux service:
 # After installation of etcd, make sure etcd and etcdctl
 # are available in /usr/local/bin
 # To make etcd a linux service:
-# Copy alluxio/conf/etcd.service to /etc/systemd/system/
-# Copy alluxio/conf/etcd.conf to /etc/etcd/
+# Copy alluxio/conf/etcd/etcd.service.template to /etc/systemd/system/etcd.service
+# Copy alluxio/conf/etcd/etcd.conf.template to /etc/etcd/etcd.conf
 # For each etcd instance, change the config params in etcd.conf
 # accordingly.
 # And do:
