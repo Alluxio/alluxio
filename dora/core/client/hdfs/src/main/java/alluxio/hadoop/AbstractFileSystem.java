@@ -771,6 +771,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
   /**
    * Converts an AlluxioRuntimeException to a corresponding io exception.
    *
+   * @param e an {@link AlluxioRuntimeException} instance
    * @return the corresponding io exception
    */
   public IOException toHdfsIOException(AlluxioRuntimeException e) {
@@ -788,7 +789,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     }
     return new IOException(e);
   }
-  
+
   /**
    * Gets the connection configuration from the input uri.
    *
