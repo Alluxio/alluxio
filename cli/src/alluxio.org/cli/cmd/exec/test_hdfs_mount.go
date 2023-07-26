@@ -60,7 +60,7 @@ func (c *TestHdfsMountCommand) ToCommand() *cobra.Command {
 		"options associated with this mount point.")
 	err := cmd.MarkFlagRequired("path")
 	if err != nil {
-		log.Logger.Errorln("Error marking flag --path required.")
+		log.Logger.Errorln("Required flag --path not specified.")
 	}
 	return cmd
 }
