@@ -215,7 +215,7 @@ public class AlluxioRuntimeException extends RuntimeException {
    *
    * @return the corresponding io exception
    */
-  public IOException toIOException() {
+  public IOException toHdfsIOException() {
     if (this instanceof NotFoundRuntimeException) {
       return new FileNotFoundException(getMessage());
     }

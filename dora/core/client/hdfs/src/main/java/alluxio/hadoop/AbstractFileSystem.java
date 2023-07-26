@@ -119,7 +119,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (InvalidArgumentRuntimeException e) {
       throw new IllegalArgumentException(e);
     } catch (AlluxioRuntimeException e) {
-      throw e.toIOException();
+      throw e.toHdfsIOException();
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -144,7 +144,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (InvalidArgumentRuntimeException e) {
       throw new IllegalArgumentException(e);
     } catch (AlluxioRuntimeException e) {
-      throw e.toIOException();
+      throw e.toHdfsIOException();
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -192,7 +192,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (InvalidArgumentRuntimeException e) {
       throw new IllegalArgumentException(e);
     } catch (AlluxioRuntimeException e) {
-      throw e.toIOException();
+      throw e.toHdfsIOException();
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -263,7 +263,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (InvalidArgumentRuntimeException e) {
       throw new IllegalArgumentException(e);
     } catch (AlluxioRuntimeException e) {
-      throw e.toIOException();
+      throw e.toHdfsIOException();
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -338,7 +338,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (InvalidArgumentRuntimeException e) {
       throw new IllegalArgumentException(e);
     } catch (AlluxioRuntimeException e) {
-      throw e.toIOException();
+      throw e.toHdfsIOException();
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -364,7 +364,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (InvalidArgumentRuntimeException e) {
       throw new IllegalArgumentException(e);
     } catch (AlluxioRuntimeException e) {
-      throw e.toIOException();
+      throw e.toHdfsIOException();
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -391,7 +391,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (InvalidArgumentRuntimeException e) {
       throw new IllegalArgumentException(e);
     } catch (AlluxioRuntimeException e) {
-      throw e.toIOException();
+      throw e.toHdfsIOException();
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -432,7 +432,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
       } catch (InvalidArgumentRuntimeException e) {
         throw new IllegalArgumentException(e);
       } catch (AlluxioRuntimeException e) {
-        throw e.toIOException();
+        throw e.toHdfsIOException();
       } catch (AlluxioException e) {
         throw new IOException(e);
       }
@@ -456,7 +456,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (InvalidArgumentRuntimeException e) {
       throw new IllegalArgumentException(e);
     } catch (AlluxioRuntimeException e) {
-      throw e.toIOException();
+      throw e.toHdfsIOException();
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -630,7 +630,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (InvalidArgumentRuntimeException e) {
       throw new IllegalArgumentException(e);
     } catch (AlluxioRuntimeException e) {
-      throw e.toIOException();
+      throw e.toHdfsIOException();
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -665,7 +665,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (InvalidArgumentRuntimeException e) {
       throw new IllegalArgumentException(e);
     } catch (AlluxioRuntimeException e) {
-      throw e.toIOException();
+      throw e.toHdfsIOException();
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -755,7 +755,7 @@ public abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem
     } catch (InvalidArgumentRuntimeException e) {
       throw new IllegalArgumentException(e);
     } catch (AlluxioRuntimeException e) {
-      throw e.toIOException();
+      throw e.toHdfsIOException();
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
