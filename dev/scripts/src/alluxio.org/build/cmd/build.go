@@ -48,16 +48,15 @@ func TarballF(args []string) error {
 		return stacktrace.Propagate(err, "error parsing version string")
 	}
 	if opts.artifactOutput != "" {
-		a, err := artifact.NewArtifact(
-			artifact.TarballArtifact,
+		a, err := artifact.NewArtifactGroup(alluxioVersion)
+		if err != nil {
+			return stacktrace.Propagate(err, "error creating artifact group")
+		}
+		a.Add(artifact.TarballArtifact,
 			opts.outputDir,
 			strings.ReplaceAll(opts.targetName, versionPlaceholder, alluxioVersion),
-			alluxioVersion,
 			nil,
 		)
-		if err != nil {
-			return stacktrace.Propagate(err, "error adding artifact")
-		}
 		return a.WriteToFile(opts.artifactOutput)
 	}
 	if err := buildTarball(opts); err != nil {
