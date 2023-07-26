@@ -13,6 +13,7 @@ package exec
 
 import (
 	"fmt"
+	"github.com/palantir/stacktrace"
 
 	"github.com/spf13/cobra"
 
@@ -66,6 +67,11 @@ func (c *TestHdfsMountCommand) ToCommand() *cobra.Command {
 
 func (c *TestHdfsMountCommand) Run(args []string) error {
 	var javaArgs []string
+	if c.path == "" {
+		return stacktrace.Propagate(nil, "Required flag --path not specified.")
+	} else {
+		javaArgs = append(javaArgs, c.path)
+	}
 	if c.readonly != false {
 		javaArgs = append(javaArgs, "--readonly")
 	}
@@ -74,9 +80,6 @@ func (c *TestHdfsMountCommand) Run(args []string) error {
 	}
 	if c.option != "" {
 		javaArgs = append(javaArgs, "--option", c.option)
-	}
-	if c.path != "" {
-		javaArgs = append(javaArgs, c.path)
 	}
 	javaArgs = append(javaArgs, args...)
 
