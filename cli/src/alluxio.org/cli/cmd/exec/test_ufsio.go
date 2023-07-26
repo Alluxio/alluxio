@@ -13,7 +13,9 @@ package exec
 
 import (
 	"alluxio.org/log"
+	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
+	"strconv"
 
 	"alluxio.org/cli/env"
 )
@@ -85,6 +87,10 @@ func (c *TestUfsIOCommand) Run(args []string) error {
 		javaArgs = append(javaArgs, "--io-size", c.ioSize)
 	}
 	if c.threads != "" {
+		_, err := strconv.Atoi(c.threads)
+		if err != nil {
+			return stacktrace.Propagate(err, "Flag --threads should be a number.")
+		}
 		javaArgs = append(javaArgs, "--threads", c.threads)
 	}
 	if c.cluster != false {
