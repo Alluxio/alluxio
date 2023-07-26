@@ -187,7 +187,7 @@ public class AlluxioEtcdClient implements Closeable {
   public Lease createLease(long ttlInSec, long timeout, TimeUnit timeUnit)
       throws IOException {
     try {
-      return RetryUtils.retryCallable(String.format("Creating Lease ttl:%s", ttlInSec), () -> {
+      return RetryUtils.retryCallable(String.format("Creating Lease with ttl:%s", ttlInSec), () -> {
         CompletableFuture<LeaseGrantResponse> leaseGrantFut =
             getEtcdClient().getLeaseClient().grant(ttlInSec, timeout, timeUnit);
         long leaseId;

@@ -26,7 +26,9 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class ServiceEntity implements Closeable {
   private CloseableClient mKeepAliveClient;
-  AlluxioEtcdClient.Lease mLease; // used for keep alive(heartbeating) will not be set on start up
+  // (package visibility) to do keep alive(heartbeating),
+  // initialized at time of service registration
+  AlluxioEtcdClient.Lease mLease;
   protected String mServiceEntityName; // unique service alias
   // revision number of kv pair of registered entity on etcd, used for CASupdate
   protected long mRevision;
