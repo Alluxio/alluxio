@@ -16,6 +16,20 @@ Usage: alluxio [COMMAND]
        ...
 ```
 
+Alluxio shell users can put JVM system properties `-Dproperty=value` after the `fs` command and
+before the subcommand to specify Alluxio user properties from the command line.
+For example, the following Alluxio shell command sets the write type to `CACHE_THROUGH` when copying
+files to Alluxio:
+
+```shell
+$ ./bin/alluxio fs -Dalluxio.user.file.writetype.default=CACHE_THROUGH \
+    copyFromLocal README.md /README.md
+```
+
+Note that, as a part of Alluxio deployment, the Alluxio shell will also take the configuration in
+`${ALLUXIO_HOME}/conf/alluxio-site.properties` when it is run from Alluxio installation at
+`${ALLUXIO_HOME}`.
+
 ## General operations
 
 This section lists usages and examples of general Alluxio operations
