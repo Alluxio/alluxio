@@ -12,6 +12,7 @@
 package exec
 
 import (
+	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
@@ -46,6 +47,7 @@ func (c *ClassCommand) ToCommand() *cobra.Command {
 		"Determine a JAR file to run.")
 	cmd.Flags().StringVar(&c.module, "m", "",
 		"Determine a module to run.")
+	cmd.MarkFlagsMutuallyExclusive("jar", "m")
 	return cmd
 }
 
@@ -58,8 +60,11 @@ func (c *ClassCommand) Run(args []string) error {
 	} else {
 		if len(args) != 0 {
 			c.JavaClassName = args[0]
+		} else {
+			return stacktrace.Propagate(nil, "None of JAR, module, nor a java class is specified")
 		}
 	}
+
 	if len(args) > 1 {
 		javaArgs = append(javaArgs, args[1:]...)
 	}
