@@ -9,8 +9,13 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-name: monitor
-apiVersion: v1
-description: Use prometheus and grafana to monitor alluxio cluster.
-version: 0.1.0
-
+nightly:
+  tarball: --profile default-testing
+  docker:
+    - --image alluxio --metadata docker:repo=alluxio/alluxio
+    - --image alluxio-dev --metadata docker:repo=alluxio/alluxio-dev
+release:
+  tarball: --profile default-release
+  docker:
+    - --image alluxio --metadata docker:repo=alluxio/alluxio,docker:setLatest=true
+    - --image alluxio-dev --metadata docker:repo=alluxio/alluxio-dev,docker:setLatest=true

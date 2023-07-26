@@ -18,8 +18,6 @@ import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.block.stream.BlockWorkerClient;
-import alluxio.client.file.BaseFileSystem;
-import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
@@ -147,8 +145,6 @@ public final class LoadCommand extends AbstractFileSystemCommand {
    */
   public LoadCommand(FileSystemContext fsContext) {
     super(fsContext);
-    mFileSystem = FileSystem.Factory.createLegacy(fsContext);
-    Preconditions.checkArgument(mFileSystem instanceof BaseFileSystem);
   }
 
   @Override
