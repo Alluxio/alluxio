@@ -743,7 +743,7 @@ public final class MultiProcessCluster {
     conf.put(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false);
     conf.put(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED, true);
 
-    Configuration.set(PropertyKey.WORKER_MEMBERSHIP_TYPE, MembershipType.NOOP);
+    Configuration.set(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.NOOP);
 
     Worker worker = mCloser.register(new Worker(logsDir, conf));
     mWorkers.add(worker);

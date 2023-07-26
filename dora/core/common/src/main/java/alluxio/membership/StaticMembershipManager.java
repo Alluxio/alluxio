@@ -11,6 +11,7 @@
 
 package alluxio.membership;
 
+import alluxio.cli.CommandUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -26,7 +27,7 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Scanner;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -44,7 +45,8 @@ public class StaticMembershipManager implements MembershipManager {
    */
   public StaticMembershipManager(AlluxioConfiguration conf) throws IOException {
     mConf = conf;
-    String workerListFile = conf.getString(PropertyKey.WORKER_MEMBER_STATIC_CONFIG_FILE);
+    String workerListFile = conf.getString(
+        PropertyKey.WORKER_STATIC_MEMBERSHIP_MANAGER_CONFIG_FILE);
     // user conf/workers, use default port
     mMembers = parseWorkerAddresses(workerListFile, mConf);
   }
@@ -65,11 +67,10 @@ public class StaticMembershipManager implements MembershipManager {
     if (!file.exists()) {
       throw new FileNotFoundException("Not found for static worker config file:" + configFile);
     }
-    Scanner scanner = new Scanner(file);
-    while (scanner.hasNextLine()) {
-      String addr = scanner.nextLine().trim();
+    Set<String> workerHostnames = CommandUtils.readNodeList("", configFile);
+    for (String workerHostname : workerHostnames) {
       WorkerNetAddress workerNetAddress = new WorkerNetAddress()
-          .setHost(addr)
+          .setHost(workerHostname)
           .setContainerHost(Configuration.global()
               .getOrDefault(PropertyKey.WORKER_CONTAINER_HOSTNAME, ""))
           .setRpcPort(conf.getInt(PropertyKey.WORKER_RPC_PORT))

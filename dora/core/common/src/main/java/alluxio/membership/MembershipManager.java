@@ -117,7 +117,7 @@ public interface MembershipManager extends AutoCloseable {
      * @return an instance of {@link MembershipManager}
      */
     public static MembershipManager create(AlluxioConfiguration conf) throws IOException {
-      switch (conf.getEnum(PropertyKey.WORKER_MEMBERSHIP_TYPE, MembershipType.class)) {
+      switch (conf.getEnum(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.class)) {
         case STATIC:
           return new StaticMembershipManager(conf);
         case ETCD:

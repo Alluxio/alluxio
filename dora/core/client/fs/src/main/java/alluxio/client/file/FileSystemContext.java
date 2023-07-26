@@ -873,11 +873,13 @@ public class FileSystemContext implements Closeable {
    * @return the info of all block workers
    */
   protected List<BlockWorkerInfo> getAllWorkers() throws IOException {
-    // Use membership mgr
-    if (mMembershipManager != null && !(mMembershipManager instanceof NoOpMembershipManager)) {
-      return mMembershipManager.getAllMembers().stream()
-          .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
-          .collect(toList());
+    try (ReinitBlockerResource r = blockReinit()) {
+      // Use membership mgr
+      if (mMembershipManager != null && !(mMembershipManager instanceof NoOpMembershipManager)) {
+        return mMembershipManager.getAllMembers().stream()
+            .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
+            .collect(toList());
+      }
     }
     // Fall back to old way
     try (CloseableResource<BlockMasterClient> masterClientResource =

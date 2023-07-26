@@ -5506,20 +5506,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_MEMBERSHIP_TYPE =
-      enumBuilder(Name.WORKER_MEMBERSHIP_TYPE, MembershipType.class)
+  public static final PropertyKey WORKER_MEMBERSHIP_MANAGER_TYPE =
+      enumBuilder(Name.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.class)
           .setDefaultValue(MembershipType.NOOP.name())
-          .setDescription("Type of membership configuration for workers."
+          .setDescription("Type of membership manager used for workers."
               + "Choose STATIC for pre-configured members."
               + "Choose ETCD for using etcd for membership management")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
-  public static final PropertyKey WORKER_MEMBER_STATIC_CONFIG_FILE =
-      stringBuilder(Name.WORKER_MEMBER_STATIC_CONFIG_FILE)
-          .setDescription("Path of the config file configuring list"
+  public static final PropertyKey WORKER_STATIC_MEMBERSHIP_MANAGER_CONFIG_FILE =
+      stringBuilder(Name.WORKER_STATIC_MEMBERSHIP_MANAGER_CONFIG_FILE)
+          .setDefaultValue(format("${%s}/workers", Name.CONF_DIR))
+          .setDescription("Absolute path of the config file for list"
               + "of worker hostnames/IPs for the cluster. "
-              + WORKER_MEMBERSHIP_TYPE + " needs to be set"
+              + Name.WORKER_MEMBERSHIP_MANAGER_TYPE + " needs to be set"
               + " to STATIC first.")
           .setScope(Scope.ALL)
           .build();
@@ -9024,9 +9025,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_UFS_INSTREAM_CACHE_MAX_SIZE =
         "alluxio.worker.ufs.instream.cache.max.size";
     public static final String WORKER_WHITELIST = "alluxio.worker.whitelist";
-    public static final String WORKER_MEMBERSHIP_TYPE = "alluxio.worker.membership.type";
-    public static final String WORKER_MEMBER_STATIC_CONFIG_FILE =
-        "alluxio.worker.static.config.file";
+    public static final String WORKER_MEMBERSHIP_MANAGER_TYPE =
+        "alluxio.worker.membership.manager.type";
+    public static final String WORKER_STATIC_MEMBERSHIP_MANAGER_CONFIG_FILE =
+        "alluxio.worker.static.membership.manager.config.file";
 
     //
     // Proxy related properties
