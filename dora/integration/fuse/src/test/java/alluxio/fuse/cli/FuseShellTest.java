@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
@@ -25,7 +26,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.MetadataCachingFileSystem;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
@@ -38,7 +38,6 @@ import alluxio.wire.FileInfo;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -57,7 +56,6 @@ public class FuseShellTest {
   private Map<AlluxioURI, URIStatus> mFileStatusMap;
   private FileSystem mFileSystem;
   private final InstancedConfiguration mConf = Configuration.copyGlobal();
-  private final TemporaryFolder mFolder = new TemporaryFolder();
 
   private static final AlluxioURI DIR = new AlluxioURI("/dir");
   private static final AlluxioURI FILE = new AlluxioURI("/dir/file");
@@ -70,17 +68,16 @@ public class FuseShellTest {
 
   @Before
   public void before() throws Exception {
-    mFolder.create();
     mConf.set(PropertyKey.USER_METADATA_CACHE_MAX_SIZE, 1000, Source.RUNTIME);
-    mConf.set(PropertyKey.DORA_CLIENT_UFS_ROOT, mFolder.getRoot());
     ClientContext clientContext = ClientContext.create(mConf);
     FileSystemContext fileContext = PowerMockito.mock(FileSystemContext.class);
     when(fileContext.getClientContext()).thenReturn(clientContext);
     when(fileContext.getClusterConf()).thenReturn(mConf);
     when(fileContext.getPathConf(any())).thenReturn(mConf);
     when(fileContext.getUriValidationEnabled()).thenReturn(true);
-    UfsBaseFileSystem delegatedFs = new UfsBaseFileSystem(fileContext,
-        new UfsFileSystemOptions(mConf.getString(PropertyKey.DORA_CLIENT_UFS_ROOT)));
+    // This is intentionally an empty mock
+    // If RpcCountingUfsBaseFileSystem fails to serve a method, the empty mock will err
+    UfsBaseFileSystem delegatedFs = mock(UfsBaseFileSystem.class);
     FileSystem fs = new MockUfsBaseFileSystem(delegatedFs);
     mFileSystem = new MetadataCachingFileSystem(fs, fileContext);
     mFuseShell = new FuseShell(mFileSystem, mConf);

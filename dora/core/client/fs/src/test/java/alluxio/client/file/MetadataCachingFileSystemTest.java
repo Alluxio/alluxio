@@ -13,12 +13,12 @@ package alluxio.client.file;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.annotation.dora.DoraTestTodoItem;
-import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
@@ -38,7 +38,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -69,13 +68,10 @@ public class MetadataCachingFileSystemTest {
   private Map<AlluxioURI, URIStatus> mFileStatusMap;
   private MetadataCachingFileSystem mFs;
   private RpcCountingUfsBaseFileSystem mRpcCountingFs;
-  private final TemporaryFolder mFolder = new TemporaryFolder();
 
   @Before
   public void before() throws Exception {
-    mFolder.create();
     mConf.set(PropertyKey.USER_METADATA_CACHE_MAX_SIZE, 1000, Source.RUNTIME);
-    mConf.set(PropertyKey.DORA_CLIENT_UFS_ROOT, mFolder.getRoot());
     // Avoid async update file access time to call getStatus to mess up the test results
     mConf.set(PropertyKey.USER_UPDATE_FILE_ACCESSTIME_DISABLED, true);
     mClientContext = ClientContext.create(mConf);
@@ -84,8 +80,9 @@ public class MetadataCachingFileSystemTest {
     when(mFileContext.getClusterConf()).thenReturn(mConf);
     when(mFileContext.getPathConf(any())).thenReturn(mConf);
     when(mFileContext.getUriValidationEnabled()).thenReturn(true);
-    UfsBaseFileSystem delegatedFs = new UfsBaseFileSystem(mFileContext,
-        new UfsFileSystemOptions(mConf.getString(PropertyKey.DORA_CLIENT_UFS_ROOT)));
+    // This is intentionally an empty mock
+    // If RpcCountingUfsBaseFileSystem fails to serve a method, the empty mock will err
+    UfsBaseFileSystem delegatedFs = mock(UfsBaseFileSystem.class);
     RpcCountingUfsBaseFileSystem fs = new RpcCountingUfsBaseFileSystem(delegatedFs, mFileContext);
     mRpcCountingFs = fs;
     mFs = new MetadataCachingFileSystem(fs, mFileContext);
