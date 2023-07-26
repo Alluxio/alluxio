@@ -166,12 +166,14 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     super(ExecutorServiceFactories.fixedThreadPool("dora-worker-executor", 5));
     mWorkerId = workerId;
     mConf = conf;
-    mRootUFS = Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
+    mRootUFS = mConf.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
     mUfsManager = mResourceCloser.register(new DoraUfsManager());
+    mUfsManager.getOrAdd(new AlluxioURI(mRootUFS),
+        UnderFileSystemConfiguration.defaults(mConf));
     mFsContext = mResourceCloser.register(fileSystemContext);
     mUfsStreamCache = new UfsInputStreamCache();
 
-    mPageSize = Configuration.global().getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
+    mPageSize = mConf.getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
     mBlockMasterClientPool = blockMasterClientPool;
     mCacheManager = cacheManager;
     mMetaManager = mResourceCloser.register(
@@ -181,7 +183,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     mMkdirsRecursive = MkdirsOptions.defaults(mConf).setCreateParent(true);
     mMkdirsNonRecursive = MkdirsOptions.defaults(mConf).setCreateParent(false);
 
-    mClientWriteToUFSEnabled = Configuration.global()
+    mClientWriteToUFSEnabled = mConf
         .getBoolean(PropertyKey.CLIENT_WRITE_TO_UFS_ENABLED);
   }
 
@@ -194,11 +196,12 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     Preconditions.checkArgument(ufsUriUri.hasScheme(), "%s has no scheme", ufsUriStr);
     Preconditions.checkArgument(ufsUriUri.hasAuthority(), "%s has no authority", ufsUriStr);
     try {
-      UnderFileSystem ufs = mUfsManager.getOrAdd(ufsUriUri,
+      Optional<UnderFileSystem> ufs = mUfsManager.get(ufsUriUri,
           // todo(bowen): local configuration may not have UFS-specific configurations
           //  find another way to load UFS configurations
           UnderFileSystemConfiguration.defaults(mConf));
-      return ufs;
+      return ufs.orElseThrow(() ->
+          new IllegalArgumentException(String.format("UFS not registered for %s", ufsUriUri)));
     } catch (Exception e) {
       LOG.debug("failed to get UFS instance for URI {}", ufsUriStr, e);
       throw e;
