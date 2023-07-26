@@ -252,6 +252,11 @@ service MetaMasterConfigurationService {
   rpc GetConfigHash (GetConfigHashPOptions) returns (GetConfigHashPResponse);
 
   rpc UpdateConfiguration(UpdateConfigurationPRequest) returns (UpdateConfigurationPResponse);
+
+  /**
+   * Get updated config from master from a specific version.
+   */
+  rpc GetUpdatedConfiguration(GetUpdatedConfigurationPRequest) returns (GetUpdatedConfigurationPResponse);
 }
 
 message GetMasterIdPOptions {}
@@ -300,6 +305,15 @@ message UpdateConfigurationPRequest {
 
 message UpdateConfigurationPResponse {
   map<string, bool> status = 1;
+}
+
+message GetUpdatedConfigurationPRequest {
+  optional int64 version = 1;
+}
+
+message GetUpdatedConfigurationPResponse {
+  repeated UpdateConfigurationPRequest updatedConfigurationPRequests = 1;
+  optional int64 version = 2;
 }
 
 /**

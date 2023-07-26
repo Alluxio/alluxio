@@ -17,6 +17,8 @@ import alluxio.Server;
 import alluxio.clock.SystemClock;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
+import alluxio.collections.Pair;
+import alluxio.conf.ClusterConfigSync;
 import alluxio.conf.Configuration;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.PropertyKey;
@@ -61,6 +63,7 @@ import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Meta;
 import alluxio.resource.CloseableIterator;
 import alluxio.security.authentication.ClientContextServerInjector;
+import alluxio.security.user.ServerUserState;
 import alluxio.underfs.UfsManager;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.IdUtils;
@@ -381,6 +384,17 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
             Configuration.global(), mMasterContext.getUserState()));
         LOG.info("Standby master with address {} starts sending heartbeat to leader master.",
             mMasterAddress);
+
+        // Create meta master client to sync config from primary master
+        metaMasterClient =
+            new RetryHandlingMetaMasterMasterClient(MasterClientContext
+                .newBuilder(ClientContext.create(Configuration.global())).build());
+        getExecutorService().submit(
+            new HeartbeatThread(HeartbeatContext.CONFIG_SYNC,
+                new ClusterConfigSync(metaMasterClient),
+                () -> new FixedIntervalSupplier(
+                    Configuration.getMs(PropertyKey.CONF_SYNC_HEARTBEAT_INTERVAL_MS)),
+                Configuration.global(), ServerUserState.global()));
       }
       // Enable worker role if backup delegation is enabled.
       if (Configuration.getBoolean(PropertyKey.MASTER_BACKUP_DELEGATION_ENABLED)) {
@@ -776,6 +790,11 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
           .setLastHeartbeatTime(info.getLastHeartbeatTimeMs()).build());
     }
     return result;
+  }
+
+  @Override
+  public Pair<List<Map<String, String>>, Long> getUpdatedConfiguration(long version) {
+    return Configuration.getUpdatedConfigs(version);
   }
 
   /**

@@ -11,6 +11,7 @@
 
 package alluxio.master.meta;
 
+import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
@@ -203,4 +204,10 @@ public interface MetaMaster extends BackupOps, Master {
    * @return a list of status
    */
   List<ProxyStatus> listProxyStatus();
+
+  /**
+   * @param version a version to filter the updated configurations
+   * @return the updated properties after the given version
+   */
+  Pair<List<Map<String, String>>, Long> getUpdatedConfiguration(long version);
 }

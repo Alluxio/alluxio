@@ -1844,6 +1844,22 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setIsClusterAggregated(false)
           .build();
 
+  public static final MetricKey UPDATE_CONF_SUCCESS_COUNT =
+      new MetricKey.Builder("Update.Conf.Success.Count")
+          .setDescription("Count of success update conf")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey UPDATE_CONF_FAIL_COUNT =
+      new MetricKey.Builder("Update.Conf.Fail.Count")
+          .setDescription("Count of fail update conf")
+          .setMetricType(MetricType.COUNTER)
+          .build();
+  public static final MetricKey UPDATE_CONF_LAST_UPDATED_VERSION =
+      new MetricKey.Builder("Update.Conf.LastUpdatedVersion")
+          .setDescription("Last conf updated version")
+          .setMetricType(MetricType.GAUGE)
+          .build();
+
   // Worker metrics
   public static final MetricKey WORKER_ACTIVE_RPC_READ_COUNT =
       new Builder("Worker.ActiveRpcReadCount")

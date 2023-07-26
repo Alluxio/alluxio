@@ -13,24 +13,36 @@ package alluxio.conf;
 
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
+import alluxio.collections.FixedSizeTreeMap;
+import alluxio.collections.Pair;
 import alluxio.conf.path.PathConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ConfigProperty;
+import alluxio.grpc.GetConfigHashPOptions;
+import alluxio.grpc.GetConfigHashPResponse;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GetConfigurationPResponse;
+import alluxio.grpc.GetUpdatedConfigurationPRequest;
+import alluxio.grpc.GetUpdatedConfigurationPResponse;
 import alluxio.grpc.GrpcChannel;
 import alluxio.grpc.GrpcChannelBuilder;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
 import alluxio.grpc.Scope;
+import alluxio.grpc.UpdateConfigurationPRequest;
+import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.MetricKey;
+import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,12 +53,16 @@ import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 
@@ -80,6 +96,16 @@ public final class Configuration
 
   private static final AtomicReference<InstancedConfiguration> SERVER_CONFIG_REFERENCE =
       new AtomicReference<>();
+
+  private static final AtomicLong LAST_CLUSTER_CONFIG_UPDATE_TIME = new AtomicLong();
+
+  private static final AtomicLong LAST_PATH_CONFIG_UPDATE_TIME = new AtomicLong();
+
+  private static final Pair DEFAULT_UPDATED_CONF_PAIR =
+      new Pair(Collections.emptyList(), 0L);
+  private static final NavigableMap<Long, Map<String, String>> UPDATED_CONFIG_MAP =
+      new FixedSizeTreeMap<>(500);
+  private static long sLastAppliedUpdatedConfVersion;
 
   static {
     reloadProperties();
@@ -596,6 +622,7 @@ public final class Configuration
             conf = new InstancedConfiguration(alluxioProperties);
             conf.validate();
             SERVER_CONFIG_REFERENCE.set(conf);
+            UPDATED_CONFIG_MAP.clear();
             // If a site conf is successfully loaded, stop trying different paths.
             return;
           }
@@ -625,6 +652,7 @@ public final class Configuration
     }
     conf.validate();
     SERVER_CONFIG_REFERENCE.set(conf);
+    UPDATED_CONFIG_MAP.clear();
   }
 
   /**
@@ -643,9 +671,204 @@ public final class Configuration
   }
 
   /**
+   * Only can use at server.
+   * Apply the updated conf event from master.
+   * @param address the config server address
+   */
+  public static void applyUpdatedConf(InetSocketAddress address)
+      throws AlluxioStatusException {
+    GetUpdatedConfigurationPResponse response =
+        getUpdatedConfigsFromServer(SERVER_CONFIG_REFERENCE.get(), address,
+            sLastAppliedUpdatedConfVersion);
+    Map<String, Boolean> result = new HashMap<>();
+    for (UpdateConfigurationPRequest request : response.getUpdatedConfigurationPRequestsList()) {
+      result.putAll(updateConfiguration(request.getPropertiesMap(), false));
+    }
+    if (!result.isEmpty()) {
+      LOG.info("Updated {} configs", result.size());
+      for (Map.Entry<String, Boolean> entry : result.entrySet()) {
+        if (!entry.getValue()) {
+          LOG.error("Failed to Update {}", entry.getKey());
+        }
+      }
+      sLastAppliedUpdatedConfVersion = response.getVersion();
+      MetricsSystem.registerGaugeIfAbsent(
+          MetricKey.UPDATE_CONF_LAST_UPDATED_VERSION.getName(),
+          () -> sLastAppliedUpdatedConfVersion);
+    }
+  }
+
+  /**
    * @return the last update time
    */
   public static long getLastUpdateTime() {
     return SERVER_CONFIG_REFERENCE.get().getLastUpdateTime();
+  }
+
+  public static GetConfigHashPResponse getConfigHash(InetSocketAddress address,
+      AlluxioConfiguration conf)
+      throws AlluxioStatusException {
+    GrpcChannel channel = null;
+    try {
+      LOG.debug("Alluxio client (version {}) is trying to get configHash from meta master {}",
+          RuntimeConstants.VERSION, address);
+      channel = GrpcChannelBuilder.newBuilder(GrpcServerAddress.create(address), conf)
+          .disableAuthentication().build();
+      MetaMasterConfigurationServiceGrpc.MetaMasterConfigurationServiceBlockingStub client =
+          MetaMasterConfigurationServiceGrpc.newBlockingStub(channel);
+      GetConfigHashPResponse response = client.getConfigHash(
+          GetConfigHashPOptions.newBuilder().build());
+      LOG.debug("Alluxio client has get configHash from meta master {}", address);
+      return response;
+    } catch (io.grpc.StatusRuntimeException e) {
+      throw new UnavailableException(String.format(
+          "Failed to handshake with master %s to get cluster configHash values: %s",
+          address, e.getMessage()), e);
+    } catch (UnauthenticatedException e) {
+      throw new RuntimeException(String.format(
+          "Received authentication exception during get configHash connect with host:%s", address),
+          e);
+    } finally {
+      if (channel != null) {
+        channel.shutdown();
+      }
+    }
+  }
+
+  /**
+   * @param propertiesMap properties to update
+   * @return the update properties status map
+   */
+  public static Map<String, Boolean> updateConfiguration(Map<String, String> propertiesMap) {
+    return updateConfiguration(propertiesMap,
+        CommonUtils.PROCESS_TYPE.get() == CommonUtils.ProcessType.MASTER
+            && Configuration.getBoolean(PropertyKey.MASTER_UPDATE_CONF_RECORD_ENABLED));
+  }
+
+  /**
+   * @param propertiesMap properties to update
+   * @param recordEvent whether to record update conf event
+   * @return the update properties status map
+   */
+  public static Map<String, Boolean> updateConfiguration(Map<String, String> propertiesMap,
+      boolean recordEvent) {
+    Map<String, Boolean> result = new HashMap<>();
+    int successCount = 0;
+    for (Map.Entry<String, String> entry : propertiesMap.entrySet()) {
+      try {
+        PropertyKey key;
+        try {
+          // Build template key if possible
+          key = PropertyKey.fromString(entry.getKey());
+        } catch (IllegalArgumentException e) {
+          // Build custom key with and set build-in, so it can be displayed to user.
+          key = PropertyKey.getOrBuildCustom(entry.getKey());
+        }
+        if (Configuration.getBoolean(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED)
+            && key.isDynamic()) {
+          Object oldValue = null;
+          try {
+            oldValue = Configuration.get(key);
+          } catch (RuntimeException e) {
+            LOG.debug("Cannot get old value for the given key {}", key.getName());
+          }
+          if ("<UNSET_VALUE>".equals(entry.getValue())) {
+            Configuration.unset(key);
+            LOG.info("Property {} has been unset from \"{}\"",
+                key.getName(), entry.getValue(), oldValue);
+          } else {
+            Object value = key.parseValue(entry.getValue());
+            Configuration.set(key, value, Source.RUNTIME);
+            LOG.info("Property {} has been updated to \"{}\" from \"{}\"",
+                key.getName(), entry.getValue(), oldValue);
+          }
+          result.put(entry.getKey(), true);
+          successCount++;
+        } else {
+          LOG.warn("Update a non-dynamic property {} is not allowed", key.getName());
+          result.put(entry.getKey(), false);
+        }
+      } catch (Exception e) {
+        result.put(entry.getKey(), false);
+        LOG.error("Failed to update property {} to {}", entry.getKey(), entry.getValue(), e);
+      }
+    }
+    LOG.debug("Update {} properties, succeed {}.", propertiesMap.size(), successCount);
+    MetricsSystem.counter(MetricKey.UPDATE_CONF_SUCCESS_COUNT.getName())
+        .inc(successCount);
+    MetricsSystem.counter(MetricKey.UPDATE_CONF_FAIL_COUNT.getName())
+        .inc(propertiesMap.size() - successCount);
+    if (successCount > 0) {
+      if (recordEvent) {
+        UPDATED_CONFIG_MAP.put(System.nanoTime(), propertiesMap);
+      }
+      ReconfigurableRegistry.update();
+    }
+    return result;
+  }
+
+  public static long getLastClusterConfigUpdateTime() {
+    return LAST_CLUSTER_CONFIG_UPDATE_TIME.get();
+  }
+
+  public static long getLastPathConfigUpdateTime() {
+    return LAST_PATH_CONFIG_UPDATE_TIME.get();
+  }
+
+  public static Pair<List<Map<String, String>>, Long> getUpdatedConfigs(
+      long version) {
+    synchronized (UPDATED_CONFIG_MAP) {
+      SortedMap<Long, Map<String, String>> subMap =
+          UPDATED_CONFIG_MAP.tailMap(version, false);
+      if (!subMap.isEmpty()) {
+        return new Pair(Lists.newArrayList(subMap.values()), subMap.lastKey());
+      }
+      return DEFAULT_UPDATED_CONF_PAIR;
+    }
+  }
+
+  public static GetUpdatedConfigurationPResponse getUpdatedConfigsFromServer(
+      AlluxioConfiguration conf,
+      InetSocketAddress address,
+      long version) throws AlluxioStatusException {
+    GrpcChannel channel = null;
+    try {
+      LOG.debug("Alluxio client (version {}) is trying to get updated configuration from "
+              + "meta master {}",
+          RuntimeConstants.VERSION, address);
+      channel = GrpcChannelBuilder.newBuilder(GrpcServerAddress.create(address), conf)
+          .disableAuthentication().build();
+      MetaMasterConfigurationServiceGrpc.MetaMasterConfigurationServiceBlockingStub client =
+          MetaMasterConfigurationServiceGrpc.newBlockingStub(channel);
+      GetUpdatedConfigurationPResponse response = client.getUpdatedConfiguration(
+          GetUpdatedConfigurationPRequest.newBuilder().setVersion(version)
+              .build());
+      LOG.debug("Alluxio client has get {} updated configuration with version {} from meta master "
+              + "{}", response.getUpdatedConfigurationPRequestsCount(),
+          response.getVersion(), address);
+      return response;
+    } catch (io.grpc.StatusRuntimeException e) {
+      throw new UnavailableException(String.format(
+          "Failed to handshake with master %s to apply updated configuration values: %s",
+          address, e.getMessage()), e);
+    } catch (UnauthenticatedException e) {
+      throw new RuntimeException(String.format(
+          "Received authentication exception during boot-strap connect with host:%s", address),
+          e);
+    } finally {
+      if (channel != null) {
+        channel.shutdown();
+      }
+    }
+  }
+
+  @VisibleForTesting
+  public static long getUpdatedConfigMapSize() {
+    return UPDATED_CONFIG_MAP.size();
+  }
+
+  @VisibleForTesting
+  public static void clearUpdatedConfigMap() {
+    UPDATED_CONFIG_MAP.clear();
   }
 }

@@ -380,7 +380,8 @@ public final class MetricsSystem {
    * @param name the metric name
    * @return the metric registry name
    */
-  private static String getWorkerMetricName(String name) {
+  @VisibleForTesting
+  public static String getWorkerMetricName(String name) {
     String result = CACHED_METRICS.get(name);
     if (result != null) {
       return result;

@@ -573,6 +573,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
+
+  public static final PropertyKey CONF_SYNC_HEARTBEAT_ENABLED =
+      booleanBuilder(Name.CONF_SYNC_HEARTBEAT_ENABLED)
+          .setDefaultValue(false)
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey CONF_SYNC_HEARTBEAT_INTERVAL_MS =
+      durationBuilder(Name.CONF_SYNC_HEARTBEAT_INTERVAL_MS)
+          .setDefaultValue("1min")
+          .setDescription("The interval sync config.")
+          .setScope(Scope.ALL)
+          .build();
+
+  public static final PropertyKey MASTER_UPDATE_CONF_RECORD_ENABLED =
+      booleanBuilder(Name.MASTER_UPDATE_CONF_RECORD_ENABLED)
+          .setDefaultValue(false)
+          .setScope(Scope.MASTER)
+          .build();
+
   public static final PropertyKey DEBUG =
       booleanBuilder(Name.DEBUG)
           .setDefaultValue(false)
@@ -7722,6 +7741,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String CONF_DYNAMIC_UPDATE_ENABLED =
         "alluxio.conf.dynamic.update.enabled";
     public static final String CONF_VALIDATION_ENABLED = "alluxio.conf.validation.enabled";
+    public static final String CONF_SYNC_HEARTBEAT_ENABLED =
+        "alluxio.conf.sync.heartbeat.enabled";
+    public static final String CONF_SYNC_HEARTBEAT_INTERVAL_MS =
+        "alluxio.conf.sync.heartbeat.interval";
+    public static final String MASTER_UPDATE_CONF_RECORD_ENABLED =
+        "alluxio.update.conf.record.enabled";
     public static final String DEBUG = "alluxio.debug";
     public static final String EXTENSIONS_DIR = "alluxio.extensions.dir";
     public static final String EXIT_COLLECT_INFO = "alluxio.exit.collect.info";

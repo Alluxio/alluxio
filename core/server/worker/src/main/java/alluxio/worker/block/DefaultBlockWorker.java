@@ -21,6 +21,7 @@ import alluxio.Sessions;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.file.FileSystemContext;
 import alluxio.collections.PrefixList;
+import alluxio.conf.ClusterConfigSync;
 import alluxio.conf.Configuration;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.PropertyKey;
@@ -250,6 +251,14 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
     if (Configuration.getBoolean(PropertyKey.WORKER_FUSE_ENABLED)) {
       mFuseManager.start();
     }
+
+    getExecutorService()
+        .submit(
+        new HeartbeatThread(HeartbeatContext.CONFIG_SYNC,
+            new ClusterConfigSync(mFileSystemMasterClient),
+            () -> new FixedIntervalSupplier(
+                Configuration.getMs(PropertyKey.CONF_SYNC_HEARTBEAT_INTERVAL_MS)),
+            Configuration.global(), ServerUserState.global()));
   }
 
   protected void setupBlockMasterSync() throws IOException {
