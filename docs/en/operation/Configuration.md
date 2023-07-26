@@ -30,9 +30,9 @@ before the subcommand to specify Alluxio user properties from the command line.
 For example, the following Alluxio shell command sets the write type to `CACHE_THROUGH` when copying
 files to Alluxio:
 
-```console
+```shell
 $ ./bin/alluxio fs -Dalluxio.user.file.writetype.default=CACHE_THROUGH \
-  copyFromLocal README.md /README.md
+    copyFromLocal README.md /README.md
 ```
 
 Note that, as a part of Alluxio deployment, the Alluxio shell will also take the configuration in
@@ -75,7 +75,7 @@ Alluxio admins can create and edit the properties file `conf/alluxio-site.proper
 configure Alluxio masters or workers.
 If this file does not exist, it can be copied from the template file under `${ALLUXIO_HOME}/conf`:
 
-```console
+```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
@@ -104,7 +104,7 @@ For example, the following example will set up:
 - defines the maximum heap space of the VM to be 30g
 - enable Java remote debugging at port 7001
 
-```console
+```shell
 $ export ALLUXIO_MASTER_HOSTNAME="localhost"
 $ export ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS="hdfs://localhost:9000"
 $ export ALLUXIO_MASTER_JAVA_OPTS="-Xmx30g"
@@ -114,7 +114,7 @@ $ export ALLUXIO_MASTER_ATTACH_OPTS="-agentlib:jdwp=transport=dt_socket,server=y
 Users can either set these variables through the shell or in `conf/alluxio-env.sh`.
 If this file does not exist yet, it can be copied from the template file under `${ALLUXIO_HOME}/conf`:
 
-```console
+```shell
 $ cp conf/alluxio-env.sh.template conf/alluxio-env.sh
 ```
 
@@ -153,7 +153,7 @@ By default, the write type is the value of the configuration key `alluxio.user.f
 The administrator can set default value of `alluxio.user.file.write.type.default` to `MUST_CACHE`
 for all paths with prefix `/tmp` by running:
 
-```console
+```shell
 $ bin/alluxio fsadmin pathConf add --property alluxio.user.file.writetype.default=MUST_CACHE /tmp`
 ```
 
@@ -164,7 +164,7 @@ defaults.
 Path defaults will be automatically propagated to long-running clients if they are updated.
 If the administrator updates path defaults using the following:
 
-```console
+```shell
 $ bin/alluxio fsadmin pathConf add --property alluxio.user.file.writetype.default=THROUGH /tmp
 ```
 
@@ -192,7 +192,7 @@ its [default property value]({{ '/en/reference/Properties-List.html' | relativiz
 To check the value of a specific configuration property and the source of its value,
 users can run the following command:
 
-```console
+```shell
 $ ./bin/alluxio getConf alluxio.worker.rpc.port
 29998
 $ ./bin/alluxio getConf --source alluxio.worker.rpc.port
@@ -201,7 +201,7 @@ DEFAULT
 
 To list all of the configuration properties with sources:
 
-```console
+```shell
 $ ./bin/alluxio getConf --source
 alluxio.conf.dir=/Users/bob/alluxio/conf (SYSTEM_PROPERTY)
 alluxio.debug=false (DEFAULT)
@@ -214,7 +214,7 @@ Note that with the `--master` option, `getConf` will query the
 master which requires the master process to be running.
 Otherwise, without `--master` option, this command only checks the local configuration.
 
-```console
+```shell
 $ ./bin/alluxio getConf --master --source
 alluxio.conf.dir=/Users/bob/alluxio/conf (SYSTEM_PROPERTY)
 alluxio.debug=false (DEFAULT)
@@ -242,7 +242,7 @@ The web UI shows the result of the server configuration check.
 
 Users can also run the `fsadmin doctor` command to get the same results.
 
-```console
+```shell
 $ ./bin/alluxio fsadmin doctor configuration
 ```
 

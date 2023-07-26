@@ -14,8 +14,6 @@ package alluxio.client.rest;
 import alluxio.Constants;
 import alluxio.client.WriteType;
 import alluxio.conf.PropertyKey;
-import alluxio.master.journal.JournalType;
-import alluxio.proxy.s3.S3Error;
 import alluxio.proxy.s3.S3ErrorCode;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
@@ -25,25 +23,23 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.gaul.s3proxy.junit.S3ProxyRule;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.net.HttpURLConnection;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 public class CreateBucketTest extends RestApiTest {
 
   private static final String TEST_BUCKET = "test-bucket";
+  private static final int UFS_PORT = 8002;
   private AmazonS3 mS3Client = null;
   @Rule
   public S3ProxyRule mS3Proxy = S3ProxyRule.builder()
       .withBlobStoreProvider("transient")
-      .withPort(8001)
+      .withPort(UFS_PORT)
       .withCredentials("_", "_")
       .build();
 
@@ -51,19 +47,10 @@ public class CreateBucketTest extends RestApiTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setIncludeProxy(true)
-          .setProperty(PropertyKey.MASTER_PERSISTENCE_CHECKER_INTERVAL_MS, "10ms")
-          .setProperty(PropertyKey.MASTER_PERSISTENCE_SCHEDULER_INTERVAL_MS, "10ms")
-          .setProperty(PropertyKey.JOB_MASTER_WORKER_HEARTBEAT_INTERVAL, "200ms")
-          .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, Constants.MB * 16)
-          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, Long.MAX_VALUE)
           .setProperty(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH)
-          .setProperty(PropertyKey.USER_FILE_RESERVED_BYTES, Constants.MB * 16 / 2)
-          .setProperty(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED, true)
           .setProperty(PropertyKey.WORKER_BLOCK_STORE_TYPE, "PAGE")
           .setProperty(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE, Constants.KB)
-          .setProperty(PropertyKey.WORKER_PAGE_STORE_SIZES, "1GB")
-          .setProperty(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.NOOP)
-          .setProperty(PropertyKey.UNDERFS_S3_ENDPOINT, "localhost:8001")
+          .setProperty(PropertyKey.UNDERFS_S3_ENDPOINT, "localhost:" + UFS_PORT)
           .setProperty(PropertyKey.UNDERFS_S3_ENDPOINT_REGION, "us-west-2")
           .setProperty(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS, true)
           .setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, "s3://" + TEST_BUCKET)
@@ -72,13 +59,10 @@ public class CreateBucketTest extends RestApiTest {
           .setProperty(PropertyKey.S3A_ACCESS_KEY, mS3Proxy.getAccessKey())
           .setProperty(PropertyKey.S3A_SECRET_KEY, mS3Proxy.getSecretKey())
           .setNumWorkers(2)
-          .setStartCluster(false)
           .build();
 
   @Before
   public void before() throws Exception {
-    mLocalAlluxioClusterResource.start();
-
     mS3Client = AmazonS3ClientBuilder
         .standard()
         .withPathStyleAccessEnabled(true)
@@ -101,59 +85,35 @@ public class CreateBucketTest extends RestApiTest {
   }
 
   /**
-   * Creates a bucket.
+   * Creates a bucket. Creates an existent bucket.
    */
   @Test
-  public void createAndHeadBucket() throws Exception {
+  public void createBucket() throws Exception {
     String bucketName = "bucket";
-    Assert.assertEquals(Response.Status.NOT_FOUND.getStatusCode(),
-        headBucketRestCall(bucketName).getResponseCode());
-    Assert.assertEquals(Response.Status.OK.getStatusCode(),
-        createBucketRestCall(bucketName).getResponseCode());
-    Assert.assertEquals(Response.Status.OK.getStatusCode(),
-        headBucketRestCall(bucketName).getResponseCode());
+    // Heads a non-existent bucket.
+    headTestCase(bucketName).checkResponseCode(Status.NOT_FOUND.getStatusCode());
+    // Creates a bucket.
+    createBucketTestCase(bucketName).checkResponseCode(Status.OK.getStatusCode());
+    // Heads a bucket.
+    headTestCase(bucketName).checkResponseCode(Status.OK.getStatusCode());
+    // Creates an existent bucket.
+    createBucketTestCase(bucketName).checkResponseCode(Status.CONFLICT.getStatusCode())
+        .checkErrorCode(S3ErrorCode.Name.BUCKET_ALREADY_EXISTS);
   }
 
   /**
-   * Creates an existent bucket.
+   * Deletes a non-existent bucket. Deletes an existent bucket.
    */
   @Test
-  public void createExistentBucket() throws Exception {
+  public void deleteBucket() throws Exception {
     String bucketName = "bucket";
-//    Ensures this bucket exists.
-    if (headBucketRestCall(bucketName).getResponseCode()
-        == Response.Status.NOT_FOUND.getStatusCode()) {
-      Assert.assertEquals(Response.Status.OK.getStatusCode(),
-          createBucketRestCall(bucketName).getResponseCode());
-    }
-
-    HttpURLConnection connection = createBucketRestCall(bucketName);
-    Assert.assertEquals(Response.Status.CONFLICT.getStatusCode(), connection.getResponseCode());
-    S3Error response =
-        new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
-    Assert.assertEquals(bucketName, response.getResource());
-    Assert.assertEquals(S3ErrorCode.Name.BUCKET_ALREADY_EXISTS, response.getCode());
-  }
-
-  /**
-   * 2 users creates the same bucket.
-   */
-  @Test
-  public void createSameBucket() throws Exception {
-    String bucketName = "bucket";
-//    Ensures this bucket exists.
-    if (headBucketRestCall(bucketName, "user0").getResponseCode()
-        == Response.Status.NOT_FOUND.getStatusCode()) {
-      Assert.assertEquals(Response.Status.OK.getStatusCode(),
-          createBucketRestCall(bucketName, "user0").getResponseCode());
-    }
-
-    HttpURLConnection connection = createBucketRestCall(bucketName, "user1");
-
-    Assert.assertEquals(Response.Status.CONFLICT.getStatusCode(), connection.getResponseCode());
-    S3Error response =
-        new XmlMapper().readerFor(S3Error.class).readValue(connection.getErrorStream());
-    Assert.assertEquals(bucketName, response.getResource());
-    Assert.assertEquals(S3ErrorCode.Name.BUCKET_ALREADY_EXISTS, response.getCode());
+    headTestCase(bucketName).checkResponseCode(Status.NOT_FOUND.getStatusCode());
+    // Deletes a non-existent bucket.
+    deleteTestCase(bucketName).checkResponseCode(Status.NOT_FOUND.getStatusCode())
+        .checkErrorCode(S3ErrorCode.Name.NO_SUCH_BUCKET);
+    createBucketTestCase(bucketName).checkResponseCode(Status.OK.getStatusCode());
+    // Deletes an existent bucket.
+    deleteTestCase(bucketName).checkResponseCode(Status.NO_CONTENT.getStatusCode());
+    headTestCase(bucketName).checkResponseCode(Status.NOT_FOUND.getStatusCode());
   }
 }

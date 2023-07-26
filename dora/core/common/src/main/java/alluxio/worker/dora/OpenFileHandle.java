@@ -11,6 +11,7 @@
 
 package alluxio.worker.dora;
 
+import alluxio.grpc.CreateFilePOptions;
 import alluxio.grpc.FileInfo;
 
 import java.io.IOException;
@@ -27,24 +28,29 @@ public class OpenFileHandle {
   private final UUID     mUUID;
   private long           mPos;
   private long           mLastAccessTimeMs;
-  private OutputStream   mOutStream; //outstream from UFS
+  private OutputStream   mUfsOutStream; //outstream from UFS
   private boolean        mClosed;
+
+  private final CreateFilePOptions mOptions;
 
   /**
    * Construct a new open file handle.
-   * @param path
-   * @param info
-   * @param outStream
+   * @param path the path of the file
+   * @param info the FileInfo of this file
+   * @param options the options of create
+   * @param ufsOutStream the UFS output stream of this file
    */
-  public OpenFileHandle(String path, FileInfo info, @Nullable OutputStream outStream) {
+  public OpenFileHandle(String path, FileInfo info, CreateFilePOptions options,
+                        @Nullable OutputStream ufsOutStream) {
     mPath = path;
     mInfo = info;
     // TODO(Hua): The operation of generating UUID is SLOW. We can replace it in other way.
     mUUID = UUID.randomUUID();
-    mOutStream = outStream;
+    mUfsOutStream = ufsOutStream;
     mPos = 0L;
     mLastAccessTimeMs = System.currentTimeMillis();
     mClosed = false;
+    mOptions = options;
   }
 
   /**
@@ -92,7 +98,15 @@ public class OpenFileHandle {
    * @return UFS out stream of this handle
    */
   public OutputStream getOutStream() {
-    return mOutStream;
+    return mUfsOutStream;
+  }
+
+  /**
+   * Get Alluxio create file options.
+   * @return the CreateFilePOptions of this operation
+   */
+  public CreateFilePOptions getOptions() {
+    return mOptions;
   }
 
   /**
@@ -108,10 +122,10 @@ public class OpenFileHandle {
    */
   public void close() {
     mClosed = true;
-    if (mOutStream != null) {
+    if (mUfsOutStream != null) {
       try {
-        mOutStream.close();
-        mOutStream = null;
+        mUfsOutStream.close();
+        mUfsOutStream = null;
       } catch (IOException e) {
         //Ignored
       }

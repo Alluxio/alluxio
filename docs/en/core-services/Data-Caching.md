@@ -131,7 +131,8 @@ alluxio.worker.page.store.async.write.enabled=true
 ```
 You might find this property helpful if you notice performance degradation when there are a lot of cache misses.
 
+## Additional Resources
 Check out these 2 short videos on the benefits of paging storage and how it improves the efficiency of Alluxio caching:
-<iframe width="425" height="239" src="https://www.youtube.com/embed/cO7ymRFnPyM" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+<iframe width="500" height="281" src="https://www.youtube.com/embed/cO7ymRFnPyM" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
-<iframe width="425" height="239" src="https://www.youtube.com/embed/7UY_iE_Ha_k" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+<iframe width="500" height="281" src="https://www.youtube.com/embed/7UY_iE_Ha_k" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>

@@ -280,7 +280,9 @@ $ mvn test -pl underfs/hdfs
 ```shell
 # build and run test on HDFS under storage module for Hadoop 2.7.0
 $ mvn test -pl underfs/hdfs -Phadoop-2 -Dhadoop.version=2.7.0
+```
 
+```shell
 # build and run test on HDFS under storage module for Hadoop 3.0.0
 $ mvn test -pl underfs/hdfs -Phadoop-3 -Dhadoop.version=3.0.0
 ```

@@ -101,4 +101,16 @@ public class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
     mClientList.add(client);
     return client;
   }
+
+  protected InetSocketAddress getMasterAddress() {
+    return mMasterAddress;
+  }
+
+  protected MasterClientContext getMasterContext() {
+    return mMasterContext;
+  }
+
+  protected Queue<BlockMasterClient> getClientList() {
+    return mClientList;
+  }
 }

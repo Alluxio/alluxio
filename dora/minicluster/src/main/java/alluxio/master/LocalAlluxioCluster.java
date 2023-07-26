@@ -39,8 +39,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
-  private boolean mIncludeSecondary;
-
   private boolean mIncludeProxy;
 
   private LocalAlluxioMaster mMaster;
@@ -49,26 +47,16 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
    * Runs a test Alluxio cluster with a single Alluxio worker.
    */
   public LocalAlluxioCluster() {
-    this(1, false, false);
+    this(1, false);
   }
 
   /**
    * @param numWorkers the number of workers to run
-   * @param includeSecondary weather to include the secondary master
    * @param includeProxy weather to include the proxy
    */
-  public LocalAlluxioCluster(int numWorkers, boolean includeSecondary, boolean includeProxy) {
+  public LocalAlluxioCluster(int numWorkers, boolean includeProxy) {
     super(numWorkers);
-    mIncludeSecondary = includeSecondary;
     mIncludeProxy = includeProxy;
-  }
-
-  /**
-   * @param numWorkers the number of workers to run
-   * @param includeSecondary weather to include the secondary master
-   */
-  public LocalAlluxioCluster(int numWorkers, boolean includeSecondary) {
-    this(numWorkers, includeSecondary, false);
   }
 
   @Override
@@ -147,7 +135,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
 
   @Override
   public void startMasters() throws Exception {
-    mMaster = LocalAlluxioMaster.create(mWorkDirectory, mIncludeSecondary);
+    mMaster = LocalAlluxioMaster.create(mWorkDirectory);
     mMaster.start();
     waitForMasterServing();
   }

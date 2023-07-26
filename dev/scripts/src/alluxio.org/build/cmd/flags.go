@@ -41,6 +41,7 @@ var SubCmdNames = []string{
 }
 
 const (
+	defaultAssemblyFilePath = "src/alluxio.org/build/assembly.yml"
 	defaultModulesFilePath  = "src/alluxio.org/build/modules.yml"
 	defaultProfilesFilePath = "src/alluxio.org/build/profiles.yml"
 
@@ -49,6 +50,7 @@ const (
 
 type buildOpts struct {
 	artifactOutput      string
+	assemblyJarFile     string
 	dryRun              bool
 	modulesFile         string
 	outputDir           string
@@ -56,6 +58,7 @@ type buildOpts struct {
 	skipRepoCopy        bool
 	suppressMavenOutput bool
 
+	assemblyJars  AssemblyJars
 	mavenArgs     []string
 	libModules    map[string]*LibModule
 	pluginModules map[string]*PluginModule
@@ -68,6 +71,7 @@ func parseTarballFlags(cmd *flag.FlagSet, args []string) (*buildOpts, error) {
 
 	// common flags
 	cmd.StringVar(&opts.artifactOutput, "artifact", "", "If set, writes object representing the tarball to YAML output file")
+	cmd.StringVar(&opts.assemblyJarFile, "assemblyFile", defaultAssemblyFilePath, "Path to assembly.yml file")
 	cmd.StringVar(&opts.outputDir, "outputDir", repo.FindRepoRoot(), "Set output dir for generated tarball")
 	cmd.BoolVar(&opts.dryRun, "dryRun", false, "If set, writes placeholder files instead of running maven commands to mock the final state of the build directory to be packaged as a tarball")
 	cmd.StringVar(&opts.modulesFile, "modulesFile", defaultModulesFilePath, "Path to modules.yml file")
@@ -113,6 +117,12 @@ func parseTarballFlags(cmd *flag.FlagSet, args []string) (*buildOpts, error) {
 	if err := opts.processProfileValues(prof); err != nil {
 		return nil, stacktrace.Propagate(err, "error processing profile values to update opts")
 	}
+	// parse assembly jars
+	assemblyJars, err := loadAssemblyJars(opts.assemblyJarFile)
+	if err != nil {
+		return nil, stacktrace.Propagate(err, "error parsing assembly jars")
+	}
+	opts.assemblyJars = assemblyJars
 
 	return opts, nil
 }

@@ -12,7 +12,7 @@ FUSE has the following I/O modes controlling whether data will be cached and the
 - `auto_cache`: cache data in kernel and invalidate cache if the modification time or the size of the file has changed
 
 Set up to one of the data cache option via mount command:
-```console
+```shell
 $ bin/alluxio-fuse mount <under_storage_dataset> <mount_point> -o direct_io
 ```
 
@@ -28,8 +28,10 @@ To avoid this circumstances, use `direct_io` mode or use a script to cleanup the
 ## Local Userspace Data Cache
 
 Userspace data cache can be enabled via
-```console
-$ bin/alluxio-fuse mount <under_storage_dataset> <mount_point> -o local_data_cache=<local_cache_directory> -o local_data_cache_size=<size>
+```shell
+$ bin/alluxio-fuse mount <under_storage_dataset> <mount_point> \
+    -o local_data_cache=<local_cache_directory> \
+    -o local_data_cache_size=<size>
 ```
 `local_data_cache` (Default = "" which means disabled): Local folder to use for local data cache
 `local_data_cache_size` (Default = `512MB`): Maximum cache size for local data cache directory
@@ -37,9 +39,12 @@ $ bin/alluxio-fuse mount <under_storage_dataset> <mount_point> -o local_data_cac
 Data can be cached on ramdisk or disk based on the type of the cache directory.
 
 Example of mounting S3 bucket with local userspace cache enabled:
-```console
+```shell
 $ mkdir /tmp/local_cache
-$ bin/alluxio-fuse mount s3://bucket_name/path/to/dataset/ /path/to/mount_point -o s3a.accessKeyId=<S3 ACCESS KEY> -o s3a.secretKey=<S3 SECRET KEY> -o local_data_cache=/tmp/local_cache -o local_data_cache_size=5GB
+$ bin/alluxio-fuse mount s3://bucket_name/path/to/dataset/ /path/to/mount_point \
+    -o s3a.accessKeyId=<S3 ACCESS KEY> -o s3a.secretKey=<S3 SECRET KEY> \
+    -o local_data_cache=/tmp/local_cache \
+    -o local_data_cache_size=5GB
 # Assume s3://bucket_name/path/to/dataset/ already has a test file with 1GB size
 $ time cat /path/to/mount_point/testfile > /dev/null
 read 0m44.817s

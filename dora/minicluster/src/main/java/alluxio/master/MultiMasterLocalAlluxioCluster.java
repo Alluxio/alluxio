@@ -233,7 +233,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     for (int k = 0; k < mNumOfMasters; k++) {
       Configuration.set(PropertyKey.MASTER_METASTORE_DIR,
           PathUtils.concatPath(mWorkDirectory, "metastore-" + k));
-      final LocalAlluxioMaster master = LocalAlluxioMaster.create(mWorkDirectory, false);
+      final LocalAlluxioMaster master = LocalAlluxioMaster.create(mWorkDirectory);
       master.start();
       LOG.info("master NO.{} started, isServing: {}, address: {}", k, master.isServing(),
           master.getAddress());
