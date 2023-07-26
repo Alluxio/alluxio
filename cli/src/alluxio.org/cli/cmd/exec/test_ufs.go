@@ -28,6 +28,7 @@ var TestUfs = &TestUfsCommand{
 type TestUfsCommand struct {
 	*env.BaseJavaCommand
 	path string
+	test []string
 }
 
 func (c *TestUfsCommand) Base() *env.BaseJavaCommand {
@@ -45,6 +46,8 @@ func (c *TestUfsCommand) ToCommand() *cobra.Command {
 	})
 	cmd.Flags().StringVar(&c.path, "path", "",
 		"the full UFS path to run tests against.")
+	cmd.PersistentFlags().StringSliceVar(&c.test, "test", nil,
+		"Test name, this option can be passed multiple times to indicate multiply tests")
 	err := cmd.MarkFlagRequired("path")
 	if err != nil {
 		log.Logger.Errorln("Required flag --path not specified.")
@@ -56,6 +59,9 @@ func (c *TestUfsCommand) Run(args []string) error {
 	var javaArgs []string
 	if c.path != "" {
 		javaArgs = append(javaArgs, "--path", c.path)
+	}
+	for _, singleTest := range c.test {
+		javaArgs = append(javaArgs, "--test", singleTest)
 	}
 	javaArgs = append(javaArgs, args...)
 
