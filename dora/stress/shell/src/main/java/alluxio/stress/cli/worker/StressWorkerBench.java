@@ -396,6 +396,8 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     long startMs = mBaseParameters.mStartMs;
     if (mBaseParameters.mStartMs == BaseParameters.UNDEFINED_START_MS) {
       startMs = CommonUtils.getCurrentMs() + 5000;
+    } else {
+      startMs = CommonUtils.getCurrentMs() + startMs;
     }
     long endMs = startMs + warmupMs + durationMs;
     BenchContext context = new BenchContext(startMs, endMs);

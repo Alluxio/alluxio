@@ -89,7 +89,7 @@ public final class BaseParameters {
 
   @Parameter(names = {START_MS_FLAG},
       description = "The time (ms since epoch) in the future to start the test. -1 means start "
-          + "immediately.", hidden = true)
+          + "5 seconds later.", hidden = true)
   public long mStartMs = UNDEFINED_START_MS;
 
   @Parameter(names = {IN_PROCESS_FLAG},
