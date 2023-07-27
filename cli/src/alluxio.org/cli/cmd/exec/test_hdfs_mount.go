@@ -66,7 +66,7 @@ func (c *TestHdfsMountCommand) Run(args []string) error {
 	if !c.readonly {
 		javaArgs = append(javaArgs, "--readonly")
 	}
-	if c.shared != false {
+	if c.shared {
 		javaArgs = append(javaArgs, "--shared")
 	}
 	if c.option != "" {
