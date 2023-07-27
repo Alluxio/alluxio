@@ -445,7 +445,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE),
       1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
       ThreadFactoryUtils.build("alluxio-ufs-active-sync-%d", false));
-  private HeartbeatThread mReplicationCheckHeartbeatThread;
+//  private HeartbeatThread mReplicationCheckHeartbeatThread;
 
   /**
    * Creates a new instance of {@link DefaultFileSystemMaster}.
@@ -734,14 +734,14 @@ public class DefaultFileSystemMaster extends CoreMaster
               () -> new FixedIntervalSupplier(
                   Configuration.getMs(PropertyKey.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL)),
               Configuration.global(), mMasterContext.getUserState()));
-      mReplicationCheckHeartbeatThread = new HeartbeatThread(
-          HeartbeatContext.MASTER_REPLICATION_CHECK,
-          new alluxio.master.file.replication.ReplicationChecker(mInodeTree, mBlockMaster,
-              mSafeModeManager, mJobMasterClientPool),
-          () -> new FixedIntervalSupplier(
-              Configuration.getMs(PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS)),
-          Configuration.global(), mMasterContext.getUserState());
-      getExecutorService().submit(mReplicationCheckHeartbeatThread);
+//      mReplicationCheckHeartbeatThread = new HeartbeatThread(
+//          HeartbeatContext.MASTER_REPLICATION_CHECK,
+//          new alluxio.master.file.replication.ReplicationChecker(mInodeTree, mBlockMaster,
+//              mSafeModeManager, mJobMasterClientPool),
+//          () -> new FixedIntervalSupplier(
+//              Configuration.getMs(PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS)),
+//          Configuration.global(), mMasterContext.getUserState());
+//      getExecutorService().submit(mReplicationCheckHeartbeatThread);
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_PERSISTENCE_SCHEDULER,
               new PersistenceScheduler(),
