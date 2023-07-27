@@ -90,52 +90,5 @@ public final class JobUtils {
     return mostBlocksWorker;
   }
 
-  private static void loadThroughCacheRequest(URIStatus status, FileSystemContext context,
-      long blockId, AlluxioConfiguration conf, WorkerNetAddress localNetAddress)
-      throws IOException {
-    BlockStoreClient blockStore = BlockStoreClient.create(context);
-    OpenFilePOptions openOptions =
-        OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE).build();
-    InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf, context);
-    BlockLocationPolicy policy =
-        BlockLocationPolicy.Factory.create(LocalFirstPolicy.class, conf);
-    inOptions.setUfsReadLocationPolicy(policy);
-    Protocol.OpenUfsBlockOptions openUfsBlockOptions = inOptions.getOpenUfsBlockOptions(blockId);
-    BlockInfo info = Preconditions.checkNotNull(status.getBlockInfo(blockId));
-    long blockLength = info.getLength();
-    Pair<WorkerNetAddress, BlockInStream.BlockInStreamSource> dataSourceAndType = blockStore
-        .getDataSourceAndType(status.getBlockInfo(blockId), status, policy, ImmutableMap.of());
-    WorkerNetAddress dataSource = dataSourceAndType.getFirst();
-    String host = dataSource.getHost();
-    // issues#11172: If the worker is in a container, use the container hostname
-    // to establish the connection.
-    if (!dataSource.getContainerHost().equals("")) {
-      host = dataSource.getContainerHost();
-    }
-    CacheRequest request = CacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
-        .setOpenUfsBlockOptions(openUfsBlockOptions).setSourceHost(host)
-        .setSourcePort(dataSource.getDataPort()).build();
-    try (CloseableResource<BlockWorkerClient> blockWorker =
-        context.acquireBlockWorkerClient(localNetAddress)) {
-      blockWorker.get().cache(request);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
-
-  private static void loadThroughRead(URIStatus status, FileSystemContext context, long blockId,
-      AlluxioConfiguration conf) throws IOException {
-    BlockStoreClient blockStore = BlockStoreClient.create(context);
-    OpenFilePOptions openOptions =
-        OpenFilePOptions.newBuilder().setReadType(ReadPType.CACHE).build();
-    InStreamOptions inOptions = new InStreamOptions(status, openOptions, conf, context);
-    inOptions.setUfsReadLocationPolicy(BlockLocationPolicy.Factory.create(
-        LocalFirstPolicy.class, conf));
-    BlockInfo info = Preconditions.checkNotNull(status.getBlockInfo(blockId));
-    try (InputStream inputStream = blockStore.getInStream(info, inOptions, ImmutableMap.of())) {
-      while (inputStream.read(READ_BUF) != -1) {}
-    }
-  }
-
   private JobUtils() {} // Utils class not intended for instantiation.
 }
