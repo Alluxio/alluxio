@@ -1211,37 +1211,6 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setIsClusterAggregated(true)
           .build();
   // Distributed command related metrics
-  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_SUCCESS =
-      new Builder("Master.JobDistributedLoadSuccess")
-          .setDescription("The number of successful DistributedLoad operations")
-          .setMetricType(MetricType.COUNTER)
-          .build();
-  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_FAIL =
-      new Builder("Master.JobDistributedLoadFail")
-          .setDescription("The number of failed DistributedLoad operations")
-          .setMetricType(MetricType.COUNTER)
-          .build();
-  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_CANCEL =
-      new Builder("Master.JobDistributedLoadCancel")
-          .setDescription("The number of cancelled DistributedLoad operations")
-          .setMetricType(MetricType.COUNTER)
-          .build();
-  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_FILE_COUNT =
-      new Builder("Master.JobDistributedLoadFileCount")
-          .setDescription("The number of files by DistributedLoad operations")
-          .setMetricType(MetricType.COUNTER)
-          .build();
-  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_FILE_SIZE =
-      new Builder("Master.JobDistributedLoadFileSizes")
-          .setDescription("The total file size by DistributedLoad operations")
-          .setMetricType(MetricType.COUNTER)
-          .build();
-  public static final MetricKey MASTER_JOB_DISTRIBUTED_LOAD_RATE =
-      new Builder("Master.JobDistributedLoadRate")
-          .setDescription("The average DistributedLoad loading rate")
-          .setMetricType(MetricType.METER)
-          .setIsClusterAggregated(true)
-          .build();
   public static final MetricKey MASTER_MIGRATE_JOB_SUCCESS =
       new Builder("Master.MigrateJobSuccess")
           .setDescription("The number of successful MigrateJob operations")

@@ -18,7 +18,6 @@ import alluxio.job.SelectExecutorsContext;
 import alluxio.job.plan.AbstractVoidPlanDefinition;
 import alluxio.job.plan.BatchedJobConfig;
 import alluxio.job.plan.PlanDefinition;
-import alluxio.job.plan.load.LoadDefinition;
 import alluxio.job.plan.migrate.MigrateDefinition;
 import alluxio.job.plan.persist.PersistDefinition;
 import alluxio.job.util.SerializableVoid;
@@ -135,8 +134,6 @@ public final class BatchedJobDefinition
      */
     public static PlanDefinition create(String jobName) {
       switch (jobName) {
-        case "Load":
-          return new LoadDefinition();
         case "Migrate":
           return new MigrateDefinition();
         case "Persist":

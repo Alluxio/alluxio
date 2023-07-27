@@ -1,5 +1,4 @@
 alluxio.job.plan.batch.BatchedJobDefinition
-alluxio.job.plan.load.LoadDefinition
 alluxio.job.plan.migrate.MigrateDefinition
 alluxio.job.plan.persist.PersistDefinition
 alluxio.job.plan.replicate.MoveDefinition

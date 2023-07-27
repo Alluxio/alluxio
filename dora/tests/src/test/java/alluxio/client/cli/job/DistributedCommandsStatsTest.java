@@ -20,7 +20,7 @@ import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.grpc.WritePType;
-import alluxio.job.plan.load.LoadConfig;
+import alluxio.job.plan.persist.PersistConfig;
 import alluxio.job.util.JobTestUtils;
 import alluxio.job.wire.Status;
 import alluxio.metrics.MetricKey;
@@ -79,8 +79,7 @@ public class DistributedCommandsStatsTest extends JobShellTest {
     final int length = 10;
     FileSystemTestUtils.createByteFile(sFileSystem, "/test", WritePType.THROUGH, length);
 
-    long jobId = sJobMaster.run(new LoadConfig("/test", 1, Collections.EMPTY_SET,
-            Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET, false));
+    long jobId = sJobMaster.run(new PersistConfig("/test", 1, false, "/test"));
 
     JobTestUtils
             .waitForJobStatus(sJobMaster, jobId, Sets.newHashSet(Status.COMPLETED), TEST_TIMEOUT);
@@ -89,20 +88,13 @@ public class DistributedCommandsStatsTest extends JobShellTest {
 
     String[] output = mOutput.toString().split("\n");
     assertEquals(String.format("ID: %s", jobId), output[0]);
-    assertEquals(String.format("Name: Load"), output[1]);
-    assertTrue(output[2].contains("Description: LoadConfig"));
+    assertEquals(String.format("Name: Persist"), output[1]);
+    assertTrue(output[2].contains("Description: PersistConfig"));
     assertTrue(output[2].contains("/test"));
     assertEquals("Status: COMPLETED", output[3]);
     assertEquals("Task 0", output[4]);
     assertTrue(output[5].contains("\tWorker: "));
     assertEquals("\tStatus: COMPLETED", output[7]);
-
-    double completedCount = MetricsSystem.getMetricValue(
-            MetricKey.MASTER_JOB_DISTRIBUTED_LOAD_SUCCESS.getName()).getValue();
-    double fileCount = MetricsSystem.getMetricValue(
-            MetricKey.MASTER_JOB_DISTRIBUTED_LOAD_FILE_COUNT.getName()).getValue();
-    double fileSize = MetricsSystem.getMetricValue(
-            MetricKey.MASTER_JOB_DISTRIBUTED_LOAD_FILE_SIZE.getName()).getValue();
 
     //Metrics for Migrate job type
     double completedMigrateCount = MetricsSystem.getMetricValue(
@@ -119,11 +111,6 @@ public class DistributedCommandsStatsTest extends JobShellTest {
             MetricKey.MASTER_ASYNC_PERSIST_FILE_COUNT.getName()).getValue();
     double completedPersistFileSize = MetricsSystem.getMetricValue(
             MetricKey.MASTER_ASYNC_PERSIST_FILE_SIZE.getName()).getValue();
-
-    //test counters for distributed load on Complete status.
-    assertEquals(completedCount, 1, 0); //distributedLoad operation count equals 1.
-    assertEquals(fileCount, 1, 0); // file count equals 1.
-    assertEquals(fileSize, length, 0); // file size equals $length.
 
     //test for other job types. Migrate counters, should all be 0.
     assertEquals(completedMigrateCount, 0, 0);
