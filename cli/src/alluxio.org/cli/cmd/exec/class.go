@@ -57,12 +57,10 @@ func (c *ClassCommand) Run(args []string) error {
 		javaArgs = append(javaArgs, "-jar", c.jarFile)
 	} else if c.module != "" {
 		javaArgs = append(javaArgs, "-m", c.module)
+	} else if len(args) != 0 {
+		c.JavaClassName = args[0]
 	} else {
-		if len(args) != 0 {
-			c.JavaClassName = args[0]
-		} else {
-			return stacktrace.Propagate(nil, "None of JAR, module, nor a java class is specified")
-		}
+		return stacktrace.Propagate(nil, "None of JAR, module, nor a java class is specified")
 	}
 
 	if len(args) > 1 {
