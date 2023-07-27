@@ -45,7 +45,7 @@ func (c *TestUfsCommand) ToCommand() *cobra.Command {
 	})
 	cmd.Flags().StringVar(&c.path, "path", "",
 		"the full UFS path to run tests against.")
-	cmd.PersistentFlags().StringSliceVar(&c.test, "test", nil,
+	cmd.Flags().StringSliceVar(&c.test, "test", nil,
 		"Test name, this option can be passed multiple times to indicate multiply tests")
 	cmd.MarkFlagRequired("path")
 	return cmd
