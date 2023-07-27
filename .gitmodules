@@ -1,0 +1,3 @@
+[submodule "submodules/alluxio"]
+	url = git@github.com:dbw9580/alluxio.git
+	branch = fix/worker-multiple-ufs
