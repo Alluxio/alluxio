@@ -190,11 +190,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   @VisibleForTesting
   protected UnderFileSystem getUfsInstance(String ufsUriStr) {
     AlluxioURI ufsUriUri = new AlluxioURI(ufsUriStr);
-    // make sure the UFS URI is really a URI with scheme and authority
-    // without a scheme, the URI is interpreted as a local file system path
-    // without an authority, it's almost impossible to connect to the UFS
-    //Preconditions.checkArgument(ufsUriUri.hasScheme(), "%s has no scheme", ufsUriStr);
-    //Preconditions.checkArgument(ufsUriUri.hasAuthority(), "%s has no authority", ufsUriStr);
     try {
       Optional<UnderFileSystem> ufs = mUfsManager.get(ufsUriUri,
           // todo(bowen): local configuration may not have UFS-specific configurations
