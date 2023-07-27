@@ -12,9 +12,10 @@
 package exec
 
 import (
+	"strconv"
+
 	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
-	"strconv"
 
 	"alluxio.org/cli/env"
 )

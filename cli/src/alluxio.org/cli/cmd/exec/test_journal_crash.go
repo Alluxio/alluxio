@@ -13,9 +13,9 @@ package exec
 
 import (
 	"fmt"
-	"github.com/palantir/stacktrace"
 	"strconv"
 
+	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
