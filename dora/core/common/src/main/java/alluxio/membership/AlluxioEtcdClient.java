@@ -53,9 +53,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 
 /**
@@ -66,16 +66,16 @@ public class AlluxioEtcdClient implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioEtcdClient.class);
   private static final Lock INSTANCE_LOCK = new ReentrantLock();
   @GuardedBy("INSTANCE_LOCK")
-  private static final AtomicReference<AlluxioEtcdClient> ALLUXIO_ETCD_CLIENT
-      = new AtomicReference<>();
-  private final AtomicBoolean mConnected = new AtomicBoolean(false);
-  private Client mClient;
+  @Nullable
+  private static volatile AlluxioEtcdClient sAlluxioEtcdClient;
   public final ServiceDiscoveryRecipe mServiceDiscovery;
-  public String[] mEndpoints;
+  private final AtomicBoolean mConnected = new AtomicBoolean(false);
   private final Closer mCloser = Closer.create();
   // only watch for children change(add/remove) for given parent path
   private final ConcurrentHashMap<String, Watch.Watcher> mRegisteredWatchers =
       new ConcurrentHashMap<>();
+  private Client mClient;
+  public String[] mEndpoints;
 
   /**
    * CTOR for AlluxioEtcdClient.
@@ -84,7 +84,7 @@ public class AlluxioEtcdClient implements Closeable {
   public AlluxioEtcdClient(AlluxioConfiguration conf) {
     String clusterName = conf.getString(PropertyKey.ALLUXIO_CLUSTER_NAME);
     List<String> endpointsList = conf.getList(PropertyKey.ETCD_ENDPOINTS);
-    mEndpoints = endpointsList.toArray(new String[endpointsList.size()]);
+    mEndpoints = endpointsList.toArray(new String[0]);
     mServiceDiscovery = new ServiceDiscoveryRecipe(this, clusterName);
   }
 
@@ -94,14 +94,14 @@ public class AlluxioEtcdClient implements Closeable {
    * @return AlluxioEtcdClient
    */
   public static AlluxioEtcdClient getInstance(AlluxioConfiguration conf) {
-    if (ALLUXIO_ETCD_CLIENT.get() == null) {
+    if (sAlluxioEtcdClient == null) {
       try (LockResource lockResource = new LockResource(INSTANCE_LOCK)) {
-        if (ALLUXIO_ETCD_CLIENT.get() == null) {
-          ALLUXIO_ETCD_CLIENT.set(new AlluxioEtcdClient(conf));
+        if (sAlluxioEtcdClient == null) {
+          sAlluxioEtcdClient = new AlluxioEtcdClient(conf);
         }
       }
     }
-    return ALLUXIO_ETCD_CLIENT.get();
+    return sAlluxioEtcdClient;
   }
 
   /**
