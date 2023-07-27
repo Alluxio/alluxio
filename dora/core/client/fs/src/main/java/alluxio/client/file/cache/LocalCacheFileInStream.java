@@ -198,6 +198,7 @@ public class LocalCacheFileInStream extends FileInStream {
     stopwatch.stop();
     if (bytesRead > 0) {
       MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesRead);
+      MetricsSystem.counter(MetricKey.CLIENT_CACHE_HIT_REQUESTS.getName()).inc();
       if (cacheContext != null) {
         cacheContext.incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), BYTE,
             bytesRead);
@@ -217,6 +218,7 @@ public class LocalCacheFileInStream extends FileInStream {
       // cache misses
       MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
           .mark(bytesToReadInPage);
+      MetricsSystem.counter(MetricKey.CLIENT_CACHE_EXTERNAL_REQUESTS.getName()).inc();
       if (cacheContext != null) {
         cacheContext.incrementCounter(
             MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), BYTE,

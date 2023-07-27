@@ -2275,6 +2275,12 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_CACHE_EXTERNAL_REQUESTS =
+      new Builder("Client.CacheBytesExternalRequests")
+          .setDescription("Total number of requests to read from external storage.")
+          .setMetricType(MetricType.COUNTER)
+          .setIsClusterAggregated(false)
+          .build();
   public static final MetricKey CLIENT_CACHE_PAGE_READ_CACHE_TIME_NS =
       new Builder("Client.CachePageReadCacheTimeNanos")
           .setDescription("Time in nanoseconds taken to read a page from the client cache "
@@ -2329,6 +2335,12 @@ public final class MetricKey implements Comparable<MetricKey> {
       new Builder("Client.CacheHitRate")
           .setDescription("Cache hit rate: (# bytes read from cache) / (# bytes requested).")
           .setMetricType(MetricType.GAUGE)
+          .setIsClusterAggregated(false)
+          .build();
+  public static final MetricKey CLIENT_CACHE_HIT_REQUESTS =
+      new Builder("Client.CacheHitRequests")
+          .setDescription("Total number of requests of hitting the cache.")
+          .setMetricType(MetricType.COUNTER)
           .setIsClusterAggregated(false)
           .build();
   public static final MetricKey CLIENT_CACHE_SPACE_AVAILABLE =
