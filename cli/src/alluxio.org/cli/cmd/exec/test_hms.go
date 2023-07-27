@@ -61,8 +61,7 @@ func (c *TestHmsCommand) ToCommand() *cobra.Command {
 }
 
 func (c *TestHmsCommand) Run(args []string) error {
-	var javaArgs []string
-	javaArgs = append(javaArgs, "-m", c.metastore)
+	javaArgs := []string{"-m", c.metastore}
 	if c.database != "" {
 		javaArgs = append(javaArgs, "-d", c.database)
 	}
