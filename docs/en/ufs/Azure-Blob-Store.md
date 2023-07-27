@@ -67,7 +67,6 @@ fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<AZURE_ACCOUNT_KEY>
 
 Once you have configured Alluxio to Azure Blob Store, try [running Alluxio locally]({{ '/en/ufs/Storage-Overview.html#running-alluxio-locally' | relativize_url}}) to see that everything works.
 
-
 <!-- Start up Alluxio locally to see that everything works.
 
 ```shell

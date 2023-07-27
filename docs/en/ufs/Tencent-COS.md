@@ -96,7 +96,7 @@ You also need to provide APPID and REGION. In this guide, the APPID is called `C
 {% navtabs Setup %}
 {% navtab COS %}
 
-To use COS as the UFS of Alluxio root mount point, you need to configure Alluxio to use under storage systems by modifying `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the template.
+To use Tencent COS as the UFS of Alluxio root mount point, you need to configure Alluxio to use under storage systems by modifying `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the template.
 
 ```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
@@ -129,7 +129,7 @@ fs.cos.app.id=<COS_APPID>
 {% endnavtab %}
 {% navtab COSN %}
 
-To use COSN as the UFS of Alluxio root mount point, you need to configure Alluxio to use under storage systems by modifying `conf/alluxio-site.properties` and `conf/core-site.xml`. If they do not exist, create the files from the template.
+To use Tencent COSN as the UFS of Alluxio root mount point, you need to configure Alluxio to use under storage systems by modifying `conf/alluxio-site.properties` and `conf/core-site.xml`. If they do not exist, create the files from the template.
 
 ```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties

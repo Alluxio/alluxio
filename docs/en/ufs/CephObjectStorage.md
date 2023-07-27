@@ -31,11 +31,11 @@ In preparation for using Ceph Object Storage with Alluxio:
     </tr>
     <tr>
         <td markdown="span" style="width:30%">`<S3_ACCESS_KEY_ID>`</td>
-        <td markdown="span">Used to sign programmatic requests made to AWS</td>
+        <td markdown="span">Used to sign programmatic requests made to AWS. See [How to Obtain Access Key ID and Secret Access Key](https://docs.aws.amazon.com/powershell/latest/userguide/pstools-appendix-sign-up.html){:target="_blank"}</td>
     </tr>
     <tr>
         <td markdown="span" style="width:30%">`<S3_SECRET_KEY>`</td>
-        <td markdown="span">Used to sign programmatic requests made to AWS</td>
+        <td markdown="span">Used to sign programmatic requests made to AWS. See [How to Obtain Access Key ID and Secret Access Key](https://docs.aws.amazon.com/powershell/latest/userguide/pstools-appendix-sign-up.html){:target="_blank"}</td>
     </tr>
     <tr>
         <td markdown="span" style="width:30%">`<RGW_HOSTNAME>`</td>
@@ -102,7 +102,8 @@ To use Ceph Object Storage as the UFS of Alluxio root mount point, you need to c
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-### Option 1: S3 Interface (preferred)
+{% navtabs Setup %}
+{% navtab S3 %}
 
 Modify `conf/alluxio-site.properties` to include:
 
@@ -119,7 +120,9 @@ If using a Ceph release such as hammer (or older) specify `alluxio.underfs.s3.si
 to use v2 S3 signatures. To use GET Bucket (List Objects) Version 1 specify
 `alluxio.underfs.s3.list.objects.v1=true`.
 
-### Option 2: Swift Interface
+{% endnavtab %}
+{% navtab Swift %}
+
 Modify `conf/alluxio-site.properties` to include:
 
 ```properties
@@ -131,6 +134,9 @@ fs.swift.auth.url=http://<RGW-HOSTNAME>:<RGW-PORT>/auth/1.0
 fs.swift.auth.method=<SWIFT_AUTH_METHOD>
 ```
 Replace `<CEPH_BUCKET>/<CEPH_DIRECTORY>` with an existing Swift bucket location.
+
+{% endnavtab %}
+{% endnavtabs %}
 
 ## Running Alluxio Locally with Ceph
 

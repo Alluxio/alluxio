@@ -35,7 +35,7 @@ For the purposes of this guide, the following are placeholders.
             `HADOOP_VERSION`</td>
     </tr>
     <tr>
-        <td markdown="span">[Aliyun Object Storage Service]({{ 'en/ufs/Aliyun-OSS.html' | relativize_url }})</td>
+        <td markdown="span">[Aliyun Object Storage Service (OSS)]({{ 'en/ufs/Aliyun-OSS.html' | relativize_url }})</td>
         <td markdown="span">`OSS_BUCKET`, `OSS_DIRECTORY`</td>
         <td markdown="span">`OSS_ACCESS_KEY_ID`, `OSS_ACCESS_KEY_SECRET`, `OSS_ENDPOINT`</td>
         <td markdown="span"></td>
@@ -64,11 +64,11 @@ For the purposes of this guide, the following are placeholders.
     <tr>
         <td markdown="span">[CephFS]({{ 'en/ufs/CephFS.html' | relativize_url }})</td>
         <td markdown="span"></td>
-        <td markdown="span">`CEPHFS_CONF_FILE`, `CEPHFS_NAME`, `CEPHFS_DIRECTORY`, `CEPHFS_CLIENT_ID`, `CEPHFS_KEYRING_FILE`</td>
+        <td markdown="span">`CEPHFS_CONF_FILE`, `CEPHFS_NAME`, `CEPHFS_DIRECTORY`, `CEPHFS_AUTH_ID`, `CEPHFS_KEYRING_FILE`</td>
         <td markdown="span"></td>
     </tr>
     <tr>
-        <td markdown="span">[Ceph Object Storage]({{ 'en/ufs/CephObjectStorage.html' | relativize_url }})</td>
+        <td markdown="span">[CephObjectStorage]({{ 'en/ufs/CephObjectStorage.html' | relativize_url }})</td>
         <td markdown="span">`CEPH_BUCKET`, `CEPH_DIRECTORY`</td>
         <td markdown="span">
             [S3](http://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html) (preferred): `S3_ACCESS_KEY_ID`, `S3_SECRET_KEY_ID` <br />
@@ -86,7 +86,7 @@ For the purposes of this guide, the following are placeholders.
         <td markdown="span"></td>
     </tr>
     <tr>
-        <td markdown="span">[Huawei Object Storage Service]({{ 'en/ufs/Huawei-OBS.html' | relativize_url }})</td>
+        <td markdown="span">[Huawei Object Storage Service (OBS)]({{ 'en/ufs/Huawei-OBS.html' | relativize_url }})</td>
         <td markdown="span">`OBS_BUCKET`, `OBS_DIRECTORY`</td>
         <td markdown="span">`OBS_ACCESS_KEY`, `OBS_SECRET_KEY`, `OBS_ENDPOINT`</td>
         <td markdown="span"></td>
@@ -106,8 +106,8 @@ For the purposes of this guide, the following are placeholders.
     <tr>
         <td markdown="span">[Ozone]({{ 'en/ufs/Ozone.html' | relativize_url }})</td>
         <td markdown="span">
-            [ofs](https://ozone.apache.org/docs/1.0.0/interface/ofs.html): `OZONE_BUCKET`, `OZONE_VOLUME`, `OZONE_DIRECTORY` <br />
-            [o3fs](https://ozone.apache.org/docs/1.0.0/interface/o3fs.html): `OZONE_MANAGER`, `OZONE_BUCKET`, `OZONE_DIRECTORY`, `OZONE_VOLUME`</td>
+            [o3fs](https://ozone.apache.org/docs/1.0.0/interface/ofs.html): `OZONE_BUCKET`, `OZONE_VOLUME` <br />
+            [ofs](https://ozone.apache.org/docs/1.0.0/interface/o3fs.html): `OZONE_MANAGER`, `OZONE_BUCKET`, `OZONE_DIRECTORY`, `OZONE_VOLUME`</td>
         <td markdown="span">
             `OM_SERVICE_IDS`</td>
         <td markdown="span">
@@ -132,7 +132,7 @@ For the purposes of this guide, the following are placeholders.
             `SWIFT_REGION`</td>
     </tr>
     <tr>
-        <td markdown="span">[Tencent COS]({{ 'en/ufs/COS.html' | relativize_url }})</td>
+        <td markdown="span">[Tencent Cloud Object Storage (COS)]({{ 'en/ufs/Tencent-COS.html' | relativize_url }})</td>
         <td markdown="span">`COS_BUCKET`, `COS_DIRECTORY`</td>
         <td markdown="span">`COS_ACCESS_KEY`, `COS_SECRET_KEY`</td>
         <td markdown="span">
@@ -141,7 +141,7 @@ For the purposes of this guide, the following are placeholders.
         </td>
     </tr>
     <tr>
-        <td markdown="span">[Tencent COS in Hadoop (COSN)]({{ 'en/ufs/Tencent-COS.html' | relativize_url }})</td>
+        <td markdown="span">[Tencent Cloud Object Storage in Hadoop (COSN)]({{ 'en/ufs/Tencent-COS.html' | relativize_url }})</td>
         <td markdown="span">`COSN_BUCKET`, `COSN_DIRECTORY`</td>
         <td markdown="span">`COSN_SECRET_ID`, `COSN_SECRET_KEY`</td>
         <td markdown="span">

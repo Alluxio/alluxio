@@ -15,7 +15,6 @@ For more information about Aliyun OSS, please read its [documentation](https://w
 If you haven't already, please see [Prerequisites]({{ '/en/ufs/Storage-Overview.html#prerequisites' | relativize_url }}) before you get started.
 
 In preparation for using OSS with Alluxio:
-
 <table class="table table-striped">
     <tr>
         <td markdown="span" style="width:30%">`<OSS_BUCKET>`</td>
@@ -44,12 +43,12 @@ to sign up for OSS and create an OSS bucket. -->
 
 ## Basic Setup
 
-To use OSS as the UFS of Alluxio root mount point, you need to configure Alluxio to use under storage systems by modifying `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the template.
+To use Aliyun OSS as the UFS of Alluxio root mount point, you need to configure Alluxio to use under storage systems by modifying `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the template.
 
 ```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
-Specify the underfs address by modifying `conf/alluxio-site.properties`. For example, the under storage address can be `oss://alluxio-bucket/` if
+Specify an OSS bucket and directory as the underfs address by modifying `conf/alluxio-site.properties`. For example, the under storage address can be `oss://alluxio-bucket/` if
 you want to mount the whole bucket to Alluxio, or `oss://alluxio-bucket/alluxio/data` if only the directory `/alluxio/data`
 inside the oss bucket `alluxio-bucket` is mapped to Alluxio.
 

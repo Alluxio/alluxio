@@ -36,11 +36,11 @@ In preparation for using MinIO with Alluxio:
     </tr>
     <tr>
         <td markdown="span" style="width:30%">`<S3_ACCESS_KEY_ID>`</td>
-        <td markdown="span">Used to sign programmatic requests made to AWS</td>
+        <td markdown="span">Used to sign programmatic requests made to AWS. See [How to Obtain Access Key ID and Secret Access Key](https://docs.aws.amazon.com/powershell/latest/userguide/pstools-appendix-sign-up.html){:target="_blank"}</td>
     </tr>
     <tr>
         <td markdown="span" style="width:30%">`<S3_SECRET_KEY>`</td>
-        <td markdown="span">Used to sign programmatic requests made to AWS</td>
+        <td markdown="span">Used to sign programmatic requests made to AWS. See [How to Obtain Access Key ID and Secret Access Key](https://docs.aws.amazon.com/powershell/latest/userguide/pstools-appendix-sign-up.html){:target="_blank"}</td>
     </tr>
 </table>
 
