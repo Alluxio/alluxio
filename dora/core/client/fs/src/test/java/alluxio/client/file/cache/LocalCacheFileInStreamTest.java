@@ -594,8 +594,9 @@ public class LocalCacheFileInStreamTest {
     byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
     LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
-
     Assert.assertEquals(100, stream.positionedRead(0, new byte[10], 100, 100));
+    Assert.assertEquals(1,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_POSITION_READ_FALLBACK.getName()).getCount());
   }
 
   private LocalCacheFileInStream setupWithSingleFile(byte[] data, CacheManager manager)

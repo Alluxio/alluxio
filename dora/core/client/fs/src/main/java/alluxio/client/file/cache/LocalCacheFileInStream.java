@@ -302,6 +302,7 @@ public class LocalCacheFileInStream extends FileInStream {
           ReadType.READ_INTO_BYTE_ARRAY, pos, true);
     } catch (IOException | RuntimeException e) {
       LOG.warn("Failed to read from Alluxio's page cache.", e);
+      MetricsSystem.counter(MetricKey.CLIENT_CACHE_POSITION_READ_FALLBACK.getName()).inc();
       return getExternalFileInStream().positionedRead(pos, b, off, len);
     }
   }
