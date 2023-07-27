@@ -13,8 +13,6 @@ package exec
 
 import (
 	"fmt"
-	"github.com/palantir/stacktrace"
-
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
@@ -63,11 +61,7 @@ func (c *TestHdfsMountCommand) ToCommand() *cobra.Command {
 
 func (c *TestHdfsMountCommand) Run(args []string) error {
 	var javaArgs []string
-	if c.path == "" {
-		return stacktrace.Propagate(nil, "Required flag --path not specified.")
-	} else {
-		javaArgs = append(javaArgs, c.path)
-	}
+	javaArgs = append(javaArgs, c.path)
 	if !c.readonly {
 		javaArgs = append(javaArgs, "--readonly")
 	}
