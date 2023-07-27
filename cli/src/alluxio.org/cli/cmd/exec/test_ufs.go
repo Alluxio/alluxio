@@ -12,7 +12,6 @@
 package exec
 
 import (
-	"alluxio.org/log"
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
@@ -48,10 +47,7 @@ func (c *TestUfsCommand) ToCommand() *cobra.Command {
 		"the full UFS path to run tests against.")
 	cmd.PersistentFlags().StringSliceVar(&c.test, "test", nil,
 		"Test name, this option can be passed multiple times to indicate multiply tests")
-	err := cmd.MarkFlagRequired("path")
-	if err != nil {
-		log.Logger.Errorln("Required flag --path not specified.")
-	}
+	cmd.MarkFlagRequired("path")
 	return cmd
 }
 

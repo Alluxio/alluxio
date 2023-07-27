@@ -18,7 +18,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
-	"alluxio.org/log"
 )
 
 var TestHdfsMount = &TestHdfsMountCommand{
@@ -58,10 +57,7 @@ func (c *TestHdfsMountCommand) ToCommand() *cobra.Command {
 		"mount point is shared.")
 	cmd.Flags().StringVar(&c.option, "option", "",
 		"options associated with this mount point.")
-	err := cmd.MarkFlagRequired("path")
-	if err != nil {
-		log.Logger.Errorln("Required flag --path not specified.")
-	}
+	cmd.MarkFlagRequired("path")
 	return cmd
 }
 

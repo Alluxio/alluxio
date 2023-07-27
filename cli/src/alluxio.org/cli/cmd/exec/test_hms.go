@@ -12,7 +12,6 @@
 package exec
 
 import (
-	"alluxio.org/log"
 	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 	"strconv"
@@ -57,10 +56,7 @@ func (c *TestHmsCommand) ToCommand() *cobra.Command {
 	cmd.Flags().StringVarP(&c.socketTimeout, "socketTimeout", "s", "-1",
 		"Socket timeout of hive metastore client in minutes.\n"+
 			"Consider increasing this if you have tables with a lot of metadata.")
-	err := cmd.MarkFlagRequired("metastore")
-	if err != nil {
-		log.Logger.Errorln("Required flag --metastore (-m) not specified.")
-	}
+	cmd.MarkFlagRequired("metastore")
 	return cmd
 }
 
