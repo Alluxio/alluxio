@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * A FileSystem implementation with a local cache.
@@ -76,7 +77,8 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
       return mDelegatedFileSystem.openFile(status, options);
     }
     return new LocalCacheFileInStream(status,
-        uriStatus -> mDelegatedFileSystem.openFile(status, options), mCacheManager, mConf);
+        uriStatus -> mDelegatedFileSystem.openFile(status, options), mCacheManager, mConf,
+        Optional.empty());
   }
 
   @Override
