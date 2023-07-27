@@ -48,7 +48,9 @@ To use Aliyun OSS as the UFS of Alluxio root mount point, you need to configure 
 ```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
-Specify an OSS bucket and directory as the underfs address by modifying `conf/alluxio-site.properties`. For example, the under storage address can be `oss://alluxio-bucket/` if
+Specify an OSS bucket and directory as the underfs address by modifying `conf/alluxio-site.properties`. 
+
+For example, the under storage address can be `oss://alluxio-bucket/` if
 you want to mount the whole bucket to Alluxio, or `oss://alluxio-bucket/alluxio/data` if only the directory `/alluxio/data`
 inside the oss bucket `alluxio-bucket` is mapped to Alluxio.
 
