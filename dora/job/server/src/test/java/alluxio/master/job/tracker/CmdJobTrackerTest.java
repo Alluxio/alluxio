@@ -20,8 +20,8 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.JobDoesNotExistException;
 import alluxio.grpc.OperationType;
-import alluxio.job.cmd.load.LoadCliConfig;
 import alluxio.job.cmd.migrate.MigrateCliConfig;
+import alluxio.job.cmd.persist.PersistCmdConfig;
 import alluxio.job.wire.CmdStatusBlock;
 import alluxio.job.wire.JobSource;
 import alluxio.job.wire.SimpleJobStatusBlock;
@@ -35,7 +35,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -50,12 +49,12 @@ public final class CmdJobTrackerTest {
   private CmdJobTracker mCmdJobTracker;
   private FileSystem mFs;
 
-  private long mLoadJobId;
+  private long mPersistJobId;
   private long mMigrateJobId;
   private MigrateCliRunner mMigrateCliRunner;
   private PersistRunner mPersistRunner;
 
-  private LoadCliConfig mLoad;
+  private PersistCmdConfig mPersist;
   private MigrateCliConfig mMigrate;
   private List<Status> mSearchingCriteria = Lists.newArrayList();
 
@@ -68,16 +67,14 @@ public final class CmdJobTrackerTest {
     FileSystemContext fsCtx = mock(FileSystemContext.class);
 
     mMigrateCliRunner = mock(MigrateCliRunner.class);
-//    mDistLoadRunner = mock(DistLoadCliRunner.class);
     mPersistRunner = mock(PersistRunner.class);
 
     mCmdJobTracker = new CmdJobTracker(fsCtx,
             mMigrateCliRunner, mPersistRunner);
 
-    mLoad = new LoadCliConfig("/path/to/load", 3, 1, Collections.EMPTY_SET,
-            Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET, true);
+    mPersist = new PersistCmdConfig("/path/to/persist", 3, true, "hdfs://");
     mMigrate = new MigrateCliConfig("/path/from", "/path/to", WriteType.THROUGH, true, 2);
-    mLoadJobId = 1;
+    mPersistJobId = 1;
     mMigrateJobId = 2;
     mSearchingCriteria.clear();
   }
