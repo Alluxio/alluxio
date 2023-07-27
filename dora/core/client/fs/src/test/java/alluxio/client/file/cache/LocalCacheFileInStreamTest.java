@@ -364,6 +364,10 @@ public class LocalCacheFileInStreamTest {
         Arrays.copyOfRange(testData, offset, offset + partialReadSize), cacheMiss);
     Assert.assertEquals(0, manager.mPagesServed);
     Assert.assertEquals(1, manager.mPagesCached);
+    Assert.assertEquals(1,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_EXTERNAL_REQUESTS.getName()).getCount());
+    Assert.assertEquals(0,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_HIT_REQUESTS.getName()).getCount());
 
     // cache hit
     byte[] cacheHit = new byte[partialReadSize];
@@ -372,6 +376,10 @@ public class LocalCacheFileInStreamTest {
     Assert.assertArrayEquals(
         Arrays.copyOfRange(testData, offset, offset + partialReadSize), cacheHit);
     Assert.assertEquals(1, manager.mPagesServed);
+    Assert.assertEquals(1,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_EXTERNAL_REQUESTS.getName()).getCount());
+    Assert.assertEquals(1,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_HIT_REQUESTS.getName()).getCount());
   }
 
   @Test
@@ -418,6 +426,10 @@ public class LocalCacheFileInStreamTest {
         MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount());
     Assert.assertEquals(fileSize,
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).getCount());
+    Assert.assertEquals(5,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_EXTERNAL_REQUESTS.getName()).getCount());
+    Assert.assertEquals(0,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_HIT_REQUESTS.getName()).getCount());
 
     // cache hit
     stream.read();
@@ -427,6 +439,10 @@ public class LocalCacheFileInStreamTest {
         MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount());
     Assert.assertEquals(fileSize,
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).getCount());
+    Assert.assertEquals(5,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_EXTERNAL_REQUESTS.getName()).getCount());
+    Assert.assertEquals(1,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_HIT_REQUESTS.getName()).getCount());
   }
 
   @Test
@@ -578,8 +594,9 @@ public class LocalCacheFileInStreamTest {
     byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
     LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
-
     Assert.assertEquals(100, stream.positionedRead(0, new byte[10], 100, 100));
+    Assert.assertEquals(1,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_POSITION_READ_FALLBACK.getName()).getCount());
   }
 
   private LocalCacheFileInStream setupWithSingleFile(byte[] data, CacheManager manager)
