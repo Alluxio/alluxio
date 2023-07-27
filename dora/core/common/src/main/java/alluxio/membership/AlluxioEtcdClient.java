@@ -65,6 +65,11 @@ public class AlluxioEtcdClient implements Closeable {
 
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioEtcdClient.class);
   private static final Lock INSTANCE_LOCK = new ReentrantLock();
+  public static final long DEFAULT_LEASE_TTL_IN_SEC = 2L;
+  public static final long DEFAULT_TIMEOUT_IN_SEC = 2L;
+  public static final int RETRY_TIMES = 3;
+  private static final int RETRY_SLEEP_IN_MS = 100;
+  private static final int MAX_RETRY_SLEEP_IN_MS = 500;
   @GuardedBy("INSTANCE_LOCK")
   @Nullable
   private static volatile AlluxioEtcdClient sAlluxioEtcdClient;
@@ -169,12 +174,6 @@ public class AlluxioEtcdClient implements Closeable {
           .toString();
     }
   }
-
-  public static final long DEFAULT_LEASE_TTL_IN_SEC = 2L;
-  public static final long DEFAULT_TIMEOUT_IN_SEC = 2L;
-  public static final int RETRY_TIMES = 3;
-  private static final int RETRY_SLEEP_IN_MS = 100;
-  private static final int MAX_RETRY_SLEEP_IN_MS = 500;
 
   /**
    * Create a lease with timeout and ttl.
