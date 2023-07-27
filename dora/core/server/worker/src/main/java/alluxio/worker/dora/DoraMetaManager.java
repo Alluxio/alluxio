@@ -93,8 +93,8 @@ public class DoraMetaManager implements Closeable {
     // without a scheme, the URI is interpreted as a local file system path, which is almost never
     // the right case.
     // without an authority, it's almost impossible to connect to the UFS
-    Preconditions.checkArgument(ufsUriUri.hasScheme(), "%s has no scheme", ufsUriStr);
-    Preconditions.checkArgument(ufsUriUri.hasAuthority(), "%s has no authority", ufsUriStr);
+    //Preconditions.checkArgument(ufsUriUri.hasScheme(), "%s has no scheme", ufsUriStr);
+    //Preconditions.checkArgument(ufsUriUri.hasAuthority(), "%s has no authority", ufsUriStr);
     try {
       UnderFileSystem ufs = mUfsManager.getOrAdd(ufsUriUri,
           // todo(bowen): local configuration may not have UFS-specific configurations
