@@ -35,7 +35,6 @@
     <dependency>
       <groupId>com.qcloud</groupId>
       <artifactId>cos_api-bundle</artifactId>
-      <version>${cos_api.version}</version>
     </dependency>
     <dependency>
       <groupId>com.qcloud.cos</groupId>
