@@ -19,11 +19,13 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Base Entity class including information to register to Etcd
  * when using EtcdMembershipManager.
  */
+@ThreadSafe
 public class ServiceEntity implements Closeable {
   private CloseableClient mKeepAliveClient;
   // (package visibility) to do keep alive(heartbeating),

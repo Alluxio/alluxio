@@ -873,6 +873,8 @@ public class FileSystemContext implements Closeable {
    * @return the info of all block workers
    */
   protected List<BlockWorkerInfo> getAllWorkers() throws IOException {
+    // TODO(lucy) once ConfigHashSync reinit is gotten rid of, will remove the blockReinit
+    // guard altogether
     try (ReinitBlockerResource r = blockReinit()) {
       // Use membership mgr
       if (mMembershipManager != null && !(mMembershipManager instanceof NoOpMembershipManager)) {

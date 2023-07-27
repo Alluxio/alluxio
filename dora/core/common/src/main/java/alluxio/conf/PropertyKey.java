@@ -5511,7 +5511,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(MembershipType.NOOP.name())
           .setDescription("Type of membership manager used for workers."
               + "Choose STATIC for pre-configured members."
-              + "Choose ETCD for using etcd for membership management")
+              + "Choose ETCD for using etcd for membership management"
+              + "Default is NOOP which does not enable membership manager at all")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();

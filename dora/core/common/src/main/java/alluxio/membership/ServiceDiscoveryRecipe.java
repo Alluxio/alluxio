@@ -57,7 +57,7 @@ import javax.annotation.concurrent.GuardedBy;
  * of all registered services.
  */
 public class ServiceDiscoveryRecipe {
-  private static final Logger LOG = LoggerFactory.getLogger(AlluxioEtcdClient.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ServiceDiscoveryRecipe.class);
   private static final String BASE_PATH = "/ServiceDiscovery";
   AlluxioEtcdClient mAlluxioEtcdClient;
   ScheduledExecutorService mExecutor;
@@ -74,8 +74,8 @@ public class ServiceDiscoveryRecipe {
    * @param clusterIdentifier
    */
   public ServiceDiscoveryRecipe(AlluxioEtcdClient client, String clusterIdentifier) {
-    mAlluxioEtcdClient = client;
     mAlluxioEtcdClient.connect();
+    mAlluxioEtcdClient = client;
     mClusterIdentifier = clusterIdentifier;
     mRegisterPathPrefix = String.format("%s%s%s", BASE_PATH,
         MembershipManager.PATH_SEPARATOR, mClusterIdentifier);
@@ -87,7 +87,8 @@ public class ServiceDiscoveryRecipe {
   }
 
   /**
-   * Apply for a new lease for given ServiceEntity.
+   * Apply for a new lease or extend expired lease for
+   * given ServiceEntity in atomic fashion.
    * @param service
    * @throws IOException
    */

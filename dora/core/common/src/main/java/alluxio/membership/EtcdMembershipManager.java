@@ -34,10 +34,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * MembershipManager backed by configured etcd cluster.
  */
+@ThreadSafe
 public class EtcdMembershipManager implements MembershipManager {
   private static final Logger LOG = LoggerFactory.getLogger(EtcdMembershipManager.class);
   private static final String RING_PATH_FORMAT = "/DHT/%s/AUTHORIZED/";

@@ -57,10 +57,12 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Wrapper class around jetcd client to achieve utilities API to talk with ETCD.
  */
+@ThreadSafe
 public class AlluxioEtcdClient implements Closeable {
 
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioEtcdClient.class);
@@ -196,7 +198,7 @@ public class AlluxioEtcdClient implements Closeable {
         return lease;
       }, new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES));
     } catch (AlluxioRuntimeException ex) {
-      throw new IOException(ex.getMessage());
+      throw new IOException(ex.getMessage(), ex.getCause());
     }
   }
 
@@ -348,7 +350,8 @@ public class AlluxioEtcdClient implements Closeable {
                   break;
                 case UNRECOGNIZED:
                 default:
-                  LOG.info("Unrecognized event on watch path of:{}", parentPath);
+                  LOG.info("Unrecognized event:{} on watch path of:{}",
+                      event.getEventType(), parentPath);
                   break;
               }
             }
