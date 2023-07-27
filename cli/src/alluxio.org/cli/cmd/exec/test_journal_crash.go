@@ -15,7 +15,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
@@ -31,12 +30,12 @@ var TestJournalCrash = &TestJournalCrashCommand{
 
 type TestJournalCrashCommand struct {
 	*env.BaseJavaCommand
-	creates   string
-	deletes   string
-	maxAlive  string
-	renames   string
+	creates   int
+	deletes   int
+	maxAlive  int
+	renames   int
 	testDir   string
-	totalTime string
+	totalTime int
 }
 
 func (c *TestJournalCrashCommand) Base() *env.BaseJavaCommand {
@@ -51,62 +50,33 @@ func (c *TestJournalCrashCommand) ToCommand() *cobra.Command {
 			return c.Run(args)
 		},
 	})
-	cmd.Flags().StringVar(&c.creates, "creates", "2",
+	cmd.Flags().IntVar(&c.creates, "creates", 2,
 		"Number of Client Threads to request create operations.")
-	cmd.Flags().StringVar(&c.deletes, "deletes", "2",
+	cmd.Flags().IntVar(&c.deletes, "deletes", 2,
 		"Number of Client Threads to request create/delete operations.")
-	cmd.Flags().StringVar(&c.maxAlive, "maxAlive", "5",
+	cmd.Flags().IntVar(&c.maxAlive, "maxAlive", 5,
 		"The maximum time a master should ever be alive during the test, in seconds.")
-	cmd.Flags().StringVar(&c.renames, "renames", "2",
+	cmd.Flags().IntVar(&c.renames, "renames", 2,
 		"Number of Client Threads to request create/rename operations.")
 	cmd.Flags().StringVar(&c.testDir, "testDir", "/default_tests_files",
 		"Test Directory on Alluxio.")
-	cmd.Flags().StringVar(&c.totalTime, "totalTime", "20",
+	cmd.Flags().IntVar(&c.totalTime, "totalTime", 20,
 		"The total time to run this test, in seconds. This value should be greater than [maxAlive].")
 	return cmd
 }
 
 func (c *TestJournalCrashCommand) Run(args []string) error {
 	var javaArgs []string
-	if c.creates != "" {
-		_, err := strconv.Atoi(c.creates)
-		if err != nil {
-			return stacktrace.Propagate(err, "Flag --creates should be a number.")
-		}
-		javaArgs = append(javaArgs, "-creates", c.creates)
-	}
-	if c.deletes != "" {
-		_, err := strconv.Atoi(c.deletes)
-		if err != nil {
-			return stacktrace.Propagate(err, "Flag --deletes should be a number.")
-		}
-		javaArgs = append(javaArgs, "-deletes", c.deletes)
-	}
-	if c.maxAlive != "" {
-		_, err := strconv.Atoi(c.maxAlive)
-		if err != nil {
-			return stacktrace.Propagate(err, "Flag --maxAlive should be a number.")
-		}
-		javaArgs = append(javaArgs, "-maxAlive", c.maxAlive)
-	}
-	if c.renames != "" {
-		_, err := strconv.Atoi(c.renames)
-		if err != nil {
-			return stacktrace.Propagate(err, "Flag --renames should be a number.")
-		}
-		javaArgs = append(javaArgs, "-renames", c.renames)
-	}
+
+	javaArgs = append(javaArgs, "-creates", strconv.Itoa(c.creates))
+	javaArgs = append(javaArgs, "-deletes", strconv.Itoa(c.deletes))
+	javaArgs = append(javaArgs, "-maxAlive", strconv.Itoa(c.maxAlive))
+	javaArgs = append(javaArgs, "-renames", strconv.Itoa(c.renames))
 	if c.testDir != "" {
 		javaArgs = append(javaArgs, "-testDir", c.testDir)
 	}
-	if c.totalTime != "" {
-		_, err := strconv.Atoi(c.totalTime)
-		if err != nil {
-			return stacktrace.Propagate(err, "Flag --totalTime should be a number.")
-		}
-		javaArgs = append(javaArgs, "-totalTime", c.totalTime)
-	}
-	javaArgs = append(javaArgs, args...)
+	javaArgs = append(javaArgs, "-totalTime", strconv.Itoa(c.totalTime))
 
+	javaArgs = append(javaArgs, args...)
 	return c.Base().Run(javaArgs)
 }
