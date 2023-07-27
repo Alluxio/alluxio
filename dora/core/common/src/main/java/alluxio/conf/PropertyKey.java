@@ -5376,10 +5376,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_S3_REST_ENABLED =
+      booleanBuilder(Name.WORKER_S3_REST_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Set to true to enable worker netty s3 server.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey WORKER_S3_AUDIT_LOGGING_ENABLED =
       booleanBuilder(Name.WORKER_S3_LOGGING_ENABLED)
           .setDefaultValue(false)
-          .setDescription("Set to true to enable woker netty s3 audit.")
+          .setDescription("Set to true to enable worker netty s3 audit.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
@@ -9113,6 +9120,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_WEB_HOSTNAME = "alluxio.worker.web.hostname";
     public static final String WORKER_WEB_PORT = "alluxio.worker.web.port";
     public static final String WORKER_REST_PORT = "alluxio.worker.rest.port";
+    public static final String WORKER_S3_REST_ENABLED = "alluxio.worker.s3.api.enabled";
     public static final String WORKER_S3_LOGGING_ENABLED =
         "alluxio.worker.s3.audit.logging.enabled";
     public static final String WORKER_S3_ASYNC_PROCESS_ENABLED =

@@ -116,7 +116,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
           if (handler.getHeader(S3Constants.S3_COPY_SOURCE_HEADER) != null) {
             return new CopyObjectTask(handler, OpType.CopyObject);
           }
-          return new PutObjectTask(handler, OpType.PutObject);
+          return new S3NettyObjectTask(handler, OpType.Unsupported);
         case "POST":
           break;
         case "HEAD":

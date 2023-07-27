@@ -80,9 +80,11 @@ public class NettyDataServer implements DataServer {
     try {
       mChannelFuture = mBootstrap.bind(nettyBindAddress).sync();
 
-      FileSystem fileSystem = FileSystem.Factory.create(Configuration.global());
-      mBootstrap.childHandler(new S3HttpPipelineHandler(fileSystem, doraWorker));
-      mHttpChannelFuture = mBootstrap.bind(s3BindAddress).sync();
+      if (Configuration.getBoolean(PropertyKey.WORKER_S3_REST_ENABLED)) {
+        FileSystem fileSystem = FileSystem.Factory.create(Configuration.global());
+        mBootstrap.childHandler(new S3HttpPipelineHandler(fileSystem, doraWorker));
+        mHttpChannelFuture = mBootstrap.bind(s3BindAddress).sync();
+      }
     } catch (InterruptedException e) {
       throw Throwables.propagate(e);
     }
@@ -114,9 +116,11 @@ public class NettyDataServer implements DataServer {
     // gracefully and its shutdown is forced.
 
     boolean completed;
-    completed =
-        mChannelFuture.channel().close().awaitUninterruptibly(mTimeoutMs)
-            && mHttpChannelFuture.channel().close().awaitUninterruptibly(mTimeoutMs);
+    completed = mChannelFuture.channel().close().awaitUninterruptibly(mTimeoutMs);
+    if (mHttpChannelFuture != null) {
+      completed =
+          completed && mHttpChannelFuture.channel().close().awaitUninterruptibly(mTimeoutMs);
+    }
     if (!completed) {
       LOG.warn("Closing the channel timed out.");
     }
