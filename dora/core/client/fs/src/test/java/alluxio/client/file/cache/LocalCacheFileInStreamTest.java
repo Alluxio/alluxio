@@ -441,7 +441,8 @@ public class LocalCacheFileInStreamTest {
     ByteArrayFileSystem fs = new MultiReadByteArrayFileSystem(files);
 
     LocalCacheFileInStream stream = new LocalCacheFileInStream(fs.getStatus(testFilename),
-        (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager, sConf);
+        (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager, sConf,
+        Optional.empty());
 
     // cache miss
     byte[] cacheMiss = new byte[fileSize];
@@ -470,7 +471,8 @@ public class LocalCacheFileInStreamTest {
     ByteArrayFileSystem fs = new MultiReadByteArrayFileSystem(files);
 
     LocalCacheFileInStream stream = new LocalCacheFileInStream(fs.getStatus(testFilename),
-        (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager, sConf);
+        (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager, sConf,
+        Optional.empty());
 
     // cache miss
     ByteBuffer cacheMissBuf = ByteBuffer.wrap(new byte[fileSize]);
@@ -520,7 +522,7 @@ public class LocalCacheFileInStreamTest {
     LocalCacheFileInStream stream =
         new LocalCacheFileInStream(fs.getStatus(testFileName),
             (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager,
-            sConf) {
+            sConf, Optional.empty()) {
           @Override
           protected Stopwatch createUnstartedStopwatch() {
             return Stopwatch.createUnstarted(timeSource);
@@ -589,7 +591,8 @@ public class LocalCacheFileInStreamTest {
     ByteArrayFileSystem fs = new ByteArrayFileSystem(files);
 
     return new LocalCacheFileInStream(fs.getStatus(testFilename),
-        (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager, sConf);
+        (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager, sConf,
+        Optional.empty());
   }
 
   private Map<AlluxioURI, LocalCacheFileInStream> setupWithMultipleFiles(Map<String, byte[]> files,
@@ -604,7 +607,7 @@ public class LocalCacheFileInStreamTest {
         ret.put(entry.getKey(),
             new LocalCacheFileInStream(fs.getStatus(entry.getKey()),
                 (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager,
-                sConf));
+                sConf, Optional.empty()));
       } catch (Exception e) {
         // skip
       }
