@@ -6,14 +6,18 @@ title: Qiniu Kodo
 
 This guide describes how to configure Alluxio with [Qiniu Kodo](https://www.qiniu.com/products/kodo) as the under storage system. 
 
-Qiniu Object Storage Service (Kodo) is a cloud-based object storage service provided by Qiniu Cloud, a Chinese cloud service provider. Kodo is a massive, secure and highly reliable cloud storge service that is designed to store, manage, and serve large amounts of unstructured data.
+Object Storage (Kodo) is a cloud-based object storage service provided by Qiniu Cloud, a Chinese cloud service provider. Kodo is a massive, secure and highly reliable cloud storge service that is designed to store, manage, and serve large amounts of unstructured data.
 
 ## Prerequisites
 
-A Qiniu Kodo bucket is necessary before using Kodo with Alluxio. In this guide, the Qiniu Kodo bucket
-is called `KODO_BUCKET`, and the directory in the bucket is called `KODO_DIRECTORY`.
-In addition, you should provide a domain to identify the specified bucket, which is called `KODO_DOWNLOAD_HOST`.
-Through the `KODO_DOWNLOAD_HOST` you can get objects from the bucket.
+If you haven't already, please see [Prerequisites]({{ '/en/ufs/Storage-Overview.html#prerequisites' | relativize_url }}) before you get started.
+
+In preparation for using Qiniu Kodo with Alluxio, create a new bucket or use an existing bucket. You should also note the directory you want to use in that bucket, either by creating a new directory in the bucket or using an existing one. 
+
+<!-- A Qiniu Kodo bucket is necessary before using Kodo with Alluxio. In this guide, the Qiniu Kodo bucket
+is called `KODO_BUCKET`, and the directory in the bucket is called `KODO_DIRECTORY`. -->
+
+In addition, you should provide a domain to identify the specified bucket, which is called `KODO_DOWNLOAD_HOST`, through which you can get objects from the bucket.
 
 ## Mounting Kodo
 

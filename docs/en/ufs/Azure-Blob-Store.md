@@ -4,26 +4,43 @@ title: Azure Blob Store
 ---
 
 
-This guide describes how to configure Alluxio with [Azure Blob Store](https://azure.microsoft.com/en-in/services/storage/blobs/) as the under storage system. 
+This guide describes how to configure Alluxio with [Azure Blob Store](https://azure.microsoft.com/en-us/products/storage/blobs/){:target="_blank"} as the under storage system. 
 
 Azure Blob Storage is Microsoft's object storage solution for the cloud. Blob Storage is optimized for storing massive amounts of unstructured data.
 
+For more information about Azure Blob Store, please read its
+[documentation](https://learn.microsoft.com/en-us/azure/storage/blobs/){:target="_blank"}.
 
 ## Prerequisites
 
 If you haven't already, please see [Prerequisites]({{ '/en/ufs/Storage-Overview.html#prerequisites' | relativize_url }}) before you get started.
 
-In preparation for using Azure Blob Store with Alluxio, create a new container in your Azure
-storage account or use an existing container. You should also note that the directory you want to
-use in that container, either by creating a new directory in the container, or using an existing
-one. 
+In preparation for using Azure Blob Store with Alluxio:
+<table class="table table-striped">
+    <tr>
+        <td markdown="span" style="width:30%">`<AZURE_CONTAINER>`</td>
+        <td markdown="span">[Create a new container in your Azure storage account](https://docs.microsoft.com/en-us/azure/storage/storage-create-storage-account){:target="_blank"} or use an existing container.</td>
+    </tr>
+    <tr>
+        <td markdown="span" style="width:30%">`<AZURE_DIRECTORY>`</td>
+        <td markdown="span">The directory you want to use in that container, either by creating a new directory or using an existing one</td>
+    </tr>
+    <tr>
+        <td markdown="span" style="width:30%">`<AZURE_ACCOUNT>`</td>
+        <td markdown="span">Your Azure storage account</td>
+    </tr>
+    <tr>
+        <td markdown="span" style="width:30%">`<AZURE_ACCOUNT_KEY>`</td>
+        <td markdown="span">Your Azure account credientials</td>
+    </tr>
+</table>
 
-<!-- For the purposes of this guide, the Azure storage account name is called `<AZURE_ACCOUNT>`, the
+<!-- In preparation for using Azure Blob Store with Alluxio, [create a new container in your Azure storage account](https://docs.microsoft.com/en-us/azure/storage/storage-create-storage-account){:target="_blank"} or use an existing container. You should note that the directory you want to
+use in that container, either by creating a new directory in the container or using an existing one. 
+
+For the purposes of this guide, the Azure storage account name is called `<AZURE_ACCOUNT>`, the
 container in that storage account is called `<AZURE_CONTAINER>` and the directory in that container is
 called `<AZURE_DIRECTORY>`.  -->
-
-For more information about Azure storage account, please see
-[here](https://docs.microsoft.com/en-us/azure/storage/storage-create-storage-account).
 
 
 ## Basic Setup
