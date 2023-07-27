@@ -20,12 +20,10 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import alluxio.AlluxioMockUtil;
-import alluxio.exception.JobDoesNotExistException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.job.JobServerContext;
 import alluxio.job.SleepJobConfig;
 import alluxio.job.meta.JobIdGenerator;
-//import alluxio.job.plan.replicate.SetReplicaConfig;
 import alluxio.job.wire.Status;
 import alluxio.master.job.command.CommandManager;
 import alluxio.master.job.workflow.WorkflowTracker;
@@ -34,7 +32,6 @@ import alluxio.wire.WorkerInfo;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

@@ -11,7 +11,6 @@
 
 package alluxio.master.job.plan;
 
-import alluxio.collections.Pair;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.JobDoesNotExistException;
@@ -20,7 +19,6 @@ import alluxio.job.JobConfig;
 import alluxio.job.JobServerContext;
 import alluxio.job.plan.PlanConfig;
 import alluxio.job.plan.meta.PlanInfo;
-//import alluxio.job.plan.replicate.SetReplicaConfig;
 import alluxio.job.wire.Status;
 import alluxio.master.job.command.CommandManager;
 import alluxio.master.job.workflow.WorkflowTracker;

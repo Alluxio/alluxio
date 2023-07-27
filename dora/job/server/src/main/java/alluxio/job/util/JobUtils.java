@@ -12,35 +12,15 @@
 package alluxio.job.util;
 
 import alluxio.Constants;
-import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.policy.BlockLocationPolicy;
-import alluxio.client.block.policy.LocalFirstPolicy;
-import alluxio.client.block.stream.BlockInStream;
-import alluxio.client.block.stream.BlockWorkerClient;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.InStreamOptions;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
-import alluxio.collections.Pair;
-import alluxio.conf.AlluxioConfiguration;
-import alluxio.grpc.CacheRequest;
-import alluxio.grpc.OpenFilePOptions;
-import alluxio.grpc.ReadPType;
-import alluxio.proto.dataserver.Protocol;
-import alluxio.resource.CloseableResource;
-import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 

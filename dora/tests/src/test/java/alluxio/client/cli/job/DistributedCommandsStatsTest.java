@@ -36,8 +36,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.util.Collections;
-
 /**
  * Tests stat counter values and output of CANCEL operations for distributed commands.
  * The tests will depend on the timing of the actual job runs.

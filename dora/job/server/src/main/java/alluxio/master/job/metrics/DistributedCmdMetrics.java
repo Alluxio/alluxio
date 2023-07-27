@@ -23,7 +23,6 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.retry.RetryPolicy;
 
 import com.codahale.metrics.Counter;
-import com.codahale.metrics.Meter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
