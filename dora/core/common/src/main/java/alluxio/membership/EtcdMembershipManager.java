@@ -16,6 +16,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.wire.WorkerInfo;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.etcd.jetcd.KeyValue;
 import org.apache.zookeeper.server.ByteBufferInputStream;
 import org.slf4j.Logger;
@@ -39,10 +40,10 @@ import java.util.stream.Collectors;
  */
 public class EtcdMembershipManager implements MembershipManager {
   private static final Logger LOG = LoggerFactory.getLogger(EtcdMembershipManager.class);
+  private static final String RING_PATH_FORMAT = "/DHT/%s/AUTHORIZED/";
+  private final AlluxioConfiguration mConf;
   private AlluxioEtcdClient mAlluxioEtcdClient;
   private String mClusterName;
-  private final AlluxioConfiguration mConf;
-  private static final String RING_PATH_FORMAT = "/DHT/%s/AUTHORIZED/";
   private String mRingPathPrefix = "";
 
   /**
@@ -66,6 +67,7 @@ public class EtcdMembershipManager implements MembershipManager {
   }
 
   @Override
+  @VisibleForTesting
   public void join(WorkerInfo wkrAddr) throws IOException {
     WorkerServiceEntity entity = new WorkerServiceEntity(wkrAddr.getAddress());
     // 1) register to the ring
@@ -93,11 +95,8 @@ public class EtcdMembershipManager implements MembershipManager {
     mAlluxioEtcdClient.mServiceDiscovery.registerAndStartSync(entity);
   }
 
-  /**
-   * Get all members.
-   * @return list of all registered WorkerInfos
-   * @throws IOException
-   */
+  @Override
+  @VisibleForTesting
   public List<WorkerInfo> getAllMembers() throws IOException {
     List<WorkerServiceEntity> registeredWorkers = retrieveFullMembers();
     return registeredWorkers.stream()
@@ -139,11 +138,8 @@ public class EtcdMembershipManager implements MembershipManager {
     return liveMembers;
   }
 
-  /**
-   * Get live members.
-   * @return list of WorkerInfos who are alive
-   * @throws IOException
-   */
+  @Override
+  @VisibleForTesting
   public List<WorkerInfo> getLiveMembers() throws IOException {
     List<WorkerServiceEntity> liveWorkers = retrieveLiveMembers();
     return liveWorkers.stream()
@@ -151,11 +147,8 @@ public class EtcdMembershipManager implements MembershipManager {
         .collect(Collectors.toList());
   }
 
-  /**
-   * Get failed members.
-   * @return a list of WorkerInfos who are not alive
-   * @throws IOException
-   */
+  @Override
+  @VisibleForTesting
   public List<WorkerInfo> getFailedMembers() throws IOException {
     List<WorkerServiceEntity> registeredWorkers = retrieveFullMembers();
     List<String> liveWorkers = retrieveLiveMembers()
@@ -167,10 +160,8 @@ public class EtcdMembershipManager implements MembershipManager {
         .collect(Collectors.toList());
   }
 
-  /**
-   * Pretty print all member status as string.
-   * @return result string
-   */
+  @Override
+  @VisibleForTesting
   public String showAllMembers() {
     try {
       List<WorkerServiceEntity> registeredWorkers = retrieveFullMembers();
@@ -194,6 +185,7 @@ public class EtcdMembershipManager implements MembershipManager {
   }
 
   @Override
+  @VisibleForTesting
   public void stopHeartBeat(WorkerInfo worker) throws IOException {
     WorkerServiceEntity entity = new WorkerServiceEntity(worker.getAddress());
     mAlluxioEtcdClient.mServiceDiscovery.unregisterService(entity.getServiceEntityName());

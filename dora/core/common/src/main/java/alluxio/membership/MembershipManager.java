@@ -104,9 +104,9 @@ public interface MembershipManager extends AutoCloseable {
           if (MEMBERSHIP_MANAGER.get() == null) {
             MEMBERSHIP_MANAGER.set(create(conf));
           }
-        } catch (IOException ex) {
-          LOG.error("Failed to create MembershipManager : ", ex);
-          throw ex;
+        } catch (IOException e) {
+          LOG.error("Failed to create MembershipManager : ", e);
+          throw e;
         }
       }
       return MEMBERSHIP_MANAGER.get();
@@ -125,7 +125,7 @@ public interface MembershipManager extends AutoCloseable {
         case NOOP:
           return new NoOpMembershipManager();
         default:
-          throw new IOException("Unrecognized Membership Type.");
+          throw new IllegalStateException("Unrecognized Membership Type");
       }
     }
   }
