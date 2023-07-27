@@ -180,7 +180,6 @@ public class PlanTracker {
   public synchronized void run(PlanConfig jobConfig, CommandManager manager,
       JobServerContext ctx, List<WorkerInfo> workers, long jobId) throws
       JobDoesNotExistException, ResourceExhaustedException {
-//    checkActiveSetReplicaJobs(jobConfig);
     if (removeFinished()) {
       PlanCoordinator planCoordinator = PlanCoordinator.create(manager, ctx,
           workers, jobId, jobConfig, this::statusChangeCallback);
@@ -299,21 +298,4 @@ public class PlanTracker {
                 || x.getValue().getPlanInfoWire(false).getName().equals(name)))
         .map(Map.Entry::getKey).collect(Collectors.toSet());
   }
-
-//  private void checkActiveSetReplicaJobs(JobConfig jobConfig) throws JobDoesNotExistException {
-//    if (jobConfig instanceof SetReplicaConfig) {
-//      Set<Pair<String, Long>> activeJobs = mCoordinators.values().stream()
-//          .filter(x -> x.getPlanInfo().getJobConfig() instanceof SetReplicaConfig)
-//          .map(x -> ((SetReplicaConfig) x.getPlanInfo().getJobConfig()))
-//          .map(x -> new Pair<>(x.getPath(), x.getBlockId())).collect(Collectors.toSet());
-//      SetReplicaConfig config = (SetReplicaConfig) jobConfig;
-//      String path = config.getPath();
-//      long blockId = config.getBlockId();
-//      Pair<String, Long> block = new Pair<>(path, blockId);
-//      if (activeJobs.contains(block)) {
-//        throw new JobDoesNotExistException(String.format(
-//            "There's SetReplica job running for path:%s blockId:%s, try later", path, blockId));
-//      }
-//    }
-//  }
 }

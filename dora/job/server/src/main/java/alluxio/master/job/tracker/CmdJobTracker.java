@@ -46,7 +46,6 @@ public class CmdJobTracker {
   private static final Logger LOG = LoggerFactory.getLogger(CmdJobTracker.class);
   private final Map<Long, CmdInfo> mInfoMap = new ConcurrentHashMap<>(0, 0.95f,
       Math.max(8, 2 * Runtime.getRuntime().availableProcessors()));
-//  private final DistLoadCliRunner mDistLoadCliRunner;
   private final MigrateCliRunner mMigrateCliRunner;
   private final PersistRunner mPersistRunner;
   protected FileSystemContext mFsContext;
@@ -60,7 +59,6 @@ public class CmdJobTracker {
   public CmdJobTracker(FileSystemContext fsContext,
                    JobMaster jobMaster) {
     mFsContext = fsContext;
-//    mDistLoadCliRunner = new DistLoadCliRunner(mFsContext, jobMaster);
     mMigrateCliRunner = new MigrateCliRunner(mFsContext, jobMaster);
     mPersistRunner = new PersistRunner(mFsContext, jobMaster);
   }

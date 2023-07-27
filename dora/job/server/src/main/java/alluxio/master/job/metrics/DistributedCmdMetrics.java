@@ -67,9 +67,6 @@ public class DistributedCmdMetrics {
  */
   public static void incrementForFailStatus(String jobType, long count) {
     switch (jobType) {
-//      case LoadConfig.NAME:
-//        JOB_DISTRIBUTED_LOAD_FAIL.inc(count);
-//        break;
       case MigrateConfig.NAME:
         MIGRATE_JOB_FAIL.inc(count);
         break;
@@ -89,9 +86,6 @@ public class DistributedCmdMetrics {
  */
   public static void incrementForCancelStatus(String jobType, long count) {
     switch (jobType) {
-//      case LoadConfig.NAME:
-//        JOB_DISTRIBUTED_LOAD_CANCEL.inc(count);
-//        break;
       case MigrateConfig.NAME:
         MIGRATE_JOB_CANCEL.inc(count);
         break;
