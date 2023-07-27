@@ -19,8 +19,6 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.path.PathConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.grpc.GetConfigurationPResponse;
-import alluxio.grpc.Scope;
 import alluxio.security.user.UserState;
 
 import java.net.InetSocketAddress;
