@@ -73,6 +73,5 @@ func (c *TestHdfsMountCommand) Run(args []string) error {
 		javaArgs = append(javaArgs, "--option", c.option)
 	}
 
-	javaArgs = append(javaArgs, args...)
 	return c.Base().Run(javaArgs)
 }
