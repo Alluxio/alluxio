@@ -66,12 +66,12 @@ func (c *TestJournalCrashCommand) ToCommand() *cobra.Command {
 }
 
 func (c *TestJournalCrashCommand) Run(args []string) error {
-	var javaArgs []string
-
-	javaArgs = append(javaArgs, "-creates", strconv.Itoa(c.creates))
-	javaArgs = append(javaArgs, "-deletes", strconv.Itoa(c.deletes))
-	javaArgs = append(javaArgs, "-maxAlive", strconv.Itoa(c.maxAlive))
-	javaArgs = append(javaArgs, "-renames", strconv.Itoa(c.renames))
+	javaArgs := []string{
+		"-creates", strconv.Itoa(c.creates),
+		"-deletes", strconv.Itoa(c.deletes),
+		"-maxAlive", strconv.Itoa(c.maxAlive),
+		"-renames", strconv.Itoa(c.renames),
+	}
 	if c.testDir != "" {
 		javaArgs = append(javaArgs, "-testDir", c.testDir)
 	}
