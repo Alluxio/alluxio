@@ -52,8 +52,7 @@ func (c *TestUfsCommand) ToCommand() *cobra.Command {
 }
 
 func (c *TestUfsCommand) Run(args []string) error {
-	var javaArgs []string
-	javaArgs = append(javaArgs, "--path", c.path)
+	javaArgs := []string{"--path", c.path}
 	for _, singleTest := range c.test {
 		javaArgs = append(javaArgs, "--test", singleTest)
 	}
