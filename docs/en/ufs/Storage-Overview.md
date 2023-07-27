@@ -94,7 +94,7 @@ For the purposes of this guide, the following are placeholders.
     <tr>
         <td markdown="span">[MinIO]({{ 'en/ufs/Minio.html' | relativize_url }})</td>
         <td markdown="span">`MINIO_BUCKET`, `MINIO_DIRECTORY`</td>
-        <td markdown="span">`MINIO_ACCESS_KEY_ID`, `MINIO_SECRET_KEY`, `MINIO_ENDPOINT`</td>
+        <td markdown="span">`S3_ACCESS_KEY_ID`, `S3_SECRET_KEY`, `MINIO_ENDPOINT`</td>
         <td markdown="span"></td>
     </tr>
     <tr>
@@ -137,13 +137,13 @@ For the purposes of this guide, the following are placeholders.
         <td markdown="span">`COS_ACCESS_KEY`, `COS_SECRET_KEY`</td>
         <td markdown="span">
             Specify COS region: <br />
-            `COS_REGION`, `COS_APP_ID`
+            `COS_REGION`, `COS_APPID`
         </td>
     </tr>
     <tr>
         <td markdown="span">[Tencent COS in Hadoop (COSN)]({{ 'en/ufs/Tencent-COS.html' | relativize_url }})</td>
         <td markdown="span">`COSN_BUCKET`, `COSN_DIRECTORY`</td>
-        <td markdown="span">`COSN_SECRET_KEY`, `COSN_SECRET_ID`</td>
+        <td markdown="span">`COSN_SECRET_ID`, `COSN_SECRET_KEY`</td>
         <td markdown="span">
             Specify COSN region: <br />
             `COSN_REGION`

@@ -3,53 +3,106 @@ layout: global
 title: Tencent COS
 ---
 
-This guide describes the instructions to configure [Tencent COS](https://cloud.tencent.com/product/cos) as Alluxio's
+This guide describes the instructions to configure [Tencent COS](https://cloud.tencent.com/product/cos){:target="_blank"} as Alluxio's
 under storage system. 
 
 Alluxio support two different implementations of under storage system for Tencent COS:
 
-* [COS](https://cloud.tencent.com/product/cos)
+* [COS](https://cloud.tencent.com/product/cos){:target="_blank"}
 : Tencent Cloud Object Storage (COS) is a distributed storage service offered by Tencent Cloud for unstructured data and accessible via HTTP/HTTPS protocols. It can store massive amounts of data and features imperceptible bandwidth and capacity expansion, making it a perfect data pool for big data computation and analytics.
+: For more information about Tencent COS, please read its [documentation](https://www.tencentcloud.com/document/product/436){:target="_blank"}.
 
-* [COSN](https://hadoop.apache.org/docs/stable/hadoop-cos/cloud-storage/index.html), also known as Hadoop-COS
-: COSN, also known as Hadoop-COS, is a client that makes the upper computing systems based on HDFS be able to use [Tencent Cloud Object Storage (COS)](https://cloud.tencent.com/product/cos) as its underlying storage system. 
+* [COSN](https://hadoop.apache.org/docs/stable/hadoop-cos/cloud-storage/index.html){:target="_blank"}, also known as Hadoop-COS
+: COSN is a client that makes the upper computing systems based on HDFS be able to use Tencent COS as its underlying storage system. 
+: For more information about COSN, please read its [documentation](https://www.tencentcloud.com/document/product/436/6884){:target="_blank"}.
+
 
 ## Prerequisites
 
-In preparation for using COS with Alluxio, create a new bucket or use an existing bucket.
-You should also note the directory you want to use in that bucket, either by creating a new directory in the bucket or using an existing one.
+If you haven't already, please see [Prerequisites]({{ '/en/ufs/Storage-Overview.html#prerequisites' | relativize_url }}) before you get started.
+
+In preparation for using COS or COSN with Alluxio:
+<!-- In preparation for using COS with Alluxio, create a new bucket or use an existing bucket.
+You should also note the directory you want to use in that bucket, either by creating a new directory in the bucket or using an existing one. -->
 
 {% navtabs Prerequisites %}
 {% navtab COS %}
 
-For the purposes of this guide, the COS bucket name is called
+<table class="table table-striped">
+    <tr>
+        <td markdown="span" style="width:30%">`<COS_BUCKET>`</td>
+        <td markdown="span">[Create a new bucket](https://www.tencentcloud.com/document/product/436/32955#step-4.-create-a-bucket){:target="_blank"} or use an existing bucket</td>
+    </tr>
+    <tr>
+        <td markdown="span" style="width:30%">`<COS_DIRECTORY>`</td>
+        <td markdown="span">The directory you want to use in the bucket, either by creating a new directory or using an existing one</td>
+    </tr>
+    <tr>
+        <td markdown="span" style="width:30%">`<COS_ACCESS_KEY>`</td>
+        <td markdown="span">A developer-owned access key used for the project. It can be obtained at [Manage API Key](https://console.tencentcloud.com/capi){:target="_blank"}</td>
+    </tr>
+    <tr>
+        <td markdown="span" style="width:30%">`<COS_SECRET_KEY>`</td>
+        <td markdown="span">A developer-owned secret key used for the project. It can be obtained at [Manage API Key](https://console.tencentcloud.com/capi){:target="_blank"}</td>
+    </tr>
+    <tr>
+        <td markdown="span" style="width:30%">`<COS_REGION>`</td>
+        <td markdown="span">Region information. For more information about the enumerated values, please see [Regions and Access Endpoints](https://www.tencentcloud.com/document/product/436/6224){:target="_blank"}</td>
+    </tr>
+    <tr>
+        <td markdown="span" style="width:30%">`<COS_APPID>`</td>
+        <td markdown="span">A unique user-level resource identifier for COS access. It can be obtained at [Manage API Key](https://console.tencentcloud.com/capi){:target="_blank"}</td>
+    </tr>
+</table>
+
+<!-- For the purposes of this guide, the COS bucket name is called
 `COS_BUCKET`, and the directory in that bucket is called `COS_DIRECTORY`.
 
-You also need to provide APPID and REGION. In this guide, the APPID is called `COS_APP_ID`, and the REGION is called `COS_REGION`. For more information, please refer [here](https://cloud.tencent.com/document/product/436/7751).
+You also need to provide APPID and REGION. In this guide, the APPID is called `COS_APPID`, and the REGION is called `COS_REGION`. For more information, please refer [here](https://cloud.tencent.com/document/product/436/7751). -->
 
 {% endnavtab %}
 {% navtab COSN %}
 
-For the purposes of this guide, the COSN Bucket name is called `COSN_BUCKET`, the directory in that bucket is called `COSN_DIRECTORY`, and COSN Bucket region is called `COSN_REGION` which specifies the region of your bucket.
+<table class="table table-striped">
+    <tr>
+        <td markdown="span" style="width:30%">`<COSN_BUCKET>`</td>
+        <td markdown="span">Create a new bucket or use an existing bucket</td>
+    </tr>
+    <tr>
+        <td markdown="span" style="width:30%">`<COSN_DIRECTORY>`</td>
+        <td markdown="span">The directory you want to use in the bucket, either by creating a new directory or using an existing one</td>
+    </tr>
+    <tr>
+        <td markdown="span" style="width:30%">`<COSN_SECRET_ID>`</td>
+        <td markdown="span">ID used to authenticate user</td>
+    </tr>
+    <tr>
+        <td markdown="span" style="width:30%">`<COSN_SECRET_KEY>`</td>
+        <td markdown="span">Key used to authenticate user</td>
+    </tr>
+    <tr>
+        <td markdown="span" style="width:30%">`<COSN_REGION>`</td>
+        <td markdown="span">Region information, for more information about the enumerated values please see [Regions and Access Endpoints](https://www.tencentcloud.com/document/product/436/6224){:target="_blank"}</td>
+    </tr>
+</table>
+
+<!-- For the purposes of this guide, the COSN Bucket name is called `COSN_BUCKET`, the directory in that bucket is called `COSN_DIRECTORY`, and COSN Bucket region is called `COSN_REGION` which specifies the region of your bucket. -->
 
 {% endnavtab %}
 {% endnavtabs %}
 
 ## Basic Setup
 
-Create `conf/alluxio-site.properties` and `conf/core-site.xml` if they do not exist.
-
-```shell
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
-$ cp conf/core-site.xml.template conf/core-site.xml
-```
-
 {% navtabs Setup %}
 {% navtab COS %}
 
-Configure Alluxio to use COS as its under storage system by modifying `conf/alluxio-site.properties`.
-Specify an **existing** COS bucket and directory as the under storage system by modifying
-`conf/alluxio-site.properties` to include:
+To use COS as the UFS of Alluxio root mount point, you need to configure Alluxio to use under storage systems by modifying `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the template.
+
+```shell
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```
+
+Specify an **existing** COS bucket and directory as the underfs address by modifying `conf/alluxio-site.properties` to include:
 
 ```properties
 alluxio.dora.client.ufs.root=cos://COS_BUCKET/COS_DIRECTORY/
@@ -70,14 +123,20 @@ Specify the COS region by setting `fs.cos.region` in `alluxio-site.properties` (
 
 ```properties
 fs.cos.region=<COS_REGION>
-fs.cos.app.id=<COS_APP_ID>
+fs.cos.app.id=<COS_APPID>
 ```
 
 {% endnavtab %}
 {% navtab COSN %}
 
-Configure Alluxio to use COSN as its under storage system by modifying `conf/alluxio-site.properties` and `conf/core-site.xml`.
-Specify an existing COSN bucket and directory as the under storage system by modifying
+To use COSN as the UFS of Alluxio root mount point, you need to configure Alluxio to use under storage systems by modifying `conf/alluxio-site.properties` and `conf/core-site.xml`. If they do not exist, create the files from the template.
+
+```shell
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+$ cp conf/core-site.xml.template conf/core-site.xml
+```
+
+Specify an **existing** COSN bucket and directory as the underfs address by modifying
 `conf/alluxio-site.properties` to include:
 
 ```properties
@@ -109,16 +168,18 @@ Specify COSN configuration information in order to access COSN by modifying `con
 </property>
 ```
 
-The above is the most basic configuration. For more configuration please refer to [here](https://hadoop.apache.org/docs/r3.3.1/hadoop-cos/cloud-storage/index.html).
+The above is the most basic configuration. For more configuration please refer to [here](https://hadoop.apache.org/docs/r3.3.1/hadoop-cos/cloud-storage/index.html){:target="_blank"}.
 
 {% endnavtab %}
 {% endnavtabs %}
 
 After these changes, Alluxio should be configured to work with COS or COSN as its under storage system.
 
-## Running Alluxio Locally with COS
+## Running Alluxio Locally with COS/COSN
 
-Start the Alluxio servers:
+Once you have configured Alluxio to Tencent COS or COSN, try [running Alluxio locally]({{ '/en/ufs/Storage-Overview.html#running-alluxio-locally' | relativize_url}}) to see that everything works.
+
+<!-- Start the Alluxio servers:
 
 ```shell
 $ ./bin/alluxio format
@@ -164,7 +225,7 @@ COSN_BUCKET/COSN_DIRECTORY/default_tests_files/BASIC_CACHE_THROUGH
 To stop Alluxio, you can run:
 ```shell
 $ ./bin/alluxio-stop.sh local
-```
+``` -->
 
 ## Advanced Setup
 

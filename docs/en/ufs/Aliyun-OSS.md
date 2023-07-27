@@ -4,26 +4,52 @@ title: Aliyun Object Storage Service
 ---
 
 
-This guide describes how to configure [Aliyun OSS](https://intl.aliyun.com/product/oss) as Alluxio's under storage system. 
+This guide describes how to configure [Aliyun OSS](https://intl.aliyun.com/product/oss){:target="_blank"} as Alluxio's under storage system. 
 
-Aliyun Object Storage Service (OSS) is a massive, secure and highly reliable cloud storage service provided by Aliyun.
+Aliyun Object Storage Service (OSS) is a massive, secure and highly reliable cloud storage service provided by Alibaba Cloud. OSS provides multiple storage classes to help you manage and reduce storage costs.
+
+For more information about Aliyun OSS, please read its [documentation](https://www.alibabacloud.com/help/en/oss/){:target="_blank"}
 
 ## Prerequisites
 
-In preparation for using OSS with Alluxio, follow the [OSS quick start guide](https://www.alibabacloud.com/help/doc-detail/31883.htm)
-to sign up for OSS and create an OSS bucket.
+If you haven't already, please see [Prerequisites]({{ '/en/ufs/Storage-Overview.html#prerequisites' | relativize_url }}) before you get started.
+
+In preparation for using OSS with Alluxio:
+
+<table class="table table-striped">
+    <tr>
+        <td markdown="span" style="width:30%">`<OSS_BUCKET>`</td>
+        <td markdown="span">[Create a a new bucket in the OSS console](https://www.alibabacloud.com/help/en/oss/getting-started/create-buckets-6#task-2013189){:target="_blank"} or use an existing bucket</td>
+    </tr>
+    <tr>
+        <td markdown="span" style="width:30%">`<OSS_DIRECTORY>`</td>
+        <td markdown="span">The directory you want to use in the bucket, either by creating a new directory or using an existing one</td>
+    </tr>
+    <tr>
+        <td markdown="span" style="width:30%">`<OSS_ACCESS_KEY_ID>`</td>
+        <td markdown="span">ID used to identify a user. See [How to Obtain AccessKey Pair](https://www.alibabacloud.com/help/en/sls/developer-reference/accesskey-pair){:target="_blank"}</td>
+    </tr>
+    <tr>
+        <td markdown="span" style="width:30%">`<OSS_ACCESS_KEY_SECRET>`</td>
+        <td markdown="span">Secret is used to verify the identify of the user. See [How to Obtain AccessKey Pair](https://www.alibabacloud.com/help/en/sls/developer-reference/accesskey-pair){:target="_blank"}</td>
+    </tr>
+    <tr>
+        <td markdown="span" style="width:30%">`<OSS_ENDPOINT>`</td>
+        <td markdown="span">Endpoints are the domain names that other services can use to access OSS. See [Regions and OSS Endpoints in the Public Cloud](https://www.alibabacloud.com/help/en/oss/user-guide/regions-and-endpoints){:target="_blank"}</td>
+    </tr>
+</table>
+
+<!-- In preparation for using OSS with Alluxio, follow the [OSS quick start guide](https://www.alibabacloud.com/help/doc-detail/31883.htm)
+to sign up for OSS and create an OSS bucket. -->
 
 ## Basic Setup
 
-To configure Alluxio to use OSS as under storage, you will need to modify the configuration file 
-`conf/alluxio-site.properties`. If the file does not exist, create the configuration file from the template.
+To use OSS as the UFS of Alluxio root mount point, you need to configure Alluxio to use under storage systems by modifying `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the template.
 
 ```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
-
-Edit `conf/alluxio-site.properties` file to set the under storage address to the OSS bucket and 
-the OSS directory you want to mount to Alluxio. For example, the under storage address can be `oss://alluxio-bucket/` if
+Specify the underfs address by modifying `conf/alluxio-site.properties`. For example, the under storage address can be `oss://alluxio-bucket/` if
 you want to mount the whole bucket to Alluxio, or `oss://alluxio-bucket/alluxio/data` if only the directory `/alluxio/data`
 inside the oss bucket `alluxio-bucket` is mapped to Alluxio.
 
@@ -31,7 +57,7 @@ inside the oss bucket `alluxio-bucket` is mapped to Alluxio.
 alluxio.dora.client.ufs.root=oss://<OSS_BUCKET>/<OSS_DIRECTORY>
 ``` 
 
-Specify the Aliyun credentials for OSS access. In `conf/alluxio-site.properties`, add:
+Specify credentials for Aliyun OSS access by adding the following properties in `conf/alluxio-site.properties`:
 
 ```properties
 fs.oss.accessKeyId=<OSS_ACCESS_KEY_ID>
@@ -39,16 +65,18 @@ fs.oss.accessKeySecret=<OSS_ACCESS_KEY_SECRET>
 fs.oss.endpoint=<OSS_ENDPOINT>
 ```
 
-`fs.oss.accessKeyId` and `fs.oss.accessKeySecret` is the [AccessKey](https://www.alibabacloud.com/help/doc-detail/29009.htm) for OSS, 
-which are created and managed in [Aliyun AccessKey management console](https://ak-console.aliyun.com).
+<!-- `fs.oss.accessKeyId` and `fs.oss.accessKeySecret` is the [AccessKey](https://www.alibabacloud.com/help/doc-detail/29009.htm) for OSS, 
+which are created and managed in [Aliyun AccessKey management console](https://ak-console.aliyun.com). -->
 
-`fs.oss.endpoint` is the internet endpoint of this bucket, which can be found in the bucket overview page with
+<!-- `fs.oss.endpoint` is the internet endpoint of this bucket, which can be found in the bucket overview page with
 values like `oss-us-west-1.aliyuncs.com` and `oss-cn-shanghai.aliyuncs.com`. Available endpoints are listed in the 
-[OSS Internet Endpoints documentation](https://intl.aliyun.com/help/doc-detail/31837.htm).
+[OSS Internet Endpoints documentation](https://intl.aliyun.com/help/doc-detail/31837.htm). -->
 
 ## Running Alluxio Locally with Aliyun OSS
 
-Start the Alluxio servers:
+Once you have configured Alluxio to Aliyun OSS, try [running Alluxio locally]({{ '/en/ufs/Storage-Overview.html#running-alluxio-locally' | relativize_url}}) to see that everything works.
+
+<!-- Start the Alluxio servers:
 
 ```shell
 $ ./bin/alluxio format
@@ -72,7 +100,7 @@ Stop Alluxio by running:
 
 ```shell
 $ ./bin/alluxio-stop.sh local
-```
+``` -->
 
 ## Advanced Setup
 

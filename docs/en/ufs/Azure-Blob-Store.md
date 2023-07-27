@@ -45,7 +45,7 @@ called `<AZURE_DIRECTORY>`.  -->
 
 ## Basic Setup
 
-To use Azure blob store as the UFS of Alluxio root mount point, you need to configure Alluxio to use under storage systems by modifying `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the template.
+To use Azure Blob Store as the UFS of Alluxio root mount point, you need to configure Alluxio to use under storage systems by modifying `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the template.
 
 ```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
@@ -57,8 +57,7 @@ Specify the underfs address by modifying `conf/alluxio-site.properties` to inclu
 alluxio.dora.client.ufs.root=wasbs://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.blob.core.windows.net/<AZURE_DIRECTORY>/
 ```
 
-Specify credentials for the Azure account of the root mount point by adding the following
-properties in `conf/alluxio-site.properties`:
+Specify credentials for the Azure account of the root mount point by adding the following properties in `conf/alluxio-site.properties`:
 
 ```properties
 fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<AZURE_ACCOUNT_KEY>

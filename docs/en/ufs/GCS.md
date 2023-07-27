@@ -19,7 +19,7 @@ In preparation for using GCS with Alluxio:
 <table class="table table-striped">
     <tr>
         <td markdown="span" style="width:30%">`<GCS_BUCKET>`</td>
-        <td markdown="span">[Create a bucket in your Google Cloud account](https://cloud.google.com/storage/docs/creating-buckets){:target="_blank"}{:target="_blank"} or use an existing bucket</td>
+        <td markdown="span">[Create a new bucket in your Google Cloud account](https://cloud.google.com/storage/docs/creating-buckets){:target="_blank"}{:target="_blank"} or use an existing bucket</td>
     </tr>
     <tr>
         <td markdown="span" style="width:30%">`<GCS_DIRECTORY>`</td>
@@ -32,8 +32,6 @@ should note the directory you want to use in that bucket, either by creating a n
 
 <!-- For the purposes of this guide, the GCS bucket name is called
 `GCS_BUCKET`, and the directory in that bucket is called `GCS_DIRECTORY`. -->
-
-## Setup 
 
 Alluxio provides two ways to access GCS. GCS version 1 is implemented based on 
 [jets3t](http://www.jets3t.org/){:target="_blank"} library which is design for AWS S3. 
