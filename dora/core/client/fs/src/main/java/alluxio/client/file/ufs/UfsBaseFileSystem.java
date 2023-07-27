@@ -17,11 +17,13 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.ListStatusPartialResult;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -228,12 +230,13 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   @Override
-  public URIStatus getStatus(AlluxioURI path) {
+  public URIStatus getStatus(AlluxioURI path) throws FileDoesNotExistException {
     return getStatus(path, GetStatusPOptions.getDefaultInstance());
   }
 
   @Override
-  public URIStatus getStatus(AlluxioURI path, final GetStatusPOptions options) {
+  public URIStatus getStatus(AlluxioURI path, final GetStatusPOptions options)
+      throws FileDoesNotExistException {
     return callWithReturn(() -> {
       UfsStatus ufsStatus = mUfs.get().getStatus(path.toString(), GetStatusOptions.defaults()
                             .setIncludeRealContentHash(options.getIncludeRealContentHash()));
@@ -319,7 +322,8 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   @Override
-  public FileInStream openFile(AlluxioURI path, OpenFilePOptions options) {
+  public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
+      throws FileDoesNotExistException {
     return openFile(getStatus(path), options);
   }
 
@@ -338,7 +342,8 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   @Override
-  public PositionReader openPositionRead(AlluxioURI path, OpenFilePOptions options) {
+  public PositionReader openPositionRead(AlluxioURI path, OpenFilePOptions options)
+      throws FileDoesNotExistException {
     return openPositionRead(getStatus(path), options);
   }
 
@@ -437,18 +442,27 @@ public class UfsBaseFileSystem implements FileSystem {
 
   @Override
   public Optional<String> submitJob(JobRequest jobRequest) {
-    throw new UnsupportedOperationException();
+    try (CloseableResource<FileSystemMasterClient> client =
+        mFsContext.acquireMasterClientResource()) {
+      return client.get().submitJob(jobRequest);
+    }
   }
 
   @Override
   public boolean stopJob(JobDescription jobDescription) {
-    throw new UnsupportedOperationException();
+    try (CloseableResource<FileSystemMasterClient> client =
+        mFsContext.acquireMasterClientResource()) {
+      return client.get().stopJob(jobDescription);
+    }
   }
 
   @Override
   public String getJobProgress(JobDescription jobDescription,
       JobProgressReportFormat format, boolean verbose) {
-    throw new UnsupportedOperationException();
+    try (CloseableResource<FileSystemMasterClient> client =
+        mFsContext.acquireMasterClientResource()) {
+      return client.get().getJobProgress(jobDescription, format, verbose);
+    }
   }
 
   /**

@@ -305,7 +305,7 @@ To have the logs output to STDOUT, append the following arguments to the `mvn` c
 
 The FUSE tests are ignored if the `libfuse` library is missing.
 To run those tests, please install the libraries referenced in
-[the Alluxio FUSE documentation]({{ '/en/fuse-sdk/Overview-Fuse-Sdk.html' | relativize_url }}).
+[the Alluxio FUSE documentation]({{ '/en/fuse-sdk/FUSE-SDK-Overview.html' | relativize_url }}).
 
 ## Modifying a gRPC definition
 

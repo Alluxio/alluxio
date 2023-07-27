@@ -68,6 +68,11 @@ public final class ConfigurationTestUtils {
           Joiner.on(',').join(newPaths));
     }
 
+    // Sets up the page store
+    conf.put(PropertyKey.DORA_CLIENT_UFS_ROOT,
+        PathUtils.concatPath(workDirectory, "underFSStorage"));
+    conf.put(PropertyKey.WORKER_PAGE_STORE_DIRS, ramdiskPath);
+
     // Sets up the block allocation and review policy
     conf.put(PropertyKey.WORKER_REVIEWER_CLASS, "alluxio.worker.block.reviewer.AcceptingReviewer");
 
@@ -75,6 +80,10 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.UFS);
     conf.put(PropertyKey.MASTER_JOURNAL_FOLDER, PathUtils.concatPath(workDirectory, "journal"));
     conf.put(PropertyKey.MASTER_METASTORE_DIR, PathUtils.concatPath(workDirectory, "metastore"));
+
+    // Sets up the worker metastore folder
+    conf.put(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR,
+        PathUtils.concatPath(workDirectory, "worker"));
 
     conf.put(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "1KB");
     conf.put(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "64");

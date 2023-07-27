@@ -40,7 +40,7 @@ $ curl -o $java_path/jre/lib/ext/hadoop-cephfs.jar -s https://download.ceph.com/
 ## Basic Setup
 
 Configure Alluxio to use under storage systems by modifying
-`conf/alluxio-site.properties` and `conf/core-site.xml`. If them do not exist, 
+`conf/alluxio-site.properties` and `conf/core-site.xml`. If they do not exist, 
 create the configuration files from the templates
 
 ```shell

@@ -79,11 +79,11 @@ For example, to modify the level for all logs to `DEBUG`, change the
 log4j.rootLogger=DEBUG, ${alluxio.logger.type}, ${alluxio.remote.logger.type}
 ```
 
-To modify the logging level for a particular Java class (e.g., set `alluxio.client.file.AlluxioFileInStream` to `DEBUG`),
+To modify the logging level for a particular Java class (e.g., set `alluxio.client.file.FileSystemContext` to `DEBUG`),
 add a new line at the end of this file:
 
 ```properties
-log4j.logger.alluxio.client.file.AlluxioFileInStream=DEBUG
+log4j.logger.alluxio.client.file.FileSystemContext=DEBUG
 ```
 
 To modify the logging level for a package (e.g., set all classes under `alluxio` to `DEBUG`),

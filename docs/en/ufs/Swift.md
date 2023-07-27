@@ -13,8 +13,6 @@ Swift is a highly available, distributed, eventually consistent object/blob stor
 
 A Swift bucket can be mounted to the Alluxio either at the root of the namespace, or at a nested directory.
 
-### Root Mount Point
-
 Configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.

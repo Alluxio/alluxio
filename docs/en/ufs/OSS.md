@@ -46,7 +46,7 @@ which are created and managed in [Aliyun AccessKey management console](https://a
 values like `oss-us-west-1.aliyuncs.com` and `oss-cn-shanghai.aliyuncs.com`. Available endpoints are listed in the 
 [OSS Internet Endpoints documentation](https://intl.aliyun.com/help/doc-detail/31837.htm).
 
-## Example: Running Alluxio Locally with OSS
+## Running Alluxio Locally with Aliyun OSS
 
 Start the Alluxio servers:
 
@@ -75,21 +75,6 @@ $ ./bin/alluxio-stop.sh local
 ```
 
 ## Advanced Setup
-
-### Nested Mount
-
-An OSS location can be mounted at a nested directory in the Alluxio namespace to have unified
-access to multiple under storage systems. Alluxio's
-[Mount Command]({{ '/en/operation/User-CLI.html' | relativize_url }}#mount) can be used for this purpose.
-For example, the following command mounts a directory inside an OSS bucket into Alluxio directory
-`/oss`:
-
-```shell
-$ ./bin/alluxio fs mount --option fs.oss.accessKeyId=<OSS_ACCESS_KEY_ID> \
-  --option fs.oss.accessKeySecret=<OSS_ACCESS_KEY_SECRET> \
-  --option fs.oss.endpoint=<OSS_ENDPOINT> \
-  /oss oss://<OSS_BUCKET>/<OSS_DIRECTORY>/
-```
 
 ### [Experimental] OSS multipart upload
 
