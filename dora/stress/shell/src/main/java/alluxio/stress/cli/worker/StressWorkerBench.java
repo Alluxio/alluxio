@@ -18,7 +18,6 @@ import alluxio.conf.PropertyKey;
 import alluxio.grpc.WritePType;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.cli.AbstractStressBench;
-//import alluxio.stress.cli.client.ClientIOWritePolicy;
 import alluxio.stress.common.FileSystemParameters;
 import alluxio.stress.worker.WorkerBenchParameters;
 import alluxio.stress.worker.WorkerBenchTaskResult;
