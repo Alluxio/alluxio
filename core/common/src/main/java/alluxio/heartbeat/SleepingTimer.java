@@ -11,7 +11,6 @@
 
 package alluxio.heartbeat;
 
-import alluxio.conf.PropertyKey;
 import alluxio.time.Sleeper;
 import alluxio.time.SteppingThreadSleeper;
 
@@ -20,7 +19,6 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Clock;
 import java.time.Duration;
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 import javax.annotation.concurrent.NotThreadSafe;
