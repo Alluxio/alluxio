@@ -27,12 +27,6 @@ In preparation for using GCS with Alluxio:
     </tr>
 </table>
 
-<!-- In preparation for using GCS with Alluxio, [create a bucket in your Google Cloud account](https://cloud.google.com/storage/docs/creating-buckets){:target="_blank"}{:target="_blank"} or use an existing bucket. You
-should note the directory you want to use in that bucket, either by creating a new directory in the bucket or using an existing one.  -->
-
-<!-- For the purposes of this guide, the GCS bucket name is called
-`GCS_BUCKET`, and the directory in that bucket is called `GCS_DIRECTORY`. -->
-
 Alluxio provides two ways to access GCS. GCS version 1 is implemented based on 
 [jets3t](http://www.jets3t.org/){:target="_blank"} library which is design for AWS S3. 
 Thus, it only accepts Google cloud storage interoperability access/secret keypair 
@@ -100,36 +94,6 @@ Click on `Create a new key` to get the Access Key and Secret pair.
 ## Running Alluxio Locally with GCS
 
 Once you have configured Alluxio to GCS, try [running Alluxio locally]({{ '/en/ufs/Storage-Overview.html#running-alluxio-locally' | relativize_url}}) to see that everything works.
-
-
-<!-- Start up Alluxio locally to see that everything works.
-
-```shell
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local SudoMount
-```
-
-This should start an Alluxio master and an Alluxio worker. You can see the master UI at
-[http://localhost:19999](http://localhost:19999).
-
-Run a simple example program:
-
-```shell
-$ ./bin/alluxio runTests
-```
-
-Visit your GCS directory `GCS_BUCKET/GCS_DIRECTORY` to verify the files
-and directories created by Alluxio exist. For this test, you should see files named like:
-
-```
-GCS_BUCKET/GCS_DIRECTORY/default_tests_files/BASIC_CACHE_THROUGH
-```
-
-To stop Alluxio, you can run:
-
-```shell
-$ ./bin/alluxio-stop.sh local
-``` -->
 
 ## Advanced Setup
 

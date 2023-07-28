@@ -38,16 +38,7 @@ In preparation for using Qiniu Kodo with Alluxio:
 
 In preparation for using Qiniu Kodo with Alluxio, create a new bucket or use an existing bucket. You should also note the directory you want to use in that bucket, either by creating a new directory in the bucket or using an existing one. 
 
-<!-- A Qiniu Kodo bucket is necessary before using Kodo with Alluxio. In this guide, the Qiniu Kodo bucket
-is called `KODO_BUCKET`, and the directory in the bucket is called `KODO_DIRECTORY`. -->
-
-<!-- In addition, you should provide a domain to identify the specified bucket, which is called `KODO_DOWNLOAD_HOST`, through which you can get objects from the bucket. -->
-
 ## Basic Setup
-
-<!-- Alluxio unifies access to different storage systems through the
-unified namespace feature.
-The root of Alluxio namespace or its subdirectories are all available for the mount point of Kodo. -->
 
 To use Qiniu Kodo as the UFS of Alluxio root mount point, you need to configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the template.
@@ -110,32 +101,6 @@ alluxio.underfs.kodo.endpoint=<KODO_ENDPOINT>
 ## Running Alluxio Locally with Kodo
 
 Once you have configured Alluxio to Qiniu Kodo, try [running Alluxio locally]({{ '/en/ufs/Storage-Overview.html#running-alluxio-locally' | relativize_url}}) to see that everything works.
-
-<!-- After everything is configured, you can start up Alluxio locally to see that everything works.
-
-```shell
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
-```
-This should start an Alluxio master and an Alluxio worker. You can see the master UI at
-[http://localhost:19999](http://localhost:19999).
-
-Next, you can run a simple example program:
-
-```shell
-$ ./bin/alluxio runTests
-```
-After this succeeds, you can visit your Kodo directory `kodo://<KODO_BUCKET>/<KODO_DIRECTORY>` to verify the files
-and directories mounted by Alluxio exist. For this test, you should see files named like
-
-```shell
-KODO_BUCKET/KODO_DIRECTORY/default_tests_files/BasicFile_CACHE_PROMOTE_MUST_CACHE
-```
-
-To stop Alluxio, you can run:
-```shell
-$ ./bin/alluxio-stop.sh local
-``` -->
 
 ## Contributed by the Alluxio Community
 

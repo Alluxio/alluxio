@@ -44,14 +44,6 @@ account](https://docs.microsoft.com/en-us/azure/data-lake-store/data-lake-store-
 You also need to set up 
 [Service-to-service authentication](https://docs.microsoft.com/en-us/azure/data-lake-store/data-lake-store-service-to-service-authenticate-using-active-directory){:target="_blank"} for your storage account.
 
-<!-- In preparation for using Azure Data Lake Storage Gen1 with Alluxio, [create a new Data Lake storage in your Azure
-account](https://docs.microsoft.com/en-us/azure/data-lake-store/data-lake-store-get-started-portal){:target="_blank"} or use an existing Data Lake storage. You should note the directory you want to
-use, either by creating a new directory or using an existing one. You also need to set up 
-[Service-to-service authentication](https://docs.microsoft.com/en-us/azure/data-lake-store/data-lake-store-service-to-service-authenticate-using-active-directory){:target="_blank"} for your storage account. -->
-
-<!-- For the purposes of this guide, the Azure storage account name is called `<AZURE_ACCOUNT>`
-and the directory in that storage account is called `<AZURE_DIRECTORY>`.  -->
-
 ## Basic Setup
 
 To use Azure Data Lake Storage Gen1 as the UFS of Alluxio root mount point,
@@ -72,9 +64,6 @@ alluxio.dora.client.ufs.root=adl://<AZURE_ACCOUNT>.azuredatalakestore.net/<AZURE
 Specify the application ID, authentication key and tenant ID for the Azure AD application used for the Azure account of the root mount point by adding the following
 properties in `conf/alluxio-site.properties`:
 
-<!-- - For instructions on how to retrieve the application (client) ID and authentication key (also called the client secret) for your application, see [Get application ID and authentication key](https://learn.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal#sign-in-to-the-application){:target="_blank"}.
-- For instructions on how to retrieve the tenant ID, see [Get tenant ID](https://learn.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal#sign-in-to-the-application){:target="_blank"}. -->
-
 ```properties
 fs.adl.account.<AZURE_ACCOUNT>.oauth2.client.id=<CLIENT_ID>
 fs.adl.account.<AZURE_ACCOUNT>.oauth2.credential=<AUTHENTICATION_KEY>
@@ -86,32 +75,3 @@ After these changes, Alluxio should be configured to work with Azure Data Lake s
 ## Running Alluxio Locally with Data Lake Storage
 
 Once you have configured Alluxio to Azure Data Lake Storage Gen1, try [running Alluxio locally]({{ '/en/ufs/Storage-Overview.html#running-alluxio-locally' | relativize_url}}) to see that everything works.
-
-
-<!-- Start up Alluxio locally to see that everything works.
-
-```shell
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
-```
-
-This should start an Alluxio master and an Alluxio worker. You can see the master UI at
-[http://localhost:19999](http://localhost:19999).
-
-Run a simple example program:
-
-```shell
-$ ./bin/alluxio runTests
-```
-
-Visit your directory `<AZURE_DIRECTORY>` to verify the files and directories created by Alluxio exist. For this test, you should see files named like:
-
-```
-<AZURE_DIRECTORY>/default_tests_files/BASIC_CACHE_PROMOTE_CACHE_THROUGH
-```
-
-To stop Alluxio, you can run:
-
-```shell
-$ ./bin/alluxio-stop.sh local
-``` -->

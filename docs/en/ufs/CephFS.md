@@ -148,21 +148,8 @@ Modify `conf/core-site.xml` to include:
 
 Once you have configured Alluxio to CephFS, try [running Alluxio locally]({{ '/en/ufs/Storage-Overview.html#running-alluxio-locally' | relativize_url}}) to see that everything works.
 
-<!-- Start up Alluxio locally to see that everything works.
-
-```shell
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
-```
-
-This should start an Alluxio master and Alluxio worker. You can see the master UI at
-[http://localhost:19999](http://localhost:19999). -->
-
 {% navtabs Test %}
 {% navtab cephfs %}
-
-<!-- An CephFS location can be mounted at a nested directory in the Alluxio namespace to have unified access
-to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) can be used for this purpose. -->
 
 Issue the following command to use the ufs cephfs:
 
@@ -192,9 +179,6 @@ In Alluxio, you can visit the nested directory in the Alluxio. Alluxio's [Comman
 
 {% endnavtab %}
 {% navtab cephfs-hadoop %}
-
-<!-- An CephFS location can be mounted at a nested directory in the Alluxio namespace to have unified access
-to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) can be used for this purpose. -->
 
 Issue the following command to use the ufs cephfs-hadoop:
 

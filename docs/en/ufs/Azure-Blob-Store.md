@@ -35,14 +35,6 @@ In preparation for using Azure Blob Store with Alluxio:
     </tr>
 </table>
 
-<!-- In preparation for using Azure Blob Store with Alluxio, [create a new container in your Azure storage account](https://docs.microsoft.com/en-us/azure/storage/storage-create-storage-account){:target="_blank"} or use an existing container. You should note that the directory you want to
-use in that container, either by creating a new directory in the container or using an existing one. 
-
-For the purposes of this guide, the Azure storage account name is called `<AZURE_ACCOUNT>`, the
-container in that storage account is called `<AZURE_CONTAINER>` and the directory in that container is
-called `<AZURE_DIRECTORY>`.  -->
-
-
 ## Basic Setup
 
 To use Azure Blob Store as the UFS of Alluxio root mount point, you need to configure Alluxio to use under storage systems by modifying `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the template.
@@ -66,34 +58,6 @@ fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<AZURE_ACCOUNT_KEY>
 ## Running Alluxio Locally with Azure Blob Store
 
 Once you have configured Alluxio to Azure Blob Store, try [running Alluxio locally]({{ '/en/ufs/Storage-Overview.html#running-alluxio-locally' | relativize_url}}) to see that everything works.
-
-<!-- Start up Alluxio locally to see that everything works.
-
-```shell
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
-```
-
-This should start an Alluxio master and an Alluxio worker. You can see the master UI at
-[http://localhost:19999](http://localhost:19999).
-
-Run a simple example program:
-
-```shell
-$ ./bin/alluxio runTests
-```
-
-Visit your container `<AZURE_CONTAINER>` to verify the files and directories created by Alluxio exist. For this test, you should see files named like:
-
-```
-<AZURE_CONTAINER>/<AZURE_DIRECTORY>/default_tests_files/BASIC_CACHE_PROMOTE_CACHE_THROUGH
-```
-
-To stop Alluxio, you can run:
-
-``` shell
-$ ./bin/alluxio-stop.sh local
-``` -->
 
 ## Troubleshooting
 ### What should I do if I get http not support error?

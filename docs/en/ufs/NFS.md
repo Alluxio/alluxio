@@ -61,33 +61,3 @@ For this test, you should see files named:
 ```
 /mnt/nfs/default_tests_files/BASIC_CACHE_THROUGH
 ```
-
-<!-- Run the following command to start Alluxio filesystem.
-
-```shell
-$ ./bin/alluxio-mount.sh SudoMount
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
-```
-
-To verify that Alluxio is running, you can visit
-[http://localhost:19999](http://localhost:19999), or see the log in the `logs` folder.
-
-Run a simple example program:
-
-```shell
-$ ./bin/alluxio runTests
-```
-
-Visit your NFS volume at `/mnt/nfs` to verify the files and directories created by Alluxio exist.
-For this test, you should see files named:
-
-```
-/mnt/nfs/default_tests_files/BASIC_CACHE_THROUGH
-```
-
-Stop Alluxio by running:
-
-```shell
-$ ./bin/alluxio-stop.sh local
-``` -->

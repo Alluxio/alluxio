@@ -22,8 +22,6 @@ Alluxio support two different implementations of under storage system for Tencen
 If you haven't already, please see [Prerequisites]({{ '/en/ufs/Storage-Overview.html#prerequisites' | relativize_url }}) before you get started.
 
 In preparation for using COS or COSN with Alluxio:
-<!-- In preparation for using COS with Alluxio, create a new bucket or use an existing bucket.
-You should also note the directory you want to use in that bucket, either by creating a new directory in the bucket or using an existing one. -->
 
 {% navtabs Prerequisites %}
 {% navtab COS %}
@@ -55,11 +53,6 @@ You should also note the directory you want to use in that bucket, either by cre
     </tr>
 </table>
 
-<!-- For the purposes of this guide, the COS bucket name is called
-`COS_BUCKET`, and the directory in that bucket is called `COS_DIRECTORY`.
-
-You also need to provide APPID and REGION. In this guide, the APPID is called `COS_APPID`, and the REGION is called `COS_REGION`. For more information, please refer [here](https://cloud.tencent.com/document/product/436/7751). -->
-
 {% endnavtab %}
 {% navtab COSN %}
 
@@ -85,8 +78,6 @@ You also need to provide APPID and REGION. In this guide, the APPID is called `C
         <td markdown="span">Region information, for more information about the enumerated values please see [Regions and Access Endpoints](https://www.tencentcloud.com/document/product/436/6224){:target="_blank"}</td>
     </tr>
 </table>
-
-<!-- For the purposes of this guide, the COSN Bucket name is called `COSN_BUCKET`, the directory in that bucket is called `COSN_DIRECTORY`, and COSN Bucket region is called `COSN_REGION` which specifies the region of your bucket. -->
 
 {% endnavtab %}
 {% endnavtabs %}
@@ -178,54 +169,6 @@ After these changes, Alluxio should be configured to work with COS or COSN as it
 ## Running Alluxio Locally with COS/COSN
 
 Once you have configured Alluxio to Tencent COS or COSN, try [running Alluxio locally]({{ '/en/ufs/Storage-Overview.html#running-alluxio-locally' | relativize_url}}) to see that everything works.
-
-<!-- Start the Alluxio servers:
-
-```shell
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
-```
-
-This will start an Alluxio master and an Alluxio worker. You can see the master UI at
-[http://localhost:19999](http://localhost:19999).
-
-Before running an example program, please make sure the root mount point
-set in the `conf/alluxio-site.properties` is a valid path in the ufs.
-Make sure the user running the example program has write permissions to the alluxio file system.
-
-Run a simple example program:
-
-```shell
-$ ./bin/alluxio runTests
-```
-
-{% navtabs Test %}
-{% navtab COS %}
-
-Visit your COS directory at `COS_BUCKET/COS_DIRECTORY` to verify the files and directories created by Alluxio exist.
-For this test, you should see files named like:
-
-```
-COS_BUCKET/COS_DIRECTORY/default_tests_files/BASIC_CACHE_THROUGH
-```
-
-{% endnavtab %}
-{% navtab COSN %}
-
-Visit your COSN directory at `COSN_BUCKET/COSN_DIRECTORY` to verify the files and directories created by Alluxio exist.
-For this test, you should see files named like:
-
-```
-COSN_BUCKET/COSN_DIRECTORY/default_tests_files/BASIC_CACHE_THROUGH
-```
-
-{% endnavtab %}
-{% endnavtabs %}
-
-To stop Alluxio, you can run:
-```shell
-$ ./bin/alluxio-stop.sh local
-``` -->
 
 ## Advanced Setup
 

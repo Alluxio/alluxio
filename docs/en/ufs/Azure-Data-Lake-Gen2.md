@@ -33,14 +33,6 @@ In preparation for using Azure Data Lake Storage Gen2 with Alluxio, [create a ne
 You also need a 
 [SharedKey](https://docs.microsoft.com/en-us/rest/api/storageservices/authorize-with-shared-key){:target="_blank"} to authorize requests.
 
-<!-- In preparation for using Azure Data Lake Storage Gen2 with Alluxio, [create a new Data Lake storage in your Azure account](https://learn.microsoft.com/en-us/azure/storage/blobs/create-data-lake-storage-account){:target="_blank"} or use an existing Data Lake storage. 
-You should note the directory you want to use in the container, either by creating a new directory in the container or using an existing one. You also need a 
-[SharedKey](https://docs.microsoft.com/en-us/rest/api/storageservices/authorize-with-shared-key){:target="_blank"} to authorize requests. -->
-
-<!-- For the purposes of this guide, the Azure storage account name is called `<AZURE_ACCOUNT>`,
-the directory in that storage account is called `<AZURE_DIRECTORY>`, and the name of the container is called `<AZURE_CONTAINER>`. -->
-
-
 ## Basic Setup 
 
 To use Azure Data Lake Storage Gen2 as the UFS of Alluxio root mount point,
@@ -90,31 +82,3 @@ fs.azure.account.oauth2.msi.tenant=<MSI_TENANT>
 ## Running Alluxio Locally with Data Lake Storage
 
 Once you have configured Alluxio to Azure Data Lake Storage Gen2, try [running Alluxio locally]({{ '/en/ufs/Storage-Overview.html#running-alluxio-locally' | relativize_url}}) to see that everything works.
-
-<!-- Start up Alluxio locally to see that everything works.
-
-```shell
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
-```
-
-This should start an Alluxio master and an Alluxio worker. You can see the master UI at
-[http://localhost:19999](http://localhost:19999).
-
-Run a simple example program:
-
-```shell
-$ ./bin/alluxio runTests
-```
-
-Visit your directory `<AZURE_DIRECTORY>` to verify the files and directories created by Alluxio exist. For this test, you should see files named like:
-
-```
-<AZURE_DIRECTORY>/default_tests_files/BASIC_CACHE_PROMOTE_CACHE_THROUGH
-```
-
-To stop Alluxio, you can run:
-
-```shell
-$ ./bin/alluxio-stop.sh local
-``` -->

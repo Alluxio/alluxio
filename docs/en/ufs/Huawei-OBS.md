@@ -39,11 +39,6 @@ In preparation for using Huawei OBS with Alluxio:
     </tr>
 </table>
 
-<!-- In preparation for using OBS with Alluxio, create a new bucket or use an existing bucket. You
-should also note the directory you want to use in that bucket, either by creating a new directory in
-the bucket, or using an existing one. For the purposes of this guide, the OBS bucket name is called
-`OBS_BUCKET`, and the directory in that bucket is called `OBS_DIRECTORY`. -->
-
 ## Basic Setup
 
 To use Huawei OBS as the UFS of Alluxio root mount point, you need to configure Alluxio to use under storage systems by modifying `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the template.
@@ -76,38 +71,9 @@ Specify the OBS region by setting `fs.obs.endpoint` in `alluxio-site.properties`
 fs.obs.endpoint=<OBS_ENDPOINT>
 ```
 
-<!-- After these changes, Alluxio should be configured to work with OBS as its under storage system, and
-you can try [Running Alluxio Locally with OBS](#running-alluxio-locally-with-obs). -->
-
-
 ## Running Alluxio Locally with OBS
 
 Once you have configured Alluxio to Azure Blob Store, try [running Alluxio locally]({{ '/en/ufs/Storage-Overview.html#running-alluxio-locally' | relativize_url}}) to see that everything works.
-
-
-<!-- Start the Alluxio servers:
-
-```shell
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
-```
-
-This will start an Alluxio master and an Alluxio worker. You can see the master UI at
-[http://localhost:19999](http://localhost:19999).
-
-Run a simple example program:
-
-```shell
-$ ./bin/alluxio runTests
-```
-
-Before running an example program, please make sure the root mount point
-set in the `conf/alluxio-site.properties` is a valid path in the ufs.
-Make sure the user running the example program has write permissions to the alluxio file system.
-
-```shell
-$ ./bin/alluxio-stop.sh local
-``` -->
 
 ## Advanced Setup
 

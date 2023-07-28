@@ -38,9 +38,6 @@ In preparation for using OSS with Alluxio:
     </tr>
 </table>
 
-<!-- In preparation for using OSS with Alluxio, follow the [OSS quick start guide](https://www.alibabacloud.com/help/doc-detail/31883.htm)
-to sign up for OSS and create an OSS bucket. -->
-
 ## Basic Setup
 
 To use Aliyun OSS as the UFS of Alluxio root mount point, you need to configure Alluxio to use under storage systems by modifying `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the template.
@@ -66,42 +63,9 @@ fs.oss.accessKeySecret=<OSS_ACCESS_KEY_SECRET>
 fs.oss.endpoint=<OSS_ENDPOINT>
 ```
 
-<!-- `fs.oss.accessKeyId` and `fs.oss.accessKeySecret` is the [AccessKey](https://www.alibabacloud.com/help/doc-detail/29009.htm) for OSS, 
-which are created and managed in [Aliyun AccessKey management console](https://ak-console.aliyun.com). -->
-
-<!-- `fs.oss.endpoint` is the internet endpoint of this bucket, which can be found in the bucket overview page with
-values like `oss-us-west-1.aliyuncs.com` and `oss-cn-shanghai.aliyuncs.com`. Available endpoints are listed in the 
-[OSS Internet Endpoints documentation](https://intl.aliyun.com/help/doc-detail/31837.htm). -->
-
 ## Running Alluxio Locally with Aliyun OSS
 
 Once you have configured Alluxio to Aliyun OSS, try [running Alluxio locally]({{ '/en/ufs/Storage-Overview.html#running-alluxio-locally' | relativize_url}}) to see that everything works.
-
-<!-- Start the Alluxio servers:
-
-```shell
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
-```
-
-This will start an Alluxio master and an Alluxio worker. You can see the master UI at
-[http://localhost:19999](http://localhost:19999).
-
-Run a simple example program:
-
-```shell
-$ ./bin/alluxio runTests
-```
-
-Visit your OSS directory `oss://<OSS_BUCKET>/<OSS_DIRECTORY>` to verify the files
-and directories created by Alluxio exist. For this test, you should see files named like
-`<OSS_BUCKET>/<OSS_DIRECTORY>/default_tests_files/BasicFile_CACHE_PROMOTE_MUST_CACHE`.
-
-Stop Alluxio by running:
-
-```shell
-$ ./bin/alluxio-stop.sh local
-``` -->
 
 ## Advanced Setup
 

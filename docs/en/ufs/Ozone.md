@@ -50,11 +50,11 @@ In preparation for using Ozone with Alluxio:
         <td markdown="span">The namespace manager for Ozone. See [Ozone Manager](https://ozone.apache.org/docs/1.2.1/concept/ozonemanager.html){:target="_blank"}</td>
     </tr><tr>
         <td markdown="span" style="width:30%">`<OZONE_VOLUME>`</td>
-        <td markdown="span">[Create a new volume](https://ozone.apache.org/docs/1.2.1/interface/o3fs.html){:target="_blank"} or use an existing volume</td>
+        <td markdown="span">[Create a new volume](https://ozone.apache.org/docs/1.2.1/interface/ofs.html){:target="_blank"} or use an existing volume</td>
     </tr>
     <tr>
         <td markdown="span" style="width:30%">`<OZONE_BUCKET>`</td>
-        <td markdown="span">[Create a new bucket](https://ozone.apache.org/docs/1.2.1/interface/o3fs.html){:target="_blank"} or use an existing bucket</td>
+        <td markdown="span">[Create a new bucket](https://ozone.apache.org/docs/1.2.1/interface/ofs.html){:target="_blank"} or use an existing bucket</td>
     </tr>
     <tr>
         <td markdown="span" style="width:30%">`<OZONE_DIRECTORY>`</td>
@@ -64,9 +64,6 @@ In preparation for using Ozone with Alluxio:
 
 {% endnavtab %}
 {% endnavtabs %}
-
-<!-- In preparation for using Ozone with Alluxio, follow the [Ozone On Premise Installation](https://ozone.apache.org/docs/1.2.1/start/onprem.html)
-to install a Ozone cluster, and follow the [Cli Commands](https://ozone.apache.org/docs/1.2.1/interface/cli.html) to create volume and bucket for Ozone cluster. -->
 
 Follow the [Ozone On Premise Installation](https://ozone.apache.org/docs/1.2.1/start/onprem.html){:target="_blank"} to install a Ozone cluster.
 
@@ -150,34 +147,12 @@ alluxio.underfs.version=<OZONE_VERSION>
 
 Once you have configured Alluxio to Ozone, try [running Alluxio locally]({{ '/en/ufs/Storage-Overview.html#running-alluxio-locally' | relativize_url}}) to see that everything works.
 
-<!-- Start the Alluxio servers:
-
-```shell
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
-```
-
-This will start an Alluxio master and an Alluxio worker. You can see the master UI at
-[http://localhost:19999](http://localhost:19999).
-
-Run a simple example program:
-
-```shell
-$ ./bin/alluxio runTests
-```
-
-Use the HDFS shell or Ozone shell to Visit your Ozone directory `o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/<OZONE_DIRECTORY>`
+Use the HDFS shell or Ozone shell to visit your Ozone directory `o3fs://<OZONE_BUCKET>.<OZONE_VOLUME>/<OZONE_DIRECTORY>`
 to verify the files and directories created by Alluxio exist. For this test, you should see files named like
 
 ```shell
 <OZONE_BUCKET>.<OZONE_VOLUME>/<OZONE_DIRECTORY>/default_tests_files/BasicFile_CACHE_PROMOTE_MUST_CACHE
 ```
-
-Stop Alluxio by running:
-
-```shell
-$ ./bin/alluxio-stop.sh local
-``` -->
 
 ## Advanced Setup
 

@@ -44,11 +44,6 @@ In preparation for using MinIO with Alluxio:
     </tr>
 </table>
 
-<!-- You should also note the directory you want to use in that bucket, either by creating
-a new directory in the bucket or using an existing one.
-For the purposes of this guide, the MinIO bucket name is called `MINIO_BUCKET`, and the directory in
-that bucket is called `MINIO_DIRECTORY`. -->
-
 ## Basic Setup
 
 To use MinIO as the UFS of Alluxio root mount point, you need to configure Alluxio to use under storage systems by modifying `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the template.
@@ -77,24 +72,6 @@ If the port value is left unset, it defaults to port 80 for `http` and 443 for `
 ## Running Alluxio Locally with MinIO
 
 Once you have configured Alluxio to MinIO, try [running Alluxio locally]({{ '/en/ufs/Storage-Overview.html#running-alluxio-locally' | relativize_url}}) to see that everything works.
-
-<!-- Format and start Alluxio with
-
-```shell
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
-```
-
-Verify Alluxio is running by navigating to [http://localhost:19999](http://localhost:19999) or by
-examining the logs to ensure the process is running.
-
-Then, to run tests using some basic Alluxio operations execute the following command:
-
-```shell
-$ ./bin/alluxio runTests
-```
-
-If there are no errors then MinIO is configured properly! -->
 
 ## Troubleshooting
 

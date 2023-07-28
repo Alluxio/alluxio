@@ -63,23 +63,6 @@ alluxio.underfs.version=<HADOOP_VERSION>
 
 Once you have configured Alluxio to HDFS, try [running Alluxio locally]({{ '/en/ufs/Storage-Overview.html#running-alluxio-locally' | relativize_url}}) to see that everything works.
 
-
-<!-- Before this step, make sure your HDFS cluster is running and the directory mapped to Alluxio
-exists. Start the Alluxio servers:
-
-```shell
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh master
-$ ./bin/alluxio-start.sh worker
-```
-
-Stop Alluxio by running:
-
-```shell
-$ ./bin/alluxio-stop.sh master
-$ ./bin/alluxio-stop.sh worker
-``` -->
-
 ## Advanced Setup
 
 ### Specify HDFS Configuration Location

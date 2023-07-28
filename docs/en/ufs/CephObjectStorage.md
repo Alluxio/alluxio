@@ -94,8 +94,6 @@ In preparation for using Ceph Object Storage with Alluxio:
 
 ## Basic Setup
 
-<!-- A Ceph bucket can be mounted to Alluxio either at the root of the namespace, or at a nested directory. In this guide, the Ceph bucket is called `CEPH_BUCKET`, and the directory in the bucket is called `CEPH_DIRECTORY`. -->
-
 To use Ceph Object Storage as the UFS of Alluxio root mount point, you need to configure Alluxio to use under storage systems by modifying `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the template.
 
 ```shell
@@ -141,35 +139,6 @@ Replace `<CEPH_BUCKET>/<CEPH_DIRECTORY>` with an existing Swift bucket location.
 ## Running Alluxio Locally with Ceph
 
 Once you have configured Alluxio to Ceph Object Storage, try [running Alluxio locally]({{ '/en/ufs/Storage-Overview.html#running-alluxio-locally' | relativize_url}}) to see that everything works.
-
-<!-- Start up Alluxio locally to see that everything works.
-
-```shell
-$ ./bin/alluxio format
-$ ./bin/alluxio-start.sh local
-```
-
-This should start an Alluxio master and an Alluxio worker. You can see the master UI at
-[http://localhost:19999](http://localhost:19999).
-
-Run a simple example program:
-
-```shell
-$ ./bin/alluxio runTests
-```
-
-Visit your bucket to verify the files and directories created by Alluxio exist.
-
-You should see files named like:
-```
-<CEPH_BUCKET>/<CEPH_DIRECTORY>/default_tests_files/Basic_CACHE_THROUGH
-```
-
-To stop Alluxio, run:
-
-```shell
-$ ./bin/alluxio-stop.sh local
-``` -->
 
 ## Advanced Setup
 
