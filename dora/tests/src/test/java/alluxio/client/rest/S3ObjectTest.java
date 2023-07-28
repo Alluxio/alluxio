@@ -99,6 +99,7 @@ public class S3ObjectTest extends RestApiTest {
     final String bucket = "bucket";
     final String objectKey = "object";
     final String fullKey = bucket + AlluxioURI.SEPARATOR + objectKey;
+
     createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
     getTestCase(fullKey).checkResponseCode(Status.NOT_FOUND.getStatusCode())
         .checkErrorCode(S3ErrorCode.Name.NO_SUCH_KEY);
@@ -128,6 +129,7 @@ public class S3ObjectTest extends RestApiTest {
     final String bucket = "bucket";
     final String folderKey = "folder";
     final String fullKey = bucket + AlluxioURI.SEPARATOR + folderKey + AlluxioURI.SEPARATOR;
+
     createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
     headTestCase(fullKey).checkResponseCode(Status.NOT_FOUND.getStatusCode());
   }
@@ -175,33 +177,17 @@ public class S3ObjectTest extends RestApiTest {
   }
 
   /**
-   * Puts a directory and heads it.
+   * Puts and heads a multi-level directory.
    */
   @Test
   public void putAndHeadDirectory() throws Exception {
-    final String bucket = "bucket";
-    final String folderKey = "folder";
-    final String fullKey = bucket + AlluxioURI.SEPARATOR + folderKey + AlluxioURI.SEPARATOR;
-
-    headTestCase(bucket).checkResponseCode(Status.NOT_FOUND.getStatusCode());
-    createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
-    createObjectTestCase(fullKey, EMPTY_CONTENT).checkResponseCode(Status.OK.getStatusCode());
-    headTestCase(fullKey).checkResponseCode(Status.OK.getStatusCode())
-        .checkHeader(S3Constants.S3_CONTENT_TYPE_HEADER,
-            TestCaseOptions.OCTET_STREAM_CONTENT_TYPE);
-  }
-
-  /**
-   * Puts and heads directories.
-   */
-  @Test
-  public void putAndHeadDirectories() throws Exception {
     final String bucket = "bucket";
     final String folderKey1 = "folder1";
     final String folderKey2 = "folder2";
     final String fullKey1 = bucket + AlluxioURI.SEPARATOR + folderKey1 + AlluxioURI.SEPARATOR;
     final String fullKey2 = bucket + AlluxioURI.SEPARATOR + folderKey1 + AlluxioURI.SEPARATOR
         + folderKey2 + AlluxioURI.SEPARATOR;
+
     createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
     createObjectTestCase(fullKey2, EMPTY_CONTENT).checkResponseCode(Status.OK.getStatusCode());
     headTestCase(fullKey1).checkResponseCode(Status.OK.getStatusCode());
@@ -218,12 +204,15 @@ public class S3ObjectTest extends RestApiTest {
     final String fullKey = bucket + AlluxioURI.SEPARATOR + objectKey;
     final byte[] content = "Hello World!".getBytes();
     final byte[] content2 = CommonUtils.randomAlphaNumString(Constants.KB).getBytes();
+
     createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
     createObjectTestCase(fullKey, content).checkResponseCode(Status.OK.getStatusCode());
     getTestCase(fullKey).checkResponseCode(Status.OK.getStatusCode()).checkResponse(content);
-    //   This object will be overwritten.
+    // overwrite this object
     createObjectTestCase(fullKey, content2).checkResponseCode(Status.OK.getStatusCode());
-    getTestCase(fullKey).checkResponseCode(Status.OK.getStatusCode()).checkResponse(content2);
+    getTestCase(fullKey).checkResponseCode(Status.OK.getStatusCode()).checkResponse(content2)
+        .checkHeader(S3Constants.S3_CONTENT_LENGTH_HEADER,
+            String.valueOf(content2.length));
   }
 
   /**
@@ -328,6 +317,22 @@ public class S3ObjectTest extends RestApiTest {
   }
 
   /**
+   * Copies a non-existent object.
+   */
+  @Test
+  public void copyNonExistentObject() throws Exception {
+    final String bucket = "bucket";
+    final String objectKey1 = "object1";
+    final String objectKey2 = "object2";
+    final String sourcePath = bucket + AlluxioURI.SEPARATOR + objectKey1;
+    final String targetPath = bucket + AlluxioURI.SEPARATOR + objectKey2;
+
+    createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
+    copyObjectTestCase(sourcePath, targetPath).checkResponseCode(Status.NOT_FOUND.getStatusCode())
+        .checkErrorCode(S3ErrorCode.Name.NO_SUCH_KEY);
+  }
+
+  /**
    * Copies a deleted object.
    */
   @Test
@@ -412,6 +417,7 @@ public class S3ObjectTest extends RestApiTest {
 
   /**
    * Copies an object from one bucket to another bucket.
+   * TODO(Xinran Dong): We need to support the target path is a directory.
    */
   @Ignore
   public void copyObjectToAnotherBucket() throws Exception {
@@ -426,7 +432,6 @@ public class S3ObjectTest extends RestApiTest {
     createBucketTestCase(bucket2).checkResponseCode(Status.OK.getStatusCode());
     createObjectTestCase(sourcePath, content).checkResponseCode(Status.OK.getStatusCode());
 
-    // TODO(Xinran Dong): copy to a directory.
     copyObjectTestCase(sourcePath, bucket2 + AlluxioURI.SEPARATOR).checkResponseCode(
         Status.OK.getStatusCode());
     getTestCase(targetPath).checkResponseCode(Status.OK.getStatusCode()).checkResponse(content);
@@ -434,6 +439,7 @@ public class S3ObjectTest extends RestApiTest {
 
   /**
    * Copies an object from one folder to a different folder.
+   * TODO(Xinran Dong): We need to support the target path is a directory.
    */
   @Ignore
   public void copyObjectToAnotherDir() throws Exception {
@@ -451,8 +457,6 @@ public class S3ObjectTest extends RestApiTest {
 
     createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
     createObjectTestCase(sourcePath, content).checkResponseCode(Status.OK.getStatusCode());
-
-    // TODO(Xinran Dong): copy to a directory.
     copyObjectTestCase(sourcePath, fullFolderKey2).checkResponseCode(Status.OK.getStatusCode());
     getTestCase(targetPath).checkResponseCode(Status.OK.getStatusCode()).checkResponse(content);
   }
@@ -478,7 +482,7 @@ public class S3ObjectTest extends RestApiTest {
     deleteTestCase(fullFolderKey).checkResponseCode(Status.NO_CONTENT.getStatusCode());
     headTestCase(fullObjectKey).checkResponseCode(Status.OK.getStatusCode());
 
-    // Deletes the object first.
+    // Deletes the object first, then deletes the directory.
     deleteTestCase(fullObjectKey).checkResponseCode(Status.NO_CONTENT.getStatusCode());
     headTestCase(fullObjectKey).checkResponseCode(Status.NOT_FOUND.getStatusCode());
     deleteTestCase(fullObjectKey).checkResponseCode(Status.NO_CONTENT.getStatusCode());
@@ -507,6 +511,7 @@ public class S3ObjectTest extends RestApiTest {
     final String bucket = "bucket";
     final String objectKey = "object";
     final String fullKey = bucket + AlluxioURI.SEPARATOR + objectKey;
+
     createBucketTestCase(bucket).checkResponseCode(Status.OK.getStatusCode());
     mS3Client.deleteObject(TEST_BUCKET, bucket + AlluxioURI.SEPARATOR);
     deleteTestCase(fullKey).checkResponseCode(Status.NOT_FOUND.getStatusCode())
