@@ -15,7 +15,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
-import alluxio.client.block.policy.BlockLocationPolicy;
+//import alluxio.client.block.policy.BlockLocationPolicy;
 //import alluxio.client.block.policy.SpecificHostPolicy;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.AlluxioConfiguration;
@@ -44,7 +44,7 @@ public class OutStreamOptions {
   private FileSystemMasterCommonPOptions mCommonOptions;
   private long mBlockSizeBytes;
   // TODO(jiacheng): remove this
-  private BlockLocationPolicy mLocationPolicy;
+//  private BlockLocationPolicy mLocationPolicy;
   private int mWriteTier;
   private WriteType mWriteType;
   private String mOwner;
@@ -126,7 +126,7 @@ public class OutStreamOptions {
   protected OutStreamOptions(FileSystemContext context, AlluxioConfiguration alluxioConf) {
     mCommonOptions = FileSystemOptionsUtils.commonDefaults(alluxioConf);
     mBlockSizeBytes = alluxioConf.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
-    mLocationPolicy = context.getWriteBlockLocationPolicy(alluxioConf);
+//    mLocationPolicy = context.getWriteBlockLocationPolicy(alluxioConf);
     mWriteTier = alluxioConf.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT);
     mWriteType = alluxioConf.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     try {
@@ -173,9 +173,9 @@ public class OutStreamOptions {
   /**
    * @return the file write location policy
    */
-  public BlockLocationPolicy getLocationPolicy() {
-    return mLocationPolicy;
-  }
+//  public BlockLocationPolicy getLocationPolicy() {
+//    return mLocationPolicy;
+//  }
 
   /**
    * @return the Alluxio storage type
@@ -312,10 +312,10 @@ public class OutStreamOptions {
    * @param locationPolicy the file write location policy
    * @return the updated options object
    */
-  public OutStreamOptions setLocationPolicy(BlockLocationPolicy locationPolicy) {
-    mLocationPolicy = locationPolicy;
-    return this;
-  }
+//  public OutStreamOptions setLocationPolicy(BlockLocationPolicy locationPolicy) {
+//    mLocationPolicy = locationPolicy;
+//    return this;
+//  }
 
   /**
    * @param commonOptions the FileSystem Master Common POptions(only for copy)
@@ -443,7 +443,7 @@ public class OutStreamOptions {
         && Objects.equal(mBlockSizeBytes, that.mBlockSizeBytes)
         && Objects.equal(mCommonOptions, that.mCommonOptions)
         && Objects.equal(mGroup, that.mGroup)
-        && Objects.equal(mLocationPolicy, that.mLocationPolicy)
+//        && Objects.equal(mLocationPolicy, that.mLocationPolicy)
         && Objects.equal(mMediumType, that.mMediumType)
         && Objects.equal(mMode, that.mMode)
         && Objects.equal(mMountId, that.mMountId)
@@ -464,7 +464,7 @@ public class OutStreamOptions {
         mBlockSizeBytes,
         mCommonOptions,
         mGroup,
-        mLocationPolicy,
+//        mLocationPolicy,
         mMediumType,
         mMode,
         mMountId,
@@ -486,7 +486,7 @@ public class OutStreamOptions {
         .add("blockSizeBytes", mBlockSizeBytes)
         .add("commonOptions", mCommonOptions)
         .add("group", mGroup)
-        .add("locationPolicy", mLocationPolicy)
+//        .add("locationPolicy", mLocationPolicy)
         .add("mediumType", mMediumType)
         .add("mode", mMode)
         .add("mountId", mMountId)

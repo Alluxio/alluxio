@@ -12,7 +12,7 @@
 package alluxio.client.file.options;
 
 import alluxio.client.ReadType;
-import alluxio.client.block.policy.BlockLocationPolicy;
+//import alluxio.client.block.policy.BlockLocationPolicy;
 //import alluxio.client.block.policy.SpecificHostPolicy;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -44,7 +44,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class InStreamOptions {
   private final URIStatus mStatus;
   private final OpenFilePOptions mProtoOptions;
-  private BlockLocationPolicy mUfsReadLocationPolicy;
+//  private BlockLocationPolicy mUfsReadLocationPolicy;
   private boolean mPositionShort;
 
   /**
@@ -109,33 +109,33 @@ public final class InStreamOptions {
     return mProtoOptions;
   }
 
-  /**
-   * Sets block read location policy.
-   *
-   * @param ufsReadLocationPolicy block location policy implementation
-   */
-  @VisibleForTesting
-  public void setUfsReadLocationPolicy(BlockLocationPolicy ufsReadLocationPolicy) {
-    mUfsReadLocationPolicy = Preconditions.checkNotNull(ufsReadLocationPolicy);
-  }
-
-  /**
-   * Sets whether the operation is positioned read to a small buffer.
-   *
-   * @param positionShort whether the operation is positioned read to a small buffer
-   */
-  public void setPositionShort(boolean positionShort) {
-    mPositionShort = positionShort;
-  }
-
-  /**
-   * @return the {@link BlockLocationPolicy} associated with the instream
-   */
-  public BlockLocationPolicy getUfsReadLocationPolicy() {
-    // TODO(jiacheng): where will throw NPE?
-//    return mUfsReadLocationPolicy;
-    return null;
-  }
+//  /**
+//   * Sets block read location policy.
+//   *
+//   * @param ufsReadLocationPolicy block location policy implementation
+//   */
+//  @VisibleForTesting
+//  public void setUfsReadLocationPolicy(BlockLocationPolicy ufsReadLocationPolicy) {
+//    mUfsReadLocationPolicy = Preconditions.checkNotNull(ufsReadLocationPolicy);
+//  }
+//
+//  /**
+//   * Sets whether the operation is positioned read to a small buffer.
+//   *
+//   * @param positionShort whether the operation is positioned read to a small buffer
+//   */
+//  public void setPositionShort(boolean positionShort) {
+//    mPositionShort = positionShort;
+//  }
+//
+//  /**
+//   * @return the {@link BlockLocationPolicy} associated with the instream
+//   */
+//  public BlockLocationPolicy getUfsReadLocationPolicy() {
+//    // TODO(jiacheng): where will throw NPE?
+////    return mUfsReadLocationPolicy;
+//    return null;
+//  }
 
   /**
    * @return the {@link URIStatus} associated with the instream
