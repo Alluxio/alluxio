@@ -3,6 +3,12 @@ layout: global
 title: Introduction
 ---
 
+Check out these 2 short videos to learn about the existing data problems that Alluxio is designed to solve and where Alluxio sits in the big data ecosystem:
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/_zenG90idAA" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/py-kfEGRDZA" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
 ## About Alluxio
 
 Alluxio is world's first open source [data orchestration technology](https://www.alluxio.io/blog/data-orchestration-the-missing-piece-in-the-data-world/)

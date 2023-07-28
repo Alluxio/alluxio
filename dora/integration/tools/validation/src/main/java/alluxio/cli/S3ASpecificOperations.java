@@ -160,4 +160,15 @@ public final class S3ASpecificOperations {
       throw new IOException("The in progress multipart upload did not be aborted.");
     }
   }
+
+  /**
+   * Test for listing status of the root directory of the UFS.
+   */
+  @RelatedS3Operations(operations = {"putObject", "listObjectsV2", "getObjectMetadata"})
+  public void listStatusS3RootTest() throws IOException {
+    UfsStatus[] rootList = mUfs.listStatus("/");
+    if (rootList == null || rootList.length == 0) {
+      throw new IOException("Unable to list UFS root path");
+    }
+  }
 }

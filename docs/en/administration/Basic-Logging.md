@@ -79,11 +79,11 @@ For example, to modify the level for all logs to `DEBUG`, change the
 log4j.rootLogger=DEBUG, ${alluxio.logger.type}, ${alluxio.remote.logger.type}
 ```
 
-To modify the logging level for a particular Java class (e.g., set `alluxio.client.file.AlluxioFileInStream` to `DEBUG`),
+To modify the logging level for a particular Java class (e.g., set `alluxio.client.file.FileSystemContext` to `DEBUG`),
 add a new line at the end of this file:
 
 ```properties
-log4j.logger.alluxio.client.file.AlluxioFileInStream=DEBUG
+log4j.logger.alluxio.client.file.FileSystemContext=DEBUG
 ```
 
 To modify the logging level for a package (e.g., set all classes under `alluxio` to `DEBUG`),
@@ -126,10 +126,13 @@ In this case `alluxio.underfs.hdfs.HdfsUnderFileSystem` inherits the log level i
 
 Furthermore, you can turn on Alluxio debug logging when you are troubleshooting a certain issue
 in a running cluster, and turn it off when you are done.
+
 ```shell
 # Turn on Alluxio debug logging and start debugging
 $ ./bin/alluxio logLevel --logName=alluxio --level=DEBUG
+```
 
+```shell
 # Turn off Alluxio debug logging when you are done
 $ ./bin/alluxio logLevel --logName=alluxio --level=INFO
 ```
@@ -154,7 +157,7 @@ $ ./bin/alluxio logLevel --logName=alluxio --target=127.0.0.1:25252:worker --lev
 Add the following line to `conf/allulxio-env.sh` to enable logging GC events for server processes
 in log files with `.out` suffix like `master.out` and `worker.out`:
 
-```bash
+```sh
 ALLUXIO_JAVA_OPTS+=" -XX:+PrintGCDetails -XX:+PrintTenuringDistribution -XX:+PrintGCTimeStamps"
 ```
 

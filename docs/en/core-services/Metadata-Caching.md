@@ -35,22 +35,22 @@ Alluxio client can also pass the following config to workers in some metadata or
 - `USER_FILE_METADATA_SYNC_INTERVAL(alluxio.user.file.metadata.sync.interval)` is the interval for syncing UFS metadata before invoking an operation on a path/file.
 
 "Syncing UFS metadata" means to invalidate the cached metadata if needed and then to reload the metadata from UFS. This key can be configured in `conf/alluxio-site.properties`, or defined as a JVM system property on the command line by `-Dalluxio.user.file.metadata.sync.interval=<integer_value>`.
-```console
+```shell
 $ bin/alluxio fs -Dalluxio.user.file.metadata.sync.interval=0 ls "some/path/and/file"
 ```
 This configuration will be globally effective for all operations and for all paths.
 
 Applications using Alluxio client jar can also do this in a java program like this:
 ```java
-      AlluxioURI path = new AlluxioURI("/some_file");
-      URIStatus st;
-      int syncIntervalMs = 2000; // two seconds. Set to 0 to always sync metadata
-      GetStatusPOptions option = GetStatusPOptions.newBuilder()
-          .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
-                            .setSyncIntervalMs(syncIntervalMs)
-                            .build())
-          .build();
-      st = fs.getStatus(path, option);
+AlluxioURI path = new AlluxioURI("/some_file");
+URIStatus st;
+int syncIntervalMs = 2000; // two seconds. Set to 0 to always sync metadata
+GetStatusPOptions option = GetStatusPOptions.newBuilder()
+    .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder()
+                    .setSyncIntervalMs(syncIntervalMs)
+                    .build())
+    .build();
+st = fs.getStatus(path, option);
 ```
 
 ## Invalidation of Data Cached in PageStore

@@ -41,18 +41,24 @@ state across service restarts and maintaining consensus among masters about the 
   on all nodes.
 
 ## Basic Setup
+
+Alluxio admins can create and edit the properties file `conf/alluxio-site.properties` to
+configure Alluxio masters or workers.
+If this file does not exist, it can be copied from the template file under `${ALLUXIO_HOME}/conf`:
+
+```shell
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```
+
+Make sure that this file is distributed to `${ALLUXIO_HOME}/conf` on every Alluxio master
+and worker before starting the cluster.
+Restarting Alluxio processes is the safest way to ensure any configuration updates are applied.
+
 ### Raft-based Embedded Journal
 
 The minimal configuration to set up a HA cluster is to give the embedded journal addresses to all
 nodes inside the cluster.
-On each Alluxio node, create the `conf/alluxio-site.properties` configuration file from the
-template.
-
-```console
-$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
-```
-
-Add the following properties to the `conf/alluxio-site.properties` file:
+On each Alluxio node, copy the `conf/alluxio-site.properties` configuration file and add the following properties to the file:
 
 ```properties
 alluxio.master.hostname=<MASTER_HOSTNAME> # Only needed on master node
@@ -75,7 +81,7 @@ leader election based on the Raft protocol and has its own format for storing jo
 The built-in leader election cannot work with Zookeeper since the journal formats between these
 configurations may not match.
 Enabling embedded journal enables Alluxio's internal leader election.
-See [embedded journal configuration documentation]({{ '/en/operation/Journal.html' | relativize_url }}#embedded-journal-configuration)
+See [embedded journal configuration documentation]({{ '/en/operation/Journal.html' | relativize_url }}#configuring-embedded-journal)
 for more details and alternative ways to set up HA cluster with internal leader election.
 
 ### Zookeeper and Shared Journal Storage
@@ -96,7 +102,7 @@ The journal storage system is recommended to be:
 
 The minimal configuration parameters which must be set are:
 
-```
+```properties
 alluxio.zookeeper.enabled=true
 alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>
 alluxio.master.journal.type=UFS
@@ -168,7 +174,7 @@ On all the Alluxio master nodes, list all the worker hostnames in the `conf/work
 This will allow alluxio scripts to run operations on the cluster nodes.
 `format` Alluxio cluster with the following command in one of the master nodes:
 
-```console
+```shell
 $ ./bin/alluxio format
 ```
 
@@ -176,7 +182,7 @@ $ ./bin/alluxio format
 
 In one of the master nodes, start the Alluxio cluster with the following command:
 
-```console
+```shell
 $ ./bin/alluxio-start.sh all SudoMount
 ```
 
@@ -191,7 +197,7 @@ On MacOS, make sure your terminal has full disk access (tutorial [here](https://
 To verify that Alluxio is running, you can visit the web UI of the leading master. To determine the
 leading master, run:
 
-```console
+```shell
 $ ./bin/alluxio fs masterInfo
 ```
 
@@ -200,7 +206,7 @@ Then, visit `http://<LEADER_HOSTNAME>:19999` to see the status page of the Allux
 Alluxio comes with a simple program that writes and reads sample files in Alluxio. Run the sample
 program with:
 
-```console
+```shell
 $ ./bin/alluxio runTests
 ```
 
@@ -217,7 +223,7 @@ or site properties, and then connect to the service using an Alluxio URI such as
 For example, with Alluxio connection information in `core-site.xml` of Hadoop, Hadoop CLI can 
 connect to the Alluxio cluster.
 
-```console
+```shell
 $ hadoop fs -ls alluxio:///directory
 ```
 
@@ -225,19 +231,19 @@ Depending on the different approaches to achieve HA, different properties are re
 
 If using embedded journal, set `alluxio.master.rpc.addresses`.
 
-```
+```properties
 alluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 ```
 
 Or specify the properties in Java option. For example, for Spark applications, add the following to 
 `spark.executor.extraJavaOptions` and `spark.driver.extraJavaOptions`:
 
-```
+```properties
 -Dalluxio.master.rpc.addresses=master_hostname_1:19998,master_hostname_2:19998,master_hostname_3:19998
 ```
 
 If using Zookeeper, set the following Zookeeper related properties  
-```
+```properties
 alluxio.zookeeper.enabled=true
 alluxio.zookeeper.address=<ZOOKEEPER_ADDRESS>
 ```
@@ -284,7 +290,7 @@ A comma-separated ID of the alluxio master node that determine all the alluxio m
 For example, if you previously used `my-alluxio-cluster` as the logical name and wanted to
 use `master1,master2,master3` as individual IDs for each alluxio master, you configure this as such:
 
-```
+```properties
 alluxio.master.nameservices.my-alluxio-cluster=master1,master2,master3
 ```
 
@@ -292,7 +298,7 @@ alluxio.master.nameservices.my-alluxio-cluster=master1,master2,master3
 
 For each alluxio master node previously configured, set the full address of each alluxio master node, for example:
 
-```
+```properties
 alluxio.master.rpc.address.my-alluxio-cluster.master1=master1:19998
 alluxio.master.rpc.address.my-alluxio-cluster.master2=master2:19998
 alluxio.master.rpc.address.my-alluxio-cluster.master3=master3:19998
@@ -309,7 +315,7 @@ A comma-separated zookeeper node ID that determine all the Zookeeper nodes in th
 if you previously used `my-alluxio-cluster` as the logical name and wanted to use `node1,node2,node3` as individual
 IDs for each Zookeeper, you would configure this as such:
 
-```
+```properties
 alluxio.master.zookeeper.nameservices.my-alluxio-cluster=node1,node2,node3
 ```
 
@@ -318,7 +324,7 @@ alluxio.master.zookeeper.nameservices.my-alluxio-cluster=node1,node2,node3
 
 For each Zookeeper node previously configured, set the full address of each Zookeeper node, for example:
 
-```
+```properties
 alluxio.master.zookeeper.address.my-alluxio-cluster.node1=host1:2181
 alluxio.master.zookeeper.address.my-alluxio-cluster.node2=host2:2181
 alluxio.master.zookeeper.address.my-alluxio-cluster.node3=host3:2181
@@ -332,7 +338,7 @@ Below are common operations to perform on an Alluxio cluster.
 
 To stop an Alluxio service, run:
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh all
 ```
 
@@ -340,7 +346,7 @@ This will stop all the processes on all nodes listed in `conf/workers` and `conf
 
 You can stop just the masters and just the workers with the following commands:
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh masters # stops all masters in conf/masters
 $ ./bin/alluxio-stop.sh workers # stops all workers in conf/workers
 ```
@@ -349,7 +355,7 @@ If you do not want to use `ssh` to login to all the nodes and stop all the proce
 commands on each node individually to stop each component.
 For any node, you can stop a master or worker with:
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh master # stops the local master
 $ ./bin/alluxio-stop.sh worker # stops the local worker
 ```
@@ -359,13 +365,13 @@ $ ./bin/alluxio-stop.sh worker # stops the local worker
 Starting Alluxio is similar. If `conf/workers` and `conf/masters` are both populated, you can start
 the cluster with:
 
-```console
+```shell
 $ ./bin/alluxio-start.sh all
 ```
 
 You can start just the masters and just the workers with the following commands:
 
-```console
+```shell
 $ ./bin/alluxio-start.sh masters # starts all masters in conf/masters
 $ ./bin/alluxio-start.sh workers # starts all workers in conf/workers
 ```
@@ -374,7 +380,7 @@ If you do not want to use `ssh` to login to all the nodes and start all the proc
 commands on each node individually to start each component. For any node, you can start a master or
 worker with:
 
-```console
+```shell
 $ ./bin/alluxio-start.sh master # starts the local master
 $ ./bin/alluxio-start.sh worker # starts the local worker
 ```
@@ -386,7 +392,7 @@ process, with the appropriate configuration.
 In most cases, the new worker's configuration should be the same as all the other workers' configuration.
 Run the following command on the new worker to add
 
-```console
+```shell
 $ ./bin/alluxio-start.sh worker SudoMount # starts the local worker
 ```
 
@@ -394,7 +400,7 @@ Once the worker is started, it will register itself with the Alluxio leading mas
 
 Removing a worker is as simple as stopping the worker process.
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh worker # stops the local worker
 ```
 

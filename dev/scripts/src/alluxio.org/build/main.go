@@ -36,6 +36,8 @@ func run(args []string) error {
 		return cmd.DockerF(args[2:])
 	case cmd.Modules:
 		return cmd.PluginsF(args[2:])
+	case cmd.Presets:
+		return cmd.PresetsF(args[2:])
 	case cmd.Profiles:
 		return cmd.ProfilesF(args[2:])
 	case cmd.Tarball:

@@ -109,7 +109,7 @@ public class AlluxioMasterProcess extends MasterProcess {
   /**
    * Creates a new {@link AlluxioMasterProcess}.
    */
-  AlluxioMasterProcess(JournalSystem journalSystem, PrimarySelector leaderSelector) {
+  protected AlluxioMasterProcess(JournalSystem journalSystem, PrimarySelector leaderSelector) {
     super(journalSystem, leaderSelector, ServiceType.MASTER_WEB, ServiceType.MASTER_RPC);
     if (!mJournalSystem.isFormatted()) {
       throw new RuntimeException(

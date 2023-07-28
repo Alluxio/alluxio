@@ -6,8 +6,10 @@ title: MinIO
 
 This guide describes how to configure Alluxio with [MinIO](https://min.io/) as the
 under storage system.
-Alluxio natively provides the `s3://` scheme (recommended for better performance).
-You can use this scheme to connect Alluxio with a MinIO server.
+
+MinIO is a high-performance, S3 compatible object store. It is built for large scale AI/ML, data lake and database workloads. It runs on-prem and on any cloud (public or private) and from the data center to the edge.
+
+Alluxio natively provides the `s3://` scheme (recommended for better performance). You can use this scheme to connect Alluxio with a MinIO server.
 
 ## Setup MinIO
 
@@ -47,11 +49,11 @@ For these parameters, replace `<MINIO_ENDPOINT>` with the hostname and port of y
 e.g., `http://localhost:9000/`.
 If the port value is left unset, it defaults to port 80 for `http` and 443 for `https`.
 
-## Test the MinIO Configuration
+## Running Alluxio Locally with MinIO
 
 Format and start Alluxio with
 
-```console
+```shell
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
 ```
@@ -61,7 +63,7 @@ examining the logs to ensure the process is running.
 
 Then, to run tests using some basic Alluxio operations execute the following command:
 
-```console
+```shell
 $ ./bin/alluxio runTests
 ```
 
