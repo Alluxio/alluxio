@@ -83,6 +83,5 @@ func (c *TestRunCommand) Run(args []string) error {
 		javaArgs = append(javaArgs, "--writeType", c.writeType)
 	}
 
-	javaArgs = append(javaArgs, args...)
 	return c.Base().Run(javaArgs)
 }

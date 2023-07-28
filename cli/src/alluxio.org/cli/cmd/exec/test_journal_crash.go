@@ -77,6 +77,5 @@ func (c *TestJournalCrashCommand) Run(args []string) error {
 	}
 	javaArgs = append(javaArgs, "-totalTime", strconv.Itoa(c.totalTime))
 
-	javaArgs = append(javaArgs, args...)
 	return c.Base().Run(javaArgs)
 }

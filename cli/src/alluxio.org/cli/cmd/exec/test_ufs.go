@@ -57,6 +57,5 @@ func (c *TestUfsCommand) Run(args []string) error {
 		javaArgs = append(javaArgs, "--test", singleTest)
 	}
 
-	javaArgs = append(javaArgs, args...)
 	return c.Base().Run(javaArgs)
 }

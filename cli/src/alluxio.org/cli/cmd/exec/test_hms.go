@@ -70,6 +70,5 @@ func (c *TestHmsCommand) Run(args []string) error {
 	}
 	javaArgs = append(javaArgs, "-st", strconv.Itoa(c.socketTimeout))
 
-	javaArgs = append(javaArgs, args...)
 	return c.Base().Run(javaArgs)
 }
