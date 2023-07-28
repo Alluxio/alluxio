@@ -13,7 +13,6 @@ package alluxio.client.fs.io;
 
 import alluxio.AlluxioURI;
 import alluxio.annotation.dora.DoraTestTodoItem;
-import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
@@ -36,7 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Integration tests for {@link BlockInStream}.
+ * Integration tests for {@link FileInStream}.
  */
 @Ignore
 @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
