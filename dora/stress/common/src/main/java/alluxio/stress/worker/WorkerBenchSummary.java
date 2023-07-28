@@ -14,12 +14,15 @@ package alluxio.stress.worker;
 import alluxio.Constants;
 import alluxio.collections.Pair;
 import alluxio.stress.Parameters;
+import alluxio.stress.StressConstants;
 import alluxio.stress.Summary;
 import alluxio.stress.common.GeneralBenchSummary;
 import alluxio.stress.graph.Graph;
 import alluxio.stress.graph.LineGraph;
 
+import alluxio.util.FormatUtils;
 import com.google.common.base.Splitter;
+import org.HdrHistogram.Histogram;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,6 +39,7 @@ public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTas
   private long mDurationMs;
   private long mEndTimeMs;
   private long mIOBytes;
+  private List<Long> mDurationPercentiles;
 
   /**
    * Creates an instance.
@@ -43,6 +47,7 @@ public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTas
   public WorkerBenchSummary() {
     // Default constructor required for json deserialization
     mNodeResults = new HashMap<>();
+    mDurationPercentiles = new ArrayList<>();
   }
 
   /**
@@ -52,13 +57,23 @@ public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTas
    * @param nodes the list of nodes
    */
   public WorkerBenchSummary(WorkerBenchTaskResult mergedTaskResults,
-      Map<String, WorkerBenchTaskResult> nodes) {
+                            Map<String, WorkerBenchTaskResult> nodes) {
     mDurationMs = mergedTaskResults.getEndMs() - mergedTaskResults.getRecordStartMs();
     mEndTimeMs = mergedTaskResults.getEndMs();
     mIOBytes = mergedTaskResults.getIOBytes();
     mParameters = mergedTaskResults.getParameters();
     mNodeResults = nodes;
     mThroughput = getIOMBps();
+
+    mDurationPercentiles = new ArrayList<>();
+    Histogram durationHistogram = new Histogram(
+            FormatUtils.parseTimeSize(mParameters.mDuration)
+                    + FormatUtils.parseTimeSize(mParameters.mWarmup),
+            StressConstants.TIME_HISTOGRAM_PRECISION);
+    mergedTaskResults.getStats().forEach(stat -> durationHistogram.recordValue(stat.getDuration()));
+    for (int i = 0; i <= 100; i++) {
+      mDurationPercentiles.add(durationHistogram.getValueAtPercentile(i));
+    }
   }
 
   /**
@@ -131,6 +146,14 @@ public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTas
     mIOBytes = IOBytes;
   }
 
+  public List<Long> getDurationPercentiles() {
+    return mDurationPercentiles;
+  }
+
+  public void setDurationPercentiles(List<Long> percentiles) {
+    mDurationPercentiles = percentiles;
+  }
+
   @Override
   public alluxio.stress.GraphGenerator graphGenerator() {
     return new GraphGenerator();
@@ -145,7 +168,7 @@ public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTas
       List<Graph> graphs = new ArrayList<>();
       // only examine WorkerBenchSummary
       List<WorkerBenchSummary> summaries =
-          results.stream().map(x -> (WorkerBenchSummary) x).collect(Collectors.toList());
+              results.stream().map(x -> (WorkerBenchSummary) x).collect(Collectors.toList());
 
       if (summaries.isEmpty()) {
         return graphs;
@@ -153,19 +176,19 @@ public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTas
 
       // first() is the list of common field names, second() is the list of unique field names
       Pair<List<String>, List<String>> fieldNames = Parameters.partitionFieldNames(
-          summaries.stream().map(x -> x.mParameters).collect(Collectors.toList()));
+              summaries.stream().map(x -> x.mParameters).collect(Collectors.toList()));
 
       // Split up common description into 100 character chunks, for the sub title
       List<String> subTitle = new ArrayList<>(Splitter.fixedLength(100).splitToList(
-          summaries.get(0).mParameters.getDescription(fieldNames.getFirst())));
+              summaries.get(0).mParameters.getDescription(fieldNames.getFirst())));
 
       LineGraph throughputGraph =
-          new LineGraph("Worker Throughput (MB/s)", subTitle, "Total Client Threads",
-              "Throughput (MB/s)");
+              new LineGraph("Worker Throughput (MB/s)", subTitle, "Total Client Threads",
+                      "Throughput (MB/s)");
 
       // remove the thread count from series fields, since the x-axis is thread counts.
       List<String> seriesFields = fieldNames.getSecond().stream().filter(f -> !"mThreads".equals(f))
-          .collect(Collectors.toList());
+              .collect(Collectors.toList());
 
       // map(series name -> map(total threads -> throughput MB/s))
       Map<String, Map<Integer, Float>> allSeries = new HashMap<>();

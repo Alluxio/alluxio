@@ -29,6 +29,7 @@ import alluxio.stress.BaseParameters;
 import alluxio.stress.cli.AbstractStressBench;
 import alluxio.stress.common.FileSystemParameters;
 import alluxio.stress.worker.WorkerBenchParameters;
+import alluxio.stress.worker.WorkerBenchStats;
 import alluxio.stress.worker.WorkerBenchTaskResult;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
@@ -63,7 +64,7 @@ import java.util.concurrent.TimeUnit;
  */
 // TODO(jiacheng): avoid the implicit casts and @SuppressFBWarnings
 public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult,
-    WorkerBenchParameters> {
+        WorkerBenchParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(StressWorkerBench.class);
   private static final long DUMMY_BLOCK_SIZE = 64 * Constants.MB;
 
@@ -85,7 +86,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
   public StressWorkerBench() {
     mParameters = new WorkerBenchParameters();
     InstancedConfiguration conf =
-        new InstancedConfiguration(alluxio.conf.Configuration.global().copyProperties());
+            new InstancedConfiguration(alluxio.conf.Configuration.global().copyProperties());
     conf.set(PropertyKey.DORA_ENABLED, true);
     mFsContext = FileSystemContext.create(conf);
     alluxio.client.file.FileSystem testFs = alluxio.client.file.FileSystem.Factory.create(mFsContext);
@@ -103,7 +104,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     int threads = mParameters.mThreads;
     int numFiles = clusterSize * threads;
     LOG.info("Total {} * {} = {} files will be generated",
-        clusterSize, threads, numFiles);
+            clusterSize, threads, numFiles);
     return numFiles;
   }
 
@@ -122,16 +123,16 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
   public String getBenchDescription() {
     // TODO(jiacheng): change this description
     return String.join("\n", ImmutableList.of(
-        "A benchmarking tool to measure the read performance of alluxio workers in the cluster",
-        "The test will create one file and repeatedly read the created file to test the "
-            + "performance",
-        "",
-        "Example:",
-        "# This would create a 100MB file with block size of 16KB and then read the file "
-            + "for 30s after 10s warmup",
-        "$ bin/alluxio runClass alluxio.stress.cli.worker.StressWorkerBench --clients 1 "
-            + "--base alluxio:///stress-worker-base --block-size 16k --file-size 100m "
-            + "--warmup 10s --duration 30s --cluster\n"
+            "A benchmarking tool to measure the read performance of alluxio workers in the cluster",
+            "The test will create one file and repeatedly read the created file to test the "
+                    + "performance",
+            "",
+            "Example:",
+            "# This would create a 100MB file with block size of 16KB and then read the file "
+                    + "for 30s after 10s warmup",
+            "$ bin/alluxio runClass alluxio.stress.cli.worker.StressWorkerBench --clients 1 "
+                    + "--base alluxio:///stress-worker-base --block-size 16k --file-size 100m "
+                    + "--warmup 10s --duration 30s --cluster\n"
     ));
   }
 
@@ -162,7 +163,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     // Generate test files if necessary
     if (mBaseParameters.mDistributed){
       LOG.info("Running in distributed mode on a job worker. The test file should have been "
-          + "prepared in the commandline process before distributing the tasks.");
+              + "prepared in the commandline process before distributing the tasks.");
     } else {
       if (mParameters.mSkipCreation) {
         LOG.info("Test file preparation is skipped");
@@ -186,7 +187,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
         "true");
     // TODO(jiacheng): we may need a policy to only IO to remote worker
     hdfsConf.set(PropertyKey.Name.USER_WORKER_SELECTION_POLICY,
-        "alluxio.client.file.dora.LocalWorkerPolicy");
+            "alluxio.client.file.dora.LocalWorkerPolicy");
     for (Map.Entry<String, String> entry : mParameters.mConf.entrySet()) {
       hdfsConf.set(entry.getKey(), entry.getValue());
     }
@@ -353,7 +354,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       Path filePath = mFilePaths[i];
       LOG.info("Creating file {}", filePath);
       try (FSDataOutputStream mOutStream = prepareFs
-          .create(filePath, false, buffer.length, (short) 1, DUMMY_BLOCK_SIZE)) {
+              .create(filePath, false, buffer.length, (short) 1, DUMMY_BLOCK_SIZE)) {
         while (true) {
           int bytesToWrite = (int) Math.min(fileSize - mOutStream.getPos(), buffer.length);
           if (bytesToWrite == 0) {
@@ -377,10 +378,10 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     int endFileIndex = getTotalFileNumber();
     if (mBaseParameters.mIndex.equals(DEFAULT_TASK_ID)) {
       LOG.info("This is running in the command line process. Read all {} files with {} threads.",
-          endFileIndex, mParameters.mThreads);
+              endFileIndex, mParameters.mThreads);
     } else {
       LOG.info("This job worker has index {} among {} workers",
-          mBaseParameters.mIndex, mBaseParameters.mClusterLimit);
+              mBaseParameters.mIndex, mBaseParameters.mClusterLimit);
       int threadNum = mParameters.mThreads;
       int workerIndex = Integer.parseInt(mBaseParameters.mIndex);
       startFileIndex = workerIndex * threadNum;
@@ -389,7 +390,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     }
 
     ExecutorService service =
-        ExecutorServiceFactories.fixedThreadPool("bench-thread", mParameters.mThreads).create();
+            ExecutorServiceFactories.fixedThreadPool("bench-thread", mParameters.mThreads).create();
 
     long durationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
     long warmupMs = FormatUtils.parseTimeSize(mParameters.mWarmup);
@@ -409,10 +410,10 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       int fileIndex = startFileIndex + threadIndex;
       LOG.info("Thread {} reads file {} path {}", threadIndex, fileIndex, mFilePaths[fileIndex]);
       callables.add(new BenchThread(context, fileIndex,
-          mCachedFs[threadIndex % mCachedFs.length]));
+              mCachedFs[threadIndex % mCachedFs.length]));
     }
     service.invokeAll(callables, FormatUtils.parseTimeSize(mBaseParameters.mBenchTimeout),
-        TimeUnit.MILLISECONDS);
+            TimeUnit.MILLISECONDS);
 
     service.shutdownNow();
     service.awaitTermination(30, TimeUnit.SECONDS);
@@ -423,11 +424,11 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
   public void validateParams() throws Exception {
     if (mBaseParameters.mClusterLimit <= 0) {
       throw new IllegalStateException("--cluster-limit cannot be " + mBaseParameters.mClusterLimit
-          + " in StressWorkerBench. It should be a positive number. Use 1 if running in local mode");
+              + " in StressWorkerBench. It should be a positive number. Use 1 if running in local mode");
     }
     if (mParameters.mThreads <= 0) {
       throw new IllegalStateException("Thread number cannot be " + mParameters.mThreads
-          + " in StressWorkerBench. It should be a positive number.");
+              + " in StressWorkerBench. It should be a positive number.");
     }
     if (mParameters.mFree && WritePType.MUST_CACHE.name().equals(mParameters.mWriteType)) {
       throw new IllegalStateException(String.format("%s cannot be %s when %s option provided",
@@ -528,13 +529,13 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       long waitMs = mContext.getStartMs() - CommonUtils.getCurrentMs();
       if (waitMs < 0) {
         throw new IllegalStateException(String.format(
-            "Thread missed barrier. Increase the start delay. start: %d current: %d",
-            mContext.getStartMs(), CommonUtils.getCurrentMs()));
+                "Thread missed barrier. Increase the start delay. start: %d current: %d",
+                mContext.getStartMs(), CommonUtils.getCurrentMs()));
       }
       CommonUtils.sleepMs(waitMs);
 
       while (!Thread.currentThread().isInterrupted()
-          && CommonUtils.getCurrentMs() < mContext.getEndMs()) {
+              && CommonUtils.getCurrentMs() < mContext.getEndMs()) {
         // Keep reading the same file
         int ioBytes = applyOperation();
         long currentMs = CommonUtils.getCurrentMs();
@@ -558,6 +559,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       int offset = mOffsets[mTargetFileIndex];
       int length = mLengths[mTargetFileIndex];
 
+      long startOperation = CommonUtils.getCurrentMs();
       if (mInStream == null) {
         mInStream = mFs.open(filePath);
       }
@@ -566,7 +568,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       if (mIsRandomRead) {
         while (length > 0) {
           int actualReadLength = mInStream
-              .read(offset, mBuffer, 0, mBuffer.length);
+                  .read(offset, mBuffer, 0, mBuffer.length);
           if (actualReadLength < 0) {
             closeInStream();
             break;
@@ -589,6 +591,11 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
           }
         }
       }
+      long endOperation = CommonUtils.getCurrentMs();
+      mResult.appendStats(new WorkerBenchStats(
+              mBaseParameters.mIndex, Thread.currentThread().getId(),
+              startOperation, endOperation - startOperation,
+              bytesRead));
       return bytesRead;
     }
 

@@ -30,6 +30,7 @@ public final class WorkerBenchTaskResult implements TaskResult {
   private long mEndMs;
   private long mIOBytes;
   private List<String> mErrors;
+  private List<WorkerBenchStats> mStats;
 
   /**
    * Creates an instance.
@@ -37,6 +38,7 @@ public final class WorkerBenchTaskResult implements TaskResult {
   public WorkerBenchTaskResult() {
     // Default constructor required for json deserialization
     mErrors = new ArrayList<>();
+    mStats = new ArrayList<>();
   }
 
   /**
@@ -47,6 +49,7 @@ public final class WorkerBenchTaskResult implements TaskResult {
   public void merge(WorkerBenchTaskResult result) throws Exception {
     // When merging results within a node, we need to merge all the error information.
     mErrors.addAll(result.mErrors);
+    mStats.addAll(result.mStats);
     aggregateByWorker(result);
   }
 
@@ -62,6 +65,7 @@ public final class WorkerBenchTaskResult implements TaskResult {
     mParameters = result.mParameters;
 
     mRecordStartMs = result.mRecordStartMs;
+    // mRecordStartMs = Math.min(mRecordStartMs, result.mRecordStartMs);
     mEndMs = Math.max(mEndMs, result.mEndMs);
     mIOBytes += result.mIOBytes;
   }
@@ -156,10 +160,22 @@ public final class WorkerBenchTaskResult implements TaskResult {
   }
 
   /**
-   * @param errMesssage the error message to add
+   * @param errMessage the error message to add
    */
-  public void addErrorMessage(String errMesssage) {
-    mErrors.add(errMesssage);
+  public void addErrorMessage(String errMessage) {
+    mErrors.add(errMessage);
+  }
+
+  public List<WorkerBenchStats> getStats() {
+    return mStats;
+  }
+
+  public void appendStats(WorkerBenchStats stats) {
+    mStats.add(stats);
+  }
+
+  public void appendStats(List<WorkerBenchStats> stats) {
+    mStats.addAll(stats);
   }
 
   @Override
@@ -172,14 +188,14 @@ public final class WorkerBenchTaskResult implements TaskResult {
     public WorkerBenchSummary aggregate(Iterable<WorkerBenchTaskResult> results) throws Exception {
       Map<String, WorkerBenchTaskResult> nodes = new HashMap<>();
 
-      WorkerBenchTaskResult mergingTaskResult = new WorkerBenchTaskResult();
+      WorkerBenchTaskResult mergedTaskResult = new WorkerBenchTaskResult();
 
       for (WorkerBenchTaskResult result : results) {
         nodes.put(result.getBaseParameters().mId, result);
-        mergingTaskResult.aggregateByWorker(result);
+        mergedTaskResult.merge(result);
       }
 
-      return new WorkerBenchSummary(mergingTaskResult, nodes);
+      return new WorkerBenchSummary(mergedTaskResult, nodes);
     }
   }
 }
