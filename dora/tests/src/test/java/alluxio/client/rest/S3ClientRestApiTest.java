@@ -825,7 +825,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   private void putBucket(String bucket) throws Exception {
-    putBucket(bucket, TEST_USER_NAME);
+    putBucket(bucket, TEST_USER);
   }
 
   private void putBucket(String bucket, String user) throws Exception {
@@ -2206,7 +2206,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   private void createBucketRestCall(String bucketUri) throws Exception {
-    createBucketRestCall(bucketUri, TEST_USER_NAME);
+    createBucketRestCall(bucketUri, TEST_USER);
   }
 
   private void createBucketRestCall(String bucketUri, String user) throws Exception {
@@ -2241,7 +2241,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   private String initiateMultipartUploadRestCall(String objectUri) throws Exception {
-    return initiateMultipartUploadRestCall(objectUri, TEST_USER_NAME);
+    return initiateMultipartUploadRestCall(objectUri, TEST_USER);
   }
 
   private String initiateMultipartUploadRestCall(String objectUri, String user) throws Exception {
@@ -2293,7 +2293,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   private String listMultipartUploadsRestCall(String bucketUri) throws Exception {
-    return listMultipartUploadsRestCall(bucketUri, TEST_USER_NAME);
+    return listMultipartUploadsRestCall(bucketUri, TEST_USER);
   }
 
   private String listMultipartUploadsRestCall(String bucketUri, String user) throws Exception {

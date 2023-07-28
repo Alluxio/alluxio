@@ -52,7 +52,6 @@ public final class TestCase {
   private final Map<String, String> mParameters;
   private final String mMethod;
   private final TestCaseOptions mOptions;
-
   private final HttpURLConnection mConnection;
 
   /**
@@ -223,16 +222,23 @@ public final class TestCase {
     }
 
     String result = runAndGetResponse();
+    System.out.println(result);
     Assert.assertEquals(mEndpoint, expected, result);
   }
 
-  public void checkResponse(@NotNull Object expectedResult) throws Exception {
+  public TestCase checkResponse(@NotNull Object expectedResult) throws Exception {
     String expected = convertToString(expectedResult);
     Assert.assertEquals(mEndpoint, expected, getResponse());
+    return this;
   }
 
   public TestCase checkResponseCode(@NotNull int expected) throws Exception {
     Assert.assertEquals(mEndpoint, expected, mConnection.getResponseCode());
+    return this;
+  }
+
+  public TestCase checkHeader(@NotNull String header, @NotNull String expected) throws Exception {
+    Assert.assertEquals(mEndpoint, expected, mConnection.getHeaderField(header));
     return this;
   }
 
