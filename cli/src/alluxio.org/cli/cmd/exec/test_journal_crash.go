@@ -13,6 +13,7 @@ package exec
 
 import (
 	"fmt"
+	"github.com/palantir/stacktrace"
 	"strconv"
 
 	"github.com/spf13/cobra"
@@ -61,16 +62,35 @@ func (c *TestJournalCrashCommand) ToCommand() *cobra.Command {
 	cmd.Flags().StringVar(&c.testDir, "testDir", "/default_tests_files",
 		"Test Directory on Alluxio.")
 	cmd.Flags().IntVar(&c.totalTime, "totalTime", 20,
-		"The total time to run this test, in seconds. This value should be greater than [maxAlive].")
+		"The total time to run this test, in seconds. This value should be greater than flag --maxAlive.")
 	return cmd
 }
 
 func (c *TestJournalCrashCommand) Run(args []string) error {
+	if c.creates <= 0 {
+		stacktrace.Propagate(nil, "Flag --creates should be a positive integer")
+	}
+	if c.deletes <= 0 {
+		stacktrace.Propagate(nil, "Flag --deletes should be a positive integer")
+	}
+	if c.maxAlive <= 0 {
+		stacktrace.Propagate(nil, "Flag --maxAlive should be a positive integer")
+	}
+	if c.renames <= 0 {
+		stacktrace.Propagate(nil, "Flag --renames should be a positive integer")
+	}
+	if c.totalTime <= 0 {
+		stacktrace.Propagate(nil, "Flag --totalTime should be a positive integer")
+	}
+	if c.totalTime < c.maxAlive {
+		stacktrace.Propagate(nil, "Flag --totalTime should be greater than flag --maxAlive.")
+	}
 	javaArgs := []string{
 		"-creates", strconv.Itoa(c.creates),
 		"-deletes", strconv.Itoa(c.deletes),
 		"-maxAlive", strconv.Itoa(c.maxAlive),
 		"-renames", strconv.Itoa(c.renames),
+		"-totalTime", strconv.Itoa(c.totalTime),
 	}
 	if c.testDir != "" {
 		javaArgs = append(javaArgs, "-testDir", c.testDir)
