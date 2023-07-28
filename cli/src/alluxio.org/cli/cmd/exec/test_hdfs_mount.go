@@ -42,6 +42,7 @@ func (c *TestHdfsMountCommand) Base() *env.BaseJavaCommand {
 func (c *TestHdfsMountCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   "hdfsMountTest",
+		Args:  cobra.NoArgs,
 		Short: "Tests runs a set of validations against the given hdfs path.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)

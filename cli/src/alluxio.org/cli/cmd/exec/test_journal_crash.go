@@ -13,9 +13,9 @@ package exec
 
 import (
 	"fmt"
-	"github.com/palantir/stacktrace"
 	"strconv"
 
+	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
@@ -46,6 +46,7 @@ func (c *TestJournalCrashCommand) Base() *env.BaseJavaCommand {
 func (c *TestJournalCrashCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   "journalCrashTest",
+		Args:  cobra.NoArgs,
 		Short: "Test the Master Journal System in a crash scenario.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)

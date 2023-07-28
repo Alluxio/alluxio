@@ -43,6 +43,7 @@ func (c *TestRunCommand) Base() *env.BaseJavaCommand {
 func (c *TestRunCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   "basicIOTest",
+		Args:  cobra.NoArgs,
 		Short: "Run all end-to-end tests, or a specific test, on an Alluxio cluster.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)

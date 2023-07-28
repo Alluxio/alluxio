@@ -11,7 +11,9 @@
 
 package exec
 
-import "alluxio.org/cli/env"
+import (
+	"alluxio.org/cli/env"
+)
 
 var Service = &env.Service{
 	Name:        "exec",
