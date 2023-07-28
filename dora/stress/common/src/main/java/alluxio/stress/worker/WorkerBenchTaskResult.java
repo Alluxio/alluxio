@@ -12,7 +12,10 @@
 package alluxio.stress.worker;
 
 import alluxio.stress.BaseParameters;
+import alluxio.stress.StressConstants;
 import alluxio.stress.TaskResult;
+import alluxio.util.FormatUtils;
+import org.HdrHistogram.Histogram;
 
 import java.util.*;
 
@@ -28,6 +31,7 @@ public final class WorkerBenchTaskResult implements TaskResult {
   private long mIOBytes;
   private List<String> mErrors;
   private List<WorkerBenchDataPoint> mDataPoints;
+  private List<Long> mDurationPercentiles;
 
   /**
    * Creates an instance.
@@ -36,6 +40,7 @@ public final class WorkerBenchTaskResult implements TaskResult {
     // Default constructor required for json deserialization
     mErrors = new ArrayList<>();
     mDataPoints = new ArrayList<>();
+    mDurationPercentiles = new ArrayList<>();
   }
 
   /**
@@ -156,6 +161,25 @@ public final class WorkerBenchTaskResult implements TaskResult {
     mErrors = errors;
   }
 
+  public List<Long> getDurationPercentiles() {
+    return mDurationPercentiles;
+  }
+
+  public void setDurationPercentiles(List<Long> percentiles) {
+    mDurationPercentiles = percentiles;
+  }
+
+  public void generatePercentiles() {
+    Histogram durationHistogram = new Histogram(
+            FormatUtils.parseTimeSize(mParameters.mDuration)
+                    + FormatUtils.parseTimeSize(mParameters.mWarmup),
+            StressConstants.TIME_HISTOGRAM_PRECISION);
+    mDataPoints.forEach(stat -> durationHistogram.recordValue(stat.getDuration()));
+    for (int i = 0; i <= 100; i++) {
+      mDurationPercentiles.add(durationHistogram.getValueAtPercentile(i));
+    }
+  }
+
   /**
    * @param errMessage the error message to add
    */
@@ -188,6 +212,7 @@ public final class WorkerBenchTaskResult implements TaskResult {
       WorkerBenchTaskResult mergedTaskResult = new WorkerBenchTaskResult();
 
       for (WorkerBenchTaskResult result : results) {
+        result.generatePercentiles();
         nodes.put(result.getBaseParameters().mId, result);
         mergedTaskResult.merge(result);
       }
