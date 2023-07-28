@@ -19,8 +19,6 @@ import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.DoraCacheFileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.dora.WorkerLocationPolicy;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.WritePType;
@@ -28,15 +26,14 @@ import alluxio.hadoop.HadoopUtils;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.cli.AbstractStressBench;
 import alluxio.stress.common.FileSystemParameters;
+import alluxio.stress.worker.WorkerBenchDataPoint;
 import alluxio.stress.worker.WorkerBenchParameters;
-import alluxio.stress.worker.WorkerBenchStats;
 import alluxio.stress.worker.WorkerBenchTaskResult;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.block.BlockWorker;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.apache.hadoop.conf.Configuration;
@@ -47,7 +44,6 @@ import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -592,7 +588,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
         }
       }
       long endOperation = CommonUtils.getCurrentMs();
-      mResult.appendStats(new WorkerBenchStats(
+      mResult.addDataPoint(new WorkerBenchDataPoint(
               mBaseParameters.mIndex, Thread.currentThread().getId(),
               startOperation, endOperation - startOperation,
               bytesRead));

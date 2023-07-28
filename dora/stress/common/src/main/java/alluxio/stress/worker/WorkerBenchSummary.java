@@ -70,7 +70,7 @@ public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTas
             FormatUtils.parseTimeSize(mParameters.mDuration)
                     + FormatUtils.parseTimeSize(mParameters.mWarmup),
             StressConstants.TIME_HISTOGRAM_PRECISION);
-    mergedTaskResults.getStats().forEach(stat -> durationHistogram.recordValue(stat.getDuration()));
+    mergedTaskResults.getDataPoints().forEach(stat -> durationHistogram.recordValue(stat.getDuration()));
     for (int i = 0; i <= 100; i++) {
       mDurationPercentiles.add(durationHistogram.getValueAtPercentile(i));
     }

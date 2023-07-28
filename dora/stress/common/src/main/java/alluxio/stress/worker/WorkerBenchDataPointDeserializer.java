@@ -7,15 +7,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import java.io.IOException;
 
-public class WorkerBenchStatsDeserializer extends JsonDeserializer<WorkerBenchStats> {
+public class WorkerBenchDataPointDeserializer extends JsonDeserializer<WorkerBenchDataPoint> {
 
     @Override
-    public WorkerBenchStats deserialize(JsonParser parser, DeserializationContext ctx)
+    public WorkerBenchDataPoint deserialize(JsonParser parser, DeserializationContext ctx)
             throws IOException {
         JsonNode node = parser.getCodec().readTree(parser);
-        return new WorkerBenchStats(
+        return new WorkerBenchDataPoint(
                 node.get("workerID").asText(), node.get("threadID").asLong(),
-                node.get("start").asLong(), node.get("duration").asLong(),
+                node.get("startMs").asLong(), node.get("duration").asLong(),
                 node.get("ioBytes").asLong()
         );
     }

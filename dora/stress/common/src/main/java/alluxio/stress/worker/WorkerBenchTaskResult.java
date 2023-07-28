@@ -14,10 +14,7 @@ package alluxio.stress.worker;
 import alluxio.stress.BaseParameters;
 import alluxio.stress.TaskResult;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * The task results for the worker stress test.
@@ -30,7 +27,7 @@ public final class WorkerBenchTaskResult implements TaskResult {
   private long mEndMs;
   private long mIOBytes;
   private List<String> mErrors;
-  private List<WorkerBenchStats> mStats;
+  private List<WorkerBenchDataPoint> mDataPoints;
 
   /**
    * Creates an instance.
@@ -38,7 +35,7 @@ public final class WorkerBenchTaskResult implements TaskResult {
   public WorkerBenchTaskResult() {
     // Default constructor required for json deserialization
     mErrors = new ArrayList<>();
-    mStats = new ArrayList<>();
+    mDataPoints = new ArrayList<>();
   }
 
   /**
@@ -49,7 +46,7 @@ public final class WorkerBenchTaskResult implements TaskResult {
   public void merge(WorkerBenchTaskResult result) throws Exception {
     // When merging results within a node, we need to merge all the error information.
     mErrors.addAll(result.mErrors);
-    mStats.addAll(result.mStats);
+    mDataPoints.addAll(result.mDataPoints);
     aggregateByWorker(result);
   }
 
@@ -166,16 +163,16 @@ public final class WorkerBenchTaskResult implements TaskResult {
     mErrors.add(errMessage);
   }
 
-  public List<WorkerBenchStats> getStats() {
-    return mStats;
+  public List<WorkerBenchDataPoint> getDataPoints() {
+    return mDataPoints;
   }
 
-  public void appendStats(WorkerBenchStats stats) {
-    mStats.add(stats);
+  public void addDataPoint(WorkerBenchDataPoint stats) {
+    mDataPoints.add(stats);
   }
 
-  public void appendStats(List<WorkerBenchStats> stats) {
-    mStats.addAll(stats);
+  public void addDataPoints(Collection<WorkerBenchDataPoint> stats) {
+    mDataPoints.addAll(stats);
   }
 
   @Override
