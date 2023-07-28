@@ -49,25 +49,15 @@ public final class UpdateConfCommand extends AbstractFsAdminCommand {
     int errorCode = 0;
     Map<PropertyKey, String> properties = new HashMap<>();
     for (String arg : cl.getArgList()) {
-      if (!arg.contains("=")) {
-        System.err.printf("argument %s must contains \"=\"", arg);
-      } else {
+      if (arg.contains("=")) {
         String[] kv = arg.split("=");
-        String value;
-        if (kv.length < 2) {
-          // Set the value to empty string while there is only one "=" or none at all.
-          value = null;
-        } else if (kv.length > 2) {
-          // Normally, there must be only one "=", but there maybe more for some values
-          // of property contains "=", so just get the value from the part after first "=".
-          value = arg.substring(arg.indexOf("=") + 1);
-        } else {
-          if (kv[1].equals("<EMPTY_STRING>")) {
-            kv[1] = "";
-          }
-          value = kv[1];
+        if (kv.length > 2) {
+          System.err.println(
+              "Failed to parse %s, expecting argument in the format of \"key=val\", arg)");
+          return -3;
         }
-        properties.put(PropertyKey.Builder.stringBuilder(kv[0]).buildUnregistered(), value);
+        String value = kv.length == 2 ? kv[1] : null;
+        properties.put(PropertyKey.getOrBuildCustom(kv[0]), value);
       }
     }
 

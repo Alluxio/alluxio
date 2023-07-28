@@ -74,7 +74,6 @@ public final class UpdateConfIntegrationTest extends AbstractFsAdminShellTest {
     Assert.assertTrue(lastLineOutput, lastLine(output).contains("4min"));
   }
 
-
   private String lastLine(String output) {
     String[] lines = output.split("\n");
     if (lines.length > 0) {
