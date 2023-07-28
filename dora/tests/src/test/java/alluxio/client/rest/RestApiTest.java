@@ -12,7 +12,6 @@
 package alluxio.client.rest;
 
 import alluxio.Constants;
-import alluxio.proxy.s3.ListBucketResult;
 import alluxio.proxy.s3.S3Constants;
 import alluxio.testutils.BaseIntegrationTest;
 
@@ -76,14 +75,6 @@ public abstract class RestApiTest extends BaseIntegrationTest {
   protected TestCase listTestCase(String uri, Map<String, String> params) throws Exception {
     return newTestCase(uri, params, HttpMethod.GET,
         getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE));
-  }
-
-  protected void listStatusRestCall(Map<String, String> parameters, ListBucketResult expected)
-      throws Exception {
-    new TestCase(mHostname, mPort, mBaseUri,
-        TEST_BUCKET, parameters, HttpMethod.GET,
-        getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
-        .runAndCheckResult(expected);
   }
 
   protected TestCaseOptions getDefaultOptionsWithAuth(@NotNull String user) {
