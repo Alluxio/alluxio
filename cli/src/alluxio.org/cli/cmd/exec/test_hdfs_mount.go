@@ -42,7 +42,6 @@ func (c *TestHdfsMountCommand) Base() *env.BaseJavaCommand {
 func (c *TestHdfsMountCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
 		Use:   "hdfsMountTest",
-		Args:  cobra.NoArgs,
 		Short: "Tests runs a set of validations against the given hdfs path.",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return c.Run(args)
@@ -63,7 +62,7 @@ func (c *TestHdfsMountCommand) ToCommand() *cobra.Command {
 func (c *TestHdfsMountCommand) Run(args []string) error {
 	var javaArgs []string
 	javaArgs = append(javaArgs, c.path)
-	if !c.readonly {
+	if c.readonly {
 		javaArgs = append(javaArgs, "--readonly")
 	}
 	if c.shared {
