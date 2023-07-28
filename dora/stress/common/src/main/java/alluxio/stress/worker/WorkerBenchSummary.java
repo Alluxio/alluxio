@@ -57,7 +57,7 @@ public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTas
    * @param nodes the list of nodes
    */
   public WorkerBenchSummary(WorkerBenchTaskResult mergedTaskResults,
-                            Map<String, WorkerBenchTaskResult> nodes) {
+      Map<String, WorkerBenchTaskResult> nodes) {
     mDurationMs = mergedTaskResults.getEndMs() - mergedTaskResults.getRecordStartMs();
     mEndTimeMs = mergedTaskResults.getEndMs();
     mIOBytes = mergedTaskResults.getIOBytes();
@@ -168,7 +168,7 @@ public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTas
       List<Graph> graphs = new ArrayList<>();
       // only examine WorkerBenchSummary
       List<WorkerBenchSummary> summaries =
-              results.stream().map(x -> (WorkerBenchSummary) x).collect(Collectors.toList());
+          results.stream().map(x -> (WorkerBenchSummary) x).collect(Collectors.toList());
 
       if (summaries.isEmpty()) {
         return graphs;
@@ -176,19 +176,19 @@ public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTas
 
       // first() is the list of common field names, second() is the list of unique field names
       Pair<List<String>, List<String>> fieldNames = Parameters.partitionFieldNames(
-              summaries.stream().map(x -> x.mParameters).collect(Collectors.toList()));
+          summaries.stream().map(x -> x.mParameters).collect(Collectors.toList()));
 
       // Split up common description into 100 character chunks, for the sub title
       List<String> subTitle = new ArrayList<>(Splitter.fixedLength(100).splitToList(
-              summaries.get(0).mParameters.getDescription(fieldNames.getFirst())));
+          summaries.get(0).mParameters.getDescription(fieldNames.getFirst())));
 
       LineGraph throughputGraph =
-              new LineGraph("Worker Throughput (MB/s)", subTitle, "Total Client Threads",
-                      "Throughput (MB/s)");
+          new LineGraph("Worker Throughput (MB/s)", subTitle, "Total Client Threads",
+              "Throughput (MB/s)");
 
       // remove the thread count from series fields, since the x-axis is thread counts.
       List<String> seriesFields = fieldNames.getSecond().stream().filter(f -> !"mThreads".equals(f))
-              .collect(Collectors.toList());
+          .collect(Collectors.toList());
 
       // map(series name -> map(total threads -> throughput MB/s))
       Map<String, Map<Integer, Float>> allSeries = new HashMap<>();
