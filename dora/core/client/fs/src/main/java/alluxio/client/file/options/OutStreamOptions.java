@@ -435,7 +435,6 @@ public class OutStreamOptions {
         mBlockSizeBytes,
         mCommonOptions,
         mGroup,
-//        mLocationPolicy,
         mMediumType,
         mMode,
         mMountId,

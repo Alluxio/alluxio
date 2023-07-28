@@ -19,7 +19,6 @@ import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
 import alluxio.client.block.BlockWorkerInfo;
-//import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.BlockWorkerClientPool;
 import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
@@ -185,8 +184,6 @@ public class FileSystemContext implements Closeable {
   private final RefreshPolicy mWorkerRefreshPolicy;
 
   private final List<InetSocketAddress> mMasterAddresses;
-
-//  private final Map<Class, BlockLocationPolicy> mBlockLocationPolicyMap;
 
   /**
    * FileSystemContextFactory, it can be extended.
@@ -410,7 +407,6 @@ public class FileSystemContext implements Closeable {
         new TimeoutRefresh(conf.getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL));
     LOG.debug("Created context with id: {}, with local block worker: {}",
         mId, mBlockWorker != null);
-//    mBlockLocationPolicyMap = new ConcurrentHashMap();
   }
 
   /**
@@ -919,32 +915,6 @@ public class FileSystemContext implements Closeable {
 
     return localWorkerNetAddresses.isEmpty() ? workerNetAddresses : localWorkerNetAddresses;
   }
-
-  /**
-   * Gets the readBlockLocationPolicy.
-   *
-   * @param alluxioConf Alluxio configuration
-   *
-   * @return the readBlockLocationPolicy
-   */
-//  public BlockLocationPolicy getReadBlockLocationPolicy(AlluxioConfiguration alluxioConf) {
-//    return mBlockLocationPolicyMap.computeIfAbsent(
-//        alluxioConf.getClass(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY),
-//        pc -> BlockLocationPolicy.Factory.create(pc, alluxioConf));
-//  }
-
-  /**
-   * Gets the writeBlockLocationPolicy.
-   *
-   * @param alluxioConf Alluxio configuration
-   *
-   * @return the writeBlockLocationPolicy
-   */
-//  public BlockLocationPolicy getWriteBlockLocationPolicy(AlluxioConfiguration alluxioConf) {
-//    return mBlockLocationPolicyMap.computeIfAbsent(
-//        alluxioConf.getClass(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY),
-//        pc -> BlockLocationPolicy.Factory.create(pc, alluxioConf));
-//  }
 
   /**
    * Key for block worker client pools. This requires both the worker address and the username, so
