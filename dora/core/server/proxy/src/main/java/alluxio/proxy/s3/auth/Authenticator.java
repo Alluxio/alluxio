@@ -20,6 +20,9 @@ import alluxio.util.CommonUtils;
  * Interface to authenticate.
  */
 public interface Authenticator {
+
+  String AUTHENTICATOR_CLASSNAME = "alluxio.proxy.s3.auth.CheckAuthenticator";
+
   /**
    * Factory to create {@link Authenticator}.
    */
@@ -30,12 +33,21 @@ public interface Authenticator {
     /**
      * Creates and initializes {@link Authenticator} implementation.
      * based on Alluxio configuration.
-     *
+     * @param conf
      * @return the generated {@link Authenticator} instance
      */
     public static Authenticator create(AlluxioConfiguration conf) {
-      Authenticator authenticator = CommonUtils.createNewClassInstance(
+      Authenticator authenticator;
+      if (AUTHENTICATOR_CLASSNAME.equals(
+              conf.getString(PropertyKey.S3_REST_AUTHENTICATOR_CLASSNAME))) {
+        authenticator = CommonUtils.createNewClassInstance(
+                conf.getClass(PropertyKey.S3_REST_AUTHENTICATOR_CLASSNAME),
+                new Class[]{String.class},
+                new String[]{conf.getString(PropertyKey.S3_REST_AUTHENTICATOR_ACCESS_KEY)});
+      } else {
+        authenticator = CommonUtils.createNewClassInstance(
                 conf.getClass(PropertyKey.S3_REST_AUTHENTICATOR_CLASSNAME), null, null);
+      }
       return authenticator;
     }
   }
