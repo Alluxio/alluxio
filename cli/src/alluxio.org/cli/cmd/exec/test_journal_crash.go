@@ -95,7 +95,6 @@ func (c *TestJournalCrashCommand) Run(args []string) error {
 	if c.testDir != "" {
 		javaArgs = append(javaArgs, "-testDir", c.testDir)
 	}
-	javaArgs = append(javaArgs, "-totalTime", strconv.Itoa(c.totalTime))
 
 	return c.Base().Run(javaArgs)
 }
