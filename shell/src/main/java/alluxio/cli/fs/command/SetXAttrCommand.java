@@ -13,10 +13,8 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
-import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.proto.journal.File;
 
@@ -27,7 +25,6 @@ import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Properties;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -36,16 +33,35 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 @PublicApi
 public final class SetXAttrCommand extends AbstractFileSystemCommand {
+  private static final String SET_FATTR = "setfattr";
+  public static final String NAME = SET_FATTR;
+  public static final String USAGE = "{-n name [-v value] | -x name} <path>";
+  public static final String DESCRIPTION =
+      "Sets an extended attribute name and value for a file or directory.\n" +
+          "-n name: The extended attribute name.\n" +
+          "-v value: The extended attribute value. There are three different " +
+          "encoding methods for the value. If the argument is enclosed in double " +
+          "quotes, then the value is the string inside the quotes. If the " +
+          "argument is prefixed with 0x or 0X, then it is taken as a hexadecimal " +
+          "number. If the argument begins with 0s or 0S, then it is taken as a " +
+          "base64 encoding.\n" +
+          "-x name: Remove the extended attribute.\n" +
+          "<path>: The file or directory.\n";
 
-  private static final Option XATTR_OPTION =
-      Option.builder()
-          .longOpt("xattr")
+  private static final Option NAME_OPTION =
+      Option.builder("n")
           .required(false)
-          .hasArg(true)
-          .numberOfArgs(2)
-          .argName("key=value")
-          .valueSeparator('=')
-          .desc("extended attribute")
+          .desc("extended attribute name")
+          .build();
+  private static final Option VALUE_OPTION =
+      Option.builder("v")
+          .required(false)
+          .desc("extended attribute value")
+          .build();
+  private static final Option DELETE_NAME_OPTION =
+      Option.builder("x")
+          .required(false)
+          .desc("delete extended attribute name")
           .build();
   private static final Option UPDATE_STRATEGY_OPTION =
       Option.builder("s").longOpt("strategy")
@@ -73,17 +89,15 @@ public final class SetXAttrCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getCommandName() {
-    return "setxattr";
-  }
-
-  @Override
-  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
-    CommandUtils.checkNumOfArgsEquals(this, cl, 1);
+    return NAME;
   }
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(XATTR_OPTION);
+    return new Options().addOption(NAME_OPTION)
+        .addOption(VALUE_OPTION)
+        .addOption(DELETE_NAME_OPTION)
+        .addOption(UPDATE_STRATEGY_OPTION);
   }
 
   @Override
@@ -94,12 +108,23 @@ public final class SetXAttrCommand extends AbstractFileSystemCommand {
       options.setXattrUpdateStrategy(
           File.XAttrUpdateStrategy.valueOf(UPDATE_STRATEGY_OPTION.getValue()));
     }
-    if (cl.hasOption(XATTR_OPTION.getLongOpt())) {
-      Properties properties = cl.getOptionProperties(XATTR_OPTION.getLongOpt());
-      properties.forEach((k, v) -> {
-        options.putXattr(k.toString(),
-            ByteString.copyFrom(v.toString(), StandardCharsets.UTF_8));
-      });
+    if (cl.hasOption(NAME_OPTION.getOpt())) {
+      String name = cl.getOptionValue(NAME_OPTION.getOpt());
+      String value;
+      if (cl.hasOption(VALUE_OPTION.getOpt())) {
+        value = cl.getOptionValue(VALUE_OPTION.getOpt());
+        options.putXattr(name,
+            ByteString.copyFrom(value.toString(), StandardCharsets.UTF_8));
+      } else {
+        options.setXattrUpdateStrategy(
+            File.XAttrUpdateStrategy.DELETE_KEYS);
+        options.putXattr(name, ByteString.EMPTY);
+      }
+    } else if (cl.hasOption(DELETE_NAME_OPTION.getOpt())) {
+      String xname = cl.getOptionValue(DELETE_NAME_OPTION.getOpt());
+      options.setXattrUpdateStrategy(
+          File.XAttrUpdateStrategy.DELETE_KEYS);
+      options.putXattr(xname, ByteString.EMPTY);
     }
 
     mSetAttributePOptions = options.build();
@@ -110,11 +135,11 @@ public final class SetXAttrCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "setxattr [-xattr KEY=VALUE] <path>";
+    return USAGE;
   }
 
   @Override
   public String getDescription() {
-    return "Set xattr for specific path.";
+    return DESCRIPTION;
   }
 }
