@@ -169,22 +169,7 @@ Run a simple example program:
 $ ./bin/alluxio runTests
 ```
 
-<!-- Visit your container `<BUCKET>/<DIRECTORY>` to verify the files and directories created by Alluxio exist. For this test, you should see files named like:
-
-```
-<BUCKET>/<DIRECTORY>/default_tests_files/BASIC_CACHE_THROUGH
-``` -->
-
-
-Visit your container `<CONTAINER>/<DIRECTORY>` or bucket `<BUCKET>/<DIRECTORY>` to verify the files and directories created by Alluxio exist. 
-
-For this test, you should see files named like:
-
-```
-<BUCKET>/<DIRECTORY>/default_tests_files/BASIC_CACHE_THROUGH
-```
-
-If there are no errors, then you have successfully configured your storage system!
+Visit your container `<CONTAINER>/<DIRECTORY>` or bucket `<BUCKET>/<DIRECTORY>` to verify the files and directories created by Alluxio exist. If there are no errors, then you have successfully configured your storage system!
 
 To stop Alluxio, you can run:
 
