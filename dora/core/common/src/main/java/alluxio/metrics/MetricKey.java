@@ -2294,6 +2294,13 @@ public final class MetricKey implements Comparable<MetricKey> {
           .setMetricType(MetricType.METER)
           .setIsClusterAggregated(false)
           .build();
+  public static final MetricKey CLIENT_CACHE_PAGES_INVALIDATED =
+      new Builder("Client.CachePagesInvalidated")
+          .setDescription("Total number of pages invalidated by TTL rules")
+          .setMetricType(MetricType.METER)
+          .setIsClusterAggregated(false)
+          .build();
+
   public static final MetricKey CLIENT_CACHE_PAGES_EVICTED =
       new Builder("Client.CachePagesEvicted")
           .setDescription("Total number of pages evicted from the client cache.")
