@@ -272,11 +272,9 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     // TODO(Tony Sun): Refactor here.
     //  1. How to create a valid UfsUrl just by a string?
     //  2. we may not need the function below.
-    UfsUrl ufsFullPath = convertUfsUrlToUfsFullPath(ufsPath);
-
-    ufsFullPath = new UfsUrl(PathUtils.normalizePath(ufsFullPath.toString(), "/"));
+    UfsUrl ufsFullPath = new UfsUrl(PathUtils.normalizePath(ufsPath.getFullPath(), "/"));
     try {
-      return mDoraClient.listStatus(ufsFullPath.toString(), options);
+      return mDoraClient.listStatus(ufsFullPath.asString(), options);
     } catch (RuntimeException ex) {
       if (ex instanceof StatusRuntimeException) {
         if (((StatusRuntimeException) ex).getStatus().getCode() == Status.NOT_FOUND.getCode()) {
@@ -471,22 +469,6 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       return new AlluxioURI(ufsFullPath);
     } else {
       return alluxioPath;
-    }
-  }
-
-  private UfsUrl convertUfsUrlToUfsFullPath(UfsUrl ufsPath) {
-    if (mDelegatedFileSystem instanceof UfsBaseFileSystem) {
-      UfsBaseFileSystem under = (UfsBaseFileSystem) mDelegatedFileSystem;
-      // TODO(Tony Sun): verify its correctness.
-      UfsUrl rootUFS = under.getRootUfsUrl();
-      if (rootUFS.isPrefix(ufsPath, true)) {
-        return ufsPath;
-      }
-      String ufsFullPath = PathUtils.concatPath(rootUFS, ufsPath.getFullPath());
-      // TODO(Tony Sun): need to add UfsUrl.isRoot()?
-      return new UfsUrl(ufsFullPath);
-    } else {
-      return ufsPath;
     }
   }
 
