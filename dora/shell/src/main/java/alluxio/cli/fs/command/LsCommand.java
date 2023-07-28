@@ -21,6 +21,8 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
+import alluxio.grpc.UfsUrlMessage;
+import alluxio.uri.UfsUrl;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.SecurityUtils;
@@ -285,7 +287,40 @@ public final class LsCommand extends AbstractFileSystemCommand {
       return;
     }
 
+//    List<URIStatus> statusListFromUfsUrl = mFileSystem.listStatus();
+
     List<URIStatus> statusList = mFileSystem.listStatus(path, optionsBuilder.build());
+    List<URIStatus> sorted = sortByFieldAndOrder(statusList, sortField, reverse);
+    for (URIStatus status : sorted) {
+      printLsString(status, hSize, timestampFunction, pinnedOnly, status.isPinned());
+    }
+  }
+
+  private void ls(UfsUrl ufsPath, boolean recursive, boolean forceLoadMetadata, boolean dirAsFile,
+      boolean hSize, boolean pinnedOnly, String sortField, boolean reverse, String timestampOption,
+      boolean excludeMountInfo)
+      throws AlluxioException, IOException {
+    Function<URIStatus, Long> timestampFunction = TIMESTAMP_FIELDS.get(timestampOption);
+    if (dirAsFile) {
+      URIStatus pathStatus = mFileSystem.getStatus(ufsPath);
+      printLsString(pathStatus, hSize, timestampFunction, pinnedOnly, pathStatus.isPinned());
+      return;
+    }
+
+    ListStatusPOptions.Builder optionsBuilder = ListStatusPOptions.newBuilder();
+    if (forceLoadMetadata) {
+      optionsBuilder.setLoadMetadataType(LoadMetadataPType.ALWAYS);
+    }
+    optionsBuilder.setRecursive(recursive);
+    optionsBuilder.setExcludeMountInfo(excludeMountInfo);
+
+    if (sortField == null) {
+      mFileSystem.iterateStatus(ufsPath, optionsBuilder.build(),
+              status -> printLsString(status, hSize, timestampFunction, pinnedOnly, status.isPinned()));
+      return;
+    }
+
+    List<URIStatus> statusList = mFileSystem.listStatus(ufsPath, optionsBuilder.build());
     List<URIStatus> sorted = sortByFieldAndOrder(statusList, sortField, reverse);
     for (URIStatus status : sorted) {
       printLsString(status, hSize, timestampFunction, pinnedOnly, status.isPinned());
@@ -321,11 +356,25 @@ public final class LsCommand extends AbstractFileSystemCommand {
   }
 
   @Override
+  protected void runPlainPath(UfsUrl ufsPath, CommandLine cl)
+      throws AlluxioException, IOException {
+    ls(ufsPath, cl.hasOption(RECURSIVE_OPTION.getOpt()), cl.hasOption("f"),
+        cl.hasOption("d"), cl.hasOption("h"), cl.hasOption("p"),
+        cl.getOptionValue("sort", null), cl.hasOption("r"),
+        cl.getOptionValue("timestamp", "lastModificationTime"),
+        cl.hasOption("m") || cl.hasOption("omit-mount-info"));
+  }
+
+  @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     for (String dirArg : args) {
-      AlluxioURI path = new AlluxioURI(dirArg);
-      runWildCardCmd(path, cl);
+//      AlluxioURI path = new AlluxioURI(dirArg);
+//      runWildCardCmd(path, cl);
+      UfsUrl ufsPath = new UfsUrl(UfsUrlMessage.newBuilder()
+              .setScheme("alluxio").addPathComponents(dirArg)
+              .build());
+      runWildCardCmd(ufsPath, cl);
     }
     return 0;
   }

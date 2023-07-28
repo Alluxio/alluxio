@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.CloseableSupplier;
 import alluxio.Constants;
 import alluxio.PositionReader;
-import alluxio.UfsUrlUtils;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.ReadType;
 import alluxio.client.file.dora.DoraCacheClient;
@@ -33,15 +32,7 @@ import alluxio.exception.FileIncompleteException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.OpenDirectoryException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
-import alluxio.grpc.CreateDirectoryPOptions;
-import alluxio.grpc.CreateFilePOptions;
-import alluxio.grpc.DeletePOptions;
-import alluxio.grpc.ExistsPOptions;
-import alluxio.grpc.GetStatusPOptions;
-import alluxio.grpc.ListStatusPOptions;
-import alluxio.grpc.OpenFilePOptions;
-import alluxio.grpc.RenamePOptions;
-import alluxio.grpc.SetAttributePOptions;
+import alluxio.grpc.*;
 import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
@@ -276,6 +267,30 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   }
 
   @Override
+  public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    // TODO(Tony Sun): Refactor here.
+    //  1. How to create a valid UfsUrl just by a string?
+    //  2. we may not need the function below.
+    UfsUrl ufsFullPath = convertUfsUrlToUfsFullPath(ufsPath);
+
+    ufsFullPath = new UfsUrl(PathUtils.normalizePath(ufsFullPath.toString(), "/"));
+    try {
+      return mDoraClient.listStatus(ufsFullPath.toString(), options);
+    } catch (RuntimeException ex) {
+      if (ex instanceof StatusRuntimeException) {
+        if (((StatusRuntimeException) ex).getStatus().getCode() == Status.NOT_FOUND.getCode()) {
+          return Collections.emptyList();
+        }
+      }
+      UFS_FALLBACK_COUNTER.inc();
+      LOG.debug("Dora client list status error ({} times). Fall back to UFS.",
+              UFS_FALLBACK_COUNTER.getCount(), ex);
+      return mDelegatedFileSystem.listStatus(ufsFullPath, options);
+    }
+  }
+
+  @Override
   public FileOutStream createFile(AlluxioURI alluxioPath, CreateFilePOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(alluxioPath);
@@ -397,6 +412,13 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   }
 
   @Override
+  public void iterateStatus(UfsUrl ufsPath, ListStatusPOptions options,
+                            Consumer<? super URIStatus> action)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    listStatus(ufsPath, options).forEach(action);
+  }
+
+  @Override
   public boolean exists(AlluxioURI path, ExistsPOptions options)
       throws InvalidPathException, IOException, AlluxioException {
     AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
@@ -449,6 +471,22 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       return new AlluxioURI(ufsFullPath);
     } else {
       return alluxioPath;
+    }
+  }
+
+  private UfsUrl convertUfsUrlToUfsFullPath(UfsUrl ufsPath) {
+    if (mDelegatedFileSystem instanceof UfsBaseFileSystem) {
+      UfsBaseFileSystem under = (UfsBaseFileSystem) mDelegatedFileSystem;
+      // TODO(Tony Sun): verify its correctness.
+      UfsUrl rootUFS = under.getRootUfsUrl();
+      if (rootUFS.isPrefix(ufsPath, true)) {
+        return ufsPath;
+      }
+      String ufsFullPath = PathUtils.concatPath(rootUFS, ufsPath.getFullPath());
+      // TODO(Tony Sun): need to add UfsUrl.isRoot()?
+      return new UfsUrl(ufsFullPath);
+    } else {
+      return ufsPath;
     }
   }
 

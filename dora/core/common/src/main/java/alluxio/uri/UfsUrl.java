@@ -13,8 +13,11 @@ package alluxio.uri;
 
 import alluxio.AlluxioURI;
 import alluxio.grpc.UfsUrlMessage;
+import com.google.common.base.Preconditions;
 import org.apache.logging.log4j.util.Strings;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class UfsUrl {
@@ -22,6 +25,40 @@ public class UfsUrl {
 
   public UfsUrl(UfsUrlMessage proto) {
     mProto = proto;
+  }
+
+  public UfsUrl(String ufsPath) {
+    // TODO(Tony Sun): Consider corner cases carefully.
+    //  1. more than one ':'
+    //  2.
+
+    ArrayList<String> preprocessingPathList = new ArrayList<>(Arrays.asList(ufsPath.split(":")));
+    // TODO(Tony Sun): verify the correctness.
+    Preconditions.checkArgument(preprocessingPathList.size() == 2,
+            "Please ensure the ufsPath has only one ':'.");
+    Preconditions.checkArgument(preprocessingPathList.get(1).startsWith("//"),
+            "Please input a valid path like 'scheme://path'.");
+    // TODO(Tony Sun): Will an input path contain authority?
+    String scheme = preprocessingPathList.get(0);
+    String realPath = preprocessingPathList.get(1).substring(2);
+
+    // TODO(Tony Sun): rethink the errorMessage here.
+    Preconditions.checkArgument(!realPath.isEmpty(), "Please input a not empty path.");
+
+    // TODO(Tony Sun): What is an valid realPath format? Only containing '/', '_', digit and uppercase and lowercase?
+
+    // TODO(Tony Sun): Do we need to handle realPath like '/////path/to/dir' ?"
+    ArrayList<String> pathComponentsList = new ArrayList<String>(Arrays.asList(realPath.split("/")));
+
+
+    // TODO(Tony Sun): Add scheme judgement, eg. limit the scheme type.
+
+    mProto = UfsUrlMessage.newBuilder()
+            .setScheme(scheme)
+            .addAllPathComponents(pathComponentsList)
+            .build();
+    // 1. scheme not exist.
+    // 2. how to determine the type of path.
   }
 
   public boolean hasScheme() {
@@ -86,15 +123,16 @@ public class UfsUrl {
     return sb.toString();
   }
 
-//  public boolean isPrefix(UfsUrl another, boolean allowEquals) {
-//    // TODO: implement this
-//    return false;
-//  }
-//
-//  public boolean equals(Object o) {
-//    // TODO: implement this
-//    return false;
-//  }
+  public boolean isPrefix(UfsUrl another, boolean allowEquals) {
+    // TODO: implement this
+
+    return false;
+  }
+
+  public boolean equals(Object o) {
+    // TODO: implement this
+    return false;
+  }
 
   // TODO: try to avoid the copy by a RelativeUrl class
   public UfsUrl getParentURL() {

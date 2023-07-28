@@ -171,6 +171,13 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
+  public void iterateStatus(UfsUrl ufsPath, ListStatusPOptions options,
+      Consumer<? super URIStatus> action)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    mDelegatedFileSystem.iterateStatus(ufsPath, options, action);
+  }
+
+  @Override
   public void loadMetadata(AlluxioURI path, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     mDelegatedFileSystem.loadMetadata(path, options);

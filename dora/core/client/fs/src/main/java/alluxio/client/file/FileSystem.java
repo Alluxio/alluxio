@@ -458,6 +458,11 @@ public interface FileSystem extends Closeable {
       Consumer<? super URIStatus> action)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
+  void iterateStatus(UfsUrl ufsPath, ListStatusPOptions options,
+      Consumer<? super URIStatus> action)
+      throws FileDoesNotExistException, IOException, AlluxioException;
+
+
   /**
    * Convenience method for {@link #listStatus(AlluxioURI, ListStatusPOptions)} with default
    * options.

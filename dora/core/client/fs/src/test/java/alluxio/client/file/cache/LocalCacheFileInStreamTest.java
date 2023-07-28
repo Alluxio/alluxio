@@ -82,6 +82,7 @@ import org.junit.runners.Parameterized.Parameters;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
@@ -849,6 +850,13 @@ public class LocalCacheFileInStreamTest {
         Consumer<? super URIStatus> action)
         throws FileDoesNotExistException, IOException, AlluxioException {
       throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void iterateStatus(UfsUrl ufsPath, ListStatusPOptions options,
+        Consumer<? super URIStatus> action)
+        throws FileDoesNotExistException, IOException, AlluxioException {
+      throw new UnsupportedEncodingException();
     }
 
     @Override

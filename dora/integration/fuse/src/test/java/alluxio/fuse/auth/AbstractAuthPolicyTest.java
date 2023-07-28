@@ -208,6 +208,12 @@ public abstract class AbstractAuthPolicyTest {
     }
 
     @Override
+    public void iterateStatus(UfsUrl ufsPath, ListStatusPOptions options,
+        Consumer<? super URIStatus> action) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
         throws  IOException, AlluxioException {
       throw new UnsupportedOperationException();

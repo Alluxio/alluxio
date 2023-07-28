@@ -299,7 +299,7 @@ public class BaseFileSystem implements FileSystem {
           throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(ufsPath);
     URIStatus status = rpc(client -> {
-      // TODO: implement getPathConf(ufsPath), currently path conf is ignored
+      // TODO(jiacheng): implement getPathConf(ufsPath), currently path conf is ignored
 //      GetStatusPOptions mergedOptions = FileSystemOptionsUtils.getStatusDefaults(
 //              mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
 //      return client.getStatus(ufsPath, mergedOptions);
@@ -328,6 +328,7 @@ public class BaseFileSystem implements FileSystem {
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(ufsPath);
     return rpc(client -> {
+      // TODO(Tony Sun): refactor getPathConf
       return client.listStatus(ufsPath, options);
     });
   }
@@ -344,6 +345,15 @@ public class BaseFileSystem implements FileSystem {
       client.iterateStatus(path, mergedOptions, action);
       return null;
     });
+  }
+
+  @Override
+  public void iterateStatus(UfsUrl ufsPath, final ListStatusPOptions options,
+      Consumer<? super URIStatus> action)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    checkUri(ufsPath);
+    // TODO(Tony Sun): Add client.iterateStatus.
+    rpc(client -> {return null;});
   }
 
   @Override
@@ -695,7 +705,7 @@ public class BaseFileSystem implements FileSystem {
                     mFsContext.getClientContext().getUserState())
                 .getConnectDetails().toAuthority();
         // TODO(jiacheng): double check the toString() Authority -> String conversion
-        if (!configured.toString().equals(ufsPath.getAuthority())) {
+        if (!configured.equals(ufsPath.getAuthority())) {
           throw new IllegalArgumentException(
               String.format("The URI authority %s does not match the configured value of %s.",
                   ufsPath.getAuthority(), configured));

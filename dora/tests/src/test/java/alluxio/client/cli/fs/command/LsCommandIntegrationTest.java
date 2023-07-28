@@ -43,7 +43,18 @@ import java.io.PrintWriter;
 @LocalAlluxioClusterResource.ServerConfig(
     confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
         PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL",
-        PropertyKey.Name.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, "0"})
+        PropertyKey.Name.MASTER_FILE_ACCESS_TIME_UPDATE_PRECISION, "0",
+        PropertyKey.Name.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED, "true",
+        PropertyKey.Name.DORA_CLIENT_UFS_ROOT, "/tmp",
+//        PropertyKey.Name.MASTER_HOSTNAME, "localhost",
+//        PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED, "false",
+        PropertyKey.Name.MASTER_WORKER_REGISTER_LEASE_ENABLED, "false",
+//        PropertyKey.Name.WORKER_BLOCK_STORE_TYPE, "PAGE",
+//        PropertyKey.Name.WORKER_PAGE_STORE_TYPE, "LOCAL",
+//        PropertyKey.Name.WORKER_PAGE_STORE_SIZES, "1GB",
+//        PropertyKey.Name.WORKER_PAGE_STORE_PAGE_SIZE, "1MB",
+//        PropertyKey.Name.WORKER_PAGE_STORE_DIRS, "/Volumes/ramdisk",
+    })
 public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest {
   private static final String FILE_NEW_CONTENT = "testfoobarlongerthantheoriginalfile";
 

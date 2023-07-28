@@ -304,6 +304,13 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   @Override
+  public void iterateStatus(UfsUrl ufsPath, ListStatusPOptions options,
+      Consumer<? super URIStatus> action)
+    throws FileDoesNotExistException, IOException, AlluxioException {
+    // TODO(Tony Sun): fill it.
+  }
+
+  @Override
   public ListStatusPartialResult listStatusPartial(
       AlluxioURI path, final ListStatusPartialPOptions options) {
     throw new UnsupportedOperationException();
@@ -528,6 +535,11 @@ public class UfsBaseFileSystem implements FileSystem {
    */
   public AlluxioURI getRootUFS() {
     return mRootUFS;
+  }
+
+  public UfsUrl getRootUfsUrl() {
+    // TODO(Tony Sun): path should be split, fix the bug first.
+    return new UfsUrl(mRootUFS.getPath());
   }
 
   private static void call(UfsCallable callable) {
