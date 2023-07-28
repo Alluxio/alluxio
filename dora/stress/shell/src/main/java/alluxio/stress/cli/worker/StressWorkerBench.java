@@ -378,10 +378,10 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     int endFileIndex = getTotalFileNumber();
     if (mBaseParameters.mIndex.equals(DEFAULT_TASK_ID)) {
       LOG.info("This is running in the command line process. Read all {} files with {} threads.",
-        endFileIndex, mParameters.mThreads);
+          endFileIndex, mParameters.mThreads);
     } else {
       LOG.info("This job worker has index {} among {} workers",
-        mBaseParameters.mIndex, mBaseParameters.mClusterLimit);
+          mBaseParameters.mIndex, mBaseParameters.mClusterLimit);
       int threadNum = mParameters.mThreads;
       int workerIndex = Integer.parseInt(mBaseParameters.mIndex);
       startFileIndex = workerIndex * threadNum;
