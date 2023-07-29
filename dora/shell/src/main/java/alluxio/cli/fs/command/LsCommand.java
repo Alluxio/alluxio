@@ -371,9 +371,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
     for (String dirArg : args) {
 //      AlluxioURI path = new AlluxioURI(dirArg);
 //      runWildCardCmd(path, cl);
-      UfsUrl ufsPath = new UfsUrl(UfsUrlMessage.newBuilder()
-              .setScheme("alluxio").addPathComponents(dirArg)
-              .build());
+      UfsUrl ufsPath = new UfsUrl(dirArg);
       runWildCardCmd(ufsPath, cl);
     }
     return 0;

@@ -49,6 +49,7 @@ import alluxio.grpc.RenamePResponse;
 import alluxio.grpc.RouteFailure;
 import alluxio.grpc.TaskStatus;
 import alluxio.underfs.UfsStatus;
+import alluxio.uri.UfsUrl;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.dora.DoraWorker;
 import alluxio.worker.dora.OpenFileHandle;
@@ -211,13 +212,13 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   @Override
   public void listStatus(ListStatusPRequest request,
                          StreamObserver<ListStatusPResponse> responseObserver) {
-    LOG.debug("listStatus is called for {}", request.getPath());
-
+    UfsUrl ufsPath = new UfsUrl(request.getUfsPath());
+    LOG.debug("listStatus is called for {}", ufsPath.getFullPath());
     try {
-      UfsStatus[] statuses = mWorker.listStatus(request.getPath(), request.getOptions());
+      UfsStatus[] statuses = mWorker.listStatus(ufsPath.getFullPath(), request.getOptions());
       if (statuses == null) {
         responseObserver.onError(
-            new NotFoundRuntimeException(String.format("%s Not Found", request.getPath()))
+            new NotFoundRuntimeException(String.format("%s Not Found", ufsPath.getFullPath()))
                 .toGrpcStatusRuntimeException());
         return;
       }
@@ -226,7 +227,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
 
       for (int i = 0; i < statuses.length; i++) {
         UfsStatus status = statuses[i];
-        String ufsFullPath = PathUtils.concatPath(request.getPath(), status.getName());
+        String ufsFullPath = PathUtils.concatPath(ufsPath.getFullPath(), status.getName());
 
         alluxio.grpc.FileInfo fi =
             ((PagedDoraWorker) mWorker).buildFileInfoFromUfsStatus(status, ufsFullPath);
@@ -245,7 +246,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
 
       responseObserver.onCompleted();
     } catch (Exception e) {
-      LOG.error(String.format("Failed to list status of %s: ", request.getPath()), e);
+      LOG.error(String.format("Failed to list status of %s: ", ufsPath.getFullPath()), e);
       responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
     }
   }

@@ -269,12 +269,10 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   @Override
   public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    // TODO(Tony Sun): Refactor here.
-    //  1. How to create a valid UfsUrl just by a string?
-    //  2. we may not need the function below.
-    UfsUrl ufsFullPath = new UfsUrl(PathUtils.normalizePath(ufsPath.getFullPath(), "/"));
+    UfsUrl ufsFullPath = convertUfsUrlToUfsPath(ufsPath);
     try {
-      return mDoraClient.listStatus(ufsFullPath.asString(), options);
+      // TODO(Tony Sun): consider whether to add scheme and authority.
+      return mDoraClient.listStatus(ufsFullPath.getFullPath(), options);
     } catch (RuntimeException ex) {
       if (ex instanceof StatusRuntimeException) {
         if (((StatusRuntimeException) ex).getStatus().getCode() == Status.NOT_FOUND.getCode()) {
@@ -469,6 +467,18 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       return new AlluxioURI(ufsFullPath);
     } else {
       return alluxioPath;
+    }
+  }
+
+  private UfsUrl convertUfsUrlToUfsPath(UfsUrl ufsUrl) {
+    if (mDelegatedFileSystem instanceof UfsBaseFileSystem) {
+      UfsBaseFileSystem under = (UfsBaseFileSystem) mDelegatedFileSystem;
+      UfsUrl rootUfsUrl = under.getRootUfsUrl();
+      // TODO(Tony Sun): Add try catch logic. Ask for what should be params.
+      String ufsUrlFullPath = PathUtils.concatPath(rootUfsUrl.getFullPath(), ufsUrl.getFullPath());
+      return new UfsUrl(ufsUrlFullPath);
+    } else {
+      return ufsUrl;
     }
   }
 

@@ -18,6 +18,7 @@ package alluxio;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.exception.InvalidPathException;
 import alluxio.uri.SingleMasterAuthority;
 import alluxio.uri.UfsUrl;
 

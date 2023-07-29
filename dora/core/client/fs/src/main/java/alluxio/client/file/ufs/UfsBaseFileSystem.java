@@ -97,6 +97,7 @@ public class UfsBaseFileSystem implements FileSystem {
   protected final FileSystemContext mFsContext;
   protected final CloseableResource<UnderFileSystem> mUfs;
   private final AlluxioURI mRootUFS;
+  private final UfsUrl mRootUfsUrl;
   protected volatile boolean mClosed = false;
 
   /**
@@ -129,6 +130,7 @@ public class UfsBaseFileSystem implements FileSystem {
     String ufsAddress = options.getUfsAddress();
     Preconditions.checkArgument(!ufsAddress.isEmpty(), "ufs address should not be empty");
     mRootUFS = new AlluxioURI(ufsAddress);
+    mRootUfsUrl = new UfsUrl(ufsAddress);
     mUfs = ufs.acquireUfsResource();
     mCloser.register(mUfs);
     LOG.debug("Creating file system connecting to ufs address {}", ufsAddress);
@@ -539,7 +541,7 @@ public class UfsBaseFileSystem implements FileSystem {
 
   public UfsUrl getRootUfsUrl() {
     // TODO(Tony Sun): path should be split, fix the bug first.
-    return new UfsUrl(mRootUFS.getPath());
+    return mRootUfsUrl;
   }
 
   private static void call(UfsCallable callable) {

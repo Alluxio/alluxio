@@ -29,7 +29,6 @@ public class UfsUrl {
   UfsUrlMessage mProto;
 
   public UfsUrl(UfsUrlMessage proto) {
-    // TODO(Tony Sun): first check the path is not empty? Or when specific method is called?
     Preconditions.checkArgument(proto.getPathComponentsList().size() != 0,
         "the proto.path is empty, please check the proto first");
     mProto = proto;
@@ -38,35 +37,44 @@ public class UfsUrl {
   public UfsUrl(String ufsPath) {
     // TODO(Tony Sun): Considering the case below:
     //  when scheme does not exist, how to determine the scheme, or a empty scheme.
-
+    Preconditions.checkArgument(!ufsPath.isEmpty(),
+            "ufsPath is empty, please input a non-empty ufsPath.");
     List<String> preprocessingPathList = Arrays.asList(ufsPath.split(SCHEME_SEPERATOR));
-    // TODO(Tony Sun): verify the correctness.
-    Preconditions.checkArgument(preprocessingPathList.size() == 2,
-            "Please ensure the ufsPath has type like 'xx://xxx'.");
-
-    // ufsurl: xx://127.0.0.1:6789/path/to/dir/file
 
     // TODO(Tony Sun): Does every input path contain authority?
     String scheme = preprocessingPathList.get(0);
-    String authorityAndPath = preprocessingPathList.get(1);
-
-    int endOfAuthority = authorityAndPath.indexOf(PATH_SEPERATOR);
-    Preconditions.checkArgument(endOfAuthority != -1, "Please input a valid path.");
-
-    String authorityString = authorityAndPath.substring(0, endOfAuthority);
-    String pathString = authorityAndPath.substring(endOfAuthority);
+    String authorityAndPath = null;
+    // If ufsPath has no '://', then the preprocessingPathList has only one elem.
+    // TODO(Tony Sun): Refactor it later. Now default ufs is local, the design is ugly.
+    if (preprocessingPathList.size() == 1)  {
+      scheme = "file";
+      authorityAndPath = preprocessingPathList.get(0);
+    }
+    else if (preprocessingPathList.size() == 2) {
+      authorityAndPath = preprocessingPathList.get(1);
+    }
+    // TODO(Tony Sun): what if preprocessingPathList.size() > 2? Fix it!
+    int indexOfFirstSlashAfterAuthority = authorityAndPath.indexOf(PATH_SEPERATOR);
+    // Empty path is excluded here.
+    Preconditions.checkArgument(indexOfFirstSlashAfterAuthority != -1,
+        "Please input a valid path.");
+    String authorityString = authorityAndPath.substring(0, indexOfFirstSlashAfterAuthority);
+    String pathString = authorityAndPath.substring(indexOfFirstSlashAfterAuthority);
 
     // TODO(Tony Sun): Is the input of UfsUrl the same as the input of AlluxioUri? Can I use
     //  the string test format like AlluxioURITest.java?
 
     // TODO(Tony Sun): Do we need to handle path like '/////path/to/dir'?
-    //  eg. remove the empty String."
-    List<String> pathComponentsList = Arrays.asList(pathString.split(PATH_SEPERATOR));
-    Preconditions.checkArgument(pathComponentsList.size() > 0,
-        "the path is empty, please check the proto first.");
-
+    //  eg. remove the empty String.
+    String[] arrayOfPathString = pathString.split(PATH_SEPERATOR);
+    int indexOfNonEmptyString = 0;
+    while (indexOfNonEmptyString < arrayOfPathString.length
+        && arrayOfPathString[indexOfNonEmptyString].isEmpty()) {
+      indexOfNonEmptyString += 1;
+    }
+    List<String> pathComponentsList = Arrays.asList(
+        Arrays.copyOfRange(arrayOfPathString, indexOfNonEmptyString, arrayOfPathString.length));
     // TODO(Tony Sun): Add scheme judgement, eg. limit the scheme type.
-
     mProto = UfsUrlMessage.newBuilder()
         .setScheme(scheme)
         .setAuthority(authorityString)
@@ -183,7 +191,8 @@ public class UfsUrl {
   }
 
   public String getFullPath() {
-    return Strings.join(mProto.getPathComponentsList(), AlluxioURI.SEPARATOR.charAt(0));
+    // TODO(Tony Sun): Is it correct to return a '/' with empty pathComponents?
+    return "/" + Strings.join(mProto.getPathComponentsList(), AlluxioURI.SEPARATOR.charAt(0));
   }
 
   public AlluxioURI toAlluxioURI() {
@@ -200,4 +209,10 @@ public class UfsUrl {
     return pathComponents.get(pathComponents.size() - 1);
   }
 
+  //TODO(Tony Sun): Add isAncestorOf() method.
+
+  public boolean isRoot() {
+    // TODO(Tony Sun): In AlluxioURI here remains judging hasAuthority(), why?
+    return getFullPath().equals(PATH_SEPERATOR) || getFullPath().isEmpty();
+  }
 }
