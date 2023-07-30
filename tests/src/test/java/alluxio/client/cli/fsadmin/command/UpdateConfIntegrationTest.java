@@ -11,6 +11,8 @@
 
 package alluxio.client.cli.fsadmin.command;
 
+import alluxio.ClientContext;
+import alluxio.cli.GetConf;
 import alluxio.cli.fsadmin.command.UpdateConfCommand;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 
@@ -32,12 +34,27 @@ public final class UpdateConfIntegrationTest extends AbstractFsAdminShellTest {
 
   @Test
   public void updateUnknownKey() {
+    // Support update non-existing key
     int ret = mFsAdminShell.run("updateConf", "unknown-key=unknown-value");
-    Assert.assertEquals(-2, ret);
+    Assert.assertEquals(0, ret);
     ret = mFsAdminShell.run("updateConf", "unknown-key");
     Assert.assertEquals(-1, ret);
+    // We support value contain `=`
     ret = mFsAdminShell.run("updateConf", "unknown-key=1=2");
-    Assert.assertEquals(-3, ret);
+    Assert.assertEquals(0, ret);
+  }
+
+  @Test
+  public void updateTemplateKey() {
+    // Support update non-existing key
+    int ret = mFsAdminShell.run("updateConf",
+        "alluxio.master.security.impersonation.user-foo.users=user-bar");
+    Assert.assertEquals(0, ret);
+    GetConf.getConf(ClientContext.create(), "--master",
+        "alluxio.master.security.impersonation.user-foo.users");
+    String output = mOutput.toString();
+    String lastLineOutput = lastLine(output);
+    Assert.assertTrue(lastLineOutput, lastLine(output).contains("user-bar"));
   }
 
   @Test

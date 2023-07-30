@@ -56,7 +56,8 @@ public final class UpdateConfCommand extends AbstractFsAdminCommand {
               "Failed to parse %s, expecting argument in the format of \"key=val\", arg)");
           return -3;
         }
-        properties.put(PropertyKey.getOrBuildCustom(kv[0]), kv[1]);
+        properties.put(
+            PropertyKey.Builder.stringBuilder(kv[0]).buildUnregistered(), kv[1]);
       }
     }
 
