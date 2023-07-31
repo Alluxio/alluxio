@@ -20,8 +20,6 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.ConfigProperty;
-import alluxio.grpc.GetConfigHashPOptions;
-import alluxio.grpc.GetConfigHashPResponse;
 import alluxio.grpc.GetConfigurationPOptions;
 import alluxio.grpc.GetConfigurationPResponse;
 import alluxio.grpc.GetUpdatedConfigurationPRequest;
@@ -33,8 +31,8 @@ import alluxio.grpc.GrpcUtils;
 import alluxio.grpc.MetaMasterConfigurationServiceGrpc;
 import alluxio.grpc.Scope;
 import alluxio.grpc.UpdateConfigurationPRequest;
-import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MetricKey;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.io.PathUtils;
@@ -705,36 +703,6 @@ public final class Configuration
     return SERVER_CONFIG_REFERENCE.get().getLastUpdateTime();
   }
 
-  public static GetConfigHashPResponse getConfigHash(InetSocketAddress address,
-      AlluxioConfiguration conf)
-      throws AlluxioStatusException {
-    GrpcChannel channel = null;
-    try {
-      LOG.debug("Alluxio client (version {}) is trying to get configHash from meta master {}",
-          RuntimeConstants.VERSION, address);
-      channel = GrpcChannelBuilder.newBuilder(GrpcServerAddress.create(address), conf)
-          .disableAuthentication().build();
-      MetaMasterConfigurationServiceGrpc.MetaMasterConfigurationServiceBlockingStub client =
-          MetaMasterConfigurationServiceGrpc.newBlockingStub(channel);
-      GetConfigHashPResponse response = client.getConfigHash(
-          GetConfigHashPOptions.newBuilder().build());
-      LOG.debug("Alluxio client has get configHash from meta master {}", address);
-      return response;
-    } catch (io.grpc.StatusRuntimeException e) {
-      throw new UnavailableException(String.format(
-          "Failed to handshake with master %s to get cluster configHash values: %s",
-          address, e.getMessage()), e);
-    } catch (UnauthenticatedException e) {
-      throw new RuntimeException(String.format(
-          "Received authentication exception during get configHash connect with host:%s", address),
-          e);
-    } finally {
-      if (channel != null) {
-        channel.shutdown();
-      }
-    }
-  }
-
   /**
    * @param propertiesMap properties to update
    * @return the update properties status map
@@ -750,7 +718,7 @@ public final class Configuration
    * @param recordEvent whether to record update conf event
    * @return the update properties status map
    */
-  public static Map<String, Boolean> updateConfiguration(Map<String, String> propertiesMap,
+  private static Map<String, Boolean> updateConfiguration(Map<String, String> propertiesMap,
       boolean recordEvent) {
     Map<String, Boolean> result = new HashMap<>();
     int successCount = 0;
@@ -807,14 +775,11 @@ public final class Configuration
     return result;
   }
 
-  public static long getLastClusterConfigUpdateTime() {
-    return LAST_CLUSTER_CONFIG_UPDATE_TIME.get();
-  }
-
-  public static long getLastPathConfigUpdateTime() {
-    return LAST_PATH_CONFIG_UPDATE_TIME.get();
-  }
-
+  /**
+   * Gets updated configs from master updated config map.
+   * @param version the specific updated config version
+   * @return the Property key and value after the given version and the latest version
+   */
   public static Pair<List<Map<String, String>>, Long> getUpdatedConfigs(
       long version) {
     synchronized (UPDATED_CONFIG_MAP) {
@@ -827,7 +792,7 @@ public final class Configuration
     }
   }
 
-  public static GetUpdatedConfigurationPResponse getUpdatedConfigsFromServer(
+  private static GetUpdatedConfigurationPResponse getUpdatedConfigsFromServer(
       AlluxioConfiguration conf,
       InetSocketAddress address,
       long version) throws AlluxioStatusException {
@@ -862,11 +827,17 @@ public final class Configuration
     }
   }
 
+  /**
+   * @return the current size of updated config map
+   */
   @VisibleForTesting
   public static long getUpdatedConfigMapSize() {
     return UPDATED_CONFIG_MAP.size();
   }
 
+  /**
+   * Clear the updated config map.
+   */
   @VisibleForTesting
   public static void clearUpdatedConfigMap() {
     UPDATED_CONFIG_MAP.clear();

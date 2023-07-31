@@ -22,7 +22,6 @@ import alluxio.conf.ClusterConfigSync;
 import alluxio.conf.Configuration;
 import alluxio.conf.ConfigurationValueOptions;
 import alluxio.conf.PropertyKey;
-import alluxio.conf.ReconfigurableRegistry;
 import alluxio.conf.Source;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.NotFoundException;
@@ -738,34 +737,7 @@ public final class DefaultMetaMaster extends CoreMaster implements MetaMaster {
 
   @Override
   public Map<String, Boolean> updateConfiguration(Map<String, String> propertiesMap) {
-    Map<String, Boolean> result = new HashMap<>();
-    int successCount = 0;
-    for (Map.Entry<String, String> entry : propertiesMap.entrySet()) {
-      try {
-        PropertyKey key = PropertyKey.fromString(entry.getKey());
-        if (Configuration.getBoolean(PropertyKey.CONF_DYNAMIC_UPDATE_ENABLED)
-            && key.isDynamic()) {
-          Object oldValue = Configuration.get(key);
-          Object value = key.parseValue(entry.getValue());
-          Configuration.set(key, value, Source.RUNTIME);
-          result.put(entry.getKey(), true);
-          successCount++;
-          LOG.info("Property {} has been updated to \"{}\" from \"{}\"",
-              key.getName(), entry.getValue(), oldValue);
-        } else {
-          LOG.warn("Update a non-dynamic property {} is not allowed", key.getName());
-          result.put(entry.getKey(), false);
-        }
-      } catch (Exception e) {
-        result.put(entry.getKey(), false);
-        LOG.error("Failed to update property {} to {}", entry.getKey(), entry.getValue(), e);
-      }
-    }
-    LOG.debug("Update {} properties, succeed {}.", propertiesMap.size(), successCount);
-    if (successCount > 0) {
-      ReconfigurableRegistry.update();
-    }
-    return result;
+    return Configuration.updateConfiguration(propertiesMap);
   }
 
   @Override
