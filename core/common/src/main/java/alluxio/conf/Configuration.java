@@ -60,7 +60,6 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.SortedMap;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 
@@ -94,10 +93,6 @@ public final class Configuration
 
   private static final AtomicReference<InstancedConfiguration> SERVER_CONFIG_REFERENCE =
       new AtomicReference<>();
-
-  private static final AtomicLong LAST_CLUSTER_CONFIG_UPDATE_TIME = new AtomicLong();
-
-  private static final AtomicLong LAST_PATH_CONFIG_UPDATE_TIME = new AtomicLong();
 
   private static final Pair DEFAULT_UPDATED_CONF_PAIR =
       new Pair(Collections.emptyList(), 0L);
