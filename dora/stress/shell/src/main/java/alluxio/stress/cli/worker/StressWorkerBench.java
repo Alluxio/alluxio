@@ -533,12 +533,14 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       while (!Thread.currentThread().isInterrupted()
           && CommonUtils.getCurrentMs() < mContext.getEndMs()) {
         // Keep reading the same file
-        int ioBytes = applyOperation();
+        WorkerBenchDataPoint dataPoint = applyOperation();
         long currentMs = CommonUtils.getCurrentMs();
         // Start recording after the warmup
         if (currentMs > recordMs) {
-          if (ioBytes > 0) {
-            mResult.incrementIOBytes(ioBytes);
+          // Only append datapoint after the warmup
+          mResult.addDataPoint(dataPoint);
+          if (dataPoint.getIOBytes() > 0) {
+            mResult.incrementIOBytes(dataPoint.getIOBytes());
           } else {
             LOG.warn("Thread for file {} read 0 bytes from I/O", mFilePaths[mTargetFileIndex]);
           }
@@ -550,7 +552,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
      * Read the file by the offset and length based on the given index.
      * @return the actual red byte number
      */
-    private int applyOperation() throws IOException {
+    private WorkerBenchDataPoint applyOperation() throws IOException {
       Path filePath = mFilePaths[mTargetFileIndex];
       int offset = mOffsets[mTargetFileIndex];
       int length = mLengths[mTargetFileIndex];
@@ -588,11 +590,9 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
         }
       }
       long endOperation = CommonUtils.getCurrentMs();
-      mResult.addDataPoint(new WorkerBenchDataPoint(
+      return new WorkerBenchDataPoint(
               mBaseParameters.mIndex, Thread.currentThread().getId(),
-              startOperation, endOperation - startOperation,
-              bytesRead));
-      return bytesRead;
+              startOperation, endOperation - startOperation, bytesRead);
     }
 
     private void closeInStream() {
