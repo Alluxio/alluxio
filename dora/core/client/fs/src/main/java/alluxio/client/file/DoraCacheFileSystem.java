@@ -332,12 +332,10 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
 //  @Override
 //  public FileOutStream createFile(UfsUrl ufsPath, CreateFilePOptions options) {
 //    try {
-//      // TODO(Tony Sun): Does there need to refactor FileSystemContext.getPathConf first?
 ////      CreateFilePOptions mergedOptions = FileSystemOptionsUtils.createFileDefaults(
 ////          mFsContext.getPathConf();
 ////      )
 //    } catch (Exception e) {
-//      // TODO(Tony Sun): delete the file?
 //      UFS_FALLBACK_COUNTER.inc();
 //      LOG.debug("Dora client CreateFile error ({} times). Fall back to UFS.",
 //          UFS_FALLBACK_COUNTER.getCount(), e);

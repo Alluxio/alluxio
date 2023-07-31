@@ -605,12 +605,6 @@ public class FileSystemContext implements Closeable {
         getClientContext().getPathConf(), path);
   }
 
-//  public AlluxioConfiguration getPathConf(UfsUrl ufsPath) {
-//    // TODO(Tony Sun): Add impl. We need add a constructive method in SpecificPathConfiguration,
-//    //  Or add a new class called like "SpecificUfsUriPathConfiguration?"
-//    return null;
-//  }
-
   /**
    * @return the master address
    * @throws UnavailableException if the master address cannot be determined

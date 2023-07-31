@@ -195,7 +195,6 @@ public class BaseFileSystem implements FileSystem {
 //  @Override
 //  public FileOutStream createFile(UfsUrl ufsPath, CreateFilePOptions options)
 //      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
-//    // TODO(Tony Sun): add impl.
 //    return null;
 //  }
 
@@ -328,7 +327,6 @@ public class BaseFileSystem implements FileSystem {
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(ufsPath);
     return rpc(client -> {
-      // TODO(Tony Sun): refactor getPathConf
       return client.listStatus(ufsPath, options);
     });
   }
@@ -352,7 +350,6 @@ public class BaseFileSystem implements FileSystem {
       Consumer<? super URIStatus> action)
       throws FileDoesNotExistException, IOException, AlluxioException {
     checkUri(ufsPath);
-    // TODO(Tony Sun): Add client.iterateStatus.
     rpc(client -> {return null;});
   }
 

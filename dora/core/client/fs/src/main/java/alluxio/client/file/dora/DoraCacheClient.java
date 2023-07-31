@@ -173,14 +173,12 @@ public class DoraCacheClient {
    * @return list of URIStatus
    * @throws RuntimeException
    */
-  // TODO(Tony Sun): replace path with UfsUrl object.
   public List<URIStatus> listStatus(String path, ListStatusPOptions options)
       throws PermissionDeniedException {
     try (CloseableResource<BlockWorkerClient> client =
              mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
       List<URIStatus> result = new ArrayList<>();
       client.get().listStatus(ListStatusPRequest.newBuilder().setPath(path)
-              // TODO(Tony Sun): determine the path type: containing scheme and authority or not.
               .setUfsPath(UfsUrlMessage.newBuilder().addPathComponents(path).build())
               .setOptions(options).build())
           .forEachRemaining(

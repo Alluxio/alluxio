@@ -107,7 +107,6 @@ public abstract class AbstractFileSystemCommand implements Command {
   }
 
   protected void runWildCardCmd(UfsUrl wildCardUfsPath, CommandLine cl) throws IOException {
-    // TODO(Tony Sun): Add wildcard transfer, now getUfsUrls does not realize any function.
     List<UfsUrl> ufsPaths = FileSystemShellUtils.getUfsUrls(mFileSystem, wildCardUfsPath);
     processHeader(cl);
 

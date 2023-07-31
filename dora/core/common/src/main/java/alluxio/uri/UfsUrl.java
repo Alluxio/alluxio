@@ -25,7 +25,6 @@ import java.util.Objects;
 
 public class UfsUrl {
 
-  // TODO(Tony Sun): replace each xx_separator by the static variables.
   public static final String SCHEME_SEPERATOR = "://";
   public static final String PATH_SEPERATOR = "/";
   UfsUrlMessage mProto;
@@ -43,8 +42,6 @@ public class UfsUrl {
     Preconditions.checkArgument(!ufsPath.isEmpty(),
             "ufsPath is empty, please input a non-empty ufsPath.");
     List<String> preprocessingPathList = Arrays.asList(ufsPath.split(SCHEME_SEPERATOR));
-
-    // TODO(Tony Sun): Does every input path contain authority?
     String scheme = preprocessingPathList.get(0);
     String authorityAndPath = null;
     // If ufsPath has no '://', then the preprocessingPathList has only one elem.
@@ -113,8 +110,7 @@ public class UfsUrl {
   }
 
   public String asString() {
-    // TODO(Tony Sun): Why not override.
-    // TODO: consider corner cases
+    // TODO(Jiacheng Liu): consider corner cases
     StringBuilder sb = new StringBuilder();
     sb.append(mProto.getScheme());
     sb.append(UfsUrl.SCHEME_SEPERATOR);
@@ -126,13 +122,12 @@ public class UfsUrl {
       if (i < pathComponents.size() - 1) {
         sb.append(UfsUrl.PATH_SEPERATOR);
       }
-      // TODO: need a trailing separator if the path is dir?
+      // TODO(Jiacheng Liu): need a trailing separator if the path is dir?
     }
     return sb.toString();
   }
 
   public String asStringNoAuthority() {
-    // TODO: consider corner cases
     StringBuilder sb = new StringBuilder();
     sb.append(mProto.getScheme());
     sb.append("://");
@@ -142,7 +137,6 @@ public class UfsUrl {
       if (i < pathComponents.size() - 1) {
         sb.append(AlluxioURI.SEPARATOR);
       }
-      // TODO: need a trailing separator if the path is dir?
     }
     return sb.toString();
   }
@@ -172,18 +166,17 @@ public class UfsUrl {
     return mProto.equals(that.mProto);
   }
 
-  // TODO: try to avoid the copy by a RelativeUrl class
+  // TODO(Jiacheng Liu): try to avoid the copy by a RelativeUrl class
   public UfsUrl getParentURL() {
     List<String> pathComponents = mProto.getPathComponentsList();
     return new UfsUrl(UfsUrlMessage.newBuilder()
             .setScheme(mProto.getScheme())
             .setAuthority(mProto.getAuthority())
-            // TODO: how many copies are there
+            // TODO(Jiacheng Liu): how many copies are there. Improve the performance in the future.
             .addAllPathComponents(pathComponents.subList(0, pathComponents.size() - 1)).build());
-            // TODO(Tony Sun): performance consideration.
   }
 
-  // TODO: try to avoid the copy by a RelativeUrl class
+  // TODO(Jiacheng Liu): try to avoid the copy by a RelativeUrl class
   public UfsUrl getChildURL(String childName) {
     List<String> pathComponents = mProto.getPathComponentsList();
     return new UfsUrl(UfsUrlMessage.newBuilder()
@@ -214,7 +207,7 @@ public class UfsUrl {
   //TODO(Tony Sun): Add isAncestorOf() method.
 
   public boolean isRoot() {
-    // TODO(Tony Sun): In AlluxioURI here remains judging hasAuthority(), why?
+    // TODO(Tony Sun): throw error
     return getFullPath().equals(PATH_SEPERATOR) || getFullPath().isEmpty();
   }
 

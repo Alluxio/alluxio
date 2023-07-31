@@ -309,7 +309,6 @@ public class UfsBaseFileSystem implements FileSystem {
   public void iterateStatus(UfsUrl ufsPath, ListStatusPOptions options,
       Consumer<? super URIStatus> action)
     throws FileDoesNotExistException, IOException, AlluxioException {
-    // TODO(Tony Sun): fill it.
   }
 
   @Override
@@ -356,7 +355,6 @@ public class UfsBaseFileSystem implements FileSystem {
   @Override
   public FileInStream openFile(UfsUrl ufsPath, OpenFilePOptions options)
     throws IOException, AlluxioException {
-    // TODO(Tony Sun): Asking for the exceptions.
     return openFile(getStatus(ufsPath), options);
   }
 
@@ -540,7 +538,6 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   public UfsUrl getRootUfsUrl() {
-    // TODO(Tony Sun): path should be split, fix the bug first.
     return mRootUfsUrl;
   }
 

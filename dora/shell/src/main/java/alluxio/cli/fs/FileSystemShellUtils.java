@@ -101,7 +101,6 @@ public final class FileSystemShellUtils {
    */
   public static List<AlluxioURI> getAlluxioURIs(FileSystem alluxioClient, AlluxioURI inputURI)
       throws IOException {
-    // TODO(Tony Sun): rewrite a getUfsUrl. recursive.
     if (!inputURI.getPath().contains(AlluxioURI.WILDCARD)) {
       return Lists.newArrayList(inputURI);
     } else {
