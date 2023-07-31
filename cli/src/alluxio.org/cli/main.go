@@ -34,6 +34,7 @@ func main() {
 		processes.Master,
 		processes.Proxy,
 		processes.Worker,
+		processes.Workers,
 	} {
 		env.RegisterProcess(p)
 	}
