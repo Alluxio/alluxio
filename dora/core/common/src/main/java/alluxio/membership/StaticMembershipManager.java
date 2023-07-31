@@ -11,6 +11,7 @@
 
 package alluxio.membership;
 
+import alluxio.annotation.SuppressFBWarnings;
 import alluxio.cli.CommandUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
@@ -58,6 +59,7 @@ public class StaticMembershipManager implements MembershipManager {
    * @param conf
    * @throws IOException
    */
+  @SuppressFBWarnings({"URF_UNREAD_FIELD"})
   StaticMembershipManager(AlluxioConfiguration conf, List<WorkerInfo> members) {
     mConf = conf;
     mMembers = members;
