@@ -98,7 +98,7 @@ import javax.security.auth.Subject;
 public final class MultiProcessCluster {
   public static final int PORTS_PER_MASTER = 3;
   public static final int PORTS_PER_WORKER = 3;
-  private static final int MASTER_START_DELAY_MS = 500; // in ms
+  private static final int MASTER_START_DELAY_MS = 5000; // in ms
 
   private static final Logger LOG = LoggerFactory.getLogger(MultiProcessCluster.class);
   private static final File ARTIFACTS_DIR = new File(Constants.TEST_ARTIFACTS_DIR);
