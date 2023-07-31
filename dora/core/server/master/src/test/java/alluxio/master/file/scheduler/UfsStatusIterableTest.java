@@ -12,22 +12,8 @@
 package alluxio.master.file.scheduler;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
-import alluxio.exception.AccessControlException;
-import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.InvalidPathException;
-import alluxio.exception.runtime.NotFoundRuntimeException;
-import alluxio.exception.runtime.UnauthenticatedRuntimeException;
-import alluxio.master.file.FileSystemMaster;
-import alluxio.master.job.FileIterable;
-import alluxio.master.job.LoadJob;
 import alluxio.master.job.UfsStatusIterable;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
@@ -38,13 +24,10 @@ import org.apache.commons.compress.utils.Lists;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Optional;
 
@@ -58,9 +41,10 @@ public class UfsStatusIterableTest {
   @Before
   public void before() throws IOException {
     mLocalUfsRoot = mTemporaryFolder.getRoot().getAbsolutePath();
-    mLocalUfs =
-        UnderFileSystem.Factory.create(mLocalUfsRoot, UnderFileSystemConfiguration.defaults(Configuration.global()));
+    mLocalUfs = UnderFileSystem.Factory.create(mLocalUfsRoot,
+        UnderFileSystemConfiguration.defaults(Configuration.global()));
   }
+
   @Test
   public void testLocalFiles() throws IOException {
     // test UfsStatusIterable with local files
@@ -69,8 +53,8 @@ public class UfsStatusIterableTest {
     mTemporaryFolder.newFolder("test");
     mTemporaryFolder.newFile("/test/b");
 
-    UfsStatusIterable ufsStatusIterable = new UfsStatusIterable(mLocalUfs, mLocalUfsRoot, Optional.empty(),
-        Predicates.alwaysTrue());
+    UfsStatusIterable ufsStatusIterable =
+        new UfsStatusIterable(mLocalUfs, mLocalUfsRoot, Optional.empty(), Predicates.alwaysTrue());
     Iterator<UfsStatus> iterator = ufsStatusIterable.iterator();
     ArrayList<UfsStatus> array = Lists.newArrayList(iterator);
     assertEquals(4, array.size());

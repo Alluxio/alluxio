@@ -23,7 +23,6 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.wire.FileInfo;
 
 import com.google.common.base.Predicates;
 
@@ -42,6 +41,7 @@ public class LoadJobFactory implements JobFactory {
   /**
    * Create factory.
    * @param request load job request
+   * @param fsMaster file system master
    */
   public LoadJobFactory(LoadJobRequest request, DefaultFileSystemMaster fsMaster) {
     mRequest = request;

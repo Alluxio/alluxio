@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.conf.Configuration;
 import alluxio.master.file.DefaultFileSystemMaster;
-import alluxio.master.file.FileSystemMaster;
 import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobFactory;
 import alluxio.scheduler.job.JobState;

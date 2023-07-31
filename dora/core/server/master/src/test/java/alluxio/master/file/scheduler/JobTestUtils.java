@@ -14,7 +14,6 @@ package alluxio.master.file.scheduler;
 import alluxio.AlluxioURI;
 import alluxio.grpc.Block;
 import alluxio.grpc.BlockStatus;
-import alluxio.grpc.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
@@ -76,6 +75,7 @@ public final class JobTestUtils {
     }
     return files;
   }
+
   public static List<FileInfo> fileWithBlockLocations(List<FileInfo> files, double ratio) {
     ImmutableList.Builder<FileInfo> newFiles = ImmutableList.builder();
     files.forEach(fileInfo -> {

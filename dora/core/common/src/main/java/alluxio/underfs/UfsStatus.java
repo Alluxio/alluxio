@@ -41,13 +41,6 @@ public abstract class UfsStatus {
   }
 
   /**
-   * @return the full ufs path
-   */
-  public String getUfsPath() {
-    return mUfsFullPath.toString();
-  }
-
-  /**
    * @param ufsFullPath the ufs full path
    */
   public void setUfsFullPath(AlluxioURI ufsFullPath) {

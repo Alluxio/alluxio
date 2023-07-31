@@ -42,7 +42,6 @@ import alluxio.grpc.LoadResponse;
 import alluxio.grpc.TaskStatus;
 import alluxio.job.JobDescription;
 import alluxio.master.file.DefaultFileSystemMaster;
-import alluxio.master.job.CopyJob;
 import alluxio.master.job.DoraLoadJob;
 import alluxio.master.job.FileIterable;
 import alluxio.master.job.LoadJob;
@@ -503,80 +502,36 @@ public final class SchedulerTest {
 
     JournalContext journalContext = mock(JournalContext.class);
     when(fsMaster.createJournalContext()).thenReturn(journalContext);
-    DefaultWorkerProvider workerProvider =
-        new DefaultWorkerProvider(fsMaster, fileSystemContext);
-    Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider,
-        new JournaledJobMetaStore(fsMaster));
+    DefaultWorkerProvider workerProvider = new DefaultWorkerProvider(fsMaster, fileSystemContext);
+    Scheduler scheduler =
+        new Scheduler(fileSystemContext, workerProvider, new JournaledJobMetaStore(fsMaster));
     scheduler.start();
-    IntStream
-        .range(0, 5)
-        .forEach(i -> {
-          String path = String.format("/load/%d", i);
-          Optional<String> user = Optional.of("user");
-    UnderFileSystem ufs = mock(UnderFileSystem.class);
-    UfsStatusIterable files =
-        new UfsStatusIterable(ufs, "path", user, Predicates.alwaysTrue());
-          assertTrue(scheduler.submitJob(
-              new DoraLoadJob(path, Optional.of("user"), "1",
-                  OptionalLong.empty(), false, true, false, false, files, ufs)
-          ));
-        });
-    assertEquals(5, scheduler
-        .getJobs().size());
-    scheduler
-        .getJobs()
-        .get(JobDescription
-            .newBuilder()
-            .setPath("/load/1")
-            .setType("load")
-            .build())
-        .setJobState(JobState.VERIFYING, false);
-    scheduler
-        .getJobs()
-        .get(JobDescription
-            .newBuilder()
-            .setPath("/load/2")
-            .setType("load")
-            .build())
-        .setJobState(JobState.FAILED, false);
-    scheduler
-        .getJobs()
-        .get(JobDescription
-            .newBuilder()
-            .setPath("/load/3")
-            .setType("load")
-            .build())
-        .setJobState(JobState.SUCCEEDED, false);
-    scheduler
-        .getJobs()
-        .get(JobDescription
-            .newBuilder()
-            .setPath("/load/4")
-            .setType("load")
-            .build())
-        .setJobState(JobState.STOPPED, false);
+    IntStream.range(0, 5).forEach(i -> {
+      String path = String.format("/load/%d", i);
+      Optional<String> user = Optional.of("user");
+      UnderFileSystem ufs = mock(UnderFileSystem.class);
+      UfsStatusIterable files = new UfsStatusIterable(ufs, "path", user, Predicates.alwaysTrue());
+      assertTrue(scheduler.submitJob(
+          new DoraLoadJob(path, Optional.of("user"), "1", OptionalLong.empty(), false, true, false, false,
+              files, ufs)));
+    });
+    assertEquals(5, scheduler.getJobs().size());
+    scheduler.getJobs().get(JobDescription.newBuilder().setPath("/load/1").setType("load").build())
+             .setJobState(JobState.VERIFYING, false);
+    scheduler.getJobs().get(JobDescription.newBuilder().setPath("/load/2").setType("load").build())
+             .setJobState(JobState.FAILED, false);
+    scheduler.getJobs().get(JobDescription.newBuilder().setPath("/load/3").setType("load").build())
+             .setJobState(JobState.SUCCEEDED, false);
+    scheduler.getJobs().get(JobDescription.newBuilder().setPath("/load/4").setType("load").build())
+             .setJobState(JobState.STOPPED, false);
     scheduler.cleanupStaleJob();
-    assertEquals(2, scheduler
-        .getJobs().size());
-    assertTrue(scheduler
-        .getJobs().containsKey(JobDescription
-            .newBuilder()
-            .setPath("/load/0")
-            .setType("load")
-            .build()));
-    assertTrue(scheduler
-        .getJobs().containsKey(JobDescription
-            .newBuilder()
-            .setPath("/load/1")
-            .setType("load")
-            .build()));
-    IntStream.range(2, 5).forEach(
-        i -> assertFalse(scheduler
-            .getJobs().containsKey(JobDescription
-            .newBuilder()
-            .setPath("/load/" + i)
-            .setType("load")
-            .build())));
+    assertEquals(2, scheduler.getJobs().size());
+    assertTrue(scheduler.getJobs().containsKey(
+        JobDescription.newBuilder().setPath("/load/0").setType("load").build()));
+    assertTrue(scheduler.getJobs().containsKey(
+        JobDescription.newBuilder().setPath("/load/1").setType("load").build()));
+    IntStream.range(2, 5).forEach(i -> assertFalse(scheduler.getJobs().containsKey(
+        JobDescription.newBuilder().setPath("/load/" + i).setType("load").build())));
     Configuration.modifiableGlobal().unset(PropertyKey.JOB_RETENTION_TIME);
   }
 
@@ -590,12 +545,12 @@ public final class SchedulerTest {
         new DefaultWorkerProvider(fsMaster, fileSystemContext);
     InMemoryJobMetaStore metaStore = new InMemoryJobMetaStore();
     Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider, metaStore);
-        UnderFileSystem ufs = mock(UnderFileSystem.class);
+    UnderFileSystem ufs = mock(UnderFileSystem.class);
     UfsStatusIterable files =
         new UfsStatusIterable(ufs, path, Optional.of("user"), Predicates.alwaysTrue());
     DoraLoadJob job =
         new DoraLoadJob(path, Optional.of("user"), "5", OptionalLong.of(100),
-            false, true, false,false, files,ufs);
+            false, true, false, false, files, ufs);
     scheduler.start();
     scheduler.submitJob(job);
     assertEquals(1, scheduler.getJobs().size());
@@ -604,7 +559,7 @@ public final class SchedulerTest {
     assertEquals(1, metaStore.getJobs().size());
     DoraLoadJob job2 =
         new DoraLoadJob("new", Optional.of("user"), "6", OptionalLong.of(100),
-            false, true, false,false, files,ufs);
+            false, true, false, false, files, ufs);
     metaStore.updateJob(job2);
     assertEquals(0, scheduler.getJobs().size());
     assertEquals(2, metaStore.getJobs().size());

@@ -131,20 +131,24 @@ public class PagedDoraWorkerTest {
   }
 
   @Test
-  public void testLoadDataWithOffsetLength()
-      throws Exception {
+  public void testLoadDataWithOffsetLength() throws Exception {
     int numPages = 10;
     long length = mPageSize * numPages;
     String ufsPath = mTestFolder.newFile("test").getAbsolutePath();
     byte[] buffer = BufferUtils.getIncreasingByteArray((int) length);
     BufferUtils.writeBufferToFile(ufsPath, buffer);
     int numCachedPages = 4;
-    UfsStatus ufsStatus = mWorker.getUfs().getStatus(ufsPath);
+    UfsStatus ufsStatus = mWorker.getUfsInstance(ufsPath).getStatus(ufsPath);
     ufsStatus.setUfsFullPath(new AlluxioURI(ufsPath));
-    Block block = Block.newBuilder().setOffsetInFile(mPageSize).setLength(mPageSize* numCachedPages).setUfsPath(ufsPath).setUfsStatus(ufsStatus.toProto()).build();
-    ListenableFuture<List<LoadFileFailure>> load = mWorker.load(Collections.emptyList(), Collections.singletonList(block),false
-        UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build());
-    List<LoadFileFailure> fileFailures = load.get(30, TimeUnit.SECONDS).getFailuresList();
+
+    Block block =
+        Block.newBuilder().setOffsetInFile(mPageSize).setLength(mPageSize * numCachedPages)
+             .setUfsPath(ufsPath).setUfsStatus(ufsStatus.toProto()).build();
+    ListenableFuture<List<LoadFileFailure>> load =
+        mWorker.load(Collections.emptyList(), Collections.singletonList(block), false,
+            UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false)
+                          .build());
+    List<LoadFileFailure> fileFailures = load.get(30, TimeUnit.SECONDS);
     Assert.assertEquals(0, fileFailures.size());
     List<PageId> cachedPages =
         mCacheManager.getCachedPageIdsByFileId(new AlluxioURI(ufsPath).hash(), length);
@@ -160,17 +164,18 @@ public class PagedDoraWorkerTest {
   }
 
   @Test
-  public void testLoadMetaDataOnly()
-      throws Exception {
+  public void testLoadMetaDataOnly() throws Exception {
     int numPages = 10;
     long length = mPageSize * numPages;
     String ufsPath = mTestFolder.newFile("test").getAbsolutePath();
     byte[] buffer = BufferUtils.getIncreasingByteArray((int) length);
     BufferUtils.writeBufferToFile(ufsPath, buffer);
-    UfsStatus ufsStatus = mWorker.getUfs().getStatus(ufsPath);
+    UfsStatus ufsStatus = mWorker.getUfsInstance(ufsPath).getStatus(ufsPath);
     ufsStatus.setUfsFullPath(new AlluxioURI(ufsPath));
-    ListenableFuture<List<LoadFileFailure>> load = mWorker.load(Collections.singletonList(ufsStatus), Collections.emptyList(),
-        UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false).build());
+    ListenableFuture<List<LoadFileFailure>> load =
+        mWorker.load(Collections.singletonList(ufsStatus), Collections.emptyList(),
+            UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false)
+                          .build());
     List<LoadFileFailure> fileFailures = load.get(30, TimeUnit.SECONDS);
     Assert.assertEquals(0, fileFailures.size());
     List<PageId> cachedPages =
@@ -815,12 +820,14 @@ public class PagedDoraWorkerTest {
     ufsStatus.setUfsFullPath(new AlluxioURI(path));
 
     Block block = Block.newBuilder().setLength(ufsStatus.asUfsFileStatus().getContentLength())
-        .setOffsetInFile(0).setUfsPath(ufsStatus.getUfsPath()).setUfsStatus(ufsStatus.toProto()).build();
+                       .setOffsetInFile(0).setUfsPath(ufsStatus.getUfsFullPath().toString())
+                       .setUfsStatus(ufsStatus.toProto()).build();
     ListenableFuture<List<LoadFileResponse>> load =
-        mWorker.load( Collections.singletonList(ufsStatus),Collections.singletonList(block), false,
+        mWorker.load(Collections.singletonList(ufsStatus), Collections.singletonList(block), false,
             UfsReadOptions.newBuilder().setUser("test").setTag("1").setPositionShort(false)
-                .build());
-    List<LoadFileFailure> fileFailures = load.get(30, TimeUnit.SECONDS).getFailuresList();
+                          .build());
+    List<LoadFileResponse> fileFailures = load.get(30, TimeUnit.SECONDS);
+
     assertEquals(0, fileFailures.size());
   }
 

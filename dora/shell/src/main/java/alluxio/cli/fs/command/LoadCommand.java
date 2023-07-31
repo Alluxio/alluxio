@@ -150,7 +150,8 @@ public final class LoadCommand extends AbstractFileSystemCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    AlluxioURI path = new AlluxioURI(Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT)).join(args[0]);
+    AlluxioURI path =
+        new AlluxioURI(Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT)).join(args[0]);
     if (path.containsWildcard()) {
       throw new UnsupportedOperationException("Load does not support wildcard path");
     }

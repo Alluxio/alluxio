@@ -14,7 +14,6 @@ package alluxio.master.job;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
-import alluxio.AlluxioURI;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -128,9 +127,9 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
   private static final int RETRY_ATTEMPT_THRESHOLD = Configuration.getInt(
       PropertyKey.MASTER_DORA_LOAD_JOB_RETRIES);
   private final boolean mSkipIfExists;
-  private final long mVirtualBlockSize = Configuration.getBytes(PropertyKey.DORA_READ_VIRTUAL_BLOCK_SIZE);
-  private Iterator<LoadSubTask> mCurrentSubTaskIterator;
-
+  private final long mVirtualBlockSize = Configuration.getBytes(
+      PropertyKey.DORA_READ_VIRTUAL_BLOCK_SIZE);
+  private Iterator<LoadSubTask> mCurrentSubTaskIterator = Collections.emptyIterator();
   /**
    * Constructor.
    *
@@ -141,8 +140,9 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
    * @param usePartialListing   whether to use partial listing
    * @param verificationEnabled whether to verify the job after loaded
    * @param loadMetadataOnly    if set to true, only metadata will be loaded without loading
-   *                            file data
    * @param skipIfExists skip if exists
+   * @param ufsStatusIterable   ufsStatus iterable
+   * @param ufs                 under file system
    */
   public DoraLoadJob(
       String path,
@@ -150,7 +150,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       boolean usePartialListing,
       boolean verificationEnabled,
       boolean loadMetadataOnly,
-      boolean skipIfExists, Iterable<UfsStatus> fileIterable, UnderFileSystem ufs) {
+      boolean skipIfExists, Iterable<UfsStatus> ufsStatusIterable, UnderFileSystem ufs) {
     super(user, jobId, new HashBasedWorkerAssignPolicy());
     mLoadPath = requireNonNull(path, "path is null");
     Preconditions.checkArgument(
@@ -165,7 +165,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     LOG.info(
         "DoraLoadJob for {} created. {} workers are active",
         path, Preconditions.checkNotNull(Scheduler.getInstance()).getActiveWorkers().size());
-    mUfsStatusIterable = fileIterable;
+    mUfsStatusIterable = ufsStatusIterable;
   }
 
   /**
@@ -191,7 +191,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     while (numSubTasks < RETRY_THRESHOLD
         && i++ < startRetryListSize && mRetrySubTasks.peek() != null) {
       LoadSubTask subTask = mRetrySubTasks.poll();
-      String path = subTask.mUfsStatus.getUfsPath();
+      String path = subTask.mUfsStatus.getUfsFullPath().toString();
       try {
         mUfs.getStatus(path);
         batchBuilder.add(subTask);
@@ -202,7 +202,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
         // the load will fail and the scheduler will retry.
         // In such case, a FileNotFoundException might be thrown when we attempt to
         // get the file status again, and we simply ignore that file.
-        if (!(e instanceof FileNotFoundException) || !(e instanceof NotFoundRuntimeException)) {
+        if (!(e instanceof FileNotFoundException || e instanceof NotFoundRuntimeException)) {
           mRetrySubTasks.offer(subTask);
         }
       }
@@ -212,15 +212,13 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
         if (!mUfsStatusIterator.get().hasNext()) {
           break;
         }
-        else{
+        else {
           mCurrentSubTaskIterator = getSubTasks(mUfsStatusIterator.get().next()).listIterator();
         }
       }
       batchBuilder.add(mCurrentSubTaskIterator.next());
       numSubTasks++;
     }
-
-
     ImmutableList<LoadSubTask> subTasks = batchBuilder.build();
     Map<WorkerInfo, DoraLoadTask> workerToTaskMap = pickWorkerForSubTasks(workers, subTasks);
     if (workerToTaskMap.isEmpty()) {
@@ -268,20 +266,25 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
     List<LoadSubTask> items = new ArrayList<>();
         // add load metadata task
     items.add(new LoadSubTask(ufsStatus,
-        new HashKey(ufsStatus.getUfsPath(), OptionalInt.empty())));
+        new HashKey(ufsStatus.getUfsFullPath().toString(), OptionalInt.empty())));
     if (mLoadMetadataOnly) {
       return items;
     }
     if (ufsStatus.isFile()) {
-      for (int i = 0; i < ufsStatus.asUfsFileStatus().getContentLength(); i+= mVirtualBlockSize) {
+      if (mVirtualBlockSize > 0) {
+        for (int i = 0; i < ufsStatus.asUfsFileStatus().getContentLength();
+             i += mVirtualBlockSize) {
+          items.add(new LoadSubTask(ufsStatus,
+              new HashKey(ufsStatus.getUfsFullPath().toString(), OptionalInt.of(i))));
+        }
+      }
+      else {
         items.add(new LoadSubTask(ufsStatus,
-            new HashKey(ufsStatus.getUfsPath(), OptionalInt.of(i))));
+            new HashKey(ufsStatus.getUfsFullPath().toString(), OptionalInt.of(0))));
       }
     }
-
     return items;
   }
-
 
   /**
    * Get load file path.
@@ -400,7 +403,8 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
 
   @Override
   public boolean isCurrentPassDone() {
-    return mUfsStatusIterator.isPresent()&&!mUfsStatusIterator.get().hasNext() && mRetrySubTasks.isEmpty()
+    return mUfsStatusIterator.isPresent() && !mUfsStatusIterator.get().hasNext()
+        && !mCurrentSubTaskIterator.hasNext() && mRetrySubTasks.isEmpty()
         && mRetryTaskList.isEmpty();
   }
 
@@ -503,7 +507,7 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
             doraLoadTask.getMyRunningWorker(), response.getFailuresList()));
         for (LoadFileFailure failure : response.getFailuresList()) {
           totalLoadedBytes -= failure.getBlock().getLength();
-          if (!isHealthy() || !failure.getRetryable() || !addSubTaskToRetry(constructSubTaskFromFailure(failure)
+          if (!isHealthy() || !failure.getRetryable() || !addSubTaskToRetry(createSubTask(failure)
               )) {
             addFileFailure(
                 failure.getUfsStatus().getUfsFullPath(),
@@ -511,9 +515,8 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
           }
         }
       }
-
-      int totalLoadedInodes = doraLoadTask.getSubTasks().stream().filter(LoadSubTask::isLoadMetadata).collect(
-          Collectors.toList()).size()
+      int totalLoadedInodes = doraLoadTask.getSubTasks().stream()
+          .filter(LoadSubTask::isLoadMetadata).collect(Collectors.toList()).size()
           - response.getFailuresList().stream().filter(LoadFileFailure::hasUfsStatus).collect(
           Collectors.toList()).size();
       if (!mLoadMetadataOnly) {
@@ -535,9 +538,9 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
         if (isHealthy()) {
           addSubTaskToRetry(subTask);
         } else {
-          addFileFailure(subTask.mUfsStatus.getUfsPath(),exception.getStatus().getCode()
-              .toString(),
-              exception.getMessage());
+          addFileFailure(subTask.mUfsStatus.getUfsFullPath().toString(),
+              exception.getMessage(), exception.getStatus().getCode()
+              .value());
         }
       }
       return false;
@@ -597,18 +600,19 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       mSubTasks.add(subTask);
     }
 
-
     @Override
     protected ListenableFuture<LoadFileResponse> run(BlockWorkerClient workerClient) {
       LOG.debug("Start running task:{} on worker:{}", toString(), getMyRunningWorker());
       LoadFileRequest.Builder loadFileReqBuilder = LoadFileRequest.newBuilder();
       for (LoadSubTask subTask : mSubTasks) {
-        if (subTask.isLoadMetadata() ){
-        loadFileReqBuilder.addUfsStatus(subTask.mUfsStatus.toProto());}
+        if (subTask.isLoadMetadata()) {
+          loadFileReqBuilder.addUfsStatus(subTask.mUfsStatus.toProto());
+        }
         else {
-          Block block = Block.newBuilder().setOffsetInFile(subTask.getOffset()).setUfsPath(subTask.mUfsStatus.getUfsPath()).setLength(
-              subTask.getLength()).setUfsStatus(subTask.mUfsStatus.toProto())
-                             .build();
+          Block block = Block.newBuilder().setOffsetInFile(subTask.getOffset())
+                             .setUfsPath(subTask.mUfsStatus.getUfsFullPath().toString())
+                             .setLength(subTask.getLength())
+                             .setUfsStatus(subTask.mUfsStatus.toProto()).build();
           loadFileReqBuilder.addBlocks(block);
         }
       }
@@ -646,34 +650,47 @@ public class DoraLoadJob extends AbstractJob<DoraLoadJob.DoraLoadTask> {
       mHashKey = hashKey;
     }
 
-    private long getOffset(){
-      if (mUfsStatus.isDirectory()){
+    private long getOffset() {
+      if (mUfsStatus.isDirectory()) {
         return 0;
       }
-      return mHashKey.getPartitionIndex().getAsInt()*mVirtualBlockSize;
+      return mHashKey.getVirtualBlockIndex().getAsInt() * mVirtualBlockSize;
     }
 
-    private long getLength(){
-      if (mUfsStatus.isDirectory() || isLoadMetadata()){
+    private long getLength() {
+      if (mUfsStatus.isDirectory() || isLoadMetadata()) {
         return 0;
+      }
+      if (mVirtualBlockSize == 0) {
+        return mUfsStatus.asUfsFileStatus().getContentLength();
       }
       long leftover = mUfsStatus.asUfsFileStatus().getContentLength() - getOffset();
       return Math.min(leftover, mVirtualBlockSize);
     }
 
-    private boolean isLoadMetadata(){
+    private boolean isLoadMetadata() {
       return mHashKey.isMetadata();
     }
   }
-private LoadSubTask constructSubTaskFromFailure(LoadFileFailure failure) {
-      if (failure.hasUfsStatus()){
-        return new LoadSubTask(UfsStatus.fromProto(failure.getUfsStatus()), new HashKey(failure.getUfsStatus().getUfsFullPath(),OptionalInt.empty()));
-      }else {
-        UfsStatus status = UfsStatus.fromProto(failure.getBlock().getUfsStatus());
-        int index = (int) (failure.getBlock().getOffsetInFile() / mVirtualBlockSize);
-        return new LoadSubTask(status, new HashKey(status.getUfsPath(), OptionalInt.of(index)));
-      }
+
+  private LoadSubTask createSubTask(LoadFileFailure failure) {
+    if (failure.hasUfsStatus()) {
+      return new LoadSubTask(UfsStatus.fromProto(failure.getUfsStatus()),
+          new HashKey(failure.getUfsStatus().getUfsFullPath(), OptionalInt.empty()));
     }
+    else {
+      UfsStatus status = UfsStatus.fromProto(failure.getBlock().getUfsStatus());
+      int index;
+      if (mVirtualBlockSize == 0) {
+        index = 0;
+      }
+      else {
+        index = (int) (failure.getBlock().getOffsetInFile() / mVirtualBlockSize);
+      }
+      return new LoadSubTask(status,
+          new HashKey(status.getUfsFullPath().toString(), OptionalInt.of(index)));
+    }
+  }
 
   private static class LoadProgressReport {
     private final boolean mVerbose;
@@ -690,8 +707,8 @@ private LoadSubTask constructSubTaskFromFailure(LoadFileFailure failure) {
     private final AlluxioRuntimeException mFailureReason;
     private final long mFailedFileCount;
     private final Map<String, String> mFailedFilesWithReasons;
-    private final boolean mLoadData;
     private final boolean mSkipIfExists;
+    private final boolean mMetadataOnly;
 
     /**
      * Constructor.
@@ -729,10 +746,10 @@ private LoadSubTask constructSubTaskFromFailure(LoadFileFailure failure) {
       } else {
         mFailedFilesWithReasons = null;
       }
-      mLoadData = !job.mLoadMetadataOnly;
       mSkippedFileCount = job.mSkippedFileCount.get();
       mSkippedByteCount = job.mSkippedByteCount.get();
       mSkipIfExists = job.mSkipIfExists;
+      mMetadataOnly = job.mLoadMetadataOnly;
     }
 
     public String getReport(JobProgressReportFormat format)
@@ -751,9 +768,9 @@ private LoadSubTask constructSubTaskFromFailure(LoadFileFailure failure) {
     private String getTextReport() {
       StringBuilder progress = new StringBuilder();
       progress.append(
-          format("\tSettings:\tbandwidth: %s\tverify: %s%n",
+          format("\tSettings:\tbandwidth: %s\tverify: %s\tmetadata-only: %s%n",
               mBandwidth == null ? "unlimited" : mBandwidth,
-              mVerificationEnabled));
+              mVerificationEnabled, mMetadataOnly));
       progress.append(format("\tJob State: %s%s%n", mJobState,
           mFailureReason == null
               ? "" : format(
@@ -765,9 +782,8 @@ private LoadSubTask constructSubTaskFromFailure(LoadFileFailure failure) {
           progress.append(format("\t\t%s%n", stack.toString()));
         }
       }
-      progress.append(format("\tLoad data: %s%n", mLoadData));
       progress.append(format("\tInodes Processed: %d%n", mProcessedInodesCount));
-      if (mLoadData) {
+      if (!mMetadataOnly) {
         progress.append(format("\tBytes Loaded: %s%s%n",
             FormatUtils.getSizeFromBytes(mLoadedByteCount),
             mTotalByteCount == null
@@ -776,7 +792,7 @@ private LoadSubTask constructSubTaskFromFailure(LoadFileFailure failure) {
           progress.append(format("\tThroughput: %s/s%n",
               FormatUtils.getSizeFromBytes(mThroughput)));
         }
-        progress.append(format("\tBlock load failure rate: %.2f%%%n", mFailurePercentage));
+        progress.append(format("\tFailure rate: %.2f%%%n", mFailurePercentage));
       }
       if (mSkipIfExists) {
         progress.append(format("\tFiles Skipped: %d%n", mSkippedFileCount));
