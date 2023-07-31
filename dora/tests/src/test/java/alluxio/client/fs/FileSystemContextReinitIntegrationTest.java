@@ -73,7 +73,6 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
     checkHash(false, false);
   }
 
-
   @Test
   public void blockWorkerClientReinit() throws Exception {
     FileSystemContext fsContext = FileSystemContext.create(Configuration.global());
