@@ -189,6 +189,7 @@ public final class MultiProcessCluster {
     int primaryMasterIndex = getPrimaryMasterIndex(WAIT_MASTER_SERVING_TIMEOUT_MS);
     LOG.info("Alluxio primary master {} starts serving RPCs",
         mMasterAddresses.get(primaryMasterIndex));
+    Thread.sleep(5000);
   }
 
   /**
