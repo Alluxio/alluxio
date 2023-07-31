@@ -15,10 +15,10 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-parent</artifactId>
-    <version>302-SNAPSHOT</version>
+    <version>303-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-webui</artifactId>
-  <version>302-SNAPSHOT</version>
+  <version>303-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Alluxio UI</name>
   <description>Alluxio web UI pom</description>

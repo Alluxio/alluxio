@@ -18,6 +18,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCacheFileSystem;
 import alluxio.client.file.options.FileSystemOptions;
+import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
@@ -77,10 +78,7 @@ import java.util.function.Consumer;
 import javax.security.auth.Subject;
 
 /**
- * Basic file system interface supporting metadata operations and data operations. Developers
- * should not implement this class but extend the default implementation provided by {@link
- * BaseFileSystem} instead. This ensures any new methods added to the interface will be provided
- * by the default implementation.
+ * Basic file system interface supporting metadata operations and data operations.
  */
 @PublicApi
 public interface FileSystem extends Closeable {
@@ -179,9 +177,10 @@ public interface FileSystem extends Closeable {
     public static FileSystem create(FileSystemContext context, FileSystemOptions options) {
       AlluxioConfiguration conf = context.getClusterConf();
       checkSortConf(conf);
-      FileSystem fs = options.getUfsFileSystemOptions().isPresent()
-          ? new UfsBaseFileSystem(context, options.getUfsFileSystemOptions().get())
-          : new BaseFileSystem(context);
+      Optional<UfsFileSystemOptions> ufsOptions = options.getUfsFileSystemOptions();
+      Preconditions.checkArgument(ufsOptions.isPresent(),
+          "Missing UfsFileSystemOptions in FileSystemOptions");
+      FileSystem fs = new UfsBaseFileSystem(context, options.getUfsFileSystemOptions().get());
 
       if (options.isDoraCacheEnabled()) {
         LOG.debug("Dora cache enabled");
@@ -203,15 +202,6 @@ public interface FileSystem extends Closeable {
         }
       }
       return fs;
-    }
-
-    /**
-     * Creates a legacy file system that connects to the alluxio master.
-     * @param context the FileSystemContext to use with the FileSystem
-     * @return a new FileSystem instance
-     */
-    public static alluxio.client.file.FileSystem createLegacy(FileSystemContext context) {
-      return new BaseFileSystem(context);
     }
 
     static void checkSortConf(AlluxioConfiguration conf) {
@@ -634,7 +624,7 @@ public interface FileSystem extends Closeable {
    * @param path the file to read from
    * @return a {@link PositionReader} for the given path
    */
-  default PositionReader openPositionRead(AlluxioURI path) {
+  default PositionReader openPositionRead(AlluxioURI path) throws FileDoesNotExistException {
     return openPositionRead(path, OpenFilePOptions.getDefaultInstance());
   }
 
@@ -645,7 +635,8 @@ public interface FileSystem extends Closeable {
    * @param options options to associate with this operation
    * @return a {@link PositionReader} for the given path
    */
-  PositionReader openPositionRead(AlluxioURI path, OpenFilePOptions options);
+  PositionReader openPositionRead(AlluxioURI path, OpenFilePOptions options)
+      throws FileDoesNotExistException;
 
   /**
    * Opens a file for reading.

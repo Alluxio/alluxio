@@ -16,7 +16,7 @@
   <parent>
     <artifactId>alluxio-integration</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>302-SNAPSHOT</version>
+    <version>303-SNAPSHOT</version>
   </parent>
   <packaging>pom</packaging>
   <name>Alluxio Integration - Tools</name>

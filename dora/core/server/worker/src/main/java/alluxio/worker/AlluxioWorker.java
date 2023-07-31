@@ -14,18 +14,12 @@ package alluxio.worker;
 import alluxio.ProcessUtils;
 import alluxio.RuntimeConstants;
 import alluxio.conf.Configuration;
-import alluxio.grpc.Scope;
-import alluxio.master.MasterInquireClient;
-import alluxio.retry.RetryUtils;
-import alluxio.security.user.ServerUserState;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -53,18 +47,6 @@ public final class AlluxioWorker {
     }
 
     CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.WORKER);
-    MasterInquireClient masterInquireClient =
-        MasterInquireClient.Factory.create(Configuration.global(), ServerUserState.global());
-    try {
-      RetryUtils.retry("load cluster default configuration with master", () -> {
-        InetSocketAddress masterAddress = masterInquireClient.getPrimaryRpcAddress();
-        Configuration.loadClusterDefaults(masterAddress, Scope.WORKER);
-      }, RetryUtils.defaultWorkerMasterClientRetry());
-    } catch (IOException e) {
-      ProcessUtils.fatalError(LOG,
-          "Failed to load cluster default configuration for worker. Please make sure that Alluxio "
-              + "master is running: %s", e.toString());
-    }
     WorkerProcess process;
     try {
       process = WorkerProcess.Factory.create();

@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>302-SNAPSHOT</version>
+    <version>303-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs-adl</artifactId>
   <name>Alluxio Under File System - Microsoft Azure DataLake</name>

@@ -57,7 +57,7 @@ The Alluxio leading master emits both its instance metrics and a summary of the 
 #### Prerequisites
 
 * Alluxio leading master and workers: no prerequisites, enabled by default
-* [Alluxio standalone Fuse process]({{ '/en/fuse-sdk/Overview-Fuse-Sdk.html' | relativize_url }}):
+* [Alluxio standalone Fuse process]({{ '/en/fuse-sdk/FUSE-SDK-Overview.html' | relativize_url }}):
 setting `alluxio.fuse.web.enabled` to `true` in `${ALLUXIO_HOME}/conf/alluxio-site.properties` before launching the standalone Fuse process.
 
 #### Usage
@@ -112,7 +112,7 @@ sink.prometheus.class=alluxio.metrics.sink.PrometheusMetricsServlet
 If Alluxio is deployed in a cluster, this file needs to be distributed to all the nodes.
 Restart the Alluxio servers to activate new configuration changes.
 
-To enable Prometheus Sink Setup in the [Alluxio standalone Fuse process]({{ '/en/fuse-sdk/Overview-Fuse-Sdk.html' | relativize_url }}),
+To enable Prometheus Sink Setup in the [Alluxio standalone Fuse process]({{ '/en/fuse-sdk/FUSE-SDK-Overview.html' | relativize_url }}),
 setting `alluxio.fuse.web.enabled` to `true` in `${ALLUXIO_HOME}/conf/alluxio-site.properties` before launching the standalone Fuse process.
 
 #### Usage

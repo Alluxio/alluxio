@@ -12,8 +12,6 @@
 package alluxio.client.file.options;
 
 import alluxio.client.ReadType;
-import alluxio.client.block.policy.BlockLocationPolicy;
-import alluxio.client.block.policy.SpecificHostPolicy;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
@@ -25,7 +23,6 @@ import alluxio.util.FileSystemOptionsUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -44,7 +41,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class InStreamOptions {
   private final URIStatus mStatus;
   private final OpenFilePOptions mProtoOptions;
-  private BlockLocationPolicy mUfsReadLocationPolicy;
   private boolean mPositionShort;
 
   /**
@@ -91,13 +87,6 @@ public final class InStreamOptions {
 
     mStatus = status;
     mProtoOptions = openOptions;
-    if (options.hasUfsReadWorkerLocation()) {
-      int port = options.getUfsReadWorkerLocation().getRpcPort();
-      mUfsReadLocationPolicy = new SpecificHostPolicy(
-          options.getUfsReadWorkerLocation().getHost(), port == 0 ? null : port);
-    } else {
-      mUfsReadLocationPolicy = context.getReadBlockLocationPolicy(alluxioConf);
-    }
     mPositionShort = false;
   }
 
@@ -106,32 +95,6 @@ public final class InStreamOptions {
    */
   public OpenFilePOptions getOptions() {
     return mProtoOptions;
-  }
-
-  /**
-   * Sets block read location policy.
-   *
-   * @param ufsReadLocationPolicy block location policy implementation
-   */
-  @VisibleForTesting
-  public void setUfsReadLocationPolicy(BlockLocationPolicy ufsReadLocationPolicy) {
-    mUfsReadLocationPolicy = Preconditions.checkNotNull(ufsReadLocationPolicy);
-  }
-
-  /**
-   * Sets whether the operation is positioned read to a small buffer.
-   *
-   * @param positionShort whether the operation is positioned read to a small buffer
-   */
-  public void setPositionShort(boolean positionShort) {
-    mPositionShort = positionShort;
-  }
-
-  /**
-   * @return the {@link BlockLocationPolicy} associated with the instream
-   */
-  public BlockLocationPolicy getUfsReadLocationPolicy() {
-    return mUfsReadLocationPolicy;
   }
 
   /**

@@ -20,14 +20,18 @@ public class ResponseFileInfo {
 
   private final String mName;
 
+  private final long mLength;
+
   /**
    * A POJO for providing File Information HTTP Response.
    * @param type the file type (file or directory)
    * @param name the file name
+   * @param length the length of the file
    */
-  public ResponseFileInfo(String type, String name) {
+  public ResponseFileInfo(String type, String name, long length) {
     mType = type;
     mName = name;
+    mLength = length;
   }
 
   /**
@@ -44,5 +48,13 @@ public class ResponseFileInfo {
    */
   public String getName() {
     return mName;
+  }
+
+  /**
+   * Get the length of the file.
+   * @return the length of the file
+   */
+  public long getLength() {
+    return mLength;
   }
 }

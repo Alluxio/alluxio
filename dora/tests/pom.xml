@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-dora</artifactId>
-    <version>302-SNAPSHOT</version>
+    <version>303-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-tests</artifactId>
   <packaging>jar</packaging>
@@ -88,7 +88,6 @@
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>testcontainers</artifactId>
-      <version>1.14.3</version>
       <scope>test</scope>
     </dependency>
     <dependency>

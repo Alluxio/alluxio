@@ -19,8 +19,6 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.conf.path.PathConfiguration;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.grpc.GetConfigurationPResponse;
-import alluxio.grpc.Scope;
 import alluxio.security.user.UserState;
 
 import java.net.InetSocketAddress;
@@ -116,21 +114,8 @@ public class ClientContext {
    */
   public synchronized void loadConf(InetSocketAddress address, boolean loadClusterConf,
       boolean loadPathConf) throws AlluxioStatusException {
-    AlluxioConfiguration conf = mClusterConf;
-    if (!loadClusterConf && !loadPathConf) {
-      return;
-    }
-    GetConfigurationPResponse response = Configuration.loadConfiguration(address,
-        conf, !loadClusterConf, !loadPathConf);
-    if (loadClusterConf) {
-      mClusterConf = Configuration.getClusterConf(response, conf, Scope.CLIENT);
-      mClusterConfHash = response.getClusterConfigHash();
-    }
-    if (loadPathConf) {
-      mPathConf = Configuration.getPathConf(response, conf);
-      mPathConfHash = response.getPathConfigHash();
-      mIsPathConfLoaded = true;
-    }
+    // TODO(yyong) so far remove it, will check if it is required to change for improvement.
+    return;
   }
 
   /**

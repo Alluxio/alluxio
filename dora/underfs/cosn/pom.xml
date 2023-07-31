@@ -16,7 +16,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>302-SNAPSHOT</version>
+    <version>303-SNAPSHOT</version>
   </parent>
 
   <artifactId>alluxio-underfs-cosn</artifactId>
@@ -35,7 +35,6 @@
     <dependency>
       <groupId>com.qcloud</groupId>
       <artifactId>cos_api-bundle</artifactId>
-      <version>${cos_api.version}</version>
     </dependency>
     <dependency>
       <groupId>com.qcloud.cos</groupId>

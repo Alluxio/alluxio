@@ -852,6 +852,7 @@ public class LocalCacheManager implements CacheManager {
       try {
         dir.scanPages(pageInfo -> {
           if (pageInfo.isPresent() && predicate.test(pageInfo.get())) {
+            MetricsSystem.meter(MetricKey.CLIENT_CACHE_PAGES_INVALIDATED.getName()).mark();
             delete(pageInfo.get().getPageId());
           }
         });

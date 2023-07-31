@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-underfs</artifactId>
-    <version>302-SNAPSHOT</version>
+    <version>303-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs-gcs</artifactId>
   <name>Alluxio Under File System - GCS</name>
@@ -36,7 +36,6 @@
     <dependency>
       <groupId>com.google.cloud</groupId>
       <artifactId>google-cloud-storage</artifactId>
-      <version>1.79.0</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
