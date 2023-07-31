@@ -173,8 +173,8 @@ public final class SetReplicaDefinition
     try {
       JobUtils.loadBlock(status, context.getFsContext(), config.getBlockId(), null, false);
     } catch (IOException e) {
-      LOG.warn("Replication of {} failed, reduce min replication to 0 and unpin.",
-          status.getPath());
+      LOG.warn("Replication of {} failed, reduce min replication to 0 and unpin. Reason: {} ",
+          status.getPath(), e.getMessage());
       SetAttributePOptions.Builder optionsBuilder =
           SetAttributePOptions.newBuilder();
       try {
@@ -182,6 +182,7 @@ public final class SetReplicaDefinition
             optionsBuilder.setReplicationMin(0).setPinned(false).build());
       } catch (Throwable e2) {
         e.addSuppressed(e2);
+        LOG.warn("Attempt to set min replication to 0 and unpin failed due to ", e2);
       }
       throw e;
     }
