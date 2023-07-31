@@ -17,7 +17,11 @@ import alluxio.stress.TaskResult;
 import alluxio.util.FormatUtils;
 import org.HdrHistogram.Histogram;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * The task results for the worker stress test.
@@ -67,7 +71,6 @@ public final class WorkerBenchTaskResult implements TaskResult {
     mParameters = result.mParameters;
 
     mRecordStartMs = result.mRecordStartMs;
-    // mRecordStartMs = Math.min(mRecordStartMs, result.mRecordStartMs);
     mEndMs = Math.max(mEndMs, result.mEndMs);
     mIOBytes += result.mIOBytes;
   }
@@ -169,10 +172,9 @@ public final class WorkerBenchTaskResult implements TaskResult {
     mDurationPercentiles = percentiles;
   }
 
-  public void generatePercentiles() {
+  public void calculatePercentiles() {
     Histogram durationHistogram = new Histogram(
-            FormatUtils.parseTimeSize(mParameters.mDuration)
-                    + FormatUtils.parseTimeSize(mParameters.mWarmup),
+            FormatUtils.parseTimeSize(mParameters.mDuration),
             StressConstants.TIME_HISTOGRAM_PRECISION);
     mDataPoints.forEach(stat -> durationHistogram.recordValue(stat.getDuration()));
     for (int i = 0; i <= 100; i++) {
@@ -212,7 +214,7 @@ public final class WorkerBenchTaskResult implements TaskResult {
       WorkerBenchTaskResult mergedTaskResult = new WorkerBenchTaskResult();
 
       for (WorkerBenchTaskResult result : results) {
-        result.generatePercentiles();
+        result.calculatePercentiles();
         nodes.put(result.getBaseParameters().mId, result);
         mergedTaskResult.merge(result);
       }

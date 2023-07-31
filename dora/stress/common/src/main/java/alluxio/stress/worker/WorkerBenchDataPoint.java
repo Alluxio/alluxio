@@ -63,7 +63,7 @@ public class WorkerBenchDataPoint {
         return mStartMs;
     }
 
-    public long getmIOBytes(){
+    public long getIOBytes(){
         return mIOBytes;
     }
 
