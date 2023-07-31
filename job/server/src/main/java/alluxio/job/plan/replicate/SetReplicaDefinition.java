@@ -173,12 +173,16 @@ public final class SetReplicaDefinition
     try {
       JobUtils.loadBlock(status, context.getFsContext(), config.getBlockId(), null, false);
     } catch (IOException e) {
-      LOG.warn("Replication of {} failed, reduce min replication to 1 and unpin.",
+      LOG.warn("Replication of {} failed, reduce min replication to 0 and unpin.",
           status.getPath());
       SetAttributePOptions.Builder optionsBuilder =
           SetAttributePOptions.newBuilder();
-      context.getFileSystem().setAttribute(new AlluxioURI(config.getPath()),
-          optionsBuilder.setReplicationMin(0).setPinned(false).build());
+      try {
+        context.getFileSystem().setAttribute(new AlluxioURI(config.getPath()),
+            optionsBuilder.setReplicationMin(0).setPinned(false).build());
+      } catch (Throwable e2) {
+        e.addSuppressed(e2);
+      }
       throw e;
     }
     LOG.info("Replicated file " + config.getPath() + " block " + config.getBlockId());
