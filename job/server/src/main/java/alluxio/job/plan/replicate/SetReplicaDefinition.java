@@ -173,6 +173,9 @@ public final class SetReplicaDefinition
     try {
       JobUtils.loadBlock(status, context.getFsContext(), config.getBlockId(), null, false);
     } catch (IOException e) {
+      // This will remove the file from the pinlist if it fails to replicate, there can be false
+      // positives because replication can fail transiently and this would unpin it. However,
+      // compared to repeatedly replicating, this is a more acceptable result.
       LOG.warn("Replication of {} failed, reduce min replication to 0 and unpin. Reason: {} ",
           status.getPath(), e.getMessage());
       SetAttributePOptions.Builder optionsBuilder =
