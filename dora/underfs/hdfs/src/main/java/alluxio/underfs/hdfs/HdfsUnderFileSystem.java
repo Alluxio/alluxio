@@ -82,7 +82,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
     implements AtomicFileOutputStreamCallback {
   private static final Logger LOG = LoggerFactory.getLogger(HdfsUnderFileSystem.class);
-  private static final int MAX_TRY = 5;
+  protected static final int MAX_TRY = 5;
   protected static final String HDFS_USER = "";
   /** Name of the class for the HDFS Acl provider. */
   protected static final String HDFS_ACL_PROVIDER_CLASS =
@@ -115,7 +115,7 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
           "dfs.checksum.combine.mode";
 
   private final LoadingCache<String, FileSystem> mUserFs;
-  private final HdfsAclProvider mHdfsAclProvider;
+  protected final HdfsAclProvider mHdfsAclProvider;
 
   private HdfsActiveSyncProvider mHdfsActiveSyncer;
 

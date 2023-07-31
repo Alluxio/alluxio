@@ -74,6 +74,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -95,8 +96,18 @@ public final class AlluxioFuseUtils {
 
   public static final long MODE_NOT_SET_VALUE = -1;
   public static final String MACFUSE_SUPPORT_MINIMUM_OS_VERSION = "10.9";
+  private static Supplier<CreateFilePOptions.Builder> sDefaultCreateFilePOptionBuilderSupplier =
+      CreateFilePOptions::newBuilder;
 
   private AlluxioFuseUtils() {}
+
+  /**
+   * @param supplier the new supplier
+   */
+  public static void updateDefaultCreateFilePOptionBuilderSupplier(
+      Supplier<CreateFilePOptions.Builder> supplier) {
+    sDefaultCreateFilePOptionBuilderSupplier = supplier;
+  }
 
   /**
    * Checks the input file length.
@@ -124,7 +135,7 @@ public final class AlluxioFuseUtils {
    */
   public static FileOutStream createFile(FileSystem fileSystem, AuthPolicy authPolicy,
       AlluxioURI uri, CreateFileStatus fileStatus) {
-    CreateFilePOptions.Builder optionsBuilder = CreateFilePOptions.newBuilder();
+    CreateFilePOptions.Builder optionsBuilder = sDefaultCreateFilePOptionBuilderSupplier.get();
     if (fileStatus.getMode() != MODE_NOT_SET_VALUE) {
       optionsBuilder.setMode(new Mode((short) fileStatus.getMode()).toProto());
     }

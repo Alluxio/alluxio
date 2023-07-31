@@ -113,6 +113,16 @@ public interface UnderFileSystem extends Closeable, AsyncUfsClient {
       if (factories.isEmpty()) {
         throw new IllegalArgumentException("No Under File System Factory found for: " + path);
       }
+      // A temporary hacky way to make sure emon UFS are loaded first.
+      factories.sort((lhs, rhs) -> {
+        if (lhs.getClass().getName().contains("alluxio.emon")) {
+          return -1;
+        }
+        if (rhs.getClass().getName().contains("alluxio.emon")) {
+          return 1;
+        }
+        return lhs.getClass().getName().compareTo(rhs.getClass().getName());
+      });
 
       List<Throwable> errors = new ArrayList<>();
       for (UnderFileSystemFactory factory : factories) {

@@ -40,6 +40,7 @@ public class CreateOptions {
   private String mGroup;
   private Mode mMode;
   private AccessControlList mAcl;
+  private boolean mMultipartUploadEnabled;
 
   /**
    * @param conf Alluxio configuration
@@ -105,6 +106,13 @@ public class CreateOptions {
   }
 
   /**
+   * @return true, if multipart upload is enabled
+   */
+  public boolean isMultipartUploadEnabled() {
+    return mMultipartUploadEnabled;
+  }
+
+  /**
    * Sets an initial acl for the newly created file.
    *
    * @param acl option to set the ACL after creation
@@ -164,6 +172,15 @@ public class CreateOptions {
    */
   public CreateOptions setMode(Mode mode) {
     mMode = mode;
+    return this;
+  }
+
+  /**
+   * @param value if multipart upload is enabled
+   * @return the updated object
+   */
+  public CreateOptions setMultipartUploadEnabled(boolean value) {
+    mMultipartUploadEnabled = value;
     return this;
   }
 
