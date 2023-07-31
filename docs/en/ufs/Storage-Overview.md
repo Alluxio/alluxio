@@ -7,8 +7,6 @@ This guide will cover general prerequisites and running Alluxio locally with you
 
 ## Prerequisites
 
-<!-- In preparation for using your chosen storage system with Alluxio, create a new bucket, or use an existing bucket, and note the directory you want to use in that bucket, either by creating a new directory in the bucket or using an existing one. -->
-
 In preparation for using your chosen storage system with Alluxio, please be sure you have all the required location, credentials, and additional properties before you begin configuring Alluxio to your under storage system.
 
 For the purposes of this guide, the following are placeholders.
