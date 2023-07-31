@@ -13,7 +13,6 @@ package cmd
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -49,16 +48,15 @@ func TarballF(args []string) error {
 		return stacktrace.Propagate(err, "error parsing version string")
 	}
 	if opts.artifactOutput != "" {
-		a, err := artifact.NewArtifact(
-			artifact.TarballArtifact,
+		a, err := artifact.NewArtifactGroup(alluxioVersion)
+		if err != nil {
+			return stacktrace.Propagate(err, "error creating artifact group")
+		}
+		a.Add(artifact.TarballArtifact,
 			opts.outputDir,
 			strings.ReplaceAll(opts.targetName, versionPlaceholder, alluxioVersion),
-			alluxioVersion,
 			nil,
 		)
-		if err != nil {
-			return stacktrace.Propagate(err, "error adding artifact")
-		}
 		return a.WriteToFile(opts.artifactOutput)
 	}
 	if err := buildTarball(opts); err != nil {
@@ -103,8 +101,8 @@ func buildTarball(opts *buildOpts) error {
 		if opts.tarball.ClientJarName != "" {
 			mockFiles = append(mockFiles, opts.tarball.clientJarPath(alluxioVersion))
 		}
-		for _, info := range assembledJars {
-			mockFiles = append(mockFiles, fmt.Sprintf(info.generatedJarPath, alluxioVersion))
+		for _, info := range opts.assemblyJars {
+			mockFiles = append(mockFiles, strings.ReplaceAll(info.GeneratedJarPath, versionPlaceholder, alluxioVersion))
 		}
 		for _, l := range opts.libModules {
 			mockFiles = append(mockFiles, strings.ReplaceAll(l.GeneratedJarPath, versionPlaceholder, alluxioVersion))

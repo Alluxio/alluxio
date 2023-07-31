@@ -52,40 +52,57 @@ type dockerBuildOpts struct {
 	dockerImages  map[string]*DockerImage
 	dockerYmlFile string
 	image         string
+	metadata      map[string]string
 	tarballPath   string
 }
 
-func DockerF(args []string) error {
+func newDockerBuildOpts(args []string) (*dockerBuildOpts, error) {
 	cmd := flag.NewFlagSet(Docker, flag.ExitOnError)
-	opts := &dockerBuildOpts{}
+	opts := &dockerBuildOpts{
+		metadata: map[string]string{},
+	}
+	var flagMetadata string
 	// docker flags
 	cmd.StringVar(&opts.dockerYmlFile, "dockerYmlFile", defaultDockerYmlFilePath, "Path to docker.yml file")
 	cmd.StringVar(&opts.image, "image", "", "Choose the docker image to build. See available images in docker.yml")
 	cmd.StringVar(&opts.tarballPath, "tarballPath", "", "Set to use existing tarball for building docker image")
+	cmd.StringVar(&flagMetadata, "metadata", "", "Set to add metadata key-value pairs. Comma-delimited format (ex. key1=value1,key2=value2")
 	// parse flags
 	tOpts, err := parseTarballFlags(cmd, args)
 	if err != nil {
-		return stacktrace.Propagate(err, "error parsing build flags")
+		return nil, stacktrace.Propagate(err, "error parsing build flags")
 	}
+
+	// construct metadata from string flag
+	if flagMetadata != "" {
+		for _, pair := range strings.Split(flagMetadata, ",") {
+			kvp := strings.Split(pair, "=")
+			if len(kvp) != 2 {
+				return nil, stacktrace.NewError("expected key and value but got %v", kvp)
+			}
+			opts.metadata[kvp[0]] = kvp[1]
+		}
+	}
+	opts.buildOpts = tOpts
 
 	alluxioVersion, err := alluxioVersionFromPom()
 	if err != nil {
-		return stacktrace.Propagate(err, "error parsing version string")
+		return nil, stacktrace.Propagate(err, "error parsing version string")
 	}
 
 	// parse available docker images in docker.yml
 	{
 		wd, err := os.Getwd()
 		if err != nil {
-			return stacktrace.Propagate(err, "error getting current working directory")
+			return nil, stacktrace.Propagate(err, "error getting current working directory")
 		}
 		dockerYmlPath := filepath.Join(wd, opts.dockerYmlFile)
 		content, err := ioutil.ReadFile(dockerYmlPath)
 		if err != nil {
-			return stacktrace.Propagate(err, "error reading file at %v", dockerYmlPath)
+			return nil, stacktrace.Propagate(err, "error reading file at %v", dockerYmlPath)
 		}
 		if err := yaml.Unmarshal(content, &opts.dockerImages); err != nil {
-			return stacktrace.Propagate(err, "error unmarshalling docker images from:\n%v", string(content))
+			return nil, stacktrace.Propagate(err, "error unmarshalling docker images from:\n%v", string(content))
 		}
 		for _, img := range opts.dockerImages {
 			img.init(alluxioVersion)
@@ -94,20 +111,39 @@ func DockerF(args []string) error {
 
 	image, ok := opts.dockerImages[opts.image]
 	if !ok {
+		return nil, stacktrace.NewError("must provide valid 'image' arg")
+	}
+	opts.metadata["docker:tag"] = image.Tag
+
+	return opts, nil
+}
+
+func DockerF(args []string) error {
+	opts, err := newDockerBuildOpts(args)
+	if err != nil {
+		return stacktrace.Propagate(err, "error creating docker build opts")
+	}
+
+	alluxioVersion, err := alluxioVersionFromPom()
+	if err != nil {
+		return stacktrace.Propagate(err, "error parsing version string")
+	}
+
+	image, ok := opts.dockerImages[opts.image]
+	if !ok {
 		return stacktrace.NewError("must provide valid 'image' arg")
 	}
-	opts.buildOpts = tOpts
 	if opts.artifactOutput != "" {
-		artifact, err := artifact.NewArtifact(
-			artifact.DockerArtifact,
+		a, err := artifact.NewArtifactGroup(alluxioVersion)
+		if err != nil {
+			return stacktrace.Propagate(err, "error creating artifact group")
+		}
+		a.Add(artifact.DockerArtifact,
 			opts.outputDir,
 			image.TargetName,
-			alluxioVersion,
-			map[string]string{"docker:tag": image.Tag})
-		if err != nil {
-			return stacktrace.Propagate(err, "error adding artifact")
-		}
-		return artifact.WriteToFile(opts.artifactOutput)
+			opts.metadata,
+		)
+		return a.WriteToFile(opts.artifactOutput)
 	}
 
 	dockerWs := filepath.Join(repo.FindRepoRoot(), "integration", "docker")
@@ -115,7 +151,7 @@ func DockerF(args []string) error {
 
 	// create alluxio tarball and place directly in docker workdir
 	if opts.tarballPath == "" {
-		tmpOpts := *tOpts
+		tmpOpts := *opts.buildOpts
 		tmpOpts.outputDir = dockerWs
 		tmpOpts.targetName = tempAlluxioTarballName
 		if err := buildTarball(&tmpOpts); err != nil {

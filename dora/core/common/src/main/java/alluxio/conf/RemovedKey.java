@@ -100,14 +100,10 @@ public final class RemovedKey {
       put("alluxio.user.block.worker.client.threads", removedSince(V2_0_0));
       put("alluxio.user.failed.space.request.limits", removedSince(V2_0_0));
       put("alluxio.user.file.cache.partially.read.block", removedSince(V2_0_0));
-      put("alluxio.user.file.copyfromlocal.write.location.policy.class", replacedSince(V2_0_0,
-          PropertyKey.USER_FILE_COPYFROMLOCAL_BLOCK_LOCATION_POLICY.getName()));
       put("alluxio.user.file.seek.buffer.size.bytes", removedSince(V2_0_0));
       put("alluxio.user.file.write.avoid.eviction.policy.reserved.size.bytes",
           replacedSince(V2_0_0,
               PropertyKey.USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES.getName()));
-      put("alluxio.user.file.write.location.policy.class",
-          replacedSince(V2_0_0, PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY.getName()));
       put("alluxio.user.heartbeat.interval", removedSince(V2_0_0));
       put("alluxio.user.lineage.enabled", removedSince(V2_0_0));
       put("alluxio.user.lineage.master.client.threads", removedSince(V2_0_0));

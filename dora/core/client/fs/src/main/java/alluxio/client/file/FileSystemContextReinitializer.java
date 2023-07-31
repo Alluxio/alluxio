@@ -27,7 +27,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Reinitializes {@link FileSystemContext} inside {@link BaseFileSystem}.
+ * Reinitializes {@link FileSystemContext} used by {@link FileSystem}.
  *
  * A daemon heartbeat thread periodically fetches configuration hashes from meta master,
  * if they differ from the hashes in the {@link alluxio.ClientContext} backing the
@@ -62,8 +62,21 @@ public final class FileSystemContextReinitializer implements Closeable {
    * @param context the context to be reinitialized
    */
   public FileSystemContextReinitializer(FileSystemContext context) {
+    this(context, new ConfigHashSync(context));
+  }
+
+  /**
+   * Creates a new reinitializer for the context.
+   *
+   * The heartbeat will be started.
+   *
+   * @param context the context to be reinitialized
+   * @param configHashSync the configHashSync
+   */
+  public FileSystemContextReinitializer(FileSystemContext context,
+      ConfigHashSync configHashSync) {
     mContext = context;
-    mExecutor = new ConfigHashSync(context);
+    mExecutor = configHashSync;
     mFuture = REINIT_EXECUTOR.scheduleAtFixedRate(() -> {
       try {
         mExecutor.heartbeat(Long.MAX_VALUE);

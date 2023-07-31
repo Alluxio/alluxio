@@ -17,7 +17,6 @@ import alluxio.PositionReader;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.ReadType;
 import alluxio.client.file.dora.DoraCacheClient;
-import alluxio.client.file.dora.WorkerLocationPolicy;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.collections.Pair;
@@ -81,6 +80,8 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   private final boolean mUfsFallbackEnabled;
   private final long mDefaultVirtualBlockSize;
 
+  private final boolean mClientWriteToUFSEnabled;
+
   /**
    * DoraCacheFileSystem Factory.
    */
@@ -108,7 +109,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
    * @param context
    */
   public DoraCacheFileSystem(FileSystem fs, FileSystemContext context) {
-    this(fs, context, new DoraCacheClient(context, new WorkerLocationPolicy(2000)));
+    this(fs, context, new DoraCacheClient(context));
   }
 
   protected DoraCacheFileSystem(FileSystem fs, FileSystemContext context,
@@ -122,6 +123,8 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
         .getBoolean(PropertyKey.DORA_CLIENT_UFS_FALLBACK_ENABLED);
     mDefaultVirtualBlockSize = context.getClusterConf()
         .getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    mClientWriteToUFSEnabled = context.getClusterConf()
+        .getBoolean(PropertyKey.CLIENT_WRITE_TO_UFS_ENABLED);
   }
 
   @Override
@@ -275,7 +278,13 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       outStreamOptions.setMountId(status.getMountId());
       outStreamOptions.setAcl(status.getAcl());
 
-      FileOutStream ufsOutStream = mDelegatedFileSystem.createFile(ufsFullPath, options);
+      FileOutStream ufsOutStream;
+      if (mClientWriteToUFSEnabled) {
+        // create an output stream to UFS.
+        ufsOutStream = mDelegatedFileSystem.createFile(ufsFullPath, options);
+      } else {
+        ufsOutStream = null;
+      }
 
       FileOutStream doraOutStream = mDoraClient.getOutStream(ufsFullPath, mFsContext,
           outStreamOptions, ufsOutStream, uuid);

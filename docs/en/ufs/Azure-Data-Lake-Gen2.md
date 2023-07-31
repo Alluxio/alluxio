@@ -6,6 +6,8 @@ title: Azure Storage Gen2
 
 This guide describes how to configure Alluxio with [Azure Data Lake Storage Gen2](https://docs.microsoft.com/en-in/azure/storage/blobs/data-lake-storage-introduction) as the under storage system.
 
+Azure Data Lake Storage Gen2 is a set of capabilities dedicated to big data analytics, built on Azure Blob Storage. It converges the capabilities of Azure Data Lake Storage Gen1 with Azure Blob Storage.
+
 ## Prerequisites
 
 In preparation for using Azure Data Lake storage with Alluxio, [create a new Data Lake storage in your Azure
@@ -18,14 +20,12 @@ the directory in that storage account is called `<AZURE_DIRECTORY>`, and the nam
 
 ## Setup with Shared Key
 
-### Root Mount
-
 To use Azure Data Lake Storage as the UFS of Alluxio root mount point,
 you need to configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.
 
-```console
+```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
@@ -43,14 +43,12 @@ fs.azure.account.key.<AZURE_ACCOUNT>.dfs.core.windows.net=<SHARED_KEY>
 
 ## Setup with OAuth 2.0 Client Credentials
 
-### Root Mount
-
 To use Azure Data Lake Storage as the UFS of Alluxio root mount point,
 you need to configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.
 
-```console
+```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
@@ -71,14 +69,12 @@ fs.azure.account.oauth2.client.secret=<CLIENT_SECRET>
 
 ## Setup with Azure Managed Identities
 
-### Root Mount
-
 To use Azure Data Lake Storage as the UFS of Alluxio root mount point,
 you need to configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.
 
-```console
+```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
@@ -100,9 +96,9 @@ fs.azure.account.oauth2.msi.tenant=<TENANT>
 
 Start up Alluxio locally to see that everything works.
 
-```console
-./bin/alluxio format
-./bin/alluxio-start.sh local
+```shell
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
 ```
 
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
@@ -110,8 +106,8 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 
 Run a simple example program:
 
-```console
-./bin/alluxio runTests
+```shell
+$ ./bin/alluxio runTests
 ```
 
 Visit your directory `<AZURE_DIRECTORY>` to verify the files and directories created by Alluxio exist. For this test, you should see files named like:
@@ -122,6 +118,6 @@ Visit your directory `<AZURE_DIRECTORY>` to verify the files and directories cre
 
 To stop Alluxio, you can run:
 
-```console
-./bin/alluxio-stop.sh local
+```shell
+$ ./bin/alluxio-stop.sh local
 ```

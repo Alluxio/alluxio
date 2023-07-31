@@ -7,17 +7,17 @@ title: Swift
 This guide describes how to configure Alluxio with an under storage system supporting the
 [Swift API](http://docs.openstack.org/developer/swift/).
 
+Swift is a highly available, distributed, eventually consistent object/blob store. Organizations can use Swift to store lots of data efficiently, safely, and cheaply.
+
 ## Basic Setup
 
 A Swift bucket can be mounted to the Alluxio either at the root of the namespace, or at a nested directory.
-
-### Root Mount Point
 
 Configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.
 
-```console
+```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
@@ -57,7 +57,7 @@ be deployed.
 
 Start an Alluxio cluster:
 
-```console
+```shell
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
 ```
@@ -67,20 +67,20 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 
 Run a simple example program:
 
-```console
+```shell
 $ ./bin/alluxio runTests
 ```
 
 Visit your Swift bucket to verify the files and directories created
 by Alluxio exist. For this test, you should see files named like:
 
-```bash
+```
 <bucket>/<folder>/default_tests_files/BASIC_CACHE_THROUGH
 ```
 
 To stop Alluxio, you can run:
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh local
 ```
 
@@ -90,7 +90,7 @@ The following command can be used to test if the given Swift credentials are val
 Developers can also use it to run functional tests against a Swift endpoint 
 to validate the contract between Alluxio and Swift.
 
-```console
+```shell
 $ ./bin/alluxio runUfsTests --path swift://<bucket> \
   -Dfs.swift.user=<SWIFT_USER> \
   -Dfs.swift.tenant=<SWIFT_TENANT> \

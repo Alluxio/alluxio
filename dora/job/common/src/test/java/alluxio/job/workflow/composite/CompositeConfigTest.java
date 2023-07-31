@@ -15,7 +15,7 @@ import static junit.framework.TestCase.assertNotNull;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.job.JobConfig;
-import alluxio.job.plan.load.LoadConfig;
+import alluxio.job.plan.persist.PersistConfig;
 import alluxio.job.util.SerializationUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,7 +24,6 @@ import org.junit.Test;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 
 /**
  * Tests {@link CompositeConfig}.
@@ -36,8 +35,7 @@ public final class CompositeConfigTest {
     ArrayList<JobConfig> jobs = new ArrayList<>();
     jobs.add(new CompositeConfig(new ArrayList<>(), true));
     jobs.add(new CompositeConfig(new ArrayList<>(), false));
-    jobs.add(new CompositeConfig(Lists.newArrayList(new LoadConfig("/", 1, Collections.EMPTY_SET,
-        Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET, true)), true));
+    jobs.add(new CompositeConfig(Lists.newArrayList(new PersistConfig("/", 1, true, "")), true));
     CONFIG = new CompositeConfig(jobs, true);
   }
 

@@ -554,6 +554,10 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     return mStreamingUploadEnabled;
   }
 
+  protected boolean getMultipartUploadEnabled() {
+    return mMultipartUploadEnabled;
+  }
+
   @Override
   public boolean createEmptyObject(String key) {
     try {

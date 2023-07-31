@@ -4,7 +4,10 @@ title: Azure Data Lake Storage
 ---
 
 
-This guide describes how to configure Alluxio with [Azure Data Lake Storage Gen1](https://docs.microsoft.com/en-in/azure/data-lake-store/data-lake-store-overview) as the under storage system.
+This guide describes how to configure Alluxio with [Azure Data Lake Storage Gen1](https://docs.microsoft.com/en-in/azure/data-lake-store/data-lake-store-overview) as the under storage system. 
+
+Azure Data Lake Storage is an enterprise-wide hyper-scale repository for big data analytic workloads. Azure Data Lake enables you to capture data of any size, type, and ingestion speed in one single place for operational and exploratory analytics. It is designed to store and analyze large amounts of structured, semi-structured, and unstructured data.
+
 
 ## Prerequisites
 
@@ -20,14 +23,12 @@ about Azure storage account, please see
 
 ## Basic Setup
 
-### Root Mount
-
 To use Azure Data Lake Storage as the UFS of Alluxio root mount point,
 you need to configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.
 
-```console
+```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
@@ -48,28 +49,15 @@ fs.adl.account.<AZURE_ACCOUNT>.oauth2.credential=<AUTHENTICATION_KEY>
 fs.adl.account.<AZURE_ACCOUNT>.oauth2.refresh.url=https://login.microsoftonline.com/<TENANT_ID>/oauth2/token
 ```
 
-### Nested Mount
-An Azure Data Lake store location can be mounted at a nested directory in the Alluxio namespace to have unified access
-to multiple under storage systems. Alluxio's
-[Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) can be used for this purpose.
-
-```console
-$ ./bin/alluxio fs mount \
-  --option fs.adl.account.<AZURE_ACCOUNT>.oauth2.client.id=<APPLICATION_ID>
-  --option fs.adl.account.<AZURE_ACCOUNT>.oauth2.credential=<AUTHENTICATION_KEY>
-  --option fs.adl.account.<AZURE_ACCOUNT>.oauth2.refresh.url=https://login.microsoftonline.com/<TENANT_ID>/oauth2/token
-  /mnt/adls adl://<AZURE_ACCOUNT>.azuredatalakestore.net/<AZURE_DIRECTORY>/
-```
-
 After these changes, Alluxio should be configured to work with Azure Data Lake storage as its under storage system, and you can run Alluxio locally with it.
 
 ## Running Alluxio Locally with Data Lake Storage
 
 Start up Alluxio locally to see that everything works.
 
-```console
-./bin/alluxio format
-./bin/alluxio-start.sh local
+```shell
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
 ```
 
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
@@ -77,8 +65,8 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 
 Run a simple example program:
 
-```console
-./bin/alluxio runTests
+```shell
+$ ./bin/alluxio runTests
 ```
 
 Visit your directory `<AZURE_DIRECTORY>` to verify the files and directories created by Alluxio exist. For this test, you should see files named like:
@@ -89,6 +77,6 @@ Visit your directory `<AZURE_DIRECTORY>` to verify the files and directories cre
 
 To stop Alluxio, you can run:
 
-```console
-./bin/alluxio-stop.sh local
+```shell
+$ ./bin/alluxio-stop.sh local
 ```

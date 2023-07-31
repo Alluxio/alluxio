@@ -14,7 +14,7 @@
     <parent>
         <artifactId>alluxio-underfs</artifactId>
         <groupId>org.alluxio</groupId>
-        <version>302-SNAPSHOT</version>
+        <version>303-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -33,12 +33,10 @@
         <dependency>
             <groupId>com.qiniu</groupId>
             <artifactId>qiniu-java-sdk</artifactId>
-            <version>7.2.17</version>
         </dependency>
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
-            <version>3.10.0</version>
         </dependency>
         <dependency>
             <groupId>org.alluxio</groupId>

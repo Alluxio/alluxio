@@ -15,7 +15,7 @@
   <parent>
     <artifactId>alluxio-underfs</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>302-SNAPSHOT</version>
+    <version>303-SNAPSHOT</version>
   </parent>
 
   <artifactId>alluxio-underfs-ozone</artifactId>
@@ -119,7 +119,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>3.2.4</version>
         <executions>
           <execution>
             <id>shade</id>

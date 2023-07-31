@@ -12,7 +12,6 @@
 package alluxio.client.block.stream;
 
 import alluxio.client.Cancelable;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.conf.AlluxioConfiguration;
@@ -57,21 +56,18 @@ public interface DataWriter extends Closeable, Cancelable {
     public static DataWriter create(FileSystemContext context, long blockId, long blockSize,
         WorkerNetAddress address, OutStreamOptions options) throws IOException {
       AlluxioConfiguration alluxioConf = context.getClusterConf();
-      boolean ufsFallbackEnabled = options.getWriteType() == WriteType.ASYNC_THROUGH
-          && alluxioConf.getBoolean(PropertyKey.USER_FILE_UFS_TIER_ENABLED);
       boolean workerIsLocal = CommonUtils.isLocalHost(address, alluxioConf);
       boolean nettyTransEnabled =
           alluxioConf.getBoolean(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED);
 
-      if (workerIsLocal && context.hasProcessLocalWorker() && !ufsFallbackEnabled) {
+      if (workerIsLocal) {
         LOG.debug("Creating worker process local output stream for block {} @ {}",
             blockId, address);
         return BlockWorkerDataWriter.create(context, blockId, blockSize, options);
       }
       LOG.debug("Doesn't create worker process local output stream for block {} @ {} "
-          + "(data locates in local worker: {}, client locates in local worker process: {}, "
-          + "ufs fallback enabled: {})", blockId, address,
-          workerIsLocal, context.hasProcessLocalWorker(), ufsFallbackEnabled);
+          + "(data locates in local worker: {}, client locates in local worker process: {})",
+          blockId, address, workerIsLocal, context.hasProcessLocalWorker());
 
       boolean domainSocketSupported = NettyUtils.isDomainSocketSupported(address);
       if (nettyTransEnabled) {

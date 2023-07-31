@@ -16,7 +16,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.job.JobConfig;
 import alluxio.job.plan.BatchedJobConfig;
-import alluxio.job.plan.load.LoadConfig;
 import alluxio.job.plan.migrate.MigrateConfig;
 import alluxio.job.plan.persist.PersistConfig;
 import alluxio.metrics.MetricKey;
@@ -24,7 +23,6 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.retry.RetryPolicy;
 
 import com.codahale.metrics.Counter;
-import com.codahale.metrics.Meter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,20 +35,6 @@ import java.util.Map;
  */
 public class DistributedCmdMetrics {
   private static final Logger LOG = LoggerFactory.getLogger(DistributedCmdMetrics.class);
-
-  private static final Counter JOB_DISTRIBUTED_LOAD_SUCCESS =
-          MetricsSystem.counter(MetricKey.MASTER_JOB_DISTRIBUTED_LOAD_SUCCESS.getName());
-  private static final Counter JOB_DISTRIBUTED_LOAD_FAIL =
-          MetricsSystem.counter(MetricKey.MASTER_JOB_DISTRIBUTED_LOAD_FAIL.getName());
-  private static final Counter JOB_DISTRIBUTED_LOAD_CANCEL =
-          MetricsSystem.counter(MetricKey.MASTER_JOB_DISTRIBUTED_LOAD_CANCEL.getName());
-  private static final Counter JOB_DISTRIBUTED_LOAD_FILE_COUNT =
-          MetricsSystem.counter(MetricKey.MASTER_JOB_DISTRIBUTED_LOAD_FILE_COUNT.getName());
-  private static final Counter JOB_DISTRIBUTED_LOAD_FILE_SIZE =
-          MetricsSystem.counter(MetricKey.MASTER_JOB_DISTRIBUTED_LOAD_FILE_SIZE.getName());
-  private static final Meter JOB_DISTRIBUTED_LOAD_RATE =
-          MetricsSystem.meter(MetricKey.MASTER_JOB_DISTRIBUTED_LOAD_RATE.getName());
-
   private static final Counter MIGRATE_JOB_SUCCESS =
           MetricsSystem.counter(MetricKey.MASTER_MIGRATE_JOB_SUCCESS.getName());
   private static final Counter MIGRATE_JOB_FAIL =
@@ -82,9 +66,6 @@ public class DistributedCmdMetrics {
  */
   public static void incrementForFailStatus(String jobType, long count) {
     switch (jobType) {
-      case LoadConfig.NAME:
-        JOB_DISTRIBUTED_LOAD_FAIL.inc(count);
-        break;
       case MigrateConfig.NAME:
         MIGRATE_JOB_FAIL.inc(count);
         break;
@@ -104,9 +85,6 @@ public class DistributedCmdMetrics {
  */
   public static void incrementForCancelStatus(String jobType, long count) {
     switch (jobType) {
-      case LoadConfig.NAME:
-        JOB_DISTRIBUTED_LOAD_CANCEL.inc(count);
-        break;
       case MigrateConfig.NAME:
         MIGRATE_JOB_CANCEL.inc(count);
         break;
@@ -148,15 +126,7 @@ public class DistributedCmdMetrics {
           JobConfig config, FileSystem fileSystem, RetryPolicy retryPolicy) {
     String filePath;
     long fileSize;
-    if (config instanceof LoadConfig) {
-      filePath = ((LoadConfig) config).getFilePath();
-      JOB_DISTRIBUTED_LOAD_SUCCESS.inc(DEFAULT_INCREMENT_VALUE);
-      JOB_DISTRIBUTED_LOAD_FILE_COUNT.inc(DEFAULT_INCREMENT_VALUE);
-
-      fileSize = getFileSize(filePath, fileSystem, retryPolicy);
-      JOB_DISTRIBUTED_LOAD_FILE_SIZE.inc(fileSize);
-      JOB_DISTRIBUTED_LOAD_RATE.mark(fileSize);
-    } else if (config instanceof MigrateConfig) {
+    if (config instanceof MigrateConfig) {
       filePath = ((MigrateConfig) config).getSource();
       MIGRATE_JOB_SUCCESS.inc(DEFAULT_INCREMENT_VALUE);
       MIGRATE_JOB_FILE_COUNT.inc(DEFAULT_INCREMENT_VALUE);
@@ -187,18 +157,6 @@ public class DistributedCmdMetrics {
     long count = config.getJobConfigs().size(); //count of files
 
     switch (jobType) {
-      case LoadConfig.NAME:
-        JOB_DISTRIBUTED_LOAD_SUCCESS.inc(count);
-        JOB_DISTRIBUTED_LOAD_FILE_COUNT.inc(count);
-
-        for (Map<String, String> jobConfig : config.getJobConfigs()) {
-          //Look up actual filePath for LoadConfig from the map, key is given "filePath"
-          String filePath = jobConfig.get("filePath");
-          long fileSize = getFileSize(filePath, fileSystem, retryPolicy);
-          JOB_DISTRIBUTED_LOAD_FILE_SIZE.inc(fileSize);
-          JOB_DISTRIBUTED_LOAD_RATE.mark(fileSize);
-        }
-        return;
       case MigrateConfig.NAME:
         MIGRATE_JOB_SUCCESS.inc(count);
         MIGRATE_JOB_FILE_COUNT.inc(count);

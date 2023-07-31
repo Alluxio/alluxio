@@ -51,7 +51,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This class encapsulates the different worker services that are configured to run.
  */
 @NotThreadSafe
-public final class AlluxioWorkerProcess implements WorkerProcess {
+public class AlluxioWorkerProcess implements WorkerProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioWorkerProcess.class);
 
   private final TieredIdentity mTieredIdentitiy;
@@ -122,6 +122,22 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       DataServerFactory dataServerFactory,
       @Nullable NettyDataServer nettyDataServer,
       @Nullable HttpServer httpServer) {
+    this(tieredIdentity, workerRegistry, ufsManager, worker,
+        dataServerFactory, nettyDataServer, httpServer, false);
+  }
+
+  /**
+   * Creates a new instance of {@link AlluxioWorkerProcess}.
+   */
+  protected AlluxioWorkerProcess(
+      TieredIdentity tieredIdentity,
+      WorkerRegistry workerRegistry,
+      UfsManager ufsManager,
+      Worker worker,
+      DataServerFactory dataServerFactory,
+      @Nullable NettyDataServer nettyDataServer,
+      @Nullable HttpServer httpServer,
+      boolean delayWebServer) {
     try {
       mTieredIdentitiy = requireNonNull(tieredIdentity);
       mUfsManager = requireNonNull(ufsManager);
@@ -143,10 +159,12 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
           Configuration.getMs(PropertyKey.WORKER_STARTUP_TIMEOUT));
 
       // Setup web server
-      mWebServer =
-          new WorkerWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB,
-              Configuration.global()), this,
-              mRegistry.get(DataWorker.class));
+      if (!delayWebServer) {
+        mWebServer =
+            new WorkerWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB,
+                Configuration.global()), this,
+                mRegistry.get(DataWorker.class));
+      }
 
       // Setup GRPC server
       mDataServer = dataServerFactory.createRemoteGrpcDataServer(
@@ -171,6 +189,10 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  protected void setWebServer(WebServer webServer) {
+    mWebServer = webServer;
   }
 
   @Override

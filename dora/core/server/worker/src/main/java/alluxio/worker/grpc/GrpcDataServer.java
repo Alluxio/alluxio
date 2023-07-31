@@ -11,7 +11,6 @@
 
 package alluxio.worker.grpc;
 
-import alluxio.client.file.FileSystemContext;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.executor.ExecutorServiceBuilder;
@@ -77,9 +76,6 @@ public class GrpcDataServer implements DataServer {
   private DomainSocketAddress mDomainSocketAddress = null;
 
   private AlluxioExecutorService mRPCExecutor = null;
-
-  private final FileSystemContext mFsContext =
-      FileSystemContext.create(Configuration.global());
 
   /**
    * Creates a new instance of {@link GrpcDataServer}.
@@ -177,7 +173,6 @@ public class GrpcDataServer implements DataServer {
 
   @Override
   public void close() throws IOException {
-    mFsContext.close();
     if (mServer != null) {
       LOG.info("Shutting down Alluxio worker gRPC server at {}.", getBindAddress());
       boolean completed = mServer.shutdown();

@@ -4207,18 +4207,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   //
-  // Secondary master related properties
-  //
-  public static final PropertyKey SECONDARY_MASTER_METASTORE_DIR =
-      stringBuilder(Name.SECONDARY_MASTER_METASTORE_DIR)
-          .setDefaultValue(format("${%s}/secondary-metastore", Name.WORK_DIR))
-          .setDescription(
-              "The secondary master metastore work directory. Only some metastores need disk.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.SERVER)
-          .build();
-
-  //
   // File system master related properties
   //
   public static final PropertyKey MASTER_FILE_SYSTEM_LISTSTATUS_RESULTS_PER_MESSAGE =
@@ -5986,13 +5974,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_FILE_COPYFROMLOCAL_BLOCK_LOCATION_POLICY =
-      classBuilder(Name.USER_FILE_COPYFROMLOCAL_BLOCK_LOCATION_POLICY)
-          .setDefaultValue("alluxio.client.block.policy.RoundRobinPolicy")
-          .setDescription("The default location policy for choosing workers for writing a "
-              + "file's blocks using copyFromLocal command.")
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey USER_FILE_DELETE_UNCHECKED =
       booleanBuilder(Name.USER_FILE_DELETE_UNCHECKED)
           .setDefaultValue(false)
@@ -6129,26 +6110,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "FREE(default), DELETE_ALLUXIO or DELETE")
           .setScope(Scope.CLIENT)
           .build();
-  public static final PropertyKey USER_FILE_UFS_TIER_ENABLED =
-      booleanBuilder(Name.USER_FILE_UFS_TIER_ENABLED)
-          .setDescription("When workers run out of available memory, whether the client can skip "
-              + "writing data to Alluxio but fallback to write to UFS without stopping the "
-              + "application. This property only works when the write type is ASYNC_THROUGH.")
-          .setDefaultValue(false)
-          .setScope(Scope.CLIENT)
-          .build();
   public static final PropertyKey USER_BLOCK_READ_METRICS_ENABLED =
       booleanBuilder(Name.USER_BLOCK_READ_METRICS_ENABLED)
           .setDescription("Whether detailed block read metrics will be recorded and sink.")
           .setDefaultValue(false)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_BLOCK_WRITE_LOCATION_POLICY =
-      classBuilder(Name.USER_BLOCK_WRITE_LOCATION_POLICY)
-          .setDefaultValue("alluxio.client.block.policy.LocalFirstPolicy")
-          .setDescription("The default location policy for choosing workers for writing a "
-              + "file's blocks.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
   public static final PropertyKey USER_BLOCK_AVOID_EVICTION_POLICY_RESERVED_BYTES =
@@ -6427,7 +6392,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
-
+  public static final PropertyKey USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT =
+      intBuilder(Name.USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT)
+          .setDefaultValue(2000)
+          .setDescription("This is the number of virtual nodes in the consistent hashing "
+              + "algorithm. In a consistent hashing algorithm, on membership changes, some "
+              + "virtual nodes are re-distributed instead of rebuilding the whole hash table. "
+              + "This guarantees the hash table is changed only in a minimal. In order to achieve "
+              + "that, the number of virtual nodes should be X times the physical nodes in "
+              + "the cluster, where X is a balance between redistribution granularity and size.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_FILE_WRITE_TYPE_DEFAULT =
       enumBuilder(Name.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class)
           .setDefaultValue(WriteType.CACHE_THROUGH)
@@ -6987,6 +6963,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(false)
           .setDescription("Shuffle the client-side configured master rpc addresses.")
           .build();
+  public static final PropertyKey USER_WORKER_SELECTION_POLICY =
+      classBuilder(Name.USER_WORKER_SELECTION_POLICY)
+          .setDefaultValue("alluxio.client.file.dora.ConsistentHashPolicy")
+          .setDescription("The policy a client uses to map a file path to a worker address. "
+              + "The only option is `alluxio.client.file.dora.ConsistentHashPolicy`. "
+              + "Other options are for internal tests only and not for real deployments.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_WORKER_LIST_REFRESH_INTERVAL =
       durationBuilder(Name.USER_WORKER_LIST_REFRESH_INTERVAL)
           .setDefaultValue("2min")
@@ -7009,55 +6994,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(true)
           .setDescription("Whether to return all workers as block location if ufs block locations "
               + "are not co-located with any Alluxio workers or is empty.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY =
-      classBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY)
-          .setDefaultValue("alluxio.client.block.policy.LocalFirstPolicy")
-          .setDescription(format("When an Alluxio client reads a file from the UFS, it "
-              + "delegates the read to an Alluxio worker. The client uses this policy to choose "
-              + "which worker to read through. Built-in choices: %s.", Arrays.asList(
-              javadocLink("alluxio.client.block.policy.CapacityBasedDeterministicHashPolicy"),
-              javadocLink("alluxio.client.block.policy.CapacityBaseRandomPolicy"),
-              javadocLink("alluxio.client.block.policy.DeterministicHashPolicy"),
-              javadocLink("alluxio.client.block.policy.LocalFirstAvoidEvictionPolicy"),
-              javadocLink("alluxio.client.block.policy.LocalFirstPolicy"),
-              javadocLink("alluxio.client.block.policy.MostAvailableFirstPolicy"),
-              javadocLink("alluxio.client.block.policy.RoundRobinPolicy"),
-              javadocLink("alluxio.client.block.policy.SpecificHostPolicy"))))
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS =
-      intBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS)
-          .setDefaultValue(1)
-          .setDescription("When alluxio.user.ufs.block.read.location.policy is set to "
-              + "alluxio.client.block.policy.DeterministicHashPolicy or "
-              + "alluxio.client.block.policy.CapacityBasedDeterministicHashPolicy, "
-              + "this specifies the number of hash shards.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  @Deprecated(message = "CapacityBaseRandomPolicy no longer caches block locations. "
-      + "To make sure a block is always assigned to the same worker, use DeterministicHashPolicy.")
-  public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_SIZE =
-      intBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_SIZE)
-          .setDefaultValue(10000)
-          .setDescription("Deprecated - When alluxio.user.ufs.block.read.location.policy is set "
-              + "to alluxio.client.block.policy.CapacityBaseRandomPolicy, "
-              + "this specifies cache size of block location.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.CLIENT)
-          .build();
-  @Deprecated(message = "CapacityBaseRandomPolicy no longer caches block locations. "
-      + "To make sure a block is always assigned to the same worker, use DeterministicHashPolicy.")
-  public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_EXPIRATION_TIME =
-      durationBuilder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_EXPIRATION_TIME)
-          .setDefaultValue("10min")
-          .setDescription("Deprecated - When alluxio.user.ufs.block.read.location.policy is set "
-              + "to alluxio.client.block.policy.CapacityBaseRandomPolicy, "
-              + "this specifies cache expire time of block location.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -7968,6 +7904,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setScope(Scope.WORKER)
           .build();
 
+  public static final PropertyKey CLIENT_WRITE_TO_UFS_ENABLED =
+      booleanBuilder(Name.CLIENT_WRITE_TO_UFS_ENABLED)
+          .setDescription("Whether or not to enable client writing data directly to UFS. "
+              + "If enabled, client writes data to worker (to be cached in Paging Store) and "
+              + "to UFS (to be stored permanently). Client need UFS credentials in this case. "
+              + "Enabled by default.")
+          .setDefaultValue(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.ALL)
+          .build();
+
   //
   // Extra class to be loaded
   //
@@ -8790,10 +8737,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.throttle.filesystem.rpc.queue.size.limit";
 
     //
-    // Secondary master related properties
+    // Standby master related properties
     //
-    public static final String SECONDARY_MASTER_METASTORE_DIR =
-        "alluxio.secondary.master.metastore.dir";
     public static final String STANDBY_MASTER_METRICS_SINK_ENABLED =
         "alluxio.standby.master.metrics.sink.enabled";
     public static final String STANDBY_MASTER_WEB_ENABLED =
@@ -9149,8 +9094,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.worker.client.pool.min";
     public static final String USER_BLOCK_WORKER_CLIENT_POOL_MAX =
         "alluxio.user.block.worker.client.pool.max";
-    public static final String USER_BLOCK_WRITE_LOCATION_POLICY =
-        "alluxio.user.block.write.location.policy.class";
     public static final String USER_CLIENT_CACHE_ASYNC_RESTORE_ENABLED =
         "alluxio.user.client.cache.async.restore.enabled";
     public static final String USER_CLIENT_CACHE_ASYNC_WRITE_ENABLED =
@@ -9221,14 +9164,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.client.cache.timeout.threads";
     public static final String USER_CLIENT_REPORT_VERSION_ENABLED =
         "alluxio.user.client.report.version.enabled";
+    public static final String USER_CONSISTENT_HASH_VIRTUAL_NODE_COUNT =
+        "alluxio.user.consistent.hash.virtual.node.count";
     public static final String USER_CONF_CLUSTER_DEFAULT_ENABLED =
         "alluxio.user.conf.cluster.default.enabled";
     public static final String USER_CONF_SYNC_INTERVAL = "alluxio.user.conf.sync.interval";
     public static final String USER_DATE_FORMAT_PATTERN = "alluxio.user.date.format.pattern";
     public static final String USER_FILE_BUFFER_BYTES = "alluxio.user.file.buffer.bytes";
     public static final String USER_FILE_RESERVED_BYTES = "alluxio.user.file.reserved.bytes";
-    public static final String USER_FILE_COPYFROMLOCAL_BLOCK_LOCATION_POLICY =
-        "alluxio.user.file.copyfromlocal.block.location.policy.class";
     public static final String USER_FILE_DELETE_UNCHECKED =
         "alluxio.user.file.delete.unchecked";
     public static final String USER_FILE_MASTER_CLIENT_POOL_SIZE_MIN =
@@ -9258,7 +9201,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.replication.durable";
     public static final String USER_FILE_SEQUENTIAL_PREAD_THRESHOLD =
         "alluxio.user.file.sequential.pread.threshold";
-    public static final String USER_FILE_UFS_TIER_ENABLED = "alluxio.user.file.ufs.tier.enabled";
     public static final String USER_FILE_WAITCOMPLETED_POLL_MS =
         "alluxio.user.file.waitcompleted.poll";
     public static final String USER_FILE_CREATE_TTL =
@@ -9389,20 +9331,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_RPC_RETRY_MAX_SLEEP_MS = "alluxio.user.rpc.retry.max.sleep";
     public static final String USER_UFS_BLOCK_LOCATION_ALL_FALLBACK_ENABLED =
         "alluxio.user.ufs.block.location.all.fallback.enabled";
-    public static final String USER_UFS_BLOCK_READ_LOCATION_POLICY =
-        "alluxio.user.ufs.block.read.location.policy";
-    public static final String USER_UFS_BLOCK_READ_LOCATION_POLICY_DETERMINISTIC_HASH_SHARDS =
-        "alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards";
-    public static final String USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_SIZE =
-        "alluxio.user.ufs.block.read.location.policy.cache.size";
-    public static final String USER_UFS_BLOCK_READ_LOCATION_POLICY_CACHE_EXPIRATION_TIME =
-        "alluxio.user.ufs.block.read.location.policy.cache.expiration.time";
     public static final String USER_UFS_BLOCK_READ_CONCURRENCY_MAX =
         "alluxio.user.ufs.block.read.concurrency.max";
     public static final String USER_UNSAFE_DIRECT_LOCAL_IO_ENABLED =
         "alluxio.user.unsafe.direct.local.io.enabled";
     public static final String USER_UPDATE_FILE_ACCESSTIME_DISABLED =
         "alluxio.user.update.file.accesstime.disabled";
+    public static final String USER_WORKER_SELECTION_POLICY =
+        "alluxio.user.worker.selection.policy";
     public static final String USER_WORKER_LIST_REFRESH_INTERVAL =
         "alluxio.user.worker.list.refresh.interval";
 
@@ -9623,6 +9559,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String DORA_UFS_LIST_STATUS_CACHE_NR_FILES =
         "alluxio.dora.ufs.list.status.cache.nr.files";
 
+    public static final String CLIENT_WRITE_TO_UFS_ENABLED =
+        "alluxio.client.write.to.ufs.enabled";
     //
     // Extra class to be loaded
     //

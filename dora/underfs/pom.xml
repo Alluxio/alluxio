@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-dora</artifactId>
-    <version>302-SNAPSHOT</version>
+    <version>303-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-underfs</artifactId>
   <packaging>pom</packaging>

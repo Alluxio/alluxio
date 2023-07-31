@@ -5,6 +5,7 @@ title: Ozone
 
 
 This guide describes how to configure [Ozone](https://ozone.apache.org/) as Alluxio's under storage system. 
+
 Ozone is a scalable, redundant, and distributed object store for Hadoop. Apart from scaling to billions of objects of varying sizes, 
 Ozone can function effectively in containerized environments such as Kubernetes and YARN.
 
@@ -18,7 +19,7 @@ to install a Ozone cluster, and follow the [Cli Commands](https://ozone.apache.o
 To configure Alluxio to use Ozone as under storage, you will need to modify the configuration file 
 `conf/alluxio-site.properties`. If the file does not exist, create the configuration file from the template.
 
-```console
+```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
@@ -81,11 +82,11 @@ When mounting the under storage at the Alluxio root with a specific Ozone versio
 alluxio.underfs.version=<OZONE_VERSION>
 ```
 
-## Example: Running Alluxio Locally with Ozone
+## Running Alluxio Locally with Ozone
 
 Start the Alluxio servers:
 
-```console
+```shell
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
 ```
@@ -95,7 +96,7 @@ This will start an Alluxio master and an Alluxio worker. You can see the master 
 
 Run a simple example program:
 
-```console
+```shell
 $ ./bin/alluxio runTests
 ```
 
@@ -105,7 +106,7 @@ to verify the files and directories created by Alluxio exist. For this test, you
 
 Stop Alluxio by running:
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh local
 ```
 
