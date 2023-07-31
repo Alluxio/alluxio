@@ -27,7 +27,6 @@ import static java.lang.String.format;
 
 import alluxio.Constants;
 import alluxio.DefaultSupplier;
-import alluxio.membership.MembershipType;
 import alluxio.ProjectConstants;
 import alluxio.RuntimeConstants;
 import alluxio.annotation.PublicApi;
@@ -49,6 +48,7 @@ import alluxio.master.journal.JournalType;
 import alluxio.master.metastore.MetastoreType;
 import alluxio.master.metastore.rocks.DataBlockIndexType;
 import alluxio.master.metastore.rocks.IndexType;
+import alluxio.membership.MembershipType;
 import alluxio.network.ChannelType;
 import alluxio.network.netty.FileTransferType;
 import alluxio.security.authentication.AuthType;

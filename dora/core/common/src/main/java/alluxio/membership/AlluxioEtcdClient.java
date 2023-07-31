@@ -27,7 +27,6 @@ import io.etcd.jetcd.Client;
 import io.etcd.jetcd.KeyValue;
 import io.etcd.jetcd.Watch;
 import io.etcd.jetcd.kv.GetResponse;
-import io.etcd.jetcd.kv.PutResponse;
 import io.etcd.jetcd.lease.LeaseGrantResponse;
 import io.etcd.jetcd.lease.LeaseRevokeResponse;
 import io.etcd.jetcd.lease.LeaseTimeToLiveResponse;
