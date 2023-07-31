@@ -112,16 +112,21 @@ func (p *WorkersProcess) Start(cmd *env.StartProcessCommand) error {
 	}
 
 	// 3. for each worker, create a client
+	// TODO: now start worker one by one, need to do them in parallel
 	for _, worker := range workersList {
 		clientConfig := &ssh.ClientConfig{
+			// TODO: how to get user name? Like ${USER} in alluxio-common.sh
 			User: "root",
+			// TODO: if configure nothing, can use none as the authentication method, suggest use public key
 			Auth: []ssh.AuthMethod{
 				ssh.PublicKeys(parsedPrivateKey),
 			},
 			Timeout:         5 * time.Second,
 			HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 		}
+		// TODO: get ssh port if needed (some machines might have changed default port)
 		dialAddr := fmt.Sprintf("%s:%d", worker, 22)
+		// TODO: error to resolve: handshake error, authentication failed
 		sshClient, err := ssh.Dial("tcp", dialAddr, clientConfig)
 		if err != nil {
 			log.Logger.Fatalf("Dial failed to %s, error: %s", dialAddr, err)
@@ -144,7 +149,7 @@ func (p *WorkersProcess) Start(cmd *env.StartProcessCommand) error {
 		session.Stderr = os.Stderr
 
 		// 5. run session
-		command := "${ALLUXIO_HOME}/bin/cli.sh process start workers"
+		command := "${ALLUXIO_HOME}/bin/cli.sh process start worker"
 		err = session.Run(command)
 		if err != nil {
 			log.Logger.Fatalf("Run command %s failed at %s", command, dialAddr)
