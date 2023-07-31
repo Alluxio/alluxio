@@ -75,7 +75,7 @@ func InitAlluxioEnv(rootPath string) error {
 	// set default values
 	for k, v := range map[string]string{
 		confAlluxioHome.EnvVar:        rootPath,
-		confAlluxioConfDir.EnvVar:     filepath.Join(rootPath, "conf"),
+		ConfAlluxioConfDir.EnvVar:     filepath.Join(rootPath, "conf"),
 		ConfAlluxioLogsDir.EnvVar:     filepath.Join(rootPath, "logs"),
 		confAlluxioUserLogsDir.EnvVar: filepath.Join(rootPath, "logs", "user"),
 		// TODO: add a go build flag to switch this to the finalized tarball path when building the tarball, ex. filepath.Join(rootPath, "assembly", fmt.Sprintf("alluxio-assembly-client-%v.jar", ver))
@@ -88,7 +88,7 @@ func InitAlluxioEnv(rootPath string) error {
 	// set user-specified environment variable values from alluxio-env.sh
 	{
 		// use ALLUXIO_CONF_DIR if set externally, otherwise default to above value
-		confPath := envVar.GetString(confAlluxioConfDir.EnvVar)
+		confPath := envVar.GetString(ConfAlluxioConfDir.EnvVar)
 		const alluxioEnv = "alluxio-env.sh"
 		log.Logger.Debugf("Loading %v configuration from directory %v", alluxioEnv, confPath)
 		v := viper.New()
@@ -111,13 +111,13 @@ func InitAlluxioEnv(rootPath string) error {
 
 	// set classpath variables which are dependent on user configurable values
 	envVar.Set(EnvAlluxioClientClasspath, strings.Join([]string{
-		envVar.GetString(confAlluxioConfDir.EnvVar) + "/",
+		envVar.GetString(ConfAlluxioConfDir.EnvVar) + "/",
 		envVar.GetString(confAlluxioClasspath.EnvVar),
 		envVar.GetString(envAlluxioAssemblyClientJar),
 		filepath.Join(envVar.GetString(confAlluxioHome.EnvVar), "lib", fmt.Sprintf("alluxio-integration-tools-validation-%v.jar", ver)),
 	}, ":"))
 	envVar.Set(EnvAlluxioServerClasspath, strings.Join([]string{
-		envVar.GetString(confAlluxioConfDir.EnvVar) + "/",
+		envVar.GetString(ConfAlluxioConfDir.EnvVar) + "/",
 		envVar.GetString(confAlluxioClasspath.EnvVar),
 		envVar.GetString(envAlluxioAssemblyServerJar),
 	}, ":"))
@@ -135,7 +135,7 @@ func InitAlluxioEnv(rootPath string) error {
 	if alluxioJavaOpts != "" {
 		// warn about setting configuration through java opts that should be set through environment variables instead
 		for _, c := range []*AlluxioConfigEnvVar{
-			confAlluxioConfDir,
+			ConfAlluxioConfDir,
 			ConfAlluxioLogsDir,
 			confAlluxioUserLogsDir,
 		} {
@@ -147,7 +147,7 @@ func InitAlluxioEnv(rootPath string) error {
 
 	for _, c := range []*AlluxioConfigEnvVar{
 		confAlluxioHome,
-		confAlluxioConfDir,
+		ConfAlluxioConfDir,
 		ConfAlluxioLogsDir,
 		confAlluxioUserLogsDir,
 	} {
@@ -163,7 +163,7 @@ func InitAlluxioEnv(rootPath string) error {
 		alluxioJavaOpts += c.ToJavaOpt(envVar, false) // optional user provided java opts
 	}
 
-	alluxioJavaOpts += fmt.Sprintf(JavaOptFormat, "log4j.configuration", "file:"+filepath.Join(envVar.GetString(confAlluxioConfDir.EnvVar), "log4j.properties"))
+	alluxioJavaOpts += fmt.Sprintf(JavaOptFormat, "log4j.configuration", "file:"+filepath.Join(envVar.GetString(ConfAlluxioConfDir.EnvVar), "log4j.properties"))
 	alluxioJavaOpts += fmt.Sprintf(JavaOptFormat, "org.apache.jasper.compiler.disablejsr199", true)
 	alluxioJavaOpts += fmt.Sprintf(JavaOptFormat, "java.net.preferIPv4Stack", true)
 	alluxioJavaOpts += fmt.Sprintf(JavaOptFormat, "org.apache.ratis.thirdparty.io.netty.allocator.useCacheForAllThreads", false)

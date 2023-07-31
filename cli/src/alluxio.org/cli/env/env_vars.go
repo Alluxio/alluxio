@@ -50,7 +50,7 @@ const (
 )
 
 var (
-	confAlluxioConfDir = &AlluxioConfigEnvVar{
+	ConfAlluxioConfDir = &AlluxioConfigEnvVar{
 		configKey: "alluxio.conf.dir",
 		EnvVar:    "ALLUXIO_CONF_DIR",
 	}
