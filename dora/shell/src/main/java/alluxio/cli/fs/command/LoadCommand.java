@@ -14,33 +14,16 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.cli.CommandUtils;
-import alluxio.client.block.BlockStoreClient;
-import alluxio.client.block.policy.BlockLocationPolicy;
-import alluxio.client.block.stream.BlockInStream;
-import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.InStreamOptions;
-import alluxio.collections.Pair;
-import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.grpc.CacheRequest;
 import alluxio.grpc.JobProgressReportFormat;
 import alluxio.grpc.LoadJobPOptions;
-import alluxio.grpc.OpenFilePOptions;
 import alluxio.job.JobDescription;
 import alluxio.job.LoadJobRequest;
-import alluxio.proto.dataserver.Protocol;
-import alluxio.resource.CloseableResource;
-import alluxio.util.FileSystemOptionsUtils;
 import alluxio.util.FormatUtils;
-import alluxio.wire.BlockInfo;
-import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import org.apache.commons.cli.CommandLine;
@@ -48,7 +31,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
 import javax.annotation.concurrent.ThreadSafe;
@@ -173,14 +155,11 @@ public final class LoadCommand extends AbstractFileSystemCommand {
         + "Please only use it when the cluster has " + PropertyKey.DORA_ENABLED + "=false");
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
-    if (isOldFormat(cl)) {
-      runWildCardCmd(path, cl);
-      return 0;
-    }
 
     if (path.containsWildcard()) {
       throw new UnsupportedOperationException("Load does not support wildcard path");
     }
+    throwIfOldFormat(cl);
 
     if (cl.hasOption(SUBMIT_OPTION.getLongOpt())) {
       OptionalLong bandwidth = OptionalLong.empty();
@@ -228,20 +207,19 @@ public final class LoadCommand extends AbstractFileSystemCommand {
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
-    if (!isOldFormat(cl)) {
-      int commands = 0;
-      if (cl.hasOption(SUBMIT_OPTION.getLongOpt())) {
-        commands++;
-      }
-      if (cl.hasOption(STOP_OPTION.getLongOpt())) {
-        commands++;
-      }
-      if (cl.hasOption(PROGRESS_OPTION.getLongOpt())) {
-        commands++;
-      }
-      if (commands != 1) {
-        throw new InvalidArgumentException("Must have one of submit / stop / progress");
-      }
+    throwIfOldFormat(cl);
+    int commands = 0;
+    if (cl.hasOption(SUBMIT_OPTION.getLongOpt())) {
+      commands++;
+    }
+    if (cl.hasOption(STOP_OPTION.getLongOpt())) {
+      commands++;
+    }
+    if (cl.hasOption(PROGRESS_OPTION.getLongOpt())) {
+      commands++;
+    }
+    if (commands != 1) {
+      throw new InvalidArgumentException("Must have one of submit / stop / progress");
     }
   }
 
@@ -308,91 +286,17 @@ public final class LoadCommand extends AbstractFileSystemCommand {
     }
   }
 
-  private boolean isOldFormat(CommandLine cl) {
-    return cl.getOptions().length == 0
-        || (cl.getOptions().length == 1 && cl.hasOption(LOCAL_OPTION.getLongOpt()));
+  private void throwIfOldFormat(CommandLine cl) {
+    if (cl.getOptions().length == 0
+        || (cl.getOptions().length == 1 && cl.hasOption(LOCAL_OPTION.getLongOpt()))) {
+      throw new IllegalArgumentException("load command no longer supports the old format");
+    }
   }
 
   @Override
   protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
       throws AlluxioException, IOException {
-    Preconditions.checkState(
-        isOldFormat(cl),
-        "The new load command should not hit this code path");
-    oldLoad(plainPath, cl.hasOption(LOCAL_OPTION.getLongOpt()));
-  }
-
-  /**
-   * Loads a file or directory in Alluxio space, makes it resident in Alluxio.
-   *
-   * @param filePath The {@link AlluxioURI} path to load into Alluxio
-   * @param local whether to load data to local worker even when the data is already loaded remotely
-   */
-  private void oldLoad(AlluxioURI filePath, boolean local)
-      throws AlluxioException, IOException {
-    URIStatus status = mFileSystem.getStatus(filePath);
-    if (status.isFolder()) {
-      List<URIStatus> statuses = mFileSystem.listStatus(filePath);
-      for (URIStatus uriStatus : statuses) {
-        AlluxioURI newPath = new AlluxioURI(uriStatus.getPath());
-        oldLoad(newPath, local);
-      }
-    } else {
-      if (local) {
-        if (!mFsContext.hasNodeLocalWorker()) {
-          System.out.println(
-              "When local option is specified, there must be a local worker available");
-          return;
-        }
-      } else if (status.getInAlluxioPercentage() == 100) {
-        // The file has already been fully loaded into Alluxio.
-        System.out.println(filePath + " already in Alluxio fully");
-        return;
-      }
-      runLoadTask(filePath, status, local);
-    }
-    System.out.println(filePath + " loaded");
-  }
-
-  private void runLoadTask(AlluxioURI filePath, URIStatus status, boolean local)
-      throws IOException {
-    AlluxioConfiguration conf = mFsContext.getPathConf(filePath);
-    OpenFilePOptions options = FileSystemOptionsUtils.openFileDefaults(conf);
-    BlockLocationPolicy policy = Preconditions.checkNotNull(
-        BlockLocationPolicy.Factory
-            .create(conf.getClass(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY), conf),
-        "UFS read location policy Required when loading files");
-    WorkerNetAddress dataSource;
-    List<Long> blockIds = status.getBlockIds();
-    for (long blockId : blockIds) {
-      if (local) {
-        dataSource = mFsContext.getNodeLocalWorker();
-      } else { // send request to data source
-        BlockStoreClient blockStore = BlockStoreClient.create(mFsContext);
-        Pair<WorkerNetAddress, BlockInStream.BlockInStreamSource> dataSourceAndType = blockStore
-            .getDataSourceAndType(status.getBlockInfo(blockId), status, policy, ImmutableMap.of());
-        dataSource = dataSourceAndType.getFirst();
-      }
-      Protocol.OpenUfsBlockOptions openUfsBlockOptions =
-          new InStreamOptions(status, options, conf, mFsContext).getOpenUfsBlockOptions(blockId);
-      BlockInfo info = status.getBlockInfo(blockId);
-      long blockLength = info.getLength();
-      String host = dataSource.getHost();
-      // issues#11172: If the worker is in a container, use the container hostname
-      // to establish the connection.
-      if (!dataSource.getContainerHost().equals("")) {
-        host = dataSource.getContainerHost();
-      }
-      CacheRequest request = CacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
-          .setOpenUfsBlockOptions(openUfsBlockOptions).setSourceHost(host)
-          .setSourcePort(dataSource.getDataPort()).build();
-      try (CloseableResource<BlockWorkerClient> blockWorker =
-          mFsContext.acquireBlockWorkerClient(dataSource)) {
-        blockWorker.get().cache(request);
-      } catch (Exception e) {
-        throw new RuntimeException(String.format("Failed to complete cache request from %s for "
-            + "block %d of file %s: %s", dataSource, blockId, status.getPath(), e), e);
-      }
-    }
+    // TODO(jiacheng): refactor LoadCommand so the main logic is executed here
+    throw new IllegalStateException("Should not reach here!");
   }
 }
