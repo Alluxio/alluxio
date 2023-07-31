@@ -15,15 +15,12 @@ import alluxio.AlluxioURI;
 import alluxio.client.ReadType;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.ConfigHashSync;
-import alluxio.client.file.FileOutStream;
-import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemContextReinitializer;
 import alluxio.client.meta.MetaMasterConfigClient;
 import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
-import alluxio.grpc.CreateFilePOptions;
 import alluxio.master.MasterClientContext;
 import alluxio.resource.CloseableResource;
 import alluxio.testutils.BaseIntegrationTest;
@@ -34,11 +31,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.powermock.reflect.Whitebox;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Tests reinitializing {@link FileSystemContext}.
