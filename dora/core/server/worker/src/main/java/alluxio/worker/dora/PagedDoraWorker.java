@@ -244,7 +244,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
    * @throws IOException
    */
   private void register() throws IOException {
-    Preconditions.checkState(mAddress != null, "worker not started");
+    Preconditions.checkNotNull(mAddress, "worker not started");
     RetryPolicy retry = RetryUtils.defaultWorkerMasterClientRetry();
     // For regression purpose, use the original way of regsiter
     if (mMembershipManager instanceof NoOpMembershipManager) {
@@ -271,7 +271,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   }
 
   private void registerToMaster() throws IOException {
-    Preconditions.checkState(mAddress != null, "worker not started");
+    Preconditions.checkNotNull(mAddress, "worker not started");
     RetryPolicy retry = RetryUtils.defaultWorkerMasterClientRetry();
     while (true) {
       try (PooledResource<BlockMasterClient> bmc = mBlockMasterClientPool.acquireCloseable()) {
@@ -305,7 +305,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
   @Override
   public void close() throws IOException {
     try (AutoCloseable ignoredCloser = mResourceCloser;
-         AutoCloseable ignoredCacheManager = mCacheManager
+         AutoCloseable ignoredCacheManager = mCacheManager;
+         AutoCloseable ignoredMembershipManager = mMembershipManager;
     ) {
       // do nothing as we are closing
     } catch (Exception e) {

@@ -20,9 +20,18 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * No op membership manager for testing purpose.
+ * No-op membership manager to disable MembershipManager module
+ * as default for regression purpose.
  */
 public class NoOpMembershipManager implements MembershipManager {
+
+  /**
+   * @return NoOpMembershipManager
+   */
+  public static NoOpMembershipManager create() {
+    return new NoOpMembershipManager();
+  }
+
   @Override
   public void join(WorkerInfo worker) throws IOException {
     // NO-OP

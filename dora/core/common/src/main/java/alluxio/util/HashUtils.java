@@ -19,13 +19,17 @@ import org.apache.commons.codec.binary.Hex;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Util class for hashing.
  */
+@ThreadSafe
 public class HashUtils {
 
   private static final HashFunction HASH_FUNCTION = murmur3_32_fixed();
+
+  private HashUtils() {} // prevent instantiation
 
   /**
    * MD5 Hash the given obj as string.

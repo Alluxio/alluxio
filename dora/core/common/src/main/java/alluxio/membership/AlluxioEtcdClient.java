@@ -17,6 +17,7 @@ import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.resource.LockResource;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryUtils;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
@@ -57,12 +58,28 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Wrapper class around jetcd client to achieve utilities API to talk with ETCD.
+ * This class is supposed to be used as a singleton fashion. It wraps around
+ * one jetcd Client instance for all sorts of utility functions to interact with etcd.
+ * Only state it's keeping is the jetcd Client and registered Watcher list
+ * For kv operations such as Put(createForPath, deleteForPath, addChildren, etc.)
+ * its atomicity/consistency semantics goes with what ETCD has to offer, this class
+ * does not add upon any semantics itself.
+ *
+ * AlluxioEtcdClient should only be used as singleton wrapping one jetcd Client object,
+ * currently only resource - jetcd client will be closed as part of close() which is
+ * called during:
+ * 1) Worker shutdown or close as part of EtcdMembershipManager close
+ * 2) FileSystemContext closeContext as part of EtcdMembershipManager close
+ * As we never set mClient to be null after connect, also jetcd client can be closed idempotently
+ * so it's ok to ignore thread safety for close()
+ *
+ * As for jetcd Client, it's managing its own connect/reconnect/loadbalance to other etcd
+ * instances, will leave these logic to jetcd client itself for now unless we need to
+ * handle it in our layer.
  */
-@ThreadSafe
 public class AlluxioEtcdClient implements Closeable {
 
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioEtcdClient.class);
@@ -82,7 +99,7 @@ public class AlluxioEtcdClient implements Closeable {
   private final ConcurrentHashMap<String, Watch.Watcher> mRegisteredWatchers =
       new ConcurrentHashMap<>();
   private Client mClient;
-  public String[] mEndpoints;
+  private final String[] mEndpoints;
 
   /**
    * CTOR for AlluxioEtcdClient.
@@ -119,7 +136,7 @@ public class AlluxioEtcdClient implements Closeable {
   }
 
   /**
-   * Create jetcd grpc client with choice of force or not.
+   * Create jetcd grpc client and force(or not) connection.
    * @param force
    */
   public void connect(boolean force) {
@@ -244,8 +261,8 @@ public class AlluxioEtcdClient implements Closeable {
             // if no such lease, lease resp will still be returned with a negative ttl
             return leaseResp.getTTl() <= 0;
           }, new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES));
-    } catch (AlluxioRuntimeException ex) {
-      throw new IOException(ex.getMessage());
+    } catch (AlluxioRuntimeException e) {
+      throw new IOException("Failed to check if lease expired:" + lease.toString(), e.getCause());
     }
   }
 
@@ -261,19 +278,19 @@ public class AlluxioEtcdClient implements Closeable {
       throws IOException {
     Preconditions.checkArgument(!StringUtil.isNullOrEmpty(parentPath));
     Preconditions.checkArgument(!StringUtil.isNullOrEmpty(childPath));
+    String fullPath = PathUtils.concatPath(parentPath, childPath);
+    Preconditions.checkArgument(!StringUtil.isNullOrEmpty(fullPath));
     RetryUtils.retry(
         String.format("Adding child, parentPath:%s, childPath:%s",
             parentPath, childPath), () -> {
           try {
-            String fullPath = parentPath + childPath;
-            PutResponse putResponse = mClient.getKVClient().put(
+            mClient.getKVClient().put(
                     ByteSequence.from(fullPath, StandardCharsets.UTF_8),
                     ByteSequence.from(value))
                 .get(DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS);
-          } catch (ExecutionException | InterruptedException | TimeoutException ex) {
-            String errMsg = String.format("Error addChildren parentPath:%s child:%s",
-                parentPath, childPath);
-            throw new IOException(errMsg, ex);
+          } catch (ExecutionException | InterruptedException | TimeoutException e) {
+            throw new IOException("Failed to addChildren, parentPath:" + parentPath
+                + " child:" + childPath, e);
           }
         },
         new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, 0));
@@ -288,17 +305,17 @@ public class AlluxioEtcdClient implements Closeable {
    */
   public List<KeyValue> getChildren(String parentPath) throws IOException {
     try {
+      Preconditions.checkArgument(!StringUtil.isNullOrEmpty(parentPath));
       return RetryUtils.retryCallable(
           String.format("Getting children for path:%s", parentPath), () -> {
-            Preconditions.checkArgument(!StringUtil.isNullOrEmpty(parentPath));
             GetResponse getResponse = mClient.getKVClient().get(
                     ByteSequence.from(parentPath, StandardCharsets.UTF_8),
                     GetOption.newBuilder().isPrefix(true).build())
                 .get(DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS);
             return getResponse.getKvs();
           }, new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES));
-    } catch (AlluxioRuntimeException ex) {
-      throw new IOException(ex.getMessage());
+    } catch (AlluxioRuntimeException e) {
+      throw new IOException("Failed to getChildren for parentPath:" + parentPath, e.getCause());
     }
   }
 
@@ -311,22 +328,27 @@ public class AlluxioEtcdClient implements Closeable {
   private void addListenerInternal(
       String parentPath, StateListener listener, WatchType watchType) {
     if (mRegisteredWatchers.containsKey(getRegisterWatcherKey(parentPath, watchType))) {
-      LOG.info("Watcher already there for path:{} for children.", parentPath);
+      LOG.warn("Watcher already there for path:{} for children.", parentPath);
       return;
     }
     WatchOption.Builder watchOptBuilder = WatchOption.newBuilder();
     switch (watchType) {
       /* e.g. Given the parentPath '/parent/',
       give query-like syntax equivalent to:
-        select * with value < '/parent.' ('.' the char before '/' in ASCII)
-      which includes all keys prefixed with '/parent/' */
+        select * with value < '/parent0' ('0' the char after '/' in ASCII)
+      since everything prefixed with '/parent/' is strictly smaller than '/parent0'
+      Example: with list of keys ['/parent-1', '/parent/k1','/parent/~']
+      this query with keyRangeEnd = '/parent0' will result with ['/parent/k1', '/parent/~']
+      since '/parent-1' is not prefixed with '/parent/'
+      and '/parent/~' is the largest below '/parent0'
+      */
       case CHILDREN:
         String keyRangeEnd = parentPath.substring(0, parentPath.length() - 1)
             + (char) (parentPath.charAt(parentPath.length() - 1) + 1);
         watchOptBuilder.isPrefix(true)
             .withRange(ByteSequence.from(keyRangeEnd, StandardCharsets.UTF_8));
         break;
-      case SINGLE_PATH:
+      case SINGLE_PATH: // no need to add anything to watchoption, fall through.
       default:
         break;
     }
@@ -348,7 +370,7 @@ public class AlluxioEtcdClient implements Closeable {
                   listener.onNewDelete(
                       event.getKeyValue().getKey().toString(StandardCharsets.UTF_8));
                   break;
-                case UNRECOGNIZED:
+                case UNRECOGNIZED: // Fall through
                 default:
                   LOG.info("Unrecognized event:{} on watch path of:{}",
                       event.getEventType(), parentPath);
@@ -386,7 +408,7 @@ public class AlluxioEtcdClient implements Closeable {
    * @param type
    * @return key for registered watcher
    */
-  private String getRegisterWatcherKey(String path, WatchType type) {
+  private static String getRegisterWatcherKey(String path, WatchType type) {
     return path + "$$@@$$" + type.toString();
   }
 
@@ -425,7 +447,7 @@ public class AlluxioEtcdClient implements Closeable {
   }
 
   /**
-   * Get latest value attached to the key.
+   * Get latest value attached to the path.
    * @param path
    * @return byte[] value
    * @throws IOException
@@ -450,7 +472,7 @@ public class AlluxioEtcdClient implements Closeable {
   }
 
   /**
-   * Check existence of a given path.
+   * Check existence of a single given path.
    * @param path
    * @return if the path exists or not
    * @throws IOException
@@ -532,7 +554,7 @@ public class AlluxioEtcdClient implements Closeable {
 
   /**
    * Check if it's connected.
-   * @return is connected
+   * @return true if this client is connected
    */
   public boolean isConnected() {
     return mConnected.get();

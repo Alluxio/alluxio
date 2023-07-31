@@ -27,7 +27,7 @@ import static java.lang.String.format;
 
 import alluxio.Constants;
 import alluxio.DefaultSupplier;
-import alluxio.MembershipType;
+import alluxio.membership.MembershipType;
 import alluxio.ProjectConstants;
 import alluxio.RuntimeConstants;
 import alluxio.annotation.PublicApi;
@@ -5513,8 +5513,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "Choose STATIC for pre-configured members."
               + "Choose ETCD for using etcd for membership management"
               + "Default is NOOP which does not enable membership manager at all")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.ALL)
           .build();
   public static final PropertyKey WORKER_STATIC_MEMBERSHIP_MANAGER_CONFIG_FILE =
       stringBuilder(Name.WORKER_STATIC_MEMBERSHIP_MANAGER_CONFIG_FILE)

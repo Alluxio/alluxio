@@ -156,7 +156,7 @@ public class FileSystemContext implements Closeable {
    */
   private volatile ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool>
       mBlockWorkerClientPoolMap;
-
+  @Nullable
   private MembershipManager mMembershipManager;
 
   /**
@@ -498,6 +498,12 @@ public class FileSystemContext implements Closeable {
 
       if (mMetricsEnabled) {
         MetricsHeartbeatContext.removeHeartbeat(getClientContext());
+      }
+      LOG.debug("Closing membership manager.");
+      try (AutoCloseable ignoredCloser = mMembershipManager) {
+        // do nothing as we are closing
+      } catch (Exception e) {
+        throw new IOException(e);
       }
     } else {
       LOG.warn("Attempted to close FileSystemContext which has already been closed or not "

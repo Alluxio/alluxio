@@ -36,21 +36,31 @@ import java.util.stream.Collectors;
  * MembershipManager configured by a static file.
  */
 public class StaticMembershipManager implements MembershipManager {
-  List<WorkerInfo> mMembers;
+  private final List<WorkerInfo> mMembers;
 
   private final AlluxioConfiguration mConf;
+
+  /**
+   * @param conf
+   * @return StaticMembershipManager
+   * @throws IOException
+   */
+  public static StaticMembershipManager create(AlluxioConfiguration conf) throws IOException {
+    // user conf/workers, use default port
+    String workerListFile = conf.getString(
+        PropertyKey.WORKER_STATIC_MEMBERSHIP_MANAGER_CONFIG_FILE);
+    List<WorkerInfo> workers = parseWorkerAddresses(workerListFile, conf);
+    return new StaticMembershipManager(conf, workers);
+  }
 
   /**
    * CTOR for StaticMembershipManager.
    * @param conf
    * @throws IOException
    */
-  public StaticMembershipManager(AlluxioConfiguration conf) throws IOException {
+  StaticMembershipManager(AlluxioConfiguration conf, List<WorkerInfo> members) {
     mConf = conf;
-    String workerListFile = conf.getString(
-        PropertyKey.WORKER_STATIC_MEMBERSHIP_MANAGER_CONFIG_FILE);
-    // user conf/workers, use default port
-    mMembers = parseWorkerAddresses(workerListFile, mConf);
+    mMembers = members;
   }
 
   /**
@@ -62,7 +72,7 @@ public class StaticMembershipManager implements MembershipManager {
    * @return list of parsed WorkerInfos
    * @throws IOException
    */
-  public static List<WorkerInfo> parseWorkerAddresses(
+  private static List<WorkerInfo> parseWorkerAddresses(
       String configFile, AlluxioConfiguration conf) throws IOException {
     List<WorkerNetAddress> workerAddrs = new ArrayList<>();
     File file = new File(configFile);

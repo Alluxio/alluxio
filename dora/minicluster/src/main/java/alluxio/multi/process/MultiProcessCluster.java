@@ -17,7 +17,7 @@ import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.MembershipType;
+import alluxio.membership.MembershipType;
 import alluxio.cli.Format;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileSystem;

@@ -11,7 +11,6 @@
 
 package alluxio.membership;
 
-import alluxio.MembershipType;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.resource.LockResource;
@@ -105,7 +104,6 @@ public interface MembershipManager extends AutoCloseable {
             MEMBERSHIP_MANAGER.set(create(conf));
           }
         } catch (IOException e) {
-          LOG.error("Failed to create MembershipManager : ", e);
           throw e;
         }
       }
@@ -119,11 +117,11 @@ public interface MembershipManager extends AutoCloseable {
     public static MembershipManager create(AlluxioConfiguration conf) throws IOException {
       switch (conf.getEnum(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.class)) {
         case STATIC:
-          return new StaticMembershipManager(conf);
+          return StaticMembershipManager.create(conf);
         case ETCD:
-          return new EtcdMembershipManager(conf);
+          return EtcdMembershipManager.create(conf);
         case NOOP:
-          return new NoOpMembershipManager();
+          return NoOpMembershipManager.create();
         default:
           throw new IllegalStateException("Unrecognized Membership Type");
       }

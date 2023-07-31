@@ -34,12 +34,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * MembershipManager backed by configured etcd cluster.
  */
-@ThreadSafe
 public class EtcdMembershipManager implements MembershipManager {
   private static final Logger LOG = LoggerFactory.getLogger(EtcdMembershipManager.class);
   private static final String RING_PATH_FORMAT = "/DHT/%s/AUTHORIZED/";
@@ -47,6 +45,14 @@ public class EtcdMembershipManager implements MembershipManager {
   private AlluxioEtcdClient mAlluxioEtcdClient;
   private String mClusterName;
   private String mRingPathPrefix = "";
+
+  /**
+   * @param conf
+   * @return EtcdMembershipManager
+   */
+  public static EtcdMembershipManager create(AlluxioConfiguration conf) {
+    return new EtcdMembershipManager(conf);
+  }
 
   /**
    * CTOR for EtcdMembershipManager.
@@ -69,7 +75,6 @@ public class EtcdMembershipManager implements MembershipManager {
   }
 
   @Override
-  @VisibleForTesting
   public void join(WorkerInfo wkrAddr) throws IOException {
     WorkerServiceEntity entity = new WorkerServiceEntity(wkrAddr.getAddress());
     // 1) register to the ring
@@ -98,7 +103,6 @@ public class EtcdMembershipManager implements MembershipManager {
   }
 
   @Override
-  @VisibleForTesting
   public List<WorkerInfo> getAllMembers() throws IOException {
     List<WorkerServiceEntity> registeredWorkers = retrieveFullMembers();
     return registeredWorkers.stream()
