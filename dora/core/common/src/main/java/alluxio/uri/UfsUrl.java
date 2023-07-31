@@ -14,7 +14,9 @@ package alluxio.uri;
 import alluxio.AlluxioURI;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.exception.InvalidPathException;
 import alluxio.grpc.UfsUrlMessage;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import org.apache.logging.log4j.util.Strings;
@@ -38,42 +40,53 @@ public class UfsUrl {
 
   public UfsUrl(String ufsPath) {
     // TODO(Tony Sun): Considering the case below:
-    //  when scheme does not exist, how to determine the scheme, or a empty scheme.
+    //  when scheme does not exist, how to determine the scheme, or an empty scheme.
     Preconditions.checkArgument(!ufsPath.isEmpty(),
             "ufsPath is empty, please input a non-empty ufsPath.");
     List<String> preprocessingPathList = Arrays.asList(ufsPath.split(SCHEME_SEPERATOR));
-    String scheme = preprocessingPathList.get(0);
-    String authorityAndPath = null;
-    // If ufsPath has no '://', then the preprocessingPathList has only one elem.
-    // TODO(Tony Sun): Refactor it later. Now default ufs is local, the design is ugly.
+    String scheme;
+    String authorityAndPath;
+    String rootDir = Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
+    Preconditions.checkArgument(preprocessingPathList.size() <= 2,
+        "There are multiple schemes, the input may contain more than one path, "
+            + "current version only support one path each time");
+    // Now, there are two condition. size = 1 -> without scheme; size = 2 -> with a scheme.
     if (preprocessingPathList.size() == 1)  {
-      scheme = "file";
+      // If without scheme, set default scheme to local, i.e. "file".
+      String[] rootDirArray = rootDir.split(SCHEME_SEPERATOR);
+      if (rootDirArray.length == 1) {
+        scheme = "file";
+      } else {
+        scheme = rootDirArray[0];
+      }
       authorityAndPath = preprocessingPathList.get(0);
-    } else if (preprocessingPathList.size() == 2) {
+    } else {
+      // preprocessingPathList.size() == 2, i.e. the ufsPath has one scheme.
+      scheme = preprocessingPathList.get(0);
       authorityAndPath = preprocessingPathList.get(1);
     }
-    // TODO(Tony Sun): what if preprocessingPathList.size() > 2? Fix it!
+    Preconditions.checkArgument(scheme.equalsIgnoreCase("file")
+        || scheme.equalsIgnoreCase("s3") || scheme.equalsIgnoreCase("hdfs"),
+        "Now UfsUrl only support local, s3, and hdfs");
     int indexOfFirstSlashAfterAuthority = authorityAndPath.indexOf(PATH_SEPERATOR);
     // Empty path is excluded here.
-    Preconditions.checkArgument(indexOfFirstSlashAfterAuthority != -1,
-        "Please input a valid path.");
+//    Preconditions.checkArgument(indexOfFirstSlashAfterAuthority != -1,
+//        "Please input a valid path.");
+    if (indexOfFirstSlashAfterAuthority == -1)  {
+      // If index is 0, the authorityString will be empty.
+      indexOfFirstSlashAfterAuthority = 0;
+    }
     String authorityString = authorityAndPath.substring(0, indexOfFirstSlashAfterAuthority);
     String pathString = authorityAndPath.substring(indexOfFirstSlashAfterAuthority);
-    String rootDir = Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
+
     if (scheme.equals("file")) {
       pathString = rootDir + pathString;
+    } else {
+      // TODO(Tony Sun): parse the dir part of each path. like s3 or hdfs.
+      return;
     }
-    // TODO(Tony Sun): Do we need to handle path like '/////path/to/dir'?
-    //  eg. remove the empty String.
     String[] arrayOfPathString = pathString.split(PATH_SEPERATOR);
-    int indexOfNonEmptyString = 0;
-    while (indexOfNonEmptyString < arrayOfPathString.length
-        && arrayOfPathString[indexOfNonEmptyString].isEmpty()) {
-      indexOfNonEmptyString += 1;
-    }
-    List<String> pathComponentsList = Arrays.asList(
-        Arrays.copyOfRange(arrayOfPathString, indexOfNonEmptyString, arrayOfPathString.length));
-    // TODO(Tony Sun): Add scheme judgement, eg. limit the scheme type.
+    List<String> pathComponentsList = Arrays.asList(arrayOfPathString);
     mProto = UfsUrlMessage.newBuilder()
         .setScheme(scheme)
         .setAuthority(authorityString)
@@ -141,6 +154,7 @@ public class UfsUrl {
     return sb.toString();
   }
 
+  // TODO(Tony Sun): Does prefix containing scheme and auth? In the future, considering performance.
   public boolean isPrefix(UfsUrl another, boolean allowEquals) {
     String thisString = asString();
     String anotherString = another.asString();
@@ -186,8 +200,7 @@ public class UfsUrl {
   }
 
   public String getFullPath() {
-    // TODO(Tony Sun): Is it correct to return a '/' with empty pathComponents?
-    return "/" + Strings.join(mProto.getPathComponentsList(), AlluxioURI.SEPARATOR.charAt(0));
+    return Strings.join(mProto.getPathComponentsList(), AlluxioURI.SEPARATOR.charAt(0));
   }
 
   public AlluxioURI toAlluxioURI() {
@@ -204,10 +217,21 @@ public class UfsUrl {
     return pathComponents.get(pathComponents.size() - 1);
   }
 
-  //TODO(Tony Sun): Add isAncestorOf() method.
+  public boolean isAncestorOf(UfsUrl ufsUrl) throws InvalidPathException {
+    if (!Objects.equals(getAuthority(), ufsUrl.getAuthority())) {
+      return false;
+    }
+    if (!Objects.equals(getScheme(), ufsUrl.getScheme())) {
+      return false;
+    }
+    return PathUtils.hasPrefix(PathUtils.normalizePath(ufsUrl.getFullPath(), PATH_SEPERATOR),
+        PathUtils.normalizePath(getFullPath(), PATH_SEPERATOR));
+  }
 
   public boolean isRoot() {
-    // TODO(Tony Sun): throw error
+    String rootDir = Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
+    Preconditions.checkArgument(!(rootDir.startsWith(getFullPath())
+        && !rootDir.equals(getFullPath())), "Current UfsUrl is the parent of root ufs directory");
     return getFullPath().equals(PATH_SEPERATOR) || getFullPath().isEmpty();
   }
 
