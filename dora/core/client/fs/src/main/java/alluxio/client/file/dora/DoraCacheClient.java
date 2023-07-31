@@ -52,6 +52,7 @@ import alluxio.grpc.RequestType;
 import alluxio.grpc.UfsUrlMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
+import alluxio.uri.UfsUrl;
 import alluxio.wire.WorkerNetAddress;
 
 import java.io.IOException;
@@ -181,6 +182,26 @@ public class DoraCacheClient {
       client.get().listStatus(ListStatusPRequest.newBuilder().setPath(path)
               // TODO(Tony Sun): determine the path type: containing scheme and authority or not.
               .setUfsPath(UfsUrlMessage.newBuilder().addPathComponents(path).build())
+              .setOptions(options).build())
+          .forEachRemaining(
+              (pListStatusResponse) -> result.addAll(pListStatusResponse.getFileInfosList().stream()
+                  .map((pFileInfo) -> new URIStatus(GrpcUtils.fromProto(pFileInfo)))
+                  .collect(Collectors.toList())));
+      return result;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
+      throws PermissionDeniedException {
+    try (CloseableResource<BlockWorkerClient> client =
+             mContext.acquireBlockWorkerClient(getWorkerNetAddress(ufsPath.getFullPath()))) {
+      List<URIStatus> result = new ArrayList<>();
+      client.get().listStatus(ListStatusPRequest.newBuilder()
+              .setPath(ufsPath.getFullPath())
+              // TODO(Tony Sun): determine the path type: containing scheme and authority or not.
+              .setUfsPath(ufsPath.getProto())
               .setOptions(options).build())
           .forEachRemaining(
               (pListStatusResponse) -> result.addAll(pListStatusResponse.getFileInfosList().stream()

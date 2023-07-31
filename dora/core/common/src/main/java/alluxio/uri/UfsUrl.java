@@ -12,6 +12,8 @@
 package alluxio.uri;
 
 import alluxio.AlluxioURI;
+import alluxio.conf.Configuration;
+import alluxio.conf.PropertyKey;
 import alluxio.grpc.UfsUrlMessage;
 
 import com.google.common.base.Preconditions;
@@ -31,6 +33,7 @@ public class UfsUrl {
   public UfsUrl(UfsUrlMessage proto) {
     Preconditions.checkArgument(proto.getPathComponentsList().size() != 0,
         "the proto.path is empty, please check the proto first");
+    // TODO(Tony Sun): trans proto to absolute path.
     mProto = proto;
   }
 
@@ -49,8 +52,7 @@ public class UfsUrl {
     if (preprocessingPathList.size() == 1)  {
       scheme = "file";
       authorityAndPath = preprocessingPathList.get(0);
-    }
-    else if (preprocessingPathList.size() == 2) {
+    } else if (preprocessingPathList.size() == 2) {
       authorityAndPath = preprocessingPathList.get(1);
     }
     // TODO(Tony Sun): what if preprocessingPathList.size() > 2? Fix it!
@@ -60,10 +62,10 @@ public class UfsUrl {
         "Please input a valid path.");
     String authorityString = authorityAndPath.substring(0, indexOfFirstSlashAfterAuthority);
     String pathString = authorityAndPath.substring(indexOfFirstSlashAfterAuthority);
-
-    // TODO(Tony Sun): Is the input of UfsUrl the same as the input of AlluxioUri? Can I use
-    //  the string test format like AlluxioURITest.java?
-
+    String rootDir = Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
+    if (scheme.equals("file")) {
+      pathString = rootDir + pathString;
+    }
     // TODO(Tony Sun): Do we need to handle path like '/////path/to/dir'?
     //  eg. remove the empty String.
     String[] arrayOfPathString = pathString.split(PATH_SEPERATOR);
@@ -214,5 +216,30 @@ public class UfsUrl {
   public boolean isRoot() {
     // TODO(Tony Sun): In AlluxioURI here remains judging hasAuthority(), why?
     return getFullPath().equals(PATH_SEPERATOR) || getFullPath().isEmpty();
+  }
+
+  public boolean isAbsolute() {
+    return getScheme() != null;
+  }
+
+  public UfsUrl join(String suffix) {
+    if (suffix.isEmpty()) {
+      return this;
+    }
+    String[] suffixArray = suffix.split("/");
+    int nonEmptyIndex = 0;
+    while (nonEmptyIndex < suffixArray.length && suffixArray[nonEmptyIndex].isEmpty())  {
+      nonEmptyIndex++;
+    }
+    List<String> suffixComponentsList = Arrays.asList(
+        Arrays.copyOfRange(
+            suffixArray,
+            nonEmptyIndex, suffixArray.length));
+    List<String> pathComponents = mProto.getPathComponentsList();
+    return new UfsUrl(UfsUrlMessage.newBuilder()
+        .setScheme(mProto.getScheme())
+        .setAuthority(mProto.getAuthority())
+        .addAllPathComponents(pathComponents)
+        .addAllPathComponents(suffixComponentsList).build());
   }
 }

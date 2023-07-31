@@ -37,9 +37,18 @@ public class UfsUrlTest {
     assertEquals("localhost", authority.getHost());
     assertEquals(19998, authority.getPort());
 
-//    assertEquals(2, ufsUrl.getDepth());
-//    assertEquals("a b c", ufsUrl.getName());
-//    assertEquals("alluxio://localhost:19998/xy z", ufsUrl.getParentURL().asString());
+    assertEquals(2, ufsUrl.getDepth());
+    assertEquals("a b c", ufsUrl.getName());
+    assertEquals("alluxio://localhost:19998/xy z", ufsUrl.getParentURL().asString());
 //    assertEquals("alluxio://localhost:19998/", ufsUrl.getParentURL().getParentURL().asString());
+    assertEquals("/xy z/a b c", ufsUrl.getFullPath());
+    assertEquals("alluxio", ufsUrl.getScheme());
+    assertTrue(ufsUrl.hasScheme());
+    assertTrue(ufsUrl.isAbsolute());
+//    assertTrue(ufsUrl.isPathAbsolute());
+    assertEquals("alluxio://localhost:19998/xy z/a b c/d", ufsUrl.join("/d").asString());
+//    assertEquals("alluxio://localhost:19998/xy z/a b c/d", ufsUrl.join(new AlluxioURI("/d"))
+//        .toString());
+    assertEquals("alluxio://localhost:19998/xy z/a b c", ufsUrl.asString());
   }
 }

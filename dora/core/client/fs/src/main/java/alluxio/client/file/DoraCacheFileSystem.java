@@ -269,10 +269,9 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   @Override
   public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    UfsUrl ufsFullPath = convertUfsUrlToUfsPath(ufsPath);
     try {
       // TODO(Tony Sun): consider whether to add scheme and authority.
-      return mDoraClient.listStatus(ufsFullPath.getFullPath(), options);
+      return mDoraClient.listStatus(ufsPath, options);
     } catch (RuntimeException ex) {
       if (ex instanceof StatusRuntimeException) {
         if (((StatusRuntimeException) ex).getStatus().getCode() == Status.NOT_FOUND.getCode()) {
@@ -282,7 +281,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       UFS_FALLBACK_COUNTER.inc();
       LOG.debug("Dora client list status error ({} times). Fall back to UFS.",
               UFS_FALLBACK_COUNTER.getCount(), ex);
-      return mDelegatedFileSystem.listStatus(ufsFullPath, options);
+      return mDelegatedFileSystem.listStatus(ufsPath, options);
     }
   }
 
