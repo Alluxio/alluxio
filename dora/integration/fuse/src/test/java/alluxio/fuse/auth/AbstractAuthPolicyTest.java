@@ -15,7 +15,6 @@ import static org.mockito.ArgumentMatchers.eq;
 
 import alluxio.AlluxioURI;
 import alluxio.PositionReader;
-import alluxio.UfsUrlUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
