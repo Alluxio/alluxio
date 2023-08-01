@@ -15,6 +15,7 @@ import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.conf.Configuration;
 import alluxio.conf.ConfigurationValueOptions;
+import alluxio.util.LogUtils;
 import alluxio.web.ProxyWebServer;
 import alluxio.wire.AlluxioProxyInfo;
 
@@ -26,6 +27,7 @@ import java.util.TreeMap;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -48,6 +50,11 @@ public final class AlluxioProxyRestServiceHandler {
 
   // queries
   public static final String QUERY_RAW_CONFIGURATION = "raw_configuration";
+
+  // log
+  public static final String LOG_LEVEL = "logLevel";
+  public static final String LOG_ARGUMENT_NAME = "logName";
+  public static final String LOG_ARGUMENT_LEVEL = "level";
 
   private final ProxyProcess mProxyProcess;
 
@@ -86,6 +93,20 @@ public final class AlluxioProxyRestServiceHandler {
           .setUptimeMs(mProxyProcess.getUptimeMs())
           .setVersion(RuntimeConstants.VERSION);
     }, Configuration.global());
+  }
+
+  /**
+   * @summary set the Alluxio log information
+   * @param logName the log's name
+   * @param level the log level
+   * @return the response object
+   */
+  @POST
+  @Path(LOG_LEVEL)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response logLevel(@QueryParam(LOG_ARGUMENT_NAME) final String logName,
+                           @QueryParam(LOG_ARGUMENT_LEVEL) final String level) {
+    return RestUtils.call(() -> LogUtils.setLogLevel(logName, level), Configuration.global());
   }
 
   private Map<String, Object> getConfigurationInternal(boolean raw) {

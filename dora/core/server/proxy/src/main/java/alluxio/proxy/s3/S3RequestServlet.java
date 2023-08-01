@@ -13,8 +13,10 @@ package alluxio.proxy.s3;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.RestUtils;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
+import alluxio.util.LogUtils;
 import alluxio.util.ThreadUtils;
 import alluxio.web.ProxyWebServer;
 
@@ -46,6 +48,12 @@ public class S3RequestServlet extends HttpServlet {
   public static final String PROXY_S3_V2_LIGHT_POOL = "Proxy S3 V2 Light Pool";
   public static final String PROXY_S3_V2_HEAVY_POOL = "Proxy S3 V2 Heavy Pool";
 
+  public static final String PROXY_LOG_LEVEL_PREFIX = "/proxy/logLevel";
+  public static final String S3_V2_SERVICE_LOG_PATH_PREFIX = Constants.REST_API_PREFIX
+      + PROXY_LOG_LEVEL_PREFIX;
+  public static final String LOG_ARGUMENT_NAME = "logName";
+  public static final String LOG_ARGUMENT_LEVEL = "level";
+
   /**
    * Implementation to serve the HttpServletRequest and returns HttpServletResponse.
    * @param request   the {@link HttpServletRequest} object that
@@ -63,6 +71,9 @@ public class S3RequestServlet extends HttpServlet {
   public void service(HttpServletRequest request,
                       HttpServletResponse response) throws ServletException, IOException {
     String target = request.getRequestURI();
+    if (target.equals(S3_V2_SERVICE_LOG_PATH_PREFIX)) {
+      serveSetLogLevelRequest(request, response);
+    }
     if (!target.startsWith(S3_V2_SERVICE_PATH_PREFIX)) {
       return;
     }
@@ -104,6 +115,21 @@ public class S3RequestServlet extends HttpServlet {
     else {
       serveRequest(s3Handler);
     }
+  }
+
+  /**
+   * Handle setting log level request.
+   * @param request   the {@link HttpServletRequest} object
+   *
+   * @param response  the {@link HttpServletResponse} object
+   * @throws IOException
+   */
+  public void serveSetLogLevelRequest(HttpServletRequest request,
+                                         HttpServletResponse response) throws IOException {
+    String logName = request.getParameter(LOG_ARGUMENT_NAME);
+    String level = request.getParameter(LOG_ARGUMENT_LEVEL);
+    S3Handler.processResponse(response,
+        RestUtils.call(() -> LogUtils.setLogLevel(logName, level), Configuration.global()));
   }
 
   /**
