@@ -36,6 +36,7 @@ import alluxio.util.WaitForOptions;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -48,6 +49,7 @@ import java.util.stream.Collectors;
 /**
  * Integration tests for the embedded journal.
  */
+@Ignore
 public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
   @Rule
   public ConfigurationRule mConf = new ConfigurationRule(

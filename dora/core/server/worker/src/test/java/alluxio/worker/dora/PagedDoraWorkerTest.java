@@ -40,6 +40,7 @@ import alluxio.grpc.RouteFailure;
 import alluxio.grpc.SetAttributePOptions;
 import alluxio.grpc.UfsReadOptions;
 import alluxio.grpc.WriteOptions;
+import alluxio.membership.MembershipManager;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsStatus;
 import alluxio.util.io.BufferUtils;
@@ -72,6 +73,7 @@ public class PagedDoraWorkerTest {
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
   private CacheManager mCacheManager;
+  private MembershipManager mMembershipManager;
   private final long mPageSize =
       Configuration.global().getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
   private static final GetStatusPOptions GET_STATUS_OPTIONS_MUST_SYNC =
@@ -89,7 +91,10 @@ public class PagedDoraWorkerTest {
         PageMetaStore.create(CacheManagerOptions.createForWorker(Configuration.global()));
     mCacheManager =
         CacheManager.Factory.create(Configuration.global(), cacheManagerOptions, pageMetaStore);
-    mWorker = new PagedDoraWorker(new AtomicReference<>(1L), Configuration.global(), mCacheManager);
+    mMembershipManager =
+        MembershipManager.Factory.create(Configuration.global());
+    mWorker = new PagedDoraWorker(new AtomicReference<>(1L),
+        Configuration.global(), mCacheManager, mMembershipManager);
   }
 
   @After

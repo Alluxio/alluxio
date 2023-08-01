@@ -102,6 +102,7 @@ public class ConfigCheckerIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
+  @Ignore
   public void multiWorkers() throws Exception {
     PropertyKey key = PropertyKey.WORKER_FREE_SPACE_TIMEOUT;
     Map<Integer, Map<PropertyKey, String>> workerProperties

@@ -48,6 +48,7 @@ import alluxio.master.journal.JournalType;
 import alluxio.master.metastore.MetastoreType;
 import alluxio.master.metastore.rocks.DataBlockIndexType;
 import alluxio.master.metastore.rocks.IndexType;
+import alluxio.membership.MembershipType;
 import alluxio.network.ChannelType;
 import alluxio.network.netty.FileTransferType;
 import alluxio.security.authentication.AuthType;
@@ -5505,6 +5506,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_MEMBERSHIP_MANAGER_TYPE =
+      enumBuilder(Name.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.class)
+          .setDefaultValue(MembershipType.NOOP.name())
+          .setDescription("Type of membership manager used for workers."
+              + "Choose STATIC for pre-configured members."
+              + "Choose ETCD for using etcd for membership management"
+              + "Default is NOOP which does not enable membership manager at all")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.ALL)
+          .build();
+  public static final PropertyKey WORKER_STATIC_MEMBERSHIP_MANAGER_CONFIG_FILE =
+      stringBuilder(Name.WORKER_STATIC_MEMBERSHIP_MANAGER_CONFIG_FILE)
+          .setDefaultValue(format("${%s}/workers", Name.CONF_DIR))
+          .setDescription("Absolute path of the config file for list"
+              + "of worker hostnames/IPs for the cluster. "
+              + Name.WORKER_MEMBERSHIP_MANAGER_TYPE + " needs to be set"
+              + " to STATIC first.")
+          .setScope(Scope.ALL)
+          .build();
 
   //
   // Proxy related properties
@@ -7627,6 +7647,19 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("/alluxio/job_leader").build();
 
   //
+  // Membership related properties
+  //
+  public static final PropertyKey ALLUXIO_CLUSTER_NAME =
+      stringBuilder(Name.ALLUXIO_CLUSTER_NAME)
+          .setDefaultValue("DefaultAlluxioCluster").build();
+  public static final PropertyKey ETCD_ENDPOINTS =
+      listBuilder(Name.ETCD_ENDPOINTS)
+          .setDescription("A list of comma-separated http://host:port addresses of "
+                  + "etcd cluster (e.g. http://localhost:2379,http://etcd1:2379)")
+          .setScope(Scope.ALL)
+          .build();
+
+  //
   // JVM Monitor related properties
   //
   public static final PropertyKey JVM_MONITOR_WARN_THRESHOLD_MS =
@@ -8993,6 +9026,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_UFS_INSTREAM_CACHE_MAX_SIZE =
         "alluxio.worker.ufs.instream.cache.max.size";
     public static final String WORKER_WHITELIST = "alluxio.worker.whitelist";
+    public static final String WORKER_MEMBERSHIP_MANAGER_TYPE =
+        "alluxio.worker.membership.manager.type";
+    public static final String WORKER_STATIC_MEMBERSHIP_MANAGER_CONFIG_FILE =
+        "alluxio.worker.static.membership.manager.config.file";
 
     //
     // Proxy related properties
@@ -9479,6 +9516,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     public static final String ZOOKEEPER_JOB_ELECTION_PATH = "alluxio.zookeeper.job.election.path";
     public static final String ZOOKEEPER_JOB_LEADER_PATH = "alluxio.zookeeper.job.leader.path";
+
+    // Membership related properties
+    public static final String ALLUXIO_CLUSTER_NAME = "alluxio.cluster.name";
+    public static final String ETCD_ENDPOINTS = "alluxio.etcd.endpoints";
 
     //
     // JVM Monitor related properties

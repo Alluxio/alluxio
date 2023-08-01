@@ -34,6 +34,8 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.grpc.GrpcServerAddress;
 import alluxio.master.MasterClientContext;
 import alluxio.master.MasterInquireClient;
+import alluxio.membership.MembershipManager;
+import alluxio.membership.NoOpMembershipManager;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.netty.NettyChannelPool;
 import alluxio.network.netty.NettyClient;
@@ -154,6 +156,8 @@ public class FileSystemContext implements Closeable {
    */
   private volatile ConcurrentHashMap<ClientPoolKey, BlockWorkerClientPool>
       mBlockWorkerClientPoolMap;
+  @Nullable
+  private MembershipManager mMembershipManager;
 
   /**
    * Indicates whether the {@link #mLocalWorker} field has been lazily initialized yet.
@@ -443,6 +447,11 @@ public class FileSystemContext implements Closeable {
     mBlockMasterClientPool = new BlockMasterClientPool(mMasterClientContext);
     mBlockWorkerClientPoolMap = new ConcurrentHashMap<>();
     mUriValidationEnabled = ctx.getUriValidationEnabled();
+    try {
+      mMembershipManager = MembershipManager.Factory.create(getClusterConf());
+    } catch (IOException ex) {
+      LOG.error("Failed to set membership manager.", ex);
+    }
   }
 
   /**
@@ -489,6 +498,12 @@ public class FileSystemContext implements Closeable {
 
       if (mMetricsEnabled) {
         MetricsHeartbeatContext.removeHeartbeat(getClientContext());
+      }
+      LOG.debug("Closing membership manager.");
+      try (AutoCloseable ignoredCloser = mMembershipManager) {
+        // do nothing as we are closing
+      } catch (Exception e) {
+        throw new IOException(e);
       }
     } else {
       LOG.warn("Attempted to close FileSystemContext which has already been closed or not "
@@ -864,6 +879,17 @@ public class FileSystemContext implements Closeable {
    * @return the info of all block workers
    */
   protected List<BlockWorkerInfo> getAllWorkers() throws IOException {
+    // TODO(lucy) once ConfigHashSync reinit is gotten rid of, will remove the blockReinit
+    // guard altogether
+    try (ReinitBlockerResource r = blockReinit()) {
+      // Use membership mgr
+      if (mMembershipManager != null && !(mMembershipManager instanceof NoOpMembershipManager)) {
+        return mMembershipManager.getAllMembers().stream()
+            .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
+            .collect(toList());
+      }
+    }
+    // Fall back to old way
     try (CloseableResource<BlockMasterClient> masterClientResource =
              acquireBlockMasterClientResource()) {
       return masterClientResource.get().getWorkerInfoList().stream()
