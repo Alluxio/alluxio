@@ -152,7 +152,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       UFS_FALLBACK_COUNTER.inc();
       LOG.debug("Dora client get status error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), ex);
-      return mDelegatedFileSystem.getStatus(ufsFullPath, options).setIsFromUFS();
+      return mDelegatedFileSystem.getStatus(ufsFullPath, options).setFromUFSFallBack();
     }
   }
 
@@ -176,8 +176,8 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     OpenFilePOptions mergedOptions = FileSystemOptionsUtils.openFileDefaults(conf)
         .toBuilder().mergeFrom(options).build();
     try {
-      if (status.getIsFromUFS()) {
-        throw new RuntimeException("Status is retrieved from UFS by falling back");
+      if (status.isFromUFSFallBack()) {
+        throw new RuntimeException("Status is retrieved from UFS by falling back.");
       }
       Protocol.OpenUfsBlockOptions openUfsBlockOptions =
           Protocol.OpenUfsBlockOptions.newBuilder().setUfsPath(status.getUfsPath())

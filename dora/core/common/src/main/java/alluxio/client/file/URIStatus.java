@@ -43,7 +43,7 @@ public class URIStatus {
   /** Context associated with this URI, possibly set by other external engines (e.g., presto). */
   private final CacheContext mCacheContext;
 
-  private boolean mIsFromUFS;
+  private boolean mFromUFSFallBack;
 
   /**
    * Constructs an instance of this class from a {@link FileInfo}.
@@ -63,7 +63,7 @@ public class URIStatus {
   public URIStatus(FileInfo info, @Nullable CacheContext context) {
     mInfo = Preconditions.checkNotNull(info, "info");
     mCacheContext = context;
-    mIsFromUFS = false;
+    mFromUFSFallBack = false;
   }
 
   /**
@@ -71,8 +71,8 @@ public class URIStatus {
    *
    * If true, it means this status is retrieved by falling back to UFS.
    */
-  public boolean getIsFromUFS() {
-    return mIsFromUFS;
+  public boolean isFromUFSFallBack() {
+    return mFromUFSFallBack;
   }
 
   /**
@@ -86,8 +86,8 @@ public class URIStatus {
    *
    * @return this object itself
    */
-  public URIStatus setIsFromUFS() {
-    mIsFromUFS = true;
+  public URIStatus setFromUFSFallBack() {
+    mFromUFSFallBack = true;
     return this;
   }
 
