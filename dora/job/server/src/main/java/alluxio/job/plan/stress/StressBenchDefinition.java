@@ -99,9 +99,6 @@ public final class StressBenchDefinition
       args.add(worker.getAddress().getHost() + "-" + worker.getId());
       args.add(BaseParameters.INDEX_FLAG);
       args.add(Integer.toString(index));
-//      // TODO(jiacheng): Do I need it here?
-//      args.add(BaseParameters.CLUSTER_LIMIT_FLAG);
-//      args.add(Integer.toString(clusterLimit));
       result.add(new Pair<>(worker, args));
       index++;
     }

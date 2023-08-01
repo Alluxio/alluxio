@@ -219,7 +219,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       for (int j = 0; j < threads; j++) {
         Path filePath = calculateFilePath(basePath, i, j);
         // TODO(jiacheng): by adding LocalWorkerPolicy, we no longer need this hash check
-//        Path filePathAfterSalt = forecastLocation(filePathBeforeSalt, threads, isLocal, distribution, i, workers, localWorker);
+        // Path filePathAfterSalt = forecastLocation(filePathBeforeSalt, threads, isLocal, distribution, i, workers, localWorker);
 
         int index = i * threads + j;
         mFilePaths[index] = filePath;
@@ -382,10 +382,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     long durationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
     long warmupMs = FormatUtils.parseTimeSize(mParameters.mWarmup);
     long startMs = mBaseParameters.mStartMs;
-    if (mBaseParameters.mStartMs == BaseParameters.UNDEFINED_START_MS) {
-      LOG.info("Start time is unspecified, leaving 5s for preparation");
-      startMs = CommonUtils.getCurrentMs() + 5000;
-    }
     long endMs = startMs + warmupMs + durationMs;
     String datePattern = alluxio.conf.Configuration.global()
         .getString(PropertyKey.USER_DATE_FORMAT_PATTERN);
