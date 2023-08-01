@@ -28,18 +28,11 @@ import (
 	"alluxio.org/log"
 )
 
-// find all workers
-// for each worker, create SSH session and run './bin/cli.sh process start worker'
-// output pid and logs
-
 var Workers = &WorkersProcess{
 	BaseProcess: &env.BaseProcess{
 		Name: "workers",
 	},
 }
-
-// parameters
-const ()
 
 type WorkersProcess struct {
 	*env.BaseProcess
@@ -95,7 +88,6 @@ func (p *WorkersProcess) Start(cmd *env.StartProcessCommand) error {
 	} else {
 		log.Logger.Fatalf("Run command %s failed: %s", command, err)
 	}
-
 	return nil
 }
 
@@ -125,7 +117,6 @@ func (p *WorkersProcess) Stop(cmd *env.StopProcessCommand) error {
 	} else {
 		log.Logger.Fatalf("Run command %s failed: %s", command, err)
 	}
-
 	return nil
 }
 
