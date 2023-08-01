@@ -21,8 +21,6 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.annotations.VisibleForTesting;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
