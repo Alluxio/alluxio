@@ -12,7 +12,6 @@
 package alluxio.client.file.dora;
 
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.file.AlluxioFileInStream;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.ResourceExhaustedException;
