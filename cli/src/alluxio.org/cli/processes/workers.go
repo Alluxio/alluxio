@@ -78,8 +78,14 @@ func (p *WorkersProcess) Start(cmd *env.StartProcessCommand) error {
 
 	// for each worker, create a client
 	// TODO: now start worker one by one, need to do them in parallel
-	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "alluxio-start.sh")
-	arguments := "worker"
+	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "cli.sh")
+	arguments := "process start worker"
+	if cmd.AsyncStart {
+		arguments = arguments + " -a"
+	}
+	if cmd.SkipKillOnStart {
+		arguments = arguments + " -N"
+	}
 	command := cliPath + " " + arguments
 
 	errors := runCommandOnWorkers(workers, key, command)
@@ -108,14 +114,14 @@ func (p *WorkersProcess) Stop(cmd *env.StopProcessCommand) error {
 
 	// for each worker, create a client
 	// TODO: now start worker one by one, need to do them in parallel
-	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "alluxio-stop.sh")
-	arguments := "worker"
+	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "cli.sh")
+	arguments := "process stop worker"
 	command := cliPath + " " + arguments
 
 	errors := runCommandOnWorkers(workers, key, command)
 
 	if len(errors) == 0 {
-		log.Logger.Infof("Run command %s successful on workers: %s", command, workers)
+		log.Logger.Infof("Run command %s on workers: %s", command, workers)
 	} else {
 		log.Logger.Fatalf("Run command %s failed: %s", command, err)
 	}
@@ -213,7 +219,7 @@ func runCommandOnWorkers(workers []string, key ssh.Signer, command string) []err
 		}
 		defer func(session *ssh.Session) {
 			err := session.Close()
-			if err != nil {
+			if err != nil && err != io.EOF {
 				log.Logger.Infof("Session at %s closed. Error: %s", dialAddr, err)
 			} else {
 				log.Logger.Infof("Session at %s closed.", dialAddr)
