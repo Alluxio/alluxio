@@ -33,8 +33,7 @@ public class UfsUrl {
 
   public UfsUrl(UfsUrlMessage proto) {
     Preconditions.checkArgument(proto.getPathComponentsList().size() != 0,
-        "the proto.path is empty, please check the proto first");
-    // TODO(Tony Sun): trans proto to absolute path.
+        "The proto.path is empty, please check the proto first");
     mProto = proto;
   }
 
@@ -42,20 +41,20 @@ public class UfsUrl {
     // TODO(Tony Sun): Considering the case below:
     //  when scheme does not exist, how to determine the scheme, or an empty scheme.
     Preconditions.checkArgument(!ufsPath.isEmpty(),
-            "ufsPath is empty, please input a non-empty ufsPath.");
+        "ufsPath is empty, please input a non-empty ufsPath.");
     List<String> preprocessingPathList = Arrays.asList(ufsPath.split(SCHEME_SEPERATOR));
     String scheme;
     String authorityAndPath;
     String rootDir = Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
     Preconditions.checkArgument(preprocessingPathList.size() <= 2,
         "There are multiple schemes, the input may contain more than one path, "
-            + "current version only support one path each time");
+            + "current version only support inputting one path each time.");
     // Now, there are two condition. size = 1 -> without scheme; size = 2 -> with a scheme.
     if (preprocessingPathList.size() == 1)  {
       // If without scheme, set default scheme to local, i.e. "file".
       String[] rootDirArray = rootDir.split(SCHEME_SEPERATOR);
       if (rootDirArray.length == 1) {
-        scheme = "file";
+        scheme = "alluxio";
       } else {
         scheme = rootDirArray[0];
       }
@@ -65,13 +64,14 @@ public class UfsUrl {
       scheme = preprocessingPathList.get(0);
       authorityAndPath = preprocessingPathList.get(1);
     }
+    Preconditions.checkNotNull(scheme, "scheme is empty, please input again");
+    Preconditions.checkNotNull(authorityAndPath, "authority or path is empty, please input again");
     Preconditions.checkArgument(scheme.equalsIgnoreCase("file")
-        || scheme.equalsIgnoreCase("s3") || scheme.equalsIgnoreCase("hdfs"),
-        "Now UfsUrl only support local, s3, and hdfs");
+            || scheme.equalsIgnoreCase("s3")
+            || scheme.equalsIgnoreCase("hdfs")
+            || scheme.equalsIgnoreCase("alluxio"),
+        "Now UfsUrl only support alluxio, file(local), s3, and hdfs, please check scheme first");
     int indexOfFirstSlashAfterAuthority = authorityAndPath.indexOf(PATH_SEPERATOR);
-    // Empty path is excluded here.
-//    Preconditions.checkArgument(indexOfFirstSlashAfterAuthority != -1,
-//        "Please input a valid path.");
     if (indexOfFirstSlashAfterAuthority == -1)  {
       // If index is 0, the authorityString will be empty.
       indexOfFirstSlashAfterAuthority = 0;
@@ -79,10 +79,12 @@ public class UfsUrl {
     String authorityString = authorityAndPath.substring(0, indexOfFirstSlashAfterAuthority);
     String pathString = authorityAndPath.substring(indexOfFirstSlashAfterAuthority);
 
-    if (scheme.equals("file")) {
+    if (scheme.equalsIgnoreCase("file") || scheme.equalsIgnoreCase("alluxio")
+        || scheme.equalsIgnoreCase("s3") || scheme.equalsIgnoreCase("hdfs")) {
       pathString = rootDir + pathString;
     } else {
       // TODO(Tony Sun): parse the dir part of each path. like s3 or hdfs.
+      System.out.println("Other scheme are not supported currently.");
       return;
     }
     String[] arrayOfPathString = pathString.split(PATH_SEPERATOR);
@@ -131,6 +133,9 @@ public class UfsUrl {
     sb.append(UfsUrl.PATH_SEPERATOR);
     List<String> pathComponents = mProto.getPathComponentsList();
     for (int i = 0; i < pathComponents.size(); i++) {
+      if (pathComponents.get(i).isEmpty())  {
+        continue;
+      }
       sb.append(pathComponents.get(i));
       if (i < pathComponents.size() - 1) {
         sb.append(UfsUrl.PATH_SEPERATOR);
@@ -146,6 +151,9 @@ public class UfsUrl {
     sb.append("://");
     List<String> pathComponents = mProto.getPathComponentsList();
     for (int i = 0; i < pathComponents.size(); i++) {
+      if (pathComponents.get(i).isEmpty())  {
+        continue;
+      }
       sb.append(pathComponents.get(i));
       if (i < pathComponents.size() - 1) {
         sb.append(AlluxioURI.SEPARATOR);
@@ -184,23 +192,23 @@ public class UfsUrl {
   public UfsUrl getParentURL() {
     List<String> pathComponents = mProto.getPathComponentsList();
     return new UfsUrl(UfsUrlMessage.newBuilder()
-            .setScheme(mProto.getScheme())
-            .setAuthority(mProto.getAuthority())
-            // TODO(Jiacheng Liu): how many copies are there. Improve the performance in the future.
-            .addAllPathComponents(pathComponents.subList(0, pathComponents.size() - 1)).build());
+        .setScheme(mProto.getScheme())
+        .setAuthority(mProto.getAuthority())
+        // TODO(Jiacheng Liu): how many copies are there. Improve the performance in the future.
+        .addAllPathComponents(pathComponents.subList(0, pathComponents.size() - 1)).build());
   }
 
   // TODO(Jiacheng Liu): try to avoid the copy by a RelativeUrl class
   public UfsUrl getChildURL(String childName) {
     List<String> pathComponents = mProto.getPathComponentsList();
     return new UfsUrl(UfsUrlMessage.newBuilder()
-            .setScheme(mProto.getScheme())
-            .setAuthority(mProto.getAuthority())
-            .addAllPathComponents(pathComponents).addPathComponents(childName).build());
+        .setScheme(mProto.getScheme())
+        .setAuthority(mProto.getAuthority())
+        .addAllPathComponents(pathComponents).addPathComponents(childName).build());
   }
 
   public String getFullPath() {
-    return Strings.join(mProto.getPathComponentsList(), AlluxioURI.SEPARATOR.charAt(0));
+    return Strings.join(mProto.getPathComponentsList(), PATH_SEPERATOR.charAt(0));
   }
 
   public AlluxioURI toAlluxioURI() {
@@ -209,12 +217,25 @@ public class UfsUrl {
   }
 
   public int getDepth() {
-    return getPathComponents().size();
+    int depth = 0;
+    for (String x : mProto.getPathComponentsList()) {
+      if (!x.isEmpty()) {
+        depth++;
+      }
+    }
+    return depth;
   }
 
   public String getName() {
     List<String> pathComponents = getPathComponents();
-    return pathComponents.get(pathComponents.size() - 1);
+    String name = "/";
+    for (int i = pathComponents.size() - 1; i >= 0; i--)  {
+      if (!pathComponents.get(i).isEmpty()) {
+        name = pathComponents.get(i);
+        break;
+      }
+    }
+    return name;
   }
 
   public boolean isAncestorOf(UfsUrl ufsUrl) throws InvalidPathException {
