@@ -26,7 +26,7 @@ var Worker = &WorkerProcess{
 	BaseProcess: &env.BaseProcess{
 		Name:                 "worker",
 		JavaClassName:        "alluxio.worker.AlluxioWorker",
-		JavaOptsEnvVarKey:    confAlluxioWorkerJavaOpts.EnvVar,
+		JavaOptsEnvVarKey:    ConfAlluxioWorkerJavaOpts.EnvVar,
 		ProcessOutFile:       "worker.out",
 		MonitorJavaClassName: "alluxio.worker.AlluxioWorkerMonitor",
 	},
@@ -38,7 +38,7 @@ const (
 )
 
 var (
-	confAlluxioWorkerJavaOpts = env.RegisterTemplateEnvVar(&env.AlluxioConfigEnvVar{
+	ConfAlluxioWorkerJavaOpts = env.RegisterTemplateEnvVar(&env.AlluxioConfigEnvVar{
 		EnvVar: "ALLUXIO_WORKER_JAVA_OPTS",
 	})
 	confAlluxioWorkerAttachOpts = env.RegisterTemplateEnvVar(&env.AlluxioConfigEnvVar{

@@ -26,7 +26,7 @@ var Proxy = &ProxyProcess{
 	BaseProcess: &env.BaseProcess{
 		Name:                 "proxy",
 		JavaClassName:        "alluxio.proxy.AlluxioProxy",
-		JavaOptsEnvVarKey:    confAlluxioProxyJavaOpts.EnvVar,
+		JavaOptsEnvVarKey:    ConfAlluxioProxyJavaOpts.EnvVar,
 		ProcessOutFile:       "proxy.out",
 		MonitorJavaClassName: "alluxio.proxy.AlluxioProxyMonitor",
 	},
@@ -41,7 +41,7 @@ const (
 )
 
 var (
-	confAlluxioProxyJavaOpts = env.RegisterTemplateEnvVar(&env.AlluxioConfigEnvVar{
+	ConfAlluxioProxyJavaOpts = env.RegisterTemplateEnvVar(&env.AlluxioConfigEnvVar{
 		EnvVar: "ALLUXIO_PROXY_JAVA_OPTS",
 	})
 	confAlluxioProxyAttachOpts = env.RegisterTemplateEnvVar(&env.AlluxioConfigEnvVar{

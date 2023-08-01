@@ -30,7 +30,7 @@ var Master = &MasterProcess{
 	BaseProcess: &env.BaseProcess{
 		Name:                 "master",
 		JavaClassName:        "alluxio.master.AlluxioMaster",
-		JavaOptsEnvVarKey:    confAlluxioMasterJavaOpts.EnvVar,
+		JavaOptsEnvVarKey:    ConfAlluxioMasterJavaOpts.EnvVar,
 		ProcessOutFile:       "master.out",
 		MonitorJavaClassName: "alluxio.master.AlluxioMasterMonitor",
 	},
@@ -48,7 +48,7 @@ const (
 )
 
 var (
-	confAlluxioMasterJavaOpts = env.RegisterTemplateEnvVar(&env.AlluxioConfigEnvVar{
+	ConfAlluxioMasterJavaOpts = env.RegisterTemplateEnvVar(&env.AlluxioConfigEnvVar{
 		EnvVar: "ALLUXIO_MASTER_JAVA_OPTS",
 	})
 	confAlluxioMasterAttachOpts = env.RegisterTemplateEnvVar(&env.AlluxioConfigEnvVar{

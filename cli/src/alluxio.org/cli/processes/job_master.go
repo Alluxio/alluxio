@@ -26,7 +26,7 @@ var JobMaster = &JobMasterProcess{
 	BaseProcess: &env.BaseProcess{
 		Name:                 "job_master",
 		JavaClassName:        "alluxio.master.AlluxioJobMaster",
-		JavaOptsEnvVarKey:    confAlluxioJobMasterJavaOpts.EnvVar,
+		JavaOptsEnvVarKey:    ConfAlluxioJobMasterJavaOpts.EnvVar,
 		ProcessOutFile:       "job_master.out",
 		MonitorJavaClassName: "alluxio.master.job.AlluxioJobMasterMonitor",
 	},
@@ -41,7 +41,7 @@ const (
 )
 
 var (
-	confAlluxioJobMasterJavaOpts = env.RegisterTemplateEnvVar(&env.AlluxioConfigEnvVar{
+	ConfAlluxioJobMasterJavaOpts = env.RegisterTemplateEnvVar(&env.AlluxioConfigEnvVar{
 		EnvVar: "ALLUXIO_JOB_MASTER_JAVA_OPTS",
 	})
 	confAlluxioJobMasterAttachOpts = env.RegisterTemplateEnvVar(&env.AlluxioConfigEnvVar{
