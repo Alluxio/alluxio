@@ -158,68 +158,6 @@ $ ./bin/alluxio getConf --unit S alluxio.master.journal.flush.timeout
 
 > Note: This command does not require the Alluxio cluster to be running.
 
-### job
-
-The `job` command is a tool for interacting with the job service.
-
-The usage is `job [generic options]`
-where `[generic options]` can be one of the following values:
-* `leader`: Prints the hostname of the job master service leader.
-* `ls`: Prints the IDs of the most recent jobs, running and finished, in the history up to the capacity set in `alluxio.job.master.job.capacity`.
-* `stat [-v] <id>`:Displays the status info for the specific job. Use -v flag to display the status of every task.
-* `cancel <id>`: Cancels the job with the corresponding id asynchronously.
-
-Print the hostname of the job master service leader:
-```shell
-$ ./bin/alluxio job leader
-```
-
-Print the IDs, job names, and completion status of the most recently created jobs:
-```shell
-$ ./bin/alluxio job ls
-
-1576539334518 Load COMPLETED
-1576539334519 Load CREATED
-1576539334520 Load CREATED
-1576539334521 Load CREATED
-1576539334522 Load CREATED
-1576539334523 Load CREATED
-1576539334524 Load CREATED
-1576539334525 Load CREATED
-1576539334526 Load CREATED
-```
-
-Display the status info for the specific job:
-```shell
-$ bin/alluxio job stat -v 1579102592778
-
-ID: 1579102592778
-Name: Migrate
-Description: MigrateConfig{source=/test, destination=/test2, writeType=ASYNC_THROUGH, overwrite=true, delet...
-Status: CANCELED
-Task 0
-Worker: localhost
-Status: CANCELED
-Task 1
-Worker: localhost
-Status: CANCELED
-Task 2
-Worker: localhost
-Status: CANCELED
-
-...
-```
-
-Cancel the job asynchronously based on a specific job:
-```shell
-$ bin/alluxio job cancel 1579102592778
-
-$ bin/alluxio job stat 1579102592778 | grep "Status"
-Status: CANCELED
-```
-
-> Note: This command requires the Alluxio cluster to be running.
-
 ### logLevel
 
 The `logLevel` command returns the current value of or updates the log level of a particular class
@@ -534,175 +472,6 @@ $ ./bin/alluxio fs copyToLocal /output/part-00000 part-00000
 $ wc -l part-00000
 ```
 
-### distributedCp
-
-The `distributedCp` command copies a file or directory in the Alluxio file system distributed across workers
-using the job service. By default, the command runs synchronously and the user will get a `JOB_CONTROL_ID` after the command successfully submits the job to be executed.
-The command will wait until the job is complete, at which point the user will see the list of files copied and statistics on which files completed or failed.
-The command can also run in async mode with the `--async` flag. Similar to before, the user will get a `JOB_CONTROL_ID` after the command successfully submits the job.
-The difference is that the command will not wait for the job to finish. 
-Users can use the [`getCmdStatus`](#getCmdStatus) command with the `JOB_CONTROL_ID` as an argument to check detailed status information about the job.
-
-If the source designates a directory, `distributedCp` copies the entire subtree at source to the destination.
-
-**Options:**
-* `--active-jobs`: Limits how many jobs can be submitted to the Alluxio job service at the same time.
-Later jobs must wait until some earlier jobs to finish. The default value is `3000`.
-A lower value means slower execution but also being nicer to the other users of the job service.
-* `--overwrite`: Whether to overwrite the destination. Default is true.
-* `--batch-size`: Specifies how many files to be batched into one request. The default value is `20`. Notice that if some task failed in the batched job, the whole batched job would fail with some completed tasks and some failed tasks.
-* `--async`: Specifies whether to wait for command execution to finish. If not explicitly shown then default to run synchronously.
-
-```shell
-$ ./bin/alluxio fs distributedCp --active-jobs 2000 /data/1023 /data/1024
-
-Sample Output:
-Please wait for command submission to finish..
-Submitted successfully, jobControlId = JOB_CONTROL_ID_1
-Waiting for the command to finish ...
-Get command status information below:
-Successfully copied path /data/1023/$FILE_PATH_1
-Successfully copied path /data/1023/$FILE_PATH_2
-Successfully copied path /data/1023/$FILE_PATH_3
-Total completed file count is 3, failed file count is 0
-Finished running the command, jobControlId = JOB_CONTROL_ID_1
-```
-
-Turn on async submission mode. Run this command to get JOB_CONTROL_ID, then use getCmdStatus to check command detailed status:
-```shell
-$ ./bin/alluxio fs distributedCp /data/1023 /data/1025 --async
-
-Sample Output:
-Entering async submission mode.
-Please wait for command submission to finish..
-Submitted migrate job successfully, jobControlId = JOB_CONTROL_ID_2
-```
-
-### distributedLoad
-
-The `distributedLoad` command loads a file or directory from the under storage system into Alluxio storage distributed
-across workers using the job service. The job is a no-op if the file is already loaded into Alluxio.
-By default, the command runs synchronously and the user will get a `JOB_CONTROL_ID` after the command successfully submits the job to be executed.
-The command will wait until the job is complete, at which point the user will see the list of files loaded and statistics on which files completed or failed.
-The command can also run in async mode with the `--async` flag. Similar to before, the user will get a `JOB_CONTROL_ID` after the command successfully submits the job.
-The difference is that the command will not wait for the job to finish.
-Users can use the [`getCmdStatus`](#getCmdStatus) command with the `JOB_CONTROL_ID` as an argument to check detailed status information about the job.
-
-If `distributedLoad` is run on a directory, files in the directory will be recursively loaded and each file will be loaded
-on a random worker.
-
-**Options**
-
-* `--replication`: Specifies how many workers to load each file into. The default value is `1`.
-* `--active-jobs`: Limits how many jobs can be submitted to the Alluxio job service at the same time.
-Later jobs must wait until some earlier jobs to finish. The default value is `3000`.
-A lower value means slower execution but also being nicer to the other users of the job service.
-* `--batch-size`: Specifies how many files to be batched into one request. The default value is `20`. Notice that if some task failed in the batched job, the whole batched job would fail with some completed tasks and some failed tasks.
-* `--host-file <host-file>`: Specifies a file contains worker hosts to load target data, each line has a worker host.
-* `--hosts`: Specifies a list of worker hosts separated by comma to load target data.
-* `--excluded-host-file <host-file>`: Specifies a file contains worker hosts which shouldn't load target data, each line has a worker host.
-* `--excluded-hosts`: Specifies a list of worker hosts separated by comma which shouldn't load target data.
-* `--locality-file <locality-file>`: Specifies a file contains worker locality to load target data, each line has a locality.
-* `--locality`: Specifies a list of worker locality separated by comma to load target data.
-* `--excluded-locality-file <locality-file>`: Specifies a file contains worker locality which shouldn't load target data, each line has a worker locality.
-* `--excluded-locality`: Specifies a list of worker locality separated by comma which shouldn't load target data.
-* `--index`: Specifies a file that lists all files to be loaded
-* `--passive-cache`: Specifies using direct cache request or passive cache with read(old implementation)
-* `--async`: Specifies whether to wait for command execution to finish. If not explicitly shown then default to run synchronously.
-
-```shell
-$ ./bin/alluxio fs distributedLoad --replication 2 --active-jobs 2000 /data/today
-
-Sample Output:
-Please wait for command submission to finish..
-Submitted successfully, jobControlId = JOB_CONTROL_ID_3
-Waiting for the command to finish ...
-Get command status information below:
-Successfully loaded path /data/today/$FILE_PATH_1
-Successfully loaded path /data/today/$FILE_PATH_2
-Successfully loaded path /data/today/$FILE_PATH_3
-Total completed file count is 3, failed file count is 0
-Finished running the command, jobControlId = JOB_CONTROL_ID_3
-```
-Turn on async submission mode. Run this command to get JOB_CONTROL_ID, then use getCmdStatus to check command detailed status:
-```shell
-$ ./bin/alluxio fs distributedLoad /data/today --async
-
-Sample Output:
-Entering async submission mode.
-Please wait for command submission to finish..
-Submitted distLoad job successfully, jobControlId = JOB_CONTROL_ID_4
-```
-
-Or you can include some workers or exclude some workers by using options `--host-file <host-file>`, `--hosts`, `--excluded-host-file <host-file>`,
-`--excluded-hosts`, `--locality-file <locality-file>`, `--locality`, `--excluded-host-file <host-file>` and `--excluded-locality`.
-
-Note: Do not use `--host-file <host-file>`, `--hosts`, `--locality-file <locality-file>`, `--locality` with
-`--excluded-host-file <host-file>`, `--excluded-hosts`, `--excluded-host-file <host-file>`, `--excluded-locality` together.
-
-```shell
-# Only include host1 and host2
-$ ./bin/alluxio fs distributedLoad /data/today --hosts host1,host2
-```
-
-```shell
-# Only include the workset from host file /tmp/hostfile
-$ ./bin/alluxio fs distributedLoad /data/today --host-file /tmp/hostfile
-```
-
-```shell
-# Include all workers except host1 and host2
-$ ./bin/alluxio fs distributedLoad /data/today --excluded-hosts host1,host2
-```
-
-```shell
-# Include all workers except the workerset in the excluded host file /tmp/hostfile-exclude
-$ ./bin/alluxio fs distributedLoad /data/today --excluded-file /tmp/hostfile-exclude
-```
-
-```shell
-# Include workers which's locality identify belong to ROCK1 or ROCK2
-$ ./bin/alluxio fs distributedLoad /data/today --locality ROCK1,ROCK2
-```
-
-```shell
-# Include workers which's locality identify belong to the localities in the locality file
-$ ./bin/alluxio fs distributedLoad /data/today --locality-file /tmp/localityfile
-```
-
-```shell
-# Include all workers except which's locality belong to ROCK1 or ROCK2
-$ ./bin/alluxio fs distributedLoad /data/today --excluded-locality ROCK1,ROCK2
-```
-
-```shell
-# Include all workers except which's locality belong to the localities in the excluded locality file
-$ ./bin/alluxio fs distributedLoad /data/today --excluded-locality-file /tmp/localityfile-exclude
-```
-
-**Conflict Cases:**
-
-* The `--hosts` and `--locality` are `OR` relationship, so host2,host3 and workers in ROCK2,ROCKS3 will be included:
-```shell
-$ ./bin/alluxio fs distributedLoad /data/today --locality ROCK2,ROCK3 --hosts host2,host3
-```
-
-* The `--excluded-hosts` and `--excluded-locality` are `OR` relationship, so host2,host3 and workers in ROCK2,ROCKS3 will be excluded:
-```shell
-$ ./bin/alluxio fs distributedLoad /data/today --excluded-hosts host2,host3 --excluded-locality ROCK2,ROCK3
-```
-
-### distributedMv
-
-The `distributedMv` command moves a file or directory in the Alluxio file system distributed across workers
-using the job service.
-
-If the source designates a directory, `distributedMv` moves the entire subtree at source to the destination.
-
-```shell
-$ ./bin/alluxio fs distributedMv /data/1023 /data/1024
-```
-
 ### head
 
 The `head` command prints the first 1 KB of data in a file to the shell.
@@ -739,16 +508,14 @@ $ ./bin/alluxio fs leader
 
 ### load
 
-The `load` command moves data from the under storage system into Alluxio storage.
+The `load` command load data/metadata from the under storage system into Alluxio storage.
 For example, `load` can be used to prefetch data for analytics jobs.
 If `load` is run on a directory, files in the directory will be recursively loaded.
 ```shell
-$ ./bin/alluxio fs load <path> --submit [--bandwidth N] [--verify] [--partial-listing]
+$ ./bin/alluxio fs load <path> --submit [--metadata-only]
 ```
 **Options:**
-* `--bandwidth` option specify how much ufs bandwidth we want to use to load files.
-* `--verify` option specify whether we want to verify that all the files are loaded.
-* `--partial-listing` option specify using batch listStatus API or traditional listStatus. We would retire this option when batch listStatus API gets mature.
+* `--metadata-only` option specify whether loading metadata only 
 
 After submit the command, you can check the status by running the following
 ```shell
@@ -772,38 +539,6 @@ Progress for loading path '/dir-99':
 ```shell
 # If you want to stop the command, run the following
 $ ./bin/alluxio fs load <path> --stop
-```
-
-```shell
-# If you just want sequential execution for couple files, you can use the following old version
-$ ./bin/alluxio fs load <path>
-```
-If there is a Alluxio worker on the machine this command is run from, the data will be loaded to that worker.
-Otherwise, a random worker will be selected to serve the data.
-
-If the data is already loaded into Alluxio, load is a no-op unless the `--local flag` is used.
-The `--local` flag forces the data to be loaded to a local worker
-even if the data is already available on a remote worker.
-```shell
-$ ./bin/alluxio fs load <path> --local
-```
-
-### loadMetadata
-
-The `loadMetadata` command loads metadata about a path in the UFS to Alluxio.
-No data will be transferred.
-This command is a client-side optimization without storing all returned `ls` results, preventing OOM for massive amount of small files.
-This is useful when data has been added to the UFS outside of Alluxio and users are expected to reference the new data.
-This command is more efficient than using the `ls` command since it does not store any directory or file information to be returned.
-
-**Options:**
-* `-R` option recursively loads metadata in subdirectories
-* `-F` option updates the metadata of the existing file forcibly
-
-For example, `loadMetadata` can be used to load metadata for a path in the UFS.
-The -F option will force the loading of metadata even if there are existing metadata entries for the path.
-```shell
-$ ./bin/alluxio fs loadMetadata -R -F <path>
 ```
 
 ### ls

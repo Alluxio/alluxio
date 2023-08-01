@@ -184,6 +184,9 @@ public class UfsBaseFileSystem implements FileSystem {
       if (options.hasIsAtomicWrite()) {
         ufsOptions.setEnsureAtomic(options.getIsAtomicWrite());
       }
+      if (options.hasUseMultipartUpload()) {
+        ufsOptions.setMultipartUploadEnabled(options.getUseMultipartUpload());
+      }
       return new UfsFileOutStream(mUfs.get().create(path.getPath(), ufsOptions));
     });
   }
