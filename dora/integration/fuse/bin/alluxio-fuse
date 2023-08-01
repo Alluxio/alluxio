@@ -177,7 +177,7 @@ launch_fuse_process() {
     return 1
   fi
   declare -r ufs_address="$1"
-  get_mount_point $2
+  get_mount_point "$2"
   declare -r mount_point=$FUSE_MOUNT_POINT
   shift 2
 
@@ -310,7 +310,8 @@ unmount_command() {
     echo -e "${USAGE}"
     return 1
   fi
-  declare -r mount_point="$1"
+  get_mount_point "$1"
+  declare -r mount_point=$FUSE_MOUNT_POINT
   shift
 
   local force_kill='false'
