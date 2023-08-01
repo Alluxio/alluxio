@@ -57,11 +57,11 @@ import java.util.stream.Collectors;
 public class ServiceDiscoveryRecipe {
   private static final Logger LOG = LoggerFactory.getLogger(ServiceDiscoveryRecipe.class);
   private static final String BASE_PATH = "/ServiceDiscovery";
-  AlluxioEtcdClient mAlluxioEtcdClient;
-  ScheduledExecutorService mExecutor;
-  String mClusterIdentifier = "";
+  final AlluxioEtcdClient mAlluxioEtcdClient;
+  private final ScheduledExecutorService mExecutor;
+  private final String mClusterIdentifier;
   // Will look like /ServiceDiscovery/<mClusterIdentifier>
-  String mRegisterPathPrefix = "";
+  private final String mRegisterPathPrefix;
   private final ConcurrentHashMap<String, ServiceEntity> mRegisteredServices
       = new ConcurrentHashMap<>();
 
@@ -202,7 +202,7 @@ public class ServiceDiscoveryRecipe {
       try {
         unregisterService(entry.getKey());
       } catch (IOException ex) {
-        LOG.info("Unregister all services failed unregistering for:{}.", entry.getKey(), ex);
+        LOG.error("Unregister all services failed unregistering for:{}.", entry.getKey(), ex);
       }
     }
   }

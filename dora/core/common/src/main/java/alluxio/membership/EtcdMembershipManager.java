@@ -82,24 +82,25 @@ public class EtcdMembershipManager implements MembershipManager {
         .append(mRingPathPrefix)
         .append(entity.getServiceEntityName()).toString();
     byte[] ret = mAlluxioEtcdClient.getForPath(pathOnRing);
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    DataOutputStream dos = new DataOutputStream(baos);
-    entity.serialize(dos);
-    byte[] serializedEntity = baos.toByteArray();
-    // If there's existing entry, check if it's me.
-    if (ret != null) {
-      // It's not me, something is wrong.
-      if (!Arrays.equals(serializedEntity, ret)) {
-        throw new AlreadyExistsException(
-            "Some other member with same id registered on the ring, bail.");
+    try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+         DataOutputStream dos = new DataOutputStream(baos)) {
+      entity.serialize(dos);
+      byte[] serializedEntity = baos.toByteArray();
+      // If there's existing entry, check if it's me.
+      if (ret != null) {
+        // It's not me, something is wrong.
+        if (!Arrays.equals(serializedEntity, ret)) {
+          throw new AlreadyExistsException(
+              "Some other member with same id registered on the ring, bail.");
+        }
+        // It's me, go ahead to start heartbeating.
+      } else {
+        // If haven't created myself onto the ring before, create now.
+        mAlluxioEtcdClient.createForPath(pathOnRing, Optional.of(serializedEntity));
       }
-      // It's me, go ahead to start heartbeating.
-    } else {
-      // If haven't created myself onto the ring before, create now.
-      mAlluxioEtcdClient.createForPath(pathOnRing, Optional.of(serializedEntity));
+      // 2) start heartbeat
+      mAlluxioEtcdClient.mServiceDiscovery.registerAndStartSync(entity);
     }
-    // 2) start heartbeat
-    mAlluxioEtcdClient.mServiceDiscovery.registerAndStartSync(entity);
   }
 
   @Override
@@ -115,8 +116,8 @@ public class EtcdMembershipManager implements MembershipManager {
     List<KeyValue> childrenKvs = mAlluxioEtcdClient.getChildren(mRingPathPrefix);
     for (KeyValue kv : childrenKvs) {
       try (ByteArrayInputStream bais =
-               new ByteArrayInputStream(kv.getValue().getBytes())) {
-        DataInputStream dis = new DataInputStream(bais);
+               new ByteArrayInputStream(kv.getValue().getBytes());
+           DataInputStream dis = new DataInputStream(bais)) {
         WorkerServiceEntity entity = new WorkerServiceEntity();
         entity.deserialize(dis);
         fullMembers.add(entity);
@@ -132,8 +133,8 @@ public class EtcdMembershipManager implements MembershipManager {
     for (Map.Entry<String, ByteBuffer> entry : mAlluxioEtcdClient.mServiceDiscovery
         .getAllLiveServices().entrySet()) {
       try (ByteBufferInputStream bbis =
-               new ByteBufferInputStream(entry.getValue())) {
-        DataInputStream dis = new DataInputStream(bbis);
+               new ByteBufferInputStream(entry.getValue());
+           DataInputStream dis = new DataInputStream(bbis)) {
         WorkerServiceEntity entity = new WorkerServiceEntity();
         entity.deserialize(dis);
         liveMembers.add(entity);
@@ -191,7 +192,6 @@ public class EtcdMembershipManager implements MembershipManager {
   }
 
   @Override
-  @VisibleForTesting
   public void stopHeartBeat(WorkerInfo worker) throws IOException {
     WorkerServiceEntity entity = new WorkerServiceEntity(worker.getAddress());
     mAlluxioEtcdClient.mServiceDiscovery.unregisterService(entity.getServiceEntityName());

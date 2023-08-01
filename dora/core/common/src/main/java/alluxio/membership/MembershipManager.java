@@ -16,6 +16,7 @@ import alluxio.conf.PropertyKey;
 import alluxio.resource.LockResource;
 import alluxio.wire.WorkerInfo;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,6 +73,7 @@ public interface MembershipManager extends AutoCloseable {
    * @param worker WorkerInfo
    * @throws IOException
    */
+  @VisibleForTesting
   public void stopHeartBeat(WorkerInfo worker) throws IOException;
 
   /**

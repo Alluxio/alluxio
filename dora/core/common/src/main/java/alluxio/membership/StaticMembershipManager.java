@@ -110,7 +110,6 @@ public class StaticMembershipManager implements MembershipManager {
   }
 
   @Override
-  @VisibleForTesting
   public void join(WorkerInfo worker) throws IOException {
     // correct with the actual worker addr,
     // same settings such as ports will be applied to other members
@@ -126,27 +125,23 @@ public class StaticMembershipManager implements MembershipManager {
   }
 
   @Override
-  @VisibleForTesting
   public List<WorkerInfo> getAllMembers() throws IOException {
     return mMembers;
   }
 
   @Override
-  @VisibleForTesting
   public List<WorkerInfo> getLiveMembers() throws IOException {
     // No op for static type membership manager
     return mMembers;
   }
 
   @Override
-  @VisibleForTesting
   public List<WorkerInfo> getFailedMembers() throws IOException {
     // No op for static type membership manager
     return Collections.emptyList();
   }
 
   @Override
-  @VisibleForTesting
   public String showAllMembers() {
     String printFormat = "%s\t%s\t%s%n";
     StringBuilder sb = new StringBuilder(
@@ -166,7 +161,6 @@ public class StaticMembershipManager implements MembershipManager {
   }
 
   @Override
-  @VisibleForTesting
   public void stopHeartBeat(WorkerInfo worker) throws IOException {
     // NOTHING TO DO
   }
