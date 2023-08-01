@@ -12,10 +12,13 @@
 package processes
 
 import (
+	"path"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"alluxio.org/cli/env"
+	"alluxio.org/log"
 )
 
 var Proxies = &ProxiesProcess{
@@ -47,9 +50,75 @@ func (p *ProxiesProcess) StopCmd(cmd *cobra.Command) *cobra.Command {
 }
 
 func (p *ProxiesProcess) Start(cmd *env.StartProcessCommand) error {
+	// get list of all masters and workers, stored at allList
+	masters, err := getMasters()
+	if err != nil {
+		log.Logger.Fatalf("Cannot get masters, error: %s", err)
+	}
+	workers, err := getWorkers()
+	if err != nil {
+		log.Logger.Fatalf("Cannot get workers, error: %s", err)
+	}
+	allList := append(masters, workers...)
+
+	// get public key for passwordless ssh
+	key, err := getPrivateKey()
+	if err != nil {
+		log.Logger.Fatalf("Cannot get private key, error: %s", err)
+	}
+
+	// for each machine in allList, create a client
+	// TODO: now start worker one by one, need to do them in parallel
+	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "cli.sh")
+	arguments := "process start proxy"
+	if cmd.AsyncStart {
+		arguments = arguments + " -a"
+	}
+	if cmd.SkipKillOnStart {
+		arguments = arguments + " -N"
+	}
+	command := cliPath + " " + arguments
+
+	errors := runCommandOnMachines(allList, key, command)
+
+	if len(errors) == 0 {
+		log.Logger.Infof("Run command %s successful on machines: %s", command, workers)
+	} else {
+		log.Logger.Fatalf("Run command %s failed: %s", command, err)
+	}
 	return nil
 }
 
 func (p *ProxiesProcess) Stop(cmd *env.StopProcessCommand) error {
+	// get list of all masters and workers, stored at allList
+	masters, err := getMasters()
+	if err != nil {
+		log.Logger.Fatalf("Cannot get masters, error: %s", err)
+	}
+	workers, err := getWorkers()
+	if err != nil {
+		log.Logger.Fatalf("Cannot get workers, error: %s", err)
+	}
+	allList := append(masters, workers...)
+
+	// get public key for passwordless ssh
+	key, err := getPrivateKey()
+	if err != nil {
+		log.Logger.Fatalf("Cannot get private key, error: %s", err)
+	}
+
+	// for each machine in allList, create a client
+	// TODO: now start worker one by one, need to do them in parallel
+	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "cli.sh")
+	arguments := "process stop proxy"
+	command := cliPath + " " + arguments
+
+	errors := runCommandOnMachines(allList, key, command)
+
+	if len(errors) == 0 {
+		log.Logger.Infof("Run command %s successful on machines: %s", command, workers)
+	} else {
+		log.Logger.Fatalf("Run command %s failed: %s", command, err)
+	}
 	return nil
 }
