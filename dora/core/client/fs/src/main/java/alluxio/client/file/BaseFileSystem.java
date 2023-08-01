@@ -672,8 +672,8 @@ public class BaseFileSystem implements FileSystem {
         // TODO(jiacheng): double check the toString() Authority -> String conversion
         if (!configured.toString().equals(ufsPath.getAuthority())) {
           throw new IllegalArgumentException(
-              String.format("The URI authority %s does not match the configured value of %s.",
-                  ufsPath.getAuthority(), configured));
+              String.format("Alluxio is configured with UFS authority %s. But this file path %s has authority %s. We recommend users to use paths without authority like hdfs://dir/path.",
+                  configured, ufsPath.asString(), ufsPath.getAuthority()));
         }
       }
     }
