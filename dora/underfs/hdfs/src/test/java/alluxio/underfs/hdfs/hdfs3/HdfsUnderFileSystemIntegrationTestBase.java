@@ -9,12 +9,13 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.underfs.hdfs;
+package alluxio.underfs.hdfs.hdfs3;
 
 import static junit.framework.TestCase.assertEquals;
 
 import alluxio.AlluxioURI;
 import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.underfs.hdfs.HdfsUnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 
 import org.apache.commons.io.IOUtils;
@@ -131,7 +132,7 @@ public class HdfsUnderFileSystemIntegrationTestBase {
   protected HdfsUnderFileSystem createUfs(UnderFileSystemConfiguration ufsConf) {
     return new HdfsUnderFileSystem(new AlluxioURI("/"), ufsConf, mHdfsConfiguration) {
       @Override
-      protected FileSystem getFs() throws IOException {
+      public FileSystem getFs() throws IOException {
         // Hookup HDFS mini cluster to HDFS UFS
         return mCluster.getFileSystem();
       }

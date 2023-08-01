@@ -41,6 +41,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -887,7 +888,8 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   /**
    * @return the underlying HDFS {@link FileSystem} object
    */
-  protected FileSystem getFs() throws IOException {
+  @VisibleForTesting
+  public FileSystem getFs() throws IOException {
     try {
       // TODO(gpang): handle different users
       return mUserFs.get(HDFS_USER);

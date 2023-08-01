@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.underfs.hdfs;
+package alluxio.underfs.hdfs.hdfs3;
 
 import org.junit.Test;
 
