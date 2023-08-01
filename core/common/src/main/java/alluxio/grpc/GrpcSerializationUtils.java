@@ -47,7 +47,7 @@ public class GrpcSerializationUtils {
   private static final String BUFFER_INPUT_STREAM_CLASS_NAME =
       "io.grpc.internal.ReadableBuffers$BufferInputStream";
   private static final String BUFFER_FIELD_NAME = "buffer";
-  private static final String BUFFERS_FIELD_NAME = "buffers";
+  private static final String READABLE_BUFFERS_FIELD_NAME = "readableBuffers";
   private static final String NETTY_WRITABLE_BUFFER_CLASS_NAME =
       "io.grpc.netty.NettyWritableBuffer";
   private static final String NETTY_READABLE_BUFFER_CLASS_NAME =
@@ -79,7 +79,7 @@ public class GrpcSerializationUtils {
       sBufferList = getPrivateField(BUFFER_CHAIN_OUTPUT_STREAM_CLASS_NAME, BUFFER_LIST_FIELD_NAME);
       sCurrent = getPrivateField(BUFFER_CHAIN_OUTPUT_STREAM_CLASS_NAME, CURRENT_FIELD_NAME);
       sCompositeBuffers =
-          getPrivateField(CompositeReadableBuffer.class.getName(), BUFFERS_FIELD_NAME);
+          getPrivateField(CompositeReadableBuffer.class.getName(), READABLE_BUFFERS_FIELD_NAME);
       sReadableByteBuf = getPrivateField(NETTY_READABLE_BUFFER_CLASS_NAME, BUFFER_FIELD_NAME);
     } catch (Exception e) {
       LOG.warn("Cannot get gRPC output stream buffer, zero copy receive will be disabled.", e);
@@ -95,7 +95,7 @@ public class GrpcSerializationUtils {
     return field;
   }
 
-  private static Constructor<?> getPrivateConstructor(String className, Class<?> ...parameterTypes)
+  private static Constructor<?> getPrivateConstructor(String className, Class<?> ... parameterTypes)
       throws ClassNotFoundException, NoSuchMethodException {
     Class<?> declaringClass = Class.forName(className);
     Constructor<?> constructor = declaringClass.getDeclaredConstructor(parameterTypes);
@@ -146,6 +146,10 @@ public class GrpcSerializationUtils {
     }
     try {
       if (buffer instanceof CompositeReadableBuffer) {
+        // TODO(elega) grpc introduced native protobuf zero copy since 1.39.0
+        //  https://github.com/grpc/grpc-java/pull/8102/files
+        //  replace the following with
+        //    return Unpooled.wrappedBuffer(buffer.getByteBuffer());
         Queue<ReadableBuffer> buffers = (Queue<ReadableBuffer>) sCompositeBuffers.get(buffer);
         if (buffers.size() == 1) {
           return getByteBufFromReadableBuffer(buffers.peek());
