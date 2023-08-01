@@ -664,51 +664,7 @@ public class BaseFileSystem implements FileSystem {
 
   // Copied from checkUri(AlluxioURI)
   protected void checkUri(UfsUrl ufsPath) {
-    Preconditions.checkNotNull(ufsPath, "uri");
-    if (!mFsContext.getUriValidationEnabled()) {
-      return;
-    }
-
-    if (ufsPath.hasScheme()) {
-      String warnMsg = "The URI scheme \"{}\" is ignored and not required in URIs passed to"
-          + " the Alluxio Filesystem client.";
-      // TODO(jiacheng): does this still apply?
-      switch (ufsPath.getScheme()) {
-        case Constants.SCHEME:
-          LOG.warn(warnMsg, Constants.SCHEME);
-          break;
-        default:
-          throw new IllegalArgumentException(
-              String.format("Scheme %s:// in AlluxioURI is invalid. Schemes in filesystem"
-                      + " operations are ignored. \"alluxio://\" or no scheme at all is valid.",
-                  ufsPath.getScheme()));
-      }
-    }
-
-    if (ufsPath.hasAuthority()) {
-      LOG.warn("The URI authority (hostname and port) is ignored and not required in URIs passed "
-          + "to the Alluxio Filesystem client.");
-      // TODO(jiacheng): is this still necessary?
-      AlluxioConfiguration conf = mFsContext.getClusterConf();
-      boolean skipAuthorityCheck = conf.isSet(PropertyKey.USER_SKIP_AUTHORITY_CHECK)
-          && conf.getBoolean(PropertyKey.USER_SKIP_AUTHORITY_CHECK);
-      if (!skipAuthorityCheck) {
-        /* Even if we choose to log the warning, check if the Configuration host matches what the
-         * user passes. If not, throw an exception letting the user know they don't match.
-         */
-        Authority configured =
-            MasterInquireClient.Factory
-                .create(mFsContext.getClusterConf(),
-                    mFsContext.getClientContext().getUserState())
-                .getConnectDetails().toAuthority();
-        // TODO(jiacheng): double check the toString() Authority -> String conversion
-        if (!configured.equals(ufsPath.getAuthority())) {
-          throw new IllegalArgumentException(
-              String.format("The URI authority %s does not match the configured value of %s.",
-                  ufsPath.getAuthority(), configured));
-        }
-      }
-    }
+    // All the class is deleted in Alluxio 3.0.
   }
 
   @FunctionalInterface

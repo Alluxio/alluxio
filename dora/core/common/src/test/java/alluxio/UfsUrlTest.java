@@ -28,18 +28,17 @@ public class UfsUrlTest {
   @Test
   public void basicUfsUrl() {
     UfsUrl ufsUrl = new UfsUrl("alluxio://localhost:19998/xy z/a b c");
-    assertTrue(ufsUrl.hasScheme());
-    assertTrue(ufsUrl.hasAuthority());
-    assertEquals("localhost:19998", ufsUrl.getAuthority().toString());
-
-    SingleMasterAuthority authority = (SingleMasterAuthority) ufsUrl.getAuthority();
+    assertEquals("localhost:19998", ufsUrl.getAuthority().get().toString());
+    assertTrue(ufsUrl.getAuthority().isPresent());
+    SingleMasterAuthority authority = (SingleMasterAuthority) ufsUrl.getAuthority().get();
     assertEquals("localhost", authority.getHost());
     assertEquals(19998, authority.getPort());
 
 //    assertEquals(2, ufsUrl.getDepth());
     assertEquals("a b c", ufsUrl.getName());
     assertTrue(ufsUrl.isAbsolute());
-    assertEquals("alluxio", ufsUrl.getScheme());
+    assertTrue(ufsUrl.getScheme().isPresent());
+    assertEquals("alluxio", ufsUrl.getScheme().get());
     /*
     The test below is not supported, for absolute path promise.
     assertEquals("alluxio://localhost:19998/xy z", ufsUrl.getParentURL().asString());
@@ -54,16 +53,14 @@ public class UfsUrlTest {
 
   @Test
   public void basicTests() {
-    String[] strs =
+    String[] strings =
         new String[] {"alluxio://localhost:19998/xyz/abc", "hdfs://localhost:19998/xyz/abc",
             "s3://localhost:19998/xyz/abc", "alluxio://localhost:19998/xy z/a b c",
             "hdfs://localhost:19998/xy z/a b c", "s3://localhost:19998/xy z/a b c"};
-    for (String str : strs) {
-      UfsUrl uri = new UfsUrl(str);
-//      assertEquals(str, uri.asString());
-//      assertEquals(2, uri.getDepth());
-      assertTrue(uri.getAuthority() instanceof SingleMasterAuthority);
-      SingleMasterAuthority authority = (SingleMasterAuthority) uri.getAuthority();
+    for (String str : strings) {
+      UfsUrl ufsUrl = new UfsUrl(str);
+      assertTrue(ufsUrl.getAuthority().isPresent());
+      SingleMasterAuthority authority = (SingleMasterAuthority) ufsUrl.getAuthority().get();
       assertEquals("localhost", authority.getHost());
       assertEquals(19998, authority.getPort());
     }

@@ -194,10 +194,10 @@ public class DoraCacheClient {
   public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
       throws PermissionDeniedException {
     try (CloseableResource<BlockWorkerClient> client =
-             mContext.acquireBlockWorkerClient(getWorkerNetAddress(ufsPath.getFullPath()))) {
+             mContext.acquireBlockWorkerClient(getWorkerNetAddress(ufsPath.asString()))) {
       List<URIStatus> result = new ArrayList<>();
       client.get().listStatus(ListStatusPRequest.newBuilder()
-              .setPath(ufsPath.getFullPath())
+              .setPath(ufsPath.asString())
               // TODO(Tony Sun): determine the path type: containing scheme and authority or not.
               .setUfsPath(ufsPath.getProto())
               .setOptions(options).build())

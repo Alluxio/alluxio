@@ -16,6 +16,7 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.UfsUrlMessage;
+import alluxio.util.UfsUrlUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -24,11 +25,13 @@ import org.apache.logging.log4j.util.Strings;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 public class UfsUrl {
 
-  public static final String SCHEME_SEPERATOR = "://";
-  public static final String PATH_SEPERATOR = "/";
+  public static final String SCHEME_SEPARATOR = "://";
+  public static final String PATH_SEPARATOR = "/";
+  public static final String PORT_SEPARATOR = ":";
   UfsUrlMessage mProto;
 
   public UfsUrl(UfsUrlMessage proto) {
@@ -38,23 +41,57 @@ public class UfsUrl {
   }
 
   public UfsUrl(String ufsPath) {
-    // TODO(Tony Sun): Considering the case below:
-    //  when scheme does not exist, how to determine the scheme, or an empty scheme.
     Preconditions.checkArgument(!ufsPath.isEmpty(),
         "ufsPath is empty, please input a non-empty ufsPath.");
-    List<String> preprocessingPathList = Arrays.asList(ufsPath.split(SCHEME_SEPERATOR));
-    String scheme;
-    String authorityAndPath;
+
     String rootDir = Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
+    String rootScheme;
+    String rootAuthority;
+    String rootPath;
+    String[] rootDirArray = rootDir.split(SCHEME_SEPARATOR);
+    if (!ufsPath.equals(rootDir)) {
+      // rootDir = "hdfs:///" -> rootDirArray = ["hdfs", "/"]
+      Preconditions.checkArgument(rootDirArray.length <= 2, "Invalid rootDir, "
+          + "please check alluxio configuration first.");
+      // rootDir is like "/tmp"
+      if (rootDirArray.length == 1) {
+        rootScheme = "file";
+        rootAuthority = "";
+        rootPath = rootDir;
+      } else {
+        // rootDirArray.length = 2. rootDirArray = [rootScheme, rootAuthAndPath]
+        rootScheme = rootDirArray[0];
+        int indexOfFirstColon = rootDirArray[1].indexOf(PORT_SEPARATOR);
+        // There are no ':' in the authority and path. i.e., there are no authority.
+        if (indexOfFirstColon == -1)  {
+          rootAuthority = "";
+          rootPath = rootDirArray[1];
+        } else {
+          int indexOfFirstSlash = rootDirArray[1].indexOf(PATH_SEPARATOR);
+          rootAuthority = rootDirArray[1].substring(0, indexOfFirstSlash);
+          rootPath = rootDirArray[1].substring(indexOfFirstSlash);
+        }
+      }
+    } else {
+      rootScheme = "";
+      rootAuthority = "";
+      rootPath = "";
+    }
+
+    List<String> preprocessingPathList = Arrays.asList(ufsPath.split(SCHEME_SEPARATOR));
+    String scheme;
+    String authority;
+    String path;
+    String authorityAndPath;
     Preconditions.checkArgument(preprocessingPathList.size() <= 2,
         "There are multiple schemes, the input may contain more than one path, "
             + "current version only support inputting one path each time.");
     // Now, there are two condition. size = 1 -> without scheme; size = 2 -> with a scheme.
     if (preprocessingPathList.size() == 1)  {
-      // If without scheme, set default scheme to local, i.e. "file".
-      String[] rootDirArray = rootDir.split(SCHEME_SEPERATOR);
+      // If without scheme, set default scheme to root.
       if (rootDirArray.length == 1) {
-        scheme = "alluxio";
+        // if length == 1, means rootDirArray is not include scheme.
+        scheme = rootScheme;
       } else {
         scheme = rootDirArray[0];
       }
@@ -66,56 +103,63 @@ public class UfsUrl {
     }
     Preconditions.checkNotNull(scheme, "scheme is empty, please input again");
     Preconditions.checkNotNull(authorityAndPath, "authority or path is empty, please input again");
-    Preconditions.checkArgument(scheme.equalsIgnoreCase("file")
-            || scheme.equalsIgnoreCase("s3")
-            || scheme.equalsIgnoreCase("hdfs")
-            || scheme.equalsIgnoreCase("alluxio"),
-        "Now UfsUrl only support alluxio, file(local), s3, and hdfs, please check scheme first");
-    int indexOfFirstSlashAfterAuthority = authorityAndPath.indexOf(PATH_SEPERATOR);
-    if (indexOfFirstSlashAfterAuthority == -1)  {
-      // If index is 0, the authorityString will be empty.
-      indexOfFirstSlashAfterAuthority = 0;
-    }
-    String authorityString = authorityAndPath.substring(0, indexOfFirstSlashAfterAuthority);
-    String pathString = authorityAndPath.substring(indexOfFirstSlashAfterAuthority);
 
-    if (scheme.equalsIgnoreCase("file") || scheme.equalsIgnoreCase("alluxio")
-        || scheme.equalsIgnoreCase("s3") || scheme.equalsIgnoreCase("hdfs")) {
-      pathString = rootDir + pathString;
+    int indexOfFirstColon = authorityAndPath.indexOf(PORT_SEPARATOR);
+    if (indexOfFirstColon == -1)  {
+      // There are no ":", i.e., no authority.
+      authority = rootAuthority;
+      // Handle case with two slash like "/tmp/" + "/cache" = "/tmp//cache"
+      path = UfsUrlUtils.concatStringPath(rootPath, authorityAndPath);
     } else {
-      // TODO(Tony Sun): parse the dir part of each path. like s3 or hdfs.
-      System.out.println("Other scheme are not supported currently.");
-      return;
+      // The string has authority.
+      int indexOfFirstSlash = authorityAndPath.indexOf(PATH_SEPARATOR);
+      authority = authorityAndPath.substring(0, indexOfFirstSlash);
+      String tmpPath = authorityAndPath.substring(indexOfFirstSlash);
+      path = UfsUrlUtils.concatStringPath(rootPath, tmpPath);
     }
-    String[] arrayOfPathString = pathString.split(PATH_SEPERATOR);
-    List<String> pathComponentsList = Arrays.asList(arrayOfPathString);
+
+//    int indexOfFirstSlashAfterAuthority = authorityAndPath.indexOf(PATH_SEPARATOR);
+//    if (indexOfFirstSlashAfterAuthority == -1)  {
+//      // If index is 0, authority or path is empty. hdfs://xxx:1234 or hdfs://dir
+//      indexOfFirstSlashAfterAuthority = 0;
+//    }
+//
+//    String authorityString = authorityAndPath.substring(0, indexOfFirstSlashAfterAuthority);
+//    // path string is beginning with '/'.
+//    String pathString = authorityAndPath.substring(indexOfFirstSlashAfterAuthority);
+//
+//    if (scheme.equalsIgnoreCase("file") || scheme.equalsIgnoreCase("alluxio")
+//        || scheme.equalsIgnoreCase("s3") || scheme.equalsIgnoreCase("hdfs")) {
+//      pathString = rootDir + pathString;
+//    } else {
+//      System.out.println("Other scheme are not supported currently.");
+//      return;
+//    }
+
+    String[] arrayOfPath = path.split(PATH_SEPARATOR);
+    List<String> pathComponentsList = Arrays.asList(arrayOfPath);
     mProto = UfsUrlMessage.newBuilder()
         .setScheme(scheme)
-        .setAuthority(authorityString)
+        .setAuthority(authority)
         .addAllPathComponents(pathComponentsList)
         .build();
   }
 
-  public boolean hasScheme() {
-    return mProto.hasScheme();
+  public Optional<String> getScheme() {
+    if (!mProto.hasScheme()) {
+      return Optional.empty();
+    }
+    return Optional.of(mProto.getScheme());
   }
 
-  public String getScheme() {
-    return mProto.getScheme();
+  public Optional<Authority> getAuthority() {
+    if (!mProto.hasAuthority()) {
+      return Optional.empty();
+    }
+    return Optional.of(Authority.fromString(mProto.getAuthority()));
   }
 
-  public boolean hasAuthority() {
-    return mProto.hasAuthority();
-  }
-
-  public Authority getAuthority() {
-    return Authority.fromString(mProto.getAuthority());
-  }
-
-  public String getAuthorityString() {
-    return mProto.getAuthority();
-  }
-
+  // TODO(Tony Sun): In the future Consider whether pathComponents should be extracted as a class.
   public List<String> getPathComponents() {
     return mProto.getPathComponentsList();
   }
@@ -128,9 +172,9 @@ public class UfsUrl {
     // TODO(Jiacheng Liu): consider corner cases
     StringBuilder sb = new StringBuilder();
     sb.append(mProto.getScheme());
-    sb.append(UfsUrl.SCHEME_SEPERATOR);
+    sb.append(UfsUrl.SCHEME_SEPARATOR);
     sb.append(mProto.getAuthority());
-    sb.append(UfsUrl.PATH_SEPERATOR);
+    sb.append(UfsUrl.PATH_SEPARATOR);
     List<String> pathComponents = mProto.getPathComponentsList();
     for (int i = 0; i < pathComponents.size(); i++) {
       if (pathComponents.get(i).isEmpty())  {
@@ -138,7 +182,7 @@ public class UfsUrl {
       }
       sb.append(pathComponents.get(i));
       if (i < pathComponents.size() - 1) {
-        sb.append(UfsUrl.PATH_SEPERATOR);
+        sb.append(UfsUrl.PATH_SEPARATOR);
       }
       // TODO(Jiacheng Liu): need a trailing separator if the path is dir?
     }
@@ -160,21 +204,6 @@ public class UfsUrl {
       }
     }
     return sb.toString();
-  }
-
-  // TODO(Tony Sun): Does prefix containing scheme and auth? In the future, considering performance.
-  public boolean isPrefix(UfsUrl another, boolean allowEquals) {
-    String thisString = asString();
-    String anotherString = another.asString();
-    if (anotherString.startsWith(thisString)) {
-      if (Objects.equals(anotherString, thisString)) {
-        return allowEquals;
-      }
-      else {
-        return true;
-      }
-    }
-    return false;
   }
 
   public boolean equals(Object o) {
@@ -208,7 +237,7 @@ public class UfsUrl {
   }
 
   public String getFullPath() {
-    return Strings.join(mProto.getPathComponentsList(), PATH_SEPERATOR.charAt(0));
+    return Strings.join(mProto.getPathComponentsList(), PATH_SEPARATOR.charAt(0));
   }
 
   public AlluxioURI toAlluxioURI() {
@@ -217,25 +246,12 @@ public class UfsUrl {
   }
 
   public int getDepth() {
-    int depth = 0;
-    for (String x : mProto.getPathComponentsList()) {
-      if (!x.isEmpty()) {
-        depth++;
-      }
-    }
-    return depth;
+    return getPathComponents().size();
   }
 
   public String getName() {
     List<String> pathComponents = getPathComponents();
-    String name = "/";
-    for (int i = pathComponents.size() - 1; i >= 0; i--)  {
-      if (!pathComponents.get(i).isEmpty()) {
-        name = pathComponents.get(i);
-        break;
-      }
-    }
-    return name;
+    return pathComponents.get(pathComponents.size() - 1);
   }
 
   public boolean isAncestorOf(UfsUrl ufsUrl) throws InvalidPathException {
@@ -245,15 +261,8 @@ public class UfsUrl {
     if (!Objects.equals(getScheme(), ufsUrl.getScheme())) {
       return false;
     }
-    return PathUtils.hasPrefix(PathUtils.normalizePath(ufsUrl.getFullPath(), PATH_SEPERATOR),
-        PathUtils.normalizePath(getFullPath(), PATH_SEPERATOR));
-  }
-
-  public boolean isRoot() {
-    String rootDir = Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
-    Preconditions.checkArgument(!(rootDir.startsWith(getFullPath())
-        && !rootDir.equals(getFullPath())), "Current UfsUrl is the parent of root ufs directory");
-    return getFullPath().equals(PATH_SEPERATOR) || getFullPath().isEmpty();
+    return PathUtils.hasPrefix(PathUtils.normalizePath(ufsUrl.getFullPath(), PATH_SEPARATOR),
+        PathUtils.normalizePath(getFullPath(), PATH_SEPARATOR));
   }
 
   public boolean isAbsolute() {
