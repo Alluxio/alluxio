@@ -25,6 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -128,7 +130,8 @@ public final class RestUtils {
    * @return the string representation of the epoch in the S3 date format
    */
   public static String toS3Date(long epoch) {
-    return S3Constants.S3_DATE_FORMAT.format(new Date(epoch));
+    final DateFormat s3DateFormat = new SimpleDateFormat(S3Constants.S3_DATE_FORMAT_REGEXP);
+    return s3DateFormat.format(new Date(epoch));
   }
 
   /**

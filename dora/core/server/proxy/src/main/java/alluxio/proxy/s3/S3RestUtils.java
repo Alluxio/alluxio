@@ -57,6 +57,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -182,7 +184,8 @@ public final class S3RestUtils {
    * @return the string representation of the epoch in the S3 date format
    */
   public static String toS3Date(long epoch) {
-    return S3Constants.S3_DATE_FORMAT.format(new Date(epoch));
+    final DateFormat s3DateFormat = new SimpleDateFormat(S3Constants.S3_DATE_FORMAT_REGEXP);
+    return s3DateFormat.format(new Date(epoch));
   }
 
   /**
