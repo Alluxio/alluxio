@@ -30,16 +30,20 @@ public class UfsUrl {
   public static final String SCHEME_SEPERATOR = "://";
   public static final String PATH_SEPERATOR = "/";
   UfsUrlMessage mProto;
+  int mDepth = 0;
 
   public UfsUrl(UfsUrlMessage proto) {
     Preconditions.checkArgument(proto.getPathComponentsList().size() != 0,
         "The proto.path is empty, please check the proto first");
     mProto = proto;
+    for (String partPath : proto.getPathComponentsList()) {
+      if (!partPath.isEmpty()) {
+        mDepth++;
+      }
+    }
   }
 
   public UfsUrl(String ufsPath) {
-    // TODO(Tony Sun): Considering the case below:
-    //  when scheme does not exist, how to determine the scheme, or an empty scheme.
     Preconditions.checkArgument(!ufsPath.isEmpty(),
         "ufsPath is empty, please input a non-empty ufsPath.");
     List<String> preprocessingPathList = Arrays.asList(ufsPath.split(SCHEME_SEPERATOR));
@@ -83,12 +87,16 @@ public class UfsUrl {
         || scheme.equalsIgnoreCase("s3") || scheme.equalsIgnoreCase("hdfs")) {
       pathString = rootDir + pathString;
     } else {
-      // TODO(Tony Sun): parse the dir part of each path. like s3 or hdfs.
       System.out.println("Other scheme are not supported currently.");
       return;
     }
     String[] arrayOfPathString = pathString.split(PATH_SEPERATOR);
     List<String> pathComponentsList = Arrays.asList(arrayOfPathString);
+    for (String partPath : pathComponentsList) {
+      if (!partPath.isEmpty())  {
+        mDepth++;
+      }
+    }
     mProto = UfsUrlMessage.newBuilder()
         .setScheme(scheme)
         .setAuthority(authorityString)
@@ -217,13 +225,7 @@ public class UfsUrl {
   }
 
   public int getDepth() {
-    int depth = 0;
-    for (String x : mProto.getPathComponentsList()) {
-      if (!x.isEmpty()) {
-        depth++;
-      }
-    }
-    return depth;
+    return mDepth;
   }
 
   public String getName() {
