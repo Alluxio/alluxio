@@ -54,7 +54,7 @@ var (
 		configKey: "alluxio.conf.dir",
 		EnvVar:    "ALLUXIO_CONF_DIR",
 	}
-	confAlluxioHome = &AlluxioConfigEnvVar{
+	ConfAlluxioHome = &AlluxioConfigEnvVar{
 		configKey: "alluxio.home",
 		EnvVar:    "ALLUXIO_HOME",
 	}
