@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.CloseableSupplier;
 import alluxio.Constants;
 import alluxio.PositionReader;
-import alluxio.UfsUrlUtils;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.ReadType;
 import alluxio.client.file.dora.DoraCacheClient;
