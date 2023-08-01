@@ -183,8 +183,6 @@ public final class MultiProcessCluster {
         mWorkDir.getAbsolutePath());
     startNewMasters(mNumMasters, !mNoFormat);
 
-    File staticWorkerConf = new File(mWorkDir, "static-worker-list");
-
     for (int i = 0; i < mNumWorkers; i++) {
       createWorker(i).start();
     }
