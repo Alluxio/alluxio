@@ -17,8 +17,8 @@ import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.ConfigHashSync;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemContextReinitializer;
-import alluxio.client.meta.MetaMasterConfigClient;
-import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
+import alluxio.client.meta.MetaMasterClient;
+import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.master.MasterClientContext;
@@ -103,7 +103,7 @@ public final class FileSystemContextReinitIntegrationTest extends BaseIntegratio
   }
 
   private void updatePathConf() throws Exception {
-    MetaMasterConfigClient client = new RetryHandlingMetaMasterConfigClient(
+    MetaMasterClient client = new RetryHandlingMetaMasterClient(
         MasterClientContext.newBuilder(mContext.getClientContext()).build());
     client.setPathConfiguration(PATH_TO_UPDATE, KEY_TO_UPDATE, UPDATED_VALUE.name());
   }

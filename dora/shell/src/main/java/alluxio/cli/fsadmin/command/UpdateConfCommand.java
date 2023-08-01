@@ -66,7 +66,7 @@ public final class UpdateConfCommand extends AbstractFsAdminCommand {
     }
 
     Map<PropertyKey, Boolean> result =
-        mMetaConfigClient.updateConfiguration(properties);
+        mMetaClient.updateConfiguration(properties);
     System.out.println("Updated " + result.size() + " configs");
     for (Entry<PropertyKey, Boolean> entry : result.entrySet()) {
       if (!entry.getValue()) {

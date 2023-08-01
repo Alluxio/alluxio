@@ -17,8 +17,8 @@ import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.cli.fs.AbstractShellIntegrationTest;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.meta.MetaMasterConfigClient;
-import alluxio.client.meta.RetryHandlingMetaMasterConfigClient;
+import alluxio.client.meta.MetaMasterClient;
+import alluxio.client.meta.RetryHandlingMetaMasterClient;
 import alluxio.conf.Configuration;
 import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
@@ -48,7 +48,7 @@ public class ListCommandIntegrationTest extends AbstractShellIntegrationTest {
    */
   private InstancedConfiguration setPathConfigurations() throws Exception {
     FileSystemContext metaCtx = FileSystemContext.create(Configuration.global());
-    MetaMasterConfigClient client = new RetryHandlingMetaMasterConfigClient(
+    MetaMasterClient client = new RetryHandlingMetaMasterClient(
         MasterClientContext.newBuilder(metaCtx.getClientContext()).build());
     client.setPathConfiguration(new AlluxioURI(DIR1), PROPERTY_KEY1, PROPERTY_VALUE1);
     client.setPathConfiguration(new AlluxioURI(DIR2), PROPERTY_KEY2, PROPERTY_VALUE2);
