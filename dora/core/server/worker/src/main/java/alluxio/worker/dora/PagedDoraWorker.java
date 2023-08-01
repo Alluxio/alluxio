@@ -212,17 +212,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
     mAddress = address;
     register();
     mOpenFileHandleContainer.start();
-
-    // setup worker-master heartbeat
-    // the heartbeat is only used to notify the aliveness of this worker, so that clients
-    // can get the latest worker list from master.
-    // TODO(bowen): once we set up a worker discovery service in place of master, remove this
-    getExecutorService()
-        .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC,
-            mResourceCloser.register(new BlockMasterSync()),
-            () -> new FixedIntervalSupplier(Configuration.getMs(
-                PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)),
-            mConf, ServerUserState.global()));
   }
 
   private void register() throws IOException {
@@ -832,40 +821,6 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
 
   @Override
   public void cleanupSession(long sessionId) {
-  }
-
-  private class BlockMasterSync implements HeartbeatExecutor {
-    @Override
-    public void heartbeat(long timeLimitMs) throws InterruptedException {
-      final Command cmdFromMaster;
-      try (PooledResource<BlockMasterClient> bmc = mBlockMasterClientPool.acquireCloseable()) {
-        cmdFromMaster = bmc.get().heartbeat(mWorkerId.get(),
-            ImmutableMap.of(Constants.MEDIUM_MEM, (long) Constants.GB),
-            ImmutableMap.of(Constants.MEDIUM_MEM, 0L),
-            ImmutableList.of(),
-            ImmutableMap.of(),
-            ImmutableMap.of(),
-            ImmutableList.of());
-      } catch (IOException e) {
-        LOG.warn("failed to heartbeat to master", e);
-        return;
-      }
-
-      LOG.debug("received master command: {}", cmdFromMaster.getCommandType());
-      // only handles re-register command
-      if (cmdFromMaster.getCommandType() == CommandType.Register) {
-        try {
-          register();
-        } catch (IOException e) {
-          LOG.warn("failed to re-register to master during heartbeat", e);
-        }
-      }
-    }
-
-    @Override
-    public void close() {
-      // do nothing
-    }
   }
 
   @VisibleForTesting
