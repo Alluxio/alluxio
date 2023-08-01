@@ -169,16 +169,27 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         "Fuse.Open", "path=%s,flags=0x%x", path, fi.flags.get());
   }
 
-  private int createOrOpenInternal(String path, FuseFileInfo fi, long mode) {
+  private synchronized int createOrOpenInternal(String path, FuseFileInfo fi, long mode) {
     final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
     int res = AlluxioFuseUtils.checkNameLength(uri);
     if (res != 0) {
       return res;
     }
+
+    FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(PATH_INDEX, path);
+    // use the same fd for concurrent reads, please check
+    // https://github.com/Alluxio/alluxio/issues/17025 for details
+    if ((entry != null) && mStreamFactory.isReadStream(entry.getFileStream())
+        && mStreamFactory.isStreamTypeMatch(entry.getFileStream(), fi.flags.get())) {
+      fi.fh.set(entry.getId());
+      entry.setCount(entry.getCount() + 1);
+      return 0;
+    }
+
     try {
       FuseFileStream stream = mStreamFactory.create(uri, fi.flags.get(), mode);
       long fd = mNextOpenFileId.getAndIncrement();
-      mFileEntries.add(new FuseFileEntry<>(fd, path, stream));
+      mFileEntries.add(new FuseFileEntry<>(fd, path, stream, 1));
       fi.fh.set(fd);
     } catch (NotFoundRuntimeException e) {
       LOG.error("Failed to read {}: path does not exist or is invalid", path, e);
@@ -372,16 +383,19 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         "Fuse.Release", "path=%s,fd=%s", path, fd);
   }
 
-  private int releaseInternal(String path, long fd) {
+  private synchronized int releaseInternal(String path, long fd) {
     FuseFileEntry<FuseFileStream> entry = mFileEntries.getFirstByField(ID_INDEX, fd);
     if (entry == null) {
       LOG.error("Failed to release {}: Cannot find fd {}", path, fd);
       return -ErrorCodes.EBADFD();
     }
-    try {
-      entry.getFileStream().close();
-    } finally {
-      mFileEntries.remove(entry);
+    entry.setCount(entry.getCount() - 1);
+    if (entry.getCount() == 0) {
+      try {
+        entry.getFileStream().close();
+      } finally {
+        mFileEntries.remove(entry);
+      }
     }
     return 0;
   }

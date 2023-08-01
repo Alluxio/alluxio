@@ -317,4 +317,37 @@ public class JNIFuseIntegrationTest extends AbstractFuseIntegrationTest {
       Assert.assertEquals(0, mFuseFileSystem.release(testFile, info));
     }
   }
+
+  /**
+   * Test reading a file can reuse the existing fd.
+   */
+  @Test
+  public void readReuseFd() throws Exception {
+    String testFile = "/readReuseFd";
+    try (CloseableFuseFileInfo info = new CloseableFuseFileInfo()) {
+      FuseFileInfo fuseFileInfo = info.get();
+
+      // cannot open non-existing file for read
+      fuseFileInfo.flags.set(OpenFlags.O_RDONLY.intValue());
+      Assert.assertNotEquals(0, mFuseFileSystem.open(testFile, fuseFileInfo));
+
+      // open existing file for read
+      createTestFile(testFile, fuseFileInfo, FILE_LEN);
+      readAndValidateTestFileWithoutRelease(testFile, fuseFileInfo, FILE_LEN);
+      long fd = fuseFileInfo.fh.get();
+      fuseFileInfo.fh.set(0);
+      readAndValidateTestFileWithoutRelease(testFile, fuseFileInfo, FILE_LEN);
+      Assert.assertEquals(fd, fuseFileInfo.fh.get());
+      Assert.assertEquals(0, mFuseFileSystem.release(testFile, fuseFileInfo));
+    }
+  }
+
+  private void readAndValidateTestFileWithoutRelease(
+      String testFile, FuseFileInfo info, int fileLen) {
+    info.flags.set(OpenFlags.O_RDONLY.intValue());
+    Assert.assertEquals(0, mFuseFileSystem.open(testFile, info));
+    ByteBuffer buffer = ByteBuffer.wrap(new byte[fileLen]);
+    Assert.assertEquals(fileLen, mFuseFileSystem.read(testFile, buffer, fileLen, 0, info));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(fileLen, buffer.array()));
+  }
 }
