@@ -32,7 +32,9 @@ func main() {
 		processes.JobMaster,
 		processes.JobWorker,
 		processes.Master,
+		processes.Masters,
 		processes.Proxy,
+		processes.Proxies,
 		processes.Worker,
 		processes.Workers,
 	} {
