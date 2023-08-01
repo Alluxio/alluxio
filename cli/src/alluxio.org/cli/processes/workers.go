@@ -64,15 +64,74 @@ func (p *WorkersProcess) StopCmd(cmd *cobra.Command) *cobra.Command {
 }
 
 func (p *WorkersProcess) Start(cmd *env.StartProcessCommand) error {
-	// 1. get list of all workers, stored at workersList
-	workersDir := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioConfDir.EnvVar), "workers")
-	workers, err := os.Open(workersDir)
+	// get list of all workers, stored at workersList
+	workers, err := getWorkers()
 	if err != nil {
-		log.Logger.Fatalf("Error reading worker hostnames at %s", workersDir)
-		return err
+		log.Logger.Fatalf("Cannot get workers, error: %s", err)
 	}
 
-	workersReader := bufio.NewReader(workers)
+	// get public key for passwordless ssh
+	key, err := getPrivateKey()
+	if err != nil {
+		log.Logger.Fatalf("Cannot get private key, error: %s", err)
+	}
+
+	// for each worker, create a client
+	// TODO: now start worker one by one, need to do them in parallel
+	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "alluxio-start.sh")
+	arguments := "worker"
+	command := cliPath + " " + arguments
+
+	errors := runCommandOnWorkers(workers, key, command)
+
+	if len(errors) == 0 {
+		log.Logger.Infof("Run command %s successful on workers: %s", command, workers)
+	} else {
+		log.Logger.Fatalf("Run command %s failed: %s", command, err)
+	}
+
+	return nil
+}
+
+func (p *WorkersProcess) Stop(cmd *env.StopProcessCommand) error {
+	// get list of all workers, stored at workersList
+	workers, err := getWorkers()
+	if err != nil {
+		log.Logger.Fatalf("Cannot get workers, error: %s", err)
+	}
+
+	// get public key for passwordless ssh
+	key, err := getPrivateKey()
+	if err != nil {
+		log.Logger.Fatalf("Cannot get private key, error: %s", err)
+	}
+
+	// for each worker, create a client
+	// TODO: now start worker one by one, need to do them in parallel
+	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "alluxio-stop.sh")
+	arguments := "worker"
+	command := cliPath + " " + arguments
+
+	errors := runCommandOnWorkers(workers, key, command)
+
+	if len(errors) == 0 {
+		log.Logger.Infof("Run command %s successful on workers: %s", command, workers)
+	} else {
+		log.Logger.Fatalf("Run command %s failed: %s", command, err)
+	}
+
+	return nil
+}
+
+func getWorkers() ([]string, error) {
+	workersDir := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioConfDir.EnvVar), "workers")
+	workersFile, err := os.Open(workersDir)
+	if err != nil {
+		log.Logger.Errorf("Error reading worker hostnames at %s", workersDir)
+		return nil, err
+	}
+
+	workersReader := bufio.NewReader(workersFile)
 	var workersList []string
 	lastLine := false
 	for !lastLine {
@@ -82,7 +141,8 @@ func (p *WorkersProcess) Start(cmd *env.StartProcessCommand) error {
 			if err == io.EOF {
 				lastLine = true
 			} else {
-				log.Logger.Fatalf("Error parsing worker file at this line: %s", line)
+				log.Logger.Errorf("Error parsing worker file at this line: %s", line)
+				return nil, err
 			}
 		}
 		// remove notes
@@ -94,86 +154,81 @@ func (p *WorkersProcess) Start(cmd *env.StartProcessCommand) error {
 			workersList = append(workersList, line)
 		}
 	}
+	return workersList, nil
+}
 
-	// 2. get public key for passwordless ssh
+func getPrivateKey() (ssh.Signer, error) {
 	homePath, err := os.UserHomeDir()
 	if err != nil {
-		log.Logger.Fatalf("User home directory not found at %s", homePath)
-		return err
+		log.Logger.Errorf("User home directory not found at %s", homePath)
+		return nil, err
 	}
 	privateKey, err := os.ReadFile(path.Join(homePath, ".ssh", "id_rsa"))
 	if err != nil {
-		log.Logger.Fatalf("Private key file not found at %s", path.Join(homePath, ".ssh", "id_rsa"))
-		return err
+		log.Logger.Errorf("Private key file not found at %s", path.Join(homePath, ".ssh", "id_rsa"))
+		return nil, err
 	}
 	parsedPrivateKey, err := ssh.ParsePrivateKey(privateKey)
 	if err != nil {
-		log.Logger.Fatalf("Cannot parse public key at %s", path.Join(homePath, ".ssh", "id_rsa"))
-		return err
+		log.Logger.Errorf("Cannot parse public key at %s", path.Join(homePath, ".ssh", "id_rsa"))
+		return nil, err
 	}
+	return parsedPrivateKey, nil
+}
 
-	// 3. for each worker, create a client
-	// TODO: now start worker one by one, need to do them in parallel
-	failed := false
-	command := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "alluxio-start.sh") + " worker"
-	for _, worker := range workersList {
+func runCommandOnWorkers(workers []string, key ssh.Signer, command string) []error {
+	var errors []error
+	for _, worker := range workers {
 		clientConfig := &ssh.ClientConfig{
 			// TODO: how to get user name? Like ${USER} in alluxio-common.sh
 			User: "root",
-			// TODO: if configure nothing, can use none as the authentication method, suggest use public key
 			Auth: []ssh.AuthMethod{
-				ssh.PublicKeys(parsedPrivateKey),
+				ssh.PublicKeys(key),
 			},
 			Timeout:         5 * time.Second,
 			HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 		}
-		// TODO: get ssh port if needed (some machines might have changed default port)
+		// TODO: Some machines might have changed default SSH port. Get ssh port or remind users when get started.
 		dialAddr := fmt.Sprintf("%s:%d", worker, 22)
-		// TODO: error to resolve: handshake error, authentication failed
 		conn, err := ssh.Dial("tcp", dialAddr, clientConfig)
 		defer func(conn *ssh.Client) {
 			err := conn.Close()
 			if err != nil {
-				log.Logger.Debugf("Connection to %s closed.", dialAddr)
+				log.Logger.Infof("Connection to %s closed. Error: %s", dialAddr, err)
+			} else {
+				log.Logger.Infof("Connection to %s closed.", dialAddr)
 			}
 		}(conn)
 
 		if err != nil {
-			log.Logger.Fatalf("Dial failed to %s, error: %s", dialAddr, err)
-			return err
+			log.Logger.Errorf("Dial failed to %s, error: %s", dialAddr, err)
+			errors = append(errors, err)
 		}
 
-		// 4. create a session for each worker
+		// create a session for each worker
 		session, err := conn.NewSession()
 		if err != nil {
-			log.Logger.Fatalf("Cannot create session at %s", dialAddr)
-			return err
+			log.Logger.Errorf("Cannot create session at %s", dialAddr)
+			errors = append(errors, err)
 		}
 		defer func(session *ssh.Session) {
 			err := session.Close()
 			if err != nil {
-				log.Logger.Debugf("Session at %s closed.", dialAddr)
+				log.Logger.Infof("Session at %s closed. Error: %s", dialAddr, err)
+			} else {
+				log.Logger.Infof("Session at %s closed.", dialAddr)
 			}
 		}(session)
 
 		session.Stdout = os.Stdout
 		session.Stderr = os.Stderr
 
-		// 5. run session
+		// run session
 		err = session.Run(command)
 		if err != nil {
 			log.Logger.Errorf("Run command %s failed at %s", command, dialAddr)
-			failed = true
+			errors = append(errors, err)
 		}
 	}
-
-	if failed {
-		log.Logger.Fatalf("Run command %s failed. See previous error messages.", command)
-	}
-
-	return nil
-}
-
-func (p *WorkersProcess) Stop(command *env.StopProcessCommand) error {
-	return nil
+	return errors
 }
