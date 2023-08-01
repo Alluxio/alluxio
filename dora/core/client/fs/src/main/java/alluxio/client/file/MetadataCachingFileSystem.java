@@ -12,7 +12,6 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.UfsUrlUtils;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;

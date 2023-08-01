@@ -13,7 +13,6 @@ package alluxio.client.file.ufs;
 
 import alluxio.AlluxioURI;
 import alluxio.PositionReader;
-import alluxio.UfsUrlUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -253,7 +252,8 @@ public class UfsBaseFileSystem implements FileSystem {
       String pathStr = ufsPath.asString();
       UfsStatus ufsStatus = mUfs.get().getStatus(pathStr, GetStatusOptions.defaults()
               .setIncludeRealContentHash(options.getIncludeRealContentHash()));
-      // TODO: avoid using AlluxioURI in this method and avoid string copies as much as possible
+      // TODO(Jiacheng Liu): In the future,
+      //  avoid using AlluxioURI in this method and avoid string copies as much as possible
       return transformStatus(ufsStatus, pathStr);
     });
   }

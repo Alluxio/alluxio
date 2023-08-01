@@ -14,7 +14,6 @@ package alluxio.client.file.cache;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PositionReader;
-import alluxio.UfsUrlUtils;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
