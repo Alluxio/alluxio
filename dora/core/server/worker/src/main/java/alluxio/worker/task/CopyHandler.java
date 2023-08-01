@@ -18,6 +18,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
+import alluxio.exception.runtime.FailedPreconditionRuntimeException;
 import alluxio.exception.runtime.InternalRuntimeException;
 import alluxio.exception.runtime.InvalidArgumentRuntimeException;
 import alluxio.exception.runtime.NotFoundRuntimeException;
@@ -80,13 +81,13 @@ public final class CopyHandler {
     } catch (Exception e) {
       throw AlluxioRuntimeException.from(e);
     }
-    if (dstStatus != null && !writeOptions.getOverwrite()) {
-      // skip the file if it already exists
-      LOG.debug("File " + route.getDst()
-          + " is already persisted in UFS, to overwrite the file, please set the overwrite flag");
+    if (dstStatus != null && dstStatus.isFolder() && sourceStatus.isFolder()) {
+      // skip copy if it's already a folder there
       return;
     }
-
+    if (dstStatus != null && !dstStatus.isFolder() && !writeOptions.getOverwrite()) {
+      throw new FailedPreconditionRuntimeException("File " + route.getDst() + " is already in UFS");
+    }
     if (dstStatus != null && (dstStatus.isFolder() != sourceStatus.isFolder())) {
       throw new InvalidArgumentRuntimeException(
           "Can't replace target because type is not compatible. Target is " + dstStatus
@@ -108,8 +109,8 @@ public final class CopyHandler {
       if (!checkLengthAndContentHash(sourceStatus, dst, dstFs, copiedLength)) {
         try {
           dstFs.delete(dst);
-        } catch (AlluxioException | IOException e) {
-          LOG.debug("Failed to delete dst file {}", dst, e);
+        } catch (Exception e) {
+          LOG.warn("Failed to delete dst file {} after content mismatch", dst, e);
         }
         throw new AlluxioRuntimeException(Status.FAILED_PRECONDITION, String.format(
             "Copied file %s does not match source %s, there might be concurrent updates to src",

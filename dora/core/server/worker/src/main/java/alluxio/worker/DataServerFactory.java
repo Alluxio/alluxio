@@ -20,9 +20,7 @@ import alluxio.grpc.BlockWorkerGrpc;
 import alluxio.underfs.UfsManager;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
-import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.dora.DoraWorker;
-import alluxio.worker.grpc.BlockWorkerClientServiceHandler;
 import alluxio.worker.grpc.DoraWorkerClientServiceHandler;
 import alluxio.worker.grpc.GrpcDataServer;
 
@@ -65,12 +63,8 @@ public class DataServerFactory {
       blockWorkerService =
           new DoraWorkerClientServiceHandler((DoraWorker) dataWorker);
     } else {
-      blockWorkerService =
-          new BlockWorkerClientServiceHandler(
-              //TODO(beinan): inject BlockWorker abstraction
-              (DefaultBlockWorker) dataWorker,
-              mUfsManager,
-              false);
+      throw new UnsupportedOperationException(dataWorker.getClass().getCanonicalName()
+          + " is no longer supported in Alluxio 3.x");
     }
     return new GrpcDataServer(
         mConnectAddress.getHostName(), mGRpcBindAddress, blockWorkerService);
@@ -93,12 +87,8 @@ public class DataServerFactory {
       blockWorkerService =
           new DoraWorkerClientServiceHandler((DoraWorker) worker);
     } else {
-      blockWorkerService =
-          new BlockWorkerClientServiceHandler(
-            //TODO(beinan):inject BlockWorker abstraction
-            (DefaultBlockWorker) worker,
-            mUfsManager,
-            true);
+      throw new UnsupportedOperationException(worker.getClass().getCanonicalName()
+          + " is no longer supported in Alluxio 3.x");
     }
     GrpcDataServer domainSocketDataServer = new GrpcDataServer(mConnectAddress.getHostName(),
         new DomainSocketAddress(domainSocketPath), blockWorkerService);

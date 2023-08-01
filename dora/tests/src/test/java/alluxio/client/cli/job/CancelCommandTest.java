@@ -11,12 +11,17 @@
 
 package alluxio.client.cli.job;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.job.SleepJobConfig;
 import alluxio.job.util.JobTestUtils;
 import alluxio.job.wire.Status;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "Jianjian",
+    comment = "Job master and job worker no longer exists in dora")
+@Ignore
 public class CancelCommandTest extends JobShellTest {
 
   @Test

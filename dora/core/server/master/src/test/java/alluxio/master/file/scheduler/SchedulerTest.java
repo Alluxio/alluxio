@@ -21,7 +21,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -52,6 +51,7 @@ import alluxio.master.scheduler.JournaledJobMetaStore;
 import alluxio.master.scheduler.Scheduler;
 import alluxio.proto.journal.Job;
 import alluxio.resource.CloseableResource;
+import alluxio.scheduler.job.JobMetaStore;
 import alluxio.scheduler.job.JobState;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.wire.FileInfo;
@@ -70,10 +70,14 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public final class SchedulerTest {
@@ -90,7 +94,7 @@ public final class SchedulerTest {
   }
 
   @Before
-  public void beforeTest() throws Exception {
+  public void beforeTest() {
     Configuration.reloadProperties();
     Configuration.set(PropertyKey.MASTER_SCHEDULER_INITIAL_DELAY, "1s");
   }
@@ -103,7 +107,7 @@ public final class SchedulerTest {
     DefaultWorkerProvider workerProvider =
         new DefaultWorkerProvider(fsMaster, fileSystemContext);
     Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider,
-        new JournaledJobMetaStore(fsMaster));
+        new InMemoryJobMetaStore());
     when(fsMaster.getWorkerInfoList())
         .thenReturn(ImmutableList.of(
             new WorkerInfo().setId(1).setAddress(
@@ -149,16 +153,14 @@ public final class SchedulerTest {
     when(fsMaster.createJournalContext()).thenReturn(journalContext);
     DefaultWorkerProvider workerProvider =
         new DefaultWorkerProvider(fsMaster, fileSystemContext);
+    InMemoryJobMetaStore jobMetaStore = new InMemoryJobMetaStore();
     Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider,
-        new JournaledJobMetaStore(fsMaster));
+        jobMetaStore);
     DoraLoadJob loadJob =
         new DoraLoadJob(validLoadPath, Optional.of("user"), "1", OptionalLong.empty(),
             false, true, false);
     assertTrue(scheduler.submitJob(loadJob));
-    verify(journalContext).append(argThat(journalEntry -> journalEntry.hasLoadJob()
-        && journalEntry.getLoadJob().getLoadPath().equals(validLoadPath)
-        && journalEntry.getLoadJob().getState() == Job.PJobState.CREATED
-        && !journalEntry.getLoadJob().hasBandwidth()));
+    assertTrue(jobMetaStore.get(loadJob.getJobId()).getJobState() == JobState.RUNNING);
     assertEquals(1, scheduler.getJobs().size());
 
     // Verify the job present in Scheduler and jobMetaStore has been updated.
@@ -169,72 +171,49 @@ public final class SchedulerTest {
     assertTrue(loadJobInMetaStore.isPresent());
     assertEquals(OptionalLong.empty(), ((DoraLoadJob) loadJobInMetaStore.get())
         .getBandwidth());
-
     DoraLoadJob job = (DoraLoadJob) scheduler.getJobs().get(loadJob.getDescription());
     assertEquals(OptionalLong.empty(), job.getBandwidth());
     loadJob =
         new DoraLoadJob(validLoadPath, Optional.of("user"), "1",
             OptionalLong.of(1000), true, false, false);
     assertFalse(scheduler.submitJob(loadJob));
-    verify(journalContext).append(argThat(journalEntry -> journalEntry.hasLoadJob()
-        && journalEntry.getLoadJob().getLoadPath().equals(validLoadPath)
-        && journalEntry.getLoadJob().getState() == Job.PJobState.CREATED
-        && journalEntry.getLoadJob().getBandwidth() == 1000
-        && !journalEntry.getLoadJob().getPartialListing()));  // we don't update partialListing
     assertEquals(1, scheduler.getJobs().size());
     job = (DoraLoadJob) scheduler.getJobs().get(loadJob.getDescription());
-    assertEquals(1000, job.getBandwidth().getAsLong());
+    assertFalse(job.getBandwidth().isPresent());
 
-    // Verify the job present in Scheduler and jobMetaStore has been updated with new bandwidth.
+    // Verify the job present in Scheduler and jobMetaStore
     final DoraLoadJob loadJobFinalNew = loadJob;
     Optional<alluxio.scheduler.job.Job<?>> loadJobInMetaStoreNewBandwidth =
         scheduler.getJobMetaStore().getJobs().stream()
             .filter(j -> j.equals(loadJobFinalNew)).findFirst();
     assertTrue(loadJobInMetaStore.isPresent());
-    assertEquals(1000, ((DoraLoadJob) loadJobInMetaStoreNewBandwidth.get())
-        .getBandwidth().getAsLong());
+    assertFalse(((DoraLoadJob) loadJobInMetaStoreNewBandwidth.get())
+        .getBandwidth().isPresent());
   }
 
   @Test
-  public void testStop() throws Exception {
+  public void testStop() {
     String validLoadPath = "/path/to/load";
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
     FileSystemContext fileSystemContext = mock(FileSystemContext.class);
-    AlluxioProperties alluxioProperties = new AlluxioProperties();
-    InstancedConfiguration conf = new InstancedConfiguration(alluxioProperties);
-    when(fileSystemContext.getClusterConf()).thenReturn(conf);
-
-    JournalContext journalContext = mock(JournalContext.class);
-    when(fsMaster.createJournalContext()).thenReturn(journalContext);
     DefaultWorkerProvider workerProvider =
         new DefaultWorkerProvider(fsMaster, fileSystemContext);
-    Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider,
-        new JournaledJobMetaStore(fsMaster));
+    InMemoryJobMetaStore metaStore = new InMemoryJobMetaStore();
+    Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider, metaStore);
     DoraLoadJob job =
-        new DoraLoadJob(validLoadPath, Optional.of("user"), "1", OptionalLong.of(100),
+        new DoraLoadJob(validLoadPath, Optional.of("user"), "3", OptionalLong.of(100),
             false, true, false);
-
     assertTrue(scheduler.submitJob(job));
-    verify(journalContext, times(1)).append(any());
-    verify(journalContext).append(argThat(journalEntry -> journalEntry.hasLoadJob()
-        && journalEntry.getLoadJob().getLoadPath().equals(validLoadPath)
-        && journalEntry.getLoadJob().getState() == Job.PJobState.CREATED
-        && journalEntry.getLoadJob().getBandwidth() == 100));
+
     assertTrue(scheduler.stopJob(job.getDescription()));
-    verify(journalContext, times(2)).append(any());
-    verify(journalContext).append(argThat(journalEntry -> journalEntry.hasLoadJob()
-        && journalEntry.getLoadJob().getLoadPath().equals(validLoadPath)
-        && journalEntry.getLoadJob().getState() == Job.PJobState.STOPPED
-        && journalEntry.getLoadJob().getBandwidth() == 100
-        && journalEntry.getLoadJob().hasEndTime()));
+
+    assertTrue(metaStore.get(job.getJobId()).getJobState() == JobState.STOPPED);
     assertFalse(scheduler.stopJob(job.getDescription()));
-    verify(journalContext, times(2)).append(any());
     assertFalse(scheduler.stopJob(JobDescription.newBuilder().setPath("/does/not/exist").build()));
-    verify(journalContext, times(2)).append(any());
     assertFalse(scheduler.submitJob(job));
-    verify(journalContext, times(3)).append(any());
+    assertTrue(metaStore.get(job.getJobId()).getJobState() == JobState.RUNNING);
     assertTrue(scheduler.stopJob(job.getDescription()));
-    verify(journalContext, times(4)).append(any());
+    assertTrue(metaStore.get(job.getJobId()).getJobState() == JobState.STOPPED);
   }
 
   @Test
@@ -499,7 +478,6 @@ public final class SchedulerTest {
   }
 
   @Test
-  @Ignore
   public void testJobRetention() throws Exception {
     Configuration.modifiableGlobal().set(PropertyKey.JOB_RETENTION_TIME, "0ms", Source.RUNTIME);
     DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
@@ -581,5 +559,52 @@ public final class SchedulerTest {
             .setType("load")
             .build())));
     Configuration.modifiableGlobal().unset(PropertyKey.JOB_RETENTION_TIME);
+  }
+
+  // test scheduler start and stop and start again with job meta store change
+  @Test
+  public void testStopScheduler() {
+    String path = "/path/to/load";
+    DefaultFileSystemMaster fsMaster = mock(DefaultFileSystemMaster.class);
+    FileSystemContext fileSystemContext = mock(FileSystemContext.class);
+    DefaultWorkerProvider workerProvider =
+        new DefaultWorkerProvider(fsMaster, fileSystemContext);
+    InMemoryJobMetaStore metaStore = new InMemoryJobMetaStore();
+    Scheduler scheduler = new Scheduler(fileSystemContext, workerProvider, metaStore);
+    DoraLoadJob job =
+        new DoraLoadJob(path, Optional.of("user"), "5", OptionalLong.of(100),
+            false, true, false);
+    scheduler.start();
+    scheduler.submitJob(job);
+    assertEquals(1, scheduler.getJobs().size());
+    scheduler.stop();
+    assertEquals(0, scheduler.getJobs().size());
+    assertEquals(1, metaStore.getJobs().size());
+    DoraLoadJob job2 =
+        new DoraLoadJob("new", Optional.of("user"), "6", OptionalLong.of(100),
+            false, true, false);
+    metaStore.updateJob(job2);
+    assertEquals(0, scheduler.getJobs().size());
+    assertEquals(2, metaStore.getJobs().size());
+    scheduler.start();
+    assertEquals(2, scheduler.getJobs().size());
+  }
+
+  private class InMemoryJobMetaStore implements JobMetaStore {
+    private final Map<String, alluxio.scheduler.job.Job<?>> mExistingJobs = new ConcurrentHashMap();
+
+    @Override
+    public void updateJob(alluxio.scheduler.job.Job<?> job) {
+      mExistingJobs.put(job.getJobId(), job);
+    }
+
+    @Override
+    public Set<alluxio.scheduler.job.Job<?>> getJobs() {
+      return mExistingJobs.values().stream().collect(Collectors.toSet());
+    }
+
+    public alluxio.scheduler.job.Job<?> get(String jobId) {
+      return mExistingJobs.get(jobId);
+    }
   }
 }

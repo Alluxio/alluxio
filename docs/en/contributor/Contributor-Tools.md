@@ -1,13 +1,8 @@
 ---
 layout: global
 title: Contributor Tools
-nickname: Contributor Tools
-group: Contributor Resources
-priority: 3
 ---
 
-* Table of Contents
-{:toc}
 
 ## IDE
 
@@ -79,7 +74,7 @@ action from the `Navigate > Search Everywhere` dialog.
 8. Prepare the RamFS and format the Alluxio Worker with `bin/alluxio-mount.sh SudoMount && bin/alluxio formatWorker`
 9. In Intellij, start Alluxio worker process by selecting `Run > Run > AlluxioWorker`
 10. In Intellij, start Alluxio job worker process by selecting `Run > Run > AlluxioJobWorker`
-11. [Verify the Alluxio cluster is up]({{ '/en/overview/Getting-Started.html#verify-alluxio-is-running' | relativize_url }}).
+11. [Verify the Alluxio cluster is up]({{ '/en/Get-Started.html#starting-alluxio' | relativize_url }}).
 
 ##### Start a High Availability (HA) Alluxio cluster
 1. Create journal directories for the masters 
@@ -252,7 +247,7 @@ $ mvn -T 2C install -DskipTests
 ```
 
 After the install target executes, you can follow the instructions at 
-[Running Alluxio Locally]({{ '/en/overview/Getting-Started.html' | relativize_url }})
+[Running Alluxio Locally]({{ '/en/Get-Started.html' | relativize_url }})
 to start a local cluster.
 
 ### Unit Tests
@@ -285,7 +280,9 @@ $ mvn test -pl underfs/hdfs
 ```shell
 # build and run test on HDFS under storage module for Hadoop 2.7.0
 $ mvn test -pl underfs/hdfs -Phadoop-2 -Dhadoop.version=2.7.0
+```
 
+```shell
 # build and run test on HDFS under storage module for Hadoop 3.0.0
 $ mvn test -pl underfs/hdfs -Phadoop-3 -Dhadoop.version=3.0.0
 ```
@@ -308,7 +305,7 @@ To have the logs output to STDOUT, append the following arguments to the `mvn` c
 
 The FUSE tests are ignored if the `libfuse` library is missing.
 To run those tests, please install the libraries referenced in
-[the Alluxio FUSE documentation]({{ '/en/fuse-sdk/Overview.html' | relativize_url }}).
+[the Alluxio FUSE documentation]({{ '/en/fuse-sdk/FUSE-SDK-Overview.html' | relativize_url }}).
 
 ## Modifying a gRPC definition
 
@@ -336,19 +333,3 @@ the `'generate'` maven profile.
 ```shell
 $ mvn clean install -Pgenerate -pl "org.alluxio:alluxio-core-transport"
 ```
-
-## Usage of `./bin/alluxio`
- 
-Please refer to [Alluxio commands]({{ '/en/operation/User-CLI.html' | relativize_url }})
-for all available commands.
-
-Some commands have different prerequisites.
-
-All commands except `bootstrapConf`, `killAll`, `copyDir` and `clearCache`
-will require that you have already built Alluxio 
-(see [Build Alluxio Master Branch]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}) 
-about how to build Alluxio manually).
-
-Some commands require the Alluxio cluster to be running, and others do not.
-Please check [all Alluxio commands]({{ '/en/operation/User-CLI.html' | relativize_url }})
-where each command specifies if it requires the Alluxio cluster to be running.

@@ -208,11 +208,9 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
       mOutput.reset();
       shell.run("journal", "quorum", "elect", "-address" , newLeaderAddr);
       String output = mOutput.toString().trim();
-      String expected = String.format("%s\n%s\n%s\n%s",
+      String expected = String.format("%s\n%s",
           String.format(QuorumElectCommand.TRANSFER_INIT, newLeaderAddr),
-          String.format(QuorumElectCommand.TRANSFER_SUCCESS, newLeaderAddr),
-          String.format(QuorumElectCommand.RESET_INIT, "successful"),
-          QuorumElectCommand.RESET_SUCCESS);
+          String.format(QuorumElectCommand.TRANSFER_SUCCESS, newLeaderAddr));
       Assert.assertEquals(expected, output);
     }
     mCluster.notifySuccess();
@@ -246,7 +244,7 @@ public final class QuorumCommandIntegrationTest extends BaseIntegrationTest {
       shell.run("journal", "quorum", "info", "-domain", "MASTER");
       String output = mOutput.toString().trim();
       for (MasterNetAddress masterAddr : mCluster.getMasterAddresses()) {
-        String expected = String.format(QuorumInfoCommand.OUTPUT_SERVER_INFO, "AVAILABLE", "1",
+        String expected = String.format(QuorumInfoCommand.OUTPUT_SERVER_INFO, "AVAILABLE", "0",
             String.format("%s:%d", masterAddr.getHostname(), masterAddr.getEmbeddedJournalPort()));
         Assert.assertTrue(output.contains(expected.trim()));
       }

@@ -31,6 +31,8 @@ import alluxio.grpc.CreateFilePRequest;
 import alluxio.grpc.CreateFilePResponse;
 import alluxio.grpc.DeletePRequest;
 import alluxio.grpc.DeletePResponse;
+import alluxio.grpc.ExistsPRequest;
+import alluxio.grpc.ExistsPResponse;
 import alluxio.grpc.GetStatusPRequest;
 import alluxio.grpc.GetStatusPResponse;
 import alluxio.grpc.GrpcUtils;
@@ -47,6 +49,8 @@ import alluxio.grpc.ReadResponseMarshaller;
 import alluxio.grpc.RenamePRequest;
 import alluxio.grpc.RenamePResponse;
 import alluxio.grpc.RouteFailure;
+import alluxio.grpc.SetAttributePRequest;
+import alluxio.grpc.SetAttributePResponse;
 import alluxio.grpc.TaskStatus;
 import alluxio.underfs.UfsStatus;
 import alluxio.uri.UfsUrl;
@@ -337,6 +341,39 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
       responseObserver.onCompleted();
     } catch (Exception e) {
       LOG.error(String.format("Failed to CreateDirectory for %s: ", request.getPath()), e);
+      responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
+    }
+  }
+
+  @Override
+  public void exists(ExistsPRequest request, StreamObserver<ExistsPResponse> responseObserver) {
+    LOG.debug("Got exists request: {}", request);
+    try {
+      String ufsFullPath = request.getPath();
+
+      boolean exists = mWorker.exists(ufsFullPath, request.getOptions());
+      ExistsPResponse response = ExistsPResponse.newBuilder().setExists(exists).build();
+      responseObserver.onNext(response);
+      responseObserver.onCompleted();
+    } catch (Exception e) {
+      LOG.error(String.format("Failed to query existence for %s: ", request.getPath()), e);
+      responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
+    }
+  }
+
+  @Override
+  public void setAttribute(SetAttributePRequest request,
+                           StreamObserver<SetAttributePResponse> responseObserver) {
+    LOG.debug("Got setAttribute request: {}", request);
+    try {
+      String ufsFullPath = request.getPath();
+
+      mWorker.setAttribute(ufsFullPath, request.getOptions());
+      SetAttributePResponse response = SetAttributePResponse.newBuilder().build();
+      responseObserver.onNext(response);
+      responseObserver.onCompleted();
+    } catch (Exception e) {
+      LOG.error(String.format("Failed to setAttribute for %s: ", request.getPath()), e);
       responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
     }
   }

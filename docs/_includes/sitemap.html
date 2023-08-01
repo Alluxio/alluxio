@@ -1,0 +1,28 @@
+<ul>
+    {% for item in include.map %}
+    {% if item.subfiles.size == 1 %}
+    <div>
+        <button class = "single">
+            <a class = "single-items" href="{{site.baseurl}}{{ item.subfiles[0].url }}" >{{ item.title }}</a>
+        </button>
+    </div>
+    {% else %}
+    <div>
+    <button type="button", class ="btn btn-collapse" data-toggle="collapse" data-target="#{{item.buttonTitle}}">
+        {{item.title}}
+        <i class='fas fa-angle-down'></i>
+    </button>
+    </div>
+    <div id="{{item.buttonTitle}}" class="collapse scrollable-content" >
+        {% for files in item.subfiles %}
+        <div>
+            <a class="collapse-items" href="{{site.baseurl}}{{ files.url }}" >{{ files.title }}</a>
+        </div>
+        {% endfor %}
+        {% if item.subitems %}
+        {% include sitemap.html map=item.subitems %}
+        {% endif %}
+    </div>
+    {% endif %}
+    {% endfor %}
+</ul>

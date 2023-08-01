@@ -68,8 +68,6 @@ public class MetricsCommandTest {
   private Map<String, MetricValue> generateMetricsMap() {
     Map<String, MetricValue> map = new HashMap<>();
 
-    map.put(MetricKey.CLUSTER_BYTES_READ_LOCAL.getName(),
-        MetricValue.newBuilder().setDoubleValue(12312312312L).build());
     map.put(MetricKey.CLUSTER_BYTES_READ_REMOTE.getName(),
         MetricValue.newBuilder().setDoubleValue(421312312L).build());
     map.put(MetricKey.CLUSTER_BYTES_READ_DOMAIN.getName(),
@@ -83,8 +81,6 @@ public class MetricsCommandTest {
     map.put(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_ALL.getName(),
         MetricValue.newBuilder().setDoubleValue(325324L).build());
 
-    map.put(MetricKey.CLUSTER_BYTES_READ_LOCAL_THROUGHPUT.getName(),
-        MetricValue.newBuilder().setDoubleValue(123125324L).build());
     map.put(MetricKey.CLUSTER_BYTES_READ_REMOTE_THROUGHPUT.getName(),
         MetricValue.newBuilder().setDoubleValue(543534623L).build());
     map.put(MetricKey.CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT.getName(),
@@ -127,8 +123,6 @@ public class MetricsCommandTest {
     List<String> expectedOutput = Arrays.asList(
         "Cluster.BytesReadDomain  (Type: GAUGE, Value: 4145.73KB)",
         "Cluster.BytesReadDomainThroughput  (Type: GAUGE, Value: 29.97MB/MIN)",
-        "Cluster.BytesReadLocal  (Type: GAUGE, Value: 11.47GB)",
-        "Cluster.BytesReadLocalThroughput  (Type: GAUGE, Value: 117.42MB/MIN)",
         "Cluster.BytesReadRemote  (Type: GAUGE, Value: 401.79MB)",
         "Cluster.BytesReadRemoteThroughput  (Type: GAUGE, Value: 518.36MB/MIN)",
         "Cluster.BytesReadUfsAll  (Type: GAUGE, Value: 509.47MB)",

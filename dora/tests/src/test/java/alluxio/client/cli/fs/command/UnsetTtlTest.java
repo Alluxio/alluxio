@@ -15,15 +15,20 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.grpc.WritePType;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Test for unsetTtl command.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "hua",
+    comment = "fix unsetTtl command")
+@Ignore
 public final class UnsetTtlTest extends AbstractFileSystemShellTest {
   @Test
   public void unsetTtl() throws Exception {

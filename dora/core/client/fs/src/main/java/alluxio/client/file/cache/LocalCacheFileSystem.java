@@ -23,6 +23,7 @@ import alluxio.client.file.cache.filter.CacheFilter;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.OpenFilePOptions;
 
@@ -31,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * A FileSystem implementation with a local cache.
@@ -75,11 +77,13 @@ public class LocalCacheFileSystem extends DelegatingFileSystem {
       return mDelegatedFileSystem.openFile(status, options);
     }
     return new LocalCacheFileInStream(status,
-        uriStatus -> mDelegatedFileSystem.openFile(status, options), mCacheManager, mConf);
+        uriStatus -> mDelegatedFileSystem.openFile(status, options), mCacheManager, mConf,
+        Optional.empty());
   }
 
   @Override
-  public PositionReader openPositionRead(AlluxioURI path, OpenFilePOptions options) {
+  public PositionReader openPositionRead(AlluxioURI path, OpenFilePOptions options)
+      throws FileDoesNotExistException {
     if (mCacheManager == null || mCacheManager.state() == CacheManager.State.NOT_IN_USE) {
       return mDelegatedFileSystem.openPositionRead(path, options);
     }

@@ -8,6 +8,8 @@ package alluxio.grpc.table.layout;
 
 import "grpc/table/table_master.proto";
 
+// TODO(binfan): remove this proto file.
+// it is no longer used but only to keep old Presto/Trino build with Alluxio 3.x client.
 message StorageFormat {
     optional string serde = 1;
     optional string input_format = 2;

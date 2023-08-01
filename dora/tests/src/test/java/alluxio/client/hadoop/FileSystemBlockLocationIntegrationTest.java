@@ -11,6 +11,7 @@
 
 package alluxio.client.hadoop;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.conf.Configuration;
 import alluxio.grpc.WritePType;
@@ -24,6 +25,7 @@ import org.apache.hadoop.fs.Path;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.net.URI;
@@ -31,6 +33,9 @@ import java.net.URI;
 /**
  * Integration tests for {@link FileSystem#getFileBlockLocations(FileStatus, long, long)}.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "bowen",
+    comment = "recycle the test cases after we remove BlockStore")
+@Ignore
 public class FileSystemBlockLocationIntegrationTest extends BaseIntegrationTest {
 
   private static final int BLOCK_SIZE = 1024;

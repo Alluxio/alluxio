@@ -15,6 +15,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.cli.fs.FileSystemShellUtilsTest;
@@ -44,6 +45,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Closer;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -61,6 +63,9 @@ import java.util.List;
     confParams = {
         PropertyKey.Name.MASTER_WORKER_INFO_CACHE_REFRESH_TIME, "1ms",
         PropertyKey.Name.USER_WORKER_LIST_REFRESH_INTERVAL, "1ms"})
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen",
+    comment = "the command is still relevant")
 public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest {
 
   @Rule

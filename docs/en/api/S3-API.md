@@ -1,13 +1,8 @@
 ---
 layout: global
 title: S3 API
-nickname: S3 API
-group: Client APIs
-priority: 1
 ---
 
-* Table of Contents
-{:toc}
 
 Alluxio supports a [RESTful API](https://docs.alluxio.io/os/restdoc/{{site.ALLUXIO_MAJOR_VERSION}}/proxy/index.html)
 that is compatible with the basic operations of the Amazon [S3 API](http://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html).
@@ -80,7 +75,7 @@ It is also recommended to put all the proxy servers behind a load balancer.
     SignedHeaders=...,
     Signature=...</td>
     <td>There is currently no support for access & secret keys in the Alluxio S3 API.
-    The only supported authentication scheme is the <a href="{{ '/en/security/Security.html#simple' | relativize_url }}">SIMPLE</a>
+    The only supported authentication scheme is the SIMPLE
     authentication type. By default, the user that is used to perform any operations is the user that was used to
     launch the Alluxio proxy process.
     <br/><br/>
@@ -179,7 +174,7 @@ As a pre-requisite for operations which involve the `Authorization` header you m
 - See the [Authorization header]({{ '/en/api/S3-API.html#global-request-headers' | relativize_url }})
   for details on how Alluxio uses this header
 
-```console
+```shell
 $ aws configure --profile alluxio-s3
 AWS Access Key ID [None]: {user}
 AWS Secret Access Key [None]: {dummy value}
@@ -198,7 +193,7 @@ is used purely to specify the intended user to perform a request. The header fol
 [AWS Signature Version 4](https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-auth-using-authorization-header.html)
 format.
 
-```console
+```shell
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." ...
 ```
 {% endnavtab %}
@@ -207,7 +202,7 @@ $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHead
 #### [AbortMultipartUpload](https://docs.aws.amazon.com/AmazonS3/latest/API/API_AbortMultipartUpload.html)
 {% navtabs abort_multipart_upload %}
 {% navtab AWS CLI %}
-```console
+```shell
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects-v2 \
   --bucket=testbucket
 {
@@ -247,7 +242,7 @@ $ % aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3ap
 ```
 {% endnavtab %}
 {% navtab REST Clients %}
-```console
+```shell
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
   -X GET "http://localhost:39999/api/v1/s3/testbucket"
 HTTP/1.1 200 OK
@@ -316,7 +311,7 @@ Server: Jetty(9.4.43.v20210629)
 #### [CompleteMultipartUpload](https://docs.aws.amazon.com/AmazonS3/latest/API/API_CompleteMultipartUpload.html)
 {% navtabs complete_multipart_upload %}
 {% navtab AWS CLI %}
-```console
+```shell
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api complete-multipart-upload \
   --bucket=testbucket --key=multipart.txt --upload-id=6367cf96-ea4e-4447-b931-c5bc91200375 \
   --multipart-upload="Parts=[{PartNumber=1},{PartNumber=2}]"
@@ -339,7 +334,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 ```
 {% endnavtab %}
 {% navtab REST Clients %}
-```console
+```shell
 $ cat complete_upload.xml
 
 <CompleteMultipartUpload xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
@@ -385,7 +380,7 @@ Server: Jetty(9.4.43.v20210629)
 #### [CopyObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_CopyObject.html)
 {% navtabs copy_object %}
 {% navtab AWS CLI %}
-```console
+```shell
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api copy-object \
   --copy-source=testbucket/test.txt --bucket=testbucket --key=test_copy.txt
 {
@@ -414,7 +409,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 ```
 {% endnavtab %}
 {% navtab REST Clients %}
-```console
+```shell
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
   -H "x-amz-copy-source: testbucket/test.txt" \
   -X PUT http://localhost:39999/api/v1/s3/testbucket/test_copy.txt
@@ -463,7 +458,7 @@ Server: Jetty(9.4.43.v20210629)
 #### [CreateBucket](https://docs.aws.amazon.com/AmazonS3/latest/API/API_CreateBucket.html)
 {% navtabs create_bucket %}
 {% navtab AWS CLI %}
-```console
+```shell
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api create-bucket \
   --bucket=testbucket
 
@@ -479,7 +474,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 ```
 {% endnavtab %}
 {% navtab REST Clients %}
-```console
+```shell
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
   -X PUT http://localhost:39999/api/v1/s3/testbucket
 
@@ -511,7 +506,7 @@ Server: Jetty(9.4.43.v20210629)
 #### [CreateMultipartUpload](https://docs.aws.amazon.com/AmazonS3/latest/API/API_CreateMultipartUpload.html)
 {% navtabs create_multipart_upload %}
 {% navtab AWS CLI %}
-```console
+```shell
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api create-multipart-upload \
   --bucket=testbucket --key=multipart.txt
 {
@@ -522,7 +517,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 ```
 {% endnavtab %}
 {% navtab REST Clients %}
-```console
+```shell
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
   -X POST "http://localhost:39999/api/v1/s3/testbucket/multipart.txt?uploads"
 HTTP/1.1 200 OK
@@ -543,7 +538,7 @@ Server: Jetty(9.4.43.v20210629)
 #### [DeleteBucket](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteBucket.html)
 {% navtabs delete_bucket %}
 {% navtab AWS CLI %}
-```console
+```shell
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-buckets
 {
     "Buckets": [
@@ -573,7 +568,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 ```
 {% endnavtab %}
 {% navtab REST Clients %}
-```console
+```shell
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
   -X GET http://localhost:39999/api/v1/s3/
 HTTP/1.1 200 OK
@@ -624,7 +619,7 @@ Server: Jetty(9.4.43.v20210629)
 #### [DeleteBucketTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteBucketTagging.html)
 {% navtabs delete_bucket_tagging %}
 {% navtab AWS CLI %}
-```console
+```shell
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-bucket-tagging \
   --bucket=testbucket
 {
@@ -651,7 +646,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 ```
 {% endnavtab %}
 {% navtab REST Clients %}
-```console
+```shell
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
   -X GET "http://localhost:39999/api/v1/s3/testbucket?tagging"
 HTTP/1.1 200 OK
@@ -695,7 +690,7 @@ Server: Jetty(9.4.43.v20210629)
 #### [DeleteObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteObject.html)
 {% navtabs delete_object %}
 {% navtab AWS CLI %}
-```console
+```shell
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects-v2 \
   --bucket=testbucket
 {
@@ -730,7 +725,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 ```
 {% endnavtab %}
 {% navtab REST Clients %}
-```console
+```shell
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
   -X GET http://localhost:39999/api/v1/s3/testbucket
 HTTP/1.1 200 OK
@@ -794,7 +789,7 @@ Server: Jetty(9.4.43.v20210629)
 #### [DeleteObjects](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteObjects.html)
 {% navtabs delete_objects %}
 {% navtab AWS CLI %}
-```console
+```shell
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects-v2 \
   --bucket=tempbucket
 {
@@ -834,7 +829,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 ```
 {% endnavtab %}
 {% navtab REST Clients %}
-```console
+```shell
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
   -X GET http://localhost:39999/api/v1/s3/tempbucket
 HTTP/1.1 200 OK
@@ -932,7 +927,7 @@ Server: Jetty(9.4.43.v20210629)
 #### [DeleteObjectTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteObjectTagging.html)
 {% navtabs delete_object_tagging %}
 {% navtab AWS CLI %}
-```console
+```shell
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-object-tagging \
   --bucket=testbucket --key=test.txt
 {
@@ -959,7 +954,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 ```
 {% endnavtab %}
 {% navtab REST Clients %}
-```console
+```shell
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
   -X GET "http://localhost:39999/api/v1/s3/testbucket?tagging"
 HTTP/1.1 200 OK
@@ -1003,7 +998,7 @@ Server: Jetty(9.4.43.v20210629)
 #### [GetBucketTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetBucketTagging.html)
 {% navtabs get_bucket_tagging %}
 {% navtab AWS CLI %}
-```console
+```shell
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-bucket-tagging \
   --bucket=testbucket
 {
@@ -1021,7 +1016,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 ```
 {% endnavtab %}
 {% navtab REST Clients %}
-```console
+```shell
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
   -X GET "http://localhost:39999/api/v1/s3/testbucket?tagging"
 HTTP/1.1 200 OK
@@ -1049,7 +1044,7 @@ Server: Jetty(9.4.43.v20210629)
 #### [GetObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObject.html)
 {% navtabs get_object %}
 {% navtab AWS CLI %}
-```console
+```shell
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-object \
   --bucket=testbucket --key=test.txt /tmp/test.txt
 {
@@ -1068,7 +1063,7 @@ $ stat /tmp/test.txt
 
 {% endnavtab %}
 {% navtab REST Clients %}
-```console
+```shell
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
   -X GET http://localhost:39999/api/v1/s3/testbucket/test.txt
 HTTP/1.1 200 OK
@@ -1087,7 +1082,7 @@ Server: Jetty(9.4.43.v20210629)
 #### [GetObjectTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObjectTagging.html)
 {% navtabs get_object_tagging %}
 {% navtab AWS CLI %}
-```console
+```shell
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-object-tagging \
   --bucket=testbucket --key=test.txt
 {
@@ -1105,7 +1100,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 ```
 {% endnavtab %}
 {% navtab REST Clients %}
-```console
+```shell
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
   -X GET "http://localhost:39999/api/v1/s3/testbucket?tagging"
 HTTP/1.1 200 OK
@@ -1133,13 +1128,13 @@ Server: Jetty(9.4.43.v20210629)
 #### [HeadBucket](https://docs.aws.amazon.com/AmazonS3/latest/API/API_HeadBucket.html)
 {% navtabs head_bucket %}
 {% navtab AWS CLI %}
-```console
+```shell
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api head-bucket \
   --bucket=testbucket
 ```
 {% endnavtab %}
 {% navtab REST Clients %}
-```console
+```shell
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
   --head http://localhost:39999/api/v1/s3/testbucket
 HTTP/1.1 200 OK
@@ -1154,7 +1149,7 @@ Server: Jetty(9.4.43.v20210629)
 #### [HeadObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_HeadObject.html)
 {% navtabs head_object %}
 {% navtab AWS CLI %}
-```console
+```shell
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api head-object \
   --bucket=testbucket --key=test.txt
 {
@@ -1167,7 +1162,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 ```
 {% endnavtab %}
 {% navtab REST Clients %}
-```console
+```shell
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
   --head http://localhost:39999/api/v1/s3/testbucket/test.txt
 HTTP/1.1 200 OK
@@ -1184,7 +1179,7 @@ Server: Jetty(9.4.43.v20210629)
 #### [ListBuckets](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListBuckets.html)
 {% navtabs list_buckets %}
 {% navtab AWS CLI %}
-```console
+```shell
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-buckets
 {
     "Buckets": [
@@ -1197,7 +1192,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 ```
 {% endnavtab %}
 {% navtab REST Clients %}
-```console
+```shell
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
   -X GET http://localhost:39999/api/v1/s3/
 HTTP/1.1 200 OK
@@ -1221,7 +1216,7 @@ Server: Jetty(9.4.43.v20210629)
 #### [ListObjects](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjects.html)
 {% navtabs list_objects %}
 {% navtab AWS CLI %}
-```console
+```shell
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects \
   --bucket=testbucket
 {
@@ -1241,7 +1236,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 ```
 {% endnavtab %}
 {% navtab REST Clients %}
-```console
+```shell
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
   -X GET http://localhost:39999/api/v1/s3/testbucket
 HTTP/1.1 200 OK
@@ -1276,7 +1271,7 @@ Server: Jetty(9.4.43.v20210629)
 #### [ListMultipartUploads](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListMultipartUploads.html)
 {% navtabs list_uploads %}
 {% navtab AWS CLI %}
-```console
+```shell
 $ aws --profile alluxio-s3 --endpoint="http://localhost:39999/api/v1/s3" s3api list-multipart-uploads --bucket "testbucket"
 {
     "Uploads": [
@@ -1300,7 +1295,7 @@ $ aws --profile alluxio-s3 --endpoint="http://localhost:39999/api/v1/s3" s3api l
 ```
 {% endnavtab %}
 {% navtab REST Clients %}
-```console
+```shell
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
   -X GET "http://localhost:39999/api/v1/s3/testbucket?uploads"
 HTTP/1.1 200 OK
@@ -1334,7 +1329,7 @@ Server: Jetty(9.4.46.v20220331)
 #### [ListObjectsV2](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectsV2.html)
 {% navtabs list_objects_v2 %}
 {% navtab AWS CLI %}
-```console
+```shell
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-objects-v2 \
   --bucket=testbucket
 {
@@ -1354,7 +1349,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 ```
 {% endnavtab %}
 {% navtab REST Clients %}
-```console
+```shell
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
   -X GET "http://localhost:39999/api/v1/s3/testbucket?list-type=2"
 HTTP/1.1 200 OK
@@ -1390,7 +1385,7 @@ Server: Jetty(9.4.43.v20210629)
 #### [ListParts](https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListParts.html)
 {% navtabs list_parts %}
 {% navtab AWS CLI %}
-```console
+```shell
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api list-parts \
   --bucket=testbucket --key=multipart.txt --upload-id=6367cf96-ea4e-4447-b931-c5bc91200375
 {
@@ -1410,7 +1405,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 ```
 {% endnavtab %}
 {% navtab REST Clients %}
-```console
+```shell
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
   -X GET "http://localhost:39999/api/v1/s3/testbucket/multipart.txt?uploadId=6367cf96-ea4e-4447-b931-c5bc91200375"
 HTTP/1.1 200 OK
@@ -1439,7 +1434,7 @@ Server: Jetty(9.4.43.v20210629)
 #### [PutBucketTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutBucketTagging.html)
 {% navtabs put_bucket_tagging %}
 {% navtab AWS CLI %}
-```console
+```shell
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-bucket-tagging \
   --bucket=testbucket
 {
@@ -1466,7 +1461,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 ```
 {% endnavtab %}
 {% navtab REST Clients %}
-```console
+```shell
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
   -X GET "http://localhost:39999/api/v1/s3/testbucket?tagging"
 HTTP/1.1 200 OK
@@ -1526,7 +1521,7 @@ Server: Jetty(9.4.43.v20210629)
 #### [PutObject](https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObject.html)
 {% navtabs put_object %}
 {% navtab AWS CLI %}
-```console
+```shell
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api put-object \
   --bucket=testbucket --key=test.txt --body="${ALLUXIO_HOME}/LICENSE"
 {
@@ -1547,7 +1542,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 ```
 {% endnavtab %}
 {% navtab REST Clients %}
-```console
+```shell
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
   -X PUT http://localhost:39999/api/v1/s3/testbucket/test.txt -T "${ALLUXIO_HOME}/LICENSE"
 HTTP/1.1 100 Continue
@@ -1587,7 +1582,7 @@ Server: Jetty(9.4.43.v20210629)
 #### [PutObjectTagging](https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObjectTagging.html)
 {% navtabs put_object_tagging %}
 {% navtab AWS CLI %}
-```console
+```shell
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api get-object-tagging \
   --bucket=testbucket --key=test.txt
 {
@@ -1614,7 +1609,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 ```
 {% endnavtab %}
 {% navtab REST Clients %}
-```console
+```shell
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
   -X GET "http://localhost:39999/api/v1/s3/testbucket/test.txt?tagging"
 HTTP/1.1 200 OK
@@ -1674,7 +1669,7 @@ Server: Jetty(9.4.43.v20210629)
 #### [UploadPart](https://docs.aws.amazon.com/AmazonS3/latest/API/API_UploadPart.html)
 {% navtabs upload_part %}
 {% navtab AWS CLI %}
-```console
+```shell
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api upload-part \
   --bucket=testbucket --key=multipart.txt --upload-id=6367cf96-ea4e-4447-b931-c5bc91200375 --part-number=1 --body="${ALLUXIO_HOME}/LICENSE"
 {
@@ -1700,7 +1695,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 ```
 {% endnavtab %}
 {% navtab REST Clients %}
-```console
+```shell
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
   -X PUT -T "${ALLUXIO_HOME}/LICENSE" "http://localhost:39999/api/v1/s3/testbucket/multipart.txt?uploadId=6367cf96-ea4e-4447-b931-c5bc91200375&partNumber=1"
 HTTP/1.1 100 Continue
@@ -1734,7 +1729,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 #### [UploadPartCopy](https://docs.aws.amazon.com/AmazonS3/latest/API/API_UploadPartCopy.html)
 {% navtabs upload_part_copy %}
 {% navtab AWS CLI %}
-```console
+```shell
 $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api upload-part-copy \
   --bucket=testbucket --key=object --upload-id=6367cf96-ea4e-4447-b931-c5bc91200375 --part-number=1 --copy-source=testbucket/object
 {
@@ -1762,7 +1757,7 @@ $ aws --profile alluxio-s3 --endpoint "http://localhost:39999/api/v1/s3/" s3api 
 ```
 {% endnavtab %}
 {% navtab REST Clients %}
-```console
+```shell
 $ curl -i -H "Authorization: AWS4-HMAC-SHA256 Credential=testuser/... SignedHeaders=... Signature=..." \
   -H "x-amz-copy-source: testbucket/object" \
   -X PUT 'http://localhost:39999/api/v1/s3/testbucket/object?uploadId=6367cf96-ea4e-4447-b931-c5bc91200375&partNumber=1'
@@ -1784,7 +1779,7 @@ Tested for Python 2.7.
 #### Create a connection:
 Please note you have to install boto package first.
 
-```console
+```shell
 $ pip install boto
 ```
 
@@ -1853,7 +1848,7 @@ assert smallObjectContent == key.get_contents_as_string()
 #### Upload a large object
 Create a 8MB file on local file system.
 
-```console
+```shell
 $ dd if=/dev/zero of=8mb.data bs=1048576 count=8
 ```
 

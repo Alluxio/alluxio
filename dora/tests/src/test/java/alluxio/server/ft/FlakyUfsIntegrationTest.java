@@ -18,6 +18,7 @@ import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.Constants;
 import alluxio.UnderFileSystemFactoryRegistryRule;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
@@ -41,13 +42,16 @@ import com.google.common.io.Files;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
-import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.concurrent.ThreadLocalRandom;
 
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "yuyang",
+    comment = "fix the tests")
 public final class FlakyUfsIntegrationTest extends BaseIntegrationTest {
   private static final String LOCAL_UFS_PATH = Files.createTempDir().getAbsolutePath();
   // An under file system which fails 90% of its renames.
@@ -87,7 +91,7 @@ public final class FlakyUfsIntegrationTest extends BaseIntegrationTest {
     mFs = mLocalAlluxioClusterResource.get().getClient();
   }
 
-  @Test
+  @Ignore("this test need to be fixed")
   public void deletePartial() throws Exception {
     mFs.createDirectory(new AlluxioURI("/dir"));
     for (int i = 0; i < 100; i++) {

@@ -40,6 +40,8 @@ import java.util.concurrent.CompletableFuture;
 /**
  * A block worker in the Alluxio system.
  */
+// TODO(jiacheng): This class is not removed yet because it is still used by client code
+//  like FileSystemContext. It should be removed with the client side Block API code.
 public interface BlockWorker extends DataWorker, SessionCleanable {
   /**
    * Aborts the temporary block created by the session.
@@ -58,14 +60,6 @@ public interface BlockWorker extends DataWorker, SessionCleanable {
    * @param pinOnCreate whether to pin block on create
    */
   void commitBlock(long sessionId, long blockId, boolean pinOnCreate);
-
-  /**
-   * Commits a block in UFS.
-   *
-   * @param blockId the id of the block to commit
-   * @param length length of the block to commit
-   */
-  void commitBlockInUfs(long blockId, long length);
 
   /**
    * Creates a block in Alluxio managed space.
@@ -400,22 +394,4 @@ public interface BlockWorker extends DataWorker, SessionCleanable {
    */
   BlockReader readUfsBlock(long sessionId, long blockId, long offset)
       throws BlockDoesNotExistException, IOException;
-
-  /**
-   * Opens a {@link BlockWriter} for an existing temporary block. This method is only called from a
-   * data server.
-   *
-   * The temporary block must already exist with
-   * {@link #createBlockRemote(long, long, String, long)}.
-   *
-   * @param sessionId the id of the client
-   * @param blockId the id of the block to be opened for writing
-   * @return the block writer for the local block file
-   * @throws BlockDoesNotExistException if the block cannot be found
-   * @throws BlockAlreadyExistsException if a committed block with the same ID exists
-   * @throws InvalidWorkerStateException if the worker state is invalid
-   */
-  BlockWriter getTempBlockWriterRemote(long sessionId, long blockId)
-      throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
-      IOException;
 }

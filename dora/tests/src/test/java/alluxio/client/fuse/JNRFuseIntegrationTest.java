@@ -11,6 +11,7 @@
 
 package alluxio.client.fuse;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.Configuration;
@@ -19,12 +20,16 @@ import alluxio.fuse.AlluxioJnrFuseFileSystem;
 import alluxio.fuse.options.FuseOptions;
 
 import org.junit.Assume;
+import org.junit.Ignore;
 
 import java.nio.file.Paths;
 
 /**
  * Integration tests for JNR-FUSE based {@link AlluxioJnrFuseFileSystem}.
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "LuQQiu",
+    comment = "remove JNR")
 public class JNRFuseIntegrationTest extends AbstractFuseIntegrationTest {
   private AlluxioJnrFuseFileSystem mFuseFileSystem;
 

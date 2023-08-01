@@ -18,15 +18,13 @@
 .port_coordination/
 .project
 .settings/
+.java-version
 /client/
 /conf/alluxio-env.sh
 /conf/alluxio-env.sh.bootstrap.bk
 /conf/metrics.properties
 /conf/rocks-*.ini
 /data/
-/dev/scripts/*.tar.gz
-/dev/scripts/tarballs
-/dev/scripts/workdir
 /docs/_site/
 /docs/api/
 /docs/serve/
@@ -36,9 +34,7 @@
 /journal/
 /lib/*.jar
 /libexec/version.sh
-/logs/*.log*
-/logs/*.out*
-/logs/user/*
+/logs/
 /metastore
 /underFSStorage/
 /underfs/hdfs/src/main/java/alluxio/UfsConstants.java

@@ -1,13 +1,8 @@
 ---
 layout: global
 title: Documentation Conventions
-nickname: Documentation Conventions
-group: Contributor Resources
-priority: 2
 ---
 
-* Table of Contents
-{:toc}
 
 This documentation provides a writing style guide that portrays professionalism and efficiency in delivering technical content
 in Alluxio documentation.
@@ -68,7 +63,7 @@ There are many technical terms used throughout; it can potentially cause confusi
 * Code blocks should be annotated with the associated file or usage type, e.g.:
     * ```` ```java```` for Java source code
     * ```` ```properties```` for a Java property file
-    * ```` ```console```` for an interactive session in shell
+    * ```` ```shell```` for an interactive session in shell
     * ```` ```bash```` for a shell script
 * Alluxio prefixed terms, such as namespace, cache, or storage, should be preceded by "the"
 to differentiate from the commonly used term, but remain in lowercase if not a proper noun
@@ -93,16 +88,44 @@ this has been the norm [as of the 1950s](https://en.wikipedia.org/wiki/Sentence_
 
 ## Terminology table
 
-| Correct, preferred term | Incorrect or less preferred term(s) |
-|-------------------------|-----------------------------------------------------|
-| File system | Filesystem |
-| Leading master | Leader, lead master, primary master |
-| Standby master | Backup master, following master, follower master |
-| Containerized | Dockerized |
-| Superuser | Super-user, super user |
-| I/O | i/o, IO |
-| High availability mode | Fault tolerance mode (Use of "fault tolerance" is fine, but not when interchangeable with "high availability") |
-| Hostname | Host name |
+<table class="table table-striped">
+    <tr>
+        <th>Correct, preferred term</th>
+        <th>Incorrect or less preferred term</th>
+    </tr>
+    <tr>
+        <td markdown="span">File system</td>
+        <td markdown="span">Filesystem</td>
+    </tr>
+    <tr>
+        <td markdown="span">Leading master</td>
+        <td markdown="span">Leader, lead master, primary master</td>
+    </tr>
+    <tr>
+        <td markdown="span">Standby master</td>
+        <td markdown="span">Backup master, following master, follower master</td>
+    </tr>
+    <tr>
+        <td markdown="span">Containerized</td>
+        <td markdown="span">Dockerized</td>
+    </tr>
+    <tr>
+        <td markdown="span">Superuser</td>
+        <td markdown="span">Super-user, super user</td>
+    </tr>
+    <tr>
+        <td markdown="span">I/O</td>
+        <td markdown="span">i/o, IO</td>
+    </tr>
+    <tr>
+        <td markdown="span">High availability mode</td>
+        <td markdown="span">Fault tolerance mode (Use of "fault tolerance" is fine, but not when interchangeable with "high availability")</td>
+    </tr>
+    <tr>
+        <td markdown="span">Hostname</td>
+        <td markdown="span">Host name</td>
+    </tr>
+</table>
 
 ## Line breaks
 

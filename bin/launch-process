@@ -27,7 +27,7 @@ desired process in the foreground. It is recommended to use alluxio-start.sh
 unless you know what you are doing.
 "
 USAGE+="
-    <process name>    One of: master, secondary_master, job_master, worker,
+    <process name>    One of: master, job_master, worker,
                       job_worker, proxy"
 USAGE+="
 
@@ -60,7 +60,6 @@ contains() {
 # The variables that should be set after running this function:
 # - ALLUXIO_JAVA_OPTS
 # - ALLUXIO_MASTER_JAVA_OPTS
-# - ALLUXIO_SECONDARY_MASTER_JAVA_OPTS
 # - ALLUXIO JOB_MASTER_JAVA_OPTS
 # - ALLUXIO_WORKER_JAVA_OPTS
 # - ALLUXIO_JOB_WORKER_JAVA_OPTS
@@ -140,19 +139,6 @@ launch_master() {
                  "alluxio.master.AlluxioMaster"
 }
 
-# Launch a secondary master process
-launch_secondary_master() {
-  # use a default Xmx value for the master
-  local contain_xmx="$(contains "${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS}" "Xmx")"
-  local contain_max_percentage="$(contains "${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS}" "MaxRAMPercentage")"
-  if [[ "${contain_xmx}" -eq "0" ]] && [[ "${contain_max_percentage}" -eq "0" ]]; then
-    ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=" -Xmx8g "
-  fi
-  launch_process "${ALLUXIO_SECONDARY_MASTER_ATTACH_OPTS}" \
-                 "${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS}" \
-                 "alluxio.master.AlluxioSecondaryMaster"
-}
-
 # Launch a job master process
 launch_job_master() {
   launch_process "${ALLUXIO_JOB_MASTER_ATTACH_OPTS}" \
@@ -227,10 +213,6 @@ main() {
       logger_var_name="ALLUXIO_MASTER_LOGGER"
       logger_var_value="MASTER_LOGGER"
       ;;
-    secondary_master)
-      logger_var_name="ALLUXIO_SECONDARY_MASTER_LOGGER"
-      logger_var_value="SECONDARY_MASTER_LOGGER"
-      ;;
     job_master)
       logger_var_name="ALLUXIO_JOB_MASTER_LOGGER"
       logger_var_value="JOB_MASTER_LOGGER"
@@ -267,9 +249,6 @@ main() {
   case "${process}" in
     master)
       launch_master
-      ;;
-    secondary_master)
-      launch_secondary_master
       ;;
     job_master)
       launch_job_master

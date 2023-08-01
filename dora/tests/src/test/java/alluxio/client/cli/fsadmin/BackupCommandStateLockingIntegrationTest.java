@@ -16,6 +16,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -27,6 +28,7 @@ import alluxio.master.StateLockOptions;
 import alluxio.resource.LockResource;
 import alluxio.testutils.LocalAlluxioClusterResource;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.powermock.reflect.Whitebox;
 
@@ -42,6 +44,9 @@ import java.nio.file.Paths;
     PropertyKey.Name.MASTER_SHELL_BACKUP_STATE_LOCK_TRY_DURATION, "3s",
     PropertyKey.Name.MASTER_SHELL_BACKUP_STATE_LOCK_TIMEOUT, "3s",
     PropertyKey.Name.MASTER_SHELL_BACKUP_STATE_LOCK_GRACE_MODE, "TIMEOUT"})
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jiacheng",
+    comment = "backup no longer exists")
 public final class BackupCommandStateLockingIntegrationTest extends AbstractFsAdminShellTest {
   @Test
   public void timeoutWhenStateLockAcquired() throws Exception {

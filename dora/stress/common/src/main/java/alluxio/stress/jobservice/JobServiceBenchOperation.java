@@ -16,7 +16,6 @@ package alluxio.stress.jobservice;
  */
 public enum JobServiceBenchOperation {
   CREATE_FILES("CreateFiles"),
-  DISTRIBUTED_LOAD("DistributedLoad"),
   NO_OP("NoOp");
 
   private final String mName;

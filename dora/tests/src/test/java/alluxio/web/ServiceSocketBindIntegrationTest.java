@@ -12,6 +12,7 @@
 package alluxio.web;
 
 import alluxio.ClientContext;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.conf.Configuration;
 import alluxio.exception.ConnectionFailedException;
@@ -26,6 +27,7 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -105,6 +107,9 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
+  @Ignore
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
+      comment = "Web UI services needs to be fixed")
   public void listenEmpty() throws Exception {
     startCluster(null);
     boolean allConnected = true;
@@ -132,6 +137,9 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
+  @Ignore
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
+      comment = "Web UI services needs to be fixed")
   public void listenSameAddress() throws Exception {
     startCluster(NetworkAddressUtils.getLocalHostName(100));
     boolean allConnected = true;

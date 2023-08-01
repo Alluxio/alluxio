@@ -18,6 +18,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.file.cache.CacheManager;
 import alluxio.client.file.cache.LocalCacheFileSystem;
 import alluxio.client.file.options.FileSystemOptions;
+import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.client.file.ufs.UfsBaseFileSystem;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
@@ -78,10 +79,7 @@ import java.util.function.Consumer;
 import javax.security.auth.Subject;
 
 /**
- * Basic file system interface supporting metadata operations and data operations. Developers
- * should not implement this class but extend the default implementation provided by {@link
- * BaseFileSystem} instead. This ensures any new methods added to the interface will be provided
- * by the default implementation.
+ * Basic file system interface supporting metadata operations and data operations.
  */
 @PublicApi
 public interface FileSystem extends Closeable {
@@ -92,6 +90,14 @@ public interface FileSystem extends Closeable {
    * {@link Factory#create} methods will always guarantee returning a new FileSystem.
    */
   class Factory {
+
+    static {
+      // If the extra loaded class name is set, try to load it.
+      if (Configuration.global().isSet(PropertyKey.EXTRA_LOADED_FILESYSTEM_CLASSNAME)) {
+        Configuration.global().getClass(PropertyKey.EXTRA_LOADED_FILESYSTEM_CLASSNAME);
+      }
+    }
+
     private static final Logger LOG = LoggerFactory.getLogger(Factory.class);
     private static final AtomicBoolean CONF_LOGGED = new AtomicBoolean(false);
 
@@ -158,7 +164,10 @@ public interface FileSystem extends Closeable {
      * @return a new FileSystem instance
      */
     public static FileSystem create(FileSystemContext context) {
-      return create(context, FileSystemOptions.create(context.getClusterConf()));
+      return create(
+          context,
+          FileSystemOptions.Builder.fromConf(context.getClusterConf()).build()
+      );
     }
 
     /**
@@ -170,22 +179,28 @@ public interface FileSystem extends Closeable {
       AlluxioConfiguration conf = context.getClusterConf();
       // TODO(jiacheng): get rid of this check
       checkSortConf(conf);
-      FileSystem fs = options.getUfsFileSystemOptions().isPresent()
-          ? new UfsBaseFileSystem(context, options.getUfsFileSystemOptions().get())
-          : new BaseFileSystem(context);
+      Optional<UfsFileSystemOptions> ufsOptions = options.getUfsFileSystemOptions();
+      Preconditions.checkArgument(ufsOptions.isPresent(),
+          "Missing UfsFileSystemOptions in FileSystemOptions");
+      FileSystem fs = new UfsBaseFileSystem(context, options.getUfsFileSystemOptions().get());
+
       if (options.isDoraCacheEnabled()) {
+        LOG.debug("Dora cache enabled");
         fs = DoraCacheFileSystem.sDoraCacheFileSystemFactory.createAnInstance(fs, context);
       }
       if (options.isMetadataCacheEnabled()) {
+        LOG.debug("Client metadata caching enabled");
         fs = new MetadataCachingFileSystem(fs, context);
       }
       if (options.isDataCacheEnabled()
           && CommonUtils.PROCESS_TYPE.get() == CommonUtils.ProcessType.CLIENT) {
         try {
           CacheManager cacheManager = CacheManager.Factory.get(conf);
+          LOG.debug("Client local data caching enabled");
           return new LocalCacheFileSystem(cacheManager, fs, conf);
         } catch (IOException e) {
-          LOG.error("Fallback without client caching: ", e);
+          LOG.error("Client local data caching enabled but failed to initialize cache manager, "
+              + "continuing without data caching enabled", e);
         }
       }
       return fs;
@@ -641,7 +656,7 @@ public interface FileSystem extends Closeable {
    * @param path the file to read from
    * @return a {@link PositionReader} for the given path
    */
-  default PositionReader openPositionRead(AlluxioURI path) {
+  default PositionReader openPositionRead(AlluxioURI path) throws FileDoesNotExistException {
     return openPositionRead(path, OpenFilePOptions.getDefaultInstance());
   }
 
@@ -652,7 +667,8 @@ public interface FileSystem extends Closeable {
    * @param options options to associate with this operation
    * @return a {@link PositionReader} for the given path
    */
-  PositionReader openPositionRead(AlluxioURI path, OpenFilePOptions options);
+  PositionReader openPositionRead(AlluxioURI path, OpenFilePOptions options)
+      throws FileDoesNotExistException;
 
   /**
    * Opens a file for reading.

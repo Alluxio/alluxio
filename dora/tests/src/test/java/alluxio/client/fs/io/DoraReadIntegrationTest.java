@@ -63,10 +63,8 @@ public class DoraReadIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED, true)
           .setProperty(PropertyKey.DORA_CLIENT_UFS_ROOT, UFS_ROOT)
           .setProperty(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false)
-          .setProperty(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, false)
           .setProperty(PropertyKey.USER_STREAMING_READER_CHUNK_SIZE_BYTES, Constants.KB)
           .setProperty(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED, true)
           .build();

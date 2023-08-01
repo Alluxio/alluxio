@@ -19,7 +19,6 @@ import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.block.stream.BlockWorkerClientPool;
 import alluxio.client.file.FileSystemContextReinitializer.ReinitBlockerResource;
@@ -67,7 +66,6 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -187,8 +185,6 @@ public class FileSystemContext implements Closeable {
   private final RefreshPolicy mWorkerRefreshPolicy;
 
   private final List<InetSocketAddress> mMasterAddresses;
-
-  private final Map<Class, BlockLocationPolicy> mBlockLocationPolicyMap;
 
   /**
    * FileSystemContextFactory, it can be extended.
@@ -412,7 +408,6 @@ public class FileSystemContext implements Closeable {
         new TimeoutRefresh(conf.getMs(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL));
     LOG.debug("Created context with id: {}, with local block worker: {}",
         mId, mBlockWorker != null);
-    mBlockLocationPolicyMap = new ConcurrentHashMap();
   }
 
   /**
@@ -423,10 +418,19 @@ public class FileSystemContext implements Closeable {
   protected synchronized void init(ClientContext clientContext,
       MasterInquireClient masterInquireClient) {
     initContext(clientContext, masterInquireClient);
-    mReinitializer = new FileSystemContextReinitializer(this);
+    reCreateReinitialize(null);
   }
 
-  private synchronized void initContext(ClientContext ctx,
+  protected void reCreateReinitialize(
+      @Nullable FileSystemContextReinitializer fileSystemContextReinitializer) {
+    if (fileSystemContextReinitializer == null) {
+      mReinitializer = new FileSystemContextReinitializer(this);
+    } else {
+      mReinitializer = fileSystemContextReinitializer;
+    }
+  }
+
+  protected synchronized void initContext(ClientContext ctx,
       MasterInquireClient masterInquireClient) {
     mClosed.set(false);
     mMasterClientContext = MasterClientContext.newBuilder(ctx)
@@ -911,32 +915,6 @@ public class FileSystemContext implements Closeable {
     }
 
     return localWorkerNetAddresses.isEmpty() ? workerNetAddresses : localWorkerNetAddresses;
-  }
-
-  /**
-   * Gets the readBlockLocationPolicy.
-   *
-   * @param alluxioConf Alluxio configuration
-   *
-   * @return the readBlockLocationPolicy
-   */
-  public BlockLocationPolicy getReadBlockLocationPolicy(AlluxioConfiguration alluxioConf) {
-    return mBlockLocationPolicyMap.computeIfAbsent(
-        alluxioConf.getClass(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY),
-        pc -> BlockLocationPolicy.Factory.create(pc, alluxioConf));
-  }
-
-  /**
-   * Gets the writeBlockLocationPolicy.
-   *
-   * @param alluxioConf Alluxio configuration
-   *
-   * @return the writeBlockLocationPolicy
-   */
-  public BlockLocationPolicy getWriteBlockLocationPolicy(AlluxioConfiguration alluxioConf) {
-    return mBlockLocationPolicyMap.computeIfAbsent(
-        alluxioConf.getClass(PropertyKey.USER_BLOCK_WRITE_LOCATION_POLICY),
-        pc -> BlockLocationPolicy.Factory.create(pc, alluxioConf));
   }
 
   /**
