@@ -71,7 +71,7 @@ func InitAlluxioEnv(rootPath string, isDeployed bool) error {
 
 	// set default values
 	for k, v := range map[string]string{
-		confAlluxioHome.EnvVar:        rootPath,
+		ConfAlluxioHome.EnvVar:        rootPath,
 		ConfAlluxioConfDir.EnvVar:     filepath.Join(rootPath, "conf"),
 		ConfAlluxioLogsDir.EnvVar:     filepath.Join(rootPath, "logs"),
 		confAlluxioUserLogsDir.EnvVar: filepath.Join(rootPath, "logs", "user"),
@@ -119,7 +119,7 @@ func InitAlluxioEnv(rootPath string, isDeployed bool) error {
 		envVar.GetString(ConfAlluxioConfDir.EnvVar) + "/",
 		envVar.GetString(confAlluxioClasspath.EnvVar),
 		envVar.GetString(envAlluxioAssemblyClientJar),
-		filepath.Join(envVar.GetString(confAlluxioHome.EnvVar), "lib", fmt.Sprintf("alluxio-integration-tools-validation-%v.jar", ver)),
+		filepath.Join(envVar.GetString(ConfAlluxioHome.EnvVar), "lib", fmt.Sprintf("alluxio-integration-tools-validation-%v.jar", ver)),
 	}, ":"))
 	envVar.Set(EnvAlluxioServerClasspath, strings.Join([]string{
 		envVar.GetString(ConfAlluxioConfDir.EnvVar) + "/",
@@ -151,7 +151,7 @@ func InitAlluxioEnv(rootPath string, isDeployed bool) error {
 	}
 
 	for _, c := range []*AlluxioConfigEnvVar{
-		confAlluxioHome,
+		ConfAlluxioHome,
 		ConfAlluxioConfDir,
 		ConfAlluxioLogsDir,
 		confAlluxioUserLogsDir,

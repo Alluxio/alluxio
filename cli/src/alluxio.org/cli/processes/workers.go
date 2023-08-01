@@ -149,11 +149,15 @@ func (p *WorkersProcess) Start(cmd *env.StartProcessCommand) error {
 		session.Stderr = os.Stderr
 
 		// 5. run session
-		command := "${ALLUXIO_HOME}/bin/cli.sh process start worker"
+		command := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "alluxio-start.sh") + " worker"
+		failed := false
 		err = session.Run(command)
 		if err != nil {
-			log.Logger.Fatalf("Run command %s failed at %s", command, dialAddr)
-			return err
+			log.Logger.Errorf("Run command %s failed at %s", command, dialAddr)
+			failed = true
+		}
+		if failed {
+			log.Logger.Fatalf("Run command %s failed. See previous error messages.", command)
 		}
 		return nil
 	}
