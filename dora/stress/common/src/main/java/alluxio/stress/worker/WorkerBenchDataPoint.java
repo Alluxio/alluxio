@@ -14,6 +14,7 @@ package alluxio.stress.worker;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.google.common.base.MoreObjects;
 
 /**
  * One data point captures the information we collect from one I/O operation to a worker.
@@ -85,5 +86,14 @@ public class WorkerBenchDataPoint {
 
     public void setIOBytes(long ioBytes) {
         mIOBytes = ioBytes;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+            .add("threadID", mThreadID)
+            .add("ioBytes", mIOBytes)
+            .add("duration", mDuration)
+            .toString();
     }
 }

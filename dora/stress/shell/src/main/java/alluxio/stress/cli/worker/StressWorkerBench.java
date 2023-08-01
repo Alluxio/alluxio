@@ -33,6 +33,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 
+import alluxio.util.logging.SamplingLogger;
 import alluxio.wire.WorkerNetAddress;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -62,6 +63,9 @@ import java.util.concurrent.TimeUnit;
 public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult,
     WorkerBenchParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(StressWorkerBench.class);
+  private static final Logger SAMPLING_LOG =
+          new SamplingLogger(LoggerFactory.getLogger(StressWorkerBench.class),
+                  10L * Constants.SECOND_MS);
   private static final long DUMMY_BLOCK_SIZE = 64 * Constants.MB;
 
   private FileSystem[] mCachedFs;
@@ -208,19 +212,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     if (mParameters.mIsRandom) {
       rand = new Random(mParameters.mRandomSeed);
     }
-
-    // TODO(jiacheng): by adding LocalWorkerPolicy, we no longer need these
-    // This distribution keeps track of how many connections each worker will serve
-//    int[] distribution = new int[clusterSize];
-//    boolean isLocal = false;
-//    if (mParameters.mMode.equals("LOCAL")){
-//      LOG.info("Running test in LOCAL mode, meaning all clients should read local worker");
-//      isLocal = true;
-//    } else if (mParameters.mMode.equals("REMOTE")) {
-//      LOG.info("Running test in REMOTE mode, meaning all clients must not read local workers");
-//    } else {
-//      throw new IllegalArgumentException("Unrecognized mode " + mParameters.mMode);
-//    }
 
     for (int i = 0; i < clusterSize; i++) {
       BlockWorkerInfo localWorker = workers.get(i);
@@ -392,11 +383,16 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     long warmupMs = FormatUtils.parseTimeSize(mParameters.mWarmup);
     long startMs = mBaseParameters.mStartMs;
     if (mBaseParameters.mStartMs == BaseParameters.UNDEFINED_START_MS) {
+      LOG.info("Start time is unspecified, leaving 5s for preparation");
       startMs = CommonUtils.getCurrentMs() + 5000;
-    } else {
-      startMs = CommonUtils.getCurrentMs() + startMs;
     }
     long endMs = startMs + warmupMs + durationMs;
+    String datePattern = alluxio.conf.Configuration.global()
+        .getString(PropertyKey.USER_DATE_FORMAT_PATTERN);
+    SAMPLING_LOG.info("StressWorkerBench has start={}, warmup={}ms, end={}",
+        CommonUtils.convertMsToDate(startMs, datePattern),
+        warmupMs,
+        CommonUtils.convertMsToDate(endMs, datePattern));
     BenchContext context = new BenchContext(startMs, endMs);
 
     List<Callable<Void>> callables = new ArrayList<>(mParameters.mThreads);
@@ -528,8 +524,13 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
             "Thread missed barrier. Increase the start delay. start: %d current: %d",
             mContext.getStartMs(), CommonUtils.getCurrentMs()));
       }
+      String dateFormat = alluxio.conf.Configuration.global().getString(PropertyKey.USER_DATE_FORMAT_PATTERN);
+      SAMPLING_LOG.info("Scheduled to start at {}, wait {}ms for the scheduled start",
+          CommonUtils.convertMsToDate(mContext.getStartMs(), dateFormat),
+          waitMs);
       CommonUtils.sleepMs(waitMs);
-
+      SAMPLING_LOG.info("Test started and recording will be started after the warm up at {}",
+          CommonUtils.convertMsToDate(recordMs, dateFormat));
       while (!Thread.currentThread().isInterrupted()
           && CommonUtils.getCurrentMs() < mContext.getEndMs()) {
         // Keep reading the same file
@@ -544,6 +545,8 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
           } else {
             LOG.warn("Thread for file {} read 0 bytes from I/O", mFilePaths[mTargetFileIndex]);
           }
+        } else {
+          SAMPLING_LOG.info("Ignored data point during warmup: {}", dataPoint);
         }
       }
     }
