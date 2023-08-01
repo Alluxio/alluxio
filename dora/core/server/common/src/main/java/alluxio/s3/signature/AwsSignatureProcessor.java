@@ -95,13 +95,11 @@ public class AwsSignatureProcessor {
       queryParameters = NettyRestUtils.fromMultiValueToSingleValueMap(
           mContext.getUriInfo().getQueryParameters(), false);
     } else if (mHttpRequest != null) {
-      Map<String, String> headers = NettyRestUtils.convertToSingleValueMap(
-          mHttpRequest.headers(), true);
+      Map<String, String> headers = NettyRestUtils.convertToSingleValueMap(mHttpRequest.headers());
       authHeader = headers.get(AUTHORIZATION);
       dateHeader = headers.get(S3_SIGN_DATE);
       QueryStringDecoder queryDecoder = new QueryStringDecoder(mHttpRequest.uri());
-      queryParameters = NettyRestUtils.fromListValueMapToSingleValueMap(
-          queryDecoder.parameters(), false);
+      queryParameters = NettyRestUtils.fromListValueMapToSingleValueMap(queryDecoder.parameters());
     } else {
       authHeader = mServletRequest.getHeader(AUTHORIZATION);
       dateHeader = mServletRequest.getHeader(S3_SIGN_DATE);

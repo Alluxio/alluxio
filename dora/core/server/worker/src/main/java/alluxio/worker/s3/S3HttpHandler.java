@@ -70,13 +70,23 @@ public class S3HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
   @Override
   protected void channelRead0(ChannelHandlerContext context, FullHttpRequest request)
       throws Exception {
+    S3NettyHandler s3Handler;
+    try {
+      s3Handler =
+          S3NettyHandler.createHandler(context, request, mFileSystem, mDoraWorker,
+              mAsyncAuditLogWriter);
+    } catch (Exception ex) {
+      LOG.error("Exception during create s3handler: ", ex);
+      HttpResponse errorResponse = S3ErrorResponse.createNettyErrorResponse(ex, request.uri());
+      ChannelFuture f = context.writeAndFlush(errorResponse);
+      f.addListener(ChannelFutureListener.CLOSE);
+      return;
+    }
+
     try {
       // Handle request async
       if (Configuration.getBoolean(PropertyKey.WORKER_S3_ASYNC_PROCESS_ENABLED)) {
         FullHttpRequest asyncRequest = request.copy();
-        S3NettyHandler s3Handler =
-            S3NettyHandler.createHandler(context, asyncRequest, mFileSystem, mDoraWorker,
-                mAsyncAuditLogWriter);
         S3NettyBaseTask.OpTag opTag = s3Handler.getS3Task().mOPType.getOpTag();
         ExecutorService es = (ExecutorService) (opTag == S3NettyBaseTask.OpTag.LIGHT
             ? mLightPool : mHeavyPool);
@@ -93,16 +103,12 @@ public class S3HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> 
           }
         });
       } else {
-        S3NettyHandler s3Handler =
-            S3NettyHandler.createHandler(context, request, mFileSystem, mDoraWorker,
-                mAsyncAuditLogWriter);
         HttpResponse response = s3Handler.getS3Task().continueTask();
         s3Handler.processHttpResponse(response);
       }
     } catch (Exception ex) {
       HttpResponse errorResponse = S3ErrorResponse.createNettyErrorResponse(ex, request.uri());
-      ChannelFuture f = context.writeAndFlush(errorResponse);
-      f.addListener(ChannelFutureListener.CLOSE);
+      s3Handler.processHttpResponse(errorResponse);
     }
   }
 }

@@ -90,11 +90,6 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
           }
         case "PUT":
           return new CreateBucketTask(handler, OpType.CreateBucket);
-//        case "POST":
-//          if (handler.getQueryParameter("delete") != null) {
-//            return new DeleteObjectsTask(handler, OpType.DeleteObjects);
-//          }
-//          break;
         case "HEAD":
           if (!StringUtils.isEmpty(handler.getBucket())) {
             return new HeadBucketTask(handler, OpType.HeadBucket);

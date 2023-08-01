@@ -184,8 +184,7 @@ public final class S3RestUtils {
    * @return the string representation of the epoch in the S3 date format
    */
   public static String toS3Date(long epoch) {
-    final DateFormat s3DateFormat = new SimpleDateFormat(S3Constants.S3_DATE_FORMAT_REGEXP);
-    return s3DateFormat.format(new Date(epoch));
+    return S3Constants.S3_DATE_FORMAT.format(new Date(epoch));
   }
 
   /**

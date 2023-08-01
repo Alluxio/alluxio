@@ -20,6 +20,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.dora.DoraWorker;
 
+import javax.annotation.Nullable;
 import com.google.common.base.Preconditions;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -38,8 +39,12 @@ import java.util.concurrent.TimeUnit;
 public class S3HttpPipelineHandler extends ChannelInitializer<SocketChannel> {
   private final FileSystem mFileSystem;
   private final DoraWorker mDoraWorker;
+
+  @Nullable
   private final AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
+  @Nullable
   private final ThreadPoolExecutor mLightPool;
+  @Nullable
   private final ThreadPoolExecutor mHeavyPool;
 
   /**
@@ -81,7 +86,7 @@ public class S3HttpPipelineHandler extends ChannelInitializer<SocketChannel> {
         new S3HttpHandler(mFileSystem, mDoraWorker, mAsyncAuditLogWriter, mLightPool, mHeavyPool));
   }
 
-  private ThreadPoolExecutor createLightThreadPool() {
+  private static ThreadPoolExecutor createLightThreadPool() {
     int lightCorePoolSize = Configuration.getInt(
         PropertyKey.WORKER_S3_ASYNC_LIGHT_POOL_CORE_THREAD_NUMBER);
     Preconditions.checkArgument(lightCorePoolSize > 0, "%s must be a positive integer.",
@@ -101,7 +106,7 @@ public class S3HttpPipelineHandler extends ChannelInitializer<SocketChannel> {
         ThreadFactoryUtils.build("S3-LIGHTPOOL-%d", false));
   }
 
-  private ThreadPoolExecutor createHeavyThreadPool() {
+  private static ThreadPoolExecutor createHeavyThreadPool() {
     int heavyCorePoolSize = Configuration.getInt(
         PropertyKey.WORKER_S3_ASYNC_HEAVY_POOL_CORE_THREAD_NUMBER);
     Preconditions.checkArgument(heavyCorePoolSize > 0, "%s must be a positive integer.",

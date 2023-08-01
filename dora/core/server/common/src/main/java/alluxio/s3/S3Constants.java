@@ -13,6 +13,8 @@ package alluxio.s3;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import javax.annotation.concurrent.ThreadSafe;
@@ -82,6 +84,8 @@ public final class S3Constants {
           = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'").withZone(ZoneOffset.UTC);
 
   public static final String S3_DATE_FORMAT_REGEXP = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+  public static final DateFormat S3_DATE_FORMAT =
+      new SimpleDateFormat(S3Constants.S3_DATE_FORMAT_REGEXP);
   public static final String S3_STANDARD_STORAGE_CLASS = "STANDARD";
 
   // TODO(czhu): prefix multipart upload part file names with this

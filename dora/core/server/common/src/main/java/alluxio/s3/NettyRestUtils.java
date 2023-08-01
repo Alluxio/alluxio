@@ -70,6 +70,8 @@ public class NettyRestUtils {
   public static final HttpVersion HTTP_VERSION = HttpVersion.HTTP_1_1;
   private static final boolean ENABLED_AUTHENTICATION =
       Configuration.getBoolean(PropertyKey.S3_REST_AUTHENTICATION_ENABLED);
+  public static final Authenticator AUTHENTICATOR =
+      Authenticator.Factory.create(Configuration.global());
 
   /**
    * Calls the given {@link NettyRestUtils.RestCallable} and handles any exceptions thrown.
@@ -106,7 +108,7 @@ public class NettyRestUtils {
           Unpooled.copiedBuffer(mapper.writeValueAsString(result), CharsetUtil.UTF_8);
       DefaultFullHttpResponse resp = new DefaultFullHttpResponse(version, OK, contentBuffer);
       resp.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_XML);
-      resp.headers().set(HttpHeaderNames.CONTENT_LENGTH, resp.content().readableBytes());
+      resp.headers().set(HttpHeaderNames.CONTENT_LENGTH, contentBuffer.readableBytes());
       return resp;
     } catch (Exception e) {
       String errOutputMsg = e.getMessage();
@@ -261,7 +263,6 @@ public class NettyRestUtils {
   /**
    * Get username from header info from FullHttpRequest.
    *
-//   * @param authorization
    * @param request FullHttpRequest
    * @return user name
    * @throws S3Exception
@@ -283,9 +284,8 @@ public class NettyRestUtils {
   private static String getUserFromSignature(FullHttpRequest request)
       throws S3Exception {
     AwsSignatureProcessor signatureProcessor = new AwsSignatureProcessor(request);
-    Authenticator authenticator = Authenticator.Factory.create(Configuration.global());
     AwsAuthInfo authInfo = signatureProcessor.getAuthInfo();
-    if (authenticator.isAuthenticated(authInfo)) {
+    if (AUTHENTICATOR.isAuthenticated(authInfo)) {
       return authInfo.getAccessID();
     }
     throw new S3Exception(authInfo.toString(), S3ErrorCode.INVALID_IDENTIFIER);
@@ -323,7 +323,8 @@ public class NettyRestUtils {
     // after the "=" and before the first "/"
     String[] fields = authorization.split(" ");
     if (fields.length < 2) {
-      LOG.error("The authorization header {} content is invalid.", authorization);
+      LOG.error("The authorization header {} content is invalid: not contain the credential key",
+          authorization);
       throw new S3Exception("The authorization header that you provided is not valid.",
           S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
     }
@@ -332,14 +333,16 @@ public class NettyRestUtils {
     // only support version 4 signature
     if (creds.length < 2 || !StringUtils.equals("Credential", creds[0])
         || !creds[1].contains("/")) {
-      LOG.error("The authorization header {} content is invalid.", authorization);
+      LOG.error(
+          "The authorization header {} content is invalid: only version 4 signature is supported",
+          authorization);
       throw new S3Exception("The authorization header that you provided is not valid.",
           S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
     }
 
     final String user = creds[1].substring(0, creds[1].indexOf("/")).trim();
     if (user.isEmpty()) {
-      LOG.error("The authorization header {} content is invalid.", authorization);
+      LOG.error("The authorization header {} content is invalid: empty user", authorization);
       throw new S3Exception("The authorization header that you provided is not valid.",
           S3ErrorCode.AUTHORIZATION_HEADER_MALFORMED);
     }
@@ -373,18 +376,10 @@ public class NettyRestUtils {
    * Convert {@link HttpHeaders} to a single value map.
    *
    * @param httpHeaders HttpHeaders
-   * @param lowerCase whether to use lower case
    * @return a single value map
    */
-  public static Map<String, String> convertToSingleValueMap(HttpHeaders httpHeaders,
-                                                            boolean lowerCase) {
-    Map<String, String> headersMap = lowerCase
-        ? new TreeMap<>(new Comparator<String>() {
-          @Override
-          public int compare(String o1, String o2) {
-            return o1.compareToIgnoreCase(o2);
-          }
-        }) : new HashMap<>();
+  public static Map<String, String> convertToSingleValueMap(HttpHeaders httpHeaders) {
+    Map<String, String> headersMap = new HashMap<>();
     for (Map.Entry<String, String> entry : httpHeaders) {
       String key = entry.getKey();
       String value = entry.getValue();
@@ -397,18 +392,11 @@ public class NettyRestUtils {
    * Convert MultivaluedMap to a single value map.
    *
    * @param queryParameters MultivaluedMap
-   * @param lowerCase whether to use lower case
    * @return a single value map
    */
   public static Map<String, String> fromListValueMapToSingleValueMap(
-      Map<String, List<String>> queryParameters, boolean lowerCase) {
-    Map<String, String> result = lowerCase
-        ? new TreeMap<>(new Comparator<String>() {
-          @Override
-          public int compare(String o1, String o2) {
-            return o1.compareToIgnoreCase(o2);
-          }
-        }) : new HashMap<>();
+      Map<String, List<String>> queryParameters) {
+    Map<String, String> result = new HashMap<>();
     for (Map.Entry<String, List<String>> entry : queryParameters.entrySet()) {
       result.put(entry.getKey(), entry.getValue().get(0));
     }
@@ -425,11 +413,9 @@ public class NettyRestUtils {
     HttpHeaders headers = fullHttpRequest.headers();
     String hostHeader = headers.get("Host");
 
-    String scheme = "http"; // 默认使用http
-    if (hostHeader != null) {
-      if (hostHeader.startsWith("https://")) {
+    String scheme = "http"; // default scheme is http
+    if (hostHeader != null && hostHeader.startsWith("https://")) {
         scheme = "https";
-      }
     }
     return scheme;
   }

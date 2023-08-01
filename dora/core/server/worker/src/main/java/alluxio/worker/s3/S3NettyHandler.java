@@ -124,14 +124,15 @@ public class S3NettyHandler {
           TimeUnit.MILLISECONDS)
       .build();
   private static final int PACKET_LENGTH = 8 * 1024;
-  String[] mUnsupportedSubResources = {"acl", "policy", "versioning", "cors",
+  private static final String[] UNSUPPORTED_SUB_RESOURCES = {"acl", "policy", "versioning", "cors",
       "encryption", "intelligent-tiering", "inventory", "lifecycle",
       "metrics", "ownershipControls", "replication", "website", "accelerate",
       "location", "logging", "metrics", "notification", "ownershipControls",
       "policyStatus", "requestPayment", "attributes", "legal-hold", "object-lock",
       "retention", "torrent", "publicAccessBlock", "restore", "select",
       "tagging", "uploads", "uploadId"};
-  Set<String> mUnsupportedSubResourcesSet = new HashSet<>(Arrays.asList(mUnsupportedSubResources));
+  private static final Set<String> UNSUPPORTED_SUB_RESOURCES_SET =
+      new HashSet<>(Arrays.asList(UNSUPPORTED_SUB_RESOURCES));
   Map<String, String> mAmzHeaderMap = new HashMap<>();
 
   /**
@@ -179,37 +180,29 @@ public class S3NettyHandler {
     Stopwatch stopwatch = Stopwatch.createStarted();
     Matcher bucketMatcher = BUCKET_PATH_PATTERN.matcher(path);
     Matcher objectMatcher = OBJECT_PATH_PATTERN.matcher(path);
-    String pathStr = path;
+    String pathStr = java.net.URI.create(path.substring(1)).getPath();
     String bucket = null;
     String object = null;
-    S3NettyHandler handler = null;
-    try {
-      if (bucketMatcher.matches()) {
-        pathStr = java.net.URI.create(path.substring(1)).getPath();
-        bucket = URLDecoder.decode(pathStr, "UTF-8");
-      } else if (objectMatcher.matches()) {
-        pathStr = java.net.URI.create(path.substring(1)).getPath();
-        bucket = URLDecoder.decode(
-            pathStr.substring(0, pathStr.indexOf(AlluxioURI.SEPARATOR)), "UTF-8");
-        object = URLDecoder.decode(
-            pathStr.substring(pathStr.indexOf(AlluxioURI.SEPARATOR) + 1), "UTF-8");
-      }
-      handler = new S3NettyHandler(bucket, object, request, context, fileSystem, doraWorker,
-          asyncAuditLogWriter);
-      handler.setStopwatch(stopwatch);
-      handler.init();
-      S3NettyBaseTask task = null;
-      if (object != null && !object.isEmpty()) {
-        task = S3NettyObjectTask.Factory.create(handler);
-      } else {
-        task = S3NettyBucketTask.Factory.create(handler);
-      }
-      handler.setS3Task(task);
-      return handler;
-    } catch (Exception ex) {
-      LOG.error("Exception during create s3handler:{}", ThreadUtils.formatStackTrace(ex));
-      throw ex;
+    if (bucketMatcher.matches()) {
+      bucket = URLDecoder.decode(pathStr, "UTF-8");
+    } else if (objectMatcher.matches()) {
+      bucket = URLDecoder.decode(
+          pathStr.substring(0, pathStr.indexOf(AlluxioURI.SEPARATOR)), "UTF-8");
+      object = URLDecoder.decode(
+          pathStr.substring(pathStr.indexOf(AlluxioURI.SEPARATOR) + 1), "UTF-8");
     }
+    S3NettyHandler handler = new S3NettyHandler(bucket, object, request, context, fileSystem, doraWorker,
+        asyncAuditLogWriter);
+    handler.setStopwatch(stopwatch);
+    handler.init();
+    S3NettyBaseTask task = null;
+    if (object != null && !object.isEmpty()) {
+      task = S3NettyObjectTask.Factory.create(handler);
+    } else {
+      task = S3NettyBucketTask.Factory.create(handler);
+    }
+    handler.setS3Task(task);
+    return handler;
   }
 
   /**
@@ -249,7 +242,7 @@ public class S3NettyHandler {
     QueryStringDecoder decoder = new QueryStringDecoder(uri);
     Map<String, List<String>> parameters = decoder.parameters();
     for (String parameter : parameters.keySet()) {
-      if (mUnsupportedSubResourcesSet.contains(parameter)) {
+      if (UNSUPPORTED_SUB_RESOURCES_SET.contains(parameter)) {
         throw new S3Exception(S3Constants.EMPTY, S3ErrorCode.NOT_IMPLEMENTED);
       }
     }
@@ -664,7 +657,7 @@ public class S3NettyHandler {
       contentLenStr = request.headers().get("Content-Length");
     }
     String accessLog = String.format("[ACCESSLOG] %s Request:%s - Status:%d "
-            + "- ContentLength:%s - Elapsed(ms):%d",
+            + "- Request ContentLength:%s - Elapsed(ms):%d",
         (opType == null ? "" : opType), request.uri(), response.status().code(),
         contentLenStr, stopWatch.elapsed(TimeUnit.MILLISECONDS));
     if (LOG.isDebugEnabled()) {
@@ -698,7 +691,7 @@ public class S3NettyHandler {
         future.channel().close();
       } else {
         Throwable cause = future.cause();
-        LOG.warn("write to channel failed:", cause);
+        LOG.warn("write to channel failed: {}.", cause.toString());
       }
     }
   }

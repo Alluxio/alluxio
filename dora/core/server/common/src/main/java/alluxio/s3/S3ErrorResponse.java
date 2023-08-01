@@ -25,6 +25,7 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.util.AsciiString;
 import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -202,11 +203,8 @@ public class S3ErrorResponse {
     } else {
       ByteBuf contentBuffer =
           Unpooled.copiedBuffer(e.getMessage(), CharsetUtil.UTF_8);
-      FullHttpResponse resp = new DefaultFullHttpResponse(NettyRestUtils.HTTP_VERSION,
-          HttpResponseStatus.INTERNAL_SERVER_ERROR, contentBuffer);
-      resp.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain");
-      resp.headers().set(HttpHeaderNames.CONTENT_LENGTH, resp.content().readableBytes());
-      return resp;
+      return generateS3ErrorResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR, contentBuffer,
+          HttpHeaderValues.TEXT_PLAIN);
     }
   }
 
@@ -293,21 +291,33 @@ public class S3ErrorResponse {
     try {
       ByteBuf contentBuffer =
           Unpooled.copiedBuffer(mapper.writeValueAsString(errorResponse), CharsetUtil.UTF_8);
-      FullHttpResponse response = new DefaultFullHttpResponse(NettyRestUtils.HTTP_VERSION,
-          HttpResponseStatus.valueOf(s3ErrorCode.getStatus().getStatusCode()), contentBuffer);
-      response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_XML);
-      response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
-      return response;
+      return generateS3ErrorResponse(
+          HttpResponseStatus.valueOf(s3ErrorCode.getStatus().getStatusCode()), contentBuffer,
+          HttpHeaderValues.APPLICATION_XML);
     } catch (JsonProcessingException e2) {
       ByteBuf contentBuffer =
           Unpooled.copiedBuffer("Failed to encode XML: " + e2.getMessage(), CharsetUtil.UTF_8);
-      FullHttpResponse response = new DefaultFullHttpResponse(NettyRestUtils.HTTP_VERSION,
-          HttpResponseStatus.INTERNAL_SERVER_ERROR, contentBuffer);
-      response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain");
-      response.headers().set(HttpHeaderNames.CONTENT_LENGTH, contentBuffer.readableBytes());
-      return response;
+      return generateS3ErrorResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR, contentBuffer,
+          HttpHeaderValues.TEXT_PLAIN);
     } finally {
       LOG.warn("mapper convert exception {} to {}.", message, s3ErrorCode.getStatus().toString());
     }
+  }
+
+  /**
+   * Generates standard S3 error http response.
+   * @param responseStatus http status of the http response
+   * @param content content of the http response
+   * @param contentType content type of the http response
+   * @return FullHttpResponse
+   */
+  public static FullHttpResponse generateS3ErrorResponse(HttpResponseStatus responseStatus,
+                                                               ByteBuf content,
+                                                          AsciiString contentType) {
+    FullHttpResponse response = new DefaultFullHttpResponse(NettyRestUtils.HTTP_VERSION,
+        responseStatus, content);
+    response.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);
+    response.headers().set(HttpHeaderNames.CONTENT_LENGTH, content.readableBytes());
+    return response;
   }
 }

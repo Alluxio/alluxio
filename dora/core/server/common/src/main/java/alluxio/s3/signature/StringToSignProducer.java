@@ -127,8 +127,8 @@ public final class StringToSignProducer {
         NettyRestUtils.getScheme(httpRequest),
         httpRequest.method().name(),
         httpRequest.uri(),
-        NettyRestUtils.convertToSingleValueMap(httpRequest.headers(), true),
-        NettyRestUtils.fromListValueMapToSingleValueMap(queryDecoder.parameters(), false));
+        NettyRestUtils.convertToSingleValueMap(httpRequest.headers()),
+        NettyRestUtils.fromListValueMapToSingleValueMap(queryDecoder.parameters()));
   }
 
   /**

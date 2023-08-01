@@ -44,6 +44,7 @@ import alluxio.s3.S3ErrorCode;
 import alluxio.s3.S3Exception;
 import alluxio.s3.S3RangeSpec;
 import alluxio.s3.TaggingData;
+import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockLocationInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -145,7 +146,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
         final String user = mHandler.getUser();
         final FileSystem userFs = mHandler.createFileSystemForUser(user);
         String bucketPath = AlluxioURI.SEPARATOR + mHandler.getBucket();
-        String objectPath = bucketPath + AlluxioURI.SEPARATOR + mHandler.getObject();
+        String objectPath = PathUtils.concatPath(bucketPath, mHandler.getObject());
         AlluxioURI objectUri = new AlluxioURI(objectPath);
 
         try (S3AuditContext auditContext = mHandler.createAuditContext(
@@ -204,7 +205,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
         final String user = mHandler.getUser();
         final FileSystem userFs = mHandler.createFileSystemForUser(user);
         String bucketPath = AlluxioURI.SEPARATOR + mHandler.getBucket();
-        String objectPath = bucketPath + AlluxioURI.SEPARATOR + mHandler.getObject();
+        String objectPath = PathUtils.concatPath(bucketPath, mHandler.getObject());
         AlluxioURI objectUri = new AlluxioURI(objectPath);
 
         try (S3AuditContext auditContext = mHandler.createAuditContext(
@@ -335,7 +336,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
         Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
         Preconditions.checkNotNull(object, "required 'object' parameter is missing");
         String bucketPath = NettyRestUtils.parsePath(AlluxioURI.SEPARATOR + bucket);
-        String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
+        String objectPath = PathUtils.concatPath(bucketPath, object);
 
         final String copySourceParam = mHandler.getHeader(S3Constants.S3_COPY_SOURCE_HEADER);
         String copySource = !copySourceParam.startsWith(AlluxioURI.SEPARATOR)
@@ -624,7 +625,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
 
         try (S3AuditContext auditContext =
                  mHandler.createAuditContext(mOPType.name(), user, bucket, object)) {
-          String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
+          String objectPath = PathUtils.concatPath(bucketPath, object);
 
           if (objectPath.endsWith(AlluxioURI.SEPARATOR)) {
             return createDirectory(objectPath, userFs, auditContext);
@@ -678,7 +679,7 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
         final FileSystem userFs = mHandler.createFileSystemForUser(user);
         String bucketPath = NettyRestUtils.parsePath(AlluxioURI.SEPARATOR + mHandler.getBucket());
         // Delete the object.
-        String objectPath = bucketPath + AlluxioURI.SEPARATOR + mHandler.getObject();
+        String objectPath = PathUtils.concatPath(bucketPath, mHandler.getObject());
         DeletePOptions options = DeletePOptions.newBuilder().setAlluxioOnly(Configuration
                 .get(PropertyKey.PROXY_S3_DELETE_TYPE).equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY))
             .build();
