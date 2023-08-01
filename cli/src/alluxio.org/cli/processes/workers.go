@@ -74,12 +74,13 @@ func (p *WorkersProcess) Start(cmd *env.StartProcessCommand) error {
 
 	workersReader := bufio.NewReader(workers)
 	var workersList []string
-	for {
+	lastLine := false
+	for !lastLine {
 		// read lines of the workers file
 		line, err := workersReader.ReadString('\n')
 		if err != nil {
 			if err == io.EOF {
-				break
+				lastLine = true
 			} else {
 				log.Logger.Fatalf("Error parsing worker file at this line: %s", line)
 			}
@@ -113,6 +114,8 @@ func (p *WorkersProcess) Start(cmd *env.StartProcessCommand) error {
 
 	// 3. for each worker, create a client
 	// TODO: now start worker one by one, need to do them in parallel
+	failed := false
+	command := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "alluxio-start.sh") + " worker"
 	for _, worker := range workersList {
 		clientConfig := &ssh.ClientConfig{
 			// TODO: how to get user name? Like ${USER} in alluxio-common.sh
@@ -127,14 +130,21 @@ func (p *WorkersProcess) Start(cmd *env.StartProcessCommand) error {
 		// TODO: get ssh port if needed (some machines might have changed default port)
 		dialAddr := fmt.Sprintf("%s:%d", worker, 22)
 		// TODO: error to resolve: handshake error, authentication failed
-		sshClient, err := ssh.Dial("tcp", dialAddr, clientConfig)
+		conn, err := ssh.Dial("tcp", dialAddr, clientConfig)
+		defer func(conn *ssh.Client) {
+			err := conn.Close()
+			if err != nil {
+				log.Logger.Debugf("Connection to %s closed.", dialAddr)
+			}
+		}(conn)
+
 		if err != nil {
 			log.Logger.Fatalf("Dial failed to %s, error: %s", dialAddr, err)
 			return err
 		}
 
 		// 4. create a session for each worker
-		session, err := sshClient.NewSession()
+		session, err := conn.NewSession()
 		if err != nil {
 			log.Logger.Fatalf("Cannot create session at %s", dialAddr)
 			return err
@@ -142,24 +152,23 @@ func (p *WorkersProcess) Start(cmd *env.StartProcessCommand) error {
 		defer func(session *ssh.Session) {
 			err := session.Close()
 			if err != nil {
-				log.Logger.Fatalf("Session closed with error: %s", err)
+				log.Logger.Debugf("Session at %s closed.", dialAddr)
 			}
 		}(session)
+
 		session.Stdout = os.Stdout
 		session.Stderr = os.Stderr
 
 		// 5. run session
-		command := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "alluxio-start.sh") + " worker"
-		failed := false
 		err = session.Run(command)
 		if err != nil {
 			log.Logger.Errorf("Run command %s failed at %s", command, dialAddr)
 			failed = true
 		}
-		if failed {
-			log.Logger.Fatalf("Run command %s failed. See previous error messages.", command)
-		}
-		return nil
+	}
+
+	if failed {
+		log.Logger.Fatalf("Run command %s failed. See previous error messages.", command)
 	}
 
 	return nil
