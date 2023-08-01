@@ -81,7 +81,7 @@ func (p *WorkersProcess) Start(cmd *env.StartProcessCommand) error {
 	}
 	command := cliPath + " " + arguments
 
-	errors := runCommandOnWorkers(workers, key, command)
+	errors := runCommandOnMachines(workers, key, command)
 
 	if len(errors) == 0 {
 		log.Logger.Infof("Run command %s successful on workers: %s", command, workers)
@@ -110,7 +110,7 @@ func (p *WorkersProcess) Stop(cmd *env.StopProcessCommand) error {
 	arguments := "process stop worker"
 	command := cliPath + " " + arguments
 
-	errors := runCommandOnWorkers(workers, key, command)
+	errors := runCommandOnMachines(workers, key, command)
 
 	if len(errors) == 0 {
 		log.Logger.Infof("Run command %s on workers: %s", command, workers)
@@ -173,7 +173,7 @@ func getPrivateKey() (ssh.Signer, error) {
 	return parsedPrivateKey, nil
 }
 
-func runCommandOnWorkers(workers []string, key ssh.Signer, command string) []error {
+func runCommandOnMachines(workers []string, key ssh.Signer, command string) []error {
 	var errors []error
 	for _, worker := range workers {
 		clientConfig := &ssh.ClientConfig{
