@@ -12,19 +12,19 @@
 package fs
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
 )
 
-var Checksum = &ChecksumCommand{
-	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "checksum",
-		JavaClassName: "alluxio.cli.fs.FileSystemShell",
-		Parameters:    []string{"checksum"},
-	},
+func Checksum(className string) env.Command {
+	return &ChecksumCommand{
+		BaseJavaCommand: &env.BaseJavaCommand{
+			CommandName:   "checksum",
+			JavaClassName: className,
+			Parameters:    []string{"checksum"},
+		},
+	}
 }
 
 type ChecksumCommand struct {
@@ -37,7 +37,7 @@ func (c *ChecksumCommand) Base() *env.BaseJavaCommand {
 
 func (c *ChecksumCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   fmt.Sprintf("%v [path]", Checksum.CommandName),
+		Use:   "checksum [path]",
 		Short: "Calculates the md5 checksum of a specified file",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

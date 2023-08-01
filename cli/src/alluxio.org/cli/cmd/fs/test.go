@@ -12,19 +12,19 @@
 package fs
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
 )
 
-var Test = &TestCommand{
-	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "test",
-		JavaClassName: "alluxio.cli.fs.FileSystemShell",
-		Parameters:    []string{"test"},
-	},
+func Test(className string) env.Command {
+	return &TestCommand{
+		BaseJavaCommand: &env.BaseJavaCommand{
+			CommandName:   "test",
+			JavaClassName: className,
+			Parameters:    []string{"test"},
+		},
+	}
 }
 
 type TestCommand struct {
@@ -43,7 +43,7 @@ func (c *TestCommand) Base() *env.BaseJavaCommand {
 
 func (c *TestCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   fmt.Sprintf("%v [path]", Test.CommandName),
+		Use:   "test [path]",
 		Short: "Test a property of a path, returning 0 if the property is true, or 1 otherwise",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

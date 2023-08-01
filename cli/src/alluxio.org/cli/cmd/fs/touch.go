@@ -12,19 +12,19 @@
 package fs
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
 )
 
-var Touch = &TouchCommand{
-	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "touch",
-		JavaClassName: "alluxio.cli.fs.FileSystemShell",
-		Parameters:    []string{"touch"},
-	},
+func Touch(className string) env.Command {
+	return &TouchCommand{
+		BaseJavaCommand: &env.BaseJavaCommand{
+			CommandName:   "touch",
+			JavaClassName: className,
+			Parameters:    []string{"touch"},
+		},
+	}
 }
 
 type TouchCommand struct {
@@ -37,7 +37,7 @@ func (c *TouchCommand) Base() *env.BaseJavaCommand {
 
 func (c *TouchCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   fmt.Sprintf("%v [path]", Touch.CommandName),
+		Use:   "touch [path]",
 		Short: "Create a 0 byte file at the specified path, which will also be created in the under file system",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

@@ -12,13 +12,19 @@
 package fs
 
 import (
+	"alluxio.org/cli/cmd"
 	"alluxio.org/cli/env"
 )
 
 var Service = &env.Service{
 	Name:        "fs",
 	Description: "Operations to interface with the Alluxio filesystem",
-	Commands: []env.Command{
+	Commands:    Cmds(cmd.FileSystemShellJavaClass),
+}
+
+func Cmds(className string) []env.Command {
+	var ret []env.Command
+	for _, c := range []func(string) env.Command{
 		Cat,
 		Checksum,
 		Count,
@@ -34,5 +40,9 @@ var Service = &env.Service{
 		Tail,
 		Test,
 		Touch,
-	},
+	} {
+		ret = append(ret, c(className))
+	}
+
+	return ret
 }

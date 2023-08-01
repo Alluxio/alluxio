@@ -12,7 +12,6 @@
 package fs
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -22,11 +21,13 @@ import (
 	"alluxio.org/cli/env"
 )
 
-var Cp = &CopyCommand{
-	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "cp",
-		JavaClassName: "alluxio.cli.fs.FileSystemShell",
-	},
+func Cp(className string) env.Command {
+	return &CopyCommand{
+		BaseJavaCommand: &env.BaseJavaCommand{
+			CommandName:   "cp",
+			JavaClassName: className,
+		},
+	}
 }
 
 type CopyCommand struct {
@@ -44,7 +45,7 @@ func (c *CopyCommand) Base() *env.BaseJavaCommand {
 
 func (c *CopyCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   fmt.Sprintf("%v [srcPath] [dstPath]", Cp.CommandName),
+		Use:   "cp [srcPath] [dstPath]",
 		Short: "Copy a file or directory",
 		Long: `Copies a file or directory in the Alluxio filesystem or between local and Alluxio filesystems
 Use the file:// schema to indicate a local filesystem path (ex. file:///absolute/path/to/file) and

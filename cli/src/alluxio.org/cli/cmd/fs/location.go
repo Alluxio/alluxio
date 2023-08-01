@@ -12,19 +12,19 @@
 package fs
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
 )
 
-var Location = &LocationCommand{
-	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "location",
-		JavaClassName: "alluxio.cli.fs.FileSystemShell",
-		Parameters:    []string{"location"},
-	},
+func Location(className string) env.Command {
+	return &LocationCommand{
+		BaseJavaCommand: &env.BaseJavaCommand{
+			CommandName:   "location",
+			JavaClassName: className,
+			Parameters:    []string{"location"},
+		},
+	}
 }
 
 type LocationCommand struct {
@@ -37,7 +37,7 @@ func (c *LocationCommand) Base() *env.BaseJavaCommand {
 
 func (c *LocationCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   fmt.Sprintf("%v [path]", Location.CommandName),
+		Use:   "location [path]",
 		Short: "Displays the list of hosts storing the specified file",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

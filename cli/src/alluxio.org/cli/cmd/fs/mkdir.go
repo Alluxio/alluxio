@@ -12,19 +12,19 @@
 package fs
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
 )
 
-var Mkdir = &MkdirCommand{
-	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "mkdir",
-		JavaClassName: "alluxio.cli.fs.FileSystemShell",
-		Parameters:    []string{"mkdir"},
-	},
+func Mkdir(className string) env.Command {
+	return &MkdirCommand{
+		BaseJavaCommand: &env.BaseJavaCommand{
+			CommandName:   "mkdir",
+			JavaClassName: className,
+			Parameters:    []string{"mkdir"},
+		},
+	}
 }
 
 type MkdirCommand struct {
@@ -37,7 +37,7 @@ func (c *MkdirCommand) Base() *env.BaseJavaCommand {
 
 func (c *MkdirCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   fmt.Sprintf("%v [path1 path2 ...]", Mkdir.CommandName),
+		Use:   "mkdir [path1 path2 ...]",
 		Short: "Create directories at the specified paths, creating the parent directory if not exists",
 		Args:  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

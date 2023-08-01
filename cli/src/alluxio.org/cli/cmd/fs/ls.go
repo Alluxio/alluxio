@@ -21,12 +21,14 @@ import (
 	"alluxio.org/cli/env"
 )
 
-var Ls = &LsCommand{
-	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "ls",
-		JavaClassName: "alluxio.cli.fs.FileSystemShell",
-		Parameters:    []string{"ls"},
-	},
+func Ls(className string) env.Command {
+	return &LsCommand{
+		BaseJavaCommand: &env.BaseJavaCommand{
+			CommandName:   "ls",
+			JavaClassName: className,
+			Parameters:    []string{"ls"},
+		},
+	}
 }
 
 type LsCommand struct {
@@ -66,7 +68,7 @@ var (
 
 func (c *LsCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   fmt.Sprintf("%v [path]", Ls.CommandName),
+		Use:   "ls [path]",
 		Short: "Prints information for files and directories at the given path",
 		Long:  `Displays information for all files and directories directly under the specified paths, including permission, owner, group, size (bytes for files or the number of children for directories), persistence state, last modified time, the percentage of content already in Alluxio, and the path`,
 		Args:  cobra.ExactArgs(1),

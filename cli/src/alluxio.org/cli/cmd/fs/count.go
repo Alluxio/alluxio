@@ -12,19 +12,19 @@
 package fs
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
 )
 
-var Count = &CountCommand{
-	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "count",
-		JavaClassName: "alluxio.cli.fs.FileSystemShell",
-		Parameters:    []string{"count"},
-	},
+func Count(className string) env.Command {
+	return &CountCommand{
+		BaseJavaCommand: &env.BaseJavaCommand{
+			CommandName:   "count",
+			JavaClassName: className,
+			Parameters:    []string{"count"},
+		},
+	}
 }
 
 type CountCommand struct {
@@ -39,7 +39,7 @@ func (c *CountCommand) Base() *env.BaseJavaCommand {
 
 func (c *CountCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   fmt.Sprintf("%v [path]", Count.CommandName),
+		Use:   "count [path]",
 		Short: "Displays the number of files and directories matching the specified path",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

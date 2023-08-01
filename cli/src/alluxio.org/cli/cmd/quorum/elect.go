@@ -15,6 +15,7 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 
+	"alluxio.org/cli/cmd"
 	"alluxio.org/cli/env"
 )
 
@@ -22,10 +23,10 @@ var Elect = &ElectCommand{
 	QuorumCommand: &QuorumCommand{
 		BaseJavaCommand: &env.BaseJavaCommand{
 			CommandName:   "elect",
-			JavaClassName: "alluxio.cli.fsadmin.FileSystemAdminShell",
+			JavaClassName: cmd.FileSystemAdminShellJavaClass,
 			Parameters:    []string{"journal", "quorum", "elect"},
 		},
-		allowedDomains: []string{domainMaster},
+		AllowedDomains: []string{DomainMaster},
 	},
 }
 
@@ -53,8 +54,8 @@ func (c *ElectCommand) ToCommand() *cobra.Command {
 }
 
 func (c *ElectCommand) Run(_ []string) error {
-	if err := checkDomain(c.QuorumCommand.domain, c.QuorumCommand.allowedDomains...); err != nil {
-		return stacktrace.Propagate(err, "error checking domain %v", c.QuorumCommand.domain)
+	if err := checkDomain(c.QuorumCommand.Domain, c.QuorumCommand.AllowedDomains...); err != nil {
+		return stacktrace.Propagate(err, "error checking domain %v", c.QuorumCommand.Domain)
 	}
 	// TODO: ignore the domain flag for now since elect command can only operate on MASTER
 	//  java command needs to be updated such that it can accept the domain flag

@@ -12,19 +12,19 @@
 package fs
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
 )
 
-var Mv = &MoveCommand{
-	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "mv",
-		JavaClassName: "alluxio.cli.fs.FileSystemShell",
-		Parameters:    []string{"mv"},
-	},
+func Mv(className string) env.Command {
+	return &MoveCommand{
+		BaseJavaCommand: &env.BaseJavaCommand{
+			CommandName:   "mv",
+			JavaClassName: className,
+			Parameters:    []string{"mv"},
+		},
+	}
 }
 
 type MoveCommand struct {
@@ -37,7 +37,7 @@ func (c *MoveCommand) Base() *env.BaseJavaCommand {
 
 func (c *MoveCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   fmt.Sprintf("%v [srcPath] [dstPath]", Mv.CommandName),
+		Use:   "mv [srcPath] [dstPath]",
 		Short: "Rename a file or directory",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {

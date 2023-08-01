@@ -12,19 +12,19 @@
 package fs
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
 )
 
-var Cat = &CatCommand{
-	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "cat",
-		JavaClassName: "alluxio.cli.fs.FileSystemShell",
-		Parameters:    []string{"cat"},
-	},
+func Cat(className string) env.Command {
+	return &CatCommand{
+		BaseJavaCommand: &env.BaseJavaCommand{
+			CommandName:   "cat",
+			JavaClassName: className,
+			Parameters:    []string{"cat"},
+		},
+	}
 }
 
 type CatCommand struct {
@@ -37,7 +37,7 @@ func (c *CatCommand) Base() *env.BaseJavaCommand {
 
 func (c *CatCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   fmt.Sprintf("%v [path]", Cat.CommandName),
+		Use:   "cat [path]",
 		Short: "Print specified file's content",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

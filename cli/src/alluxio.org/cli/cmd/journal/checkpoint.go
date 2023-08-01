@@ -14,13 +14,14 @@ package journal
 import (
 	"github.com/spf13/cobra"
 
+	"alluxio.org/cli/cmd"
 	"alluxio.org/cli/env"
 )
 
 var Checkpoint = &CheckpointCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
 		CommandName:   "checkpoint",
-		JavaClassName: "alluxio.cli.fsadmin.FileSystemAdminShell",
+		JavaClassName: cmd.FileSystemAdminShellJavaClass,
 		Parameters:    []string{"journal", "checkpoint"},
 	},
 }

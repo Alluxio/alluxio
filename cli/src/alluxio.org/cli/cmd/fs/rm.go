@@ -12,19 +12,19 @@
 package fs
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
 )
 
-var Rm = &RmCommand{
-	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "rm",
-		JavaClassName: "alluxio.cli.fs.FileSystemShell",
-		Parameters:    []string{"rm"},
-	},
+func Rm(className string) env.Command {
+	return &RmCommand{
+		BaseJavaCommand: &env.BaseJavaCommand{
+			CommandName:   "rm",
+			JavaClassName: className,
+			Parameters:    []string{"rm"},
+		},
+	}
 }
 
 type RmCommand struct {
@@ -42,7 +42,7 @@ func (c *RmCommand) Base() *env.BaseJavaCommand {
 
 func (c *RmCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   fmt.Sprintf("%v [path]", Rm.CommandName),
+		Use:   "rm [path]",
 		Short: "Remove the specified file",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

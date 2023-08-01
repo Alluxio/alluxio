@@ -34,15 +34,15 @@ var (
 )
 
 const (
-	domainJobMaster = "JOB_MASTER"
-	domainMaster    = "MASTER"
+	DomainJobMaster = "JOB_MASTER"
+	DomainMaster    = "MASTER"
 )
 
 type QuorumCommand struct {
 	*env.BaseJavaCommand
 
-	allowedDomains []string
-	domain         string
+	AllowedDomains []string
+	Domain         string
 }
 
 func (c *QuorumCommand) Base() *env.BaseJavaCommand {
@@ -51,7 +51,7 @@ func (c *QuorumCommand) Base() *env.BaseJavaCommand {
 
 func (c *QuorumCommand) InitQuorumCmd(cmd *cobra.Command) *cobra.Command {
 	const domain = "domain"
-	cmd.Flags().StringVar(&c.domain, domain, "", fmt.Sprintf("Quorum domain to operate on, must be one of %v", strings.Join(c.allowedDomains, ", ")))
+	cmd.Flags().StringVar(&c.Domain, domain, "", fmt.Sprintf("Quorum domain to operate on, must be one of %v", strings.Join(c.AllowedDomains, ", ")))
 	if err := cmd.MarkFlagRequired(domain); err != nil {
 		panic(err)
 	}
@@ -59,12 +59,12 @@ func (c *QuorumCommand) InitQuorumCmd(cmd *cobra.Command) *cobra.Command {
 }
 
 func (c *QuorumCommand) Run(args []string) error {
-	if err := checkDomain(c.domain, c.allowedDomains...); err != nil {
-		return stacktrace.Propagate(err, "error checking domain %v", c.domain)
+	if err := checkDomain(c.Domain, c.AllowedDomains...); err != nil {
+		return stacktrace.Propagate(err, "error checking domain %v", c.Domain)
 	}
 	var javaArgs []string
 	javaArgs = append(javaArgs, args...)
-	javaArgs = append(javaArgs, "-domain", c.domain)
+	javaArgs = append(javaArgs, "-domain", c.Domain)
 	return c.Base().Run(javaArgs)
 }
 

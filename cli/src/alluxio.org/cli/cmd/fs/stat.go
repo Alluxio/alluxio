@@ -18,12 +18,14 @@ import (
 	"alluxio.org/cli/env"
 )
 
-var Stat = &StatCommand{
-	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "stat",
-		JavaClassName: "alluxio.cli.fs.FileSystemShell",
-		Parameters:    []string{"stat"},
-	},
+func Stat(className string) env.Command {
+	return &StatCommand{
+		BaseJavaCommand: &env.BaseJavaCommand{
+			CommandName:   "stat",
+			JavaClassName: className,
+			Parameters:    []string{"stat"},
+		},
+	}
 }
 
 type StatCommand struct {
@@ -40,7 +42,7 @@ func (c *StatCommand) Base() *env.BaseJavaCommand {
 
 func (c *StatCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   Stat.CommandName,
+		Use:   "stat",
 		Short: "Displays info for the specified file or directory",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {

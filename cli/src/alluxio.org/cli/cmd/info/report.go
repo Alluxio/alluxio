@@ -18,13 +18,14 @@ import (
 	"github.com/palantir/stacktrace"
 	"github.com/spf13/cobra"
 
+	"alluxio.org/cli/cmd"
 	"alluxio.org/cli/env"
 )
 
 var Report = &ReportCommand{
 	BaseJavaCommand: &env.BaseJavaCommand{
 		CommandName:   "report",
-		JavaClassName: "alluxio.cli.fsadmin.FileSystemAdminShell",
+		JavaClassName: cmd.FileSystemAdminShellJavaClass,
 		Parameters:    []string{"report"},
 	},
 }

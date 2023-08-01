@@ -12,19 +12,19 @@
 package fs
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
 )
 
-var Tail = &TailCommand{
-	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "tail",
-		JavaClassName: "alluxio.cli.fs.FileSystemShell",
-		Parameters:    []string{"tail"},
-	},
+func Tail(className string) env.Command {
+	return &TailCommand{
+		BaseJavaCommand: &env.BaseJavaCommand{
+			CommandName:   "tail",
+			JavaClassName: className,
+			Parameters:    []string{"tail"},
+		},
+	}
 }
 
 type TailCommand struct {
@@ -39,7 +39,7 @@ func (c *TailCommand) Base() *env.BaseJavaCommand {
 
 func (c *TailCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   fmt.Sprintf("%v [path]", Tail.CommandName),
+		Use:   "tail [path]",
 		Short: "Print the trailing bytes from the specified file",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

@@ -12,19 +12,19 @@
 package fs
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
 )
 
-var Du = &DuCommand{
-	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "du",
-		JavaClassName: "alluxio.cli.fs.FileSystemShell",
-		Parameters:    []string{"du"},
-	},
+func Du(className string) env.Command {
+	return &DuCommand{
+		BaseJavaCommand: &env.BaseJavaCommand{
+			CommandName:   "du",
+			JavaClassName: className,
+			Parameters:    []string{"du"},
+		},
+	}
 }
 
 type DuCommand struct {
@@ -42,7 +42,7 @@ func (c *DuCommand) Base() *env.BaseJavaCommand {
 
 func (c *DuCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   fmt.Sprintf("%v [path]", Du.CommandName),
+		Use:   "du [path]",
 		Short: "Print specified file's content",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

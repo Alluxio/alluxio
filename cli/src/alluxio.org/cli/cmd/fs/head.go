@@ -12,19 +12,19 @@
 package fs
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 
 	"alluxio.org/cli/env"
 )
 
-var Head = &HeadCommand{
-	BaseJavaCommand: &env.BaseJavaCommand{
-		CommandName:   "head",
-		JavaClassName: "alluxio.cli.fs.FileSystemShell",
-		Parameters:    []string{"head"},
-	},
+func Head(className string) env.Command {
+	return &HeadCommand{
+		BaseJavaCommand: &env.BaseJavaCommand{
+			CommandName:   "head",
+			JavaClassName: className,
+			Parameters:    []string{"head"},
+		},
+	}
 }
 
 type HeadCommand struct {
@@ -39,7 +39,7 @@ func (c *HeadCommand) Base() *env.BaseJavaCommand {
 
 func (c *HeadCommand) ToCommand() *cobra.Command {
 	cmd := c.Base().InitRunJavaClassCmd(&cobra.Command{
-		Use:   fmt.Sprintf("%v [path]", Head.CommandName),
+		Use:   "head [path]",
 		Short: "Print the leading bytes from the specified file",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
