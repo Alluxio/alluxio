@@ -40,7 +40,6 @@ import alluxio.s3.S3ErrorCode;
 import alluxio.s3.S3Exception;
 import alluxio.security.User;
 import alluxio.util.CommonUtils;
-import alluxio.util.ThreadUtils;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.dora.DoraWorker;
 
@@ -191,8 +190,9 @@ public class S3NettyHandler {
       object = URLDecoder.decode(
           pathStr.substring(pathStr.indexOf(AlluxioURI.SEPARATOR) + 1), "UTF-8");
     }
-    S3NettyHandler handler = new S3NettyHandler(bucket, object, request, context, fileSystem, doraWorker,
-        asyncAuditLogWriter);
+    S3NettyHandler handler =
+        new S3NettyHandler(bucket, object, request, context, fileSystem, doraWorker,
+            asyncAuditLogWriter);
     handler.setStopwatch(stopwatch);
     handler.init();
     S3NettyBaseTask task = null;

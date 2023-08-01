@@ -415,7 +415,7 @@ public class NettyRestUtils {
 
     String scheme = "http"; // default scheme is http
     if (hostHeader != null && hostHeader.startsWith("https://")) {
-        scheme = "https";
+      scheme = "https";
     }
     return scheme;
   }
