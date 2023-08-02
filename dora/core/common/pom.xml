@@ -88,6 +88,10 @@
       <artifactId>metrics-jvm</artifactId>
     </dependency>
     <dependency>
+      <groupId>io.etcd</groupId>
+      <artifactId>jetcd-core</artifactId>
+    </dependency>
+    <dependency>
       <groupId>io.grpc</groupId>
       <artifactId>grpc-core</artifactId>
     </dependency>

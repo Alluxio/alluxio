@@ -16,7 +16,7 @@ variables.
 {% endfor %}
 </table>
 
-For example, the following example will set up:
+The following example will set up:
 - an Alluxio master at `localhost`
 - the root mount point as an HDFS cluster with a namenode also running at `localhost`
 - defines the maximum heap space of the VM to be 30g

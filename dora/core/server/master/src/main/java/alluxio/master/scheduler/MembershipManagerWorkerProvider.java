@@ -14,9 +14,7 @@ package alluxio.master.scheduler;
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.runtime.AlluxioRuntimeException;
-import alluxio.exception.runtime.UnavailableRuntimeException;
-import alluxio.exception.status.UnavailableException;
-import alluxio.master.file.FileSystemMaster;
+import alluxio.membership.MembershipManager;
 import alluxio.resource.CloseableResource;
 import alluxio.scheduler.job.WorkerProvider;
 import alluxio.wire.WorkerInfo;
@@ -26,37 +24,39 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Default worker provider that get worker information from Alluxio master.
+ * MembershipManager backed WorkerProvider for Scheduler.
  */
-public class DefaultWorkerProvider implements WorkerProvider {
-  private final FileSystemMaster mFileSystemMaster;
+public class MembershipManagerWorkerProvider implements WorkerProvider {
+  private final MembershipManager mMembershipManager;
   private final FileSystemContext mContext;
 
   /**
-   * Creates a new instance of {@link DefaultWorkerProvider}.
-   *
-   * @param fileSystemMaster the file system master
-   * @param context the file system context
+   * CTOR for MembershipManagerWorkerProvider.
+   * @param membershipMgr
+   * @param context
    */
-  public DefaultWorkerProvider(FileSystemMaster fileSystemMaster, FileSystemContext context) {
-    mFileSystemMaster = fileSystemMaster;
+  public MembershipManagerWorkerProvider(MembershipManager membershipMgr,
+                                         FileSystemContext context) {
+    mMembershipManager = membershipMgr;
     mContext = context;
   }
 
   @Override
   public List<WorkerInfo> getWorkerInfos() {
     try {
-      // TODO(jianjian): need api for healthy worker instead
-      return  mFileSystemMaster.getWorkerInfoList();
-    } catch (UnavailableException e) {
-      throw new UnavailableRuntimeException(
-          "fail to get worker infos because master is not available", e);
+      return mMembershipManager.getAllMembers();
+    } catch (IOException ex) {
+      throw AlluxioRuntimeException.from(ex);
     }
   }
 
   @Override
   public List<WorkerInfo> getLiveWorkerInfos() {
-    return getWorkerInfos();
+    try {
+      return mMembershipManager.getLiveMembers();
+    } catch (IOException ex) {
+      throw AlluxioRuntimeException.from(ex);
+    }
   }
 
   @Override
