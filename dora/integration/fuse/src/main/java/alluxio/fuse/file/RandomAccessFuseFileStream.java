@@ -16,8 +16,17 @@ import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
+import alluxio.concurrent.LockMode;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.runtime.UnimplementedRuntimeException;
+import alluxio.fuse.AlluxioFuseOpenUtils;
+import alluxio.fuse.AlluxioFuseUtils;
+import alluxio.fuse.auth.AuthPolicy;
+import alluxio.fuse.lock.FuseReadWriteLockManager;
+import alluxio.resource.CloseableResource;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +36,8 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.Optional;
+import java.util.concurrent.locks.Lock;
 
 /**
  * FUSE file stream for supporting random access.
@@ -44,6 +55,62 @@ public class RandomAccessFuseFileStream implements FuseFileStream {
 
   private volatile boolean mHasInitializedTmpFile;
 
+  private final AuthPolicy mAuthPolicy;
+
+  private final CloseableResource<Lock> mLockResource;
+
+  private volatile boolean mClosed = false;
+
+  public static RandomAccessFuseFileStream create(FileSystem fileSystem, AuthPolicy authPolicy,
+      FuseReadWriteLockManager lockManager, AlluxioURI uri, int flags, long mode) {
+    Preconditions.checkNotNull(fileSystem);
+    Preconditions.checkNotNull(authPolicy);
+    Preconditions.checkNotNull(lockManager);
+    Preconditions.checkNotNull(uri);
+    // Make sure file is not being read/written by current FUSE
+    CloseableResource<Lock> lockResource = lockManager.tryLock(uri.toString(), LockMode.WRITE);
+
+    try {
+      // Make sure file is not being written by other clients outside current FUSE
+      Optional<URIStatus> status = AlluxioFuseUtils.getPathStatus(fileSystem, uri);
+      if (status.isPresent() && !status.get().isCompleted()) {
+        status = AlluxioFuseUtils.waitForFileCompleted(fileSystem, uri);
+        if (!status.isPresent()) {
+          throw new UnimplementedRuntimeException(String.format(
+              "Failed to create fuse file out stream for %s: cannot concurrently write same file",
+              uri));
+        }
+      }
+      if (mode == AlluxioFuseUtils.MODE_NOT_SET_VALUE && status.isPresent()) {
+        mode = status.get().getMode();
+      }
+      long fileLen = status.map(URIStatus::getLength).orElse(0L);
+      if (status.isPresent()) {
+        if (AlluxioFuseOpenUtils.containsTruncate(flags) || fileLen == 0) {
+          // support OPEN(O_WRONLY | O_RDONLY) existing file + O_TRUNC to write
+          // support create empty file then open for write/read_write workload
+          RandomAccessFuseFileStream randomAccessFuseFileStream =
+              new RandomAccessFuseFileStream(fileSystem, authPolicy, uri, lockResource);
+          randomAccessFuseFileStream.truncate(0);
+          if (LOG.isDebugEnabled()) {
+            LOG.debug(String.format("Open path %s with flag 0x%x for overwriting. "
+                + "Alluxio deleted the old file and created a new file for writing", uri, flags));
+          }
+          return randomAccessFuseFileStream;
+        } else {
+          // Support open(O_WRONLY | O_RDWR flag) - truncate(0) - write() workflow
+          return new RandomAccessFuseFileStream(fileSystem, authPolicy, uri, lockResource);
+        }
+      } else {
+        throw new UnimplementedRuntimeException(String.format("RandomAccessFuseFileStream can only"
+            + " used on existing file"));
+      }
+    } catch (Throwable t) {
+      lockResource.close();
+      throw t;
+    }
+  }
+
   /**
    * FUSE file stream for supporting random access.
    *
@@ -52,9 +119,12 @@ public class RandomAccessFuseFileStream implements FuseFileStream {
    * @throws IOException
    * @throws AlluxioException
    */
-  public RandomAccessFuseFileStream(FileSystem fileSystem, AlluxioURI uri) {
+  public RandomAccessFuseFileStream(FileSystem fileSystem, AuthPolicy authPolicy, AlluxioURI uri,
+                                    CloseableResource<Lock> lockResource) {
     mFileSystem = fileSystem;
+    mAuthPolicy = authPolicy;
     mURI = uri;
+    mLockResource = lockResource;
   }
 
   private void initTmpFile() {
@@ -175,7 +245,19 @@ public class RandomAccessFuseFileStream implements FuseFileStream {
   }
 
   @Override
-  public void close() {
+  public synchronized void close() {
+    if (mClosed) {
+      return;
+    }
+    mClosed = true;
+    try {
+      copyFromTmpFile();
+    } finally {
+      mLockResource.close();
+    }
+  }
+
+  private void copyFromTmpFile() {
     if (mRandomAccessFile != null) {
       // TODO(JiamingMai): rename it to a tmp file before deleting the file
       try {
@@ -183,7 +265,6 @@ public class RandomAccessFuseFileStream implements FuseFileStream {
       } catch (IOException | AlluxioException e) {
         LOG.error("Failed to delete file {} ", mURI);
       }
-
       // write the contents of the temporary file back to the file
       try (FileOutStream fos = mFileSystem.createFile(mURI)) {
         mRandomAccessFile.seek(0);
@@ -199,7 +280,6 @@ public class RandomAccessFuseFileStream implements FuseFileStream {
         throw new RuntimeException(e);
       }
     }
-
     if (mTmpFile != null) {
       mTmpFile.delete();
     }

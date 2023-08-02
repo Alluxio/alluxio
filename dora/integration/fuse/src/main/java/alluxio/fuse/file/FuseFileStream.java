@@ -123,14 +123,16 @@ public interface FuseFileStream extends AutoCloseable {
             return FuseFileOutStream.create(mFileSystem, mAuthPolicy, mLockManager, uri, flags,
                 mode);
           } else {
-            return new RandomAccessFuseFileStream(mFileSystem, uri);
+            return RandomAccessFuseFileStream.create(mFileSystem, mAuthPolicy, mLockManager, uri,
+                flags, mode);
           }
         default:
           if (!exists) {
             return FuseFileInOrOutStream.create(mFileSystem, mAuthPolicy, mLockManager,
                 uri, flags, mode);
           } else {
-            return new RandomAccessFuseFileStream(mFileSystem, uri);
+            return RandomAccessFuseFileStream.create(mFileSystem, mAuthPolicy, mLockManager, uri,
+                flags, mode);
           }
           /*
           if (mPositionReadEnabled) {
@@ -139,8 +141,7 @@ public interface FuseFileStream extends AutoCloseable {
           }
           return FuseFileInOrOutStream.create(mFileSystem, mAuthPolicy, mLockManager,
               uri, flags, mode);
-
-           */
+          */
       }
     }
   }
