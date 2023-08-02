@@ -932,6 +932,7 @@ public class S3ObjectTask extends S3BaseTask {
             }
             SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
                 .setOwner(user)
+                .putAllXattr(xattrMap)
                 .build();
             mHandler.getMetaFS().setAttribute(new AlluxioURI(
                 S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId)), attrPOptions);
@@ -1246,7 +1247,10 @@ public class S3ObjectTask extends S3BaseTask {
           throw new S3Exception(objectPath, S3ErrorCode.ENTITY_TOO_SMALL);
         }
       }
-      return uploadedParts;
+      List<URIStatus> validParts =
+          request.getParts().stream().map(part -> uploadedPartsMap.get(part.getPartNumber()))
+              .collect(Collectors.toList());
+      return validParts;
     }
 
     /**
