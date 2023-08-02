@@ -32,11 +32,15 @@ public class UfsUrl {
   public static final String SCHEME_SEPARATOR = "://";
   public static final String PATH_SEPARATOR = "/";
   public static final String PORT_SEPARATOR = ":";
+
+//  public static UfsUrl createInstance(String xxx) {
+//    return new UfsUrl(schexx, auth, pathxx);
+//  }
   UfsUrlMessage mProto;
 
   public UfsUrl(UfsUrlMessage proto) {
     Preconditions.checkArgument(proto.getPathComponentsList().size() != 0,
-        "The proto.path is empty, please check the proto first");
+        "The proto.path is empty, please check the proto first.");
     mProto = proto;
   }
 
@@ -48,6 +52,7 @@ public class UfsUrl {
     String rootScheme;
     String rootAuthority;
     String rootPath;
+    // Please make sure the rootDir is not only contain scheme, like "s3://".
     String[] rootDirArray = rootDir.split(SCHEME_SEPARATOR);
     if (!ufsPath.equals(rootDir)) {
       // rootDir = "hdfs:///" -> rootDirArray = ["hdfs", "/"]
@@ -86,55 +91,54 @@ public class UfsUrl {
     Preconditions.checkArgument(preprocessingPathList.size() <= 2,
         "There are multiple schemes, the input may contain more than one path, "
             + "current version only support inputting one path each time.");
-    // Now, there are two condition. size = 1 -> without scheme; size = 2 -> with a scheme.
-    if (preprocessingPathList.size() == 1)  {
-      // If without scheme, set default scheme to root.
+    int schemeIndex = ufsPath.indexOf(SCHEME_SEPARATOR);
+    // schemeIndex == -1 -> ufsUrl without a scheme; schemeIndex != -1 -> ufsUrl with a scheme.
+    if (schemeIndex == -1)  {
+      // If without scheme, set default scheme to root scheme.
       if (rootDirArray.length == 1) {
-        // if length == 1, means rootDirArray is not include scheme.
-        scheme = rootScheme;
+        // if length == 1, means rootDirArray is not include root scheme too.
+        // In this case, scheme is "file", i.e., local.
+        scheme = "file";
       } else {
+        // if length != 1, i.e. > 1, means rootDir has scheme.
+        // And ufsPath has no scheme, so choose root scheme as scheme.
         scheme = rootDirArray[0];
       }
-      authorityAndPath = preprocessingPathList.get(0);
+      authorityAndPath = ufsPath;
     } else {
       // preprocessingPathList.size() == 2, i.e. the ufsPath has one scheme.
-      scheme = preprocessingPathList.get(0);
-      authorityAndPath = preprocessingPathList.get(1);
+      scheme = ufsPath.substring(0, schemeIndex);
+      authorityAndPath = ufsPath.substring(schemeIndex + SCHEME_SEPARATOR.length());
     }
-    Preconditions.checkNotNull(scheme, "scheme is empty, please input again");
-    Preconditions.checkNotNull(authorityAndPath, "authority or path is empty, please input again");
+    Preconditions.checkArgument(!scheme.isEmpty(), "scheme is empty, please input again.");
+    Preconditions.checkArgument(!authorityAndPath.isEmpty(),
+        "authority or path is empty, please input again.");
 
     int indexOfFirstColon = authorityAndPath.indexOf(PORT_SEPARATOR);
     if (indexOfFirstColon == -1)  {
       // There are no ":", i.e., no authority.
       authority = rootAuthority;
-      // Handle case with two slash like "/tmp/" + "/cache" = "/tmp//cache"
-      path = UfsUrlUtils.concatStringPath(rootPath, authorityAndPath);
+      if (rootScheme.equalsIgnoreCase(scheme)) {
+        // Handle case with two slash like "/tmp/" + "/cache" = "/tmp//cache"
+        path = UfsUrlUtils.concatStringPath(rootPath, authorityAndPath);
+      } else {
+        // If false, means the root scheme is different from input, subject to input.
+        path = authorityAndPath;
+      }
     } else {
-      // The string has authority.
+      // ufsPath has at least a ':', i.e., it has authority.
       int indexOfFirstSlash = authorityAndPath.indexOf(PATH_SEPARATOR);
+      // If there are no '/' splitting authority and path, throw error.
+      Preconditions.checkArgument(indexOfFirstSlash != -1,
+          "The input has an authority while has no invalid path. Please input another one");
       authority = authorityAndPath.substring(0, indexOfFirstSlash);
       String tmpPath = authorityAndPath.substring(indexOfFirstSlash);
-      path = UfsUrlUtils.concatStringPath(rootPath, tmpPath);
+      if (rootScheme.equalsIgnoreCase(scheme))  {
+        path = UfsUrlUtils.concatStringPath(rootPath, tmpPath);
+      } else {
+        path = tmpPath;
+      }
     }
-
-//    int indexOfFirstSlashAfterAuthority = authorityAndPath.indexOf(PATH_SEPARATOR);
-//    if (indexOfFirstSlashAfterAuthority == -1)  {
-//      // If index is 0, authority or path is empty. hdfs://xxx:1234 or hdfs://dir
-//      indexOfFirstSlashAfterAuthority = 0;
-//    }
-//
-//    String authorityString = authorityAndPath.substring(0, indexOfFirstSlashAfterAuthority);
-//    // path string is beginning with '/'.
-//    String pathString = authorityAndPath.substring(indexOfFirstSlashAfterAuthority);
-//
-//    if (scheme.equalsIgnoreCase("file") || scheme.equalsIgnoreCase("alluxio")
-//        || scheme.equalsIgnoreCase("s3") || scheme.equalsIgnoreCase("hdfs")) {
-//      pathString = rootDir + pathString;
-//    } else {
-//      System.out.println("Other scheme are not supported currently.");
-//      return;
-//    }
 
     String[] arrayOfPath = path.split(PATH_SEPARATOR);
     List<String> pathComponentsList = Arrays.asList(arrayOfPath);

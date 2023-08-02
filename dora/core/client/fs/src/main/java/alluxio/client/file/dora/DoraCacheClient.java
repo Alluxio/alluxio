@@ -198,7 +198,6 @@ public class DoraCacheClient {
       List<URIStatus> result = new ArrayList<>();
       client.get().listStatus(ListStatusPRequest.newBuilder()
               .setPath(ufsPath.asString())
-              // TODO(Tony Sun): determine the path type: containing scheme and authority or not.
               .setUfsPath(ufsPath.getProto())
               .setOptions(options).build())
           .forEachRemaining(
