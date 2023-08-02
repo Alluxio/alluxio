@@ -79,7 +79,7 @@ func (p *ProxiesProcess) Start(cmd *env.StartProcessCommand) error {
 	}
 	command := cliPath + " " + arguments
 
-	errors := runCommandOnMachines(allList, key, command)
+	errors := runCommands(allList, key, command)
 
 	if len(errors) == 0 {
 		log.Logger.Infof("Run command %s successful on machines: %s", command, workers)
@@ -113,7 +113,7 @@ func (p *ProxiesProcess) Stop(cmd *env.StopProcessCommand) error {
 	arguments := "process stop proxy"
 	command := cliPath + " " + arguments
 
-	errors := runCommandOnMachines(allList, key, command)
+	errors := runCommands(allList, key, command)
 
 	if len(errors) == 0 {
 		log.Logger.Infof("Run command %s successful on machines: %s", command, workers)

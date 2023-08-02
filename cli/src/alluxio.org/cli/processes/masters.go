@@ -12,11 +12,7 @@
 package processes
 
 import (
-	"bufio"
-	"io"
-	"os"
 	"path"
-	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -78,7 +74,7 @@ func (p *MastersProcess) Start(cmd *env.StartProcessCommand) error {
 	}
 	command := cliPath + " " + arguments
 
-	errors := runCommandOnMachines(masters, key, command)
+	errors := runCommands(masters, key, command)
 
 	if len(errors) == 0 {
 		log.Logger.Infof("Run command %s successful on masters: %s", command, masters)
@@ -107,7 +103,7 @@ func (p *MastersProcess) Stop(cmd *env.StopProcessCommand) error {
 	arguments := "process stop master"
 	command := cliPath + " " + arguments
 
-	errors := runCommandOnMachines(masters, key, command)
+	errors := runCommands(masters, key, command)
 
 	if len(errors) == 0 {
 		log.Logger.Infof("Run command %s successful on masters: %s", command, masters)
@@ -115,38 +111,4 @@ func (p *MastersProcess) Stop(cmd *env.StopProcessCommand) error {
 		log.Logger.Fatalf("Run command %s failed: %s", command, err)
 	}
 	return nil
-}
-
-func getMasters() ([]string, error) {
-	mastersDir := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioConfDir.EnvVar), "masters")
-	mastersFile, err := os.Open(mastersDir)
-	if err != nil {
-		log.Logger.Errorf("Error reading worker hostnames at %s", mastersDir)
-		return nil, err
-	}
-
-	mastersReader := bufio.NewReader(mastersFile)
-	var mastersList []string
-	lastLine := false
-	for !lastLine {
-		// read lines of the workers file
-		line, err := mastersReader.ReadString('\n')
-		if err != nil {
-			if err == io.EOF {
-				lastLine = true
-			} else {
-				log.Logger.Errorf("Error parsing worker file at this line: %s", line)
-				return nil, err
-			}
-		}
-		// remove notes
-		if strings.Index(line, "#") != -1 {
-			line = line[:strings.Index(line, "#")]
-		}
-		line = strings.TrimSpace(line)
-		if line != "" {
-			mastersList = append(mastersList, line)
-		}
-	}
-	return mastersList, nil
 }
