@@ -69,8 +69,8 @@ public class LocalPageStore implements PageStore {
       boolean isTemporary) throws ResourceExhaustedException, IOException {
     Path pagePath = getPagePath(pageId, isTemporary);
     try {
-      LOG.debug("Put page: " + pageId + ", page's position: " + page.position()
-          + ", page's limit: " + page.limit() + ", page's capacity: " + page.capacity());
+      LOG.debug("Put page: {}, page's position: {}, page's limit: {}, page's capacity: {}",
+          pageId, page.position(), page.limit(), page.capacity());
       if (!Files.exists(pagePath)) {
         Path parent = Preconditions.checkNotNull(pagePath.getParent(),
             "parent of cache file should not be null");

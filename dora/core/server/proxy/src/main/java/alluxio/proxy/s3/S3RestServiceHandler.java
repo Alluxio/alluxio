@@ -1162,7 +1162,7 @@ public final class S3RestServiceHandler {
           if (entityTag != null) {
             res.header(S3Constants.S3_ETAG_HEADER, entityTag);
           } else {
-            LOG.debug("Failed to find ETag for object: " + objectPath);
+            LOG.debug("Failed to find ETag for object: {}", objectPath);
           }
 
           // Check if the object had a specified "Content-Type"
@@ -1311,7 +1311,7 @@ public final class S3RestServiceHandler {
           if (entityTag != null) {
             res.header(S3Constants.S3_ETAG_HEADER, entityTag);
           } else {
-            LOG.debug("Failed to find ETag for object: " + objectPath);
+            LOG.debug("Failed to find ETag for object: {}", objectPath);
           }
 
           // Check if the object had a specified "Content-Type"
