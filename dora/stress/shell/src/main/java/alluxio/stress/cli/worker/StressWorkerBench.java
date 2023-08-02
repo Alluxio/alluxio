@@ -31,6 +31,7 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.logging.SamplingLogger;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -110,17 +111,19 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
 
   @Override
   public String getBenchDescription() {
-    // TODO(jiacheng): change this description
     return String.join("\n", ImmutableList.of(
         "A benchmarking tool to measure the read performance of alluxio workers in the cluster",
-        "The test will create one file and repeatedly read the created file to test the "
-            + "performance",
+        "The test will run with multiple threads and perform concurrent I/O. One file will ",
+        "be prepared for each thread that thread will read that one file repeatedly until ",
+        "the specified duration has elapsed.",
         "",
         "Example:",
-        "# This would create a 100MB file with block size of 16KB and then read the file "
-            + "for 30s after 10s warmup",
-        "$ bin/alluxio runClass alluxio.stress.cli.worker.StressWorkerBench --clients 1 "
-            + "--base alluxio:///stress-worker-base --block-size 16k --file-size 100m "
+        "# The command below spawn 32 test threads per worker in your cluster. One 100MB file will"
+            + "be prepared for each test thread."
+            + "# The threads will keeping reading for 30s including a 10s warmup."
+            + "# So the result captures I/O performance from the last 20s.",
+        "$ bin/alluxio runClass alluxio.stress.cli.worker.StressWorkerBench \\\n"
+            + "--threads 32 --base alluxio:///stress-worker-base --file-size 100m \\\n"
             + "--warmup 10s --duration 30s --cluster\n"
     ));
   }
@@ -129,6 +132,19 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
   @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public void prepare() throws Exception {
     validateParams();
+
+    // Init params if unspecified
+    if (mBaseParameters.mClusterLimit == 0) {
+      mBaseParameters.mClusterLimit = mFsContext.getCachedWorkers().size();
+      LOG.info("No --cluster-limit was set, use all {} workers in the cluster",
+          mBaseParameters.mClusterLimit);
+    }
+    if (mBaseParameters.mStartMs == BaseParameters.UNDEFINED_START_MS) {
+      LOG.info("Start time is unspecified, leaving 5s for preparation");
+      mBaseParameters.mStartMs = CommonUtils.getCurrentMs() + 5000;
+    }
+
+    // initialize the base, for only the non-distributed task (the cluster launching task)
     Path basePath = new Path(mParameters.mBasePath);
     int fileSize = (int) FormatUtils.parseSpaceSize(mParameters.mFileSize);
     int numFiles = getTotalFileNumber();
@@ -258,8 +274,12 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
   @Override
   @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public WorkerBenchTaskResult runLocal() throws Exception {
+    Preconditions.checkArgument(mBaseParameters.mStartMs >= 0,
+        "startMs was not specified correctly!");
+    Preconditions.checkArgument(mBaseParameters.mClusterLimit > 0,
+        "clusterLimit was not specified correctly!");
     LOG.info("Worker ID is {}, index is {}", mBaseParameters.mId, mBaseParameters.mIndex);
-    LOG.info("Total {} workers in the cluster", mBaseParameters.mClusterLimit);
+    LOG.info("This test will use {} workers in the cluster", mBaseParameters.mClusterLimit);
     // If running in this one process, do all the work
     // Otherwise, calculate its own part and only do that
     int startFileIndex = 0;
@@ -283,11 +303,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     long durationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
     long warmupMs = FormatUtils.parseTimeSize(mParameters.mWarmup);
     long startMs = mBaseParameters.mStartMs;
-    // TODO(jiacheng): these kinds of param updates should be moved to prepare()
-    if (startMs == BaseParameters.UNDEFINED_START_MS) {
-      LOG.info("Start time is unspecified, leaving 5s for preparation");
-      startMs = CommonUtils.getCurrentMs() + 5000;
-    }
     long endMs = startMs + warmupMs + durationMs;
     String datePattern = alluxio.conf.Configuration.global()
         .getString(PropertyKey.USER_DATE_FORMAT_PATTERN);
@@ -298,8 +313,8 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     BenchContext context = new BenchContext(startMs, endMs);
 
     List<Callable<Void>> callables = new ArrayList<>(mParameters.mThreads);
-    // Each thread keeps reading one same file over and over
     // Each thread will have one file created for it
+    // And that thread keeps reading one same file over and over
     for (int threadIndex = 0; threadIndex < mParameters.mThreads; threadIndex++) {
       int fileIndex = startFileIndex + threadIndex;
       LOG.info("Thread {} reads file {} path {}", threadIndex, fileIndex, mFilePaths[fileIndex]);
@@ -322,10 +337,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     if (mBaseParameters.mClusterLimit < 0) {
       throw new IllegalStateException("--cluster-limit cannot be " + mBaseParameters.mClusterLimit
           + " in StressWorkerBench. It should be a positive number. 0 means running on all workers in the cluster.");
-    } else if (mBaseParameters.mClusterLimit == 0) {
-      // TODO(jiacheng): these kinds of param updates should be moved to prepare()
-      LOG.info("No --cluster-limit was set, use all workers in the cluster");
-      mBaseParameters.mClusterLimit = workers.size();
     } else if (mBaseParameters.mClusterLimit > workers.size()) {
       throw new IllegalStateException(String.format("Specified --cluster-limit %d but only have %d workers in the cluster!",
           mBaseParameters.mClusterLimit, workers.size()));

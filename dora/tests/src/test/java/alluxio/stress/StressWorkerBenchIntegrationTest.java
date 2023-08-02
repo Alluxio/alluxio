@@ -37,7 +37,7 @@ public class StressWorkerBenchIntegrationTest extends AbstractStressBenchIntegra
         "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/stress-worker-base/",
         "--threads", "2",
         "--file-size", "1m",
-        "--warmup", "0s", "--duration", "1s"
+        "--warmup", "0s", "--duration", "1s",
     });
 
     generateAndVerifyReport(Collections.singletonList("Worker Throughput"), output);
@@ -57,7 +57,6 @@ public class StressWorkerBenchIntegrationTest extends AbstractStressBenchIntegra
         "--file-size", "1m",
         "--block-size", "128k",
         "--warmup", "0s", "--duration", "1s",
-        "--cluster-limit", "2"
     });
 
     WorkerBenchSummary summary = (WorkerBenchSummary) JsonSerializable.fromJson(output);
