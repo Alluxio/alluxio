@@ -125,14 +125,7 @@ public class AlluxioFuse {
   // prevent instantiation
   protected AlluxioFuse() {}
 
-  /**
-   * Running this class will mount the file system according to the options passed to this function.
-   * The user-space fuse application will stay on the foreground and keep the file system mounted.
-   * The user can unmount the file system by gracefully killing (SIGINT) the process.
-   *
-   * @param args arguments to run the command line
-   */
-  public static void main(String[] args) throws ParseException {
+  private void start(String[] args) throws ParseException {
     CommandLine cli = PARSER.parse(OPTIONS, args);
 
     if (cli.hasOption(HELP_OPTION_NAME)) {
@@ -172,7 +165,11 @@ public class AlluxioFuse {
           Configuration.global(), UserState.Factory.create(conf)));
     }
     try (FileSystem fs = FileSystem.Factory.create(fsContext, fuseOptions.getFileSystemOptions())) {
-      launchFuse(fsContext, fs, fuseOptions, true);
+      FuseUmountable umountable = launchFuse(fsContext, fs, fuseOptions, true);
+      if (umountable instanceof AlluxioJniFuseFileSystem) {
+        AlluxioJniFuseFileSystem jniFuseFileSystem = (AlluxioJniFuseFileSystem) umountable;
+        postprocess(jniFuseFileSystem);
+      }
     } catch (Throwable t) {
       if (executor != null) {
         executor.shutdown();
@@ -181,6 +178,21 @@ public class AlluxioFuse {
       LOG.error("Failed to launch FUSE", t);
       System.exit(-1);
     }
+  }
+
+  /**
+   * Running this class will mount the file system according to the options passed to this function.
+   * The user-space fuse application will stay on the foreground and keep the file system mounted.
+   * The user can unmount the file system by gracefully killing (SIGINT) the process.
+   *
+   * @param args arguments to run the command line
+   */
+  public static void main(String[] args) throws ParseException {
+    AlluxioFuse alluxioFuse = new AlluxioFuse();
+    alluxioFuse.start(args);
+  }
+
+  public void postprocess(AlluxioJniFuseFileSystem jniFuseFileSystem) {
   }
 
   /**

@@ -16,6 +16,8 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
 import alluxio.client.fuse.dora.readonly.AbstractFuseDoraReadOnlyTest;
+import alluxio.fuse.FuseStreamFactory;
+import alluxio.fuse.FuseStreamFactoryImpl;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.LaunchUserGroupAuthPolicy;
 import alluxio.fuse.file.FuseFileStream;
@@ -37,14 +39,14 @@ import java.util.UUID;
 public abstract class AbstractStreamTest extends AbstractFuseDoraReadOnlyTest {
   protected static final Mode DEFAULT_MODE = new Mode(
       Mode.Bits.ALL, Mode.Bits.READ, Mode.Bits.READ);
-  protected FuseFileStream.Factory mStreamFactory;
+  protected FuseStreamFactory mStreamFactory;
 
   @Before
   public void beforeActions() {
     AuthPolicy authPolicy = LaunchUserGroupAuthPolicy.create(mFileSystem,
         mContext.getClusterConf(), Optional.empty());
     authPolicy.init();
-    mStreamFactory = new FuseFileStream.Factory(mFileSystem, authPolicy);
+    mStreamFactory = new FuseStreamFactoryImpl(mFileSystem, authPolicy);
   }
 
   @Override

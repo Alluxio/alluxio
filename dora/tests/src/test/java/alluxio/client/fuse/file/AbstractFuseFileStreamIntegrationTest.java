@@ -17,6 +17,8 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.conf.PropertyKey;
+import alluxio.fuse.FuseStreamFactory;
+import alluxio.fuse.FuseStreamFactoryImpl;
 import alluxio.fuse.auth.AuthPolicy;
 import alluxio.fuse.auth.LaunchUserGroupAuthPolicy;
 import alluxio.fuse.file.FuseFileStream;
@@ -52,7 +54,7 @@ public abstract class AbstractFuseFileStreamIntegrationTest extends BaseIntegrat
 
   protected FileSystem mFileSystem = null;
   protected AuthPolicy mAuthPolicy = null;
-  protected FuseFileStream.Factory mStreamFactory = null;
+  protected FuseStreamFactory mStreamFactory = null;
 
   @Before
   public void before() throws Exception {
@@ -60,7 +62,7 @@ public abstract class AbstractFuseFileStreamIntegrationTest extends BaseIntegrat
     mAuthPolicy = LaunchUserGroupAuthPolicy.create(mFileSystem,
         mLocalAlluxioClusterResource.get().getClient().getConf(), Optional.empty());
     mAuthPolicy.init();
-    mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy);
+    mStreamFactory = new FuseStreamFactoryImpl(mFileSystem, mAuthPolicy);
   }
 
   /**

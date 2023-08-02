@@ -107,7 +107,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   private final IndexedSet<FuseFileEntry<FuseFileStream>> mFileEntries
       = new IndexedSet<>(ID_INDEX, PATH_INDEX);
   private final AuthPolicy mAuthPolicy;
-  private final FuseFileStream.Factory mStreamFactory;
+  private FuseStreamFactory mFuseStreamFactory;
 
   private final boolean mUfsEnabled;
   private final FuseOptions mFuseOptions;
@@ -137,7 +137,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
         : this::acquireBlockMasterInfo;
     mPathResolverCache = AlluxioFuseUtils.getPathResolverCache(mConf, fuseOptions);
     mAuthPolicy = AuthPolicyFactory.create(mFileSystem, mConf, this);
-    mStreamFactory = new FuseFileStream.Factory(mFileSystem, mAuthPolicy);
+    mFuseStreamFactory = new FuseStreamFactoryImpl(mFileSystem, mAuthPolicy);
     mUfsEnabled = fuseOptions.getFileSystemOptions().getUfsFileSystemOptions().isPresent();
     if (mConf.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED)) {
       try {
@@ -176,7 +176,7 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
       return res;
     }
     try {
-      FuseFileStream stream = mStreamFactory.create(uri, fi.flags.get(), mode);
+      FuseFileStream stream = mFuseStreamFactory.create(uri, fi.flags.get(), mode);
       long fd = mNextOpenFileId.getAndIncrement();
       mFileEntries.add(new FuseFileEntry<>(fd, path, stream));
       fi.fh.set(fd);
@@ -733,5 +733,13 @@ public final class AlluxioJniFuseFileSystem extends AbstractFuseFileSystem
   @VisibleForTesting
   LoadingCache<String, AlluxioURI> getPathResolverCache() {
     return mPathResolverCache;
+  }
+
+  public FuseStreamFactory getFuseStreamFactory() {
+    return mFuseStreamFactory;
+  }
+
+  public void setFuseStreamFactory(FuseStreamFactory fuseStreamFactory) {
+    this.mFuseStreamFactory = fuseStreamFactory;
   }
 }
