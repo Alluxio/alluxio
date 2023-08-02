@@ -21,39 +21,39 @@ import (
 	"alluxio.org/log"
 )
 
-var Workers = &WorkersProcess{
+var JobMasters = &JobMastersProcess{
 	BaseProcess: &env.BaseProcess{
-		Name: "workers",
+		Name: "job_masters",
 	},
 }
 
-type WorkersProcess struct {
+type JobMastersProcess struct {
 	*env.BaseProcess
 }
 
-func (p *WorkersProcess) SetEnvVars(envVar *viper.Viper) {
+func (p *JobMastersProcess) SetEnvVars(envVar *viper.Viper) {
 	return
 }
 
-func (p *WorkersProcess) Base() *env.BaseProcess {
+func (p *JobMastersProcess) Base() *env.BaseProcess {
 	return p.BaseProcess
 }
 
-func (p *WorkersProcess) StartCmd(cmd *cobra.Command) *cobra.Command {
+func (p *JobMastersProcess) StartCmd(cmd *cobra.Command) *cobra.Command {
 	cmd.Use = p.Name
 	return cmd
 }
 
-func (p *WorkersProcess) StopCmd(cmd *cobra.Command) *cobra.Command {
+func (p *JobMastersProcess) StopCmd(cmd *cobra.Command) *cobra.Command {
 	cmd.Use = p.Name
 	return cmd
 }
 
-func (p *WorkersProcess) Start(cmd *env.StartProcessCommand) error {
-	// get list of all workers, stored at workersList
-	workers, err := getWorkers()
+func (p *JobMastersProcess) Start(cmd *env.StartProcessCommand) error {
+	// get list of all masters, stored at mastersList
+	masters, err := getMasters()
 	if err != nil {
-		log.Logger.Fatalf("Cannot get workers, error: %s", err)
+		log.Logger.Fatalf("Cannot get masters, error: %s", err)
 	}
 
 	// get public key for passwordless ssh
@@ -64,7 +64,7 @@ func (p *WorkersProcess) Start(cmd *env.StartProcessCommand) error {
 
 	// generate command
 	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "cli.sh")
-	arguments := "process start worker"
+	arguments := "process start job_master"
 	if cmd.AsyncStart {
 		arguments = arguments + " -a"
 	}
@@ -73,11 +73,11 @@ func (p *WorkersProcess) Start(cmd *env.StartProcessCommand) error {
 	}
 	command := cliPath + " " + arguments
 
-	// for each worker, create a client and run
-	// TODO: now start worker one by one, need to do them in parallel
+	// for each master, create a client and run
+	// TODO: now start master one by one, need to do them in parallel
 	var errors []error
-	for _, worker := range workers {
-		conn, err := dialConnection(worker, key)
+	for _, master := range masters {
+		conn, err := dialConnection(master, key)
 		if err != nil {
 			errors = append(errors, err)
 			continue
@@ -93,18 +93,18 @@ func (p *WorkersProcess) Start(cmd *env.StartProcessCommand) error {
 	}
 
 	if len(errors) == 0 {
-		log.Logger.Infof("Run command %s successful on workers: %s", command, workers)
+		log.Logger.Infof("Run command %s successful on masters: %s", command, masters)
 	} else {
 		log.Logger.Fatalf("Run command %s failed, number of failures: %v", command, len(errors))
 	}
 	return nil
 }
 
-func (p *WorkersProcess) Stop(cmd *env.StopProcessCommand) error {
-	// get list of all workers, stored at workersList
-	workers, err := getWorkers()
+func (p *JobMastersProcess) Stop(cmd *env.StopProcessCommand) error {
+	// get list of all masters, stored at mastersList
+	masters, err := getMasters()
 	if err != nil {
-		log.Logger.Fatalf("Cannot get workers, error: %s", err)
+		log.Logger.Fatalf("Cannot get masters, error: %s", err)
 	}
 
 	// get public key for passwordless ssh
@@ -115,14 +115,14 @@ func (p *WorkersProcess) Stop(cmd *env.StopProcessCommand) error {
 
 	// generate command
 	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "cli.sh")
-	arguments := "process stop worker"
+	arguments := "process stop job_master"
 	command := cliPath + " " + arguments
 
-	// for each worker, create a client and run
-	// TODO: now stop worker one by one, need to do them in parallel
+	// for each master, create a client and run
+	// TODO: now stop master one by one, need to do them in parallel
 	var errors []error
-	for _, worker := range workers {
-		conn, err := dialConnection(worker, key)
+	for _, master := range masters {
+		conn, err := dialConnection(master, key)
 		if err != nil {
 			errors = append(errors, err)
 			continue
@@ -138,7 +138,7 @@ func (p *WorkersProcess) Stop(cmd *env.StopProcessCommand) error {
 	}
 
 	if len(errors) == 0 {
-		log.Logger.Infof("Run command %s successful on workers: %s", command, workers)
+		log.Logger.Infof("Run command %s successful on masters: %s", command, masters)
 	} else {
 		log.Logger.Fatalf("Run command %s failed, number of failures: %v", command, len(errors))
 	}
