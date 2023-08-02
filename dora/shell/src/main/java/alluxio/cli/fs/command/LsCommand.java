@@ -369,6 +369,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     for (String dirArg : args) {
+// switch between alluxioURI and ufsurl.
 //      AlluxioURI path = new AlluxioURI(dirArg);
 //      runWildCardCmd(path, cl);
       UfsUrl ufsPath = new UfsUrl(dirArg);

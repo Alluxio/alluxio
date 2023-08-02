@@ -173,11 +173,11 @@ public class UfsUrl {
     StringBuilder sb = new StringBuilder();
     sb.append(mProto.getScheme());
     if (!mProto.getScheme().isEmpty()) {
-    sb.append(UfsUrl.SCHEME_SEPARATOR);
+      sb.append(UfsUrl.SCHEME_SEPARATOR);
     }
     sb.append(mProto.getAuthority());
     if (!mProto.getAuthority().isEmpty()) {
-    sb.append(UfsUrl.PATH_SEPARATOR);
+      sb.append(UfsUrl.PATH_SEPARATOR);
     }
     List<String> pathComponents = mProto.getPathComponentsList();
     for (int i = 0; i < pathComponents.size(); i++) {
