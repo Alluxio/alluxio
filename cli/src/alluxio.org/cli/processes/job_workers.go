@@ -21,35 +21,35 @@ import (
 	"alluxio.org/log"
 )
 
-var Workers = &WorkersProcess{
+var JobWorkers = &JobWorkersProcess{
 	BaseProcess: &env.BaseProcess{
-		Name: "workers",
+		Name: "job_workers",
 	},
 }
 
-type WorkersProcess struct {
+type JobWorkersProcess struct {
 	*env.BaseProcess
 }
 
-func (p *WorkersProcess) SetEnvVars(envVar *viper.Viper) {
+func (p *JobWorkersProcess) SetEnvVars(envVar *viper.Viper) {
 	return
 }
 
-func (p *WorkersProcess) Base() *env.BaseProcess {
+func (p *JobWorkersProcess) Base() *env.BaseProcess {
 	return p.BaseProcess
 }
 
-func (p *WorkersProcess) StartCmd(cmd *cobra.Command) *cobra.Command {
+func (p *JobWorkersProcess) StartCmd(cmd *cobra.Command) *cobra.Command {
 	cmd.Use = p.Name
 	return cmd
 }
 
-func (p *WorkersProcess) StopCmd(cmd *cobra.Command) *cobra.Command {
+func (p *JobWorkersProcess) StopCmd(cmd *cobra.Command) *cobra.Command {
 	cmd.Use = p.Name
 	return cmd
 }
 
-func (p *WorkersProcess) Start(cmd *env.StartProcessCommand) error {
+func (p *JobWorkersProcess) Start(cmd *env.StartProcessCommand) error {
 	// get list of all workers, stored at workersList
 	workers, err := getWorkers()
 	if err != nil {
@@ -64,7 +64,7 @@ func (p *WorkersProcess) Start(cmd *env.StartProcessCommand) error {
 
 	// generate command
 	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "cli.sh")
-	arguments := "process start worker"
+	arguments := "process start job_worker"
 	if cmd.AsyncStart {
 		arguments = arguments + " -a"
 	}
@@ -100,7 +100,7 @@ func (p *WorkersProcess) Start(cmd *env.StartProcessCommand) error {
 	return nil
 }
 
-func (p *WorkersProcess) Stop(cmd *env.StopProcessCommand) error {
+func (p *JobWorkersProcess) Stop(cmd *env.StopProcessCommand) error {
 	// get list of all workers, stored at workersList
 	workers, err := getWorkers()
 	if err != nil {
@@ -115,7 +115,7 @@ func (p *WorkersProcess) Stop(cmd *env.StopProcessCommand) error {
 
 	// generate command
 	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "cli.sh")
-	arguments := "process stop worker"
+	arguments := "process stop job_worker"
 	command := cliPath + " " + arguments
 
 	// for each worker, create a client and run
