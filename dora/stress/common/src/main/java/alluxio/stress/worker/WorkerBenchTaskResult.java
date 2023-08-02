@@ -17,6 +17,8 @@ import alluxio.stress.TaskResult;
 import alluxio.util.FormatUtils;
 
 import org.HdrHistogram.Histogram;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,6 +30,8 @@ import java.util.Map;
  * The task results for the worker stress test.
  */
 public final class WorkerBenchTaskResult implements TaskResult {
+  private static final Logger LOG = LoggerFactory.getLogger(WorkerBenchTaskResult.class);
+
   private BaseParameters mBaseParameters;
   private WorkerBenchParameters mParameters;
 
@@ -220,6 +224,13 @@ public final class WorkerBenchTaskResult implements TaskResult {
     mDataPoints.addAll(stats);
   }
 
+  /**
+   * Clears all data points from the result.
+   */
+  public void clearDataPoints() {
+    mDataPoints.clear();
+  }
+
   @Override
   public TaskResult.Aggregator aggregator() {
     return new Aggregator();
@@ -228,17 +239,20 @@ public final class WorkerBenchTaskResult implements TaskResult {
   private static final class Aggregator implements TaskResult.Aggregator<WorkerBenchTaskResult> {
     @Override
     public WorkerBenchSummary aggregate(Iterable<WorkerBenchTaskResult> results) throws Exception {
-      Map<String, WorkerBenchTaskResult> nodes = new HashMap<>();
+      Map<String, WorkerBenchTaskResult> nodeResults = new HashMap<>();
 
       WorkerBenchTaskResult mergedTaskResult = new WorkerBenchTaskResult();
 
       for (WorkerBenchTaskResult result : results) {
         result.calculatePercentiles();
-        nodes.put(result.getBaseParameters().mId, result);
         mergedTaskResult.merge(result);
+        LOG.info("Test results from worker {} has been merged, the data points are now cleared.",
+            result.getBaseParameters().mId);
+        result.clearDataPoints();
+        nodeResults.put(result.getBaseParameters().mId, result);
       }
 
-      return new WorkerBenchSummary(mergedTaskResult, nodes);
+      return new WorkerBenchSummary(mergedTaskResult, nodeResults);
     }
   }
 }
