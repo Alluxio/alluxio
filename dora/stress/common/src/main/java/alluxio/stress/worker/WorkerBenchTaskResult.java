@@ -15,6 +15,7 @@ import alluxio.stress.BaseParameters;
 import alluxio.stress.StressConstants;
 import alluxio.stress.TaskResult;
 import alluxio.util.FormatUtils;
+
 import org.HdrHistogram.Histogram;
 
 import java.util.ArrayList;
@@ -164,18 +165,27 @@ public final class WorkerBenchTaskResult implements TaskResult {
     mErrors = errors;
   }
 
+  /**
+   * @return 100 percentiles for durations of all I/O operations
+   */
   public List<Long> getDurationPercentiles() {
     return mDurationPercentiles;
   }
 
+  /**
+   * @param percentiles 100 percentiles for durations of all I/O operations
+   */
   public void setDurationPercentiles(List<Long> percentiles) {
     mDurationPercentiles = percentiles;
   }
 
+  /**
+   * From the collected operation data, calculates 100 percentiles
+   */
   public void calculatePercentiles() {
     Histogram durationHistogram = new Histogram(
-            FormatUtils.parseTimeSize(mParameters.mDuration),
-            StressConstants.TIME_HISTOGRAM_PRECISION);
+        FormatUtils.parseTimeSize(mParameters.mDuration),
+        StressConstants.TIME_HISTOGRAM_PRECISION);
     mDataPoints.forEach(stat -> durationHistogram.recordValue(stat.getDuration()));
     for (int i = 0; i <= 100; i++) {
       mDurationPercentiles.add(durationHistogram.getValueAtPercentile(i));
@@ -189,14 +199,23 @@ public final class WorkerBenchTaskResult implements TaskResult {
     mErrors.add(errMessage);
   }
 
+  /**
+   * @return all data points for I/O operations
+   */
   public List<WorkerBenchDataPoint> getDataPoints() {
     return mDataPoints;
   }
 
-  public void addDataPoint(WorkerBenchDataPoint stats) {
-    mDataPoints.add(stats);
+  /**
+   * @param point one data point for one I/O operation
+   */
+  public void addDataPoint(WorkerBenchDataPoint point) {
+    mDataPoints.add(point);
   }
 
+  /**
+   * @param stats data points for all recorded I/O operations
+   */
   public void addDataPoints(Collection<WorkerBenchDataPoint> stats) {
     mDataPoints.addAll(stats);
   }

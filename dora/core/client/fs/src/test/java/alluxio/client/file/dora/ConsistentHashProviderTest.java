@@ -56,23 +56,23 @@ public class ConsistentHashProviderTest {
     CountDownLatch startSignal = new CountDownLatch(numThreads);
     ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
     List<List<BlockWorkerInfo>> lists = IntStream.range(0, numThreads)
-            .mapToObj(i -> generateRandomWorkerList(5))
-            .collect(Collectors.toList());
+        .mapToObj(i -> generateRandomWorkerList(5))
+        .collect(Collectors.toList());
     List<Future<NavigableMap<Integer, BlockWorkerInfo>>> futures = IntStream.range(0, numThreads)
-            .mapToObj(i -> {
-              List<BlockWorkerInfo> list = lists.get(i);
-              return executorService.submit(() -> {
-                startSignal.countDown();
-                try {
-                  startSignal.await();
-                } catch (InterruptedException e) {
-                  fail("interrupted");
-                }
-                provider.refresh(list, NUM_VIRTUAL_NODES);
-                return provider.getActiveNodesMap();
-              });
-            })
-            .collect(Collectors.toList());
+        .mapToObj(i -> {
+          List<BlockWorkerInfo> list = lists.get(i);
+          return executorService.submit(() -> {
+            startSignal.countDown();
+            try {
+              startSignal.await();
+            } catch (InterruptedException e) {
+              fail("interrupted");
+            }
+            provider.refresh(list, NUM_VIRTUAL_NODES);
+            return provider.getActiveNodesMap();
+          });
+        })
+        .collect(Collectors.toList());
     Set<NavigableMap<Integer, BlockWorkerInfo>> mapSet = futures.stream().map(future -> {
       try {
         return future.get();
@@ -88,8 +88,8 @@ public class ConsistentHashProviderTest {
     List<BlockWorkerInfo> workerInfoListUsedByPolicy = provider.getLastWorkerInfos();
     assertTrue(lists.contains(workerInfoListUsedByPolicy));
     assertEquals(
-            ConsistentHashProvider.build(workerInfoListUsedByPolicy, NUM_VIRTUAL_NODES),
-            provider.getActiveNodesMap());
+        ConsistentHashProvider.build(workerInfoListUsedByPolicy, NUM_VIRTUAL_NODES),
+        provider.getActiveNodesMap());
   }
 
   @Test
@@ -115,22 +115,22 @@ public class ConsistentHashProviderTest {
 
       // generate a list of distinct maps for each thread
       List<List<BlockWorkerInfo>> listsPerThread = IntStream.range(0, numThreads)
-              .mapToObj(i -> generateRandomWorkerList(50))
-              .collect(Collectors.toList());
+          .mapToObj(i -> generateRandomWorkerList(50))
+          .collect(Collectors.toList());
       List<Future<?>> futures = IntStream.range(0, numThreads)
-              .mapToObj(i -> {
-                List<BlockWorkerInfo> list = listsPerThread.get(i);
-                return executorService.submit(() -> {
-                  startSignal.countDown();
-                  try {
-                    startSignal.await();
-                  } catch (InterruptedException e) {
-                    fail("interrupted");
-                  }
-                  provider.refresh(list, NUM_VIRTUAL_NODES);
-                });
-              })
-              .collect(Collectors.toList());
+          .mapToObj(i -> {
+            List<BlockWorkerInfo> list = listsPerThread.get(i);
+            return executorService.submit(() -> {
+              startSignal.countDown();
+              try {
+                startSignal.await();
+              } catch (InterruptedException e) {
+                fail("interrupted");
+              }
+              provider.refresh(list, NUM_VIRTUAL_NODES);
+            });
+          })
+          .collect(Collectors.toList());
       for (Future<?> future : futures) {
         try {
           future.get();
@@ -146,8 +146,8 @@ public class ConsistentHashProviderTest {
       List<BlockWorkerInfo> workerInfoListUsedByPolicy = provider.getLastWorkerInfos();
       assertTrue(listsPerThread.contains(workerInfoListUsedByPolicy));
       assertEquals(
-              ConsistentHashProvider.build(workerInfoListUsedByPolicy, NUM_VIRTUAL_NODES),
-              provider.getActiveNodesMap());
+          ConsistentHashProvider.build(workerInfoListUsedByPolicy, NUM_VIRTUAL_NODES),
+          provider.getActiveNodesMap());
     }
   }
 
@@ -160,8 +160,8 @@ public class ConsistentHashProviderTest {
     long initialUpdateCount = provider.getUpdateCount();
     assertEquals(workerList, provider.getLastWorkerInfos());
     assertEquals(
-            ConsistentHashProvider.build(workerList, NUM_VIRTUAL_NODES),
-            provider.getActiveNodesMap());
+        ConsistentHashProvider.build(workerList, NUM_VIRTUAL_NODES),
+        provider.getActiveNodesMap());
 
     // before TTL is up, refresh does not change the internal states of the provider
     List<BlockWorkerInfo> newList = generateRandomWorkerList(5);
@@ -170,8 +170,8 @@ public class ConsistentHashProviderTest {
     assertNotEquals(newList, workerList);
     assertEquals(workerList, provider.getLastWorkerInfos());
     assertEquals(
-            ConsistentHashProvider.build(workerList, NUM_VIRTUAL_NODES),
-            provider.getActiveNodesMap());
+        ConsistentHashProvider.build(workerList, NUM_VIRTUAL_NODES),
+        provider.getActiveNodesMap());
 
     // after TTL expires, refresh should change the worker list and the active nodes map
     Thread.sleep(WORKER_LIST_TTL_MS);
@@ -179,8 +179,8 @@ public class ConsistentHashProviderTest {
     assertEquals(1, provider.getUpdateCount() - initialUpdateCount);
     assertEquals(newList, provider.getLastWorkerInfos());
     assertEquals(
-            ConsistentHashProvider.build(newList, NUM_VIRTUAL_NODES),
-            provider.getActiveNodesMap());
+        ConsistentHashProvider.build(newList, NUM_VIRTUAL_NODES),
+        provider.getActiveNodesMap());
   }
 
   private List<BlockWorkerInfo> generateRandomWorkerList(int count) {
@@ -197,10 +197,10 @@ public class ConsistentHashProviderTest {
       netAddress.setSecureRpcPort(rng.nextInt(0, 65536));
       netAddress.setWebPort(rng.nextInt(0, 65536));
       netAddress.setTieredIdentity(
-              new TieredIdentity(ImmutableList.of(new TieredIdentity.LocalityTier("tier", "loc"))));
+          new TieredIdentity(ImmutableList.of(new TieredIdentity.LocalityTier("tier", "loc"))));
 
       BlockWorkerInfo workerInfo = new BlockWorkerInfo(netAddress,
-              rng.nextLong(0, Constants.GB), rng.nextLong(0, Constants.GB));
+          rng.nextLong(0, Constants.GB), rng.nextLong(0, Constants.GB));
       builder.add(workerInfo);
     }
     return builder.build();

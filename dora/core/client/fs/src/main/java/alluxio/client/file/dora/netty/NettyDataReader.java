@@ -25,7 +25,7 @@ import java.util.function.Supplier;
  */
 public class NettyDataReader implements PositionReader {
   private final FileSystemContext mContext;
-  public final WorkerNetAddress mAddress;
+  private final WorkerNetAddress mAddress;
   private final Supplier<Protocol.ReadRequest.Builder> mRequestBuilder;
 
   /**

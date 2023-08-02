@@ -331,13 +331,13 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     try {
       DeletePOptions mergedOptions = FileSystemOptionsUtils.deleteDefaults(
           mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+
       mDoraClient.delete(ufsFullPath.toString(), mergedOptions);
     } catch (RuntimeException ex) {
       if (!mUfsFallbackEnabled) {
         throw ex;
       }
       UFS_FALLBACK_COUNTER.inc();
-      // TODO(jiacheng): the log here is wrong because the total count is not all delete errors
       LOG.debug("Dora client delete error ({} times). Fall back to UFS.",
           UFS_FALLBACK_COUNTER.getCount(), ex);
       mDelegatedFileSystem.delete(ufsFullPath, options);
@@ -427,7 +427,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
    * @param alluxioPath Alluxio based path
    * @return UfsBaseFileSystem based full path
    */
-  public AlluxioURI convertAlluxioPathToUFSPath(AlluxioURI alluxioPath) {
+  private AlluxioURI convertAlluxioPathToUFSPath(AlluxioURI alluxioPath) {
     if (mDelegatedFileSystem instanceof UfsBaseFileSystem) {
       UfsBaseFileSystem under = (UfsBaseFileSystem) mDelegatedFileSystem;
       AlluxioURI rootUFS = under.getRootUFS();
@@ -493,9 +493,5 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       listBuilder.add(blockLocationInfo);
     }
     return listBuilder.build();
-  }
-
-  public DoraCacheClient getClient() {
-    return mDoraClient;
   }
 }

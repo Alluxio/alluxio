@@ -31,7 +31,6 @@ public final class BaseParameters {
   public static final String IN_PROCESS_FLAG = "--in-process";
   public static final String JAVA_OPT_FLAG = "--java-opt";
   public static final String START_MS_FLAG = "--start-ms";
-  public static final String EXTRA_PREPARE_TIME_FLAG = "--extra-prepare-time";
   public static final String HELP_FLAG = "--help";
   public static final String PROFILE_AGENT = "--profile-agent";
   public static final String BENCH_TIMEOUT = "--bench-timeout";

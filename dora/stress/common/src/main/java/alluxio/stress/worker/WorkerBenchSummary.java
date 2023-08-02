@@ -19,8 +19,8 @@ import alluxio.stress.Summary;
 import alluxio.stress.common.GeneralBenchSummary;
 import alluxio.stress.graph.Graph;
 import alluxio.stress.graph.LineGraph;
-
 import alluxio.util.FormatUtils;
+
 import com.google.common.base.Splitter;
 import org.HdrHistogram.Histogram;
 
@@ -43,9 +43,9 @@ public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTas
 
   /**
    * Creates an instance.
+   * Default constructor required for json deserialization.
    */
   public WorkerBenchSummary() {
-    // Default constructor required for json deserialization
     mNodeResults = new HashMap<>();
     mDurationPercentiles = new ArrayList<>();
   }
@@ -67,10 +67,11 @@ public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTas
 
     mDurationPercentiles = new ArrayList<>();
     Histogram durationHistogram = new Histogram(
-            FormatUtils.parseTimeSize(mParameters.mDuration)
-                    + FormatUtils.parseTimeSize(mParameters.mWarmup),
-            StressConstants.TIME_HISTOGRAM_PRECISION);
-    mergedTaskResults.getDataPoints().forEach(stat -> durationHistogram.recordValue(stat.getDuration()));
+        FormatUtils.parseTimeSize(mParameters.mDuration)
+            + FormatUtils.parseTimeSize(mParameters.mWarmup),
+        StressConstants.TIME_HISTOGRAM_PRECISION);
+    mergedTaskResults.getDataPoints().forEach(stat ->
+        durationHistogram.recordValue(stat.getDuration()));
     for (int i = 0; i <= 100; i++) {
       mDurationPercentiles.add(durationHistogram.getValueAtPercentile(i));
     }
@@ -187,8 +188,8 @@ public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTas
               "Throughput (MB/s)");
 
       // remove the thread count from series fields, since the x-axis is thread counts.
-      List<String> seriesFields = fieldNames.getSecond().stream().filter(f -> !"mThreads".equals(f))
-          .collect(Collectors.toList());
+      List<String> seriesFields = fieldNames.getSecond().stream()
+          .filter(f -> !"mThreads".equals(f)).collect(Collectors.toList());
 
       // map(series name -> map(total threads -> throughput MB/s))
       Map<String, Map<Integer, Float>> allSeries = new HashMap<>();

@@ -13,17 +13,12 @@ package alluxio.stress.cli.worker;
 
 import static alluxio.stress.BaseParameters.DEFAULT_TASK_ID;
 
-import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.annotation.SuppressFBWarnings;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.client.file.DoraCacheFileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.conf.InstancedConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.WritePType;
-import alluxio.hadoop.HadoopUtils;
-import alluxio.stress.BaseParameters;
 import alluxio.stress.cli.AbstractStressBench;
 import alluxio.stress.common.FileSystemParameters;
 import alluxio.stress.worker.WorkerBenchDataPoint;
@@ -32,9 +27,8 @@ import alluxio.stress.worker.WorkerBenchTaskResult;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
-
 import alluxio.util.logging.SamplingLogger;
-import alluxio.wire.WorkerNetAddress;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.apache.hadoop.conf.Configuration;
@@ -73,7 +67,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
   private Integer[] mOffsets;
   private Integer[] mLengths;
   private FileSystemContext mFsContext;
-  private DoraCacheFileSystem mDoraFs;
 
   /** generate random number in range [min, max] (include both min and max).*/
   private Integer randomNumInRange(Random rand, int min, int max) {
@@ -85,12 +78,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
    */
   public StressWorkerBench() {
     mParameters = new WorkerBenchParameters();
-    InstancedConfiguration conf =
-        new InstancedConfiguration(alluxio.conf.Configuration.global().copyProperties());
-    conf.set(PropertyKey.DORA_ENABLED, true);
-    mFsContext = FileSystemContext.create(conf);
-    alluxio.client.file.FileSystem testFs = alluxio.client.file.FileSystem.Factory.create(mFsContext);
-    mDoraFs = (DoraCacheFileSystem) testFs;
+    mFsContext = FileSystemContext.create();
   }
 
   /***
@@ -218,8 +206,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       LOG.info("Building file paths for worker {}", localWorker);
       for (int j = 0; j < threads; j++) {
         Path filePath = calculateFilePath(basePath, i, j);
-        // TODO(jiacheng): by adding LocalWorkerPolicy, we no longer need this hash check
-        // Path filePathAfterSalt = forecastLocation(filePathBeforeSalt, threads, isLocal, distribution, i, workers, localWorker);
 
         int index = i * threads + j;
         mFilePaths[index] = filePath;
@@ -239,83 +225,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       }
     }
     LOG.info("{} file paths generated", mFilePaths.length);
-  }
-
-  private Path forecastLocation(Path filePathBeforeSalt, int threadNumber, boolean isLocal,
-                                int[] distribution, int currentWorkerIdx,
-                                List<BlockWorkerInfo> workers, BlockWorkerInfo localWorker) {
-    boolean isFound = false;
-    Path filePathAfterSalt = null;
-    int salt = 0;
-    for (; salt < 1024; salt++) {
-      // TODO(jiacheng): what happens if this does not stop
-      filePathAfterSalt = filePathBeforeSalt.suffix("-" + salt);
-
-      // Check if the salt can meet our need
-      WorkerNetAddress targetWorker = calculateAllocation(filePathAfterSalt, mDoraFs, workers);
-
-      if (isLocal) {
-        // accept only if the target worker is local to the client
-        // otherwise reject
-        if (targetWorker.equals(localWorker.getNetAddress())) {
-          isFound = true;
-          distribution[currentWorkerIdx]++;
-          break; // this salt will give the client a local worker in the hash ring
-        }
-      } else {
-        // accept if:
-        // 1. the target worker is not local to the client AND
-        if (targetWorker.equals(localWorker.getNetAddress())) {
-          // Reject the allocation to a local worker because we want remote
-          continue;
-        }
-        // 2. distribution is even among the workers
-        //    on each worker we create #threads requests so each worker should serve that many
-        int allocationIndex = findWorkerByAddress(workers, targetWorker);
-        if (allocationIndex == -1) {
-          throw new IllegalStateException(String.format(
-                  "Failed to find worker with address %s in %s", targetWorker, workers));
-        }
-        if (distribution[allocationIndex] < threadNumber) {
-          isFound = true;
-          distribution[allocationIndex]++;
-          break;
-        }
-      }
-    }
-    LOG.info("Tried {} salts for file {}", salt, filePathBeforeSalt);
-
-    // If we exhausted all salts and no fitting path has been found, give up
-    if (!isFound) {
-      if (isLocal) {
-        throw new IllegalStateException(String.format("exhausted %s salts but still cannot find a local worker for path %s",
-                1024, filePathBeforeSalt));
-      } else {
-        throw new IllegalStateException(String.format("exhausted %s salts but still cannot find a remote worker for path %s",
-                1024, filePathBeforeSalt));
-      }
-    }
-    return filePathAfterSalt;
-  }
-
-  private WorkerNetAddress calculateAllocation(Path proposedPath,
-                                               DoraCacheFileSystem doraFs,
-                                               List<BlockWorkerInfo> availableWorkers) {
-    // This copies from how a hadoop Path translates to a target worker in Dora
-    // However this method is extremely fragile to code changes in Dora
-    AlluxioURI alluxioUri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(proposedPath));
-    AlluxioURI ufsUri = doraFs.convertAlluxioPathToUFSPath(alluxioUri);
-    String pathToHash = ufsUri.toString();
-    return doraFs.getClient().getWorkerNetAddress(pathToHash);
-  }
-
-  private int findWorkerByAddress(List<BlockWorkerInfo> workers, WorkerNetAddress targetWorkerAddr) {
-    for (int i = 0; i < workers.size(); i++) {
-      if (workers.get(i).getNetAddress().equals(targetWorkerAddr)) {
-        return i;
-      }
-    }
-    return -1;
   }
 
   private void prepareTestFiles(Path basePath, int fileSize, FileSystem prepareFs) throws IOException {
@@ -424,11 +333,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     }
   }
 
-  @VisibleForTesting
-  public Path[] getFilePaths() {
-    return mFilePaths;
-  }
-
   private static final class BenchContext {
     private final long mStartMs;
     private final long mEndMs;
@@ -534,7 +438,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
         long currentMs = CommonUtils.getCurrentMs();
         // Start recording after the warmup
         if (currentMs > recordMs) {
-          // Only append datapoint after the warmup
           mResult.addDataPoint(dataPoint);
           if (dataPoint.getIOBytes() > 0) {
             mResult.incrementIOBytes(dataPoint.getIOBytes());
