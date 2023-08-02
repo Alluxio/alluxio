@@ -22,77 +22,114 @@ import com.google.common.base.MoreObjects;
  */
 @JsonDeserialize(using = WorkerBenchDataPointDeserializer.class)
 public class WorkerBenchDataPoint {
-    @JsonProperty("workerID")
-    public String mWorkerID;
-    @JsonProperty("threadID")
-    public long mThreadID;
+  @JsonProperty("workerID")
+  public String mWorkerID;
+  @JsonProperty("threadID")
+  public long mThreadID;
 
-    @JsonProperty("duration")
-    public long mDuration;
-    @JsonProperty("start")
-    public long mStartMs;
-    @JsonProperty("ioBytes")
-    public long mIOBytes;
+  @JsonProperty("duration")
+  public long mDuration;
+  @JsonProperty("start")
+  public long mStartMs;
+  @JsonProperty("ioBytes")
+  public long mIOBytes;
 
-    @JsonCreator
-    public WorkerBenchDataPoint(@JsonProperty("workerID") String workerID,
-                                @JsonProperty("threadID") long threadID,
-                                @JsonProperty("start") long startMs,
-                                @JsonProperty("duration") long duration,
-                                @JsonProperty("ioBytes") long ioBytes) {
-      mWorkerID = workerID;
-      mThreadID = threadID;
-      mStartMs = startMs;
-      mDuration = duration;
-      mIOBytes = ioBytes;
-    }
+  /**
+   * @param workerID the worker this I/O operation reads
+   * @param threadID the thread performing the I/O
+   * @param startMs start timestamp of the I/O
+   * @param duration duration of the file read operation
+   * @param ioBytes bytes read
+   */
+  @JsonCreator
+  public WorkerBenchDataPoint(@JsonProperty("workerID") String workerID,
+                              @JsonProperty("threadID") long threadID,
+                              @JsonProperty("start") long startMs,
+                              @JsonProperty("duration") long duration,
+                              @JsonProperty("ioBytes") long ioBytes) {
+    mWorkerID = workerID;
+    mThreadID = threadID;
+    mStartMs = startMs;
+    mDuration = duration;
+    mIOBytes = ioBytes;
+  }
 
-    public String getWorkerID() {
-        return mWorkerID;
-    }
+  /**
+   * @return worker ID
+   */
+  public String getWorkerID() {
+    return mWorkerID;
+  }
 
-    public long getThreadID() {
-        return mThreadID;
-    }
+  /**
+   * @return thread ID
+   */
+  public long getThreadID() {
+    return mThreadID;
+  }
 
-    public long getDuration() {
-        return mDuration;
-    }
+  /**
+   * @return duration in ms
+   */
+  public long getDuration() {
+    return mDuration;
+  }
 
-    public long getStartMs() {
-        return mStartMs;
-    }
+  /**
+   * @return start timestamp in long
+   */
+  public long getStartMs() {
+    return mStartMs;
+  }
 
-    public long getIOBytes(){
-        return mIOBytes;
-    }
+  /**
+   * @return bytes read
+   */
+  public long getIOBytes() {
+    return mIOBytes;
+  }
 
-    public void setWorkerID(String workerID) {
-        mWorkerID = workerID;
-    }
+  /**
+   * @param workerID worker ID
+   */
+  public void setWorkerID(String workerID) {
+    mWorkerID = workerID;
+  }
 
-    public void setThreadID(long threadID) {
-        mThreadID = threadID;
-    }
+  /**
+   * @param threadID the thread ID
+   */
+  public void setThreadID(long threadID) {
+    mThreadID = threadID;
+  }
 
-    public void setDuration(long duration) {
-        mDuration = duration;
-    }
+  /**
+   * @param duration duration in ms
+   */
+  public void setDuration(long duration) {
+    mDuration = duration;
+  }
 
-    public void setStartMs(long startMs) {
-        mStartMs = startMs;
-    }
+  /**
+   * @param startMs start timestamp in long
+   */
+  public void setStartMs(long startMs) {
+    mStartMs = startMs;
+  }
 
-    public void setIOBytes(long ioBytes) {
-        mIOBytes = ioBytes;
-    }
+  /**
+   * @param ioBytes bytes read
+   */
+  public void setIOBytes(long ioBytes) {
+    mIOBytes = ioBytes;
+  }
 
-    @Override
-    public String toString() {
-      return MoreObjects.toStringHelper(this)
-        .add("threadID", mThreadID)
-        .add("ioBytes", mIOBytes)
-        .add("duration", mDuration)
-        .toString();
-    }
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+            .add("threadID", mThreadID)
+            .add("ioBytes", mIOBytes)
+            .add("duration", mDuration)
+            .toString();
+  }
 }

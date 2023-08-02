@@ -147,10 +147,16 @@ public final class WorkerBenchSummary extends GeneralBenchSummary<WorkerBenchTas
     mIOBytes = IOBytes;
   }
 
+  /**
+   * @return 0~100 percentiles of recorded durations
+   */
   public List<Long> getDurationPercentiles() {
     return mDurationPercentiles;
   }
 
+  /**
+   * @param percentiles a list of  calculated percentiles from recorded durations
+   */
   public void setDurationPercentiles(List<Long> percentiles) {
     mDurationPercentiles = percentiles;
   }

@@ -184,7 +184,7 @@ public final class WorkerBenchTaskResult implements TaskResult {
   }
 
   /**
-   * From the collected operation data, calculates 100 percentiles
+   * From the collected operation data, calculates 100 percentiles.
    */
   public void calculatePercentiles() {
     Histogram durationHistogram = new Histogram(

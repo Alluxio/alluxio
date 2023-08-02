@@ -159,7 +159,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     generateTestFilePaths(basePath);
 
     // Generate test files if necessary
-    if (mBaseParameters.mDistributed){
+    if (mBaseParameters.mDistributed) {
       LOG.info("Running in distributed mode on a job worker. The test file should have been "
           + "prepared in the commandline process before distributing the tasks.");
     } else {
@@ -197,6 +197,12 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     }
   }
 
+  /**
+   * Generates the target file paths in a deterministic manner.
+   * This is used both in the preparation and on each job worker.
+   *
+   * @param basePath base dir where the files should be prepared
+   */
   @VisibleForTesting
   public void generateTestFilePaths(Path basePath) throws IOException {
     int fileSize = (int) FormatUtils.parseSpaceSize(mParameters.mFileSize);
@@ -235,7 +241,8 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     LOG.info("{} file paths generated", mFilePaths.length);
   }
 
-  private void prepareTestFiles(Path basePath, int fileSize, FileSystem prepareFs) throws IOException {
+  private void prepareTestFiles(Path basePath, int fileSize, FileSystem prepareFs)
+      throws IOException {
     int numFiles = mFilePaths.length;
     LOG.info("Preparing {} test files under {}", numFiles, basePath);
     if (prepareFs.exists(basePath)) {
@@ -336,10 +343,11 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     LOG.info("Available workers in the cluster are {}", workers);
     if (mBaseParameters.mClusterLimit < 0) {
       throw new IllegalStateException("--cluster-limit cannot be " + mBaseParameters.mClusterLimit
-          + " in StressWorkerBench. It should be a positive number. 0 means running on all workers in the cluster.");
+          + " in StressWorkerBench. It should be a positive number. "
+          + "0 means running on all workers in the cluster.");
     } else if (mBaseParameters.mClusterLimit > workers.size()) {
-      throw new IllegalStateException(String.format("Specified --cluster-limit %d but only have %d workers in the cluster!",
-          mBaseParameters.mClusterLimit, workers.size()));
+      throw new IllegalStateException(String.format("Specified --cluster-limit %d but only "
+          + "have %d workers in the cluster!", mBaseParameters.mClusterLimit, workers.size()));
     }
 
     if (mParameters.mThreads <= 0) {
@@ -443,7 +451,8 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
             "Thread missed barrier. Increase the start delay. start: %d current: %d",
             mContext.getStartMs(), CommonUtils.getCurrentMs()));
       }
-      String dateFormat = alluxio.conf.Configuration.global().getString(PropertyKey.USER_DATE_FORMAT_PATTERN);
+      String dateFormat = alluxio.conf.Configuration.global()
+          .getString(PropertyKey.USER_DATE_FORMAT_PATTERN);
       SAMPLING_LOG.info("Scheduled to start at {}, wait {}ms for the scheduled start",
           CommonUtils.convertMsToDate(mContext.getStartMs(), dateFormat),
           waitMs);
