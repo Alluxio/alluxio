@@ -932,7 +932,6 @@ public class S3ObjectTask extends S3BaseTask {
             }
             SetAttributePOptions attrPOptions = SetAttributePOptions.newBuilder()
                 .setOwner(user)
-                .putAllXattr(xattrMap)
                 .build();
             mHandler.getMetaFS().setAttribute(new AlluxioURI(
                 S3RestUtils.getMultipartMetaFilepathForUploadId(uploadId)), attrPOptions);
