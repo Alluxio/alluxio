@@ -62,8 +62,7 @@ func (p *MastersProcess) Start(cmd *env.StartProcessCommand) error {
 		log.Logger.Fatalf("Cannot get private key, error: %s", err)
 	}
 
-	// for each master, create a client
-	// TODO: now start master one by one, need to do them in parallel
+	// generate command
 	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "cli.sh")
 	arguments := "process start master"
 	if cmd.AsyncStart {
@@ -74,12 +73,29 @@ func (p *MastersProcess) Start(cmd *env.StartProcessCommand) error {
 	}
 	command := cliPath + " " + arguments
 
-	errors := runCommands(masters, key, command)
+	// for each master, create a client and run
+	// TODO: now start master one by one, need to do them in parallel
+	var errors []error
+	for _, master := range masters {
+		conn, err := dialConnection(master, key)
+		if err != nil {
+			errors = append(errors, err)
+			continue
+		}
+		err = runCommand(conn, command)
+		if err != nil {
+			errors = append(errors, err)
+		}
+		err = closeConnection(conn)
+		if err != nil {
+			errors = append(errors, err)
+		}
+	}
 
 	if len(errors) == 0 {
 		log.Logger.Infof("Run command %s successful on masters: %s", command, masters)
 	} else {
-		log.Logger.Fatalf("Run command %s failed: %s", command, err)
+		log.Logger.Fatalf("Run command %s failed, number of failures: %v", command, len(errors))
 	}
 	return nil
 }
@@ -97,18 +113,34 @@ func (p *MastersProcess) Stop(cmd *env.StopProcessCommand) error {
 		log.Logger.Fatalf("Cannot get private key, error: %s", err)
 	}
 
-	// for each master, create a client
-	// TODO: now start master one by one, need to do them in parallel
+	// generate command
 	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "cli.sh")
 	arguments := "process stop master"
 	command := cliPath + " " + arguments
 
-	errors := runCommands(masters, key, command)
+	// for each master, create a client and run
+	// TODO: now stop master one by one, need to do them in parallel
+	var errors []error
+	for _, master := range masters {
+		conn, err := dialConnection(master, key)
+		if err != nil {
+			errors = append(errors, err)
+			continue
+		}
+		err = runCommand(conn, command)
+		if err != nil {
+			errors = append(errors, err)
+		}
+		err = closeConnection(conn)
+		if err != nil {
+			errors = append(errors, err)
+		}
+	}
 
 	if len(errors) == 0 {
 		log.Logger.Infof("Run command %s successful on masters: %s", command, masters)
 	} else {
-		log.Logger.Fatalf("Run command %s failed: %s", command, err)
+		log.Logger.Fatalf("Run command %s failed, number of failures: %v", command, len(errors))
 	}
 	return nil
 }

@@ -59,7 +59,7 @@ func (p *ProxiesProcess) Start(cmd *env.StartProcessCommand) error {
 	if err != nil {
 		log.Logger.Fatalf("Cannot get workers, error: %s", err)
 	}
-	allList := append(masters, workers...)
+	allNodes := append(masters, workers...)
 
 	// get public key for passwordless ssh
 	key, err := getPrivateKey()
@@ -67,8 +67,7 @@ func (p *ProxiesProcess) Start(cmd *env.StartProcessCommand) error {
 		log.Logger.Fatalf("Cannot get private key, error: %s", err)
 	}
 
-	// for each machine in allList, create a client
-	// TODO: now start worker one by one, need to do them in parallel
+	// generate command
 	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "cli.sh")
 	arguments := "process start proxy"
 	if cmd.AsyncStart {
@@ -79,12 +78,29 @@ func (p *ProxiesProcess) Start(cmd *env.StartProcessCommand) error {
 	}
 	command := cliPath + " " + arguments
 
-	errors := runCommands(allList, key, command)
+	// for each node, create a client
+	// TODO: now start nodes one by one, need to do them in parallel
+	var errors []error
+	for _, node := range allNodes {
+		conn, err := dialConnection(node, key)
+		if err != nil {
+			errors = append(errors, err)
+			continue
+		}
+		err = runCommand(conn, command)
+		if err != nil {
+			errors = append(errors, err)
+		}
+		err = closeConnection(conn)
+		if err != nil {
+			errors = append(errors, err)
+		}
+	}
 
 	if len(errors) == 0 {
-		log.Logger.Infof("Run command %s successful on machines: %s", command, workers)
+		log.Logger.Infof("Run command %s successful on nodes: %s", command, allNodes)
 	} else {
-		log.Logger.Fatalf("Run command %s failed: %s", command, err)
+		log.Logger.Fatalf("Run command %s failed, number of failures: %v", command, len(errors))
 	}
 	return nil
 }
@@ -99,7 +115,7 @@ func (p *ProxiesProcess) Stop(cmd *env.StopProcessCommand) error {
 	if err != nil {
 		log.Logger.Fatalf("Cannot get workers, error: %s", err)
 	}
-	allList := append(masters, workers...)
+	allNodes := append(masters, workers...)
 
 	// get public key for passwordless ssh
 	key, err := getPrivateKey()
@@ -107,18 +123,34 @@ func (p *ProxiesProcess) Stop(cmd *env.StopProcessCommand) error {
 		log.Logger.Fatalf("Cannot get private key, error: %s", err)
 	}
 
-	// for each machine in allList, create a client
-	// TODO: now start worker one by one, need to do them in parallel
+	// generate command
 	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "cli.sh")
 	arguments := "process stop proxy"
 	command := cliPath + " " + arguments
 
-	errors := runCommands(allList, key, command)
+	// for each node, create a client
+	// TODO: now stop nodes one by one, need to do them in parallel
+	var errors []error
+	for _, node := range allNodes {
+		conn, err := dialConnection(node, key)
+		if err != nil {
+			errors = append(errors, err)
+			continue
+		}
+		err = runCommand(conn, command)
+		if err != nil {
+			errors = append(errors, err)
+		}
+		err = closeConnection(conn)
+		if err != nil {
+			errors = append(errors, err)
+		}
+	}
 
 	if len(errors) == 0 {
-		log.Logger.Infof("Run command %s successful on machines: %s", command, workers)
+		log.Logger.Infof("Run command %s successful on nodes: %s", command, allNodes)
 	} else {
-		log.Logger.Fatalf("Run command %s failed: %s", command, err)
+		log.Logger.Fatalf("Run command %s failed, number of failures: %v", command, len(errors))
 	}
 	return nil
 }
