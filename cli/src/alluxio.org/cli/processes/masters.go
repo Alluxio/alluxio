@@ -23,7 +23,7 @@ import (
 
 var Masters = &MastersProcess{
 	BaseProcess: &env.BaseProcess{
-		Name: "proxies",
+		Name: "masters",
 	},
 }
 
