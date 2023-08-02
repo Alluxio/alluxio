@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
 
 public class WorkerBenchDataPointDeserializer extends JsonDeserializer<WorkerBenchDataPoint> {
-
     @Override
     public WorkerBenchDataPoint deserialize(JsonParser parser, DeserializationContext ctx)
             throws IOException {

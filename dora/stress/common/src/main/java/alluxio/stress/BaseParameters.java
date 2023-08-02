@@ -46,8 +46,8 @@ public final class BaseParameters {
 
   @Parameter(names = {CLUSTER_LIMIT_FLAG},
       description = "If greater than 0, it will only run on that number of workers. If 0,"
-          + " will run on all available cluster workers. If < 0, will run on the workers from the"
-          + " end of the worker list. This flag is only used if " + CLUSTER_FLAG + " is enabled.")
+          + " will run on all available cluster workers. "
+          + "This flag is only used if " + CLUSTER_FLAG + " is enabled.")
   public int mClusterLimit = 0;
 
   @Parameter(names = {CLUSTER_START_DELAY_FLAG},

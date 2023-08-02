@@ -37,8 +37,7 @@ public class StressWorkerBenchIntegrationTest extends AbstractStressBenchIntegra
         "--base", sLocalAlluxioClusterResource.get().getMasterURI() + "/stress-worker-base/",
         "--threads", "2",
         "--file-size", "1m",
-        "--warmup", "0s", "--duration", "1s",
-        "--cluster-limit", "1"
+        "--warmup", "0s", "--duration", "1s"
     });
 
     generateAndVerifyReport(Collections.singletonList("Worker Throughput"), output);

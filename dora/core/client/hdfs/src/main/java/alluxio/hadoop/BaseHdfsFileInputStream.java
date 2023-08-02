@@ -42,7 +42,7 @@ public class BaseHdfsFileInputStream extends InputStream implements Seekable, Po
   private static final Logger LOG = LoggerFactory.getLogger(BaseHdfsFileInputStream.class);
 
   private final Statistics mStatistics;
-  private final FileInStream mInputStream;
+  protected final FileInStream mInputStream;
 
   private boolean mClosed = false;
 

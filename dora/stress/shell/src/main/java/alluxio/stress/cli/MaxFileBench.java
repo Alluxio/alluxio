@@ -90,7 +90,7 @@ public class MaxFileBench extends StressMasterBench {
   }
 
   @Override
-  public void parseParameters(String[] args) {
+  protected void parseParameters(String[] args) {
     List<String> argsList = new ArrayList<>(Arrays.asList(args));
     argsList.addAll(mDefaultParams);
 

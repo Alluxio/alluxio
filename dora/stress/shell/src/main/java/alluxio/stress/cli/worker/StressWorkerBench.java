@@ -19,6 +19,7 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.WritePType;
+import alluxio.stress.BaseParameters;
 import alluxio.stress.cli.AbstractStressBench;
 import alluxio.stress.common.FileSystemParameters;
 import alluxio.stress.worker.WorkerBenchDataPoint;
@@ -82,9 +83,9 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
   }
 
   /***
-   * mClusterLimit is the number of job workers to run test on, if running in local mode then
-   * this equals 1.
-   * mThreads is the number of thread per job worker.
+   * mClusterLimit is the number of job workers & workers to run test on, if running in
+   * local mode then this equals 1.
+   * mThreads is the number of threads per job worker.
    * We allocate one file for each thread, so total mClusterLimit * mThreads files.
    */
   private int getTotalFileNumber() {
@@ -130,13 +131,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     validateParams();
     Path basePath = new Path(mParameters.mBasePath);
     int fileSize = (int) FormatUtils.parseSpaceSize(mParameters.mFileSize);
-    // numFiles is the total number of files, to be read by all workers
-    // clusterSize is the number of job workers to run test on
-    // clients is the number of AlluxioFS instances on each job worker
-    // threads is the number of thread per client
-    // so total clusterSize * threads read numFiles
-    int clusterSize = mBaseParameters.mClusterLimit;
-    int threads = mParameters.mThreads;
     int numFiles = getTotalFileNumber();
 
     // Generate the file paths using the same heuristics so all nodes have the same set of paths
@@ -192,9 +186,7 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     int fileSize = (int) FormatUtils.parseSpaceSize(mParameters.mFileSize);
     int clusterSize = mBaseParameters.mClusterLimit;
     int threads = mParameters.mThreads;
-    // We assume the worker list does not change at this stage of test
     List<BlockWorkerInfo> workers = mFsContext.getCachedWorkers();
-    LOG.info("Available workers in the cluster are {}", workers);
 
     Random rand = new Random();
     if (mParameters.mIsRandom) {
@@ -291,6 +283,11 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
     long durationMs = FormatUtils.parseTimeSize(mParameters.mDuration);
     long warmupMs = FormatUtils.parseTimeSize(mParameters.mWarmup);
     long startMs = mBaseParameters.mStartMs;
+    // TODO(jiacheng): these kinds of param updates should be moved to prepare()
+    if (startMs == BaseParameters.UNDEFINED_START_MS) {
+      LOG.info("Start time is unspecified, leaving 5s for preparation");
+      startMs = CommonUtils.getCurrentMs() + 5000;
+    }
     long endMs = startMs + warmupMs + durationMs;
     String datePattern = alluxio.conf.Configuration.global()
         .getString(PropertyKey.USER_DATE_FORMAT_PATTERN);
@@ -319,17 +316,28 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
 
   @Override
   public void validateParams() throws Exception {
-    if (mBaseParameters.mClusterLimit <= 0) {
+    // We assume the worker list does not change after the test starts
+    List<BlockWorkerInfo> workers = mFsContext.getCachedWorkers();
+    LOG.info("Available workers in the cluster are {}", workers);
+    if (mBaseParameters.mClusterLimit < 0) {
       throw new IllegalStateException("--cluster-limit cannot be " + mBaseParameters.mClusterLimit
-          + " in StressWorkerBench. It should be a positive number. Use 1 if running in local mode");
+          + " in StressWorkerBench. It should be a positive number. 0 means running on all workers in the cluster.");
+    } else if (mBaseParameters.mClusterLimit == 0) {
+      // TODO(jiacheng): these kinds of param updates should be moved to prepare()
+      LOG.info("No --cluster-limit was set, use all workers in the cluster");
+      mBaseParameters.mClusterLimit = workers.size();
+    } else if (mBaseParameters.mClusterLimit > workers.size()) {
+      throw new IllegalStateException(String.format("Specified --cluster-limit %d but only have %d workers in the cluster!",
+          mBaseParameters.mClusterLimit, workers.size()));
     }
+
     if (mParameters.mThreads <= 0) {
       throw new IllegalStateException("Thread number cannot be " + mParameters.mThreads
           + " in StressWorkerBench. It should be a positive number.");
     }
     if (mParameters.mFree && WritePType.MUST_CACHE.name().equals(mParameters.mWriteType)) {
       throw new IllegalStateException(String.format("%s cannot be %s when %s option provided",
-              FileSystemParameters.WRITE_TYPE_OPTION_NAME, WritePType.MUST_CACHE, "--free"));
+          FileSystemParameters.WRITE_TYPE_OPTION_NAME, WritePType.MUST_CACHE, "--free"));
     }
   }
 

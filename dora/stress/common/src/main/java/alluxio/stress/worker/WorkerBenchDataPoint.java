@@ -22,7 +22,6 @@ import com.google.common.base.MoreObjects;
  */
 @JsonDeserialize(using = WorkerBenchDataPointDeserializer.class)
 public class WorkerBenchDataPoint {
-
     @JsonProperty("workerID")
     public String mWorkerID;
     @JsonProperty("threadID")
@@ -41,11 +40,11 @@ public class WorkerBenchDataPoint {
                                 @JsonProperty("start") long startMs,
                                 @JsonProperty("duration") long duration,
                                 @JsonProperty("ioBytes") long ioBytes) {
-        mWorkerID = workerID;
-        mThreadID = threadID;
-        mStartMs = startMs;
-        mDuration = duration;
-        mIOBytes = ioBytes;
+      mWorkerID = workerID;
+      mThreadID = threadID;
+      mStartMs = startMs;
+      mDuration = duration;
+      mIOBytes = ioBytes;
     }
 
     public String getWorkerID() {
@@ -90,10 +89,10 @@ public class WorkerBenchDataPoint {
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this)
-            .add("threadID", mThreadID)
-            .add("ioBytes", mIOBytes)
-            .add("duration", mDuration)
-            .toString();
+      return MoreObjects.toStringHelper(this)
+        .add("threadID", mThreadID)
+        .add("ioBytes", mIOBytes)
+        .add("duration", mDuration)
+        .toString();
     }
 }
