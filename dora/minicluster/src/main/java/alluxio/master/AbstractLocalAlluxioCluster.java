@@ -231,12 +231,12 @@ public abstract class AbstractLocalAlluxioCluster {
     UnderFileSystem doraUfs = UnderFileSystem.Factory.create(doraUfsRoot, Configuration.global());
 
     // Deletes the ufs dir for this test from to avoid permission problems
-    // Do not delete the ufs root if the ufs is an object storage.
-    // In test environment, this means s3 mock is used.
-    if (!ufs.isObjectStorage()) {
+    // Do not delete the ufs root if the ufs is not local UFS.
+    // In some test cases, S3 and HDFS are used.
+    if (ufs.getUnderFSType().equals("local")) {
       UnderFileSystemUtils.deleteDirIfExists(ufs, underfsAddress);
     }
-    if (!doraUfs.isObjectStorage()) {
+    if (ufs.getUnderFSType().equals("local")) {
       UnderFileSystemUtils.deleteDirIfExists(doraUfs, doraUfsRoot);
     }
 
