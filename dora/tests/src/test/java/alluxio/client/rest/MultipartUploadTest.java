@@ -124,14 +124,15 @@ public class MultipartUploadTest extends RestApiTest {
     return uploadId;
   }
 
-  public void uploadParts(String uploadId, List<String> objects, List<Integer> parts) throws Exception {
+  public void uploadParts(String uploadId, List<String> objects, List<Integer> parts)
+      throws Exception {
     // Upload parts
     for (int partNum : parts) {
       createObjectTestCase(fullKey, objects.get(partNum).getBytes(), uploadId, partNum)
           .checkResponseCode(Status.OK.getStatusCode());
     }
     for (int partNum : parts) {
-      getTestCase(fullKey+ "_" + uploadId+AlluxioURI.SEPARATOR+partNum)
+      getTestCase(fullKey + "_" + uploadId + AlluxioURI.SEPARATOR + partNum)
           .checkResponseCode(Status.OK.getStatusCode())
           .checkResponse(objects.get(partNum).getBytes());
     }
@@ -204,8 +205,9 @@ public class MultipartUploadTest extends RestApiTest {
     Collections.shuffle(parts);
 
     uploadParts(uploadId, objects, parts);
-    completeMultipartUpload(uploadId, partList.subList(10,partsNum-10));
-    getTestCase(fullKey).checkResponse(String.join("", objects.subList(10,partsNum-10)).getBytes());
+    completeMultipartUpload(uploadId, partList.subList(10, partsNum - 10));
+    getTestCase(fullKey).checkResponse(
+        String.join("", objects.subList(10, partsNum - 10)).getBytes());
   }
 
   @Test
@@ -246,7 +248,7 @@ public class MultipartUploadTest extends RestApiTest {
     partList.add(new Part("", 2));
 
     completeMultipartUploadTestCase(fullKey, uploadId,
-        new CompleteMultipartUploadRequest(partList,true))
+        new CompleteMultipartUploadRequest(partList, true))
         .checkResponseCode(Status.BAD_REQUEST.getStatusCode())
         .checkErrorCode(S3ErrorCode.Name.INVALID_PART_ORDER);
   }
@@ -267,7 +269,7 @@ public class MultipartUploadTest extends RestApiTest {
     uploadParts(uploadId, objects, parts);
 
     completeMultipartUploadTestCase(fullKey, uploadId,
-        new CompleteMultipartUploadRequest(partList,true))
+        new CompleteMultipartUploadRequest(partList, true))
         .checkResponseCode(Status.BAD_REQUEST.getStatusCode())
         .checkErrorCode(S3ErrorCode.Name.ENTITY_TOO_SMALL);
   }
