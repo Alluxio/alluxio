@@ -252,9 +252,7 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       return;
     }
     while (true) {
-      try (PooledResource<BlockMasterClient> bmc = mBlockMasterClientPool.acquireCloseable()) {
-        // TODO(lucy) this is necessary here for MASTER web to be opened for some reason
-        bmc.get().connect();
+      try {
         mMembershipManager.join(new WorkerInfo().setAddress(mAddress));
         mWorkerId.set(HashUtils.hashAsLong(mAddress.dumpMainInfo()));
         break;
