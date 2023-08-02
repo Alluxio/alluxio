@@ -422,7 +422,10 @@ public class CompleteMultipartUploadHandler extends AbstractHandler {
           throw new S3Exception(objectPath, S3ErrorCode.ENTITY_TOO_SMALL);
         }
       }
-      return uploadedParts;
+      List<URIStatus> validParts =
+          request.getParts().stream().map(part -> uploadedPartsMap.get(part.getPartNumber()))
+              .collect(Collectors.toList());
+      return validParts;
     }
 
     /**
