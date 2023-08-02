@@ -721,8 +721,8 @@ public class LocalCacheManager implements CacheManager {
       int readBytes = get(pageId, 0, appendAt,
           new ByteArrayTargetBuffer(newPage, 0), cacheContext);
       boolean success = delete(pageId, cacheContext.isTemporary());
-      LOG.debug("delete pageId: " + pageId
-          + ", appendAt: " + appendAt + ", readBytes: " + readBytes + ", success: " + success);
+      LOG.debug("delete pageId: {}, appendAt: {}, readBytes: {}, success: {}",
+          pageId, appendAt, readBytes, success);
       System.arraycopy(page, 0, newPage, appendAt, page.length);
       return put(pageId, newPage, cacheContext);
     }

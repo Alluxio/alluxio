@@ -131,7 +131,7 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   public URIStatus getStatus(AlluxioURI path, GetStatusPOptions options)
       throws IOException, AlluxioException {
     AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(path);
-    LOG.debug("DoraCacheFileSystem getStatus for " + ufsFullPath);
+    LOG.debug("DoraCacheFileSystem getStatus for {}", ufsFullPath);
     if (!mMetadataCacheEnabled) {
       return mDelegatedFileSystem.getStatus(ufsFullPath, options);
     }
