@@ -11,6 +11,9 @@
 
 package alluxio.worker.s3;
 
+import static io.netty.handler.codec.http.HttpObjectDecoder.DEFAULT_MAX_CHUNK_SIZE;
+import static io.netty.handler.codec.http.HttpObjectDecoder.DEFAULT_MAX_HEADER_SIZE;
+import static io.netty.handler.codec.http.HttpObjectDecoder.DEFAULT_MAX_INITIAL_LINE_LENGTH;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
@@ -27,6 +30,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.HttpServerExpectContinueHandler;
+import io.netty.handler.stream.ChunkedWriteHandler;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -79,8 +83,7 @@ public class S3HttpPipelineHandler extends ChannelInitializer<SocketChannel> {
   protected void initChannel(SocketChannel channel) throws Exception {
     ChannelPipeline pipeline = channel.pipeline();
     pipeline.addLast(new HttpServerCodec());
-    // TODO(wyy) use ChunkedWriteHandler to replace this Aggregator to support large file uploading
-    pipeline.addLast(new HttpObjectAggregator(512 * 1024));
+    pipeline.addLast(new ChunkedWriteHandler());
     pipeline.addLast(new HttpServerExpectContinueHandler());
     pipeline.addLast(
         new S3HttpHandler(mFileSystem, mDoraWorker, mAsyncAuditLogWriter, mLightPool, mHeavyPool));

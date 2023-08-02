@@ -53,7 +53,7 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.FileRegion;
 import io.netty.handler.codec.http.DefaultHttpContent;
-import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.LastHttpContent;
@@ -87,12 +87,14 @@ public class S3NettyHandler {
   private String mUser;
   private final String mBucket;
   private final String mObject;
-  private final FullHttpRequest mRequest;
+  private final HttpRequest mRequest;
+  private HttpContent mContent;
   private HttpResponse mResponse;
   private final ChannelHandlerContext mContext;
   private final QueryStringDecoder mQueryDecoder;
   private S3NettyBaseTask mS3Task;
   private FileSystem mFsClient;
+  private FileSystem mUserFsClient;
   private DoraWorker mDoraWorker;
   private Stopwatch mStopwatch;
   public AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
@@ -144,7 +146,7 @@ public class S3NettyHandler {
    * @param doraWorker
    * @param asyncAuditLogWriter
    */
-  public S3NettyHandler(String bucket, String object, FullHttpRequest request,
+  public S3NettyHandler(String bucket, String object, HttpRequest request,
                         ChannelHandlerContext ctx, FileSystem fileSystem,
                         DoraWorker doraWorker,
                         AsyncUserAccessAuditLogWriter asyncAuditLogWriter) {
@@ -171,7 +173,7 @@ public class S3NettyHandler {
    * @throws Exception
    *
    */
-  public static S3NettyHandler createHandler(ChannelHandlerContext context, FullHttpRequest request,
+  public static S3NettyHandler createHandler(ChannelHandlerContext context, HttpRequest request,
                                              FileSystem fileSystem, DoraWorker doraWorker,
                                              AsyncUserAccessAuditLogWriter asyncAuditLogWriter)
       throws Exception {
@@ -487,7 +489,7 @@ public class S3NettyHandler {
    * get HTTP request.
    * @return HTTP request
    */
-  public FullHttpRequest getRequest() {
+  public HttpRequest getRequest() {
     return mRequest;
   }
 
@@ -504,7 +506,7 @@ public class S3NettyHandler {
    * @return HTTP content
    */
   public ByteBuf getRequestContent() {
-    return mRequest.content();
+    return mContent.content();
   }
 
   /**
@@ -572,17 +574,20 @@ public class S3NettyHandler {
    * @param user the {@link Subject} name of the filesystem user
    * @return A {@link FileSystem} with the subject set to the provided user
    */
-  public FileSystem createFileSystemForUser(String user) {
+  public FileSystem getFileSystemForUser(String user) {
     if (user == null) {
       // Used to return the top-level FileSystem view when not using Authentication
       return mFsClient;
     }
 
-    final Subject subject = new Subject();
-    subject.getPrincipals().add(new User(user));
-    // Use local conf to create filesystem rather than fs.getConf()
-    // due to fs conf will be changed by merged cluster conf.
-    return FileSystem.Factory.get(subject, Configuration.global());
+    if (mUserFsClient == null) {
+      final Subject subject = new Subject();
+      subject.getPrincipals().add(new User(user));
+      // Use local conf to create filesystem rather than fs.getConf()
+      // due to fs conf will be changed by merged cluster conf.
+      mUserFsClient = FileSystem.Factory.get(subject, Configuration.global());
+    }
+    return mUserFsClient;
   }
 
   /**

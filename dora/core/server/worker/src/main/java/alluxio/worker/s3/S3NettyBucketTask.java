@@ -174,7 +174,7 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
       return NettyRestUtils.call(mHandler.getBucket(), () -> {
         String path = NettyRestUtils.parsePath(AlluxioURI.SEPARATOR + mHandler.getBucket());
         final String user = mHandler.getUser();
-        final FileSystem userFs = mHandler.createFileSystemForUser(user);
+        final FileSystem userFs = mHandler.getFileSystemForUser(user);
 
         try (S3AuditContext auditContext = mHandler.createAuditContext(
             mOPType.name(), user, mHandler.getBucket(), null)) {
@@ -246,7 +246,7 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
     public HttpResponse continueTask() {
       return NettyRestUtils.call(mHandler.getBucket(), () -> {
         final String user = mHandler.getUser();
-        final FileSystem userFs = mHandler.createFileSystemForUser(user);
+        final FileSystem userFs = mHandler.getFileSystemForUser(user);
         String bucketPath = NettyRestUtils.parsePath(AlluxioURI.SEPARATOR + mHandler.getBucket());
         try (S3AuditContext auditContext = mHandler.createAuditContext(
             mOPType.name(), user, mHandler.getBucket(), null)) {
@@ -327,7 +327,7 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
       return NettyRestUtils.call(mHandler.getBucket(), () -> {
         String bucketPath = NettyRestUtils.parsePath(AlluxioURI.SEPARATOR + mHandler.getBucket());
         final String user = mHandler.getUser();
-        final FileSystem userFs = mHandler.createFileSystemForUser(user);
+        final FileSystem userFs = mHandler.getFileSystemForUser(user);
 
         try (S3AuditContext auditContext = mHandler.createAuditContext(
             mOPType.name(), user, mHandler.getBucket(), null)) {
@@ -348,7 +348,7 @@ public class S3NettyBucketTask extends S3NettyBaseTask {
     public HttpResponse continueTask() {
       return NettyRestUtils.call(mHandler.getBucket(), () -> {
         final String user = mHandler.getUser();
-        final FileSystem userFs = mHandler.createFileSystemForUser(user);
+        final FileSystem userFs = mHandler.getFileSystemForUser(user);
         String bucketPath = NettyRestUtils.parsePath(AlluxioURI.SEPARATOR + mHandler.getBucket());
 
         try (S3AuditContext auditContext = mHandler.createAuditContext(

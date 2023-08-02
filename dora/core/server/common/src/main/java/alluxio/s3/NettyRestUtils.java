@@ -38,10 +38,10 @@ import com.google.common.annotations.VisibleForTesting;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
@@ -267,7 +267,7 @@ public class NettyRestUtils {
    * @return user name
    * @throws S3Exception
    */
-  public static String getUser(FullHttpRequest request)
+  public static String getUser(HttpRequest request)
       throws S3Exception {
     String authorization = request.headers().get("Authorization");
     if (ENABLED_AUTHENTICATION) {
@@ -281,7 +281,7 @@ public class NettyRestUtils {
     }
   }
 
-  private static String getUserFromSignature(FullHttpRequest request)
+  private static String getUserFromSignature(HttpRequest request)
       throws S3Exception {
     AwsSignatureProcessor signatureProcessor = new AwsSignatureProcessor(request);
     AwsAuthInfo authInfo = signatureProcessor.getAuthInfo();
@@ -404,12 +404,12 @@ public class NettyRestUtils {
   }
 
   /**
-   * Get the scheme of a {@link FullHttpRequest}.
+   * Get the scheme of a {@link HttpRequest}.
    *
    * @param fullHttpRequest FullHttpRequest
    * @return the scheme string
    */
-  public static String getScheme(FullHttpRequest fullHttpRequest) {
+  public static String getScheme(HttpRequest fullHttpRequest) {
     HttpHeaders headers = fullHttpRequest.headers();
     String hostHeader = headers.get("Host");
 
