@@ -209,6 +209,7 @@ public class LocalCacheManager implements CacheManager {
         DataFileChannel dataFileChannel = pageInfo.getLocalCacheDir().getPageStore()
             .getDataFileChannel(pageInfo.getPageId(), pageOffset, bytesToRead,
                 cacheContext.isTemporary());
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_HIT_REQUESTS.getName()).inc();
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getName()).mark(bytesToRead);
         cacheContext.incrementCounter(MetricKey.CLIENT_CACHE_BYTES_READ_CACHE.getMetricName(), BYTE,
             bytesToRead);
