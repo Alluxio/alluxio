@@ -76,7 +76,7 @@ public final class TestCase {
     mParameters = parameters;
     mMethod = method;
     mOptions = options;
-    mConnection =  execute();
+    mConnection = execute();
   }
 
   /**
@@ -130,6 +130,13 @@ public final class TestCase {
   }
 
   /**
+   * @return the specified-type instance from the InputStream of HttpURLConnection
+   */
+  public <T> T getResponse(Class<T> valueType) throws Exception {
+    return XML_MAPPER.readValue(getResponse(), valueType);
+  }
+
+  /**
    * Runs the test case and returns the {@link HttpURLConnection}.
    */
   public HttpURLConnection execute() throws Exception {
@@ -169,6 +176,7 @@ public final class TestCase {
     }
 
     connection.connect();
+    connection.getResponseCode();
     return connection;
   }
 

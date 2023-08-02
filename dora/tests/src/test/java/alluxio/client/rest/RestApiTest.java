@@ -12,6 +12,7 @@
 package alluxio.client.rest;
 
 import alluxio.Constants;
+import alluxio.proxy.s3.CompleteMultipartUploadRequest;
 import alluxio.proxy.s3.S3Constants;
 import alluxio.testutils.BaseIntegrationTest;
 
@@ -19,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.io.BaseEncoding;
 
 import java.security.MessageDigest;
+import java.util.HashMap;
 import java.util.Map;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.HttpMethod;
@@ -40,6 +42,16 @@ public abstract class RestApiTest extends BaseIntegrationTest {
 
   protected TestCase createBucketTestCase(String bucket) throws Exception {
     return newTestCase(bucket, NO_PARAMS, HttpMethod.PUT, getDefaultOptionsWithAuth());
+  }
+
+  protected TestCase createObjectTestCase(String bucket, byte[] object, String uploadId,
+                                          Integer partNumber) throws Exception {
+    Map<String, String> params = new HashMap<>();
+    params.put("uploadId", uploadId);
+    params.put("partNumber", partNumber.toString());
+    return newTestCase(bucket, params, HttpMethod.PUT, getDefaultOptionsWithAuth()
+        .setBody(object)
+        .setMD5(computeObjectChecksum(object)));
   }
 
   protected TestCase createObjectTestCase(String bucket, byte[] object) throws Exception {
@@ -77,6 +89,21 @@ public abstract class RestApiTest extends BaseIntegrationTest {
         getDefaultOptionsWithAuth().setContentType(TestCaseOptions.XML_CONTENT_TYPE));
   }
 
+  protected TestCase initiateMultipartUploadTestCase(String uri) throws Exception {
+    return newTestCase(
+        uri, ImmutableMap.of("uploads", ""), HttpMethod.POST,
+        getDefaultOptionsWithAuth());
+  }
+
+  protected TestCase completeMultipartUploadTestCase(
+      String objectUri, String uploadId, CompleteMultipartUploadRequest request) throws Exception {
+    return newTestCase(
+        objectUri, ImmutableMap.of("uploadId", uploadId), HttpMethod.POST,
+        getDefaultOptionsWithAuth()
+            .setBody(request)
+            .setContentType(TestCaseOptions.XML_CONTENT_TYPE));
+  }
+
   protected TestCaseOptions getDefaultOptionsWithAuth(@NotNull String user) {
     return TestCaseOptions.defaults()
         .setAuthorization("AWS4-HMAC-SHA256 Credential=" + user + "/...");
@@ -86,7 +113,7 @@ public abstract class RestApiTest extends BaseIntegrationTest {
     return getDefaultOptionsWithAuth(TEST_USER);
   }
 
-  private String computeObjectChecksum(byte[] objectContent) throws Exception {
+  protected String computeObjectChecksum(byte[] objectContent) throws Exception {
     MessageDigest md5Hash = MessageDigest.getInstance("MD5");
     byte[] md5Digest = md5Hash.digest(objectContent);
     return BaseEncoding.base64().encode(md5Digest);
