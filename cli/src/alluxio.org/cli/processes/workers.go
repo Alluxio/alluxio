@@ -61,8 +61,7 @@ func (p *WorkersProcess) Start(cmd *env.StartProcessCommand) error {
 		log.Logger.Fatalf("Cannot get private key, error: %s", err)
 	}
 
-	// for each worker, create a client
-	// TODO: now start worker one by one, need to do them in parallel
+	// generate command
 	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "cli.sh")
 	arguments := "process start worker"
 	if cmd.AsyncStart {
@@ -73,12 +72,29 @@ func (p *WorkersProcess) Start(cmd *env.StartProcessCommand) error {
 	}
 	command := cliPath + " " + arguments
 
-	errors := runCommands(workers, key, command)
+	// for each worker, create a client and run
+	// TODO: now start worker one by one, need to do them in parallel
+	var errors []error
+	for _, worker := range workers {
+		conn, err := dialConnection(worker, key)
+		if err != nil {
+			errors = append(errors, err)
+			continue
+		}
+		err = runCommand(conn, command)
+		if err != nil {
+			errors = append(errors, err)
+		}
+		err = closeConnection(conn)
+		if err != nil {
+			errors = append(errors, err)
+		}
+	}
 
 	if len(errors) == 0 {
 		log.Logger.Infof("Run command %s successful on workers: %s", command, workers)
 	} else {
-		log.Logger.Fatalf("Run command %s failed: %s", command, err)
+		log.Logger.Fatalf("Run command %s failed, number of failures: %v", command, len(errors))
 	}
 	return nil
 }
@@ -96,18 +112,34 @@ func (p *WorkersProcess) Stop(cmd *env.StopProcessCommand) error {
 		log.Logger.Fatalf("Cannot get private key, error: %s", err)
 	}
 
-	// for each worker, create a client
-	// TODO: now start worker one by one, need to do them in parallel
+	// generate command
 	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "cli.sh")
 	arguments := "process stop worker"
 	command := cliPath + " " + arguments
 
-	errors := runCommands(workers, key, command)
+	// for each worker, create a client and run
+	// TODO: now stop worker one by one, need to do them in parallel
+	var errors []error
+	for _, worker := range workers {
+		conn, err := dialConnection(worker, key)
+		if err != nil {
+			errors = append(errors, err)
+			continue
+		}
+		err = runCommand(conn, command)
+		if err != nil {
+			errors = append(errors, err)
+		}
+		err = closeConnection(conn)
+		if err != nil {
+			errors = append(errors, err)
+		}
+	}
 
 	if len(errors) == 0 {
-		log.Logger.Infof("Run command %s on workers: %s", command, workers)
+		log.Logger.Infof("Run command %s successful on workers: %s", command, workers)
 	} else {
-		log.Logger.Fatalf("Run command %s failed: %s", command, err)
+		log.Logger.Fatalf("Run command %s failed, number of failures: %v", command, len(errors))
 	}
 	return nil
 }

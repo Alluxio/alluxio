@@ -112,59 +112,60 @@ func getPrivateKey() (ssh.Signer, error) {
 	return parsedPrivateKey, nil
 }
 
-func runCommands(workers []string, key ssh.Signer, command string) []error {
-	var errors []error
-	for _, worker := range workers {
-		clientConfig := &ssh.ClientConfig{
-			// TODO: how to get user name? Like ${USER} in alluxio-common.sh
-			User: "root",
-			Auth: []ssh.AuthMethod{
-				ssh.PublicKeys(key),
-			},
-			Timeout:         5 * time.Second,
-			HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-		}
-		// TODO: Some machines might have changed default SSH port. Get ssh port or remind users when get started.
-		dialAddr := fmt.Sprintf("%s:%d", worker, 22)
-		conn, err := ssh.Dial("tcp", dialAddr, clientConfig)
-		defer func(conn *ssh.Client) {
-			err := conn.Close()
-			if err != nil {
-				log.Logger.Infof("Connection to %s closed. Error: %s", dialAddr, err)
-			} else {
-				log.Logger.Infof("Connection to %s closed.", dialAddr)
-			}
-		}(conn)
-
-		if err != nil {
-			log.Logger.Errorf("Dial failed to %s, error: %s", dialAddr, err)
-			errors = append(errors, err)
-		}
-
-		// create a session for each worker
-		session, err := conn.NewSession()
-		if err != nil {
-			log.Logger.Errorf("Cannot create session at %s", dialAddr)
-			errors = append(errors, err)
-		}
-		defer func(session *ssh.Session) {
-			err := session.Close()
-			if err != nil && err != io.EOF {
-				log.Logger.Infof("Session at %s closed. Error: %s", dialAddr, err)
-			} else {
-				log.Logger.Infof("Session at %s closed.", dialAddr)
-			}
-		}(session)
-
-		session.Stdout = os.Stdout
-		session.Stderr = os.Stderr
-
-		// run session
-		err = session.Run(command)
-		if err != nil {
-			log.Logger.Errorf("Run command %s failed at %s", command, dialAddr)
-			errors = append(errors, err)
-		}
+func dialConnection(remoteAddress string, key ssh.Signer) (*ssh.Client, error) {
+	clientConfig := &ssh.ClientConfig{
+		// TODO: how to get user name? Like ${USER} in alluxio-common.sh
+		User: "root",
+		Auth: []ssh.AuthMethod{
+			ssh.PublicKeys(key),
+		},
+		Timeout:         5 * time.Second,
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
-	return errors
+	// TODO: Some machines might have changed default SSH port. Get ssh port or remind users when get started.
+	dialAddr := fmt.Sprintf("%s:%d", remoteAddress, 22)
+	conn, err := ssh.Dial("tcp", dialAddr, clientConfig)
+	if err != nil {
+		log.Logger.Errorf("Dial failed to %s, error: %s", remoteAddress, err)
+	}
+	return conn, err
+}
+
+func closeConnection(conn *ssh.Client) error {
+	err := conn.Close()
+	if err != nil {
+		log.Logger.Infof("Connection to %s closed. Error: %s", conn.RemoteAddr(), err)
+	} else {
+		log.Logger.Infof("Connection to %s closed.", conn.RemoteAddr())
+	}
+	return err
+}
+
+func runCommand(conn *ssh.Client, command string) error {
+	// create a session for each worker
+	session, err := conn.NewSession()
+	if err != nil {
+		log.Logger.Errorf("Cannot create session at %s", conn.RemoteAddr())
+		return err
+	}
+
+	session.Stdout = os.Stdout
+	session.Stderr = os.Stderr
+
+	// run session
+	err = session.Run(command)
+	if err != nil {
+		log.Logger.Errorf("Run command %s failed at %s", command, conn.RemoteAddr())
+		return err
+	}
+
+	// close session
+	err = session.Close()
+	if err != nil && err != io.EOF {
+		log.Logger.Infof("Session at %s closed. Error: %s", conn.RemoteAddr(), err)
+		return err
+	} else {
+		log.Logger.Infof("Session at %s closed.", conn.RemoteAddr())
+	}
+	return nil
 }
