@@ -67,6 +67,29 @@
           <version>${ufs.hadoop.version}</version>
         </dependency>
       </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>default-testCompile</id>
+                <phase>test-compile</phase>
+                <configuration>
+                  <testExcludes>
+                    <!-- Skip hdfs3 related tests in hdfs2 profile -->
+                    <exclude>**/hdfs3/**</exclude>
+                  </testExcludes>
+                </configuration>
+                <goals>
+                  <goal>testCompile</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
 
     <!-- Profile to build this UFS module connecting to hdfs 3, this is the default profile -->
@@ -80,6 +103,12 @@
           <groupId>org.alluxio</groupId>
           <artifactId>alluxio-shaded-hadoop</artifactId>
           <version>${ufs.hadoop.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-minicluster</artifactId>
+          <version>${ufs.hadoop.version}</version>
+          <scope>test</scope>
         </dependency>
       </dependencies>
     </profile>
@@ -137,6 +166,18 @@
 
   <build>
     <plugins>
+      <!-- Export test classes in a test-jar so that other projects can use them for testing -->
+      <plugin>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-jar-plugin</artifactId>
+      <executions>
+        <execution>
+          <goals>
+            <goal>test-jar</goal>
+          </goals>
+        </execution>
+      </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>

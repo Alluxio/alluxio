@@ -152,6 +152,7 @@ message CreateFilePOptions {
   // If specified, the data will be written to the certain worker
   optional grpc.WorkerNetAddress workerLocation = 15;
   optional bool isAtomicWrite = 16;
+  optional bool useMultipartUpload = 17;
 }
 message CreateFilePRequest {
   /** the path of the file */

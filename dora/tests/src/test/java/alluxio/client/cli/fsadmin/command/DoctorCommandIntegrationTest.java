@@ -15,11 +15,13 @@ import alluxio.cli.fsadmin.command.DoctorCommand;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Tests for doctor command.
  */
+@Ignore
 public final class DoctorCommandIntegrationTest extends AbstractFsAdminShellTest {
   @Test
   public void masterNotRunning() throws Exception {

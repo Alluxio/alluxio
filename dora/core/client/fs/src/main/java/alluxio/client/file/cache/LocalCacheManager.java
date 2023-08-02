@@ -637,6 +637,7 @@ public class LocalCacheManager implements CacheManager {
     int bytesRead = get(pageId, pageOffset,
         bytesToRead, buffer, cacheContext);
     if (bytesRead > 0) {
+      MetricsSystem.counter(MetricKey.CLIENT_CACHE_HIT_REQUESTS.getName()).inc();
       return bytesRead;
     }
     // on local cache miss, read a complete page from external storage. This will always make
@@ -653,6 +654,7 @@ public class LocalCacheManager implements CacheManager {
     buffer.writeBytes(page, pageOffset, bytesToRead);
     MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName())
         .mark(bytesToRead);
+    MetricsSystem.counter(MetricKey.CLIENT_CACHE_EXTERNAL_REQUESTS.getName()).inc();
     cacheContext.incrementCounter(
         MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getMetricName(), BYTE,
         bytesToRead);

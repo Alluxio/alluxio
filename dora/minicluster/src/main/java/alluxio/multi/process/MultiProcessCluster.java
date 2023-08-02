@@ -42,6 +42,7 @@ import alluxio.master.PollingMasterInquireClient;
 import alluxio.master.SingleMasterInquireClient;
 import alluxio.master.ZkMasterInquireClient;
 import alluxio.master.journal.JournalType;
+import alluxio.membership.MembershipType;
 import alluxio.multi.process.PortCoordination.ReservedPort;
 import alluxio.security.user.ServerUserState;
 import alluxio.util.CommonUtils;
@@ -739,6 +740,8 @@ public final class MultiProcessCluster {
     conf.put(PropertyKey.DORA_CLIENT_UFS_ROOT, PathUtils.concatPath(mWorkDir, "underFSStorage"));
     conf.put(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false);
     conf.put(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED, true);
+
+    Configuration.set(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE, MembershipType.NOOP);
 
     Worker worker = mCloser.register(new Worker(logsDir, conf));
     mWorkers.add(worker);

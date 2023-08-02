@@ -43,6 +43,8 @@ public class URIStatus {
   /** Context associated with this URI, possibly set by other external engines (e.g., presto). */
   private final CacheContext mCacheContext;
 
+  private boolean mFromUFSFallBack;
+
   /**
    * Constructs an instance of this class from a {@link FileInfo}.
    *
@@ -61,6 +63,32 @@ public class URIStatus {
   public URIStatus(FileInfo info, @Nullable CacheContext context) {
     mInfo = Preconditions.checkNotNull(info, "info");
     mCacheContext = context;
+    mFromUFSFallBack = false;
+  }
+
+  /**
+   * @return if the FileInfo is from UFS instead of worker
+   *
+   * If true, it means this status is retrieved by falling back to UFS.
+   */
+  public boolean isFromUFSFallBack() {
+    return mFromUFSFallBack;
+  }
+
+  /**
+   * Sets flag that the FileInfo is retrieved from UFS instead of worker.
+   *
+   * Usually, client calls getStatus() and the FileInfo is retrieved from worker.
+   * But if there is something wrong with the worker or the connection between client
+   * and worker is lost, client will fall back to UFS. If that happens, this function
+   * is called to set the flag. So, the subsequent openFile(status, path) will also fall back
+   * to UFS immediately.
+   *
+   * @return this object itself
+   */
+  public URIStatus setFromUFSFallBack() {
+    mFromUFSFallBack = true;
+    return this;
   }
 
   /**
