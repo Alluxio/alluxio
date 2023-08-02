@@ -2228,12 +2228,6 @@ public final class S3ClientRestApiTest extends RestApiTest {
         getDefaultOptionsWithAuth()).execute();
   }
 
-  private String computeObjectChecksum(byte[] objectContent) throws Exception {
-    MessageDigest md5Hash = MessageDigest.getInstance("MD5");
-    byte[] md5Digest = md5Hash.digest(objectContent);
-    return BaseEncoding.base64().encode(md5Digest);
-  }
-
   private void createObjectRestCall(String objectUri, @NotNull Map<String, String> params,
                                     @NotNull TestCaseOptions options) throws Exception {
     new TestCase(mHostname, mPort, mBaseUri, objectUri, params, HttpMethod.PUT, options)
