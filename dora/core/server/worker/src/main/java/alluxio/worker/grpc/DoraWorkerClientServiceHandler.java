@@ -215,7 +215,7 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
     UfsUrl ufsPath = new UfsUrl(request.getUfsPath());
     LOG.debug("listStatus is called for {}", ufsPath.asString());
     try {
-      UfsStatus[] statuses = mWorker.listStatus(ufsPath.getFullPath(), request.getOptions());
+      UfsStatus[] statuses = mWorker.listStatus(ufsPath.asString(), request.getOptions());
       if (statuses == null) {
         responseObserver.onError(
             new NotFoundRuntimeException(String.format("%s Not Found", ufsPath.asString()))

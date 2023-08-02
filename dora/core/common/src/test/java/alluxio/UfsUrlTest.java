@@ -47,8 +47,8 @@ public class UfsUrlTest {
     assertEquals("alluxio://localhost:19998/xy z/a b c/d", ufsUrl.join("/d").asString());
     assertEquals("alluxio://localhost:19998/xy z/a b c/d", ufsUrl.join(new AlluxioURI("/d"))
         .toString());
-    assertEquals("alluxio://localhost:19998/xy z/a b c", ufsUrl.asString());
 */
+    assertEquals("alluxio://localhost:19998/xy z/a b c", ufsUrl.asString());
   }
 
   @Test
@@ -56,13 +56,15 @@ public class UfsUrlTest {
     String[] strings =
         new String[] {"alluxio://localhost:19998/xyz/abc", "hdfs://localhost:19998/xyz/abc",
             "s3://localhost:19998/xyz/abc", "alluxio://localhost:19998/xy z/a b c",
-            "hdfs://localhost:19998/xy z/a b c", "s3://localhost:19998/xy z/a b c"};
+            "hdfs://localhost:19998/xy z/a b c", "s3://localhost:19998/xy z/a b c",
+            "s3://tony-fuse-test/test"};
     for (String str : strings) {
       UfsUrl ufsUrl = new UfsUrl(str);
       assertTrue(ufsUrl.getAuthority().isPresent());
       SingleMasterAuthority authority = (SingleMasterAuthority) ufsUrl.getAuthority().get();
       assertEquals("localhost", authority.getHost());
       assertEquals(19998, authority.getPort());
+      assertEquals(str, ufsUrl.asString());
     }
   }
 

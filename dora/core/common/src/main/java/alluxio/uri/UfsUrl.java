@@ -172,19 +172,22 @@ public class UfsUrl {
     // TODO(Jiacheng Liu): consider corner cases
     StringBuilder sb = new StringBuilder();
     sb.append(mProto.getScheme());
+    if (!mProto.getScheme().isEmpty()) {
     sb.append(UfsUrl.SCHEME_SEPARATOR);
+    }
     sb.append(mProto.getAuthority());
+    if (!mProto.getAuthority().isEmpty()) {
     sb.append(UfsUrl.PATH_SEPARATOR);
+    }
     List<String> pathComponents = mProto.getPathComponentsList();
     for (int i = 0; i < pathComponents.size(); i++) {
       if (pathComponents.get(i).isEmpty())  {
         continue;
       }
       sb.append(pathComponents.get(i));
-      if (i < pathComponents.size() - 1) {
+      if (i != pathComponents.size() - 1) {
         sb.append(UfsUrl.PATH_SEPARATOR);
       }
-      // TODO(Jiacheng Liu): need a trailing separator if the path is dir?
     }
     return sb.toString();
   }
