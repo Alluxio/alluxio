@@ -65,7 +65,7 @@ Another default configuration change will delegate the journal backup operation 
 
 ### Metadata and Journal
 * Add CLI for marking a path as needing sync with UFS ([1c781f7de1](https://github.com/Alluxio/alluxio/commits/1c781f7de1){:target="_blank"})
-* ([](){:target="_blank"})
+* Make metadata sync work with merge inode journal feature flag ([7ff9df2789](https://github.com/Alluxio/alluxio/commits/7ff9df2789){:target="_blank"})
 * ([](){:target="_blank"})
 * ([](){:target="_blank"})
 * ([](){:target="_blank"})
