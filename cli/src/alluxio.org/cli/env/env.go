@@ -18,7 +18,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/palantir/stacktrace"
@@ -29,8 +28,6 @@ import (
 )
 
 const (
-	requiredJavaVersion = 11
-
 	userLoggerType = "USER_LOGGER"
 )
 
@@ -134,7 +131,7 @@ func InitAlluxioEnv(rootPath string, isDeployed bool) error {
 	if err := checkAndSetJava(envVar); err != nil {
 		return stacktrace.Propagate(err, "error finding installed java")
 	}
-	if err := checkJavaVersion(envVar.GetString(ConfJava.EnvVar), requiredJavaVersion); err != nil {
+	if err := checkJavaVersion(envVar.GetString(ConfJava.EnvVar)); err != nil {
 		return stacktrace.Propagate(err, "error checking java version compatibility")
 	}
 
@@ -237,30 +234,26 @@ func checkAndSetJava(envVar *viper.Viper) error {
 	return stacktrace.NewError(`Error: Cannot find 'java' on path or under $JAVA_HOME/bin/. Please set %v in alluxio-env.sh or user bash profile.`, confJavaHome.EnvVar)
 }
 
-// matching the version string encapsulated by double quotes, ex. "11.0.19" where 11 is majorVer and 0 is minorVer
-var javaVersionRe = regexp.MustCompile(`.*"(?P<majorVer>\d+)\.(?P<minorVer>\d+)[\w.-]*".*`)
+var (
+	// matches the first 2 numbers in the version string encapsulated by double quotes, ex. "11.0.19" -> 11.0
+	javaVersionRe = regexp.MustCompile(`.*"(?P<majorMinorVer>\d+\.\d+)[\w.-]*".*`)
+	// must be either java 8 or 11
+	requiredVersionRegex = regexp.MustCompile(`1\.8|11\.0`)
+)
 
-func checkJavaVersion(javaPath string, requiredJavaVersion int) error {
+func checkJavaVersion(javaPath string) error {
 	cmd := exec.Command("bash", "-c", fmt.Sprintf("%v -version", javaPath))
 	javaVer, err := cmd.CombinedOutput()
 	if err != nil {
 		return stacktrace.Propagate(err, "error finding java version from `%v -version`", javaPath)
 	}
 	matches := javaVersionRe.FindStringSubmatch(string(javaVer))
-	if len(matches) != 3 {
+	if len(matches) != 2 {
 		return stacktrace.NewError("java version output does not match expected regex pattern %v\n%v", javaVersionRe.String(), string(javaVer))
 	}
-	majorVer, err := strconv.Atoi(matches[1])
-	if err != nil {
-		return stacktrace.NewError("could not parse major version as an integer: %v", matches[1])
-	}
-	if majorVer != requiredJavaVersion {
-		// java 8 is displayed as 1.8, so also print minor version in error message
-		ver := matches[1]
-		if _, err := strconv.Atoi(matches[2]); err == nil {
-			ver += "." + matches[2]
-		}
-		return stacktrace.NewError("Error: Alluxio requires Java %v, currently Java %v found.", requiredJavaVersion, ver)
+	fmt.Println(matches[1])
+	if !requiredVersionRegex.MatchString(matches[1]) {
+		return stacktrace.NewError("Error: Alluxio requires Java 1.8 or 11.0, currently Java %v found.", matches[1])
 	}
 	return nil
 }
