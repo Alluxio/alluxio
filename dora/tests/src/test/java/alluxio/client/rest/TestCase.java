@@ -12,7 +12,7 @@
 package alluxio.client.rest;
 
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.proxy.s3.S3Error;
+import alluxio.s3.S3Error;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;

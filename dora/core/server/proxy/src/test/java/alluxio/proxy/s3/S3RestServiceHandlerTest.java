@@ -17,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.Configuration;
+import alluxio.s3.S3Exception;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.junit.Assert;

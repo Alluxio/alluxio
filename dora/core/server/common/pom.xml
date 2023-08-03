@@ -135,6 +135,14 @@
       <groupId>org.lz4</groupId>
       <artifactId>lz4-java</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-xml</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.kerby</groupId>
+      <artifactId>kerby-util</artifactId>
+    </dependency>
 
     <!-- Test dependencies -->
     <dependency>
