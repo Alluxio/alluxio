@@ -157,9 +157,9 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       return mDelegatedFileSystem.getStatus(ufsPath, options);
     }
     try {
-      // TODO: implement getPathConf(ufsPath) and use the merged options in the call
-//      GetStatusPOptions mergedOptions = FileSystemOptionsUtils.getStatusDefaults(
-//              mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
+      // TODO(Jiacheng Liu): implement getPathConf(ufsPath) and use the merged options in the call
+      //  GetStatusPOptions mergedOptions = FileSystemOptionsUtils.getStatusDefaults(
+      //    mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
       return mDoraClient.getStatus(ufsPath.asString(), options);
     } catch (RuntimeException ex) {
       if (ex instanceof StatusRuntimeException) {
@@ -278,7 +278,6 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
     try {
-      // TODO(Tony Sun): consider whether to add scheme and authority.
       return mDoraClient.listStatus(ufsPath, options);
     } catch (RuntimeException ex) {
       if (ex instanceof StatusRuntimeException) {
@@ -336,21 +335,6 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       throw e;
     }
   }
-
-//  @Override
-//  public FileOutStream createFile(UfsUrl ufsPath, CreateFilePOptions options) {
-//    try {
-////      CreateFilePOptions mergedOptions = FileSystemOptionsUtils.createFileDefaults(
-////          mFsContext.getPathConf();
-////      )
-//    } catch (Exception e) {
-//      UFS_FALLBACK_COUNTER.inc();
-//      LOG.debug("Dora client CreateFile error ({} times). Fall back to UFS.",
-//          UFS_FALLBACK_COUNTER.getCount(), e);
-//      throw e;
-//    }
-//    return null;
-//  }
 
   @Override
   public void createDirectory(AlluxioURI path, CreateDirectoryPOptions options)

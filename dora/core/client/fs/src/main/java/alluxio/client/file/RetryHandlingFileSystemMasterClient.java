@@ -239,7 +239,6 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     return retryRPC(() -> new URIStatus(GrpcUtils
                 .fromProto(mClient.getStatus(GetStatusPRequest.newBuilder().setUfsPath(ufsPath.getProto())
                     .setOptions(options).build()).getFileInfo())),
-            // TODO: what does UfsUrl.toString look like?
             RPC_LOG, "GetStatus", "path=%s,options=%s", ufsPath, options);
   }
 

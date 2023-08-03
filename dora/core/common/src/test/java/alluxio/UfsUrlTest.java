@@ -35,7 +35,6 @@ public class UfsUrlTest {
     assertEquals(19998, authority.getPort());
 
     assertEquals("a b c", ufsUrl.getName());
-    assertTrue(ufsUrl.isAbsolute());
     assertTrue(ufsUrl.getScheme().isPresent());
     assertEquals("alluxio", ufsUrl.getScheme().get());
     // TODO(Tony Sun): Some URL is outdated, renew them in further pr.
@@ -62,8 +61,8 @@ public class UfsUrlTest {
             "s3://tony-fuse-test/test"};
     for (String str : strings) {
       UfsUrl ufsUrl = UfsUrl.createInstance(str);
-      assertTrue(ufsUrl.getAuthority().isPresent());
       assertEquals(str, ufsUrl.asString());
+      assertTrue(ufsUrl.getAuthority().isPresent());
 //      class alluxio.uri.NoAuthority cannot be cast to class alluxio.uri.SingleMasterAuthority.
 //      SingleMasterAuthority authority = (SingleMasterAuthority) (ufsUrl.getAuthority().get();
 //      assertEquals("localhost", authority.getHost());

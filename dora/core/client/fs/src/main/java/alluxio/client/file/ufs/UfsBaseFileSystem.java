@@ -248,7 +248,6 @@ public class UfsBaseFileSystem implements FileSystem {
   @Override
   public URIStatus getStatus(UfsUrl ufsPath, final GetStatusPOptions options) {
     return callWithReturn(() -> {
-      // TODO(jiacheng): can this path contain scheme and authority?
       String pathStr = ufsPath.asString();
       UfsStatus ufsStatus = mUfs.get().getStatus(pathStr, GetStatusOptions.defaults()
               .setIncludeRealContentHash(options.getIncludeRealContentHash()));
@@ -282,7 +281,8 @@ public class UfsBaseFileSystem implements FileSystem {
   @Override
   public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    return null;
+    // TODO(Tony Sun): Implement it in the future.
+    throw new AlluxioException("Method is not implemented.");
   }
 
   @Override

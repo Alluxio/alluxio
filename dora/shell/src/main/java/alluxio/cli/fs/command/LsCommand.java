@@ -286,8 +286,6 @@ public final class LsCommand extends AbstractFileSystemCommand {
       return;
     }
 
-//    List<URIStatus> statusListFromUfsUrl = mFileSystem.listStatus();
-
     List<URIStatus> statusList = mFileSystem.listStatus(path, optionsBuilder.build());
     List<URIStatus> sorted = sortByFieldAndOrder(statusList, sortField, reverse);
     for (URIStatus status : sorted) {

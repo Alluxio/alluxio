@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import static java.util.stream.Collectors.toList;
+
 import alluxio.AlluxioURI;
 import alluxio.ClientContext;
 import alluxio.annotation.SuppressFBWarnings;

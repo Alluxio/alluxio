@@ -12,6 +12,7 @@
 package alluxio.fuse.auth;
 
 import static org.mockito.ArgumentMatchers.eq;
+
 import alluxio.AlluxioURI;
 import alluxio.PositionReader;
 import alluxio.client.file.FileInStream;

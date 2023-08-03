@@ -11,11 +11,15 @@
 
 package alluxio.util;
 
+import com.google.common.base.Preconditions;
+
 public final class UfsUrlUtils {
 
   public static final String PATH_SEPARATOR = "/";
   private UfsUrlUtils() {}  // prevent instantiation
   public static String concatStringPath(String pathA, String pathB) {
+    Preconditions.checkNotNull(pathA);
+    Preconditions.checkNotNull(pathB);
     if (pathA.endsWith(PATH_SEPARATOR) && pathB.startsWith(PATH_SEPARATOR)) {
       return pathA.substring(0, pathA.length() - 1) + pathB;
     } else if (!pathA.endsWith(PATH_SEPARATOR) && !pathB.startsWith(PATH_SEPARATOR)) {

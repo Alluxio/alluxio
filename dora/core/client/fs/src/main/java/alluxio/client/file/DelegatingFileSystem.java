@@ -91,12 +91,6 @@ public class DelegatingFileSystem implements FileSystem {
     return mDelegatedFileSystem.createFile(path, options);
   }
 
-//  @Override
-//  public FileOutStream createFile(UfsUrl ufsPath, CreateFilePOptions options)
-//      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
-//    return null;
-//  }
-
   @Override
   public void delete(AlluxioURI path, DeletePOptions options)
       throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {

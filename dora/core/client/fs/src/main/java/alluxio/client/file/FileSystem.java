@@ -275,14 +275,6 @@ public interface FileSystem extends Closeable {
   FileOutStream createFile(AlluxioURI path, CreateFilePOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException;
 
-//  default FileOutStream createFile(UfsUrl ufsPath)
-//      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
-//    return createFile(ufsPath, CreateFilePOptions.getDefaultInstance());
-//  }
-//
-//  FileOutStream createFile(UfsUrl ufsPath, CreateFilePOptions options)
-//      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException;
-
   /**
    * Convenience method for {@link #delete(AlluxioURI, DeletePOptions)} with default options.
    *
@@ -457,7 +449,6 @@ public interface FileSystem extends Closeable {
   void iterateStatus(UfsUrl ufsPath, ListStatusPOptions options,
       Consumer<? super URIStatus> action)
       throws FileDoesNotExistException, IOException, AlluxioException;
-
 
   /**
    * Convenience method for {@link #listStatus(AlluxioURI, ListStatusPOptions)} with default
