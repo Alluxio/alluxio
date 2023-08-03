@@ -35,11 +35,14 @@ func Run() error {
 	}
 	var flagDebugLog bool
 	rootCmd.PersistentFlags().BoolVar(&flagDebugLog, "debug-log", false, "True to enable debug logging")
+	var flagIsDeployed bool
+	rootCmd.PersistentFlags().BoolVar(&flagIsDeployed, "deployed-env", false, "True to set paths to be compatible with a deployed environment")
+
 	rootCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
 		if flagDebugLog {
 			log.Logger.SetLevel(logrus.DebugLevel)
 		}
-		if err := env.InitAlluxioEnv(filepath.Clean(flagRootPath)); err != nil {
+		if err := env.InitAlluxioEnv(filepath.Clean(flagRootPath), flagIsDeployed); err != nil {
 			return stacktrace.Propagate(err, "error defining alluxio environment")
 		}
 		return nil

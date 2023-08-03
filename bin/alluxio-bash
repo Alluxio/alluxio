@@ -1,0 +1,411 @@
+#!/usr/bin/env bash
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
+function printUsage {
+  echo "Usage: alluxio COMMAND [GENERIC_COMMAND_OPTIONS] [COMMAND_ARGS]"
+  echo
+  echo "COMMAND is one of:"
+  echo -e "  format [-s]   \t Format Alluxio master and all workers (if -s specified, only format if underfs is local and doesn't already exist)"
+  echo -e "  formatJournal \t Format Alluxio master journal locally"
+  echo -e "  formatMasters \t Format Alluxio master nodes"
+  echo -e "  formatWorker  \t Format Alluxio worker nodes"
+  echo -e "  bootstrapConf \t Generate a config file if one doesn't exist"
+  echo -e "  fs            \t Command line tool for interacting with the Alluxio filesystem."
+  echo -e "  fsadmin       \t Command line tool for use by Alluxio filesystem admins."
+  echo -e "  table         \t (deprecated) Command line tool for interacting with the Alluxio table service."
+  echo -e "  getConf [key] \t Look up a configuration key, or print all configuration."
+  echo -e "  job           \t Command line tool for interacting with the job service."
+  echo -e "  logLevel      \t Set or get log level of Alluxio servers."
+  echo -e "  runClass      \t Run the main method of an Alluxio class."
+  echo -e "  runTest       \t Run an end-to-end test on an Alluxio cluster."
+  echo -e "  runTests      \t Run all end-to-end tests on an Alluxio cluster."
+  echo -e "  runHmsTests   \t Test the integration between Alluxio and the target hive metastore. Try 'alluxio runHmsTests -h' for more help."
+  echo -e "                \t NOTE: This command requires valid hive metastore uris to run tests against."
+  echo -e "  runHdfsMountTests\t Test the integration between Alluxio and the target HDFS path. "
+  echo -e "  runJournalCrashTest\t Test the Master Journal System in a crash scenario. Try 'alluxio runJournalCrashTest -help' for more help."
+  echo -e "                \t NOTE: This command will stop the existing server and creates a new one!"
+  echo -e "  runUfsIOTest  \t Test the Alluxio throughput to the UFS path. Try 'alluxio runUfsIOTest -help' for more help."
+  echo -e "                \t NOTE: This command requires a valid ufs path to write temporary files into."
+  echo -e "  runUfsTests   \t Test the integration between Alluxio and the target under filesystem. Try 'alluxio runUfsTests -help' for more help."
+  echo -e "                \t NOTE: This command requires a valid ufs path to run tests against."
+  echo -e "  readJournal   \t Read an Alluxio journal file from stdin and write a human-readable version of it to stdout."
+  echo -e "  upgradeJournal\t Upgrade an Alluxio journal version 0 (Alluxio version < 1.5.0) to an Alluxio journal version 1 (Alluxio version >= 1.5.0)."
+  echo -e "  killAll [-s] <WORD>\t Kill processes containing the WORD (if '-s' specified, processes won't be forcibly killed even if the operation exceeds the timeout)."
+  echo -e "  copyDir <PATH>\t Copy the PATH to all master/worker nodes."
+  echo -e "  clearCache    \t Clear OS buffer cache of the machine."
+  echo -e "  docGen        \t Generate docs automatically."
+  echo -e "  version       \t Print Alluxio version and exit."
+  echo -e "  validateConf  \t Validate Alluxio conf and exit."
+  echo -e "  validateEnv   \t Validate Alluxio environment."
+  echo -e "  collectInfo   \t Collects information to troubleshoot an Alluxio cluster."
+  echo
+  echo "GENERIC_COMMAND_OPTIONS supports:"
+  echo -e "  -D<property=value>\t Use a value for a given Alluxio property"
+  echo
+  # TODO(binfan): Fix help function for alluxio script
+  echo "Commands print help when invoked without parameters."
+}
+
+function bootstrapConf {
+  local usage="Usage: $0 bootstrapConf <alluxio_master_hostname>"
+  if [[ $# -lt 1 ]]; then
+    echo ${usage} >&2
+    exit 2
+  fi
+  local master=${1}
+
+  local dst="${ALLUXIO_CONF_DIR}/alluxio-site.properties"
+
+  if [[ -e ${dst} ]]; then
+    echo "${dst} already exists"
+    return
+  fi
+
+  cat > ${dst} <<EOF
+alluxio.master.hostname=${master}
+EOF
+
+  echo "${dst} is created."
+}
+
+function killAll {
+  if [[ $# -gt 2  ]]; then
+    echo "Usage: alluxio killAll [-s] <WORD>\t Kill processes containing the WORD (if '-s' specified, processes won't be forcibly killed even if the operation exceeds the timeout)." >&2
+    exit 2
+  fi
+  if [[ "$1" == "-s" ]]; then
+    keyword=$2
+    soft_kill_option=true
+  else
+    keyword=$1
+    soft_kill_option=false
+  fi
+  local success_count=0
+  local failed_count=0
+  for pid in $(ps -Aww -o pid,command | grep -i "[j]ava" | grep ${keyword} | awk '{print $1}'); do
+    kill -15 ${pid} > /dev/null 2>&1
+    local maxWait=120
+    local cnt=${maxWait}
+    fail_to_kill=false
+    while kill -0 ${pid} > /dev/null 2>&1; do
+      if [[ ${cnt} -gt 1 ]]; then
+        # still not dead, wait
+        cnt=$(expr ${cnt} - 1)
+        sleep 1
+      elif [[ "${soft_kill_option}" = true ]] ; then
+        # waited long enough, give up killing the process
+        echo "Process [${pid}] did not complete after "${maxWait}" seconds, failing to kill it." >&2
+        fail_to_kill=true
+        break;
+      else
+        # waited long enough, forcibly kill the process
+        echo "Process [${pid}] did not complete after "${maxWait}" seconds, forcibly killing it." >&2
+        kill -9 ${pid} 2> /dev/null
+      fi
+    done
+    if [[ "$fail_to_kill" = true ]]; then
+      failed_count=$(expr ${failed_count} + 1)
+    else
+      success_count=$(expr ${success_count} + 1)
+    fi
+  done
+  if [[ $success_count -gt 0 ]]; then
+    echo "Successfully Killed ${success_count} process(es) successfully on $(hostname)"
+  fi
+  if [[ $failed_count -gt 0 ]]; then
+    echo "Soft kill option -s specified, failed to kill ${failed_count} process(es) on $(hostname)"
+  fi
+}
+
+function copyDir {
+  if [[ $# -ne 1 ]]; then
+    echo "Usage: alluxio copyDir <path>" >&2
+    exit 2
+  fi
+
+  ABS_PATH_COMMAND="readlink -f"
+  if [[ $(uname -s) = "Darwin" ]]
+  then
+    ABS_PATH_COMMAND="realpath"
+  fi
+
+  MASTERS=$(cat ${ALLUXIO_CONF_DIR}/masters | grep -v '^#')
+  WORKERS=$(cat ${ALLUXIO_CONF_DIR}/workers | grep -v '^#')
+
+  DIR=$(${ABS_PATH_COMMAND} $1)
+  DIR=$(echo ${DIR}|sed 's@/$@@')
+  DEST=$(dirname ${DIR})
+
+  SSH_OPTS="-o StrictHostKeyChecking=no -o ConnectTimeout=5"
+
+  echo "RSYNC'ing ${DIR} to masters..."
+  for master in ${MASTERS}; do
+      echo ${master}
+      rsync -e "ssh ${SSH_OPTS}" -az ${DIR} ${master}:${DEST} & sleep 0.05
+  done
+
+  echo "RSYNC'ing ${DIR} to workers..."
+  for worker in ${WORKERS}; do
+      echo ${worker}
+      rsync -e "ssh ${SSH_OPTS}" -az ${DIR} ${worker}:${DEST} & sleep 0.05
+  done
+  wait
+}
+
+function runJavaClass {
+  CLASS_ARGS=()
+  local debug_opts=""
+  for arg in "$@"; do
+      case "${arg}" in
+          -debug)
+              debug_opts+="${ALLUXIO_USER_ATTACH_OPTS}" ;;
+          -D* | -X* | -agentlib* | -javaagent*)
+              ALLUXIO_SHELL_JAVA_OPTS+=" ${arg}" ;;
+          *)
+              CLASS_ARGS+=("${arg}")
+      esac
+  done
+  "${JAVA}" ${debug_opts} -cp ${CLASSPATH} ${ALLUXIO_USER_JAVA_OPTS} ${ALLUXIO_SHELL_JAVA_OPTS} ${CLASS} ${PARAMETER} "${CLASS_ARGS[@]}"
+}
+
+function formatJournal {
+  echo "Formatting Alluxio Master @ $(hostname -f)"
+  CLASS="alluxio.cli.Format"
+  CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
+  PARAMETER="master"
+  ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+  runJavaClass "$@"
+}
+
+function formatMasters {
+  JOURNAL_TYPE=$(${BIN}/alluxio getConf ${ALLUXIO_MASTER_JAVA_OPTS} \
+                       alluxio.master.journal.type | awk '{print toupper($0)}')
+  if [[ ${JOURNAL_TYPE} == "EMBEDDED" ]]; then
+    # Embedded journal is stored on-disk, so format needs to be run on each master
+    ${LAUNCHER} ${BIN}/alluxio-masters.sh ${BIN}/alluxio formatJournal
+  else
+    formatJournal
+  fi
+}
+
+function main {
+  LAUNCHER=
+  # If debugging is enabled propagate that through to sub-shells
+  if [[ $- == *x* ]]; then
+    LAUNCHER="bash -x"
+  fi
+  BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
+
+  if [[ $# == 0 ]]; then
+    printUsage
+    exit 1
+  fi
+
+  COMMAND=$1
+  shift
+
+  DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
+  ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
+  . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
+
+  PARAMETER=""
+
+  case ${COMMAND} in
+  "bootstrapConf")
+    bootstrapConf "$@"
+  ;;
+  "format")
+    if [[ $# -eq 1 ]]; then
+      if [[ $1 == "-s" ]]; then
+        if [[ -e ${ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS} ]]; then
+          # if ufs is local filesystem and already exists
+          exit 0
+        else
+          # if ufs is not set it will default to local filesystem
+          if [[ ! -z ${ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS} ]] && [[ ${ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS} != /* ]] && [[ ${ALLUXIO_MASTER_MOUNT_TABLE_ROOT_UFS} != file://* ]]; then
+            # if ufs is not local filesystem, don't format
+            exit 0
+          fi
+
+          shift # remove -s param
+        fi
+      else
+        echo "Usage: alluxio format [-s]" >&2
+        exit 2
+      fi
+    elif [[ $# -gt 1 ]]; then
+      echo "Usage: alluxio format [-s]" >&2
+      exit 2
+    fi
+
+    ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio formatWorker
+
+    formatMasters
+  ;;
+  "formatWorker")
+    echo "Formatting Alluxio Worker @ $(hostname -f)"
+    CLASS="alluxio.cli.Format"
+    CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
+    PARAMETER="worker"
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+    runJavaClass "$@"
+  ;;
+  "formatJournal")
+    formatJournal
+  ;;
+  "formatMaster")
+    echo "formatMaster is deprecated - use formatJournal or formatMasters instead"
+    formatJournal
+  ;;
+  "formatMasters")
+    formatMasters
+  ;;
+  "fs")
+    CLASS="alluxio.cli.fs.FileSystemShell"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    runJavaClass "$@"
+  ;;
+  "fsadmin")
+    CLASS="alluxio.cli.fsadmin.FileSystemAdminShell"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    runJavaClass "$@"
+  ;;
+  "getConf")
+    CLASS="alluxio.cli.GetConf"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.conf.validation.enabled=false"
+    runJavaClass "$@"
+  ;;
+  "collectInfo")
+    CLASS="alluxio.cli.bundler.CollectInfo"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    runJavaClass "$@"
+  ;;
+  "job")
+    CLASS="alluxio.cli.job.JobShell"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    runJavaClass "$@"
+  ;;
+  "table")
+    CLASS="alluxio.cli.table.TableShell"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    runJavaClass "$@"
+  ;;
+  "logLevel")
+    CLASS="alluxio.cli.LogLevel"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    runJavaClass "$@"
+  ;;
+  "runClass")
+    CLASS=$1
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH} # this should be the common case
+    shift
+    runJavaClass "$@"
+  ;;
+  "runTest")
+    CLASS="alluxio.cli.TestRunner"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+    runJavaClass "$@"
+  ;;
+  "runTests")
+    CLASS="alluxio.cli.TestRunner"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+    runJavaClass "$@"
+  ;;
+  "runMiniBenchmark")
+    CLASS="alluxio.cli.MiniBenchmark"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+    runJavaClass "$@"
+    ;;
+  "runHmsTests")
+    CLASS="alluxio.cli.HmsTests"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    runJavaClass "$@"
+  ;;
+  "runHdfsMountTests")
+    CLASS="alluxio.cli.ValidateHdfsMount"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+    runJavaClass "$@"
+  ;;
+  "runJournalCrashTest")
+    CLASS="alluxio.cli.JournalCrashTest"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+    runJavaClass "$@"
+  ;;
+  "runUfsIOTest")
+    CLASS="alluxio.stress.cli.UfsIOBench"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    runJavaClass "$@"
+  ;;
+  "runUfsTests")
+    CLASS="alluxio.cli.UnderFileSystemContractTest"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    runJavaClass "$@"
+  ;;
+  "readJournal")
+    CLASS="alluxio.master.journal.tool.JournalTool"
+    CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+    runJavaClass "$@"
+  ;;
+  "upgradeJournal")
+    CLASS="alluxio.master.journal.JournalUpgrader"
+    CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+    runJavaClass "$@"
+  ;;
+  "killAll")
+    killAll "$@"
+  ;;
+  "copyDir")
+    copyDir "$@"
+  ;;
+  "docGen")
+    CLASS="alluxio.cli.DocGenerator"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+    runJavaClass "$@"
+  ;;
+  "clearCache")
+    sync; echo 3 > /proc/sys/vm/drop_caches ;
+  ;;
+  "version")
+    CLASS="alluxio.cli.Version"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    runJavaClass "$@"
+  ;;
+  "validateConf")
+    CLASS="alluxio.cli.ValidateConf"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+    runJavaClass "$@"
+  ;;
+  "validateEnv")
+    CLASS="alluxio.cli.ValidateEnv"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+    runJavaClass "$@"
+  ;;
+  *)
+    echo "Unsupported command ${COMMAND}" >&2
+    printUsage
+    exit 1
+  ;;
+  esac
+}
+
+main "$@"

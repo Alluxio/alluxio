@@ -45,7 +45,7 @@ type AlluxioEnv struct {
 	EnvVar   *viper.Viper
 }
 
-func InitAlluxioEnv(rootPath string) error {
+func InitAlluxioEnv(rootPath string, isDeployed bool) error {
 	/*
 		Note the precedence order of viper, where earlier is retrieved first:
 		- Set, env, config, default (https://pkg.go.dev/github.com/dvln/viper#section-readme)
@@ -78,11 +78,19 @@ func InitAlluxioEnv(rootPath string) error {
 		ConfAlluxioConfDir.EnvVar:     filepath.Join(rootPath, "conf"),
 		ConfAlluxioLogsDir.EnvVar:     filepath.Join(rootPath, "logs"),
 		confAlluxioUserLogsDir.EnvVar: filepath.Join(rootPath, "logs", "user"),
-		// TODO: add a go build flag to switch this to the finalized tarball path when building the tarball, ex. filepath.Join(rootPath, "assembly", fmt.Sprintf("alluxio-assembly-client-%v.jar", ver))
-		envAlluxioAssemblyClientJar: filepath.Join(rootPath, "assembly", "client", "target", fmt.Sprintf("alluxio-assembly-client-%v-jar-with-dependencies.jar", ver)),
-		envAlluxioAssemblyServerJar: filepath.Join(rootPath, "assembly", "server", "target", fmt.Sprintf("alluxio-assembly-server-%v-jar-with-dependencies.jar", ver)),
+		envAlluxioAssemblyClientJar:   filepath.Join(rootPath, "assembly", "client", "target", fmt.Sprintf("alluxio-assembly-client-%v-jar-with-dependencies.jar", ver)),
+		envAlluxioAssemblyServerJar:   filepath.Join(rootPath, "assembly", "server", "target", fmt.Sprintf("alluxio-assembly-server-%v-jar-with-dependencies.jar", ver)),
 	} {
 		envVar.SetDefault(k, v)
+	}
+	if isDeployed {
+		// override the client and server assembly jar paths with the expected location within a deployed environment
+		for k, v := range map[string]string{
+			envAlluxioAssemblyClientJar: filepath.Join(rootPath, "assembly", fmt.Sprintf("alluxio-client-%v.jar", ver)),
+			envAlluxioAssemblyServerJar: filepath.Join(rootPath, "assembly", fmt.Sprintf("alluxio-server-%v.jar", ver)),
+		} {
+			envVar.SetDefault(k, v)
+		}
 	}
 
 	// set user-specified environment variable values from alluxio-env.sh
