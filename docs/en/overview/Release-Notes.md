@@ -84,7 +84,7 @@ In order for the system to recover quickly after failures or restarts, checkpoin
 ### CLI
 * Restore table command with deprecated status ([6b8887](https://github.com/Alluxio/alluxio/commit/6b888731d8512ac6c9e60069a5e916b492166ede){:target="_blank"})
 * Add a command to set `DirectChildrenLoaded` on dir ([822834](https://github.com/Alluxio/alluxio/commit/82283414fb2987bea4c6bf6fe59b343f7ce79856){:target="_blank"})
-* Ignore `no_cache` setting for “load” command ([70bcee](https://github.com/Alluxio/alluxio/commit/70bcee1c5bdf1070fcef4f1bedbd8ed7f2abd065){:target="_blank"})
+* Ignore `no_cache` setting for "load" command ([70bcee](https://github.com/Alluxio/alluxio/commit/70bcee1c5bdf1070fcef4f1bedbd8ed7f2abd065){:target="_blank"})
 * Add a `removeAll` pathConf cmd to support remove all path conf ([6b8065](https://github.com/Alluxio/alluxio/commit/6b80655b9ae2a44106081b22a42649fa3aa5b8bb){:target="_blank"})
 * Add a command to free a worker ([32785f](https://github.com/Alluxio/alluxio/commit/32785f9749152133da4c71c6b28e8c89af4e84d2){:target="_blank"})
 
