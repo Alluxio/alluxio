@@ -18,6 +18,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 
+import alluxio.uri.UfsUrl;
 import com.google.common.base.Joiner;
 import org.apache.commons.cli.CommandLine;
 import org.slf4j.Logger;
@@ -61,6 +62,10 @@ public abstract class AbstractFileSystemCommand implements Command {
       throws AlluxioException, IOException {
   }
 
+  protected void runPlainPath(UfsUrl ufsPath, CommandLine cl)
+      throws AlluxioException, IOException {
+  }
+
   /**
    * Processes the header of the command. Our input path may contain wildcard
    * but we only want to print the header for once.
@@ -88,6 +93,25 @@ public abstract class AbstractFileSystemCommand implements Command {
 
     List<String> errorMessages = new ArrayList<>();
     for (AlluxioURI path : paths) {
+      try {
+        runPlainPath(path, cl);
+      } catch (AlluxioException | IOException e) {
+        LOG.error(String.format("error processing path: %s", path), e);
+        errorMessages.add(e.getMessage() != null ? e.getMessage() : e.toString());
+      }
+    }
+
+    if (errorMessages.size() != 0) {
+      throw new IOException(Joiner.on('\n').join(errorMessages));
+    }
+  }
+
+  protected void runWildCardCmd(UfsUrl wildCardUfsPath, CommandLine cl) throws IOException {
+    List<UfsUrl> ufsPaths = FileSystemShellUtils.getUfsUrls(mFileSystem, wildCardUfsPath);
+    processHeader(cl);
+
+    List<String> errorMessages = new ArrayList<>();
+    for (UfsUrl path : ufsPaths) {
       try {
         runPlainPath(path, cl);
       } catch (AlluxioException | IOException e) {

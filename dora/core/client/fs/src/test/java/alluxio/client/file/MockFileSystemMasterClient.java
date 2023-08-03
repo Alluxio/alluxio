@@ -133,6 +133,12 @@ class MockFileSystemMasterClient implements FileSystemMasterClient {
   }
 
   @Override
+  public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
+      throws AlluxioStatusException {
+    return null;
+  }
+
+  @Override
   public ListStatusPartialResult listStatusPartial(
       AlluxioURI path, ListStatusPartialPOptions options) {
     return null;

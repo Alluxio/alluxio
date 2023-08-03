@@ -21,6 +21,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
+import alluxio.uri.UfsUrl;
 import alluxio.util.FormatUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -151,6 +152,12 @@ public final class FileSystemShellUtils {
       }
     }
     return res;
+  }
+
+  // TODO(Tony Sun): Add wildcard handler version.
+  public static List<UfsUrl> getUfsUrls(FileSystem alluxioClient, UfsUrl inputUfsUrl)
+          throws IOException {
+    return Lists.newArrayList(inputUfsUrl);
   }
 
   /**

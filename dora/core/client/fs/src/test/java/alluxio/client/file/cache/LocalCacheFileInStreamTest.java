@@ -81,6 +81,7 @@ import org.junit.runners.Parameterized.Parameters;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
@@ -851,7 +852,20 @@ public class LocalCacheFileInStreamTest {
     }
 
     @Override
+    public void iterateStatus(UfsUrl ufsPath, ListStatusPOptions options,
+        Consumer<? super URIStatus> action)
+        throws FileDoesNotExistException, IOException, AlluxioException {
+      throw new UnsupportedEncodingException();
+    }
+
+    @Override
     public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
+        throws FileDoesNotExistException, IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
         throws FileDoesNotExistException, IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }
@@ -911,6 +925,17 @@ public class LocalCacheFileInStreamTest {
         return new MockFileInStream(mFiles.get(path));
       } else {
         throw new FileDoesNotExistException(path);
+      }
+    }
+
+    @Override
+    public FileInStream openFile(UfsUrl ufsPath, OpenFilePOptions options)
+        throws  FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
+        IOException, AlluxioException {
+      if (mFiles.containsKey(ufsPath)) {
+        return new MockFileInStream(mFiles.get(ufsPath));
+      } else {
+        throw new FileDoesNotExistException(ufsPath);
       }
     }
 

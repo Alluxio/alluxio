@@ -49,6 +49,7 @@ import alluxio.grpc.RenamePResponse;
 import alluxio.grpc.RouteFailure;
 import alluxio.grpc.TaskStatus;
 import alluxio.underfs.UfsStatus;
+import alluxio.uri.UfsUrl;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.dora.DoraWorker;
 import alluxio.worker.dora.OpenFileHandle;
@@ -211,13 +212,19 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
   @Override
   public void listStatus(ListStatusPRequest request,
                          StreamObserver<ListStatusPResponse> responseObserver) {
-    LOG.debug("listStatus is called for {}", request.getPath());
-
+    UfsUrl ufsPath = new UfsUrl(request.getUfsPath());
+    LOG.debug("listStatus is called for {}", ufsPath.asString());
     try {
-      UfsStatus[] statuses = mWorker.listStatus(request.getPath(), request.getOptions());
+      UfsStatus[] statuses;
+      if (ufsPath.getScheme().get().equalsIgnoreCase("file")) {
+        statuses = mWorker.listStatus(ufsPath.getFullPath(), request.getOptions());
+      } else {
+        statuses = mWorker.listStatus(ufsPath.asString(), request.getOptions());
+      }
       if (statuses == null) {
+        // TODO(Tony Sun): Here I do not judge and handle "file" scheme. Rethink it.
         responseObserver.onError(
-            new NotFoundRuntimeException(String.format("%s Not Found", request.getPath()))
+            new NotFoundRuntimeException(String.format("%s Not Found", ufsPath.asString()))
                 .toGrpcStatusRuntimeException());
         return;
       }
@@ -226,8 +233,12 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
 
       for (int i = 0; i < statuses.length; i++) {
         UfsStatus status = statuses[i];
-        String ufsFullPath = PathUtils.concatPath(request.getPath(), status.getName());
-
+        String ufsFullPath;
+        if (ufsPath.getScheme().get().equalsIgnoreCase("file")) {
+          ufsFullPath = PathUtils.concatPath(ufsPath.getFullPath(), status.getName());
+        } else {
+          ufsFullPath = PathUtils.concatPath(ufsPath.asString(), status.getName());
+        }
         alluxio.grpc.FileInfo fi =
             ((PagedDoraWorker) mWorker).buildFileInfoFromUfsStatus(status, ufsFullPath);
 
@@ -245,7 +256,8 @@ public class DoraWorkerClientServiceHandler extends BlockWorkerGrpc.BlockWorkerI
 
       responseObserver.onCompleted();
     } catch (Exception e) {
-      LOG.error(String.format("Failed to list status of %s: ", request.getPath()), e);
+      // TODO(Tony Sun): Here I do not judge and handle "file" scheme. Rethink it.
+      LOG.error(String.format("Failed to list status of %s: ", ufsPath.asString()), e);
       responseObserver.onError(AlluxioRuntimeException.from(e).toGrpcStatusRuntimeException());
     }
   }

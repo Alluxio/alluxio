@@ -12,7 +12,6 @@
 package alluxio.fuse.auth;
 
 import static org.mockito.ArgumentMatchers.eq;
-
 import alluxio.AlluxioURI;
 import alluxio.PositionReader;
 import alluxio.client.file.FileInStream;
@@ -205,8 +204,20 @@ public abstract class AbstractAuthPolicyTest {
     }
 
     @Override
+    public void iterateStatus(UfsUrl ufsPath, ListStatusPOptions options,
+        Consumer<? super URIStatus> action) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
         throws  IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
+        throws FileDoesNotExistException, IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }
 
@@ -245,6 +256,12 @@ public abstract class AbstractAuthPolicyTest {
 
     @Override
     public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
+        throws IOException, AlluxioException {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public FileInStream openFile(UfsUrl ufsPath, OpenFilePOptions options)
         throws IOException, AlluxioException {
       throw new UnsupportedOperationException();
     }

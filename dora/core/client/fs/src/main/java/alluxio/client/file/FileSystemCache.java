@@ -312,6 +312,15 @@ public class FileSystemCache {
     }
 
     @Override
+    public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
+        throws FileDoesNotExistException, IOException, AlluxioException {
+      if (mClosed) {
+        throw new IOException(CLOSED_FS_ERROR_MESSAGE);
+      }
+      return super.listStatus(ufsPath, options);
+    }
+
+    @Override
     public void iterateStatus(AlluxioURI path, ListStatusPOptions options,
                               Consumer<? super URIStatus> action)
         throws FileDoesNotExistException, IOException, AlluxioException {

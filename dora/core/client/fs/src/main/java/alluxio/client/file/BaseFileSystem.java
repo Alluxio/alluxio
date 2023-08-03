@@ -191,7 +191,6 @@ public class BaseFileSystem implements FileSystem {
       }
     });
   }
-
   @Override
   public void delete(AlluxioURI path, DeletePOptions options)
       throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
@@ -290,18 +289,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public URIStatus getStatus(UfsUrl ufsPath, final GetStatusPOptions options)
           throws FileDoesNotExistException, IOException, AlluxioException {
-    checkUri(ufsPath);
-    URIStatus status = rpc(client -> {
-      // TODO: implement getPathConf(ufsPath), currently path conf is ignored
-//      GetStatusPOptions mergedOptions = FileSystemOptionsUtils.getStatusDefaults(
-//              mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
-//      return client.getStatus(ufsPath, mergedOptions);
-      return client.getStatus(ufsPath, options);
-    });
-    if (!status.isCompleted()) {
-      LOG.debug("File {} is not yet completed. getStatus will see incomplete metadata.", ufsPath);
-    }
-    return status;
+    return null;
   }
 
   @Override
@@ -317,6 +305,12 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
+  public List<URIStatus> listStatus(UfsUrl ufsPath, final ListStatusPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    return null;
+  }
+
+  @Override
   public void iterateStatus(AlluxioURI path, final ListStatusPOptions options,
       Consumer<? super URIStatus> action)
       throws FileDoesNotExistException, IOException, AlluxioException {
@@ -328,6 +322,12 @@ public class BaseFileSystem implements FileSystem {
       client.iterateStatus(path, mergedOptions, action);
       return null;
     });
+  }
+
+  @Override
+  public void iterateStatus(UfsUrl ufsPath, final ListStatusPOptions options,
+      Consumer<? super URIStatus> action)
+      throws FileDoesNotExistException, IOException, AlluxioException {
   }
 
   @Override
@@ -420,6 +420,12 @@ public class BaseFileSystem implements FileSystem {
             .setUpdateTimestamps(options.getUpdateLastAccessTime())
             .build());
     return openFile(status, options);
+  }
+
+  @Override
+  public FileInStream openFile(UfsUrl ufsPath, OpenFilePOptions options)
+      throws IOException, AlluxioException {
+    return null;
   }
 
   @Override
@@ -625,55 +631,6 @@ public class BaseFileSystem implements FileSystem {
           throw new IllegalArgumentException(
                   String.format("The URI authority %s does not match the configured value of %s.",
                           uri.getAuthority(), configured));
-        }
-      }
-    }
-  }
-
-  // Copied from checkUri(AlluxioURI)
-  protected void checkUri(UfsUrl ufsPath) {
-    Preconditions.checkNotNull(ufsPath, "uri");
-    if (!mFsContext.getUriValidationEnabled()) {
-      return;
-    }
-
-    if (ufsPath.hasScheme()) {
-      String warnMsg = "The URI scheme \"{}\" is ignored and not required in URIs passed to"
-          + " the Alluxio Filesystem client.";
-      // TODO(jiacheng): does this still apply?
-      switch (ufsPath.getScheme()) {
-        case Constants.SCHEME:
-          LOG.warn(warnMsg, Constants.SCHEME);
-          break;
-        default:
-          throw new IllegalArgumentException(
-              String.format("Scheme %s:// in AlluxioURI is invalid. Schemes in filesystem"
-                      + " operations are ignored. \"alluxio://\" or no scheme at all is valid.",
-                  ufsPath.getScheme()));
-      }
-    }
-
-    if (ufsPath.hasAuthority()) {
-      LOG.warn("The URI authority (hostname and port) is ignored and not required in URIs passed "
-          + "to the Alluxio Filesystem client.");
-      // TODO(jiacheng): is this still necessary?
-      AlluxioConfiguration conf = mFsContext.getClusterConf();
-      boolean skipAuthorityCheck = conf.isSet(PropertyKey.USER_SKIP_AUTHORITY_CHECK)
-          && conf.getBoolean(PropertyKey.USER_SKIP_AUTHORITY_CHECK);
-      if (!skipAuthorityCheck) {
-        /* Even if we choose to log the warning, check if the Configuration host matches what the
-         * user passes. If not, throw an exception letting the user know they don't match.
-         */
-        Authority configured =
-            MasterInquireClient.Factory
-                .create(mFsContext.getClusterConf(),
-                    mFsContext.getClientContext().getUserState())
-                .getConnectDetails().toAuthority();
-        // TODO(jiacheng): double check the toString() Authority -> String conversion
-        if (!configured.toString().equals(ufsPath.getAuthority())) {
-          throw new IllegalArgumentException(
-              String.format("Alluxio is configured with UFS authority %s. But this file path %s has authority %s. We recommend users to use paths without authority like hdfs://dir/path.",
-                  configured, ufsPath.asString(), ufsPath.getAuthority()));
         }
       }
     }

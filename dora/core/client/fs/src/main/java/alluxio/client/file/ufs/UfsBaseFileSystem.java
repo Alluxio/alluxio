@@ -22,6 +22,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.UfsFileSystemOptions;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.grpc.CheckAccessPOptions;
 import alluxio.grpc.CreateDirectoryPOptions;
@@ -95,6 +96,7 @@ public class UfsBaseFileSystem implements FileSystem {
   protected final FileSystemContext mFsContext;
   protected final CloseableResource<UnderFileSystem> mUfs;
   private final AlluxioURI mRootUFS;
+  private final UfsUrl mRootUfsUrl;
   protected volatile boolean mClosed = false;
 
   /**
@@ -127,6 +129,7 @@ public class UfsBaseFileSystem implements FileSystem {
     String ufsAddress = options.getUfsAddress();
     Preconditions.checkArgument(!ufsAddress.isEmpty(), "ufs address should not be empty");
     mRootUFS = new AlluxioURI(ufsAddress);
+    mRootUfsUrl = UfsUrl.createInstance(ufsAddress);
     mUfs = ufs.acquireUfsResource();
     mCloser.register(mUfs);
     LOG.debug("Creating file system connecting to ufs address {}", ufsAddress);
@@ -277,6 +280,12 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   @Override
+  public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    return null;
+  }
+
+  @Override
   public void iterateStatus(AlluxioURI path, final ListStatusPOptions options,
       Consumer<? super URIStatus> action) {
     call(() -> {
@@ -294,6 +303,12 @@ public class UfsBaseFileSystem implements FileSystem {
         action.accept(uriStatus);
       }
     });
+  }
+
+  @Override
+  public void iterateStatus(UfsUrl ufsPath, ListStatusPOptions options,
+      Consumer<? super URIStatus> action)
+    throws FileDoesNotExistException, IOException, AlluxioException {
   }
 
   @Override
@@ -335,6 +350,12 @@ public class UfsBaseFileSystem implements FileSystem {
   @Override
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options) {
     return openFile(getStatus(path), options);
+  }
+
+  @Override
+  public FileInStream openFile(UfsUrl ufsPath, OpenFilePOptions options)
+    throws IOException, AlluxioException {
+    return openFile(getStatus(ufsPath), options);
   }
 
   @Override
@@ -514,6 +535,10 @@ public class UfsBaseFileSystem implements FileSystem {
    */
   public AlluxioURI getRootUFS() {
     return mRootUFS;
+  }
+
+  public UfsUrl getRootUfsUrl() {
+    return mRootUfsUrl;
   }
 
   private static void call(UfsCallable callable) {

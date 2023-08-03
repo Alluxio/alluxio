@@ -198,6 +198,8 @@ public interface FileSystemMasterClient extends Client {
   List<URIStatus> listStatus(AlluxioURI path, ListStatusPOptions options)
       throws AlluxioStatusException;
 
+  List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options) throws AlluxioStatusException;
+
   /**
    * @param path the path to list
    * @param options the listStatus partial options

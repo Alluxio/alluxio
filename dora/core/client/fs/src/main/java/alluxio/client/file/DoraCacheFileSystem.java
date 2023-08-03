@@ -175,6 +175,12 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   }
 
   @Override
+  public FileInStream openFile(UfsUrl ufsPath, OpenFilePOptions options)
+      throws IOException, AlluxioException {
+    return openFile(getStatus(ufsPath), options);
+  }
+
+  @Override
   public FileInStream openFile(AlluxioURI path, OpenFilePOptions options)
       throws IOException, AlluxioException {
     return openFile(getStatus(path), options);
@@ -269,6 +275,25 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
   }
 
   @Override
+  public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    try {
+      // TODO(Tony Sun): consider whether to add scheme and authority.
+      return mDoraClient.listStatus(ufsPath, options);
+    } catch (RuntimeException ex) {
+      if (ex instanceof StatusRuntimeException) {
+        if (((StatusRuntimeException) ex).getStatus().getCode() == Status.NOT_FOUND.getCode()) {
+          return Collections.emptyList();
+        }
+      }
+      UFS_FALLBACK_COUNTER.inc();
+      LOG.debug("Dora client list status error ({} times). Fall back to UFS.",
+              UFS_FALLBACK_COUNTER.getCount(), ex);
+      return mDelegatedFileSystem.listStatus(ufsPath, options);
+    }
+  }
+
+  @Override
   public FileOutStream createFile(AlluxioURI alluxioPath, CreateFilePOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
     AlluxioURI ufsFullPath = convertAlluxioPathToUFSPath(alluxioPath);
@@ -311,6 +336,21 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
       throw e;
     }
   }
+
+//  @Override
+//  public FileOutStream createFile(UfsUrl ufsPath, CreateFilePOptions options) {
+//    try {
+////      CreateFilePOptions mergedOptions = FileSystemOptionsUtils.createFileDefaults(
+////          mFsContext.getPathConf();
+////      )
+//    } catch (Exception e) {
+//      UFS_FALLBACK_COUNTER.inc();
+//      LOG.debug("Dora client CreateFile error ({} times). Fall back to UFS.",
+//          UFS_FALLBACK_COUNTER.getCount(), e);
+//      throw e;
+//    }
+//    return null;
+//  }
 
   @Override
   public void createDirectory(AlluxioURI path, CreateDirectoryPOptions options)
@@ -370,6 +410,13 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
                             Consumer<? super URIStatus> action)
       throws FileDoesNotExistException, IOException, AlluxioException {
     listStatus(path, options).forEach(action);
+  }
+
+  @Override
+  public void iterateStatus(UfsUrl ufsPath, ListStatusPOptions options,
+                            Consumer<? super URIStatus> action)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    listStatus(ufsPath, options).forEach(action);
   }
 
   @Override

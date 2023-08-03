@@ -91,6 +91,12 @@ public class DelegatingFileSystem implements FileSystem {
     return mDelegatedFileSystem.createFile(path, options);
   }
 
+//  @Override
+//  public FileOutStream createFile(UfsUrl ufsPath, CreateFilePOptions options)
+//      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
+//    return null;
+//  }
+
   @Override
   public void delete(AlluxioURI path, DeletePOptions options)
       throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
@@ -145,6 +151,12 @@ public class DelegatingFileSystem implements FileSystem {
   }
 
   @Override
+  public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    return mDelegatedFileSystem.listStatus(ufsPath, options);
+  }
+
+  @Override
   public ListStatusPartialResult listStatusPartial(
       AlluxioURI path, ListStatusPartialPOptions options)
       throws AlluxioException, IOException {
@@ -156,6 +168,13 @@ public class DelegatingFileSystem implements FileSystem {
       Consumer<? super URIStatus> action)
       throws FileDoesNotExistException, IOException, AlluxioException {
     mDelegatedFileSystem.iterateStatus(path, options, action);
+  }
+
+  @Override
+  public void iterateStatus(UfsUrl ufsPath, ListStatusPOptions options,
+      Consumer<? super URIStatus> action)
+      throws FileDoesNotExistException, IOException, AlluxioException {
+    mDelegatedFileSystem.iterateStatus(ufsPath, options, action);
   }
 
   @Override
@@ -192,6 +211,13 @@ public class DelegatingFileSystem implements FileSystem {
       throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
       IOException, AlluxioException {
     return mDelegatedFileSystem.openFile(path, options);
+  }
+
+  @Override
+  public FileInStream openFile(UfsUrl ufsPath, OpenFilePOptions options)
+      throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
+      IOException, AlluxioException {
+    return mDelegatedFileSystem.openFile(ufsPath, options);
   }
 
   @Override
