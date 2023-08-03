@@ -18,8 +18,6 @@ import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.s3.S3ErrorResponse;
 import alluxio.worker.dora.DoraWorker;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -29,7 +27,6 @@ import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.util.CharsetUtil;
 import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,11 +115,9 @@ public class S3HttpHandler extends ChannelInboundHandlerAdapter {
         HttpContent content = (HttpContent) msg;
         response = mHandler.getS3Task().handleContent(content);
       } else {
-        ByteBuf contentBuffer =
-            Unpooled.copiedBuffer("Failed to encode HTTP request.", CharsetUtil.UTF_8);
         HttpResponse errorResponse =
             S3ErrorResponse.generateS3ErrorResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR,
-                contentBuffer, HttpHeaderValues.TEXT_PLAIN);
+                "Failed to encode HTTP request.", HttpHeaderValues.TEXT_PLAIN);
         ChannelFuture f = context.writeAndFlush(errorResponse);
         f.addListener(ChannelFutureListener.CLOSE);
         return;

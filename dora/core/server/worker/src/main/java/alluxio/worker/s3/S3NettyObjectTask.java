@@ -35,7 +35,6 @@ import alluxio.grpc.PMode;
 import alluxio.grpc.XAttrPropagationStrategy;
 import alluxio.network.netty.FileTransferType;
 import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.s3.ChunkedEncodingInputStream;
 import alluxio.s3.CopyObjectResult;
 import alluxio.s3.MultiChunkEncodingInputStream;
 import alluxio.s3.NettyRestUtils;
@@ -439,9 +438,9 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
   private static class PutObjectTask extends S3NettyObjectTask {
     private OutputStream mFileOutStream;
     private MultiChunkEncodingInputStream mChunkEncodingInputStream;
-    private MessageDigest md5;
-    private long alreadyRead;
-    private long toRead;
+    private MessageDigest mMessageDigest;
+    private long mAlreadyRead;
+    private long mToRead;
     // For both PutObject and UploadPart
 
     public PutObjectTask(S3NettyHandler handler, OpType opType) {
@@ -459,11 +458,12 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
      * @throws S3Exception
      */
     public OutputStream createObject(String objectPath, FileSystem userFs,
-                                     CreateFilePOptions createFilePOptions, S3AuditContext auditContext)
+                                     CreateFilePOptions createFilePOptions,
+                                     S3AuditContext auditContext)
         throws S3Exception {
       AlluxioURI objectUri = new AlluxioURI(objectPath);
       try {
-        md5 = MessageDigest.getInstance("MD5");
+        mMessageDigest = MessageDigest.getInstance("MD5");
         final String decodedLengthHeader = mHandler.getHeader("x-amz-decoded-content-length");
         final String contentLength = mHandler.getHeader("Content-Length");
         // The request body can be in the aws-chunked encoding format, or not encoded at all
@@ -471,13 +471,13 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
         // the encoding type.
         boolean isChunkedEncoding = decodedLengthHeader != null;
         if (isChunkedEncoding) {
-          toRead = Long.parseLong(decodedLengthHeader);
+          mToRead = Long.parseLong(decodedLengthHeader);
         } else {
-          toRead = Long.parseLong(contentLength);
+          mToRead = Long.parseLong(contentLength);
         }
         FileOutStream os = userFs.createFile(objectUri, createFilePOptions);
-        DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5);
-        alreadyRead = 0;
+        DigestOutputStream digestOutputStream = new DigestOutputStream(os, mMessageDigest);
+        mAlreadyRead = 0;
         return digestOutputStream;
       } catch (Exception e) {
         throw NettyRestUtils.toObjectS3Exception(e, objectPath, auditContext);
@@ -665,15 +665,15 @@ public class S3NettyObjectTask extends S3NettyBaseTask {
             }
             long read = ByteStreams.copy(ByteStreams.limit(readStream, buf.readableBytes()),
                 mFileOutStream);
-            alreadyRead += read;
+            mAlreadyRead += read;
             if (content instanceof LastHttpContent) {
               mFileOutStream.close();
-              if (alreadyRead < toRead) {
+              if (mAlreadyRead < mToRead) {
                 throw new IOException(String.format(
                     "Failed to read all required bytes from the stream. Read %d/%d",
-                    alreadyRead, toRead));
+                    mAlreadyRead, mToRead));
               }
-              byte[] digest = md5.digest();
+              byte[] digest = mMessageDigest.digest();
               String base64Digest = BaseEncoding.base64().encode(digest);
               final String contentMD5 = mHandler.getHeader("Content-MD5");
               if (contentMD5 != null && !contentMD5.equals(base64Digest)) {

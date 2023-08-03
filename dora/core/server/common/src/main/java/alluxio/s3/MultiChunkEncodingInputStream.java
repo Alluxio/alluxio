@@ -1,12 +1,19 @@
 package alluxio.s3;
 
-import javax.annotation.concurrent.NotThreadSafe;
-import java.io.IOException;
-import java.io.InputStream;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.IOException;
+import java.io.InputStream;
+import javax.annotation.concurrent.NotThreadSafe;
+
+/**
+ * This input stream decodes a set of {@code aws-chunked} encoded input content buffer into its
+ * original form.
+ * For more informaiton about the aws-chunked encoding type, see the AWS S3 REST API reference
+ * https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-streaming.html
+ */
 @NotThreadSafe
 public class MultiChunkEncodingInputStream extends InputStream {
   /** the current Content. */
@@ -19,13 +26,21 @@ public class MultiChunkEncodingInputStream extends InputStream {
   private String mHoldMessage;
   private int mSkipIdx = 0;
 
-  private final static int CHUNK_HEADER_LENGTHEN = 82;
+  private static final int CHUNK_HEADER_LENGTHEN = 82;
 
+  /**
+   * Constructs an {@link MultiChunkEncodingInputStream} with first currentContent.
+   * @param currentContent
+   */
   public MultiChunkEncodingInputStream(ByteBuf currentContent) {
     mCurrentContent = currentContent;
     mStream = new ByteBufInputStream(currentContent);
   }
 
+  /**
+   * Sets currentContent with given content.
+   * @param currentContent
+   */
   public void setCurrentContent(ByteBuf currentContent) {
     mCurrentContent = currentContent;
     mStream = new ByteBufInputStream(currentContent);
@@ -74,7 +89,6 @@ public class MultiChunkEncodingInputStream extends InputStream {
 
     // This is the constant size of the chunk header *after* hexLen described in the comments
     // above.
-    // TODO(zac): verify the chunk header
     int totalSkipped = 0;
     do {
       totalSkipped += mStream.skip(CHUNK_HEADER_LENGTHEN - totalSkipped);
@@ -115,7 +129,7 @@ public class MultiChunkEncodingInputStream extends InputStream {
         totalSkipped += mStream.skip(CHUNK_HEADER_LENGTHEN - totalSkipped);
         if (mCurrentContent.readableBytes() <= 0) {
           mSkipIdx = totalSkipped;
-          return - 1;
+          return -1;
         }
       } while (totalSkipped < CHUNK_HEADER_LENGTHEN);
       mSkipIdx = 0;
