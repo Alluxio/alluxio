@@ -21,8 +21,8 @@ import alluxio.proxy.s3.CompleteMultipartUploadRequest;
 import alluxio.proxy.s3.CompleteMultipartUploadRequest.Part;
 import alluxio.proxy.s3.CompleteMultipartUploadResult;
 import alluxio.proxy.s3.InitiateMultipartUploadResult;
-import alluxio.proxy.s3.S3ErrorCode;
 import alluxio.proxy.s3.S3RestUtils;
+import alluxio.s3.S3ErrorCode;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 
