@@ -88,7 +88,7 @@ import javax.annotation.concurrent.GuardedBy;
  * instances, will leave these logic to jetcd client itself for now unless we need to
  * handle it in our layer.
  */
-public class AlluxioEtcdClient implements Closeable {
+public class AlluxioEtcdClient {
 
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioEtcdClient.class);
   private static final Lock INSTANCE_LOCK = new ReentrantLock();
@@ -97,20 +97,10 @@ public class AlluxioEtcdClient implements Closeable {
   public static final int RETRY_TIMES = 3;
   private static final int RETRY_SLEEP_IN_MS = 100;
   private static final int MAX_RETRY_SLEEP_IN_MS = 500;
-  private static final RetryPolicy DEFAULT_RETRY_POLICY =
-      new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES);
   @GuardedBy("INSTANCE_LOCK")
   @Nullable
   private static volatile AlluxioEtcdClient sAlluxioEtcdClient;
   public final ServiceDiscoveryRecipe mServiceDiscovery;
-  /**
-   * Is true if this client was closed. Ideally it should be long-lived throughout
-   * AlluxioEtcdClient singleton lifecycle, if closed, do
-   * {@link #getInstance(AlluxioConfiguration)} again to refresh a new AlluxioEtcdClient
-   * instance.
-   */
-  protected volatile boolean mClosed = false;
-  private final Closer mCloser = Closer.create();
   // only watch for children change(add/remove) for given parent path
   private final ConcurrentHashMap<String, Watch.Watcher> mRegisteredWatchers =
       new ConcurrentHashMap<>();
@@ -129,7 +119,6 @@ public class AlluxioEtcdClient implements Closeable {
     // TODO(lucy) add more options as needed for io.etcd.jetcd.ClientBuidler
     // to control underneath grpc parameters.
     mClient = Client.builder().endpoints(mEndpoints)
-        .executorService()
         .build();
   }
 
@@ -139,9 +128,9 @@ public class AlluxioEtcdClient implements Closeable {
    * @return AlluxioEtcdClient
    */
   public static AlluxioEtcdClient getInstance(AlluxioConfiguration conf) {
-    if (sAlluxioEtcdClient == null || sAlluxioEtcdClient.mClosed) {
+    if (sAlluxioEtcdClient == null) {
       try (LockResource lockResource = new LockResource(INSTANCE_LOCK)) {
-        if (sAlluxioEtcdClient == null || sAlluxioEtcdClient.mClosed) {
+        if (sAlluxioEtcdClient == null) {
           sAlluxioEtcdClient = new AlluxioEtcdClient(conf);
         }
       }
@@ -167,10 +156,6 @@ public class AlluxioEtcdClient implements Closeable {
     // As jetcd exception often hides underneath CompletableFuture.get(), find
     // more info later on distinguishing different possible exceptions.
     while (retryPolicy.attempt()) {
-      if (mClosed) {
-        throw new FailedPreconditionException("Client has been closed, "
-            + "get the AlluxioEtcdClient again.");
-      }
       try {
         return etcdCallable.call();
       } catch (Exception e) {
@@ -233,7 +218,7 @@ public class AlluxioEtcdClient implements Closeable {
       throws IOException {
     return retryInternal(
         String.format("Creating Lease with ttl:%s", ttlInSec),
-        DEFAULT_RETRY_POLICY,
+        new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),
         () -> {
           CompletableFuture<LeaseGrantResponse> leaseGrantFut =
               getEtcdClient().getLeaseClient().grant(ttlInSec, timeout, timeUnit);
@@ -262,7 +247,7 @@ public class AlluxioEtcdClient implements Closeable {
   public void revokeLease(Lease lease) throws IOException {
     retryInternal(
         String.format("Revoking Lease:%s", lease.toString()),
-        DEFAULT_RETRY_POLICY,
+        new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),
         () -> {
           try {
             CompletableFuture<LeaseRevokeResponse> leaseRevokeFut =
@@ -284,7 +269,7 @@ public class AlluxioEtcdClient implements Closeable {
   public boolean isLeaseExpired(Lease lease) throws IOException {
     return retryInternal(
         String.format("Checking IsLeaseExpired, lease:%s", lease.toString()),
-        DEFAULT_RETRY_POLICY,
+        new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),
         () -> {
           LeaseTimeToLiveResponse leaseResp = mClient.getLeaseClient()
               .timeToLive(lease.mLeaseId, LeaseOption.DEFAULT)
@@ -331,7 +316,7 @@ public class AlluxioEtcdClient implements Closeable {
     Preconditions.checkArgument(!StringUtil.isNullOrEmpty(parentPath));
     return retryInternal(
         String.format("Getting children for path:%s", parentPath),
-        DEFAULT_RETRY_POLICY,
+        new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),
         () -> {
           GetResponse getResponse = mClient.getKVClient().get(
                   ByteSequence.from(parentPath, StandardCharsets.UTF_8),
@@ -427,8 +412,6 @@ public class AlluxioEtcdClient implements Closeable {
     // another same watcher already added in a race, close current one
     if (prevWatcher != null) {
       watcher.close();
-    } else {
-      mCloser.register(watcher);
     }
   }
 
@@ -488,7 +471,7 @@ public class AlluxioEtcdClient implements Closeable {
   public byte[] getForPath(String path) throws IOException {
     return retryInternal(
         String.format("Get for path:%s", path),
-        DEFAULT_RETRY_POLICY,
+        new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),
         () -> {
           byte[] ret = null;
           CompletableFuture<GetResponse> getResponse =
@@ -511,7 +494,7 @@ public class AlluxioEtcdClient implements Closeable {
    */
   public boolean checkExistsForPath(String path) throws IOException {
       return retryInternal(String.format("Get for path:%s", path),
-          DEFAULT_RETRY_POLICY,
+          new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),
           () -> {
         boolean exist = false;
         try {
@@ -537,7 +520,7 @@ public class AlluxioEtcdClient implements Closeable {
   public void createForPath(String path, Optional<byte[]> value) throws IOException {
     retryInternal(String.format("Get for path:%s, value size:%s",
             path, (!value.isPresent() ? "null" : value.get().length)),
-        DEFAULT_RETRY_POLICY,
+        new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),
         () -> {
           try {
             mClient.getKVClient().put(
@@ -561,7 +544,7 @@ public class AlluxioEtcdClient implements Closeable {
   public void deleteForPath(String path, boolean recursive) throws IOException {
     retryInternal(
         String.format("Delete for path:%s", path),
-        DEFAULT_RETRY_POLICY,
+        new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),
         () -> {
           try {
             mClient.getKVClient().delete(
@@ -595,18 +578,5 @@ public class AlluxioEtcdClient implements Closeable {
    */
   public Client getEtcdClient() {
     return mClient;
-  }
-
-  @Override
-  public synchronized void close() throws IOException {
-    if (mClient != null) {
-      // this is idempotent, we can call close everytime
-      // without checking mClosed just to double ensure.
-      mClient.close();
-    }
-    if (!mClosed) {
-      mCloser.close();
-    }
-    mClosed = true;
   }
 }

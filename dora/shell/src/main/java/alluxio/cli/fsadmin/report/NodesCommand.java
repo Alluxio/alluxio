@@ -22,7 +22,7 @@ import java.io.PrintStream;
 /**
  * Command to get node status.
  */
-public class NodeStatusCommand {
+public class NodesCommand {
 
   private AlluxioConfiguration mConf;
   private PrintStream mPrintStream;
@@ -32,7 +32,7 @@ public class NodeStatusCommand {
    * @param conf
    * @param printStream
    */
-  public NodeStatusCommand(AlluxioConfiguration conf, PrintStream printStream) {
+  public NodesCommand(AlluxioConfiguration conf, PrintStream printStream) {
     mConf = conf;
     mPrintStream = printStream;
   }
