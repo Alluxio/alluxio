@@ -30,7 +30,6 @@ import alluxio.util.FormatUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.logging.SamplingLogger;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import org.apache.hadoop.conf.Configuration;
@@ -56,6 +55,8 @@ import java.util.concurrent.TimeUnit;
  * Single node stress test.
  */
 // TODO(jiacheng): avoid the implicit casts and @SuppressFBWarnings
+@SuppressFBWarnings(value = "BC_UNCONFIRMED_CAST", justification =
+    "There is a downcast from FileSystemParameters to WorkerBenchParameters in the generic")
 public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult,
     WorkerBenchParameters> {
   private static final Logger LOG = LoggerFactory.getLogger(StressWorkerBench.class);
@@ -129,7 +130,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
   }
 
   @Override
-  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public void prepare() throws Exception {
     validateParams();
 
@@ -203,7 +203,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
    *
    * @param basePath base dir where the files should be prepared
    */
-  @VisibleForTesting
   public void generateTestFilePaths(Path basePath) throws IOException {
     int fileSize = (int) FormatUtils.parseSpaceSize(mParameters.mFileSize);
     int clusterSize = mBaseParameters.mClusterLimit;
@@ -279,7 +278,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
   }
 
   @Override
-  @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
   public WorkerBenchTaskResult runLocal() throws Exception {
     Preconditions.checkArgument(mBaseParameters.mStartMs >= 0,
         "startMs was not specified correctly!");
@@ -407,7 +405,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
 
     private FSDataInputStream mInStream;
 
-    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     private BenchThread(BenchContext context, int targetFileIndex, FileSystem fs) {
       mContext = context;
       mTargetFileIndex = targetFileIndex;
@@ -439,7 +436,6 @@ public class StressWorkerBench extends AbstractStressBench<WorkerBenchTaskResult
       return null;
     }
 
-    @SuppressFBWarnings("BC_UNCONFIRMED_CAST")
     private void runInternal() throws Exception {
       // When to start recording measurements
       long recordMs = mContext.getStartMs() + FormatUtils.parseTimeSize(mParameters.mWarmup);
