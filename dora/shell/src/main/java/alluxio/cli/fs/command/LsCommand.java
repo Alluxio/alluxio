@@ -21,7 +21,6 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.grpc.ListStatusPOptions;
 import alluxio.grpc.LoadMetadataPType;
-import alluxio.grpc.UfsUrlMessage;
 import alluxio.uri.UfsUrl;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
@@ -369,10 +368,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     for (String dirArg : args) {
-// switch between alluxioURI and ufsurl.
-//      AlluxioURI path = new AlluxioURI(dirArg);
-//      runWildCardCmd(path, cl);
-      UfsUrl ufsPath = new UfsUrl(dirArg);
+      UfsUrl ufsPath = UfsUrl.createInstance(dirArg);
       runWildCardCmd(ufsPath, cl);
     }
     return 0;

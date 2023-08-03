@@ -129,7 +129,7 @@ public class UfsBaseFileSystem implements FileSystem {
     String ufsAddress = options.getUfsAddress();
     Preconditions.checkArgument(!ufsAddress.isEmpty(), "ufs address should not be empty");
     mRootUFS = new AlluxioURI(ufsAddress);
-    mRootUfsUrl = new UfsUrl(ufsAddress);
+    mRootUfsUrl = UfsUrl.createInstance(ufsAddress);
     mUfs = ufs.acquireUfsResource();
     mCloser.register(mUfs);
     LOG.debug("Creating file system connecting to ufs address {}", ufsAddress);

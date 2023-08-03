@@ -33,18 +33,9 @@ public class UfsUrl {
   public static final String PATH_SEPARATOR = "/";
   public static final String PORT_SEPARATOR = ":";
 
-//  public static UfsUrl createInstance(String xxx) {
-//    return new UfsUrl(schexx, auth, pathxx);
-//  }
   UfsUrlMessage mProto;
 
-  public UfsUrl(UfsUrlMessage proto) {
-    Preconditions.checkArgument(proto.getPathComponentsList().size() != 0,
-        "The proto.path is empty, please check the proto first.");
-    mProto = proto;
-  }
-
-  public UfsUrl(String ufsPath) {
+  public static UfsUrl createInstance(String ufsPath) {
     Preconditions.checkArgument(!ufsPath.isEmpty(),
         "ufsPath is empty, please input a non-empty ufsPath.");
 
@@ -56,7 +47,7 @@ public class UfsUrl {
     String[] rootDirArray = rootDir.split(SCHEME_SEPARATOR);
     if (!ufsPath.equals(rootDir)) {
       // rootDir = "hdfs:///" -> rootDirArray = ["hdfs", "/"]
-      Preconditions.checkArgument(rootDirArray.length <= 2, "Invalid rootDir, "
+      Preconditions.checkArgument(rootDirArray.length <= 2, "Invalid Alluxio rootDir, "
           + "please check alluxio configuration first.");
       // rootDir is like "/tmp"
       if (rootDirArray.length == 1) {
@@ -83,16 +74,16 @@ public class UfsUrl {
       rootPath = "";
     }
 
-    List<String> preprocessingPathList = Arrays.asList(ufsPath.split(SCHEME_SEPARATOR));
+    int schemeIndex = ufsPath.indexOf(SCHEME_SEPARATOR);
+    Preconditions.checkArgument(schemeIndex == ufsPath.lastIndexOf(SCHEME_SEPARATOR),
+        "There are multiple schemes, the input may contain more than one path, "
+            + "current UfsUrl only support inputting one path each time.");
+
     String scheme;
     String authority;
     String path;
     String authorityAndPath;
-    Preconditions.checkArgument(preprocessingPathList.size() <= 2,
-        "There are multiple schemes, the input may contain more than one path, "
-            + "current version only support inputting one path each time.");
-    int schemeIndex = ufsPath.indexOf(SCHEME_SEPARATOR);
-    // schemeIndex == -1 -> ufsUrl without a scheme; schemeIndex != -1 -> ufsUrl with a scheme.
+    // schemeIndex == -1 -> ufsPath without a scheme; schemeIndex != -1 -> ufsPath has scheme.
     if (schemeIndex == -1)  {
       // If without scheme, set default scheme to root scheme.
       if (rootDirArray.length == 1) {
@@ -106,7 +97,7 @@ public class UfsUrl {
       }
       authorityAndPath = ufsPath;
     } else {
-      // preprocessingPathList.size() == 2, i.e. the ufsPath has one scheme.
+      // ufsPath has one scheme.
       scheme = ufsPath.substring(0, schemeIndex);
       authorityAndPath = ufsPath.substring(schemeIndex + SCHEME_SEPARATOR.length());
     }
@@ -139,7 +130,20 @@ public class UfsUrl {
         path = tmpPath;
       }
     }
+    return new UfsUrl(scheme, authority, path);
+  }
 
+  public static UfsUrl fromProto(UfsUrlMessage proto) {
+    return new UfsUrl(proto);
+  }
+
+  public UfsUrl(UfsUrlMessage proto) {
+    Preconditions.checkArgument(proto.getPathComponentsList().size() != 0,
+        "The proto.path is empty, please check the proto first.");
+    mProto = proto;
+  }
+
+  public UfsUrl(String scheme, String authority, String path) {
     String[] arrayOfPath = path.split(PATH_SEPARATOR);
     List<String> pathComponentsList = Arrays.asList(arrayOfPath);
     mProto = UfsUrlMessage.newBuilder()

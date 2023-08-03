@@ -191,13 +191,6 @@ public class BaseFileSystem implements FileSystem {
       }
     });
   }
-
-//  @Override
-//  public FileOutStream createFile(UfsUrl ufsPath, CreateFilePOptions options)
-//      throws FileAlreadyExistsException, InvalidPathException, IOException, AlluxioException {
-//    return null;
-//  }
-
   @Override
   public void delete(AlluxioURI path, DeletePOptions options)
       throws DirectoryNotEmptyException, FileDoesNotExistException, IOException, AlluxioException {
@@ -296,18 +289,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public URIStatus getStatus(UfsUrl ufsPath, final GetStatusPOptions options)
           throws FileDoesNotExistException, IOException, AlluxioException {
-    checkUri(ufsPath);
-    URIStatus status = rpc(client -> {
-      // TODO(jiacheng): implement getPathConf(ufsPath), currently path conf is ignored
-//      GetStatusPOptions mergedOptions = FileSystemOptionsUtils.getStatusDefaults(
-//              mFsContext.getPathConf(path)).toBuilder().mergeFrom(options).build();
-//      return client.getStatus(ufsPath, mergedOptions);
-      return client.getStatus(ufsPath, options);
-    });
-    if (!status.isCompleted()) {
-      LOG.debug("File {} is not yet completed. getStatus will see incomplete metadata.", ufsPath);
-    }
-    return status;
+    return null;
   }
 
   @Override
@@ -325,10 +307,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public List<URIStatus> listStatus(UfsUrl ufsPath, final ListStatusPOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    checkUri(ufsPath);
-    return rpc(client -> {
-      return client.listStatus(ufsPath, options);
-    });
+    return null;
   }
 
   @Override
@@ -349,8 +328,6 @@ public class BaseFileSystem implements FileSystem {
   public void iterateStatus(UfsUrl ufsPath, final ListStatusPOptions options,
       Consumer<? super URIStatus> action)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    checkUri(ufsPath);
-    rpc(client -> {return null;});
   }
 
   @Override
@@ -447,11 +424,8 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public FileInStream openFile(UfsUrl ufsPath, OpenFilePOptions options)
-      throws FileDoesNotExistException, OpenDirectoryException, FileIncompleteException,
-      IOException, AlluxioException {
-    checkUri(ufsPath);
-    URIStatus status = getStatus(ufsPath);
-    return openFile(status, options);
+      throws IOException, AlluxioException {
+    return null;
   }
 
   @Override
@@ -660,11 +634,6 @@ public class BaseFileSystem implements FileSystem {
         }
       }
     }
-  }
-
-  // Copied from checkUri(AlluxioURI)
-  protected void checkUri(UfsUrl ufsPath) {
-    // All the class is deleted in Alluxio 3.0.
   }
 
   @FunctionalInterface

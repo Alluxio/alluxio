@@ -475,18 +475,6 @@ public class DoraCacheFileSystem extends DelegatingFileSystem {
     }
   }
 
-  private UfsUrl convertUfsUrlToUfsPath(UfsUrl ufsUrl) {
-    if (mDelegatedFileSystem instanceof UfsBaseFileSystem) {
-      UfsBaseFileSystem under = (UfsBaseFileSystem) mDelegatedFileSystem;
-      UfsUrl rootUfsUrl = under.getRootUfsUrl();
-      // TODO(Tony Sun): Add try catch logic. Ask for what should be params.
-      String ufsUrlFullPath = PathUtils.concatPath(rootUfsUrl.getFullPath(), ufsUrl.getFullPath());
-      return new UfsUrl(ufsUrlFullPath);
-    } else {
-      return ufsUrl;
-    }
-  }
-
   @Override
   public List<BlockLocationInfo> getBlockLocations(AlluxioURI path)
       throws IOException, AlluxioException {
