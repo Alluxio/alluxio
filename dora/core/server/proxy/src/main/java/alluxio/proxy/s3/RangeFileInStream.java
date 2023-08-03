@@ -12,6 +12,7 @@
 package alluxio.proxy.s3;
 
 import alluxio.client.file.FileInStream;
+import alluxio.s3.S3RangeSpec;
 
 import java.io.IOException;
 import java.io.InputStream;

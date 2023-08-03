@@ -9,20 +9,20 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.proxy.s3.signature.utils;
+package alluxio.s3.signature.utils;
 
-import static alluxio.proxy.s3.S3Constants.AUTHORIZATION_CHARSET;
-import static alluxio.proxy.s3.S3Constants.S3_SIGN_ALGORITHM;
-import static alluxio.proxy.s3.S3Constants.S3_SIGN_CREDENTIAL;
-import static alluxio.proxy.s3.S3Constants.S3_SIGN_DATE;
-import static alluxio.proxy.s3.S3Constants.S3_SIGN_EXPIRES;
-import static alluxio.proxy.s3.S3Constants.S3_SIGN_SIGNATURE;
-import static alluxio.proxy.s3.S3Constants.S3_SIGN_SIGNED_HEADER;
-import static alluxio.proxy.s3.S3Constants.TIME_FORMATTER;
+import static alluxio.s3.S3Constants.AUTHORIZATION_CHARSET;
+import static alluxio.s3.S3Constants.S3_SIGN_ALGORITHM;
+import static alluxio.s3.S3Constants.S3_SIGN_CREDENTIAL;
+import static alluxio.s3.S3Constants.S3_SIGN_DATE;
+import static alluxio.s3.S3Constants.S3_SIGN_EXPIRES;
+import static alluxio.s3.S3Constants.S3_SIGN_SIGNATURE;
+import static alluxio.s3.S3Constants.S3_SIGN_SIGNED_HEADER;
+import static alluxio.s3.S3Constants.TIME_FORMATTER;
 
-import alluxio.proxy.s3.S3Exception;
-import alluxio.proxy.s3.signature.AwsCredential;
-import alluxio.proxy.s3.signature.SignatureInfo;
+import alluxio.s3.S3Exception;
+import alluxio.s3.signature.AwsCredential;
+import alluxio.s3.signature.SignatureInfo;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;

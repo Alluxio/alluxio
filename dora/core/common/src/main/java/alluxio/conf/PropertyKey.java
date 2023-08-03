@@ -5370,6 +5370,77 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_REST_PORT =
+      intBuilder(Name.WORKER_REST_PORT)
+          .setDefaultValue(29998)
+          .setDescription("The port Alluxio worker's rest api runs on.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_S3_REST_ENABLED =
+      booleanBuilder(Name.WORKER_S3_REST_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Set to true to enable worker netty s3 server.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_S3_AUDIT_LOGGING_ENABLED =
+      booleanBuilder(Name.WORKER_S3_LOGGING_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Set to true to enable worker netty s3 audit.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_S3_ASYNC_PROCESS_ENABLED =
+      booleanBuilder(Name.WORKER_S3_ASYNC_PROCESS_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("(Experimental) If enabled, handle S3 request "
+              + "in async mode in the netty based s3.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_S3_ASYNC_LIGHT_POOL_CORE_THREAD_NUMBER =
+      intBuilder(Name.WORKER_S3_ASYNC_LIGHT_POOL_CORE_THREAD_NUMBER)
+          .setDefaultValue(8)
+          .setDescription("Core thread number for async light thread pool.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey WORKER_S3_ASYNC_LIGHT_POOL_MAXIMUM_THREAD_NUMBER =
+      intBuilder(Name.WORKER_S3_ASYNC_LIGHT_POOL_MAXIMUM_THREAD_NUMBER)
+          .setDefaultValue(64)
+          .setDescription("Maximum thread number for async light thread pool.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey WORKER_S3_ASYNC_LIGHT_POOL_QUEUE_SIZE =
+      intBuilder(Name.WORKER_S3_ASYNC_LIGHT_POOL_QUEUE_SIZE)
+          .setDefaultValue(64 * 1024)
+          .setDescription("Queue size for async light thread pool.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey WORKER_S3_ASYNC_HEAVY_POOL_CORE_THREAD_NUMBER =
+      intBuilder(Name.WORKER_S3_ASYNC_HEAVY_POOL_CORE_THREAD_NUMBER)
+          .setDefaultValue(8)
+          .setDescription("Core thread number for async heavy thread pool.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey WORKER_S3_ASYNC_HEAVY_POOL_MAXIMUM_THREAD_NUMBER =
+      intBuilder(Name.WORKER_S3_ASYNC_HEAVY_POOL_MAXIMUM_THREAD_NUMBER)
+          .setDefaultValue(64)
+          .setDescription("Maximum thread number for async heavy thread pool.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
+  public static final PropertyKey WORKER_S3_ASYNC_HEAVY_POOL_QUEUE_SIZE =
+      intBuilder(Name.WORKER_S3_ASYNC_HEAVY_POOL_QUEUE_SIZE)
+          .setDefaultValue(64 * 1024)
+          .setDescription("Queue size for async heavy thread pool.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScope(Scope.SERVER)
+          .build();
   public static final PropertyKey WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS =
       durationBuilder(Name.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS)
           .setAlias("alluxio.worker.ufs.block.open.timeout.ms")
@@ -9017,6 +9088,24 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_WEB_BIND_HOST = "alluxio.worker.web.bind.host";
     public static final String WORKER_WEB_HOSTNAME = "alluxio.worker.web.hostname";
     public static final String WORKER_WEB_PORT = "alluxio.worker.web.port";
+    public static final String WORKER_REST_PORT = "alluxio.worker.rest.port";
+    public static final String WORKER_S3_REST_ENABLED = "alluxio.worker.s3.api.enabled";
+    public static final String WORKER_S3_LOGGING_ENABLED =
+        "alluxio.worker.s3.audit.logging.enabled";
+    public static final String WORKER_S3_ASYNC_PROCESS_ENABLED =
+        "alluxio.worker.s3.async.processing.enabled";
+    public static final String WORKER_S3_ASYNC_LIGHT_POOL_CORE_THREAD_NUMBER =
+        "alluxio.worker.s3.async.light.pool.core.thread.number";
+    public static final String WORKER_S3_ASYNC_LIGHT_POOL_MAXIMUM_THREAD_NUMBER =
+        "alluxio.worker.s3.async.light.pool.maximum.thread.number";
+    public static final String WORKER_S3_ASYNC_LIGHT_POOL_QUEUE_SIZE =
+        "alluxio.worker.s3.async.light.pool.queue.size";
+    public static final String WORKER_S3_ASYNC_HEAVY_POOL_CORE_THREAD_NUMBER =
+        "alluxio.worker.s3.async.heavy.pool.core.thread.number";
+    public static final String WORKER_S3_ASYNC_HEAVY_POOL_MAXIMUM_THREAD_NUMBER =
+        "alluxio.worker.s3.async.heavy.pool.maximum.thread.number";
+    public static final String WORKER_S3_ASYNC_HEAVY_POOL_QUEUE_SIZE =
+        "alluxio.worker.s3.async.heavy.pool.queue.size";
     public static final String WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS =
         "alluxio.worker.ufs.block.open.timeout";
     public static final String WORKER_UFS_INSTREAM_CACHE_EXPIRATION_TIME =

@@ -9,9 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.proxy.s3;
+package alluxio.s3;
 
 import alluxio.AlluxioURI;
+import alluxio.RestUtils;
 import alluxio.client.file.URIStatus;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -214,7 +215,7 @@ public class ListBucketResult {
           String path = status.getPath().substring(bucketPrefix.length());
           return new Content(
               status.isFolder() ? path + AlluxioURI.SEPARATOR : path,
-              S3RestUtils.toS3Date(status.getLastModificationTimeMs()),
+              RestUtils.toS3Date(status.getLastModificationTimeMs()),
               status.isFolder() ? "0" : String.valueOf(status.getLength())
           );
         })

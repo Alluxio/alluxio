@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.proxy.s3.signature;
+package alluxio.s3.signature;
 
 /**
  * Signature and related information.

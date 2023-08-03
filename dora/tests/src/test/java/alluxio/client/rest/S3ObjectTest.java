@@ -16,8 +16,8 @@ import alluxio.Constants;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.conf.PropertyKey;
-import alluxio.proxy.s3.S3Constants;
-import alluxio.proxy.s3.S3ErrorCode;
+import alluxio.s3.S3Constants;
+import alluxio.s3.S3ErrorCode;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.CommonUtils;
 

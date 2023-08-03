@@ -9,11 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.proxy.s3.auth;
+package alluxio.s3.auth;
 
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.proxy.s3.S3Exception;
+import alluxio.s3.S3Exception;
 import alluxio.util.CommonUtils;
 
 /**
@@ -44,7 +44,7 @@ public interface Authenticator {
    * Check if the AwsAuthInfo is legal.
    * @param authInfo info for authentication
    * @return ture if this service should be accessed with authentication
-   * @throws alluxio.proxy.s3.S3Exception
+   * @throws S3Exception
    */
   boolean isAuthenticated(AwsAuthInfo authInfo) throws S3Exception;
 }

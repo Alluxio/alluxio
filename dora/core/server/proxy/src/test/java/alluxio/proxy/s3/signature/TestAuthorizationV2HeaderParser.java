@@ -14,8 +14,9 @@ package alluxio.proxy.s3.signature;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import alluxio.proxy.s3.S3Exception;
-import alluxio.proxy.s3.signature.utils.AwsAuthV2HeaderParserUtils;
+import alluxio.s3.S3Exception;
+import alluxio.s3.signature.SignatureInfo;
+import alluxio.s3.signature.utils.AwsAuthV2HeaderParserUtils;
 
 import org.junit.Assert;
 import org.junit.Test;

@@ -9,12 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.proxy.s3.signature;
+package alluxio.s3.signature;
 
-import static alluxio.proxy.s3.S3Constants.DATE_FORMATTER;
+import static alluxio.s3.S3Constants.DATE_FORMATTER;
 
-import alluxio.proxy.s3.S3ErrorCode;
-import alluxio.proxy.s3.S3Exception;
+import alluxio.s3.S3ErrorCode;
+import alluxio.s3.S3Exception;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
