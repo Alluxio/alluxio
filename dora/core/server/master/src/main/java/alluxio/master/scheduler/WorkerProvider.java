@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.scheduler.job;
+package alluxio.master.scheduler;
 
 import alluxio.client.block.stream.BlockWorkerClient;
 import alluxio.exception.runtime.AlluxioRuntimeException;

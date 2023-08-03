@@ -34,7 +34,6 @@ import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobMetaStore;
 import alluxio.scheduler.job.JobState;
 import alluxio.scheduler.job.Task;
-import alluxio.scheduler.job.WorkerProvider;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.ThreadUtils;
 import alluxio.wire.WorkerInfo;

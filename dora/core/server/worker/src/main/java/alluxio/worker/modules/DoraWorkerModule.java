@@ -73,14 +73,9 @@ public class DoraWorkerModule extends AbstractModule {
           throw new RuntimeException(e);
         }
       }).in(Scopes.SINGLETON);
-      bind(MembershipManager.class).toProvider(() ->
-      {
-        try {
-          return MembershipManager.Factory.create(Configuration.global());
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }).in(Scopes.SINGLETON);
+      bind(MembershipManager.class)
+          .toProvider(() -> MembershipManager.Factory.create(Configuration.global()))
+          .in(Scopes.SINGLETON);
 
       long pageSize = Configuration.global().getBytes(PropertyKey.WORKER_PAGE_STORE_PAGE_SIZE);
       bind(new TypeLiteral<Long>() {

@@ -16,7 +16,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.exception.runtime.AlluxioRuntimeException;
 import alluxio.membership.MembershipManager;
 import alluxio.resource.CloseableResource;
-import alluxio.scheduler.job.WorkerProvider;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 

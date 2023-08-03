@@ -125,7 +125,11 @@ import alluxio.master.metastore.ReadOnlyInodeStore;
 import alluxio.master.metrics.TimeSeriesStore;
 import alluxio.master.scheduler.DefaultWorkerProvider;
 import alluxio.master.scheduler.JournaledJobMetaStore;
+import alluxio.master.scheduler.MembershipManagerWorkerProvider;
 import alluxio.master.scheduler.Scheduler;
+import alluxio.master.scheduler.WorkerProvider;
+import alluxio.membership.EtcdMembershipManager;
+import alluxio.membership.MembershipType;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricInfo;
 import alluxio.metrics.MetricKey;
@@ -517,8 +521,21 @@ public class DefaultFileSystemMaster extends CoreMaster
     mActiveSyncMetadataExecutor.allowCoreThreadTimeOut(true);
     FileSystemContext schedulerFsContext = FileSystemContext.create();
     JournaledJobMetaStore jobMetaStore = new JournaledJobMetaStore(this);
-    mScheduler = new Scheduler(schedulerFsContext,
-        new DefaultWorkerProvider(this, schedulerFsContext), jobMetaStore);
+    WorkerProvider workerProvider;
+    switch (Configuration.getEnum(PropertyKey.WORKER_MEMBERSHIP_MANAGER_TYPE,
+        MembershipType.class)) {
+      case STATIC:
+      case ETCD:
+        workerProvider = new MembershipManagerWorkerProvider(
+            EtcdMembershipManager.create(Configuration.global()), schedulerFsContext);
+        break;
+      case NOOP:
+        workerProvider = new DefaultWorkerProvider(this, schedulerFsContext);
+        break;
+      default:
+        throw new IllegalStateException("Unrecognized Membership Type");
+    }
+    mScheduler = new Scheduler(schedulerFsContext, workerProvider, jobMetaStore);
 
     // The mount table should come after the inode tree because restoring the mount table requires
     // that the inode tree is already restored.
