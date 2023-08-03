@@ -483,16 +483,13 @@ public abstract class AbstractClient implements Client {
     }
   }
 
-  private synchronized <V> V retryRPCInternal(RetryPolicy retryPolicy, RpcCallable<V> rpc,
+  private <V> V retryRPCInternal(RetryPolicy retryPolicy, RpcCallable<V> etcdRpc,
       Supplier<Void> onRetry) throws AlluxioStatusException {
     Exception ex = null;
     while (retryPolicy.attempt()) {
-      if (mClosed) {
-        throw new FailedPreconditionException("Client is closed");
-      }
       connect();
       try {
-        return rpc.call();
+        return etcdRpc.call();
       } catch (StatusRuntimeException e) {
         AlluxioStatusException se = AlluxioStatusException.fromStatusRuntimeException(e);
         if (se.getStatusCode() == Status.Code.UNAVAILABLE
