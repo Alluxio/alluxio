@@ -201,9 +201,7 @@ public class S3ErrorResponse {
     } else if (e instanceof IOException) {
       return createNettyErrorResponse((IOException) e, resource);
     } else {
-      ByteBuf contentBuffer =
-          Unpooled.copiedBuffer(e.getMessage(), CharsetUtil.UTF_8);
-      return generateS3ErrorResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR, contentBuffer,
+      return generateS3ErrorResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR, e.getMessage(),
           HttpHeaderValues.TEXT_PLAIN);
     }
   }
@@ -289,15 +287,13 @@ public class S3ErrorResponse {
     S3Error errorResponse = new S3Error(resource, s3ErrorCode);
     errorResponse.setMessage(message);
     try {
-      ByteBuf contentBuffer =
-          Unpooled.copiedBuffer(mapper.writeValueAsString(errorResponse), CharsetUtil.UTF_8);
       return generateS3ErrorResponse(
-          HttpResponseStatus.valueOf(s3ErrorCode.getStatus().getStatusCode()), contentBuffer,
+          HttpResponseStatus.valueOf(s3ErrorCode.getStatus().getStatusCode()),
+          mapper.writeValueAsString(errorResponse),
           HttpHeaderValues.APPLICATION_XML);
     } catch (JsonProcessingException e2) {
-      ByteBuf contentBuffer =
-          Unpooled.copiedBuffer("Failed to encode XML: " + e2.getMessage(), CharsetUtil.UTF_8);
-      return generateS3ErrorResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR, contentBuffer,
+      String errorContent = "Failed to encode XML: " + e2.getMessage();
+      return generateS3ErrorResponse(HttpResponseStatus.INTERNAL_SERVER_ERROR, errorContent,
           HttpHeaderValues.TEXT_PLAIN);
     } finally {
       LOG.warn("mapper convert exception {} to {}.", message, s3ErrorCode.getStatus().toString());
@@ -312,12 +308,13 @@ public class S3ErrorResponse {
    * @return FullHttpResponse
    */
   public static FullHttpResponse generateS3ErrorResponse(HttpResponseStatus responseStatus,
-                                                               ByteBuf content,
+                                                               String content,
                                                           AsciiString contentType) {
+    ByteBuf contentBuffer = Unpooled.copiedBuffer(content, CharsetUtil.UTF_8);
     FullHttpResponse response = new DefaultFullHttpResponse(NettyRestUtils.HTTP_VERSION,
-        responseStatus, content);
+        responseStatus, contentBuffer);
     response.headers().set(HttpHeaderNames.CONTENT_TYPE, contentType);
-    response.headers().set(HttpHeaderNames.CONTENT_LENGTH, content.readableBytes());
+    response.headers().set(HttpHeaderNames.CONTENT_LENGTH, contentBuffer.readableBytes());
     return response;
   }
 }
