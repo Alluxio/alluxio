@@ -454,6 +454,12 @@ public class LocalUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   @Override
+  public void setAttribute(String path, String name, byte[] value) throws IOException {
+    path = stripPath(path);
+    FileUtils.changeLocalFileAttribute(path, name, value);
+  }
+
+  @Override
   public void connectFromMaster(String hostname) throws IOException {
     // No-op
   }

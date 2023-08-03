@@ -95,6 +95,7 @@ import com.google.common.io.Closer;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Inject;
+import com.google.protobuf.ByteString;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -797,6 +798,8 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
       mUfs.setOwner(path, options.getOwner(), null);
     } else if (options.hasGroup()) {
       mUfs.setOwner(path, null, options.getGroup());
+    } else if (options.getXattrCount() > 0) {
+      Map<String, ByteString> xattr = options.getXattrMap();
     }
     mMetaManager.loadFromUfs(path);
     mMetaManager.invalidateListingCacheOfParent(path);

@@ -32,9 +32,14 @@ import com.qcloud.cos.exception.CosClientException;
 import com.qcloud.cos.model.COSObjectSummary;
 import com.qcloud.cos.model.DeleteObjectsRequest;
 import com.qcloud.cos.model.DeleteObjectsResult;
+import com.qcloud.cos.model.GetObjectTaggingRequest;
+import com.qcloud.cos.model.GetObjectTaggingResult;
 import com.qcloud.cos.model.ListObjectsRequest;
 import com.qcloud.cos.model.ObjectListing;
 import com.qcloud.cos.model.ObjectMetadata;
+import com.qcloud.cos.model.ObjectTagging;
+import com.qcloud.cos.model.SetObjectTaggingRequest;
+import com.qcloud.cos.model.Tag.Tag;
 import com.qcloud.cos.region.Region;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -124,6 +129,26 @@ public class COSUnderFileSystem extends ObjectUnderFileSystem {
   // No ACL integration currently, no-op
   @Override
   public void setMode(String path, short mode) {}
+
+  @Override
+  public void setAttribute(String path, String name, byte[] value) throws IOException {
+    GetObjectTaggingRequest getTaggingReq = new GetObjectTaggingRequest(mBucketNameInternal, path);
+    GetObjectTaggingResult taggingResult = mClient.getObjectTagging(getTaggingReq);
+    List<Tag> tagList = taggingResult.getTagSet();
+    boolean existed = false;
+    for (Tag tag : tagList) {
+      if (tag.getKey().equals(name)) {
+        existed = true;
+        tag.setValue(new String(value));
+      }
+    }
+    if (!existed) {
+      Tag tag = new Tag(name, new String(value));
+      tagList.add(tag);
+    }
+    mClient.setObjectTagging(
+        new SetObjectTaggingRequest(mBucketNameInternal, path, new ObjectTagging(tagList)));
+  }
 
   @Override
   protected boolean copyObject(String src, String dst) {

@@ -763,6 +763,23 @@ public class HdfsUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   @Override
+  public void setAttribute(String path, String name, byte[] value) throws IOException {
+    if (StringUtils.isEmpty(name)) {
+      return;
+    }
+    FileSystem hdfs = getFs();
+    try {
+      FileStatus fileStatus = hdfs.getFileStatus(new Path(path));
+      hdfs.setXAttr(fileStatus.getPath(), name, value);
+    } catch (IOException e) {
+      LOG.warn("Failed to set XAttr for {} with name: {}, value: {}: {}. "
+              + "Running Alluxio as superuser is required to modify attributes of local files",
+          path, name, new String(value), e.toString());
+      throw e;
+    }
+  }
+
+  @Override
   public void setMode(String path, short mode) throws IOException {
     FileSystem hdfs = getFs();
     try {

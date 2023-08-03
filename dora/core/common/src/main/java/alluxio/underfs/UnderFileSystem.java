@@ -863,6 +863,8 @@ public interface UnderFileSystem extends Closeable, AsyncUfsClient {
    */
   void setOwner(String path, String owner, String group) throws IOException;
 
+  void setAttribute(String path, String name, byte[] value) throws IOException;
+
   /**
    * Whether this type of UFS supports flush.
    *

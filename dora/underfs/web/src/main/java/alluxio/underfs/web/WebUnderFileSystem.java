@@ -351,6 +351,11 @@ public class WebUnderFileSystem extends ConsistentUnderFileSystem {
   }
 
   @Override
+  public void setAttribute(String path, String name, byte[] value) throws IOException {
+    throw new IOException(mUnsupportedMsg);
+  }
+
+  @Override
   public void connectFromMaster(String hostname) throws IOException {
     throw new IOException(mUnsupportedMsg);
   }

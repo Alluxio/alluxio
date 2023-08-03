@@ -607,6 +607,11 @@ public class CephFSUnderFileSystem extends ConsistentUnderFileSystem
   }
 
   @Override
+  public void setAttribute(String path, String name, byte[] value) throws IOException {
+    throw new UnimplementedRuntimeException("Position read is not implemented");
+  }
+
+  @Override
   public boolean supportsFlush() {
     return true;
   }
