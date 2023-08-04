@@ -1,0 +1,598 @@
+alluxio.conf.dynamic.update.enabled:
+  'Whether to support dynamic update property.'
+alluxio.debug:
+  'Set to true to enable debug mode which has additional logging and info in the Web UI.'
+alluxio.dora.client.metadata.cache.enabled:
+  'Whether to enable metadata cache for dora client. This is only valid for read only workloads.'
+alluxio.dora.client.read.location.policy.enabled:
+  'Whether to use client side location policy for reading'
+alluxio.dora.client.ufs.root:
+  'UFS root for dora client'
+alluxio.dora.ufs.file.status.cache.size:
+  'The max size of the cache of UFS file status'
+alluxio.dora.ufs.file.status.cache.ttl:
+  'The TTL of the cache of UFS file status'
+alluxio.dora.ufs.list.status.cache.nr.dirs:
+  'Number of the file/dir cache of UFS list status results'
+alluxio.dora.ufs.list.status.cache.ttl:
+  'The TTL of the cache of UFS list status results'
+alluxio.dora.worker.metastore.rocksdb.block.index:
+  'The block index type to be used in the RocksDB block metadata table. If unset, the RocksDB default will be used.See https://rocksdb.org/blog/2018/08/23/data-block-hash-index.html'
+alluxio.dora.worker.metastore.rocksdb.bloom.filter:
+  'Whether or not to use a bloom filter in the Block meta table in RocksDB. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/RocksDB-Bloom-Filter'
+alluxio.dora.worker.metastore.rocksdb.cache.size:
+  'The capacity in bytes of the RocksDB block metadata table LRU  cache. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Block-Cache. Our microbench test shows that 1GB cache can double the metadata read operation performance for a meta store that persists 10M metadata entries. Note that the memory is off-heap and does not count in jvm memory.'
+alluxio.dora.worker.metastore.rocksdb.dir:
+  'The base dir of RocksDB to store Dora metadata'
+alluxio.dora.worker.metastore.rocksdb.index:
+  'The index type to be used in the RocksDB block metadata table. If unset, the RocksDB default will be used. See https://github.com/facebook/rocksdb/wiki/Index-Block-Format'
+alluxio.dora.worker.metastore.rocksdb.ttl:
+  'The TTL (Time To Live) in duration of RocksDB of Dora metadata. 0s or negative value means no expiry'
+alluxio.dora.worker.populate.metadata.fingerprint:
+  'Populate the fingerprint for file metadata fetched from UFS If set, when the file metadata is updated, the fingerprints will be compared. If the file metadata is updated but the data part does not change, we can skip invalidating the page cache, at the expense of having extra overhead on computing the fingerprint for UFS files.'
+alluxio.exit.collect.info:
+  'If true, the process will dump metrics and jstack into the log folder. This only applies to Alluxio master and worker processes.'
+alluxio.fuse.auth.policy.class:
+  'The fuse auth policy class.  Valid options include: `alluxio.fuse.auth.LaunchUserGroupAuthPolicy` using the user launching the AlluxioFuse application to do authentication, `alluxio.fuse.auth.SystemUserGroupAuthPolicy` using the end-user running the fuse command to do authentication which matches POSIX standard but sacrifices performance, `alluxio.fuse.auth.CustomAuthPolicy` using the custom user group to do authentication.'
+alluxio.fuse.auth.policy.custom.group:
+  'The fuse group name for custom auth policy. Only valid if the alluxio.fuse.auth.policy.class is alluxio.fuse.auth.CustomAuthPolicy'
+alluxio.fuse.auth.policy.custom.user:
+  'The fuse user name for custom auth policy. Only valid if the alluxio.fuse.auth.policy.class is alluxio.fuse.auth.CustomAuthPolicy'
+alluxio.fuse.cached.paths.max:
+  'Maximum number of FUSE-to-Alluxio path mappings to cache for FUSE conversion.'
+alluxio.fuse.debug.enabled:
+  'Run FUSE in debug mode, and have the fuse process log every FS request.'
+alluxio.fuse.fs.name:
+  'The FUSE file system name.'
+alluxio.fuse.jnifuse.enabled:
+  'Use JNI-Fuse library for better performance. If disabled, JNR-Fuse will be used.'
+alluxio.fuse.jnifuse.libfuse.version:
+  'The version of libfuse used by libjnifuse. Libfuse2 (value=&quot;2&quot;) and Libfuse3 (value=&quot;3&quot;, default value) are supported.'
+alluxio.fuse.logging.threshold:
+  'Logging a FUSE API call when it takes more time than the threshold.'
+alluxio.fuse.mount.alluxio.path:
+  'The Alluxio path to mount to the given Fuse mount point configured by alluxio.fuse.mount.point in the worker when alluxio.worker.fuse.enabled is enabled or in the standalone Fuse process.'
+alluxio.fuse.mount.options:
+  'The platform specific Fuse mount options to mount the given Fuse mount point. If multiple mount options are provided, separate them with comma.'
+alluxio.fuse.mount.point:
+  'The absolute local filesystem path that worker (if alluxio.worker.fuse.enabled is enabled)or standalone Fuse will mount Alluxio path to.'
+alluxio.fuse.position.read.enabled:
+  'By default FUSE uses sequential reader which may have unsatisfied performance when having random read operations. Note that even user side sequential read may lead to Alluxio FUSE side small range random read behavior'
+alluxio.fuse.shared.caching.reader.enabled:
+  '(Experimental) Use share grpc data reader for better performance on multi-process file reading through Alluxio JNI Fuse. Blocks data will be cached on the client side so more memory is required for the Fuse process.'
+alluxio.fuse.special.command.enabled:
+  'If enabled, user can issue special FUSE commands by using ''ls -l /path/to/fuse_mount/.alluxiocli.&lt;command_name&gt;.&lt;subcommand_name&gt;'', For example, when the Alluxio is mounted at local path /mnt/alluxio-fuse, ''ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.dropAll'' will drop all the user metadata cache. ''ls -l /mnt/alluxio-fuse/.alluxiocli.metadatacache.size'' will get the metadata cache size， the size value will be show in the output''s filesize field. ''ls -l /mnt/alluxio-fuse/path/to/be/cleaned/.alluxiocli.metadatacache.drop'' will drop the metadata cache of path ''/mnt/alluxio-fuse/path/to/be/cleaned/'''
+alluxio.fuse.stat.cache.refresh.interval:
+  'The fuse filesystem statistics (e.g. Alluxio capacity information) will be refreshed after being cached for this time period. If the refresh time is too big, operations on the FUSE may fail because of the stale filesystem statistics. If it is too small, continuously fetching filesystem statistics create a large amount of master RPC calls and lower the overall performance of the Fuse application. A value small than or equal to zero means no statistics cache on the Fuse side.'
+alluxio.fuse.umount.timeout:
+  'The timeout to wait for all in progress file read and write to finish before unmounting the Fuse filesystem when SIGTERM signal is received. A value smaller than or equal to zero means no umount wait time. '
+alluxio.fuse.user.group.translation.enabled:
+  'Whether to translate Alluxio users and groups into Unix users and groups when exposing Alluxio files through the FUSE API. When this property is set to false, the user and group for all FUSE files will match the user who started the alluxio-fuse process.Note that this applies to JNR-FUSE only.'
+alluxio.fuse.web.bind.host:
+  'The hostname Alluxio FUSE web UI binds to.'
+alluxio.fuse.web.enabled:
+  'Whether to enable FUSE web server.'
+alluxio.fuse.web.hostname:
+  'The hostname of Alluxio FUSE web UI.'
+alluxio.fuse.web.port:
+  'The port Alluxio FUSE web UI runs on.'
+alluxio.grpc.reflection.enabled:
+  'If true, grpc reflection will be enabled on alluxio grpc servers, including masters, workers, job masters and job workers.  This makes grpc tools such as grpcurl or grpcui can send grpc requests to the master server easier without knowing the protobufs. This is a debug option.'
+alluxio.hadoop.kerberos.keytab.login.autorenewal:
+  'Kerberos authentication keytab login auto renew.'
+alluxio.hadoop.security.authentication:
+  'HDFS authentication method.'
+alluxio.hadoop.security.krb5.conf:
+  'Kerberos krb file for configuration of Kerberos.'
+alluxio.home:
+  'Alluxio installation directory.'
+alluxio.job.batch.size:
+  'The number of tasks would be included in a job request.'
+alluxio.job.master.bind.host:
+  'The host that the Alluxio job master will bind to.'
+alluxio.job.master.client.threads:
+  'The number of threads the Alluxio master uses to make requests to the job master.'
+alluxio.job.master.embedded.journal.addresses:
+  'A comma-separated list of journal addresses for all job masters in the cluster. The format is ''hostname1:port1,hostname2:port2,...''. Defaults to the journal addresses set for the Alluxio masters (alluxio.master.embedded.journal.addresses), but with the job master embedded journal port.'
+alluxio.job.master.embedded.journal.port:
+  'The port job masters use for embedded journal communications.'
+alluxio.job.master.finished.job.purge.count:
+  'The maximum amount of jobs to purge at any single time when the job master reaches its maximum capacity. It is recommended to set this value when setting the capacity of the job master to a large ( &gt; 10M) value. Default is -1 denoting an unlimited value'
+alluxio.job.master.finished.job.retention.time:
+  'The length of time the Alluxio Job Master should save information about completed jobs before they are discarded.'
+alluxio.job.master.hostname:
+  'The hostname of the Alluxio job master.'
+alluxio.job.master.job.capacity:
+  'The total possible number of available job statuses in the job master. This value includes running and finished jobs which are have completed within alluxio.job.master.finished.job.retention.time.'
+alluxio.job.master.lost.master.interval:
+  'The time interval the job master waits between checks for lost job masters.'
+alluxio.job.master.lost.worker.interval:
+  'The time interval the job master waits between checks for lost workers.'
+alluxio.job.master.master.heartbeat.interval:
+  'The amount of time that a standby Alluxio Job Master should wait in between heartbeats to the primary Job Master.'
+alluxio.job.master.master.timeout:
+  'The time period after which the primary Job Master will mark a standby as lost without a subsequent heartbeat.'
+alluxio.job.master.network.flowcontrol.window:
+  'The HTTP2 flow control window used by Alluxio job-master gRPC connections. Larger value will allow more data to be buffered but will use more memory.'
+alluxio.job.master.network.keepalive.time:
+  'The amount of time for Alluxio job-master gRPC server to wait for a response before pinging the client to see if it is still alive.'
+alluxio.job.master.network.keepalive.timeout:
+  'The maximum time for Alluxio job-master gRPC server to wait for a keepalive response before closing the connection.'
+alluxio.job.master.network.max.inbound.message.size:
+  'The maximum size of a message that can be sent to the Alluxio master'
+alluxio.job.master.network.permit.keepalive.time:
+  'Specify the most aggressive keep-alive time clients are permitted to configure. The server will try to detect clients exceeding this rate and when detected will forcefully close the connection.'
+alluxio.job.master.rpc.addresses:
+  'A list of comma-separated host:port RPC addresses where the client should look for job masters when using multiple job masters without Zookeeper. This property is not used when Zookeeper is enabled, since Zookeeper already stores the job master addresses. If property is not defined, clients will look for job masters using [alluxio.master.rpc.addresses]:alluxio.job.master.rpc.port first, then for [alluxio.job.master.embedded.journal.addresses]:alluxio.job.master.rpc.port.'
+alluxio.job.master.rpc.port:
+  'The port for Alluxio job master''s RPC service.'
+alluxio.job.master.web.bind.host:
+  'The host that the job master web server binds to.'
+alluxio.job.master.web.hostname:
+  'The hostname of the job master web server.'
+alluxio.job.master.web.port:
+  'The port the job master web server uses.'
+alluxio.job.master.worker.heartbeat.interval:
+  'The amount of time that the Alluxio job worker should wait in between heartbeats to the Job Master.'
+alluxio.job.master.worker.timeout:
+  'The time period after which the job master will mark a worker as lost without a subsequent heartbeat.'
+alluxio.job.request.batch.size:
+  'The batch size client uses to make requests to the job master.'
+alluxio.job.retention.time:
+  'The length of time the Alluxio should save information about completed jobs before they are discarded.'
+alluxio.job.worker.bind.host:
+  'The host that the Alluxio job worker will bind to.'
+alluxio.job.worker.data.port:
+  'The port the Alluxio Job worker uses to send data.'
+alluxio.job.worker.hostname:
+  'The hostname of the Alluxio job worker.'
+alluxio.job.worker.rpc.port:
+  'The port for Alluxio job worker''s RPC service.'
+alluxio.job.worker.threadpool.size:
+  'Number of threads in the thread pool for job worker. This may be adjusted to a lower value to alleviate resource saturation on the job worker nodes (CPU + IO).'
+alluxio.job.worker.throttling:
+  'Whether the job worker should throttle itself based on whether the resources are saturated.'
+alluxio.job.worker.web.bind.host:
+  'The host the job worker web server binds to.'
+alluxio.job.worker.web.port:
+  'The port the Alluxio job worker web server uses.'
+alluxio.jvm.monitor.info.threshold:
+  'When the JVM pauses for anything longer than this, log an INFO message.'
+alluxio.jvm.monitor.sleep.interval:
+  'The time for the JVM monitor thread to sleep.'
+alluxio.jvm.monitor.warn.threshold:
+  'When the JVM pauses for anything longer than this, log a WARN message.'
+alluxio.leak.detector.exit.on.leak:
+  'If set to true, the JVM will exit as soon as a leak is detected. Use only in testing environments.'
+alluxio.leak.detector.level:
+  'Set this to one of {DISABLED, SIMPLE, ADVANCED, PARANOID} to track resource leaks in the Alluxio codebase. DISABLED does not track any leaks. SIMPLE only samples resources, and doesn''t track recent accesses, having a low overhead. ADVANCED is like simple, but tracks recent object accesses and has higher overhead. PARANOID tracks all objects and has the highest overhead. It is recommended to only use this value during testing.'
+alluxio.locality.compare.node.ip:
+  'Whether try to resolve the node IP address for locality checking'
+alluxio.metrics.conf.file:
+  'The file path of the metrics system configuration file. By default it is `metrics.properties` in the `conf` directory.'
+alluxio.metrics.executor.task.warn.frequency:
+  'When instrumenting an executor withInstrumentedExecutorService, if the number of active tasks (queued or running) is greater than alluxio.metrics.executor.task.warn.size value, a warning log will be printed at the given interval'
+alluxio.metrics.executor.task.warn.size:
+  'When instrumenting an executor with InstrumentedExecutorService, if the number of active tasks (queued or running) is greater than this value, a warning log will be printed at the interval given by alluxio.metrics.executor.task.warn.frequency'
+alluxio.network.connection.auth.timeout:
+  'Maximum time to wait for a connection (gRPC channel) to attempt to receive an authentication response.'
+alluxio.network.connection.health.check.timeout:
+  'Allowed duration for checking health of client connections (gRPC channels) before being assigned to a client. If a connection does not become active  within configured time, it will be shut down and a new connection will be created for the client'
+alluxio.network.connection.server.shutdown.timeout:
+  'Maximum time to wait for gRPC server to stop on shutdown'
+alluxio.network.connection.shutdown.graceful.timeout:
+  'Maximum time to wait for connections (gRPC channels) to stop on shutdown'
+alluxio.network.connection.shutdown.timeout:
+  'Maximum time to wait for connections (gRPC channels) to stop after graceful shutdown attempt.'
+alluxio.network.host.resolution.timeout:
+  'During startup of the Master and Worker processes Alluxio needs to ensure that they are listening on externally resolvable and reachable host names. To do this, Alluxio will automatically attempt to select an appropriate host name if one was not explicitly specified. This represents the maximum amount of time spent waiting to determine if a candidate host name is resolvable over the network.'
+alluxio.network.ip.address.used:
+  'If true, when alluxio.&lt;service_name&gt;.hostname and alluxio.&lt;service_name&gt;.bind.host of a service not specified, use IP as the connect host of the service.'
+alluxio.network.netty.heartbeat.timeout:
+  'The amount of time the server will wait before closing a netty connection if there has not been any incoming traffic. The client will periodically heartbeat when there is no activity on a connection. This value should be the same on the clients and server.'
+alluxio.proxy.audit.logging.enabled:
+  'Set to true to enable proxy audit.'
+alluxio.proxy.master.heartbeat.interval:
+  'Proxy instances maintain a heartbeat with the primary master. This key specifies the heartbeat interval.'
+alluxio.proxy.s3.bucket.naming.restrictions.enabled:
+  'Toggles whether or not the Alluxio S3 API will enforce AWS S3 bucket naming restrictions. See https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html.'
+alluxio.proxy.s3.bucketpathcache.timeout:
+  'Expire bucket path statistics in cache for this time period. Set 0min to disable the cache. If enabling the cache, be careful that Alluxio S3 API will behave differently from AWS S3 API if bucket path cache entries become stale.'
+alluxio.proxy.s3.complete.multipart.upload.keepalive.enabled:
+  'Whether or not to enabled sending whitespace characters as a keepalive message during CompleteMultipartUpload. Enabling this will cause any errors to be silently ignored. However, the errors will appear in the Proxy logs.'
+alluxio.proxy.s3.complete.multipart.upload.keepalive.time.interval:
+  'The complete multipart upload maximum keepalive time. The keepalive whitespace characters will be sent after 1 second, exponentially increasing in duration up to the configured value.'
+alluxio.proxy.s3.complete.multipart.upload.min.part.size:
+  'The minimum required file size of parts for multipart uploads. Parts which are smaller than this limit aside from the final part will result in an EntityTooSmall error code. Set to 0 to disable size requirements.'
+alluxio.proxy.s3.complete.multipart.upload.pool.size:
+  'The complete multipart upload thread pool size.'
+alluxio.proxy.s3.deletetype:
+  'Delete type when deleting buckets and objects through S3 API. Valid options are `ALLUXIO_AND_UFS` (delete both in Alluxio and UFS), `ALLUXIO_ONLY` (delete only the buckets or objects in Alluxio namespace).'
+alluxio.proxy.s3.global.read.rate.limit.mb:
+  'Limit the maximum read speed for all connections. Set value less than or equal to 0 to disable rate limits.'
+alluxio.proxy.s3.header.metadata.max.size:
+  'The maximum size to allow for user-defined metadata in S3 PUTrequest headers. Set to 0 to disable size limits.'
+alluxio.proxy.s3.multipart.upload.cleaner.enabled:
+  'Enable automatic cleanup of long-running multipart uploads.'
+alluxio.proxy.s3.multipart.upload.cleaner.pool.size:
+  'The abort multipart upload cleaner pool size.'
+alluxio.proxy.s3.multipart.upload.cleaner.retry.count:
+  'The retry count when aborting a multipart upload fails.'
+alluxio.proxy.s3.multipart.upload.cleaner.retry.delay:
+  'The retry delay time when aborting a multipart upload fails.'
+alluxio.proxy.s3.multipart.upload.cleaner.timeout:
+  'The timeout for aborting proxy s3 multipart upload automatically.'
+alluxio.proxy.s3.single.connection.read.rate.limit.mb:
+  'Limit the maximum read speed for each connection. Set value less than or equal to 0 to disable rate limits.'
+alluxio.proxy.s3.tagging.restrictions.enabled:
+  'Toggles whether or not the Alluxio S3 API will enforce AWS S3 tagging restrictions (10 tags, 128 character keys, 256 character values) See https://docs.aws.amazon.com/AmazonS3/latest/userguide/tagging-managing.html.'
+alluxio.proxy.s3.v2.async.heavy.pool.core.thread.number:
+  'Core thread number for async heavy thread pool.'
+alluxio.proxy.s3.v2.async.heavy.pool.maximum.thread.number:
+  'Maximum thread number for async heavy thread pool.'
+alluxio.proxy.s3.v2.async.heavy.pool.queue.size:
+  'Queue size for async heavy thread pool.'
+alluxio.proxy.s3.v2.async.light.pool.core.thread.number:
+  'Core thread number for async light thread pool.'
+alluxio.proxy.s3.v2.async.light.pool.maximum.thread.number:
+  'Maximum thread number for async light thread pool.'
+alluxio.proxy.s3.v2.async.light.pool.queue.size:
+  'Queue size for async light thread pool.'
+alluxio.proxy.s3.v2.async.processing.enabled:
+  '(Experimental) If enabled, handle S3 request in async mode when v2 version of Alluxio s3 proxy service is enabled.'
+alluxio.proxy.s3.v2.version.enabled:
+  '(Experimental) V2, an optimized version of Alluxio s3 proxy service.'
+alluxio.proxy.s3.writetype:
+  'Write type when creating buckets and objects through S3 API. Valid options are `MUST_CACHE` (write will only go to Alluxio and must be stored in Alluxio), `CACHE_THROUGH` (try to cache, write to UnderFS synchronously), `ASYNC_THROUGH` (try to cache, write to UnderFS asynchronously), `THROUGH` (no cache, write to UnderFS synchronously).'
+alluxio.proxy.stream.cache.timeout:
+  'The timeout for the input and output streams cache eviction in the proxy.'
+alluxio.proxy.web.bind.host:
+  'The hostname that the Alluxio proxy''s web server runs on.'
+alluxio.proxy.web.hostname:
+  'The hostname Alluxio proxy''s web UI binds to.'
+alluxio.proxy.web.port:
+  'The port Alluxio proxy''s web UI runs on.'
+alluxio.s3.rest.authentication.enabled:
+  'Whether to enable check s3 rest request header.'
+alluxio.s3.rest.authenticator.classname:
+  'The class''s name is instantiated as an S3 authenticator.'
+alluxio.secondary.master.metastore.dir:
+  'The secondary master metastore work directory. Only some metastores need disk.'
+alluxio.site.conf.dir:
+  'Comma-separated search path for alluxio-site.properties. Note: overwriting this property will only work when it is passed as a JVM system property (e.g., appending &quot;-Dalluxio.site.conf.dir&quot;=&lt;NEW_VALUE&gt;&quot; to $ALLUXIO_JAVA_OPTS). Setting it in alluxio-site.properties will not work.'
+alluxio.site.conf.rocks.block.file:
+  'Path of file containing RocksDB block store configuration. A template configuration cab be found at ${alluxio.conf.dir}/rocks-block.ini.template. See https://github.com/facebook/rocksdb/blob/main/examples/rocksdb_option_file_example.ini for more information on RocksDB configuration files. If unset then a default configuration will be used.'
+alluxio.site.conf.rocks.inode.file:
+  'Path of file containing RocksDB inode store configuration. A template configuration cab be found at ${alluxio.conf.dir}/rocks-inode.ini.template. See https://github.com/facebook/rocksdb/blob/main/examples/rocksdb_option_file_example.ini for more information on RocksDB configuration files. If unset then a default configuration will be used.'
+alluxio.standalone.fuse.jvm.monitor.enabled:
+  'Whether to enable start JVM monitor thread on the standalone fuse process. This will start a thread to detect JVM-wide pauses induced by GC or other reasons.'
+alluxio.standby.master.metrics.sink.enabled:
+  'Whether a standby master runs the metric sink'
+alluxio.standby.master.web.enabled:
+  'Whether a standby master runs a web server'
+alluxio.table.catalog.path:
+  'The Alluxio file path for the table catalog metadata.'
+alluxio.table.catalog.udb.sync.timeout:
+  'The timeout period for a db sync to finish in the catalog. If a synctakes longer than this timeout, the sync will be terminated.'
+alluxio.table.enabled:
+  '(Experimental) Enables the table service.'
+alluxio.table.journal.partitions.chunk.size:
+  'The maximum table partitions number in a single journal entry.'
+alluxio.table.load.default.replication:
+  'The default replication number of files under the SDS table after load option.'
+alluxio.table.transform.manager.job.history.retention.time:
+  'The length of time the Alluxio Table Master should keep information about finished transformation jobs before they are discarded.'
+alluxio.table.transform.manager.job.monitor.interval:
+  'Job monitor is a heartbeat thread in the transform manager, this is the time interval in milliseconds the job monitor heartbeat is run to check the status of the transformation jobs and update table and partition locations after transformation.'
+alluxio.table.udb.hive.clientpool.MAX:
+  'The maximum capacity of the hive client pool per hive metastore'
+alluxio.table.udb.hive.clientpool.min:
+  'The minimum capacity of the hive client pool per hive metastore'
+alluxio.test.deprecated.key:
+  'N/A'
+alluxio.tmp.dirs:
+  'The path(s) to store Alluxio temporary files, use commas as delimiters. If multiple paths are specified, one will be selected at random per temporary file. Currently, only files to be uploaded to object stores are stored in these paths.'
+alluxio.underfs.allow.set.owner.failure:
+  'Whether to allow setting owner in UFS to fail. When set to true, it is possible file or directory owners diverge between Alluxio and UFS.'
+alluxio.underfs.cephfs.auth.id:
+  'Ceph client id for authentication.'
+alluxio.underfs.cephfs.auth.key:
+  'CephX authentication key, base64 encoded.'
+alluxio.underfs.cephfs.auth.keyfile:
+  'Path to CephX authentication key file.'
+alluxio.underfs.cephfs.auth.keyring:
+  'Path to CephX authentication keyring file.'
+alluxio.underfs.cephfs.conf.file:
+  'Path to Ceph configuration file.'
+alluxio.underfs.cephfs.conf.options:
+  'Extra configuration options for CephFS client.'
+alluxio.underfs.cephfs.localize.reads:
+  'Utilize Ceph localized reads feature.'
+alluxio.underfs.cephfs.mds.namespace:
+  'CephFS filesystem to mount.'
+alluxio.underfs.cephfs.mon.host:
+  'List of hosts or addresses to search for a Ceph monitor.'
+alluxio.underfs.cephfs.mount.gid:
+  'The group ID of CephFS mount.'
+alluxio.underfs.cephfs.mount.point:
+  'Directory to mount on the CephFS filesystem.'
+alluxio.underfs.cephfs.mount.uid:
+  'The user ID of CephFS mount.'
+alluxio.underfs.checksum.type:
+  'UFS checksum type.'
+alluxio.underfs.cleanup.enabled:
+  'Whether or not to clean up under file storage periodically.Some ufs operations may not be completed and cleaned up successfully in normal ways and leave some intermediate data that needs periodical cleanup.If enabled, all the mount points will be cleaned up when a leader master starts or cleanup interval is reached. This should be used sparingly.'
+alluxio.underfs.cleanup.interval:
+  'The interval for periodically cleaning all the  mounted under file storages.'
+alluxio.underfs.eventual.consistency.retry.base.sleep:
+  'To handle eventually consistent storage semantics for certain under storages, Alluxio will perform retries when under storage metadata doesn''t match Alluxio''s expectations. These retries use exponential backoff. This property determines the base time for the exponential backoff.'
+alluxio.underfs.eventual.consistency.retry.max.num:
+  'To handle eventually consistent storage semantics for certain under storages, Alluxio will perform retries when under storage metadata doesn''t match Alluxio''s expectations. These retries use exponential backoff. This property determines the maximum number of retries. This property defaults to 0 as modern object store UFSs provide strong consistency.'
+alluxio.underfs.eventual.consistency.retry.max.sleep:
+  'To handle eventually consistent storage semantics for certain under storages, Alluxio will perform retries when under storage metadata doesn''t match Alluxio''s expectations. These retries use exponential backoff. This property determines the maximum wait time in the backoff.'
+alluxio.underfs.gcs.default.mode:
+  'Mode (in octal notation) for GCS objects if mode cannot be discovered.'
+alluxio.underfs.gcs.directory.suffix:
+  'Directories are represented in GCS as zero-byte objects named with the specified suffix.'
+alluxio.underfs.gcs.owner.id.to.username.mapping:
+  'Optionally, specify a preset gcs owner id to Alluxio username static mapping in the format &quot;id1=user1;id2=user2&quot;. The Google Cloud Storage IDs can be found at the console address https://console.cloud.google.com/storage/settings . Please use the &quot;Owners&quot; one. This property key is only valid when alluxio.underfs.gcs.version=1'
+alluxio.underfs.gcs.retry.delay.multiplier:
+  'Delay multiplier while retrying requests on the ufs'
+alluxio.underfs.gcs.retry.initial.delay:
+  'Initial delay before attempting the retry on the ufs'
+alluxio.underfs.gcs.retry.jitter:
+  'Enable delay jitter while retrying requests on the ufs'
+alluxio.underfs.gcs.retry.max:
+  'Maximum Number of retries on the ufs'
+alluxio.underfs.gcs.retry.max.delay:
+  'Maximum delay before attempting the retry on the ufs'
+alluxio.underfs.gcs.retry.total.duration:
+  'Maximum retry duration on the ufs'
+alluxio.underfs.gcs.version:
+  'Specify the version of GCS module to use. GCS version &quot;1&quot; builds on top of jets3t package which requires fs.gcs.accessKeyId and fs.gcs.secretAccessKey. GCS version &quot;2&quot; build on top of Google cloud API which requires fs.gcs.credential.path'
+alluxio.underfs.hdfs.configuration:
+  'Location of the HDFS configuration file to overwrite the default HDFS client configuration. Note that, these files must be availableon every node.'
+alluxio.underfs.hdfs.impl:
+  'The implementation class of the HDFS as the under storage system.'
+alluxio.underfs.hdfs.prefixes:
+  'Optionally, specify which prefixes should run through the HDFS implementation of UnderFileSystem. The delimiter is any whitespace and/or '',''.'
+alluxio.underfs.hdfs.remote:
+  'Boolean indicating whether or not the under storage worker nodes are remote with respect to Alluxio worker nodes. If set to true, Alluxio will not attempt to discover locality information from the under storage because locality is impossible. This will improve performance. The default value is true.'
+alluxio.underfs.io.threads:
+  'Number of threads used for UFS IO operation'
+alluxio.underfs.kodo.connect.timeout:
+  'The connect timeout of kodo.'
+alluxio.underfs.kodo.downloadhost:
+  'The download domain of Kodo bucket.'
+alluxio.underfs.kodo.endpoint:
+  'The endpoint of Kodo bucket.'
+alluxio.underfs.kodo.requests.max:
+  'The maximum number of kodo connections.'
+alluxio.underfs.listing.length:
+  'The maximum number of directory entries to list in a single query to under file system. If the total number of entries is greater than the specified length, multiple queries will be issued.'
+alluxio.underfs.local.skip.broken.symlinks:
+  'When set to true, any time the local underfs lists a broken symlink, it will treat the entry as if it didn''t exist at all.'
+alluxio.underfs.logging.threshold:
+  'Logging a UFS API call when it takes more time than the threshold.'
+alluxio.underfs.object.store.breadcrumbs.enabled:
+  'Set this to false to prevent Alluxio from creating zero byte objects during read or list operations on object store UFS. Leaving this on enables more efficient listing of prefixes.'
+alluxio.underfs.object.store.mount.shared.publicly:
+  'Whether or not to share object storage under storage system mounted point with all Alluxio users. Note that this configuration has no effect on HDFS nor local UFS.'
+alluxio.underfs.object.store.multi.range.chunk.size:
+  'Default chunk size for ranged reads from multi-range object input streams.'
+alluxio.underfs.object.store.service.threads:
+  'The number of threads in executor pool for parallel object store UFS operations, such as directory renames and deletes.'
+alluxio.underfs.object.store.skip.parent.directory.creation:
+  'Do not create parent directory for new files. Object stores generally uses prefix which is not required for creating new files. Skipping parent directory is recommended for better performance. Set this to false if the object store requires prefix creation for new files.'
+alluxio.underfs.object.store.streaming.upload.part.timeout:
+  'Timeout for uploading part when using streaming uploads.'
+alluxio.underfs.obs.intermediate.upload.clean.age:
+  'Streaming uploads may not have been completed/aborted correctly and need periodical ufs cleanup. If ufs cleanup is enabled, intermediate multipart uploads in all non-readonly OBS mount points older than this age will be cleaned. This may impact other ongoing upload operations, so a large clean age is encouraged.'
+alluxio.underfs.obs.streaming.upload.enabled:
+  '(Experimental) If true, using streaming upload to write to OBS.'
+alluxio.underfs.obs.streaming.upload.partition.size:
+  'Maximum allowable size of a single buffer file when using S3A streaming upload. When the buffer file reaches the partition size, it will be uploaded and the upcoming data will write to other buffer files.If the partition size is too small, OBS upload speed might be affected. '
+alluxio.underfs.obs.streaming.upload.threads:
+  'the number of threads to use for streaming upload data to OBS.'
+alluxio.underfs.oss.connection.max:
+  'The maximum number of OSS connections.'
+alluxio.underfs.oss.connection.timeout:
+  'The timeout when connecting to OSS.'
+alluxio.underfs.oss.connection.ttl:
+  'The TTL of OSS connections in ms.'
+alluxio.underfs.oss.ecs.ram.role:
+  'The RAM role of current owner of ECS.'
+alluxio.underfs.oss.intermediate.upload.clean.age:
+  'Streaming uploads may not have been completed/aborted correctly and need periodical ufs cleanup. If ufs cleanup is enabled, intermediate multipart uploads in all non-readonly OSS mount points older than this age will be cleaned. This may impact other ongoing upload operations, so a large clean age is encouraged.'
+alluxio.underfs.oss.retry.max:
+  'The maximum number of OSS error retry.'
+alluxio.underfs.oss.socket.timeout:
+  'The timeout of OSS socket.'
+alluxio.underfs.oss.streaming.upload.enabled:
+  '(Experimental) If true, using streaming upload to write to OSS.'
+alluxio.underfs.oss.streaming.upload.partition.size:
+  'Maximum allowable size of a single buffer file when using OSS streaming upload. When the buffer file reaches the partition size, it will be uploaded and the upcoming data will write to other buffer files.If the partition size is too small, OSS upload speed might be affected. '
+alluxio.underfs.oss.streaming.upload.threads:
+  'the number of threads to use for streaming upload data to OSS.'
+alluxio.underfs.oss.sts.ecs.metadata.service.endpoint:
+  'The ECS metadata service endpoint for Aliyun STS'
+alluxio.underfs.oss.sts.enabled:
+  'Whether to enable oss STS(Security Token Service).'
+alluxio.underfs.oss.sts.token.refresh.interval.ms:
+  'Time before an OSS Security Token is considered expired and will be automatically renewed'
+alluxio.underfs.ozone.prefixes:
+  'Specify which prefixes should run through the Ozone implementation of UnderFileSystem. The delimiter is any whitespace and/or '',''. The default value is &quot;o3fs://,ofs://&quot;.'
+alluxio.underfs.persistence.async.temp.dir:
+  'The temporary directory used for async persistence in the ufs'
+alluxio.underfs.s3.admin.threads.max:
+  'The maximum number of threads to use for metadata operations when communicating with S3. These operations may be fairly concurrent and frequent but should not take much time to process.'
+alluxio.underfs.s3.connection.ttl:
+  'The expiration time of S3 connections in ms. -1 means the connection will never expire.'
+alluxio.underfs.s3.default.mode:
+  'Mode (in octal notation) for S3 objects if mode cannot be discovered.'
+alluxio.underfs.s3.directory.suffix:
+  'Directories are represented in S3 as zero-byte objects named with the specified suffix.'
+alluxio.underfs.s3.disable.dns.buckets:
+  'Optionally, specify to make all S3 requests path style.'
+alluxio.underfs.s3.endpoint:
+  'Optionally, to reduce data latency or visit resources which are separated in different AWS regions, specify a regional endpoint to make aws requests. An endpoint is a URL that is the entry point for a web service. For example, s3.cn-north-1.amazonaws.com.cn is an entry point for the Amazon S3 service in beijing region.'
+alluxio.underfs.s3.endpoint.region:
+  'Optionally, set the S3 endpoint region. If not provided, inducted from the endpoint uri or set to null'
+alluxio.underfs.s3.inherit.acl:
+  'Set this property to false to disable inheriting bucket ACLs on objects. Note that the translation from bucket ACLs to Alluxio user permissions is best effort as some S3-like storage services doe not implement ACLs fully compatible with S3.'
+alluxio.underfs.s3.intermediate.upload.clean.age:
+  'Streaming uploads may not have been completed/aborted correctly and need periodical ufs cleanup. If ufs cleanup is enabled, intermediate multipart uploads in all non-readonly S3 mount points older than this age will be cleaned. This may impact other ongoing upload operations, so a large clean age is encouraged.'
+alluxio.underfs.s3.list.objects.v1:
+  'Whether to use version 1 of GET Bucket (List Objects) API.'
+alluxio.underfs.s3.max.error.retry:
+  'The maximum number of retry attempts for failed retryable requests.Setting this property will override the AWS SDK default.'
+alluxio.underfs.s3.owner.id.to.username.mapping:
+  'Optionally, specify a preset s3 canonical id to Alluxio username static mapping, in the format &quot;id1=user1;id2=user2&quot;. The AWS S3 canonical ID can be found at the console address https://console.aws.amazon.com/iam/home?#security_credential . Please expand the &quot;Account Identifiers&quot; tab and refer to &quot;Canonical User ID&quot;. Unspecified owner id will map to a default empty username'
+alluxio.underfs.s3.proxy.host:
+  'Optionally, specify a proxy host for communicating with S3.'
+alluxio.underfs.s3.proxy.port:
+  'Optionally, specify a proxy port for communicating with S3.'
+alluxio.underfs.s3.region:
+  'Optionally, set the S3 bucket region. If not provided, will enable the global bucket access with extra requests'
+alluxio.underfs.s3.request.timeout:
+  'The timeout for a single request to S3. Infinity if set to 0. Setting this property to a non-zero value can improve performance by avoiding the long tail of requests to S3. For very slow connections to S3, consider increasing this value or setting it to 0.'
+alluxio.underfs.s3.secure.http.enabled:
+  'Whether or not to use HTTPS protocol when communicating with S3.'
+alluxio.underfs.s3.server.side.encryption.enabled:
+  'Whether or not to encrypt data stored in S3.'
+alluxio.underfs.s3.signer.algorithm:
+  'The signature algorithm which should be used to sign requests to the s3 service. This is optional, and if not set, the client will automatically determine it. For interacting with an S3 endpoint which only supports v2 signatures, set this to &quot;S3SignerType&quot;.'
+alluxio.underfs.s3.socket.timeout:
+  'Length of the socket timeout when communicating with S3.'
+alluxio.underfs.s3.streaming.upload.enabled:
+  '(Experimental) If true, using streaming upload to write to S3.'
+alluxio.underfs.s3.streaming.upload.partition.size:
+  'Maximum allowable size of a single buffer file when using S3A streaming upload. When the buffer file reaches the partition size, it will be uploaded and the upcoming data will write to other buffer files.If the partition size is too small, S3A upload speed might be affected. '
+alluxio.underfs.s3.threads.max:
+  'The maximum number of threads to use for communicating with S3 and the maximum number of concurrent connections to S3. Includes both threads for data upload and metadata operations. This number should be at least as large as the max admin threads plus max upload threads.'
+alluxio.underfs.s3.upload.threads.max:
+  'For an Alluxio worker, this is the maximum number of threads to use for uploading data to S3 for multipart uploads. These operations can be fairly expensive, so multiple threads are encouraged. However, this also splits the bandwidth between threads, meaning the overall latency for completing an upload will be higher for more threads. For the Alluxio master, this is the maximum number of threads used for the rename (copy) operation. It is recommended that value should be greater than or equal to alluxio.underfs.object.store.service.threads'
+alluxio.underfs.strict.version.match.enabled:
+  'When enabled, Alluxio finds the UFS connector by strict version matching. Otherwise only version prefix is compared.'
+alluxio.underfs.web.connnection.timeout:
+  'Default timeout for a http connection.'
+alluxio.underfs.web.header.last.modified:
+  'Date format of last modified for a http response header.'
+alluxio.underfs.web.parent.names:
+  'The text of the http link for the parent directory.'
+alluxio.underfs.web.titles:
+  'The title of the content for a http url.'
+alluxio.web.cors.allow.credential:
+  'Enable request include credential.'
+alluxio.web.cors.allow.headers:
+  'Which headers is allowed for cors. use * allow all any header.'
+alluxio.web.cors.allow.methods:
+  'Which methods is allowed for cors. use * allow all any method.'
+alluxio.web.cors.allow.origins:
+  'Which origins is allowed for cors. use * allow all any origin.'
+alluxio.web.cors.enabled:
+  'Set to true to enable Cross-Origin Resource Sharing for RESTful APIendpoints.'
+alluxio.web.cors.exposed.headers:
+  'Which headers are allowed to set in response when access cross-origin resource. use * allow all any header.'
+alluxio.web.cors.max.age:
+  'Maximum number of seconds the results can be cached. -1 means no cache.'
+alluxio.web.file.info.enabled:
+  'Whether detailed file information are enabled for the web UI.'
+alluxio.web.refresh.interval:
+  'The amount of time to await before refreshing the Web UI if it is set to auto refresh.'
+alluxio.web.threaddump.log.enabled:
+  'Whether thread information is also printed to the log when the thread dump api is accessed'
+alluxio.web.threads:
+  'How many threads to serve Alluxio web UI.'
+alluxio.web.ui.enabled:
+  'Whether the master/worker will have Web UI enabled. If set to false, the master/worker will not have Web UI page, but the RESTful endpoints and metrics will still be available.'
+alluxio.work.dir:
+  'The directory to use for Alluxio''s working directory. By default, the journal, logs, and under file storage data (if using local filesystem) are written here.'
+alluxio.zookeeper.address:
+  'Address of ZooKeeper.'
+alluxio.zookeeper.auth.enabled:
+  'If true, enable client-side Zookeeper authentication.'
+alluxio.zookeeper.connection.timeout:
+  'Connection timeout for Alluxio (job) masters to select the leading (job) master when connecting to Zookeeper'
+alluxio.zookeeper.election.path:
+  'Election directory in ZooKeeper.'
+alluxio.zookeeper.enabled:
+  'If true, setup master fault tolerant mode using ZooKeeper.'
+alluxio.zookeeper.job.election.path:
+  'N/A'
+alluxio.zookeeper.job.leader.path:
+  'N/A'
+alluxio.zookeeper.leader.connection.error.policy:
+  'Connection error policy defines how errors on zookeeper connections to be treated in leader election. STANDARD policy treats every connection event as failure.SESSION policy relies on zookeeper sessions for judging failures, helping leader to retain its status, as long as its session is protected.'
+alluxio.zookeeper.leader.inquiry.retry:
+  'The number of retries to inquire leader from ZooKeeper.'
+alluxio.zookeeper.leader.path:
+  'Leader directory in ZooKeeper.'
+alluxio.zookeeper.session.timeout:
+  'Session timeout to use when connecting to Zookeeper'
+fs.azure.account.oauth2.client.endpoint:
+  'The oauth endpoint for ABFS.'
+fs.azure.account.oauth2.client.id:
+  'The client id for ABFS.'
+fs.azure.account.oauth2.client.secret:
+  'The client secret for ABFS.'
+fs.azure.account.oauth2.msi.endpoint:
+  'MSI endpoint'
+fs.azure.account.oauth2.msi.tenant:
+  'MSI Tenant ID'
+fs.cos.access.key:
+  'The access key of COS bucket.'
+fs.cos.app.id:
+  'The app id of COS bucket.'
+fs.cos.connection.max:
+  'The maximum number of COS connections.'
+fs.cos.connection.timeout:
+  'The timeout of connecting to COS.'
+fs.cos.region:
+  'The region name of COS bucket.'
+fs.cos.secret.key:
+  'The secret key of COS bucket.'
+fs.cos.socket.timeout:
+  'The timeout of COS socket.'
+fs.gcs.accessKeyId:
+  'The access key of GCS bucket. This property key is only valid when alluxio.underfs.gcs.version=1'
+fs.gcs.credential.path:
+  'The json file path of Google application credentials. This property key is only valid when alluxio.underfs.gcs.version=2'
+fs.gcs.secretAccessKey:
+  'The secret key of GCS bucket. This property key is only valid when alluxio.underfs.gcs.version=1'
+fs.kodo.accesskey:
+  'The access key of Kodo bucket.'
+fs.kodo.secretkey:
+  'The secret key of Kodo bucket.'
+fs.obs.accessKey:
+  'The access key of OBS bucket.'
+fs.obs.bucketType:
+  'The type of bucket (obs/pfs).'
+fs.obs.endpoint:
+  'The endpoint of OBS bucket.'
+fs.obs.secretKey:
+  'The secret key of OBS bucket.'
+fs.oss.accessKeyId:
+  'The access key of OSS bucket.'
+fs.oss.accessKeySecret:
+  'The secret key of OSS bucket.'
+fs.oss.endpoint:
+  'The endpoint key of OSS bucket.'
+fs.swift.auth.method:
+  'Choice of authentication method: [tempauth (default), swiftauth, keystone, keystonev3].'
+fs.swift.auth.url:
+  'Authentication URL for REST server, e.g., http://server:8090/auth/v1.0.'
+fs.swift.password:
+  'The password used for user:tenant authentication.'
+fs.swift.region:
+  'Service region when using Keystone authentication.'
+fs.swift.simulation:
+  'Whether to simulate a single node Swift backend for testing purposes: true or false (default).'
+fs.swift.tenant:
+  'Swift user for authentication.'
+fs.swift.user:
+  'Swift tenant for authentication.'
+s3a.accessKeyId:
+  'The access key of S3 bucket.'
+s3a.secretKey:
+  'The secret key of S3 bucket.'

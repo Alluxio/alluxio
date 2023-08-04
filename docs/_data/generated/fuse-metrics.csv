@@ -1,0 +1,4 @@
+metricName,metricType
+Fuse.CachedPathCount,GAUGE
+Fuse.ReadWriteFileCount,GAUGE
+Fuse.TotalCalls,TIMER

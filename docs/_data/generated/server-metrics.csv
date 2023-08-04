@@ -1,0 +1,4 @@
+metricName,metricType
+Server.JvmPauseMonitorInfoTimeExceeded,GAUGE
+Server.JvmPauseMonitorTotalExtraTime,GAUGE
+Server.JvmPauseMonitorWarnTimeExceeded,GAUGE
