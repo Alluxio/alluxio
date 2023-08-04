@@ -13,13 +13,10 @@ package alluxio.membership;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.Expose;
 import io.etcd.jetcd.support.CloseableClient;
 
 import java.io.Closeable;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
@@ -28,6 +25,8 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * Base Entity class including information to register to Etcd
  * when using EtcdMembershipManager.
+ * It will be serialized to JSON format to store on etcd, including
+ * only those fields with marked @Expose annotation.
  */
 @ThreadSafe
 public class ServiceEntity implements Closeable {
@@ -40,9 +39,7 @@ public class ServiceEntity implements Closeable {
   protected String mServiceEntityName; // unique service alias
   // revision number of kv pair of registered entity on etcd, used for CASupdate
   protected long mRevision;
-//  @Expose(serialize = false)
   public final ReentrantLock mLock = new ReentrantLock();
-//  @Expose(serialize = false)
   public AtomicBoolean mNeedReconnect = new AtomicBoolean(false);
 
   /**
@@ -83,32 +80,11 @@ public class ServiceEntity implements Closeable {
   }
 
   /**
-   * Serialize the ServiceEntity to output stream.
-   * @param dos
-   * @throws IOException
-   */
-  public void serialize(DataOutputStream dos) throws IOException {
-    dos.writeUTF(mServiceEntityName);
-    dos.writeLong(mRevision);
-  }
-
-  /**
-   * Deserialize the ServiceEntity from input stream.
-   * @param dis
-   * @throws IOException
-   */
-  public void deserialize(DataInputStream dis) throws IOException {
-    mServiceEntityName = dis.readUTF();
-    mRevision = dis.readLong();
-  }
-
-  /**
    * Convert a WorkerServiceEntity into a json string.
    * @param entity
    * @return json string
    */
   public static String toJson(ServiceEntity entity) {
-    System.out.println("LUCYDEBUG:" + entity.getClass().getName());
     Gson gson = new GsonBuilder()
         .excludeFieldsWithoutExposeAnnotation()
         .create();

@@ -13,9 +13,7 @@ public final class ServiceEntityTest {
         .setRpcPort(1000).setDataPort(1001).setWebPort(1011)
         .setDomainSocketPath("/var/lib/domain.sock"));
     String str = ServiceEntity.toJson(entity);
-    System.out.println(str);
     ServiceEntity deserialized = WorkerServiceEntity.fromJson(str);
-    System.out.println(deserialized);
     assert(deserialized.equals(entity));
   }
 }

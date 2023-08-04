@@ -104,14 +104,10 @@ public class ServiceDiscoveryRecipe {
       String fullPath = new StringBuffer().append(mRegisterPathPrefix)
           .append(MembershipManager.PATH_SEPARATOR)
           .append(path).toString();
-      try
-//          (ByteArrayOutputStream baos = new ByteArrayOutputStream())
-      {
+      try {
         AlluxioEtcdClient.Lease lease = mAlluxioEtcdClient.createLease();
         Txn txn = mAlluxioEtcdClient.getEtcdClient().getKVClient().txn();
         ByteSequence keyToPut = ByteSequence.from(fullPath, StandardCharsets.UTF_8);
-//        DataOutputStream dos = new DataOutputStream(baos);
-//        service.serialize(dos);
         String serializedJsonStr = ServiceEntity.toJson(service);
         ByteSequence valToPut = ByteSequence.from(serializedJsonStr, StandardCharsets.UTF_8);
         CompletableFuture<TxnResponse> txnResponseFut = txn
@@ -246,13 +242,9 @@ public class ServiceDiscoveryRecipe {
     String fullPath = new StringBuffer().append(mRegisterPathPrefix)
         .append(MembershipManager.PATH_SEPARATOR)
         .append(service.mServiceEntityName).toString();
-    try (LockResource lockResource = new LockResource(service.mLock);
-//         ByteArrayOutputStream baos = new ByteArrayOutputStream()
-    ) {
+    try (LockResource lockResource = new LockResource(service.mLock)) {
       Txn txn = mAlluxioEtcdClient.getEtcdClient().getKVClient().txn();
       ByteSequence keyToPut = ByteSequence.from(fullPath, StandardCharsets.UTF_8);
-//      DataOutputStream dos = new DataOutputStream(baos);
-//      service.serialize(dos);
       String serializedJsonStr = ServiceEntity.toJson(service);
       ByteSequence valToPut = ByteSequence.from(serializedJsonStr, StandardCharsets.UTF_8);
       CompletableFuture<TxnResponse> txnResponseFut = txn
@@ -280,7 +272,7 @@ public class ServiceDiscoveryRecipe {
       if (service.getKeepAliveClient() == null) {
         startHeartBeat(service);
       }
-      // This should be a no-op, as the we should not overwrite any other values.
+      // This should be a no-op, as we should not overwrite any other values.
       mRegisteredServices.put(service.getServiceEntityName(), service);
     } catch (ExecutionException ex) {
       throw new IOException("ExecutionException in registering service:" + service, ex);

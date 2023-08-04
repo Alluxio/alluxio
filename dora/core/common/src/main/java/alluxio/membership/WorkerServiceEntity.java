@@ -12,7 +12,6 @@
 package alluxio.membership;
 
 import alluxio.annotation.SuppressFBWarnings;
-import alluxio.grpc.GrpcUtils;
 import alluxio.util.HashUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -22,10 +21,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.Expose;
-
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
 
 /**
  * Entity class including all the information to register to Etcd
@@ -66,8 +61,6 @@ public class WorkerServiceEntity extends ServiceEntity {
     super(HashUtils.hashAsStringMD5(addr.dumpMainInfo()));
     mAddress = addr;
     mState = State.AUTHORIZED;
-    mLease = new AlluxioEtcdClient.Lease(1234,2);
-    super.setKeepAliveClient(null);
   }
 
   /**
@@ -103,33 +96,6 @@ public class WorkerServiceEntity extends ServiceEntity {
   @Override
   public int hashCode() {
     return Objects.hashCode(mAddress, mServiceEntityName);
-  }
-
-  /**
-   * Serialize the WorkerServiceEntity object.
-   * @param dos
-   * @throws IOException
-   */
-  public void serialize(DataOutputStream dos) throws IOException {
-    super.serialize(dos);
-    dos.writeInt(mState.ordinal());
-    byte[] serializedArr = GrpcUtils.toProto(mAddress).toByteArray();
-    dos.writeInt(serializedArr.length);
-    dos.write(serializedArr);
-  }
-
-  /**
-   * Deserialize to WorkerServiceEntity object.
-   * @param dis
-   * @throws IOException
-   */
-  public void deserialize(DataInputStream dis) throws IOException {
-    super.deserialize(dis);
-    mState = State.values()[dis.readInt()];
-    int byteArrLen = dis.readInt();
-    byte[] byteArr = new byte[byteArrLen];
-    dis.read(byteArr, 0, byteArrLen);
-    mAddress = GrpcUtils.fromProto(alluxio.grpc.WorkerNetAddress.parseFrom(byteArr));
   }
 
   /**
