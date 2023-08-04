@@ -12,19 +12,25 @@
 package processes
 
 import (
-	"os/exec"
-	"path"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"alluxio.org/cli/env"
+	"alluxio.org/log"
 )
 
 var Local = &LocalProcess{
 	BaseProcess: &env.BaseProcess{
 		Name: "local",
 	},
+}
+
+var localProcesses = []env.Process{
+	Master,
+	JobMaster,
+	Worker,
+	JobWorker,
+	Proxy,
 }
 
 type LocalProcess struct {
@@ -50,41 +56,23 @@ func (p *LocalProcess) StopCmd(cmd *cobra.Command) *cobra.Command {
 }
 
 func (p *LocalProcess) Start(cmd *env.StartProcessCommand) error {
-	// generate commands
-	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "cli.sh")
-	components := []string{"master", "job_master", "worker", "job_worker", "proxy"}
-	var commands []string
-	for _, component := range components {
-		arguments := "process start" + " " + component
-		if cmd.AsyncStart {
-			arguments = arguments + " -a"
+	for _, subProcess := range localProcesses {
+		subProcess := subProcess
+		err := subProcess.Start(cmd)
+		if err != nil {
+			log.Logger.Errorf("Error: %s", err)
 		}
-		if cmd.SkipKillOnStart {
-			arguments = arguments + " -N"
-		}
-		commands = append(commands, cliPath+" "+arguments)
 	}
-
-	for _, command := range commands {
-		exec.Command(command)
-	}
-
 	return nil
 }
 
 func (p *LocalProcess) Stop(cmd *env.StopProcessCommand) error {
-	// generate commands
-	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "cli.sh")
-	components := []string{"master", "job_master", "worker", "job_worker", "proxy"}
-	var commands []string
-	for _, component := range components {
-		arguments := "process stop" + " " + component
-		commands = append(commands, cliPath+" "+arguments)
+	for _, subProcess := range localProcesses {
+		subProcess := subProcess
+		err := subProcess.Stop(cmd)
+		if err != nil {
+			log.Logger.Errorf("Error: %s", err)
+		}
 	}
-
-	for _, command := range commands {
-		exec.Command(command)
-	}
-
 	return nil
 }

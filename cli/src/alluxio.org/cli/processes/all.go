@@ -12,13 +12,11 @@
 package processes
 
 import (
-	"os/exec"
-	"path"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"alluxio.org/cli/env"
+	"alluxio.org/log"
 )
 
 var All = &AllProcess{
@@ -29,6 +27,14 @@ var All = &AllProcess{
 
 type AllProcess struct {
 	*env.BaseProcess
+}
+
+var allProcesses = []env.Process{
+	Masters,
+	JobMasters,
+	Workers,
+	JobWorkers,
+	Proxies,
 }
 
 func (p *AllProcess) SetEnvVars(envVar *viper.Viper) {
@@ -50,41 +56,23 @@ func (p *AllProcess) StopCmd(cmd *cobra.Command) *cobra.Command {
 }
 
 func (p *AllProcess) Start(cmd *env.StartProcessCommand) error {
-	// generate commands
-	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "cli.sh")
-	components := []string{"masters", "job_masters", "workers", "job_workers", "proxies"}
-	var commands []string
-	for _, component := range components {
-		arguments := "process start" + " " + component
-		if cmd.AsyncStart {
-			arguments = arguments + " -a"
+	for _, subProcess := range allProcesses {
+		subProcess := subProcess
+		err := subProcess.Start(cmd)
+		if err != nil {
+			log.Logger.Errorf("Error: %s", err)
 		}
-		if cmd.SkipKillOnStart {
-			arguments = arguments + " -N"
-		}
-		commands = append(commands, cliPath+" "+arguments)
 	}
-
-	for _, command := range commands {
-		exec.Command(command)
-	}
-
 	return nil
 }
 
 func (p *AllProcess) Stop(cmd *env.StopProcessCommand) error {
-	// generate commands
-	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "cli.sh")
-	components := []string{"masters", "job_masters", "workers", "job_workers", "proxies"}
-	var commands []string
-	for _, component := range components {
-		arguments := "process stop" + " " + component
-		commands = append(commands, cliPath+" "+arguments)
+	for _, subProcess := range allProcesses {
+		subProcess := subProcess
+		err := subProcess.Stop(cmd)
+		if err != nil {
+			log.Logger.Errorf("Error: %s", err)
+		}
 	}
-
-	for _, command := range commands {
-		exec.Command(command)
-	}
-
 	return nil
 }
