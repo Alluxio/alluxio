@@ -11,6 +11,10 @@
 
 package alluxio.membership;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.annotations.Expose;
 import io.etcd.jetcd.support.CloseableClient;
 
 import java.io.Closeable;
@@ -31,10 +35,14 @@ public class ServiceEntity implements Closeable {
   // (package visibility) to do keep alive(heartbeating),
   // initialized at time of service registration
   AlluxioEtcdClient.Lease mLease;
+  @Expose
+  @com.google.gson.annotations.SerializedName("ServiceEntityName")
   protected String mServiceEntityName; // unique service alias
   // revision number of kv pair of registered entity on etcd, used for CASupdate
   protected long mRevision;
+//  @Expose(serialize = false)
   public final ReentrantLock mLock = new ReentrantLock();
+//  @Expose(serialize = false)
   public AtomicBoolean mNeedReconnect = new AtomicBoolean(false);
 
   /**
@@ -92,6 +100,19 @@ public class ServiceEntity implements Closeable {
   public void deserialize(DataInputStream dis) throws IOException {
     mServiceEntityName = dis.readUTF();
     mRevision = dis.readLong();
+  }
+
+  /**
+   * Convert a WorkerServiceEntity into a json string.
+   * @param entity
+   * @return json string
+   */
+  public static String toJson(ServiceEntity entity) {
+    System.out.println("LUCYDEBUG:" + entity.getClass().getName());
+    Gson gson = new GsonBuilder()
+        .excludeFieldsWithoutExposeAnnotation()
+        .create();
+    return gson.toJson(entity);
   }
 
   @Override

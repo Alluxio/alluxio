@@ -18,6 +18,10 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.annotations.Expose;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -37,9 +41,15 @@ public class WorkerServiceEntity extends ServiceEntity {
     DECOMMISSIONED
   }
 
+  @Expose
+  @com.google.gson.annotations.SerializedName("WorkerNetAddress")
   WorkerNetAddress mAddress;
+  @Expose
+  @com.google.gson.annotations.SerializedName("State")
   State mState = State.JOINED;
   @SuppressFBWarnings({"URF_UNREAD_FIELD"})
+  @Expose
+  @com.google.gson.annotations.SerializedName("GenerationNumber")
   int mGenerationNum = -1;
 
   /**
@@ -56,6 +66,8 @@ public class WorkerServiceEntity extends ServiceEntity {
     super(HashUtils.hashAsStringMD5(addr.dumpMainInfo()));
     mAddress = addr;
     mState = State.AUTHORIZED;
+    mLease = new AlluxioEtcdClient.Lease(1234,2);
+    super.setKeepAliveClient(null);
   }
 
   /**
@@ -118,5 +130,16 @@ public class WorkerServiceEntity extends ServiceEntity {
     byte[] byteArr = new byte[byteArrLen];
     dis.read(byteArr, 0, byteArrLen);
     mAddress = GrpcUtils.fromProto(alluxio.grpc.WorkerNetAddress.parseFrom(byteArr));
+  }
+
+  /**
+   * Convert from a json string to a WorkerServiceEntity object.
+   * @throws JsonSyntaxException
+   */
+  public static WorkerServiceEntity fromJson(String jsonStr) throws JsonSyntaxException {
+    Gson gson = new GsonBuilder()
+        .excludeFieldsWithoutExposeAnnotation()
+        .create();
+   return gson.fromJson(jsonStr, WorkerServiceEntity.class);
   }
 }

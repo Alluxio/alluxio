@@ -104,13 +104,16 @@ public class ServiceDiscoveryRecipe {
       String fullPath = new StringBuffer().append(mRegisterPathPrefix)
           .append(MembershipManager.PATH_SEPARATOR)
           .append(path).toString();
-      try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+      try
+//          (ByteArrayOutputStream baos = new ByteArrayOutputStream())
+      {
         AlluxioEtcdClient.Lease lease = mAlluxioEtcdClient.createLease();
         Txn txn = mAlluxioEtcdClient.getEtcdClient().getKVClient().txn();
         ByteSequence keyToPut = ByteSequence.from(fullPath, StandardCharsets.UTF_8);
-        DataOutputStream dos = new DataOutputStream(baos);
-        service.serialize(dos);
-        ByteSequence valToPut = ByteSequence.from(baos.toByteArray());
+//        DataOutputStream dos = new DataOutputStream(baos);
+//        service.serialize(dos);
+        String serializedJsonStr = ServiceEntity.toJson(service);
+        ByteSequence valToPut = ByteSequence.from(serializedJsonStr, StandardCharsets.UTF_8);
         CompletableFuture<TxnResponse> txnResponseFut = txn
             .If(new Cmp(keyToPut, Cmp.Op.EQUAL, CmpTarget.version(0L)))
             .Then(Op.put(keyToPut, valToPut, PutOption.newBuilder()
@@ -244,12 +247,14 @@ public class ServiceDiscoveryRecipe {
         .append(MembershipManager.PATH_SEPARATOR)
         .append(service.mServiceEntityName).toString();
     try (LockResource lockResource = new LockResource(service.mLock);
-         ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+//         ByteArrayOutputStream baos = new ByteArrayOutputStream()
+    ) {
       Txn txn = mAlluxioEtcdClient.getEtcdClient().getKVClient().txn();
       ByteSequence keyToPut = ByteSequence.from(fullPath, StandardCharsets.UTF_8);
-      DataOutputStream dos = new DataOutputStream(baos);
-      service.serialize(dos);
-      ByteSequence valToPut = ByteSequence.from(baos.toByteArray());
+//      DataOutputStream dos = new DataOutputStream(baos);
+//      service.serialize(dos);
+      String serializedJsonStr = ServiceEntity.toJson(service);
+      ByteSequence valToPut = ByteSequence.from(serializedJsonStr, StandardCharsets.UTF_8);
       CompletableFuture<TxnResponse> txnResponseFut = txn
           .If(new Cmp(keyToPut, Cmp.Op.EQUAL, CmpTarget.modRevision(service.mRevision)))
           .Then(Op.put(keyToPut, valToPut, PutOption.newBuilder()

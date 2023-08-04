@@ -15,7 +15,11 @@ import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.wire.WorkerInfo;
+import alluxio.worker.Worker;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonSyntaxException;
 import com.google.common.annotations.VisibleForTesting;
 import io.etcd.jetcd.KeyValue;
 import org.apache.zookeeper.server.ByteBufferInputStream;
@@ -28,6 +32,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -77,30 +82,36 @@ public class EtcdMembershipManager implements MembershipManager {
   @Override
   public void join(WorkerInfo wkrAddr) throws IOException {
     WorkerServiceEntity entity = new WorkerServiceEntity(wkrAddr.getAddress());
-    // 1) register to the ring
+    // 1) register to the ring, check if there's existing entry
     String pathOnRing = new StringBuffer()
         .append(mRingPathPrefix)
         .append(entity.getServiceEntityName()).toString();
     byte[] ret = mAlluxioEtcdClient.getForPath(pathOnRing);
-    try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-         DataOutputStream dos = new DataOutputStream(baos)) {
-      entity.serialize(dos);
-      byte[] serializedEntity = baos.toByteArray();
-      // If there's existing entry, check if it's me.
-      if (ret != null) {
+    // If there's existing entry, check if it's me.
+    if (ret != null) {
+      try {
+        WorkerServiceEntity existingEntity = WorkerServiceEntity.fromJson(
+            new String(ret, StandardCharsets.UTF_8));
         // It's not me, something is wrong.
-        if (!Arrays.equals(serializedEntity, ret)) {
+        if (!existingEntity.equals(entity)) {
           throw new AlreadyExistsException(
               "Some other member with same id registered on the ring, bail.");
         }
-        // It's me, go ahead to start heartbeating.
-      } else {
-        // If haven't created myself onto the ring before, create now.
-        mAlluxioEtcdClient.createForPath(pathOnRing, Optional.of(serializedEntity));
+      } catch (JsonSyntaxException ex) {
+        // If for regression or other reasons the existing value couldn't be
+        // recognized, additional effort to wipe clean corrupted key on etcd
+        // is needed.
+        throw new IOException(String.format(
+            "Malformatted existing value for service path:%s", pathOnRing));
       }
-      // 2) start heartbeat
-      mAlluxioEtcdClient.mServiceDiscovery.registerAndStartSync(entity);
+      // It's me, go ahead to start heartbeating.
+    } else {
+      // If haven't created myself onto the ring before, create now.
+      mAlluxioEtcdClient.createForPath(pathOnRing, Optional.of(ServiceEntity.toJson(entity)
+          .getBytes(StandardCharsets.UTF_8)));
     }
+    // 2) start heartbeat
+    mAlluxioEtcdClient.mServiceDiscovery.registerAndStartSync(entity);
   }
 
   @Override
@@ -115,13 +126,11 @@ public class EtcdMembershipManager implements MembershipManager {
     List<WorkerServiceEntity> fullMembers = new ArrayList<>();
     List<KeyValue> childrenKvs = mAlluxioEtcdClient.getChildren(mRingPathPrefix);
     for (KeyValue kv : childrenKvs) {
-      try (ByteArrayInputStream bais =
-               new ByteArrayInputStream(kv.getValue().getBytes());
-           DataInputStream dis = new DataInputStream(bais)) {
-        WorkerServiceEntity entity = new WorkerServiceEntity();
-        entity.deserialize(dis);
+      try {
+        WorkerServiceEntity entity = WorkerServiceEntity.fromJson(
+            kv.getValue().toString(StandardCharsets.UTF_8));
         fullMembers.add(entity);
-      } catch (IOException ex) {
+      } catch (JsonParseException ex) {
         // Ignore
       }
     }
@@ -132,13 +141,11 @@ public class EtcdMembershipManager implements MembershipManager {
     List<WorkerServiceEntity> liveMembers = new ArrayList<>();
     for (Map.Entry<String, ByteBuffer> entry : mAlluxioEtcdClient.mServiceDiscovery
         .getAllLiveServices().entrySet()) {
-      try (ByteBufferInputStream bbis =
-               new ByteBufferInputStream(entry.getValue());
-           DataInputStream dis = new DataInputStream(bbis)) {
-        WorkerServiceEntity entity = new WorkerServiceEntity();
-        entity.deserialize(dis);
+      try {
+        String jsonStr = StandardCharsets.UTF_8.decode(entry.getValue()).toString();
+        WorkerServiceEntity entity = WorkerServiceEntity.fromJson(jsonStr);
         liveMembers.add(entity);
-      } catch (IOException ex) {
+      } catch (JsonSyntaxException ex) {
         // Ignore
       }
     }

@@ -262,8 +262,10 @@ public class PagedDoraWorker extends AbstractWorker implements DoraWorker {
          * etcd hasn't started up yet when alluxio components and etcd
          * are starting up at same time. In such case we keep retrying.
          */
+      } catch (IOException e) {
+        LOG.error("Failed to register.", e);
         if (!retry.attempt()) {
-          throw ioe;
+          throw e;
         }
       }
     }
