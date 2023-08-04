@@ -53,7 +53,7 @@ We want to thank the community for their valuable contributions to the Alluxio 2
 
 Baolong Mao ([maobaolong](https://github.com/maobaolong){:target="_blank"}),
 Haoning Sun ([Haoning-Sun](https://github.com/Haoning-Sun){:target="_blank"}),
-Kevin Cai ([kevincai](https://github.com/kevincai)), 
+Kevin Cai ([kevincai](https://github.com/kevincai){:target="_blank"}), 
 l-shen ([ljl1988com](https://github.com/ljl1988com){:target="_blank"}), 
 Lei Qian ([qian0817](https://github.com/qian0817){:target="_blank"}),
 [striverpan](https://github.com/striverpan){:target="_blank"},
