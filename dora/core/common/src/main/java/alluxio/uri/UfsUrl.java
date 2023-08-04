@@ -21,6 +21,7 @@ import alluxio.util.io.PathUtils;
 import com.google.common.base.Preconditions;
 import org.apache.logging.log4j.util.Strings;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -34,117 +35,107 @@ public class UfsUrl {
 
   UfsUrlMessage mProto;
 
+  public static UfsUrlMessage toProto(String ufsPath) {
+    Preconditions.checkArgument(ufsPath != null && !ufsPath.isEmpty(),
+        "ufsPath is null or empty");
+    String scheme = null;
+    String authority = null;
+    String path = null;
+
+    int start = 0;
+    int schemeSplitIndex = ufsPath.indexOf(SCHEME_SEPARATOR, start);
+    if (schemeSplitIndex == -1) {
+      scheme = "";
+    } else {
+      scheme = ufsPath.substring(start, schemeSplitIndex);
+    }
+    start += scheme.length() + SCHEME_SEPARATOR.length();
+
+    int authSplitIndex = ufsPath.indexOf(PATH_SEPARATOR, start);
+    if (authSplitIndex == -1) {
+      authority = ufsPath.substring(start);
+    } else {
+      authority = ufsPath.substring(start, authSplitIndex);
+    }
+    start += authority.length();
+    path = ufsPath.substring(start);
+
+    List<String> pathComponents = Arrays.asList(path.split(PATH_SEPARATOR));
+    return UfsUrlMessage.newBuilder()
+        .setScheme(scheme)
+        .setAuthority(authority)
+        .addAllPathComponents(pathComponents).build();
+  }
+
   public static UfsUrl createInstance(UfsUrlMessage proto) {
     return new UfsUrl(proto);
   }
 
   public static UfsUrl createInstance(String ufsPath) {
     Preconditions.checkArgument(ufsPath != null && !ufsPath.isEmpty(),
-        "ufsPath is null or empty");
-    // TODO(Tony Sun): remove it in the future.
-    String rootDir = Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
+        "input path is null or empty");
+    String ufsRootDir = Configuration.getString(PropertyKey.DORA_CLIENT_UFS_ROOT);
+    Preconditions.checkArgument(ufsRootDir != null && !ufsRootDir.isEmpty(),
+        "root dir is null or empty.");
+    UfsUrlMessage rootMessage = toProto(ufsRootDir);
+    UfsUrlMessage ufsUrlMessage = toProto(ufsPath);
 
-    /* phase 1: parse rootDir. */
-    String rootScheme;
-    String rootAuthority;
-    String rootPath;
-    // rootDir = "hdfs:///" -> rootDirArray = ["hdfs", "/"]
-    // Please make sure the rootDir is not only contain scheme, like "s3://".
-    String[] rootDirArray = rootDir.split(SCHEME_SEPARATOR);
-    // If ufsPath is not equal to rootDir.
-    if (!ufsPath.equals(rootDir)) {
-      Preconditions.checkArgument(rootDirArray.length <= 2 || rootDirArray.length == 0,
-          "Invalid alluxio.dora.client.ufs.root value %s", rootDir);
-      // No "://" in root dir, assume it is a local file system path, the scheme should be "file://"
-      if (rootDirArray.length == 1) {
-        rootScheme = "file";
-        rootAuthority = "";
-        rootPath = rootDir;
-      } else {
-        // Here rootDirArray.length = 2. rootDirArray = [rootScheme, rootAuthAndPath]
-        rootScheme = rootDirArray[0];
-        int indexOfFirstColon = rootDirArray[1].indexOf(PORT_SEPARATOR);
-        // There are no ':' in the authority and path. i.e., there are no authority.
-        if (indexOfFirstColon == -1)  {
-          rootAuthority = "";
-          rootPath = rootDirArray[1];
-        } else {
-          int indexOfFirstSlash = rootDirArray[1].indexOf(PATH_SEPARATOR);
-          Preconditions.checkArgument(indexOfFirstSlash > -1,
-              "Failed to find the target path in UFS from string %s",  rootDir);
-          rootAuthority = rootDirArray[1].substring(0, indexOfFirstSlash);
-          rootPath = rootDirArray[1].substring(indexOfFirstSlash);
-        }
-      }
-    } else {
-      // If ufsPath is rootdir, set the rootXXX to empty to avoid effecting String concat below.
-      rootScheme = "";
-      rootAuthority = "";
-      rootPath = "";
-    }
+    String scheme = null;
+    String authority = null;
+    List<String> pathComponents = new ArrayList<String>();
 
-    /* phase 2: parse input ufsPath */
-    String scheme;
-    String authority;
-    String path;
-    String authorityAndPath;
-    int schemeIndex = ufsPath.indexOf(SCHEME_SEPARATOR);
-    Preconditions.checkArgument(schemeIndex == ufsPath.lastIndexOf(SCHEME_SEPARATOR),
-        "There are multiple schemes, the input may contain more than one path, "
-            + "Alluxio only supports inputting one path each time.");
-    // schemeIndex == -1 -> ufsPath has no scheme.
-    // schemeIndex != -1 -> ufsPath has a scheme.
-    if (schemeIndex == -1)  {
-      // Some cases Alluxio uses rootDir to create UfsUrl, so we should use the if-else below,
-      // instead of just "scheme=rootScheme;".
-      // If without scheme, set default scheme to root scheme.
-      if (rootScheme == null || rootScheme.equals("")) {
-        // if root scheme is null or empty.
-        // In this case, scheme is "file", i.e., local.
+    // parse scheme
+    if (rootMessage.getScheme().isEmpty())  {
+      if (ufsUrlMessage.getScheme().isEmpty())  {
         scheme = "file";
       } else {
-        // if length != 1, i.e. > 1, means rootDir has scheme.
-        // And ufsPath has no scheme, so choose root scheme as scheme.
-        scheme = rootScheme;
+        scheme = ufsUrlMessage.getScheme();
       }
-      authorityAndPath = ufsPath;
     } else {
-      // ufsPath has one scheme.
-      scheme = ufsPath.substring(0, schemeIndex);
-      authorityAndPath = ufsPath.substring(schemeIndex + SCHEME_SEPARATOR.length());
+      if (ufsUrlMessage.getScheme().isEmpty())  {
+        scheme = rootMessage.getScheme();
+      } else {
+        scheme = ufsUrlMessage.getScheme();
+      }
     }
-    Preconditions.checkArgument(!scheme.isEmpty(), "scheme is empty, please input again.");
-    Preconditions.checkArgument(!authorityAndPath.isEmpty(),
-        "authority or path is empty, please input again.");
 
-    int indexOfFirstColon = authorityAndPath.indexOf(PORT_SEPARATOR);
-    if (indexOfFirstColon == -1)  {
-      // ufsPath has no ":", i.e., no authority.
-      if (rootScheme.equalsIgnoreCase(scheme)) {
-        authority = rootAuthority;
-        // Handle case with two slash like "/tmp/" + "/cache" = "/tmp//cache"
-        path = PathUtils.concatStringPath(rootPath, authorityAndPath);
-      } else {
-        // If rootScheme != ufsPath scheme,
-        // and ufsPath has no authority, then set ufsPath authority to empty.
-        authority = "";
-        path = authorityAndPath;
-      }
+    // parse authority
+    if (rootMessage.getAuthority().isEmpty())  {
+      authority = ufsUrlMessage.getAuthority();
     } else {
-      // ufsPath has at least a ':', i.e., it has authority.
-      int indexOfFirstSlash = authorityAndPath.indexOf(PATH_SEPARATOR);
-      // If there are no '/' splitting authority and path, throw error.
-      Preconditions.checkArgument(indexOfFirstSlash != -1,
-          "The input has authority while has no invalid path. Please input another one");
-      authority = authorityAndPath.substring(0, indexOfFirstSlash);
-      String tmpPath = authorityAndPath.substring(indexOfFirstSlash);
-      if (rootScheme.equalsIgnoreCase(scheme))  {
-        path = PathUtils.concatStringPath(rootPath, tmpPath);
+      if (rootMessage.getScheme().equals(ufsUrlMessage.getScheme())) {
+        if (!ufsUrlMessage.getAuthority().isEmpty()) {
+          authority = ufsUrlMessage.getAuthority();
+        } else {
+          authority = rootMessage.getAuthority();
+        }
       } else {
-        path = tmpPath;
+        authority = ufsUrlMessage.getAuthority();
       }
     }
-    return new UfsUrl(scheme, authority, path);
+
+    // parse path
+    if (scheme.equals("file") || rootMessage.getScheme().equals(ufsUrlMessage.getScheme())) {
+      pathComponents.addAll(rootMessage.getPathComponentsList());
+      // If two schemes are not equal,
+      // it is possible to add root path only when ufsUrl has an empty scheme.
+    } else if (ufsUrlMessage.getScheme().isEmpty()) {
+      if (rootMessage.getAuthority().equals(ufsUrlMessage.getAuthority()))  {
+        pathComponents.addAll(rootMessage.getPathComponentsList());
+        // If two authorities are not equal,
+        // it is possible to add root path when ufsUrl has an empty authority
+      } else if (ufsUrlMessage.getAuthority().isEmpty()) {
+        pathComponents.addAll(rootMessage.getPathComponentsList());
+      }
+    }
+
+    pathComponents.addAll(ufsUrlMessage.getPathComponentsList());
+
+    return new UfsUrl(UfsUrlMessage.newBuilder()
+        .setScheme(scheme)
+        .setAuthority(authority)
+        .addAllPathComponents(pathComponents)
+        .build());
   }
 
   public static UfsUrl fromProto(UfsUrlMessage proto) {
