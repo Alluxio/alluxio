@@ -11,22 +11,16 @@
 
 package alluxio.membership;
 
-import alluxio.AbstractClient;
 import alluxio.conf.AlluxioConfiguration;
 import alluxio.conf.PropertyKey;
-import alluxio.exception.runtime.AlluxioRuntimeException;
-import alluxio.exception.status.AlluxioStatusException;
-import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.resource.LockResource;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
-import alluxio.retry.RetryUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
-import com.google.common.io.Closer;
 import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
 import io.etcd.jetcd.KeyValue;
@@ -41,15 +35,11 @@ import io.etcd.jetcd.options.LeaseOption;
 import io.etcd.jetcd.options.WatchOption;
 import io.etcd.jetcd.watch.WatchEvent;
 import io.etcd.jetcd.watch.WatchResponse;
-import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
 import io.netty.util.internal.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.io.IOException;
-import java.nio.channels.UnresolvedAddressException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Comparator;
@@ -60,10 +50,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 
@@ -169,7 +157,10 @@ public class AlluxioEtcdClient {
       }
       LOG.debug("AlluxioEtcdClient call failed ({}): ", retryPolicy.getAttemptCount(), ex);
     }
-    throw new IOException(ex);
+    throw new UnavailableException(
+        String.format("Exhausted retry for (%s), retries:%s, last exception:",
+            description, retryPolicy.getAttemptCount()),
+        ex);
   }
 
   /**
@@ -294,7 +285,7 @@ public class AlluxioEtcdClient {
     String fullPath = PathUtils.concatPath(parentPath, childPath);
     Preconditions.checkArgument(!StringUtil.isNullOrEmpty(fullPath));
     retryInternal(
-        String.format("Adding child, parentPath:%s, childPath:%s",
+        String.format("Adding child for parentPath:%s, childPath:%s",
             parentPath, childPath),
         new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, 0),
         () -> {
@@ -493,22 +484,22 @@ public class AlluxioEtcdClient {
    * @throws IOException
    */
   public boolean checkExistsForPath(String path) throws IOException {
-      return retryInternal(String.format("Get for path:%s", path),
-          new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),
-          () -> {
-        boolean exist = false;
-        try {
-          CompletableFuture<GetResponse> getResponse =
-              getEtcdClient().getKVClient().get(
-                  ByteSequence.from(path, StandardCharsets.UTF_8));
-          List<KeyValue> kvs = getResponse.get(
-              DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS).getKvs();
-          exist = !kvs.isEmpty();
-        } catch (ExecutionException | InterruptedException | TimeoutException ex) {
-          throw new IOException("Error getting path:" + path, ex);
-        }
-        return exist;
-      });
+    return retryInternal(String.format("Check exists for path:%s", path),
+        new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),
+        () -> {
+          boolean exist = false;
+          try {
+            CompletableFuture<GetResponse> getResponse =
+                getEtcdClient().getKVClient().get(
+                    ByteSequence.from(path, StandardCharsets.UTF_8));
+            List<KeyValue> kvs = getResponse.get(
+                DEFAULT_TIMEOUT_IN_SEC, TimeUnit.SECONDS).getKvs();
+            exist = !kvs.isEmpty();
+          } catch (ExecutionException | InterruptedException | TimeoutException ex) {
+            throw new IOException("Error getting path:" + path, ex);
+          }
+          return exist;
+        });
   }
 
   /**
@@ -518,7 +509,7 @@ public class AlluxioEtcdClient {
    * @throws IOException
    */
   public void createForPath(String path, Optional<byte[]> value) throws IOException {
-    retryInternal(String.format("Get for path:%s, value size:%s",
+    retryInternal(String.format("Create for path:%s, value bytes len:%s",
             path, (!value.isPresent() ? "null" : value.get().length)),
         new ExponentialBackoffRetry(RETRY_SLEEP_IN_MS, MAX_RETRY_SLEEP_IN_MS, RETRY_TIMES),
         () -> {
