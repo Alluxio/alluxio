@@ -251,7 +251,7 @@ public class UfsBaseFileSystem implements FileSystem {
       String pathStr = ufsPath.asString();
       UfsStatus ufsStatus = mUfs.get().getStatus(pathStr, GetStatusOptions.defaults()
               .setIncludeRealContentHash(options.getIncludeRealContentHash()));
-      // TODO(Jiacheng Liu): In the future,
+      // TODO(Tony Sun): In the future,
       //  avoid using AlluxioURI in this method and avoid string copies as much as possible
       return transformStatus(ufsStatus, pathStr);
     });
@@ -279,10 +279,39 @@ public class UfsBaseFileSystem implements FileSystem {
   }
 
   @Override
-  public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options)
-      throws FileDoesNotExistException, IOException, AlluxioException {
+  public List<URIStatus> listStatus(UfsUrl ufsPath, ListStatusPOptions options) {
     // TODO(Tony Sun): Implement it in the future.
-    throw new AlluxioException("Method is not implemented.");
+    return callWithReturn(() -> {
+      ListOptions ufsOptions = ListOptions.defaults();
+      if (options.hasRecursive()) {
+        ufsOptions.setRecursive(options.getRecursive());
+      }
+      UfsStatus[] ufsStatuses;
+      Preconditions.checkArgument(ufsPath.getScheme().isPresent());
+      if (ufsPath.getScheme().get().equals("file")) {
+        ufsStatuses = mUfs.get().listStatus(ufsPath.getFullPath(), ufsOptions);
+      } else {
+        ufsStatuses = mUfs.get().listStatus(ufsPath.asString(), ufsOptions);
+      }
+      if (ufsStatuses == null || ufsStatuses.length == 0) {
+        return Collections.emptyList();
+      }
+      List<URIStatus> uriStatusList = new ArrayList<>();
+      if (ufsPath.getScheme().get().equals("file")) {
+        for (UfsStatus ufsStatus : ufsStatuses) {
+          URIStatus uriStatus = transformStatus(ufsStatus,
+              PathUtils.concatPath(ufsPath.getFullPath(), ufsStatus.getName()));
+          uriStatusList.add(uriStatus);
+        }
+      } else {
+        for (UfsStatus ufsStatus : ufsStatuses) {
+          URIStatus uriStatus = transformStatus(ufsStatus,
+              PathUtils.concatPath(ufsPath.asString(), ufsStatus.getName()));
+          uriStatusList.add(uriStatus);
+        }
+      }
+      return uriStatusList;
+    });
   }
 
   @Override

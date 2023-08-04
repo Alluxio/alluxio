@@ -165,9 +165,8 @@ public class MetadataCachingFileSystem extends DelegatingFileSystem {
   @Override
   public URIStatus getStatus(UfsUrl ufsPath, GetStatusPOptions options)
           throws FileDoesNotExistException, IOException, AlluxioException {
-    // TODO(Jiacheng Liu): the shitty thing is the cache is key-ed by AlluxioURI,
-    //  we have to fully change it to UfsUrl to use the cache,
-    //  so now we only delegate with a cost
+    // TODO(jiacheng): before fully switching to `UfsUrl`, the cache here is key-ed by AlluxioURI
+    //   We have to delegate by converting to AlluxioURI
     return getStatus(ufsPath.toAlluxioURI(), options);
   }
 

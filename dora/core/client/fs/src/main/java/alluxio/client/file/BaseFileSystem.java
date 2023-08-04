@@ -205,7 +205,6 @@ public class BaseFileSystem implements FileSystem {
   }
 
   @Override
-  // medium
   public boolean exists(AlluxioURI path, final ExistsPOptions options)
       throws IOException, AlluxioException {
     checkUri(path);
@@ -288,7 +287,7 @@ public class BaseFileSystem implements FileSystem {
 
   @Override
   public URIStatus getStatus(UfsUrl ufsPath, final GetStatusPOptions options)
-          throws FileDoesNotExistException, IOException, AlluxioException {
+      throws FileDoesNotExistException, IOException, AlluxioException {
     return null;
   }
 

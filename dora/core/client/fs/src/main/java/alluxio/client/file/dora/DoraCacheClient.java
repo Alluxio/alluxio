@@ -12,7 +12,6 @@
 package alluxio.client.file.dora;
 
 import static com.google.common.base.Preconditions.checkState;
-
 import alluxio.AlluxioURI;
 import alluxio.CloseableSupplier;
 import alluxio.PositionReader;
@@ -49,7 +48,6 @@ import alluxio.grpc.ReadRequest;
 import alluxio.grpc.RenamePOptions;
 import alluxio.grpc.RenamePRequest;
 import alluxio.grpc.RequestType;
-import alluxio.grpc.UfsUrlMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.uri.UfsUrl;
@@ -174,12 +172,11 @@ public class DoraCacheClient {
    * @throws RuntimeException
    */
   public List<URIStatus> listStatus(String path, ListStatusPOptions options)
-      throws PermissionDeniedException {
+      throws RuntimeException {
     try (CloseableResource<BlockWorkerClient> client =
              mContext.acquireBlockWorkerClient(getWorkerNetAddress(path))) {
       List<URIStatus> result = new ArrayList<>();
       client.get().listStatus(ListStatusPRequest.newBuilder().setPath(path)
-              .setUfsPath(UfsUrlMessage.newBuilder().addPathComponents(path).build())
               .setOptions(options).build())
           .forEachRemaining(
               (pListStatusResponse) -> result.addAll(pListStatusResponse.getFileInfosList().stream()

@@ -168,7 +168,6 @@ public interface FileSystem extends Closeable {
      */
     public static FileSystem create(FileSystemContext context, FileSystemOptions options) {
       AlluxioConfiguration conf = context.getClusterConf();
-      // TODO(jiacheng): get rid of this check
       checkSortConf(conf);
       FileSystem fs = options.getUfsFileSystemOptions().isPresent()
           ? new UfsBaseFileSystem(context, options.getUfsFileSystemOptions().get())
@@ -414,7 +413,7 @@ public interface FileSystem extends Closeable {
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   URIStatus getStatus(UfsUrl ufsPath, GetStatusPOptions options)
-          throws FileDoesNotExistException, IOException, AlluxioException;
+      throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
    * Performs a specific action on each {@code URIStatus} in the result of {@link #listStatus}.

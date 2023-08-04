@@ -295,7 +295,7 @@ public class FileSystemCache {
 
     @Override
     public URIStatus getStatus(UfsUrl path, GetStatusPOptions options)
-            throws FileDoesNotExistException, IOException, AlluxioException {
+        throws FileDoesNotExistException, IOException, AlluxioException {
       if (mClosed) {
         throw new IOException(CLOSED_FS_ERROR_MESSAGE);
       }

@@ -16,7 +16,6 @@ import alluxio.conf.Configuration;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.grpc.UfsUrlMessage;
-import alluxio.util.UfsUrlUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -35,6 +34,10 @@ public class UfsUrl {
 
   UfsUrlMessage mProto;
 
+  public static UfsUrl createInstance(UfsUrlMessage proto) {
+    return new UfsUrl(proto);
+  }
+
   public static UfsUrl createInstance(String ufsPath) {
     Preconditions.checkArgument(!ufsPath.isEmpty(),
         "ufsPath is empty, please input a non-empty ufsPath.");
@@ -45,11 +48,11 @@ public class UfsUrl {
     String rootScheme;
     String rootAuthority;
     String rootPath;
-    // rootDir = "hdfs:///" -> rootDirArray = ["hdfs", "/"]
-    // Please make sure the rootDir is not only contain scheme, like "s3://".
-    String[] rootDirArray = rootDir.split(SCHEME_SEPARATOR);
     // If ufsPath is not equal to rootDir.
     if (!ufsPath.equals(rootDir)) {
+      // rootDir = "hdfs:///" -> rootDirArray = ["hdfs", "/"]
+      // Please make sure the rootDir is not only contain scheme, like "s3://".
+      String[] rootDirArray = rootDir.split(SCHEME_SEPARATOR);
       Preconditions.checkArgument(rootDirArray.length <= 2, "Invalid Alluxio rootDir, "
           + "please check alluxio configuration first.");
       // rootDir is like "/tmp"
@@ -66,8 +69,9 @@ public class UfsUrl {
           rootAuthority = "";
           rootPath = rootDirArray[1];
         } else {
-          // Suppose rootdir contains at least one "/".
           int indexOfFirstSlash = rootDirArray[1].indexOf(PATH_SEPARATOR);
+          Preconditions.checkArgument(indexOfFirstSlash > -1,
+              "Failed to find the target path in UFS from string %s",  rootDir);
           rootAuthority = rootDirArray[1].substring(0, indexOfFirstSlash);
           rootPath = rootDirArray[1].substring(indexOfFirstSlash);
         }
@@ -88,13 +92,14 @@ public class UfsUrl {
     Preconditions.checkArgument(schemeIndex == ufsPath.lastIndexOf(SCHEME_SEPARATOR),
         "There are multiple schemes, the input may contain more than one path, "
             + "current UfsUrl only support inputting one path each time.");
-    // schemeIndex == -1 -> ufsPath without a scheme; schemeIndex != -1 -> ufsPath has scheme.
+    // schemeIndex == -1 -> ufsPath has no scheme.
+    // schemeIndex != -1 -> ufsPath has a scheme.
     if (schemeIndex == -1)  {
       // Some cases Alluxio uses rootDir to create UfsUrl, so we should use the if-else below,
       // instead of just "scheme=rootScheme;".
       // If without scheme, set default scheme to root scheme.
-      if (rootDirArray.length == 1) {
-        // if length == 1, means rootDirArray is not include root scheme too.
+      if (rootScheme == null || rootScheme.equals("")) {
+        // if root scheme is null or empty.
         // In this case, scheme is "file", i.e., local.
         scheme = "file";
       } else {
@@ -118,7 +123,7 @@ public class UfsUrl {
       if (rootScheme.equalsIgnoreCase(scheme)) {
         authority = rootAuthority;
         // Handle case with two slash like "/tmp/" + "/cache" = "/tmp//cache"
-        path = UfsUrlUtils.concatStringPath(rootPath, authorityAndPath);
+        path = PathUtils.concatStringPath(rootPath, authorityAndPath);
       } else {
         // If rootScheme != ufsPath scheme,
         // and ufsPath has no authority, then set ufsPath authority to empty.
@@ -134,7 +139,7 @@ public class UfsUrl {
       authority = authorityAndPath.substring(0, indexOfFirstSlash);
       String tmpPath = authorityAndPath.substring(indexOfFirstSlash);
       if (rootScheme.equalsIgnoreCase(scheme))  {
-        path = UfsUrlUtils.concatStringPath(rootPath, tmpPath);
+        path = PathUtils.concatStringPath(rootPath, tmpPath);
       } else {
         path = tmpPath;
       }
@@ -254,6 +259,7 @@ public class UfsUrl {
 
   public String getName() {
     List<String> pathComponents = getPathComponents();
+    Preconditions.checkArgument(!pathComponents.isEmpty());
     return pathComponents.get(pathComponents.size() - 1);
   }
 
@@ -270,7 +276,7 @@ public class UfsUrl {
 
   public UfsUrl join(String suffix) {
     if (suffix.isEmpty()) {
-      return this;
+      return new UfsUrl(mProto);
     }
     String[] suffixArray = suffix.split("/");
     int nonEmptyIndex = 0;
