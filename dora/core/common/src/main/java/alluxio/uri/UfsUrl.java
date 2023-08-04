@@ -269,7 +269,7 @@ public class UfsUrl {
   }
 
   public UfsUrl join(String suffix) {
-    if (suffix.isEmpty()) {
+    if (suffix == null || suffix.isEmpty()) {
       return this;
     }
     String[] suffixArray = suffix.split("/");
