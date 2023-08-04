@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
@@ -13,13 +14,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-      <artifactId>alluxio-stress</artifactId>
-      <groupId>org.alluxio</groupId>
-      <version>303-SNAPSHOT</version>
+    <groupId>org.alluxio</groupId>
+    <artifactId>alluxio-stress</artifactId>
+    <version>303-SNAPSHOT</version>
   </parent>
-  <name>Alluxio Stress - Common</name>
   <artifactId>alluxio-stress-common</artifactId>
   <packaging>jar</packaging>
+  <name>Alluxio Stress - Common</name>
   <description>Common between client and server</description>
 
   <properties>
@@ -38,10 +39,6 @@
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.hdrhistogram</groupId>
-      <artifactId>HdrHistogram</artifactId>
-    </dependency>
 
     <!-- Internal dependencies -->
     <dependency>
@@ -51,13 +48,17 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-job-common</artifactId>
+      <artifactId>alluxio-core-server-worker</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-server-worker</artifactId>
+      <artifactId>alluxio-job-common</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.hdrhistogram</groupId>
+      <artifactId>HdrHistogram</artifactId>
     </dependency>
   </dependencies>
 </project>

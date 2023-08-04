@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
@@ -22,13 +23,13 @@
   <name>Alluxio Common</name>
   <description>Parent POM for Alluxio common</description>
 
-  <modules>
-    <module>transport</module>
-  </modules>
-
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
          properly from sub-project directories -->
     <build.path>${project.parent.basedir}/build</build.path>
   </properties>
+
+  <modules>
+    <module>transport</module>
+  </modules>
 </project>
