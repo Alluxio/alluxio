@@ -138,7 +138,7 @@ In order for the system to recover quickly after failures or restarts, checkpoin
 
 ## Acknowledgements
 
-We want to thank the community for their valuable contributions to the Alluxio 2.9.3 release. Especially, we would like to thank:
+We want to thank the community for their valuable contributions to the Alluxio 2.9.1 release. Especially, we would like to thank:
 
 Haoning Sun ([Haoning-Sun](https://github.com/Haoning-Sun){:target="_blank"}),
 Kaijie Chen ([kaijchen](https://github.com/kaijchen){:target="_blank"}),
