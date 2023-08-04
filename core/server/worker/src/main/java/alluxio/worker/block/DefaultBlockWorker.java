@@ -254,11 +254,11 @@ public class DefaultBlockWorker extends AbstractWorker implements BlockWorker {
 
     getExecutorService()
         .submit(
-        new HeartbeatThread(HeartbeatContext.CONFIG_SYNC,
-            new ClusterConfigSync(mFileSystemMasterClient),
-            () -> new FixedIntervalSupplier(
-                Configuration.getMs(PropertyKey.CONF_SYNC_HEARTBEAT_INTERVAL_MS)),
-            Configuration.global(), ServerUserState.global()));
+            new HeartbeatThread(HeartbeatContext.CONFIG_SYNC,
+                new ClusterConfigSync(mFileSystemMasterClient),
+                () -> new FixedIntervalSupplier(
+                    Configuration.getMs(PropertyKey.CONF_SYNC_HEARTBEAT_INTERVAL_MS)),
+                Configuration.global(), ServerUserState.global()));
   }
 
   protected void setupBlockMasterSync() throws IOException {
