@@ -86,7 +86,7 @@ public class UfsUrl {
     int schemeIndex = ufsPath.indexOf(SCHEME_SEPARATOR);
     Preconditions.checkArgument(schemeIndex == ufsPath.lastIndexOf(SCHEME_SEPARATOR),
         "There are multiple schemes, the input may contain more than one path, "
-            + "current UfsUrl only support inputting one path each time.");
+            + "Alluxio only supports inputting one path each time.");
     // schemeIndex == -1 -> ufsPath without a scheme; schemeIndex != -1 -> ufsPath has scheme.
     if (schemeIndex == -1)  {
       // Some cases Alluxio uses rootDir to create UfsUrl, so we should use the if-else below,
