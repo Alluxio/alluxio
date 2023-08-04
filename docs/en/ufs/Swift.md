@@ -1,46 +1,35 @@
 ---
 layout: global
 title: Swift
-nickname: Swift
-group: Storage Integrations
-priority: 10
 ---
 
-* Table of Contents
-{:toc}
 
 This guide describes how to configure Alluxio with an under storage system supporting the
 [Swift API](http://docs.openstack.org/developer/swift/).
 
-## Prerequisites
-
-The Alluxio binaries must be on your machine. You can either
-[compile Alluxio]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}), or
-[download the binaries locally]({{ '/en/overview/Getting-Started.html' | relativize_url }}).
+Swift is a highly available, distributed, eventually consistent object/blob store. Organizations can use Swift to store lots of data efficiently, safely, and cheaply.
 
 ## Basic Setup
 
 A Swift bucket can be mounted to the Alluxio either at the root of the namespace, or at a nested directory.
 
-### Root Mount Point
-
 Configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.
 
-```console
+```shell
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Modify `conf/alluxio-site.properties` to include:
 
 ```properties
-alluxio.master.mount.table.root.ufs=swift://<bucket>/<folder>
-alluxio.master.mount.table.root.option.fs.swift.user=<swift-user>
-alluxio.master.mount.table.root.option.fs.swift.tenant=<swift-tenant>
-alluxio.master.mount.table.root.option.fs.swift.password=<swift-user-password>
-alluxio.master.mount.table.root.option.fs.swift.auth.url=<swift-auth-url>
-alluxio.master.mount.table.root.option.fs.swift.auth.method=<swift-auth-model>
+alluxio.dora.client.ufs.root=swift://<bucket>/<folder>
+fs.swift.user=<swift-user>
+fs.swift.tenant=<swift-tenant>
+fs.swift.password=<swift-user-password>
+fs.swift.auth.url=<swift-auth-url>
+fs.swift.auth.method=<swift-auth-model>
 ```
 
 Replace `<bucket>/<folder>` with an existing Swift bucket location. Possible values of
@@ -50,27 +39,12 @@ Replace `<bucket>/<folder>` with an existing Swift bucket location. Possible val
 When using either keystone authentication, the following parameter can optionally be set:
 
 ```properties
-alluxio.master.mount.table.root.option.fs.swift.region=<swift-preferred-region>
+fs.swift.region=<swift-preferred-region>
 ```
 
 On the successful authentication, Keystone will return two access URLs: public and private. If
 Alluxio is used inside company network and Swift is located on the same network it is advised to set
 value of `<swift-use-public>`  to `false`.
-
-### Nested Mount Point
-
-An Swift location can be mounted at a nested directory in the Alluxio namespace to have unified access
-to multiple under storage systems. Alluxio's [Command Line Interface]({{ '/en/operation/User-CLI.html' | relativize_url }}) can be used for this purpose.
-
-```console
-$ ./bin/alluxio fs mount \
-  --option fs.swift.user=<SWIFT_USER> \
-  --option fs.swift.tenant=<SWIFT_TENANT> \
-  --option fs.swift.password=<SWIFT_PASSWORD> \
-  --option fs.swift.auth.url=<AUTH_URL> \
-  --option fs.swift.auth.method=<AUTH_METHOD> \
-  /mnt/swift swift://<BUCKET>/<FOLDER>
-```
 
 ## Options for Swift Object Storage
 
@@ -83,7 +57,7 @@ be deployed.
 
 Start an Alluxio cluster:
 
-```console
+```shell
 $ ./bin/alluxio format
 $ ./bin/alluxio-start.sh local
 ```
@@ -93,20 +67,20 @@ This should start an Alluxio master and an Alluxio worker. You can see the maste
 
 Run a simple example program:
 
-```console
+```shell
 $ ./bin/alluxio runTests
 ```
 
 Visit your Swift bucket to verify the files and directories created
 by Alluxio exist. For this test, you should see files named like:
 
-```bash
+```
 <bucket>/<folder>/default_tests_files/BASIC_CACHE_THROUGH
 ```
 
 To stop Alluxio, you can run:
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh local
 ```
 
@@ -116,7 +90,7 @@ The following command can be used to test if the given Swift credentials are val
 Developers can also use it to run functional tests against a Swift endpoint 
 to validate the contract between Alluxio and Swift.
 
-```console
+```shell
 $ ./bin/alluxio runUfsTests --path swift://<bucket> \
   -Dfs.swift.user=<SWIFT_USER> \
   -Dfs.swift.tenant=<SWIFT_TENANT> \

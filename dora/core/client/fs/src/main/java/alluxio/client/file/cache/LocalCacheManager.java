@@ -47,6 +47,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
@@ -563,6 +564,24 @@ public class LocalCacheManager implements CacheManager {
   }
 
   @Override
+  public int get(PageId pageId, int pageOffset, ReadTargetBuffer buffer,
+                 CacheContext cacheContext) {
+    ReadWriteLock pageLock = getPageLock(pageId);
+    long pageSize = -1L;
+    try (LockResource r = new LockResource(pageLock.readLock())) {
+      PageInfo pageInfo;
+      try (LockResource r2 = new LockResource(mPageMetaStore.getLock().readLock())) {
+        pageInfo = mPageMetaStore.getPageInfo(pageId); //check if page exists and refresh LRU items
+      } catch (PageNotFoundException e) {
+        LOG.debug("get({},pageOffset={}) fails due to page not found", pageId, pageOffset);
+        return 0;
+      }
+      pageSize = pageInfo.getPageSize();
+    }
+    return get(pageId, pageOffset, (int) pageSize, buffer, cacheContext);
+  }
+
+  @Override
   public int get(PageId pageId, int pageOffset, int bytesToRead, ReadTargetBuffer buffer,
                  CacheContext cacheContext) {
     Preconditions.checkArgument(pageOffset <= mOptions.getPageSize(),
@@ -740,7 +759,12 @@ public class LocalCacheManager implements CacheManager {
   }
 
   private boolean restore(PageStoreDir pageStoreDir) {
+    long restoredPages = mPageMetaStore.numPages();
+    long restoredBytes = mPageMetaStore.bytes();
+    long discardPages = Metrics.PAGE_DISCARDED.getCount();
+    long discardBytes = Metrics.BYTE_DISCARDED.getCount();
     LOG.info("Restoring PageStoreDir ({})", pageStoreDir.getRootPath());
+
     if (!Files.exists(pageStoreDir.getRootPath())) {
       LOG.error("Failed to restore PageStore: Directory {} does not exist",
           pageStoreDir.getRootPath());
@@ -748,7 +772,9 @@ public class LocalCacheManager implements CacheManager {
     }
     try {
       pageStoreDir.scanPages(pageInfo -> {
-        addPageToDir(pageStoreDir, pageInfo.get());
+        if (pageInfo.isPresent()) {
+          addPageToDir(pageStoreDir, pageInfo.get());
+        }
       });
     } catch (IOException | RuntimeException e) {
       LOG.error("Failed to restore PageStore", e);
@@ -756,8 +782,9 @@ public class LocalCacheManager implements CacheManager {
     }
     LOG.info("PageStore ({}) restored with {} pages ({} bytes), "
             + "discarded {} pages ({} bytes)",
-        pageStoreDir.getRootPath(), mPageMetaStore.numPages(), mPageMetaStore.bytes(),
-        Metrics.PAGE_DISCARDED.getCount(), Metrics.BYTE_DISCARDED);
+        pageStoreDir.getRootPath(), mPageMetaStore.numPages() - restoredPages,
+        mPageMetaStore.bytes() - restoredBytes, Metrics.PAGE_DISCARDED.getCount() - discardPages,
+        Metrics.BYTE_DISCARDED.getCount() - discardBytes);
     return true;
   }
 
@@ -802,11 +829,30 @@ public class LocalCacheManager implements CacheManager {
   }
 
   @Override
+  public void deleteFile(String fileId) {
+    Set<PageInfo> pages;
+    try (LockResource r = new LockResource(mPageMetaStore.getLock().readLock())) {
+      pages = mPageMetaStore.getAllPagesByFileId(fileId);
+    }
+    pages.forEach(page -> delete(page.getPageId()));
+  }
+
+  @Override
+  public void deleteTempFile(String fileId) {
+    Set<PageInfo> pages;
+    try (LockResource r = new LockResource(mPageMetaStore.getLock().readLock())) {
+      pages = mPageMetaStore.getAllPagesByFileId(fileId);
+    }
+    pages.forEach(page -> delete(page.getPageId(), true));
+  }
+
+  @Override
   public void invalidate(Predicate<PageInfo> predicate) {
     mPageStoreDirs.forEach(dir -> {
       try {
         dir.scanPages(pageInfo -> {
           if (pageInfo.isPresent() && predicate.test(pageInfo.get())) {
+            MetricsSystem.meter(MetricKey.CLIENT_CACHE_PAGES_INVALIDATED.getName()).mark();
             delete(pageInfo.get().getPageId());
           }
         });

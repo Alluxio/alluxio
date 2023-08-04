@@ -35,7 +35,6 @@ import alluxio.metrics.MetricKey;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Job.FileFilter;
 import alluxio.proto.journal.Journal;
-import alluxio.scheduler.job.Job;
 import alluxio.scheduler.job.JobState;
 import alluxio.scheduler.job.Task;
 import alluxio.util.FormatUtils;
@@ -104,7 +103,6 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
   // Job states
   private final LinkedList<Route> mRetryRoutes = new LinkedList<>();
   private final Map<String, String> mFailedFiles = new HashMap<>();
-  private final long mStartTime;
   private final AtomicLong mProcessedFileCount = new AtomicLong();
   private final AtomicLong mMovedByteCount = new AtomicLong();
   private final AtomicLong mTotalByteCount = new AtomicLong();
@@ -113,7 +111,6 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
   private Optional<AlluxioRuntimeException> mFailedReason = Optional.empty();
   private final Iterable<FileInfo> mFileIterable;
   private Optional<Iterator<FileInfo>> mFileIterator = Optional.empty();
-  private OptionalLong mEndTime = OptionalLong.empty();
   private Optional<FileFilter> mFilter;
 
   /**
@@ -144,7 +141,6 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
     mBandwidth = bandwidth;
     mUsePartialListing = usePartialListing;
     mVerificationEnabled = verificationEnabled;
-    mStartTime = System.currentTimeMillis();
     mState = JobState.RUNNING;
     mFileIterable = fileIterable;
     mOverwrite = overwrite;
@@ -218,12 +214,14 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
     setJobState(JobState.FAILED, true);
     mFailedReason = Optional.of(reason);
     JOB_MOVE_FAIL.inc();
+    LOG.info("Move Job {} fails with status: {}", mJobId, this);
   }
 
   @Override
   public void setJobSuccess() {
     setJobState(JobState.SUCCEEDED, true);
     JOB_MOVE_SUCCESS.inc();
+    LOG.info("Move Job {} succeeds with status {}", mJobId, this);
   }
 
   /**
@@ -289,6 +287,14 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
    */
   public List<MoveTask> getNextTasks(Collection<WorkerInfo> workers) {
     List<MoveTask> tasks = new ArrayList<>();
+    Iterator<MoveTask> it = mRetryTaskList.iterator();
+    if (it.hasNext()) {
+      MoveTask task = it.next();
+      LOG.debug("Re-submit retried MoveTask:{} in getNextTasks.", task.getTaskId());
+      tasks.add(task);
+      it.remove();
+      return Collections.unmodifiableList(tasks);
+    }
     List<Route> routes = getNextRoutes(BATCH_SIZE);
     if (routes.isEmpty()) {
       return Collections.unmodifiableList(tasks);
@@ -298,14 +304,6 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
     moveTask.setMyRunningWorker(workerInfo);
     tasks.add(moveTask);
     return Collections.unmodifiableList(tasks);
-  }
-
-  @Override
-  public void onTaskSubmitFailure(Task<?> task) {
-    if (!(task instanceof MoveJob.MoveTask)) {
-      throw new IllegalArgumentException("Task is not a MoveTask: " + task);
-    }
-    ((MoveJob.MoveTask) task).mRoutes.forEach(this::addToRetry);
   }
 
   /**
@@ -469,8 +467,8 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
         for (RouteFailure status : response.getFailuresList()) {
           totalBytes -= status.getRoute().getLength();
           LOG.debug(format("Move file %s to %s failure: Status code: %s, message: %s",
-                  status.getRoute().getSrc(), status.getRoute().getDst()),
-              status.getCode(), status.getMessage());
+                  status.getRoute().getSrc(), status.getRoute().getDst(),
+              status.getCode(), status.getMessage()));
           if (!isHealthy() || !status.getRetryable() || !addToRetry(
               status.getRoute())) {
             addFailure(status.getRoute().getSrc(), status.getMessage(), status.getCode());
@@ -509,16 +507,6 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
       // We don't count InterruptedException as task failure
       return true;
     }
-  }
-
-  @Override
-  public void updateJob(Job<?> job) {
-    if (!(job instanceof MoveJob)) {
-      throw new IllegalArgumentException("Job is not a MoveJob: " + job);
-    }
-    MoveJob targetJob = (MoveJob) job;
-    updateBandwidth(targetJob.getBandwidth());
-    setVerificationEnabled(targetJob.isVerificationEnabled());
   }
 
   @Override
@@ -589,11 +577,13 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
     private final AlluxioRuntimeException mFailureReason;
     private final long mFailedFileCount;
     private final Map<String, String> mFailedFilesWithReasons;
+    private final String mJobId;
 
     public MoveProgressReport(MoveJob job, boolean verbose)
     {
       mVerbose = verbose;
       mJobState = job.mState;
+      mJobId = job.mJobId;
       mCheckContent = job.mCheckContent;
       mProcessedFileCount = job.mProcessedFileCount.get();
       mByteCount = job.mMovedByteCount.get();
@@ -645,6 +635,7 @@ public class MoveJob extends AbstractJob<MoveJob.MoveTask> {
       StringBuilder progress = new StringBuilder();
       progress.append(
           format("\tSettings:\tcheck-content: %s%n", mCheckContent));
+      progress.append(format("\tJob Id: %s%n", mJobId));
       progress.append(format("\tJob State: %s%s%n", mJobState,
           mFailureReason == null
               ? "" : format(

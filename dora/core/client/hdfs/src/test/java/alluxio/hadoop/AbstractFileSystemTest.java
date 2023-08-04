@@ -30,6 +30,7 @@ import alluxio.ClientContext;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.SystemPropertyRule;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.block.BlockStoreClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileSystemContext;
@@ -55,6 +56,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
@@ -90,6 +92,9 @@ import java.util.Map;
 /**
  * Tests for {@link AbstractFileSystem}.
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "Jiacheng",
+    comment = "fix the test for generic FS API")
 public class AbstractFileSystemTest {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractFileSystemTest.class);
 

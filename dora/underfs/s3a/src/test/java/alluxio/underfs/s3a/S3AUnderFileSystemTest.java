@@ -79,7 +79,7 @@ public class S3AUnderFileSystemTest {
     mS3UnderFileSystem =
         new S3AUnderFileSystem(new AlluxioURI("s3a://" + BUCKET_NAME),
             mClient, mAsyncClient, BUCKET_NAME,
-            mExecutor, mManager, UnderFileSystemConfiguration.defaults(CONF), false);
+            mExecutor, mManager, UnderFileSystemConfiguration.defaults(CONF), false, false);
   }
 
   @Test
@@ -189,7 +189,7 @@ public class S3AUnderFileSystemTest {
       S3AUnderFileSystem s3UnderFileSystem =
           new S3AUnderFileSystem(
               new AlluxioURI("s3a://" + BUCKET_NAME), mClient, mAsyncClient, BUCKET_NAME,
-              mExecutor, mManager, UnderFileSystemConfiguration.defaults(CONF), false);
+              mExecutor, mManager, UnderFileSystemConfiguration.defaults(CONF), false, false);
 
       Mockito.when(mClient.getS3AccountOwner()).thenReturn(new Owner("111", "test"));
       Mockito.when(mClient.getBucketAcl(Mockito.anyString())).thenReturn(new AccessControlList());
@@ -209,7 +209,7 @@ public class S3AUnderFileSystemTest {
       S3AUnderFileSystem s3UnderFileSystem =
           new S3AUnderFileSystem(new AlluxioURI("s3a://" + BUCKET_NAME), mClient,
               mAsyncClient, BUCKET_NAME,
-              mExecutor, mManager, UnderFileSystemConfiguration.defaults(CONF), false);
+              mExecutor, mManager, UnderFileSystemConfiguration.defaults(CONF), false, false);
 
       Mockito.when(mClient.getS3AccountOwner()).thenReturn(new Owner("0", "test"));
       Mockito.when(mClient.getBucketAcl(Mockito.anyString())).thenReturn(new AccessControlList());

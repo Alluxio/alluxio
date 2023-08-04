@@ -1,3 +1,0 @@
-metricName,metricType
-Process.NettyChannelCount,COUNTER
-Process.pool.direct.mem.used,GAUGE

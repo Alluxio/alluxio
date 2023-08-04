@@ -1,26 +1,21 @@
 ---
 layout: global
 title: Code Conventions
-nickname: Code Conventions
-group: Contributor Resources
-priority: 2
 ---
 
-* Table of Contents
-{:toc}
 
 First off, we thank you for your interest in the Alluxio open source project!
 We greatly appreciate any contribution; whether it be new features or bug fixes.
 
 > If you are a first time contributor to the Alluxio open source project, we strongly encourage
 > you to follow the step-by-step instructions within the
-> [Contribution Guide]({{ '/en/contributor/Contributor-Getting-Started.html' | relativize_url }}) and
+> [Contribution Guide]({{ '/en/contributor/Contribution-Guide.html' | relativize_url }}) and
 > finish new contributor tasks before making more advanced changes to the Alluxio codebase.
 
 ## Submitting Code
 
 Submitting changes to Alluxio is done via pull requests. Please read our
-[pull request guidelines]({{ '/en/contributor/Contributor-Getting-Started.html' | relativize_url }}#sending-a-pull-request)
+[pull request guidelines]({{ '/en/contributor/Contribution-Guide.html' | relativize_url }}#sending-a-pull-request)
 for details on how to submit a pull request to the Alluxio repository. Below are some tips for
 the pull requests.
 
@@ -32,9 +27,6 @@ Open an issue detailing the proposed change or the bug description.
 - If your pull request aims to solve an existing Github issue, please include a link to the Github
 issue in the last line of the description field of the pull request,
 such as `Fixes #1234`.
-- Please read our
-[pull request guidelines]({{ '/en/contributor/Contributor-Getting-Started.html' | relativize_url }}#sending-a-pull-request)
-for details.
 
 ## Coding Style
 
@@ -72,7 +64,7 @@ will be formatted to what you want
 [checkstyle](http://checkstyle.sourceforge.net) before sending a pull request to verify no new
 warnings are introduced:
 
-```console
+```shell
 $ mvn checkstyle:checkstyle
 ```
 
@@ -86,7 +78,7 @@ with the following refinements:
 - All public members should have a member-level comment the describes the purpose of the member.
 
 ```java
-/** The number of logical bytes used. */
+// The number of logical bytes used.
 public final AtomicLong mBytes = new AtomicLong(0);
 ```
 
@@ -94,7 +86,7 @@ public final AtomicLong mBytes = new AtomicLong(0);
 
 ```java
 /**
- * Does something. This is a method description that uses
+Does something. This is a method description that uses
  * 3rd person (does something) as opposed to 2nd person (do
  * something).
  *
@@ -827,7 +819,7 @@ locally. A common setting that may need to be set is `ulimit`.
 
 In order to increase the number of files and processes allowed on MacOS, run the following
 
-```console
+```shell
 $ sudo launchctl limit maxfiles 32768 32768
 $ sudo launchctl limit maxproc 32768 32768
 ```

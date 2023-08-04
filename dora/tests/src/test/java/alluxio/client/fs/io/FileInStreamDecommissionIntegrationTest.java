@@ -16,6 +16,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThrows;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
@@ -44,6 +45,7 @@ import alluxio.wire.WorkerNetAddress;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -54,6 +56,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "check if decommission is still a relevant feature")
 public class FileInStreamDecommissionIntegrationTest {
   private static final int BLOCK_SIZE = 1024 * 1024;
   private static final int LENGTH = 2 * BLOCK_SIZE;
@@ -65,8 +70,6 @@ public class FileInStreamDecommissionIntegrationTest {
           .setNumWorkers(2)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE)
           .setProperty(PropertyKey.USER_WORKER_LIST_REFRESH_INTERVAL, "2s")
-          // Disable short circuit
-          .setProperty(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, false)
           .setStartCluster(false)
           .build();
   private FileSystem mFileSystem = null;

@@ -48,6 +48,8 @@ import java.util.stream.Collectors;
  * {@link RegisterWorkerPRequest}.
  * The stream lifecycle management lives internal to this instance.
  */
+// TODO(jiacheng): This is not removed because it is used by the BlockMasterClient.
+//  It shall be removed together with a refactor on the Dora worker refactor on register.
 public class RegisterStreamer implements Iterator<RegisterWorkerPRequest> {
   private static final Logger LOG = LoggerFactory.getLogger(RegisterStreamer.class);
 

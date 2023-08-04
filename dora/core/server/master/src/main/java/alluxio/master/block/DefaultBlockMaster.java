@@ -491,6 +491,10 @@ public class DefaultBlockMaster extends CoreMaster implements BlockMaster {
         if (!hasNext()) {
           throw new NoSuchElementException();
         }
+        /*
+         * When the BlockStore is RocksBlockMetaStore, thread safety is embedded in the iterator.
+         * So no need to worry if the RocksDB is closed while this iterator is active.
+         */
         Block block = blockStoreIterator.next();
         BlockInfoEntry blockInfoEntry =
             BlockInfoEntry.newBuilder().setBlockId(block.getId())

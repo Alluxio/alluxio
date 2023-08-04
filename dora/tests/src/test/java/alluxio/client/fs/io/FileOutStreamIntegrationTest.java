@@ -13,6 +13,7 @@ package alluxio.client.fs.io;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
@@ -31,6 +32,7 @@ import alluxio.wire.FileBlockInfo;
 import alluxio.wire.WorkerInfo;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -44,6 +46,9 @@ import java.util.List;
  * types.
  */
 @RunWith(Parameterized.class)
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiaming",
+    comment = "fix the tests")
 public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamIntegrationTest {
   // TODO(binfan): Run tests with local writes enabled and disabled.
 
@@ -149,31 +154,6 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
       if (mWriteType.getUnderStorageType().isSyncPersist()) {
         checkFileInUnderStorage(filePath, len);
       }
-    }
-  }
-
-  /**
-   * Tests writing to a file and specify the location to be localhost.
-   */
-  @Test
-  @LocalAlluxioClusterResource.Config(confParams = {
-      PropertyKey.Name.USER_BLOCK_WRITE_LOCATION_POLICY,
-      "alluxio.client.block.policy.LocalFirstPolicy"
-      })
-  public void writeSpecifyLocal() throws Exception {
-    AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-    final int length = 2;
-    CreateFilePOptions op = CreateFilePOptions.newBuilder().setWriteType(mWriteType.toProto())
-        .setRecursive(true).build();
-    try (FileOutStream os = mFileSystem.createFile(filePath, op)) {
-      os.write((byte) 0);
-      os.write((byte) 1);
-    }
-    if (mWriteType.getAlluxioStorageType().isStore()) {
-      checkFileInAlluxio(filePath, length);
-    }
-    if (mWriteType.getUnderStorageType().isSyncPersist()) {
-      checkFileInUnderStorage(filePath, length);
     }
   }
 

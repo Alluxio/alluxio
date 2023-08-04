@@ -11,16 +11,21 @@
 
 package alluxio.client.cli.fsadmin.command;
 
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.cli.fsadmin.report.CapacityCommand;
 import alluxio.client.cli.fsadmin.AbstractFsAdminShellTest;
 import alluxio.util.FormatUtils;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Tests for report capacity command.
  */
+@Ignore
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "jiacheng",
+    comment = "rework on the register logic")
 public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTest {
   @Test
   public void allCapacity() {

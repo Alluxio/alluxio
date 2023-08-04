@@ -39,8 +39,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 public final class ConfigurationDocGenerator {
   private static final Logger LOG = LoggerFactory.getLogger(ConfigurationDocGenerator.class);
-  private static final String CSV_FILE_DIR = "docs/_data/table/";
-  private static final String YML_FILE_DIR = "docs/_data/table/en/";
+  private static final String CSV_FILE_DIR = "docs/_data/generated/";
+  private static final String YML_FILE_DIR = "docs/_data/generated/en/";
   public static final String CSV_FILE_HEADER = "propertyName,defaultValue";
 
   private ConfigurationDocGenerator() {} // prevent instantiation
@@ -62,7 +62,7 @@ public final class ConfigurationDocGenerator {
     Closer closer = Closer.create();
     String[] fileNames = {"user-configuration.csv", "master-configuration.csv",
         "worker-configuration.csv", "security-configuration.csv",
-        "common-configuration.csv", "cluster-management-configuration.csv"};
+        "common-configuration.csv"};
 
     try {
       // HashMap for FileWriter per each category
@@ -144,8 +144,7 @@ public final class ConfigurationDocGenerator {
     Closer closer = Closer.create();
     String[] fileNames = {"user-configuration.yml", "master-configuration.yml",
         "worker-configuration.yml", "security-configuration.yml",
-        "common-configuration.yml", "cluster-management-configuration.yml"
-    };
+        "common-configuration.yml"};
 
     try {
       // HashMap for FileWriter per each category

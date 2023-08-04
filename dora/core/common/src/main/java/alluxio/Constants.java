@@ -224,21 +224,10 @@ public final class Constants {
   public static final int PERSISTENCE_INVALID_JOB_ID = -1;
   public static final String PERSISTENCE_INVALID_UFS_PATH = "";
 
-  // Table service
-  public static final String TABLE_MASTER_NAME = "TableMaster";
-  public static final String TABLE_MASTER_CLIENT_SERVICE_NAME = "TableMasterClient";
-  public static final long TABLE_MASTER_CLIENT_SERVICE_VERSION = 1;
-
   // Medium name
   public static final String MEDIUM_MEM = "MEM";
   public static final String MEDIUM_HDD = "HDD";
   public static final String MEDIUM_SSD = "SSD";
-
-  /**
-   * Please use this switch enable/disable Dora write support in development.
-   * This will be removed when Dora write support is production ready.
-   */
-  public static final boolean ENABLE_DORA_WRITE = true;
 
   private Constants() {} // prevent instantiation
 }

@@ -21,7 +21,6 @@ Where component is one of:
   job_workers         \tStop job workers on worker nodes.
   local [-c cache]    \tStop all processes locally.
   master              \tStop local primary master.
-  secondary_master    \tStop local secondary master.
   masters             \tStop masters on master nodes.
   proxy               \tStop local proxy.
   proxies             \tStop proxies on master and worker nodes.
@@ -88,13 +87,8 @@ stop_job_workers() {
 }
 
 stop_master() {
-  if [[ ${ALLUXIO_MASTER_SECONDARY} == "true" ]]; then
-    generate_kill_command "alluxio.master.AlluxioSecondaryMaster"
-    ${LAUNCHER} "${KILL_COMMAND[@]}"
-  else
-    generate_kill_command "alluxio.master.AlluxioMaster"
-    ${LAUNCHER} "${KILL_COMMAND[@]}"
-  fi
+  generate_kill_command "alluxio.master.AlluxioMaster"
+  ${LAUNCHER} "${KILL_COMMAND[@]}"
 }
 
 stop_masters() {
@@ -208,9 +202,6 @@ case "${WHAT}" in
     stop_job_worker
     stop_job_master
     stop_worker
-    ALLUXIO_MASTER_SECONDARY=true
-    stop_master
-    ALLUXIO_MASTER_SECONDARY=false
     stop_master
     ;;
   job_master)
@@ -227,11 +218,6 @@ case "${WHAT}" in
     ;;
   master)
     stop_master
-    ;;
-  secondary_master)
-    ALLUXIO_MASTER_SECONDARY=true
-    stop_master
-    ALLUXIO_MASTER_SECONDARY=false
     ;;
   masters)
     stop_masters

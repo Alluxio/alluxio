@@ -1,12 +1,7 @@
 ---
 layout: global
 title: FUSE SDK with Local Cache Quick Start
-group: FUSE SDK
-priority: 2
 ---
-
-* Table of Contents
-  {:toc}
 
 ## Prerequisites
 
@@ -31,7 +26,7 @@ The followings are the basic requirements running ALLUXIO POSIX API.
 Download the Alluxio tarball from [this page](https://downloads.alluxio.io/downloads/files/).
 Unpack the downloaded file with the following commands.
 
-```console
+```shell
 $ tar -xzf alluxio-{{site.ALLUXIO_VERSION_STRING}}-bin.tar.gz
 $ cd alluxio-{{site.ALLUXIO_VERSION_STRING}}
 ```
@@ -42,7 +37,7 @@ The `alluxio-fuse` launch command will be `dora/integration/fuse/bin/alluxio-fus
 
 Alluxio POSIX API allows accessing data from under storage as local directories.
 This is enabled by using the `mount` command to mount a dataset from under storage to local mount point:
-```console
+```shell
 $ sudo yum install fuse3
 $ alluxio-fuse mount <under_storage_dataset> <mount_point> -o option
 ```
@@ -53,17 +48,17 @@ $ alluxio-fuse mount <under_storage_dataset> <mount_point> -o option
 - `-o option`: All the `alluxio-fuse mount` options are provided using this format. Options include
     - Alluxio property key value pair in `-o alluxio_property_key=value` format
         - Under storage credentials and configuration. Detailed configuration can be found under the `Storage Integrations` tap of the left of the doc page.
-    - Local cache configuration. Detailed usage can be found in the [local cache guide]({{ '/en/fuse-sdk/Local-Cache.html' | relative_url }})
-    - Generic mount options. Detailed supported mount options information can be found in the [FUSE mount options section]({{ '/en/fuse-sdk/Advanced-Tuning.html' | relative_url }})
+    - Local cache configuration. Detailed usage can be found in the [local cache guide]({{ '/en/fuse-sdk/Local-Cache-Overview.html' | relative_url }})
+    - Generic mount options. Detailed supported mount options information can be found in the [FUSE mount options section]({{ '/en/fuse-sdk/Advanced-Tuning.html#fuse-mount-options' | relative_url }})
 
 After mounting, `alluxio-fuse` mount can be found locally
-```console
+```shell
 $ mount | grep "alluxio-fuse"
 alluxio-fuse on mount_point type fuse.alluxio-fuse (rw,nosuid,nodev,relatime,user_id=1000,group_id=1000)
 ```
 
 `AlluxioFuse` process will be launched
-```console
+```shell
 $ jps
 34884 AlluxioFuse
 ```
@@ -74,7 +69,7 @@ useful for troubleshooting when errors happen on operations under the filesystem
 ### Example: Mounts a S3 dataset
 
 Mounts the dataset in target S3 bucket to a local folder:
-```console
+```shell
 $ alluxio-fuse mount s3://bucket_name/path/to/dataset/ /path/to/mount_point -o s3a.accessKeyId=<S3 ACCESS KEY> -o s3a.secretKey=<S3 SECRET KEY>
 ```
 Other [S3 configuration]({{ '/en/ufs/S3.html' | relative_url }}#advanced-credentials-setup) (e.g. `-o alluxio.underfs.s3.region=<region>`) can also be set via the `-o alluxio_property_key=value` format.
@@ -82,11 +77,11 @@ Other [S3 configuration]({{ '/en/ufs/S3.html' | relative_url }}#advanced-credent
 ### Example: Mounts a HDFS dataset
 
 Mounts the dataset in target HDFS cluster to a local folder:
-```console
+```shell
 $ alluxio-fuse mount hdfs://nameservice/path/to/dataset /path/to/mount_point -o alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/core-site.xml:/path/to/hdfs/conf/hdfs-site.xml
 ```
 The supported versions of HDFS can be specified via `-o alluxio.underfs.version=2.7` or `-o alluxio.underfs.version=3.3`.
-Other [HDFS configuration]({{ '/en/ufs/HDFS.html' | relative_url }}) can also be set via the `-o alluxio_property_key=value` format.
+Other [HDFS configuration]({{ '/en/ufs/HDFS.html#advanced-setup' | relative_url }}) can also be set via the `-o alluxio_property_key=value` format.
 
 ## Example: Run operations
 
@@ -100,7 +95,7 @@ library integrations.
 
 All the write operations happening inside the local mount point will be directly
 translated to write operations against the mounted under storage dataset
-```console
+```shell
 $ cd /path/to/mount_point
 $ mkdir testfolder
 $ dd if=/dev/zero of=testfolder/testfile bs=5MB count=1
@@ -111,9 +106,9 @@ $ dd if=/dev/zero of=testfolder/testfile bs=5MB count=1
 
 ### Read Through from Mounted Under Storage Dataset
 
-Without the [local cache]]({{ '/en/fuse-sdk/Local-Cache.html' | relative_url }}) functionalities that we will talk about later, all the read operations
+Without the [local cache]]({{ '/en/fuse-sdk/Local-Cache-Overview.html' | relative_url }}) functionalities that we will talk about later, all the read operations
 via the local mount point will be translated to read operations against the underlying data storage:
-```console
+```shell
 $ cd /path/to/mount_point
 $ cp -r /path/to/mount_point/testfolder /tmp/
 $ ls /tmp/testfolder
@@ -125,12 +120,12 @@ Data will be read from the under storage dataset directly.
 ## Unmount
 
 Unmount a mounted FUSE mount point
-```console
+```shell
 $ alluxio-fuse unmount <mount_point>
 ```
 After unmounting the FUSE mount point, the corresponding `AlluxioFuse` process should be killed
 and the mount point should be removed. For example:
-```console
+```shell
 $ alluxio-fuse unmount /path/to/mount_point
 $ mount | grep "alluxio-fuse"
 $ jps | grep "AlluxioFuse"
@@ -142,9 +137,9 @@ Most basic file system operations are supported. However, some operations are un
 
 <table class="table table-striped">
     <tr>
-        <td>Category</td>
-        <td>Supported Operations</td>
-        <td>Not Supported Operations</td>
+        <th>Category</th>
+        <th>Supported Operations</th>
+        <th>Not Supported Operations</th>
     </tr>
     <tr>
         <td>Metadata Write</td>
@@ -174,3 +169,15 @@ Most basic file system operations are supported. However, some operations are un
 </table>
 
 Note that all file/dir permissions are checked against the user launching the AlluxioFuse process instead of the end user running the operations.
+
+## Next Steps
+[Local Cache Overview]({{ '/en/fuse-sdk/Local-Cache-Overview.html' | relative_url }}) provides different local cache capabilities
+to speed up your workloads and reduce the pressure of storage services. 
+* [Local Kernel Data Cache Configuration]({{ 'en/fuse-sdk//Local-Cache-Overview.html#local-kernel-data-cache-configuration' | relativize_url
+}})
+* [Local Userspace Data Cache Configuration]({{ 'en/fuse-sdk//Local-Cache-Overview.html#local-userspace-data-cache-configuration' | relativize_url
+}})
+* [Local Kernel Metadata Cache Configuration]({{ 'en/fuse-sdk//Local-Cache-Overview.html#local-kernel-metadata-cache-configuration' | relativize_url
+}})
+* [Local Userspace Metadata Cache Configuration]({{ 'en/fuse-sdk//Local-Cache-Overview.html#local-userspace-metadata-cache-configuration' | relativize_url
+}})

@@ -119,7 +119,6 @@ import alluxio.master.journal.Journaled;
 import alluxio.master.journal.JournaledGroup;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.journal.checkpoint.CheckpointName;
-import alluxio.master.journal.ufs.UfsJournalSystem;
 import alluxio.master.metastore.DelegatingReadOnlyInodeStore;
 import alluxio.master.metastore.InodeStore;
 import alluxio.master.metastore.ReadOnlyInodeStore;
@@ -446,7 +445,6 @@ public class DefaultFileSystemMaster extends CoreMaster
       Configuration.getInt(PropertyKey.MASTER_METADATA_SYNC_EXECUTOR_POOL_SIZE),
       1, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
       ThreadFactoryUtils.build("alluxio-ufs-active-sync-%d", false));
-  private HeartbeatThread mReplicationCheckHeartbeatThread;
 
   /**
    * Creates a new instance of {@link DefaultFileSystemMaster}.
@@ -735,14 +733,6 @@ public class DefaultFileSystemMaster extends CoreMaster
               () -> new FixedIntervalSupplier(
                   Configuration.getMs(PropertyKey.MASTER_LOST_WORKER_FILE_DETECTION_INTERVAL)),
               Configuration.global(), mMasterContext.getUserState()));
-      mReplicationCheckHeartbeatThread = new HeartbeatThread(
-          HeartbeatContext.MASTER_REPLICATION_CHECK,
-          new alluxio.master.file.replication.ReplicationChecker(mInodeTree, mBlockMaster,
-              mSafeModeManager, mJobMasterClientPool),
-          () -> new FixedIntervalSupplier(
-              Configuration.getMs(PropertyKey.MASTER_REPLICATION_CHECK_INTERVAL_MS)),
-          Configuration.global(), mMasterContext.getUserState());
-      getExecutorService().submit(mReplicationCheckHeartbeatThread);
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_PERSISTENCE_SCHEDULER,
               new PersistenceScheduler(),
@@ -947,8 +937,9 @@ public class DefaultFileSystemMaster extends CoreMaster
               FileSystemMasterCommonPOptions.newBuilder()
                   .setTtl(context.getOptions().getCommonOptions().getTtl())
                   .setTtlAction(context.getOptions().getCommonOptions().getTtlAction())));
-      /*
-      See the comments in #getFileIdInternal for an explanation on why the loop here is required.
+      /**
+       * See the comments in {@link #getFileIdInternal(AlluxioURI, boolean)} for an explanation
+       * on why the loop here is required.
        */
       boolean run = true;
       boolean loadMetadata = false;
@@ -1118,8 +1109,9 @@ public class DefaultFileSystemMaster extends CoreMaster
         context.getOptions().setLoadMetadataType(LoadMetadataPType.NEVER);
         ufsAccessed = true;
       }
-      /*
-      See the comments in #getFileIdInternal for an explanation on why the loop here is required.
+      /**
+       * See the comments in {@link #getFileIdInternal(AlluxioURI, boolean)} for an explanation
+       * on why the loop here is required.
        */
       DescendantType loadDescendantType;
       if (context.getOptions().getLoadMetadataType() == LoadMetadataPType.NEVER) {
@@ -1506,8 +1498,9 @@ public class DefaultFileSystemMaster extends CoreMaster
           LoadMetadataPOptions.newBuilder()
               .setCommonOptions(context.getOptions().getCommonOptions())
               .setLoadType(context.getOptions().getLoadMetadataType()));
-      /*
-      See the comments in #getFileIdInternal for an explanation on why the loop here is required.
+      /**
+       * See the comments in {@link #getFileIdInternal(AlluxioURI, boolean)} for an explanation
+       * on why the loop here is required.
        */
       boolean run = true;
       boolean loadMetadata = false;
@@ -1663,7 +1656,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       UnavailableException {
     if (isOperationComplete(context)) {
       Metrics.COMPLETED_OPERATION_RETRIED_COUNT.inc();
-      LOG.warn("A completed \"completeFile\" operation has been retried. {}", context);
+      LOG.warn("A completed \"completeFile\" operation has been retried. OperationContext={}",
+          context);
       return;
     }
     Metrics.COMPLETE_FILE_OPS.inc();
@@ -1861,14 +1855,6 @@ public class DefaultFileSystemMaster extends CoreMaster
     long currLength = fileLength;
     for (long blockId : blockIds) {
       long currentBlockSize = Math.min(currLength, blockSize);
-      // if we are not using the UFS journal system, we can use the same journal context
-      // for the block info so that we do not have to create a new journal
-      // context and flush again
-      if (context != null && !(mJournalSystem instanceof UfsJournalSystem)) {
-        mBlockMaster.commitBlockInUFS(blockId, currentBlockSize, context);
-      } else {
-        mBlockMaster.commitBlockInUFS(blockId, currentBlockSize);
-      }
       currLength -= currentBlockSize;
     }
   }
@@ -1879,7 +1865,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       BlockInfoException, IOException, FileDoesNotExistException {
     if (isOperationComplete(context)) {
       Metrics.COMPLETED_OPERATION_RETRIED_COUNT.inc();
-      LOG.warn("A completed \"createFile\" operation has been retried. {}", context);
+      LOG.warn("A completed \"createFile\" operation has been retried. OperationContext={}",
+          context);
       return getFileInfo(path,
           GetStatusContext.create(GetStatusPOptions.newBuilder()
               .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1))
@@ -2109,7 +2096,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       InvalidPathException, AccessControlException {
     if (isOperationComplete(context)) {
       Metrics.COMPLETED_OPERATION_RETRIED_COUNT.inc();
-      LOG.warn("A completed \"delete\" operation has been retried. {}", context);
+      LOG.warn("A completed \"delete\" operation has been retried. OperationContext={}", context);
       return;
     }
     Metrics.DELETE_PATHS_OPS.inc();
@@ -2700,7 +2687,8 @@ public class DefaultFileSystemMaster extends CoreMaster
       FileDoesNotExistException {
     if (isOperationComplete(context)) {
       Metrics.COMPLETED_OPERATION_RETRIED_COUNT.inc();
-      LOG.warn("A completed \"createDirectory\" operation has been retried. {}", context);
+      LOG.warn("A completed \"createDirectory\" operation has been retried. OperationContext={}",
+          context);
       return getFileInfo(path,
           GetStatusContext.create(GetStatusPOptions.newBuilder()
               .setCommonOptions(FileSystemMasterCommonPOptions.newBuilder().setSyncIntervalMs(-1))
@@ -2827,7 +2815,7 @@ public class DefaultFileSystemMaster extends CoreMaster
       IOException, AccessControlException {
     if (isOperationComplete(context)) {
       Metrics.COMPLETED_OPERATION_RETRIED_COUNT.inc();
-      LOG.warn("A completed \"rename\" operation has been retried. {}", context);
+      LOG.warn("A completed \"rename\" operation has been retried. OperationContext={}", context);
       return;
     }
     Metrics.RENAME_PATH_OPS.inc();
@@ -4817,20 +4805,6 @@ public class DefaultFileSystemMaster extends CoreMaster
         }
         mPersistRequests.put(fileId, job.getTimer());
       }
-
-      // Cleanup possible staging UFS blocks files due to fast durable write fallback.
-      // Note that this is best effort
-      if (ufsClient != null) {
-        for (long blockId : blockIds) {
-          String ufsBlockPath = alluxio.worker.BlockUtils.getUfsBlockPath(ufsClient, blockId);
-          try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
-            alluxio.util.UnderFileSystemUtils.deleteFileIfExists(ufsResource.get(), ufsBlockPath);
-          } catch (Exception e) {
-            LOG.warn("Failed to clean up staging UFS block file {}: {}",
-                ufsBlockPath, e.toString());
-          }
-        }
-      }
     }
 
     /**
@@ -5011,16 +4985,12 @@ public class DefaultFileSystemMaster extends CoreMaster
       mTimeSeriesStore.record("% UFS Space Used", percentUfsSpaceUsed);
 
       // Bytes read
-      Long bytesReadLocalThroughput = (Long) gauges.get(
-          MetricKey.CLUSTER_BYTES_READ_LOCAL_THROUGHPUT.getName()).getValue();
       Long bytesReadDomainSocketThroughput = (Long) gauges
           .get(MetricKey.CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT.getName()).getValue();
       Long bytesReadRemoteThroughput = (Long) gauges
           .get(MetricKey.CLUSTER_BYTES_READ_REMOTE_THROUGHPUT.getName()).getValue();
       Long bytesReadUfsThroughput = (Long) gauges
           .get(MetricKey.CLUSTER_BYTES_READ_UFS_THROUGHPUT.getName()).getValue();
-      mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_READ_LOCAL_THROUGHPUT.getName(),
-          bytesReadLocalThroughput);
       mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_READ_DOMAIN_THROUGHPUT.getName(),
           bytesReadDomainSocketThroughput);
       mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_READ_REMOTE_THROUGHPUT.getName(),
@@ -5029,17 +4999,12 @@ public class DefaultFileSystemMaster extends CoreMaster
           bytesReadUfsThroughput);
 
       // Bytes written
-      Long bytesWrittenLocalThroughput = (Long) gauges
-          .get(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT.getName())
-          .getValue();
       Long bytesWrittenAlluxioThroughput = (Long) gauges
           .get(MetricKey.CLUSTER_BYTES_WRITTEN_REMOTE_THROUGHPUT.getName()).getValue();
       Long bytesWrittenDomainSocketThroughput = (Long) gauges.get(
           MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName()).getValue();
       Long bytesWrittenUfsThroughput = (Long) gauges
           .get(MetricKey.CLUSTER_BYTES_WRITTEN_UFS_THROUGHPUT.getName()).getValue();
-      mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_WRITTEN_LOCAL_THROUGHPUT.getName(),
-          bytesWrittenLocalThroughput);
       mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_WRITTEN_REMOTE_THROUGHPUT.getName(),
           bytesWrittenAlluxioThroughput);
       mTimeSeriesStore.record(MetricKey.CLUSTER_BYTES_WRITTEN_DOMAIN_THROUGHPUT.getName(),

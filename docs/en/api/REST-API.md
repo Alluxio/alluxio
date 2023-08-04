@@ -1,16 +1,11 @@
 ---
 layout: global
 title: REST API
-nickname: REST API
-group: Client APIs
-priority: 2
 ---
 
 While users should use [S3 API]({{ '/en/api/S3-API.html' | relativize_url }}) for data I/O operations, admins can 
 interact with Alluxio through REST API for actions not supported by S3 API. For example, mount and unmount operations.
 
-* Table of Contents
-{:toc}
 
 ## REST API
 
@@ -44,7 +39,7 @@ file system operations in Alluxio.
 The Python client requires an Alluxio proxy that exposes the [REST API](#rest-api) to function.
 
 ### Install Python Client Library
-```console
+```shell
 $ pip install alluxio
 ```
 
@@ -152,7 +147,7 @@ Alluxio.
 The Go client requires an Alluxio proxy that exposes the [REST API](#rest-api) to function.
 
 ### Install Go Client Library
-```console
+```shell
 $ go get -d github.com/Alluxio/alluxio-go
 ```
 

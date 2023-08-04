@@ -15,20 +15,15 @@ import static junit.framework.TestCase.assertNotNull;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.job.JobConfig;
-import alluxio.job.plan.load.LoadConfig;
-import alluxio.job.plan.transform.CompactConfig;
-import alluxio.job.plan.transform.PartitionInfo;
+import alluxio.job.plan.persist.PersistConfig;
 import alluxio.job.util.SerializationUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 
 /**
  * Tests {@link CompositeConfig}.
@@ -37,14 +32,10 @@ public final class CompositeConfigTest {
   private static final CompositeConfig CONFIG;
 
   static {
-    PartitionInfo pInfo = new PartitionInfo("serde", "inputformat", new HashMap<>(),
-        new HashMap<>(), new ArrayList<>());
     ArrayList<JobConfig> jobs = new ArrayList<>();
     jobs.add(new CompositeConfig(new ArrayList<>(), true));
     jobs.add(new CompositeConfig(new ArrayList<>(), false));
-    jobs.add(new CompositeConfig(Lists.newArrayList(new LoadConfig("/", 1, Collections.EMPTY_SET,
-        Collections.EMPTY_SET, Collections.EMPTY_SET, Collections.EMPTY_SET, true)), true));
-    jobs.add(new CompactConfig(pInfo, "/input", pInfo, "/output", 100, FileUtils.ONE_GB));
+    jobs.add(new CompositeConfig(Lists.newArrayList(new PersistConfig("/", 1, true, "")), true));
     CONFIG = new CompositeConfig(jobs, true);
   }
 

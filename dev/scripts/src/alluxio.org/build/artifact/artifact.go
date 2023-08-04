@@ -24,9 +24,14 @@ type RepoMetadata struct {
 }
 
 type Artifact struct {
-	Type         ArtifactType      `yaml:"Type,omitempty"`
-	Path         string            `yaml:"Path,omitempty"`
-	Version      string            `yaml:"Version,omitempty"`
-	Metadata     map[string]string `yaml:"Metadata,omitempty"`
-	RepoMetadata *RepoMetadata     `yaml:"RepoMetadata,omitempty"`
+	Type     ArtifactType      `yaml:"Type,omitempty"`
+	Path     string            `yaml:"Path,omitempty"`
+	Version  string            `yaml:"Version,omitempty"`
+	Metadata map[string]string `yaml:"Metadata,omitempty"`
+}
+
+type ArtifactGroup struct {
+	Artifacts []*Artifact `yaml:"Artifacts"`
+
+	RepoMetadata *RepoMetadata `yaml:"RepoMetadata,omitempty"`
 }

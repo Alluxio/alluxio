@@ -12,6 +12,7 @@
 package alluxio.client.rest;
 
 import alluxio.Constants;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.conf.PropertyKey;
 import alluxio.grpc.ListAllPOptions;
 import alluxio.job.JobConfig;
@@ -35,6 +36,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -49,6 +51,9 @@ import javax.ws.rs.HttpMethod;
 /**
  * Tests {@link JobMasterClientRestServiceHandler}.
  */
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.REMOVE, owner = "jianjian",
+    comment = "remove if job master is deprecated")
+@Ignore
 public final class JobMasterClientRestApiTest extends RestApiTest {
   private LocalAlluxioJobCluster mJobCluster;
   private JobMaster mJobMaster;

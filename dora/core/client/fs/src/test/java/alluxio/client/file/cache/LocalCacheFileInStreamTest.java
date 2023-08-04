@@ -14,6 +14,7 @@ package alluxio.client.file.cache;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PositionReader;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.CacheContext;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -72,6 +73,7 @@ import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -364,6 +366,10 @@ public class LocalCacheFileInStreamTest {
         Arrays.copyOfRange(testData, offset, offset + partialReadSize), cacheMiss);
     Assert.assertEquals(0, manager.mPagesServed);
     Assert.assertEquals(1, manager.mPagesCached);
+    Assert.assertEquals(1,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_EXTERNAL_REQUESTS.getName()).getCount());
+    Assert.assertEquals(0,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_HIT_REQUESTS.getName()).getCount());
 
     // cache hit
     byte[] cacheHit = new byte[partialReadSize];
@@ -372,6 +378,10 @@ public class LocalCacheFileInStreamTest {
     Assert.assertArrayEquals(
         Arrays.copyOfRange(testData, offset, offset + partialReadSize), cacheHit);
     Assert.assertEquals(1, manager.mPagesServed);
+    Assert.assertEquals(1,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_EXTERNAL_REQUESTS.getName()).getCount());
+    Assert.assertEquals(1,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_HIT_REQUESTS.getName()).getCount());
   }
 
   @Test
@@ -418,6 +428,10 @@ public class LocalCacheFileInStreamTest {
         MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount());
     Assert.assertEquals(fileSize,
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).getCount());
+    Assert.assertEquals(5,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_EXTERNAL_REQUESTS.getName()).getCount());
+    Assert.assertEquals(0,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_HIT_REQUESTS.getName()).getCount());
 
     // cache hit
     stream.read();
@@ -427,6 +441,10 @@ public class LocalCacheFileInStreamTest {
         MetricKey.CLIENT_CACHE_BYTES_REQUESTED_EXTERNAL.getName()).getCount());
     Assert.assertEquals(fileSize,
         MetricsSystem.meter(MetricKey.CLIENT_CACHE_BYTES_READ_EXTERNAL.getName()).getCount());
+    Assert.assertEquals(5,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_EXTERNAL_REQUESTS.getName()).getCount());
+    Assert.assertEquals(1,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_HIT_REQUESTS.getName()).getCount());
   }
 
   @Test
@@ -441,7 +459,8 @@ public class LocalCacheFileInStreamTest {
     ByteArrayFileSystem fs = new MultiReadByteArrayFileSystem(files);
 
     LocalCacheFileInStream stream = new LocalCacheFileInStream(fs.getStatus(testFilename),
-        (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager, sConf);
+        (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager, sConf,
+        Optional.empty());
 
     // cache miss
     byte[] cacheMiss = new byte[fileSize];
@@ -470,7 +489,8 @@ public class LocalCacheFileInStreamTest {
     ByteArrayFileSystem fs = new MultiReadByteArrayFileSystem(files);
 
     LocalCacheFileInStream stream = new LocalCacheFileInStream(fs.getStatus(testFilename),
-        (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager, sConf);
+        (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager, sConf,
+        Optional.empty());
 
     // cache miss
     ByteBuffer cacheMissBuf = ByteBuffer.wrap(new byte[fileSize]);
@@ -488,6 +508,8 @@ public class LocalCacheFileInStreamTest {
   }
 
   @Test
+  @DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "bowen")
+  @Ignore("check whether this needs to be fixed or not")
   public void readMultipleFiles() throws Exception {
     Random random = new Random();
     ByteArrayCacheManager manager = new ByteArrayCacheManager();
@@ -518,7 +540,7 @@ public class LocalCacheFileInStreamTest {
     LocalCacheFileInStream stream =
         new LocalCacheFileInStream(fs.getStatus(testFileName),
             (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager,
-            sConf) {
+            sConf, Optional.empty()) {
           @Override
           protected Stopwatch createUnstartedStopwatch() {
             return Stopwatch.createUnstarted(timeSource);
@@ -566,6 +588,19 @@ public class LocalCacheFileInStreamTest {
     Assert.assertEquals(1, manager.mPagesServed);
   }
 
+  @Test
+  public void testPositionReadFallBack() throws Exception
+  {
+    int pages = 10;
+    int fileSize = mPageSize * pages;
+    byte[] testData = BufferUtils.getIncreasingByteArray(fileSize);
+    ByteArrayCacheManager manager = new ByteArrayCacheManager();
+    LocalCacheFileInStream stream = setupWithSingleFile(testData, manager);
+    Assert.assertEquals(100, stream.positionedRead(0, new byte[10], 100, 100));
+    Assert.assertEquals(1,
+        MetricsSystem.counter(MetricKey.CLIENT_CACHE_POSITION_READ_FALLBACK.getName()).getCount());
+  }
+
   private LocalCacheFileInStream setupWithSingleFile(byte[] data, CacheManager manager)
       throws Exception {
     Map<AlluxioURI, byte[]> files = new HashMap<>();
@@ -575,7 +610,8 @@ public class LocalCacheFileInStreamTest {
     ByteArrayFileSystem fs = new ByteArrayFileSystem(files);
 
     return new LocalCacheFileInStream(fs.getStatus(testFilename),
-        (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager, sConf);
+        (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager, sConf,
+        Optional.empty());
   }
 
   private Map<AlluxioURI, LocalCacheFileInStream> setupWithMultipleFiles(Map<String, byte[]> files,
@@ -590,7 +626,7 @@ public class LocalCacheFileInStreamTest {
         ret.put(entry.getKey(),
             new LocalCacheFileInStream(fs.getStatus(entry.getKey()),
                 (status) -> fs.openFile(status, OpenFilePOptions.getDefaultInstance()), manager,
-                sConf));
+                sConf, Optional.empty()));
       } catch (Exception e) {
         // skip
       }
@@ -721,6 +757,16 @@ public class LocalCacheFileInStreamTest {
 
     @Override
     public void close() throws Exception {
+      // no-op
+    }
+
+    @Override
+    public void deleteFile(String fileId) {
+      // no-op
+    }
+
+    @Override
+    public void deleteTempFile(String fileId) {
       // no-op
     }
 

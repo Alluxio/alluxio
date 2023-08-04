@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Running Presto on Iceberg Tables with Alluxio
-nickname: Presto on Iceberg (Experimental)
-group: Compute Integrations
-priority: 2
 ---
 
 Presto has introduced support for [Iceberg tables](https://iceberg.apache.org/) in version 0.256.
@@ -11,8 +8,6 @@ Presto has introduced support for [Iceberg tables](https://iceberg.apache.org/) 
 This document describes how to use Presto to query Iceberg tables through Alluxio.
 This document is currently experimental, and the information provided here is subject to change.
 
-* Table of Contents
-{:toc}
 
 In order to use Presto to query an Iceberg table, make sure you have a working setup of Presto, 
 Hive Metastore and Alluxio, and Presto can access data through Alluxio's filesystem interface.
@@ -34,7 +29,7 @@ covers the specific instructions for working with Iceberg tables.
 Copy the Alluxio client jar located at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` into Presto Iceberg 
 connector's directory located at `${PRESTO_HOME}/plugin/iceberg/`. Then restart the Presto server:
 
-```console
+```shell
 $ ${PRESTO_HOME}/bin/launcher restart
 ```
 
@@ -64,8 +59,8 @@ For demonstration purposes, we will create an example schema and an Iceberg tabl
 
 Launch the Presto CLI client with the following command:
 
-```console
-./presto --server localhost:8080 --catalog iceberg --debug
+```shell
+$ ./presto --server localhost:8080 --catalog iceberg --debug
 ```
 
 For more information on the client, please refer to this section on [querying tables using Presto]
@@ -106,7 +101,7 @@ SELECT * FROM person;
 
 As well as examine the files in Alluxio:
 
-```console
+```shell
 $ bin/alluxio fs ls /person
 drwxr-xr-x  alluxio    alluxio    10    PERSISTED 06-29-2021 16:24:02:007  DIR /person/metadata
 drwxr-xr-x  alluxio    alluxio     1    PERSISTED 06-29-2021 16:24:00:049  DIR /person/data

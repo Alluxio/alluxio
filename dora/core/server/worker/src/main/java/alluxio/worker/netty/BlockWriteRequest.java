@@ -19,6 +19,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * The block write request internal representation.
  */
 @ThreadSafe
+// TODO(jiacheng): This is not removed because it is used by the BlockWriteRequestContext.
+//  It shall be removed together with a refactor on the Dora worker refactor.
 public final class BlockWriteRequest extends WriteRequest {
   /** Which tier this block writes to. */
   private final int mTier;

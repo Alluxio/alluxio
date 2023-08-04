@@ -1,4 +1,11 @@
 <FindBugsFilter>
+
+  <Match>
+    <Or>
+      <Package name="alluxio.concurrent.jsr"/>
+    </Or>
+  </Match>
+
   <Match>
     <!--
 	DC: Possible double check of field

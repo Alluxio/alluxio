@@ -20,9 +20,13 @@ import alluxio.resource.LockResource;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.concurrent.GuardedBy;
@@ -36,6 +40,8 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
   private final ReentrantReadWriteLock mTempFileIdSetLock = new ReentrantReadWriteLock();
   @GuardedBy("mTempFileIdSetLock")
   private final Set<String> mTempFileIdSet = new HashSet<>();
+
+  private final Map<String, List<PageInfo>> mTempFileToPageInfoListMap = new ConcurrentHashMap<>();
 
   private final Path mRootPath;
   private final long mCapacityBytes;
@@ -75,9 +81,12 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
 
   @Override
   public void putTempPage(PageInfo pageInfo) {
+    mTempFileToPageInfoListMap.computeIfAbsent(pageInfo.getPageId().getFileId(),
+        tempFileId -> new ArrayList<>()).add(pageInfo);
     try (LockResource lock = new LockResource(mTempFileIdSetLock.readLock())) {
       mTempFileIdSet.add(pageInfo.getPageId().getFileId());
     }
+    mBytesUsed.addAndGet(pageInfo.getPageSize());
   }
 
   @Override
@@ -88,9 +97,21 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
 
   @Override
   public void deleteTempPage(PageInfo pageInfo) {
-    try (LockResource lock = new LockResource(mTempFileIdSetLock.readLock())) {
-      mTempFileIdSet.remove(pageInfo.getPageId().getFileId());
+    String fileId = pageInfo.getPageId().getFileId();
+    if (mTempFileToPageInfoListMap.containsKey(fileId)) {
+      List<PageInfo> pageInfoList =
+          mTempFileToPageInfoListMap.get(fileId);
+      if (pageInfoList != null && pageInfoList.contains(pageInfo)) {
+        pageInfoList.remove(pageInfo);
+        if (pageInfoList.isEmpty()) {
+          mTempFileToPageInfoListMap.remove(fileId);
+          try (LockResource lock = new LockResource(mTempFileIdSetLock.readLock())) {
+            mTempFileIdSet.remove(fileId);
+          }
+        }
+      }
     }
+    mBytesUsed.addAndGet(-pageInfo.getPageSize());
   }
 
   @Override
@@ -158,6 +179,10 @@ abstract class QuotaManagedPageStoreDir implements PageStoreDir {
       getPageStore().commit(fileId, newFileId);
       mTempFileIdSet.remove(fileId);
       mFileIdSet.add(newFileId);
+
+      mTempFileToPageInfoListMap.get(fileId)
+          .forEach(pageInfo -> mEvictor.updateOnPut(pageInfo.getPageId()));
+      mTempFileToPageInfoListMap.remove(fileId);
     }
   }
 

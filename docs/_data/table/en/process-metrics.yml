@@ -1,4 +1,0 @@
-Process.NettyChannelCount:
-  'Number of instances in the NettyChannelPool.'
-Process.pool.direct.mem.used:
-  'The used direct memory'

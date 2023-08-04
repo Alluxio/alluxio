@@ -98,7 +98,7 @@ import javax.security.auth.Subject;
 public final class MultiProcessCluster {
   public static final int PORTS_PER_MASTER = 3;
   public static final int PORTS_PER_WORKER = 3;
-  private static final int MASTER_START_DELAY_MS = 500; // in ms
+  private static final int MASTER_START_DELAY_MS = 5000; // in ms
 
   private static final Logger LOG = LoggerFactory.getLogger(MultiProcessCluster.class);
   private static final File ARTIFACTS_DIR = new File(Constants.TEST_ARTIFACTS_DIR);
@@ -271,7 +271,6 @@ public final class MultiProcessCluster {
 
     mProperties.put(PropertyKey.DORA_CLIENT_UFS_ROOT,
         PathUtils.concatPath(mWorkDir, "underFSStorage"));
-    mProperties.put(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED, true);
     mProperties.put(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false);
     mProperties.put(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED, true);
 
@@ -738,7 +737,6 @@ public final class MultiProcessCluster {
     conf.put(PropertyKey.DORA_WORKER_METASTORE_ROCKSDB_DIR, workerMetaStoreDir.getAbsolutePath());
 
     conf.put(PropertyKey.DORA_CLIENT_UFS_ROOT, PathUtils.concatPath(mWorkDir, "underFSStorage"));
-    conf.put(PropertyKey.DORA_CLIENT_READ_LOCATION_POLICY_ENABLED, true);
     conf.put(PropertyKey.MASTER_WORKER_REGISTER_LEASE_ENABLED, false);
     conf.put(PropertyKey.USER_NETTY_DATA_TRANSMISSION_ENABLED, true);
 

@@ -1,11 +1,11 @@
 ---
 layout: global
 title: Running Presto with Alluxio
-nickname: Presto
-group: Compute Integrations
-priority: 2
 ---
 
+This guide describes how to configure [Presto](https://prestodb.io/) to access Alluxio.
+
+## Overview
 [Presto](https://prestodb.io/)
 is an open source distributed SQL query engine for running interactive analytic queries
 on data at a large scale.
@@ -16,8 +16,6 @@ accessed data (e.g., tables commonly used) into Alluxio distributed storage.
 Co-locating Alluxio workers with Presto workers improves data locality and reduces the I/O access
 latency when other storage systems are remote or the network is slow or congested.
 
-* Table of Contents
-{:toc}
 
 ## Prerequisites
 
@@ -53,7 +51,7 @@ Put the Alluxio client jar `{{site.ALLUXIO_CLIENT_JAR_PATH}}` into the directory
 (this directory may differ across versions) on all Presto servers. Restart the Presto workers and
 coordinator:
 
-```console
+```shell
 $ ${PRESTO_HOME}/bin/launcher restart
 ```
 
@@ -69,7 +67,7 @@ follow the instructions at [Advanced Setup](#advanced-setup).
 Ensure your Hive Metastore service is running. Hive Metastore listens on port `9083` by
 default. If it is not running, execute the following command to start the metastore:
 
-```console
+```shell
 $ ${HIVE_HOME}/bin/hive --service metastore
 ```
 
@@ -80,14 +78,14 @@ You can download a data file (e.g., `ml-100k.zip`) from
 [http://grouplens.org/datasets/movielens/](http://grouplens.org/datasets/movielens/).
 Unzip this file and upload the file `u.user` into `/ml-100k/` in Alluxio:
 
-```console
+```shell
 $ ./bin/alluxio fs mkdir /ml-100k
 $ ./bin/alluxio fs copyFromLocal /path/to/ml-100k/u.user alluxio:///ml-100k
 ```
 
 Create an external Hive table pointing to the Alluxio file location.
 
-```
+```sql
 hive> CREATE TABLE u_user (
   userid INT,
   age INT,
@@ -110,7 +108,7 @@ that Hive creates:
 Start your Presto server. Presto server runs on port `8080` by default (configurable with
 `http-server.http.port` in `${PRESTO_HOME}/etc/config.properties` ):
 
-```console
+```shell
 $ ${PRESTO_HOME}/bin/launcher run
 ```
 
@@ -124,12 +122,11 @@ directly).
 
 Run a single query (replace `localhost:8080` with your actual Presto server hostname and port):
 
-```console
-$ ./presto --server localhost:8080 --execute "use default; select * from u_user limit 10;" \
-  --catalog hive --debug
+```shell
+$ ./presto --server localhost:8080 --execute "use default; select * from u_user limit 10;" --catalog hive --debug
 ```
 
-And you can see the query results from console:
+And you can see the query results from shell:
 
 ![PrestoQueryResult]({{ '/img/screenshot_presto_query_result.png' | relativize_url }})
 
@@ -146,9 +143,8 @@ To configure additional Alluxio properties, you can append the conf path (i.e.
 to Presto's JVM config at `etc/jvm.config` under Presto folder. The advantage of this approach is to
 have all the Alluxio properties set within the same file of `alluxio-site.properties`.
 
-```bash
-...
--Xbootclasspath/a:<path-to-alluxio-conf>
+```shell
+$ -Xbootclasspath/a:<path-to-alluxio-conf>
 ```
 
 Alternatively, add Alluxio properties to the Hadoop configuration files
@@ -156,7 +152,7 @@ Alternatively, add Alluxio properties to the Hadoop configuration files
 file `${PRESTO_HOME}/etc/catalog/hive.properties` to point to the Hadoop resource locations for
 every Presto worker. 
 
-```
+```properties
 hive.config.resources=/<PATH_TO_CONF>/core-site.xml,/<PATH_TO_CONF>/hdfs-site.xml
 ```
 
@@ -183,7 +179,7 @@ which is contained by `hive.config.resources`.
 ```
 
 For information about how to connect to Alluxio HA cluster using Zookeeper-based leader election,
-please refer to [HA mode client configuration parameters]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}#specify-alluxio-service-in-configuration-parameters).
+please refer to [HA mode client configuration parameters]({{ '/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }}#specify-alluxio-service-in-configuration-parameters-or-java-options).
 
 #### Example: change default Alluxio write type
 

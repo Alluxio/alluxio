@@ -14,6 +14,7 @@ package alluxio.master.job;
 import alluxio.job.CopyJobRequest;
 import alluxio.job.JobRequest;
 import alluxio.job.LoadJobRequest;
+import alluxio.job.MoveJobRequest;
 import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.proto.journal.Journal;
 import alluxio.scheduler.job.JobFactory;
@@ -36,6 +37,9 @@ public class JobFactoryProducer {
     }
     if (request instanceof CopyJobRequest) {
       return new CopyJobFactory((CopyJobRequest) request, fsMaster);
+    }
+    if (request instanceof MoveJobRequest) {
+      return new MoveJobFactory((MoveJobRequest) request, fsMaster);
     }
     throw new IllegalArgumentException("Unknown job type: " + request.getType());
   }

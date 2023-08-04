@@ -62,8 +62,6 @@ public final class Format {
     Path path = Paths.get(folder);
     FileUtils.deletePathRecursively(folder);
     Files.createDirectory(path);
-    // For short-circuit read/write to work, others needs to be able to access this directory.
-    // Therefore, default is 777 but if the user specifies the permissions, respect those instead.
     String permissions = Configuration.getString(PropertyKey.WORKER_DATA_FOLDER_PERMISSIONS);
     Set<PosixFilePermission> perms = PosixFilePermissions.fromString(permissions);
     Files.setPosixFilePermissions(path, perms);

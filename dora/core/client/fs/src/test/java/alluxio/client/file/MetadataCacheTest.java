@@ -19,15 +19,10 @@ import alluxio.AlluxioURI;
 import alluxio.wire.FileInfo;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Arrays;
 import java.util.List;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({BaseFileSystem.class})
 public class MetadataCacheTest {
   private static final AlluxioURI FILE = new AlluxioURI("/file");
   private static final URIStatus FILE_STATUS =

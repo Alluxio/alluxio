@@ -1,19 +1,14 @@
 ---
 layout: global
 title: Journal Management
-nickname: Journal Management
-group: Operations
-priority: 5
 ---
 
-* Table of Contents
-{:toc}
 
 Alluxio keeps the history of all metadata related changes, such as creating files or renaming directories,
 in edit logs referred to as "journal".
 Upon startup, the Alluxio master will replay all the steps recorded in the journal to recover its last saved state.
 Also when the leading master falls back to a different master for
-[high availability (HA)]({{ '/en/deploy/Running-Alluxio-On-a-HA-Cluster.html' | relativize_url }}) mode,
+[high availability (HA)]({{ '/en/deploy/Install-Alluxio-Cluster-with-HA.html' | relativize_url }}) mode,
 the new leading master also replays the journal to recover the last state of the leading master.
 The purpose of this documentation is to help Alluxio administrators understand and manage the Alluxio journal.
 
@@ -26,8 +21,8 @@ based on a self-managed consensus protocol;
 whereas UFS journal stores edit logs in an external shared UFS storage,
 and relies on an external Zookeeper for coordination for HA mode.
 Starting from 2.2, the default journal type is `EMBEDDED`.
-This can be changed by setting the property "`alluxio.master.journal.type`" to "`UFS`"
-instead of "`EMBEDDED`".
+This can be changed by setting the property `alluxio.master.journal.type` to `UFS`
+instead of `EMBEDDED`.
 
 To choose between the default Embedded Journal and UFS journal,
 here are some aspects to consider:
@@ -58,14 +53,14 @@ such as HDFS or NFS. In contrast, S3 is not recommended for the UFS journal.
 
 The following configuration must be configured to a local path on the masters. The default
 value is local directory `${alluxio.work.dir}/journal`.
-```
+```properties
 alluxio.master.journal.folder=/local/path/to/store/journal/files/
 ```
 
 Set the addresses of all masters in the cluster. The default embedded journal port is `19200`.
 This must be set on all Alluxio servers, as well as Alluxio clients.
 
-```
+```properties
 alluxio.master.embedded.journal.addresses=master_hostname_1:19200,master_hostname_2:19200,master_hostname_3:19200
 ```
 
@@ -77,20 +72,6 @@ alluxio.master.embedded.journal.addresses=master_hostname_1:19200,master_hostnam
 when using multiple masters without Zookeeper. This property is not used when Zookeeper is enabled, since Zookeeper already stores the master addresses.
 If this is not set, clients will look for masters using the hostnames from `alluxio.master.embedded.journal.addresses`
 and the master rpc port (Default:`19998`).
-
-### Advanced configuration
-
-<ul>
-{% for item in site.data.table.master-configuration %}
-    {% capture journal_properties %}{{ 'alluxio.master.embedded.journal.' }}{% endcapture %} 
-    {% assign journal_prop_size = journal_properties | size %}
-    {% assign result = item.propertyName | slice: 0, journal_prop_size %}
-    
-    {% if result == journal_properties %}
-        <li><code>{{ item.propertyName }}</code>: {{ site.data.table.en.master-configuration[item.propertyName] }} Default: <code>{{ item.defaultValue }}</code></li>
-    {% endif %}
-{% endfor %}
-</ul>
 
 ### Configuring the Job service
 
@@ -126,13 +107,13 @@ UFS journal options can be configured using the configuration prefix:
 **Configuration examples:**
 
 Use HDFS to store the journal:
-```
+```properties
 alluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/alluxio_journal
 alluxio.master.journal.ufs.option.alluxio.underfs.version=2.6
 ```
 
 Use the local file system to store the journal:
-```
+```properties
 alluxio.master.journal.folder=/opt/alluxio/journal
 ```
 
@@ -144,7 +125,7 @@ Before starting Alluxio for the first time, the journal must be formatted.
 **Warning**: the following command permanently deletes all Alluxio metadata,
 so be careful with this command or backup your journal first (see next section).
 
-```console
+```shell
 $ ./bin/alluxio formatMasters
 ```
 
@@ -158,7 +139,7 @@ unavailability while the leading master is taking the backup.
 (See [Backup delegation on HA cluster](#backup-delegation-on-ha-cluster) section for overcoming this limitation.)
 
 To generate a backup, use the `fsadmin backup` CLI command.
-```console
+```shell
 $ ./bin/alluxio fsadmin backup
 ```
 
@@ -167,12 +148,9 @@ By default, this will write a backup named
 the root under storage system, e.g. `hdfs://cluster/alluxio_backups`. This default
 backup directory can be configured by setting `alluxio.master.backup.directory`
 
-```
+```properties
 alluxio.master.backup.directory=/alluxio/backups
 ```
-
-See the [backup command documentation]({{ '/en/operation/Admin-CLI.html' | relativize_url }}#backup)
-for additional backup options.
 
 ### Automatically backing up the journal
 
@@ -180,7 +158,7 @@ Alluxio supports automatically taking leading master metadata snapshots every da
 so that Alluxio metadata can be restored to at most one day before.
 This functionality is enabled by setting the following property in `${ALLUXIO_HOME}/conf/alluxio-site.properties`:
 
-```
+```properties
 alluxio.master.daily.backup.enabled=true
 ```
 
@@ -191,7 +169,7 @@ We recommend setting the backup time to an off-peak time to avoid interfering wi
 
 In the daily backup, the backup directory needs to be an absolute path within the root UFS.
 For example, if `alluxio.master.backup.directory=/alluxio_backups`
-and `alluxio.master.mount.table.root.ufs=hdfs://192.168.1.1:9000/alluxio/underfs`,
+and `alluxio.dora.client.ufs.root=hdfs://192.168.1.1:9000/alluxio/underfs`,
 the default backup directory would be `hdfs://192.168.1.1:9000/alluxio_backups`.
 
 The files to retain in the backup directory is limited by `alluxio.master.daily.backup.files.retained`.
@@ -231,7 +209,7 @@ To restore the Alluxio system from a journal backup, stop the system, format the
 journal, then restart the system, passing the URI of the backup with the `-i`
 (import) flag.
 
-```console
+```shell
 $ ./bin/alluxio-stop.sh masters
 $ ./bin/alluxio formatMasters
 $ ./bin/alluxio-start.sh -i <backup_uri> masters
@@ -287,7 +265,7 @@ Please note `-domain` parameter in below commands. This is because embedded jour
 for both regular masters and job service masters. You should supply correct value based on which cluster you intend to work on.
 
 1. Check current quorum state:
-```console
+```shell
 $ ./bin/alluxio fsadmin journal quorum info -domain <MASTER | JOB_MASTER>
 ```
 This will print out node status for all currently participating members of the embedded journal cluster. You should verify
@@ -295,7 +273,7 @@ that the removed master is shown as `UNAVAILABLE`.
 
 2. Remove member from the quorum:
 `-address` option below should reflect the exact address that is returned by the `.. quorum info` command provided above.
-```console
+```shell
 $ ./bin/alluxio fsadmin journal quorum remove -domain <MASTER | JOB_MASTER> -address <HOSTNAME:PORT>
 ```
 
@@ -305,14 +283,14 @@ $ ./bin/alluxio fsadmin journal quorum remove -domain <MASTER | JOB_MASTER> -add
 To aid in debugging and to add flexibility, it is possible to manually change the leader of an embedded journal cluster.
 
 1. Check current quorum state:
-```console
+```shell
 $ ./bin/alluxio fsadmin journal quorum info -domain MASTER
 ```
 This will print out node status for all currently participating members of the embedded journal cluster. You should select one 
 of the `AVAILABLE` masters. The current leader is also displayed by this command. 
 
 2. Elect an available master as leader:
-```console
+```shell
 $ ./bin/alluxio fsadmin journal quorum elect -address <HOSTNAME:PORT>
 ```
 The `elect` command makes sure that the leadership has transferred to the designated master before returning and displaying
@@ -358,19 +336,6 @@ make the checkpointing a few times faster(depending how many threads are used).
 `alluxio.master.metastore.rocks.parallel.backup.compression.level` specifies the compression level, 
 where smaller means bigger file and less CPU consumption, and larger means smaller file and more CPU consumption. 
 
-#### Checkpointing on secondary master
-
-If HA mode is not an option, it is possible to run a master on the same node as a
-dedicated standby master. This second master exists only to write checkpoints, and
-will not serve client requests if the leading master dies. In this setup, both
-masters have similar memory requirements since they both need to hold all Alluxio
-metadata in memory. To start a dedicated standby master for writing periodic checkpoints,
-run
-
-```console
-$ ./bin/alluxio-start.sh secondary_master
-```
-
 #### Checkpointing on the leading master
 
 Checkpointing requires a pause in master metadata changes and causes temporary service
@@ -387,7 +352,7 @@ No need to manually transfer leadership anymore.
 
 If HA mode is not an option, the following command can be used to manually trigger the checkpoint:
 
-```console
+```shell
 $ ./bin/alluxio fsadmin journal checkpoint
 ```
 
@@ -408,18 +373,6 @@ By default, if a master encounters corruption when replaying a journal it will a
 take a backup of the state up to the corrupted entry in the configured backup directory. The master will notice the
 corruption when elected leader. The backup directory is configured by `alluxio.master.backup.directory`.
 This feature can be disabled by setting `alluxio.master.journal.backup.when.corrupted` to `false`.
-
-### Get a human-readable journal
-
-Alluxio journal is serialized and not human-readable. The following command
-read the Alluxio journal and write it to a directory in a human-readable format.
-
-```console
-$ ./bin/alluxio readJournal
-```
-
-See [here]({{ '/en/operation/User-CLI.html' | relativize_url }}#readjournal) for more detailed usage.
-
 
 ### Exiting upon Demotion
 

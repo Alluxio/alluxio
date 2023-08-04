@@ -402,6 +402,8 @@ message FileInfo {
   optional int64 lastAccessTimeMs = 31;
   map<string, bytes> xattr = 32;
   repeated string mediumType = 33;
+  optional string contentHash = 34;
+  optional string ufsType = 35;
 }
 
 message GetFilePathPResponse {
@@ -637,6 +639,15 @@ message LoadJobPOptions {
 }
 
 message CopyJobPOptions {
+  optional int64 bandwidth = 1;
+  optional bool verify = 2;
+  optional bool partialListing = 3;
+  optional bool overwrite = 4;
+  optional WritePType writeType = 5;
+  optional bool check_content = 6;
+}
+
+message MoveJobPOptions {
   optional int64 bandwidth = 1;
   optional bool verify = 2;
   optional bool partialListing = 3;
@@ -907,6 +918,11 @@ service FileSystemMasterWorkerService {
    * Returns the UFS information for the given mount point identified by its id.
    **/
   rpc GetUfsInfo(GetUfsInfoPRequest) returns (GetUfsInfoPResponse);
+
+  /**
+   * Reverse resolve a ufs path and get mount id.
+   */
+  rpc GetMountId(GetMountIdPRequest) returns (GetMountIdPResponse);
 }
 
 /**

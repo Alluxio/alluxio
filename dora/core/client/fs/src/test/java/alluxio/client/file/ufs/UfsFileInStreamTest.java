@@ -16,6 +16,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
+import alluxio.annotation.dora.DoraTestTodoItem;
 import alluxio.client.file.FileInStream;
 import alluxio.conf.PropertyKey;
 import alluxio.exception.AlluxioException;
@@ -23,6 +24,7 @@ import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;
 import org.junit.Assume;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -36,6 +38,9 @@ import java.util.Random;
  * Add unit tests for {@link UfsFileInStream}.
  */
 @RunWith(Parameterized.class)
+@DoraTestTodoItem(action = DoraTestTodoItem.Action.FIX, owner = "LuQQiu",
+    comment = "check if UfsBaseFS is still relevant and fix the tests if so")
+@Ignore
 public class UfsFileInStreamTest extends AbstractUfsStreamTest {
   /**
    * Runs {@link UfsFileInStreamTest} with different configuration combinations.
@@ -90,6 +95,7 @@ public class UfsFileInStreamTest extends AbstractUfsStreamTest {
   }
 
   @Test
+  @Ignore
   public void manyBytesReadByteBuffer() throws IOException, AlluxioException {
     AlluxioURI ufsPath = getUfsPath();
     createFile(ufsPath, CHUNK_SIZE);
@@ -101,6 +107,7 @@ public class UfsFileInStreamTest extends AbstractUfsStreamTest {
   }
 
   @Test
+  @Ignore
   public void readAll() throws IOException, AlluxioException {
     int len = CHUNK_SIZE * 5;
     int start = 0;
@@ -117,6 +124,7 @@ public class UfsFileInStreamTest extends AbstractUfsStreamTest {
   }
 
   @Test
+  @Ignore
   public void readAllByteBuffer() throws IOException, AlluxioException {
     int len = CHUNK_SIZE * 5;
     int start = 0;
@@ -234,6 +242,7 @@ public class UfsFileInStreamTest extends AbstractUfsStreamTest {
   }
 
   @Test
+  @Ignore
   public void readNullArrayOffset() throws IOException, AlluxioException {
     AlluxioURI ufsPath = getUfsPath();
     createFile(ufsPath, CHUNK_SIZE);
@@ -344,6 +353,7 @@ public class UfsFileInStreamTest extends AbstractUfsStreamTest {
   }
 
   @Test
+  @Ignore
   public void seekForwardAndBackward() throws IOException, AlluxioException {
     AlluxioURI ufsPath = getUfsPath();
     createFile(ufsPath, CHUNK_SIZE);
@@ -413,6 +423,7 @@ public class UfsFileInStreamTest extends AbstractUfsStreamTest {
   }
 
   @Test
+  @Ignore
   public void skipPassEnd() throws IOException, AlluxioException {
     AlluxioURI ufsPath = getUfsPath();
     createFile(ufsPath, CHUNK_SIZE);

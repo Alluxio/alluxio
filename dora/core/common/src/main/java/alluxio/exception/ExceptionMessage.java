@@ -114,6 +114,8 @@ public enum ExceptionMessage {
   CANNOT_OVERWRITE_DIRECTORY("{0} already exists. Directories cannot be overwritten with create"),
   CANNOT_OVERWRITE_FILE_WITHOUT_OVERWRITE("{0} already exists. If you want to overwrite the file,"
       + " you need to specify the overwrite option."),
+  CANNOT_COPY_TO_NOT_EXIST_DIRECTORY("{0} is a directory and should be created first."),
+  FILE_TYPE_NOT_MATCH("{0} exists but it's not a directory."),
 
   // block master
   NO_WORKER_FOUND("No worker with workerId {0,number,#} is found"),
@@ -211,6 +213,16 @@ public enum ExceptionMessage {
 
   // ufs maintenance
   UFS_OP_NOT_ALLOWED("Operation {0} not allowed on ufs path {1} under maintenance mode {2}"),
+
+  // RocksDB
+  ROCKS_DB_CLOSING("RocksDB is being closed because the master is under one of the following "
+      + "events: primary failover/shut down/checkpoint/journal replay"),
+  ROCKS_DB_REWRITTEN("RocksDB has been rewritten. Typically this is because the master is "
+      + "restored to a checkpoint."),
+  ROCKS_DB_EXCLUSIVE_LOCK_FORCED("RocksDB exclusive lock is forced with {0} ongoing "
+      + "r/w operations. There is a risk to crash!"),
+  ROCKS_DB_REF_COUNT_DIRTY("Some read/write operations did not respect the exclusive lock on "
+      + "the RocksStore and messed up the ref count! Current ref count is {0}."),
 
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;

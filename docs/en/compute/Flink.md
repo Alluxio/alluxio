@@ -1,13 +1,8 @@
 ---
 layout: global
 title: Running Apache Flink on Alluxio
-nickname: Apache Flink
-group: Compute Integrations
-priority: 2
 ---
 
-* Table of Contents
-{:toc}
 
 This guide describes how to get Alluxio running with [Apache Flink](http://flink.apache.org/), so
 that you can easily work with files stored in Alluxio.
@@ -59,8 +54,6 @@ the directory usually ends with `etc/hadoop`.)
 In order to communicate with Alluxio, we need to provide Flink programs with the Alluxio Core Client
 jar. We recommend you to download the tarball from
 Alluxio [download page](https://www.alluxio.io/download/).
-Alternatively, advanced users can choose to compile this client jar from the source code
-by following the instructions [here]({{ '/en/contributor/Building-Alluxio-From-Source.html' | relativize_url }}).
 The Alluxio client jar can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
 
 We need to make the Alluxio `jar` file available to Flink, because it contains the configured
@@ -74,7 +67,7 @@ standalone cluster setups)
 - Specify the location of the jar file in the `HADOOP_CLASSPATH` environment variable (make sure its
 available on all cluster nodes as well). For example like this:
 
-```console
+```shell
 $ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
 
@@ -103,13 +96,13 @@ This example assumes you have set up Alluxio and Flink as previously described.
 
 Put the file `LICENSE` into Alluxio, assuming you are in the top level Alluxio project directory:
 
-```console
+```shell
 $ bin/alluxio fs copyFromLocal LICENSE alluxio://localhost:19998/LICENSE
 ```
 
 Run the following command from the top level Flink project directory:
 
-```console
+```shell
 $ bin/flink run examples/batch/WordCount.jar \
   --input alluxio://localhost:19998/LICENSE \
   --output alluxio://localhost:19998/output

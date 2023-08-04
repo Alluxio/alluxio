@@ -1,6 +1,0 @@
-metricName,metricType
-Proxy.AuditLogEntriesSize,GAUGE
-Proxy.CheckUploadIDStatusLatency,TIMER
-Proxy.CleanupMultipartUploadLatency,TIMER
-Proxy.CleanupTempMultipartUploadObjectLatency,TIMER
-Proxy.CompleteMPUploadMergeLatency,TIMER

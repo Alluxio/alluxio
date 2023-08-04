@@ -1,9 +1,6 @@
 ---
 layout: global
 title: Java API
-nickname: Java API
-group: Client APIs
-priority: 0
 ---
 
 Applications primarily interact with Alluxio through its File System API. Java users
@@ -16,7 +13,7 @@ Another common option is through Alluxio
 Users can interact with Alluxio using the same S3 clients used for AWS S3 operations. 
 This makes it easy to change existing S3 workloads to use Alluxio.
 
-Alluxio also provides a [POSIX API]({{ '/en/fuse-sdk/Overview.html' | relativize_url }}) after mounting
+Alluxio also provides a [POSIX API]({{ '/en/fuse-sdk/FUSE-SDK-Overview.html' | relativize_url }}) after mounting
 Alluxio as a local FUSE volume. Right now Alluxio POSIX API mainly targets the ML/AI workloads (especially read heavy workloads).
 
 By setting up an Alluxio Proxy, users can also interact with Alluxio through 
@@ -24,9 +21,6 @@ By setting up an Alluxio Proxy, users can also interact with Alluxio through
 [S3 API]({{ '/en/api/S3-API.html' | relativize_url }}) doesn't support. 
 This is mainly for admin actions not supported by S3 API. For example, mount and unmount operations.
 The REST API is currently used for the Go and Python language bindings.
-
-* Table of Contents
-{:toc}
 
 ## Java Client
 
