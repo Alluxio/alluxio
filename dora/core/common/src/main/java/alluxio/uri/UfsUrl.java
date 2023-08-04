@@ -50,8 +50,7 @@ public class UfsUrl {
     String[] rootDirArray = rootDir.split(SCHEME_SEPARATOR);
     // If ufsPath is not equal to rootDir.
     if (!ufsPath.equals(rootDir)) {
-      Preconditions.checkArgument(rootDirArray.length <= 2, "Invalid Alluxio rootDir, "
-          + "please check alluxio configuration first.");
+      Preconditions.checkArgument(rootDirArray.length <= 2 || rootDirArray.length == 0, "Invalid alluxio.dora.client.ufs.root value %s", rootDir);
       // rootDir is like "/tmp"
       if (rootDirArray.length == 1) {
         rootScheme = "file";
