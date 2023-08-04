@@ -68,7 +68,7 @@ func (p *ProxiesProcess) Start(cmd *env.StartProcessCommand) error {
 	}
 
 	// generate command
-	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "cli.sh")
+	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "alluxio")
 	arguments := "process start proxy"
 	if cmd.AsyncStart {
 		arguments = arguments + " -a"
@@ -124,8 +124,11 @@ func (p *ProxiesProcess) Stop(cmd *env.StopProcessCommand) error {
 	}
 
 	// generate command
-	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "cli.sh")
+	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "alluxio")
 	arguments := "process stop proxy"
+	if cmd.SoftKill {
+		arguments = arguments + " -s"
+	}
 	command := cliPath + " " + arguments
 
 	// for each node, create a client

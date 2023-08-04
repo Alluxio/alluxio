@@ -63,7 +63,7 @@ func (p *WorkersProcess) Start(cmd *env.StartProcessCommand) error {
 	}
 
 	// generate command
-	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "cli.sh")
+	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "alluxio")
 	arguments := "process start worker"
 	if cmd.AsyncStart {
 		arguments = arguments + " -a"
@@ -114,8 +114,11 @@ func (p *WorkersProcess) Stop(cmd *env.StopProcessCommand) error {
 	}
 
 	// generate command
-	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "cli.sh")
+	cliPath := path.Join(env.Env.EnvVar.GetString(env.ConfAlluxioHome.EnvVar), "bin", "alluxio")
 	arguments := "process stop worker"
+	if cmd.SoftKill {
+		arguments = arguments + " -s"
+	}
 	command := cliPath + " " + arguments
 
 	// for each worker, create a client and run
