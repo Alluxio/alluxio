@@ -189,8 +189,4 @@ public final class RestUtils {
 
   private RestUtils() {
   } // prevent instantiation
-
-  private void testLucy() {
-
-  }
 }
