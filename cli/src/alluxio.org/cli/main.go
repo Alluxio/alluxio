@@ -12,7 +12,12 @@
 package main
 
 import (
+	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/spf13/viper"
 
 	"alluxio.org/cli/cmd/conf"
 	"alluxio.org/cli/cmd/exec"
@@ -51,7 +56,28 @@ func main() {
 		env.RegisterService(c)
 	}
 
-	if err := launch.Run(); err != nil {
+	// isDeployed bool -> env var key -> relative path from root with version placeholder
+	jarEnvVars := map[bool]map[string]string{
+		false: {
+			env.EnvAlluxioAssemblyClientJar: filepath.Join("assembly", "client", "target", "alluxio-assembly-client-%v-jar-with-dependencies.jar"),
+			env.EnvAlluxioAssemblyServerJar: filepath.Join("assembly", "server", "target", "alluxio-assembly-server-%v-jar-with-dependencies.jar"),
+		},
+		true: {
+			env.EnvAlluxioAssemblyClientJar: filepath.Join("assembly", "alluxio-client-%v.jar"),
+			env.EnvAlluxioAssemblyServerJar: filepath.Join("assembly", "alluxio-server-%v.jar"),
+		},
+	}
+	appendClasspathJars := map[string]func(*viper.Viper, string) string{
+		env.EnvAlluxioClientClasspath: func(envVar *viper.Viper, ver string) string {
+			return strings.Join([]string{
+				envVar.GetString(env.EnvAlluxioClientClasspath),
+				filepath.Join(envVar.GetString(env.ConfAlluxioHome.EnvVar), "lib", fmt.Sprintf("alluxio-integration-tools-validation-%v.jar", ver)),
+			}, ":")
+
+		},
+	}
+
+	if err := launch.Run(jarEnvVars, appendClasspathJars); err != nil {
 		os.Exit(1)
 	}
 }
