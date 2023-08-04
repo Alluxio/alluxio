@@ -110,7 +110,7 @@ Haoning Sun ([Haoning-Sun](https://github.com/Haoning-Sun){:target="_blank"}),
 [JunLuo](https://github.com/JunLuo){:target="_blank"}, 
 Richard ([Sucran](https://github.com/Sucran){:target="_blank"}), 
 XiChen ([xichen01](https://github.com/xichen01){:target="_blank"}), 
-[l-shen](https://github.com/l-shen), 
+l-shen ([ljl1988com](https://github.com/ljl1988com){:target="_blank"}), 
 Lei Qian ([qian0817](https://github.com/qian0817){:target="_blank"}), and
 Xu Weize ([xwzbupt](https://github.com/xwzbupt){:target="_blank"})
 
