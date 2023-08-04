@@ -87,11 +87,11 @@ func (p *ProxiesProcess) Start(cmd *env.StartProcessCommand) error {
 			errors = append(errors, err)
 			continue
 		}
-		err = runCommand(conn, command)
+		err = runCommand(node, conn, command)
 		if err != nil {
 			errors = append(errors, err)
 		}
-		err = closeConnection(conn)
+		err = closeConnection(node, conn)
 		if err != nil {
 			errors = append(errors, err)
 		}
@@ -140,11 +140,11 @@ func (p *ProxiesProcess) Stop(cmd *env.StopProcessCommand) error {
 			errors = append(errors, err)
 			continue
 		}
-		err = runCommand(conn, command)
+		err = runCommand(node, conn, command)
 		if err != nil {
 			errors = append(errors, err)
 		}
-		err = closeConnection(conn)
+		err = closeConnection(node, conn)
 		if err != nil {
 			errors = append(errors, err)
 		}

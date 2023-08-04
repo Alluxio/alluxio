@@ -20,9 +20,10 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/crypto/ssh"
+
 	"alluxio.org/cli/env"
 	"alluxio.org/log"
-	"golang.org/x/crypto/ssh"
 )
 
 func getMasters() ([]string, error) {
@@ -131,21 +132,21 @@ func dialConnection(remoteAddress string, key ssh.Signer) (*ssh.Client, error) {
 	return conn, err
 }
 
-func closeConnection(conn *ssh.Client) error {
+func closeConnection(remoteAddress string, conn *ssh.Client) error {
 	err := conn.Close()
 	if err != nil {
-		log.Logger.Infof("Connection to %s closed. Error: %s", conn.RemoteAddr(), err)
+		log.Logger.Infof("Connection to %s closed. Error: %s", remoteAddress, err)
 	} else {
-		log.Logger.Infof("Connection to %s closed.", conn.RemoteAddr())
+		log.Logger.Infof("Connection to %s closed.", remoteAddress)
 	}
 	return err
 }
 
-func runCommand(conn *ssh.Client, command string) error {
+func runCommand(remoteAddress string, conn *ssh.Client, command string) error {
 	// create a session for each worker
 	session, err := conn.NewSession()
 	if err != nil {
-		log.Logger.Errorf("Cannot create session at %s", conn.RemoteAddr())
+		log.Logger.Errorf("Cannot create session at %s", remoteAddress)
 		return err
 	}
 
@@ -155,17 +156,17 @@ func runCommand(conn *ssh.Client, command string) error {
 	// run session
 	err = session.Run(command)
 	if err != nil {
-		log.Logger.Errorf("Run command %s failed at %s", command, conn.RemoteAddr())
+		log.Logger.Errorf("Run command %s failed at %s", command, remoteAddress)
 		return err
 	}
 
 	// close session
 	err = session.Close()
 	if err != nil && err != io.EOF {
-		log.Logger.Infof("Session at %s closed. Error: %s", conn.RemoteAddr(), err)
+		log.Logger.Infof("Session at %s closed. Error: %s", remoteAddress, err)
 		return err
 	} else {
-		log.Logger.Infof("Session at %s closed.", conn.RemoteAddr())
+		log.Logger.Infof("Session at %s closed.", remoteAddress)
 	}
 	return nil
 }

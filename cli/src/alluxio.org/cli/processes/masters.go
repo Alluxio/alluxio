@@ -82,11 +82,11 @@ func (p *MastersProcess) Start(cmd *env.StartProcessCommand) error {
 			errors = append(errors, err)
 			continue
 		}
-		err = runCommand(conn, command)
+		err = runCommand(master, conn, command)
 		if err != nil {
 			errors = append(errors, err)
 		}
-		err = closeConnection(conn)
+		err = closeConnection(master, conn)
 		if err != nil {
 			errors = append(errors, err)
 		}
@@ -130,11 +130,11 @@ func (p *MastersProcess) Stop(cmd *env.StopProcessCommand) error {
 			errors = append(errors, err)
 			continue
 		}
-		err = runCommand(conn, command)
+		err = runCommand(master, conn, command)
 		if err != nil {
 			errors = append(errors, err)
 		}
-		err = closeConnection(conn)
+		err = closeConnection(master, conn)
 		if err != nil {
 			errors = append(errors, err)
 		}
