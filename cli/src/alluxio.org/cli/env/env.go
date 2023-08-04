@@ -248,7 +248,6 @@ func checkJavaVersion(javaPath string) error {
 	if len(matches) != 2 {
 		return stacktrace.NewError("java version output does not match expected regex pattern %v\n%v", javaVersionRe.String(), string(javaVer))
 	}
-	fmt.Println(matches[1])
 	if !requiredVersionRegex.MatchString(matches[1]) {
 		return stacktrace.NewError("Error: Alluxio requires Java 1.8 or 11.0, currently Java %v found.", matches[1])
 	}
